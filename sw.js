@@ -1,6 +1,6 @@
 // Sparar appens filer så att den startar snabbt och fungerar utan nät.
 // Hushållets data hämtas alltid från kalkylarket.
-const VERSION = 'ht-v1';
+const VERSION = 'ht-v2';
 const SHELL = ['./', './index.html', './app.js', './config.js', './manifest.webmanifest', './icons/icon-192.png', './icons/apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
