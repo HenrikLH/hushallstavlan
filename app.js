@@ -302,12 +302,23 @@ V.uppgifter=function(){
 function taskRow(x){const t=today(),late=isDate(x.due)&&x.due<t&&!x.done;
  return'<div class="row'+(x.done?' done':'')+'"><input type="checkbox" class="check" data-act="taskToggle" data-id="'+esc(x.id)+'" aria-label="'+esc(x.title)+'"'+(x.done?' checked':'')+'><div class="grow"><div class="title">'+esc(x.title)+'</div><div class="meta">'+(x.due?'<span'+(late?' style="color:var(--danger);font-weight:700"':'')+'>'+esc(x.due===t?'Idag':dateShort(x.due))+'</span>':'')+(x.who?'<span class="chip'+(x.who==='Henrik'?' h':'')+'">'+esc(x.who)+'</span>':'')+(x.note?'<span>'+esc(x.note)+'</span>':'')+'</div></div></div>'}
 
+/* Reglage för dagens ork: tre fasta lägen */
+const ORK=[{min:10,name:'Lite ork'},{min:20,name:'Normal ork'},{min:40,name:'Mycket ork'}];
+const orkIndex=B=>{let best=0;ORK.forEach((o,i)=>{if(Math.abs(o.min-B)<Math.abs(ORK[best].min-B))best=i});return best};
+function orkSlider(B){const i=orkIndex(B),o=ORK[i];
+ return'<section class="card ork"><div class="card-head"><h2>Hur mycket tid har ni idag?</h2><span class="ork-now" id="ork-now"><b>'+o.name+'</b> · '+o.min+' min</span></div>'+
+ '<div class="ork-track" style="--pos:'+(i*50)+'%"><input type="range" id="ork" min="0" max="2" step="1" value="'+i+'" data-change="ork" aria-label="Tid för städning idag" aria-valuetext="'+o.name+', '+o.min+' minuter"></div>'+
+ '<div class="ork-labels" aria-hidden="true">'+ORK.map((x,k)=>'<button type="button" tabindex="-1" data-act="orkPick" data-id="'+k+'" class="'+(k===i?'on':'')+'"><b>'+x.name+'</b><span>'+x.min+' min</span></button>').join('')+'</div>'+
+ '<div class="small muted">Gäller bara idag. I morgon börjar det om på '+tomorrowDefault()+' min.</div></section>'}
+function tomorrowDefault(){const wd=parse(addDays(today(),1)).getDay(),st=settings();return(wd===0||wd===6)?Number(st.stadtid_helg||40):Number(st.stadtid_vardag||20)}
+function orkPreview(el){const i=Number(el.value),o=ORK[i];el.parentNode.style.setProperty('--pos',(i*50)+'%');el.setAttribute('aria-valuetext',o.name+', '+o.min+' minuter');
+ const n=document.getElementById('ork-now');if(n)n.innerHTML='<b>'+o.name+'</b> · '+o.min+' min';
+ document.querySelectorAll('.ork-labels button').forEach((b,k)=>b.classList.toggle('on',k===i))}
 V.stad=function(){
  const cp=cleanPlan(),all=D().clean;
- const opts=[[10,'Lite ork · 10 min'],[20,'Normal · 20 min'],[40,'Gott om tid · 40 min']];
  let h=topbar('Städschema','Lite varje dag, så slipper ni storstäda');
  if(!all.length)return h+'<div class="card empty">Städschemat är tomt.</div>';
- h+='<section class="card"><div class="card-head"><h2>Hur mycket tid har ni idag?</h2></div><div class="seg wrap" role="group" aria-label="Tid idag">'+opts.map(([m,l])=>'<button data-act="budget" data-id="'+m+'" aria-pressed="'+(cp.B===m)+'">'+l+'</button>').join('')+'</div></section>';
+ h+=orkSlider(cp.B);
  h+='<div class="split"><div style="display:flex;flex-direction:column;gap:14px">';
  const rLeft=cp.routines.filter(t=>!doneToday(t)).length;
  h+='<section class="card"><div class="card-head"><h2>Dagliga rutiner</h2><span class="muted small num">'+(cp.routines.length-rLeft)+' av '+cp.routines.length+'</span></div><div class="list">'+cp.routines.map(x=>cleanRow(x)).join('')+'</div></section>';
@@ -393,12 +404,15 @@ const ACT={
  planToday(id){mutate('clean',id,{plannedFor:today(),snoozeUntil:''});apiPost({action:'cleanSet',id,fields:{plannedFor:today(),snoozeUntil:''}})},
  planSat(id){const d=nextSaturday();mutate('clean',id,{plannedFor:d});apiPost({action:'cleanSet',id,fields:{plannedFor:d}});toast('Inplanerad '+dateShort(d))},
  unplan(id){mutate('clean',id,{plannedFor:''});apiPost({action:'cleanSet',id,fields:{plannedFor:''}})},
+ orkPick(id){const el=document.getElementById('ork');if(el){el.value=id;orkPreview(el)}ACT.budget(String(ORK[Number(id)].min))},
  budget(id){const v=today()+'|'+id;S.data.settings.stadtid_idag=v;render();apiPost({action:'setting',k:'stadtid_idag',v})}
 };
 document.addEventListener('click',e=>{const el=e.target.closest('[data-act]');if(!el)return;const a=el.dataset.act;if(!ACT[a])return;
  if(el.tagName==='INPUT'&&el.type==='checkbox')e.preventDefault();
  ACT[a](el.dataset.id,el,e)});
+document.addEventListener('input',e=>{if(e.target.id==='ork')orkPreview(e.target)});
 document.addEventListener('change',e=>{const el=e.target.closest('[data-change]');if(!el)return;const id=el.dataset.id;
+ if(el.dataset.change==='ork'){el.blur();ACT.budget(String(ORK[Number(el.value)].min));return}
  const f=el.dataset.change==='freq'?{freq:Number(el.value)}:{who:el.value};mutate('clean',id,f);apiPost({action:'cleanSet',id,fields:f})});
 document.addEventListener('submit',async e=>{const f=e.target.closest('[data-form]');if(!f)return;e.preventDefault();const d=Object.fromEntries(new FormData(f));
  if(f.dataset.form==='setup'){S.key=String(d.key||'').trim().toLowerCase();S.error='';S.sync='busy';render();
