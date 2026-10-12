@@ -13,7 +13,7 @@ const addDays=(s,n)=>{const d=parse(s);d.setDate(d.getDate()+n);return ymd(d)};
 const today=()=>ymd(new Date());
 const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
 const kr=n=>(n==null||isNaN(n))?'–':Math.round(n).toLocaleString('sv-SE')+' kr';
-const fmtQ=q=>{if(q==null)return'';const r=Math.round(q*10)/10;return r.toLocaleString('sv-SE',{maximumFractionDigits:1})};
+const fmtQ=q=>{if(q==null)return'';const d=q<10?2:q<100?1:0;return Number(q.toFixed(d)).toLocaleString('sv-SE',{maximumFractionDigits:d})};
 const isDate=s=>/^\d{4}-\d{2}-\d{2}$/.test(s||'');
 const dayName=s=>DAYS[parse(s).getDay()];
 const dateLong=s=>{const d=parse(s);return cap(DAYS[d.getDay()])+' '+d.getDate()+' '+MON[d.getMonth()]};
@@ -240,14 +240,48 @@ V.recept=function(){
   h+='<h2 style="font-size:1.25rem">'+esc(title[g]||g)+'</h2><div class="rgrid">'+list.map(r=>'<button class="rcard" data-act="recipe" data-id="'+esc(r.id)+'"><div style="display:flex;gap:6px;flex-wrap:wrap">'+whoChip(r.who)+(r.when?'<span class="chip">'+esc(r.when)+'</span>':'')+'</div><h3>'+esc(r.title)+'</h3><div class="facts"><span><b class="num">'+r.min+'</b> min</span><span><b class="num">'+r.portions+'</b> port</span>'+(r.kr?'<span><b class="num">'+kr(r.kr)+'</b>/port</span>':'')+'</div></button>').join('')+'</div>'});
  return h};
 function scaled(r){const p=S.scale[r.id]||r.portions;return{p,f:p/r.portions}}
-function ingList(r,f){return(r.groups||[]).map(g=>(g.title?'<div class="label" style="margin-top:10px">'+esc(g.title)+'</div>':'')+'<ul class="ing">'+g.items.map(it=>'<li><span class="q">'+(it.q!=null?fmtQ(it.q*f)+' '+esc(it.u||''):esc(it.u||''))+'</span><span>'+esc(it.n)+'</span></li>').join('')+'</ul>').join('')}
+const qtyText=(it,f)=>it.q!=null?fmtQ(it.q*f)+' '+(it.u||''):(it.u||'');
+function ingList(r,f,hits){return(r.groups||[]).map(g=>(g.title?'<div class="label" style="margin-top:10px">'+esc(g.title)+'</div>':'')+'<ul class="ing">'+g.items.map(it=>'<li'+(hits&&hits.includes(it)?' class="hit"':'')+'><span class="q">'+esc(qtyText(it,f))+'</span><span>'+esc(it.n)+'</span></li>').join('')+'</ul>').join('')}
+
+/* Vilka ingredienser nämns i ett steg? Jämför ordstammar åt båda hållen,
+   så att böjningar (purjolöken/purjolökar) och sammansättningar
+   (kycklingen/kycklinglårfilé, buljongen/grönsaksbuljongtärning) hittas. */
+const ING_SKIP=new Set(['fryst','frysta','naturell','naturella','färsk','färska','kokta','kokt','gul','gula','röda','torkad','torkade','burk','burkar','kolla','hemma','servering','salt','peppar','och']);
+const STEP_SKIP=new Set(['till','eller','från','under','inte','efter','innan','sedan','medan','minuter','minut','sista','några','hela','halva','halv','resten','gärna','lägg','låt','tillsätt','servera','rör','ihop','alltihop','samma','varje','omgång','omgångar','lådor','lådorna','grader','ugnen','plåt','plåten','panna','pannan','gryta','grytan','kastrull','skålar','lock','smaka','tills','genom','över','runt','omkring','mycket','både','andra','sida','sidan','stavar','bitar','stora','små','tunt','fint','grovt','slät','grov','medelvärme','klart','klar','varma','varm','het','heta','torr','torra','enligt','förpackningen','klick','fyra','gropar','soppan','såsen','fräs','koka','stek','rosta','hacka','skiva','skär','riv','dela','blanda','vänd','pensla','toppa','fördela','spara','packa','värm','mixa','skölj','sköljda','krama']);
+const words=s=>String(s||'').toLowerCase().replace(/\([^)]*\)/g,' ').replace(/till servering|kolla hemma/g,' ').split(/[^a-zåäöéü]+/).filter(Boolean);
+const stem=w=>w.slice(0,Math.max(4,w.length-3));
+// Ingrediensens grundform: ta bort pluraländelser (lökar → lök, bönor → bön) innan stammen tas fram
+const ingStem=w=>{const b=w.replace(/(ar|or|er)$/,'');const x=b.length>=3?b:w;return x.length<=4?x:stem(x)};
+const MEAT=/fläsk|kyckling|färs|nöt|kött|biff|kalkon|lamm/;
+function ingInStep(stepText,name){
+ const sw=words(stepText),iw=words(name).filter(w=>w.length>=3&&!ING_SKIP.has(w));
+ // salt och peppar räknas bara när de nämns uttryckligen (salt, salta, peppar, peppra)
+ const nw=words(name);
+ if(nw.includes('salt')&&sw.some(x=>x.startsWith('salt')))return true;
+ if(nw.includes('peppar')&&sw.some(x=>x.startsWith('pepp')))return true;
+ if(!iw.length)return false;
+ // "köttet" betyder receptets kött
+ if(MEAT.test(name.toLowerCase())&&sw.some(x=>x.startsWith('kött')))return true;
+ // ingrediensens ord i steget (stegets ord börjar med ingrediensens stam)
+ if(iw.some(w=>{const s=ingStem(w);return sw.some(x=>x.startsWith(s))}))return true;
+ // stegets ord i ingrediensnamnet (t.ex. "kycklingen" i "kycklinglårfilé")
+ const name2=iw.join(' ');
+ return sw.some(x=>{if(x.length<4||STEP_SKIP.has(x))return false;if(name2.includes(stem(x)))return true;return x.length>=8&&name2.includes(x.slice(0,5))})}
+// Grupper för Henriks tillägg räknas bara i steg som gäller Henriks del, och tvärtom.
+function stepIngredients(r,step){
+ const gs=r.groups||[],isH=g=>/henrik/i.test(g.title||''),hasH=gs.some(isH);
+ const pick=want=>{const out=[];gs.forEach(g=>{if(hasH&&isH(g)!==want)return;g.items.forEach(it=>{if(ingInStep(step.t,it.n))out.push(it)})});return out};
+ const henrikStep=/^henriks? del/i.test(step.t);
+ const out=pick(henrikStep);
+ return(!out.length&&hasH&&!henrikStep)?pick(true):out}
+window.__htStepIngredients=stepIngredients;
 function recipeDetail(r){
  const{p,f}=scaled(r);
  let h='<div><button class="linkbtn" data-act="recipeBack">← Alla recept</button></div>';
  h+='<div class="topbar"><div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">'+whoChip(r.who)+(r.when?'<span class="chip">'+esc(r.when)+'</span>':'')+(r.freezes?'<span class="chip v">Går att frysa</span>':'')+'</div><h1>'+esc(r.title)+'</h1><div class="facts" style="margin-top:8px"><span><b class="num">'+r.min+'</b> min</span>'+(r.kr?'<span><b class="num">'+kr(r.kr)+'</b> per portion</span>':'')+(r.protein?'<span>Protein <b class="num">'+esc(r.protein)+'</b></span>':'')+'</div></div><div class="tools"><button class="btn primary" data-act="cook" data-id="'+esc(r.id)+'">'+I.play+'Börja laga</button></div></div>';
  if(r.why)h+='<div class="note">'+esc(r.why)+'</div>';
  h+='<div class="recipe"><section class="card"><div class="card-head"><h2>Ingredienser</h2><div class="stepper"><button data-act="scale" data-id="'+esc(r.id)+'" data-d="-1" aria-label="Färre portioner">−</button><span class="num"><b>'+p+'</b> port</span><button data-act="scale" data-id="'+esc(r.id)+'" data-d="1" aria-label="Fler portioner">+</button></div></div>'+ingList(r,f)+'</section>';
- h+='<section class="card"><h2>Gör så här</h2><ol class="steps">'+r.steps.map((s,i)=>'<li><div>'+esc(s.t)+(s.timer?' <button class="mini" data-act="timer" data-min="'+s.timer+'" data-label="Steg '+(i+1)+'">'+s.timer+' min</button>':'')+'</div></li>').join('')+'</ol>'+(r.tips?'<div class="note">'+esc(r.tips)+'</div>':'')+'</section></div>';
+ h+='<section class="card"><h2>Gör så här</h2><ol class="steps">'+r.steps.map((s,i)=>{const hs=stepIngredients(r,s);return'<li><div>'+esc(s.t)+(s.timer?' <button class="mini" data-act="timer" data-min="'+s.timer+'" data-label="Steg '+(i+1)+'">'+s.timer+' min</button>':'')+(hs.length?'<div class="uses">'+hs.map(it=>'<span>'+esc((qtyText(it,f)+' '+it.n).trim())+'</span>').join('')+'</div>':'')+'</div></li>'}).join('')+'</ol>'+(r.tips?'<div class="note">'+esc(r.tips)+'</div>':'')+'</section></div>';
  return h}
 
 V.uppgifter=function(){
@@ -297,10 +331,11 @@ function bigRow(t){return'<div class="row"><div class="grow"><div class="title">
 function renderOverlay(){
  const o=document.getElementById('overlay');
  if(S.cook){const r=recipeById(S.cook.id);if(!r){S.cook=null;o.innerHTML='';return}
-  const i=S.cook.step,n=r.steps.length,s=r.steps[i],{f}=scaled(r);
+  const i=S.cook.step,n=r.steps.length,s=r.steps[i],{f}=scaled(r),hits=stepIngredients(r,s);
+  const now=hits.length?'<div class="now"><div class="label">Det här steget</div><ul class="ing">'+hits.map(it=>'<li><span class="q">'+esc(qtyText(it,f))+'</span><span>'+esc(it.n)+'</span></li>').join('')+'</ul></div>':'';
   o.innerHTML='<div class="cook" role="dialog" aria-label="Matlagningsläge"><div class="cook-top"><div style="min-width:0"><div class="label">Steg '+(i+1)+' av '+n+'</div><h2 style="font-size:1.15rem">'+esc(r.title)+'</h2></div><button class="btn" data-act="cookClose">Stäng</button></div>'+
   '<div class="progress" aria-hidden="true">'+r.steps.map((_,k)=>'<i class="'+(k<=i?'on':'')+'"></i>').join('')+'</div>'+
-  '<div class="cook-body"><div class="cook-step"><p>'+esc(s.t)+'</p>'+(s.timer?'<div><button class="btn primary" data-act="timer" data-min="'+s.timer+'" data-label="Steg '+(i+1)+'">'+I.clock+'Starta '+s.timer+' min</button></div>':'')+'</div><aside class="card" style="align-self:start"><h2>Ingredienser</h2>'+ingList(r,f)+'</aside></div>'+
+  '<div class="cook-body"><div class="cook-step"><p>'+esc(s.t)+'</p>'+now+(s.timer?'<div><button class="btn primary" data-act="timer" data-min="'+s.timer+'" data-label="Steg '+(i+1)+'">'+I.clock+'Starta '+s.timer+' min</button></div>':'')+'</div><aside class="card" style="align-self:start"><h2>Alla ingredienser</h2>'+ingList(r,f,hits)+'</aside></div>'+
   '<div class="cook-nav"><button class="btn" data-act="cookStep" data-d="-1"'+(i===0?' disabled':'')+'>← Förra</button>'+(i<n-1?'<button class="btn primary" data-act="cookStep" data-d="1">Nästa →</button>':'<button class="btn primary" data-act="cookClose">Klart!</button>')+'</div></div>';
   return}
  if(S.sheet==='settings'){const st=settings(),topic=D().ntfyTopic||'';

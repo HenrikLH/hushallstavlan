@@ -157,6 +157,14 @@ main{padding-top:calc(var(--sat) + 14px);padding-left:calc(16px + var(--sal));pa
 .steps{margin:0;padding:0;list-style:none;counter-reset:s;display:flex;flex-direction:column;gap:12px}
 .steps li{counter-increment:s;display:flex;gap:12px}
 .steps li::before{content:counter(s);flex:none;width:30px;height:30px;border-radius:50%;background:var(--ink);color:var(--bg);display:grid;place-items:center;font-weight:700;font-size:.9rem}
+.ing li.hit{background:var(--accent-soft);border-radius:8px;padding-inline:8px;margin-inline:-8px;border-top-color:transparent}
+.ing li.hit+li{border-top-color:transparent}
+.ing li.hit span{font-weight:700}
+.now{background:var(--accent-soft);border-radius:14px;padding:12px 16px;max-width:36rem}
+.now .ing li{font-size:1.15rem;border-top-color:color-mix(in srgb,var(--accent) 25%,transparent)}
+.now .ing .q{min-width:96px}
+.uses{display:flex;flex-wrap:wrap;gap:4px 6px;margin-top:6px}
+.uses span{font-size:.8rem;font-weight:700;background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:2px 9px}
 .note{background:var(--moss-soft);border-radius:12px;padding:12px 14px;font-size:.94rem}
 .stepper{display:inline-flex;align-items:center;gap:6px}
 .stepper button{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--surface);font-size:1.2rem;font-weight:700}
