@@ -42,7 +42,7 @@ const VIEW_IDS=VIEWS.map(v=>v[0]);
 const CFG=window.HT_CONFIG||{};
 const S={key:lsGet('key')||'',me:lsGet('me')||'',view:lsGet('view')||'oversikt',wall:lsGet('wall')==='1',
  data:null,sync:'idle',lastSync:null,error:'',recipe:null,scale:{},cook:null,shopFilter:'alla',shopAdd:false,taskAdd:false,
- sheet:null,confirm:null,timers:[],pending:0};
+ sheet:null,confirm:null,timers:[],pending:0,step:{}};
 try{const c=lsGet('cache');if(c)S.data=JSON.parse(c)}catch(e){}
 const h0=location.hash.slice(1);if(VIEW_IDS.includes(h0))S.view=h0;
 if(!VIEW_IDS.includes(S.view))S.view='oversikt';
@@ -277,11 +277,15 @@ function stepIngredients(r,step){
 window.__htStepIngredients=stepIngredients;
 function recipeDetail(r){
  const{p,f}=scaled(r);
+ const act=Math.min(S.step[r.id]||0,r.steps.length-1),actHits=stepIngredients(r,r.steps[act]);
  let h='<div><button class="linkbtn" data-act="recipeBack">← Alla recept</button></div>';
  h+='<div class="topbar"><div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">'+whoChip(r.who)+(r.when?'<span class="chip">'+esc(r.when)+'</span>':'')+(r.freezes?'<span class="chip v">Går att frysa</span>':'')+'</div><h1>'+esc(r.title)+'</h1><div class="facts" style="margin-top:8px"><span><b class="num">'+r.min+'</b> min</span>'+(r.kr?'<span><b class="num">'+kr(r.kr)+'</b> per portion</span>':'')+(r.protein?'<span>Protein <b class="num">'+esc(r.protein)+'</b></span>':'')+'</div></div><div class="tools"><button class="btn primary" data-act="cook" data-id="'+esc(r.id)+'">'+I.play+'Börja laga</button></div></div>';
  if(r.why)h+='<div class="note">'+esc(r.why)+'</div>';
- h+='<div class="recipe"><section class="card"><div class="card-head"><h2>Ingredienser</h2><div class="stepper"><button data-act="scale" data-id="'+esc(r.id)+'" data-d="-1" aria-label="Färre portioner">−</button><span class="num"><b>'+p+'</b> port</span><button data-act="scale" data-id="'+esc(r.id)+'" data-d="1" aria-label="Fler portioner">+</button></div></div>'+ingList(r,f)+'</section>';
- h+='<section class="card"><h2>Gör så här</h2><ol class="steps">'+r.steps.map((s,i)=>{const hs=stepIngredients(r,s);return'<li><div>'+esc(s.t)+(s.timer?' <button class="mini" data-act="timer" data-min="'+s.timer+'" data-label="Steg '+(i+1)+'">'+s.timer+' min</button>':'')+(hs.length?'<div class="uses">'+hs.map(it=>'<span>'+esc((qtyText(it,f)+' '+it.n).trim())+'</span>').join('')+'</div>':'')+'</div></li>'}).join('')+'</ol>'+(r.tips?'<div class="note">'+esc(r.tips)+'</div>':'')+'</section></div>';
+ h+='<div class="recipe"><section class="card"><div class="card-head"><h2>Ingredienser</h2><div class="stepper"><button data-act="scale" data-id="'+esc(r.id)+'" data-d="-1" aria-label="Färre portioner">−</button><span class="num"><b>'+p+'</b> port</span><button data-act="scale" data-id="'+esc(r.id)+'" data-d="1" aria-label="Fler portioner">+</button></div></div><p class="small muted" style="margin:0">Markerat: det som behövs i steg '+(act+1)+'.</p>'+ingList(r,f,actHits)+'</section>';
+ h+='<section class="card"><div class="card-head"><h2>Gör så här</h2><span class="small muted">Tryck på ett steg för att markera det</span></div><ol class="steps">'+r.steps.map((s,i)=>{const hs=i===act?actHits:stepIngredients(r,s),on=i===act;
+  return'<li class="'+(on?'active':'')+'" data-act="pickStep" data-id="'+esc(r.id)+'" data-i="'+i+'"><div style="flex:1;min-width:0">'+esc(s.t)+(s.timer?' <button class="mini" data-act="timer" data-min="'+s.timer+'" data-label="Steg '+(i+1)+'">'+s.timer+' min</button>':'')+
+  (on?(hs.length?'<div class="now" style="margin-top:10px"><div class="label">Det här steget</div><ul class="ing">'+hs.map(it=>'<li><span class="q">'+esc(qtyText(it,f))+'</span><span>'+esc(it.n)+'</span></li>').join('')+'</ul></div>':'')+(i<r.steps.length-1?'<button class="btn sm" style="margin-top:10px" data-act="pickStep" data-id="'+esc(r.id)+'" data-i="'+(i+1)+'">Nästa steg →</button>':''):
+   (hs.length?'<div class="uses">'+hs.map(it=>'<span>'+esc((qtyText(it,f)+' '+it.n).trim())+'</span>').join('')+'</div>':''))+'</div></li>'}).join('')+'</ol>'+(r.tips?'<div class="note">'+esc(r.tips)+'</div>':'')+'</section></div>';
  return h}
 
 V.uppgifter=function(){
@@ -366,8 +370,9 @@ const ACT={
  recipe(id){S.view='recept';S.recipe=id;lsSet('view','recept');window.scrollTo(0,0);render()},
  recipeBack(){S.recipe=null;render()},
  scale(id,el){const r=recipeById(id);const{p}=scaled(r);S.scale[id]=Math.max(1,Math.min(20,p+Number(el.dataset.d)));render()},
- cook(id){S.cook={id,step:0};wake();render()},
- cookStep(id,el){const r=recipeById(S.cook.id);S.cook.step=Math.max(0,Math.min(r.steps.length-1,S.cook.step+Number(el.dataset.d)));render()},
+ cook(id){S.cook={id,step:S.step[id]||0};wake();render()},
+ pickStep(id,el){S.step[id]=Number(el.dataset.i);render();setTimeout(()=>{const li=document.querySelector('.steps li.active');if(li&&li.getBoundingClientRect().top<70)li.scrollIntoView({block:'start',behavior:'smooth'})},30)},
+ cookStep(id,el){const r=recipeById(S.cook.id);S.cook.step=Math.max(0,Math.min(r.steps.length-1,S.cook.step+Number(el.dataset.d)));S.step[S.cook.id]=S.cook.step;render()},
  cookClose(){S.cook=null;wake();render()},
  timer(id,el){unlockAudio();const m=Number(el.dataset.min);S.timers.push({k:Math.random().toString(36).slice(2),label:el.dataset.label||'Timer',end:Date.now()+m*60000,ring:false});tick();toast('Timer: '+m+' min')},
  timerStop(id){S.timers=S.timers.filter(t=>t.k!==id);tick()},

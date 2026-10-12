@@ -1,7 +1,7 @@
 // Sparar appens filer så att den startar snabbt och fungerar utan nät.
 // Hushållets data hämtas alltid från kalkylarket.
-const VERSION = 'ht-v3';
-const SHELL = ['./', './index.html', './app.js', './config.js', './manifest.webmanifest', './icons/icon-192.png', './icons/apple-touch-icon.png'];
+const VERSION = 'ht-v4';
+const SHELL = ['./', './index.html', './app.js?v=4', './config.js?v=4', './manifest.webmanifest', './icons/icon-192.png', './icons/apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -14,7 +14,7 @@ self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET' || url.origin !== location.origin) return;
   // Nätet först, så att uppdateringar syns direkt. Sparad kopia om nätet saknas.
   e.respondWith(
-    fetch(e.request).then(res => {
+    fetch(e.request.url, { cache: 'no-cache', credentials: 'same-origin' }).then(res => {
       const copy = res.clone();
       caches.open(VERSION).then(c => c.put(e.request, copy));
       return res;

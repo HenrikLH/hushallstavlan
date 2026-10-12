@@ -155,8 +155,10 @@ main{padding-top:calc(var(--sat) + 14px);padding-left:calc(16px + var(--sal));pa
 .ing li:first-child{border-top:0}
 .ing .q{min-width:84px;font-weight:700;font-variant-numeric:tabular-nums}
 .steps{margin:0;padding:0;list-style:none;counter-reset:s;display:flex;flex-direction:column;gap:12px}
-.steps li{counter-increment:s;display:flex;gap:12px}
-.steps li::before{content:counter(s);flex:none;width:30px;height:30px;border-radius:50%;background:var(--ink);color:var(--bg);display:grid;place-items:center;font-weight:700;font-size:.9rem}
+.steps>li{counter-increment:s;display:flex;gap:12px;cursor:pointer;border-radius:12px;padding:8px;margin:-8px}
+.steps>li.active{background:color-mix(in srgb,var(--accent-soft) 45%,transparent);box-shadow:inset 3px 0 0 var(--accent)}
+.steps>li.active::before{background:var(--accent);color:var(--accent-ink)}
+.steps>li::before{content:counter(s);flex:none;width:30px;height:30px;border-radius:50%;background:var(--ink);color:var(--bg);display:grid;place-items:center;font-weight:700;font-size:.9rem}
 .ing li.hit{background:var(--accent-soft);border-radius:8px;padding-inline:8px;margin-inline:-8px;border-top-color:transparent}
 .ing li.hit+li{border-top-color:transparent}
 .ing li.hit span{font-weight:700}
@@ -216,8 +218,8 @@ details summary{cursor:pointer;font-weight:700;padding:6px 0}
 <div id="overlay"></div>
 <div class="timers" id="timers" aria-live="polite"></div>
 <div id="toast" hidden class="toast" role="status"></div>
-<script src="config.js"></script>
-<script src="app.js"></script>
+<script src="config.js?v=4"></script>
+<script src="app.js?v=4"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
