@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Widget för Hushållstavlan</title>
+<style>
+:root{--bg:#ECEFEA;--surface:#fff;--ink:#18211D;--ink-2:#56625C;--line:#D0D8CF;--accent:#A3253F;--accent-ink:#fff;--moss:#3C6A4A;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#101513;--surface:#19201D;--ink:#E4EBE6;--ink-2:#9CAAA2;--line:#2D3833;--accent:#EC7088;--accent-ink:#22090F;--moss:#86C597;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 -apple-system,"Segoe UI",system-ui,sans-serif;padding:calc(16px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom))}
+main{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+h1{font-size:1.7rem;margin:0;color:var(--accent)}
+ol{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:6px}
+button{font:inherit;font-weight:700;border:0;border-radius:999px;padding:14px 20px;background:var(--accent);color:var(--accent-ink);min-height:52px}
+textarea{width:100%;height:160px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);font:12px/1.4 ui-monospace,Menlo,monospace;padding:10px}
+.ok{color:var(--moss);font-weight:700;min-height:1.5em}
+</style>
+</head>
+<body>
+<main>
+<h1>Widget till hemskärmen</h1>
+<ol>
+<li>Installera <b>Scriptable</b> från App Store.</li>
+<li>Tryck på knappen nedan för att kopiera skriptet.</li>
+<li>Öppna Scriptable, tryck <b>+</b>, håll fingret i den tomma rutan och välj <b>Klistra in</b>.</li>
+<li>Tryck på rubriken <b>Untitled Script</b> och döp det till <b>Hushållstavlan</b>.</li>
+<li>Tryck på ▶ (kör) längst ner. Skriv hushållskoden när den frågar.</li>
+<li>Tryck <b>Done</b>. Lägg till en Scriptable-widget på hemskärmen och välj skriptet <b>Hushållstavlan</b>.</li>
+</ol>
+<button id="copy" type="button">Kopiera skriptet</button>
+<div class="ok" id="ok" role="status"></div>
+<textarea id="code" readonly aria-label="Skriptet">Hämtar skriptet…</textarea>
+</main>
+<script>
+const ta=document.getElementById('code'),ok=document.getElementById('ok');
+fetch('widget.txt',{cache:'no-store'}).then(r=>r.text()).then(t=>{ta.value=t}).catch(()=>{ta.value='Kunde inte hämta skriptet. Ladda om sidan.'});
+document.getElementById('copy').addEventListener('click',async()=>{
+  try{await navigator.clipboard.writeText(ta.value);ok.textContent='Kopierat! Öppna Scriptable och klistra in.'}
+  catch(e){ta.focus();ta.select();ta.setSelectionRange(0,ta.value.length);try{document.execCommand('copy');ok.textContent='Kopierat! Öppna Scriptable och klistra in.'}catch(x){ok.textContent='Texten är markerad. Tryck på den och välj Kopiera.'}}
+});
+</script>
+</body>
+</html>
