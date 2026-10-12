@@ -1,0 +1,118 @@
+// Hushållstavlan – widget för Scriptable (iPhone).
+// Kör skriptet en gång i Scriptable. Första gången frågar det efter hushållskoden
+// och sparar den i telefonens nyckelring. Lägg sedan till en Scriptable-widget på hemskärmen.
+const API = 'https://script.google.com/macros/s/AKfycbyx_99Ukf6cnDsInDFRrQlR1yxhgFYNGxJgfeEH98kndrOsR8bx40HYKkkJAiXepf2Z/exec';
+const KEYCHAIN = 'hushallstavlan-kod';
+
+async function askKey(message) {
+  const a = new Alert();
+  a.title = 'Hushållstavlan';
+  a.message = message || 'Skriv hushållets kod.';
+  a.addTextField('t.ex. lingon-tass-42', '');
+  a.addAction('Spara');
+  a.addCancelAction('Avbryt');
+  if (await a.present() === -1) return '';
+  const k = a.textFieldValue(0).trim().toLowerCase();
+  if (k) Keychain.set(KEYCHAIN, k);
+  return k;
+}
+let KEY = Keychain.contains(KEYCHAIN) ? Keychain.get(KEYCHAIN) : '';
+if (!config.runsInWidget && (!KEY || args.queryParameters.nyckod)) KEY = await askKey();
+
+const C = {
+  bg: Color.dynamic(new Color('#FFFFFF'), new Color('#19201D')),
+  ink: Color.dynamic(new Color('#18211D'), new Color('#E4EBE6')),
+  muted: Color.dynamic(new Color('#56625C'), new Color('#9CAAA2')),
+  accent: Color.dynamic(new Color('#A3253F'), new Color('#EC7088')),
+  moss: Color.dynamic(new Color('#3C6A4A'), new Color('#86C597'))
+};
+const DAYS = ['sön', 'mån', 'tis', 'ons', 'tor', 'fre', 'lör'];
+
+async function load() {
+  const cacheFile = FileManager.local().joinPath(FileManager.local().cacheDirectory(), 'hushallstavlan.json');
+  try {
+    const req = new Request(API + '?action=widget&key=' + encodeURIComponent(KEY));
+    req.timeoutInterval = 20;
+    const j = await req.loadJSON();
+    if (!j.ok) throw new Error(j.error);
+    FileManager.local().writeString(cacheFile, JSON.stringify(j.data));
+    return j.data;
+  } catch (e) {
+    if (FileManager.local().fileExists(cacheFile)) return JSON.parse(FileManager.local().readString(cacheFile));
+    throw e;
+  }
+}
+
+function label(stack, text, size, color, bold) {
+  const t = stack.addText(text);
+  t.font = bold ? Font.boldSystemFont(size) : Font.systemFont(size);
+  t.textColor = color;
+  t.lineLimit = 2;
+  return t;
+}
+function heading(stack, text) { const t = label(stack, text.toUpperCase(), 10, C.accent, true); stack.addSpacer(2); return t; }
+function shortDay(s) { const p = s.split('-').map(Number); const d = new Date(p[0], p[1] - 1, p[2]); return DAYS[d.getDay()] + ' ' + d.getDate() + '/' + (d.getMonth() + 1); }
+
+async function build() {
+  const w = new ListWidget();
+  w.backgroundColor = C.bg;
+  w.setPadding(12, 14, 12, 14);
+  w.refreshAfterDate = new Date(Date.now() + 15 * 60 * 1000);
+  let d;
+  if (!KEY) { label(w, 'Hushållstavlan', 13, C.accent, true); label(w, 'Öppna Scriptable och kör skriptet Hushållstavlan för att skriva hushållskoden.', 11, C.muted); return w; }
+  try { d = await load(); } catch (e) {
+    if (!config.runsInWidget && /hushållskod/i.test(e.message) && (KEY = await askKey('Koden stämde inte. Försök igen.'))) return build();
+    label(w, 'Hushållstavlan', 13, C.accent, true); label(w, 'Kunde inte hämta data: ' + e.message, 11, C.muted); return w;
+  }
+  if (d.appUrl && d.appUrl.indexOf('DITT-GITHUB-NAMN') < 0) w.url = d.appUrl;
+  const size = config.widgetFamily || 'large';
+
+  const dinnerTitle = d.mealDay === d.today ? 'Middag idag' : 'Mat ' + shortDay(d.mealDay);
+  const meals = d.meals.filter(m => m.who !== 'Borta' || d.meals.length === 1);
+  const mealLine = m => (m.who === 'Gemensam' ? '' : m.who + ': ') + m.title.replace(/^Storkok: /, '') + (m.addon ? ' (+' + m.addon + ')' : '');
+
+  if (size === 'small') {
+    heading(w, dinnerTitle);
+    meals.slice(0, 2).forEach(m => label(w, mealLine(m), 11, C.ink, false));
+    w.addSpacer();
+    label(w, 'Städ ' + d.clean.done + '/' + d.clean.total + ' · ' + d.clean.minLeft + ' min', 11, C.moss, true);
+    label(w, 'Inköp: ' + d.shopLeft + ' kvar', 11, C.muted, false);
+    return w;
+  }
+
+  const top = w.addStack(); top.centerAlignContent();
+  label(top, 'Hushållstavlan', 13, C.ink, true); top.addSpacer();
+  label(top, shortDay(d.today), 11, C.muted, false);
+  w.addSpacer(8);
+
+  const row = w.addStack(); row.layoutHorizontally(); row.topAlignContent();
+  const left = row.addStack(); left.layoutVertically();
+  heading(left, dinnerTitle);
+  (meals.length ? meals.slice(0, size === 'large' ? 4 : 2) : [{ who: '', title: 'Inget planerat' }]).forEach(m => label(left, mealLine(m), 12, C.ink, false));
+  row.addSpacer(12);
+  const right = row.addStack(); right.layoutVertically();
+  heading(right, 'Städ idag');
+  label(right, d.clean.done + ' av ' + d.clean.total + ' klart', 12, C.ink, true);
+  label(right, 'ca ' + d.clean.minLeft + ' min kvar', 11, C.muted, false);
+  right.addSpacer(6);
+  heading(right, 'Inköp');
+  label(right, d.shopLeft + ' varor · ca ' + d.shopCost + ' kr', 12, C.ink, false);
+
+  w.addSpacer(8);
+  if (d.next) {
+    heading(w, 'Nästa');
+    label(w, (d.next.date === d.today ? 'Idag' : shortDay(d.next.date)) + (d.next.time ? ' ' + d.next.time : '') + ' · ' + d.next.title, 12, C.ink, false);
+  }
+  if (size === 'large' && d.clean.next.length) {
+    w.addSpacer(8);
+    heading(w, 'Att städa');
+    d.clean.next.forEach(t => label(w, '• ' + t, 11, C.ink, false));
+  }
+  w.addSpacer();
+  return w;
+}
+
+const widget = await build();
+if (config.runsInWidget) Script.setWidget(widget);
+else await widget.presentMedium();
+Script.complete();
