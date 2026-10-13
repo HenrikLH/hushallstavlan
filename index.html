@@ -560,6 +560,10 @@ button.fig-box:active{opacity:1;transform:scale(.96)}
 
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .dog-b{filter:drop-shadow(0 0 1.2px rgba(255,255,255,.45))}}
 :root[data-theme="dark"] .dog-b{filter:drop-shadow(0 0 1.2px rgba(255,255,255,.45))}
+.fx-flakes>g{animation:figFlake 6s linear infinite;transform-box:fill-box;transform-origin:center}
+@keyframes figFlake{0%{transform:translate(0,0) rotate(0);opacity:0}10%{opacity:1}100%{transform:translate(-8px,120px) rotate(180deg);opacity:.4}}
+.fx-frost .tw{animation:figTw 2.2s ease-in-out infinite}.fx-frost .d2{animation-delay:-.7s}.fx-frost .d3{animation-delay:-1.4s}
+.dog.lie{animation-duration:3.6s}
 @media (prefers-reduced-motion:reduce){.fig *{animation:none!important}}
 
 /* ===== Animationer ===== */
