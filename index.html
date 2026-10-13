@@ -377,6 +377,15 @@ body.wall .widgets{grid-template-columns:repeat(4,minmax(0,1fr))}
 /* ===== Översiktens topp ===== */
 .hero{margin:8px 16px 0;padding:16px 16px 14px 18px;border-radius:22px;background:linear-gradient(135deg,var(--accent-soft),transparent 55%),var(--surface);display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:10px}
 .hero-l{min-width:0}
+/* himlen bakom väderrutan och vädervyn: solen och månen där de står just nu */
+.hero,.wx-hero{position:relative;overflow:hidden}
+.hero>:not(.sky),.wx-hero>:not(.sky){position:relative;z-index:1}
+.sky{position:absolute;inset:0;pointer-events:none;z-index:0}
+.sky-b{position:absolute;transform:translate(-50%,-50%);line-height:0}
+.sky-b svg{display:block}
+.sky-sun svg{animation:figHalo 6s ease-in-out infinite}
+.sky-stars{position:absolute;inset:0;width:100%;height:100%;fill:var(--ink-2);opacity:.55}
+.sky-stars .tw{animation:figTw 2.6s ease-in-out infinite}.sky-stars .d2{animation-delay:-.9s}.sky-stars .d3{animation-delay:-1.7s}
 .hero .clock{display:block;font-size:56px;line-height:1;font-weight:700;letter-spacing:-1.5px;padding:0}
 body.wall .hero .clock{font-size:96px;letter-spacing:-3px}
 .hero-date{font-size:15px;line-height:20px;letter-spacing:-.24px;color:var(--ink-2);margin-top:6px}
@@ -688,8 +697,8 @@ body.wall::before{content:"";position:fixed;inset:-20%;z-index:-1;pointer-events
 <div id="overlay"></div>
 <div class="timers" id="timers" aria-live="polite"></div>
 <div id="toast" hidden class="toast" role="status"></div>
-<script src="config.js?v=23"></script>
-<script src="app.js?v=23"></script>
+<script src="config.js?v=24"></script>
+<script src="app.js?v=24"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
