@@ -518,9 +518,8 @@ button.fig-box:active{opacity:1;transform:scale(.96)}
 @keyframes figWave{0%,70%,100%{transform:rotate(0)}76%,88%{transform:rotate(118deg)}82%,94%{transform:rotate(100deg)}}
 .fig-umb{transform-origin:84px 64px;animation:figUmb 3.2s ease-in-out infinite}
 @keyframes figUmb{50%{transform:rotate(-5deg)}}
-.k-storm .fig-umb{animation-duration:1.4s}
 .fx-sun .rays{transform-origin:24px 26px;animation:figSpin 14s linear infinite}
-.fx-sun circle:first-child{animation:figHalo 4s ease-in-out infinite;transform-origin:92px 26px}
+.fx-sun circle:first-child{animation:figHalo 4s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
 @keyframes figHalo{50%{transform:scale(1.12);opacity:.8}}
 @keyframes figSpin{to{transform:rotate(360deg)}}
 .fx-sun circle{animation:figGlow 3s ease-in-out infinite}
@@ -528,17 +527,21 @@ button.fig-box:active{opacity:1;transform:scale(.96)}
 .fx-cloud{animation:figDrift 9s ease-in-out infinite alternate}
 @keyframes figDrift{to{transform:translateX(-10px)}}
 .fx-rain line{animation:figRain .9s linear infinite}
-@keyframes figRain{0%{transform:translate(0,8px);opacity:0}15%{opacity:1}100%{transform:translate(-6px,130px);opacity:.2}}
+@keyframes figRain{0%{transform:translateY(8px);opacity:0}15%{opacity:1}100%{transform:translateY(130px);opacity:.2}}
+.l-2 .fx-rain line{animation-duration:.7s}.l-3 .fx-rain line{animation-duration:.5s}
 .fx-snow circle{animation:figSnow 4s linear infinite}
 @keyframes figSnow{0%{transform:translate(0,0);opacity:0}10%{opacity:1}50%{transform:translate(5px,70px)}100%{transform:translate(-3px,140px);opacity:.3}}
+.l-3 .fx-snow circle,.w-3 .fx-snow circle{animation-duration:2.8s}.p-sleet .fx-snow circle{animation-duration:2s}
 .fx-bolt{opacity:0;animation:figBolt 3.4s infinite}
 @keyframes figBolt{0%,86%,92%,100%{opacity:0}88%,90%{opacity:1}}
+.fx-bolt.d2{animation-duration:4.6s;animation-delay:-1.9s}
 .fx-fog line{animation:figFog 7s ease-in-out infinite alternate}
 .fx-fog .d2{animation-duration:9s;animation-direction:alternate-reverse}
 @keyframes figFog{to{transform:translateX(14px)}}
 .fx-stars .tw{animation:figTw 2.4s ease-in-out infinite}
 .fx-stars .d2{animation-delay:-.8s}.fx-stars .d3{animation-delay:-1.6s}
-.fx-cloud.d2{animation-duration:12s;animation-direction:alternate-reverse}
+.fx-cloud.d2{animation-duration:12s;animation-direction:alternate-reverse}.fx-cloud.d3{animation-duration:15s}
+.w-2 .fx-cloud{animation-duration:4s}.w-3 .fx-cloud{animation-duration:2.5s}
 .fx-moon circle:first-child{animation:figGlow 4s ease-in-out infinite}
 @keyframes figTw{50%{opacity:.2}}
 .fig-breath{opacity:0;transform-origin:74px 55px;animation:figBreath 3.5s ease-out infinite}
@@ -552,7 +555,19 @@ button.fig-box:active{opacity:1;transform:scale(.96)}
 .tongue{transform-origin:60px 61px;animation:pant .5s ease-in-out infinite}
 @keyframes pant{50%{transform:scaleY(1.25)}}
 .dog.fig-body{transform-origin:60px 124px;animation:figBob 2.6s ease-in-out infinite}
-.k-hot .dog.fig-body{animation-duration:.5s}
+.t-hot.ph-day .dog.fig-body{animation-duration:.5s}
+/* vind: öronen fladdrar, linjer och löv drar förbi */
+.w-2 .ear-l,.w-3 .ear-l{animation:flapL .7s ease-in-out infinite}.w-2 .ear-r,.w-3 .ear-r{animation:flapR .7s ease-in-out infinite .2s}.w-3 .ear-l,.w-3 .ear-r{animation-duration:.45s}
+@keyframes flapL{50%{transform:rotate(-10deg)}}@keyframes flapR{50%{transform:rotate(8deg)}}
+.fx-wind path{stroke-dasharray:30 200;animation:figWind 3.6s linear infinite}.w-2 .fx-wind path{animation-duration:2.4s}.w-3 .fx-wind path{animation-duration:1.5s}
+@keyframes figWind{0%{stroke-dashoffset:40;transform:translateX(-30px)}100%{stroke-dashoffset:-60;transform:translateX(150px)}}
+.fx-leaf path{opacity:0;animation:figLeaf 4s linear infinite;transform-box:fill-box;transform-origin:center}.w-3 .fx-leaf path{animation-duration:2.6s}
+@keyframes figLeaf{0%{opacity:0;transform:translate(-10px,0) rotate(0)}10%{opacity:1}50%{transform:translate(80px,-14px) rotate(260deg)}90%{opacity:1}100%{opacity:0;transform:translate(180px,10px) rotate(540deg)}}
+.fx-pud .rp{transform-box:fill-box;transform-origin:center;animation:figRipple 1.4s ease-out infinite}.fx-pud .rp.d2{animation-delay:-.7s}
+@keyframes figRipple{0%{transform:scale(.3);opacity:.9}100%{transform:scale(2.2);opacity:0}}
+.fx-heat path{animation:figHeat 2.4s ease-in-out infinite}.fx-heat .d2{animation-delay:-.8s}.fx-heat .d3{animation-delay:-1.6s}
+@keyframes figHeat{0%{transform:translateY(4px);opacity:0}50%{opacity:.8}100%{transform:translateY(-10px);opacity:0}}
+.ph-dawn .fx-sun,.ph-dusk .fx-sun{animation:figRise 8s ease-in-out infinite alternate}@keyframes figRise{to{transform:translateY(-3px)}}
 .fig-z text{animation:zz 3.6s ease-in-out infinite;transform-box:fill-box;transform-origin:center}.fig-z .d2{animation-delay:-1.2s}.fig-z .d3{animation-delay:-2.4s}
 @keyframes zz{0%{opacity:0;transform:translate(-4px,6px) scale(.7)}25%{opacity:1}75%{opacity:1}100%{opacity:0;transform:translate(5px,-9px) scale(1.1)}}
 .fig .fig-eyes{transform-origin:60px 45px}
@@ -659,8 +674,8 @@ body.wall::before{content:"";position:fixed;inset:-20%;z-index:-1;pointer-events
 <div id="overlay"></div>
 <div class="timers" id="timers" aria-live="polite"></div>
 <div id="toast" hidden class="toast" role="status"></div>
-<script src="config.js?v=21"></script>
-<script src="app.js?v=21"></script>
+<script src="config.js?v=22"></script>
+<script src="app.js?v=22"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
