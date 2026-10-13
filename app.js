@@ -125,7 +125,7 @@ function planDays(){
  else dates=[...new Set(d.menu.map(m=>m.date).concat(d.events.map(e=>e.date)))].filter(isDate).sort();
  return dates.map(date=>({date,events:d.events.filter(e=>e.date===date),meals:d.menu.filter(m=>m.date===date)}))}
 const dayOf=date=>{const d=D();const ev=d.events.filter(e=>e.date===date),ms=d.menu.filter(m=>m.date===date);return(ev.length||ms.length)?{date,events:ev,meals:ms}:null};
-function whoChip(w){const k=w==='Henrik'?'h':w==='Vegetariskt'?'v':w==='Gemensam'?'g':'';return'<span class="chip '+k+'">'+esc(w==='Henrik'?'Kött':w)+'</span>'}
+function whoChip(w){const k=w==='Henrik'?'k':w==='Vegetariskt'?'v':w==='Gemensam'?'g':'';return'<span class="chip '+k+'">'+esc(w==='Henrik'?'Kött':w)+'</span>'}
 // Vem en kalenderhändelse gäller (kolumnen Vem i Händelser). Ingen chip när namnet redan står i titeln.
 function evWho(e){const w=String(e.who||e.vem||'').trim();if(!w||String(e.title||'').toLowerCase().split(/[^a-zåäöé-]+/).includes(w.toLowerCase()))return'';return' <span class="chip'+(w==='Henrik'?' h':'')+'">'+esc(w)+'</span>'}
 const shopCost=items=>items.reduce((s,i)=>s+(Number(i.price)||0),0);
@@ -266,7 +266,7 @@ V.inkop=function(){
   h+=sh(c,kr(shopCost(g)))+group(g.map(shopRow).join(''))});
  if(bought.length)h+='<div class="pills" style="padding:12px 16px 0 24px">'+(S.confirm==='clearShop'?'<span class="sub">Ta bort '+bought.length+' avbockade?</span><button class="tb red strong" data-act="clearShopYes">Ja, ta bort</button><button class="tb" data-act="confirmNo">Avbryt</button>':'<button class="tb red" data-act="clearShop">Rensa avbockade ('+bought.length+')</button>')+'</div>';
  h+='</div><div class="col">';
- const prefs=(st.pref_henrik?'<div class="cell"><div class="grow"><span class="chip h">Kött</span><div class="meta" style="color:var(--ink)">'+esc(st.pref_henrik)+'</div></div></div>':'')+(st.pref_veg?'<div class="cell"><div class="grow"><span class="chip v">Vegetariskt</span><div class="meta" style="color:var(--ink)">'+esc(st.pref_veg)+'</div></div></div>':'')+(st.pref_ekonomi?'<div class="cell"><div class="grow"><span class="chip">Ekonomi</span><div class="meta" style="color:var(--ink)">'+esc(st.pref_ekonomi)+'</div></div></div>':'');
+ const prefs=(st.pref_henrik?'<div class="cell"><div class="grow"><span class="chip k">Kött</span><div class="meta" style="color:var(--ink)">'+esc(st.pref_henrik)+'</div></div></div>':'')+(st.pref_veg?'<div class="cell"><div class="grow"><span class="chip v">Vegetariskt</span><div class="meta" style="color:var(--ink)">'+esc(st.pref_veg)+'</div></div></div>':'')+(st.pref_ekonomi?'<div class="cell"><div class="grow"><span class="chip">Ekonomi</span><div class="meta" style="color:var(--ink)">'+esc(st.pref_ekonomi)+'</div></div></div>':'');
  if(prefs)h+=sh('Hushållets preferenser')+group(prefs);
  const offers=all.filter(i=>i.offer);
  if(offers.length)h+=sh('Erbjudanden på listan')+group(offers.map(i=>'<div class="cell"><div class="grow"><div class="title">'+esc(i.name)+'</div><div class="meta">'+esc(i.offer)+'</div></div></div>').join(''))+'<div class="foot">Priserna är uppskattade. Kolla hyllkanten i butiken.</div>';
