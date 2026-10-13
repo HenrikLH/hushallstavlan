@@ -672,8 +672,12 @@ function figSvg(kind,o){o=o||{};const K=kind,night=!!o.night,id='fg'+(++FIG_N);
  if(K==='storm')s+='<g class="fx-bolt"><circle cx="140" cy="34" r="12" fill="#FFF3B0" opacity=".25"/><path d="M142 22l-6 11h5l-4 9 10-13h-5l4-7z" fill="#FFE27A"/></g>';
  if(K==='fog')s+='<g class="fx-fog" stroke="currentColor" stroke-linecap="round" opacity=".14"><line x1="0" y1="98" x2="34" y2="98" stroke-width="5"/><line class="d2" x1="136" y1="108" x2="170" y2="108" stroke-width="6"/><line x1="6" y1="118" x2="28" y2="118" stroke-width="4"/></g>';
  s+='<ellipse cx="85" cy="125" rx="62" ry="5" fill="url(#'+id+'s)"/>';
- s+='<g class="dog-a" transform="translate(4 6) scale(.9)">'+dogSvg(DOGS[0],K,o,id+'a')+'</g>';
- s+='<g class="dog-b" transform="translate(58 0)">'+dogSvg(DOGS[1],K,o,id+'b')+'</g>';
+ // Komposition: båda (i två ordningar) eller en av hundarna ensam, centrerad
+ const v=o.variant||'ab',A=dogSvg(DOGS[0],K,o,id+'a'),B=dogSvg(DOGS[1],K,o,id+'b');
+ if(v==='a')s+='<g class="dog-a" transform="translate(25 0)">'+A+'</g>';
+ else if(v==='b')s+='<g class="dog-b" transform="translate(25 0)">'+B+'</g>';
+ else if(v==='ba')s+='<g class="dog-b" transform="translate(4 0)">'+B+'</g><g class="dog-a" transform="translate(64 6) scale(.9)">'+A+'</g>';
+ else s+='<g class="dog-a" transform="translate(4 6) scale(.9)">'+A+'</g><g class="dog-b" transform="translate(58 0)">'+B+'</g>';
  if(/^(rain|storm)$/.test(K))s+='<g class="fx-rain" stroke="url(#'+id+'r)" stroke-width="1.1" stroke-linecap="round">'+[[6,0],[18,.35],[150,.15],[164,.55],[12,.7],[158,.85],[28,.5],[142,.25],[100,.6],[40,.1]].map(([x,dl])=>'<line x1="'+x+'" y1="14" x2="'+(x-2.5)+'" y2="28" style="animation-delay:-'+dl+'s"/>').join('')+'</g>';
  if(K==='snow'||K==='freezing')s+='<g class="fx-snow" fill="#E3ECF7">'+[[6,0],[22,1.2],[148,.6],[164,2],[14,2.6],[156,3.1],[30,1.8],[140,.3],[100,1]].map(([x,dl])=>'<circle cx="'+x+'" cy="14" r="1.3" style="animation-delay:-'+dl+'s"/>').join('')+'</g>';
  return'<svg class="fig k-'+K+'" viewBox="0 0 170 130" role="img" aria-label="'+esc(o.label||'')+'">'+s+'</svg>'}
@@ -695,7 +699,7 @@ function heroHtml(){const n=new Date(),t=today(),dy=EXT.day&&EXT.day.date===t?EX
   wx='<button class="hero-wx" data-act="nav" data-id="vader" aria-label="Väder: '+esc(tx)+', '+deg(W.now.T)+'. Öppna vädret">'+
    '<div class="wx-now"><span class="wx-ic" aria-hidden="true">'+ic+'</span><span class="wx-t num">'+deg(W.now.T)+'</span></div>'+
    '<div class="fn">'+esc(tx)+'</div><div class="fn num">H:'+deg(d0.max)+' L:'+deg(d0.min)+'</div>'+
-   '<div class="fig-box" aria-hidden="true">'+figSvg(F.kind,{night:F.night,sunny:F.sunny})+'</div><div class="fig-tip">'+esc(F.tip)+'</div></button>'}
+   '<div class="fig-box" aria-hidden="true">'+figSvg(F.kind,{night:F.night,sunny:F.sunny,variant:figVariant(F.kind)})+'</div><div class="fig-tip">'+esc(F.tip)+'</div></button>'}
  const facts=['Vecka '+isoWeek(n)];
  if(dy&&dy.holiday)facts.push(dy.holiday);else if(dy&&dy.flag)facts.push('Flaggdag: '+dy.flag);
  if(dy&&dy.names.length)facts.push('Namnsdag: '+dy.names.join(', '));
@@ -710,6 +714,9 @@ async function loadExt(){const t=today();let changed=await loadWx();
  if(changed){lsSet('ext',JSON.stringify(EXT));if(S.view==='oversikt'||S.view==='vader')render()}}
 loadExt();setInterval(loadExt,10*60000);
 
+// Vilka hundar som visas: växlar var tredje timme, oftast båda
+const FIG_VARS=['ab','ab','ab','ba','ba','a','a','b','b'];
+function figVariant(kind){if(S.wxVar)return S.wxVar;const n=new Date(),key=today()+'|'+Math.floor(n.getHours()/3)+'|'+kind;let h=0;for(const c of key)h=(h*31+c.charCodeAt(0))>>>0;return FIG_VARS[h%FIG_VARS.length]}
 /* Vädersidan, i stil med Apples Väder */
 const DAYS3=['sön','mån','tis','ons','tor','fre','lör'];
 function windDir(d){return['nordlig','nordostlig','ostlig','sydostlig','sydlig','sydvästlig','västlig','nordvästlig'][Math.round(((d||0)%360)/45)%8]}
@@ -720,7 +727,7 @@ V.vader=function(){const W=wxModel(),P=WX_POS();
  if(!W)return h+'<header class="head"><h1 class="lt" id="lt">Väder</h1></header>'+group(emptyCell('Prognosen kunde inte hämtas just nu.'))+'<div class="block"><button class="btn-tint" style="width:100%" data-act="wxRefresh">Försök igen</button></div>';
  const[ic,tx]=symInfo(W.now.s),d0=W.days[0],F=wxToday(W),sun=sunTimes(today(),P.lat,P.lon);
  h+='<section class="wx-hero"><div class="wx-place">'+esc(P.name)+'</div><div class="wx-big num" id="lt">'+deg(W.now.T)+'</div><div class="wx-cond">'+esc(tx)+'</div><div class="wx-hl num">H:'+deg(d0.max)+'  L:'+deg(d0.min)+'</div>'+
-  '<div class="wx-fig"><div class="fig-box big" aria-hidden="true">'+figSvg(F.kind,{night:F.night,sunny:F.sunny})+'</div><div class="wx-tip"><b>'+esc(capS(F.when))+'</b><span>'+esc(F.tip)+'</span></div></div></section>';
+  '<div class="wx-fig"><button class="fig-box big" data-act="wxVar" aria-label="Visa en annan bild av hundarna">'+figSvg(F.kind,{night:F.night,sunny:F.sunny,variant:figVariant(F.kind)})+'</button><div class="wx-tip"><b>'+esc(capS(F.when))+'</b><span>'+esc(F.tip)+'</span></div></div></section>';
  // Timmar
  h+='<div class="group wx-card"><div class="wx-cap">'+I.clock+'Kommande timmar</div><div class="hours" role="list">'+W.hours.slice(0,25).map((x,k)=>{const[ii]=symInfo(x.s);
   return'<div class="hr" role="listitem"><span class="fn">'+(k?pad(x.d.getHours()):'Nu')+'</span><span class="hi" aria-hidden="true">'+ii+'</span><b class="num">'+deg(x.T)+'</b><span class="hp num">'+(x.pr>=0.1?mm(x.pr).replace(' mm',''):'')+'</span></div>'}).join('')+'</div></div>';
@@ -912,6 +919,7 @@ const ACT={
  ekoCost(id,el){S.ekoEdit={list:el.dataset.list,id:id||null};S.sheet='cost';render()},
  ekoDel(){const e=S.ekoEdit;if(!e||!e.id)return;closeSheets();A.user=Date.now();A.flip=true;
   updJSON('ekonomi',{},o=>{ekoListIn(o,e.list,l=>l.filter(x=>x.id!==e.id));return o});toast('Utgiften är borttagen')},
+ wxVar(){const W=wxModel();if(!W)return;const cur=figVariant(wxToday(W).kind),L=['ab','ba','a','b'];S.wxVar=L[(L.indexOf(cur)+1)%L.length];render()},
  wxRefresh(){loadWx(true).then(ok=>{if(ok){lsSet('ext',JSON.stringify(EXT))}render();if(!ok)toast('Vädret kunde inte hämtas')})},
  cookDone(id){S.cook=null;A.cookStep=null;wake();ACT.rate(id)},
  rate(id){S.rate={id};S.sheet='rate';render()},
