@@ -566,6 +566,34 @@ button.fig-box:active{opacity:1;transform:scale(.96)}
 .dog.lie{animation-duration:3.6s}
 @media (prefers-reduced-motion:reduce){.fig *{animation:none!important}}
 
+/* ===== Kalender ===== */
+.cal-head{display:flex;align-items:center;gap:4px;margin:14px 16px 8px}
+.cal-head .hl{flex:1;font-size:20px;line-height:25px;font-weight:700}
+.cal-head .ib svg{width:12px;height:19px}.cal-head .flip svg{transform:scaleX(-1)}
+.cal-head .hl{order:-1}
+.cal{padding:6px 6px 8px}
+.cal-wd,.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
+.cal-wd span{text-align:center;font-size:11px;line-height:20px;font-weight:600;color:var(--ink-2)}
+.cal-d{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 0 5px;min-height:46px;border-radius:12px}
+.cal-d .n{width:30px;height:30px;display:grid;place-items:center;border-radius:50%;font-size:17px;line-height:1}
+.cal-d.we .n{color:var(--ink-2)}
+.cal-d.out .n{color:var(--ink-3)}
+.cal-d.today .n{color:var(--accent);font-weight:700}
+.cal-d.sel .n{background:var(--ink);color:var(--bg);font-weight:700}
+.cal-d.sel.today .n{background:var(--accent);color:var(--on-accent)}
+.cal-d:active{opacity:1;background:var(--fill)}
+.dots{display:flex;gap:3px;height:6px}
+.dots i{width:5px;height:5px;border-radius:50%;background:var(--gray)}
+.dots i.p1{background:var(--p1)}.dots i.p2{background:var(--p2)}
+.dots i.t{background:none;box-shadow:inset 0 0 0 1.4px var(--accent)}
+.cal-ev{align-items:flex-start;gap:10px}
+.cal-ev .bar{width:4px;align-self:stretch;border-radius:2px;background:var(--gray);flex:none}
+.cal-ev .bar.p1{background:var(--p1)}.cal-ev .bar.p2{background:var(--p2)}
+.cal-ev .t{width:98px;white-space:nowrap;flex:none;color:var(--ink-2);font-size:15px;padding-top:1px}
+.cal-ev .grow{display:flex;flex-direction:column;gap:3px}
+@media (min-width:900px){.cal{max-width:520px}}
+.sh .r .linkbtn{color:var(--accent);text-transform:none;font-size:15px;padding:0}
+
 /* ===== Animationer ===== */
 #main.in-fade{animation:pageFade .32s cubic-bezier(.2,.8,.2,1)}
 #main.in-right{animation:pageRight .36s cubic-bezier(.2,.8,.2,1)}
@@ -612,8 +640,8 @@ body.wall::before{content:"";position:fixed;inset:-20%;z-index:-1;pointer-events
 <div id="overlay"></div>
 <div class="timers" id="timers" aria-live="polite"></div>
 <div id="toast" hidden class="toast" role="status"></div>
-<script src="config.js?v=17"></script>
-<script src="app.js?v=17"></script>
+<script src="config.js?v=18"></script>
+<script src="app.js?v=18"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
