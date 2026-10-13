@@ -375,25 +375,62 @@ body.wall .widgets{grid-template-columns:repeat(4,minmax(0,1fr))}
 .setup p{padding:8px 16px 0;color:var(--ink-2)}
 
 /* ===== Översiktens topp ===== */
-.hero{margin:8px 16px 0;padding:16px 18px 14px;border-radius:22px;background:linear-gradient(135deg,var(--accent-soft),transparent 55%),var(--surface)}
+.hero{margin:8px 16px 0;padding:16px 16px 14px 18px;border-radius:22px;background:linear-gradient(135deg,var(--accent-soft),transparent 55%),var(--surface);display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:10px}
+.hero-l{min-width:0}
 .hero .clock{display:block;font-size:56px;line-height:1;font-weight:700;letter-spacing:-1.5px;padding:0}
 body.wall .hero .clock{font-size:96px;letter-spacing:-3px}
-.hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
 .hero-date{font-size:15px;line-height:20px;letter-spacing:-.24px;color:var(--ink-2);margin-top:6px}
-.hero-wx{text-align:right;flex:none}
-.wx-now{display:flex;align-items:center;justify-content:flex-end;gap:6px}
-.wx-ic{font-size:30px;line-height:1}
-.wx-t{font-size:34px;line-height:1;font-weight:600;letter-spacing:-.5px}
-.hero-wx .fn{margin-top:3px}
 .hero-greet{margin-top:14px;font-size:17px;line-height:22px;font-weight:600}
 .hero-facts{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .hero-facts span{font-size:13px;line-height:18px;padding:3px 10px;border-radius:999px;background:var(--fill);color:var(--ink-2)}
-#hero-next{margin-top:12px;padding-top:10px;border-top:.5px solid var(--line);display:flex;flex-direction:column;gap:6px}
+.hero-wx{display:flex;flex-direction:column;align-items:flex-end;text-align:right;width:118px;margin:-4px -6px 0 0;padding:4px 6px 0;border-radius:16px;color:var(--ink)}
+.hero-wx:active{opacity:1;background:var(--fill)}
+.wx-now{display:flex;align-items:center;justify-content:flex-end;gap:6px}
+.wx-ic{font-size:28px;line-height:1}
+.wx-t{font-size:34px;line-height:1;font-weight:600;letter-spacing:-.5px}
+.hero-wx .fn{margin-top:2px}
+.fig-box{width:96px;height:116px;margin-top:2px;align-self:center}
+.fig-box.big{width:150px;height:180px}
+.fig-tip{font-size:11px;line-height:13px;color:var(--ink-2);text-align:center;align-self:center;max-width:112px;margin-top:2px}
+#hero-next{grid-column:1/-1;margin-top:12px;padding-top:10px;border-top:.5px solid var(--line);display:flex;flex-direction:column;gap:6px}
 #hero-next:empty{display:none}
 .nx{display:flex;align-items:baseline;gap:10px;font-size:15px;line-height:20px;letter-spacing:-.24px;min-width:0}
 .nx .grow{min-width:0;overflow-wrap:anywhere}
 .nx-l{flex:none;width:62px;font-size:12px;font-weight:700;letter-spacing:.2px;text-transform:uppercase;color:var(--accent)}
 .hero+.widgets{margin-top:12px}
+/* ===== Vädersidan ===== */
+.wx-hero{text-align:center;padding:4px 16px 8px;display:flex;flex-direction:column;align-items:center}
+.wx-place{font-size:28px;line-height:34px;font-weight:500}
+.wx-big{font-size:88px;line-height:1;font-weight:200;letter-spacing:-3px;margin:2px 0 0 22px}
+.wx-cond{font-size:20px;line-height:25px;font-weight:500;color:var(--ink-2)}
+.wx-hl{font-size:20px;line-height:25px;font-weight:500;white-space:pre}
+.wx-fig{display:flex;align-items:center;gap:12px;margin-top:6px}
+.wx-tip{display:flex;flex-direction:column;text-align:left;max-width:170px;font-size:15px;line-height:20px}
+.wx-tip b{font-size:13px;text-transform:uppercase;letter-spacing:.2px;color:var(--accent)}
+.wx-card{margin-top:14px;padding:10px 0 4px}
+.wx-cap{display:flex;align-items:center;gap:6px;font-size:13px;line-height:18px;font-weight:600;text-transform:uppercase;letter-spacing:-.08px;color:var(--ink-2);padding:0 16px 8px}
+.wx-cap svg{width:15px;height:15px}
+.hours{display:flex;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:6px 8px 8px;border-top:.5px solid var(--line)}
+.hours::-webkit-scrollbar{display:none}
+.hr{flex:none;width:52px;display:flex;flex-direction:column;align-items:center;gap:6px}
+.hr .hi{font-size:22px;line-height:26px}
+.hr b{font-size:17px;font-weight:600}
+.hr .hp{font-size:11px;line-height:13px;color:#2E9CC0;min-height:13px;font-weight:600}
+.day-row{display:grid;grid-template-columns:44px 30px 52px 34px minmax(0,1fr) 34px;align-items:center;gap:8px;padding:10px 16px;border-top:.5px solid var(--line);font-size:17px}
+.day-row .dn{font-weight:600}.day-row .di{font-size:22px;line-height:1;text-align:center}
+.day-row .dp{font-size:12px;color:#2E9CC0;font-weight:600}
+.day-row .dmin{color:var(--ink-2);text-align:right}.day-row .dmax{text-align:right;font-weight:600}
+.range{position:relative;height:5px;border-radius:3px;background:var(--fill)}
+.range i{position:absolute;top:0;bottom:0;border-radius:3px;background:linear-gradient(90deg,#5AC8FA,#FFCC00 60%,#FF9500)}
+.range b{position:absolute;top:50%;width:9px;height:9px;margin:-4.5px 0 0 -4.5px;border-radius:50%;background:var(--ink);border:2px solid var(--surface)}
+.wx-tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:14px 16px 0}
+@media (min-width:900px){.wx-tiles{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.wx-tile{background:var(--surface);border-radius:16px;padding:12px 14px 14px;min-width:0}
+.wx-tile .wx-cap{padding:0 0 6px}
+.wx-tile .tv{font-size:26px;line-height:32px;font-weight:600}
+.wx-tile .tv .sm{font-size:20px;white-space:nowrap}
+.wd{display:inline-block;font-weight:700}
+.foot a{color:var(--accent)}
 
 /* ===== Betyg och receptbank ===== */
 .st{color:#FFB800;letter-spacing:1px;font-size:.95em}
@@ -468,6 +505,40 @@ body.wall .hero .clock{font-size:96px;letter-spacing:-3px}
 .hbar{flex:1;display:flex;gap:2px;height:10px;min-width:0}
 .hbar i{display:block;height:100%;border-radius:2px}
 
+/* ===== Vädergubben ===== */
+.fig{display:block;width:100%;height:100%;overflow:visible;color:var(--ink)}
+.fig-body{animation:figBob 2.6s ease-in-out infinite;transform-origin:60px 140px}
+@keyframes figBob{50%{transform:translateY(-1.6px) scaleY(1.01)}}
+.fig-eyes{animation:figBlink 4.5s infinite;transform-origin:60px 46px}
+@keyframes figBlink{0%,93%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
+.fig-wave{transform-origin:47px 71px}
+.k-hot .fig-wave,.k-warm .fig-wave,.k-mild .fig-wave{animation:figWave 6s ease-in-out infinite}
+@keyframes figWave{0%,70%,100%{transform:rotate(0)}76%,88%{transform:rotate(118deg)}82%,94%{transform:rotate(100deg)}}
+.fig-umb{transform-origin:84px 64px;animation:figUmb 3.2s ease-in-out infinite}
+@keyframes figUmb{50%{transform:rotate(-5deg)}}
+.k-storm .fig-umb{animation-duration:1.4s}
+.fx-sun .rays{transform-origin:24px 26px;animation:figSpin 14s linear infinite}
+@keyframes figSpin{to{transform:rotate(360deg)}}
+.fx-sun circle{animation:figGlow 3s ease-in-out infinite}
+@keyframes figGlow{50%{opacity:.85}}
+.fx-cloud{animation:figDrift 9s ease-in-out infinite alternate}
+@keyframes figDrift{to{transform:translateX(-10px)}}
+.fx-rain line{animation:figRain .9s linear infinite}
+@keyframes figRain{0%{transform:translate(0,8px);opacity:0}15%{opacity:1}100%{transform:translate(-6px,130px);opacity:.2}}
+.fx-snow circle{animation:figSnow 4s linear infinite}
+@keyframes figSnow{0%{transform:translate(0,0);opacity:0}10%{opacity:1}50%{transform:translate(5px,70px)}100%{transform:translate(-3px,140px);opacity:.3}}
+.fx-bolt{opacity:0;animation:figBolt 3.4s infinite}
+@keyframes figBolt{0%,86%,92%,100%{opacity:0}88%,90%{opacity:1}}
+.fx-fog line{animation:figFog 7s ease-in-out infinite alternate}
+.fx-fog .d2{animation-duration:9s;animation-direction:alternate-reverse}
+@keyframes figFog{to{transform:translateX(14px)}}
+.fx-moon .tw{animation:figTw 2.4s ease-in-out infinite}
+.fx-moon .d2{animation-delay:-.8s}.fx-moon .d3{animation-delay:-1.6s}
+@keyframes figTw{50%{opacity:.2}}
+.fig-breath{opacity:0;transform-origin:74px 55px;animation:figBreath 3.5s ease-out infinite}
+@keyframes figBreath{0%,55%{opacity:0;transform:scale(.4)}70%{opacity:.9}100%{opacity:0;transform:translate(6px,-6px) scale(1.2)}}
+@media (prefers-reduced-motion:reduce){.fig *{animation:none!important}}
+
 /* ===== Animationer ===== */
 #main.in-fade{animation:pageFade .32s cubic-bezier(.2,.8,.2,1)}
 #main.in-right{animation:pageRight .36s cubic-bezier(.2,.8,.2,1)}
@@ -514,8 +585,8 @@ body.wall::before{content:"";position:fixed;inset:-20%;z-index:-1;pointer-events
 <div id="overlay"></div>
 <div class="timers" id="timers" aria-live="polite"></div>
 <div id="toast" hidden class="toast" role="status"></div>
-<script src="config.js?v=15"></script>
-<script src="app.js?v=15"></script>
+<script src="config.js?v=16"></script>
+<script src="app.js?v=16"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
