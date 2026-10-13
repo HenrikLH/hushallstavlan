@@ -736,7 +736,7 @@ function dogSvg(D,o,id,pose){
 /* Väderscenen visar vädret just nu, samma som väderrutan, och byggs av fristående lager som
    kombineras fritt: himlen (klart, mest klart, halvklart, mulet, dimma), sol eller måne efter
    klockslaget, nederbörd med typ och styrka, åska, vind och temperatur. Råden under bilden gäller
-   resten av dagen (wxToday). Hundarna sover bara när det är natt och uppehåll. */
+   resten av dagen (wxToday). Hundarna sover alltid på natten, oavsett väder. */
 function dayPhase(d){const P=WX_POS(),s=sunTimes(ymd(d),P.lat,P.lon),H=3600000;
  if(!s){const m=d.getMonth();return{phase:m>2&&m<9?'day':'night',f:.5}}   // midnattssol eller polarnatt
  const t=d.getTime(),r=s[0].getTime(),e=s[1].getTime(),f=Math.max(0,Math.min(1,(t-r)/(e-r)));
@@ -752,7 +752,7 @@ function wxScene(W,at){const c=W.now,n1=W.hours[1]||c,b=symBase(c.s),amt=Math.ma
  const T=c.T,w=c.w||0,wl=w<4?0:w<8?1:w<14?2:3,dx=-Math.sin((c.wd||0)*Math.PI/180);   // vinden blåser åt höger när den kommer från väst
  const{phase,f}=dayPhase(at||new Date()),dark=phase==='night'||phase==='dusk',sunUp=!dark&&f>0&&f<1;
  const tc=T>=20?'hot':T>=14?'warm':T>=7?'mild':T>=0?'cold':'freezing';
- const sleep=phase==='night'&&type==='none'&&!thunder&&wl<3,wet=/^(drizzle|rain|sleet)$/.test(type),snow=type==='snow';
+ const sleep=phase==='night',wet=/^(drizzle|rain|sleet)$/.test(type),snow=type==='snow';
  // kläderna följer temperaturen och nederbörden var för sig
  const rain=wet&&(type!=='drizzle'||T<14);
  const fit={rain,coat:rain?'rain':snow?'snow':T<0?'freezing':T<7?'cold':T<14?'mild':null,puffer:snow||(!rain&&T<0),
@@ -828,7 +828,11 @@ function figSvg(sc,o){o=o||{};const id='fg'+(++FIG_N),ph=sc.phase,dark=sc.dark,w
   s+='<g class="fx-snow" fill="#FFFFFF" stroke="#9DB4D3" stroke-width=".6">'+fall(n,(x,k)=>'<circle cx="'+x.toFixed(1)+'" cy="'+(6+rnd(k+30)*12).toFixed(1)+'" r="'+(sleet?1.3+rnd(k)*.8:1.4+rnd(k+3)*1.5).toFixed(1)+'" style="--dx:'+dx+'px;animation-duration:'+dur.toFixed(2)+'s;animation-delay:-'+(rnd(k+17)*dur).toFixed(2)+'s"/>')+'</g>';
   if(snow&&lv>=2)s+='<g class="fx-flakes" stroke="#FFFFFF" stroke-width="1.1" stroke-linecap="round">'+[[40,.4],[128,2.1],[86,3.2]].map(([x,d])=>'<g style="--dx:'+dx+'px;animation-delay:-'+d+'s"><path d="M'+x+' 6v10M'+(x-4.3)+' 8.5l8.6 5M'+(x-4.3)+' 13.5l8.6-5" stroke="#9DB4D3" stroke-width="2.4"/><path d="M'+x+' 6v10M'+(x-4.3)+' 8.5l8.6 5M'+(x-4.3)+' 13.5l8.6-5"/></g>').join('')+'</g>'}
  // 7. vinden: streck som drar förbi och löv när det blåser ordentligt
- if(sc.wl){s+='<g class="fx-wind'+(sc.dir<0?' rev':'')+'" stroke="currentColor" stroke-width="1.2" fill="none" stroke-linecap="round" opacity=".3">'+[[14,52],[96,30],[40,94],[110,78]].slice(0,sc.wl+1).map(([x,y],k)=>'<path d="M'+x+' '+y+' q8 -3 16 0 t16 0'+(k%2?' q6 2 4 -3':'')+'" style="animation-delay:-'+(k*.8)+'s"/>').join('')+'</g>';
+ if(sc.wl){// vindbyar: mjuka svep som slutar i en virvel och ritas fram och tonar bort
+  const G=[[8,48,40,1],[92,26,46,-1],[30,92,34,-1],[104,74,40,1]].slice(0,sc.wl+1);
+  s+='<g class="fx-wind'+(sc.dir<0?' rev':'')+'" fill="none" stroke-linecap="round" stroke-linejoin="round">'+G.map(([x,y,L,u],k)=>{
+   const n=v=>+v.toFixed(1),d='M'+x+' '+y+' C'+n(x+L*.35)+' '+n(y-2*u)+' '+n(x+L*.65)+' '+n(y+2*u)+' '+(x+L)+' '+y+' c4 0 7 '+n(-3*u)+' 5.5 '+n(-6*u)+' c-1.2 '+n(-2.4*u)+' -4.6 '+n(-2.2*u)+' -5.2 '+n(.3*u)+' c-.5 '+n(1.8*u)+' 1.4 '+n(2.6*u)+' 2.6 '+n(1.6*u);
+   return'<g style="animation-delay:-'+(k*.7)+'s"><path d="'+d+'" pathLength="100" stroke="currentColor" stroke-width="3.2" opacity=".08"/><path d="'+d+'" pathLength="100" stroke="#93AACB" stroke-width="1.6"/></g>'}).join('')+'</g>';
   if(sc.wl>=2&&!snow&&sc.T>2)s+='<g class="fx-leaves'+(sc.dir<0?' rev':'')+'">'+[['#D9894A',60,0],['#B4475D',86,1.1],['#8FA35A',40,2.2]].map(([c,y,d])=>'<path d="M-10 '+y+' q4 -4 8 0 q-4 4 -8 0z" fill="'+c+'" style="animation-delay:-'+d+'s"/>').join('')+'</g>'}
  return'<svg class="fig k-'+sc.tc+' w'+sc.wl+(sc.sleep?' zz':'')+'" viewBox="0 0 170 130" role="img" aria-label="'+esc(o.label||sc.label)+'">'+s+'</svg>'}
 
