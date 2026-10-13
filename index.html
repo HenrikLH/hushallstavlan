@@ -389,8 +389,8 @@ body.wall .hero .clock{font-size:96px;letter-spacing:-3px}
 .wx-ic{font-size:28px;line-height:1}
 .wx-t{font-size:34px;line-height:1;font-weight:600;letter-spacing:-.5px}
 .hero-wx .fn{margin-top:2px}
-.fig-box{width:92px;height:115px;margin-top:6px;align-self:center;filter:drop-shadow(0 4px 10px rgba(0,0,0,.12))}
-.fig-box.big{width:150px;height:188px}
+.fig-box{width:104px;height:113px;margin-top:12px;align-self:center}
+.fig-box.big{width:170px;height:184px}
 .fig-tip{font-size:11px;line-height:13px;color:var(--ink-2);text-align:center;align-self:center;max-width:112px;margin-top:2px}
 #hero-next{grid-column:1/-1;margin-top:12px;padding-top:10px;border-top:.5px solid var(--line);display:flex;flex-direction:column;gap:6px}
 #hero-next:empty{display:none}
@@ -541,6 +541,19 @@ body.wall .hero .clock{font-size:96px;letter-spacing:-3px}
 @keyframes figTw{50%{opacity:.2}}
 .fig-breath{opacity:0;transform-origin:74px 55px;animation:figBreath 3.5s ease-out infinite}
 @keyframes figBreath{0%,55%{opacity:0;transform:scale(.4)}70%{opacity:.9}100%{opacity:0;transform:translate(6px,-6px) scale(1.2)}}
+.dog-head{transform-origin:60px 70px;animation:dogTilt 7s ease-in-out infinite}
+@keyframes dogTilt{0%,60%,100%{transform:rotate(0)}66%,78%{transform:rotate(-7deg)}}
+.ear-l{transform-origin:44px 34px;animation:earL 5s ease-in-out infinite}
+.ear-r{transform-origin:76px 34px;animation:earR 5s ease-in-out infinite 1.3s}
+@keyframes earL{0%,88%,100%{transform:rotate(0)}92%{transform:rotate(-9deg)}}
+@keyframes earR{0%,88%,100%{transform:rotate(0)}92%{transform:rotate(9deg)}}
+.tongue{transform-origin:60px 61px;animation:pant .5s ease-in-out infinite}
+@keyframes pant{50%{transform:scaleY(1.25)}}
+.dog.fig-body{transform-origin:60px 124px;animation:figBob 2.6s ease-in-out infinite}
+.k-hot .dog.fig-body{animation-duration:.5s}
+.fig-z text{animation:zz 3s ease-in-out infinite}.fig-z .d2{animation-delay:-1.5s}
+@keyframes zz{0%{opacity:0;transform:translate(0,4px)}30%{opacity:1}100%{opacity:0;transform:translate(6px,-8px)}}
+.fig .fig-eyes{transform-origin:60px 45px}
 @media (prefers-reduced-motion:reduce){.fig *{animation:none!important}}
 
 /* ===== Animationer ===== */

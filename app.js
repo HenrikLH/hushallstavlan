@@ -597,64 +597,74 @@ function wxToday(W){const n=new Date(),late=n.getHours()>=20,day=late?addDays(to
  return{kind,night:nt,sunny,max,pr,tip,when:late?'i morgon':'idag'}}
 function isNight(){const P=WX_POS(),s=sunTimes(today(),P.lat,P.lon),n=new Date();return s?(n<s[0]||n>s[1]):false}
 
-/* Vädergubben i Kurzgesagt-anda: en liten scen med himmel, ljus och mark,
-   platta former med skugga på högra sidan (ljuset kommer uppifrån vänster). */
+/* Vädervovven: en fransk bulldogg i Kurzgesagt-anda som klär sig efter vädret.
+   Ingen bakgrundsruta: sol, moln, regn och snö svävar fritt runt hunden. Ljuset kommer
+   uppifrån vänster, så högra sidan av varje form får en mörkare ton. */
 let FIG_N=0;
 const shadeHex=(h,f)=>{const n=parseInt(h.slice(1),16),c=[n>>16,n>>8&255,n&255].map(v=>Math.max(0,Math.min(255,Math.round(v*f))));return'#'+c.map(v=>v.toString(16).padStart(2,'0')).join('')};
 function figSvg(kind,o){o=o||{};const K=kind,night=!!o.night,id='fg'+(++FIG_N);
- const SC={hot:['#2FA8E8','#9FE0FF','#5DBB63'],warm:['#4DA6E0','#B7E4FA','#68B86A'],mild:['#6F93BE','#C4D7EA','#6FA06A'],cold:['#5873A3','#AFC1DD','#7E9A86'],
-  freezing:['#3C5585','#9AB0D2','#E6EEF7'],snow:['#4A6290','#A9BCDA','#EEF3F9'],rain:['#3E4E6E','#7487A6','#4F7A5E'],storm:['#2B3450','#5A6788','#40634C'],fog:['#8796A8','#C9D2DC','#8FA394']}[K];
- const sky=night?['#0E1433','#2A3270',SC[2]==='#E6EEF7'||SC[2]==='#EEF3F9'?'#8C9BB8':'#2F4A3E']:SC;
- const skin='#E8B48E',hair='#2E2340',eye='#1B1F3B';
- const top={hot:'#FF7A59',warm:'#F2C14E',mild:'#3D8FB8',cold:'#C2475F',freezing:'#2F5D8C',rain:'#F4C430',snow:'#2F5D8C',storm:'#F4C430',fog:'#6C7A89'}[K];
- const pants={hot:'#25406B',warm:'#2E3E66',mild:'#2A3352',cold:'#262B45',freezing:'#262B45',rain:'#2A3352',snow:'#262B45',storm:'#2A3352',fog:'#2A3352'}[K];
- const shorts=K==='hot',coat=/^(mild|cold|freezing|snow|rain|storm|fog)$/.test(K),longS=!/^(hot|warm)$/.test(K),umb=/^(rain|storm)$/.test(K);
- const beanie=/^(cold|freezing|snow)$/.test(K),scarf=beanie,shades=(K==='hot'||(K==='warm'&&o.sunny))&&!night,boots=/^(rain|storm|snow)$/.test(K);
- const glove=beanie?'#C2475F':skin,boot=K==='snow'?'#5B3A2E':'#2F6E57',shoeC=boots?boot:'#1E2238';
- // himmel, ljus och mark
- let s='<defs><linearGradient id="'+id+'s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+sky[0]+'"/><stop offset="1" stop-color="'+sky[1]+'"/></linearGradient>'+
-  '<radialGradient id="'+id+'g"><stop offset="0" stop-color="#FFF4C2" stop-opacity=".9"/><stop offset="1" stop-color="#FFF4C2" stop-opacity="0"/></radialGradient>'+
-  '<clipPath id="'+id+'c"><rect width="120" height="150" rx="22"/></clipPath><clipPath id="'+id+'r"><rect x="65.5" y="0" width="70" height="150"/></clipPath></defs>'+
-  '<g clip-path="url(#'+id+'c)"><rect width="120" height="150" fill="url(#'+id+'s)"/>';
- if(night&&!/^(rain|storm|snow|fog)$/.test(K))s+='<g class="fx-stars" fill="#FFF8DC">'+[[14,18,1.1],[34,10,.8],[96,14,1],[108,40,.8],[20,56,.7],[80,8,.7],[52,24,.6]].map(([x,y,r],k)=>'<circle class="tw'+(k%3?' d'+(k%3+1):'')+'" cx="'+x+'" cy="'+y+'" r="'+r+'"/>').join('')+'</g>'+
-  '<g class="fx-moon"><circle cx="92" cy="26" r="18" fill="url(#'+id+'g)" opacity=".5"/><circle cx="92" cy="26" r="8" fill="#FFF1C9"/><circle cx="89" cy="24" r="1.6" fill="#E8D9AE"/><circle cx="95" cy="29" r="1.1" fill="#E8D9AE"/></g>';
- else if(/^(hot|warm)$/.test(K))s+='<g class="fx-sun"><circle cx="92" cy="26" r="30" fill="url(#'+id+'g)"/><circle cx="92" cy="26" r="11" fill="#FFD45C"/><circle cx="92" cy="26" r="11" fill="#FFB938" clip-path="url(#'+id+'r)" opacity=".35"/></g>';
- const cloud=(x,y,sc,c1,cls)=>'<g class="'+(cls||'fx-cloud')+'" transform="translate('+x+' '+y+') scale('+sc+')"><path d="M0 14h40a9 9 0 0 0 0-18a13 13 0 0 0-25-3a10 10 0 0 0-15 21z" fill="'+c1+'"/><path d="M4 14h36a9 9 0 0 0 7-4H6a8 8 0 0 1-2 4z" fill="'+shadeHex(c1,.86)+'"/></g>';
- if(K==='warm'&&!night)s+=cloud(8,30,.55,'#FFFFFF');
- if(/^(mild|cold|fog)$/.test(K))s+=cloud(66,22,.8,night?'#4A5488':'#EAF1F8')+cloud(6,40,.55,night?'#3D4677':'#DCE6F1','fx-cloud d2');
- if(/^(freezing|snow)$/.test(K))s+=cloud(62,16,.85,night?'#4A5488':'#DDE6F2')+cloud(4,30,.6,night?'#3D4677':'#CFDBEA','fx-cloud d2');
- if(/^(rain|storm)$/.test(K))s+=cloud(58,14,.9,K==='storm'?'#2A3049':'#56627F')+cloud(2,24,.7,K==='storm'?'#232842':'#4B5672','fx-cloud d2');
- if(K==='storm')s+='<path class="fx-bolt" d="M86 36l-7 13h6l-4 11 11-15h-6l4-9z" fill="#FFE066"/>';
- // mark
- s+='<path d="M-5 128 Q30 116 60 120 T125 124 V150 H-5Z" fill="'+sky[2]+'"/><path d="M-5 136 Q50 128 125 134 V150 H-5Z" fill="'+shadeHex(sky[2],.86)+'"/>';
- if(K==='fog')s+='<g class="fx-fog" stroke="#EEF2F6" stroke-linecap="round" opacity=".75"><line x1="-4" y1="98" x2="46" y2="98" stroke-width="6"/><line class="d2" x1="74" y1="112" x2="124" y2="112" stroke-width="7"/><line x1="4" y1="124" x2="36" y2="124" stroke-width="5"/></g>';
- // figuren: varje del ritas två gånger, andra gången mörkare och bara på högra sidan
- const legs=(sh)=>{const P=c=>sh?shadeHex(c,.78):c;return shorts
-  ?'<rect x="51" y="90" width="8" height="38" rx="4" fill="'+P(skin)+'"/><rect x="61" y="90" width="8" height="38" rx="4" fill="'+P(skin)+'"/><path d="M48 88h24v15h-10.5l-1.5-4-1.5 4H48z" fill="'+P(pants)+'"/>'
-  :'<rect x="51" y="88" width="8.5" height="40" rx="4" fill="'+P(pants)+'"/><rect x="60.5" y="88" width="8.5" height="40" rx="4" fill="'+P(pants)+'"/>'};
- const feet=(sh)=>{const c=sh?shadeHex(shoeC,.75):shoeC;return boots?'<rect x="48.5" y="119" width="11" height="11" rx="3" fill="'+c+'"/><rect x="60.5" y="119" width="11" height="11" rx="3" fill="'+c+'"/>'
-  :'<path d="M48 130h11v-4h-7a4 4 0 0 0-4 4z" fill="'+c+'"/><path d="M61 130h11a4 4 0 0 0-4-4h-7z" fill="'+c+'"/>'};
- const tH=coat?44:36;
- const torso=(sh)=>{const c=sh?shadeHex(top,.8):top;return'<path d="M47 60 q0-6 6-6 h14 q6 0 6 6 l'+(coat?'2 ':'0 ')+(tH-6)+' q0 3 -3 3 h-'+(coat?'24':'20')+' q-3 0 -3 -3 z" fill="'+c+'"/>'+
-  (coat&&!sh?'<line x1="60" y1="57" x2="60" y2="'+(54+tH-1)+'" stroke="'+shadeHex(top,.7)+'" stroke-width="1.2"/>':'')+(K==='hot'&&!sh?'<path d="M55 54 q5 5 10 0" fill="none" stroke="'+shadeHex(top,.7)+'" stroke-width="1.5"/>':'')};
- const arm=(d,sl,sh)=>{const sc=longS?top:skin,c=sh?shadeHex(sc,.78):sc;return'<path d="'+d+'" stroke="'+c+'" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>'+
-  (longS?'':'<path d="'+sl+'" stroke="'+(sh?shadeHex(top,.8):top)+'" stroke-width="8.5" fill="none" stroke-linecap="round"/>')};
- const aL='M49 60 L45 76 L44 90',aR=umb?'M71 60 L80 72 L82 60':'M71 60 L75 76 L76 90';
- const hands=(sh)=>{const g=sh?shadeHex(glove,.8):glove;return'<circle cx="44" cy="91" r="4" fill="'+g+'"/>'+(umb?'<circle cx="82.5" cy="59" r="4" fill="'+(sh?shadeHex(skin,.8):skin)+'"/>':'<circle cx="76" cy="91" r="4" fill="'+g+'"/>')};
- const headB=(sh)=>{const c=sh?shadeHex(skin,.8):skin;return'<rect x="56.5" y="48" width="7" height="8" rx="3" fill="'+c+'"/><circle cx="60" cy="38" r="12.5" fill="'+c+'"/>'};
- const hat=beanie?'<path d="M47 35 a13 13 0 0 1 26 0z" fill="#C2475F"/><path d="M60 22 a13 13 0 0 1 13 13 h-6 a12 12 0 0 0 -7 -13z" fill="'+shadeHex('#C2475F',.8)+'"/><rect x="46" y="32" width="28" height="5.5" rx="2.75" fill="#E06A80"/><circle cx="60" cy="21" r="3.5" fill="#F7E1E6"/>'
-  :'<path d="M47.5 35 a12.5 12.5 0 0 1 25 0 q-4 -6 -12 -6 q-6 0 -9 3 q-2 1 -4 3z" fill="'+hair+'"/>';
- const face=shades?'<g><rect x="50.5" y="35" width="8.5" height="5.5" rx="2.4" fill="#151833"/><rect x="61" y="35" width="8.5" height="5.5" rx="2.4" fill="#151833"/><path d="M59 37 h2" stroke="#151833" stroke-width="1.6"/><path d="M52 36.5 l3 0" stroke="#fff" stroke-opacity=".5" stroke-width="1" stroke-linecap="round"/></g>'
-  :'<g class="fig-eyes"><ellipse cx="55.5" cy="38" rx="1.7" ry="2.3" fill="'+eye+'"/><ellipse cx="64.5" cy="38" rx="1.7" ry="2.3" fill="'+eye+'"/></g>';
- const scarfS=scarf?'<path d="M50 52 h20 a3 3 0 0 1 0 6 h-20 a3 3 0 0 1 0-6z" fill="#F29E4C"/><rect x="62" y="55" width="5.5" height="14" rx="2.5" fill="'+shadeHex('#F29E4C',.82)+'"/>':'';
- const umbS=umb?'<g class="fig-umb"><path d="M82.5 62 V8" stroke="#2B2B3A" stroke-width="1.8"/><path d="M50 22 Q82.5 -6 115 22 Q107 17 98.5 22 Q90 17 82.5 22 Q74 17 66.5 22 Q58 17 50 22Z" fill="#E8505B"/>'+
-  '<path d="M82.5 3 Q96 8 98.5 22 Q90 17 82.5 22 Q107 17 115 22 Q104 4 82.5 3Z" fill="'+shadeHex('#E8505B',.78)+'"/><path d="M82.5 62 q0 5 -4 5" fill="none" stroke="#2B2B3A" stroke-width="1.8" stroke-linecap="round"/></g>':'';
- const breath=/^(cold|freezing|snow)$/.test(K)?'<g class="fig-breath" fill="#FFFFFF" opacity=".9"><circle cx="76" cy="44" r="2.6"/><circle cx="81" cy="41" r="1.9"/></g>':'';
- const body=(sh)=>legs(sh)+feet(sh)+'<g class="fig-wave">'+arm(aL,'M49 60 L47.5 66',sh)+'</g>'+torso(sh)+arm(aR,'M71 60 L72.5 66',sh)+hands(sh)+headB(sh);
- s+='<ellipse cx="60" cy="130" rx="17" ry="2.6" fill="#000" opacity=".18"/><g class="fig-body">'+umbS+body(false)+'<g clip-path="url(#'+id+'r)">'+body(true)+'</g>'+scarfS+'<g transform="translate(0 2)">'+hat+face+'</g>'+breath+'</g>';
- if(/^(rain|storm)$/.test(K))s+='<g class="fx-rain" stroke="#BFE3FF" stroke-width="1.5" stroke-linecap="round" opacity=".85">'+[[10,0],[24,.35],[104,.15],[114,.55],[18,.7],[110,.85],[34,.5],[96,.25],[40,.62],[4,.42]].map(([x,dl])=>'<line x1="'+x+'" y1="0" x2="'+(x-2)+'" y2="8" style="animation-delay:-'+dl+'s"/>').join('')+'</g>';
- if(K==='snow'||K==='freezing')s+='<g class="fx-snow" fill="#FFFFFF">'+[[10,0],[26,1.2],[98,.6],[110,2],[18,2.6],[104,3.1],[38,1.8],[88,.3],[70,2.2],[4,1.5]].map(([x,dl])=>'<circle cx="'+x+'" cy="0" r="1.8" style="animation-delay:-'+dl+'s"/>').join('')+'</g>';
- return'<svg class="fig k-'+K+'" viewBox="0 0 120 150" role="img" aria-label="'+esc(o.label||'')+'">'+s+'</g></svg>'}
+ const fur='#E3B27E',furD=shadeHex(fur,.8),chest='#F6E7D3',mask='#6A5446',pink='#E99A9A';
+ const coat={mild:'#3D8FB8',cold:'#C2475F',freezing:'#2F5D8C',snow:'#2F5D8C',rain:'#F4C430',storm:'#F4C430',fog:'#7C8A99'}[K];
+ const shades=(K==='hot'||(K==='warm'&&o.sunny))&&!night,tongue=K==='hot'&&!night,bandana=K==='warm',beanie=/^(cold|freezing|snow)$/.test(K),scarf=/^(cold|freezing|snow|fog)$/.test(K);
+ const puffer=/^(freezing|snow)$/.test(K),rainc=/^(rain|storm)$/.test(K),sleepy=night&&!rainc&&K!=='storm';
+ let s='<defs><radialGradient id="'+id+'g"><stop offset="0" stop-color="#FFE9A8" stop-opacity=".85"/><stop offset="1" stop-color="#FFE9A8" stop-opacity="0"/></radialGradient>'+
+  '<clipPath id="'+id+'r"><rect x="73" y="-10" width="80" height="160"/></clipPath></defs>';
+ // väder runt hunden
+ const cloud=(x,y,sc,c1,cls)=>'<g class="'+(cls||'fx-cloud')+'" transform="translate('+x+' '+y+') scale('+sc+')"><path d="M0 14h40a9 9 0 0 0 0-18a13 13 0 0 0-25-3a10 10 0 0 0-15 21z" fill="'+c1+'"/><path d="M3 14h37a9 9 0 0 0 7-4H6a8 8 0 0 1-3 4z" fill="'+shadeHex(c1,.84)+'"/></g>';
+ if(night&&!/^(rain|storm|snow|fog)$/.test(K))s+='<g class="fx-moon"><circle cx="102" cy="16" r="15" fill="url(#'+id+'g)" opacity=".6"/><path d="M103 7a9 9 0 1 0 7 14a7 7 0 0 1-7-14z" fill="#F5E2A6"/></g><g class="fx-stars" fill="#F5E2A6"><circle class="tw" cx="10" cy="12" r="1.3"/><circle class="tw d2" cx="22" cy="28" r="1"/><circle class="tw d3" cx="86" cy="6" r="1"/></g>';
+ else if(/^(hot|warm)$/.test(K))s+='<g class="fx-sun"><circle cx="100" cy="18" r="22" fill="url(#'+id+'g)"/><circle cx="100" cy="18" r="9.5" fill="#FFC93C"/><path d="M100 8.5a9.5 9.5 0 0 1 0 19z" fill="#F5A623" opacity=".45"/></g>';
+ if(K==='warm')s+=cloud(4,14,.5,'#E8F1FA');
+ if(/^(mild|cold|fog)$/.test(K))s+=cloud(78,4,.7,'#D9E4EF')+cloud(0,18,.5,'#C9D6E4','fx-cloud d2');
+ if(/^(freezing|snow)$/.test(K))s+=cloud(76,2,.75,'#D3DEEA')+cloud(0,12,.55,'#C3D0E0','fx-cloud d2');
+ if(rainc)s+=cloud(74,0,.8,K==='storm'?'#545E78':'#8996AD')+cloud(0,8,.6,K==='storm'?'#47506A':'#7A889F','fx-cloud d2');
+ if(K==='storm')s+='<path class="fx-bolt" d="M94 22l-6 11h5l-4 9 10-13h-5l4-7z" fill="#FFD84D"/>';
+ if(K==='fog')s+='<g class="fx-fog" stroke="currentColor" stroke-linecap="round" opacity=".18"><line x1="0" y1="96" x2="34" y2="96" stroke-width="5"/><line class="d2" x1="88" y1="108" x2="120" y2="108" stroke-width="6"/><line x1="6" y1="116" x2="28" y2="116" stroke-width="4"/></g>';
+ // kroppen (ritas två gånger: ljus, sedan skuggad högersida)
+ const P=(c,sh)=>sh?shadeHex(c,.8):c;
+ const body=sh=>{let b='';
+  b+='<path d="M34 112 Q31 86 44 76 Q60 68 76 76 Q89 86 86 112 Q86 123 74 123 H46 Q34 123 34 112Z" fill="'+P(fur,sh)+'"/>';
+  if(!sh&&!coat)b+='<path d="M49 80 Q60 74 71 80 Q74 98 60 110 Q46 98 49 80Z" fill="'+chest+'"/>';
+  if(coat){b+='<path d="M35 106 Q33 85 45 76.5 Q60 68.5 75 76.5 Q87 85 85 106 Q74 113 60 113 Q46 113 35 106Z" fill="'+P(coat,sh)+'"/>';
+   if(!sh&&puffer)b+='<path d="M37 87 Q60 93 83 87 M35.5 98 Q60 105 84.5 98" stroke="'+shadeHex(coat,.75)+'" stroke-width="1.6" fill="none"/>';
+   if(!sh&&rainc)b+='<line x1="60" y1="78" x2="60" y2="111" stroke="'+shadeHex(coat,.72)+'" stroke-width="1.4"/><circle cx="56" cy="88" r="1.3" fill="'+shadeHex(coat,.6)+'"/><circle cx="56" cy="99" r="1.3" fill="'+shadeHex(coat,.6)+'"/>';
+   if(!sh&&!puffer&&!rainc)b+='<path d="M41 80 Q60 87 79 80" stroke="'+shadeHex(coat,.78)+'" stroke-width="3" fill="none" stroke-linecap="round"/>'}
+  // framben och tassar
+  b+='<rect x="45" y="100" width="12" height="22" rx="6" fill="'+P(fur,sh)+'"/><rect x="63" y="100" width="12" height="22" rx="6" fill="'+P(fur,sh)+'"/>';
+  b+=rainc?'<rect x="44" y="113" width="14" height="10" rx="3.5" fill="'+P('#E8505B',sh)+'"/><rect x="62" y="113" width="14" height="10" rx="3.5" fill="'+P('#E8505B',sh)+'"/>'
+   :'<ellipse cx="51" cy="122" rx="7.5" ry="3.4" fill="'+P(chest,sh)+'"/><ellipse cx="69" cy="122" rx="7.5" ry="3.4" fill="'+P(chest,sh)+'"/>';
+  return b};
+ const head=sh=>{let h='';
+  // fladdermusöron
+  h+='<g class="ear-l"><path d="M34 44 Q24 22 30 12 Q38 6 56 30 Z" fill="'+P(fur,sh)+'"/>'+(sh?'':'<path d="M36 38 Q30 22 33 16 Q38 13 49 30 Z" fill="'+pink+'"/>')+'</g>';
+  h+='<g class="ear-r"><path d="M86 44 Q96 22 90 12 Q82 6 64 30 Z" fill="'+P(fur,sh)+'"/>'+(sh?'':'<path d="M84 38 Q90 22 87 16 Q82 13 71 30 Z" fill="'+pink+'"/>')+'</g>';
+  // huvud: brett och kantigt rundat
+  h+='<path d="M31 52 Q31 28 60 28 Q89 28 89 52 Q89 75 60 76 Q31 75 31 52Z" fill="'+P(fur,sh)+'"/>';
+  // nosparti med mörk mask
+  h+='<path d="M43 57 Q43 47 60 47 Q77 47 77 57 Q77 70 60 71 Q43 70 43 57Z" fill="'+P(mask,sh)+'"/>';
+  return h};
+ const face=()=>{let f='';
+  f+='<path d="M51 39 q9 -4 18 0 M54 35 q6 -2.5 12 0" stroke="'+shadeHex(fur,.68)+'" stroke-width="1.4" fill="none" stroke-linecap="round"/>';
+  f+='<path d="M54 51 q6 -3.5 12 0 q-1 5 -6 6 q-5 -1 -6 -6z" fill="#1E1614"/><path d="M57 51.5 q2 -1 4 0" stroke="#fff" stroke-opacity=".35" stroke-width="1" fill="none" stroke-linecap="round"/>';
+  f+='<path d="M60 57 v3 M60 60 q-5 5 -10 1 M60 60 q5 5 10 1" stroke="#1E1614" stroke-width="1.4" fill="none" stroke-linecap="round"/>';
+  if(tongue)f+='<path class="tongue" d="M56 62 h8 v5 a4 4 0 0 1 -8 0z" fill="#EF6F7A"/><path d="M60 62.5 v4" stroke="#C9505C" stroke-width="1" stroke-linecap="round"/>';
+  if(sleepy)f+='<path d="M42 46 q5 3.5 10 0 M68 46 q5 3.5 10 0" stroke="#1E1614" stroke-width="1.6" fill="none" stroke-linecap="round"/>';
+  else if(shades)f+='<g><circle cx="47" cy="45" r="7" fill="#141833"/><circle cx="73" cy="45" r="7" fill="#141833"/><path d="M53.5 44 q6.5 -3 13 0" stroke="#141833" stroke-width="2" fill="none"/><path d="M43.5 42.5 q2 -2 4.5 -2" stroke="#fff" stroke-opacity=".55" stroke-width="1.3" fill="none" stroke-linecap="round"/></g>';
+  else f+='<g class="fig-eyes"><circle cx="47" cy="45" r="5" fill="#1E1614"/><circle cx="73" cy="45" r="5" fill="#1E1614"/><circle cx="45.5" cy="43.5" r="1.6" fill="#fff"/><circle cx="71.5" cy="43.5" r="1.6" fill="#fff"/></g>';
+  return f};
+ let acc='';
+ if(bandana)acc+='<path d="M42 73 Q60 81 78 73 L60 92 Z" fill="#E8505B"/><path d="M60 78 L78 73 L60 92 Z" fill="'+shadeHex('#E8505B',.8)+'"/><circle cx="55" cy="79" r="1" fill="#fff" opacity=".7"/><circle cx="62" cy="82" r="1" fill="#fff" opacity=".7"/>';
+ if(scarf)acc+='<path d="M39 73 Q60 81 81 73 L82 80 Q60 88 38 80Z" fill="#F29E4C"/><rect x="66" y="78" width="7" height="16" rx="3" fill="'+shadeHex('#F29E4C',.82)+'"/>';
+ let hat='';
+ if(beanie)hat='<path d="M39 37 Q39 18 60 18 Q81 18 81 37 Z" fill="#C2475F"/><path d="M60 18 Q81 18 81 37 H72 Q72 22 60 18Z" fill="'+shadeHex('#C2475F',.8)+'"/><rect x="37" y="33" width="46" height="7" rx="3.5" fill="#E06A80"/><circle cx="60" cy="16" r="4.4" fill="#F7E1E6"/>';
+ if(rainc)hat='<g class="fig-umb"><path d="M60 26 V8" stroke="#2B2B3A" stroke-width="1.6"/><path d="M36 12 Q60 -8 84 12 Q78 8 72 12 Q66 8 60 12 Q54 8 48 12 Q42 8 36 12Z" fill="#E8505B"/><path d="M60 -1 Q72 3 72 12 Q78 8 84 12 Q76 -2 60 -1Z" fill="'+shadeHex('#E8505B',.78)+'"/><path d="M48 30 Q60 22 72 30" stroke="#2B2B3A" stroke-width="1.6" fill="none"/></g>';
+ const zz=sleepy?'<g class="fig-z" fill="currentColor" font-family="-apple-system,system-ui,sans-serif" font-weight="700" opacity=".55"><text x="84" y="44" font-size="9">z</text><text class="d2" x="91" y="34" font-size="7">z</text></g>':'';
+ const breath=/^(cold|freezing|snow)$/.test(K)&&!sleepy?'<g class="fig-breath" fill="currentColor" opacity=".25"><circle cx="78" cy="60" r="2.6"/><circle cx="84" cy="56" r="1.9"/></g>':'';
+ s+='<ellipse cx="60" cy="124" rx="26" ry="3" fill="#000" opacity=".16"/>';
+ s+='<g class="fig-body dog">'+body(false)+'<g clip-path="url(#'+id+'r)">'+body(true)+'</g>'+acc+
+  '<g class="dog-head">'+head(false)+'<g clip-path="url(#'+id+'r)">'+head(true)+'</g>'+face()+hat+'</g>'+breath+zz+'</g>';
+ if(rainc)s+='<g class="fx-rain" stroke="#6FB2E6" stroke-width="1.5" stroke-linecap="round" opacity=".8">'+[[8,0],[20,.35],[100,.15],[112,.55],[14,.7],[106,.85],[30,.5],[92,.25]].map(([x,dl])=>'<line x1="'+x+'" y1="16" x2="'+(x-2)+'" y2="24" style="animation-delay:-'+dl+'s"/>').join('')+'</g>';
+ if(K==='snow'||K==='freezing')s+='<g class="fx-snow" fill="#BFD3EA">'+[[8,0],[24,1.2],[98,.6],[110,2],[16,2.6],[104,3.1],[34,1.8],[88,.3]].map(([x,dl])=>'<circle cx="'+x+'" cy="14" r="1.8" style="animation-delay:-'+dl+'s"/>').join('')+'</g>';
+ return'<svg class="fig k-'+K+'" viewBox="0 0 120 130" role="img" aria-label="'+esc(o.label||'')+'">'+s+'</svg>'}
 
 const hm=m=>pad(Math.floor(m/60))+'.'+pad(m%60);
 function nextHtml(){const n=new Date(),mins=n.getHours()*60+n.getMinutes(),td=dayOf(today());
