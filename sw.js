@@ -1,7 +1,7 @@
 // Sparar appens filer så att den startar snabbt och fungerar utan nät.
 // Hushållets data hämtas alltid från kalkylarket.
-const VERSION = 'ht-v24';
-const SHELL = ['./', './index.html', './app.js?v=20', './config.js?v=20', './manifest.webmanifest', './icons/icon-192.png?v=5', './icons/icon-192-dark.png?v=5', './icons/apple-touch-icon.png?v=5', './icons/apple-touch-icon-dark.png?v=5'];
+const VERSION = 'ht-v25';
+const SHELL = ['./', './index.html', './app.js?v=21', './config.js?v=21', './manifest.webmanifest', './icons/icon-192.png?v=5', './icons/icon-192-dark.png?v=5', './icons/apple-touch-icon.png?v=5', './icons/apple-touch-icon-dark.png?v=5'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));

@@ -390,6 +390,7 @@ function recipeDetail(r){
  const act=Math.min(S.step[r.id]||0,r.steps.length-1),actHits=stepIngredients(r,r.steps[act]);
  NB.title=r.title;NB.back=true;
  let h='<div class="rcp-top"><button class="back" data-act="recipeBack">'+I.back+'Mat</button>';
+ if(imgOf(r.id))h+='<div class="rcp-photo"><img src="'+esc(imgOf(r.id))+'" alt="'+esc(r.title)+'"></div>';
  h+='<div class="chips-row">'+whoChip(r.who)+(r.when?'<span class="chip">'+esc(r.when)+'</span>':'')+(r.freezes?'<span class="chip v">Går att frysa</span>':'')+'</div><h1 class="t1" id="lt">'+esc(r.title)+'</h1></div>';
  const facts=[['Tid','<span class="num">'+r.min+'</span> min']];if(r.kr)facts.push(['Per portion',kr(r.kr)]);if(r.protein)facts.push(['Protein',esc(r.protein)]);
  h+='<div class="group" style="margin-top:16px"><div class="rcp-facts" style="grid-template-columns:repeat('+facts.length+',minmax(0,1fr))">'+facts.map(([l,v])=>'<div><div class="fn">'+l+'</div><div class="v">'+v+'</div></div>').join('')+'</div></div>';
@@ -415,8 +416,25 @@ function rateBlock(r){const g=ratingOf(r.id),wished=wishes().some(x=>x.id===r.id
  h+=group((g?g.people.map(([p,e])=>'<div class="cell"><div class="grow"><div class="title">'+esc(p)+' <span class="st">'+starsTxt(e.s)+'</span></div><div class="meta"><span class="chip '+(e.v==='igen'?'v':e.v==='aldrig'?'h':'')+'">'+esc(VERD[e.v]||'')+'</span>'+(e.c?'<span>'+esc(e.c)+'</span>':'')+(e.d?'<span>'+esc(dateShort(e.d))+'</span>':'')+'</div></div></div>').join(''):emptyCell('Ingen har betygsatt receptet än.'))+
   '<button class="cell link" data-act="rate" data-id="'+esc(r.id)+'"><span class="grow" style="color:var(--accent)">'+(me?'Ändra ditt betyg':'Betygsätt receptet')+'</span>'+chevron+'</button>');
  h+='<div class="pills" style="padding:12px 16px 0">'+(inBank(r.id)?'<span class="pill on">'+I.tick+'I receptbanken</span>':'<button class="pill" data-act="bankAdd" data-id="'+esc(r.id)+'">Spara i receptbanken</button>')+
-  '<button class="pill'+(wished?' on':'')+'" data-act="wish" data-id="'+esc(r.id)+'">'+(wished?I.tick+'Önskad nästa vecka':'Vill ha nästa vecka')+'</button></div>';
+  '<button class="pill'+(wished?' on':'')+'" data-act="wish" data-id="'+esc(r.id)+'">'+(wished?I.tick+'Önskad nästa vecka':'Vill ha nästa vecka')+'</button>'+
+  '<label class="pill photo-pick">'+(S.photoBusy===r.id?'Laddar upp…':(imgOf(r.id)?'Byt foto':'Lägg till foto'))+'<input type="file" accept="image/*" data-change="photo" data-id="'+esc(r.id)+'"'+(S.photoBusy?' disabled':'')+'></label></div>';
  return h}
+/* Matfoton: bilden förminskas i telefonen, laddas upp till Drive via Apps Script och
+   adressen sparas på receptet i receptbanken (receptet sparas där om det inte redan finns) */
+const imgOf=id=>{const b=bankList().find(x=>x.id===id);return b&&b.img||''};
+function shrinkImage(file,max){return new Promise((ok,bad)=>{const u=URL.createObjectURL(file),im=new Image();
+ im.onload=()=>{const sc=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*sc);c.height=Math.round(im.height*sc);
+  c.getContext('2d').drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);ok(c.toDataURL('image/jpeg',.82))};
+ im.onerror=()=>{URL.revokeObjectURL(u);bad(new Error('Bilden kunde inte läsas'))};im.src=u})}
+async function uploadPhoto(id,file){const r=recipeById(id);if(!r||!file)return;S.photoBusy=id;render();
+ try{const data=await shrinkImage(file,1280);
+  const res=await fetch(CFG.api,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'photoUpload',key:S.key,by:S.me,id,title:r.title,data})});
+  const j=await res.json();if(!j.ok||!j.url)throw new Error(j.error||'Uppladdningen misslyckades');
+  if(!inBank(id))addToBank(Object.assign({},r,{img:j.url}),true);
+  else{const row=BANK_ROWS().find(k=>parseJ(settings()[k],[]).some(x=>x.id===id));if(row)updJSON(row,[],a=>a.map(x=>x.id===id?Object.assign({},x,{img:j.url}):x))}
+  toast('Fotot är sparat')}
+ catch(e){toast('Fotot sparades inte: '+e.message)}
+ S.photoBusy=null;render()}
 
 V.uppgifter=function(){
  const t=today(),d=D(),open=d.tasks.filter(x=>!x.done),done=d.tasks.filter(x=>x.done);
@@ -1042,6 +1060,7 @@ document.addEventListener('click',e=>{const el=e.target.closest('[data-act]');if
 document.addEventListener('toggle',e=>{const d=e.target;if(d&&d.dataset&&d.dataset.k)S.open[d.dataset.k]=d.open},true);
 document.addEventListener('input',e=>{if(e.target.id==='ork')orkPreview(e.target);if(e.target.id==='split-amt')splitPreview(e.target)});
 document.addEventListener('change',e=>{const el=e.target.closest('[data-change]');if(!el)return;const id=el.dataset.id;
+ if(el.dataset.change==='photo'){const f=el.files&&el.files[0];el.value='';uploadPhoto(id,f);return}
  if(el.dataset.change==='ork'){el.blur();ACT.budget(String(ORK[Number(el.value)].min));return}
  if(el.dataset.change==='eko'){const v=Math.max(0,Number(String(el.value).replace(',','.'))||0);updJSON('ekonomi',{},o=>{o[id]=v;return o});return}
  const f=el.dataset.change==='freq'?{freq:Number(el.value)}:{who:el.value};mutate('clean',id,f);apiPost({action:'cleanSet',id,fields:f})});
