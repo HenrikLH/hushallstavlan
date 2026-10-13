@@ -662,7 +662,9 @@ function dogSvg(D,K,o,id,pose){
   (snowy?'<path d="M42 24 Q50 15 60 17 Q71 14 78 23 Q70 21 63 23 Q55 20 48 24 Q45 25 42 24Z" fill="#FFFFFF"/><path d="M63 23 Q70 21 78 23 Q77 25 72 25Z" fill="#D6E2F0"/>':'');
  const breath=(K==='freezing'||K==='snow'||K==='cold')&&!lie?'<g class="fig-breath" fill="#E8F0FA"><circle cx="70" cy="60" r="3.2"/><circle cx="77" cy="56" r="2.4"/><circle cx="82" cy="51" r="1.6"/></g>':'';
  if(lie)return'<g class="fig-body dog lie">'+bodyLie(false)+'<g clip-path="url(#'+id+')">'+bodyLie(true)+'</g>'+
-  '<g transform="translate(0 37)"><g class="dog-head">'+acc+head(false)+'<g clip-path="url(#'+id+')">'+head(true)+'</g>'+'<ellipse cx="49" cy="40" rx="11" ry="7" fill="url(#'+id+'h)"/>'+face()+hat+'</g></g></g>';
+  '<g transform="translate(0 37)"><g class="dog-head">'+acc+head(false)+'<g clip-path="url(#'+id+')">'+head(true)+'</g>'+'<ellipse cx="49" cy="40" rx="11" ry="7" fill="url(#'+id+'h)"/>'+face()+hat+'</g></g>'+
+  // Zzz som stiger från den sovande hunden
+  '<g class="fig-z" font-family="-apple-system,BlinkMacSystemFont,system-ui,sans-serif" font-weight="800" fill="#8FA2D8" stroke="#2E3760" stroke-width=".6" paint-order="stroke"><text x="86" y="66" font-size="11">z</text><text class="d2" x="94" y="54" font-size="14">z</text><text class="d3" x="103" y="40" font-size="18">Z</text></g></g>';
  return'<g class="fig-body dog">'+body(false)+'<g clip-path="url(#'+id+')">'+body(true)+'</g>'+acc+
   '<g class="dog-head">'+head(false)+'<g clip-path="url(#'+id+')">'+head(true)+'</g>'+
   '<ellipse cx="49" cy="40" rx="11" ry="7" fill="url(#'+id+'h)"/>'+face()+hat+'</g>'+breath+'</g>'}
@@ -1031,7 +1033,8 @@ function tick(){
 setInterval(tick,1000);
 let lock=null;
 async function wake(){const want=S.wall||!!S.cook;try{if(want&&!lock&&navigator.wakeLock){lock=await navigator.wakeLock.request('screen');lock.addEventListener('release',()=>{lock=null})}else if(!want&&lock){await lock.release();lock=null}}catch(e){lock=null}}
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){wake();refresh(true)}});
+// När appen öppnas igen: hämta kalkylarket och (vid behov) vädret direkt, iOS pausar timrarna i bakgrunden
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){wake();refresh(true);loadExt()}});
 // Hämta nytt var 30:e sekund när appen syns (var 60:e i väggläge räcker också), och rita om vid ny dag
 setInterval(()=>{if(document.visibilityState==='visible')refresh(true)},30000);
 let lastDay=today();setInterval(()=>{if(today()!==lastDay){lastDay=today();render()}},30000);
