@@ -383,15 +383,15 @@ body.wall .hero .clock{font-size:96px;letter-spacing:-3px}
 .hero-greet{margin-top:14px;font-size:17px;line-height:22px;font-weight:600}
 .hero-facts{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .hero-facts span{font-size:13px;line-height:18px;padding:3px 10px;border-radius:999px;background:var(--fill);color:var(--ink-2)}
-.hero-wx{display:flex;flex-direction:column;align-items:flex-end;text-align:right;width:118px;margin:-4px -6px 0 0;padding:4px 6px 0;border-radius:16px;color:var(--ink)}
+.hero-wx{display:flex;flex-direction:column;align-items:flex-end;text-align:right;width:146px;margin:-4px -6px 0 0;padding:4px 6px 0;border-radius:16px;color:var(--ink)}
 .hero-wx:active{opacity:1;background:var(--fill)}
 .wx-now{display:flex;align-items:center;justify-content:flex-end;gap:6px}
 .wx-ic{font-size:28px;line-height:1}
 .wx-t{font-size:34px;line-height:1;font-weight:600;letter-spacing:-.5px}
 .hero-wx .fn{margin-top:2px}
-.fig-box{width:104px;height:113px;margin-top:12px;align-self:center}
-.fig-box.big{width:170px;height:184px}
-.fig-tip{font-size:11px;line-height:13px;color:var(--ink-2);text-align:center;align-self:center;max-width:112px;margin-top:2px}
+.fig-box{width:140px;height:107px;margin-top:12px;align-self:center}
+.fig-box.big{width:230px;height:176px}
+.fig-tip{font-size:11px;line-height:13px;color:var(--ink-2);text-align:center;align-self:center;max-width:140px;margin-top:2px}
 #hero-next{grid-column:1/-1;margin-top:12px;padding-top:10px;border-top:.5px solid var(--line);display:flex;flex-direction:column;gap:6px}
 #hero-next:empty{display:none}
 .nx{display:flex;align-items:baseline;gap:10px;font-size:15px;line-height:20px;letter-spacing:-.24px;min-width:0}
@@ -554,6 +554,10 @@ body.wall .hero .clock{font-size:96px;letter-spacing:-3px}
 .fig-z text{animation:zz 3s ease-in-out infinite}.fig-z .d2{animation-delay:-1.5s}
 @keyframes zz{0%{opacity:0;transform:translate(0,4px)}30%{opacity:1}100%{opacity:0;transform:translate(6px,-8px)}}
 .fig .fig-eyes{transform-origin:60px 45px}
+.dog-b .dog-head{animation-delay:-3.2s}.dog-b .ear-l{animation-delay:-2s}.dog-b .fig-eyes{animation-delay:-1.7s}.dog-b.fig-body,.dog-b .fig-body{animation-delay:-1.1s}
+
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .dog-b{filter:drop-shadow(0 0 1.2px rgba(255,255,255,.45))}}
+:root[data-theme="dark"] .dog-b{filter:drop-shadow(0 0 1.2px rgba(255,255,255,.45))}
 @media (prefers-reduced-motion:reduce){.fig *{animation:none!important}}
 
 /* ===== Animationer ===== */
