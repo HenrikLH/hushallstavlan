@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2A2427"/><stop offset="1" stop-color="#151314"/></linearGradient>
+    <linearGradient id="house" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#D98395"/><stop offset="1" stop-color="#B85C70"/></linearGradient>
+    <filter id="sh" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="16" stdDeviation="22" flood-color="#000" flood-opacity=".5"/></filter>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <g filter="url(#sh)">
+    <rect x="626" y="262" width="78" height="150" rx="18" fill="url(#house)"/>
+    <path d="M512 228 L782 470 Q800 486 800 510 L800 742 Q800 790 752 790 L272 790 Q224 790 224 742 L224 510 Q224 486 242 470 Z" fill="url(#house)" stroke="url(#house)" stroke-width="40" stroke-linejoin="round"/>
+  </g>
+  <path d="M512 708 C 430 650 370 604 370 540 C 370 494 404 462 446 462 C 476 462 498 478 512 502 C 526 478 548 462 578 462 C 620 462 654 494 654 540 C 654 604 594 650 512 708 Z" fill="#231E20"/>
+</svg>
