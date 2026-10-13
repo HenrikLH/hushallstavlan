@@ -623,7 +623,15 @@ button.fig-box:active{opacity:1;transform:scale(.96)}
 .wk-d .wd{font-size:11px;line-height:13px;font-weight:600;color:var(--ink-2)}
 .wk-d .n{width:30px;height:30px;display:grid;place-items:center;border-radius:50%;font-size:17px;font-weight:600}
 .wk-d.today .wd{color:var(--accent)}
-.wk-d.today .n{background:var(--accent);color:var(--on-accent)}
+.wk-d.today .n{color:var(--accent)}
+.wk-d.sel .n{background:var(--ink);color:var(--bg)}
+.wk-d.today.sel .n{background:var(--accent);color:var(--on-accent)}
+.wk-d .n{transition:background-color .2s,color .2s}
+.wk-day{border-top:.5px solid var(--line);margin-top:4px;padding-top:6px}
+.wk-day .wempty{padding:6px 0}
+.ev.task .t{color:var(--accent)}
+.wk-open{display:flex;align-items:center;gap:6px;margin-top:6px;padding:6px 0 0;font-size:15px;color:var(--accent)}
+.wk-open .chev{color:var(--accent)}
 .wk-d:active{opacity:1;background:var(--fill)}
 .wk-list{display:flex;flex-direction:column;border-top:.5px solid var(--line);margin-top:4px;padding-top:4px}
 .wk-it{display:flex;align-items:center;gap:10px;padding:7px 0;text-align:left;min-width:0}
