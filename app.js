@@ -613,7 +613,7 @@ try{const c=JSON.parse(lsGet('ext')||'null');if(c){EXT.yr=c.yr||null;EXT.day=c.d
    Prognosen hämtas från MET Norways Locationforecast, samma källa som yr.no. Om den inte
    går att nå används Open-Meteo. Båda omvandlas till samma form: nu, timmar och dagar. */
 const WX_POS=()=>{const st=settings();return{lat:Number(st.ort_lat)||57.186,lon:Number(st.ort_lon)||14.04,name:st.ort_namn||'Värnamo'}};
-function sunTimes(date,lat,lon){const R=Math.PI/180,J=Date.parse(date+'T12:00:00Z')/864e5+2440587.5,n=Math.ceil(J-2451545+0.0008),Js=n-lon/360;
+function sunTimes(date,lat,lon){const R=Math.PI/180,J=Date.parse(date+'T00:00:00Z')/864e5+2440587.5,n=Math.ceil(J-2451545+0.0008),Js=n-lon/360;
  const M=(357.5291+0.98560028*Js)%360,C=1.9148*Math.sin(M*R)+0.02*Math.sin(2*M*R)+0.0003*Math.sin(3*M*R),L=(M+C+180+102.9372)%360;
  const Jt=2451545+Js+0.0053*Math.sin(M*R)-0.0069*Math.sin(2*L*R),dec=Math.asin(Math.sin(L*R)*Math.sin(23.4397*R));
  const cw=(Math.sin(-0.833*R)-Math.sin(lat*R)*Math.sin(dec))/(Math.cos(lat*R)*Math.cos(dec));if(cw<-1||cw>1)return null;
@@ -677,10 +677,9 @@ const DOGS=[
   coat:{mild:'#3F7FA6',cold:'#B4475D',freezing:'#2D4F7C',snow:'#2D4F7C',rain:'#E8B931',storm:'#E8B931',fog:'#6F7E8E'},band:'#B4475D',scarf:'#D9894A',hat:'#B4475D'},
  {fur:'#2C2A33',mask:'#1D1B22',ear:'#3A3742',chest:'#EDE7E0',eye:'#0B0A0E',
   coat:{mild:'#C9694F',cold:'#3F7FA6',freezing:'#B4475D',snow:'#B4475D',rain:'#E8B931',storm:'#E8B931',fog:'#4F7E6C'},band:'#3F7FA6',scarf:'#6FA393',hat:'#2D4F7C'}];
-function dogSvg(D,K,o,id,pose){
- const night=!!o.night,coat=D.coat[K],lie=pose==='lie';
- const shades=(K==='hot'||(K==='warm'&&o.sunny))&&!night,beanie=/^(freezing|snow)$/.test(K),scarf=/^(cold|freezing|snow|fog)$/.test(K);
- const puffer=/^(freezing|snow)$/.test(K),rainc=/^(rain|storm)$/.test(K),sleepy=lie,snowy=K==='snow';
+function dogSvg(D,o,id,pose){
+ const F=o.fit||{},night=!!o.night,coat=F.coat?D.coat[F.coat]:null,lie=pose==='lie';
+ const shades=!!F.shades,beanie=!!F.beanie,scarf=!!F.scarf,puffer=!!F.puffer,rainc=!!F.rain,sleepy=lie,snowy=!!F.snowy;
  const C=(c,sh)=>sh?shadow(c):c;
  const hood=rainc;
  // liggande: en låg limpa med framtassarna framåt och huvudet vilande på dem
@@ -721,12 +720,12 @@ function dogSvg(D,K,o,id,pose){
   else f+='<g class="fig-eyes"><ellipse cx="47" cy="46.5" rx="2.6" ry="2.9" fill="'+D.eye+'"/><ellipse cx="73" cy="46.5" rx="2.6" ry="2.9" fill="'+D.eye+'"/><circle cx="46.1" cy="45.5" r=".85" fill="#fff" opacity=".8"/><circle cx="72.1" cy="45.5" r=".85" fill="#fff" opacity=".8"/></g>';
   return f};
  let acc='';
- if(!coat&&!scarf)acc+='<path d="M41 74 Q60 81 79 74 L79.5 78 Q60 85 40.5 78Z" fill="'+(K==='warm'?D.band:'#16151B')+'"/>';
+ if(!coat&&!scarf)acc+='<path d="M41 74 Q60 81 79 74 L79.5 78 Q60 85 40.5 78Z" fill="'+(F.band?D.band:'#16151B')+'"/>';
  if(scarf)acc+='<path d="M39 74 Q60 81 81 74 L82 80.5 Q60 88 38 80.5Z" fill="'+D.scarf+'"/><path d="M60 81 Q72 79.5 82 75 L82 80.5 Q72 85 60 87Z" fill="'+shadow(D.scarf)+'"/>';
  let hat='';
  if(beanie)hat='<path d="M38 38 Q38 19 60 19 Q82 19 82 38Z" fill="'+D.hat+'"/><path d="M60 19 Q82 19 82 38 H71 Q71 22 60 19Z" fill="'+shadow(D.hat)+'"/><rect x="36.5" y="34.5" width="47" height="6" rx="3" fill="'+light(D.hat)+'"/>'+
   (snowy?'<path d="M42 24 Q50 15 60 17 Q71 14 78 23 Q70 21 63 23 Q55 20 48 24 Q45 25 42 24Z" fill="#FFFFFF"/><path d="M63 23 Q70 21 78 23 Q77 25 72 25Z" fill="#D6E2F0"/>':'');
- const breath=(K==='freezing'||K==='snow'||K==='cold')&&!lie?'<g class="fig-breath" fill="#E8F0FA"><circle cx="70" cy="60" r="3.2"/><circle cx="77" cy="56" r="2.4"/><circle cx="82" cy="51" r="1.6"/></g>':'';
+ const breath=F.breath&&!lie?'<g class="fig-breath" fill="#E8F0FA"><circle cx="70" cy="60" r="3.2"/><circle cx="77" cy="56" r="2.4"/><circle cx="82" cy="51" r="1.6"/></g>':'';
  if(lie)return'<g class="fig-body dog lie">'+bodyLie(false)+'<g clip-path="url(#'+id+')">'+bodyLie(true)+'</g>'+
   '<g transform="translate(0 37)"><g class="dog-head">'+acc+head(false)+'<g clip-path="url(#'+id+')">'+head(true)+'</g>'+'<ellipse cx="49" cy="40" rx="11" ry="7" fill="url(#'+id+'h)"/>'+face()+hat+'</g></g>'+
   // Zzz som stiger från den sovande hunden
@@ -734,47 +733,104 @@ function dogSvg(D,K,o,id,pose){
  return'<g class="fig-body dog">'+body(false)+'<g clip-path="url(#'+id+')">'+body(true)+'</g>'+acc+
   '<g class="dog-head">'+head(false)+'<g clip-path="url(#'+id+')">'+head(true)+'</g>'+
   '<ellipse cx="49" cy="40" rx="11" ry="7" fill="url(#'+id+'h)"/>'+face()+hat+'</g>'+breath+'</g>'}
-function figSvg(kind,o){o=o||{};const K=kind,night=!!o.night,id='fg'+(++FIG_N);
- let s='<defs><radialGradient id="'+id+'g"><stop offset="0" stop-color="#FFE7A3" stop-opacity=".7"/><stop offset="1" stop-color="#FFE7A3" stop-opacity="0"/></radialGradient>'+
+/* Väderscenen visar vädret just nu, samma som väderrutan, och byggs av fristående lager som
+   kombineras fritt: himlen (klart, mest klart, halvklart, mulet, dimma), sol eller måne efter
+   klockslaget, nederbörd med typ och styrka, åska, vind och temperatur. Råden under bilden gäller
+   resten av dagen (wxToday). Hundarna sover bara när det är natt och uppehåll. */
+function dayPhase(d){const P=WX_POS(),s=sunTimes(ymd(d),P.lat,P.lon),H=3600000;
+ if(!s){const m=d.getMonth();return{phase:m>2&&m<9?'day':'night',f:.5}}   // midnattssol eller polarnatt
+ const t=d.getTime(),r=s[0].getTime(),e=s[1].getTime(),f=Math.max(0,Math.min(1,(t-r)/(e-r)));
+ return{phase:t<r-.6*H||t>e+.6*H?'night':t<r+H?'dawn':t>e?'dusk':t>e-1.5*H?'golden':'day',f}}
+function wxScene(W,at){const c=W.now,n1=W.hours[1]||c,b=symBase(c.s),amt=Math.max(c.pr||0,0);
+ // nederbörd: symbolen avgör typen, mängden den närmaste timmen kan höja styrkan
+ const src=/rain|sleet|snow/.test(b)?b:(amt>=.2&&/rain|sleet|snow/.test(symBase(n1.s))?symBase(n1.s):'');
+ let type=!src?'none':/sleet/.test(src)?'sleet':/snow/.test(src)?'snow':'rain',lv=/heavy/.test(src)?3:/light/.test(src)?1:2;
+ if(type!=='none'){if(amt>=4)lv=3;else if(amt>=1&&lv<2)lv=2}
+ if(type==='rain'&&lv===1&&amt<.3)type='drizzle';
+ const thunder=/thunder/.test(b);
+ const sky=/^fog/.test(b)?'fog':/^clearsky/.test(b)?'clear':/^fair/.test(b)?'fair':/^partlycloudy|showers/.test(b)?'partly':'cloudy';
+ const T=c.T,w=c.w||0,wl=w<4?0:w<8?1:w<14?2:3,dx=-Math.sin((c.wd||0)*Math.PI/180);   // vinden blåser åt höger när den kommer från väst
+ const{phase,f}=dayPhase(at||new Date()),dark=phase==='night'||phase==='dusk',sunUp=!dark&&f>0&&f<1;
+ const tc=T>=20?'hot':T>=14?'warm':T>=7?'mild':T>=0?'cold':'freezing';
+ const sleep=phase==='night'&&type==='none'&&!thunder&&wl<3,wet=/^(drizzle|rain|sleet)$/.test(type),snow=type==='snow';
+ // kläderna följer temperaturen och nederbörden var för sig
+ const rain=wet&&(type!=='drizzle'||T<14);
+ const fit={rain,coat:rain?'rain':snow?'snow':T<0?'freezing':T<7?'cold':T<14?'mild':null,puffer:snow||(!rain&&T<0),
+  scarf:T<7||(sky==='fog'&&T<12),beanie:!rain&&(snow||T<0),snowy:snow&&lv>=2,breath:T<3,band:tc==='warm'&&!rain,
+  shades:sunUp&&/^(clear|fair)$/.test(sky)&&!wet&&!snow&&T>=14};
+ const pt={none:'',drizzle:'duggregn',rain:['lätt regn','regn','kraftigt regn'][lv-1],sleet:'snöblandat regn',snow:['lätt snöfall','snöfall','kraftigt snöfall'][lv-1]}[type];
+ const label=capS([thunder?'åska':'',pt,{clear:'klart',fair:'mest klart',partly:'halvklart',cloudy:'mulet',fog:'dimma'}[sky],deg(T),['','','blåsigt','hård vind'][wl],
+  {night:'natt',dawn:'gryning',day:'dag',golden:'kväll',dusk:'skymning'}[phase]].filter(Boolean).join(', '))+(sleep?'. Hundarna sover':'');
+ return{sky,type,lv,thunder,T,tc,wl,dir:dx<-.2?-1:1,phase,f,dark,sunUp,sleep,fit,label}}
+function figSvg(sc,o){o=o||{};const id='fg'+(++FIG_N),ph=sc.phase,dark=sc.dark,warmL=ph==='dawn'||ph==='golden';
+ const wet=/^(drizzle|rain|sleet)$/.test(sc.type),snow=sc.type==='snow',sleet=sc.type==='sleet',lv=sc.lv;
+ const sunC=warmL?'#FFB877':'#FFE7A3',sunD=warmL?'#FF9F5A':'#FFD666';
+ let s='<defs><radialGradient id="'+id+'g"><stop offset="0" stop-color="'+sunC+'" stop-opacity=".7"/><stop offset="1" stop-color="'+sunC+'" stop-opacity="0"/></radialGradient>'+
   '<radialGradient id="'+id+'m"><stop offset="0" stop-color="#DCE6FF" stop-opacity=".55"/><stop offset="1" stop-color="#DCE6FF" stop-opacity="0"/></radialGradient>'+
+  '<radialGradient id="'+id+'o"><stop offset="0" stop-color="#FF9F5A" stop-opacity=".45"/><stop offset="1" stop-color="#FF9F5A" stop-opacity="0"/></radialGradient>'+
   '<radialGradient id="'+id+'ah"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>'+
   '<radialGradient id="'+id+'bh"><stop offset="0" stop-color="#fff" stop-opacity=".14"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>'+
   '<linearGradient id="'+id+'r" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8FC4F0" stop-opacity="0"/><stop offset="1" stop-color="#8FC4F0" stop-opacity=".9"/></linearGradient>'+
   '<radialGradient id="'+id+'s" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#000" stop-opacity=".22"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>'+
   '<filter id="'+id+'n"><feColorMatrix type="matrix" values=".66 .04 0 0 .02  .02 .7 .04 0 .03  0 .06 .9 0 .07  0 0 0 1 0"/></filter>'+
+  '<filter id="'+id+'w"><feColorMatrix type="matrix" values="1.04 .04 0 0 .03  .02 .94 0 0 .01  0 0 .82 0 0  0 0 0 1 0"/></filter>'+
   '<linearGradient id="'+id+'d" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F7FAFE"/><stop offset="1" stop-color="#C9D8EA"/></linearGradient>'+
   ['a','b'].map(k=>'<clipPath id="'+id+k+'"><path d="M77 -20 Q70 20 80 46 Q86 60 78 76 Q71 92 78 112 Q80 124 74 150 H170 V-20Z"/></clipPath>').join('')+'</defs>';
  // moln: mjuka, överlappande ellipser i två toner
- const cloud=(x,y,sc,c1,cls)=>'<g class="'+(cls||'fx-cloud')+'" transform="translate('+x+' '+y+') scale('+sc+')"><ellipse cx="24" cy="12" rx="24" ry="8" fill="'+c1+'"/><circle cx="16" cy="8" r="8" fill="'+c1+'"/><circle cx="28" cy="5" r="10" fill="'+c1+'"/><ellipse cx="26" cy="15" rx="20" ry="4" fill="'+shadow(c1)+'" opacity=".55"/></g>';
- if(night&&!/^(rain|storm|snow|fog)$/.test(K))s+='<g class="fx-moon"><circle cx="152" cy="18" r="22" fill="url(#'+id+'m)"/><circle cx="152" cy="18" r="14" fill="#DCE6FF" opacity=".12"/><circle cx="152" cy="18" r="7.5" fill="#E6ECFB" stroke="#AFBCE2" stroke-width=".8"/><circle cx="154.5" cy="16" r="7" fill="#C7D2F2" opacity=".35"/></g>'+
-  '<g class="fx-stars" fill="#E6ECFF"><circle class="tw" cx="10" cy="12" r="1"/><circle class="tw d2" cx="24" cy="26" r=".8"/><circle class="tw d3" cx="132" cy="6" r=".8"/><circle class="tw" cx="88" cy="4" r=".7"/></g>';
- else if(/^(hot|warm)$/.test(K))s+='<g class="fx-sun"><circle cx="150" cy="20" r="28" fill="url(#'+id+'g)"/><circle cx="150" cy="20" r="18" fill="#FFE7A3" opacity=".18"/><circle cx="150" cy="20" r="13" fill="#FFE7A3" opacity=".22"/><circle cx="150" cy="20" r="8.5" fill="#FFD666"/></g>';
- if(K==='warm')s+=cloud(4,12,.55,'#EEF3F8');
- if(/^(mild|cold|fog)$/.test(K))s+=cloud(124,4,.75,'#DCE4EE')+cloud(2,16,.55,'#CBD6E3','fx-cloud d2');
- if(K==='snow')s+=cloud(118,0,.9,night?'#59647F':'#C3CFDE')+cloud(0,8,.7,night?'#4E5872':'#B3C1D3','fx-cloud d2');
- if(K==='freezing'&&!night)s+='<g class="fx-sun"><circle cx="150" cy="22" r="22" fill="url(#'+id+'m)"/><circle cx="150" cy="22" r="7.5" fill="#F4F1E4"/></g>';
- if(K==='freezing')s+='<g class="fx-frost" fill="#BFD6F2">'+[[16,40],[34,22],[132,46],[160,58],[10,78],[156,96],[24,104]].map(([x,y],k)=>'<path class="tw'+(k%3?' d'+(k%3+1):'')+'" d="M'+x+' '+(y-4)+' L'+(x+1)+' '+(y-1)+' L'+(x+4)+' '+y+' L'+(x+1)+' '+(y+1)+' L'+x+' '+(y+4)+' L'+(x-1)+' '+(y+1)+' L'+(x-4)+' '+y+' L'+(x-1)+' '+(y-1)+'Z"/>').join('')+'</g>';
- if(/^(rain|storm)$/.test(K))s+=cloud(120,0,.85,K==='storm'?'#4C5672':'#7E8BA3')+cloud(2,6,.65,K==='storm'?'#3F4862':'#6F7C95','fx-cloud d2');
- if(K==='storm')s+='<g class="fx-bolt"><circle cx="140" cy="34" r="12" fill="#FFF3B0" opacity=".25"/><path d="M142 22l-6 11h5l-4 9 10-13h-5l4-7z" fill="#FFE27A"/></g>';
- if(K==='fog')s+='<g class="fx-fog" stroke="currentColor" stroke-linecap="round" opacity=".14"><line x1="0" y1="98" x2="34" y2="98" stroke-width="5"/><line class="d2" x1="136" y1="108" x2="170" y2="108" stroke-width="6"/><line x1="6" y1="118" x2="28" y2="118" stroke-width="4"/></g>';
- s+='<ellipse cx="85" cy="125" rx="62" ry="5" fill="url(#'+id+'s)"/>';
- if(K==='snow')s+='<path d="M0 127 Q30 114 70 118 Q110 113 170 125 V131 H0Z" fill="url(#'+id+'d)"/><path d="M8 124 Q40 117 70 119" stroke="#fff" stroke-width="1.4" fill="none" stroke-linecap="round" opacity=".9"/>';
- if(K==='freezing')s+='<path d="M10 126 Q85 119 160 126" stroke="#BFD6F2" stroke-width="2.2" fill="none" stroke-linecap="round" opacity=".8"/>';
- // Komposition: båda (i två ordningar) eller en av hundarna ensam, centrerad
- // Varianten listar hundarna från vänster: a/b = fawn/svart sittande, A/B = liggande och sovande
- const v=o.variant||'ab',toks=v.split('');
- const one=(t,pos)=>{const isA=t.toLowerCase()==='a',lie=t===t.toUpperCase(),g=dogSvg(DOGS[isA?0:1],K,o,id+(isA?'a':'b'),lie?'lie':'sit');
+ const cloud=(x,y,sc,c1,cls)=>'<g class="fx-cloud'+(cls?' '+cls:'')+'" transform="translate('+x+' '+y+') scale('+sc+')"><ellipse cx="24" cy="12" rx="24" ry="8" fill="'+c1+'"/><circle cx="16" cy="8" r="8" fill="'+c1+'"/><circle cx="28" cy="5" r="10" fill="'+c1+'"/><ellipse cx="26" cy="15" rx="20" ry="4" fill="'+shadow(c1)+'" opacity=".55"/></g>';
+ // 1. ljuset: gryningens och skymningens sken, solen längs sin bana eller månen
+ const covered=sc.sky==='cloudy'||sc.sky==='fog'||(wet&&lv>=2)||sc.thunder;
+ if(ph==='dawn'||ph==='dusk'||(ph==='golden'&&!covered)){const gx=ph==='dawn'?14:156;s+='<circle class="fx-glow" cx="'+gx+'" cy="44" r="38" fill="url(#'+id+'o)" opacity="'+(covered?.5:1)+'"/>'}
+ if(sc.sunUp){const sx=16+sc.f*138,sy=36-Math.sin(sc.f*Math.PI)*24;
+  if(!(wet||snow||sc.thunder)||!covered)s+=covered?'<g class="fx-sun dim"><circle cx="'+sx+'" cy="'+sy+'" r="16" fill="url(#'+id+'g)" opacity=".6"/><circle cx="'+sx+'" cy="'+sy+'" r="7.5" fill="#F4F1E4" opacity=".55"/></g>'
+   :'<g class="fx-sun"><circle cx="'+sx+'" cy="'+sy+'" r="28" fill="url(#'+id+'g)"/><circle cx="'+sx+'" cy="'+sy+'" r="18" fill="'+sunC+'" opacity=".18"/><circle cx="'+sx+'" cy="'+sy+'" r="13" fill="'+sunC+'" opacity=".22"/><circle cx="'+sx+'" cy="'+sy+'" r="8.5" fill="'+sunD+'"/></g>'}
+ if(dark&&!covered){const mx=150;
+  s+='<g class="fx-moon"><circle cx="'+mx+'" cy="18" r="22" fill="url(#'+id+'m)"/><circle cx="'+mx+'" cy="18" r="14" fill="#DCE6FF" opacity=".12"/><circle cx="'+mx+'" cy="18" r="7.5" fill="#E6ECFB" stroke="#AFBCE2" stroke-width=".8"/><circle cx="'+(mx+2.5)+'" cy="16" r="7" fill="#C7D2F2" opacity=".35"/></g>';
+  const st=[[10,12,1,''],[132,6,.8,' d3'],[24,26,.8,' d2'],[88,4,.7,''],[60,10,.6,' d2']].slice(0,sc.sky==='partly'?2:ph==='dusk'?3:5);
+  s+='<g class="fx-stars" fill="#E6ECFF">'+st.map(([x,y,r,c])=>'<circle class="tw'+c+'" cx="'+x+'" cy="'+y+'" r="'+r+'"/>').join('')+'</g>'}
+ // 2. molnen: antalet följer himlen, tonen följer nederbörden och ljuset
+ const sky=wet||snow||sc.thunder?(/^(clear|fair)$/.test(sc.sky)?'partly':sc.sky):sc.sky;
+ let base=sc.thunder?'#4C5672':wet?['#A3AFC2','#7E8BA3','#5F6B84'][lv-1]:snow?['#CBD6E3','#B9C6D7','#A2B1C6'][lv-1]:{fair:'#EEF3F8',partly:'#DCE4EE',cloudy:'#C3CFDE',fog:'#DCE4EE'}[sky];
+ if(base){base=dark?mixHex(base,'#2A3350',.5):warmL?mixHex(base,'#F2B48A',.22):base;
+  const L={fair:[[4,12,.55]],partly:[[4,12,.6],[122,28,.45,'d2']],cloudy:[[120,0,.85],[2,6,.7,'d2']],fog:[[124,4,.75],[2,16,.55,'d2']]}[sky].slice();
+  if(sky==='cloudy'&&((wet||snow)&&lv>=2||sc.thunder))L.push([58,-9,.62,'d3']);
+  s+=L.map(([x,y,k,c],i)=>cloud(x,y,k,i?shadeHex(base,.94):base,c)).join('')}
+ if(sc.thunder)s+='<g class="fx-bolt"><circle cx="140" cy="34" r="12" fill="#FFF3B0" opacity=".25"/><path d="M142 22l-6 11h5l-4 9 10-13h-5l4-7z" fill="#FFE27A"/></g>'+
+  (lv>=3?'<g class="fx-bolt d2"><circle cx="26" cy="38" r="10" fill="#FFF3B0" opacity=".25"/><path d="M28 27l-5 9h4l-3 8 8-11h-4l3-6z" fill="#FFE27A"/></g>':'');
+ if(sc.sky==='fog')s+='<g class="fx-fog" stroke="currentColor" stroke-linecap="round" opacity=".14"><line x1="0" y1="98" x2="34" y2="98" stroke-width="5"/><line class="d2" x1="136" y1="108" x2="170" y2="108" stroke-width="6"/><line x1="6" y1="118" x2="28" y2="118" stroke-width="4"/><line class="d2" x1="120" y1="70" x2="166" y2="70" stroke-width="5"/></g>';
+ // 3. värmedaller i stark sol
+ if(sc.T>=24&&sc.sunUp&&!covered&&!wet)s+='<g class="fx-heat" stroke="'+sunD+'" stroke-width="1.2" fill="none" stroke-linecap="round" opacity=".5">'+[[14,0],[152,.8],[34,1.6],[134,2.3]].map(([x,d])=>'<path d="M'+x+' 122 q3 -4 0 -8 t0 -8" style="animation-delay:-'+d+'s"/>').join('')+'</g>';
+ // 4. marken: skugga bort från solen, snö, frost eller vattenpölar
+ s+='<ellipse cx="'+(sc.sunUp&&!covered?85+(.5-sc.f)*24:85)+'" cy="125" rx="62" ry="5" fill="url(#'+id+'s)"/>';
+ if(snow&&(lv>=2||sc.T<=0))s+='<path d="M0 127 Q30 114 70 118 Q110 113 170 125 V131 H0Z" fill="url(#'+id+'d)"/><path d="M8 124 Q40 117 70 119" stroke="#fff" stroke-width="1.4" fill="none" stroke-linecap="round" opacity=".9"/>';
+ else if(sc.T<0)s+='<path d="M10 126 Q85 119 160 126" stroke="#BFD6F2" stroke-width="2.2" fill="none" stroke-linecap="round" opacity=".8"/>';
+ if((wet&&sc.type!=='drizzle'||sc.thunder)&&lv>=2&&sc.T>0)s+='<g class="fx-pud"><ellipse cx="20" cy="127" rx="15" ry="2.4" fill="#8FC4F0" opacity=".35"/><ellipse cx="152" cy="128" rx="13" ry="2.2" fill="#8FC4F0" opacity=".35"/>'+
+  [[20,127,0],[152,128,.7],[26,127,1.3]].map(([x,y,d])=>'<ellipse class="rip" cx="'+x+'" cy="'+y+'" rx="5" ry="1.2" fill="none" stroke="#8FC4F0" stroke-width=".8" style="animation-delay:-'+d+'s"/>').join('')+'</g>';
+ if(sc.T<0)s+='<g class="fx-frost" fill="#BFD6F2">'+[[16,40],[34,22],[132,46],[160,58],[10,78],[156,96],[24,104]].map(([x,y],k)=>'<path class="tw'+(k%3?' d'+(k%3+1):'')+'" d="M'+x+' '+(y-4)+' L'+(x+1)+' '+(y-1)+' L'+(x+4)+' '+y+' L'+(x+1)+' '+(y+1)+' L'+x+' '+(y+4)+' L'+(x-1)+' '+(y+1)+' L'+(x-4)+' '+y+' L'+(x-1)+' '+(y-1)+'Z"/>').join('')+'</g>';
+ // 5. hundarna. Varianten listar hundarna från vänster: a/b = fawn/svart sittande, A/B = liggande och sovande
+ const v=o.variant||figVariant(sc),toks=v.split(''),oo={fit:sc.fit,night:dark};
+ const one=(t,pos)=>{const isA=t.toLowerCase()==='a',lie=t===t.toUpperCase(),g=dogSvg(DOGS[isA?0:1],oo,id+(isA?'a':'b'),lie?'lie':'sit');
   let tr;
   if(pos==='c')tr=lie?'translate(26 4)':(isA?'translate(29 6) scale(.95)':'translate(25 0)');
   else if(lie)tr=pos==='l'?'translate(-8 '+(isA?14:8)+') scale('+(isA?.8:.85)+')':'translate('+(isA?82:76)+' '+(isA?14:8)+') scale('+(isA?.8:.85)+')';
   else tr=pos==='l'?(isA?'translate(4 6) scale(.9)':'translate(4 0)'):(isA?'translate(64 6) scale(.9)':'translate(58 0)');
   return'<g class="dog-'+(isA?'a':'b')+'" transform="'+tr+'">'+g+'</g>'};
  const dogs=toks.length===1?one(toks[0],'c'):one(toks[0],'l')+one(toks[1],'r');
- s+=night?'<g filter="url(#'+id+'n)">'+dogs+'</g>':dogs;
- if(/^(rain|storm)$/.test(K))s+='<g class="fx-rain" stroke="url(#'+id+'r)" stroke-width="1.1" stroke-linecap="round">'+[[6,0],[18,.35],[150,.15],[164,.55],[12,.7],[158,.85],[28,.5],[142,.25],[100,.6],[40,.1]].map(([x,dl])=>'<line x1="'+x+'" y1="14" x2="'+(x-2.5)+'" y2="28" style="animation-delay:-'+dl+'s"/>').join('')+'</g>';
- if(K==='snow')s+='<g class="fx-snow" fill="#FFFFFF" stroke="#9DB4D3" stroke-width=".6">'+[[6,0,2.2],[22,1.2,1.6],[148,.6,2.6],[164,2,1.8],[14,2.6,2.8],[156,3.1,2],[30,1.8,1.5],[140,.3,2.3],[100,1,1.7],[70,2.2,2],[120,1.5,1.5],[48,3.4,2.4]].map(([x,dl,r])=>'<circle cx="'+x+'" cy="12" r="'+r+'" style="animation-delay:-'+dl+'s"/>').join('')+'</g>'+
-  '<g class="fx-flakes" stroke="#FFFFFF" stroke-width="1.1" stroke-linecap="round">'+[[40,.4],[128,2.1],[86,3.2]].map(([x,dl])=>'<g style="animation-delay:-'+dl+'s"><path d="M'+x+' 6v10M'+(x-4.3)+' 8.5l8.6 5M'+(x-4.3)+' 13.5l8.6-5" stroke="#9DB4D3" stroke-width="2.4"/><path d="M'+x+' 6v10M'+(x-4.3)+' 8.5l8.6 5M'+(x-4.3)+' 13.5l8.6-5"/></g>').join('')+'</g>';
- return'<svg class="fig k-'+K+'" viewBox="0 0 170 130" role="img" aria-label="'+esc(o.label||'')+'">'+s+'</svg>'}
+ s+=dark?'<g filter="url(#'+id+'n)">'+dogs+'</g>':warmL?'<g filter="url(#'+id+'w)">'+dogs+'</g>':dogs;
+ // 6. nederbörden: tätheten och farten följer styrkan, lutningen följer vinden
+ const rnd=k=>{const x=Math.sin(k*127.1+lv*7.3)*43758.5453;return x-Math.floor(x)};
+ const sl=sc.wl?sc.wl*.22*sc.dir:-.06,dx=Math.round(sl*124);
+ const fall=(n,fn)=>{let r='';const x0=Math.min(0,-sl*120),x1=170+Math.max(0,-sl*120);for(let k=0;k<n;k++)r+=fn(x0+(k+.2+rnd(k)*.6)*(x1-x0)/n,k);return r};
+ if(wet){const drz=sc.type==='drizzle',n=drz?9:sleet?[6,8,11][lv-1]:[10,16,24][lv-1],len=drz?5:[9,12,16][lv-1],dur=(drz?1.5:[1.05,.8,.58][lv-1])*(sleet?1.15:1);
+  s+='<g class="fx-rain" stroke="url(#'+id+'r)" stroke-width="'+(drz?.9:lv>=3?1.3:1.1)+'" stroke-linecap="round">'+fall(n,(x,k)=>{const y=6+rnd(k+50)*14;
+   return'<line x1="'+x.toFixed(1)+'" y1="'+y.toFixed(1)+'" x2="'+(x+sl*len).toFixed(1)+'" y2="'+(y+len).toFixed(1)+'" style="--dx:'+dx+'px;animation-duration:'+dur.toFixed(2)+'s;animation-delay:-'+(rnd(k+9)*dur).toFixed(2)+'s"/>'})+'</g>'}
+ if(snow||sleet){const n=sleet?[4,6,8][lv-1]:[8,14,22][lv-1],dur=(sleet?2.4:[6,4.6,3.4][lv-1])/(1+sc.wl*.25);
+  s+='<g class="fx-snow" fill="#FFFFFF" stroke="#9DB4D3" stroke-width=".6">'+fall(n,(x,k)=>'<circle cx="'+x.toFixed(1)+'" cy="'+(6+rnd(k+30)*12).toFixed(1)+'" r="'+(sleet?1.3+rnd(k)*.8:1.4+rnd(k+3)*1.5).toFixed(1)+'" style="--dx:'+dx+'px;animation-duration:'+dur.toFixed(2)+'s;animation-delay:-'+(rnd(k+17)*dur).toFixed(2)+'s"/>')+'</g>';
+  if(snow&&lv>=2)s+='<g class="fx-flakes" stroke="#FFFFFF" stroke-width="1.1" stroke-linecap="round">'+[[40,.4],[128,2.1],[86,3.2]].map(([x,d])=>'<g style="--dx:'+dx+'px;animation-delay:-'+d+'s"><path d="M'+x+' 6v10M'+(x-4.3)+' 8.5l8.6 5M'+(x-4.3)+' 13.5l8.6-5" stroke="#9DB4D3" stroke-width="2.4"/><path d="M'+x+' 6v10M'+(x-4.3)+' 8.5l8.6 5M'+(x-4.3)+' 13.5l8.6-5"/></g>').join('')+'</g>'}
+ // 7. vinden: streck som drar förbi och löv när det blåser ordentligt
+ if(sc.wl){s+='<g class="fx-wind'+(sc.dir<0?' rev':'')+'" stroke="currentColor" stroke-width="1.2" fill="none" stroke-linecap="round" opacity=".3">'+[[14,52],[96,30],[40,94],[110,78]].slice(0,sc.wl+1).map(([x,y],k)=>'<path d="M'+x+' '+y+' q8 -3 16 0 t16 0'+(k%2?' q6 2 4 -3':'')+'" style="animation-delay:-'+(k*.8)+'s"/>').join('')+'</g>';
+  if(sc.wl>=2&&!snow&&sc.T>2)s+='<g class="fx-leaves'+(sc.dir<0?' rev':'')+'">'+[['#D9894A',60,0],['#B4475D',86,1.1],['#8FA35A',40,2.2]].map(([c,y,d])=>'<path d="M-10 '+y+' q4 -4 8 0 q-4 4 -8 0z" fill="'+c+'" style="animation-delay:-'+d+'s"/>').join('')+'</g>'}
+ return'<svg class="fig k-'+sc.tc+' w'+sc.wl+(sc.sleep?' zz':'')+'" viewBox="0 0 170 130" role="img" aria-label="'+esc(o.label||sc.label)+'">'+s+'</svg>'}
 
 const hm=m=>pad(Math.floor(m/60))+'.'+pad(m%60);
 function nextHtml(){const n=new Date(),mins=n.getHours()*60+n.getMinutes(),td=dayOf(today());
@@ -793,7 +849,7 @@ function heroHtml(){const n=new Date(),t=today(),dy=EXT.day&&EXT.day.date===t?EX
   wx='<button class="hero-wx" data-act="nav" data-id="vader" aria-label="Väder: '+esc(tx)+', '+deg(W.now.T)+'. Öppna vädret">'+
    '<div class="wx-now"><span class="wx-ic" aria-hidden="true">'+ic+'</span><span class="wx-t num">'+deg(W.now.T)+'</span></div>'+
    '<div class="fn">'+esc(tx)+'</div><div class="fn num">H:'+deg(d0.max)+' L:'+deg(d0.min)+'</div>'+
-   '<div class="fig-box" aria-hidden="true">'+figSvg(F.kind,{night:F.night,sunny:F.sunny,variant:figVariant(F.kind,F.night)})+'</div><div class="fig-tip">'+esc(F.tip)+'</div></button>'}
+   '<div class="fig-box" aria-hidden="true">'+figSvg(wxScene(W))+'</div><div class="fig-tip">'+esc((F.when==='i morgon'?'I morgon: ':'')+F.tip)+'</div></button>'}
  const facts=['Vecka '+isoWeek(n)];
  if(dy&&dy.holiday)facts.push(dy.holiday);else if(dy&&dy.flag)facts.push('Flaggdag: '+dy.flag);
  if(dy&&dy.names.length)facts.push('Namnsdag: '+dy.names.join(', '));
@@ -810,8 +866,12 @@ loadExt();setInterval(loadExt,10*60000);
 
 // Vilka hundar som visas: växlar var tredje timme, oftast båda
 // a/b = fawn/svart sittande, A/B = liggande och sovande; ordningen är från vänster
-const figVariants=(kind,night)=>night&&!/^(rain|storm|snow|fog)$/.test(kind)?['AB','AB','aB','bA','Ba','A','B','ab']:night?['ab','ba','ab','AB','a','b']:['ab','ab','ab','ba','ba','a','a','b','b'];
-function figVariant(kind,night){const L=figVariants(kind,night);if(S.wxVar&&L.includes(S.wxVar))return S.wxVar;const n=new Date(),key=today()+'|'+Math.floor(n.getHours()/3)+'|'+kind+'|'+(night?1:0);let h=0;for(const c of key)h=(h*31+c.charCodeAt(0))>>>0;return L[h%L.length]}
+const figVariants=sleep=>sleep?['AB','AB','aB','bA','Ba','A','B','ab']:['ab','ab','ab','ba','ba','a','a','b','b'];
+function figVariant(sc){const L=figVariants(sc.sleep);if(S.wxVar&&L.includes(S.wxVar))return S.wxVar;const n=new Date(),key=today()+'|'+Math.floor(n.getHours()/3)+'|'+(sc.sleep?1:0);let h=0;for(const c of key)h=(h*31+c.charCodeAt(0))>>>0;return L[h%L.length]}
+// Scenen ritas om när ljuset eller vädret ändras, till exempel vid solnedgången, även om prognosen inte hämtats på nytt
+let SCENE_KEY='';
+const sceneKey=()=>{const W=wxModel();if(!W)return'';const c=wxScene(W);return[c.phase,c.sky,c.type,c.lv,c.thunder,c.tc,c.wl,Math.round(c.f*8)].join('|')};
+setInterval(()=>{if(document.visibilityState!=='visible'||(S.view!=='oversikt'&&S.view!=='vader')||S.sheet)return;const k=sceneKey();if(k&&SCENE_KEY&&k!==SCENE_KEY)render();SCENE_KEY=k},60000);
 /* Vädersidan, i stil med Apples Väder */
 const DAYS3=['sön','mån','tis','ons','tor','fre','lör'];
 function windDir(d){return['nordlig','nordostlig','ostlig','sydostlig','sydlig','sydvästlig','västlig','nordvästlig'][Math.round(((d||0)%360)/45)%8]}
@@ -822,7 +882,7 @@ V.vader=function(){const W=wxModel(),P=WX_POS();
  if(!W)return h+'<header class="head"><h1 class="lt" id="lt">Väder</h1></header>'+group(emptyCell('Prognosen kunde inte hämtas just nu.'))+'<div class="block"><button class="btn-tint" style="width:100%" data-act="wxRefresh">Försök igen</button></div>';
  const[ic,tx]=symInfo(W.now.s),d0=W.days[0],F=wxToday(W),sun=sunTimes(today(),P.lat,P.lon);
  h+='<section class="wx-hero"><div class="wx-place">'+esc(P.name)+'</div><div class="wx-big num" id="lt">'+deg(W.now.T)+'</div><div class="wx-cond">'+esc(tx)+'</div><div class="wx-hl num">H:'+deg(d0.max)+'  L:'+deg(d0.min)+'</div>'+
-  '<div class="wx-fig"><button class="fig-box big" data-act="wxVar" aria-label="Visa en annan bild av hundarna">'+figSvg(F.kind,{night:F.night,sunny:F.sunny,variant:figVariant(F.kind,F.night)})+'</button><div class="wx-tip"><b>'+esc(capS(F.when))+'</b><span>'+esc(F.tip)+'</span></div></div></section>';
+  '<div class="wx-fig"><button class="fig-box big" data-act="wxVar" aria-label="Visa en annan bild av hundarna">'+figSvg(wxScene(W))+'</button><div class="wx-tip"><b>'+esc(capS(F.when))+'</b><span>'+esc(F.tip)+'</span></div></div></section>';
  // Timmar
  h+='<div class="group wx-card"><div class="wx-cap">'+I.clock+'Kommande timmar</div><div class="hours" role="list">'+W.hours.slice(0,25).map((x,k)=>{const[ii]=symInfo(x.s);
   return'<div class="hr" role="listitem"><span class="fn">'+(k?pad(x.d.getHours()):'Nu')+'</span><span class="hi" aria-hidden="true">'+ii+'</span><b class="num">'+deg(x.T)+'</b><span class="hp num">'+(x.pr>=0.1?mm(x.pr).replace(' mm',''):'')+'</span></div>'}).join('')+'</div></div>';
@@ -1014,7 +1074,7 @@ const ACT={
  ekoCost(id,el){S.ekoEdit={list:el.dataset.list,id:id||null};S.sheet='cost';render()},
  ekoDel(){const e=S.ekoEdit;if(!e||!e.id)return;closeSheets();A.user=Date.now();A.flip=true;
   updJSON('ekonomi',{},o=>{ekoListIn(o,e.list,l=>l.filter(x=>x.id!==e.id));return o});toast('Utgiften är borttagen')},
- wxVar(){const W=wxModel();if(!W)return;const F=wxToday(W),L=[...new Set(figVariants(F.kind,F.night))],cur=figVariant(F.kind,F.night);S.wxVar=L[(L.indexOf(cur)+1)%L.length];render()},
+ wxVar(){const W=wxModel();if(!W)return;const sc=wxScene(W),L=[...new Set(figVariants(sc.sleep))],cur=figVariant(sc);S.wxVar=L[(L.indexOf(cur)+1)%L.length];render()},
  wxRefresh(){loadWx(true).then(ok=>{if(ok){lsSet('ext',JSON.stringify(EXT))}render();if(!ok)toast('Vädret kunde inte hämtas')})},
  cookDone(id){S.cook=null;A.cookStep=null;wake();ACT.rate(id)},
  rate(id){S.rate={id};S.sheet='rate';render()},
