@@ -23,7 +23,7 @@
   --accent:#A3253F; --accent-soft:rgba(163,37,63,.12); --on-accent:#FFFFFF;
   --red:#FF3B30; --orange:#FF9500; --green:#34C759; --gray:#8E8E93;
   --bar:rgba(249,249,249,.94); --glass:rgba(255,255,255,.7); --glass-line:rgba(0,0,0,.08); --pill:rgba(118,118,128,.16); --track:#E5E5EA; --seg-on:#FFFFFF;
-  --veg-bg:rgba(52,199,89,.15); --veg-ink:#248A3D; --meat-bg:rgba(162,132,94,.18); --meat-ink:#7A5C38; --gem-bg:rgba(255,149,0,.15); --gem-ink:#C93400;
+  --veg-bg:rgba(52,199,89,.15); --veg-ink:#248A3D; --p1:#A3253F; --p2:#0A74A8; --meat-bg:rgba(162,132,94,.18); --meat-ink:#7A5C38; --gem-bg:rgba(255,149,0,.15); --gem-ink:#C93400;
   --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Helvetica Neue","Segoe UI",system-ui,sans-serif;
   --tabbar:62px; --tabgap:max(calc(var(--sab) - 8px),12px); --side:260px; --navbar:44px;
   --sat:env(safe-area-inset-top,0px); --sab:env(safe-area-inset-bottom,0px);
@@ -36,14 +36,14 @@
   --accent:#EC7088; --accent-soft:rgba(236,112,136,.22); --on-accent:#22090F;
   --red:#FF453A; --orange:#FF9F0A; --green:#30D158;
   --bar:rgba(22,22,24,.92); --glass:rgba(36,36,38,.7); --glass-line:rgba(255,255,255,.1); --pill:rgba(255,255,255,.14); --track:#3A3A3C; --seg-on:#636366;
-  --veg-ink:#30D158; --gem-ink:#FF9F0A; --meat-bg:rgba(172,142,104,.24); --meat-ink:#C8A57A; color-scheme:dark }}
+  --veg-ink:#30D158; --gem-ink:#FF9F0A; --p1:#D9566F; --p2:#2E9CC0; --meat-bg:rgba(172,142,104,.24); --meat-ink:#C8A57A; color-scheme:dark }}
 :root[data-theme="dark"]{
   --bg:#000000; --surface:#1C1C1E; --surface-raised:#2C2C2E; --fill:rgba(118,118,128,.24);
   --ink:#FFFFFF; --ink-2:rgba(235,235,245,.6); --ink-3:rgba(235,235,245,.3); --line:rgba(84,84,88,.65);
   --accent:#EC7088; --accent-soft:rgba(236,112,136,.22); --on-accent:#22090F;
   --red:#FF453A; --orange:#FF9F0A; --green:#30D158;
   --bar:rgba(22,22,24,.92); --glass:rgba(36,36,38,.7); --glass-line:rgba(255,255,255,.1); --pill:rgba(255,255,255,.14); --track:#3A3A3C; --seg-on:#636366;
-  --veg-ink:#30D158; --gem-ink:#FF9F0A; --meat-bg:rgba(172,142,104,.24); --meat-ink:#C8A57A; color-scheme:dark }
+  --veg-ink:#30D158; --gem-ink:#FF9F0A; --p1:#D9566F; --p2:#2E9CC0; --meat-bg:rgba(172,142,104,.24); --meat-ink:#C8A57A; color-scheme:dark }
 
 /* ===== 2. Bas och typografi ===== */
 html.theme-fade *,html.theme-fade *::before,html.theme-fade *::after{transition:background-color .4s ease,color .4s ease,border-color .4s ease,fill .4s ease!important}
@@ -426,6 +426,48 @@ body.wall .hero .clock{font-size:96px;letter-spacing:-3px}
 .vpick input:checked+span{background:var(--accent);color:var(--on-accent)}
 .vpick input:focus-visible+span{outline:2px solid var(--accent)}
 
+/* ===== Ekonomi ===== */
+.side-only{display:none!important}
+@media (min-width:900px){.nav .side-only{display:flex!important}.only-phone{display:none}}
+.nav.none .nav-pill{opacity:0}
+.pdot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:1px}
+.pdot.p1,.splitbar .p1,.stack .p1,.hbar .p1,.sw.p1{background:var(--p1)}
+.pdot.p2,.splitbar .p2,.stack .p2,.hbar .p2,.sw.p2{background:var(--p2)}
+.stack .soft,.sw.soft{opacity:.45}
+.mswitch{display:flex;align-items:center;justify-content:space-between;margin:10px 16px 0;background:var(--surface);border-radius:12px;padding:2px 4px}
+.mswitch .ib svg{width:12px;height:19px}.mswitch .flip svg{transform:scaleX(-1)}
+.eko-split{flex-direction:column;align-items:stretch;gap:12px;padding-top:14px;padding-bottom:14px}
+.splitbar{display:flex;gap:2px;height:12px;border-radius:6px;overflow:hidden}
+.splitbar i{display:block;transition:flex .6s cubic-bezier(.2,.8,.2,1)}
+.splitleg{display:flex;justify-content:space-between;gap:12px}
+.splitleg>div{display:flex;flex-direction:column;gap:2px}
+.splitleg>div:last-child{text-align:right;align-items:flex-end}
+.splitleg b{font-size:22px;line-height:28px;font-weight:700}
+.eko-people{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;margin:0 16px}
+@media (min-width:600px){.eko-people{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.eko-people .group{margin:0}
+.eko-card{padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.eko-name{font-size:17px;font-weight:600}
+.eko-left{display:flex;flex-direction:column}
+.eko-left b{font-size:34px;line-height:40px;font-weight:700;letter-spacing:-.5px}
+.stack{display:flex;gap:2px;height:8px;border-radius:4px;background:var(--fill);overflow:hidden}
+.stack i{display:block;height:100%}
+.eko-rows{display:flex;flex-direction:column;gap:6px;font-size:15px}
+.eko-rows>div{display:flex;justify-content:space-between;gap:8px}
+.eko-rows .tot{border-top:.5px solid var(--line);padding-top:6px;font-weight:600}
+.sw{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:8px;vertical-align:0}
+.eko-calc{display:flex;justify-content:space-between;gap:12px}
+.eko-calc>div{display:flex;flex-direction:column}
+.eko-calc>div:last-child{text-align:right}
+.eko-calc b{font-size:20px;line-height:26px}
+.eko-mini{display:flex;justify-content:space-between;gap:10px}
+.eko-mini>div{display:flex;flex-direction:column;min-width:0}
+.eko-mini b{font-size:22px;line-height:28px;font-weight:700;white-space:nowrap}
+.hist{gap:12px}
+.hist .hm{width:84px;flex:none;font-size:15px}
+.hbar{flex:1;display:flex;gap:2px;height:10px;min-width:0}
+.hbar i{display:block;height:100%;border-radius:2px}
+
 /* ===== Animationer ===== */
 #main.in-fade{animation:pageFade .32s cubic-bezier(.2,.8,.2,1)}
 #main.in-right{animation:pageRight .36s cubic-bezier(.2,.8,.2,1)}
@@ -472,8 +514,8 @@ body.wall::before{content:"";position:fixed;inset:-20%;z-index:-1;pointer-events
 <div id="overlay"></div>
 <div class="timers" id="timers" aria-live="polite"></div>
 <div id="toast" hidden class="toast" role="status"></div>
-<script src="config.js?v=13"></script>
-<script src="app.js?v=13"></script>
+<script src="config.js?v=14"></script>
+<script src="app.js?v=14"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
