@@ -5,7 +5,7 @@
   "start_url": "./#oversikt",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#ECEFEA",
+  "background_color": "#F2F2F7",
   "theme_color": "#A3253F",
   "icons": [
     { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },

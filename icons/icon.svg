@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#D94A66"/>
+      <stop offset=".55" stop-color="#A3253F"/>
+      <stop offset="1" stop-color="#7A1630"/>
+    </linearGradient>
+    <radialGradient id="glow" cx=".3" cy=".15" r=".75">
+      <stop offset="0" stop-color="#fff" stop-opacity=".28"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="house" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#F6E6EA"/>
+    </linearGradient>
+    <linearGradient id="heart" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#E5546F"/>
+      <stop offset="1" stop-color="#A3253F"/>
+    </linearGradient>
+    <filter id="sh" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="22" stdDeviation="26" flood-color="#3A0614" flood-opacity=".38"/>
+    </filter>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <rect width="1024" height="1024" fill="url(#glow)"/>
+  <g filter="url(#sh)">
+    <!-- skorsten -->
+    <rect x="626" y="262" width="78" height="150" rx="18" fill="url(#house)"/>
+    <!-- hus med rundade hörn -->
+    <path d="M512 228 L782 470 Q800 486 800 510 L800 742 Q800 790 752 790 L272 790 Q224 790 224 742 L224 510 Q224 486 242 470 Z"
+          fill="url(#house)" stroke="url(#house)" stroke-width="40" stroke-linejoin="round"/>
+  </g>
+  <!-- hjärta -->
+  <path d="M512 708 C 430 650 370 604 370 540 C 370 494 404 462 446 462 C 476 462 498 478 512 502 C 526 478 548 462 578 462 C 620 462 654 494 654 540 C 654 604 594 650 512 708 Z"
+        fill="url(#heart)"/>
+  <path d="M446 492 C 420 492 400 512 400 538" fill="none" stroke="#fff" stroke-opacity=".45" stroke-width="16" stroke-linecap="round"/>
+</svg>
