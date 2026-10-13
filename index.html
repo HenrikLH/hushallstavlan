@@ -44,6 +44,7 @@
   --veg-ink:#30D158; --gem-ink:#FF9F0A; --meat-bg:rgba(172,142,104,.24); --meat-ink:#C8A57A; color-scheme:dark }
 
 /* ===== 2. Bas och typografi ===== */
+html.theme-fade *,html.theme-fade *::before,html.theme-fade *::after{transition:background-color .4s ease,color .4s ease,border-color .4s ease,fill .4s ease!important}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:17px;line-height:22px;letter-spacing:-.4px;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;min-height:100dvh}
@@ -173,7 +174,9 @@ body.wall main{zoom:1.0588}
 /* Segmentreglage */
 .segc{display:flex;margin:12px 16px 0;padding:2px;height:32px;border-radius:9px;background:var(--fill)}
 .segc button{flex:1;text-align:center;border-radius:7px;font-size:13px;line-height:18px;font-weight:600;letter-spacing:-.08px;color:var(--ink);position:relative}
-.segc button[aria-pressed="true"]{background:var(--seg-on);box-shadow:0 3px 8px rgba(0,0,0,.12),0 3px 1px rgba(0,0,0,.04)}
+.segc{position:relative}
+.seg-thumb{position:absolute;top:2px;bottom:2px;left:2px;width:calc((100% - 4px) / var(--n,2));border-radius:7px;background:var(--seg-on);box-shadow:0 3px 8px rgba(0,0,0,.12),0 3px 1px rgba(0,0,0,.04);transform:translateX(calc(var(--i,0) * 100%));pointer-events:none}
+.seg-wrap .segc{margin-top:0}
 .segc button:active{opacity:1}
 
 /* Filterkapslar */
@@ -368,6 +371,45 @@ body.wall .widgets{grid-template-columns:repeat(4,minmax(0,1fr))}
 .setup{max-width:440px;margin:0 auto;padding-top:10vh}
 .setup .lt{padding:0 16px}
 .setup p{padding:8px 16px 0;color:var(--ink-2)}
+
+/* ===== Animationer ===== */
+#main.in-fade{animation:pageFade .32s cubic-bezier(.2,.8,.2,1)}
+#main.in-right{animation:pageRight .36s cubic-bezier(.2,.8,.2,1)}
+#main.in-left{animation:pageLeft .36s cubic-bezier(.2,.8,.2,1)}
+@keyframes pageFade{from{opacity:0;transform:translateY(10px)}}
+@keyframes pageRight{from{opacity:0;transform:translateX(28px)}}
+@keyframes pageLeft{from{opacity:0;transform:translateX(-28px)}}
+/* Bocka av */
+.cell.checking .check::before{animation:checkPop .38s cubic-bezier(.3,1.6,.5,1)}
+.cell.checking .check::after{animation:tickDraw .3s ease-out}
+.cell.checking .grow{transition:opacity .3s;opacity:.55}
+.cell.unchecking .check::before{animation:checkPop .25s ease-out}
+@keyframes checkPop{0%{transform:scale(.7)}60%{transform:scale(1.18)}100%{transform:scale(1)}}
+@keyframes tickDraw{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+.cell.appear{animation:rowIn .45s cubic-bezier(.2,.9,.25,1)}
+@keyframes rowIn{from{opacity:0;transform:translateY(-8px) scale(.98);background:var(--accent-soft)}60%{background:var(--accent-soft)}}
+.cell.leaving{overflow:hidden;transition:height .28s ease,opacity .2s ease,padding .28s ease;height:0!important;padding-top:0!important;padding-bottom:0!important;opacity:0}
+/* Staplar och översiktens rutor */
+.thin>i,.cap>i{transition:width .8s cubic-bezier(.2,.8,.2,1)}
+.widget.upd{animation:wUpd .9s ease}
+@keyframes wUpd{0%{opacity:.35}100%{opacity:1}}
+/* Matlagningsläget */
+.cook-body.from-r{animation:pageRight .3s cubic-bezier(.2,.8,.2,1)}
+.cook-body.from-l{animation:pageLeft .3s cubic-bezier(.2,.8,.2,1)}
+.progress i.just{transform-origin:left;animation:fillIn .35s ease-out}
+@keyframes fillIn{from{transform:scaleX(0)}}
+/* Konfetti */
+.confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:90}
+/* Väggläget: klockan vänder siffror och bakgrunden andas */
+.clock span{display:inline-block}
+.clock .fl{animation:flip .5s cubic-bezier(.2,.8,.2,1)}
+@keyframes flip{from{opacity:0;transform:translateY(-.35em) rotateX(70deg)}}
+body.wall::before{content:"";position:fixed;inset:-20%;z-index:-1;pointer-events:none;background:radial-gradient(40% 35% at 25% 20%,var(--accent-soft),transparent 70%),radial-gradient(35% 30% at 80% 85%,var(--veg-bg),transparent 70%);animation:breathe 14s ease-in-out infinite alternate}
+@keyframes breathe{from{opacity:.45;transform:scale(1) translate(0,0)}to{opacity:1;transform:scale(1.08) translate(2%,-2%)}}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  body.wall::before{animation:none}
+}
 </style>
 </head>
 <body>
@@ -376,8 +418,8 @@ body.wall .widgets{grid-template-columns:repeat(4,minmax(0,1fr))}
 <div id="overlay"></div>
 <div class="timers" id="timers" aria-live="polite"></div>
 <div id="toast" hidden class="toast" role="status"></div>
-<script src="config.js?v=10"></script>
-<script src="app.js?v=10"></script>
+<script src="config.js?v=11"></script>
+<script src="app.js?v=11"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
