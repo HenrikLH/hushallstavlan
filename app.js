@@ -253,6 +253,7 @@ V.oversikt=function(){
  let h=head('Översikt');
  h+=heroHtml();
  h+='<div class="widgets">';
+ h+=calWidget();
  const isT=nextDay&&nextDay.date===t;
  h+=widget('mat','w2',I.fork,(isT||!nextDay)?'Middag ikväll':'Nästa middag',nextDay&&!isT?esc(dateShort(nextDay.date)):'',
   nextDay?wMeals(nextDay):'<div class="wempty">Ingen matsedel inlagd än. Den fylls i när veckoplaneringen körs på onsdag.</div>');
@@ -436,6 +437,20 @@ const ymKey=d=>d.slice(0,7);
 function calDots(date){const d=D(),evs=d.events.filter(e=>e.date===date),ts=d.tasks.filter(x=>x.due===date&&!x.done),out=[];
  evs.forEach(e=>{const w=String(e.who||'').trim();out.push(w&&people().includes(w)?'e '+pcls(w):'e o')});
  ts.forEach(()=>out.push('t'));return out.slice(0,4)}
+// Översiktens kalenderruta: veckoremsa med prickar och det som kommer de närmaste dagarna
+function calWidget(){const t=today(),d=D();
+ let strip='<div class="wk">';
+ for(let i=0;i<7;i++){const k=addDays(t,i),dt=parse(k),dots=calDots(k);
+  strip+='<button class="wk-d'+(i===0?' today':'')+'" data-act="calOpen" data-id="'+k+'" aria-label="'+esc(dateLong(k))+(dots.length?', '+dots.length+' saker':'')+'"><span class="wd">'+(i===0?'Idag':cap(DAYS[dt.getDay()].slice(0,3)))+'</span><span class="n num">'+dt.getDate()+'</span><span class="dots">'+dots.map(c=>'<i class="'+c+'"></i>').join('')+'</span></button>'}
+ strip+='</div>';
+ const items=[];
+ for(let i=1;i<=7&&items.length<4;i++){const k=addDays(t,i);
+  d.events.filter(e=>e.date===k).sort((a,b)=>String(a.time||'').localeCompare(String(b.time||''))).forEach(e=>items.push({k,t:e.time||'',title:e.title,who:e.who,ev:1}));
+  d.tasks.filter(x=>x.due===k&&!x.done).forEach(x=>items.push({k,t:'',title:x.title,who:x.who,ev:0}))}
+ const list=items.slice(0,4).map(x=>{const w=String(x.who||'').trim();
+  return'<button class="wk-it" data-act="calOpen" data-id="'+x.k+'"><span class="bar '+(x.ev?(w&&people().includes(w)?pcls(w):'o'):'task')+'"></span><span class="wk-when num">'+esc(dateShort(x.k))+(x.t?' · '+esc(x.t.split(/[–-]/)[0]):'')+'</span><span class="wk-title">'+esc(x.title)+'</span></button>'}).join('');
+ return'<section class="widget w2 calw"><button class="wh" data-act="calOpen" data-id="'+t+'" style="width:100%">'+I.cal+'<span>Kalender</span><span class="r">'+esc(cap(MON[parse(t).getMonth()]))+'</span></button>'+strip+
+  (list?'<div class="wk-list">'+list+'</div>':'<div class="wempty">Inget inplanerat de närmaste dagarna.</div>')+'</section>'}
 function calView(){const t=today(),sel=S.calDay||t,m=S.calMonth||ymKey(sel),[y,mo]=m.split('-').map(Number);
  const first=new Date(y,mo-1,1),start=new Date(first);start.setDate(1-((first.getDay()+6)%7));
  let h='<div class="cal-head"><button class="ib" data-act="calMonth" data-d="-1" aria-label="Förra månaden">'+I.back+'</button><div class="hl">'+esc(cap(MON[mo-1]))+(y!==new Date().getFullYear()?' '+y:'')+'</div>'+
@@ -1000,6 +1015,7 @@ const ACT={
  confirmNo(){S.confirm=null;render()},
  taskTab(id){S.taskTab=id==='kalender'?'kalender':'lista';lsSet('taskTab',S.taskTab);render()},
  calDay(id){S.calDay=id;S.calMonth=ymKey(id);render()},
+ calOpen(id){S.taskTab='kalender';lsSet('taskTab','kalender');S.calDay=id||today();S.calMonth=ymKey(S.calDay);ACT.nav('uppgifter')},
  calMonth(id,el){const[y,m]=(S.calMonth||ymKey(S.calDay||today())).split('-').map(Number),d=new Date(y,m-1+Number(el.dataset.d),1);S.calMonth=d.getFullYear()+'-'+pad(d.getMonth()+1);render()},
  calToday(){S.calDay=today();S.calMonth=ymKey(S.calDay);render()},
  calAddTask(id){S.taskDue=id;S.taskAdd=true;render();setTimeout(()=>document.getElementById('task-title')?.focus(),30)},
