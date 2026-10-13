@@ -125,7 +125,9 @@ function planDays(){
  else dates=[...new Set(d.menu.map(m=>m.date).concat(d.events.map(e=>e.date)))].filter(isDate).sort();
  return dates.map(date=>({date,events:d.events.filter(e=>e.date===date),meals:d.menu.filter(m=>m.date===date)}))}
 const dayOf=date=>{const d=D();const ev=d.events.filter(e=>e.date===date),ms=d.menu.filter(m=>m.date===date);return(ev.length||ms.length)?{date,events:ev,meals:ms}:null};
-function whoChip(w){const k=w==='Henrik'?'h':w==='Vegetariskt'?'v':w==='Gemensam'?'g':'';return'<span class="chip '+k+'">'+esc(w)+'</span>'}
+function whoChip(w){const k=w==='Henrik'?'h':w==='Vegetariskt'?'v':w==='Gemensam'?'g':'';return'<span class="chip '+k+'">'+esc(w==='Henrik'?'Kött':w)+'</span>'}
+// Vem en kalenderhändelse gäller (kolumnen Vem i Händelser). Ingen chip när namnet redan står i titeln.
+function evWho(e){const w=String(e.who||e.vem||'').trim();if(!w||String(e.title||'').toLowerCase().split(/[^a-zåäöé-]+/).includes(w.toLowerCase()))return'';return' <span class="chip'+(w==='Henrik'?' h':'')+'">'+esc(w)+'</span>'}
 const shopCost=items=>items.reduce((s,i)=>s+(Number(i.price)||0),0);
 const isBase=i=>(i.meals||[]).length>0&&(i.meals||[]).every(m=>m==='Bas');
 function planPortions(){const ids=new Set();D().menu.forEach(m=>{if(m.recipe)ids.add(m.recipe)});
@@ -212,9 +214,9 @@ V.oversikt=function(){
  if(tm)h+=widget('mat','w2',I.cal,'Imorgon',esc(dateShort(tm.date)),(eventsHtml(tm)||'<div class="wempty">Inga händelser.</div>')+(tm.meals.length?wMeals(tm):''));
  return h+'</div>'};
 function wMeals(d){return(d.meals||[]).map(m=>{const r=m.recipe&&recipeById(m.recipe);const tag=r?'button':'div';
- return'<'+tag+' class="wmeal"'+(r?' data-act="recipe" data-id="'+esc(m.recipe)+'"':'')+'><div class="top">'+whoChip(m.who)+(r&&r.kr?'<span class="val">'+kr(r.kr)+'/port</span>':'')+'</div><div class="hl title">'+esc(m.title)+'</div>'+(m.addon?'<div class="sub">+ Henrik: '+esc(m.addon)+'</div>':'')+'</'+tag+'>'}).join('')}
+ return'<'+tag+' class="wmeal"'+(r?' data-act="recipe" data-id="'+esc(m.recipe)+'"':'')+'><div class="top">'+whoChip(m.who)+(r&&r.kr?'<span class="val">'+kr(r.kr)+'/port</span>':'')+'</div><div class="hl title">'+esc(m.title)+'</div>'+(m.addon?'<div class="sub">+ Kött: '+esc(m.addon)+'</div>':'')+'</'+tag+'>'}).join('')}
 const healthRow=r=>'<div class="cell room"><div class="grow"><div>'+esc(r.room)+'</div><div class="cap '+healthCls(r.score)+'"><i style="width:'+Math.round(r.score*100)+'%"></i></div></div><span class="hw '+healthCls(r.score)+'">'+healthWord(r.score)+'</span></div>';
-function eventsHtml(d){if(!d||!d.events.length)return'';return'<div class="evs">'+d.events.map(e=>'<div class="ev"><span class="t">'+esc(e.time||'Heldag')+'</span><span>'+esc(e.title)+'</span></div>').join('')+'</div>'}
+function eventsHtml(d){if(!d||!d.events.length)return'';return'<div class="evs">'+d.events.map(e=>'<div class="ev"><span class="t">'+esc(e.time||'Heldag')+'</span><span>'+esc(e.title)+evWho(e)+'</span></div>').join('')+'</div>'}
 
 /* Mat: Vecka | Recept */
 V.mat=function(){
@@ -223,7 +225,7 @@ V.mat=function(){
  h+='<div class="segc" role="group" aria-label="Visa">'+[['vecka','Vecka'],['recept','Recept']].map(([k,l])=>'<button type="button" data-act="matTab" data-id="'+k+'" aria-pressed="'+(S.matTab===k)+'">'+l+'</button>').join('')+'</div>';
  return h+(S.matTab==='recept'?matRecipes():matWeek())};
 function mealCell(m){const r=m.recipe&&recipeById(m.recipe);
- const inner='<div class="grow"><div class="chips-row">'+whoChip(m.who)+'</div><div class="title" style="margin-top:3px">'+esc(m.title)+'</div>'+(m.addon?'<div class="meta">+ Henrik: '+esc(m.addon)+'</div>':'')+(m.note?'<div class="meta">'+esc(m.note)+'</div>':'')+'</div>'+(r&&r.kr?'<span class="val">'+kr(r.kr)+'/port</span>':'');
+ const inner='<div class="grow"><div class="chips-row">'+whoChip(m.who)+'</div><div class="title" style="margin-top:3px">'+esc(m.title)+'</div>'+(m.addon?'<div class="meta">+ Kött: '+esc(m.addon)+'</div>':'')+(m.note?'<div class="meta">'+esc(m.note)+'</div>':'')+'</div>'+(r&&r.kr?'<span class="val">'+kr(r.kr)+'/port</span>':'');
  return r?'<button class="cell link meal-cell" data-act="recipe" data-id="'+esc(m.recipe)+'">'+inner+chevron+'</button>':'<div class="cell meal-cell">'+inner+'</div>'}
 function recipeCell(r,meta){return'<button class="cell link" data-act="recipe" data-id="'+esc(r.id)+'"><div class="grow"><div class="title">'+esc(r.title)+'</div><div class="meta">'+meta+'</div></div>'+whoChip(r.who)+chevron+'</button>'}
 function matWeek(){
@@ -233,7 +235,7 @@ function matWeek(){
  h+='<div class="stats"><div class="stat"><span class="fn">Maten kostar ca</span><b>'+kr(total)+'</b></div><div class="stat"><span class="fn">Portioner</span><b>'+port+'</b></div><div class="stat"><span class="fn">Per portion</span><b>'+(port?kr(total/port):'–')+'</b></div></div>';
  days.forEach(x=>{
   h+=sh(esc(dayHead(x.date))+(x.date===t?' <span class="acc">· Idag</span>':''));
-  h+=group(x.events.map(e=>'<div class="cell ev-cell"><span class="t">'+esc(e.time||'Heldag')+'</span><span class="grow">'+esc(e.title)+'</span></div>').join('')+(x.meals.length?x.meals.map(mealCell).join(''):emptyCell('Ingen mat planerad.')))});
+  h+=group(x.meals.length?x.meals.map(mealCell).join(''):emptyCell('Ingen mat planerad.'))});
  const batch=String(st.storkok||'').split(',').map(s=>s.trim()).filter(Boolean);
  if(batch.length){h+=sh('Storkok')+group(batch.map(id=>{const r=recipeById(id);return r?recipeCell(r,r.portions+' portioner'+(r.kr?' · '+kr(r.kr)+'/port':'')):''}).join(''));
   if(st.storkok_not)h+='<div class="foot">'+esc(st.storkok_not)+'</div>'}
@@ -264,7 +266,7 @@ V.inkop=function(){
   h+=sh(c,kr(shopCost(g)))+group(g.map(shopRow).join(''))});
  if(bought.length)h+='<div class="pills" style="padding:12px 16px 0 24px">'+(S.confirm==='clearShop'?'<span class="sub">Ta bort '+bought.length+' avbockade?</span><button class="tb red strong" data-act="clearShopYes">Ja, ta bort</button><button class="tb" data-act="confirmNo">Avbryt</button>':'<button class="tb red" data-act="clearShop">Rensa avbockade ('+bought.length+')</button>')+'</div>';
  h+='</div><div class="col">';
- const prefs=(st.pref_henrik?'<div class="cell"><div class="grow"><span class="chip h">Henrik</span><div class="meta" style="color:var(--ink)">'+esc(st.pref_henrik)+'</div></div></div>':'')+(st.pref_veg?'<div class="cell"><div class="grow"><span class="chip v">Vegetariskt</span><div class="meta" style="color:var(--ink)">'+esc(st.pref_veg)+'</div></div></div>':'')+(st.pref_ekonomi?'<div class="cell"><div class="grow"><span class="chip">Ekonomi</span><div class="meta" style="color:var(--ink)">'+esc(st.pref_ekonomi)+'</div></div></div>':'');
+ const prefs=(st.pref_henrik?'<div class="cell"><div class="grow"><span class="chip h">Kött</span><div class="meta" style="color:var(--ink)">'+esc(st.pref_henrik)+'</div></div></div>':'')+(st.pref_veg?'<div class="cell"><div class="grow"><span class="chip v">Vegetariskt</span><div class="meta" style="color:var(--ink)">'+esc(st.pref_veg)+'</div></div></div>':'')+(st.pref_ekonomi?'<div class="cell"><div class="grow"><span class="chip">Ekonomi</span><div class="meta" style="color:var(--ink)">'+esc(st.pref_ekonomi)+'</div></div></div>':'');
  if(prefs)h+=sh('Hushållets preferenser')+group(prefs);
  const offers=all.filter(i=>i.offer);
  if(offers.length)h+=sh('Erbjudanden på listan')+group(offers.map(i=>'<div class="cell"><div class="grow"><div class="title">'+esc(i.name)+'</div><div class="meta">'+esc(i.offer)+'</div></div></div>').join(''))+'<div class="foot">Priserna är uppskattade. Kolla hyllkanten i butiken.</div>';
