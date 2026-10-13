@@ -301,9 +301,15 @@ function mealCell(m){const r=m.recipe&&recipeById(m.recipe);
  const inner='<div class="grow"><div class="chips-row">'+whoChip(m.who)+'</div><div class="title" style="margin-top:3px">'+esc(m.title)+'</div>'+(m.addon?'<div class="meta">+ Kött: '+esc(m.addon)+'</div>':'')+(m.note?'<div class="meta">'+esc(m.note)+'</div>':'')+(m.recipe&&ratingOf(m.recipe)?'<div class="meta"><span class="st">'+starsTxt(ratingOf(m.recipe).avg)+'</span></div>':'')+'</div>'+(r&&r.kr?'<span class="val">'+kr(r.kr)+'/port</span>':'');
  return r?'<button class="cell link meal-cell" data-act="recipe" data-id="'+esc(m.recipe)+'">'+inner+chevron+'</button>':'<div class="cell meal-cell">'+inner+'</div>'}
 function recipeCell(r,meta){return'<button class="cell link" data-act="recipe" data-id="'+esc(r.id)+'"><div class="grow"><div class="title">'+esc(r.title)+'</div><div class="meta">'+meta+'</div></div>'+whoChip(r.who)+chevron+'</button>'}
+/* Hushållets matpreferenser: rader i Inställningar som veckoplaneringen läser när den gör menyn */
+const PREFS=[['pref_henrik','Kött','k','Henriks mat, t.ex. proteinrik och kalorisnål'],['pref_veg','Vegetariskt','v','Den vegetariska maten, t.ex. kost och GI'],['pref_ekonomi','Ekonomi','','Budget, butiker och svinn'],['pref_ovrigt','Övrigt','','Sådant ni inte gillar, allergier, önskemål']];
+function prefsBlock(){const st=settings(),rows=PREFS.filter(([k])=>String(st[k]||'').trim());
+ return sh('Hushållets preferenser','<button class="linkbtn" data-act="prefs">Ändra</button>')+
+  group(rows.length?rows.map(([k,l,c])=>'<div class="cell"><div class="grow"><span class="chip'+(c?' '+c:'')+'">'+l+'</span><div class="meta" style="color:var(--ink)">'+esc(st[k])+'</div></div></div>').join(''):emptyCell('Inga preferenser än. Tryck på Ändra och skriv vad ni vill att menyn tar hänsyn till.'))+
+  '<div class="foot">Veckoplaneringen utgår från de här när den gör nästa veckas meny.</div>'}
 function matWeek(){
  const t=today(),d=D(),st=settings(),days=planDays();let h='';
- if(!days.length)return'<div style="height:22px"></div>'+group(emptyCell('Matsedeln fylls i när veckoplaneringen körs på onsdag.'));
+ if(!days.length)return'<div style="height:22px"></div>'+group(emptyCell('Matsedeln fylls i när veckoplaneringen körs på onsdag.'))+prefsBlock();
  const total=shopCost(d.shop.filter(i=>!isBase(i))),port=planPortions();
  h+='<div class="stats"><div class="stat"><span class="fn">Maten kostar ca</span><b>'+nv('m-total',total,'kr')+'</b></div><div class="stat"><span class="fn">Portioner</span><b>'+nv('m-port',port)+'</b></div><div class="stat"><span class="fn">Per portion</span><b>'+(port?nv('m-per',total/port,'kr'):'–')+'</b></div></div>';
  days.forEach(x=>{
@@ -314,7 +320,7 @@ function matWeek(){
   if(st.storkok_not)h+='<div class="foot">'+esc(st.storkok_not)+'</div>'}
  if(d.offers.length){h+=sh('Erbjudanden menyn bygger på')+group(d.offers.map(o=>'<div class="cell"><div class="grow"><div class="title">'+esc(o.item)+'</div><div class="meta">'+esc(o.store)+(o.note?' · '+esc(o.note):'')+'</div></div><span class="val">'+esc(o.price)+'</span></div>').join(''));
   if(st.erbjudanden_not)h+='<div class="foot">'+esc(st.erbjudanden_not)+'</div>'}
- return h}
+ return h+prefsBlock()}
 function matRecipes(){
  const rs=D().recipes;let h='';
  if(!rs.length)return'<div style="height:22px"></div>'+group(emptyCell('Inga recept än. De skapas tillsammans med veckans matsedel.'));
@@ -340,8 +346,7 @@ function inkopParts(){
   h+=sh(c,kr(shopCost(g)))+group(g.map(shopRow).join(''))});
  if(bought.length)h+='<div class="pills" style="padding:12px 16px 0 24px">'+(S.confirm==='clearShop'?'<span class="sub">Ta bort '+bought.length+' avbockade?</span><button class="tb red strong" data-act="clearShopYes">Ja, ta bort</button><button class="tb" data-act="confirmNo">Avbryt</button>':'<button class="tb red" data-act="clearShop">Rensa avbockade ('+bought.length+')</button>')+'</div>';
  h+='</div><div class="col">';
- const prefs=(st.pref_henrik?'<div class="cell"><div class="grow"><span class="chip k">Kött</span><div class="meta" style="color:var(--ink)">'+esc(st.pref_henrik)+'</div></div></div>':'')+(st.pref_veg?'<div class="cell"><div class="grow"><span class="chip v">Vegetariskt</span><div class="meta" style="color:var(--ink)">'+esc(st.pref_veg)+'</div></div></div>':'')+(st.pref_ekonomi?'<div class="cell"><div class="grow"><span class="chip">Ekonomi</span><div class="meta" style="color:var(--ink)">'+esc(st.pref_ekonomi)+'</div></div></div>':'');
- if(prefs)h+=sh('Hushållets preferenser')+group(prefs);
+ h+=prefsBlock();
  const offers=all.filter(i=>i.offer);
  if(offers.length)h+=sh('Erbjudanden på listan')+group(offers.map(i=>'<div class="cell"><div class="grow"><div class="title">'+esc(i.name)+'</div><div class="meta">'+esc(i.offer)+'</div></div></div>').join(''))+'<div class="foot">Priserna är uppskattade. Kolla hyllkanten i butiken.</div>';
  return{sub,tools,body:h+'</div></div>'}}
@@ -544,7 +549,7 @@ function sheetHtml(form,title,right,body,enter){return'<div class="sheet'+enter+
 const fieldCell=(label,input)=>'<label class="cell"><span class="grow">'+label+'</span>'+input+'</label>';
 function renderOverlay(){
  const o=document.getElementById('overlay');
- const k=S.cook?'cook':S.sheet==='settings'?'settings':S.sheet==='rate'?'rate':S.sheet==='income'?'income':S.sheet==='cost'?'cost':S.shopAdd?'shop':S.taskAdd?'task':'';
+ const k=S.cook?'cook':S.sheet==='settings'?'settings':S.sheet==='rate'?'rate':S.sheet==='income'?'income':S.sheet==='cost'?'cost':S.sheet==='prefs'?'prefs':S.shopAdd?'shop':S.taskAdd?'task':'';
  const prev=o.dataset.k||'';
  // Rita inte om ett öppet blad medan någon skriver i det
  if(k&&k!=='cook'&&k===prev&&busyTyping()&&o.contains(document.activeElement))return;
@@ -568,6 +573,10 @@ function renderOverlay(){
   (topic?sh('Notiser')+group('<div class="cell"><span class="grow copy">'+esc(topic)+'</span><button type="button" class="pill" data-act="copy" data-id="'+esc(topic)+'">Kopiera</button></div>')+'<div class="foot">Installera appen ntfy och prenumerera på det här ämnet. Använd servern ntfy.sh.</div>':'')+
   sh('Den här enheten')+group('<button type="button" class="cell link center red" data-act="logout">Logga ut</button>');
   o.innerHTML=sheetHtml('settings','Inställningar','<button class="tb strong">Spara</button>',body,enter);segSlide(o);return}
+ if(k==='prefs'){const st=settings();
+  const body=PREFS.map(([key,l,,ph])=>sh(l)+group('<div class="cell"><textarea class="field area" name="'+key+'" rows="'+Math.max(3,Math.ceil(String(st[key]||'').length/34)+1)+'" maxlength="600" placeholder="'+esc(ph)+'" aria-label="'+esc(l)+'">'+esc(st[key]||'')+'</textarea></div>')).join('')+
+   '<div class="foot">Sparas i kalkylarket. Veckoplaneringen läser dem nästa gång den gör menyn.</div>';
+  o.innerHTML=sheetHtml('prefs','Matpreferenser','<button class="tb strong">Spara</button>',body,enter);return}
  if(k==='income'){const m=S.ekoMonth||thisMonth(),cur=(ekoInc()[m])||ekoInc()[prevIncMonth(m)]||{};
   const body=sh('Inkomst efter skatt, '+monthName(m))+group(people().map((p,i)=>fieldCell('<span class="pdot p'+(i+1)+'"></span>'+esc(p),'<input class="field r" name="p'+i+'" inputmode="numeric" value="'+esc(cur[p]||'')+'" placeholder="0 kr" style="max-width:150px" aria-label="Inkomst '+esc(p)+'">')).join(''))+
    '<div class="foot">Fördelningen av de gemensamma utgifterna räknas fram från inkomsterna.</div>';
@@ -1059,6 +1068,7 @@ const ACT={
  nav(id){try{document.activeElement&&document.activeElement.blur()}catch(e){}id=normView(id);S.shopAdd=false;S.taskAdd=false;S.view=id;S.recipe=null;S.confirm=null;lsSet('view',id);try{history.replaceState(null,'','#'+id)}catch(e){}window.scrollTo(0,0);render()},
  refresh(){refresh()},
  settings(){S.sheet='settings';render()},
+ prefs(){S.sheet='prefs';render()},
  sheetClose(){closeSheets();render()},
  sheetBg(id,el,e){if(e.target===el){closeSheets();render()}},
  me(id){S.me=id;lsSet('me',id);render()},
@@ -1153,6 +1163,9 @@ document.addEventListener('submit',async e=>{const f=e.target.closest('[data-for
   updJSON('betyg',{},o=>{o[r.id]=o[r.id]||{p:{}};o[r.id].t=r.title;o[r.id].p=o[r.id].p||{};o[r.id].p[who]=e;return o});
   const saved=(sN>=4||v==='igen')&&addToBank(r,true);
   toast(saved?'Tack! Receptet sparades i receptbanken':'Tack för betyget!');if(sN>=4)confetti();return}
+ if(f.dataset.form==='prefs'){const st=settings();
+  const ch=PREFS.map(([k])=>[k,String(d[k]||'').replace(/\s+\n/g,'\n').trim()]).filter(([k,v])=>String(st[k]||'')!==v);
+  closeSheets();ch.forEach(([k,v])=>{st[k]=v;apiPost({action:'setting',k,v})});render();toast(ch.length?'Preferenserna är sparade':'Inget ändrades');return}
  if(f.dataset.form==='settings'){const p=[d.p1.trim()||'Henrik',d.p2.trim()||'Cornelia'].join(', ');const st=settings();
   const ch=[['personer',p],['stadtid_vardag',String(Number(d.wd)||20)],['stadtid_helg',String(Number(d.we)||40)],['matbudget',String(Number(d.budget)||0)]].filter(([k,v])=>String(st[k]||'')!==v);
   ch.forEach(([k,v])=>{st[k]=v;apiPost({action:'setting',k,v})});S.sheet=null;render();if(ch.length)toast('Sparat')}
