@@ -48,7 +48,7 @@ const OLD_VIEWS={matsedel:'vecka',recept:'recept'};
 const CFG=window.HT_CONFIG||{};
 const S={theme:['light','dark'].includes(lsGet('theme'))?lsGet('theme'):'system',key:lsGet('key')||'',me:lsGet('me')||'',view:lsGet('view')||'oversikt',wall:lsGet('wall')==='1',
  data:null,sync:'idle',lastSync:null,error:'',recipe:null,scale:{},cook:null,shopFilter:'alla',shopAdd:false,taskAdd:false,
- sheet:null,confirm:null,timers:[],pending:0,step:{},matTab:lsGet('matTab')==='recept'?'recept':'vecka',open:{}};
+ sheet:null,confirm:null,timers:[],pending:0,step:{},matTab:['recept','bank'].includes(lsGet('matTab'))?lsGet('matTab'):'vecka',bankFilter:'alla',rate:null,open:{}};
 try{const c=lsGet('cache');if(c)S.data=JSON.parse(c)}catch(e){}
 // Gamla vyer (Matsedel, Recept) ligger nu i fliken Mat
 function normView(id){if(OLD_VIEWS[id]){S.matTab=OLD_VIEWS[id];lsSet('matTab',S.matTab);return'mat'}return id}
@@ -59,7 +59,29 @@ if(!VIEW_IDS.includes(S.view))S.view='oversikt';
 const D=()=>S.data||{settings:{},shop:[],tasks:[],clean:[],menu:[],events:[],offers:[],recipes:[]};
 const settings=()=>D().settings||{};
 const people=()=>{const p=String(settings().personer||'').split(',').map(s=>s.trim()).filter(Boolean);return p.length?p:['Henrik','Cornelia']};
-const recipeById=id=>D().recipes.find(r=>r.id===id);
+const recipeById=id=>D().recipes.find(r=>r.id===id)||bankList().find(r=>r.id===id);
+/* ---------- betyg, önskelista och receptbank ----------
+   Sparas som JSON i fliken Inställningar (raderna betyg, onskelista och receptbank_1…7)
+   via appens vanliga inställningsanrop, så Apps Script-skriptet behöver inte ändras. */
+const parseJ=(s,d)=>{try{const v=JSON.parse(s);return v==null?d:v}catch(e){return d}};
+const BANK_ROWS=()=>Object.keys(settings()).filter(k=>/^receptbank_\d+$/.test(k)).sort((a,b)=>Number(a.split('_')[1])-Number(b.split('_')[1]));
+function bankList(){const seen=new Set(),out=[];BANK_ROWS().forEach(k=>parseJ(settings()[k],[]).forEach(x=>{if(x&&x.id&&!seen.has(x.id)){seen.add(x.id);out.push(x)}}));return out}
+const inBank=id=>bankList().some(x=>x.id===id);
+const ratings=()=>parseJ(settings().betyg,{});
+const wishes=()=>parseJ(settings().onskelista,[]);
+function ratingOf(id){const x=ratings()[id];if(!x||!x.p)return null;const ps=Object.entries(x.p).filter(([,e])=>e&&e.s);if(!ps.length)return null;
+ return{avg:ps.reduce((a,[,e])=>a+Number(e.s),0)/ps.length,people:ps,never:ps.some(([,e])=>e.v==='aldrig')}}
+const VERD={igen:'Laga igen',okej:'Okej',aldrig:'Aldrig mer'};
+const starsTxt=n=>'★★★★★'.slice(0,Math.round(n))+'☆☆☆☆☆'.slice(0,5-Math.round(n));
+// Läs färskt värde från kalkylarket, ändra och skriv tillbaka, så att två telefoner inte skriver över varandra
+async function updJSON(k,def,fn){const st=settings();st[k]=JSON.stringify(fn(parseJ(st[k],def)));render();
+ let v=st[k];try{const fresh=await apiGet();if(fresh.settings&&k in fresh.settings){v=JSON.stringify(fn(parseJ(fresh.settings[k],def)));S.data.settings[k]=v}}catch(e){}
+ return apiPost({action:'setting',k,v})}
+function bankSnap(r){const x=JSON.parse(JSON.stringify(r));x.savedAt=today();delete x.when;return x}
+function addToBank(r,quiet){if(!r||inBank(r.id))return false;const snap=bankSnap(r),len=JSON.stringify(snap).length;
+ const row=BANK_ROWS().find(k=>String(settings()[k]||'[]').length+len<45000);
+ if(!row){if(!quiet)toast('Receptbanken är full. Lägg till fler rader receptbank_N i Inställningar.');return false}
+ updJSON(row,[],a=>a.some(x=>x.id===snap.id)?a:a.concat([snap]));if(!quiet)toast('Sparat i receptbanken');return true}
 
 /* ---------- flikrad ---------- */
 // Knapparna byggs en gång så att markeringen kan glida mellan flikarna i stället för att ritas om.
@@ -249,10 +271,29 @@ function eventsHtml(d){if(!d||!d.events.length)return'';return'<div class="evs">
 V.mat=function(){
  if(S.recipe){const r=recipeById(S.recipe);if(r)return recipeDetail(r);S.recipe=null}
  let h=head('Mat',{sub:weekSub()});
- h+=segc('Visa','matTab',[['vecka','Vecka'],['recept','Recept']],S.matTab);
- return h+(S.matTab==='recept'?matRecipes():matWeek())};
+ h+=segc('Visa','matTab',[['vecka','Vecka'],['recept','Recept'],['bank','Receptbank']],S.matTab);
+ return h+(S.matTab==='recept'?matRecipes():S.matTab==='bank'?matBank():matWeek())};
+/* Receptbanken: stora kort att bläddra i när man inte vet vad man vill äta */
+const FOOD=[[/soppa/i,'🍲'],[/dal|curry/i,'🍛'],[/gryta/i,'🥘'],[/kyckling/i,'🍗'],[/lax|fisk|torsk|sej/i,'🐟'],[/pasta|lasagne|spagetti/i,'🍝'],[/sallad|bulgur/i,'🥗'],[/shakshuka|ägg|omelett/i,'🍳'],[/blåbär|bär|efterrätt|kaka/i,'🫐'],[/pizza/i,'🍕'],[/taco|tortilla/i,'🌮'],[/burgare/i,'🍔'],[/fläsk|kött|biff/i,'🥩'],[/blomkål|grönsak|aubergine/i,'🥦']];
+const foodIcon=t=>(FOOD.find(([re])=>re.test(t||''))||[0,'🍽️'])[1];
+const kind=r=>r.who==='Henrik'?'k':r.who==='Vegetariskt'?'v':r.who==='Gemensam'?'g':'';
+function matBank(){
+ const f=S.bankFilter||'alla',w=new Set(wishes().map(x=>x.id));
+ const all=bankList().map(r=>({r,g:ratingOf(r.id)})).sort((a,b)=>((b.g?b.g.avg:0)-(a.g?a.g.avg:0))||String(b.r.savedAt||'').localeCompare(String(a.r.savedAt||'')));
+ const fs=[['alla','Alla'],['k','Kött'],['v','Vegetariskt'],['g','Gemensam'],['snabbt','Snabbt'],['storkok','Storkok'],['onskat','Önskade']];
+ const ok=({r})=>f==='alla'||(f==='snabbt'?r.min&&r.min<=30:f==='storkok'?/storkok/i.test((r.group||'')+r.title):f==='onskat'?w.has(r.id):kind(r)===f);
+ let h='<div class="fchips" role="group" aria-label="Filter">'+fs.map(([k,l])=>'<button data-act="bankFilter" data-id="'+k+'" aria-pressed="'+(f===k)+'">'+l+'</button>').join('')+'</div>';
+ const list=all.filter(ok);
+ if(!all.length)return h+'<div style="height:16px"></div>'+group(emptyCell('Receptbanken är tom än. Recept som får 4–5 stjärnor eller Laga igen sparas här automatiskt, och du kan spara vilket recept som helst från receptsidan.'));
+ if(!list.length)return h+'<div style="height:16px"></div>'+group(emptyCell('Inga recept matchar filtret.'));
+ return h+'<div class="bank">'+list.map(({r,g})=>{const wished=w.has(r.id);
+  return'<article class="bcard '+kind(r)+'"><button class="bimg" data-act="recipe" data-id="'+esc(r.id)+'" aria-label="Öppna '+esc(r.title)+'">'+(r.img?'<img src="'+esc(r.img)+'" alt="" loading="lazy">':'<span aria-hidden="true">'+foodIcon(r.title)+'</span>')+'</button>'+
+  '<div class="bbody"><div class="chips-row">'+whoChip(r.who)+(r.min?'<span class="chip num">'+r.min+' min</span>':'')+(r.kr?'<span class="chip num">'+kr(r.kr)+'/port</span>':'')+'</div>'+
+  '<button class="btitle" data-act="recipe" data-id="'+esc(r.id)+'">'+esc(r.title)+'</button>'+
+  (g?'<div class="bstars"><span class="st" aria-label="'+g.avg.toFixed(1)+' av 5">'+starsTxt(g.avg)+'</span>'+g.people.map(([p,e])=>'<span class="fn">'+esc(p)+': '+esc(VERD[e.v]||'')+'</span>').join('')+'</div>':'<div class="fn">Inget betyg än</div>')+
+  '<button class="pill'+(wished?' on':'')+'" data-act="wish" data-id="'+esc(r.id)+'">'+(wished?I.tick+'Önskad nästa vecka':'Vill ha nästa vecka')+'</button></div></article>'}).join('')+'</div>'}
 function mealCell(m){const r=m.recipe&&recipeById(m.recipe);
- const inner='<div class="grow"><div class="chips-row">'+whoChip(m.who)+'</div><div class="title" style="margin-top:3px">'+esc(m.title)+'</div>'+(m.addon?'<div class="meta">+ Kött: '+esc(m.addon)+'</div>':'')+(m.note?'<div class="meta">'+esc(m.note)+'</div>':'')+'</div>'+(r&&r.kr?'<span class="val">'+kr(r.kr)+'/port</span>':'');
+ const inner='<div class="grow"><div class="chips-row">'+whoChip(m.who)+'</div><div class="title" style="margin-top:3px">'+esc(m.title)+'</div>'+(m.addon?'<div class="meta">+ Kött: '+esc(m.addon)+'</div>':'')+(m.note?'<div class="meta">'+esc(m.note)+'</div>':'')+(m.recipe&&ratingOf(m.recipe)?'<div class="meta"><span class="st">'+starsTxt(ratingOf(m.recipe).avg)+'</span></div>':'')+'</div>'+(r&&r.kr?'<span class="val">'+kr(r.kr)+'/port</span>':'');
  return r?'<button class="cell link meal-cell" data-act="recipe" data-id="'+esc(m.recipe)+'">'+inner+chevron+'</button>':'<div class="cell meal-cell">'+inner+'</div>'}
 function recipeCell(r,meta){return'<button class="cell link" data-act="recipe" data-id="'+esc(r.id)+'"><div class="grow"><div class="title">'+esc(r.title)+'</div><div class="meta">'+meta+'</div></div>'+whoChip(r.who)+chevron+'</button>'}
 function matWeek(){
@@ -360,7 +401,15 @@ function recipeDetail(r){
     ((timerBtn||i<r.steps.length-1)?'<div class="pills">'+timerBtn+(i<r.steps.length-1?'<button class="pill" data-act="pickStep" data-id="'+esc(r.id)+'" data-i="'+(i+1)+'">Nästa steg</button>':'')+'</div>':''):
    (hs.length?'<div class="uses">'+hs.map(it=>'<span>'+esc((qtyText(it,f)+' '+it.n).trim())+'</span>').join('')+'</div>':'')+(timerBtn?'<div class="pills">'+timerBtn+'</div>':''))+'</div></li>'}).join('')+'</ol></div>';
  if(r.tips)h+='<div class="group" style="margin-top:12px"><div class="note">'+esc(r.tips)+'</div></div>';
+ h+=rateBlock(r);
  h+='</div></div>';
+ return h}
+function rateBlock(r){const g=ratingOf(r.id),wished=wishes().some(x=>x.id===r.id),me=S.me&&g&&g.people.find(([p])=>p===S.me);
+ let h=sh('Betyg',g?'<span class="st">'+starsTxt(g.avg)+'</span> '+g.avg.toFixed(1).replace('.',','):'');
+ h+=group((g?g.people.map(([p,e])=>'<div class="cell"><div class="grow"><div class="title">'+esc(p)+' <span class="st">'+starsTxt(e.s)+'</span></div><div class="meta"><span class="chip '+(e.v==='igen'?'v':e.v==='aldrig'?'h':'')+'">'+esc(VERD[e.v]||'')+'</span>'+(e.c?'<span>'+esc(e.c)+'</span>':'')+(e.d?'<span>'+esc(dateShort(e.d))+'</span>':'')+'</div></div></div>').join(''):emptyCell('Ingen har betygsatt receptet än.'))+
+  '<button class="cell link" data-act="rate" data-id="'+esc(r.id)+'"><span class="grow" style="color:var(--accent)">'+(me?'Ändra ditt betyg':'Betygsätt receptet')+'</span>'+chevron+'</button>');
+ h+='<div class="pills" style="padding:12px 16px 0">'+(inBank(r.id)?'<span class="pill on">'+I.tick+'I receptbanken</span>':'<button class="pill" data-act="bankAdd" data-id="'+esc(r.id)+'">Spara i receptbanken</button>')+
+  '<button class="pill'+(wished?' on':'')+'" data-act="wish" data-id="'+esc(r.id)+'">'+(wished?I.tick+'Önskad nästa vecka':'Vill ha nästa vecka')+'</button></div>';
  return h}
 
 V.uppgifter=function(){
@@ -426,7 +475,7 @@ function sheetHtml(form,title,right,body,enter){return'<div class="sheet'+enter+
 const fieldCell=(label,input)=>'<label class="cell"><span class="grow">'+label+'</span>'+input+'</label>';
 function renderOverlay(){
  const o=document.getElementById('overlay');
- const k=S.cook?'cook':S.sheet==='settings'?'settings':S.shopAdd?'shop':S.taskAdd?'task':'';
+ const k=S.cook?'cook':S.sheet==='settings'?'settings':S.sheet==='rate'?'rate':S.shopAdd?'shop':S.taskAdd?'task':'';
  const prev=o.dataset.k||'';
  // Rita inte om ett öppet blad medan någon skriver i det
  if(k&&k!=='cook'&&k===prev&&busyTyping()&&o.contains(document.activeElement))return;
@@ -438,7 +487,7 @@ function renderOverlay(){
   o.innerHTML='<div class="cook" role="dialog" aria-modal="true" aria-label="Matlagningsläge"><div class="cook-top"><span></span><div class="fn">Steg '+(i+1)+' av '+n+'</div><button class="tb strong" data-act="cookClose">Klar</button></div><div class="cook-name">'+esc(r.title)+'</div>'+
   '<div class="progress" aria-hidden="true">'+r.steps.map((_,k)=>'<i class="'+(k<=i?'on':'')+(grew&&k===i?' just':'')+'"></i>').join('')+'</div>'+
   '<div class="cook-body'+dir+'"><div class="col"><p class="cook-text">'+esc(s.t)+'</p>'+(s.timer?'<div class="block"><button class="pill" data-act="timer" data-min="'+s.timer+'" data-label="Steg '+(i+1)+'">'+I.clock+'Starta '+s.timer+' min</button></div>':'')+now+'</div><div class="col">'+sh('Alla ingredienser')+ingList(r,f,hits)+'</div></div>'+
-  '<div class="cook-nav"><button class="btn-tint" data-act="cookStep" data-d="-1"'+(i===0?' disabled':'')+'>Förra</button>'+(i<n-1?'<button class="btn-fill" data-act="cookStep" data-d="1">Nästa</button>':'<button class="btn-fill" data-act="cookClose">Klar</button>')+'</div></div>';
+  '<div class="cook-nav"><button class="btn-tint" data-act="cookStep" data-d="-1"'+(i===0?' disabled':'')+'>Förra</button>'+(i<n-1?'<button class="btn-fill" data-act="cookStep" data-d="1">Nästa</button>':'<button class="btn-fill" data-act="cookDone" data-id="'+esc(r.id)+'">Klar – betygsätt</button>')+'</div></div>';
   return}
  if(k==='settings'){const st=settings(),topic=D().ntfyTopic||'';
   const meRow=(id,l)=>'<button type="button" class="cell link" data-act="me" data-id="'+esc(id)+'" aria-pressed="'+(S.me===id)+'"><span class="grow">'+esc(l)+'</span>'+(S.me===id?'<span class="mark">'+I.tick+'</span>':'')+'</button>';
@@ -450,6 +499,16 @@ function renderOverlay(){
   (topic?sh('Notiser')+group('<div class="cell"><span class="grow copy">'+esc(topic)+'</span><button type="button" class="pill" data-act="copy" data-id="'+esc(topic)+'">Kopiera</button></div>')+'<div class="foot">Installera appen ntfy och prenumerera på det här ämnet. Använd servern ntfy.sh.</div>':'')+
   sh('Den här enheten')+group('<button type="button" class="cell link center red" data-act="logout">Logga ut</button>');
   o.innerHTML=sheetHtml('settings','Inställningar','<button class="tb strong">Spara</button>',body,enter);segSlide(o);return}
+ if(k==='rate'){const r=recipeById(S.rate&&S.rate.id);if(!r){closeSheets();o.innerHTML='';o.dataset.k='';return}
+  const who=S.me||'',x=(ratings()[r.id]||{}).p||{},cur=x[who]||{};
+  const stars='<div class="stars" role="radiogroup" aria-label="Stjärnor">'+[5,4,3,2,1].map(n=>'<input type="radio" name="s" id="st'+n+'" value="'+n+'"'+(Number(cur.s)===n?' checked':'')+' required><label for="st'+n+'" aria-label="'+n+' stjärnor">★</label>').join('')+'</div>';
+  const verd='<div class="vpick" role="radiogroup" aria-label="Laga igen?">'+[['igen','Laga igen'],['okej','Okej'],['aldrig','Aldrig mer']].map(([v,l])=>'<label><input type="radio" name="v" value="'+v+'"'+(cur.v===v?' checked':'')+'><span>'+l+'</span></label>').join('')+'</div>';
+  const body='<div class="rate-head"><div class="rate-ic" aria-hidden="true">'+foodIcon(r.title)+'</div><div class="hl">'+esc(r.title)+'</div></div>'+
+   (who?'':sh('Vem betygsätter?')+'<div class="vpick">'+people().map(p=>'<label><input type="radio" name="who" value="'+esc(p)+'" required><span>'+esc(p)+'</span></label>').join('')+'</div>')+
+   sh('Hur gott var det?')+stars+sh('Ska vi laga det igen?')+verd+
+   sh('Kommentar')+group('<div class="cell"><input class="field" name="c" maxlength="140" placeholder="T.ex. mer kryddor nästa gång" value="'+esc(cur.c||'')+'" aria-label="Kommentar"></div>')+
+   '<div class="foot">Bra betyg sparar receptet i receptbanken, och veckoplaneringen tar hänsyn till betygen.</div>';
+  o.innerHTML=sheetHtml('rate','Betyg','<button class="tb strong">Spara</button>',body,enter);return}
  if(k==='shop'){
   const body='<div style="height:16px"></div>'+group('<div class="cell"><input class="field" id="shop-name" name="name" placeholder="Vara, t.ex. havregryn" required autocomplete="off" aria-label="Vara"></div><div class="cell"><input class="field" id="shop-qty" name="qty" placeholder="Mängd" aria-label="Mängd"></div><div class="cell"><input class="field" id="shop-price" name="price" inputmode="decimal" placeholder="Pris kr" aria-label="Pris kr"></div>'+
    fieldCell('Kategori',menuSel('id="shop-cat" name="cat"',CATS.map(c=>'<option>'+c+'</option>').join(''))));
@@ -581,7 +640,7 @@ function confetti(){if(calm())return;const cv=document.createElement('canvas'),d
 
 /* ---------- local mutations (optimistic) ---------- */
 function mutate(list,id,fields){const it=D()[list].find(x=>x.id===id);if(it)Object.assign(it,fields);render()}
-function closeSheets(){S.sheet=null;S.shopAdd=false;S.taskAdd=false}
+function closeSheets(){S.sheet=null;S.rate=null;S.shopAdd=false;S.taskAdd=false}
 
 /* ---------- actions ---------- */
 const ACT={
@@ -595,13 +654,21 @@ const ACT={
  copy(id){try{navigator.clipboard.writeText(id).then(()=>toast('Kopierat'),()=>toast('Markera och kopiera texten'))}catch(e){toast('Markera och kopiera texten')}},
  theme(id){S.theme=['light','dark'].includes(id)?id:'system';lsSet('theme',S.theme==='system'?null:S.theme);applyTheme(true);render()},
  wall(){S.wall=!S.wall;lsSet('wall',S.wall?'1':'0');wake();render()},
- matTab(id){S.matTab=id==='recept'?'recept':'vecka';lsSet('matTab',S.matTab);S.recipe=null;render()},
+ matTab(id){S.matTab=['recept','bank'].includes(id)?id:'vecka';lsSet('matTab',S.matTab);S.recipe=null;render()},
  recipe(id){S.view='mat';S.recipe=id;lsSet('view','mat');try{history.replaceState(null,'','#mat')}catch(e){}window.scrollTo(0,0);render()},
  recipeBack(){S.recipe=null;window.scrollTo(0,0);render()},
  scale(id,el){const r=recipeById(id);const{p}=scaled(r);S.scale[id]=Math.max(1,Math.min(20,p+Number(el.dataset.d)));render()},
  cook(id){S.cook={id,step:S.step[id]||0};wake();render()},
  pickStep(id,el){S.step[id]=Number(el.dataset.i);render();setTimeout(()=>{const li=document.querySelector('.steps li.active');if(li&&li.getBoundingClientRect().top<70)li.scrollIntoView({block:'start',behavior:'smooth'})},30)},
  cookStep(id,el){A.user=Date.now();const r=recipeById(S.cook.id);S.cook.step=Math.max(0,Math.min(r.steps.length-1,S.cook.step+Number(el.dataset.d)));S.step[S.cook.id]=S.cook.step;render()},
+ cookDone(id){S.cook=null;A.cookStep=null;wake();ACT.rate(id)},
+ rate(id){S.rate={id};S.sheet='rate';render()},
+ bankFilter(id){S.bankFilter=id;render()},
+ bankAdd(id){addToBank(recipeById(id));render()},
+ wish(id){const r=recipeById(id);if(!r)return;A.user=Date.now();const on=wishes().some(x=>x.id===id);
+  if(!on&&!inBank(id))addToBank(r,true);
+  updJSON('onskelista',[],a=>on?a.filter(x=>x.id!==id):a.some(x=>x.id===id)?a:a.concat([{id,t:r.title,by:S.me||'',d:today()}]));
+  toast(on?'Borttagen från önskelistan':'Önskad till nästa vecka')},
  cookClose(){S.cook=null;A.cookStep=null;wake();render()},
  timer(id,el){unlockAudio();const m=Number(el.dataset.min);S.timers.push({k:Math.random().toString(36).slice(2),label:el.dataset.label||'Timer',end:Date.now()+m*60000,ring:false});tick();toast('Timer: '+m+' min')},
  timerStop(id){S.timers=S.timers.filter(t=>t.k!==id);tick()},
@@ -644,6 +711,12 @@ document.addEventListener('submit',async e=>{const f=e.target.closest('[data-for
  if(f.dataset.form==='task'){if(!d.title.trim())return;
   D().tasks.push({id:'tmp'+Date.now(),done:false,title:d.title.trim(),due:d.due||'',who:d.who||'',note:'',source:'egen'});S.taskAdd=false;render();
   apiPost({action:'taskAdd',title:d.title.trim(),due:d.due||'',who:d.who||''})}
+ if(f.dataset.form==='rate'){const r=recipeById(S.rate&&S.rate.id),who=S.me||d.who;if(!r||!who||!d.s)return;
+  const sN=Number(d.s),v=d.v||(sN>=4?'igen':sN===3?'okej':'aldrig'),e={s:sN,v,c:String(d.c||'').trim(),d:today()};
+  closeSheets();A.user=Date.now();
+  updJSON('betyg',{},o=>{o[r.id]=o[r.id]||{p:{}};o[r.id].t=r.title;o[r.id].p=o[r.id].p||{};o[r.id].p[who]=e;return o});
+  const saved=(sN>=4||v==='igen')&&addToBank(r,true);
+  toast(saved?'Tack! Receptet sparades i receptbanken':'Tack för betyget!');if(sN>=4)confetti();return}
  if(f.dataset.form==='settings'){const p=[d.p1.trim()||'Henrik',d.p2.trim()||'Cornelia'].join(', ');const st=settings();
   const ch=[['personer',p],['stadtid_vardag',String(Number(d.wd)||20)],['stadtid_helg',String(Number(d.we)||40)],['matbudget',String(Number(d.budget)||0)]].filter(([k,v])=>String(st[k]||'')!==v);
   ch.forEach(([k,v])=>{st[k]=v;apiPost({action:'setting',k,v})});S.sheet=null;render();if(ch.length)toast('Sparat')}
