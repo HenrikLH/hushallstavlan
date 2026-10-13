@@ -389,8 +389,8 @@ body.wall .hero .clock{font-size:96px;letter-spacing:-3px}
 .wx-ic{font-size:28px;line-height:1}
 .wx-t{font-size:34px;line-height:1;font-weight:600;letter-spacing:-.5px}
 .hero-wx .fn{margin-top:2px}
-.fig-box{width:96px;height:116px;margin-top:2px;align-self:center}
-.fig-box.big{width:150px;height:180px}
+.fig-box{width:92px;height:115px;margin-top:6px;align-self:center;filter:drop-shadow(0 4px 10px rgba(0,0,0,.12))}
+.fig-box.big{width:150px;height:188px}
 .fig-tip{font-size:11px;line-height:13px;color:var(--ink-2);text-align:center;align-self:center;max-width:112px;margin-top:2px}
 #hero-next{grid-column:1/-1;margin-top:12px;padding-top:10px;border-top:.5px solid var(--line);display:flex;flex-direction:column;gap:6px}
 #hero-next:empty{display:none}
@@ -518,6 +518,8 @@ body.wall .hero .clock{font-size:96px;letter-spacing:-3px}
 @keyframes figUmb{50%{transform:rotate(-5deg)}}
 .k-storm .fig-umb{animation-duration:1.4s}
 .fx-sun .rays{transform-origin:24px 26px;animation:figSpin 14s linear infinite}
+.fx-sun circle:first-child{animation:figHalo 4s ease-in-out infinite;transform-origin:92px 26px}
+@keyframes figHalo{50%{transform:scale(1.12);opacity:.8}}
 @keyframes figSpin{to{transform:rotate(360deg)}}
 .fx-sun circle{animation:figGlow 3s ease-in-out infinite}
 @keyframes figGlow{50%{opacity:.85}}
@@ -532,8 +534,10 @@ body.wall .hero .clock{font-size:96px;letter-spacing:-3px}
 .fx-fog line{animation:figFog 7s ease-in-out infinite alternate}
 .fx-fog .d2{animation-duration:9s;animation-direction:alternate-reverse}
 @keyframes figFog{to{transform:translateX(14px)}}
-.fx-moon .tw{animation:figTw 2.4s ease-in-out infinite}
-.fx-moon .d2{animation-delay:-.8s}.fx-moon .d3{animation-delay:-1.6s}
+.fx-stars .tw{animation:figTw 2.4s ease-in-out infinite}
+.fx-stars .d2{animation-delay:-.8s}.fx-stars .d3{animation-delay:-1.6s}
+.fx-cloud.d2{animation-duration:12s;animation-direction:alternate-reverse}
+.fx-moon circle:first-child{animation:figGlow 4s ease-in-out infinite}
 @keyframes figTw{50%{opacity:.2}}
 .fig-breath{opacity:0;transform-origin:74px 55px;animation:figBreath 3.5s ease-out infinite}
 @keyframes figBreath{0%,55%{opacity:0;transform:scale(.4)}70%{opacity:.9}100%{opacity:0;transform:translate(6px,-6px) scale(1.2)}}

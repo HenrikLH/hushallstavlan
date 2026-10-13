@@ -597,47 +597,64 @@ function wxToday(W){const n=new Date(),late=n.getHours()>=20,day=late?addDays(to
  return{kind,night:nt,sunny,max,pr,tip,when:late?'i morgon':'idag'}}
 function isNight(){const P=WX_POS(),s=sunTimes(today(),P.lat,P.lon),n=new Date();return s?(n<s[0]||n>s[1]):false}
 
-/* Gubben: en SVG som klär sig efter dagens väder. Delarna slås på per läge och animeras i CSS. */
-function figSvg(kind,o){o=o||{};const night=!!o.night,K=kind;
- const skin='#F2C3A0',hair='#5A3A28',shoe='#3A3A3C';
- const top={hot:'#4FB7E8',warm:'#7AC48A',mild:'#5C7FA3',cold:'#8E3B4E',freezing:'#2E4A6B',rain:'#F2C230',snow:'#2E4A6B',storm:'#F2C230',fog:'#6F7D8C'}[K];
- const pants={hot:'#2F5E8C',warm:'#3D5A80',mild:'#33415C',cold:'#2B2D42',freezing:'#2B2D42',rain:'#33415C',snow:'#2B2D42',storm:'#33415C',fog:'#33415C'}[K];
- const shorts=K==='hot',longSleeve=!/^(hot|warm)$/.test(K),coat=/^(cold|freezing|snow|rain|storm|fog|mild)$/.test(K),umbrella=/^(rain|storm)$/.test(K);
- const beanie=/^(cold|freezing|snow)$/.test(K),scarf=/^(freezing|snow|cold)$/.test(K),shades=(K==='hot'||(K==='warm'&&o.sunny))&&!night,boots=/^(rain|storm|snow)$/.test(K);
- let bg='';
- if(/^(hot|warm)$/.test(K)&&!night)bg+='<g class="fx-sun"><circle cx="24" cy="26" r="11" fill="#FFC53D"/><g class="rays" stroke="#FFC53D" stroke-width="3" stroke-linecap="round">'+[0,45,90,135,180,225,270,315].map(a=>{const r=Math.PI*a/180;return'<line x1="'+(24+16*Math.cos(r)).toFixed(1)+'" y1="'+(26+16*Math.sin(r)).toFixed(1)+'" x2="'+(24+21*Math.cos(r)).toFixed(1)+'" y2="'+(26+21*Math.sin(r)).toFixed(1)+'"/>'}).join('')+'</g></g>';
- if(night&&/^(hot|warm|mild|cold|freezing)$/.test(K))bg+='<g class="fx-moon"><path d="M30 14a12 12 0 1 0 10 18a10 10 0 0 1-10-18z" fill="#F5E6A8"/><circle class="tw" cx="96" cy="16" r="1.6" fill="#F5E6A8"/><circle class="tw d2" cx="104" cy="34" r="1.2" fill="#F5E6A8"/><circle class="tw d3" cx="14" cy="50" r="1.2" fill="#F5E6A8"/></g>';
- if(/^(mild|cold|rain|storm|fog|snow)$/.test(K))bg+='<g class="fx-cloud"><path d="M78 30h26a9 9 0 0 0 0-18a13 13 0 0 0-25 3a8 8 0 0 0-1 15z" fill="'+(/^(rain|storm)$/.test(K)?'#9AA3AE':'#C9D1DA')+'"/></g>';
- if(K==='storm')bg+='<path class="fx-bolt" d="M92 30l-8 14h7l-5 12 12-17h-7l5-9z" fill="#FFD43B"/>';
- if(/^(rain|storm)$/.test(K))bg+='<g class="fx-rain" stroke="#5AA9E6" stroke-width="2" stroke-linecap="round">'+[[10,0],[22,.35],[100,.15],[110,.55],[16,.7],[104,.85],[34,.5],[90,.25]].map(([x,dl])=>'<line x1="'+x+'" y1="0" x2="'+(x-2)+'" y2="7" style="animation-delay:-'+dl+'s"/>').join('')+'</g>';
- if(K==='snow'||K==='freezing')bg+='<g class="fx-snow" fill="#DCE8F5">'+[[12,0],[28,1.2],[98,.6],[108,2],[20,2.6],[104,3.1],[40,1.8],[88,.3]].map(([x,dl])=>'<circle cx="'+x+'" cy="0" r="2.2" style="animation-delay:-'+dl+'s"/>').join('')+'</g>';
- if(K==='fog')bg+='<g class="fx-fog" stroke="#C9D1DA" stroke-width="5" stroke-linecap="round" opacity=".8"><line x1="4" y1="96" x2="44" y2="96"/><line class="d2" x1="80" y1="110" x2="116" y2="110"/><line x1="10" y1="124" x2="38" y2="124"/></g>';
- const legs=shorts
-  ?'<rect x="50" y="102" width="9" height="34" rx="4.5" fill="'+skin+'"/><rect x="61" y="102" width="9" height="34" rx="4.5" fill="'+skin+'"/><path d="M47 98h26v14h-11.5l-1.5-4-1.5 4H47z" fill="'+pants+'"/>'
-  :'<rect x="50" y="98" width="9.5" height="38" rx="4.5" fill="'+pants+'"/><rect x="60.5" y="98" width="9.5" height="38" rx="4.5" fill="'+pants+'"/>';
- const feet=boots?'<rect x="47.5" y="128" width="12" height="11" rx="3" fill="'+(K==='snow'?'#5A3A28':'#2F6B4F')+'"/><rect x="60.5" y="128" width="12" height="11" rx="3" fill="'+(K==='snow'?'#5A3A28':'#2F6B4F')+'"/>'
-  :'<ellipse cx="53.5" cy="137.5" rx="7" ry="3.6" fill="'+shoe+'"/><ellipse cx="66.5" cy="137.5" rx="7" ry="3.6" fill="'+shoe+'"/>';
- const bodyH=coat?46:40,armC=longSleeve?top:skin;
- const torso='<rect x="44" y="64" width="32" height="'+bodyH+'" rx="13" fill="'+top+'"/>'+(coat?'<line x1="60" y1="68" x2="60" y2="'+(62+bodyH)+'" stroke="rgba(0,0,0,.18)" stroke-width="1.5"/><circle cx="55" cy="84" r="1.3" fill="rgba(0,0,0,.25)"/><circle cx="65" cy="84" r="1.3" fill="rgba(0,0,0,.25)"/>':'')+
-  (K==='hot'?'<circle cx="60" cy="80" r="5" fill="#FFE27A" opacity=".9"/>':'');
- const sleeveL='<path d="M47 71 L38 95" stroke="'+armC+'" stroke-width="8" stroke-linecap="round"/>'+(longSleeve?'':'<path d="M47 71 L43 80" stroke="'+top+'" stroke-width="9" stroke-linecap="round"/>')+'<circle cx="37.5" cy="96.5" r="4.6" fill="'+(beanie?'#8E3B4E':skin)+'"/>';
- const armL='<g class="fig-wave">'+sleeveL+'</g>';
- const armR=umbrella
-  ?'<path d="M73 71 L82 64" stroke="'+armC+'" stroke-width="8" stroke-linecap="round"/><circle cx="84" cy="62.5" r="4.6" fill="'+skin+'"/>'
-  :'<path d="M73 71 L82 95" stroke="'+armC+'" stroke-width="8" stroke-linecap="round"/>'+(longSleeve?'':'<path d="M73 71 L77 80" stroke="'+top+'" stroke-width="9" stroke-linecap="round"/>')+'<circle cx="82.5" cy="96.5" r="4.6" fill="'+(beanie?'#8E3B4E':skin)+'"/>';
- const umb=umbrella?'<g class="fig-umb"><line x1="84" y1="64" x2="84" y2="20" stroke="#4A4A4F" stroke-width="2.4" stroke-linecap="round"/><path d="M84 66 q0 5 -5 5" fill="none" stroke="#4A4A4F" stroke-width="2.4" stroke-linecap="round"/>'+
-  '<path d="M48 26 Q84 -6 120 26 Q111 21 102 26 Q93 21 84 26 Q75 21 66 26 Q57 21 48 26Z" fill="var(--p1,#A3253F)"/><path d="M84 3 Q72 10 66 26 M84 3 Q96 10 102 26" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1.5"/></g>':'';
- const head='<circle cx="60" cy="44" r="18" fill="'+skin+'"/>'+
-  (beanie?'<path d="M41.5 42 a18.5 18.5 0 0 1 37 0z" fill="#8E3B4E"/><rect x="40.5" y="38" width="39" height="7" rx="3.5" fill="#B45A6E"/><circle cx="60" cy="24" r="4.5" fill="#F3E3E7"/>'
-   :'<path d="M42.5 42 a17.5 17.5 0 0 1 35 0 q-6 -7 -15 -8 q-4 4 -12 4 q-5 0 -8 4z" fill="'+hair+'"/>')+
-  '<g class="fig-eyes"><circle cx="53.5" cy="46" r="2.1" fill="#2B2B2E"/><circle cx="66.5" cy="46" r="2.1" fill="#2B2B2E"/></g>'+
-  (shades?'<g><rect x="47" y="41.5" width="11" height="8" rx="3.5" fill="#1E1E22"/><rect x="62" y="41.5" width="11" height="8" rx="3.5" fill="#1E1E22"/><line x1="58" y1="44" x2="62" y2="44" stroke="#1E1E22" stroke-width="2"/><line x1="49" y1="43.5" x2="53" y2="43.5" stroke="rgba(255,255,255,.4)" stroke-width="1.2" stroke-linecap="round"/></g>':'')+
-  '<circle cx="49" cy="52" r="3" fill="#F28B82" opacity=".35"/><circle cx="71" cy="52" r="3" fill="#F28B82" opacity=".35"/>'+
-  '<path d="'+(/^(rain|storm|freezing)$/.test(K)?'M56 54.5 q4 -2 8 0':'M55 53 q5 5 10 0')+'" fill="none" stroke="#2B2B2E" stroke-width="1.8" stroke-linecap="round"/>'+
-  (/^(cold|freezing|snow)$/.test(K)?'<g class="fig-breath" fill="#DCE8F5"><circle cx="76" cy="54" r="3"/><circle cx="82" cy="51" r="2.2"/></g>':'');
- const scarfS=scarf?'<rect x="46" y="60" width="28" height="7" rx="3.5" fill="#E07A5F"/><rect x="62" y="64" width="6" height="15" rx="3" fill="#E07A5F"/>':'';
- return'<svg class="fig k-'+K+'" viewBox="0 0 120 145" role="img" aria-label="'+esc(o.label||'')+'"><ellipse cx="60" cy="140" rx="24" ry="3.5" fill="currentColor" opacity=".12"/>'+bg+
-  '<g class="fig-body">'+umb+legs+feet+armL+torso+scarfS+armR+head+'</g></svg>'}
+/* Vädergubben i Kurzgesagt-anda: en liten scen med himmel, ljus och mark,
+   platta former med skugga på högra sidan (ljuset kommer uppifrån vänster). */
+let FIG_N=0;
+const shadeHex=(h,f)=>{const n=parseInt(h.slice(1),16),c=[n>>16,n>>8&255,n&255].map(v=>Math.max(0,Math.min(255,Math.round(v*f))));return'#'+c.map(v=>v.toString(16).padStart(2,'0')).join('')};
+function figSvg(kind,o){o=o||{};const K=kind,night=!!o.night,id='fg'+(++FIG_N);
+ const SC={hot:['#2FA8E8','#9FE0FF','#5DBB63'],warm:['#4DA6E0','#B7E4FA','#68B86A'],mild:['#6F93BE','#C4D7EA','#6FA06A'],cold:['#5873A3','#AFC1DD','#7E9A86'],
+  freezing:['#3C5585','#9AB0D2','#E6EEF7'],snow:['#4A6290','#A9BCDA','#EEF3F9'],rain:['#3E4E6E','#7487A6','#4F7A5E'],storm:['#2B3450','#5A6788','#40634C'],fog:['#8796A8','#C9D2DC','#8FA394']}[K];
+ const sky=night?['#0E1433','#2A3270',SC[2]==='#E6EEF7'||SC[2]==='#EEF3F9'?'#8C9BB8':'#2F4A3E']:SC;
+ const skin='#E8B48E',hair='#2E2340',eye='#1B1F3B';
+ const top={hot:'#FF7A59',warm:'#F2C14E',mild:'#3D8FB8',cold:'#C2475F',freezing:'#2F5D8C',rain:'#F4C430',snow:'#2F5D8C',storm:'#F4C430',fog:'#6C7A89'}[K];
+ const pants={hot:'#25406B',warm:'#2E3E66',mild:'#2A3352',cold:'#262B45',freezing:'#262B45',rain:'#2A3352',snow:'#262B45',storm:'#2A3352',fog:'#2A3352'}[K];
+ const shorts=K==='hot',coat=/^(mild|cold|freezing|snow|rain|storm|fog)$/.test(K),longS=!/^(hot|warm)$/.test(K),umb=/^(rain|storm)$/.test(K);
+ const beanie=/^(cold|freezing|snow)$/.test(K),scarf=beanie,shades=(K==='hot'||(K==='warm'&&o.sunny))&&!night,boots=/^(rain|storm|snow)$/.test(K);
+ const glove=beanie?'#C2475F':skin,boot=K==='snow'?'#5B3A2E':'#2F6E57',shoeC=boots?boot:'#1E2238';
+ // himmel, ljus och mark
+ let s='<defs><linearGradient id="'+id+'s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+sky[0]+'"/><stop offset="1" stop-color="'+sky[1]+'"/></linearGradient>'+
+  '<radialGradient id="'+id+'g"><stop offset="0" stop-color="#FFF4C2" stop-opacity=".9"/><stop offset="1" stop-color="#FFF4C2" stop-opacity="0"/></radialGradient>'+
+  '<clipPath id="'+id+'c"><rect width="120" height="150" rx="22"/></clipPath><clipPath id="'+id+'r"><rect x="65.5" y="0" width="70" height="150"/></clipPath></defs>'+
+  '<g clip-path="url(#'+id+'c)"><rect width="120" height="150" fill="url(#'+id+'s)"/>';
+ if(night&&!/^(rain|storm|snow|fog)$/.test(K))s+='<g class="fx-stars" fill="#FFF8DC">'+[[14,18,1.1],[34,10,.8],[96,14,1],[108,40,.8],[20,56,.7],[80,8,.7],[52,24,.6]].map(([x,y,r],k)=>'<circle class="tw'+(k%3?' d'+(k%3+1):'')+'" cx="'+x+'" cy="'+y+'" r="'+r+'"/>').join('')+'</g>'+
+  '<g class="fx-moon"><circle cx="92" cy="26" r="18" fill="url(#'+id+'g)" opacity=".5"/><circle cx="92" cy="26" r="8" fill="#FFF1C9"/><circle cx="89" cy="24" r="1.6" fill="#E8D9AE"/><circle cx="95" cy="29" r="1.1" fill="#E8D9AE"/></g>';
+ else if(/^(hot|warm)$/.test(K))s+='<g class="fx-sun"><circle cx="92" cy="26" r="30" fill="url(#'+id+'g)"/><circle cx="92" cy="26" r="11" fill="#FFD45C"/><circle cx="92" cy="26" r="11" fill="#FFB938" clip-path="url(#'+id+'r)" opacity=".35"/></g>';
+ const cloud=(x,y,sc,c1,cls)=>'<g class="'+(cls||'fx-cloud')+'" transform="translate('+x+' '+y+') scale('+sc+')"><path d="M0 14h40a9 9 0 0 0 0-18a13 13 0 0 0-25-3a10 10 0 0 0-15 21z" fill="'+c1+'"/><path d="M4 14h36a9 9 0 0 0 7-4H6a8 8 0 0 1-2 4z" fill="'+shadeHex(c1,.86)+'"/></g>';
+ if(K==='warm'&&!night)s+=cloud(8,30,.55,'#FFFFFF');
+ if(/^(mild|cold|fog)$/.test(K))s+=cloud(66,22,.8,night?'#4A5488':'#EAF1F8')+cloud(6,40,.55,night?'#3D4677':'#DCE6F1','fx-cloud d2');
+ if(/^(freezing|snow)$/.test(K))s+=cloud(62,16,.85,night?'#4A5488':'#DDE6F2')+cloud(4,30,.6,night?'#3D4677':'#CFDBEA','fx-cloud d2');
+ if(/^(rain|storm)$/.test(K))s+=cloud(58,14,.9,K==='storm'?'#2A3049':'#56627F')+cloud(2,24,.7,K==='storm'?'#232842':'#4B5672','fx-cloud d2');
+ if(K==='storm')s+='<path class="fx-bolt" d="M86 36l-7 13h6l-4 11 11-15h-6l4-9z" fill="#FFE066"/>';
+ // mark
+ s+='<path d="M-5 128 Q30 116 60 120 T125 124 V150 H-5Z" fill="'+sky[2]+'"/><path d="M-5 136 Q50 128 125 134 V150 H-5Z" fill="'+shadeHex(sky[2],.86)+'"/>';
+ if(K==='fog')s+='<g class="fx-fog" stroke="#EEF2F6" stroke-linecap="round" opacity=".75"><line x1="-4" y1="98" x2="46" y2="98" stroke-width="6"/><line class="d2" x1="74" y1="112" x2="124" y2="112" stroke-width="7"/><line x1="4" y1="124" x2="36" y2="124" stroke-width="5"/></g>';
+ // figuren: varje del ritas två gånger, andra gången mörkare och bara på högra sidan
+ const legs=(sh)=>{const P=c=>sh?shadeHex(c,.78):c;return shorts
+  ?'<rect x="51" y="90" width="8" height="38" rx="4" fill="'+P(skin)+'"/><rect x="61" y="90" width="8" height="38" rx="4" fill="'+P(skin)+'"/><path d="M48 88h24v15h-10.5l-1.5-4-1.5 4H48z" fill="'+P(pants)+'"/>'
+  :'<rect x="51" y="88" width="8.5" height="40" rx="4" fill="'+P(pants)+'"/><rect x="60.5" y="88" width="8.5" height="40" rx="4" fill="'+P(pants)+'"/>'};
+ const feet=(sh)=>{const c=sh?shadeHex(shoeC,.75):shoeC;return boots?'<rect x="48.5" y="119" width="11" height="11" rx="3" fill="'+c+'"/><rect x="60.5" y="119" width="11" height="11" rx="3" fill="'+c+'"/>'
+  :'<path d="M48 130h11v-4h-7a4 4 0 0 0-4 4z" fill="'+c+'"/><path d="M61 130h11a4 4 0 0 0-4-4h-7z" fill="'+c+'"/>'};
+ const tH=coat?44:36;
+ const torso=(sh)=>{const c=sh?shadeHex(top,.8):top;return'<path d="M47 60 q0-6 6-6 h14 q6 0 6 6 l'+(coat?'2 ':'0 ')+(tH-6)+' q0 3 -3 3 h-'+(coat?'24':'20')+' q-3 0 -3 -3 z" fill="'+c+'"/>'+
+  (coat&&!sh?'<line x1="60" y1="57" x2="60" y2="'+(54+tH-1)+'" stroke="'+shadeHex(top,.7)+'" stroke-width="1.2"/>':'')+(K==='hot'&&!sh?'<path d="M55 54 q5 5 10 0" fill="none" stroke="'+shadeHex(top,.7)+'" stroke-width="1.5"/>':'')};
+ const arm=(d,sl,sh)=>{const sc=longS?top:skin,c=sh?shadeHex(sc,.78):sc;return'<path d="'+d+'" stroke="'+c+'" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>'+
+  (longS?'':'<path d="'+sl+'" stroke="'+(sh?shadeHex(top,.8):top)+'" stroke-width="8.5" fill="none" stroke-linecap="round"/>')};
+ const aL='M49 60 L45 76 L44 90',aR=umb?'M71 60 L80 72 L82 60':'M71 60 L75 76 L76 90';
+ const hands=(sh)=>{const g=sh?shadeHex(glove,.8):glove;return'<circle cx="44" cy="91" r="4" fill="'+g+'"/>'+(umb?'<circle cx="82.5" cy="59" r="4" fill="'+(sh?shadeHex(skin,.8):skin)+'"/>':'<circle cx="76" cy="91" r="4" fill="'+g+'"/>')};
+ const headB=(sh)=>{const c=sh?shadeHex(skin,.8):skin;return'<rect x="56.5" y="48" width="7" height="8" rx="3" fill="'+c+'"/><circle cx="60" cy="38" r="12.5" fill="'+c+'"/>'};
+ const hat=beanie?'<path d="M47 35 a13 13 0 0 1 26 0z" fill="#C2475F"/><path d="M60 22 a13 13 0 0 1 13 13 h-6 a12 12 0 0 0 -7 -13z" fill="'+shadeHex('#C2475F',.8)+'"/><rect x="46" y="32" width="28" height="5.5" rx="2.75" fill="#E06A80"/><circle cx="60" cy="21" r="3.5" fill="#F7E1E6"/>'
+  :'<path d="M47.5 35 a12.5 12.5 0 0 1 25 0 q-4 -6 -12 -6 q-6 0 -9 3 q-2 1 -4 3z" fill="'+hair+'"/>';
+ const face=shades?'<g><rect x="50.5" y="35" width="8.5" height="5.5" rx="2.4" fill="#151833"/><rect x="61" y="35" width="8.5" height="5.5" rx="2.4" fill="#151833"/><path d="M59 37 h2" stroke="#151833" stroke-width="1.6"/><path d="M52 36.5 l3 0" stroke="#fff" stroke-opacity=".5" stroke-width="1" stroke-linecap="round"/></g>'
+  :'<g class="fig-eyes"><ellipse cx="55.5" cy="38" rx="1.7" ry="2.3" fill="'+eye+'"/><ellipse cx="64.5" cy="38" rx="1.7" ry="2.3" fill="'+eye+'"/></g>';
+ const scarfS=scarf?'<path d="M50 52 h20 a3 3 0 0 1 0 6 h-20 a3 3 0 0 1 0-6z" fill="#F29E4C"/><rect x="62" y="55" width="5.5" height="14" rx="2.5" fill="'+shadeHex('#F29E4C',.82)+'"/>':'';
+ const umbS=umb?'<g class="fig-umb"><path d="M82.5 62 V8" stroke="#2B2B3A" stroke-width="1.8"/><path d="M50 22 Q82.5 -6 115 22 Q107 17 98.5 22 Q90 17 82.5 22 Q74 17 66.5 22 Q58 17 50 22Z" fill="#E8505B"/>'+
+  '<path d="M82.5 3 Q96 8 98.5 22 Q90 17 82.5 22 Q107 17 115 22 Q104 4 82.5 3Z" fill="'+shadeHex('#E8505B',.78)+'"/><path d="M82.5 62 q0 5 -4 5" fill="none" stroke="#2B2B3A" stroke-width="1.8" stroke-linecap="round"/></g>':'';
+ const breath=/^(cold|freezing|snow)$/.test(K)?'<g class="fig-breath" fill="#FFFFFF" opacity=".9"><circle cx="76" cy="44" r="2.6"/><circle cx="81" cy="41" r="1.9"/></g>':'';
+ const body=(sh)=>legs(sh)+feet(sh)+'<g class="fig-wave">'+arm(aL,'M49 60 L47.5 66',sh)+'</g>'+torso(sh)+arm(aR,'M71 60 L72.5 66',sh)+hands(sh)+headB(sh);
+ s+='<ellipse cx="60" cy="130" rx="17" ry="2.6" fill="#000" opacity=".18"/><g class="fig-body">'+umbS+body(false)+'<g clip-path="url(#'+id+'r)">'+body(true)+'</g>'+scarfS+'<g transform="translate(0 2)">'+hat+face+'</g>'+breath+'</g>';
+ if(/^(rain|storm)$/.test(K))s+='<g class="fx-rain" stroke="#BFE3FF" stroke-width="1.5" stroke-linecap="round" opacity=".85">'+[[10,0],[24,.35],[104,.15],[114,.55],[18,.7],[110,.85],[34,.5],[96,.25],[40,.62],[4,.42]].map(([x,dl])=>'<line x1="'+x+'" y1="0" x2="'+(x-2)+'" y2="8" style="animation-delay:-'+dl+'s"/>').join('')+'</g>';
+ if(K==='snow'||K==='freezing')s+='<g class="fx-snow" fill="#FFFFFF">'+[[10,0],[26,1.2],[98,.6],[110,2],[18,2.6],[104,3.1],[38,1.8],[88,.3],[70,2.2],[4,1.5]].map(([x,dl])=>'<circle cx="'+x+'" cy="0" r="1.8" style="animation-delay:-'+dl+'s"/>').join('')+'</g>';
+ return'<svg class="fig k-'+K+'" viewBox="0 0 120 150" role="img" aria-label="'+esc(o.label||'')+'">'+s+'</g></svg>'}
 
 const hm=m=>pad(Math.floor(m/60))+'.'+pad(m%60);
 function nextHtml(){const n=new Date(),mins=n.getHours()*60+n.getMinutes(),td=dayOf(today());
