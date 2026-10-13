@@ -60,6 +60,27 @@ const settings=()=>D().settings||{};
 const people=()=>{const p=String(settings().personer||'').split(',').map(s=>s.trim()).filter(Boolean);return p.length?p:['Henrik','Cornelia']};
 const recipeById=id=>D().recipes.find(r=>r.id===id);
 
+/* ---------- flikrad ---------- */
+// Knapparna byggs en gång så att markeringen kan glida mellan flikarna i stället för att ritas om.
+function renderNav(nav){
+ if(!nav.querySelector('.nav-pill'))nav.innerHTML='<div class="brand" aria-hidden="true">Hemma</div><div class="nav-pill" aria-hidden="true"></div>'+VIEWS.map(([id,l,ic])=>'<button data-act="nav" data-id="'+id+'">'+ic+'<span>'+l+'</span></button>').join('');
+ const i=Math.max(0,VIEW_IDS.indexOf(S.view));
+ nav.querySelectorAll('button').forEach((b,j)=>j===i?b.setAttribute('aria-current','page'):b.removeAttribute('aria-current'));
+ nav.style.setProperty('--i',i)}
+// Dra fingret längs flikraden för att flytta markeringen, släpp för att byta flik.
+(function(){const nav=document.getElementById('nav');let st=null,skip=false;
+ const at=x=>{const r=nav.getBoundingClientRect(),w=(r.width-8)/VIEWS.length,dx=Math.min(Math.max(x-r.left-4-w/2,0),w*(VIEWS.length-1));return{dx,j:Math.round(dx/w)}};
+ nav.addEventListener('pointerdown',e=>{if(matchMedia('(min-width:900px)').matches||e.button>0)return;st={x0:e.clientX,id:e.pointerId,moved:false}});
+ nav.addEventListener('pointermove',e=>{if(!st||e.pointerId!==st.id)return;
+  if(!st.moved){if(Math.abs(e.clientX-st.x0)<8)return;st.moved=true;nav.classList.add('drag');try{nav.setPointerCapture(e.pointerId)}catch(_){}}
+  const p=at(e.clientX);nav.style.setProperty('--dx',p.dx+'px');nav.querySelectorAll('button').forEach((b,k)=>b.classList.toggle('over',k===p.j))});
+ const end=(e,go)=>{if(!st||e.pointerId!==st.id)return;const moved=st.moved;st=null;if(!moved)return;
+  const p=at(e.clientX);nav.classList.remove('drag');nav.querySelectorAll('.over').forEach(b=>b.classList.remove('over'));
+  skip=true;setTimeout(()=>skip=false,60);
+  if(go&&VIEWS[p.j][0]!==S.view)ACT.nav(VIEWS[p.j][0])};
+ nav.addEventListener('pointerup',e=>end(e,true));nav.addEventListener('pointercancel',e=>end(e,false));
+ nav.addEventListener('click',e=>{if(skip){e.stopPropagation();e.preventDefault()}},true)})();
+
 /* ---------- api ---------- */
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>t.hidden=true,2800)}
 function setData(d){S.data=d;S.lastSync=new Date();S.error='';try{lsSet('cache',JSON.stringify(d))}catch(e){}}
@@ -163,7 +184,7 @@ function doRender(){
  if(!CFG.api||/DIN-/.test(CFG.api)){nav.hidden=true;m.innerHTML='<div class="setup"><h1 class="lt">Hemma</h1><div class="banner">Appen är inte kopplad till kalkylarket än. Lägg in adressen till Apps Script-webbappen i filen <b>config.js</b>.</div></div>';watchTitle();return}
  if(!S.key){nav.hidden=true;renderOverlay();if(busyTyping())return;m.innerHTML=setupHtml();watchTitle();return}
  nav.hidden=false;
- nav.innerHTML='<div class="brand" aria-hidden="true">Hemma</div>'+VIEWS.map(([id,l,ic])=>'<button data-act="nav" data-id="'+id+'"'+(S.view===id?' aria-current="page"':'')+'>'+ic+'<span>'+l+'</span></button>').join('');
+ renderNav(nav);
  renderOverlay();
  if(busyTyping()){pendingRender=true;return}
  pendingRender=false;
