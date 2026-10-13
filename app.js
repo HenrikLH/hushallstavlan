@@ -39,7 +39,8 @@ const I={
  play:'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg>',
  clock:SV+'<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg>'
 };
-const VIEWS=[['oversikt','Översikt',I.home],['mat','Mat',I.fork],['inkop','Inköp',I.basket],['uppgifter','Uppgifter',I.list],['stad','Städ',I.sparkles]];
+// Översikt ligger i mitten av flikraden
+const VIEWS=[['mat','Mat',I.fork],['inkop','Inköp',I.basket],['oversikt','Översikt',I.home],['uppgifter','Uppgifter',I.list],['stad','Städ',I.sparkles]];
 const VIEW_IDS=VIEWS.map(v=>v[0]);
 const OLD_VIEWS={matsedel:'vecka',recept:'recept'};
 
@@ -224,8 +225,8 @@ V.oversikt=function(){
  const left=d.shop.filter(i=>!i.done);
  const tasksNow=d.tasks.filter(x=>!x.done&&isDate(x.due)&&x.due<=t).sort((a,b)=>a.due.localeCompare(b.due));
  const tasksSoon=d.tasks.filter(x=>!x.done&&!(isDate(x.due)&&x.due<=t)).sort((a,b)=>(a.due||'9').localeCompare(b.due||'9')).slice(0,4);
- let h=head('Översikt',{eyebrow:esc(dayHead(t))});
- h+='<div class="clock num" id="clock">'+pad(now.getHours())+':'+pad(now.getMinutes())+'</div>';
+ let h=head('Översikt');
+ h+=heroHtml();
  h+='<div class="widgets">';
  const isT=nextDay&&nextDay.date===t;
  h+=widget('mat','w2',I.fork,(isT||!nextDay)?'Middag ikväll':'Nästa middag',nextDay&&!isT?esc(dateShort(nextDay.date)):'',
@@ -460,6 +461,48 @@ function renderOverlay(){
   o.innerHTML=sheetHtml('task','Ny uppgift','<button class="tb strong">Lägg till</button>',body,enter);return}
  o.innerHTML=''}
 
+/* ---------- översiktens topp: klocka, väder, namnsdag och härnäst ---------- */
+// Väder från Open-Meteo och namnsdag från Svenska dagar-API:t; båda utan nyckel, sparas lokalt
+// och visas bara när de gått att hämta. Ort: ort_lat/ort_lon i Inställningar, annars Värnamo.
+const EXT={wx:null,day:null};
+try{const c=JSON.parse(lsGet('ext')||'null');if(c)Object.assign(EXT,c)}catch(e){}
+async function loadExt(){
+ const st=settings(),lat=Number(st.ort_lat)||57.186,lon=Number(st.ort_lon)||14.04,t=today();let changed=false;
+ if(!EXT.wx||Date.now()-EXT.wx.at>30*60000){try{
+  const r=await fetch('https://api.open-meteo.com/v1/forecast?latitude='+lat+'&longitude='+lon+'&current=temperature_2m,weather_code,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset&timezone=Europe%2FStockholm&forecast_days=2');
+  const j=await r.json();if(j.current&&j.daily){EXT.wx={at:Date.now(),cur:j.current,daily:j.daily};changed=true}}catch(e){}}
+ if(!EXT.day||EXT.day.date!==t){try{const[y,mo,d]=t.split('-');
+  const r=await fetch('https://sholiday.faboul.se/dagar/v2.1/'+y+'/'+mo+'/'+d);const j=await r.json(),x=j.dagar&&j.dagar[0];
+  if(x){EXT.day={date:t,names:x.namnsdag||[],holiday:x.helgdag||'',flag:x.flaggdag||''};changed=true}}catch(e){}}
+ if(changed){lsSet('ext',JSON.stringify(EXT));if(S.view==='oversikt')render()}}
+const WX={0:['☀️','Klart'],1:['🌤️','Mest klart'],2:['⛅','Halvklart'],3:['☁️','Mulet'],45:['🌫️','Dimma'],48:['🌫️','Rimfrost och dimma'],
+ 51:['🌦️','Lätt duggregn'],53:['🌦️','Duggregn'],55:['🌧️','Tätt duggregn'],56:['🌧️','Underkylt duggregn'],57:['🌧️','Underkylt duggregn'],
+ 61:['🌦️','Lätt regn'],63:['🌧️','Regn'],65:['🌧️','Kraftigt regn'],66:['🌧️','Underkylt regn'],67:['🌧️','Underkylt regn'],
+ 71:['🌨️','Lätt snöfall'],73:['🌨️','Snöfall'],75:['❄️','Kraftigt snöfall'],77:['🌨️','Snökorn'],80:['🌦️','Regnskurar'],81:['🌧️','Regnskurar'],82:['⛈️','Kraftiga skurar'],
+ 85:['🌨️','Snöbyar'],86:['❄️','Kraftiga snöbyar'],95:['⛈️','Åska'],96:['⛈️','Åska med hagel'],99:['⛈️','Åska med hagel']};
+function wxInfo(code,day){const w=WX[code]||['🌡️',''];return(!day&&code<=2)?['🌙',code?'Mest klart':'Klart']:w}
+const hm=m=>pad(Math.floor(m/60))+'.'+pad(m%60);
+function nextHtml(){const n=new Date(),mins=n.getHours()*60+n.getMinutes(),td=dayOf(today());
+ const at=(s,re)=>{const m=re.exec(s||'');return m?Number(m[1])*60+Number(m[2]):null};
+ const evs=(td?td.events:[]).map(e=>({e,s:at(e.time,/^(\d{1,2})[.:](\d{2})/),en:at(e.time,/[–-]\s*(\d{1,2})[.:](\d{2})/)})).filter(x=>x.s!=null).sort((a,b)=>a.s-b.s);
+ const dur=m=>m<60?m+' min':Math.floor(m/60)+' h'+(m%60?' '+m%60+' min':'');
+ const row=(l,x,r)=>'<div class="nx"><span class="nx-l">'+l+'</span><span class="grow">'+esc(x.e.title)+evWho(x.e)+'</span><span class="fn num">'+r+'</span></div>';
+ const now=evs.filter(x=>x.s<=mins&&x.en!=null&&x.en>mins),nx=evs.find(x=>x.s>mins);
+ return now.map(x=>row('Pågår',x,'till '+hm(x.en))).join('')+(nx?row('Härnäst',nx,'om '+dur(nx.s-mins)):'')}
+function heroHtml(){const n=new Date(),t=today(),w=EXT.wx,dy=EXT.day&&EXT.day.date===t?EXT.day:null,hh=n.getHours();
+ const greet=hh<5?'God natt':hh<10?'God morgon':hh<17?'Hej':hh<22?'God kväll':'God natt';
+ let wx='',sun='';
+ if(w&&w.cur&&Date.now()-w.at<6*3600000){const dl=w.daily,i=Math.max(0,dl.time.indexOf(t)),[ic,tx]=wxInfo(w.cur.weather_code,w.cur.is_day),pp=dl.precipitation_probability_max[i];
+  wx='<div class="hero-wx"><div class="wx-now"><span class="wx-ic" aria-hidden="true">'+ic+'</span><span class="wx-t num">'+Math.round(w.cur.temperature_2m)+'°</span></div><div class="fn">'+tx+'</div><div class="fn num">'+Math.round(dl.temperature_2m_max[i])+'° / '+Math.round(dl.temperature_2m_min[i])+'°'+(pp!=null?' · '+pp+' % regn':'')+'</div></div>';
+  sun='Sol '+dl.sunrise[i].slice(11,16).replace(':','.')+'–'+dl.sunset[i].slice(11,16).replace(':','.')}
+ const facts=['Vecka '+isoWeek(n)];
+ if(dy&&dy.holiday)facts.push(dy.holiday);else if(dy&&dy.flag)facts.push('Flaggdag: '+dy.flag);
+ if(dy&&dy.names.length)facts.push('Namnsdag: '+dy.names.join(', '));
+ if(sun)facts.push(sun);
+ return'<section class="hero"><div class="hero-top"><div><div class="clock num" id="clock">'+pad(hh)+':'+pad(n.getMinutes())+'</div><div class="hero-date">'+esc(cap(dayHead(t)))+'</div></div>'+wx+'</div>'+
+  '<div class="hero-greet">'+greet+(S.me?', '+esc(S.me):'')+'!</div><div class="hero-facts">'+facts.map(f=>'<span>'+esc(f)+'</span>').join('')+'</div><div id="hero-next">'+nextHtml()+'</div></section>'}
+loadExt();setInterval(loadExt,10*60000);
+
 /* ---------- utseende ---------- */
 function applyTheme(fade){const root=document.documentElement;
  if(fade&&!calm()){root.classList.add('theme-fade');clearTimeout(applyTheme.t);applyTheme.t=setTimeout(()=>root.classList.remove('theme-fade'),450)}
@@ -612,7 +655,8 @@ document.addEventListener('keydown',e=>{if(S.cook){if(e.key==='ArrowRight')ACT.c
 let actx=null;function unlockAudio(){try{actx=actx||new(window.AudioContext||window.webkitAudioContext)();actx.resume&&actx.resume()}catch(e){}}
 function beep(){if(!actx)return;try{for(let i=0;i<3;i++){const o=actx.createOscillator(),g=actx.createGain();o.frequency.value=880;o.connect(g);g.connect(actx.destination);const t=actx.currentTime+i*.35;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.3,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+.25);o.start(t);o.stop(t+.3)}}catch(e){}}
 function tick(){
- const c=document.getElementById('clock');if(c){const n=new Date();flipClock(c,pad(n.getHours())+':'+pad(n.getMinutes()))}
+ const c=document.getElementById('clock');if(c){const n=new Date(),txt=pad(n.getHours())+':'+pad(n.getMinutes());
+  if(c.dataset.v!==txt){flipClock(c,txt);const nx=document.getElementById('hero-next');if(nx)nx.innerHTML=nextHtml()}}
  const box=document.getElementById('timers');
  box.innerHTML=S.timers.map(t=>{const ms=t.end-Date.now();if(ms<=0&&!t.ring){t.ring=true;beep();try{navigator.vibrate&&navigator.vibrate([300,150,300])}catch(e){}}const s=Math.max(0,Math.ceil(ms/1000));
   return'<div class="timer'+(t.ring?' ring':'')+'"><span>'+esc(t.label)+'</span><span class="num">'+(t.ring?'Klart!':Math.floor(s/60)+':'+pad(s%60))+'</span><button data-act="timerStop" data-id="'+t.k+'" aria-label="Stäng timer">'+I.x+'</button></div>'}).join('');

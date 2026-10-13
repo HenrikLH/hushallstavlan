@@ -372,6 +372,27 @@ body.wall .widgets{grid-template-columns:repeat(4,minmax(0,1fr))}
 .setup .lt{padding:0 16px}
 .setup p{padding:8px 16px 0;color:var(--ink-2)}
 
+/* ===== Översiktens topp ===== */
+.hero{margin:8px 16px 0;padding:16px 18px 14px;border-radius:22px;background:linear-gradient(135deg,var(--accent-soft),transparent 55%),var(--surface)}
+.hero .clock{display:block;font-size:56px;line-height:1;font-weight:700;letter-spacing:-1.5px;padding:0}
+body.wall .hero .clock{font-size:96px;letter-spacing:-3px}
+.hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.hero-date{font-size:15px;line-height:20px;letter-spacing:-.24px;color:var(--ink-2);margin-top:6px}
+.hero-wx{text-align:right;flex:none}
+.wx-now{display:flex;align-items:center;justify-content:flex-end;gap:6px}
+.wx-ic{font-size:30px;line-height:1}
+.wx-t{font-size:34px;line-height:1;font-weight:600;letter-spacing:-.5px}
+.hero-wx .fn{margin-top:3px}
+.hero-greet{margin-top:14px;font-size:17px;line-height:22px;font-weight:600}
+.hero-facts{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.hero-facts span{font-size:13px;line-height:18px;padding:3px 10px;border-radius:999px;background:var(--fill);color:var(--ink-2)}
+#hero-next{margin-top:12px;padding-top:10px;border-top:.5px solid var(--line);display:flex;flex-direction:column;gap:6px}
+#hero-next:empty{display:none}
+.nx{display:flex;align-items:baseline;gap:10px;font-size:15px;line-height:20px;letter-spacing:-.24px;min-width:0}
+.nx .grow{min-width:0;overflow-wrap:anywhere}
+.nx-l{flex:none;width:62px;font-size:12px;font-weight:700;letter-spacing:.2px;text-transform:uppercase;color:var(--accent)}
+.hero+.widgets{margin-top:12px}
+
 /* ===== Animationer ===== */
 #main.in-fade{animation:pageFade .32s cubic-bezier(.2,.8,.2,1)}
 #main.in-right{animation:pageRight .36s cubic-bezier(.2,.8,.2,1)}
@@ -418,8 +439,8 @@ body.wall::before{content:"";position:fixed;inset:-20%;z-index:-1;pointer-events
 <div id="overlay"></div>
 <div class="timers" id="timers" aria-live="polite"></div>
 <div id="toast" hidden class="toast" role="status"></div>
-<script src="config.js?v=11"></script>
-<script src="app.js?v=11"></script>
+<script src="config.js?v=12"></script>
+<script src="app.js?v=12"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
