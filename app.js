@@ -40,16 +40,17 @@ const I={
  clock:SV+'<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg>'
 };
 // Översikt ligger i mitten av flikraden
-const VIEWS=[['mat','Mat',I.fork],['inkop','Inköp',I.basket],['oversikt','Översikt',I.home],['uppgifter','Uppgifter',I.list],['stad','Städ',I.sparkles]];
-const VIEW_IDS=VIEWS.map(v=>v[0]).concat(['ekonomi']);
 const I_EKO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10h18M16.5 14.5h1.5"/></svg>';
-const OLD_VIEWS={matsedel:'vecka',recept:'recept'};
+// Inköp ligger under Mat; Ekonomi har fått dess plats i flikraden
+const VIEWS=[['mat','Mat',I.fork],['ekonomi','Ekonomi',I_EKO],['oversikt','Översikt',I.home],['uppgifter','Uppgifter',I.list],['stad','Städ',I.sparkles]];
+const VIEW_IDS=VIEWS.map(v=>v[0]);
+const OLD_VIEWS={matsedel:'vecka',recept:'recept',inkop:'inkop'};
 
 /* ---------- state ---------- */
 const CFG=window.HT_CONFIG||{};
 const S={theme:['light','dark'].includes(lsGet('theme'))?lsGet('theme'):'system',key:lsGet('key')||'',me:lsGet('me')||'',view:lsGet('view')||'oversikt',wall:lsGet('wall')==='1',
  data:null,sync:'idle',lastSync:null,error:'',recipe:null,scale:{},cook:null,shopFilter:'alla',shopAdd:false,taskAdd:false,
- sheet:null,confirm:null,timers:[],pending:0,step:{},matTab:['recept','bank'].includes(lsGet('matTab'))?lsGet('matTab'):'vecka',bankFilter:'alla',rate:null,open:{}};
+ sheet:null,confirm:null,timers:[],pending:0,step:{},matTab:['recept','bank','inkop'].includes(lsGet('matTab'))?lsGet('matTab'):'vecka',bankFilter:'alla',rate:null,open:{}};
 try{const c=lsGet('cache');if(c)S.data=JSON.parse(c)}catch(e){}
 // Gamla vyer (Matsedel, Recept) ligger nu i fliken Mat
 function normView(id){if(OLD_VIEWS[id]){S.matTab=OLD_VIEWS[id];lsSet('matTab',S.matTab);return'mat'}return id}
@@ -87,7 +88,7 @@ function addToBank(r,quiet){if(!r||inBank(r.id))return false;const snap=bankSnap
 /* ---------- flikrad ---------- */
 // Knapparna byggs en gång så att markeringen kan glida mellan flikarna i stället för att ritas om.
 function renderNav(nav){
- if(!nav.querySelector('.nav-pill'))nav.innerHTML='<div class="brand" aria-hidden="true">Hemma</div><div class="nav-pill" aria-hidden="true"></div>'+VIEWS.map(([id,l,ic])=>'<button data-act="nav" data-id="'+id+'">'+ic+'<span>'+l+'</span></button>').join('')+'<button class="side-only" data-act="nav" data-id="ekonomi">'+I_EKO+'<span>Ekonomi</span></button>';
+ if(!nav.querySelector('.nav-pill'))nav.innerHTML='<div class="brand" aria-hidden="true">Hemma</div><div class="nav-pill" aria-hidden="true"></div>'+VIEWS.map(([id,l,ic])=>'<button data-act="nav" data-id="'+id+'">'+ic+'<span>'+l+'</span></button>').join('')+'';
  const i=VIEW_IDS.indexOf(S.view);
  nav.querySelectorAll('button').forEach((b,j)=>j===i?b.setAttribute('aria-current','page'):b.removeAttribute('aria-current'));
  // Ekonomi ligger inte i flikraden på telefon; då visas ingen markering där
@@ -273,9 +274,10 @@ function eventsHtml(d){if(!d||!d.events.length)return'';return'<div class="evs">
 /* Mat: Vecka | Recept */
 V.mat=function(){
  if(S.recipe){const r=recipeById(S.recipe);if(r)return recipeDetail(r);S.recipe=null}
- let h=head('Mat',{sub:weekSub()});
- h+=segc('Visa','matTab',[['vecka','Vecka'],['recept','Recept'],['bank','Receptbank']],S.matTab);
- return h+(S.matTab==='recept'?matRecipes():S.matTab==='bank'?matBank():matWeek())};
+ const ink=S.matTab==='inkop'?inkopParts():null;
+ let h=head('Mat',ink?{sub:ink.sub,tools:ink.tools}:{sub:weekSub()});
+ h+=segc('Visa','matTab',[['vecka','Vecka'],['inkop','Inköp'],['recept','Recept'],['bank','Receptbank']],S.matTab);
+ return h+(ink?ink.body:S.matTab==='recept'?matRecipes():S.matTab==='bank'?matBank():matWeek())};
 /* Receptbanken: stora kort att bläddra i när man inte vet vad man vill äta */
 const FOOD=[[/soppa/i,'🍲'],[/dal|curry/i,'🍛'],[/gryta/i,'🥘'],[/kyckling/i,'🍗'],[/lax|fisk|torsk|sej/i,'🐟'],[/pasta|lasagne|spagetti/i,'🍝'],[/sallad|bulgur/i,'🥗'],[/shakshuka|ägg|omelett/i,'🍳'],[/blåbär|bär|efterrätt|kaka/i,'🫐'],[/pizza/i,'🍕'],[/taco|tortilla/i,'🌮'],[/burgare/i,'🍔'],[/fläsk|kött|biff/i,'🥩'],[/blomkål|grönsak|aubergine/i,'🥦']];
 const foodIcon=t=>(FOOD.find(([re])=>re.test(t||''))||[0,'🍽️'])[1];
@@ -321,13 +323,14 @@ function matRecipes(){
   h+=sh(esc(g))+group(list.map(r=>recipeCell(r,'<span class="num">'+r.min+' min · '+r.portions+' port'+(r.kr?' · '+kr(r.kr)+'/port':'')+'</span>')).join(''))});
  return h}
 
-V.inkop=function(){
+// Inköpslistan visas som en flik i Mat; ger rubrikens undertext, verktyg och innehåll
+function inkopParts(){
  const d=D(),all=d.shop,f=S.shopFilter,st=settings();
  const groups=[['alla','Alla'],['offer','Erbjudanden'],['Vardag','Vardag'],['Helg','Helg'],['Storkok kött','Storkok kött'],['Storkok veg','Storkok veg'],['Bas','Bas'],['egen','Egna']];
  const match=i=>f==='alla'?true:f==='offer'?!!i.offer:f==='egen'?i.source==='egen':f==='Vardag'?(i.meals||[]).some(m=>m==='Vardag'||/^(Mån|Tis|Ons|Tor)/.test(m)):(i.meals||[]).some(m=>m.startsWith(f));
  const items=all.filter(match),left=all.filter(i=>!i.done),bought=all.filter(i=>i.done);
  const total=shopCost(all),port=planPortions(),mealCost=shopCost(all.filter(i=>!isBase(i))),B=Number(st.matbudget)||0;
- let h=head('Inköp',{sub:left.length+' kvar · ca '+kr(shopCost(left)),tools:'<button class="ib plus" data-act="shopAdd" aria-label="Ny vara">'+I.plus+'</button>'});
+ const sub=left.length+' kvar · ca '+kr(shopCost(left)),tools='<button class="ib plus" data-act="shopAdd" aria-label="Ny vara">'+I.plus+'</button>';let h='';
  h+='<div class="stats'+(B?' s4':'')+'"><div class="stat"><span class="fn">Hela listan</span><b>'+nv('s-total',total,'kr')+'</b></div><div class="stat"><span class="fn">Kvar att betala</span><b>'+nv('s-left',shopCost(left),'kr')+'</b></div><div class="stat"><span class="fn">Mat per portion</span><b>'+(port?kr(mealCost/port):'–')+'</b><span class="fn">'+port+' portioner</span></div>'+
   (B?'<div class="stat"><span class="fn">Budget '+kr(B)+'</span><b>'+(total>B?'+'+kr(total-B):kr(B-total)+' kvar')+'</b><div class="thin '+(total>B?'bad':total>B*.9?'warn':'')+'"><i style="width:'+Math.min(100,Math.round(total/B*100))+'%"></i></div></div>':'')+'</div>';
  h+='<div class="fchips" role="group" aria-label="Filter">'+groups.map(([k,l])=>'<button data-act="shopFilter" data-id="'+esc(k)+'" aria-pressed="'+(f===k)+'">'+l+'</button>').join('')+'</div>';
@@ -341,7 +344,7 @@ V.inkop=function(){
  if(prefs)h+=sh('Hushållets preferenser')+group(prefs);
  const offers=all.filter(i=>i.offer);
  if(offers.length)h+=sh('Erbjudanden på listan')+group(offers.map(i=>'<div class="cell"><div class="grow"><div class="title">'+esc(i.name)+'</div><div class="meta">'+esc(i.offer)+'</div></div></div>').join(''))+'<div class="foot">Priserna är uppskattade. Kolla hyllkanten i butiken.</div>';
- return h+'</div></div>'};
+ return{sub,tools,body:h+'</div></div>'}}
 function shopRow(i){const chips=(i.offer?'<span class="chip offer">'+esc(i.store||'Erbjudande')+'</span>':'')+(i.meals||[]).map(m=>'<span class="chip">'+esc(m)+'</span>').join('')+(i.source==='egen'&&i.addedBy?'<span class="chip">'+esc(i.addedBy)+'</span>':'');
  return'<div class="cell ck'+(i.done?' done':'')+'"><input type="checkbox" class="check" data-act="shopToggle" data-id="'+esc(i.id)+'" aria-label="'+esc(i.name)+'"'+(i.done?' checked':'')+'><button class="grow rowbtn" data-act="shopToggle" data-id="'+esc(i.id)+'"><div class="title">'+esc(i.name)+'</div>'+((i.qty||chips)?'<div class="meta">'+(i.qty?'<span>'+esc(i.qty)+'</span>':'')+chips+'</div>':'')+'</button><span class="val">'+(i.price?kr(i.price):'')+'</span></div>'}
 
@@ -613,8 +616,7 @@ function costRow(c,list,split){const pm=perMonth(c),meta=[c.pay,dayTxt(c.day),c.
 function splitPreview(el){const v=Number(String(el.value).replace(/\s/g,'').replace(',','.'))||0,c=ekoCalc(S.ekoMonth||thisMonth()),out=document.getElementById('split-out');
  if(out)out.innerHTML=c.per.map(x=>'<div><span class="fn"><span class="pdot '+pcls(x.p)+'"></span>'+esc(x.p)+' '+(x.share*100).toFixed(1).replace('.',',')+' %</span><b class="num">'+kr(v*x.share)+'</b></div>').join('')}
 V.ekonomi=function(){const m=S.ekoMonth||thisMonth(),c=ekoCalc(m),o=c.o;
- let h='<div class="only-phone" style="padding:0 16px"><button class="back" data-act="nav" data-id="oversikt">'+I.back+'Översikt</button></div>';
- h+=head('Ekonomi',{sub:'Fasta utgifter och fördelning'});
+ let h=head('Ekonomi',{sub:'Fasta utgifter och fördelning'});
  h+='<div class="mswitch"><button class="ib" data-act="ekoMonth" data-d="-1" aria-label="Förra månaden">'+I.back+'</button><div class="hl">'+esc(cap(monthName(m)))+'</div><button class="ib flip" data-act="ekoMonth" data-d="1" aria-label="Nästa månad">'+I.back+'</button></div>';
  // Inkomst och fördelning
  const pct=x=>(x*100).toFixed(1).replace('.',',')+' %';
@@ -742,7 +744,7 @@ const ACT={
  copy(id){try{navigator.clipboard.writeText(id).then(()=>toast('Kopierat'),()=>toast('Markera och kopiera texten'))}catch(e){toast('Markera och kopiera texten')}},
  theme(id){S.theme=['light','dark'].includes(id)?id:'system';lsSet('theme',S.theme==='system'?null:S.theme);applyTheme(true);render()},
  wall(){S.wall=!S.wall;lsSet('wall',S.wall?'1':'0');wake();render()},
- matTab(id){S.matTab=['recept','bank'].includes(id)?id:'vecka';lsSet('matTab',S.matTab);S.recipe=null;render()},
+ matTab(id){S.matTab=['recept','bank','inkop'].includes(id)?id:'vecka';lsSet('matTab',S.matTab);S.recipe=null;render()},
  recipe(id){S.view='mat';S.recipe=id;lsSet('view','mat');try{history.replaceState(null,'','#mat')}catch(e){}window.scrollTo(0,0);render()},
  recipeBack(){S.recipe=null;window.scrollTo(0,0);render()},
  scale(id,el){const r=recipeById(id);const{p}=scaled(r);S.scale[id]=Math.max(1,Math.min(20,p+Number(el.dataset.d)));render()},
