@@ -782,6 +782,35 @@ body.wall::before{content:"";position:fixed;inset:-20%;z-index:-1;pointer-events
 .bs-dots{display:flex;flex-direction:column-reverse;align-items:center;gap:3px;height:44px}
 .bs-dots i{width:7px;height:7px;border-radius:50%;background:var(--accent);opacity:.6}
 .bs-dots i.next{opacity:1;box-shadow:0 0 0 2px var(--accent-soft)}
+
+/* Väggtavlan: tre kolumner som får plats utan att scrolla */
+.board{display:grid;grid-template-columns:1.05fr 1fr 1fr;gap:14px;padding:14px 16px 0;height:calc(100vh / 1.0588 - var(--tabbar) - var(--tabgap) - 30px);box-sizing:border-box;position:relative}
+.bcol{display:flex;flex-direction:column;gap:14px;min-height:0;overflow:hidden}
+.bcol .hero{margin:0;flex:1;grid-template-columns:1fr;align-content:start}
+.bcol .hero .hero-wx{width:auto;align-items:center;text-align:center;margin:18px 0 0}
+.bcol .hero .fig-box{transform:scale(1.35);transform-origin:top center;margin-bottom:40px}
+.bcol .widget{margin:0}
+.bcol .calw{flex:0 1 auto;min-height:0;overflow:hidden}
+.bcol .calw+.widget{flex:1 1 auto;min-height:0;overflow:hidden}
+.bcol .bclean{flex:1 1 auto;min-height:0;overflow:hidden}
+.bcol .bclean .cell{min-height:52px}
+.bcol .bclean .check{width:28px;height:28px}
+.board-gear{position:absolute;left:calc(35% - 52px);top:24px;z-index:3}
+body.wall:has(.board) main{padding-bottom:0}
+body.wall:has(.board) .head{display:none}
+/* Nattläge på väggen */
+body.is-night{background:#000}
+body.is-night::before{display:none}
+body.is-night .nav{opacity:0;pointer-events:none}
+.night{height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:#8a8a8f;cursor:pointer}
+.night .clock{display:block;font-size:150px;line-height:1;font-weight:600;letter-spacing:-4px;color:#9a9aa0}
+.night-l{font-size:22px;line-height:30px}
+.outbox{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--tabbar) + var(--tabgap) + 14px);z-index:70;display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:22px;background:var(--surface-raised);border:.5px solid var(--line);box-shadow:0 8px 24px rgba(0,0,0,.12);font-size:15px;font-weight:600;white-space:nowrap;max-width:calc(100% - 32px)}
+.outbox svg{width:18px;height:18px;flex:none;color:var(--accent)}.outbox .muted{font-weight:400;font-size:13px}
+/* Födelsedag som påminnelse överst i kalenderrutan */
+.bd-remind{display:flex;align-items:center;gap:8px;margin:2px 0 6px;padding:8px 12px;border-radius:12px;background:var(--accent-soft);color:var(--accent);font-weight:600;font-size:15px}
+.bd-remind+.bd-remind{margin-top:0}
+.bd-remind svg{width:18px;height:18px;flex:none}
 </style>
 </head>
 <body>
@@ -791,7 +820,7 @@ body.wall::before{content:"";position:fixed;inset:-20%;z-index:-1;pointer-events
 <div class="timers" id="timers" aria-live="polite"></div>
 <div id="toast" hidden class="toast" role="status"></div>
 <script src="config.js?v=37"></script>
-<script src="app.js?v=39"></script>
+<script src="app.js?v=42"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
