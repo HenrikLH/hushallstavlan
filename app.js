@@ -142,6 +142,21 @@ function renderNav(nav){
  document.addEventListener('click',e=>{if(skip){e.stopPropagation();e.preventDefault()}},true);
  document.addEventListener('dragstart',e=>{if(on())e.preventDefault()})})();
 
+let fitScrollbar=()=>{};
+/* Rullningslisten på stora skärmar och i väggläge syns bara medan man scrollar */
+(function(){const el=document.documentElement;let t=0;
+ const fit=()=>el.classList.toggle('sb-auto',S.wall||matchMedia('(min-width:900px)').matches);fit();addEventListener('resize',fit);
+ document.addEventListener('scroll',()=>{if(!el.classList.contains('sb-auto'))return;el.classList.add('scrolling');clearTimeout(t);t=setTimeout(()=>el.classList.remove('scrolling'),900)},{capture:true,passive:true});
+ fitScrollbar=fit})();
+
+/* Lämna kioskläget utan tangentbord: håll fingret still på klockan i tre sekunder så stängs tavlan */
+(function(){let t=0,x=0,y=0;const stop=()=>{clearTimeout(t);t=0};
+ document.addEventListener('pointerdown',e=>{if(e.button>0||!e.target.closest('#clock'))return;stop();x=e.clientX;y=e.clientY;
+  t=setTimeout(()=>{t=0;toast('Stänger tavlan …');setTimeout(()=>{try{window.close()}catch(err){}setTimeout(()=>toast('Tavlan gick inte att stänga härifrån'),500)},700)},3000)});
+ addEventListener('pointermove',e=>{if(t&&Math.hypot(e.clientX-x,e.clientY-y)>12)stop()});
+ addEventListener('pointerup',stop);addEventListener('pointercancel',stop);
+ document.addEventListener('contextmenu',e=>{if(e.target.closest('#clock'))e.preventDefault()})})();
+
 /* ---------- api ---------- */
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>t.hidden=true,2800)}
 function setData(d){S.data=d;S.lastSync=new Date();S.error='';try{lsSet('cache',JSON.stringify(d))}catch(e){}}
@@ -1290,7 +1305,7 @@ const ACT={
  copy(id){try{navigator.clipboard.writeText(id).then(()=>toast('Kopierat'),()=>toast('Markera och kopiera texten'))}catch(e){toast('Markera och kopiera texten')}},
  calStyle(id){CAL_STYLE=['1','3'].includes(id)?id:'2';lsSet('calStyle',CAL_STYLE==='2'?null:CAL_STYLE);render()},
  theme(id){S.theme=['light','dark'].includes(id)?id:'system';lsSet('theme',S.theme==='system'?null:S.theme);applyTheme(true);render()},
- wall(){S.wall=!S.wall;lsSet('wall',S.wall?'1':'0');wake();render()},
+ wall(){S.wall=!S.wall;lsSet('wall',S.wall?'1':'0');fitScrollbar();wake();render()},
  matTab(id){S.matTab=['recept','bank','inkop'].includes(id)?id:'vecka';lsSet('matTab',S.matTab);S.recipe=null;render()},
  recipe(id){S.view='mat';S.recipe=id;lsSet('view','mat');try{history.replaceState(null,'','#mat')}catch(e){}window.scrollTo(0,0);render()},
  recipeBack(){S.recipe=null;window.scrollTo(0,0);render()},

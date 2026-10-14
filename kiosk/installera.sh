@@ -10,6 +10,8 @@ set -euo pipefail
 URL="https://henriklh.github.io/hushallstavlan/"
 ANV="${USER:-$(id -un)}"
 AUTOSTART="$HOME/.config/autostart/hushallstavlan.desktop"
+MENY="$HOME/.local/share/applications/hushallstavlan.desktop"
+SKRIVBORD="$(xdg-user-dir DESKTOP 2>/dev/null || echo "$HOME/Desktop")/hushallstavlan.desktop"
 LIGHTDM="/etc/lightdm/lightdm.conf.d/90-hushallstavlan.conf"
 
 if [ "$(id -u)" -eq 0 ]; then
@@ -17,7 +19,7 @@ if [ "$(id -u)" -eq 0 ]; then
 fi
 
 if [ "${1:-}" = "--ta-bort" ]; then
-  rm -f "$AUTOSTART"
+  rm -f "$AUTOSTART" "$MENY" "$SKRIVBORD"
   sudo rm -f "$LIGHTDM"
   gsettings set org.cinnamon.desktop.screensaver lock-enabled true || true
   gsettings set org.cinnamon.desktop.session idle-delay 600 || true
@@ -62,7 +64,13 @@ Comment=Startar tavlan i helskärm
 Exec=sh -c 'sleep 4; $BROWSER --kiosk --app=$URL --password-store=basic --touch-events=enabled --overscroll-history-navigation=0 --noerrdialogs --disable-session-crashed-bubble --disable-infobars --check-for-update-interval=31536000'
 X-GNOME-Autostart-enabled=true
 EOF
+# Samma start som ikon i menyn och på skrivbordet, så att tavlan kan öppnas igen med fingret
+mkdir -p "$(dirname "$MENY")" "$(dirname "$SKRIVBORD")"
+grep -v '^X-GNOME' "$AUTOSTART" | sed "s/sleep 4; //" > "$MENY"
+cp "$MENY" "$SKRIVBORD"; chmod +x "$MENY" "$SKRIVBORD"
+gio set "$SKRIVBORD" metadata::trusted true 2>/dev/null || true
 
 echo
 echo "Klart! Starta om datorn så loggar den in och öppnar tavlan av sig själv."
-echo "Lämna helskärmen med Alt+F4. Öppna terminalen med Ctrl+Alt+T."
+echo "Lämna helskärmen: håll fingret på klockan i översikten i tre sekunder (eller Alt+F4)."
+echo "Öppna tavlan igen med ikonen Hushållstavlan på skrivbordet eller i menyn."
