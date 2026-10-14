@@ -877,13 +877,7 @@ function figSvg(sc,o){o=o||{};const id='fg'+(++FIG_N),ph=sc.phase,dark=sc.dark,w
  if(snow||sleet){const n=sleet?[4,6,8][lv-1]:[8,14,22][lv-1],dur=(sleet?2.4:[6,4.6,3.4][lv-1])/(1+sc.wl*.25);
   s+='<g class="fx-snow" fill="#FFFFFF" stroke="#9DB4D3" stroke-width=".6">'+fall(n,(x,k)=>'<circle cx="'+x.toFixed(1)+'" cy="'+(6+rnd(k+30)*12).toFixed(1)+'" r="'+(sleet?1.3+rnd(k)*.8:1.4+rnd(k+3)*1.5).toFixed(1)+'" style="--dx:'+dx+'px;animation-duration:'+dur.toFixed(2)+'s;animation-delay:-'+(rnd(k+17)*dur).toFixed(2)+'s"/>')+'</g>';
   if(snow&&lv>=2)s+='<g class="fx-flakes" stroke="#FFFFFF" stroke-width="1.1" stroke-linecap="round">'+[[40,.4],[128,2.1],[86,3.2]].map(([x,d])=>'<g style="--dx:'+dx+'px;animation-delay:-'+d+'s"><path d="M'+x+' 6v10M'+(x-4.3)+' 8.5l8.6 5M'+(x-4.3)+' 13.5l8.6-5" stroke="#9DB4D3" stroke-width="2.4"/><path d="M'+x+' 6v10M'+(x-4.3)+' 8.5l8.6 5M'+(x-4.3)+' 13.5l8.6-5"/></g>').join('')+'</g>'}
- // 7. vinden: streck som drar förbi och löv när det blåser ordentligt
- if(sc.wl){// vindbyar: mjuka svep som slutar i en virvel och ritas fram och tonar bort
-  const G=[[8,48,40,1],[92,26,46,-1],[30,92,34,-1],[104,74,40,1]].slice(0,sc.wl+1);
-  s+='<g class="fx-wind'+(sc.dir<0?' rev':'')+'" fill="none" stroke-linecap="round" stroke-linejoin="round">'+G.map(([x,y,L,u],k)=>{
-   const n=v=>+v.toFixed(1),d='M'+x+' '+y+' C'+n(x+L*.35)+' '+n(y-2*u)+' '+n(x+L*.65)+' '+n(y+2*u)+' '+(x+L)+' '+y+' c4 0 7 '+n(-3*u)+' 5.5 '+n(-6*u)+' c-1.2 '+n(-2.4*u)+' -4.6 '+n(-2.2*u)+' -5.2 '+n(.3*u)+' c-.5 '+n(1.8*u)+' 1.4 '+n(2.6*u)+' 2.6 '+n(1.6*u);
-   return'<g style="animation-delay:-'+(k*.7)+'s"><path d="'+d+'" pathLength="100" stroke="currentColor" stroke-width="3.2" opacity=".08"/><path d="'+d+'" pathLength="100" stroke="#93AACB" stroke-width="1.6"/></g>'}).join('')+'</g>';
-  if(sc.wl>=2&&!snow&&sc.T>2)s+='<g class="fx-leaves'+(sc.dir<0?' rev':'')+'">'+[['#D9894A',60,0],['#B4475D',86,1.1],['#8FA35A',40,2.2]].map(([c,y,d])=>'<path d="M-10 '+y+' q4 -4 8 0 q-4 4 -8 0z" fill="'+c+'" style="animation-delay:-'+d+'s"/>').join('')+'</g>'}
+ // 7. vinden visas som text i vädervyn i stället för som animation; den lutar bara regnet och snön
  return'<svg class="fig k-'+sc.tc+' w'+sc.wl+(sc.sleep?' zz':'')+'" viewBox="0 0 170 130" role="img" aria-label="'+esc(o.label||sc.label)+'">'+s+'</svg>'}
 
 const hm=m=>pad(Math.floor(m/60))+'.'+pad(m%60);
@@ -934,6 +928,10 @@ const sceneKey=()=>{const W=wxModel();if(!W)return'';const c=wxScene(W);return[c
 setInterval(()=>{if(document.visibilityState!=='visible'||(S.view!=='oversikt'&&S.view!=='vader')||S.sheet)return;const k=sceneKey();if(k&&SCENE_KEY&&k!==SCENE_KEY)render();SCENE_KEY=k},60000);
 /* Vädersidan, i stil med Apples Väder */
 const DAYS3=['sön','mån','tis','ons','tor','fre','lör'];
+// Vindstyrkan med SMHI:s benämningar, till exempel "Måttlig sydvästlig vind, 6 m/s"
+function windText(x){const w=x.w||0;if(w<.3)return'Lugnt';
+ const k=w<3.4?'Svag':w<8?'Måttlig':w<13.9?'Frisk':w<24.5?'Hård':w<32.7?'Storm':'Orkan';
+ return(k==='Storm'||k==='Orkan'?k+', '+windDir(x.wd)+' vind':k+' '+windDir(x.wd)+' vind')+', '+Math.round(w)+'\u00a0m/s'}
 function windDir(d){return['nordlig','nordostlig','ostlig','sydostlig','sydlig','sydvästlig','västlig','nordvästlig'][Math.round(((d||0)%360)/45)%8]}
 function feels(T,w){return(T<=10&&w>1.3)?13.12+0.6215*T-11.37*Math.pow(w*3.6,0.16)+0.3965*T*Math.pow(w*3.6,0.16):T}
 V.vader=function(){const W=wxModel(),P=WX_POS();
@@ -942,7 +940,7 @@ V.vader=function(){const W=wxModel(),P=WX_POS();
  if(!W)return h+'<header class="head"><h1 class="lt" id="lt">Väder</h1></header>'+group(emptyCell('Prognosen kunde inte hämtas just nu.'))+'<div class="block"><button class="btn-tint" style="width:100%" data-act="wxRefresh">Försök igen</button></div>';
  const[ic,tx]=symInfo(W.now.s),d0=W.days[0],F=wxToday(W),sun=sunTimes(today(),P.lat,P.lon);
  h+='<section class="wx-hero">'+skyHtml(W,true)+'<div class="wx-place">'+esc(P.name)+'</div><div class="wx-big num" id="lt">'+deg(W.now.T)+'</div><div class="wx-cond">'+esc(tx)+'</div><div class="wx-hl num">H:'+deg(d0.max)+'  L:'+deg(d0.min)+'</div>'+
-  '<div class="wx-fig"><button class="fig-box big" data-act="wxVar" aria-label="Visa en annan bild av hundarna">'+figSvg(wxScene(W),{bare:1})+'</button><div class="wx-tip"><b>'+esc(capS(F.when))+'</b><span>'+esc(F.tip)+'</span></div></div></section>';
+  '<div class="wx-fig"><button class="fig-box big" data-act="wxVar" aria-label="Visa en annan bild av hundarna">'+figSvg(wxScene(W),{bare:1})+'</button><div class="wx-tip"><b>'+esc(capS(F.when))+'</b><span>'+esc(F.tip)+'</span><b class="wx-wind-h">Vind nu</b><span>'+esc(windText(W.now))+'</span></div></div></section>';
  // Timmar
  h+='<div class="group wx-card"><div class="wx-cap">'+I.clock+'Kommande timmar</div><div class="hours" role="list">'+W.hours.slice(0,25).map((x,k)=>{const[ii]=symInfo(x.s);
   return'<div class="hr" role="listitem"><span class="fn">'+(k?pad(x.d.getHours()):'Nu')+'</span><span class="hi" aria-hidden="true">'+ii+'</span><b class="num">'+deg(x.T)+'</b><span class="hp num">'+(x.pr>=0.1?mm(x.pr).replace(' mm',''):'')+'</span></div>'}).join('')+'</div></div>';
