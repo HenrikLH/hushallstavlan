@@ -109,6 +109,39 @@ function renderNav(nav){
  nav.addEventListener('pointerup',e=>end(e,true));nav.addEventListener('pointercancel',e=>end(e,false));
  nav.addEventListener('click',e=>{if(skip){e.stopPropagation();e.preventDefault()}},true)})();
 
+/* Dra för att scrolla och svep mellan flikarna på stora skärmar och i väggläge.
+   På Linux kommer pekskärmens rörelser ofta fram som musrörelser, och då scrollar webbläsaren
+   inte när man drar. Här scrollar appen själv när en mus eller penna drar, med fart som klingar av.
+   Pekskärmar som skickar riktiga touchhändelser scrollar som vanligt. Ett tydligt svep i sidled
+   byter flik i samma ordning som flikraden. */
+(function(){let st=null,skip=false,glide=0;
+ const on=()=>S.wall||matchMedia('(min-width:900px)').matches;
+ const ax=(el,a)=>{const cs=getComputedStyle(el),o=a==='x'?cs.overflowX:cs.overflowY;return/(auto|scroll)/.test(o)&&(a==='x'?el.scrollWidth>el.clientWidth+1:el.scrollHeight>el.clientHeight+1)};
+ const scroller=(el,a)=>{for(;el&&el!==document.body&&el!==document.documentElement;el=el.parentElement)if(ax(el,a))return el;return null};
+ document.addEventListener('pointerdown',e=>{cancelAnimationFrame(glide);
+  if(!on()||e.button>0||!S.data||e.target.closest('input,select,textarea,[contenteditable],.nav'))return;
+  st={id:e.pointerId,x0:e.clientX,y0:e.clientY,x:e.clientX,y:e.clientY,t:performance.now(),v:0,mouse:e.pointerType!=='touch',a:null,el:null,tg:e.target}});
+ addEventListener('pointermove',e=>{if(!st||e.pointerId!==st.id)return;const dx=e.clientX-st.x0,dy=e.clientY-st.y0;
+  if(!st.a){if(Math.hypot(dx,dy)<10)return;st.a=Math.abs(dx)>Math.abs(dy)?'x':'y';st.el=scroller(st.tg,st.a);if(st.mouse)document.body.classList.add('dragging')}
+  const now=performance.now(),d=st.a==='y'?e.clientY-st.y:e.clientX-st.x,dt=Math.max(8,now-st.t);
+  st.v=.7*(d/dt)+.3*st.v;st.x=e.clientX;st.y=e.clientY;st.t=now;
+  if(!st.mouse)return;
+  if(st.a==='y')(st.el||document.scrollingElement).scrollTop-=d;else if(st.el)st.el.scrollLeft-=d});
+ const end=(e,ok)=>{if(!st||e.pointerId!==st.id)return;const s=st;st=null;document.body.classList.remove('dragging');if(!s.a||!ok)return;
+  skip=true;setTimeout(()=>skip=false,80);
+  const dx=e.clientX-s.x0,dy=e.clientY-s.y0;
+  // svep i sidled där inget scrollar i sidled: byt flik
+  if(s.a==='x'&&!s.el&&Math.abs(dx)>80&&Math.abs(dx)>1.5*Math.abs(dy)&&s.tg.closest('main')&&!document.querySelector('#overlay .sheet')){
+   const i=VIEWS.findIndex(v=>v[0]===S.view),j=i<0?2:i+(dx<0?1:-1);if(j>=0&&j<VIEWS.length)ACT.nav(VIEWS[j][0]);return}
+  if(!s.mouse||performance.now()-s.t>80)return;
+  // fortsätt glida och bromsa in mjukt
+  const el=s.a==='y'?(s.el||document.scrollingElement):s.el;if(!el)return;let v=s.v,last=performance.now();
+  const step=now=>{const dt=now-last;last=now;if(s.a==='y')el.scrollTop-=v*dt;else el.scrollLeft-=v*dt;v*=Math.pow(.994,dt);if(Math.abs(v)>.03)glide=requestAnimationFrame(step)};
+  glide=requestAnimationFrame(step)};
+ addEventListener('pointerup',e=>end(e,true));addEventListener('pointercancel',e=>end(e,false));
+ document.addEventListener('click',e=>{if(skip){e.stopPropagation();e.preventDefault()}},true);
+ document.addEventListener('dragstart',e=>{if(on())e.preventDefault()})})();
+
 /* ---------- api ---------- */
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>t.hidden=true,2800)}
 function setData(d){S.data=d;S.lastSync=new Date();S.error='';try{lsSet('cache',JSON.stringify(d))}catch(e){}}
