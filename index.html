@@ -435,8 +435,9 @@ button.fig-box:active{opacity:1;transform:scale(.96)}
 .sc-light .sc-head .wx-cond{color:#4A5466}
 .sc-light .sc-bar{background:rgba(255,255,255,.55);border-color:rgba(255,255,255,.6)}
 .wx-card{margin-top:14px;padding:10px 0 4px}
-.wx-cap{display:flex;align-items:center;gap:6px;font-size:13px;line-height:18px;font-weight:600;text-transform:uppercase;letter-spacing:-.08px;color:var(--ink-2);padding:0 16px 8px}
-.wx-cap svg{width:15px;height:15px}
+.wx-cap{display:flex;align-items:center;gap:6px;font-size:13px;line-height:18px;font-weight:600;letter-spacing:-.08px;color:var(--accent);padding:0 16px 8px}
+.wx-cap svg{width:16px;height:16px}
+.hr:first-child .fn{color:var(--accent);font-weight:600}
 .hours{display:flex;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:6px 8px 8px;border-top:.5px solid var(--line)}
 .hours::-webkit-scrollbar{display:none}
 .hr{flex:none;width:52px;display:flex;flex-direction:column;align-items:center;gap:6px}
@@ -449,14 +450,14 @@ button.fig-box:active{opacity:1;transform:scale(.96)}
 .day-row .dmin{color:var(--ink-2);text-align:right}.day-row .dmax{text-align:right;font-weight:600}
 .range{position:relative;height:5px;border-radius:3px;background:var(--fill)}
 .range i{position:absolute;top:0;bottom:0;border-radius:3px;background:linear-gradient(90deg,#5AC8FA,#FFCC00 60%,#FF9500)}
-.range b{position:absolute;top:50%;width:9px;height:9px;margin:-4.5px 0 0 -4.5px;border-radius:50%;background:var(--ink);border:2px solid var(--surface)}
+.range b{position:absolute;top:50%;width:9px;height:9px;margin:-4.5px 0 0 -4.5px;border-radius:50%;background:var(--accent);border:2px solid var(--surface)}
 .wx-tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:14px 16px 0}
 @media (min-width:900px){.wx-tiles{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .wx-tile{background:var(--surface);border-radius:16px;padding:12px 14px 14px;min-width:0}
 .wx-tile .wx-cap{padding:0 0 6px}
 .wx-tile .tv{font-size:26px;line-height:32px;font-weight:600}
 .wx-tile .tv .sm{font-size:20px;white-space:nowrap}
-.wd{display:inline-block;font-weight:700}
+.wd{display:inline-block;font-weight:700;color:var(--accent)}
 .foot a{color:var(--accent)}
 
 /* ===== Betyg och receptbank ===== */
@@ -773,8 +774,8 @@ body.wall::before{content:"";position:fixed;inset:-20%;z-index:-1;pointer-events
 <div id="overlay"></div>
 <div class="timers" id="timers" aria-live="polite"></div>
 <div id="toast" hidden class="toast" role="status"></div>
-<script src="config.js?v=33"></script>
-<script src="app.js?v=33"></script>
+<script src="config.js?v=34"></script>
+<script src="app.js?v=34"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
