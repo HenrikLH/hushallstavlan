@@ -462,21 +462,21 @@ function calDots(date){const d=D(),evs=d.events.filter(e=>e.date===date),ts=d.ta
  ts.forEach(()=>out.push('t'));return out.slice(0,4)}
 // Översiktens kalenderruta: veckoremsa där man väljer dag, och den dagens händelser med start- och sluttid
 function calDayRows(sel){const d=D(),t=today();
- const evs=d.events.filter(e=>e.date===sel).sort((a,b)=>String(a.time||'').localeCompare(String(b.time||''))),
-  ts=d.tasks.filter(x=>x.due===sel&&!x.done),cd=sel===t?evCountdown(evs):new Map();
- const rows=evs.map(e=>'<div class="ev"><span class="t">'+esc(e.time||'Heldag')+'</span><span class="grow">'+esc(e.title)+evWho(e)+'</span>'+(cd.has(e)?'<span class="cd num">'+cd.get(e)+'</span>':'')+'</div>').join(''),
-  todo=ts.map(x=>'<div class="ev task"><span class="t">Att göra</span><span>'+esc(x.title)+evWho(x)+'</span></div>').join('');
- // kalenderhändelser och att göra-uppgifter skiljs åt av ett streck
- return rows||todo?(rows?'<div class="evs">'+rows+'</div>':'')+(todo?'<div class="evs'+(rows?' wk-todo':'')+'">'+todo+'</div>':''):'<div class="wempty">Inget inplanerat '+(sel===t?'idag':'den här dagen')+'.</div>'}
+ const evs=d.events.filter(e=>e.date===sel).sort((a,b)=>String(a.time||'').localeCompare(String(b.time||''))),cd=sel===t?evCountdown(evs):new Map();
+ const rows=evs.map(e=>'<div class="ev"><span class="t">'+esc(e.time||'Heldag')+'</span><span class="grow">'+esc(e.title)+evWho(e)+'</span>'+(cd.has(e)?'<span class="cd num">'+cd.get(e)+'</span>':'')+'</div>').join('');
+ return rows?'<div class="evs">'+rows+'</div>':'<div class="wempty">Inget i kalendern '+(sel===t?'idag':'den här dagen')+'.</div>'}
 function calWidget(){const t=today(),wk=[];for(let i=0;i<7;i++)wk.push(addDays(t,i));
  const sel=wk.includes(S.ovDay)?S.ovDay:t;
  let strip='<div class="wk" role="group" aria-label="Veckans dagar">';
  wk.forEach((k,i)=>{const dt=parse(k),dots=calDots(k);
   strip+='<button class="wk-d'+(i===0?' today':'')+(k===sel?' sel':'')+'" data-act="ovDay" data-id="'+k+'" aria-pressed="'+(k===sel)+'" aria-label="'+esc(dateLong(k))+(dots.length?', '+dots.length+' saker':'')+'"><span class="wd">'+(i===0?'Idag':cap(DAYS[dt.getDay()].slice(0,3)))+'</span><span class="n num">'+dt.getDate()+'</span><span class="dots">'+dots.map(c=>'<i class="'+c+'"></i>').join('')+'</span></button>'});
  strip+='</div>';
+ // under ett streck: dagens att göra-uppgifter med egen rubrik
+ const ts=D().tasks.filter(x=>x.due===sel&&!x.done);
+ const todo=ts.length?'<div class="wk-todo"><div class="wk-sub">Att göra</div><div class="evs">'+ts.map(x=>'<div class="ev task"><span>'+esc(x.title)+evWho(x)+'</span></div>').join('')+'</div></div>':'';
  return'<section class="widget w2 calw"><button class="wh" data-act="calOpen" data-id="'+sel+'" style="width:100%">'+I.cal+'<span>Kalender</span><span class="r">'+esc(cap(MON[parse(sel).getMonth()]))+'</span></button>'+strip+
   '<div class="wk-day"><div id="cal-rows" data-d="'+sel+'">'+calDayRows(sel)+'</div>'+
-  '<button class="wk-open" data-act="calOpen" data-id="'+sel+'">Öppna i kalendern'+chevron+'</button></div></section>'}
+  '<button class="wk-open" data-act="calOpen" data-id="'+sel+'">Öppna i kalendern'+chevron+'</button>'+todo+'</div></section>'}
 function calView(){const t=today(),sel=S.calDay||t,m=S.calMonth||ymKey(sel),[y,mo]=m.split('-').map(Number);
  const first=new Date(y,mo-1,1),start=new Date(first);start.setDate(1-((first.getDay()+6)%7));
  let h='<div class="cal-head"><button class="ib" data-act="calMonth" data-d="-1" aria-label="Förra månaden">'+I.back+'</button><div class="hl">'+esc(cap(MON[mo-1]))+(y!==new Date().getFullYear()?' '+y:'')+'</div>'+
