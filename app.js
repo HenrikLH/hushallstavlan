@@ -808,7 +808,7 @@ function skyHtml(W,big){const P=WX_POS(),sc=wxScene(W),k=SKY(new Date(),P.lat,P.
  // stjärnor när det är mörkt och himlen inte är täckt
  if(sc.dark&&!covered)h+='<svg class="sky-stars" viewBox="0 0 100 100" preserveAspectRatio="none">'+[[8,14],[22,40],[36,10],[47,28],[61,8],[70,36],[83,18],[93,44],[15,62],[55,52]].slice(0,sc.sky==='partly'?4:10)
   .map(([x,y],i)=>'<circle class="tw'+(i%3?' d'+(i%3+1):'')+'" cx="'+x+'" cy="'+y+'" r=".45"/>').join('')+'</svg>';
- if(k.sun.alt>-1)h+=at(k.sun,sunSvg(k.sun.alt<8,sz),'sky-sun');
+ if(k.sun.alt>-1)h+=at(k.sun,sunSvg(k.sun.alt<8,big?sz:84),'sky-sun');
  if(k.moon.alt>-1)h+=at(k.moon,moonSvg(k.moon.frac,k.moon.waxing,sz*.9),'sky-moon',k.sun.alt>0?.55:1);
  return'<div class="sky" aria-hidden="true">'+h+'</div>'}
 function figSvg(sc,o){o=o||{};const id='fg'+(++FIG_N),ph=sc.phase,dark=sc.dark,warmL=ph==='dawn'||ph==='golden';
