@@ -220,6 +220,7 @@ function doRender(){
  const banner=S.sync==='err'?'<div class="banner">Ingen kontakt med kalkylarket just nu. Du ser senast hämtade data. '+esc(S.error)+'</div>':'';
  A.before(m);
  m.innerHTML=banner+(V[S.view]||V.oversikt)();
+ placeSky();
  watchTitle();
  A.after(m);
 }
@@ -256,7 +257,7 @@ V.oversikt=function(){
  h+=heroHtml();
  h+='<div class="widgets">';
  h+=calWidget();
- h+=bdWidget();
+ const top=h;h='';
  const isT=nextDay&&nextDay.date===t;
  h+=widget('mat','w2',I.fork,(isT||!nextDay)?'Middag ikväll':'Nästa middag',nextDay&&!isT?esc(dateShort(nextDay.date)):'',
   nextDay?wMeals(nextDay):'<div class="wempty">Ingen matsedel inlagd än. Den fylls i när veckoplaneringen körs på onsdag.</div>');
@@ -266,9 +267,10 @@ V.oversikt=function(){
  const tl=tasksNow.concat(tasksSoon).slice(0,5);
  h+=widget('uppgifter','w2',I.list,'Uppgifter',tasksNow.length?tasksNow.length+' idag':'',tl.length?'<div class="wl">'+tl.map(taskRow).join('')+'</div>':'<div class="wempty">Inget att göra just nu.</div>');
  const rh=roomHealth();
- h+=widget('stad','w2',I.home,'Hemmet','',rh.length?'<div class="wl">'+rh.map(healthRow).join('')+'</div>':'<div class="wempty">Städschemat är tomt.</div>');
- if(tm)h+=widget('mat','w2',I.cal,'Imorgon',esc(dateShort(tm.date)),(eventsHtml(tm)||'<div class="wempty">Inga händelser.</div>')+(tm.meals.length?wMeals(tm):''));
- return h+'</div>'};
+ const home=widget('stad','w2',I.home,'Hemmet','',rh.length?'<div class="wl">'+rh.map(healthRow).join('')+'</div>':'<div class="wempty">Städschemat är tomt.</div>');
+ const tmw=tm?widget('mat','w2',I.cal,'Imorgon',esc(dateShort(tm.date)),(eventsHtml(tm)||'<div class="wempty">Inga händelser.</div>')+(tm.meals.length?wMeals(tm):'')):'';
+ // födelsedagarna ligger näst sist
+ return top+h+(tmw?home+bdWidget()+tmw:bdWidget()+home)+'</div>'};
 function wMeals(d){return(d.meals||[]).map(m=>{const r=m.recipe&&recipeById(m.recipe);const tag=r?'button':'div';
  return'<'+tag+' class="wmeal"'+(r?' data-act="recipe" data-id="'+esc(m.recipe)+'"':'')+'><div class="top">'+whoChip(m.who)+(r&&r.kr?'<span class="val">'+kr(r.kr)+'/port</span>':'')+'</div><div class="hl title">'+esc(m.title)+'</div>'+(m.addon?'<div class="sub">+ Kött: '+esc(m.addon)+'</div>':'')+'</'+tag+'>'}).join('')}
 const healthRow=r=>'<div class="cell room"><div class="grow"><div>'+esc(r.room)+'</div><div class="cap '+healthCls(r.score)+'"><i style="width:'+Math.round(r.score*100)+'%"></i></div></div><span class="hw '+healthCls(r.score)+'">'+healthWord(r.score)+'</span></div>';
@@ -459,18 +461,20 @@ function calDots(date){const d=D(),evs=d.events.filter(e=>e.date===date),ts=d.ta
  evs.forEach(e=>{const w=String(e.who||'').trim();out.push(w&&people().includes(w)?'e '+pcls(w):'e o')});
  ts.forEach(()=>out.push('t'));return out.slice(0,4)}
 // Översiktens kalenderruta: veckoremsa där man väljer dag, och den dagens händelser med start- och sluttid
-function calWidget(){const t=today(),d=D(),wk=[];for(let i=0;i<7;i++)wk.push(addDays(t,i));
+function calDayRows(sel){const d=D(),t=today();
+ const evs=d.events.filter(e=>e.date===sel).sort((a,b)=>String(a.time||'').localeCompare(String(b.time||''))),
+  ts=d.tasks.filter(x=>x.due===sel&&!x.done),cd=sel===t?evCountdown(evs):new Map();
+ const rows=evs.map(e=>'<div class="ev"><span class="t">'+esc(e.time||'Heldag')+'</span><span class="grow">'+esc(e.title)+evWho(e)+'</span>'+(cd.has(e)?'<span class="cd num">'+cd.get(e)+'</span>':'')+'</div>').join('')+
+  ts.map(x=>'<div class="ev task"><span class="t">Att göra</span><span>'+esc(x.title)+evWho(x)+'</span></div>').join('');
+ return rows?'<div class="evs">'+rows+'</div>':'<div class="wempty">Inget inplanerat '+(sel===t?'idag':'den här dagen')+'.</div>'}
+function calWidget(){const t=today(),wk=[];for(let i=0;i<7;i++)wk.push(addDays(t,i));
  const sel=wk.includes(S.ovDay)?S.ovDay:t;
  let strip='<div class="wk" role="group" aria-label="Veckans dagar">';
  wk.forEach((k,i)=>{const dt=parse(k),dots=calDots(k);
   strip+='<button class="wk-d'+(i===0?' today':'')+(k===sel?' sel':'')+'" data-act="ovDay" data-id="'+k+'" aria-pressed="'+(k===sel)+'" aria-label="'+esc(dateLong(k))+(dots.length?', '+dots.length+' saker':'')+'"><span class="wd">'+(i===0?'Idag':cap(DAYS[dt.getDay()].slice(0,3)))+'</span><span class="n num">'+dt.getDate()+'</span><span class="dots">'+dots.map(c=>'<i class="'+c+'"></i>').join('')+'</span></button>'});
  strip+='</div>';
- const evs=d.events.filter(e=>e.date===sel).sort((a,b)=>String(a.time||'').localeCompare(String(b.time||''))),
-  ts=d.tasks.filter(x=>x.due===sel&&!x.done);
- const rows=evs.map(e=>'<div class="ev"><span class="t">'+esc(e.time||'Heldag')+'</span><span>'+esc(e.title)+evWho(e)+'</span></div>').join('')+
-  ts.map(x=>'<div class="ev task"><span class="t">Att göra</span><span>'+esc(x.title)+evWho(x)+'</span></div>').join('');
  return'<section class="widget w2 calw"><button class="wh" data-act="calOpen" data-id="'+sel+'" style="width:100%">'+I.cal+'<span>Kalender</span><span class="r">'+esc(cap(MON[parse(sel).getMonth()]))+'</span></button>'+strip+
-  '<div class="wk-day">'+(rows?'<div class="evs">'+rows+'</div>':'<div class="wempty">Inget inplanerat '+(sel===t?'idag':'den här dagen')+'.</div>')+
+  '<div class="wk-day"><div id="cal-rows" data-d="'+sel+'">'+calDayRows(sel)+'</div>'+
   '<button class="wk-open" data-act="calOpen" data-id="'+sel+'">Öppna i kalendern'+chevron+'</button></div></section>'}
 function calView(){const t=today(),sel=S.calDay||t,m=S.calMonth||ymKey(sel),[y,mo]=m.split('-').map(Number);
  const first=new Date(y,mo-1,1),start=new Date(first);start.setDate(1-((first.getDay()+6)%7));
@@ -789,9 +793,17 @@ function moonSvg(frac,waxing,sz){const r=10,k=Math.abs(2*frac-1)*r,lit=frac<.03?
   '<circle cx="-3" cy="-2.5" r="2.2" fill="#C2CBE2" opacity="'+(frac>.5?.45:0)+'"/><circle cx="3.5" cy="3.5" r="1.5" fill="#C2CBE2" opacity="'+(frac>.5?.4:0)+'"/></svg>'}
 function sunSvg(warm,sz){const c=warm?'#FFB877':'#FFE7A3',d=warm?'#FF9F5A':'#FFD666';
  return'<svg viewBox="-24 -24 48 48" width="'+sz+'" height="'+sz+'"><circle r="24" fill="'+c+'" opacity=".16"/><circle r="17" fill="'+c+'" opacity=".22"/><circle r="12.5" fill="'+c+'" opacity=".3"/><circle r="8.5" fill="'+d+'"/></svg>'}
-function skyHtml(W,big){const P=WX_POS(),sc=wxScene(W),k=SKY(new Date(),P.lat,P.lon),sz=big?56:44;
+// dagens högsta höjd för solen och månen, så att banan i översiktens ruta alltid når upp till kanten
+const SKY_TOP={};
+function skyPeak(lat,lon){const t=today(),key=t+lat+lon;if(SKY_TOP[key])return SKY_TOP[key];
+ const d0=parse(t).getTime(),p={sun:0,moon:0};
+ for(let i=0;i<=96;i++){const k=SKY(new Date(d0+i*9e5),lat,lon);p.sun=Math.max(p.sun,k.sun.alt);p.moon=Math.max(p.moon,k.moon.alt)}
+ return SKY_TOP[key]=p}
+function skyHtml(W,big){const P=WX_POS(),sc=wxScene(W),k=SKY(new Date(),P.lat,P.lon),sz=big?56:44,pk=big?null:skyPeak(P.lat,P.lon);
  const covered=sc.sky==='cloudy'||sc.sky==='fog'||/^(rain|sleet|snow)$/.test(sc.type)&&sc.lv>=2||sc.thunder,op=covered?.35:1;
- const at=(b,html,cls,f)=>{const q=skyXY(b);return'<div class="sky-b '+cls+'" style="left:'+q.x.toFixed(1)+'%;top:'+q.y.toFixed(1)+'%;opacity:'+(op*(f||1))+'">'+html+'</div>'};
+ // i översikten går banan från namnsdagsraden (--hz) upp till rutans överkant, där solen får beskäras
+ const at=(b,html,cls,f)=>{const q=skyXY(b),pos=big?'top:'+q.y.toFixed(1)+'%':'top:calc(var(--hz,62%) - '+Math.max(0,Math.min(1,b.alt/Math.max(pk[cls==='sky-sun'?'sun':'moon'],8))).toFixed(3)+' * (var(--hz,62%) - 8px))';
+  return'<div class="sky-b '+cls+'" style="left:'+q.x.toFixed(1)+'%;'+pos+';opacity:'+(op*(f||1))+'">'+html+'</div>'};
  let h='';
  // stjärnor när det är mörkt och himlen inte är täckt
  if(sc.dark&&!covered)h+='<svg class="sky-stars" viewBox="0 0 100 100" preserveAspectRatio="none">'+[[8,14],[22,40],[36,10],[47,28],[61,8],[70,36],[83,18],[93,44],[15,62],[55,52]].slice(0,sc.sky==='partly'?4:10)
@@ -874,14 +886,21 @@ function figSvg(sc,o){o=o||{};const id='fg'+(++FIG_N),ph=sc.phase,dark=sc.dark,w
  return'<svg class="fig k-'+sc.tc+' w'+sc.wl+(sc.sleep?' zz':'')+'" viewBox="0 0 170 130" role="img" aria-label="'+esc(o.label||sc.label)+'">'+s+'</svg>'}
 
 const hm=m=>pad(Math.floor(m/60))+'.'+pad(m%60);
-function nextHtml(){const n=new Date(),mins=n.getHours()*60+n.getMinutes(),td=dayOf(today());
+// nedräkning för dagens händelser: "till 16.00" när den pågår, "om 2 h 5 min" för nästa som börjar
+function evCountdown(evs){const n=new Date(),mins=n.getHours()*60+n.getMinutes(),out=new Map();
  const at=(s,re)=>{const m=re.exec(s||'');return m?Number(m[1])*60+Number(m[2]):null};
- const evs=(td?td.events:[]).map(e=>({e,s:at(e.time,/^(\d{1,2})[.:](\d{2})/),en:at(e.time,/[–-]\s*(\d{1,2})[.:](\d{2})/)})).filter(x=>x.s!=null).sort((a,b)=>a.s-b.s);
  const dur=m=>m<60?m+' min':Math.floor(m/60)+' h'+(m%60?' '+m%60+' min':'');
- const row=(l,x,r)=>'<div class="nx"><span class="nx-l">'+l+'</span><span class="grow">'+esc(x.e.title)+evWho(x.e)+'</span><span class="fn num">'+r+'</span></div>';
- const now=evs.filter(x=>x.s<=mins&&x.en!=null&&x.en>mins),nx=evs.find(x=>x.s>mins);
- const allDay=(td?td.events:[]).filter(e=>at(e.time,/^(\d{1,2})[.:](\d{2})/)==null).map(e=>'<div class="nx"><span class="nx-l">Idag</span><span class="grow">'+esc(e.title)+evWho(e)+'</span></div>').join('');
- return allDay+now.map(x=>row('Pågår',x,'till '+hm(x.en))).join('')+(nx?row('Härnäst',nx,'om '+dur(nx.s-mins)):'')}
+ const L=evs.map(e=>({e,s:at(e.time,/^(\d{1,2})[.:](\d{2})/),en:at(e.time,/[–-]\s*(\d{1,2})[.:](\d{2})/)})).filter(x=>x.s!=null);
+ L.forEach(x=>{if(x.s<=mins&&x.en!=null&&x.en>mins)out.set(x.e,'till '+hm(x.en))});
+ const nx=L.filter(x=>x.s>mins).sort((a,b)=>a.s-b.s)[0];if(nx)out.set(nx.e,'om '+dur(nx.s-mins));
+ return out}
+// sol- och månbanans horisont: mitt i namnsdagsraden (annars faktaraden), aldrig under hundarnas fötter
+function placeSky(){const h=document.querySelector('.hero');if(!h)return;
+ const chips=[...h.querySelectorAll('.hero-facts span')],c=chips.find(x=>/^Namnsdag/.test(x.textContent))||chips[Math.floor((chips.length-1)/2)],fig=h.querySelector('.fig-box');
+ if(!c)return;const top=h.getBoundingClientRect().top,r=c.getBoundingClientRect();let y=r.top+r.height/2-top;
+ if(fig){const f=fig.getBoundingClientRect();y=Math.min(y,f.bottom-top-6)}
+ h.style.setProperty('--hz',Math.round(y)+'px')}
+window.addEventListener('resize',placeSky);
 function heroHtml(){const n=new Date(),t=today(),dy=EXT.day&&EXT.day.date===t?EXT.day:null,hh=n.getHours(),W=wxModel(),P=WX_POS();
  const greet=hh<5?'God natt':hh<10?'God morgon':hh<17?'Hej':hh<22?'God kväll':'God natt';
  const sun=sunTimes(t,P.lat,P.lon);
@@ -896,8 +915,7 @@ function heroHtml(){const n=new Date(),t=today(),dy=EXT.day&&EXT.day.date===t?EX
  if(dy&&dy.names.length)facts.push('Namnsdag: '+dy.names.join(', '));
  if(sun)facts.push('Sol '+hhmm(sun[0])+'–'+hhmm(sun[1]));
  return'<section class="hero'+(wx?' has-wx':'')+'">'+(W?skyHtml(W):'')+'<div class="hero-l"><div class="clock num" id="clock">'+pad(hh)+':'+pad(n.getMinutes())+'</div><div class="hero-date">'+esc(cap(dayHead(t)))+'</div>'+
-  '<div class="hero-greet">'+greet+(S.me?', '+esc(S.me):'')+'!</div><div class="hero-facts">'+facts.map(f=>'<span>'+esc(f)+'</span>').join('')+'</div></div>'+wx+
-  '<div id="hero-next">'+nextHtml()+'</div></section>'}
+  '<div class="hero-greet">'+greet+(S.me?', '+esc(S.me):'')+'!</div><div class="hero-facts">'+facts.map(f=>'<span>'+esc(f)+'</span>').join('')+'</div></div>'+wx+'</section>'}
 async function loadExt(){const t=today();let changed=await loadWx();
  if(!EXT.day||EXT.day.date!==t){try{const[y,mo,d]=t.split('-');
   const r=await fetch('https://sholiday.faboul.se/dagar/v2.1/'+y+'/'+mo+'/'+d);const j=await r.json(),x=j.dagar&&j.dagar[0];
@@ -1266,7 +1284,7 @@ let actx=null;function unlockAudio(){try{actx=actx||new(window.AudioContext||win
 function beep(){if(!actx)return;try{for(let i=0;i<3;i++){const o=actx.createOscillator(),g=actx.createGain();o.frequency.value=880;o.connect(g);g.connect(actx.destination);const t=actx.currentTime+i*.35;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.3,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+.25);o.start(t);o.stop(t+.3)}}catch(e){}}
 function tick(){
  const c=document.getElementById('clock');if(c){const n=new Date(),txt=pad(n.getHours())+':'+pad(n.getMinutes());
-  if(c.dataset.v!==txt){flipClock(c,txt);const nx=document.getElementById('hero-next');if(nx)nx.innerHTML=nextHtml()}}
+  if(c.dataset.v!==txt){flipClock(c,txt);const cr=document.getElementById('cal-rows');if(cr)cr.innerHTML=calDayRows(cr.dataset.d)}}
  const box=document.getElementById('timers');
  box.innerHTML=S.timers.map(t=>{const ms=t.end-Date.now();if(ms<=0&&!t.ring){t.ring=true;beep();try{navigator.vibrate&&navigator.vibrate([300,150,300])}catch(e){}}const s=Math.max(0,Math.ceil(ms/1000));
   return'<div class="timer'+(t.ring?' ring':'')+'"><span>'+esc(t.label)+'</span><span class="num">'+(t.ring?'Klart!':Math.floor(s/60)+':'+pad(s%60))+'</span><button data-act="timerStop" data-id="'+t.k+'" aria-label="Stäng timer">'+I.x+'</button></div>'}).join('');
