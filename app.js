@@ -362,7 +362,7 @@ function wallWx(){const W=wxModel();if(!W)return'';
  // ett dygn framåt, timme för timme; svep i sidled för fler timmar, tryck för att öppna vädret
  const hrs=W.hours.slice(1,25);
  const R=rainTxt(W);
- let h='<div class="bwx"><div class="bwx-r'+(R.wet?' wet':'')+'">'+(R.wet?UMB:I.tick)+'<span>'+esc(R.txt)+'</span></div><div class="bwx-f"><span>'+esc(windText(W.now))+'</span><span class="fn">Svep för fler timmar</span></div>';
+ let h='<div class="bwx"><div class="bwx-r'+(R.wet?' wet':'')+'">'+(R.wet?UMB:I.tick)+'<span>'+esc(R.txt)+'</span></div>';
  h+='<div class="bwx-h" data-act="nav" data-id="vader" role="link" aria-label="Väder timme för timme, öppna vädret">'+hrs.map((x,k)=>{const[ic]=symInfo(x.s),hr=x.d.getHours(),nd=hr===0&&k>0;
   return'<div class="'+(nd?'nd':'')+'"><span class="fn num">'+(nd?capS(DAYS3[x.d.getDay()]):pad(hr))+'</span><span class="hi">'+ic+'</span><b class="num">'+deg(x.T)+'</b>'+(x.pr>=0.1?'<span class="pr num">'+mm(x.pr)+'</span>':'<span class="pr"></span>')+'</div>'}).join('')+'</div></div>';
  return h}
