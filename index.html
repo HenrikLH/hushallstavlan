@@ -68,12 +68,12 @@ button:active,.cell.link:active,[data-act]:active{opacity:.6}
 .check:active,.sheet:active,.widget:active,input:active,select:active{opacity:1}
 svg{flex:none}
 
-/* ===== 3. Skal: flikrad (telefon) och sidofält (dator) ===== */
+/* ===== 3. Skal: svävande flikrad, samma på telefon, dator och vägg ===== */
 .nav{position:fixed;z-index:20;display:flex}
 .nav button{display:flex;align-items:center;min-width:0;color:var(--gray)}
 .nav .brand,.nav-pill{display:none}
-/* Telefon: svävande flikrad i glas med en markering som glider mellan flikarna och kan dras */
-@media (max-width:899px){
+/* Flikrad i glas med en markering som glider mellan flikarna och kan dras */
+@media all{
   .nav{left:calc(14px + var(--sal));right:calc(14px + var(--sar));bottom:var(--tabgap);height:var(--tabbar);padding:4px;border-radius:calc(var(--tabbar) / 2);background:var(--glass);-webkit-backdrop-filter:saturate(180%) blur(24px);backdrop-filter:saturate(180%) blur(24px);border:.5px solid var(--glass-line);box-shadow:0 10px 30px rgba(0,0,0,.16),0 1px 3px rgba(0,0,0,.08);touch-action:none;-webkit-user-select:none;user-select:none}
   .nav-pill{display:block;position:absolute;top:4px;bottom:4px;left:4px;width:calc((100% - 8px) / 5);border-radius:calc(var(--tabbar) / 2 - 4px);background:var(--pill);transform:translateX(calc(var(--i,0) * 100%));transition:transform .5s cubic-bezier(.3,1.3,.5,1),scale .25s cubic-bezier(.3,1.3,.5,1);pointer-events:none}
   .nav.drag .nav-pill{transform:translateX(var(--dx,0px));scale:1.1 1.16;transition:scale .25s cubic-bezier(.3,1.3,.5,1)}
@@ -84,18 +84,19 @@ svg{flex:none}
   .nav.drag button.over{color:var(--accent)}
   .nav button:active{opacity:1}
 }
+/* Stora skärmar: flikraden centreras och blir lite större */
 @media (min-width:900px){
-  .nav{top:0;bottom:0;left:0;width:calc(var(--side) + var(--sal));flex-direction:column;gap:2px;background:var(--bg);border-right:.5px solid var(--line);padding:calc(18px + var(--sat)) 12px 16px calc(12px + var(--sal))}
-  .nav .brand{display:block;font-size:28px;line-height:34px;font-weight:700;letter-spacing:.36px;padding:6px 10px 14px}
-  .nav button{height:44px;gap:12px;padding:0 10px;border-radius:10px;color:var(--ink);font-size:17px}
-  .nav button svg{width:22px;height:22px;color:var(--accent)}
-  .nav button[aria-current="page"]{background:var(--accent);color:var(--on-accent)}
-  .nav button[aria-current="page"] svg{color:var(--on-accent)}
-  main{margin-left:calc(var(--side) + var(--sal))}
+  .nav{left:50%;right:auto;width:min(600px,calc(100% - 28px));transform:translateX(-50%)}
+  :root{--tabbar:68px}
+  .nav button{font-size:11px;line-height:13px}
+  .nav button svg{width:26px;height:26px}
+}
 }
 main{padding:0 var(--sar) 32px var(--sal);display:block}
-@media (max-width:899px){main{padding-bottom:calc(var(--tabbar) + var(--tabgap) + 28px)}}
+main{padding-bottom:calc(var(--tabbar) + var(--tabgap) + 28px)}
 .wrap{max-width:1100px;margin:0 auto;padding-top:calc(var(--sat) + 10px)}
+/* Vyerna läggs i en centrerad spalt som på telefonen; översikten får hela bredden */
+@media (min-width:900px){.wrap{max-width:820px}body[data-view="oversikt"] .wrap{max-width:1240px}}
 body.wall main{zoom:1.0588}
 
 /* Kompakt rubrikrad (visas när den stora rubriken scrollats ur bild) */
@@ -212,8 +213,16 @@ details[open]>summary.sh::after{transform:rotate(45deg);margin-bottom:6px}
 body.wall .clock{display:block}
 @media (min-width:900px){.clock{display:block}}
 .widgets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:8px 16px 0}
-@media (min-width:900px){.widgets{grid-template-columns:repeat(4,minmax(0,1fr))}}
-body.wall .widgets{grid-template-columns:repeat(4,minmax(0,1fr))}
+.wpair{grid-column:span 2;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (min-width:900px){
+  .ov{columns:2;column-gap:14px;margin:8px 16px 0}
+  .ov .widgets{display:contents}
+  .ov>.hero,.ov .widgets>*{break-inside:avoid;margin:0 0 14px}
+  .ov .widget,.ov .wpair{display:flex;width:100%}
+  .ov .widget{flex-direction:column}
+  .ov .wpair>.widget{flex:1;margin:0}
+  .ov .wpair{gap:14px}
+}
 .widget{background:var(--surface);border-radius:20px;padding:14px 16px;min-width:0;cursor:pointer;display:flex;flex-direction:column;gap:6px}
 .widget.w2{grid-column:span 2}
 .wh{display:flex;align-items:center;gap:6px;font-size:13px;line-height:18px;font-weight:600;letter-spacing:-.08px;color:var(--accent);min-height:20px}
@@ -307,7 +316,6 @@ body.wall .widgets{grid-template-columns:repeat(4,minmax(0,1fr))}
 
 /* Layout för breda skärmar */
 .split{display:grid;grid-template-columns:minmax(0,1fr)}
-@media (min-width:1000px){.split{grid-template-columns:minmax(0,3fr) minmax(0,2fr)}}
 .col{min-width:0}
 
 /* ===== 8. Blad (inställningar, ny vara, ny uppgift) ===== */
@@ -357,7 +365,6 @@ body.wall .widgets{grid-template-columns:repeat(4,minmax(0,1fr))}
 .cook-nav{display:flex;gap:12px;padding:10px 16px 0}
 .cook-nav button{flex:1}
 .timers{position:fixed;right:calc(16px + var(--sar));bottom:calc(var(--tabbar) + var(--tabgap) + 12px);z-index:60;display:flex;flex-direction:column;gap:8px;align-items:flex-end}
-@media (min-width:900px){.timers{bottom:24px}}
 .cook-open .timers{bottom:calc(var(--sab) + 84px)}
 .timer{background:var(--surface-raised);color:var(--ink);border:.5px solid var(--line);border-radius:22px;padding:0 4px 0 16px;height:44px;display:flex;gap:10px;align-items:center;font-size:15px;font-weight:600;letter-spacing:-.24px;box-shadow:0 8px 24px rgba(0,0,0,.12)}
 .timer .num{font-variant-numeric:tabular-nums}
@@ -368,7 +375,6 @@ body.wall .widgets{grid-template-columns:repeat(4,minmax(0,1fr))}
 
 /* ===== 10. Toast, banner, inloggning ===== */
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--tabbar) + var(--tabgap) + 14px);background:var(--surface-raised);color:var(--ink);border:.5px solid var(--line);box-shadow:0 8px 24px rgba(0,0,0,.12);padding:10px 18px;border-radius:22px;z-index:80;font-size:15px;font-weight:600;letter-spacing:-.24px;max-width:calc(100% - 32px);text-align:center}
-@media (min-width:900px){.toast{bottom:24px;margin-left:calc(var(--side) / 2)}}
 .banner{margin:8px 16px 0;padding:11px 16px;border-radius:10px;background:var(--gem-bg);color:var(--ink);font-size:15px;line-height:20px;letter-spacing:-.24px}
 .setup{max-width:440px;margin:0 auto;padding-top:10vh}
 .setup .lt{padding:0 16px}
@@ -394,6 +400,7 @@ body.wall .hero .clock{font-size:96px;letter-spacing:-3px}
 button.fig-box{display:block;padding:0;border-radius:18px;transition:transform .2s}
 button.fig-box:active{opacity:1;transform:scale(.96)}
 .fig-tip{font-size:11px;line-height:13px;color:var(--ink-2);text-align:center;align-self:center;max-width:140px;margin-top:2px}
+@media (min-width:900px){.ov .hero-wx{width:210px}.ov .hero-wx .fig-box{width:200px;height:153px}.ov .fig-tip{max-width:200px;font-size:12px;line-height:15px}}
 #hero-next{grid-column:1/-1;margin-top:12px;padding-top:10px;border-top:.5px solid var(--line);display:flex;flex-direction:column;gap:6px}
 #hero-next:empty{display:none}
 .nx{display:flex;align-items:baseline;gap:10px;font-size:15px;line-height:20px;letter-spacing:-.24px;min-width:0}
@@ -467,7 +474,7 @@ button.fig-box:active{opacity:1;transform:scale(.96)}
 
 /* ===== Ekonomi ===== */
 .side-only{display:none!important}
-@media (min-width:900px){.nav .side-only{display:flex!important}.only-phone{display:none}}
+
 .nav.none .nav-pill{opacity:0}
 .pdot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:1px}
 .pdot.p1,.splitbar .p1,.stack .p1,.hbar .p1,.sw.p1{background:var(--p1)}
@@ -606,7 +613,7 @@ button.fig-box:active{opacity:1;transform:scale(.96)}
 .cal-ev .bar.p1{background:var(--p1)}.cal-ev .bar.p2{background:var(--p2)}
 .cal-ev .t{width:98px;white-space:nowrap;flex:none;color:var(--ink-2);font-size:15px;padding-top:1px}
 .cal-ev .grow{display:flex;flex-direction:column;gap:3px}
-@media (min-width:900px){.cal{max-width:520px}}
+
 .photo-pick{position:relative;cursor:pointer}
 .photo-pick input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
 .rcp-photo{margin:10px 0 4px;border-radius:18px;overflow:hidden;aspect-ratio:4/3;background:var(--fill)}
@@ -674,8 +681,8 @@ body.wall::before{content:"";position:fixed;inset:-20%;z-index:-1;pointer-events
 <div id="overlay"></div>
 <div class="timers" id="timers" aria-live="polite"></div>
 <div id="toast" hidden class="toast" role="status"></div>
-<script src="config.js?v=22"></script>
-<script src="app.js?v=22"></script>
+<script src="config.js?v=23"></script>
+<script src="app.js?v=23"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
