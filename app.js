@@ -1047,7 +1047,10 @@ function skyHtml(W,big){const P=WX_POS(),sc=wxScene(W),k=SKY(new Date(),P.lat,P.
  if(sc.dark&&!covered)h+='<svg class="sky-stars" viewBox="0 0 100 100" preserveAspectRatio="none">'+[[8,14],[22,40],[36,10],[47,28],[61,8],[70,36],[83,18],[93,44],[15,62],[55,52]].slice(0,sc.sky==='partly'?4:10)
   .map(([x,y],i)=>'<circle class="tw'+(i%3?' d'+(i%3+1):'')+'" cx="'+x+'" cy="'+y+'" r=".45"/>').join('')+'</svg>';
  if(k.sun.alt>-1)h+=at(k.sun,sunSvg(k.sun.alt<8,big?sz:84),'sky-sun');
- if(k.moon.alt>-1)h+=at(k.moon,moonSvg(k.moon.frac,k.moon.waxing,sz*.9),'sky-moon',k.sun.alt>0?.55:1);
+ // på natten vandrar månen i en båge från öster till väster, i sin verkliga fas; på dagen syns den där den står
+ const nq=k.sun.alt<-1&&nightFrac(new Date(),P);
+ if(nq!==false)h+=at({az:-90+nq*180,alt:Math.sin(Math.PI*nq)*.8*(big?55:Math.max(pk.moon,8))},moonSvg(k.moon.frac,k.moon.waxing,sz*1.1),'sky-moon');
+ else if(k.moon.alt>-1)h+=at(k.moon,moonSvg(k.moon.frac,k.moon.waxing,sz*.9),'sky-moon',k.sun.alt>0?.55:1);
  return'<div class="sky" aria-hidden="true">'+h+'</div>'}
 /* Vädervyns lilla miljö: himmel, kullar, träd och gräs som följer tid på dygnet, väder och årstid.
    Hundarna står på gräset till vänster; solen och månen följer sina banor över hela rutan,
