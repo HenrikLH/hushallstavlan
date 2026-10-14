@@ -149,6 +149,13 @@ let fitScrollbar=()=>{};
  document.addEventListener('scroll',()=>{if(!el.classList.contains('sb-auto'))return;el.classList.add('scrolling');clearTimeout(t);t=setTimeout(()=>el.classList.remove('scrolling'),900)},{capture:true,passive:true});
  fitScrollbar=fit})();
 
+/* Väggtavlan: tillbaka till Översikt efter två minuter utan beröring, och väck nattläget vid tryck */
+(function(){const touch=()=>{const was=nightOn();A.touch=Date.now();if(was&&S.view==='oversikt')render()};
+ document.addEventListener('pointerdown',touch,true);
+ setInterval(()=>{if(!S.wall)return;const idle=Date.now()-(A.touch||0)>120000;
+  if(idle&&(S.view!=='oversikt'||S.sheet||S.shopAdd||S.taskAdd||S.recipe||window.scrollY>0)&&!S.cook){closeSheets();S.recipe=null;ACT.nav('oversikt')}
+  else if(S.view==='oversikt'&&document.body.classList.contains('is-night')!==nightOn())render()},20000)})();
+
 /* Lämna kioskläget utan tangentbord: håll fingret still på klockan i tre sekunder så stängs tavlan */
 (function(){let t=0,x=0,y=0;const stop=()=>{clearTimeout(t);t=0};
  document.addEventListener('pointerdown',e=>{if(e.button>0||!e.target.closest('#clock'))return;stop();x=e.clientX;y=e.clientY;
@@ -253,7 +260,7 @@ function watchTitle(){
  io=new IntersectionObserver(es=>{const e=es[es.length-1];show(!e.isIntersecting&&e.boundingClientRect.top<bar.offsetHeight)},{rootMargin:'-'+(bar.offsetHeight||44)+'px 0px 0px 0px',threshold:0});
  io.observe(lt)}
 function doRender(){
- document.body.classList.toggle('wall',S.wall);document.body.dataset.view=S.view;
+ document.body.classList.toggle('wall',S.wall);document.body.classList.toggle('is-night',S.view==='oversikt'&&nightOn());document.body.dataset.view=S.view;
  document.body.classList.toggle('cook-open',!!S.cook);
  const nav=document.getElementById('nav'),m=document.getElementById('main');
  NB={title:'',back:false};
@@ -293,7 +300,36 @@ const dayHead=s=>{const d=parse(s);return DAYS[d.getDay()]+' '+d.getDate()+' '+M
 
 const V={};
 function widget(id,cls,icon,label,right,body){return'<section class="widget'+(cls?' '+cls:'')+'" data-act="nav" data-id="'+id+'"><button class="wh" data-act="nav" data-id="'+id+'" style="width:100%">'+icon+'<span>'+label+'</span>'+(right?'<span class="r">'+right+'</span>':'')+'</button>'+body+'</section>'}
+/* ---------- väggtavlan ----------
+   På väggskärmen (väggläge, bred skärm) blir Översikt en tavla i tre kolumner som alltid får plats
+   utan att scrolla: tid och väder | kalender och middag | städ, inköp och födelsedagar.
+   Mellan 22 och 06 visas ett mörkt nattläge, och efter två minuter utan beröring går tavlan tillbaka hit. */
+const wallBoardOn=()=>S.wall&&matchMedia('(min-width:900px)').matches;
+const nightOn=()=>{const h=new Date().getHours();return S.wall&&(h>=22||h<6)&&Date.now()-(A.touch||0)>120000};
+function wallNight(){const n=new Date(),t=today(),tm=addDays(t,1),W=wxModel();
+ const first=D().events.filter(e=>e.date===tm).sort((a,b)=>String(a.time||'').localeCompare(String(b.time||'')))[0];
+ const f=W&&W.days.find(x=>x.date===tm);
+ return'<div class="night" data-act="wakeBoard"><div class="clock num" id="clock">'+pad(n.getHours())+':'+pad(n.getMinutes())+'</div>'+
+  '<div class="night-l">I morgon '+esc(dayHead(tm))+'</div>'+
+  (first?'<div class="night-l">'+esc(first.time?String(first.time).split(/\s*[–-]\s*/)[0]+' ':'')+esc(first.title)+'</div>':'')+
+  (f?'<div class="night-l">'+symInfo(f.sym)[0]+' '+deg(f.min)+' till '+deg(f.max)+'</div>':'')+'</div>'}
+function wallBoard(){
+ if(nightOn())return wallNight();
+ const t=today(),d=D(),cp=cleanPlan(),td=dayOf(t),days=planDays();
+ const nextDay=(td&&td.meals.length)?td:days.find(x=>x.date>t&&x.meals.length),isT=nextDay&&nextDay.date===t;
+ const left=d.shop.filter(i=>!i.done);
+ const clean=[...cp.routines.filter(x=>!doneToday(x)),...cp.todo].slice(0,7),doneN=cp.routines.filter(doneToday).length+cp.doneRot.length,totN=cp.routines.length+cp.doneRot.length+cp.todo.length;
+ const bd=bdNext(bdays()).filter(b=>b.days<=14).slice(0,3);
+ let h='<div class="board"><div class="board-gear">'+gearBtn+'</div>';
+ h+='<div class="bcol">'+heroHtml()+'</div>';
+ h+='<div class="bcol">'+calWidget()+widget('mat','',I.fork,(isT||!nextDay)?'Middag ikväll':'Nästa middag',nextDay&&!isT?esc(dateShort(nextDay.date)):'',nextDay?wMeals(nextDay):'<div class="wempty">Ingen matsedel än.</div>')+'</div>';
+ h+='<div class="bcol">'+widget('stad','bclean',I.sparkles,'Städ idag',doneN+'/'+totN,clean.length?'<div class="wl">'+clean.map(x=>'<div class="cell ck"><input type="checkbox" class="check" data-act="cleanToggle" data-id="'+esc(x.id)+'" aria-label="'+esc(x.title)+'"><span class="grow">'+esc(x.title)+'</span><span class="val num">'+x.min+' min</span></div>').join('')+'</div>':'<div class="wempty">Allt är gjort idag.</div>');
+ h+='<div class="wpair">'+widget('inkop','',I.basket,'Inköp','','<div class="wbig">'+left.length+'</div><div class="sub">kvar · ca '+kr(shopCost(left))+'</div>')+
+  widget('uppgifter','',I.list,'Uppgifter','','<div class="wbig">'+d.tasks.filter(x=>!x.done&&isDate(x.due)&&x.due<=t).length+'</div><div class="sub">idag och försenade</div>')+'</div>';
+ if(bd.length)h+=widget('fod','',I.cake,'Födelsedagar','','<div class="wl">'+bd.map(b=>'<div class="cell bdw"><span class="grow">'+esc(b.name)+' <span class="muted">'+esc(bdTurns(b))+'</span></span><span class="bd-when'+(b.days<14?' soon':'')+'">'+esc(bdWhen(b))+'</span></div>').join('')+'</div>');
+ return h+'</div></div>'}
 V.oversikt=function(){
+ if(wallBoardOn())return wallBoard();
  const t=today(),now=new Date(),days=planDays();
  const td=dayOf(t),tm=dayOf(addDays(t,1));
  const nextDay=(td&&td.meals.length)?td:days.find(d=>d.date>t&&d.meals.length);
@@ -565,10 +601,14 @@ function calDots(date){const d=D(),evs=d.events.filter(e=>e.date===date),ts=d.ta
  ts.forEach(()=>out.push('t'));return out.slice(0,4)}
 // Översiktens kalenderruta: veckoremsa där man väljer dag, och den dagens händelser med start- och sluttid
 let CAL_STYLE=['1','2','3'].includes(lsGet('calStyle'))?lsGet('calStyle'):'2';
+// Födelsedagar i kalendern ("Leah fyller 12 år") visas som en påminnelse överst i stället för som en heldagsrad
+const isBdEv=e=>!e.time&&/ fyller( \d+)? år$/.test(String(e.title||''));
 function calDayRows(sel){const d=D(),t=today();
- const evs=d.events.filter(e=>e.date===sel).sort((a,b)=>String(a.time||'').localeCompare(String(b.time||''))),st=sel===t?evStates(evs):new Map();
- if(!evs.length)return'<div class="wempty">Inget i kalendern '+(sel===t?'idag':'den här dagen')+'.</div>';
- const head='<div class="wk-sub">Schema</div>',who=e=>evWho(e);
+ const all=d.events.filter(e=>e.date===sel).sort((a,b)=>String(a.time||'').localeCompare(String(b.time||'')));
+ const bds=all.filter(isBdEv),evs=all.filter(e=>!isBdEv(e)),st=sel===t?evStates(evs):new Map();
+ const rem=bds.map(e=>'<div class="bd-remind">'+I.cake+'<span>'+esc(e.title)+(sel===t?' idag':'')+'</span></div>').join('');
+ if(!evs.length)return rem+(bds.length?'':'<div class="wempty">Inget i kalendern '+(sel===t?'idag':'den här dagen')+'.</div>');
+ const head=rem+'<div class="wk-sub">Schema</div>',who=e=>evWho(e);
  if(CAL_STYLE==='1'){
   // förslag 1: tiden till vänster, bara det som inte redan står där till höger
   return head+'<div class="evs">'+evs.map(e=>{const x=st.get(e)||{};
@@ -1389,6 +1429,7 @@ function closeSheets(){S.sheet=null;S.swap=null;S.wishFor=null;S.rate=null;S.eko
 
 /* ---------- actions ---------- */
 const ACT={
+ wakeBoard(){render()},
  nav(id){try{document.activeElement&&document.activeElement.blur()}catch(e){}id=normView(id);S.shopAdd=false;S.taskAdd=false;S.view=id;S.recipe=null;S.confirm=null;lsSet('view',id);try{history.replaceState(null,'','#'+id)}catch(e){}window.scrollTo(0,0);render()},
  refresh(){refresh()},
  settings(){S.sheet='settings';render()},
