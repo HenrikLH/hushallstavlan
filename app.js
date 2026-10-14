@@ -116,6 +116,8 @@ function renderNav(nav){
    byter flik i samma ordning som flikraden. */
 (function(){let st=null,skip=false,glide=0;
  const on=()=>S.wall||matchMedia('(min-width:900px)').matches;
+ // tomma ytan under en kort sida räknas också som sidan
+ const inMain=el=>!!el.closest('main')||el===document.body||el===document.documentElement;
  const ax=(el,a)=>{const cs=getComputedStyle(el),o=a==='x'?cs.overflowX:cs.overflowY;return/(auto|scroll)/.test(o)&&(a==='x'?el.scrollWidth>el.clientWidth+1:el.scrollHeight>el.clientHeight+1)};
  const scroller=(el,a)=>{for(;el&&el!==document.body&&el!==document.documentElement;el=el.parentElement)if(ax(el,a))return el;return null};
  document.addEventListener('pointerdown',e=>{cancelAnimationFrame(glide);
@@ -131,7 +133,9 @@ function renderNav(nav){
   skip=true;setTimeout(()=>skip=false,80);
   const dx=e.clientX-s.x0,dy=e.clientY-s.y0;
   // svep i sidled där inget scrollar i sidled: byt flik
-  if(s.a==='x'&&!s.el&&Math.abs(dx)>80&&Math.abs(dx)>1.5*Math.abs(dy)&&s.tg.closest('main')&&!document.querySelector('#overlay .sheet')){
+  // (i Mat och Uppgifter byts först undermenyn, vid sista undermenyn fortsätter svepet till nästa flik)
+  if(s.a==='x'&&!s.el&&Math.abs(dx)>80&&Math.abs(dx)>1.5*Math.abs(dy)&&inMain(s.tg)&&!document.querySelector('#overlay .sheet')){
+   if(subSwipe(dx))return;
    const i=VIEWS.findIndex(v=>v[0]===S.view),j=i<0?2:i+(dx<0?1:-1);if(j>=0&&j<VIEWS.length)ACT.nav(VIEWS[j][0]);return}
   if(!s.mouse||performance.now()-s.t>80)return;
   // fortsätt glida och bromsa in mjukt
@@ -140,7 +144,25 @@ function renderNav(nav){
   glide=requestAnimationFrame(step)};
  addEventListener('pointerup',e=>end(e,true));addEventListener('pointercancel',e=>end(e,false));
  document.addEventListener('click',e=>{if(skip){e.stopPropagation();e.preventDefault()}},true);
- document.addEventListener('dragstart',e=>{if(on())e.preventDefault()})})();
+ document.addEventListener('dragstart',e=>{if(on())e.preventDefault()});
+ // Telefonen: ett tydligt svep i sidled byter undermeny i Mat och Uppgifter (flikarna byts som förut med flikraden).
+ // Svep som börjar vid skärmkanten lämnas åt Safaris bakåtgest, och listor som scrollar i sidled scrollar som vanligt.
+ let t=null;
+ document.addEventListener('touchstart',e=>{t=null;if(on()||e.touches.length!==1||!S.data)return;const p=e.touches[0];
+  if(p.clientX<24||p.clientX>innerWidth-24||!inMain(e.target)||e.target.closest('input,select,textarea,[contenteditable]')||scroller(e.target,'x'))return;
+  t={x0:p.clientX,y0:p.clientY,x:p.clientX,y:p.clientY,t0:performance.now()}},{passive:true});
+ document.addEventListener('touchmove',e=>{if(!t)return;if(e.touches.length!==1){t=null;return}t.x=e.touches[0].clientX;t.y=e.touches[0].clientY},{passive:true});
+ document.addEventListener('touchcancel',()=>{t=null},{passive:true});
+ document.addEventListener('touchend',()=>{if(!t)return;const g=t;t=null;const dx=g.x-g.x0,dy=g.y-g.y0;
+  if(Math.abs(dx)>70&&Math.abs(dx)>1.8*Math.abs(dy)&&performance.now()-g.t0<800&&!document.querySelector('#overlay .sheet'))subSwipe(dx)},{passive:true})})();
+
+/* Undermenyerna i Mat och Uppgifter i samma ordning som segmentreglaget. Svep åt vänster = nästa. */
+const SUBS={mat:['matTab',['vecka','inkop','recept','bank']],uppgifter:['taskTab',['lista','kalender']]};
+function subSwipe(dx){const sub=SUBS[S.view];if(!sub||S.recipe||S.cook||S.sheet)return false;
+ const[k,list]=sub,i=list.indexOf(S[k]),j=i+(dx<0?1:-1);if(i<0||j<0||j>=list.length)return false;
+ A.dir=dx<0?'in-right':'in-left';A.user=Date.now();
+ const sg=document.querySelector('#main .segc[data-seg="'+k+'"]');if(sg&&sg.getBoundingClientRect().top<0)window.scrollTo(0,0);
+ ACT[k](list[j]);return true}
 
 let fitScrollbar=()=>{};
 /* Rullningslisten på stora skärmar och i väggläge syns bara medan man scrollar */
@@ -1406,10 +1428,10 @@ const A={page:'',keys:null,rects:null,nums:{},bars:{},segs:{},done:null,user:0,c
  before(m){this.rects=null;
   if(this.flip){this.rects={};m.querySelectorAll('.cell input.check').forEach(b=>{const r=b.closest('.cell').getBoundingClientRect();if(r.height)this.rects[rowKey(b)]=r.top});this.flip=false}
   this.widgets=S.view==='oversikt'?[...m.querySelectorAll('.widget')].map(w=>w.innerHTML):null},
- after(m){const page=S.view+'|'+(S.recipe||'')+'|'+(S.view==='mat'?S.matTab:''),newPage=page!==this.page,prev=this.page;this.page=page;
+ after(m){const page=S.view+'|'+(S.recipe||'')+'|'+(S.view==='mat'?S.matTab:S.view==='uppgifter'?S.taskTab:''),newPage=page!==this.page,prev=this.page;this.page=page;
   const keys=new Set([...m.querySelectorAll('.cell input.check')].map(rowKey));
   if(!calm()){
-   if(newPage&&prev){const[pv,pr]=prev.split('|');const cls=S.recipe&&!pr?'in-right':(!S.recipe&&pr&&pv===S.view)?'in-left':'in-fade';
+   if(newPage&&prev){const[pv,pr]=prev.split('|');const cls=this.dir||(S.recipe&&!pr?'in-right':(!S.recipe&&pr&&pv===S.view)?'in-left':'in-fade');
     m.classList.remove('in-fade','in-right','in-left');void m.offsetWidth;m.classList.add(cls)}
    if(!newPage){
     // Rader som flyttat sig glider till sin nya plats
@@ -1421,7 +1443,7 @@ const A={page:'',keys:null,rects:null,nums:{},bars:{},segs:{},done:null,user:0,c
     // Översiktens rutor tonar när ny data kommer utan att någon har tryckt
     if(this.widgets&&Date.now()-this.user>2000)m.querySelectorAll('.widget').forEach((w,i)=>{if(this.widgets[i]!=null&&this.widgets[i]!==w.innerHTML){w.classList.remove('upd');void w.offsetWidth;w.classList.add('upd')}})}
   }
-  this.keys=keys;
+  this.dir=null;this.keys=keys;
   // Siffror räknas från förra värdet
   m.querySelectorAll('.nv').forEach(el=>{const k=el.dataset.n,v=Number(el.dataset.v),f=el.dataset.f,old=this.nums[k];this.nums[k]=v;
    if(old==null||old===v||calm())return;const fmt=x=>f==='kr'?kr(x):String(Math.round(x));const t0=performance.now(),dur=650;
