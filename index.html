@@ -504,6 +504,8 @@ button.fig-box:active{opacity:1;transform:scale(.96)}
 .vpick span{display:flex;align-items:center;justify-content:center;height:44px;border-radius:12px;background:var(--surface);font-size:15px;font-weight:600;cursor:pointer;transition:background .2s,color .2s}
 .vpick input:checked+span{background:var(--accent);color:var(--on-accent)}
 .vpick input:focus-visible+span{outline:2px solid var(--accent)}
+.vpick.col{flex-direction:column;gap:6px}
+.vpick.col span{justify-content:flex-start;padding:0 16px;font-weight:500}
 
 /* ===== Ekonomi ===== */
 .side-only{display:none!important}
@@ -789,7 +791,7 @@ body.wall::before{content:"";position:fixed;inset:-20%;z-index:-1;pointer-events
 <div class="timers" id="timers" aria-live="polite"></div>
 <div id="toast" hidden class="toast" role="status"></div>
 <script src="config.js?v=37"></script>
-<script src="app.js?v=38"></script>
+<script src="app.js?v=39"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>

@@ -263,6 +263,7 @@ function doPost(e) {
         setCells_('clean', findRow_('clean', b.id), f);
         break;
       }
+      case 'menuSwap': menuSwap_(b, by); break;
       case 'setting':
         if (!settingWritable_(b.k)) throw new Error('Inställningen kan inte ändras från appen.');
         if (String(b.v).length > 49000) throw new Error('Värdet är för långt för en cell.');
@@ -282,6 +283,74 @@ function doPost(e) {
 function deleteDone_(key) {
   const sh = sheet_(key), rows = readTab_(key).filter(function (o) { return o.done; }).map(function (o) { return o._row; });
   rows.sort(function (a, b) { return b - a; }).forEach(function (r) { sh.deleteRow(r); });
+}
+
+/* ---------------- byta rätt på veckans matsedel ---------------- */
+const DAYS3_ = ['Sön', 'Mån', 'Tis', 'Ons', 'Tor', 'Fre', 'Lör'];
+// Samma etiketter som veckoplaneringen skriver i Inköp, kolumnen Till rätt
+function mealLabel_(m, group) {
+  const veg = m.who === 'Vegetariskt';
+  if (group === 'Storkok' || /^storkok/i.test(m.title)) return 'Storkok ' + (veg ? 'veg' : 'kött');
+  const d = DAYS3_[dow_(m.date)];
+  if (m.who === 'Gemensam') return 'Helg (' + d.toLowerCase() + ')';
+  return d + ' ' + (veg ? 'veg' : 'kött');
+}
+function catOf_(n) {
+  n = String(n).toLowerCase();
+  if (/kyckling|fläsk|nöt|färs|korv|bacon|lax|torsk|sej|fisk|räk|kalkon|lamm|skinka/.test(n)) return 'Kött & fisk';
+  if (/mjölk|grädde|kvarg|yoghurt|ost|smör|ägg|keso|crème|fraiche|feta|halloumi/.test(n)) return 'Mejeri & ägg';
+  if (/fryst|frysta/.test(n)) return 'Frys';
+  if (/bröd|tortilla|pita|bulle/.test(n)) return 'Bröd';
+  if (/lök|vitlök|morot|potatis|tomat|gurka|paprika|sallad|spenat|kål|broccoli|zucchini|aubergine|svamp|champinjon|citron|lime|äpple|banan|bär|ingefära|persilja|koriander|dill|basilika|purjo|selleri|rödbet|squash|avokado|pumpa|majs/.test(n)) return 'Frukt & grönt';
+  if (/pasta|ris|bulgur|matvete|linser|bönor|kikärt|mjöl|havre|nötter|frön|olja|buljong|krossade|konserv|socker|kryddor|spiskummin|gurkmeja|paprikapulver|curry|soja|vinäger|honung|quinoa|couscous/.test(n)) return 'Torrvaror';
+  return 'Övrigt';
+}
+function recipeRow_(r) {
+  const S = function (v, n) { return String(v == null ? '' : v).slice(0, n || 200); };
+  const ing = (r.groups || []).map(function (g) {
+    return (g.title ? '# ' + S(g.title) + '\n' : '') + (g.items || []).map(function (i) {
+      return (i.q == null ? '' : String(i.q).replace('.', ',')) + ' | ' + S(i.u, 30) + ' | ' + S(i.n);
+    }).join('\n');
+  }).join('\n');
+  const steps = (r.steps || []).map(function (x) { return (x.timer ? '[' + Number(x.timer) + '] ' : '') + S(x.t, 1000); }).join('\n');
+  return [r.id, S(r.group, 30), S(r.who, 30), 'Bytt i appen', S(r.title), Number(r.portions) || '', Number(r.min) || '', Number(r.kr) || '',
+    S(r.protein, 60), r.freezes ? 'ja' : '', S(r.course, 30), S(r.why, 1000), ing.slice(0, 30000), steps.slice(0, 30000), S(r.tips, 2000)];
+}
+/** Byter (eller tar bort) en rätt på matsedeln och uppdaterar inköpslistan.
+ *  b: { date, who, title, recipe (gamla receptets id eller ''), rec (nya receptet, eller null för att bara ta bort) } */
+function menuSwap_(b, by) {
+  const menu = readTab_('menu'), recipes = readTab_('recipes');
+  const groupOf = function (id) { const r = recipes.filter(function (x) { return x.id === id; })[0]; return r ? r.group : ''; };
+  const targets = menu.filter(function (m) {
+    return b.recipe ? m.recipe === b.recipe : (m.date === b.date && m.who === b.who && m.title === b.title);
+  });
+  if (!targets.length) throw new Error('Hittade inte rätten på matsedeln. Uppdatera appen och försök igen.');
+  const labels = [];
+  targets.forEach(function (m) { const l = mealLabel_(m, groupOf(m.recipe)); if (labels.indexOf(l) < 0) labels.push(l); });
+  const rec = b.rec;
+  if (rec) {
+    if (!/^[a-z0-9-]{1,60}$/.test(String(rec.id || ''))) throw new Error('Receptet har ett ogiltigt id.');
+    if (!recipes.some(function (x) { return x.id === rec.id; })) sheet_('recipes').appendRow(recipeRow_(rec));
+  }
+  targets.forEach(function (m) {
+    setCells_('menu', m._row, rec ? { title: String(rec.title).slice(0, 200), recipe: rec.id, addon: '', note: 'Bytt i appen av ' + (by || 'någon') }
+      : { title: 'Fritt val', recipe: '', addon: '', note: 'Borttagen i appen av ' + (by || 'någon') });
+  });
+  // Inköp: ta bort det som bara behövdes till den gamla rätten
+  const sh = sheet_('shop'), del = [];
+  readTab_('shop').forEach(function (i) {
+    if (i.done || (i.source !== 'veckoplan' && i.source !== 'byte')) return;
+    const keep = i.meals.filter(function (x) { return labels.indexOf(x) < 0; });
+    if (keep.length === i.meals.length) return;
+    if (keep.length) setCells_('shop', i._row, { meals: keep.join(', ') }); else del.push(i._row);
+  });
+  del.sort(function (a, c) { return c - a; }).forEach(function (r) { sh.deleteRow(r); });
+  if (rec) (rec.groups || []).forEach(function (g) {
+    (g.items || []).forEach(function (i) {
+      if (i.q == null || !i.n) return;
+      sh.appendRow([false, String(i.n).slice(0, 120), (String(i.q).replace('.', ',') + ' ' + (i.u || '')).trim(), catOf_(i.n), labels[0], '', '', '', newId_('b'), 'byte', by, 900]);
+    });
+  });
 }
 
 /* ---------------- notifications (ntfy) ---------------- */
