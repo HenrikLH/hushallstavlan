@@ -170,18 +170,39 @@ function setData(d){S.data=d;S.lastSync=new Date();S.error='';try{lsSet('cache',
 async function apiGet(){
  const r=await fetch(CFG.api+'?key='+encodeURIComponent(S.key)+'&t='+Date.now(),{cache:'no-store'});
  const j=await r.json();if(!j.ok)throw new Error(j.error||'Okänt fel');return j.data}
-let queue=Promise.resolve();
+/* Ändringar sparas först i telefonen (utkorgen) och skickas sedan i tur och ordning.
+   Utan nät ligger de kvar och skickas när nätet kommer tillbaka, så inget försvinner i butiken.
+   Medan något väntar skrivs telefonens data inte över av äldre data från kalkylarket. */
+const OUTBOX=(()=>{try{const a=JSON.parse(lsGet('outbox')||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}})();
+S.pending=OUTBOX.length;
+const saveOutbox=()=>{lsSet('outbox',OUTBOX.length?JSON.stringify(OUTBOX):null);try{if(S.data)lsSet('cache',JSON.stringify(S.data))}catch(e){}};
+let flushing=false,lastServer=null;
+// En vara eller uppgift som lagts till utan nät har ett tillfälligt id; slå upp det riktiga i svaret från arket
+function realId(b){if(!/^tmp/.test(String(b.id||''))||!lastServer)return b.id;
+ const list=/^shop/.test(b.action)?lastServer.shop:/^task/.test(b.action)?lastServer.tasks:[],k=/^shop/.test(b.action)?'name':'title';
+ const hit=list.filter(x=>x[k]===b.tmpName).pop();return hit?hit.id:b.id}
+async function flush(){
+ if(flushing||!OUTBOX.length)return;flushing=true;S.sync='busy';renderStatus();
+ try{
+  while(OUTBOX.length){const b=Object.assign({},OUTBOX[0]);b.id=realId(b);delete b.tmpName;
+   let j;
+   try{const r=await fetch(CFG.api,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign(b,{key:S.key,by:b.by!=null?b.by:S.me}))});j=await r.json()}
+   catch(e){S.sync='offline';S.pending=OUTBOX.length;render();return}   // inget nät: försök igen senare
+   OUTBOX.shift();S.pending=OUTBOX.length;saveOutbox();
+   if(!j.ok){toast('Ändringen sparades inte: '+(j.error||'Okänt fel'));if(!OUTBOX.length){S.sync='idle';flushing=false;refresh(true);return}continue}
+   lastServer=j.data;
+   if(!OUTBOX.length){setData(j.data);S.sync='idle'}}
+ }finally{flushing=false}
+ render()}
+if(OUTBOX.length)setTimeout(flush,800);
 function apiPost(body){
- S.pending++;S.sync='busy';renderStatus();
- queue=queue.then(async()=>{
-  try{
-   const r=await fetch(CFG.api,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign({},body,{key:S.key,by:S.me}))});
-   const j=await r.json();if(!j.ok)throw new Error(j.error||'Okänt fel');
-   S.pending--;if(!S.pending){setData(j.data);S.sync='idle'}
-  }catch(e){S.pending--;S.sync='err';S.error=e.message;toast('Ändringen sparades inte: '+e.message);refresh(true)}
-  render();
- });
- return queue}
+ if(!navigator.onLine&&body.action==='menuSwap'){toast('Kräver nät. Försök igen när du har täckning.');refresh(true);return Promise.resolve()}
+ const it=Object.assign({},body,{by:S.me});
+ if(/^tmp/.test(String(body.id||''))){const list=/^shop/.test(body.action)?D().shop:D().tasks,x=list.find(y=>y.id===body.id);if(x)it.tmpName=x.name||x.title}
+ OUTBOX.push(it);S.pending=OUTBOX.length;saveOutbox();renderStatus();
+ return flush()}
+addEventListener('online',()=>flush());
+setInterval(()=>{if(OUTBOX.length)flush()},15000);
 async function refresh(silent){
  if(!S.key||!CFG.api)return;
  if(S.pending)return;
@@ -244,8 +265,9 @@ let rq=0,pendingRender=false;
 function render(){if(rq)return;rq=setTimeout(()=>{rq=0;doRender()},0)}
 function busyTyping(){const a=document.activeElement;return a&&a.closest&&a.closest('#main,#overlay')&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)&&a.type!=='checkbox'}
 function renderStatus(){const el=document.getElementById('sync');if(el)el.outerHTML=statusHtml()}
+const waitTxt=n=>n+(n===1?' ändring väntar':' ändringar väntar')+' på nät';
 function statusHtml(){const t=S.lastSync?pad(S.lastSync.getHours())+':'+pad(S.lastSync.getMinutes()):'';
- const cls=S.sync==='busy'?'busy':S.sync==='err'?'err':'';const txt=S.sync==='busy'?'Sparar…':S.sync==='err'?'Ingen kontakt':(t?'Uppdaterad '+t:'Inte uppdaterad än');
+ const n=OUTBOX.length,cls=S.sync==='busy'?'busy':(S.sync==='err'||S.sync==='offline')?'err':'';const txt=S.sync==='offline'&&n?waitTxt(n):S.sync==='busy'?'Sparar…':S.sync==='err'?'Ingen kontakt':(t?'Uppdaterad '+t:'Inte uppdaterad än');
  return'<button type="button" class="cell link sync '+cls+'" id="sync" data-act="refresh"><i></i><span class="grow">'+txt+'</span><span class="val">Uppdatera</span></button>'}
 /* Kompakt rubrikrad: NB fylls av vyn som ritas, observatören kopplas om efter varje rendering */
 let NB={title:'',back:false},io=null;
@@ -272,7 +294,7 @@ function doRender(){
  if(busyTyping()){pendingRender=true;return}
  pendingRender=false;
  if(!S.data){m.innerHTML='<div class="setup"><h1 class="lt">Hemma</h1><p>Hämtar hushållets data…</p>'+(S.sync==='err'?'<div class="banner">'+esc(S.error)+'</div><div class="block"><button class="btn-tint" style="width:100%" data-act="refresh">Försök igen</button></div>':'')+'</div>';watchTitle();return}
- const banner=S.sync==='err'?'<div class="banner">Ingen kontakt med kalkylarket just nu. Du ser senast hämtade data. '+esc(S.error)+'</div>':'';
+ const banner=S.sync==='offline'&&OUTBOX.length?'<div class="outbox" role="status">'+I.clock+'<span class="grow">'+waitTxt(OUTBOX.length)+'</span><span class="muted">Skickas automatiskt</span></div>':S.sync==='err'?'<div class="banner">Ingen kontakt med kalkylarket just nu. Du ser senast hämtade data. '+esc(S.error)+'</div>':'';
  A.before(m);
  m.innerHTML=banner+(V[S.view]||V.oversikt)();
  placeSky();
@@ -419,7 +441,7 @@ function wishesBlock(){const w=wishes();
   group(w.length?w.map((x,i)=>'<div class="cell"><div class="grow"><div class="title">'+esc(x.t)+'</div><div class="meta"><span class="chip">'+esc(x.slot||'Valfri plats')+'</span>'+(x.by?'<span>'+esc(x.by)+'</span>':'')+'</div></div><button class="pill" data-act="wishDel" data-id="'+i+'" aria-label="Ta bort önskemålet">Ta bort</button></div>').join(''):emptyCell('Inga önskemål än. Tryck på Önska eller på Vill ha nästa vecka på ett recept.'))+
   '<div class="foot">Söndagens veckoplanering lägger önskade rätter i stället för den matlagning ni valt och tömmer sedan listan.</div>'}
 // Byt rätten på matsedeln direkt i appen och skicka bytet till kalkylarket
-function doSwap(r){const sw=S.swap;if(!sw)return;const m=sw.m,d=D();
+function doSwap(r){const sw=S.swap;if(!sw)return;if(!navigator.onLine){toast('Att byta rätt kräver nät. Försök igen när du har täckning.');return}const m=sw.m,d=D();
  const rows=d.menu.filter(x=>m.recipe?x.recipe===m.recipe:(x.date===m.date&&x.who===m.who&&x.title===m.title));
  rows.forEach(x=>{if(r){x.title=r.title;x.recipe=r.id;x.addon='';x.note='Bytt i appen'}else{x.title='Fritt val';x.recipe='';x.addon='';x.note='Borttagen i appen'}});
  if(r&&!d.recipes.some(x=>x.id===r.id))d.recipes.push(r);
@@ -570,7 +592,7 @@ function shrinkImage(file,max){return new Promise((ok,bad)=>{const u=URL.createO
  im.onload=()=>{const sc=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*sc);c.height=Math.round(im.height*sc);
   c.getContext('2d').drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);ok(c.toDataURL('image/jpeg',.82))};
  im.onerror=()=>{URL.revokeObjectURL(u);bad(new Error('Bilden kunde inte läsas'))};im.src=u})}
-async function uploadPhoto(id,file){const r=recipeById(id);if(!r||!file)return;S.photoBusy=id;render();
+async function uploadPhoto(id,file){const r=recipeById(id);if(!r||!file)return;if(!navigator.onLine){toast('Att spara foton kräver nät.');return}S.photoBusy=id;render();
  try{const data=await shrinkImage(file,1280);
   const res=await fetch(CFG.api,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'photoUpload',key:S.key,by:S.me,id,title:r.title,data})});
   const j=await res.json();if(!j.ok||!j.url)throw new Error(j.error||'Uppladdningen misslyckades');
