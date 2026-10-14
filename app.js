@@ -920,7 +920,7 @@ loadExt();setInterval(loadExt,10*60000);
 
 // Vilka hundar som visas: växlar var tredje timme, oftast båda
 // a/b = fawn/svart sittande, A/B = liggande och sovande; ordningen är från vänster
-const figVariants=sleep=>sleep?['AB','AB','aB','bA','Ba','A','B','ab']:['ab','ab','ab','ba','ba','a','a','b','b'];
+const figVariants=sleep=>sleep?['AB','AB','BA','A','B']:['ab','ab','ab','ba','ba','a','a','b','b'];
 function figVariant(sc){const L=figVariants(sc.sleep);if(S.wxVar&&L.includes(S.wxVar))return S.wxVar;const n=new Date(),key=today()+'|'+Math.floor(n.getHours()/3)+'|'+(sc.sleep?1:0);let h=0;for(const c of key)h=(h*31+c.charCodeAt(0))>>>0;return L[h%L.length]}
 // Scenen ritas om när ljuset eller vädret ändras, till exempel vid solnedgången, även om prognosen inte hämtats på nytt
 let SCENE_KEY='';
