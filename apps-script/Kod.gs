@@ -1,8 +1,9 @@
 /**
  * Hushållstavlan – koppling mellan appen och kalkylarket.
  *
- * Kör funktionen `setup` en gång efter att du klistrat in koden.
- * Den skapar hushållskoden, notisämnet och tidsstyrningen för notiserna.
+ * Kör funktionen `setup` en gång efter att du klistrat in koden (och efter varje uppdatering).
+ * Den skapar hushållskoden, notisämnet och tidsstyrningen för notiserna och kalendersynken.
+ * Hushållskoden och notisämnet behålls om de redan finns.
  * Publicera sedan som webbapp: Distribuera → Ny distribution → Webbapp,
  * "Kör som: Jag", "Vem har åtkomst: Alla".
  *
@@ -22,7 +23,7 @@ const TABS = {
 };
 const COLS = {
   shop: ['done', 'name', 'qty', 'cat', 'meals', 'price', 'offer', 'store', 'id', 'source', 'addedBy', 'order'],
-  tasks: ['done', 'title', 'due', 'who', 'note', 'id', 'source'],
+  tasks: ['done', 'title', 'due', 'who', 'note', 'id', 'source', 'repeat'],
   clean: ['id', 'room', 'title', 'freq', 'min', 'lastDone', 'prevDone', 'doneBy', 'who', 'tip', 'plannedFor', 'snoozeUntil', 'order'],
   menu: ['date', 'who', 'title', 'recipe', 'addon', 'note'],
   events: ['date', 'time', 'title', 'who', 'source'],
@@ -238,10 +239,18 @@ function doPost(e) {
         break;
       }
       case 'shopClearDone': deleteDone_('shop'); break;
-      case 'taskToggle': setCells_('tasks', findRow_('tasks', b.id), { done: !!b.done }); break;
+      case 'taskToggle': {
+        const row = findRow_('tasks', b.id);
+        const t = readTab_('tasks').filter(function (x) { return x.id === b.id; })[0];
+        // En återkommande uppgift blir aldrig klar, den flyttas till nästa gång
+        if (b.done && t && REPEATS_[t.repeat]) setCells_('tasks', row, { due: nextDue_(t.due, t.repeat, today_()), done: false });
+        else setCells_('tasks', row, { done: !!b.done });
+        break;
+      }
       case 'taskAdd': {
-        const sh = sheet_('tasks');
-        sh.appendRow([false, String(b.title || '').slice(0, 200), String(b.due || ''), String(b.who || ''), '', newId_('m'), 'egen']);
+        const sh = sheet_('tasks'), rep = REPEATS_[b.repeat] ? b.repeat : '';
+        const due = String(b.due || '') || (rep ? today_() : '');
+        sh.appendRow([false, String(b.title || '').slice(0, 200), due, String(b.who || ''), '', newId_('m'), 'egen', rep]);
         break;
       }
       case 'taskClearDone': deleteDone_('tasks'); break;
@@ -278,6 +287,27 @@ function doPost(e) {
   } finally {
     try { lock.releaseLock(); } catch (x) { }
   }
+}
+
+/* ---------------- återkommande uppgifter ----------------
+   Kolumn H (Upprepa) i Uppgifter: dag, vecka, 2veckor, 4veckor, manad eller ar. När en sådan uppgift bockas av
+   flyttas datumet fram till nästa gång efter i dag, och uppgiften ligger kvar som ej klar.
+   Samma uträkning finns i app.js (nextDue). */
+const REPEATS_ = { dag: 1, vecka: 7, '2veckor': 14, '4veckor': 28, manad: 'm', ar: 'y' };
+function nextDue_(due, rep, td) {
+  let d = /^\d{4}-\d{2}-\d{2}$/.test(String(due)) ? String(due) : td;
+  const step = REPEATS_[rep], anchor = Number(d.slice(8, 10));
+  // minst ett steg fram, och sedan tills datumet ligger efter i dag
+  for (let i = 0; i < 1000 && (i === 0 || d <= td); i++) {
+    if (typeof step === 'number') d = addDays_(d, step);
+    else {
+      const p = d.split('-').map(Number);
+      const y = step === 'y' ? p[0] + 1 : p[0] + (p[1] === 12 ? 1 : 0), m = step === 'y' ? p[1] : (p[1] % 12) + 1;
+      const last = new Date(Date.UTC(y, m, 0)).getUTCDate();
+      d = y + '-' + ('0' + m).slice(-2) + '-' + ('0' + Math.min(anchor, last)).slice(-2);
+    }
+  }
+  return d;
 }
 
 function deleteDone_(key) {
@@ -403,6 +433,134 @@ function notifyTick() {
   }
 }
 
+/* ---------------- kalendersynk ----------------
+   Läser Google Kalender direkt (ingen AI) var 15:e minut och skriver fliken Händelser.
+   Rader med annan Källa än "kalender" (t.ex. veckoplan eller inskrivna för hand) behålls.
+   En gång om dagen byggs också födelsedagslistan (raden fodelsedagar i Inställningar). */
+const CALENDARS = [
+  { id: 'henrik.lund.hellstrand.2@gmail.com', who: 'Henrik' },
+  { id: 'family15823199462493017779@group.calendar.google.com', who: '' },
+  { id: 'sv.swedish#holiday@group.v.calendar.google.com', who: 'Båda' }
+];
+const CAL_DAYS = 31;
+// Vem en händelse i en gemensam kalender gäller, efter vem som skapade den
+const CREATORS = { 'henrik.lund.hellstrand.2@gmail.com': 'Henrik', 'cornelia.bomsjo@gmail.com': 'Cornelia' };
+
+function day_(s) { return Utilities.parseDate(s, TZ, 'yyyy-MM-dd'); }
+function cal_(id) { try { return CalendarApp.getCalendarById(id); } catch (e) { return null; } }
+function calTitle_(t, ev, date) {
+  t = String(t || '').replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}\u{200D}]/gu, '').replace(/\s+/g, ' ').trim();
+  if (/^arbetstid$/i.test(t)) return 'Henrik jobbar';
+  let m = t.match(/^(.+?),\s*född\s+(\d{4})$/i);
+  if (m) return m[1] + ' fyller ' + (Number(date.slice(0, 4)) - Number(m[2])) + ' år';
+  m = t.match(/^Födelsedag för (.+)$/i);
+  if (m) return m[1] + ' fyller år';
+  // klockslag i titeln: "kl.11", "kl. 13:00", "9-12" sist i titeln
+  t = t.replace(/\s*\bkl\.?\s*\d{1,2}([.:]\d{2})?(\s*[-–]\s*\d{1,2}([.:]\d{2})?)?/gi, '')
+    .replace(/\s+\d{1,2}([.:]\d{2})?\s*[-–]\s*\d{1,2}([.:]\d{2})?$/, '').trim();
+  return t;
+}
+// "kl. 13:00" i en heldagshändelse blir tiden
+function timeInTitle_(t) {
+  const m = String(t || '').match(/\bkl\.?\s*(\d{1,2})(?:[.:](\d{2}))?/i);
+  return m ? ('0' + m[1]).slice(-2) + '.' + (m[2] || '00') : '';
+}
+function calRows_() {
+  const td = today_(), from = day_(td), to = day_(addDays_(td, CAL_DAYS));
+  const fmt = function (d, f) { return Utilities.formatDate(d, TZ, f); };
+  const rows = [], seen = {};
+  CALENDARS.forEach(function (c) {
+    const cal = cal_(c.id);
+    if (!cal) return;
+    cal.getEvents(from, to).forEach(function (ev) {
+      try { if (ev.getMyStatus() === CalendarApp.GuestStatus.NO) return; } catch (e) { }
+      try { const ty = String(ev.getEventType()); if (ty === 'WORKING_LOCATION') return; } catch (e) { }
+      let who = c.who;
+      if (!who) { try { who = CREATORS[String(ev.getCreators()[0] || '').toLowerCase()] || ''; } catch (e) { } }
+      const add = function (date, time) {
+        if (date < td || date >= fmt(to, 'yyyy-MM-dd')) return;
+        const title = calTitle_(ev.getTitle(), ev, date);
+        if (!title) return;
+        const k = date + '|' + time + '|' + title.toLowerCase();
+        if (seen[k]) return;
+        seen[k] = true;
+        rows.push([date, time, title, who, 'kalender']);
+      };
+      if (ev.isAllDayEvent()) {
+        const s = fmt(ev.getAllDayStartDate(), 'yyyy-MM-dd'), e = fmt(ev.getAllDayEndDate(), 'yyyy-MM-dd');
+        for (let d = s, i = 0; d < e && i < 60; d = addDays_(d, 1), i++) add(d, timeInTitle_(ev.getTitle()));
+      } else {
+        const s = ev.getStartTime(), e = ev.getEndTime(), sd = fmt(s, 'yyyy-MM-dd');
+        add(sd, fmt(s, 'HH.mm') + (fmt(e, 'yyyy-MM-dd') === sd && e > s ? '–' + fmt(e, 'HH.mm') : ''));
+      }
+    });
+  });
+  return rows;
+}
+function sortEvents_(rows) {
+  return rows.sort(function (a, b) { return a[0].localeCompare(b[0]) || String(a[1]).localeCompare(String(b[1])) || String(a[2]).localeCompare(String(b[2])); });
+}
+
+/** Körs var 15:e minut av tidsstyrningen som setup skapar. Går också att köra för hand. */
+function kalenderSynk() {
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(30000)) return;
+  try {
+    const td = today_(), sh = sheet_('events');
+    const cur = sh.getDataRange().getDisplayValues().slice(1).filter(function (r) { return r.some(String); });
+    const keep = cur.filter(function (r) { return r[4] !== 'kalender' && r[0] >= td; }).map(function (r) { return r.slice(0, 5); });
+    const rows = sortEvents_(keep.concat(calRows_()));
+    const same = rows.length === cur.length && rows.every(function (r, i) { return r.join('|') === cur[i].slice(0, 5).join('|'); });
+    if (!same) {
+      const n = Math.max(cur.length, 1);
+      sh.getRange(2, 1, n, 5).clearContent();
+      if (rows.length) sh.getRange(2, 1, rows.length, 5).setNumberFormat('@').setValues(rows);
+    }
+    if (props_().getProperty('BDAY_SYNC') !== td) { fodelsedagarSynk_(); props_().setProperty('BDAY_SYNC', td); }
+  } finally { lock.releaseLock(); }
+}
+
+// Födelsedagar ett år framåt: "Namn, född ÅÅÅÅ" och Googles födelsedagshändelser ("Födelsedag för Namn").
+// Finns redan någon med samma datum men annat namn i listan (t.ex. Henke som slagits ihop till Henrik) behålls namnet i listan.
+function fodelsedagarSynk_() {
+  const td = today_(), from = day_(td), to = day_(addDays_(td, 366));
+  const found = [];
+  CALENDARS.slice(0, 2).forEach(function (c) {
+    const cal = cal_(c.id);
+    if (!cal) return;
+    cal.getEvents(from, to).forEach(function (ev) {
+      if (!ev.isAllDayEvent()) return;
+      const t = String(ev.getTitle() || '').replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}\u{200D}]/gu, '').trim();
+      let m = t.match(/^(.+?),\s*född\s+(\d{4})$/i), namn = '', ar = null;
+      if (m) { namn = m[1].trim(); ar = Number(m[2]); }
+      else if ((m = t.match(/^Födelsedag för (.+)$/i))) namn = m[1].trim();
+      if (!namn) return;
+      found.push({ namn: namn, datum: Utilities.formatDate(ev.getAllDayStartDate(), TZ, 'MM-dd'), ar: ar });
+    });
+  });
+  if (!found.length) return; // läste inget, låt listan vara
+  let old = [];
+  try { old = JSON.parse(readSettings_().fodelsedagar || '[]'); } catch (e) { }
+  const out = [];
+  const put = function (namn, datum, ar) {
+    const x = out.filter(function (o) { return o.datum === datum && o.namn === namn; })[0];
+    if (x) { if (ar && !x.ar) x.ar = ar; return; }
+    const o = { namn: namn, datum: datum }; if (ar) o.ar = ar; out.push(o);
+  };
+  found.forEach(function (f) {
+    const sameDate = old.filter(function (o) { return o.datum === f.datum; });
+    const exact = sameDate.filter(function (o) { return o.namn === f.namn; })[0];
+    const named = found.some(function (g) { return g.datum === f.datum && sameDate.some(function (o) { return o.namn === g.namn; }); });
+    // annat namn samma dag, och ingen i kalendern har det gamla namnet: samma person under nytt namn
+    const alias = !exact && sameDate.length === 1 && !named ? sameDate[0] : null;
+    const base = exact || alias;
+    put(base ? base.namn : f.namn, f.datum, f.ar || (base && base.ar) || null);
+  });
+  out.sort(function (a, b) { return a.datum.localeCompare(b.datum) || a.namn.localeCompare(b.namn); });
+  const v = JSON.stringify(out);
+  if (v !== JSON.stringify(old)) writeSetting_('fodelsedagar', v);
+}
+
 /* ---------------- one-time setup ---------------- */
 function setup() {
   const p = props_();
@@ -415,6 +573,13 @@ function setup() {
   if (s.uppdaterad && !s.notis_veckoplan_skickad) writeSetting_('notis_veckoplan_skickad', s.uppdaterad);
   ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === 'notifyTick') ScriptApp.deleteTrigger(t); });
   ScriptApp.newTrigger('notifyTick').timeBased().everyMinutes(15).create();
+  // Kalendern läses direkt var 15:e minut
+  ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === 'kalenderSynk') ScriptApp.deleteTrigger(t); });
+  ScriptApp.newTrigger('kalenderSynk').timeBased().everyMinutes(15).create();
+  // Rubrik för återkommande uppgifter
+  const th = sheet_('tasks').getRange(1, 8);
+  if (!th.getDisplayValue()) th.setValue('Upprepa');
+  kalenderSynk();
   Logger.log('Hushållskod: ' + p.getProperty('HOUSEHOLD_KEY'));
   Logger.log('Notisämne i ntfy: ' + p.getProperty('NTFY_TOPIC'));
 }
