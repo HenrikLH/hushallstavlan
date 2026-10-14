@@ -497,10 +497,10 @@ function calWidget(){const t=today(),wk=[];for(let i=0;i<7;i++)wk.push(addDays(t
  strip+='</div>';
  // under ett streck: dagens att göra-uppgifter med egen rubrik
  const ts=D().tasks.filter(x=>x.due===sel&&!x.done);
- const todo=ts.length?'<div class="wk-todo"><div class="wk-sub">Att göra</div><div class="evs">'+ts.map(x=>'<div class="ev task"><span>'+esc(x.title)+evWho(x)+'</span></div>').join('')+'</div></div>':'';
+ const todo=ts.length?'<div class="wk-todo wk-link" data-act="taskList" role="link" tabindex="0" aria-label="Att göra, öppna Uppgifter"><div class="wk-sub">Att göra</div><div class="evs">'+ts.map(x=>'<div class="ev task"><span>'+esc(x.title)+evWho(x)+'</span></div>').join('')+'</div></div>':'';
  return'<section class="widget w2 calw"><button class="wh" data-act="calOpen" data-id="'+sel+'" style="width:100%">'+I.cal+'<span>Kalender</span><span class="r">'+esc(cap(MON[parse(sel).getMonth()]))+'</span></button>'+strip+
-  '<div class="wk-day"><div id="cal-rows" data-d="'+sel+'">'+calDayRows(sel)+'</div>'+
-  '<button class="wk-open" data-act="calOpen" data-id="'+sel+'">Öppna i kalendern'+chevron+'</button>'+todo+'</div></section>'}
+  // schemadelen öppnar kalendern på vald dag, att göra-delen öppnar uppgiftslistan
+  '<div class="wk-day"><div id="cal-rows" class="wk-link" data-d="'+sel+'" data-act="calOpen" data-id="'+sel+'" role="link" tabindex="0" aria-label="Schema, öppna kalendern">'+calDayRows(sel)+'</div>'+todo+'</div></section>'}
 function calView(){const t=today(),sel=S.calDay||t,m=S.calMonth||ymKey(sel),[y,mo]=m.split('-').map(Number);
  const first=new Date(y,mo-1,1),start=new Date(first);start.setDate(1-((first.getDay()+6)%7));
  let h='<div class="cal-head"><button class="ib" data-act="calMonth" data-d="-1" aria-label="Förra månaden">'+I.back+'</button><div class="hl">'+esc(cap(MON[mo-1]))+(y!==new Date().getFullYear()?' '+y:'')+'</div>'+
@@ -1291,6 +1291,7 @@ const ACT={
  clearShop(){S.confirm='clearShop';render()},
  clearShopYes(){S.confirm=null;leaveAnim('shopToggle',D().shop.filter(i=>i.done),()=>{S.data.shop=D().shop.filter(i=>!i.done);render();apiPost({action:'shopClearDone'})})},
  confirmNo(){S.confirm=null;render()},
+ taskList(){S.taskTab='lista';lsSet('taskTab','lista');ACT.nav('uppgifter')},
  taskTab(id){S.taskTab=id==='kalender'?'kalender':'lista';lsSet('taskTab',S.taskTab);render()},
  calDay(id){S.calDay=id;S.calMonth=ymKey(id);render()},
  ovDay(id){S.ovDay=id;render()},
