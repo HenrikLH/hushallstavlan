@@ -461,10 +461,34 @@ function calDots(date){const d=D(),evs=d.events.filter(e=>e.date===date),ts=d.ta
  evs.forEach(e=>{const w=String(e.who||'').trim();out.push(w&&people().includes(w)?'e '+pcls(w):'e o')});
  ts.forEach(()=>out.push('t'));return out.slice(0,4)}
 // Översiktens kalenderruta: veckoremsa där man väljer dag, och den dagens händelser med start- och sluttid
+const CAL_STYLE=lsGet('calStyle')||'2';
 function calDayRows(sel){const d=D(),t=today();
- const evs=d.events.filter(e=>e.date===sel).sort((a,b)=>String(a.time||'').localeCompare(String(b.time||''))),cd=sel===t?evCountdown(evs):new Map();
- const rows=evs.map(e=>'<div class="ev"><span class="t">'+esc(e.time||'Heldag')+'</span><span class="grow">'+esc(e.title)+evWho(e)+'</span>'+(cd.has(e)?'<span class="cd num">'+cd.get(e)+'</span>':'')+'</div>').join('');
- return rows?'<div class="evs">'+rows+'</div>':'<div class="wempty">Inget i kalendern '+(sel===t?'idag':'den här dagen')+'.</div>'}
+ const evs=d.events.filter(e=>e.date===sel).sort((a,b)=>String(a.time||'').localeCompare(String(b.time||''))),st=sel===t?evStates(evs):new Map();
+ if(!evs.length)return'<div class="wempty">Inget i kalendern '+(sel===t?'idag':'den här dagen')+'.</div>';
+ const head='<div class="wk-sub">Schema</div>',who=e=>evWho(e);
+ if(CAL_STYLE==='1'){
+  // förslag 1: tiden till vänster, bara det som inte redan står där till höger
+  return head+'<div class="evs">'+evs.map(e=>{const x=st.get(e)||{};
+   const r=x.st==='now'?'<span class="cd now">'+x.left+' kvar</span>':x.st==='next'?'<span class="cd">om '+x.inn+'</span>':'';
+   return'<div class="ev'+(x.st==='past'?' past':'')+'"><span class="t">'+esc(e.time||'Heldag')+'</span><span class="grow">'+esc(e.title)+who(e)+'</span>'+r+'</div>'}).join('')+'</div>'}
+ if(CAL_STYLE==='2'){
+  // förslag 2: det som pågår får en tunn förloppsstapel under titeln
+  return head+'<div class="evs">'+evs.map(e=>{const x=st.get(e)||{};
+   const bar=x.st==='now'?'<div class="ev-pb"><span class="pb"><i style="width:'+Math.round(x.p*100)+'%"></i></span><span class="pbt num">'+x.left+' kvar</span></div>':'';
+   const r=x.st==='next'?'<span class="cd">om '+x.inn+'</span>':'';
+   return'<div class="ev'+(x.st==='past'?' past':'')+(x.st==='now'?' now':'')+'"><span class="t">'+esc(e.time||'Heldag')+'</span><span class="grow"><span class="ev-ti">'+esc(e.title)+who(e)+'</span>'+bar+'</span>'+r+'</div>'}).join('')+'</div>'}
+ // förslag 3: dagens tidsaxel med block och en nu-linje, listan under visar bara starttid
+ const timed=evs.filter(e=>st.has(e)||/^\d/.test(e.time||'')),allday=evs.filter(e=>!/^\d/.test(e.time||''));
+ const at=v=>{const m=/^(\d{1,2})[.:](\d{2})/.exec(v||'');return m?Number(m[1])*60+Number(m[2]):null},en=v=>{const m=/[–-]\s*(\d{1,2})[.:](\d{2})/.exec(v||'');return m?Number(m[1])*60+Number(m[2]):null};
+ let lo=Math.min(7*60,...timed.map(e=>at(e.time))),hi=Math.max(21*60,...timed.map(e=>en(e.time)||at(e.time)+30));lo=Math.floor(lo/60)*60;hi=Math.ceil(hi/60)*60;
+ const X=m=>((m-lo)/(hi-lo)*100).toFixed(2),n=new Date(),nm=n.getHours()*60+n.getMinutes();
+ let ax='<div class="tl"><div class="tl-track">'+timed.map((e,i)=>{const s0=at(e.time),e0=en(e.time)||s0+30,w=String(e.who||'').trim();
+  return'<i class="tl-b '+(w&&people().includes(w)?pcls(w):'o')+'" style="left:'+X(s0)+'%;width:'+(X(e0)-X(s0))+'%;top:'+(i%2?11:2)+'px"></i>'}).join('')+
+  (sel===t&&nm>=lo&&nm<=hi?'<b class="tl-now" style="left:'+X(nm)+'%"></b>':'')+'</div><div class="tl-ax num">';
+ for(let h=lo;h<=hi;h+=180)ax+='<span style="left:'+X(h)+'%">'+pad(h/60)+'</span>';ax+='</div></div>';
+ return head+ax+'<div class="evs">'+allday.concat(timed).map(e=>{const x=st.get(e)||{};
+  const r=x.st==='now'?'<span class="cd now">'+x.left+' kvar</span>':x.st==='next'?'<span class="cd">om '+x.inn+'</span>':'';
+  return'<div class="ev'+(x.st==='past'?' past':'')+'"><span class="t short">'+esc(e.time?String(e.time).split(/\s*[–-]\s*/)[0]:'Heldag')+'</span><span class="grow">'+esc(e.title)+who(e)+'</span>'+r+'</div>'}).join('')+'</div>'}
 function calWidget(){const t=today(),wk=[];for(let i=0;i<7;i++)wk.push(addDays(t,i));
  const sel=wk.includes(S.ovDay)?S.ovDay:t;
  let strip='<div class="wk" role="group" aria-label="Veckans dagar">';
@@ -927,13 +951,17 @@ function figSvg(sc,o){o=o||{};const id='fg'+(++FIG_N),ph=sc.phase,dark=sc.dark,w
 
 const hm=m=>pad(Math.floor(m/60))+'.'+pad(m%60);
 // nedräkning för dagens händelser: "till 16.00" när den pågår, "om 2 h 5 min" för nästa som börjar
-function evCountdown(evs){const n=new Date(),mins=n.getHours()*60+n.getMinutes(),out=new Map();
+// läget för dagens händelser just nu: passerad, pågår (med andel och tid kvar), nästa eller senare
+function evStates(evs){const n=new Date(),mins=n.getHours()*60+n.getMinutes(),out=new Map();
  const at=(s,re)=>{const m=re.exec(s||'');return m?Number(m[1])*60+Number(m[2]):null};
- const dur=m=>m<60?m+' min':Math.floor(m/60)+' h'+(m%60?' '+m%60+' min':'');
  const L=evs.map(e=>({e,s:at(e.time,/^(\d{1,2})[.:](\d{2})/),en:at(e.time,/[–-]\s*(\d{1,2})[.:](\d{2})/)})).filter(x=>x.s!=null);
- L.forEach(x=>{if(x.s<=mins&&x.en!=null&&x.en>mins)out.set(x.e,'till '+hm(x.en))});
- const nx=L.filter(x=>x.s>mins).sort((a,b)=>a.s-b.s)[0];if(nx)out.set(nx.e,'om '+dur(nx.s-mins));
+ const nx=L.filter(x=>x.s>mins).sort((a,b)=>a.s-b.s)[0];
+ L.forEach(x=>{const end=x.en!=null?x.en:x.s;
+  if(x.s<=mins&&end>mins)out.set(x.e,{st:'now',s:x.s,en:end,p:(mins-x.s)/(end-x.s),left:durTxt(end-mins)});
+  else if(end<=mins)out.set(x.e,{st:'past',s:x.s,en:end});
+  else out.set(x.e,{st:x===nx?'next':'later',s:x.s,en:end,inn:durTxt(x.s-mins)})});
  return out}
+const durTxt=m=>m<60?m+' min':Math.floor(m/60)+' h'+(m%60?' '+m%60+' min':'');
 // sol- och månbanans horisont: mitt i namnsdagsraden (annars faktaraden), aldrig under hundarnas fötter
 function placeSky(){const h=document.querySelector('.hero');if(!h)return;
  const chips=[...h.querySelectorAll('.hero-facts span')],c=chips.find(x=>/^Namnsdag/.test(x.textContent))||chips[Math.floor((chips.length-1)/2)],fig=h.querySelector('.fig-box');
