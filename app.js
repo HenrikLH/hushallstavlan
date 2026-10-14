@@ -361,10 +361,22 @@ function wallNight(){const n=new Date(),t=today(),tm=addDays(t,1),W=wxModel();
 function wallWx(){const W=wxModel();if(!W)return'';
  // ett dygn framåt, timme för timme; svep i sidled för fler timmar, tryck för att öppna vädret
  const hrs=W.hours.slice(1,25);
- let h='<div class="bwx"><div class="bwx-f"><span>'+esc(windText(W.now))+'</span><span class="fn">Svep för fler timmar</span></div>';
+ const R=rainTxt(W);
+ let h='<div class="bwx"><div class="bwx-r'+(R.wet?' wet':'')+'">'+(R.wet?UMB:I.tick)+'<span>'+esc(R.txt)+'</span></div><div class="bwx-f"><span>'+esc(windText(W.now))+'</span><span class="fn">Svep för fler timmar</span></div>';
  h+='<div class="bwx-h" data-act="nav" data-id="vader" role="link" aria-label="Väder timme för timme, öppna vädret">'+hrs.map((x,k)=>{const[ic]=symInfo(x.s),hr=x.d.getHours(),nd=hr===0&&k>0;
   return'<div class="'+(nd?'nd':'')+'"><span class="fn num">'+(nd?capS(DAYS3[x.d.getDay()]):pad(hr))+'</span><span class="hi">'+ic+'</span><b class="num">'+deg(x.T)+'</b>'+(x.pr>=0.1?'<span class="pr num">'+mm(x.pr)+'</span>':'<span class="pr"></span>')+'</div>'}).join('')+'</div></div>';
  return h}
+// Paraply? Regnet under resten av dagen (efter kl. 18: i morgon dagtid), med tider och mängd
+const UMB='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 0 1 9 9H3a9 9 0 0 1 9-9z"/><path d="M12 12v7a2 2 0 0 0 4 0"/></svg>';
+function rainTxt(W){const n=new Date(),tm=n.getHours()>=18,day=tm?ymd(new Date(n.getFullYear(),n.getMonth(),n.getDate()+1)):ymd(n);
+ const L=(W.all||W.hours).filter(x=>ymd(x.d)===day&&x.d.getHours()>=(tm?6:0)&&x.d.getHours()<22&&x.d>=new Date(n.getTime()-36e5));
+ const wet=L.filter(x=>(x.pr||0)>=0.1);
+ if(!wet.length)return{wet:false,txt:tm?'Inget regn i morgon':'Inget regn resten av dagen'};
+ // sammanhängande regntimmar blir ett intervall
+ const sp=[];wet.forEach(x=>{const l=sp[sp.length-1],h=x.d.getHours();if(l&&h===l.b)l.b=h+1,l.mm+=x.pr,l.mx=Math.max(l.mx,x.pr);else sp.push({a:h,b:h+1,mm:x.pr,mx:x.pr})});
+ const tot=sp.reduce((a,x)=>a+x.mm,0),mx=Math.max(...sp.map(x=>x.mx)),ord=mx>=2?'kraftigt regn':mx>=0.5?'regn':'lätt regn';
+ const when=sp.slice(0,2).map(x=>pad(x.a)+'–'+pad(x.b)).join(' och ')+(sp.length>2?' med flera':'');
+ return{wet:tot>=0.3,txt:(tot>=0.3?'Ta paraply'+(tm?' i morgon':'')+' · '+cap(ord):(tm?'I morgon ':'')+ord)+' '+when+' · '+mm(tot)}}
 // liten version av årshjulet och månadens födelsedagar i tur och ordning
 function wallBd(){const L=bdays();if(!L.length)return'';const t=parse(today()),m=t.getMonth();
  let mon=L.filter(b=>b.mo===m).sort((a,b)=>a.dd-b.dd),mm2=m;
@@ -921,7 +933,7 @@ function wxModel(){const y=EXT.yr;if(!y||!y.ts||!y.ts.length||Date.now()-y.at>12
  hrs.forEach(x=>{const k=ymd(x.d);const D=days[k]=days[k]||{date:k,min:99,max:-99,pr:0,syms:[]};D.min=Math.min(D.min,x.T);D.max=Math.max(D.max,x.T);
   D.pr+=x.pr!=null?x.pr:(x.pr6!=null&&x.d.getHours()%6===0?x.pr6:0);const hr=x.d.getHours();if(hr>=9&&hr<=18)D.syms.push(x.s6||x.s)});
  const dl=Object.values(days).map(D=>Object.assign(D,{sym:D.syms[Math.floor(D.syms.length/2)]||(hrs.find(x=>ymd(x.d)===D.date)||{}).s||''})).slice(0,9);
- return{src:y.src,now:cur,hours:hrs.slice(0,25),days:dl}}
+ return{src:y.src,now:cur,hours:hrs.slice(0,25),all:hrs,days:dl}}
 const symBase=s=>String(s||'').replace(/_(day|night|polartwilight)$/,'');
 // dimma ritas själv: telefonens dimemoji ser ut som en suddig grå fyrkant
 const FOG_IC='<svg class="ic-fog" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><g fill="none" stroke="#A7B0BF" stroke-width="2.2" stroke-linecap="round"><path d="M3 8c2-1.4 4-1.4 6 0s4 1.4 6 0 4-1.4 6 0"/><path d="M3 13c2-1.4 4-1.4 6 0s4 1.4 6 0 4-1.4 6 0" opacity=".8"/><path d="M5 18c1.7-1.2 3.3-1.2 5 0s3.3 1.2 5 0 3.3-1.2 4 0" opacity=".6"/></g></svg>';
