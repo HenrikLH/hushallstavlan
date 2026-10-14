@@ -293,7 +293,7 @@ function matBank(){
  if(!list.length)return h+'<div style="height:16px"></div>'+group(emptyCell('Inga recept matchar filtret.'));
  return h+'<div class="bank">'+list.map(({r,g})=>{const wished=w.has(r.id);
   return'<article class="bcard '+kind(r)+'"><button class="bimg" data-act="recipe" data-id="'+esc(r.id)+'" aria-label="Öppna '+esc(r.title)+'">'+(r.img?'<img src="'+esc(r.img)+'" alt="" loading="lazy">':'<span aria-hidden="true">'+foodIcon(r.title)+'</span>')+'</button>'+
-  '<div class="bbody"><div class="chips-row">'+whoChip(r.who)+(r.min?'<span class="chip num">'+r.min+' min</span>':'')+(r.kr?'<span class="chip num">'+kr(r.kr)+'/port</span>':'')+'</div>'+
+  '<div class="bbody"><div class="chips-row">'+whoChip(r.who)+freqChip(r.id)+(r.min?'<span class="chip num">'+r.min+' min</span>':'')+(r.kr?'<span class="chip num">'+kr(r.kr)+'/port</span>':'')+'</div>'+
   '<button class="btitle" data-act="recipe" data-id="'+esc(r.id)+'">'+esc(r.title)+'</button>'+
   (g?'<div class="bstars"><span class="st" aria-label="'+g.avg.toFixed(1)+' av 5">'+starsTxt(g.avg)+'</span>'+g.people.map(([p,e])=>'<span class="fn">'+esc(p)+': '+esc(VERD[e.v]||'')+'</span>').join('')+'</div>':'<div class="fn">Inget betyg än</div>')+
   '<button class="pill'+(wished?' on':'')+'" data-act="wish" data-id="'+esc(r.id)+'">'+(wished?I.tick+'Önskad nästa vecka':'Vill ha nästa vecka')+'</button></div></article>'}).join('')+'</div>'}
@@ -414,8 +414,26 @@ function recipeDetail(r){
    (hs.length?'<div class="uses">'+hs.map(it=>'<span>'+esc((qtyText(it,f)+' '+it.n).trim())+'</span>').join('')+'</div>':'')+(timerBtn?'<div class="pills">'+timerBtn+'</div>':''))+'</div></li>'}).join('')+'</ol></div>';
  if(r.tips)h+='<div class="group" style="margin-top:12px"><div class="note">'+esc(r.tips)+'</div></div>';
  h+=rateBlock(r);
+ h+=freqBlock(r);
  h+='</div></div>';
  return h}
+/* Hur ofta ett recept ska komma tillbaka. Sparas i Inställningar: frekvens = {id:{w,t}} (w=0 betyder aldrig),
+   receptlogg = {id:'ÅÅÅÅ-MM-DD'} som veckoplaneringen fyller i när receptet läggs på menyn. */
+const FREQS=[[1,'Varje vecka'],[2,'Varannan vecka'],[3,'Var 3:e vecka'],[4,'Var 4:e vecka'],[6,'Var 6:e vecka'],[8,'Var 8:e vecka'],[12,'Var 12:e vecka'],[26,'Ett par gånger om året'],[0,'Aldrig']];
+const freqName=w=>(FREQS.find(([n])=>n===w)||[0,'Var '+w+':e vecka'])[1];
+const freqs=()=>parseJ(settings().frekvens,{});
+const lastServed=id=>parseJ(settings().receptlogg,{})[id]||'';
+// Förslag utifrån betyget: 5 stjärnor var 3:e vecka, 4 stjärnor eller Laga igen var 6:e, 3 stjärnor var 12:e, annars aldrig
+function autoFreq(id){const g=ratingOf(id);if(!g)return null;if(g.never)return 0;const igen=g.people.some(([,e])=>e.v==='igen');
+ return g.avg>=4.75?3:(g.avg>=3.75||igen)?6:g.avg>=2.75?12:0}
+function freqOf(id){const x=freqs()[id];return x&&x.w!=null?{w:Number(x.w),own:true}:{w:autoFreq(id),own:false}}
+const freqChip=id=>{const w=freqOf(id).w;return w==null?'':'<span class="chip">'+(w===0?'Aldrig':w===1?'Varje vecka':w===26?'Sällan':'Var '+w+':e v')+'</span>'};
+function freqBlock(r){const f=freqOf(r.id),a=autoFreq(r.id),last=lastServed(r.id);
+ const opts='<option value="auto"'+(f.own?'':' selected')+'>Efter betyget'+(a!=null?' ('+freqName(a).toLowerCase()+')':'')+'</option>'+FREQS.map(([n,l])=>'<option value="'+n+'"'+(f.own&&f.w===n?' selected':'')+'>'+l+'</option>').join('');
+ let next='';if(last&&f.w)next=addDays(last,f.w*7);
+ return sh('Hur ofta?')+group(fieldCell('Laga','<span class="menu"><select data-change="rfreq" data-id="'+esc(r.id)+'" aria-label="Hur ofta">'+opts+'</select></span>')+
+  (last?'<div class="cell"><div class="grow"><div class="meta">Senast på menyn '+esc(dateShort(last))+(next?' · tidigast igen '+esc(dateShort(next)):'')+'</div></div></div>':''))+
+  '<div class="foot">'+(f.w==null?'Betygsätt receptet så föreslås hur ofta det kommer tillbaka. ':'')+'Veckoplaneringen tar med receptet igen när det har gått så här länge.</div>'}
 function rateBlock(r){const g=ratingOf(r.id),wished=wishes().some(x=>x.id===r.id),me=S.me&&g&&g.people.find(([p])=>p===S.me);
  let h=sh('Betyg',g?'<span class="st">'+starsTxt(g.avg)+'</span> '+g.avg.toFixed(1).replace('.',','):'');
  h+=group((g?g.people.map(([p,e])=>'<div class="cell"><div class="grow"><div class="title">'+esc(p)+' <span class="st">'+starsTxt(e.s)+'</span></div><div class="meta"><span class="chip '+(e.v==='igen'?'v':e.v==='aldrig'?'h':'')+'">'+esc(VERD[e.v]||'')+'</span>'+(e.c?'<span>'+esc(e.c)+'</span>':'')+(e.d?'<span>'+esc(dateShort(e.d))+'</span>':'')+'</div></div></div>').join(''):emptyCell('Ingen har betygsatt receptet än.'))+
@@ -1137,6 +1155,7 @@ document.addEventListener('input',e=>{if(e.target.id==='ork')orkPreview(e.target
 document.addEventListener('change',e=>{const el=e.target.closest('[data-change]');if(!el)return;const id=el.dataset.id;
  if(el.dataset.change==='photo'){const f=el.files&&el.files[0];el.value='';uploadPhoto(id,f);return}
  if(el.dataset.change==='ork'){el.blur();ACT.budget(String(ORK[Number(el.value)].min));return}
+ if(el.dataset.change==='rfreq'){const r=recipeById(id),v=el.value;updJSON('frekvens',{},o=>{if(v==='auto')delete o[id];else o[id]={w:Number(v),t:r?r.title:''};return o});toast(v==='auto'?'Följer betyget':freqName(Number(v)));return}
  if(el.dataset.change==='eko'){const v=Math.max(0,Number(String(el.value).replace(',','.'))||0);updJSON('ekonomi',{},o=>{o[id]=v;return o});return}
  const f=el.dataset.change==='freq'?{freq:Number(el.value)}:{who:el.value};mutate('clean',id,f);apiPost({action:'cleanSet',id,fields:f})});
 document.addEventListener('submit',async e=>{const f=e.target.closest('[data-form]');if(!f)return;e.preventDefault();const d=Object.fromEntries(new FormData(f));

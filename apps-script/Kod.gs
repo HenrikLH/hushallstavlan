@@ -32,7 +32,7 @@ const COLS = {
 const BOOL = { done: true };
 const NUM = { price: true, order: true, freq: true, min: true, portions: true, kr: true };
 const SETTING_KEYS_WRITABLE = ['personer', 'stadtid_vardag', 'stadtid_helg', 'stadtid_idag', 'matbudget',
-  'ekonomi', 'ekonomi_inkomst', 'betyg', 'onskelista', 'pref_henrik', 'pref_veg', 'pref_ekonomi', 'pref_ovrigt'];
+  'ekonomi', 'ekonomi_inkomst', 'betyg', 'onskelista', 'pref_henrik', 'pref_veg', 'pref_ekonomi', 'pref_ovrigt', 'frekvens'];
 // receptbank_1, receptbank_2 … får också skrivas från appen
 function settingWritable_(k) { return SETTING_KEYS_WRITABLE.indexOf(k) >= 0 || /^receptbank_\d{1,2}$/.test(String(k)); }
 
