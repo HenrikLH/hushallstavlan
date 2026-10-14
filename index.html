@@ -398,6 +398,7 @@ body.wall .clock{display:block}
 .sky-b{position:absolute;transform:translate(-50%,-50%);line-height:0}
 .sky-b svg{display:block}
 .sky-sun svg{animation:figHalo 6s ease-in-out infinite}
+.sky-moon svg{animation:figHalo 7s ease-in-out infinite;filter:drop-shadow(0 0 2px rgba(50,60,100,.75))}
 .sky-stars{position:absolute;inset:0;width:100%;height:100%;fill:var(--ink-2);opacity:.55}
 .sky-stars .tw{animation:figTw 2.6s ease-in-out infinite}.sky-stars .d2{animation-delay:-.9s}.sky-stars .d3{animation-delay:-1.7s}
 .hero .clock{display:block;font-size:56px;line-height:1;font-weight:700;letter-spacing:-1.5px;padding:0}
@@ -435,6 +436,8 @@ button.fig-box:active{opacity:1;transform:scale(.96)}
 .wx-scene .sc-fx .fig{width:auto;aspect-ratio:170/130;height:100%}
 .wx-scene .sc-dogs{position:absolute;left:4px;bottom:62px;width:184px;height:140px;margin:0}
 .sc-sun>svg{animation:figHalo 6s ease-in-out infinite;transform-origin:center}
+.sc-moon>svg{animation:figHalo 7s ease-in-out infinite;transform-origin:center}
+.ic-fog{vertical-align:-.12em}
 .sc-head{position:absolute;z-index:2;top:12px;left:18px;right:18px;display:grid;grid-template-columns:1fr auto;column-gap:12px;pointer-events:none;color:#fff;text-shadow:0 1px 10px rgba(10,20,40,.35)}
 .sc-head .wx-place{grid-column:1;grid-row:1;font-size:20px;line-height:24px}
 .sc-head .wx-big{grid-column:1;grid-row:2;margin:0;font-size:72px}
@@ -820,7 +823,7 @@ body.is-night .nav{opacity:0;pointer-events:none}
 <div class="timers" id="timers" aria-live="polite"></div>
 <div id="toast" hidden class="toast" role="status"></div>
 <script src="config.js?v=37"></script>
-<script src="app.js?v=42"></script>
+<script src="app.js?v=43"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>

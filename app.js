@@ -878,12 +878,20 @@ function wxModel(){const y=EXT.yr;if(!y||!y.ts||!y.ts.length||Date.now()-y.at>12
  const dl=Object.values(days).map(D=>Object.assign(D,{sym:D.syms[Math.floor(D.syms.length/2)]||(hrs.find(x=>ymd(x.d)===D.date)||{}).s||''})).slice(0,9);
  return{src:y.src,now:cur,hours:hrs.slice(0,25),days:dl}}
 const symBase=s=>String(s||'').replace(/_(day|night|polartwilight)$/,'');
+// dimma ritas själv: telefonens dimemoji ser ut som en suddig grå fyrkant
+const FOG_IC='<svg class="ic-fog" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><g fill="none" stroke="#A7B0BF" stroke-width="2.2" stroke-linecap="round"><path d="M3 8c2-1.4 4-1.4 6 0s4 1.4 6 0 4-1.4 6 0"/><path d="M3 13c2-1.4 4-1.4 6 0s4 1.4 6 0 4-1.4 6 0" opacity=".8"/><path d="M5 18c1.7-1.2 3.3-1.2 5 0s3.3 1.2 5 0 3.3-1.2 4 0" opacity=".6"/></g></svg>';
 function symInfo(s){const b=symBase(s),night=/_night$/.test(s||'');
  if(/thunder/.test(b))return['⛈️','Åska'];
  if(/sleet/.test(b))return['🌨️',(/showers/.test(b)?'Byar av ':'')+'snöblandat regn'];
  if(/snow/.test(b))return[/heavy/.test(b)?'❄️':'🌨️',/showers/.test(b)?'Snöbyar':/heavy/.test(b)?'Kraftigt snöfall':/light/.test(b)?'Lätt snöfall':'Snöfall'];
  if(/rain/.test(b))return[/heavy/.test(b)?'🌧️':(/showers|light/.test(b)?'🌦️':'🌧️'),/showers/.test(b)?(/heavy/.test(b)?'Kraftiga regnskurar':/light/.test(b)?'Lätta regnskurar':'Regnskurar'):(/heavy/.test(b)?'Kraftigt regn':/light/.test(b)?'Lätt regn':'Regn')];
- return{clearsky:[night?'🌙':'☀️','Klart'],fair:[night?'🌙':'🌤️','Mest klart'],partlycloudy:[night?'☁️':'⛅','Halvklart'],cloudy:['☁️','Mulet'],fog:['🌫️','Dimma']}[b]||['🌡️','']}
+ return{clearsky:[night?'🌙':'☀️','Klart'],fair:[night?'🌙':'🌤️','Mest klart'],partlycloudy:[night?'☁️':'⛅','Halvklart'],cloudy:['☁️','Mulet'],fog:[FOG_IC,'Dimma']}[b]||['🌡️','']}
+// temperaturfärg efter verklig temperatur (som Apples väder): mörkblått under 0, ljusblått till 15, grönt till 20,
+// gult till 25, orange till 30 och rött över; färgerna glider över i varandra vid gränserna
+const T_COL=[[-15,'#2B3FB0'],[-3,'#3478F6'],[3,'#5AC8FA'],[13,'#64D2E6'],[17.5,'#4CD964'],[22.5,'#FFD60A'],[27.5,'#FF9F0A'],[32,'#FF453A'],[40,'#D70015']];
+function tempCol(T){const c=T_COL;if(T<=c[0][0])return c[0][1];for(let i=1;i<c.length;i++)if(T<=c[i][0])return mixHex(c[i-1][1],c[i][1],(T-c[i-1][0])/(c[i][0]-c[i-1][0]));return c[c.length-1][1]}
+function tempGrad(a,b){if(b-a<.5)return tempCol((a+b)/2);const n=Math.max(2,Math.ceil(b-a)+1);
+ return'linear-gradient(90deg,'+Array.from({length:n},(_,i)=>tempCol(a+(b-a)*i/(n-1))+' '+(i/(n-1)*100).toFixed(1)+'%').join(',')+')'}
 const capS=s=>s?s.charAt(0).toUpperCase()+s.slice(1):s;
 const deg=t=>Math.round(t)+'°';
 const mm=v=>(Math.round(v*10)/10).toLocaleString('sv-SE')+' mm';
@@ -1039,11 +1047,19 @@ function skyHtml(W,big){const P=WX_POS(),sc=wxScene(W),k=SKY(new Date(),P.lat,P.
  if(sc.dark&&!covered)h+='<svg class="sky-stars" viewBox="0 0 100 100" preserveAspectRatio="none">'+[[8,14],[22,40],[36,10],[47,28],[61,8],[70,36],[83,18],[93,44],[15,62],[55,52]].slice(0,sc.sky==='partly'?4:10)
   .map(([x,y],i)=>'<circle class="tw'+(i%3?' d'+(i%3+1):'')+'" cx="'+x+'" cy="'+y+'" r=".45"/>').join('')+'</svg>';
  if(k.sun.alt>-1)h+=at(k.sun,sunSvg(k.sun.alt<8,big?sz:84),'sky-sun');
- if(k.moon.alt>-1)h+=at(k.moon,moonSvg(k.moon.frac,k.moon.waxing,sz*.9),'sky-moon',k.sun.alt>0?.55:1);
+ // på natten vandrar månen i en båge från öster till väster, i sin verkliga fas; på dagen syns den där den står
+ const nq=k.sun.alt<-1&&nightFrac(new Date(),P);
+ if(nq!==false)h+=at({az:-90+nq*180,alt:Math.sin(Math.PI*nq)*.8*(big?55:Math.max(pk.moon,8))},moonSvg(k.moon.frac,k.moon.waxing,sz*1.1),'sky-moon');
+ else if(k.moon.alt>-1)h+=at(k.moon,moonSvg(k.moon.frac,k.moon.waxing,sz*.9),'sky-moon',k.sun.alt>0?.55:1);
  return'<div class="sky" aria-hidden="true">'+h+'</div>'}
 /* Vädervyns lilla miljö: himmel, kullar, träd och gräs som följer tid på dygnet, väder och årstid.
    Hundarna står på gräset till vänster; solen och månen följer sina banor över hela rutan,
    där överkanten motsvarar dagens högsta solhöjd. */
+// hur långt natten har kommit, 0 vid solnedgången och 1 vid soluppgången
+function nightFrac(now,P){const d=ymd(now),a=sunTimes(d,P.lat,P.lon);if(!a)return .5;
+ let set,rise;if(now>=a[1]){set=a[1];const b=sunTimes(addDays(d,1),P.lat,P.lon);rise=b?b[0]:new Date(set.getTime()+12*36e5)}
+ else{rise=a[0];const b=sunTimes(addDays(d,-1),P.lat,P.lon);set=b?b[1]:new Date(rise.getTime()-12*36e5)}
+ return Math.max(0,Math.min(1,(now-set)/(rise-set)))}
 function wxSceneHtml(W,o){o=o||{};const P=WX_POS(),sc=wxScene(W),now=new Date(),k=SKY(now,P.lat,P.lon),pk=skyPeak(P.lat,P.lon),ph=sc.phase,mo=now.getMonth();
  const wet=/^(drizzle|rain|sleet)$/.test(sc.type),snow=sc.type==='snow',heavy=(wet||snow)&&sc.lv>=2||sc.thunder;
  const covered=sc.sky==='cloudy'||sc.sky==='fog'||heavy,grey=covered||wet||snow;
@@ -1066,7 +1082,10 @@ function wxSceneHtml(W,o){o=o||{};const P=WX_POS(),sc=wxScene(W),now=new Date(),
   .map(([x,y],i)=>'<circle class="tw'+(i%3?' d'+(i%3+1):'')+'" cx="'+x+'" cy="'+Math.round(y*H/150)+'" r="'+(i%4?.9:1.3)+'"/>').join('')+'</g>';
  // solen och månen: vänster öster, höger väster, överkanten är dagens högsta solhöjd
  const pos=(b,top)=>({x:Math.max(18,Math.min(342,180+b.az/90*160)),y:H-Math.max(0,Math.min(1,b.alt/Math.max(top,10)))*(H-26)});
- if(k.moon.alt>-1){const q=pos(k.moon,Math.max(pk.sun,pk.moon*.8)),z=40;s+='<svg x="'+(q.x-z/2).toFixed(1)+'" y="'+(q.y-z/2).toFixed(1)+'" width="'+z+'" height="'+z+'" opacity="'+((covered?.35:1)*(k.sun.alt>0?.6:1))+'" overflow="visible">'+moonSvg(k.moon.frac,k.moon.waxing,z).replace(/^<svg /,'<svg width="40" height="40" ')+'</svg>'}
+ const nq=k.sun.alt<-1&&nightFrac(now,P);   // på natten vandrar månen i en båge från öster till väster, i sin verkliga fas
+ if(nq!==false){const f=nq,z=64,x=125+f*200,y=H-30-(H-80)*Math.sin(Math.PI*f);
+  s+='<svg class="sc-moon" x="'+(x-z/2).toFixed(1)+'" y="'+(y-z/2).toFixed(1)+'" width="'+z+'" height="'+z+'" opacity="'+(covered?.35:1)+'" overflow="visible">'+moonSvg(k.moon.frac,k.moon.waxing,z)+'</svg>'}
+ else if(k.moon.alt>-1){const q=pos(k.moon,Math.max(pk.sun,pk.moon*.8)),z=40;s+='<svg x="'+(q.x-z/2).toFixed(1)+'" y="'+(q.y-z/2).toFixed(1)+'" width="'+z+'" height="'+z+'" opacity="'+((covered?.35:1)*(k.sun.alt>0?.6:1))+'" overflow="visible">'+moonSvg(k.moon.frac,k.moon.waxing,z).replace(/^<svg /,'<svg width="40" height="40" ')+'</svg>'}
  if(k.sun.alt>-1){const q=pos(k.sun,pk.sun),z=64;s+='<svg class="sc-sun" x="'+(q.x-z/2).toFixed(1)+'" y="'+(q.y-z/2).toFixed(1)+'" width="'+z+'" height="'+z+'" opacity="'+(covered?.4:1)+'" overflow="visible">'+sunSvg(k.sun.alt<8,z)+'</svg>'}
  // kullar och träd i fjärran, sedan gräset hundarna står på
  s+='<path d="M0 '+(H-6)+' Q60 '+(H-34)+' 130 '+(H-12)+' T260 '+(H-20)+' T360 '+(H-10)+' V'+HT+' H0Z" fill="'+hill(g2)+'"/>';
@@ -1226,7 +1245,7 @@ V.vader=function(){const W=wxModel(),P=WX_POS();
  // Dagar
  const lo=Math.min(...W.days.map(x=>x.min)),hi=Math.max(...W.days.map(x=>x.max)),span=Math.max(1,hi-lo);
  h+='<div class="group wx-card"><div class="wx-cap">'+I.cal+W.days.length+'-dagarsprognos</div>'+W.days.map((x,k)=>{const[ii]=symInfo(x.sym),l=(x.min-lo)/span*100,r=(x.max-lo)/span*100;
-  return'<div class="day-row"><span class="dn">'+(k?capS(DAYS3[parse(x.date).getDay()]):'Idag')+'</span><span class="di" aria-hidden="true">'+ii+'</span><span class="dp num">'+(x.pr>=0.2?mm(x.pr):'')+'</span><span class="dmin num">'+deg(x.min)+'</span><span class="range" aria-hidden="true"><i style="left:'+l+'%;right:'+(100-r)+'%"></i>'+(k===0?'<b style="left:'+((W.now.T-lo)/span*100)+'%"></b>':'')+'</span><span class="dmax num">'+deg(x.max)+'</span></div>'}).join('')+'</div>';
+  return'<div class="day-row"><span class="dn">'+(k?capS(DAYS3[parse(x.date).getDay()]):'Idag')+'</span><span class="di" aria-hidden="true">'+ii+'</span><span class="dp num">'+(x.pr>=0.2?mm(x.pr):'')+'</span><span class="dmin num">'+deg(x.min)+'</span><span class="range" aria-hidden="true"><i style="left:'+l+'%;right:'+(100-r)+'%;background:'+tempGrad(x.min,x.max)+'"></i>'+(k===0?'<b style="left:'+((W.now.T-lo)/span*100)+'%"></b>':'')+'</span><span class="dmax num">'+deg(x.max)+'</span></div>'}).join('')+'</div>';
  // Detaljer
  const n=W.now,prToday=d0.pr,tile=(lab,val,sub)=>'<div class="wx-tile"><div class="wx-cap">'+lab+'</div><div class="tv num">'+val+'</div><div class="fn">'+sub+'</div></div>';
  h+='<div class="wx-tiles">'+
