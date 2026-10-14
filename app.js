@@ -37,13 +37,14 @@ const I={
  tick:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 8.5l3.5 3.5 7.5-8"/></svg>',
  x:'<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9"/></svg>',
  play:'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg>',
+ cake:SV+'<path d="M4 21h16M5 21v-7.5a1.5 1.5 0 0 1 1.5-1.5h11a1.5 1.5 0 0 1 1.5 1.5V21"/><path d="M5 16c1.2 1 2.3 1 3.5 0s2.3-1 3.5 0 2.3 1 3.5 0 2.3-1 3.5 0"/><path d="M12 12V8.5"/><path d="M12 3.5c1 1.2 1.3 2.2.6 2.9a.9.9 0 0 1-1.2 0c-.7-.7-.4-1.7.6-2.9z"/></svg>',
  clock:SV+'<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg>'
 };
 // Översikt ligger i mitten av flikraden
 const I_EKO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10h18M16.5 14.5h1.5"/></svg>';
 // Inköp ligger under Mat; Ekonomi har fått dess plats i flikraden
 const VIEWS=[['mat','Mat',I.fork],['ekonomi','Ekonomi',I_EKO],['oversikt','Översikt',I.home],['uppgifter','Uppgifter',I.list],['stad','Städ',I.sparkles]];
-const VIEW_IDS=VIEWS.map(v=>v[0]).concat(['vader']);
+const VIEW_IDS=VIEWS.map(v=>v[0]).concat(['vader','fod']);
 const OLD_VIEWS={matsedel:'vecka',recept:'recept',inkop:'inkop'};
 
 /* ---------- state ---------- */
@@ -55,6 +56,7 @@ try{const c=lsGet('cache');if(c)S.data=JSON.parse(c)}catch(e){}
 // Gamla vyer (Matsedel, Recept) ligger nu i fliken Mat
 function normView(id){if(OLD_VIEWS[id]){S.matTab=OLD_VIEWS[id];lsSet('matTab',S.matTab);return'mat'}return id}
 S.view=normView(S.view);
+S.fodMode=['hjul','manad','lista'].includes(lsGet('fodMode'))?lsGet('fodMode'):'hjul';
 const h0=location.hash.slice(1);if(VIEW_IDS.includes(h0)||OLD_VIEWS[h0])S.view=normView(h0);
 if(!VIEW_IDS.includes(S.view))S.view='oversikt';
 
@@ -254,6 +256,7 @@ V.oversikt=function(){
  h+=heroHtml();
  h+='<div class="widgets">';
  h+=calWidget();
+ h+=bdWidget();
  const isT=nextDay&&nextDay.date===t;
  h+=widget('mat','w2',I.fork,(isT||!nextDay)?'Middag ikväll':'Nästa middag',nextDay&&!isT?esc(dateShort(nextDay.date)):'',
   nextDay?wMeals(nextDay):'<div class="wempty">Ingen matsedel inlagd än. Den fylls i när veckoplaneringen körs på onsdag.</div>');
@@ -1008,6 +1011,68 @@ V.ekonomi=function(){const m=S.ekoMonth||thisMonth(),c=ekoCalc(m),o=c.o;
  setTimeout(()=>{const el=document.getElementById('split-amt');if(el&&el.value)splitPreview(el);else{const out=document.getElementById('split-out');if(out)splitPreview({value:1000})}},0);
  return h};
 
+/* ---------- födelsedagar ----------
+   Listan står som JSON i fliken Inställningar (raden fodelsedagar) och skrivs av kalenderrutinen:
+   [{"namn":"Leah","datum":"10-15","ar":2014}, …]. ar saknas när födelseåret inte står i kalendern. */
+const MON3=['jan','feb','mar','apr','maj','jun','jul','aug','sep','okt','nov','dec'];
+function bdays(){const t=today(),ty=Number(t.slice(0,4)),seen=new Set();
+ return parseJ(settings().fodelsedagar,[]).map(x=>{const m=/^(\d{1,2})-(\d{1,2})$/.exec(String(x&&x.datum||''));if(!m||!x.namn)return null;
+  const mo=Number(m[1])-1,dd=Number(m[2]),k=x.namn+'|'+mo+'|'+dd;if(mo<0||mo>11||seen.has(k))return null;seen.add(k);
+  let y=ty;const at=yy=>ymd(new Date(yy,mo,dd));if(at(y)<t)y++;const next=at(y),yr=Number(x.ar)||null;
+  return{name:String(x.namn),mo,dd,yr,next,days:Math.round((parse(next)-parse(t))/864e5),age:yr?y-yr:null,passed:y>ty}}).filter(Boolean)
+  .sort((a,b)=>a.mo-b.mo||a.dd-b.dd||a.name.localeCompare(b.name,'sv'))}
+const bdWhen=b=>b.days===0?'idag':b.days===1?'imorgon':b.days<7?'på '+DAYS[parse(b.next).getDay()]:b.days<45?'om '+b.days+' dagar':'om '+Math.round(b.days/30.4)+' mån';
+const bdTurns=b=>b.age!=null?'fyller '+b.age:'fyller år';
+const bdNext=L=>L.slice().sort((a,b)=>a.days-b.days);
+function bdRow(b,o){o=o||{};return'<div class="cell bd'+(b.days===0?' today':'')+(b.passed&&o.dim?' past':'')+'"><span class="bd-date num"><b>'+b.dd+'</b><small>'+MON3[b.mo]+'</small></span>'+
+ '<div class="grow"><div>'+esc(b.name)+'</div><div class="sub">'+esc(cap(bdTurns(b)))+(b.yr?' · född '+b.yr:'')+'</div></div><span class="bd-when'+(b.days<14?' soon':'')+'">'+esc(bdWhen(b))+'</span></div>'}
+function bdWidget(){const L=bdNext(bdays()).slice(0,3);if(!L.length)return'';
+ return widget('fod','w2',I.cake,'Födelsedagar','',
+  '<div class="wl">'+L.map(b=>'<div class="cell bdw"><span class="grow">'+esc(b.name)+' <span class="muted">'+esc(bdTurns(b))+'</span></span><span class="bd-when'+(b.days<14?' soon':'')+'">'+esc(bdWhen(b))+'</span></div>').join('')+'</div>')}
+
+// Årshjul: tolv lika stora månadssegment, januari överst, medurs. Varje födelsedag är en prick på sin dag.
+function bdWheel(L,sel){const C=180,R0=102,R1=174,t=parse(today());
+ const ang=(mo,day)=>{const n=new Date(2001,mo+1,0).getDate();return(mo+(day-.5)/n)/12*2*Math.PI-Math.PI/2};
+ const pt=(r,a)=>[(C+r*Math.cos(a)).toFixed(1),(C+r*Math.sin(a)).toFixed(1)];
+ let s='<svg class="bd-wheel" viewBox="0 0 360 360" role="group" aria-label="Årshjul med födelsedagar">';
+ for(let m=0;m<12;m++){const g=.012,a0=m/12*2*Math.PI-Math.PI/2+g,a1=(m+1)/12*2*Math.PI-Math.PI/2-g,
+   [x0,y0]=pt(R1,a0),[x1,y1]=pt(R1,a1),[x2,y2]=pt(R0,a1),[x3,y3]=pt(R0,a0),n=L.filter(b=>b.mo===m).length,
+   cls='seg'+(m===sel?' on':'')+(m===t.getMonth()?' now':'')+(n?' has':'');
+  s+='<path class="'+cls+'" data-act="fodMon" data-id="'+m+'" d="M'+x0+' '+y0+'A'+R1+' '+R1+' 0 0 1 '+x1+' '+y1+'L'+x2+' '+y2+'A'+R0+' '+R0+' 0 0 0 '+x3+' '+y3+'Z"><title>'+cap(MON[m])+': '+n+'</title></path>';
+  const[lx,ly]=pt(R0+14,(m+.5)/12*2*Math.PI-Math.PI/2);
+  s+='<text class="ml'+(m===sel?' on':'')+'" x="'+lx+'" y="'+ly+'" text-anchor="middle" dominant-baseline="central">'+MON3[m]+'</text>'}
+ const nx=bdNext(L)[0];
+ // Födelsedagar som ligger nära varandra läggs i en inre bana så att prickarna inte täcker varandra
+ const lanes=[];L.forEach(b=>{const a=ang(b.mo,b.dd);let k=0;while(lanes[k]!=null&&a-lanes[k]<.09)k++;lanes[k]=a;
+  const[x,y]=pt(R1-14-k*11,a);s+='<circle class="dot'+(b===nx?' next':'')+'" cx="'+x+'" cy="'+y+'" r="'+(b===nx?6:4.5)+'"/>'});
+ const ta=ang(t.getMonth(),t.getDate()),[hx0,hy0]=pt(R1+3,ta),[hx1,hy1]=pt(R1+13,ta);
+ s+='<line class="hand" x1="'+hx0+'" y1="'+hy0+'" x2="'+hx1+'" y2="'+hy1+'"/><circle class="hand-dot" cx="'+hx1+'" cy="'+hy1+'" r="3"/>';
+ return s+'</svg>'}
+
+V.fod=function(){const L=bdays(),t=parse(today()),mode=S.fodMode||'hjul';
+ let h='<div class="rcp-top"><button class="back" data-act="nav" data-id="oversikt">'+I.back+'Översikt</button></div>';
+ h+=head('Födelsedagar',{sub:L.length?L.length+' personer':''});
+ if(!L.length)return h+group(emptyCell('Inga födelsedagar ännu. Listan fylls i när kalenderrutinen körs på söndag.'));
+ h+=segc('Visning','fodMode',[['hjul','Årshjul'],['manad','Månader'],['lista','Tidslinje']],mode);
+ const nx=bdNext(L),first=nx[0],same=nx.filter(b=>b.days===first.days);
+ if(mode==='hjul'){const sel=S.fodMon!=null?S.fodMon:t.getMonth(),ML=L.filter(b=>b.mo===sel);
+  h+='<div class="bd-wrap">'+bdWheel(L,sel)+'<div class="bd-center"><div class="eyebrow">'+(first.days===0?'Idag':'Nästa')+'</div><div class="bd-cn">'+esc(same.map(b=>b.name).join(' & '))+'</div><div class="sub">'+esc(cap(same.length===1?bdTurns(first):'fyller år')+(first.days?' '+bdWhen(first):''))+'</div></div></div>';
+  h+=sh(cap(MON[sel]),ML.length?ML.length+(ML.length===1?' födelsedag':' födelsedagar'):'')+group(ML.length?ML.map(b=>bdRow(b)).join(''):emptyCell('Ingen fyller år i '+MON[sel]+'.'));
+  h+='<div class="foot">Tryck på en månad i hjulet för att se vilka som fyller år då.</div>'}
+ else if(mode==='manad'){h+='<div class="bd-grid">';
+  for(let m=0;m<12;m++){const ML=L.filter(b=>b.mo===m),cur=m===t.getMonth();
+   h+='<section class="bd-mon'+(cur?' now':'')+(!ML.length?' empty':'')+'"><div class="bd-mh"><span>'+cap(MON[m])+'</span>'+(ML.length?'<span class="n">'+ML.length+'</span>':'')+'</div>'+
+    (ML.length?ML.map(b=>'<div class="bd-li'+(b.passed?' past':'')+(b===first?' next':'')+'"><span class="d num">'+b.dd+'</span><span class="nm">'+esc(b.name)+'</span>'+(b.age!=null?'<span class="a num">'+b.age+'</span>':'')+'</div>').join(''):'<div class="bd-none">–</div>')+'</section>'}
+  h+='</div><div class="foot">Siffran efter namnet är åldern personen fyller. Grått har redan varit i år.</div>'}
+ else{h+='<section class="bd-hero"><div class="eyebrow">'+(first.days===0?'Idag':'Nästa födelsedag')+'</div><div class="bd-hn">'+esc(same.map(b=>b.name).join(' & '))+'</div><div class="bd-hs">'+esc(cap(same.length===1?bdTurns(first):'fyller år'))+' '+esc(bdWhen(first))+'</div><div class="sub">'+esc(dateLong(first.next))+'</div></section>';
+  // Årsremsa: tolv månader från och med den här, en prick per födelsedag
+  h+='<div class="bd-strip">';for(let i=0;i<12;i++){const m=(t.getMonth()+i)%12,ML=L.filter(b=>b.mo===m);
+   h+='<div class="bs-col'+(i===0?' now':'')+'"><div class="bs-dots">'+ML.map(b=>'<i'+(b===first?' class="next"':'')+'></i>').join('')+'</div><span>'+MON3[m].charAt(0).toUpperCase()+'</span></div>'}
+  h+='</div>';
+  let lastM=-1;const rows=[];nx.forEach(b=>{if(b.mo!==lastM){if(rows.length)h+=group(rows.splice(0).join(''));h+=sh(cap(MON[b.mo])+(parse(b.next).getFullYear()!==t.getFullYear()?' '+parse(b.next).getFullYear():''));lastM=b.mo}rows.push(bdRow(b))});
+  if(rows.length)h+=group(rows.join(''))}
+ return h};
+
 /* ---------- utseende ---------- */
 function applyTheme(fade){const root=document.documentElement;
  if(fade&&!calm()){root.classList.add('theme-fade');clearTimeout(applyTheme.t);applyTheme.t=setTimeout(()=>root.classList.remove('theme-fade'),450)}
@@ -1107,6 +1172,8 @@ const ACT={
  cook(id){S.cook={id,step:S.step[id]||0};wake();render()},
  pickStep(id,el){S.step[id]=Number(el.dataset.i);render();setTimeout(()=>{const li=document.querySelector('.steps li.active');if(li&&li.getBoundingClientRect().top<70)li.scrollIntoView({block:'start',behavior:'smooth'})},30)},
  cookStep(id,el){A.user=Date.now();const r=recipeById(S.cook.id);S.cook.step=Math.max(0,Math.min(r.steps.length-1,S.cook.step+Number(el.dataset.d)));S.step[S.cook.id]=S.cook.step;render()},
+ fodMode(id){S.fodMode=id;lsSet('fodMode',id);render()},
+ fodMon(id){S.fodMon=Number(id);render()},
  ekoMonth(id,el){S.ekoMonth=addMonths(S.ekoMonth||thisMonth(),Number(el.dataset.d));render()},
  ekoIncome(){S.sheet='income';render()},
  ekoCost(id,el){S.ekoEdit={list:el.dataset.list,id:id||null};S.sheet='cost';render()},
