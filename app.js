@@ -319,7 +319,7 @@ function doRender(){
  const banner=S.sync==='offline'&&OUTBOX.length?'<div class="outbox" role="status">'+I.clock+'<span class="grow">'+waitTxt(OUTBOX.length)+'</span><span class="muted">Skickas automatiskt</span></div>':S.sync==='err'?'<div class="banner">Ingen kontakt med kalkylarket just nu. Du ser senast hämtade data. '+esc(S.error)+'</div>':'';
  A.before(m);
  m.innerHTML=banner+(V[S.view]||V.oversikt)();
- placeSky();
+ placeSky();fitBoard();
  watchTitle();
  A.after(m);
 }
@@ -357,20 +357,33 @@ function wallNight(){const n=new Date(),t=today(),tm=addDays(t,1),W=wxModel();
   '<div class="night-l">I morgon '+esc(dayHead(tm))+'</div>'+
   (first?'<div class="night-l">'+esc(first.time?String(first.time).split(/\s*[–-]\s*/)[0]+' ':'')+esc(first.title)+'</div>':'')+
   (f?'<div class="night-l">'+symInfo(f.sym)[0]+' '+deg(f.min)+' till '+deg(f.max)+'</div>':'')+'</div>'}
+// Mer väder under hundarna på väggen: kommande timmar och tre dagar framåt
+function wallWx(){const W=wxModel();if(!W)return'';
+ const hrs=W.hours.slice(1,13).filter((x,k)=>k%2===0).slice(0,6);
+ let h='<div class="bwx"><div class="bwx-h">'+hrs.map(x=>{const[ic]=symInfo(x.s);return'<div><span class="fn num">'+pad(x.d.getHours())+'</span><span class="hi">'+ic+'</span><b class="num">'+deg(x.T)+'</b></div>'}).join('')+'</div>';
+ h+='<div class="bwx-d">'+W.days.slice(1,4).map(x=>{const[ic]=symInfo(x.sym);return'<div><span class="dn">'+capS(DAYS3[parse(x.date).getDay()])+'</span><span class="hi">'+ic+'</span><span class="num">'+deg(x.min)+' / <b>'+deg(x.max)+'</b></span>'+(x.pr>=0.2?'<span class="fn num">'+mm(x.pr)+'</span>':'<span></span>')+'</div>'}).join('')+'</div>';
+ h+='<div class="bwx-f"><span>'+esc(windText(W.now))+'</span>'+'</div></div>';
+ return h}
 function wallBoard(){
  if(nightOn())return wallNight();
- const t=today(),d=D(),cp=cleanPlan(),td=dayOf(t),days=planDays();
+ const t=today(),d=D(),cp=cleanPlan(),td=dayOf(t),tm=dayOf(addDays(t,1)),days=planDays();
  const nextDay=(td&&td.meals.length)?td:days.find(x=>x.date>t&&x.meals.length),isT=nextDay&&nextDay.date===t;
  const left=d.shop.filter(i=>!i.done);
- const clean=[...cp.routines.filter(x=>!doneToday(x)),...cp.todo].slice(0,7),doneN=cp.routines.filter(doneToday).length+cp.doneRot.length,totN=cp.routines.length+cp.doneRot.length+cp.todo.length;
- const bd=bdNext(bdays()).filter(b=>b.days<=14).slice(0,3);
+ const clean=[...cp.routines.filter(x=>!doneToday(x)),...cp.todo].slice(0,4),doneN=cp.routines.filter(doneToday).length+cp.doneRot.length,totN=cp.routines.length+cp.doneRot.length+cp.todo.length;
+ const tasks=d.tasks.filter(x=>!x.done).sort((a,b)=>(a.due||'9').localeCompare(b.due||'9')).slice(0,7);
+ const bd=bdNext(bdays())[0];
  let h='<div class="board"><div class="board-gear">'+gearBtn+'</div>';
- h+='<div class="bcol">'+heroHtml()+'</div>';
- h+='<div class="bcol">'+calWidget()+widget('mat','',I.fork,(isT||!nextDay)?'Middag ikväll':'Nästa middag',nextDay&&!isT?esc(dateShort(nextDay.date)):'',nextDay?wMeals(nextDay):'<div class="wempty">Ingen matsedel än.</div>')+'</div>';
- h+='<div class="bcol">'+widget('stad','bclean',I.sparkles,'Städ idag',doneN+'/'+totN,clean.length?'<div class="wl">'+clean.map(x=>'<div class="cell ck"><input type="checkbox" class="check" data-act="cleanToggle" data-id="'+esc(x.id)+'" aria-label="'+esc(x.title)+'"><span class="grow">'+esc(x.title)+'</span><span class="val num">'+x.min+' min</span></div>').join('')+'</div>':'<div class="wempty">Allt är gjort idag.</div>');
+ h+='<div class="bcol bhero">'+heroHtml()+wallWx()+'</div>';
+ h+='<div class="bcol">'+calWidget();
+ h+=widget('mat','bmeal',I.fork,(isT||!nextDay)?'Middag ikväll':'Nästa middag',nextDay&&!isT?esc(dateShort(nextDay.date)):'',(nextDay?wMeals(nextDay):'<div class="wempty">Ingen matsedel än.</div>'));
  h+='<div class="wpair">'+widget('inkop','',I.basket,'Inköp','','<div class="wbig">'+left.length+'</div><div class="sub">kvar · ca '+kr(shopCost(left))+'</div>')+
-  widget('uppgifter','',I.list,'Uppgifter','','<div class="wbig">'+d.tasks.filter(x=>!x.done&&isDate(x.due)&&x.due<=t).length+'</div><div class="sub">idag och försenade</div>')+'</div>';
- if(bd.length)h+=widget('fod','',I.cake,'Födelsedagar','','<div class="wl">'+bd.map(b=>'<div class="cell bdw"><span class="grow">'+esc(b.name)+' <span class="muted">'+esc(bdTurns(b))+'</span></span><span class="bd-when'+(b.days<14?' soon':'')+'">'+esc(bdWhen(b))+'</span></div>').join('')+'</div>');
+  (bd?widget('fod','',I.cake,'Födelsedag','','<div class="hl">'+esc(bd.name)+'</div><div class="sub">'+esc(cap(bdTurns(bd)))+' '+esc(bdWhen(bd))+'</div>'):'')+'</div>';
+ h+='</div>';
+ h+='<div class="bcol">'+widget('stad','bclean',I.sparkles,'Städ idag',doneN+'/'+totN,
+  (clean.length?'<div class="wl">'+clean.map(x=>'<div class="cell ck"><input type="checkbox" class="check" data-act="cleanToggle" data-id="'+esc(x.id)+'" aria-label="'+esc(x.title)+'"><span class="grow">'+esc(x.title)+'</span><span class="val num">'+x.min+' min</span></div>').join('')+'</div>':'<div class="bdone">'+I.tick+'Allt är gjort idag</div>')+
+  '<div class="wk-sub">Hemmet</div><div class="brooms">'+roomHealth().map(r=>'<div class="'+healthCls(r.score)+'"><span>'+esc(r.room)+'</span><i><b style="width:'+Math.round(r.score*100)+'%"></b></i></div>').join('')+'</div>');
+ h+=widget('uppgifter','btasks',I.list,'Uppgifter',d.tasks.filter(x=>!x.done).length+' kvar',tasks.length?'<div class="wl">'+tasks.map(taskRow).join('')+'</div>':'<div class="wempty">Inget att göra.</div>');
+
  return h+'</div></div>'}
 V.oversikt=function(){
  if(wallBoardOn())return wallBoard();
@@ -684,7 +697,7 @@ function calWidget(){const t=today(),wk=[];for(let i=0;i<7;i++)wk.push(addDays(t
  strip+='</div>';
  // under ett streck: dagens att göra-uppgifter med egen rubrik
  const ts=D().tasks.filter(x=>x.due===sel&&!x.done);
- const todo=ts.length?'<div class="wk-todo wk-link" data-act="taskList" role="link" tabindex="0" aria-label="Att göra, öppna Uppgifter"><div class="wk-sub">Att göra</div><div class="evs">'+ts.map(x=>'<div class="ev task"><span>'+esc(x.title)+evWho(x)+'</span></div>').join('')+'</div></div>':'';
+ const todo=ts.length&&!wallBoardOn()?'<div class="wk-todo wk-link" data-act="taskList" role="link" tabindex="0" aria-label="Att göra, öppna Uppgifter"><div class="wk-sub">Att göra</div><div class="evs">'+ts.map(x=>'<div class="ev task"><span>'+esc(x.title)+evWho(x)+'</span></div>').join('')+'</div></div>':'';
  return'<section class="widget w2 calw"><button class="wh" data-act="calOpen" data-id="'+sel+'" style="width:100%">'+I.cal+'<span>Kalender</span><span class="r">'+esc(cap(MON[parse(sel).getMonth()]))+'</span></button>'+strip+
   // schemadelen öppnar kalendern på vald dag, att göra-delen öppnar uppgiftslistan
   '<div class="wk-day"><div id="cal-rows" class="wk-link" data-d="'+sel+'" data-act="calOpen" data-id="'+sel+'" role="link" tabindex="0" aria-label="Schema, öppna kalendern">'+calDayRows(sel)+'</div>'+todo+'</div></section>'}
@@ -1059,7 +1072,7 @@ function skyPeak(lat,lon){const t=today(),key=t+lat+lon;if(SKY_TOP[key])return S
  const d0=parse(t).getTime(),p={sun:0,moon:0};
  for(let i=0;i<=96;i++){const k=SKY(new Date(d0+i*9e5),lat,lon);p.sun=Math.max(p.sun,k.sun.alt);p.moon=Math.max(p.moon,k.moon.alt)}
  return SKY_TOP[key]=p}
-function skyHtml(W,big){const P=WX_POS(),sc=wxScene(W),k=SKY(new Date(),P.lat,P.lon),sz=big?56:44,pk=big?null:skyPeak(P.lat,P.lon);
+function skyHtml(W,big){const P=WX_POS(),sc=wxScene(W),k=SKY(new Date(),P.lat,P.lon),sz=big?56:wallBoardOn()?60:44,pk=big?null:skyPeak(P.lat,P.lon);
  const covered=sc.sky==='cloudy'||sc.sky==='fog'||/^(rain|sleet|snow)$/.test(sc.type)&&sc.lv>=2||sc.thunder,op=covered?.35:1;
  // i översikten går banan från namnsdagsraden (--hz) upp till rutans överkant, där solen får beskäras
  const at=(b,html,cls,f)=>{const q=skyXY(b),pos=big?'top:'+q.y.toFixed(1)+'%':'top:calc(var(--hz,62%) - '+Math.max(0,Math.min(1,b.alt/Math.max(pk[cls==='sky-sun'?'sun':'moon'],8))).toFixed(3)+' * (var(--hz,62%) - 8px))';
@@ -1215,6 +1228,10 @@ function placeSky(){const h=document.querySelector('.hero');if(!h)return;
  if(fig){const f=fig.getBoundingClientRect();y=Math.min(y,f.bottom-top-6)}
  h.style.setProperty('--hz',Math.round(y)+'px')}
 window.addEventListener('resize',placeSky);
+// väggtavlan: rader som inte får plats i sin ruta döljs hela i stället för att klippas mitt i
+function fitBoard(){document.querySelectorAll('.board .btasks .wl').forEach(l=>{const box=l.closest('.widget').getBoundingClientRect().bottom-12;
+ [...l.children].forEach(c=>c.hidden=false);[...l.children].forEach(c=>{if(c.getBoundingClientRect().bottom>box)c.hidden=true})})}
+window.addEventListener('resize',fitBoard);
 function heroHtml(){const n=new Date(),t=today(),dy=EXT.day&&EXT.day.date===t?EXT.day:null,hh=n.getHours(),W=wxModel(),P=WX_POS();
  const greet=hh<5?'God natt':hh<10?'God morgon':hh<17?'Hej':hh<22?'God kväll':'God natt';
  const sun=sunTimes(t,P.lat,P.lon);
