@@ -791,10 +791,9 @@ body.wall::before{content:"";position:fixed;inset:-20%;z-index:-1;pointer-events
 .bcol{display:flex;flex-direction:column;gap:14px;min-height:0;overflow:hidden}
 .bcol .hero{margin:0;flex:1;grid-template-columns:1fr;align-content:start}
 .bcol .hero .hero-wx{width:auto;align-items:center;text-align:center;margin:18px 0 0}
-.bcol .hero .fig-box{transform:scale(1.35);transform-origin:top center;margin-bottom:40px}
 .bcol .widget{margin:0}
-.bcol .calw{flex:0 1 auto;min-height:0;overflow:hidden}
-.bcol .calw+.widget{flex:1 1 auto;min-height:0;overflow:hidden}
+.bcol .calw{flex:0 0 auto}
+.bcol .calw+.widget{flex:0 0 auto}
 .bcol .bclean{flex:1 1 auto;min-height:0;overflow:hidden}
 .bcol .bclean .cell{min-height:52px}
 .bcol .bclean .check{width:28px;height:28px}
@@ -814,6 +813,39 @@ body.is-night .nav{opacity:0;pointer-events:none}
 .bd-remind{display:flex;align-items:center;gap:8px;margin:2px 0 6px;padding:8px 12px;border-radius:12px;background:var(--accent-soft);color:var(--accent);font-weight:600;font-size:15px}
 .bd-remind+.bd-remind{margin-top:0}
 .bd-remind svg{width:18px;height:18px;flex:none}
+
+/* Väggtavlan, tätare: mer väder, rumsstatus och uppgifter */
+.bhero{background:var(--surface);border-radius:22px}
+.bhero .hero{flex:0 0 auto;background:none}
+.bwx{flex:1 1 auto;display:flex;flex-direction:column;justify-content:flex-end;gap:12px;padding:0 18px 16px;min-height:0}
+.bwx-h{display:grid;grid-template-columns:repeat(6,1fr);text-align:center;gap:4px;padding:10px 0;border-top:.5px solid var(--line);border-bottom:.5px solid var(--line)}
+.bwx-h div{display:flex;flex-direction:column;gap:2px;align-items:center}.bwx-h .hi{font-size:22px;line-height:28px}.bwx-h b{font-size:17px}
+.bwx-d{display:flex;flex-direction:column;gap:6px}
+.bwx-d div{display:grid;grid-template-columns:48px 32px 1fr auto;align-items:center;font-size:17px}.bwx-d .hi{font-size:20px}
+.bwx-f{display:flex;justify-content:space-between;gap:8px;font-size:14px;color:var(--ink-2)}
+.bcol .bmeal{flex:0 0 auto}
+/* vädret bredvid hunden i stället för under, så att timmarna och dagarna får plats */
+.bhero .hero-wx{display:grid;grid-template-columns:1fr 150px;column-gap:10px;align-items:center;justify-items:start;text-align:left;margin:12px 0 0;width:auto}
+.bhero .hero-wx>*{grid-column:1}
+.bhero .hero-wx .wx-now{justify-content:flex-start}
+.bhero .hero-wx .fig-box{grid-column:2;grid-row:1/span 4;margin:0}
+.bhero .fig-tip{margin-top:6px}
+/* sol och måne i högra delen, så att de inte hamnar bakom klockan */
+.bhero .sky{left:66%}
+.bcol .wpair{flex:0 0 auto}
+.bcol .wpair .widget{padding-top:12px;padding-bottom:12px}
+.bcol .wpair .wbig{font-size:30px;line-height:34px}
+.bcol .wpair .hl{font-size:17px}
+.bcol .bclean{flex:0 1 auto;min-height:0;overflow:hidden}
+.bcol .bclean .cell{min-height:46px}
+.bdone{display:flex;align-items:center;gap:8px;font-size:17px;font-weight:600;color:var(--green,#34c759);padding:4px 0 2px}.bdone svg{width:18px;height:18px}
+.brooms{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px}
+.brooms div{display:flex;flex-direction:column;gap:4px;font-size:14px}
+.brooms i{display:block;height:5px;border-radius:3px;background:var(--fill)}
+.brooms b{display:block;min-width:6px;height:100%;border-radius:3px;background:var(--green,#34c759)}
+.brooms .warn b{background:var(--orange,#ff9500)}.brooms .bad b{background:var(--red,#ff3b30)}
+.bcol .btasks{flex:1 1 0;min-height:0;overflow:hidden}
+.bcol .btasks .cell{min-height:44px}
 </style>
 </head>
 <body>
@@ -823,7 +855,7 @@ body.is-night .nav{opacity:0;pointer-events:none}
 <div class="timers" id="timers" aria-live="polite"></div>
 <div id="toast" hidden class="toast" role="status"></div>
 <script src="config.js?v=37"></script>
-<script src="app.js?v=44"></script>
+<script src="app.js?v=45"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
