@@ -464,9 +464,10 @@ function calDots(date){const d=D(),evs=d.events.filter(e=>e.date===date),ts=d.ta
 function calDayRows(sel){const d=D(),t=today();
  const evs=d.events.filter(e=>e.date===sel).sort((a,b)=>String(a.time||'').localeCompare(String(b.time||''))),
   ts=d.tasks.filter(x=>x.due===sel&&!x.done),cd=sel===t?evCountdown(evs):new Map();
- const rows=evs.map(e=>'<div class="ev"><span class="t">'+esc(e.time||'Heldag')+'</span><span class="grow">'+esc(e.title)+evWho(e)+'</span>'+(cd.has(e)?'<span class="cd num">'+cd.get(e)+'</span>':'')+'</div>').join('')+
-  ts.map(x=>'<div class="ev task"><span class="t">Att göra</span><span>'+esc(x.title)+evWho(x)+'</span></div>').join('');
- return rows?'<div class="evs">'+rows+'</div>':'<div class="wempty">Inget inplanerat '+(sel===t?'idag':'den här dagen')+'.</div>'}
+ const rows=evs.map(e=>'<div class="ev"><span class="t">'+esc(e.time||'Heldag')+'</span><span class="grow">'+esc(e.title)+evWho(e)+'</span>'+(cd.has(e)?'<span class="cd num">'+cd.get(e)+'</span>':'')+'</div>').join(''),
+  todo=ts.map(x=>'<div class="ev task"><span class="t">Att göra</span><span>'+esc(x.title)+evWho(x)+'</span></div>').join('');
+ // kalenderhändelser och att göra-uppgifter skiljs åt av ett streck
+ return rows||todo?(rows?'<div class="evs">'+rows+'</div>':'')+(todo?'<div class="evs'+(rows?' wk-todo':'')+'">'+todo+'</div>':''):'<div class="wempty">Inget inplanerat '+(sel===t?'idag':'den här dagen')+'.</div>'}
 function calWidget(){const t=today(),wk=[];for(let i=0;i<7;i++)wk.push(addDays(t,i));
  const sel=wk.includes(S.ovDay)?S.ovDay:t;
  let strip='<div class="wk" role="group" aria-label="Veckans dagar">';
