@@ -461,7 +461,7 @@ function calDots(date){const d=D(),evs=d.events.filter(e=>e.date===date),ts=d.ta
  evs.forEach(e=>{const w=String(e.who||'').trim();out.push(w&&people().includes(w)?'e '+pcls(w):'e o')});
  ts.forEach(()=>out.push('t'));return out.slice(0,4)}
 // Översiktens kalenderruta: veckoremsa där man väljer dag, och den dagens händelser med start- och sluttid
-const CAL_STYLE=lsGet('calStyle')||'2';
+let CAL_STYLE=['1','2','3'].includes(lsGet('calStyle'))?lsGet('calStyle'):'2';
 function calDayRows(sel){const d=D(),t=today();
  const evs=d.events.filter(e=>e.date===sel).sort((a,b)=>String(a.time||'').localeCompare(String(b.time||''))),st=sel===t?evStates(evs):new Map();
  if(!evs.length)return'<div class="wempty">Inget i kalendern '+(sel===t?'idag':'den här dagen')+'.</div>';
@@ -596,6 +596,7 @@ function renderOverlay(){
   sh('Namn i hushållet')+group('<div class="cell"><input class="field" id="set-p1" name="p1" aria-label="Person 1" value="'+esc(people()[0])+'"></div><div class="cell"><input class="field" id="set-p2" name="p2" aria-label="Person 2" value="'+esc(people()[1]||'')+'"></div>')+
   sh('Städtid och budget')+group(fieldCell('Vardag, min','<input class="field r" id="set-wd" name="wd" inputmode="numeric" value="'+esc(st.stadtid_vardag||20)+'" style="max-width:110px">')+fieldCell('Helg, min','<input class="field r" id="set-we" name="we" inputmode="numeric" value="'+esc(st.stadtid_helg||40)+'" style="max-width:110px">')+fieldCell('Mat/vecka, kr','<input class="field r" id="set-budget" name="budget" inputmode="numeric" value="'+esc(st.matbudget||'')+'" style="max-width:110px">'))+
   sh('Utseende')+'<div class="seg-wrap">'+segc('Utseende','theme',[['system','System'],['light','Ljust'],['dark','Mörkt']],S.theme)+'</div>'+
+  sh('Schemat i kalenderrutan')+'<div class="seg-wrap">'+segc('Schemat i kalenderrutan','calStyle',[['1','Tid kvar'],['2','Stapel'],['3','Tidsaxel']],CAL_STYLE)+'</div>'+
   sh('Skärm')+group(fieldCell('Väggläge','<input type="checkbox" role="switch" class="switch" data-act="wall" aria-label="Väggläge"'+(S.wall?' checked':'')+'>')+statusHtml())+
   (topic?sh('Notiser')+group('<div class="cell"><span class="grow copy">'+esc(topic)+'</span><button type="button" class="pill" data-act="copy" data-id="'+esc(topic)+'">Kopiera</button></div>')+'<div class="foot">Installera appen ntfy och prenumerera på det här ämnet. Använd servern ntfy.sh.</div>':'')+
   sh('Den här enheten')+group('<button type="button" class="cell link center red" data-act="logout">Logga ut</button>');
@@ -1254,6 +1255,7 @@ const ACT={
  me(id){S.me=id;lsSet('me',id);render()},
  logout(){S.key='';S.data=null;S.sheet=null;lsSet('key',null);lsSet('cache',null);render()},
  copy(id){try{navigator.clipboard.writeText(id).then(()=>toast('Kopierat'),()=>toast('Markera och kopiera texten'))}catch(e){toast('Markera och kopiera texten')}},
+ calStyle(id){CAL_STYLE=['1','3'].includes(id)?id:'2';lsSet('calStyle',CAL_STYLE==='2'?null:CAL_STYLE);render()},
  theme(id){S.theme=['light','dark'].includes(id)?id:'system';lsSet('theme',S.theme==='system'?null:S.theme);applyTheme(true);render()},
  wall(){S.wall=!S.wall;lsSet('wall',S.wall?'1':'0');wake();render()},
  matTab(id){S.matTab=['recept','bank','inkop'].includes(id)?id:'vecka';lsSet('matTab',S.matTab);S.recipe=null;render()},
