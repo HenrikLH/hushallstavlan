@@ -1305,10 +1305,13 @@ function grassPatch(sc,id){const ss=grassSeason(today()),snow=snowLevel(sc),fros
  const tuft=(x,y,c)=>'<path d="M'+x+' '+y+' l-2.4 -5.5 M'+(x+1.4)+' '+y+' l.3 -7 M'+(x+2.8)+' '+y+' l2.6 -4.6" stroke="'+c+'"/>';
  const TU=[[14,129],[26,121],[42,134],[60,137],[76,118],[98,118],[112,136],[128,133],[146,121],[156,130],[34,128],[136,128]];
  const tc=frost?'#E9F1F8':shadeHex(g1,.7);
- let b='<defs><linearGradient id="'+id+'gs" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".55" stop-color="#F1F5FA"/><stop offset="1" stop-color="#CFDBE9"/></linearGradient></defs>',fr='';
+ let b='<defs><linearGradient id="'+id+'gs" gradientUnits="userSpaceOnUse" x1="0" y1="112" x2="0" y2="140"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".55" stop-color="#F1F5FA"/><stop offset="1" stop-color="#CFDBE9"/></linearGradient></defs>',fr='';
  const deep=snow>=3;
- b+='<path d="'+blob(85,deep?131:130,80,deep?14.5:13.5,.07,1)+'" fill="'+(snow>=2?'#A9BBD3':g2)+'"/>';
- b+='<path d="'+blob(85,deep?124:127,79,deep?13:11.8,.07,1)+'" fill="'+(snow>=2?'url(#'+id+'gs)':g1)+'"'+(snow>=2?' stroke="#B4C4D9" stroke-width=".7"':'')+'/>';
+ // plätten är flera rundlar som flyter ihop, som i en tecknad bild; kanten undertill är lite mörkare
+ const LOB=[[85,125,44,10],[40,128,33,8.5],[130,127.5,33,8.5],[22,131,17,5.5],[60,133,27,6.5],[110,133.5,28,6.5],[150,131.5,15,5.5],[96,120.5,30,6],[66,121.5,22,5]];
+ const lobes=(dy,grow,fill)=>'<g fill="'+fill+'">'+LOB.map(([x,y,rx,ry])=>'<ellipse cx="'+x+'" cy="'+f(y+dy)+'" rx="'+f(rx+grow)+'" ry="'+f(ry+grow*.4)+'"/>').join('')+'</g>';
+ b+=lobes(deep?1:2.6,deep?2:.4,snow>=2?'#A9BBD3':g2);
+ b+=lobes(deep?-2.5:0,deep?2:0,snow>=2?'url(#'+id+'gs)':g1);
  // skuggan under hundarna, lite bort från solen
  b+='<ellipse cx="'+f(sc.sunUp?85+(.5-sc.f)*16:85)+'" cy="124.5" rx="50" ry="4.2" fill="'+(snow>=2?'#B7C6DA':shadeHex(g1,.8))+'" opacity=".75"/>';
  if(snow<2){b+='<g fill="none" stroke-width="1.2" stroke-linecap="round">'+TU.map(([x,y])=>tuft(x,y,tc)).join('')+'</g>'}
@@ -1453,8 +1456,8 @@ function arcHtml(W,v){const P=WX_POS(),sc=wxScene(W),now=new Date(),k=SKY(now,P.
  const z=v==='a'?34:44;
  s+='<div class="sky-b '+(day?'sky-sun':'sky-moon')+'" style="left:'+x.toFixed(1)+'%;top:'+y.toFixed(1)+'%;opacity:'+(covered?.4:1)+'">'+(day?sunSvg(k.sun.alt<8,z*1.5):moonSvg(k.moon.frac,k.moon.waxing,z))+'</div>';
  return'<div class="arc '+v+'" aria-hidden="true">'+s+'</div>'}
-// förslag: a = bågen tätt över hundarna, b = bågen i högra delen av rutan bakom temperaturen
-const GRASS_V=lsGet('grass')==='b'?'b':'a',grassOn=()=>!wallBoardOn();
+// b (vald): bågen i högra delen av rutan bakom temperaturen; a = bågen tätt över hundarna
+const GRASS_V=lsGet('grass')==='a'?'a':'b',grassOn=()=>!wallBoardOn();
 function heroHtml(){const n=new Date(),t=today(),dy=EXT.day&&EXT.day.date===t?EXT.day:null,hh=n.getHours(),W=wxModel(),P=WX_POS();
  const greet=hh<5?'God natt':hh<10?'God morgon':hh<17?'Hej':hh<22?'God kväll':'God natt';
  const sun=sunTimes(t,P.lat,P.lon);
