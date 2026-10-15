@@ -482,9 +482,11 @@ function calRows_() {
   const td = today_(), from = day_(td), to = day_(addDays_(td, CAL_DAYS));
   const fmt = function (d, f) { return Utilities.formatDate(d, TZ, f); };
   const rows = [], seen = {};
+  let found = 0;
   CALENDARS.forEach(function (c, ci) {
     const cal = cal_(c.id);
     if (!cal) return;
+    found++;
     // Helgdagar och födelsedagar från kontakterna går inte att ändra från appen (de får inget id)
     const ro = c.id.indexOf('#holiday@') >= 0;
     cal.getEvents(from, to).forEach(function (ev) {
@@ -515,7 +517,19 @@ function calRows_() {
       }
     });
   });
+  // Kommer skriptet inte åt någon kalender ska fliken inte tömmas; felet syns under Körningar i Apps Script
+  if (!found) throw new Error('Kommer inte åt kalendrarna som ' + Session.getEffectiveUser().getEmail() + '. Kör kalenderTest.');
   return rows;
+}
+/** Kör för hand i Apps Script: visar vilket konto skriptet kör som och vad det hittar i varje kalender. */
+function kalenderTest() {
+  Logger.log('Skriptet kör som: ' + Session.getEffectiveUser().getEmail());
+  const td = today_(), from = day_(td), to = day_(addDays_(td, CAL_DAYS));
+  CALENDARS.forEach(function (c) {
+    const cal = cal_(c.id);
+    Logger.log(c.id + ': ' + (cal ? cal.getEvents(from, to).length + ' händelser' : 'kommer inte åt kalendern'));
+  });
+  Logger.log('Rader till fliken Händelser: ' + calRows_().length);
 }
 function sortEvents_(rows) {
   return rows.sort(function (a, b) { return a[0].localeCompare(b[0]) || String(a[1]).localeCompare(String(b[1])) || String(a[2]).localeCompare(String(b[2])); });
