@@ -1316,11 +1316,11 @@ function grassPatch(sc,id){const ss=grassSeason(today()),snow=snowLevel(sc),fros
  const blade=(x,y,h,lean,c)=>'<path d="M'+f(x-1.1)+' '+y+' Q'+f(x+lean*.4)+' '+f(y-h*.6)+' '+f(x+lean)+' '+f(y-h)+' Q'+f(x+lean*.4+.6)+' '+f(y-h*.5)+' '+f(x+1.1)+' '+y+'Z" fill="'+c+'"/>';
  const clump=(x,y,n,h,k)=>{let r='';for(let i=0;i<n;i++){const o=(i-(n-1)/2)*2.2,hh=h*(.6+rnd(k+i)*.55);r+=blade(x+o,y,hh,o*.9+(rnd(k+i+9)-.5)*3,i%2?(frost?'#E6EEF5':g2):(frost?'#D3E0EA':lite))}return r};
  if(snow>=2){b+=lobes(deep?1.2:2.4,deep?2:.3,'#A9BBD3');b+=lobes(deep?-2.5:0,deep?2:0,'url(#'+id+'gs)')}
- else{b+='<path d="'+blob(85,129,74,14,.22,3)+'" fill="'+g1+'"/>';
+ else{b+='<path d="'+blob(85,129.5,79,14,.22,3)+'" fill="'+g1+'"/>';
   b+=[[0,131,6,2.4],[166,133,7,2.6],[28,144,9,2],[134,144.5,11,2.1],[156,141.5,5,1.6],[-6,125,3,1.2],[175,127,3.5,1.3],[64,146.5,6,1.5],[104,146,3.5,1.1],[86,148.5,2.5,.9]].map(([x,y,rx,ry])=>'<ellipse cx="'+x+'" cy="'+y+'" rx="'+rx+'" ry="'+ry+'" fill="'+g1+'"/>').join('');
   b+='<g opacity=".7">'+[[38,123,22,3.6,lite],[128,123.5,20,3.4,lite],[70,136,28,3.8,dk],[124,136.5,18,3,dk],[22,132,11,2.6,dk],[100,140,14,2.2,lite]].map(([x,y,rx,ry,c],i)=>'<path d="'+blob(x,y,rx,ry,.4,30+i)+'" fill="'+c+'"/>').join('')+'</g>'}
  // skuggan under hundarna, lite bort från solen
- b+='<ellipse cx="'+f(sc.sunUp?85+(.5-sc.f)*12:85)+'" cy="129.5" rx="48" ry="4" fill="'+(snow>=2?'#B7C6DA':shadeHex(g1,.72))+'" opacity=".85"/>';
+ b+='<ellipse cx="'+f(sc.sunUp?85+(.5-sc.f)*12:85)+'" cy="131.5" rx="50" ry="4.2" fill="'+(snow>=2?'#B7C6DA':shadeHex(g1,.72))+'" opacity=".85"/>';
  if(snow<2)b+=[[6,131,5,17,1],[17,123,4,13,2],[152,123,4,14,3],[164,131,5,18,4],[40,141,4,10,5],[124,142,5,12,6],[96,143,3,8,7],[66,142,4,10,8],[144,137,4,13,9],[28,135,3,11,10],[2,135,2,8,11],[170,136,2,8,12],[52,121,3,8,13],[116,121,3,8,14]].map(([x,y,n,h,k])=>clump(x,y,n,h,k*7)).join('');
  else b+='<g fill="none" stroke-width="1.2" stroke-linecap="round">'+[[12,130],[157,127],[86,138]].map(([x,y])=>tuft(x,y,mixHex(g2,'#FFFFFF',.2))).join('')+'</g>';
  // snöfläckar på gräset
@@ -1348,8 +1348,8 @@ function grassPatch(sc,id){const ss=grassSeason(today()),snow=snowLevel(sc),fros
   else if(ss==='summer')b+=[[18,128],[30,132],[146,125],[154,130],[120,134]].map(([x,y],i)=>fl(x,y,i%2?.65:.8,'#FFFFFF','#F2B705',10)).join('')}
  // djup snö: drivor framför tassarna och en snökant runt plätten
  // några strån framför tassarna så att hundarna står i gräset
- if(snow<2)fr+=[[34,133,3,6,31],[62,133.5,3,5,32],[104,133.5,3,6,33],[134,133,3,5,34]].map(([x,y,n,h,k])=>clump(x,y,n,h,k*7)).join('');
- if(deep)fr+='<g fill="url(#'+id+'gs)"><path d="'+blob(50,131.5,21,4.6,.25,21)+'"/><path d="'+blob(114,132,22,4.6,.25,23)+'"/></g>';
+ if(snow<2)fr+=[[34,136,3,6,31],[62,136.5,3,5,32],[104,136.5,3,6,33],[134,136,3,5,34]].map(([x,y,n,h,k])=>clump(x,y,n,h,k*7)).join('');
+ if(deep)fr+='<g fill="url(#'+id+'gs)"><path d="'+blob(50,134,21,4.6,.25,21)+'"/><path d="'+blob(114,134.5,22,4.6,.25,23)+'"/></g>';
  return{back:b,front:fr}}
 function figSvg(sc,o){o=o||{};const id='fg'+(++FIG_N),ph=sc.phase,dark=sc.dark,warmL=ph==='dawn'||ph==='golden';
  const wet=/^(drizzle|rain|sleet)$/.test(sc.type),snow=sc.type==='snow',sleet=sc.type==='sleet',lv=sc.lv;
@@ -1406,9 +1406,11 @@ function figSvg(sc,o){o=o||{};const id='fg'+(++FIG_N),ph=sc.phase,dark=sc.dark,w
   if(pos==='c')tr=lie?'translate(26 4)':(isA?'translate(29 6) scale(.95)':'translate(25 0)');
   else if(lie)tr=pos==='l'?'translate(-8 '+(isA?14:8)+') scale('+(isA?.8:.85)+')':'translate('+(isA?82:76)+' '+(isA?14:8)+') scale('+(isA?.8:.85)+')';
   else tr=pos==='l'?(isA?'translate(4 6) scale(.9)':'translate(4 0)'):(isA?'translate(64 6) scale(.9)':'translate(58 0)');
+  // på gräsplätten flyttas varje hund ned så att tassarna (eller magen när den ligger) vilar mitt på gräset
+  if(o.patch){const m=/translate\(([-\d.]+) ([-\d.]+)\)(?: scale\(([\d.]+)\))?/.exec(tr),k=m&&m[3]?+m[3]:1;if(m)tr='translate('+m[1]+' '+(132-k*123.4).toFixed(1)+')'+(m[3]?' scale('+m[3]+')':'')}
   return'<g class="dog-'+(isA?'a':'b')+'" transform="'+tr+'">'+g+'</g>'};
  const dogs=toks.length===1?one(toks[0],'c'):one(toks[0],'l')+one(toks[1],'r');
- if(!o.nodogs)s+=flt(gp?'<g transform="translate(0 5.5)">'+dogs+'</g>':dogs);   // på gräsplätten står hundarna en bit ned i gräset
+ if(!o.nodogs)s+=flt(dogs);
  if(gp&&gp.front)s+=flt(gp.front);
  // 6. nederbörden: tätheten och farten följer styrkan, lutningen följer vinden
  const rnd=k=>{const x=Math.sin(k*127.1+lv*7.3+(o.seed||0))*43758.5453;return x-Math.floor(x)};
