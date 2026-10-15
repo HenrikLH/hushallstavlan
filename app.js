@@ -342,7 +342,12 @@ function planDays(){
 const dayOf=date=>{const d=D();const ev=d.events.filter(e=>e.date===date),ms=d.menu.filter(m=>m.date===date);return(ev.length||ms.length)?{date,events:ev,meals:ms}:null};
 function whoChip(w){const k=w==='Henrik'?'k':w==='Vegetariskt'?'v':w==='Gemensam'?'g':'';return'<span class="chip '+k+'">'+esc(w==='Henrik'?'Kött':w)+'</span>'}
 // Vem en kalenderhändelse gäller (kolumnen Vem i Händelser). Ingen chip när namnet redan står i titeln.
-function evWho(e){const w=String(e.who||e.vem||'').trim();if(!w||String(e.title||'').toLowerCase().split(/[^a-zåäöé-]+/).includes(w.toLowerCase()))return'';return' '+personChip(w)}
+// Födelsedagar är bara information och tillhör ingen, även om de ligger i någons kalender
+function evPerson(e){return isBdEv(e)?'':String(e.who||e.vem||'').trim()}
+const evNamed=(e,w)=>String(e.title||'').toLowerCase().split(/[^a-zåäöé-]+/).includes(w.toLowerCase());
+function evWho(e){const w=evPerson(e);if(!w||evNamed(e,w))return'';return' '+personChip(w)}
+// Titeln med hushållets namn i personens färg ("Henrik jobbar")
+function evTitle(e){const ps=people();return String(e.title||'').split(/([a-zA-ZåäöÅÄÖé-]+)/).map(s=>{const i=ps.findIndex(p=>p.toLowerCase()===s.toLowerCase());return i<0?esc(s):'<span class="pname p'+(i+1)+'">'+esc(s)+'</span>'}).join('')}
 // Namnchip i personens egen färg (--p1/--p2), grå för den som inte finns bland personerna
 const personChip=w=>'<span class="chip'+(people().includes(w)?' '+pcls(w):'')+'">'+esc(w)+'</span>';
 const shopCost=items=>items.reduce((s,i)=>s+(Number(i.price)||0),0);
@@ -803,7 +808,7 @@ V.uppgifter=function(){
    och under den allt som händer den valda dagen */
 const ymKey=d=>d.slice(0,7);
 function calDots(date){const d=D(),evs=d.events.filter(e=>e.date===date),ts=d.tasks.filter(x=>x.due===date&&!x.done),out=[];
- evs.forEach(e=>{const w=String(e.who||'').trim();out.push(w&&people().includes(w)?'e '+pcls(w):'e o')});
+ evs.filter(e=>!isBdEv(e)).forEach(e=>{const w=evPerson(e);out.push(w&&people().includes(w)?'e '+pcls(w):'e o')});
  ts.forEach(()=>out.push('t'));return out.slice(0,4)}
 // Översiktens kalenderruta: veckoremsa där man väljer dag, och den dagens händelser med start- och sluttid
 let CAL_STYLE=['1','2','3'].includes(lsGet('calStyle'))?lsGet('calStyle'):'2';
@@ -819,25 +824,25 @@ function calDayRows(sel){const d=D(),t=today();
   // förslag 1: tiden till vänster, bara det som inte redan står där till höger
   return head+'<div class="evs">'+evs.map(e=>{const x=st.get(e)||{};
    const r=x.st==='now'?'<span class="cd now">'+x.left+' kvar</span>':x.st==='next'?'<span class="cd">om '+x.inn+'</span>':'';
-   return'<div class="ev'+(x.st==='past'?' past':'')+'"><span class="t">'+esc(e.time||'Heldag')+'</span><span class="grow">'+esc(e.title)+who(e)+'</span>'+r+'</div>'}).join('')+'</div>'}
+   return'<div class="ev'+(x.st==='past'?' past':'')+'"><span class="t">'+esc(e.time||'Heldag')+'</span><span class="grow">'+evTitle(e)+who(e)+'</span>'+r+'</div>'}).join('')+'</div>'}
  if(CAL_STYLE==='2'){
   // förslag 2: det som pågår får en tunn förloppsstapel under titeln
   return head+'<div class="evs">'+evs.map(e=>{const x=st.get(e)||{};
    const bar=x.st==='now'?'<div class="ev-pb"><span class="pb"><i style="width:'+Math.round(x.p*100)+'%"></i></span><span class="pbt num">'+x.left+' kvar</span></div>':'';
    const r=x.st==='next'?'<span class="cd">om '+x.inn+'</span>':'';
-   return'<div class="ev'+(x.st==='past'?' past':'')+(x.st==='now'?' now':'')+'"><span class="t">'+esc(e.time||'Heldag')+'</span><span class="grow"><span class="ev-ti">'+esc(e.title)+who(e)+'</span>'+bar+'</span>'+r+'</div>'}).join('')+'</div>'}
+   return'<div class="ev'+(x.st==='past'?' past':'')+(x.st==='now'?' now':'')+'"><span class="t">'+esc(e.time||'Heldag')+'</span><span class="grow"><span class="ev-ti">'+evTitle(e)+who(e)+'</span>'+bar+'</span>'+r+'</div>'}).join('')+'</div>'}
  // förslag 3: dagens tidsaxel med block och en nu-linje, listan under visar bara starttid
  const timed=evs.filter(e=>st.has(e)||/^\d/.test(e.time||'')),allday=evs.filter(e=>!/^\d/.test(e.time||''));
  const at=v=>{const m=/^(\d{1,2})[.:](\d{2})/.exec(v||'');return m?Number(m[1])*60+Number(m[2]):null},en=v=>{const m=/[–-]\s*(\d{1,2})[.:](\d{2})/.exec(v||'');return m?Number(m[1])*60+Number(m[2]):null};
  let lo=Math.min(7*60,...timed.map(e=>at(e.time))),hi=Math.max(21*60,...timed.map(e=>en(e.time)||at(e.time)+30));lo=Math.floor(lo/60)*60;hi=Math.ceil(hi/60)*60;
  const X=m=>((m-lo)/(hi-lo)*100).toFixed(2),n=new Date(),nm=n.getHours()*60+n.getMinutes();
- let ax='<div class="tl"><div class="tl-track">'+timed.map((e,i)=>{const s0=at(e.time),e0=en(e.time)||s0+30,w=String(e.who||'').trim();
+ let ax='<div class="tl"><div class="tl-track">'+timed.map((e,i)=>{const s0=at(e.time),e0=en(e.time)||s0+30,w=evPerson(e);
   return'<i class="tl-b '+(w&&people().includes(w)?pcls(w):'o')+'" style="left:'+X(s0)+'%;width:'+(X(e0)-X(s0))+'%;top:'+(i%2?11:2)+'px"></i>'}).join('')+
   (sel===t&&nm>=lo&&nm<=hi?'<b class="tl-now" style="left:'+X(nm)+'%"></b>':'')+'</div><div class="tl-ax num">';
  for(let h=lo;h<=hi;h+=180)ax+='<span style="left:'+X(h)+'%">'+pad(h/60)+'</span>';ax+='</div></div>';
  return head+ax+'<div class="evs">'+allday.concat(timed).map(e=>{const x=st.get(e)||{};
   const r=x.st==='now'?'<span class="cd now">'+x.left+' kvar</span>':x.st==='next'?'<span class="cd">om '+x.inn+'</span>':'';
-  return'<div class="ev'+(x.st==='past'?' past':'')+'"><span class="t short">'+esc(e.time?String(e.time).split(/\s*[–-]\s*/)[0]:'Heldag')+'</span><span class="grow">'+esc(e.title)+who(e)+'</span>'+r+'</div>'}).join('')+'</div>'}
+  return'<div class="ev'+(x.st==='past'?' past':'')+'"><span class="t short">'+esc(e.time?String(e.time).split(/\s*[–-]\s*/)[0]:'Heldag')+'</span><span class="grow">'+evTitle(e)+who(e)+'</span>'+r+'</div>'}).join('')+'</div>'}
 function calWidget(){const t=today(),wk=[];for(let i=0;i<7;i++)wk.push(addDays(t,i));
  const sel=wk.includes(S.ovDay)?S.ovDay:t;
  let strip='<div class="wk" role="group" aria-label="Veckans dagar">';
@@ -864,7 +869,7 @@ function calView(){const t=today(),sel=S.calDay||t,m=S.calMonth||ymKey(sel),[y,m
  const d=D(),evs=d.events.filter(e=>e.date===sel).sort((a,b)=>String(a.time||'').localeCompare(String(b.time||''))),late=sel===t?d.tasks.filter(x=>!x.done&&isDate(x.due)&&x.due<t):[],
   ts=d.tasks.filter(x=>x.due===sel),meals=d.menu.filter(x=>x.date===sel);
  h+=sh(esc(cap(dayHead(sel)))+(sel===t?' <span class="acc">· Idag</span>':''),'<button class="linkbtn" data-act="calAddTask" data-id="'+sel+'">'+'Ny uppgift</button>');
- const evRow=e=>{const w=String(e.who||'').trim();return'<div class="cell cal-ev edit" data-act="evEdit" data-id="'+d.events.indexOf(e)+'" role="button" tabindex="0"><span class="bar '+(w&&people().includes(w)?pcls(w):'o')+'"></span><span class="t num">'+esc(e.time||'Heldag')+'</span><span class="grow"><span class="title">'+esc(e.title)+'</span>'+(w?'<span class="meta">'+personChip(w)+'</span>':'')+'</span></div>'};
+ const evRow=e=>{const w=evPerson(e);return'<div class="cell cal-ev edit" data-act="evEdit" data-id="'+d.events.indexOf(e)+'" role="button" tabindex="0"><span class="bar '+(w&&people().includes(w)?pcls(w):'o')+'"></span><span class="t num">'+esc(e.time||'Heldag')+'</span><span class="grow"><span class="title">'+evTitle(e)+'</span>'+(w&&!evNamed(e,w)?'<span class="meta">'+personChip(w)+'</span>':'')+'</span></div>'};
  const body=evs.map(evRow).join('')+late.concat(ts).map(taskRow).join('');
  h+=group(body||emptyCell('Inget inplanerat. Tryck på Ny uppgift för att lägga till något.'));
  if(meals.length)h+=sh('Mat')+group(meals.map(mealCell).join(''));
