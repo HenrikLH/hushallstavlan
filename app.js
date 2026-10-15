@@ -344,10 +344,14 @@ function whoChip(w){const k=w==='Henrik'?'k':w==='Vegetariskt'?'v':w==='Gemensam
 // Vem en kalenderhändelse gäller (kolumnen Vem i Händelser). Ingen chip när namnet redan står i titeln.
 // Födelsedagar är bara information och tillhör ingen, även om de ligger i någons kalender
 function evPerson(e){return isBdEv(e)?'':String(e.who||e.vem||'').trim()}
-const evNamed=(e,w)=>String(e.title||'').toLowerCase().split(/[^a-zåäöé-]+/).includes(w.toLowerCase());
-function evWho(e){const w=evPerson(e);if(!w||evNamed(e,w))return'';return' '+personChip(w)}
-// Titeln med hushållets namn i personens färg ("Henrik jobbar")
-function evTitle(e){const ps=people();return String(e.title||'').split(/([a-zA-ZåäöÅÄÖé-]+)/).map(s=>{const i=ps.findIndex(p=>p.toLowerCase()===s.toLowerCase());return i<0?esc(s):'<span class="pname p'+(i+1)+'">'+esc(s)+'</span>'}).join('')}
+// Står ett namn först eller sist i titeln flyttas det ut till namnetiketten: "Henrik jobbar" blir "Jobb" + Henrik
+function evParts(e){const t=String(e.title||'').trim(),ps=people(),is=s=>ps.find(p=>p.toLowerCase()===s.replace(/[:,–-]+$/,'').toLowerCase());
+ const a=/^(\S+)\s+(.+)$/.exec(t),b=/^(.+?)\s+(\S+)$/.exec(t);let name='',rest=t;
+ if(a&&is(a[1])){name=is(a[1]);rest=a[2]}else if(b&&is(b[2])){name=is(b[2]);rest=b[1].replace(/\s*[:,–-]$/,'')}
+ if(name&&/^jobbar$/i.test(rest))rest='Jobb';
+ return{title:name?cap(rest):t,name}}
+const evTitle=e=>esc(evParts(e).title);
+function evWho(e){const w=evParts(e).name||evPerson(e);return w?' '+personChip(w):''}
 // Namnchip i personens egen färg (--p1/--p2), grå för den som inte finns bland personerna
 const personChip=w=>'<span class="chip'+(people().includes(w)?' '+pcls(w):'')+'">'+esc(w)+'</span>';
 const shopCost=items=>items.reduce((s,i)=>s+(Number(i.price)||0),0);
@@ -869,7 +873,7 @@ function calView(){const t=today(),sel=S.calDay||t,m=S.calMonth||ymKey(sel),[y,m
  const d=D(),evs=d.events.filter(e=>e.date===sel).sort((a,b)=>String(a.time||'').localeCompare(String(b.time||''))),late=sel===t?d.tasks.filter(x=>!x.done&&isDate(x.due)&&x.due<t):[],
   ts=d.tasks.filter(x=>x.due===sel),meals=d.menu.filter(x=>x.date===sel);
  h+=sh(esc(cap(dayHead(sel)))+(sel===t?' <span class="acc">· Idag</span>':''),'<button class="linkbtn" data-act="calAddTask" data-id="'+sel+'">'+'Ny uppgift</button>');
- const evRow=e=>{const w=evPerson(e);return'<div class="cell cal-ev edit" data-act="evEdit" data-id="'+d.events.indexOf(e)+'" role="button" tabindex="0"><span class="bar '+(w&&people().includes(w)?pcls(w):'o')+'"></span><span class="t num">'+esc(e.time||'Heldag')+'</span><span class="grow"><span class="title">'+evTitle(e)+'</span>'+(w&&!evNamed(e,w)?'<span class="meta">'+personChip(w)+'</span>':'')+'</span></div>'};
+ const evRow=e=>{const w=evPerson(e);return'<div class="cell cal-ev edit" data-act="evEdit" data-id="'+d.events.indexOf(e)+'" role="button" tabindex="0"><span class="bar '+(w&&people().includes(w)?pcls(w):'o')+'"></span><span class="t num">'+esc(e.time||'Heldag')+'</span><span class="grow"><span class="title">'+evTitle(e)+'</span>'+(evWho(e)?'<span class="meta">'+evWho(e)+'</span>':'')+'</span></div>'};
  const body=evs.map(evRow).join('')+late.concat(ts).map(taskRow).join('');
  h+=group(body||emptyCell('Inget inplanerat. Tryck på Ny uppgift för att lägga till något.'));
  if(meals.length)h+=sh('Mat')+group(meals.map(mealCell).join(''));
