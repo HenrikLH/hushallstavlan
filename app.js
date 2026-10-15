@@ -1307,10 +1307,11 @@ function grassPatch(sc,id){const ss=grassSeason(today()),snow=snowLevel(sc),fros
  const tc=frost?'#E9F1F8':shadeHex(g1,.7);
  let b='<defs><linearGradient id="'+id+'gs" gradientUnits="userSpaceOnUse" x1="0" y1="112" x2="0" y2="140"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".55" stop-color="#F1F5FA"/><stop offset="1" stop-color="#CFDBE9"/></linearGradient></defs>',fr='';
  const deep=snow>=3;
- // plätten är flera rundlar som flyter ihop, som i en tecknad bild; kanten undertill är lite mörkare
- const LOB=[[85,125,44,10],[40,128,33,8.5],[130,127.5,33,8.5],[22,131,17,5.5],[60,133,27,6.5],[110,133.5,28,6.5],[150,131.5,15,5.5],[96,120.5,30,6],[66,121.5,22,5]];
- const lobes=(dy,grow,fill)=>'<g fill="'+fill+'">'+LOB.map(([x,y,rx,ry])=>'<ellipse cx="'+x+'" cy="'+f(y+dy)+'" rx="'+f(rx+grow)+'" ry="'+f(ry+grow*.4)+'"/>').join('')+'</g>';
- b+=lobes(deep?1:2.6,deep?2:.4,snow>=2?'#A9BBD3':g2);
+ // plätten är bubblig som i en tecknad bild: en kärna med en krans av rundlar längs kanten; undersidan är lite mörkare
+ const BUB=[];for(let i=0;i<22;i++){const a=i/22*2*Math.PI,r=5.5+rnd(i+60)*4.5;BUB.push([85+Math.cos(a)*(74-r*.55),127+Math.sin(a)*(10.5-r*.25),r])}
+ const lobes=(dy,grow,fill)=>'<g fill="'+fill+'"><ellipse cx="85" cy="'+f(127+dy)+'" rx="'+f(70+grow)+'" ry="'+f(10+grow*.4)+'"/>'+
+  BUB.map(([x,y,r])=>'<ellipse cx="'+f(x)+'" cy="'+f(y+dy)+'" rx="'+f(r+grow)+'" ry="'+f(r*.62+grow*.4)+'"/>').join('')+'</g>';
+ b+=lobes(deep?1.2:2.4,deep?2:.3,snow>=2?'#A9BBD3':g2);
  b+=lobes(deep?-2.5:0,deep?2:0,snow>=2?'url(#'+id+'gs)':g1);
  // skuggan under hundarna, lite bort från solen
  b+='<ellipse cx="'+f(sc.sunUp?85+(.5-sc.f)*16:85)+'" cy="124.5" rx="50" ry="4.2" fill="'+(snow>=2?'#B7C6DA':shadeHex(g1,.8))+'" opacity=".75"/>';
@@ -1430,7 +1431,7 @@ const durTxt=m=>m<60?m+' min':Math.floor(m/60)+' h'+(m%60?' '+m%60+' min':'');
 // sol- och månbanans horisont: mitt i namnsdagsraden (annars faktaraden), aldrig under hundarnas fötter
 function placeSky(){const h=document.querySelector('.hero');if(!h)return;
  const arc=h.querySelector('.arc.b'),gf=h.querySelector('.fig-box.grass');
- if(arc&&gf){const hr=h.getBoundingClientRect(),fr=gf.getBoundingClientRect();arc.style.bottom=Math.round(hr.bottom-fr.top-fr.height*127/144)+'px'}
+ if(arc&&gf){const hr=h.getBoundingClientRect(),fr=gf.getBoundingClientRect();const hl=[...h.querySelectorAll('.hero-wx .fn')].pop();arc.style.bottom=Math.round(hr.bottom-fr.top+2)+'px';if(hl)arc.style.top=Math.round(hl.getBoundingClientRect().bottom-hr.top+16)+'px'}
  const chips=[...h.querySelectorAll('.hero-facts span')],c=chips.find(x=>/^Namnsdag/.test(x.textContent))||chips[Math.floor((chips.length-1)/2)],fig=h.querySelector('.fig-box');
  if(!c)return;const top=h.getBoundingClientRect().top,r=c.getBoundingClientRect();let y=r.top+r.height/2-top;
  if(fig){const f=fig.getBoundingClientRect();y=Math.min(y,f.bottom-top-6)}
@@ -1445,15 +1446,15 @@ function fitBoard(){document.querySelectorAll('.board .btasks .wl').forEach(l=>{
  [...l.children].forEach(c=>c.hidden=false);[...l.children].forEach(c=>{if(c.getBoundingClientRect().bottom>box)c.hidden=true})})}
 window.addEventListener('resize',fitBoard);
 /* Sol- och månbanan ovanför gräsplätten i stället för över hela rutan. Solen går från soluppgången till vänster
-   till solnedgången till höger, på natten månen i sin verkliga fas. Bågen är låg på vintern och hög på sommaren. */
+   till solnedgången till höger, på natten månen i sin verkliga fas. Banan har samma höjd året runt och ligger ovanför hundarna. */
 function arcHtml(W,v){const P=WX_POS(),sc=wxScene(W),now=new Date(),k=SKY(now,P.lat,P.lon),st=sunTimes(today(),P.lat,P.lon),pk=skyPeak(P.lat,P.lon);
  const covered=sc.sky==='cloudy'||sc.sky==='fog'||/^(rain|sleet|snow)$/.test(sc.type)&&sc.lv>=2||sc.thunder;
- const K=.42+.58*Math.min(1,pk.sun/56),day=!!st&&now>=st[0]&&now<=st[1],f=day?(now-st[0])/(st[1]-st[0]):nightFrac(now,P);
+ const K=1,day=!!st&&now>=st[0]&&now<=st[1],f=day?(now-st[0])/(st[1]-st[0]):nightFrac(now,P);
  const th=Math.PI*f,x=50-50*Math.cos(th),y=100-K*100*Math.sin(th),ry=(K*100).toFixed(1);
  let s='<svg viewBox="0 0 100 100" preserveAspectRatio="none"><path class="trk" d="M0 100 A50 '+ry+' 0 0 1 100 100"/>'+
   '<path class="done '+(day?'d':'n')+'" d="M0 100 A50 '+ry+' 0 0 1 '+x.toFixed(2)+' '+y.toFixed(2)+'"/></svg>';
  if(!day&&!covered)s+=[[18,40],[34,14],[62,8],[80,30],[50,46],[90,60]].slice(0,sc.sky==='partly'?3:6).map(([a,b],i)=>'<i class="arc-st tw'+(i%3?' d'+(i%3+1):'')+'" style="left:'+a+'%;top:'+b+'%"></i>').join('');
- const z=v==='a'?34:44;
+ const z=34;
  s+='<div class="sky-b '+(day?'sky-sun':'sky-moon')+'" style="left:'+x.toFixed(1)+'%;top:'+y.toFixed(1)+'%;opacity:'+(covered?.4:1)+'">'+(day?sunSvg(k.sun.alt<8,z*1.5):moonSvg(k.moon.frac,k.moon.waxing,z))+'</div>';
  return'<div class="arc '+v+'" aria-hidden="true">'+s+'</div>'}
 // b (vald): bågen i högra delen av rutan bakom temperaturen; a = bågen tätt över hundarna
