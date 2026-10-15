@@ -435,6 +435,33 @@ button.fig-box{display:block;padding:0;border-radius:18px;transition:transform .
 button.fig-box:active{opacity:1;transform:scale(.96)}
 .fig-tip{font-size:11px;line-height:13px;color:var(--ink-2);text-align:center;align-self:center;max-width:140px;margin-top:2px}
 .hero+.widgets{margin-top:12px}
+/* Planera veckan */
+.pl-open{display:flex;align-items:center;gap:12px;width:calc(100% - 32px);margin:16px 16px 0;padding:12px 16px;background:var(--surface);border-radius:14px;text-align:left;color:var(--ink)}
+.pl-open .title{display:block;font-size:17px;font-weight:600}
+.pl-open .meta{display:block}
+.pl-ic{font-size:26px;line-height:32px;width:36px;text-align:center;flex:none}
+.pl-bud{background:var(--surface);border-radius:14px;margin:12px 16px 0;padding:12px 16px}
+.pl-bt{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+.pl-bt b{display:block;font-size:28px;line-height:34px;font-weight:700;font-variant-numeric:tabular-nums}
+.pl-bb{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.pl-bb input{width:96px;height:34px;border-radius:9px;background:var(--fill);border:0;padding:0 10px;text-align:right;font-size:17px;color:var(--ink);font-variant-numeric:tabular-nums}
+.pl-bud .thin{height:6px;border-radius:3px;margin:10px 0 6px}
+.pl-c{gap:12px}
+.pl-c .title{display:block;font-size:17px;line-height:22px}
+.pl-c .meta{margin-top:1px}
+.pl-c .chips-row:empty{display:none}
+.pl-c .chips-row{margin-bottom:3px}
+.pl-c.on{background:color-mix(in srgb,var(--accent) 9%,var(--surface))}
+.pl-c.on .title{font-weight:600}
+.pl-b{display:flex;align-items:center;gap:12px;text-align:left;color:var(--ink)}
+.pl-add{flex:none;width:30px;height:30px;border-radius:15px;background:var(--fill);color:var(--accent);display:flex;align-items:center;justify-content:center}
+.pl-add svg{width:16px;height:16px}
+.pl-re{color:color-mix(in srgb,var(--green) 65%,var(--ink))}
+.pl-over{color:var(--red)}
+.pl-send{margin:20px 16px 0}
+.pl-send .btn-fill{width:100%}
+.pl-send .btn-fill[disabled]{opacity:.4}
+.pl-send .foot{padding:8px 16px 0;text-align:center}
 .smc{background:var(--surface);border-radius:20px;margin:12px 16px 0;padding:14px 16px 6px}
 .smc+.widgets{margin-top:12px}
 .smc-h{display:flex;align-items:center;gap:6px;font-size:13px;line-height:18px;font-weight:600;color:var(--accent)}
@@ -1017,6 +1044,7 @@ body.wall:has(.board) .arr-foot{left:28px;transform:none;width:calc((100% - 60px
 <div class="timers" id="timers" aria-live="polite"></div>
 <div id="toast" hidden class="toast" role="status"></div>
 <script src="config.js?v=37"></script>
+<script src="matvaror.js?v=1"></script>
 <script src="matpoang.js?v=1"></script>
 <script src="app.js?v=55"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>

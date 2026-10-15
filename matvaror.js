@@ -73,7 +73,7 @@
     ['pesto och hummus', /pesto|hummus/, 200, 28, 100, 0, 0],
     ['nötter och frön', /valnöt|cashew|mandl|hasselnöt|pumpafrö|chiafrö/, 200, 35, 60, 0, 1],
     ['oliver', /oliver/, 200, 25, 0, 4, 1],
-    ['inlagda rödbetor', /rödbet/, 500, 20, 0, 0, 1],
+    ['rödbetor', /rödbet/, 500, 20, 0, 0, 1],
   ];
   // Skafferi: köps sällan och räknas inte i veckans kostnad
   const SKAFFERI = /salt|peppar|olja|smör|vinäger|soja|buljong|tomatpuré|vatten|vitt vin|mjöl|jäst|senap|kryddor|krydda|spiskummin|kummin|oregano|kanel|timjan|paprikapulver|rökt paprika|chipotle|gurkmeja|garam|curry|chili|mejram|ingefära|vitlök|honung|sesam|kakao|vanilj|miso|sriracha|tahini|majsstärkelse|jalapeño|saffran|lingon|kokos(flingor|olja)|dadlar|jordnötssmör|majonnäs|socker|sirap/;
@@ -116,8 +116,8 @@
     const out = {};
     (r.groups || []).forEach(g => (g.items || []).forEach(it => {
       const v = vara(it.n); if (!v) return;
-      const m = mangd(it, v) * f;
-      (out[v.k] ||= { m: 0, v }).m += m;
+      const m = mangd(it, v) * f, x = (out[v.k] ||= { m: 0, v, namn: [] });
+      x.m += m; const n = norm(it.n); if (!x.namn.includes(n)) x.namn.push(n);
     }));
     return out;
   }
@@ -128,7 +128,7 @@
   function korg(behovLista, lager) {
     lager = lager || {};
     const sum = {};
-    behovLista.forEach(b => Object.entries(b).forEach(([k, x]) => { (sum[k] ||= { m: 0, v: x.v }).m += x.m }));
+    behovLista.forEach(b => Object.entries(b).forEach(([k, x]) => { const y = (sum[k] ||= { m: 0, v: x.v, namn: [] }); y.m += x.m; (x.namn || []).forEach(n => { if (!y.namn.includes(n)) y.namn.push(n) }) }));
     let kr = 0, forbrukat = 0, svinn = 0; const rad = [], rest = Object.assign({}, lager);
     Object.entries(sum).forEach(([k, x]) => {
       const fran = Math.min(x.m, lager[k] || 0), kop = x.m - fran;
@@ -137,7 +137,7 @@
       rest[k] = (lager[k] || 0) - fran + (x.v.hall ? over : 0);
       if (!rest[k]) delete rest[k];
       if (!x.v.hall) svinn += over * perG;
-      rad.push({ k, n, kr: n * x.v.kr, fran, over, overKr: over * perG, hall: x.v.hall });
+      rad.push({ k, n, kr: n * x.v.kr, fran, over, overKr: over * perG, hall: x.v.hall, namn: x.namn, m: x.m, pkt: x.v.pkt });
     });
     return { kr, kostnad: forbrukat + svinn, forbrukat, svinn, rad, rest, antal: rad.filter(x => x.n).length };
   }
@@ -150,6 +150,12 @@
     const ateranvandning = Math.max(0, Math.min(1, Math.max(andel, raddat)));
     return { marginal, kassa, ensam: ensam.kostnad, ateranvandning, svinnFore: fore.svinn, svinnEfter: efter.svinn };
   }
-  root.MatVaror = { V, vara, mangd, behov, korg, tillagg };
+  // Hur mycket som ska köpas, i ord: "2 st", "1 kg", "2 × 400 g"
+  function forp(x) {
+    if (x.pkt <= 12) return x.pkt === 1 ? x.n + ' st' : x.n + ' förp';
+    const g = x.pkt >= 1000 && x.pkt % 1000 === 0 ? (x.pkt / 1000) + ' kg' : x.pkt + ' g';
+    return x.n === 1 ? g : x.n + ' × ' + g;
+  }
+  root.MatVaror = { V, vara, mangd, behov, korg, tillagg, forp };
 })(typeof window !== 'undefined' ? window : globalThis);
 if (typeof module !== 'undefined') module.exports = globalThis.MatVaror;

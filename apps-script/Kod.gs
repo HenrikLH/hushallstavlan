@@ -286,6 +286,7 @@ function doPost(e) {
         break;
       }
       case 'menuSwap': menuSwap_(b, by); break;
+      case 'planSend': planSend_(b, by); break;
       case 'setting':
         if (!settingWritable_(b.k)) throw new Error('Inställningen kan inte ändras från appen.');
         if (String(b.v).length > 49000) throw new Error('Värdet är för långt för en cell.');
@@ -335,7 +336,8 @@ function mealLabel_(m, group) {
   const veg = m.who === 'Vegetariskt';
   if (group === 'Storkok' || /^storkok/i.test(m.title)) return 'Storkok ' + (veg ? 'veg' : 'kött');
   const d = DAYS3_[dow_(m.date)];
-  if (m.who === 'Gemensam') return 'Helg (' + d.toLowerCase() + ')';
+  // Gemensam mat måndag–torsdag är vardagsmiddag, fredag–söndag helgmat
+  if (m.who === 'Gemensam') { const w = dow_(m.date); return w >= 1 && w <= 4 ? d + ' middag' : 'Helg (' + d.toLowerCase() + ')'; }
   return d + ' ' + (veg ? 'veg' : 'kött');
 }
 function catOf_(n) {
@@ -394,6 +396,49 @@ function menuSwap_(b, by) {
       sh.appendRow([false, String(i.n).slice(0, 120), (String(i.q).replace('.', ',') + ' ' + (i.u || '')).trim(), catOf_(i.n), labels[0], '', '', '', newId_('b'), 'byte', by, 900]);
     });
   });
+}
+
+/** Veckoplaneringen i appen: lägger veckans rätter på Matsedel och varorna i Inköp.
+ *  b: { start, end, menu: [{date, who, title, recipe, addon, note}], shop: [{name, qty, price, meals: []}],
+ *       recipes: [recept som saknas i Recept], lager: {vara: mängd}, settings: {vecka_start, vecka_slut, vecka_rubrik, storkok, storkok_not} }
+ *  Skickas veckan igen ersätts det som skickades förra gången. */
+function planSend_(b, by) {
+  const isD = function (x) { return /^\d{4}-\d{2}-\d{2}$/.test(String(x)); };
+  const S = function (v, n) { return String(v == null ? '' : v).slice(0, n || 200); };
+  if (!isD(b.start) || !isD(b.end) || b.end < b.start || b.end > addDays_(b.start, 13)) throw new Error('Veckan har ogiltiga datum.');
+  const menu = (b.menu || []).slice(0, 30), shop = (b.shop || []).slice(0, 120), recs = (b.recipes || []).slice(0, 12);
+  if (!menu.length) throw new Error('Veckan har inga rätter.');
+  menu.forEach(function (m) { if (!isD(m.date) || m.date < b.start || m.date > b.end) throw new Error('En rätt ligger utanför veckan.'); });
+  // Recept som kommer från inspirationen eller receptbanken och saknas i fliken Recept
+  const have = readTab_('recipes').map(function (r) { return r.id; });
+  recs.forEach(function (r) {
+    if (!/^[a-z0-9-]{1,60}$/.test(String(r.id || ''))) throw new Error('Ett recept har ett ogiltigt id.');
+    if (have.indexOf(r.id) < 0) { sheet_('recipes').appendRow(recipeRow_(r)); have.push(r.id); }
+  });
+  // Matsedel: ta bort gamla rader (före i går) och det som redan ligger i den nya veckan, lägg sedan till veckan
+  const msh = sheet_('menu'), y = addDays_(today_(), -1);
+  readTab_('menu').filter(function (m) { return !isD(m.date) || m.date < y || (m.date >= b.start && m.date <= b.end); })
+    .map(function (m) { return m._row; }).sort(function (a, c) { return c - a; }).forEach(function (r) { msh.deleteRow(r); });
+  menu.forEach(function (m) {
+    msh.appendRow([m.date, S(m.who, 30), S(m.title), S(m.recipe, 60), S(m.addon), S(m.note)]);
+  });
+  // Inköp: ta bort det som skickades för samma vecka och inte är köpt, lägg sedan till veckans varor
+  const tag = 'plan' + b.start.replace(/-/g, ''), ssh = sheet_('shop');
+  readTab_('shop').filter(function (i) { return !i.done && String(i.id).indexOf(tag) === 0; })
+    .map(function (i) { return i._row; }).sort(function (a, c) { return c - a; }).forEach(function (r) { ssh.deleteRow(r); });
+  shop.forEach(function (i, n) {
+    if (!i.name) return;
+    const price = Number(i.price);
+    ssh.appendRow([false, S(i.name, 120), S(i.qty, 60), catOf_(i.name), (i.meals || []).map(function (x) { return S(x, 40); }).join(', '),
+      isFinite(price) && price > 0 ? Math.round(price) : '', '', '', tag + '-' + n, 'veckoplan', by, 800 + n]);
+  });
+  const st = b.settings || {};
+  ['vecka_start', 'vecka_slut', 'vecka_rubrik', 'storkok', 'storkok_not'].forEach(function (k) { if (st[k] != null) writeSetting_(k, S(st[k], 500)); });
+  writeSetting_('uppdaterad', today_());
+  // Det som blir över av förpackningarna (finns hemma nästa vecka)
+  const lager = {};
+  Object.keys(b.lager || {}).slice(0, 200).forEach(function (k) { const v = Number(b.lager[k]); if (isFinite(v) && v > 0) lager[S(k, 60)] = Math.round(v); });
+  writeSetting_('lager', JSON.stringify(lager));
 }
 
 /* ---------------- notifications (ntfy) ---------------- */
