@@ -23,7 +23,7 @@
   --accent:#A3253F; --accent-soft:rgba(163,37,63,.12); --on-accent:#FFFFFF;
   --red:#FF3B30; --orange:#FF9500; --green:#34C759; --gray:#8E8E93;
   --bar:rgba(249,249,249,.94); --glass:rgba(255,255,255,.7); --glass-line:rgba(0,0,0,.08); --pill:rgba(118,118,128,.16); --track:#E5E5EA; --seg-on:#FFFFFF;
-  --veg-bg:rgba(52,199,89,.15); --veg-ink:#248A3D; --p1:#A3253F; --p2:#0A74A8; --meat-bg:rgba(162,132,94,.18); --meat-ink:#7A5C38; --gem-bg:rgba(255,149,0,.15); --gem-ink:#C93400;
+  --veg-bg:rgba(52,199,89,.15); --veg-ink:#248A3D; --p1:#4B4FC4; --p1-soft:rgba(75,79,196,.13); --p1-ink:#3D41A8; --p2:#0F8C83; --p2-soft:rgba(15,140,131,.14); --p2-ink:#0B6E67; --meat-bg:rgba(162,132,94,.18); --meat-ink:#7A5C38; --gem-bg:rgba(255,149,0,.15); --gem-ink:#C93400;
   --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Helvetica Neue","Segoe UI",system-ui,sans-serif;
   --tabbar:62px; --tabgap:max(calc(var(--sab) - 8px),12px); --side:260px; --navbar:44px;
   --sat:env(safe-area-inset-top,0px); --sab:env(safe-area-inset-bottom,0px);
@@ -36,14 +36,14 @@
   --accent:#EC7088; --accent-soft:rgba(236,112,136,.22); --on-accent:#22090F;
   --red:#FF453A; --orange:#FF9F0A; --green:#30D158;
   --bar:rgba(22,22,24,.92); --glass:rgba(36,36,38,.7); --glass-line:rgba(255,255,255,.1); --pill:rgba(255,255,255,.14); --track:#3A3A3C; --seg-on:#636366;
-  --veg-ink:#30D158; --gem-ink:#FF9F0A; --p1:#D9566F; --p2:#2E9CC0; --meat-bg:rgba(172,142,104,.24); --meat-ink:#C8A57A; color-scheme:dark }}
+  --veg-ink:#30D158; --gem-ink:#FF9F0A; --p1:#8C8FF2; --p1-soft:rgba(140,143,242,.22); --p1-ink:#AEB0FF; --p2:#35C2B5; --p2-soft:rgba(53,194,181,.2); --p2-ink:#62D8CC; --meat-bg:rgba(172,142,104,.24); --meat-ink:#C8A57A; color-scheme:dark }}
 :root[data-theme="dark"]{
   --bg:#000000; --surface:#1C1C1E; --surface-raised:#2C2C2E; --fill:rgba(118,118,128,.24);
   --ink:#FFFFFF; --ink-2:rgba(235,235,245,.6); --ink-3:rgba(235,235,245,.3); --line:rgba(84,84,88,.65);
   --accent:#EC7088; --accent-soft:rgba(236,112,136,.22); --on-accent:#22090F;
   --red:#FF453A; --orange:#FF9F0A; --green:#30D158;
   --bar:rgba(22,22,24,.92); --glass:rgba(36,36,38,.7); --glass-line:rgba(255,255,255,.1); --pill:rgba(255,255,255,.14); --track:#3A3A3C; --seg-on:#636366;
-  --veg-ink:#30D158; --gem-ink:#FF9F0A; --p1:#D9566F; --p2:#2E9CC0; --meat-bg:rgba(172,142,104,.24); --meat-ink:#C8A57A; color-scheme:dark }
+  --veg-ink:#30D158; --gem-ink:#FF9F0A; --p1:#8C8FF2; --p1-soft:rgba(140,143,242,.22); --p1-ink:#AEB0FF; --p2:#35C2B5; --p2-soft:rgba(53,194,181,.2); --p2-ink:#62D8CC; --meat-bg:rgba(172,142,104,.24); --meat-ink:#C8A57A; color-scheme:dark }
 
 /* ===== 2. Bas och typografi ===== */
 html.theme-fade *,html.theme-fade *::before,html.theme-fade *::after{transition:background-color .4s ease,color .4s ease,border-color .4s ease,fill .4s ease!important}
@@ -161,7 +161,8 @@ html.sb-auto.scrolling,html.sb-auto.scrolling *{scrollbar-color:var(--line) tran
 
 /* Etiketter */
 .chip{display:inline-flex;align-items:center;border-radius:6px;padding:1px 7px;font-size:12px;line-height:16px;font-weight:600;letter-spacing:0;background:var(--fill);color:var(--ink-2);white-space:nowrap}
-.chip.h{background:var(--accent-soft);color:var(--accent)}
+.chip.p1{background:var(--p1-soft);color:var(--p1-ink)}
+.chip.p2{background:var(--p2-soft);color:var(--p2-ink)}
 .chip.v{background:var(--veg-bg);color:var(--veg-ink)}
 .chip.k{background:var(--meat-bg);color:var(--meat-ink)}
 .chip.g,.chip.offer{background:var(--gem-bg);color:var(--gem-ink)}
