@@ -81,6 +81,8 @@ const parseJ=(s,d)=>{try{const v=JSON.parse(s);return v==null?d:v}catch(e){retur
 const BANK_ROWS=()=>Object.keys(settings()).filter(k=>/^receptbank_\d+$/.test(k)).sort((a,b)=>Number(a.split('_')[1])-Number(b.split('_')[1]));
 function bankList(){const seen=new Set(),out=[];BANK_ROWS().forEach(k=>parseJ(settings()[k],[]).forEach(x=>{if(x&&x.id&&!seen.has(x.id)){seen.add(x.id);out.push(x)}}));return out}
 const inBank=id=>bankList().some(x=>x.id===id);
+// Kalorier per portion: raden kcal i Inställningar, {receptId: kcal} eller {receptId: [kcal, kcal för Henriks portion med tillägg]}. Fylls av veckoplaneringen.
+function kcalOf(id){const v=parseJ(settings().kcal,{})[id];if(v==null||v==='')return null;const a=Array.isArray(v)?v:[v];const n=Number(a[0]);if(!(n>0))return null;const h=Number(a[1]);return{n:Math.round(n),h:h>0?Math.round(h):0}}
 const ratings=()=>parseJ(settings().betyg,{});
 const wishes=()=>parseJ(settings().onskelista,[]);
 function ratingOf(id){const x=ratings()[id];if(!x||!x.p)return null;const ps=Object.entries(x.p).filter(([,e])=>e&&e.s);if(!ps.length)return null;
@@ -690,8 +692,9 @@ function recipeDetail(r){
  let h='<div class="rcp-top"><button class="back" data-act="recipeBack">'+I.back+'Mat</button>';
  h+=rcpPhoto(r);
  h+='<div class="chips-row">'+whoChip(r.who)+(r.when?'<span class="chip">'+esc(r.when)+'</span>':'')+(r.freezes?'<span class="chip v">Går att frysa</span>':'')+'</div><h1 class="t1" id="lt">'+esc(r.title)+'</h1>'+rcpActions(r)+'</div>';
- const facts=[['Tid','<span class="num">'+r.min+'</span> min']];if(r.kr)facts.push(['Per portion',kr(r.kr)]);if(r.protein)facts.push(['Protein',esc(r.protein)]);
- h+='<div class="group" style="margin-top:16px"><div class="rcp-facts" style="grid-template-columns:repeat('+facts.length+',minmax(0,1fr))">'+facts.map(([l,v])=>'<div><div class="fn">'+l+'</div><div class="v">'+v+'</div></div>').join('')+'</div></div>';
+ const facts=[['Tid','<span class="num">'+r.min+'</span> min']];if(r.kr)facts.push(['Per portion',kr(r.kr)]);if(r.protein){const pr=String(r.protein).replace(/\s*\/\s*port(ion)?\.?$/i,''),ph=pr.match(/^henriks?\s+(?:del\s+)?(?:ca\s+)?(.+)$/i);facts.push(['Protein',esc(ph?ph[1]:pr),ph?'Henriks del':''])}
+ const kc=kcalOf(r.id);if(kc)facts.push(['Kalorier','<span class="num">'+kc.n+'</span> kcal',kc.h?'Henrik '+kc.h:'']);
+ h+='<div class="group" style="margin-top:16px"><div class="rcp-facts'+(facts.length>3?' f4':'')+'" style="grid-template-columns:repeat('+facts.length+',minmax(0,1fr))">'+facts.map(([l,v,sub])=>'<div><div class="fn">'+l+'</div><div class="v">'+v+'</div>'+(sub?'<div class="fn sub">'+sub+'</div>':'')+'</div>').join('')+'</div></div>';
  if(r.why)h+='<div class="group" style="margin-top:12px"><div class="note">'+esc(r.why)+'</div></div>';
  h+='<div class="block"><button class="btn-fill" style="width:100%" data-act="cook" data-id="'+esc(r.id)+'">'+I.play+'Börja laga</button></div>';
  h+='<div class="recipe"><div class="col">';
