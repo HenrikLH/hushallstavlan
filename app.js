@@ -763,16 +763,17 @@ function recipeDetail(r){
  return h}
 /* Tidigast igen: hur snart en rätt får föreslås igen. Räknas av matpoang.js från baslinjen och stjärnorna.
    Sparas i Inställningar: frekvens = {id:{w,t,d}} där w är baslinjen i veckor som sattes första gången rätten lagades (0 = aldrig),
-   lagad = {id:{n,d}} hur många gånger och senast, receptlogg = {id:'ÅÅÅÅ-MM-DD'} som veckoplaneringen också fyller i. */
+   I samma post: n = hur många gånger rätten lagats och l = senast. receptlogg = {id:'ÅÅÅÅ-MM-DD'} fylls av söndagsrutinen.
+   Allt ligger i rader som appen redan får skriva, så ingen ändring i Kod.gs behövs. */
 const MP=window.MatPoang;
 const BASW=[1,2,3,4,6,8,12];
 const freqs=()=>parseJ(settings().frekvens,{});
-const lagadAll=()=>parseJ(settings().lagad,{});
+const lagadAll=()=>{const o={};Object.entries(freqs()).forEach(([id,x])=>{if(x&&(x.n||x.l))o[id]={n:Number(x.n)||0,d:x.l||''}});return o};
 const lastServed=id=>{const l=lagadAll()[id],r=parseJ(settings().receptlogg,{})[id]||'';return l&&l.d&&l.d>r?l.d:r};
 const baseOf=id=>{const x=freqs()[id];return x&&x.w!=null&&x.w!==''?Number(x.w):null};
-/* Smileys: smileys = {id:[[måltidens datum, 1|0|-1|'x', vem, svarsdatum], ...]} de 10 senaste per rätt. 'x' = lagade inte.
+/* Smileys sparas i betyget: betyg[id].sm = [[måltidens datum, 1|0|-1|'x', vem, svarsdatum], ...] de 10 senaste. 'x' = lagade inte.
    Stjärnorna räknas från betyget och flyttas av smileys som kom efter den senaste manuella ändringen. */
-const smileysAll=()=>parseJ(settings().smileys,{});
+const smileysAll=()=>{const o={};Object.entries(ratings()).forEach(([id,x])=>{if(x&&Array.isArray(x.sm))o[id]=x.sm});return o};
 const smileysOf=id=>(smileysAll()[id]||[]).filter(x=>typeof x[1]==='number').map(x=>[x[3]||x[0],x[1]]);
 const betygDatum=g=>g?g.people.map(([,e])=>e.d||'').sort().pop()||'':'';
 function matLage(id){const g=ratingOf(id),b=baseOf(id),r=recipeById(id),l=lagadAll()[id]||{},last=lastServed(id);
@@ -782,11 +783,9 @@ function matLage(id){const g=ratingOf(id),b=baseOf(id),r=recipeById(id),l=lagadA
 const starNum=n=>String(Math.round(n*100)/100).replace('.',',');
 const veckor=w=>(w===1?'1 vecka':String(w).replace('.',',')+' veckor');
 const freqChip=id=>{const l=matLage(id);if(!l.harBas&&!l.betyg)return'';return'<span class="chip">'+(l.paus?'Pausad':'Tidigast '+String(l.w).replace('.',',')+' v')+'</span>'};
-// Spara att rätten är lagad i dag: räknar upp lagad och sätter receptlogg
-// Spara att rätten är lagad (i dag eller den dag den stod på matsedeln): räknar upp lagad och sätter receptlogg
-function markCooked(id,dt){const t=dt||today();
- updJSON('lagad',{},o=>{const x=o[id]||{n:0};if(x.d!==t)o[id]={n:(Number(x.n)||0)+1,d:x.d&&x.d>t?x.d:t};return o});
- updJSON('receptlogg',{},o=>{if(!o[id]||o[id]<t)o[id]=t;return o})}
+// Spara att rätten är lagad (i dag eller den dag den stod på matsedeln). bas sätter också baslinjen om den saknas.
+function cookedIn(o,id,t){const r=recipeById(id),x=o[id]||{};if(x.l!==t){x.n=(Number(x.n)||0)+1;if(!x.l||x.l<t)x.l=t}if(!x.t&&r)x.t=r.title;o[id]=x;return o}
+function markCooked(id,dt){updJSON('frekvens',{},o=>cookedIn(o,id,dt||today()))}
 /* Smiley-frågan på översikten: gårdagens middagar, och kvällens efter kl. 19, som inte har fått svar */
 const SMIL=[[-1,'☹️','Inte så god'],[0,'😐','Okej'],[1,'😊','God']];
 function smileyAsk(){const t=today(),y=addDays(t,-1),late=new Date().getHours()>=19,all=smileysAll(),seen=new Set();
@@ -801,7 +800,7 @@ function smileyCard(){const L=smileyAsk();if(!L.length)return'';const t=today(),
    '<div class="smc-lb" aria-hidden="true">'+SMIL.map(([,e])=>'<span>'+e+'</span>').join('')+'</div>'+
    '<div class="smc-b"><button type="button" class="tb" data-act="smileySkip" data-id="'+esc(m.recipe)+'" data-date="'+esc(m.date)+'">Lagade inte</button><button class="btn-fill">Spara</button></div></form>'}).join('')+'</section>'}
 function saveSmiley(id,date,v){const who=S.me||'';
- updJSON('smileys',{},o=>{o[id]=(o[id]||[]).filter(x=>x[0]!==date).concat([[date,v,who,today()]]).slice(-10);return o})}
+ const r=recipeById(id);updJSON('betyg',{},o=>{const x=o[id]=o[id]||{p:{}};if(!x.t&&r)x.t=r.title;x.sm=(x.sm||[]).filter(y=>y[0]!==date).concat([[date,v,who,today()]]).slice(-10);return o})}
 function rateBlock(r){const g=ratingOf(r.id);if(!g)return'';
  return sh('Betyg','<span class="st">'+starsTxt(g.avg)+'</span> '+starNum(matLage(r.id).s))+
   group(g.people.map(([p,e])=>'<div class="cell"><div class="grow"><div class="title">'+esc(p)+' <span class="st">'+starsTxt(e.s)+'</span></div><div class="meta"><span class="chip '+(e.v==='igen'?'v':e.v==='aldrig'?'h':'')+'">'+esc(VERD[e.v]||'')+'</span>'+(e.c?'<span>'+esc(e.c)+'</span>':'')+(e.d?'<span>'+esc(dateShort(e.d))+'</span>':'')+'</div></div></div>').join('')+
@@ -2047,8 +2046,8 @@ document.addEventListener('submit',async e=>{const f=e.target.closest('[data-for
   const sN=Number(d.s),v=d.v||(sN>=4?'igen':sN===3?'okej':'aldrig'),e={s:sN,v,c:String(d.c||'').trim(),d:today()};
   closeSheets();A.user=Date.now();
   updJSON('betyg',{},o=>{o[r.id]=o[r.id]||{p:{}};o[r.id].t=r.title;o[r.id].p=o[r.id].p||{};o[r.id].p[who]=e;return o});
-  if(baseOf(r.id)==null){const w=Number(d.bas)||MP.grundintervall(r);updJSON('frekvens',{},o=>{if(!o[r.id]||o[r.id].w==null)o[r.id]={w,t:r.title,d:today()};return o})}
-  if(!(lagadAll()[r.id]||{}).n)markCooked(r.id);
+  const nyBas=baseOf(r.id)==null,w=Number(d.bas)||MP.grundintervall(r),forst=!(lagadAll()[r.id]||{}).n;
+  if(nyBas||forst)updJSON('frekvens',{},o=>{if(forst)cookedIn(o,r.id,today());const x=o[r.id]=o[r.id]||{t:r.title};if(nyBas&&x.w==null){x.w=w;x.d=today()}return o});
   const saved=(sN>=4||v==='igen')&&addToBank(r,true);
   toast(saved?'Tack! Receptet sparades i receptbanken':'Tack för betyget!');if(sN>=4)confetti();return}
  if(f.dataset.form==='wish'){const r=S.wishFor&&recipeById(S.wishFor),t=r?r.title:String(d.t||'').trim();if(!t)return;
