@@ -1307,15 +1307,21 @@ function grassPatch(sc,id){const ss=grassSeason(today()),snow=snowLevel(sc),fros
  const tc=frost?'#E9F1F8':shadeHex(g1,.7);
  let b='<defs><linearGradient id="'+id+'gs" gradientUnits="userSpaceOnUse" x1="0" y1="112" x2="0" y2="140"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".55" stop-color="#F1F5FA"/><stop offset="1" stop-color="#CFDBE9"/></linearGradient></defs>',fr='';
  const deep=snow>=3;
- // plätten är bubblig som i en tecknad bild: en kärna med en krans av rundlar längs kanten; undersidan är lite mörkare
+ // snön ligger som en bubblig kudde: en kärna med en krans av rundlar längs kanten och en lite mörkare undersida
  const BUB=[];for(let i=0;i<22;i++){const a=i/22*2*Math.PI,r=5.5+rnd(i+60)*4.5;BUB.push([85+Math.cos(a)*(74-r*.55),127+Math.sin(a)*(10.5-r*.25),r])}
  const lobes=(dy,grow,fill)=>'<g fill="'+fill+'"><ellipse cx="85" cy="'+f(127+dy)+'" rx="'+f(70+grow)+'" ry="'+f(10+grow*.4)+'"/>'+
   BUB.map(([x,y,r])=>'<ellipse cx="'+f(x)+'" cy="'+f(y+dy)+'" rx="'+f(r+grow)+'" ry="'+f(r*.62+grow*.4)+'"/>').join('')+'</g>';
- b+=lobes(deep?1.2:2.4,deep?2:.3,snow>=2?'#A9BBD3':g2);
- b+=lobes(deep?-2.5:0,deep?2:0,snow>=2?'url(#'+id+'gs)':g1);
+ // gräset har ingen hård kant: en ojämn yta med ljusare och mörkare fläckar, strån som sticker upp och små tuvor som läcker ut runt om
+ const lite=mixHex(g1,'#FFFFFF',.2),dk=shadeHex(g1,.84);
+ const blade=(x,y,h,lean,c)=>'<path d="M'+f(x-1.1)+' '+y+' Q'+f(x+lean*.4)+' '+f(y-h*.6)+' '+f(x+lean)+' '+f(y-h)+' Q'+f(x+lean*.4+.6)+' '+f(y-h*.5)+' '+f(x+1.1)+' '+y+'Z" fill="'+c+'"/>';
+ const clump=(x,y,n,h,k)=>{let r='';for(let i=0;i<n;i++){const o=(i-(n-1)/2)*2.2,hh=h*(.6+rnd(k+i)*.55);r+=blade(x+o,y,hh,o*.9+(rnd(k+i+9)-.5)*3,i%2?(frost?'#E6EEF5':g2):(frost?'#D3E0EA':lite))}return r};
+ if(snow>=2){b+=lobes(deep?1.2:2.4,deep?2:.3,'#A9BBD3');b+=lobes(deep?-2.5:0,deep?2:0,'url(#'+id+'gs)')}
+ else{b+='<path d="'+blob(85,129,74,14,.22,3)+'" fill="'+g1+'"/>';
+  b+=[[0,131,6,2.4],[166,133,7,2.6],[28,144,9,2],[134,144.5,11,2.1],[156,141.5,5,1.6],[-6,125,3,1.2],[175,127,3.5,1.3],[64,146.5,6,1.5],[104,146,3.5,1.1],[86,148.5,2.5,.9]].map(([x,y,rx,ry])=>'<ellipse cx="'+x+'" cy="'+y+'" rx="'+rx+'" ry="'+ry+'" fill="'+g1+'"/>').join('');
+  b+='<g opacity=".7">'+[[38,123,22,3.6,lite],[128,123.5,20,3.4,lite],[70,136,28,3.8,dk],[124,136.5,18,3,dk],[22,132,11,2.6,dk],[100,140,14,2.2,lite]].map(([x,y,rx,ry,c],i)=>'<path d="'+blob(x,y,rx,ry,.4,30+i)+'" fill="'+c+'"/>').join('')+'</g>'}
  // skuggan under hundarna, lite bort från solen
  b+='<ellipse cx="'+f(sc.sunUp?85+(.5-sc.f)*16:85)+'" cy="124.5" rx="50" ry="4.2" fill="'+(snow>=2?'#B7C6DA':shadeHex(g1,.8))+'" opacity=".75"/>';
- if(snow<2){b+='<g fill="none" stroke-width="1.2" stroke-linecap="round">'+TU.map(([x,y])=>tuft(x,y,tc)).join('')+'</g>'}
+ if(snow<2)b+=[[6,131,5,17,1],[17,123,4,13,2],[152,123,4,14,3],[164,131,5,18,4],[40,141,4,10,5],[124,142,5,12,6],[96,143,3,8,7],[66,142,4,10,8],[144,137,4,13,9],[28,135,3,11,10],[2,135,2,8,11],[170,136,2,8,12],[52,121,3,8,13],[116,121,3,8,14]].map(([x,y,n,h,k])=>clump(x,y,n,h,k*7)).join('');
  else b+='<g fill="none" stroke-width="1.2" stroke-linecap="round">'+[[12,130],[157,127],[86,138]].map(([x,y])=>tuft(x,y,mixHex(g2,'#FFFFFF',.2))).join('')+'</g>';
  // snöfläckar på gräset
  if(snow===1)b+='<g fill="#FAFCFF" stroke="#C9D6E6" stroke-width=".5">'+[[50,123,26,5.4,7],[114,125,28,5.8,9],[84,133,20,3.2,11],[22,129,11,3.4,13],[150,123,11,3.2,15],[40,134,9,2.4,17],[130,134,10,2.4,19]].map(([x,y,rx,ry,s])=>'<path d="'+blob(x,y,rx,ry,.35,s)+'"/>').join('')+'</g>';
@@ -1413,7 +1419,7 @@ function figSvg(sc,o){o=o||{};const id='fg'+(++FIG_N),ph=sc.phase,dark=sc.dark,w
   s+='<g class="fx-snow" fill="#FFFFFF" stroke="#9DB4D3" stroke-width=".6">'+fall(n,(x,k)=>'<circle cx="'+x.toFixed(1)+'" cy="'+(6+rnd(k+30)*12).toFixed(1)+'" r="'+(sleet?1.3+rnd(k)*.8:1.4+rnd(k+3)*1.5).toFixed(1)+'" style="--dx:'+dx+'px;animation-duration:'+dur.toFixed(2)+'s;animation-delay:-'+(rnd(k+17)*dur).toFixed(2)+'s"/>')+'</g>';
   if(snow&&lv>=2)s+='<g class="fx-flakes" stroke="#FFFFFF" stroke-width="1.1" stroke-linecap="round">'+[[40,.4],[128,2.1],[86,3.2]].map(([x,d])=>'<g style="--dx:'+dx+'px;animation-delay:-'+d+'s"><path d="M'+x+' 6v10M'+(x-4.3)+' 8.5l8.6 5M'+(x-4.3)+' 13.5l8.6-5" stroke="#9DB4D3" stroke-width="2.4"/><path d="M'+x+' 6v10M'+(x-4.3)+' 8.5l8.6 5M'+(x-4.3)+' 13.5l8.6-5"/></g>').join('')+'</g>'}
  // 7. vinden visas som text i vädervyn i stället för som animation; den lutar bara regnet och snön
- return'<svg class="fig k-'+sc.tc+' w'+sc.wl+(sc.sleep?' zz':'')+'" viewBox="0 0 170 '+(o.patch?144:130)+'" role="img" aria-label="'+esc(o.label||sc.label)+'">'+s+'</svg>'}
+ return'<svg class="fig k-'+sc.tc+' w'+sc.wl+(sc.sleep?' zz':'')+'" viewBox="0 0 170 '+(o.patch?150:130)+'" role="img" aria-label="'+esc(o.label||sc.label)+'">'+s+'</svg>'}
 
 const hm=m=>pad(Math.floor(m/60))+'.'+pad(m%60);
 // nedräkning för dagens händelser: "till 16.00" när den pågår, "om 2 h 5 min" för nästa som börjar
