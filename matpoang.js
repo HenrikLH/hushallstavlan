@@ -14,7 +14,10 @@
     pausLedsna: 3,         // så många ledsna i rad pausar rätten
     pausStjarnor: 1.75,    // under detta pausas rätten
     // Poäng (summan av vikterna är 100)
-    vikt: { smak: 35, dags: 20, favorit: 10, nyhet: 10, pris: 7, tid: 6, sasong: 6, erbjudande: 6 },
+    vikt: { smak: 28, dags: 15, pris: 18, ateranvandning: 12, favorit: 7, nyhet: 7, tid: 5, sasong: 4, erbjudande: 4 },
+    marginal: 0.97,       // planera mot 97 % av budgeten så att avrundningar inte tar veckan över
+    // Veckan: storkok och helg är fasta, vardagsrätterna 1–2 och resten av vardagskvällarna blir macka
+    vardagskvallar: 4, maxVardag: 2, minVardag: 1, mackaKr: 30,   // macka för två en kväll
     bortvaldAvdrag: 3, bortvaldMax: 12,   // per gång rätten föreslagits men inte valts sedan den lagades
     variationAvdrag: 15,                  // samma huvudråvara som en rätt som redan är vald i veckan
     temperatur: 8,                        // slump i förslagen: 8 poängs skillnad gör en rätt ungefär 2,7 gånger så trolig
@@ -92,7 +95,10 @@
     del.dags = V.dags * (kvot == null ? 0.5 : clamp((kvot - 1) / 2, 0, 1));
     del.favorit = d.fav ? V.favorit : 0;
     del.nyhet = V.nyhet * (l.n === 0 ? 1 : l.n === 1 ? 0.5 : 0);   // bara rätter som är nya eller lagade en gång
-    del.pris = V.pris * (r.kr ? clamp((45 - r.kr) / 30, 0, 1) : 0.5);
+    // Pris mot budgeten: kvot = vad rätten kostar extra delat med vad platsen får kosta. 0,5 eller lägre ger full, 1,5 eller högre noll.
+    del.pris = V.pris * (ctx.prisKvot != null ? clamp(1.5 - ctx.prisKvot, 0, 1) : r.kr ? clamp((45 - r.kr) / 30, 0, 1) : 0.5);
+    // Återanvändning: hur stor del av rättens varor som redan finns över från veckans andra rätter
+    del.ateranvandning = V.ateranvandning * (ctx.ateranvandning || 0);
     del.tid = V.tid * (ctx.upptagen == null ? 0.5 : ctx.upptagen ? (r.min <= 30 ? 1 : r.min > 45 ? 0 : 0.5) : 0.5);
     del.sasong = V.sasong * sasong(r, ctx.manad);
     del.erbjudande = V.erbjudande * (ctx.erbjudande ? (ctx.erbjudande(r) ? 1 : 0) : 0.5);
@@ -124,6 +130,51 @@
     return { val, bonus };
   }
 
-  root.MatPoang = { CFG, sort, huvudravara, grundintervall, stjarnor, ledsnaIRad, tidigast, lage, poang, sasong, foreslag };
+  /* Planera en vecka. platser = [{id, typ, port}] i den ordning de ska fyllas (dyrast först).
+     kand(plats) = rätter som passar platsen: [{r, d, l, behov(f)}] där behov(f) ger varorna för f gånger receptet.
+     V = MatVaror, budget = kr för veckans middagar och storkok, valj(forslag) = vilken rätt som väljs (i appen: användaren).
+     Varje plats får förslag med pris mot det som är kvar av budgeten och återanvändning av veckans rester.
+     Rätter som skulle göra det omöjligt att hålla budgeten visas inte.
+     Budgeten gäller det ni betalar i kassan (det som redan finns hemma är gratis), eller med opt.budgetPa = 'kostnad' det veckan äter upp. */
+  function planeraVecka(platser, kand, V, budget, valj, opt) {
+    opt = opt || {};
+    const valda = [], behovValda = [], huvud = [];
+    const lager = opt.lager || {}, K = opt.budgetPa === 'kostnad' ? 'kostnad' : 'kr', M_ = opt.budgetPa === 'kostnad' ? 'marginal' : 'kassa';
+    const kostnad = (x, p) => V.korg([x.behov(p.port / (x.r.portions || 2))], lager)[K];
+    const kost = p => kand(p).filter(x => x.l.redo).map(x => kostnad(x, p)).sort((a, b) => a - b);
+    // Vardagskvällar utan lagad rätt blir macka. Valfria platser (vardagsrätt nummer 2) fylls bara om budgeten räcker.
+    const vardag = platser.filter(p => p.typ === 'vardag').length;
+    let macka = Math.max(0, CFG.vardagskvallar - vardag) * CFG.mackaKr;
+    // Billigaste möjliga resten av veckan, utan rätter som redan valts. Valfria platser räknas som macka.
+    const minKvar = i => platser.slice(i + 1).reduce((a, q) => a + (q.valfri ? CFG.mackaKr : Math.min(...kand(q).filter(x => x.l.redo && !valda.some(v => v.r.id === x.r.id)).map(x => kostnad(x, q)), 1e4)), 0);
+    budget = budget * CFG.marginal;
+    platser.forEach((p, i) => {
+      const spent = V.korg(behovValda, lager)[K] + macka, kvar = budget - spent;
+      if (p.valfri && !opt.utanBudget) {
+        const k = kost(p), mellan = k[Math.floor(k.length / 2)] || 0;
+        if (kvar - minKvar(i) < mellan) { macka += CFG.mackaKr; return }
+      }
+      const portKvar = platser.slice(i).reduce((a, q) => a + q.port, 0), mal = kvar * p.port / portKvar;
+      let lista = kand(p).filter(x => x.l.redo && !valda.some(v => v.r.id === x.r.id)).map(x => {
+        const b = x.behov(p.port / (x.r.portions || 2)), t = V.tillagg(behovValda, b, opt.utanAteranvandning ? {} : lager);
+        const ctx = Object.assign({}, opt.ctx, { prisKvot: opt.utanBudget ? null : t[M_] / Math.max(mal, 1), ateranvandning: opt.utanAteranvandning ? 0 : t.ateranvandning, valda: huvud });
+        return { x, b, t, l: x.l, p: poang(x.r, x.d, x.l, ctx), senastForeslagen: x.senastForeslagen };
+      });
+      if (!opt.utanBudget) { const mk = minKvar(i), ok = lista.filter(y => y.t[M_] + mk <= kvar); lista = ok.length ? ok : lista.sort((a, b) => a.t[M_] - b.t[M_]).slice(0, 1) }
+      const f = foreslag(lista, opt.rng, 3), y = valj(f, p);
+      if (!y) return;
+      valda.push({ plats: p, r: y.x.r, t: y.t, p: y.p, f }); behovValda.push(y.b); huvud.push(huvudravara(y.x.r));
+    });
+    const korg = V.korg(behovValda, opt.utanAteranvandning ? {} : lager);
+    return { valda, korg, macka, kostnad: korg.kostnad + macka, kassa: korg.kr + macka };
+  }
+  // Hur många vardagsrätter budgeten räcker till: 2 om resten av budgeten räcker till två rätter i mellanpris, annars 1
+  function antalVardag(kvar, mellanpris) {
+    const kv = CFG.vardagskvallar;
+    for (let n = CFG.maxVardag; n > CFG.minVardag; n--) if (n * mellanpris + (kv - n) * CFG.mackaKr <= kvar) return n;
+    return CFG.minVardag;
+  }
+
+  root.MatPoang = { CFG, sort, huvudravara, grundintervall, stjarnor, ledsnaIRad, tidigast, lage, poang, sasong, foreslag, planeraVecka, antalVardag };
 })(typeof window !== 'undefined' ? window : globalThis);
 if (typeof module !== 'undefined') module.exports = globalThis.MatPoang;
