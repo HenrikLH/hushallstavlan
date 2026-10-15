@@ -36,6 +36,16 @@ const I={
  back:'<svg viewBox="0 0 13 21" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.5 2L2.5 10.5l8 8.5"/></svg>',
  tick:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 8.5l3.5 3.5 7.5-8"/></svg>',
  x:'<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9"/></svg>',
+ heart:SV+'<path d="M12 20.3s-7.6-4.5-7.6-10.1A4.3 4.3 0 0 1 12 7.4a4.3 4.3 0 0 1 7.6 2.8c0 5.6-7.6 10.1-7.6 10.1z"/></svg>',
+ heartOn:'<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.3s-7.6-4.5-7.6-10.1A4.3 4.3 0 0 1 12 7.4a4.3 4.3 0 0 1 7.6 2.8c0 5.6-7.6 10.1-7.6 10.1z"/></svg>',
+ pencil:SV+'<path d="M4 20h4L19.2 8.8a2 2 0 0 0 0-2.8l-1.2-1.2a2 2 0 0 0-2.8 0L4 16z"/><path d="M13.5 6.5l4 4"/></svg>',
+ star:'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg>',
+ starO:SV+'<path d="M12 3.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg>',
+ calPlus:SV+'<rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4M12 13v5M9.5 15.5h5"/></svg>',
+ repeat:SV+'<path d="M17 2.5l3 3-3 3"/><path d="M4 11.5v-2a4 4 0 0 1 4-4h12"/><path d="M7 21.5l-3-3 3-3"/><path d="M20 12.5v2a4 4 0 0 1-4 4H4"/></svg>',
+ dots:'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="19" cy="12" r="1.9"/></svg>',
+ camera:SV+'<path d="M4 8.5h3l1.6-2.5h6.8L17 8.5h3a1 1 0 0 1 1 1V18a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.3" r="3.4"/></svg>',
+ trash:SV+'<path d="M4.5 6.5h15M9.5 6.5V4.5h5v2M6.5 6.5l1 13h9l1-13"/></svg>',
  play:'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg>',
  cake:SV+'<path d="M4 21h16M5 21v-7.5a1.5 1.5 0 0 1 1.5-1.5h11a1.5 1.5 0 0 1 1.5 1.5V21"/><path d="M5 16c1.2 1 2.3 1 3.5 0s2.3-1 3.5 0 2.3 1 3.5 0 2.3-1 3.5 0"/><path d="M12 12V8.5"/><path d="M12 3.5c1 1.2 1.3 2.2.6 2.9a.9.9 0 0 1-1.2 0c-.7-.7-.4-1.7.6-2.9z"/></svg>',
  clock:SV+'<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg>'
@@ -62,7 +72,21 @@ if(!VIEW_IDS.includes(S.view))S.view='oversikt';
 
 const D=()=>S.data||{settings:{},shop:[],tasks:[],clean:[],menu:[],events:[],offers:[],recipes:[]};
 const settings=()=>D().settings||{};
-const people=()=>{const p=String(settings().personer||'').split(',').map(s=>s.trim()).filter(Boolean);return p.length?p:['Henrik','Cornelia']};
+// Raden personer i Inställningar: "Henrik:indigo, Cornelia:teal". Färgen efter kolon är valfri.
+const personList=()=>{const p=String(settings().personer||'').split(',').map(s=>{const[n,c]=s.split(':');return{n:n.trim(),c:(c||'').trim()}}).filter(x=>x.n);return p.length?p:[{n:'Henrik',c:''},{n:'Cornelia',c:''}]};
+const people=()=>personList().map(x=>x.n);
+/* Användarfärger: [namn, ljust läge, text i ljust, mörkt läge, text i mörkt] */
+const PCOL={indigo:['Indigo','#4B4FC4','#3D41A8','#8C8FF2','#AEB0FF'],bla:['Blå','#1F6FB2','#185C95','#5AAEEE','#86C4F4'],teal:['Teal','#0F8C83','#0B6E67','#35C2B5','#62D8CC'],
+ gron:['Grön','#2E8540','#226B32','#4CC764','#7ADB8D'],plommon:['Plommon','#8E3B9E','#7A2F89','#C985D8','#DCA6E8'],vinrod:['Vinröd','#A3253F','#A3253F','#D9566F','#EC7088'],
+ rosa:['Rosa','#C2457E','#A8346A','#F07EB0','#F7A3C8'],orange:['Orange','#C25E0A','#A34E06','#F2994A','#F7B57A'],grafit:['Grafit','#5B6472','#4A525E','#A3ACB9','#C2C9D3']};
+const PCOL_DEF=['indigo','teal'];
+const personColor=i=>{const c=(personList()[i]||{}).c;return PCOL[c]?c:PCOL_DEF[i]||'grafit'};
+const rgba=(h,a)=>'rgba('+[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)).join(',')+','+a+')';
+let pcolKey='';
+function applyPersonColors(){const ks=[0,1].map(personColor),key=ks.join();if(key===pcolKey)return;pcolKey=key;
+ const v=dark=>ks.map((k,i)=>{const c=PCOL[k],m=dark?c[3]:c[1];return'--p'+(i+1)+':'+m+';--p'+(i+1)+'-soft:'+rgba(m,dark?.22:.13)+';--p'+(i+1)+'-ink:'+(dark?c[4]:c[2])}).join(';');
+ let el=document.getElementById('pcol');if(!el){el=document.createElement('style');el.id='pcol';document.head.appendChild(el)}
+ el.textContent=':root{'+v(false)+'}@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){'+v(true)+'}}:root[data-theme="dark"]{'+v(true)+'}'}
 const recipeById=id=>D().recipes.find(r=>r.id===id)||bankList().find(r=>r.id===id);
 /* ---------- betyg, önskelista och receptbank ----------
    Sparas som JSON i fliken Inställningar (raderna betyg, onskelista och receptbank_1…7)
@@ -71,6 +95,8 @@ const parseJ=(s,d)=>{try{const v=JSON.parse(s);return v==null?d:v}catch(e){retur
 const BANK_ROWS=()=>Object.keys(settings()).filter(k=>/^receptbank_\d+$/.test(k)).sort((a,b)=>Number(a.split('_')[1])-Number(b.split('_')[1]));
 function bankList(){const seen=new Set(),out=[];BANK_ROWS().forEach(k=>parseJ(settings()[k],[]).forEach(x=>{if(x&&x.id&&!seen.has(x.id)){seen.add(x.id);out.push(x)}}));return out}
 const inBank=id=>bankList().some(x=>x.id===id);
+// Kalorier per portion: raden kcal i Inställningar, {receptId: kcal}; en lista [kcal, …] läses som första värdet. Fylls av veckoplaneringen.
+function kcalOf(id){const v=parseJ(settings().kcal,{})[id];if(v==null||v==='')return null;const n=Number(Array.isArray(v)?v[0]:v);return n>0?{n:Math.round(n)}:null}
 const ratings=()=>parseJ(settings().betyg,{});
 const wishes=()=>parseJ(settings().onskelista,[]);
 function ratingOf(id){const x=ratings()[id];if(!x||!x.p)return null;const ps=Object.entries(x.p).filter(([,e])=>e&&e.s);if(!ps.length)return null;
@@ -121,7 +147,7 @@ function renderNav(nav){
  const ax=(el,a)=>{const cs=getComputedStyle(el),o=a==='x'?cs.overflowX:cs.overflowY;return/(auto|scroll)/.test(o)&&(a==='x'?el.scrollWidth>el.clientWidth+1:el.scrollHeight>el.clientHeight+1)};
  const scroller=(el,a)=>{for(;el&&el!==document.body&&el!==document.documentElement;el=el.parentElement)if(ax(el,a))return el;return null};
  document.addEventListener('pointerdown',e=>{cancelAnimationFrame(glide);
-  if(!on()||e.button>0||!S.data||e.target.closest('input,select,textarea,[contenteditable],.nav'))return;
+  if(!on()||e.button>0||!S.data||e.target.closest('input,select,textarea,[contenteditable],.nav')||(S.arrange&&e.target.closest('[data-box]')))return;
   st={id:e.pointerId,x0:e.clientX,y0:e.clientY,x:e.clientX,y:e.clientY,t:performance.now(),v:0,mouse:e.pointerType!=='touch',a:null,el:null,tg:e.target}});
  addEventListener('pointermove',e=>{if(!st||e.pointerId!==st.id)return;const dx=e.clientX-st.x0,dy=e.clientY-st.y0;
   if(!st.a){if(Math.hypot(dx,dy)<10)return;st.a=Math.abs(dx)>Math.abs(dy)?'x':'y';st.el=scroller(st.tg,st.a);if(st.mouse)document.body.classList.add('dragging')}
@@ -175,8 +201,50 @@ let fitScrollbar=()=>{};
 (function(){const touch=()=>{const was=nightOn();A.touch=Date.now();if(was&&S.view==='oversikt')render()};
  document.addEventListener('pointerdown',touch,true);
  setInterval(()=>{if(!S.wall)return;const idle=Date.now()-(A.touch||0)>120000;
+  if(idle&&S.arrange){S.arrange=false;render()}
   if(idle&&(S.view!=='oversikt'||S.sheet||S.shopAdd||S.taskAdd||S.recipe||window.scrollY>0)&&!S.cook){closeSheets();S.recipe=null;ACT.nav('oversikt')}
   else if(S.view==='oversikt'&&document.body.classList.contains('is-night')!==nightOn())render()},20000)})();
+
+/* Ändra ordning: håll fingret på en ruta på Översikt tills rutorna vickar och dra sedan, som på mobilens hemskärm.
+   De andra rutorna glider undan medan man drar. Klockan räknas inte (där sitter kioskens stäng-gest). */
+(function(){let lp=0,x=0,y=0,eat=false,G=null,pid='',mouse=false;const stop=()=>{clearTimeout(lp);lp=0};
+ const rects=()=>{const m={};document.querySelectorAll('[data-box]').forEach(b=>{const r=b.getBoundingClientRect();m[b.dataset.box]={l:r.left,t:r.top+scrollY,w:r.width,h:r.height}});return m};
+ // rita om och låt rutorna glida från sina gamla platser till de nya
+ const redraw=()=>{const old=rects();doRender();const now=rects();
+  if(!calm())document.querySelectorAll('[data-box]').forEach(b=>{const o=old[b.dataset.box],n=now[b.dataset.box];if(!o)return;const dx=o.l-n.l,dy=o.t-n.t;if(Math.abs(dx)<1&&Math.abs(dy)<1)return;
+   b.style.transition='none';b.style.translate=dx+'px '+dy+'px';requestAnimationFrame(()=>requestAnimationFrame(()=>{b.style.transition='translate .25s cubic-bezier(.2,.8,.2,1)';b.style.translate='0px 0px'}))});
+  return now};
+ // en kopia av rutan följer fingret; den läggs i samma omgivning så att den ser likadan ut
+ function lift(b){const r=b.getBoundingClientRect(),m=document.querySelector('main'),z=parseFloat(getComputedStyle(m).zoom)||1;let root=null,inner=null;
+  for(let el=b.parentElement;el&&el!==document.body;el=el.parentElement){const w=document.createElement(el.tagName);w.className=el.className;w.style.cssText='display:block;position:static;height:auto;width:auto;padding:0;margin:0;overflow:visible;columns:auto';if(inner)w.appendChild(root);else inner=w;root=w;if(el===m)break}
+  const c=b.cloneNode(true);c.removeAttribute('data-box');c.classList.remove('ph');c.classList.add('lift');c.style.cssText='width:'+r.width/z+'px;height:'+r.height/z+'px;margin:0';
+  inner.appendChild(c);root.style.cssText+=';position:fixed;left:0;top:0;z-index:90;pointer-events:none;width:'+r.width/z+'px';root.classList.add('lift-root');document.body.appendChild(root);return{root,z}}
+ function place(){const{root,z}=G.lf;root.style.transform='translate('+(G.px-G.dx)/z+'px,'+(G.py-G.dy)/z+'px)'}
+ function start(id,px,py){const b=document.querySelector('[data-box="'+id+'"]');if(!b)return;const r=b.getBoundingClientRect(),wall=wallBoardOn();
+  const L=JSON.parse(JSON.stringify(layout(wall,wall?WALL_DEF:OV_DEF())));
+  G={id,wall,L,px,py,dx:px-r.left,dy:py-r.top,lf:lift(b)};place();PREVIEW={wall,L};DRAG_ID=id;G.rects=redraw();eat=true;
+  try{navigator.vibrate&&navigator.vibrate(10)}catch(err){}}
+ function move(px,py){G.px=px;G.py=py;place();const X=px,Y=py+scrollY,R=G.rects,L=G.L;
+  if(!G.wall){if(py<90)scrollBy(0,-12);else if(py>innerHeight-160)scrollBy(0,12)}
+  const inR=r=>r&&X>=r.l&&X<=r.l+r.w&&Y>=r.t&&Y<=r.t+r.h;if(inR(R[G.id]))return;
+  const col=L.cols.find(c=>c.includes(G.id));let to=null;
+  for(const k in R){if(k===G.id||!inR(R[k]))continue;const r=R[k],tc=L.cols.find(c=>c.includes(k)),side=L.size[k]==='h'&&(G.wall||L.size[G.id]==='h'),after=side?X>r.l+r.w/2:Y>r.t+r.h/2;
+   const c2=tc.filter(x=>x!==G.id);to={c:tc,i:c2.indexOf(k)+(after?1:0)};break}
+  if(!to&&G.wall){document.querySelectorAll('.bcol[data-col]').forEach(cl=>{const r=cl.getBoundingClientRect();if(px>=r.left&&px<=r.right&&py>=r.top&&py<=r.bottom){const tc=L.cols[Number(cl.dataset.col)];{const last=tc.filter(x=>x!==G.id).map(x=>R[x]).filter(Boolean).pop();if(!last||Y>last.t+last.h)to={c:tc,i:tc.filter(x=>x!==G.id).length}}}})}
+  if(!to)return;const before=JSON.stringify(L.cols);col.splice(col.indexOf(G.id),1);to.c.splice(to.i,0,G.id);if(JSON.stringify(L.cols)!==before)G.rects=redraw()}
+ function end(){const g=G;G=null;PREVIEW=null;DRAG_ID=null;saveLayout(g.wall,g.L);const ph=document.querySelector('[data-box="'+g.id+'"]'),{root,z}=g.lf;
+  const done=()=>{root.remove();doRender()};if(!ph||calm())return done();const r=ph.getBoundingClientRect();
+  root.style.transition='transform .18s ease';root.style.transform='translate('+r.left/z+'px,'+r.top/z+'px)';setTimeout(done,190);setTimeout(()=>eat=false,250)}
+ document.addEventListener('pointerdown',e=>{if(e.button>0||S.view!=='oversikt'||nightOn()||G)return;const b=e.target.closest('[data-box]');if(!b||e.target.closest('#clock,.arr-x,.arr-s'))return;
+  stop();x=e.clientX;y=e.clientY;const id=b.dataset.box,was=S.arrange;pid=id;mouse=e.pointerType!=='touch';
+  // i ändra-läget räcker en kort stund, annars en längre så att vanliga tryck och scroll fungerar som förut
+  lp=setTimeout(()=>{lp=0;if(!was){S.arrange=true;doRender()}start(id,x,y)},was?180:600)});
+ // med mus (och väggskärmens pekskärm) börjar dragningen direkt när man rör sig i ändra-läget
+ addEventListener('pointermove',e=>{if(G){move(e.clientX,e.clientY);return}if(!lp||Math.hypot(e.clientX-x,e.clientY-y)<=(S.arrange&&mouse?4:9))return;stop();if(S.arrange&&mouse){start(pid,x,y);if(G)move(e.clientX,e.clientY)}});
+ addEventListener('pointerup',()=>{stop();if(G)end()});addEventListener('pointercancel',()=>{stop();if(G)end()});
+ document.addEventListener('touchmove',e=>{if(G)e.preventDefault()},{passive:false});
+ document.addEventListener('click',e=>{if(eat){eat=false;e.stopPropagation();e.preventDefault()}},true);
+ document.addEventListener('contextmenu',e=>{if(e.target.closest('[data-box]')&&S.view==='oversikt')e.preventDefault()})})();
 
 /* Lämna kioskläget utan tangentbord: håll fingret still på klockan i tre sekunder så stängs tavlan */
 (function(){let t=0,x=0,y=0;const stop=()=>{clearTimeout(t);t=0};
@@ -274,7 +342,9 @@ function planDays(){
 const dayOf=date=>{const d=D();const ev=d.events.filter(e=>e.date===date),ms=d.menu.filter(m=>m.date===date);return(ev.length||ms.length)?{date,events:ev,meals:ms}:null};
 function whoChip(w){const k=w==='Henrik'?'k':w==='Vegetariskt'?'v':w==='Gemensam'?'g':'';return'<span class="chip '+k+'">'+esc(w==='Henrik'?'Kött':w)+'</span>'}
 // Vem en kalenderhändelse gäller (kolumnen Vem i Händelser). Ingen chip när namnet redan står i titeln.
-function evWho(e){const w=String(e.who||e.vem||'').trim();if(!w||String(e.title||'').toLowerCase().split(/[^a-zåäöé-]+/).includes(w.toLowerCase()))return'';return' <span class="chip'+(w==='Henrik'?' h':'')+'">'+esc(w)+'</span>'}
+function evWho(e){const w=String(e.who||e.vem||'').trim();if(!w||String(e.title||'').toLowerCase().split(/[^a-zåäöé-]+/).includes(w.toLowerCase()))return'';return' '+personChip(w)}
+// Namnchip i personens egen färg (--p1/--p2), grå för den som inte finns bland personerna
+const personChip=w=>'<span class="chip'+(people().includes(w)?' '+pcls(w):'')+'">'+esc(w)+'</span>';
 const shopCost=items=>items.reduce((s,i)=>s+(Number(i.price)||0),0);
 const isBase=i=>(i.meals||[]).length>0&&(i.meals||[]).every(m=>m==='Bas');
 function planPortions(){const ids=new Set();D().menu.forEach(m=>{if(m.recipe)ids.add(m.recipe)});
@@ -303,7 +373,7 @@ function watchTitle(){
  if(!lt||!('IntersectionObserver' in window)){show(false);return}
  io=new IntersectionObserver(es=>{const e=es[es.length-1];show(!e.isIntersecting&&e.boundingClientRect.top<bar.offsetHeight)},{rootMargin:'-'+(bar.offsetHeight||44)+'px 0px 0px 0px',threshold:0});
  io.observe(lt)}
-function doRender(){
+function doRender(){applyPersonColors();
  document.body.classList.toggle('wall',S.wall);document.body.classList.toggle('is-night',S.view==='oversikt'&&nightOn());document.body.dataset.view=S.view;
  document.body.classList.toggle('cook-open',!!S.cook);
  const nav=document.getElementById('nav'),m=document.getElementById('main');
@@ -344,6 +414,44 @@ const dayHead=s=>{const d=parse(s);return DAYS[d.getDay()]+' '+d.getDate()+' '+M
 
 const V={};
 function widget(id,cls,icon,label,right,body){return'<section class="widget'+(cls?' '+cls:'')+'" data-act="nav" data-id="'+id+'"><button class="wh" data-act="nav" data-id="'+id+'" style="width:100%">'+icon+'<span>'+label+'</span>'+(right?'<span class="r">'+right+'</span>':'')+'</button>'+body+'</section>'}
+/* ---------- egen ordning på rutorna ----------
+   Som hemskärmen i en mobil: håll fingret på en ruta tills rutorna börjar vicka, dra den dit du vill
+   så viker de andra undan. − döljer en ruta och hörnknappen växlar mellan halv och hel bredd.
+   Ordningen sparas per enhet, så telefonen och väggskärmen kan se olika ut. Bilden med klockan ligger alltid först. */
+const BOX={kal:'Kalender',mat:'Middag',stad:'Städ',inkop:'Inköp',upg:'Uppgifter',hem:'Hemmet',fod:'Födelsedagar',imorgon:'Imorgon'};
+// vilka rutor som får vara halv bredd, och vilka som är det från början
+const SIZES={ov:{can:['mat','stad','inkop','upg','hem','fod','imorgon'],half:['stad','inkop']},wall:{can:['mat','inkop','fod'],half:['inkop','fod']}};
+const SV2='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
+const IA={minus:SV2+'<path d="M6 12h12"/></svg>',grow:SV2+'<path d="M14 4h6v6M10 20H4v-6M20 4l-6.5 6.5M4 20l6.5-6.5"/></svg>',shrink:SV2+'<path d="M20 10h-6V4M4 14h6v6M14 10l6-6M10 14l-6 6"/></svg>'};
+let PREVIEW=null,DRAG_ID=null;// medan en ruta dras ritas tavlan med den tillfälliga ordningen
+function layout(wall,def){if(PREVIEW&&PREVIEW.wall===wall)return PREVIEW.L;
+ const k=wall?'wallLayout':'ovLayout',Z=SIZES[wall?'wall':'ov'];let o=null;try{o=JSON.parse(lsGet(k)||'null')}catch(e){}
+ const known=new Set(def.flat()),hidden=(o&&Array.isArray(o.hidden)?o.hidden:[]).filter(x=>known.has(x));
+ let cols=o&&Array.isArray(o.cols)&&o.cols.length===def.length?o.cols.map(c=>c.filter(x=>known.has(x))):def.map(c=>c.slice());
+ const seen=new Set(cols.flat().concat(hidden));def.forEach((c,i)=>c.forEach(x=>{if(!seen.has(x))cols[i].push(x)}));// nya rutor hamnar på sin vanliga plats
+ const size={};known.forEach(id=>{const v=o&&o.size&&o.size[id];size[id]=Z.can.includes(id)&&(v?v==='h':Z.half.includes(id))?'h':'f'});
+ return{cols,hidden,size}}
+function saveLayout(wall,L){lsSet(wall?'wallLayout':'ovLayout',L?JSON.stringify({cols:L.cols,hidden:L.hidden,size:L.size}):null)}
+// I ändra-läget vickar rutorna och får sina knappar. Innehållet syns som vanligt men går inte att trycka på.
+function boxify(id,html,wall,L){if(!html)return'';
+ const half=L.size[id]==='h';
+ if(!wall)html=html.replace(/class="widget( w2)?/,'class="widget'+(half?'':' w2'));
+ html=html.replace('<section ','<section data-box="'+id+'" ');if(!S.arrange)return html;
+ html=html.replace(/(<section[^>]*?) data-act="nav"/,'$1').replace(/(<section[^>]*?class="widget)/,'$1 arr'+(DRAG_ID===id?' ph':''));
+ const can=SIZES[wall?'wall':'ov'].can.includes(id);
+ const btn='<button type="button" class="arr-x" data-act="boxHide" data-id="'+id+'" aria-label="Dölj '+BOX[id]+'">'+IA.minus+'</button>'+
+  (can?'<button type="button" class="arr-s" data-act="boxSize" data-id="'+id+'" aria-label="'+(half?'Hel':'Halv')+' bredd för '+BOX[id]+'">'+(half?IA.grow:IA.shrink)+'</button>':'');
+ return html.replace(/(<section[^>]*>)/,'$1'+btn)}
+// Telefonen: rutorna ligger i ett rutnät med två spalter. Väggen: två halva rutor i rad delar rad.
+function boxRow(list,wall,html,L){let out='',i=0;const n=list.length,H=id=>L.size[id]==='h';
+ while(i<n){const a=list[i],b=list[i+1];
+  if(wall&&H(a)){const two=b&&H(b);out+='<div class="wpair"'+(two&&!(a==='inkop'&&b==='fod')?' style="grid-template-columns:1fr 1fr"':'')+'>'+boxify(a,html[a],wall,L)+(two?boxify(b,html[b],wall,L):'<div></div>')+'</div>';i+=two?2:1;continue}
+  out+=boxify(a,html[a],wall,L);i++}
+ return out}
+function arrangeFoot(L,wall){if(!S.arrange)return'';
+ const hid=L.hidden.map(id=>'<button type="button" class="pill" data-act="boxShow" data-id="'+id+'">'+I.plus+BOX[id]+'</button>').join('');
+ return'<div class="arr-foot" role="toolbar" aria-label="Ändra ordning"><div class="arr-hid">'+(hid?'<span class="muted">Dolda:</span>'+hid:'<span class="muted">Inga dolda rutor</span>')+'</div>'+
+  '<button type="button" class="tb" data-act="boxReset">Återställ</button><button type="button" class="btn-fill" data-act="arrangeDone">Klar</button></div>'}
 /* ---------- väggtavlan ----------
    På väggskärmen (väggläge, bred skärm) blir Översikt en tavla i tre kolumner som alltid får plats
    utan att scrolla: tid och väder | kalender och middag | städ, inköp och födelsedagar.
@@ -393,20 +501,22 @@ function wallBoard(){
  const clean=[...cp.routines.filter(x=>!doneToday(x)),...cp.todo].slice(0,4),doneN=cp.routines.filter(doneToday).length+cp.doneRot.length,totN=cp.routines.length+cp.doneRot.length+cp.todo.length;
  const tasks=d.tasks.filter(x=>!x.done).sort((a,b)=>(a.due||'9').localeCompare(b.due||'9')).slice(0,7);
  const popDone=A.cleanOpen&&!clean.length;A.cleanOpen=clean.length>0;
- let h='<div class="board"><div class="board-gear">'+gearBtn+'</div>';
- h+='<div class="bcol bhero">'+heroHtml()+wallWx()+'</div>';
- h+='<div class="bcol">'+calWidget();
- h+=widget('mat','bmeal',I.fork,(isT||!nextDay)?'Middag ikväll':'Nästa middag',nextDay&&!isT?esc(dateShort(nextDay.date)):'',(nextDay?wMeals(nextDay):'<div class="wempty">Ingen matsedel än.</div>'));
- h+='<div class="wpair">'+widget('inkop','',I.basket,'Inköp','','<div class="wbig">'+left.length+'</div><div class="sub">kvar</div><div class="sub">ca '+kr(shopCost(left))+'</div>')+
-  wallBd()+'</div>';
- h+='</div>';
- h+='<div class="bcol">'+widget('stad','bclean',I.sparkles,'Städ idag',nv('stadN',doneN)+'/'+totN,
+ const H={};
+ H.kal=calWidget();
+ H.mat=widget('mat','bmeal',I.fork,(isT||!nextDay)?'Middag ikväll':'Nästa middag',nextDay&&!isT?esc(dateShort(nextDay.date)):'',(nextDay?wMeals(nextDay):'<div class="wempty">Ingen matsedel än.</div>'));
+ H.inkop=widget('inkop','',I.basket,'Inköp','','<div class="wbig">'+left.length+'</div><div class="sub">kvar</div><div class="sub">ca '+kr(shopCost(left))+'</div>');
+ H.fod=wallBd();
+ H.stad=widget('stad','bclean',I.sparkles,'Städ idag',nv('stadN',doneN)+'/'+totN,
   '<div class="thin bprog"><i style="width:'+(totN?Math.round(doneN/totN*100):0)+'%"></i></div>'+
   (clean.length?'<div class="wl">'+clean.map(x=>'<div class="cell ck" data-act="cleanToggle" data-id="'+esc(x.id)+'"><input type="checkbox" class="check" data-act="cleanToggle" data-id="'+esc(x.id)+'" aria-label="'+esc(x.title)+'"><span class="grow">'+esc(x.title)+'</span><span class="val num">'+x.min+' min</span></div>').join('')+'</div>':'<div class="bdone'+(popDone?' pop':'')+'">'+I.tick+'Allt är gjort idag</div>')+
   '<div class="wk-sub">Hemmet</div><div class="brooms">'+roomHealth().map(r=>'<div class="'+healthCls(r.score)+'"><span>'+esc(r.room)+'</span><i><b style="width:'+Math.round(r.score*100)+'%"></b></i></div>').join('')+'</div>');
- h+=widget('uppgifter','btasks',I.list,'Uppgifter',d.tasks.filter(x=>!x.done).length+' kvar',tasks.length?'<div class="wl">'+tasks.map(taskRow).join('')+'</div>':'<div class="wempty">Inget att göra.</div>');
-
- return h+'</div></div>'}
+ H.upg=widget('uppgifter','btasks',I.list,'Uppgifter',d.tasks.filter(x=>!x.done).length+' kvar',tasks.length?'<div class="wl">'+tasks.map(taskRow).join('')+'</div>':'<div class="wempty">Inget att göra.</div>');
+ const L=layout(true,WALL_DEF);
+ let h='<div class="board'+(S.arrange?' arranging':'')+'"><div class="board-gear">'+gearBtn+'</div>';
+ h+='<div class="bcol bhero">'+heroHtml()+wallWx()+'</div>';
+ L.cols.forEach((c,ci)=>{h+='<div class="bcol" data-col="'+ci+'">'+boxRow(c.filter(id=>H[id]),true,H,L)+'</div>'});
+ return h+'</div>'+arrangeFoot(L,true)}
+const WALL_DEF=[['kal','mat','inkop','fod'],['stad','upg']];
 V.oversikt=function(){
  if(wallBoardOn())return wallBoard();
  const t=today(),now=new Date(),days=planDays();
@@ -418,22 +528,23 @@ V.oversikt=function(){
  const tasksSoon=d.tasks.filter(x=>!x.done&&!(isDate(x.due)&&x.due<=t)).sort((a,b)=>(a.due||'9').localeCompare(b.due||'9')).slice(0,4);
  let h=head('Översikt');
  h+='<div class="ov">'+heroHtml();
- h+='<div class="widgets">';
- h+=calWidget();
- const top=h;h='';
+ const H={kal:calWidget()};
  const isT=nextDay&&nextDay.date===t;
- h+=widget('mat','w2',I.fork,(isT||!nextDay)?'Middag ikväll':'Nästa middag',nextDay&&!isT?esc(dateShort(nextDay.date)):'',
+ H.mat=widget('mat','w2',I.fork,(isT||!nextDay)?'Middag ikväll':'Nästa middag',nextDay&&!isT?esc(dateShort(nextDay.date)):'',
   nextDay?wMeals(nextDay):'<div class="wempty">Ingen matsedel inlagd än. Den fylls i när veckoplaneringen körs på söndag.</div>');
  const doneN=cp.routines.filter(doneToday).length+cp.doneRot.length,totN=cp.routines.length+cp.doneRot.length+cp.todo.length;
- h+='<div class="wpair">'+widget('stad','',I.sparkles,'Städ','','<div class="wbig">'+nv('w-clean',doneN)+'<small>/'+totN+'</small></div><div class="sub">'+nv('w-min',cp.minLeft)+' min kvar</div><div class="thin"><i style="width:'+(totN?Math.round(doneN/totN*100):0)+'%"></i></div>');
- h+=widget('inkop','',I.basket,'Inköp','','<div class="wbig">'+nv('w-shop',left.length)+'</div><div class="sub">kvar · ca '+nv('w-shopkr',shopCost(left),'kr')+'</div>')+'</div>';
+ H.stad=widget('stad','',I.sparkles,'Städ','','<div class="wbig">'+nv('w-clean',doneN)+'<small>/'+totN+'</small></div><div class="sub">'+nv('w-min',cp.minLeft)+' min kvar</div><div class="thin"><i style="width:'+(totN?Math.round(doneN/totN*100):0)+'%"></i></div>');
+ H.inkop=widget('inkop','',I.basket,'Inköp','','<div class="wbig">'+nv('w-shop',left.length)+'</div><div class="sub">kvar · ca '+nv('w-shopkr',shopCost(left),'kr')+'</div>');
  const tl=tasksNow.concat(tasksSoon).slice(0,5);
- h+=widget('uppgifter','w2',I.list,'Uppgifter',tasksNow.length?tasksNow.length+' idag':'',tl.length?'<div class="wl">'+tl.map(taskRow).join('')+'</div>':'<div class="wempty">Inget att göra just nu.</div>');
+ H.upg=widget('uppgifter','w2',I.list,'Uppgifter',tasksNow.length?tasksNow.length+' idag':'',tl.length?'<div class="wl">'+tl.map(taskRow).join('')+'</div>':'<div class="wempty">Inget att göra just nu.</div>');
  const rh=roomHealth();
- const home=widget('stad','w2',I.home,'Hemmet','',rh.length?'<div class="wl">'+rh.map(healthRow).join('')+'</div>':'<div class="wempty">Städschemat är tomt.</div>');
- const tmw=tm?widget('mat','w2',I.cal,'Imorgon',esc(dateShort(tm.date)),(eventsHtml(tm)||'<div class="wempty">Inga händelser.</div>')+(tm.meals.length?wMeals(tm):'')):'';
- // födelsedagarna ligger näst sist
- return top+h+(tmw?home+bdWidget()+tmw:bdWidget()+home)+'</div></div>'};
+ H.hem=widget('stad','w2',I.home,'Hemmet','',rh.length?'<div class="wl">'+rh.map(healthRow).join('')+'</div>':'<div class="wempty">Städschemat är tomt.</div>');
+ H.imorgon=tm?widget('mat','w2',I.cal,'Imorgon',esc(dateShort(tm.date)),(eventsHtml(tm)||'<div class="wempty">Inga händelser.</div>')+(tm.meals.length?wMeals(tm):'')):'';
+ H.fod=bdWidget();
+ const L=layout(false,OV_DEF());
+ return h+(S.arrange?'<p class="arr-intro">Håll kvar och dra en ruta dit du vill ha den. − döljer rutan och hörnknappen gör den halv eller hel. Gäller bara den här enheten.</p>':'')+'<div class="widgets'+(S.arrange?' arranging':'')+'">'+boxRow(L.cols[0].filter(id=>H[id]),false,H,L)+'</div></div>'+arrangeFoot(L,false)};
+// utan egen ordning ligger födelsedagarna näst sist
+const OV_DEF=()=>[dayOf(addDays(today(),1))?['kal','mat','stad','inkop','upg','hem','fod','imorgon']:['kal','mat','stad','inkop','upg','fod','hem','imorgon']];
 function wMeals(d){return(d.meals||[]).map(m=>{const r=m.recipe&&recipeById(m.recipe);const tag=r?'button':'div';
  return'<'+tag+' class="wmeal"'+(r?' data-act="recipe" data-id="'+esc(m.recipe)+'"':'')+'><div class="top">'+whoChip(m.who)+(r&&r.kr?'<span class="val">'+kr(r.kr)+'/port</span>':'')+'</div><div class="hl title">'+esc(m.title)+'</div>'+(m.addon?'<div class="sub">+ Kött: '+esc(m.addon)+'</div>':'')+'</'+tag+'>'}).join('')}
 const healthRow=r=>'<div class="cell room"><div class="grow"><div>'+esc(r.room)+'</div><div class="cap '+healthCls(r.score)+'"><i style="width:'+Math.round(r.score*100)+'%"></i></div></div><span class="hw '+healthCls(r.score)+'">'+healthWord(r.score)+'</span></div>';
@@ -595,10 +706,11 @@ function recipeDetail(r){
  const act=Math.min(S.step[r.id]||0,r.steps.length-1),actHits=stepIngredients(r,r.steps[act]);
  NB.title=r.title;NB.back=true;
  let h='<div class="rcp-top"><button class="back" data-act="recipeBack">'+I.back+'Mat</button>';
- if(imgOf(r.id))h+='<div class="rcp-photo"><img src="'+esc(imgOf(r.id))+'" alt="'+esc(r.title)+'"></div>';
- h+='<div class="chips-row">'+whoChip(r.who)+(r.when?'<span class="chip">'+esc(r.when)+'</span>':'')+(r.freezes?'<span class="chip v">Går att frysa</span>':'')+'</div><h1 class="t1" id="lt">'+esc(r.title)+'</h1></div>';
- const facts=[['Tid','<span class="num">'+r.min+'</span> min']];if(r.kr)facts.push(['Per portion',kr(r.kr)]);if(r.protein)facts.push(['Protein',esc(r.protein)]);
- h+='<div class="group" style="margin-top:16px"><div class="rcp-facts" style="grid-template-columns:repeat('+facts.length+',minmax(0,1fr))">'+facts.map(([l,v])=>'<div><div class="fn">'+l+'</div><div class="v">'+v+'</div></div>').join('')+'</div></div>';
+ h+=rcpPhoto(r);
+ h+='<div class="chips-row">'+whoChip(r.who)+(r.when?'<span class="chip">'+esc(r.when)+'</span>':'')+(r.freezes?'<span class="chip v">Går att frysa</span>':'')+'</div><h1 class="t1" id="lt">'+esc(r.title)+'</h1>'+rcpActions(r)+'</div>';
+ const facts=[['Tid','<span class="num">'+r.min+'</span> min']];if(r.kr)facts.push(['Per portion',kr(r.kr)]);if(r.protein){const pr=String(r.protein).replace(/\s*\/\s*port(ion)?\.?$/i,''),ph=pr.match(/^henriks?\s+(?:del\s+)?(?:ca\s+)?(.+)$/i);facts.push(['Protein',esc(ph?ph[1]:pr)])}
+ const kc=kcalOf(r.id);if(kc)facts.push(['Kalorier','<span class="num">'+kc.n+'</span> kcal']);
+ h+='<div class="group" style="margin-top:16px"><div class="rcp-facts'+(facts.length>3?' f4':'')+'" style="grid-template-columns:repeat('+facts.length+',minmax(0,1fr))">'+facts.map(([l,v])=>'<div><div class="fn">'+l+'</div><div class="v">'+v+'</div></div>').join('')+'</div></div>';
  if(r.why)h+='<div class="group" style="margin-top:12px"><div class="note">'+esc(r.why)+'</div></div>';
  h+='<div class="block"><button class="btn-fill" style="width:100%" data-act="cook" data-id="'+esc(r.id)+'">'+I.play+'Börja laga</button></div>';
  h+='<div class="recipe"><div class="col">';
@@ -614,7 +726,6 @@ function recipeDetail(r){
    (hs.length?'<div class="uses">'+hs.map(it=>'<span>'+esc((qtyText(it,f)+' '+it.n).trim())+'</span>').join('')+'</div>':'')+(timerBtn?'<div class="pills">'+timerBtn+'</div>':''))+'</div></li>'}).join('')+'</ol></div>';
  if(r.tips)h+='<div class="group" style="margin-top:12px"><div class="note">'+esc(r.tips)+'</div></div>';
  h+=rateBlock(r);
- h+=freqBlock(r);
  h+='</div></div>';
  return h}
 /* Hur ofta ett recept ska komma tillbaka. Sparas i Inställningar: frekvens = {id:{w,t}} (w=0 betyder aldrig),
@@ -628,20 +739,36 @@ function autoFreq(id){const g=ratingOf(id);if(!g)return null;if(g.never)return 0
  return g.avg>=4.75?3:(g.avg>=3.75||igen)?6:g.avg>=2.75?12:0}
 function freqOf(id){const x=freqs()[id];return x&&x.w!=null?{w:Number(x.w),own:true}:{w:autoFreq(id),own:false}}
 const freqChip=id=>{const w=freqOf(id).w;return w==null?'':'<span class="chip">'+(w===0?'Aldrig':w===1?'Varje vecka':w===26?'Sällan':'Var '+w+':e v')+'</span>'};
-function freqBlock(r){const f=freqOf(r.id),a=autoFreq(r.id),last=lastServed(r.id);
+function rateBlock(r){const g=ratingOf(r.id);if(!g)return'';
+ return sh('Betyg','<span class="st">'+starsTxt(g.avg)+'</span> '+g.avg.toFixed(1).replace('.',','))+
+  group(g.people.map(([p,e])=>'<div class="cell"><div class="grow"><div class="title">'+esc(p)+' <span class="st">'+starsTxt(e.s)+'</span></div><div class="meta"><span class="chip '+(e.v==='igen'?'v':e.v==='aldrig'?'h':'')+'">'+esc(VERD[e.v]||'')+'</span>'+(e.c?'<span>'+esc(e.c)+'</span>':'')+(e.d?'<span>'+esc(dateShort(e.d))+'</span>':'')+'</div></div></div>').join('')+
+  '<button class="cell link" data-act="rate" data-id="'+esc(r.id)+'"><span class="grow" style="color:var(--accent)">'+(S.me&&g.people.some(([p])=>p===S.me)?'Ändra ditt betyg':'Betygsätt receptet')+'</span>'+chevron+'</button>')}
+/* Receptets bild: pennan byter eller tar bort fotot, hjärtat sparar i receptbanken och betyget står i nedre kanten */
+function rcpPhoto(r){const img=imgOf(r.id),g=ratingOf(r.id),saved=inBank(r.id),busy=S.photoBusy===r.id;
+ const heart='<button class="rp-gl rp-heart'+(saved?' on':'')+'" data-act="bankToggle" data-id="'+esc(r.id)+'" aria-pressed="'+saved+'" aria-label="'+(saved?'Sparat i receptbanken. Tryck för att ta bort':'Spara i receptbanken')+'">'+(saved?I.heartOn:I.heart)+'</button>';
+ const score='<button class="rp-gl rp-score" data-act="rate" data-id="'+esc(r.id)+'" aria-label="'+(g?'Betyg '+g.avg.toFixed(1)+' av 5. Tryck för att betygsätta':'Betygsätt receptet')+'">'+
+  (g?I.star+'<b class="num">'+g.avg.toFixed(1).replace('.',',')+'</b><small>· '+g.people.length+' betyg</small>':I.starO+'<b>Betygsätt</b>')+'</button>';
+ if(!img)return'<div class="rcp-photo rp-none"><label class="rp-add photo-pick">'+I.camera+'<span>'+(busy?'Laddar upp…':'Lägg till foto')+'</span><input type="file" accept="image/*" data-change="photo" data-id="'+esc(r.id)+'"'+(S.photoBusy?' disabled':'')+'></label>'+score+heart+'</div>';
+ return'<div class="rcp-photo"><img src="'+esc(img)+'" alt="'+esc(r.title)+'">'+(busy?'<span class="rp-gl rp-busy">Laddar upp…</span>':'')+
+  '<button class="rp-gl rp-edit" data-act="rcpSheet" data-id="'+esc(r.id)+'" data-k="photo" aria-label="Byt eller ta bort fotot">'+I.pencil+'</button>'+score+heart+'</div>'}
+/* Raden under titeln: önska nästa vecka, hur ofta (telefonens egen väljare) och mer */
+function rcpActions(r){const wished=wishes().some(x=>x.id===r.id),f=freqOf(r.id),a=autoFreq(r.id);
+ const short=w=>w==null?'Hur ofta?':w===0?'Aldrig':w===1?'Varje vecka':w===2?'Varannan vecka':w===26?'Sällan':'Var '+w+':e vecka';
  const opts='<option value="auto"'+(f.own?'':' selected')+'>Efter betyget'+(a!=null?' ('+freqName(a).toLowerCase()+')':'')+'</option>'+FREQS.map(([n,l])=>'<option value="'+n+'"'+(f.own&&f.w===n?' selected':'')+'>'+l+'</option>').join('');
- let next='';if(last&&f.w)next=addDays(last,f.w*7);
- return sh('Hur ofta?')+group(fieldCell('Laga','<span class="menu"><select data-change="rfreq" data-id="'+esc(r.id)+'" aria-label="Hur ofta">'+opts+'</select></span>')+
-  (last?'<div class="cell"><div class="grow"><div class="meta">Senast på menyn '+esc(dateShort(last))+(next?' · tidigast igen '+esc(dateShort(next)):'')+'</div></div></div>':''))+
-  '<div class="foot">'+(f.w==null?'Betygsätt receptet så föreslås hur ofta det kommer tillbaka. ':'')+'Veckoplaneringen tar med receptet igen när det har gått så här länge.</div>'}
-function rateBlock(r){const g=ratingOf(r.id),wished=wishes().some(x=>x.id===r.id),me=S.me&&g&&g.people.find(([p])=>p===S.me);
- let h=sh('Betyg',g?'<span class="st">'+starsTxt(g.avg)+'</span> '+g.avg.toFixed(1).replace('.',','):'');
- h+=group((g?g.people.map(([p,e])=>'<div class="cell"><div class="grow"><div class="title">'+esc(p)+' <span class="st">'+starsTxt(e.s)+'</span></div><div class="meta"><span class="chip '+(e.v==='igen'?'v':e.v==='aldrig'?'h':'')+'">'+esc(VERD[e.v]||'')+'</span>'+(e.c?'<span>'+esc(e.c)+'</span>':'')+(e.d?'<span>'+esc(dateShort(e.d))+'</span>':'')+'</div></div></div>').join(''):emptyCell('Ingen har betygsatt receptet än.'))+
-  '<button class="cell link" data-act="rate" data-id="'+esc(r.id)+'"><span class="grow" style="color:var(--accent)">'+(me?'Ändra ditt betyg':'Betygsätt receptet')+'</span>'+chevron+'</button>');
- h+='<div class="pills" style="padding:12px 16px 0">'+(inBank(r.id)?'<span class="pill on">'+I.tick+'I receptbanken</span>':'<button class="pill" data-act="bankAdd" data-id="'+esc(r.id)+'">Spara i receptbanken</button>')+
-  '<button class="pill'+(wished?' on':'')+'" data-act="wish" data-id="'+esc(r.id)+'">'+(wished?I.tick+'Önskad nästa vecka':'Vill ha nästa vecka')+'</button>'+
-  (S.confirm==='delRecipe'?'<span class="sub" style="width:100%">Ta bort receptet ur receptbanken så att det aldrig föreslås igen?</span><button class="tb red strong" data-act="deleteRecipe" data-id="'+esc(r.id)+'">Ja, ta bort</button><button class="tb" data-act="confirmNo">Avbryt</button>':'<button class="pill red" data-act="deleteRecipeAsk">Ta bort receptet</button>')+'<label class="pill photo-pick">'+(S.photoBusy===r.id?'Laddar upp…':(imgOf(r.id)?'Byt foto':'Lägg till foto'))+'<input type="file" accept="image/*" data-change="photo" data-id="'+esc(r.id)+'"'+(S.photoBusy?' disabled':'')+'></label></div>';
- return h}
+ return'<div class="rp-row">'+
+  '<button class="rp-ib'+(wished?' on':'')+'" data-act="wish" data-id="'+esc(r.id)+'" aria-pressed="'+wished+'"><span class="c">'+(wished?I.tick:I.calPlus)+'</span><span class="l">'+(wished?'Önskad nästa v':'Önska nästa v')+'</span></button>'+
+  '<label class="rp-ib"><span class="c">'+I.repeat+'</span><span class="l">'+short(f.w)+'</span><select data-change="rfreq" data-id="'+esc(r.id)+'" aria-label="Hur ofta ska receptet komma tillbaka">'+opts+'</select></label>'+
+  '<button class="rp-ib" data-act="rcpSheet" data-id="'+esc(r.id)+'" data-k="more"><span class="c">'+I.dots+'</span><span class="l">Mer</span></button></div>'}
+/* Åtgärdsblad i iOS-stil för fotot och Mer */
+function rcpSheetHtml(enter){const x=S.rcpSheet,r=recipeById(x.id);if(!r)return'';const id=esc(r.id),last=lastServed(r.id);
+ let items='',head=esc(r.title);
+ if(x.k==='photo')items='<label class="it photo-pick">'+I.camera+'Byt foto<input type="file" accept="image/*" data-change="photo" data-id="'+id+'"></label>'+
+  (x.confirm?'<button class="it red strong" data-act="photoRemove" data-id="'+id+'">'+I.trash+'Ja, ta bort fotot</button>':'<button class="it red" data-act="rcpConfirm">'+I.trash+'Ta bort fotot</button>');
+ else if(x.k==='unbank'){head='Ta bort '+esc(r.title)+' ur receptbanken? Fotot tas också bort.';items='<button class="it red strong" data-act="bankToggle" data-id="'+id+'">'+I.heart+'Ta bort ur receptbanken</button>'}
+ else{if(last){const f=freqOf(r.id);head+='<br>Senast på menyn '+esc(dateShort(last))+(f.w?' · tidigast igen '+esc(dateShort(addDays(last,f.w*7))):'')}
+  items=(inBank(r.id)?'<button class="it" data-act="bankToggle" data-id="'+id+'">'+I.heart+'Ta bort ur receptbanken</button>':'<button class="it" data-act="bankToggle" data-id="'+id+'">'+I.heart+'Spara i receptbanken</button>')+
+  (x.confirm?'<div class="ttl">Receptet tas bort ur receptbanken och föreslås aldrig igen.</div><button class="it red strong" data-act="deleteRecipe" data-id="'+id+'">'+I.trash+'Ja, föreslå aldrig igen</button>':'<button class="it red" data-act="rcpConfirm">'+I.trash+'Föreslå aldrig igen</button>')}
+ return'<div class="asheet'+enter+'" data-act="sheetBg"><div class="as-panel" role="dialog" aria-modal="true" aria-label="'+(x.k==='photo'?'Foto':x.k==='unbank'?'Ta bort ur receptbanken':'Mer')+'"><div class="grp"><div class="ttl">'+head+'</div>'+items+'</div><div class="grp"><button class="it strong" data-act="sheetClose">Avbryt</button></div></div></div>'}
 /* Matfoton: bilden förminskas i telefonen, laddas upp till Drive via Apps Script och
    adressen sparas på receptet i receptbanken (receptet sparas där om det inte redan finns) */
 const imgOf=id=>{const b=bankList().find(x=>x.id===id);return b&&b.img||''};
@@ -737,7 +864,7 @@ function calView(){const t=today(),sel=S.calDay||t,m=S.calMonth||ymKey(sel),[y,m
  const d=D(),evs=d.events.filter(e=>e.date===sel).sort((a,b)=>String(a.time||'').localeCompare(String(b.time||''))),late=sel===t?d.tasks.filter(x=>!x.done&&isDate(x.due)&&x.due<t):[],
   ts=d.tasks.filter(x=>x.due===sel),meals=d.menu.filter(x=>x.date===sel);
  h+=sh(esc(cap(dayHead(sel)))+(sel===t?' <span class="acc">· Idag</span>':''),'<button class="linkbtn" data-act="calAddTask" data-id="'+sel+'">'+'Ny uppgift</button>');
- const evRow=e=>{const w=String(e.who||'').trim();return'<div class="cell cal-ev edit" data-act="evEdit" data-id="'+d.events.indexOf(e)+'" role="button" tabindex="0"><span class="bar '+(w&&people().includes(w)?pcls(w):'o')+'"></span><span class="t num">'+esc(e.time||'Heldag')+'</span><span class="grow"><span class="title">'+esc(e.title)+'</span>'+(w?'<span class="meta"><span class="chip'+(w==='Henrik'?' h':'')+'">'+esc(w)+'</span></span>':'')+'</span></div>'};
+ const evRow=e=>{const w=String(e.who||'').trim();return'<div class="cell cal-ev edit" data-act="evEdit" data-id="'+d.events.indexOf(e)+'" role="button" tabindex="0"><span class="bar '+(w&&people().includes(w)?pcls(w):'o')+'"></span><span class="t num">'+esc(e.time||'Heldag')+'</span><span class="grow"><span class="title">'+esc(e.title)+'</span>'+(w?'<span class="meta">'+personChip(w)+'</span>':'')+'</span></div>'};
  const body=evs.map(evRow).join('')+late.concat(ts).map(taskRow).join('');
  h+=group(body||emptyCell('Inget inplanerat. Tryck på Ny uppgift för att lägga till något.'));
  if(meals.length)h+=sh('Mat')+group(meals.map(mealCell).join(''));
@@ -757,7 +884,7 @@ function nextDue(due,rep,t){let d=isDate(due)?due:t;const anchor=Number(d.slice(
   else{const[y0,m0]=d.split('-').map(Number),y=rep==='ar'?y0+1:y0+(m0===12?1:0),m=rep==='ar'?m0:m0%12+1,last=new Date(y,m,0).getDate();d=y+'-'+pad(m)+'-'+pad(Math.min(anchor,last))}}
  return d}
 function taskRow(x){const t=today(),late=isDate(x.due)&&x.due<t&&!x.done;
- const meta=(x.due?'<span'+(late?' class="red"':'')+'>'+esc(x.due===t?'Idag':dateShort(x.due))+'</span>':'')+(repName(x.repeat)?'<span class="chip">↻ '+esc(repName(x.repeat))+'</span>':'')+(x.who?'<span class="chip'+(x.who==='Henrik'?' h':'')+'">'+esc(x.who)+'</span>':'')+(x.note?'<span>'+esc(x.note)+'</span>':'');
+ const meta=(x.due?'<span'+(late?' class="red"':'')+'>'+esc(x.due===t?'Idag':dateShort(x.due))+'</span>':'')+(repName(x.repeat)?'<span class="chip">↻ '+esc(repName(x.repeat))+'</span>':'')+(x.who?personChip(x.who):'')+(x.note?'<span>'+esc(x.note)+'</span>':'');
  return'<div class="cell ck'+(x.done?' done':'')+'"><input type="checkbox" class="check" data-act="taskToggle" data-id="'+esc(x.id)+'" aria-label="'+esc(x.title)+'"'+(x.done?' checked':'')+'><div class="grow'+(S.view==='uppgifter'?' edit" data-act="taskEdit" data-id="'+esc(x.id)+'" role="button" tabindex="0" aria-label="Ändra '+esc(x.title)+'"':'"')+'><div class="title">'+esc(x.title)+'</div>'+(meta?'<div class="meta">'+meta+'</div>':'')+'</div></div>'}
 
 /* Reglage för dagens ork: tre fasta lägen */
@@ -799,7 +926,7 @@ V.stad=function(){
  return h+'</div></div>'};
 function cleanRow(t,showWhy,offer){const d=doneToday(t),r=ratio(t);
  const why=t.freq<=1?'':(planned(t)&&!d?'inplanerat':r>=2?'mycket försenat':r>=1?'dags nu':'snart dags');
- return'<div class="cell ck'+(d?' done':'')+'"><input type="checkbox" class="check" data-act="cleanToggle" data-id="'+esc(t.id)+'" aria-label="'+esc(t.title)+'"'+(d?' checked':'')+'><div class="grow"><div class="title">'+esc(t.title)+'</div><div class="meta"><span class="chip">'+esc(t.room)+'</span><span class="num">'+t.min+' min</span>'+(t.who?'<span class="chip'+(t.who==='Henrik'?' h':' v')+'">'+esc(t.who)+'</span>':'')+(showWhy&&why?'<span>'+why+'</span>':'')+(d&&t.doneBy?'<span>klart av '+esc(t.doneBy)+'</span>':'')+(t.tip&&!d?'<span>'+esc(t.tip)+'</span>':'')+'</div></div>'+
+ return'<div class="cell ck'+(d?' done':'')+'"><input type="checkbox" class="check" data-act="cleanToggle" data-id="'+esc(t.id)+'" aria-label="'+esc(t.title)+'"'+(d?' checked':'')+'><div class="grow"><div class="title">'+esc(t.title)+'</div><div class="meta"><span class="chip">'+esc(t.room)+'</span><span class="num">'+t.min+' min</span>'+(t.who?personChip(t.who):'')+(showWhy&&why?'<span>'+why+'</span>':'')+(d&&t.doneBy?'<span>klart av '+esc(t.doneBy)+'</span>':'')+(t.tip&&!d?'<span>'+esc(t.tip)+'</span>':'')+'</div></div>'+
  (offer?'<button class="pill" data-act="planToday" data-id="'+esc(t.id)+'">Ta idag</button>':(!d&&t.freq>1&&showWhy?'<button class="pill" data-act="snooze" data-id="'+esc(t.id)+'">I morgon</button>':''))+'</div>'}
 function bigRow(t){return'<div class="cell"><div class="grow"><div class="title">'+esc(t.title)+'</div><div class="meta"><span class="chip">'+esc(t.room)+'</span><span>'+t.min+' min</span><span>'+(t.lastDone?'senast '+esc(dateShort(t.lastDone)):'inte gjort än')+'</span></div></div><div class="pills" style="flex-wrap:nowrap"><button class="pill" data-act="planSat" data-id="'+esc(t.id)+'">Lördag</button><button class="pill" data-act="planToday" data-id="'+esc(t.id)+'">Idag</button></div></div>'}
 
@@ -808,7 +935,7 @@ function sheetHtml(form,title,right,body,enter){return'<div class="sheet'+enter+
 const fieldCell=(label,input)=>'<label class="cell"><span class="grow">'+label+'</span>'+input+'</label>';
 function renderOverlay(){
  const o=document.getElementById('overlay');
- const k=S.cook?'cook':S.sheet==='settings'?'settings':S.sheet==='rate'?'rate':S.sheet==='income'?'income':S.sheet==='cost'?'cost':S.sheet==='prefs'?'prefs':S.sheet==='swap'?'swap':S.sheet==='wish'?'wish':S.sheet==='taskEdit'?'taskEdit':S.sheet==='evEdit'?'evEdit':S.shopAdd?'shop':S.taskAdd?'task':'';
+ const k=S.cook?'cook':S.sheet==='settings'?'settings':S.sheet==='rate'?'rate':S.sheet==='income'?'income':S.sheet==='cost'?'cost':S.sheet==='prefs'?'prefs':S.sheet==='swap'?'swap':S.sheet==='wish'?'wish':S.rcpSheet?'rcpSheet':S.sheet==='taskEdit'?'taskEdit':S.sheet==='evEdit'?'evEdit':S.shopAdd?'shop':S.taskAdd?'task':'';
  const prev=o.dataset.k||'';
  // Rita inte om ett öppet blad medan någon skriver i det
  if(k&&k!=='cook'&&k===prev&&busyTyping()&&o.contains(document.activeElement))return;
@@ -825,10 +952,13 @@ function renderOverlay(){
  if(k==='settings'){const st=settings(),topic=D().ntfyTopic||'';
   const meRow=(id,l)=>'<button type="button" class="cell link" data-act="me" data-id="'+esc(id)+'" aria-pressed="'+(S.me===id)+'"><span class="grow">'+esc(l)+'</span>'+(S.me===id?'<span class="mark">'+I.tick+'</span>':'')+'</button>';
   const body=sh('Vem använder den här enheten?')+group(people().map(p=>meRow(p,p)).join('')+meRow('','Gemensam skärm'))+
-  sh('Namn i hushållet')+group('<div class="cell"><input class="field" id="set-p1" name="p1" aria-label="Person 1" value="'+esc(people()[0])+'"></div><div class="cell"><input class="field" id="set-p2" name="p2" aria-label="Person 2" value="'+esc(people()[1]||'')+'"></div>')+
+  sh('Namn och färg i hushållet')+[0,1].map(i=>group('<div class="cell"><span class="pdot p'+(i+1)+'"></span><input class="field" id="set-p'+(i+1)+'" name="p'+(i+1)+'" aria-label="Person '+(i+1)+'" value="'+esc(people()[i]||'')+'"></div>'+
+   '<div class="cell"><div class="pcols" role="radiogroup" aria-label="Färg för person '+(i+1)+'">'+Object.keys(PCOL).map(k=>'<label title="'+PCOL[k][0]+'"><input type="radio" name="c'+(i+1)+'" value="'+k+'"'+(personColor(i)===k?' checked':'')+'><span style="--c:'+PCOL[k][1]+';--cd:'+PCOL[k][3]+'"></span></label>').join('')+'</div></div>')).join('<div style="height:10px"></div>')+
+  '<div class="foot">Färgen används för era händelser, uppgifter, sysslor och i Ekonomi.</div>'+
   sh('Städtid och budget')+group(fieldCell('Vardag, min','<input class="field r" id="set-wd" name="wd" inputmode="numeric" value="'+esc(st.stadtid_vardag||20)+'" style="max-width:110px">')+fieldCell('Helg, min','<input class="field r" id="set-we" name="we" inputmode="numeric" value="'+esc(st.stadtid_helg||40)+'" style="max-width:110px">')+fieldCell('Mat/vecka, kr','<input class="field r" id="set-budget" name="budget" inputmode="numeric" value="'+esc(st.matbudget||'')+'" style="max-width:110px">'))+
   sh('Utseende')+'<div class="seg-wrap">'+segc('Utseende','theme',[['system','System'],['light','Ljust'],['dark','Mörkt']],S.theme)+'</div>'+
   sh('Schemat i kalenderrutan')+'<div class="seg-wrap">'+segc('Schemat i kalenderrutan','calStyle',[['1','Tid kvar'],['2','Stapel'],['3','Tidsaxel']],CAL_STYLE)+'</div>'+
+  sh('Översikten')+group('<button type="button" class="cell link" data-act="arrange"><span class="grow">Ändra ordning på rutorna</span>'+chevron+'</button>')+'<div class="foot">Gäller bara den här enheten. Du kan också hålla fingret på en ruta en stund.</div>'+
   sh('Skärm')+group(fieldCell('Väggläge','<input type="checkbox" role="switch" class="switch" data-act="wall" aria-label="Väggläge"'+(S.wall?' checked':'')+'>')+statusHtml())+
   (topic?sh('Notiser')+group('<div class="cell"><span class="grow copy">'+esc(topic)+'</span><button type="button" class="pill" data-act="copy" data-id="'+esc(topic)+'">Kopiera</button></div>')+'<div class="foot">Installera appen ntfy och prenumerera på det här ämnet. Använd servern ntfy.sh.</div>':'')+
   sh('Den här enheten')+group('<button type="button" class="cell link center red" data-act="logout">Logga ut</button>');
@@ -876,6 +1006,7 @@ function renderOverlay(){
     '<div class="cell"><input class="field" name="note" placeholder="Anteckning" value="'+esc(c.note||'')+'" aria-label="Anteckning"></div>')+
    (e.id?'<div style="height:22px"></div>'+group('<button type="button" class="cell link center red" data-act="ekoDel">Ta bort utgiften</button>'):'');
   o.innerHTML=sheetHtml('cost',e.id?'Ändra utgift':'Ny utgift','<button class="tb strong">Spara</button>',body,enter);return}
+ if(k==='rcpSheet'){const h=rcpSheetHtml(enter);if(!h){closeSheets();o.innerHTML='';o.dataset.k='';return}o.innerHTML=h;return}
  if(k==='rate'){const r=recipeById(S.rate&&S.rate.id);if(!r){closeSheets();o.innerHTML='';o.dataset.k='';return}
   const who=S.me||'',x=(ratings()[r.id]||{}).p||{},cur=x[who]||{};
   const stars='<div class="stars" role="radiogroup" aria-label="Stjärnor">'+[5,4,3,2,1].map(n=>'<input type="radio" name="s" id="st'+n+'" value="'+n+'"'+(Number(cur.s)===n?' checked':'')+' required><label for="st'+n+'" aria-label="'+n+' stjärnor">★</label>').join('')+'</div>';
@@ -1563,14 +1694,21 @@ function confetti(){if(calm())return;const cv=document.createElement('canvas'),d
 
 /* ---------- local mutations (optimistic) ---------- */
 function mutate(list,id,fields){const it=D()[list].find(x=>x.id===id);if(it)Object.assign(it,fields);render()}
-function closeSheets(){S.edit=null;S.sheet=null;S.swap=null;S.wishFor=null;S.rate=null;S.ekoEdit=null;S.shopAdd=false;S.taskAdd=false}
+function closeSheets(){S.edit=null;S.rcpSheet=null;S.sheet=null;S.swap=null;S.wishFor=null;S.rate=null;S.ekoEdit=null;S.shopAdd=false;S.taskAdd=false}
 
 /* ---------- actions ---------- */
+function boxEdit(fn){const wall=wallBoardOn(),L=layout(wall,wall?WALL_DEF:OV_DEF());fn(L);saveLayout(wall,L);render()}
 const ACT={
  wakeBoard(){render()},
- nav(id){try{document.activeElement&&document.activeElement.blur()}catch(e){}id=normView(id);S.shopAdd=false;S.taskAdd=false;S.view=id;S.recipe=null;S.confirm=null;lsSet('view',id);try{history.replaceState(null,'','#'+id)}catch(e){}window.scrollTo(0,0);render()},
+ nav(id){if(id!=='oversikt')S.arrange=false;try{document.activeElement&&document.activeElement.blur()}catch(e){}id=normView(id);S.shopAdd=false;S.taskAdd=false;S.view=id;S.recipe=null;S.confirm=null;lsSet('view',id);try{history.replaceState(null,'','#'+id)}catch(e){}window.scrollTo(0,0);render()},
  refresh(){refresh()},
  settings(){S.sheet='settings';render()},
+ arrange(){closeSheets();S.arrange=true;ACT.nav('oversikt')},
+ arrangeDone(){S.arrange=false;render()},
+ boxSize(id){boxEdit(L=>{L.size[id]=L.size[id]==='h'?'f':'h'})},
+ boxHide(id){boxEdit(L=>{L.cols.forEach(c=>{const i=c.indexOf(id);if(i>=0)c.splice(i,1)});L.hidden.push(id)})},
+ boxShow(id){boxEdit(L=>{L.hidden=L.hidden.filter(x=>x!==id);L.cols[L.cols.length-1].push(id)})},
+ boxReset(){saveLayout(wallBoardOn(),null);render();toast('Rutorna ligger som från början')},
  prefs(){S.sheet='prefs';render()},
  sheetClose(){closeSheets();render()},
  sheetBg(id,el,e){if(e.target===el){closeSheets();render()}},
@@ -1611,8 +1749,17 @@ const ACT={
  swapRemoveAsk(){S.confirm='swapRemove';render()},
  swapRemove(){doSwap(null)},
  swapTo(id){const r=recipeById(id);if(r)doSwap(r)},
- deleteRecipeAsk(){S.confirm='delRecipe';render()},
- deleteRecipe(id){const r=recipeById(id);if(!r)return;S.confirm=null;A.user=Date.now();
+ rcpSheet(id,el){S.rcpSheet={id,k:el.dataset.k};render()},
+ rcpConfirm(){if(S.rcpSheet){S.rcpSheet.confirm=true;render()}},
+ bankToggle(id){const r=recipeById(id);if(!r)return;const sure=S.rcpSheet&&S.rcpSheet.k==='unbank';S.rcpSheet=null;
+  if(!inBank(id)){addToBank(r,true);toast('Sparat i receptbanken');render();return}
+  // fotot sparas på receptet i receptbanken, så fråga först om det försvinner
+  if(imgOf(id)&&!sure){S.rcpSheet={id,k:'unbank'};render();return}
+  A.user=Date.now();BANK_ROWS().forEach(k=>{if(parseJ(settings()[k],[]).some(x=>x.id===id))updJSON(k,[],a=>a.filter(x=>x.id!==id))});
+  toast('Borttaget ur receptbanken');render()},
+ photoRemove(id){S.rcpSheet=null;A.user=Date.now();BANK_ROWS().forEach(k=>{if(parseJ(settings()[k],[]).some(x=>x.id===id))updJSON(k,[],a=>a.map(x=>x.id===id?Object.assign({},x,{img:''}):x))});
+  toast('Fotot är borttaget');render()},
+ deleteRecipe(id){const r=recipeById(id);if(!r)return;S.confirm=null;S.rcpSheet=null;A.user=Date.now();
   BANK_ROWS().forEach(k=>{if(parseJ(settings()[k],[]).some(x=>x.id===id))updJSON(k,[],a=>a.filter(x=>x.id!==id))});
   updJSON('frekvens',{},o=>{o[id]={w:0,t:r.title};return o});
   if(wishes().some(x=>x.id===id))updJSON('onskelista',[],a=>a.filter(x=>x.id!==id));
@@ -1669,7 +1816,7 @@ document.addEventListener('toggle',e=>{const d=e.target;if(d&&d.dataset&&d.datas
 document.addEventListener('change',e=>{if(e.target.id==='ee-allday'){const t=document.getElementById('ee-times');if(t)t.hidden=e.target.checked}});
 document.addEventListener('input',e=>{if(e.target.id==='ork')orkPreview(e.target);if(e.target.id==='split-amt')splitPreview(e.target)});
 document.addEventListener('change',e=>{const el=e.target.closest('[data-change]');if(!el)return;const id=el.dataset.id;
- if(el.dataset.change==='photo'){const f=el.files&&el.files[0];el.value='';uploadPhoto(id,f);return}
+ if(el.dataset.change==='photo'){const f=el.files&&el.files[0];el.value='';if(S.rcpSheet){S.rcpSheet=null;render()}uploadPhoto(id,f);return}
  if(el.dataset.change==='ork'){el.blur();ACT.budget(String(ORK[Number(el.value)].min));return}
  if(el.dataset.change==='rfreq'){const r=recipeById(id),v=el.value;updJSON('frekvens',{},o=>{if(v==='auto')delete o[id];else o[id]={w:Number(v),t:r?r.title:''};return o});toast(v==='auto'?'Följer betyget':freqName(Number(v)));return}
  if(el.dataset.change==='eko'){const v=Math.max(0,Number(String(el.value).replace(',','.'))||0);updJSON('ekonomi',{},o=>{o[id]=v;return o});return}
@@ -1719,7 +1866,7 @@ document.addEventListener('submit',async e=>{const f=e.target.closest('[data-for
  if(f.dataset.form==='prefs'){const st=settings();
   const ch=PREFS.map(([k])=>[k,String(d[k]||'').replace(/\s+\n/g,'\n').trim()]).filter(([k,v])=>String(st[k]||'')!==v);
   closeSheets();ch.forEach(([k,v])=>{st[k]=v;apiPost({action:'setting',k,v})});render();toast(ch.length?'Preferenserna är sparade':'Inget ändrades');return}
- if(f.dataset.form==='settings'){const p=[d.p1.trim()||'Henrik',d.p2.trim()||'Cornelia'].join(', ');const st=settings();
+ if(f.dataset.form==='settings'){const p=[[d.p1.trim()||'Henrik',d.c1],[d.p2.trim()||'Cornelia',d.c2]].map(([n,c])=>n.replace(/[:,]/g,' ').trim()+(PCOL[c]?':'+c:'')).join(', ');const st=settings();
   const ch=[['personer',p],['stadtid_vardag',String(Number(d.wd)||20)],['stadtid_helg',String(Number(d.we)||40)],['matbudget',String(Number(d.budget)||0)]].filter(([k,v])=>String(st[k]||'')!==v);
   ch.forEach(([k,v])=>{st[k]=v;apiPost({action:'setting',k,v})});S.sheet=null;render();if(ch.length)toast('Sparat')}
 });

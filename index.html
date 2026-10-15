@@ -23,7 +23,7 @@
   --accent:#A3253F; --accent-soft:rgba(163,37,63,.12); --on-accent:#FFFFFF;
   --red:#FF3B30; --orange:#FF9500; --green:#34C759; --gray:#8E8E93;
   --bar:rgba(249,249,249,.94); --glass:rgba(255,255,255,.7); --glass-line:rgba(0,0,0,.08); --pill:rgba(118,118,128,.16); --track:#E5E5EA; --seg-on:#FFFFFF;
-  --veg-bg:rgba(52,199,89,.15); --veg-ink:#248A3D; --p1:#A3253F; --p2:#0A74A8; --meat-bg:rgba(162,132,94,.18); --meat-ink:#7A5C38; --gem-bg:rgba(255,149,0,.15); --gem-ink:#C93400;
+  --veg-bg:rgba(52,199,89,.15); --veg-ink:#248A3D; --p1:#4B4FC4; --p1-soft:rgba(75,79,196,.13); --p1-ink:#3D41A8; --p2:#0F8C83; --p2-soft:rgba(15,140,131,.14); --p2-ink:#0B6E67; --meat-bg:rgba(162,132,94,.18); --meat-ink:#7A5C38; --gem-bg:rgba(255,149,0,.15); --gem-ink:#C93400;
   --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Helvetica Neue","Segoe UI",system-ui,sans-serif;
   --tabbar:62px; --tabgap:max(calc(var(--sab) - 8px),12px); --side:260px; --navbar:44px;
   --sat:env(safe-area-inset-top,0px); --sab:env(safe-area-inset-bottom,0px);
@@ -36,14 +36,14 @@
   --accent:#EC7088; --accent-soft:rgba(236,112,136,.22); --on-accent:#22090F;
   --red:#FF453A; --orange:#FF9F0A; --green:#30D158;
   --bar:rgba(22,22,24,.92); --glass:rgba(36,36,38,.7); --glass-line:rgba(255,255,255,.1); --pill:rgba(255,255,255,.14); --track:#3A3A3C; --seg-on:#636366;
-  --veg-ink:#30D158; --gem-ink:#FF9F0A; --p1:#D9566F; --p2:#2E9CC0; --meat-bg:rgba(172,142,104,.24); --meat-ink:#C8A57A; color-scheme:dark }}
+  --veg-ink:#30D158; --gem-ink:#FF9F0A; --p1:#8C8FF2; --p1-soft:rgba(140,143,242,.22); --p1-ink:#AEB0FF; --p2:#35C2B5; --p2-soft:rgba(53,194,181,.2); --p2-ink:#62D8CC; --meat-bg:rgba(172,142,104,.24); --meat-ink:#C8A57A; color-scheme:dark }}
 :root[data-theme="dark"]{
   --bg:#000000; --surface:#1C1C1E; --surface-raised:#2C2C2E; --fill:rgba(118,118,128,.24);
   --ink:#FFFFFF; --ink-2:rgba(235,235,245,.6); --ink-3:rgba(235,235,245,.3); --line:rgba(84,84,88,.65);
   --accent:#EC7088; --accent-soft:rgba(236,112,136,.22); --on-accent:#22090F;
   --red:#FF453A; --orange:#FF9F0A; --green:#30D158;
   --bar:rgba(22,22,24,.92); --glass:rgba(36,36,38,.7); --glass-line:rgba(255,255,255,.1); --pill:rgba(255,255,255,.14); --track:#3A3A3C; --seg-on:#636366;
-  --veg-ink:#30D158; --gem-ink:#FF9F0A; --p1:#D9566F; --p2:#2E9CC0; --meat-bg:rgba(172,142,104,.24); --meat-ink:#C8A57A; color-scheme:dark }
+  --veg-ink:#30D158; --gem-ink:#FF9F0A; --p1:#8C8FF2; --p1-soft:rgba(140,143,242,.22); --p1-ink:#AEB0FF; --p2:#35C2B5; --p2-soft:rgba(53,194,181,.2); --p2-ink:#62D8CC; --meat-bg:rgba(172,142,104,.24); --meat-ink:#C8A57A; color-scheme:dark }
 
 /* ===== 2. Bas och typografi ===== */
 html.theme-fade *,html.theme-fade *::before,html.theme-fade *::after{transition:background-color .4s ease,color .4s ease,border-color .4s ease,fill .4s ease!important}
@@ -161,7 +161,8 @@ html.sb-auto.scrolling,html.sb-auto.scrolling *{scrollbar-color:var(--line) tran
 
 /* Etiketter */
 .chip{display:inline-flex;align-items:center;border-radius:6px;padding:1px 7px;font-size:12px;line-height:16px;font-weight:600;letter-spacing:0;background:var(--fill);color:var(--ink-2);white-space:nowrap}
-.chip.h{background:var(--accent-soft);color:var(--accent)}
+.chip.p1{background:var(--p1-soft);color:var(--p1-ink)}
+.chip.p2{background:var(--p2-soft);color:var(--p2-ink)}
 .chip.v{background:var(--veg-bg);color:var(--veg-ink)}
 .chip.k{background:var(--meat-bg);color:var(--meat-ink)}
 .chip.g,.chip.offer{background:var(--gem-bg);color:var(--gem-ink)}
@@ -266,6 +267,7 @@ body.wall .clock{display:block}
 .rcp-facts>div{padding:10px 6px;position:relative;min-width:0}
 .rcp-facts>div+div::before{content:"";position:absolute;left:0;top:10px;bottom:10px;border-left:.5px solid var(--line)}
 .rcp-facts .v{font-size:17px;font-weight:600;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.rcp-facts.f4>div{padding:10px 3px}.rcp-facts.f4 .v{font-size:16px}
 .rcp-top{padding:0 16px}
 .rcp-top .chips-row{margin:8px 0 6px}
 .recipe{display:grid;grid-template-columns:minmax(0,1fr)}
@@ -501,6 +503,13 @@ button.fig-box:active{opacity:1;transform:scale(.96)}
 .stars input:checked~label{color:#FFB800}
 .stars input:checked+label{transform:scale(1.12)}
 .stars input:focus-visible+label{outline:2px solid var(--accent);border-radius:8px}
+.pcols{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px;width:100%;padding:4px 0}
+.pcols input{position:absolute;opacity:0;pointer-events:none}
+.pcols span{display:block;width:30px;height:30px;border-radius:50%;background:var(--c);cursor:pointer;box-shadow:0 0 0 2px var(--surface),0 0 0 2px transparent;transition:box-shadow .2s}
+.pcols input:checked+span{box-shadow:0 0 0 3px var(--surface),0 0 0 5px var(--c)}
+.pcols input:focus-visible+span{outline:2px solid var(--accent);outline-offset:6px}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .pcols span{background:var(--cd)}:root:not([data-theme="light"]) .pcols input:checked+span{box-shadow:0 0 0 3px var(--surface),0 0 0 5px var(--cd)}}
+:root[data-theme="dark"] .pcols span{background:var(--cd)}:root[data-theme="dark"] .pcols input:checked+span{box-shadow:0 0 0 3px var(--surface),0 0 0 5px var(--cd)}
 .vpick{display:flex;gap:8px;padding:0 16px;flex-wrap:wrap}
 .vpick label{flex:1;min-width:90px}
 .vpick input{position:absolute;opacity:0;pointer-events:none}
@@ -651,6 +660,47 @@ button.fig-box:active{opacity:1;transform:scale(.96)}
 .photo-pick input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
 .rcp-photo{margin:10px 0 4px;border-radius:18px;overflow:hidden;aspect-ratio:4/3;background:var(--fill)}
 .rcp-photo img{width:100%;height:100%;object-fit:cover;display:block}
+/* Receptets bild med penna, betyg och hjärta, och raden under titeln */
+.rcp-photo{position:relative}
+.rp-gl{position:absolute;display:flex;align-items:center;justify-content:center;gap:6px;color:#fff;background:rgba(20,20,22,.5);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:.5px solid rgba(255,255,255,.2)}
+.rp-gl svg{width:20px;height:20px}
+.rp-edit{top:10px;right:10px;width:40px;height:40px;border-radius:20px}
+.rp-heart{bottom:10px;right:10px;width:48px;height:48px;border-radius:24px}
+.rp-heart svg{width:26px;height:26px}
+.rp-heart.on{color:#ff5a7a}
+.rp-heart:active{transform:scale(.9)}
+.rp-score{bottom:10px;left:10px;height:36px;padding:0 13px;border-radius:18px;font-size:15px}
+.rp-score b{font-weight:600}
+.rp-score small{font-size:13px;opacity:.8}
+.rp-score svg{width:17px;height:17px;color:#FFB800}
+.rp-busy{top:10px;left:10px;height:30px;padding:0 12px;border-radius:15px;font-size:13px;font-weight:600}
+.rp-none{background:var(--surface);border:1.5px dashed var(--line);aspect-ratio:16/8}
+.rp-none .rp-gl{color:var(--ink);background:var(--fill);border:0;-webkit-backdrop-filter:none;backdrop-filter:none}
+.rp-none .rp-heart.on{color:#ff5a7a}
+.rp-none .rp-score svg{color:#FFB800}
+.rp-add{position:absolute;inset:0 0 56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--accent);font-size:16px;font-weight:600}
+.rp-add svg{width:36px;height:36px}
+.rp-row{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin:14px 0 4px}
+.rp-ib{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--accent);cursor:pointer}
+.rp-ib .c{width:52px;height:52px;border-radius:26px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;transition:transform .15s}
+.rp-ib:active .c{transform:scale(.92)}
+.rp-ib .c svg{width:24px;height:24px}
+.rp-ib .l{font-size:13px;color:var(--ink-2);white-space:nowrap}
+.rp-ib.on .c{background:var(--accent);color:var(--on-accent)}
+.rp-ib.on .l{color:var(--ink)}
+.rp-ib select{position:absolute;inset:0;opacity:0;width:100%;cursor:pointer;font-size:16px}
+.asheet{position:fixed;inset:0;z-index:70;background:rgba(0,0,0,.4);display:flex;align-items:flex-end;justify-content:center}
+.asheet.enter{animation:fade .2s ease}
+.as-panel{width:min(560px,100%);padding:0 8px calc(8px + var(--sab))}
+.asheet.enter .as-panel{animation:up .3s cubic-bezier(.2,.8,.2,1)}
+.as-panel .grp{background:var(--surface-raised);border-radius:14px;overflow:hidden;margin-top:8px}
+.as-panel .ttl{padding:13px 16px;text-align:center;color:var(--ink-2);font-size:13px;line-height:18px;border-bottom:.5px solid var(--line)}
+.as-panel .it{position:relative;display:flex;align-items:center;justify-content:center;gap:10px;width:100%;height:57px;font-size:19px;color:var(--accent);border-bottom:.5px solid var(--line);cursor:pointer}
+.as-panel .it:last-child{border-bottom:0}
+.as-panel .it svg{width:22px;height:22px}
+.as-panel .it.red{color:var(--red)}
+.as-panel .it.strong{font-weight:600}
+@media (prefers-reduced-motion:reduce){.asheet.enter,.asheet.enter .as-panel{animation:none}}
 .calw{cursor:default}
 .wk{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px;margin:2px -6px 0}
 .wk-d{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0 7px;border-radius:12px}
@@ -866,6 +916,34 @@ body.dragging .bwx-h{scroll-snap-type:none}
 .brooms .warn b{background:var(--orange,#ff9500)}.brooms .bad b{background:var(--red,#ff3b30)}
 .bcol .btasks{flex:1 1 0;min-height:0;overflow:hidden}
 .bcol .btasks .cell{min-height:44px}
+/* ===== Ändra ordning på rutorna ===== */
+.ov .widget{-webkit-touch-callout:none}
+.arranging{-webkit-user-select:none;user-select:none}
+.arranging .widget.arr{cursor:grab;position:relative;overflow:visible;animation:wig .3s ease-in-out infinite alternate}
+.arranging .widget.arr:nth-child(2n){animation-delay:-.15s;animation-duration:.34s}
+.arranging .widget.arr>*:not(.arr-x):not(.arr-s){pointer-events:none}
+@keyframes wig{from{rotate:-.45deg}to{rotate:.45deg}}
+body.wall .arranging .widget.arr{animation-name:wigs}
+@keyframes wigs{from{rotate:-.2deg}to{rotate:.2deg}}
+.arranging .widget.ph{animation:none;background:transparent;outline:2px dashed color-mix(in srgb,var(--accent) 60%,transparent);outline-offset:-2px}
+.arranging .widget.ph>*{visibility:hidden}
+.arr-x,.arr-s{position:absolute;z-index:3;display:grid;place-items:center;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,.18)}
+.arr-x{top:-9px;left:-9px;width:28px;height:28px;background:var(--surface-raised);color:var(--ink);border:.5px solid var(--line)}
+.arr-x svg{width:16px;height:16px}
+.arr-s{right:-9px;bottom:-9px;width:32px;height:32px;background:var(--accent);color:var(--on-accent)}
+.arr-s svg{width:17px;height:17px}
+.lift-root .widget.lift{animation:none;rotate:1.5deg;scale:1.04;box-shadow:0 18px 44px rgba(0,0,0,.28);cursor:grabbing}
+.lift-root .lift .arr-x,.lift-root .lift .arr-s{display:none}
+.arr-foot{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--tabbar) + var(--tabgap) + 10px);z-index:60;display:flex;align-items:center;gap:8px;
+ width:min(640px,calc(100% - 24px));padding:8px 8px 8px 14px;border-radius:24px;background:var(--surface-raised);border:.5px solid var(--line);box-shadow:0 10px 30px rgba(0,0,0,.18)}
+.arr-hid{flex:1;min-width:0;display:flex;align-items:center;gap:6px;overflow-x:auto;scrollbar-width:none;font-size:14px}
+.arr-hid .pill{height:32px;padding:0 10px}.arr-hid .pill svg{width:14px;height:14px}
+.arr-foot .btn-fill{height:40px;padding:0 20px;border-radius:20px;font-weight:600;font-size:16px}
+.widgets.arranging{padding-bottom:90px}
+.arr-intro{margin:12px 16px 4px;color:var(--ink-2);font-size:15px;line-height:20px}
+body.wall .board.arranging .bcol[data-col]{overflow:visible;min-width:0}
+body.wall:has(.board) .arr-foot{left:28px;transform:none;width:calc((100% - 60px) * .345 - 16px);bottom:calc(var(--tabbar) + var(--tabgap) + 22px)}
+@media (prefers-reduced-motion:reduce){.arranging .widget.arr{animation:none}}
 </style>
 </head>
 <body>
@@ -875,7 +953,7 @@ body.dragging .bwx-h{scroll-snap-type:none}
 <div class="timers" id="timers" aria-live="polite"></div>
 <div id="toast" hidden class="toast" role="status"></div>
 <script src="config.js?v=37"></script>
-<script src="app.js?v=46"></script>
+<script src="app.js?v=51"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
