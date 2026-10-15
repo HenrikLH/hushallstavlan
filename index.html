@@ -817,11 +817,16 @@ body.is-night .nav{opacity:0;pointer-events:none}
 /* Väggtavlan, tätare: mer väder, rumsstatus och uppgifter */
 .bhero{background:var(--surface);border-radius:22px}
 .bhero .hero{flex:0 0 auto;background:none}
-.bwx{flex:1 1 auto;display:flex;flex-direction:column;justify-content:flex-end;gap:12px;padding:0 18px 16px;min-height:0}
-.bwx-h{display:grid;grid-template-columns:repeat(6,1fr);text-align:center;gap:4px;padding:10px 0;border-top:.5px solid var(--line);border-bottom:.5px solid var(--line)}
-.bwx-h div{display:flex;flex-direction:column;gap:2px;align-items:center}.bwx-h .hi{font-size:22px;line-height:28px}.bwx-h b{font-size:17px}
-.bwx-d{display:flex;flex-direction:column;gap:6px}
-.bwx-d div{display:grid;grid-template-columns:48px 32px 1fr auto;align-items:center;font-size:17px}.bwx-d .hi{font-size:20px}
+.bwx{flex:1 1 auto;display:flex;flex-direction:column;justify-content:flex-end;gap:6px;padding:0 18px 4px;min-height:0}
+.bwx-h{display:flex;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x proximity;scrollbar-width:none;gap:2px;padding:10px 0;border-top:.5px solid var(--line);cursor:pointer;padding:6px 0 0;
+ -webkit-mask-image:linear-gradient(90deg,#000 85%,transparent);mask-image:linear-gradient(90deg,#000 85%,transparent)}
+.bwx-h::-webkit-scrollbar{display:none}
+body.dragging .bwx-h{scroll-snap-type:none}
+.bwx-r{display:flex;align-items:center;gap:8px;padding:2px 0;font-size:15px;white-space:nowrap;overflow:hidden;line-height:1.3;font-weight:600;color:var(--accent)}
+.bwx-r svg{width:20px;height:20px;flex:none}
+.bwx-h div{flex:0 0 52px;scroll-snap-align:start;display:flex;flex-direction:column;gap:2px;align-items:center;padding:4px 0;border-radius:12px}
+.bwx-h div.nd{background:var(--fill)}.bwx-h div.nd .fn{color:var(--accent);font-weight:600}
+.bwx-h .hi{font-size:22px;line-height:26px}.bwx-h b{font-size:16px}.bwx-h .fn{font-size:13px}.bwx-h .pr{font-size:11px;min-height:14px;color:var(--blue,#0a84ff)}
 .bwx-f{display:flex;justify-content:space-between;gap:8px;font-size:14px;color:var(--ink-2)}
 .bcol .bmeal{flex:0 0 auto}
 /* vädret bredvid hunden i stället för under, så att timmarna och dagarna får plats */
@@ -831,11 +836,24 @@ body.is-night .nav{opacity:0;pointer-events:none}
 .bhero .hero-wx .fig-box{grid-column:2;grid-row:1/span 4;margin:0}
 .bhero .fig-tip{margin-top:6px}
 /* sol och måne i högra delen, så att de inte hamnar bakom klockan */
-.bhero .sky{left:66%}
+.bhero .sky{left:66%;overflow:visible}
 .bcol .wpair{flex:0 0 auto}
 .bcol .wpair .widget{padding-top:12px;padding-bottom:12px}
 .bcol .wpair .wbig{font-size:30px;line-height:34px}
 .bcol .wpair .hl{font-size:17px}
+.bcol .wpair{grid-template-columns:minmax(0,1fr) minmax(0,2fr)}
+.bbd-in{display:flex;gap:10px;align-items:center}
+.bbd-w{flex:0 0 84px;pointer-events:none}.bbd-w .ml{display:none}.bbd-w .bd-wheel .dot{stroke-width:0}
+.bbd-l{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;font-size:15px}
+.bbd-l>div{display:flex;gap:8px;align-items:baseline}.bbd-l .num:first-child{width:20px;text-align:right;font-weight:600;color:var(--accent)}
+.bbd-l .grow{overflow-wrap:anywhere;line-height:1.2}
+.bbd-l .past{opacity:.45}.bbd-l .today .grow{font-weight:700;color:var(--accent)}
+.bprog{margin:0 0 6px}
+.bcol .bclean .cell{cursor:pointer}
+.bcol .bclean .cell.checking .grow{text-decoration:line-through}
+.bcol .bclean .cell.leaving{transform:translateX(40px);transition:height .3s ease .05s,opacity .25s ease,padding .3s ease .05s,transform .3s ease}
+.bdone.pop svg{animation:checkPop .6s cubic-bezier(.3,1.6,.5,1)}.bdone.pop{animation:bdIn .5s ease-out}
+@keyframes bdIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 .bcol .bclean{flex:0 1 auto;min-height:0;overflow:hidden}
 .bcol .bclean .cell{min-height:46px}
 .bdone{display:flex;align-items:center;gap:8px;font-size:17px;font-weight:600;color:var(--green,#34c759);padding:4px 0 2px}.bdone svg{width:18px;height:18px}
@@ -855,7 +873,7 @@ body.is-night .nav{opacity:0;pointer-events:none}
 <div class="timers" id="timers" aria-live="polite"></div>
 <div id="toast" hidden class="toast" role="status"></div>
 <script src="config.js?v=37"></script>
-<script src="app.js?v=45"></script>
+<script src="app.js?v=46"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
