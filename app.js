@@ -1320,7 +1320,7 @@ function grassPatch(sc,id){const ss=grassSeason(today()),snow=snowLevel(sc),fros
   b+=[[0,131,6,2.4],[166,133,7,2.6],[28,144,9,2],[134,144.5,11,2.1],[156,141.5,5,1.6],[-6,125,3,1.2],[175,127,3.5,1.3],[64,146.5,6,1.5],[104,146,3.5,1.1],[86,148.5,2.5,.9]].map(([x,y,rx,ry])=>'<ellipse cx="'+x+'" cy="'+y+'" rx="'+rx+'" ry="'+ry+'" fill="'+g1+'"/>').join('');
   b+='<g opacity=".7">'+[[38,123,22,3.6,lite],[128,123.5,20,3.4,lite],[70,136,28,3.8,dk],[124,136.5,18,3,dk],[22,132,11,2.6,dk],[100,140,14,2.2,lite]].map(([x,y,rx,ry,c],i)=>'<path d="'+blob(x,y,rx,ry,.4,30+i)+'" fill="'+c+'"/>').join('')+'</g>'}
  // skuggan under hundarna, lite bort från solen
- b+='<ellipse cx="'+f(sc.sunUp?85+(.5-sc.f)*16:85)+'" cy="124.5" rx="50" ry="4.2" fill="'+(snow>=2?'#B7C6DA':shadeHex(g1,.8))+'" opacity=".75"/>';
+ b+='<ellipse cx="'+f(sc.sunUp?85+(.5-sc.f)*12:85)+'" cy="129.5" rx="48" ry="4" fill="'+(snow>=2?'#B7C6DA':shadeHex(g1,.72))+'" opacity=".85"/>';
  if(snow<2)b+=[[6,131,5,17,1],[17,123,4,13,2],[152,123,4,14,3],[164,131,5,18,4],[40,141,4,10,5],[124,142,5,12,6],[96,143,3,8,7],[66,142,4,10,8],[144,137,4,13,9],[28,135,3,11,10],[2,135,2,8,11],[170,136,2,8,12],[52,121,3,8,13],[116,121,3,8,14]].map(([x,y,n,h,k])=>clump(x,y,n,h,k*7)).join('');
  else b+='<g fill="none" stroke-width="1.2" stroke-linecap="round">'+[[12,130],[157,127],[86,138]].map(([x,y])=>tuft(x,y,mixHex(g2,'#FFFFFF',.2))).join('')+'</g>';
  // snöfläckar på gräset
@@ -1347,7 +1347,9 @@ function grassPatch(sc,id){const ss=grassSeason(today()),snow=snowLevel(sc),fros
   else if(ss==='spring')b+=[[20,128],[34,132],[144,126],[152,130],[118,134]].map(([x,y])=>fl(x,y,.6,'#FFFFFF','#F2C94C',6)).join('');
   else if(ss==='summer')b+=[[18,128],[30,132],[146,125],[154,130],[120,134]].map(([x,y],i)=>fl(x,y,i%2?.65:.8,'#FFFFFF','#F2B705',10)).join('')}
  // djup snö: drivor framför tassarna och en snökant runt plätten
- if(deep)fr+='<g fill="url(#'+id+'gs)"><path d="'+blob(50,126,21,4.6,.25,21)+'"/><path d="'+blob(114,126.5,22,4.6,.25,23)+'"/></g>';
+ // några strån framför tassarna så att hundarna står i gräset
+ if(snow<2)fr+=[[34,133,3,6,31],[62,133.5,3,5,32],[104,133.5,3,6,33],[134,133,3,5,34]].map(([x,y,n,h,k])=>clump(x,y,n,h,k*7)).join('');
+ if(deep)fr+='<g fill="url(#'+id+'gs)"><path d="'+blob(50,131.5,21,4.6,.25,21)+'"/><path d="'+blob(114,132,22,4.6,.25,23)+'"/></g>';
  return{back:b,front:fr}}
 function figSvg(sc,o){o=o||{};const id='fg'+(++FIG_N),ph=sc.phase,dark=sc.dark,warmL=ph==='dawn'||ph==='golden';
  const wet=/^(drizzle|rain|sleet)$/.test(sc.type),snow=sc.type==='snow',sleet=sc.type==='sleet',lv=sc.lv;
@@ -1406,7 +1408,7 @@ function figSvg(sc,o){o=o||{};const id='fg'+(++FIG_N),ph=sc.phase,dark=sc.dark,w
   else tr=pos==='l'?(isA?'translate(4 6) scale(.9)':'translate(4 0)'):(isA?'translate(64 6) scale(.9)':'translate(58 0)');
   return'<g class="dog-'+(isA?'a':'b')+'" transform="'+tr+'">'+g+'</g>'};
  const dogs=toks.length===1?one(toks[0],'c'):one(toks[0],'l')+one(toks[1],'r');
- if(!o.nodogs)s+=flt(dogs);
+ if(!o.nodogs)s+=flt(gp?'<g transform="translate(0 5.5)">'+dogs+'</g>':dogs);   // på gräsplätten står hundarna en bit ned i gräset
  if(gp&&gp.front)s+=flt(gp.front);
  // 6. nederbörden: tätheten och farten följer styrkan, lutningen följer vinden
  const rnd=k=>{const x=Math.sin(k*127.1+lv*7.3+(o.seed||0))*43758.5453;return x-Math.floor(x)};
@@ -1457,8 +1459,10 @@ function arcHtml(W,v){const P=WX_POS(),sc=wxScene(W),now=new Date(),k=SKY(now,P.
  const covered=sc.sky==='cloudy'||sc.sky==='fog'||/^(rain|sleet|snow)$/.test(sc.type)&&sc.lv>=2||sc.thunder;
  const K=1,day=!!st&&now>=st[0]&&now<=st[1],f=day?(now-st[0])/(st[1]-st[0]):nightFrac(now,P);
  const th=Math.PI*f,x=50-50*Math.cos(th),y=100-K*100*Math.sin(th),ry=(K*100).toFixed(1);
- let s='<svg viewBox="0 0 100 100" preserveAspectRatio="none"><path class="trk" d="M0 100 A50 '+ry+' 0 0 1 100 100"/>'+
-  '<path class="done '+(day?'d':'n')+'" d="M0 100 A50 '+ry+' 0 0 1 '+x.toFixed(2)+' '+y.toFixed(2)+'"/></svg>';
+ const gid='af'+(++FIG_N),fade=(k,c)=>'<linearGradient id="'+gid+k+'" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="100" y2="0"><stop offset="0" stop-color="'+c+'" stop-opacity="0"/><stop offset=".22" stop-color="'+c+'"/><stop offset=".78" stop-color="'+c+'"/><stop offset="1" stop-color="'+c+'" stop-opacity="0"/></linearGradient>';
+ // banan tonar in och ut i ändarna
+ let s='<svg viewBox="0 0 100 100" preserveAspectRatio="none"><defs>'+fade('t','currentColor')+fade('d',day?'#F5B940':'#9AA8D6')+'</defs><path class="trk" stroke="url(#'+gid+'t)" d="M0 100 A50 '+ry+' 0 0 1 100 100"/>'+
+  '<path class="done" stroke="url(#'+gid+'d)" d="M0 100 A50 '+ry+' 0 0 1 '+x.toFixed(2)+' '+y.toFixed(2)+'"/></svg>';
  if(!day&&!covered)s+=[[18,40],[34,14],[62,8],[80,30],[50,46],[90,60]].slice(0,sc.sky==='partly'?3:6).map(([a,b],i)=>'<i class="arc-st tw'+(i%3?' d'+(i%3+1):'')+'" style="left:'+a+'%;top:'+b+'%"></i>').join('');
  const z=34;
  s+='<div class="sky-b '+(day?'sky-sun':'sky-moon')+'" style="left:'+x.toFixed(1)+'%;top:'+y.toFixed(1)+'%;opacity:'+(covered?.4:1)+'">'+(day?sunSvg(k.sun.alt<8,z*1.5):moonSvg(k.moon.frac,k.moon.waxing,z))+'</div>';
