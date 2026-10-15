@@ -625,11 +625,11 @@ const isStorkok=r=>!!r&&(r.group==='Storkok'||/^storkok/i.test(r.title||''));
 // Rätter som kan ersätta en rätt på matsedeln: samma sort först, sedan goda och efterlängtade recept först
 function swapCandidates(m){const cur=m.recipe&&recipeById(m.recipe),onMenu=new Set(D().menu.map(x=>x.recipe).filter(Boolean)),t=today();
  const want=m.who==='Gemensam'?['Gemensam','Vegetariskt']:[m.who],sk=isStorkok(cur)||/^storkok/i.test(m.title||'');
- return allRecipes().filter(r=>!onMenu.has(r.id)&&freqOf(r.id).w!==0&&r.course!=='efterrätt'&&!(ratingOf(r.id)||{}).never).map(r=>{
-  const g=ratingOf(r.id),f=freqOf(r.id).w||8,last=lastServed(r.id),ago=last?Math.round((Date.parse(t)-Date.parse(last))/864e5):null;
-  const due=ago==null?1.5:Math.min(2,ago/(f*7));
+ return allRecipes().filter(r=>!onMenu.has(r.id)&&r.course!=='efterrätt'&&!matLage(r.id).paus).map(r=>{
+  const g=ratingOf(r.id),l=matLage(r.id),last=lastServed(r.id),ago=last?Math.round((Date.parse(t)-Date.parse(last))/864e5):null;
+  const due=ago==null?1.5:Math.min(2,ago/(Math.max(l.w,1)*7));
   const kind=(want.indexOf(r.who)>=0?2:0)+(isStorkok(r)===sk?1:0);
-  return{r,g,ago,score:kind*10+(g?g.avg:3)+due}}).sort((a,b)=>b.score-a.score)}
+  return{r,g,ago,score:kind*10+l.s+due}}).sort((a,b)=>b.score-a.score)}
 function swapWhy(c){const p=[];if(c.g)p.push(starsTxt(c.g.avg));p.push(c.ago==null?'inte lagad på ett tag':c.ago<0?'planerad':'senast för '+(c.ago<14?c.ago+' dagar':Math.round(c.ago/7)+' veckor')+' sedan');if(c.r.kr)p.push(kr(c.r.kr)+'/port');return p.join(' · ')}
 function wishesBlock(){const w=wishes();
  return sh('Önskemål till nästa vecka','<button class="linkbtn" data-act="wishNew">Önska</button>')+
@@ -761,19 +761,28 @@ function recipeDetail(r){
  h+=rateBlock(r);
  h+='</div></div>';
  return h}
-/* Hur ofta ett recept ska komma tillbaka. Sparas i Inställningar: frekvens = {id:{w,t}} (w=0 betyder aldrig),
-   receptlogg = {id:'ÅÅÅÅ-MM-DD'} som veckoplaneringen fyller i när receptet läggs på menyn. */
-const FREQS=[[1,'Varje vecka'],[2,'Varannan vecka'],[3,'Var 3:e vecka'],[4,'Var 4:e vecka'],[6,'Var 6:e vecka'],[8,'Var 8:e vecka'],[12,'Var 12:e vecka'],[26,'Ett par gånger om året'],[0,'Aldrig']];
-const freqName=w=>(FREQS.find(([n])=>n===w)||[0,'Var '+w+':e vecka'])[1];
+/* Tidigast igen: hur snart en rätt får föreslås igen. Räknas av matpoang.js från baslinjen och stjärnorna.
+   Sparas i Inställningar: frekvens = {id:{w,t,d}} där w är baslinjen i veckor som sattes första gången rätten lagades (0 = aldrig),
+   lagad = {id:{n,d}} hur många gånger och senast, receptlogg = {id:'ÅÅÅÅ-MM-DD'} som veckoplaneringen också fyller i. */
+const MP=window.MatPoang;
+const BASW=[1,2,3,4,6,8,12];
 const freqs=()=>parseJ(settings().frekvens,{});
-const lastServed=id=>parseJ(settings().receptlogg,{})[id]||'';
-// Förslag utifrån betyget: 5 stjärnor var 3:e vecka, 4 stjärnor eller Laga igen var 6:e, 3 stjärnor var 12:e, annars aldrig
-function autoFreq(id){const g=ratingOf(id);if(!g)return null;if(g.never)return 0;const igen=g.people.some(([,e])=>e.v==='igen');
- return g.avg>=4.75?3:(g.avg>=3.75||igen)?6:g.avg>=2.75?12:0}
-function freqOf(id){const x=freqs()[id];return x&&x.w!=null?{w:Number(x.w),own:true}:{w:autoFreq(id),own:false}}
-const freqChip=id=>{const w=freqOf(id).w;return w==null?'':'<span class="chip">'+(w===0?'Aldrig':w===1?'Varje vecka':w===26?'Sällan':'Var '+w+':e v')+'</span>'};
+const lagadAll=()=>parseJ(settings().lagad,{});
+const lastServed=id=>{const l=lagadAll()[id],r=parseJ(settings().receptlogg,{})[id]||'';return l&&l.d&&l.d>r?l.d:r};
+const baseOf=id=>{const x=freqs()[id];return x&&x.w!=null&&x.w!==''?Number(x.w):null};
+function matLage(id){const g=ratingOf(id),b=baseOf(id),r=recipeById(id),l=lagadAll()[id]||{},last=lastServed(id);
+ const d={s0:g?g.avg:null,smileys:[],bas:b!=null?b:(r?MP.grundintervall(r):2),fav:isFav(id),aldrig:!!(g&&g.never),lagad:{n:Number(l.n)||0,d:last||null}};
+ return Object.assign(MP.lage(d,today()),{harBas:b!=null,betyg:!!g})}
+// Stjärnor med upp till två decimaler, t.ex. 4,45
+const starNum=n=>String(Math.round(n*100)/100).replace('.',',');
+const veckor=w=>(w===1?'1 vecka':String(w).replace('.',',')+' veckor');
+const freqChip=id=>{const l=matLage(id);if(!l.harBas&&!l.betyg)return'';return'<span class="chip">'+(l.paus?'Pausad':'Tidigast '+String(l.w).replace('.',',')+' v')+'</span>'};
+// Spara att rätten är lagad i dag: räknar upp lagad och sätter receptlogg
+function markCooked(id){const t=today();
+ updJSON('lagad',{},o=>{const x=o[id]||{n:0};if(x.d!==t)o[id]={n:(Number(x.n)||0)+1,d:t};return o});
+ updJSON('receptlogg',{},o=>{o[id]=t;return o})}
 function rateBlock(r){const g=ratingOf(r.id);if(!g)return'';
- return sh('Betyg','<span class="st">'+starsTxt(g.avg)+'</span> '+g.avg.toFixed(1).replace('.',','))+
+ return sh('Betyg','<span class="st">'+starsTxt(g.avg)+'</span> '+starNum(matLage(r.id).s))+
   group(g.people.map(([p,e])=>'<div class="cell"><div class="grow"><div class="title">'+esc(p)+' <span class="st">'+starsTxt(e.s)+'</span></div><div class="meta"><span class="chip '+(e.v==='igen'?'v':e.v==='aldrig'?'h':'')+'">'+esc(VERD[e.v]||'')+'</span>'+(e.c?'<span>'+esc(e.c)+'</span>':'')+(e.d?'<span>'+esc(dateShort(e.d))+'</span>':'')+'</div></div></div>').join('')+
   '<button class="cell link" data-act="rate" data-id="'+esc(r.id)+'"><span class="grow" style="color:var(--accent)">'+(S.me&&g.people.some(([p])=>p===S.me)?'Ändra ditt betyg':'Betygsätt receptet')+'</span>'+chevron+'</button>')}
 /* Receptets bild: pennan byter eller tar bort fotot, hjärtat gör receptet till favorit, bokmärket sparar det i receptbanken
@@ -783,28 +792,41 @@ const bookBtn=(r,cls)=>{const on=inBank(r.id);return'<button class="'+cls+' rp-b
 function rcpPhoto(r){const img=imgOf(r.id)||r.img||'',g=ratingOf(r.id),busy=S.photoBusy===r.id;
  const heart=bookBtn(r,'rp-gl')+favBtn(r,'rp-gl');
  const score='<button class="rp-gl rp-score" data-act="rate" data-id="'+esc(r.id)+'" aria-label="'+(g?'Betyg '+g.avg.toFixed(1)+' av 5. Tryck för att betygsätta':'Betygsätt receptet')+'">'+
-  (g?I.star+'<b class="num">'+g.avg.toFixed(1).replace('.',',')+'</b><small>· '+g.people.length+' betyg</small>':I.starO+'<b>Betygsätt</b>')+'</button>';
+  (g?I.star+'<b class="num">'+starNum(matLage(r.id).s)+'</b><small>· '+g.people.length+' betyg</small>':I.starO+'<b>Betygsätt</b>')+'</button>';
  if(!img)return'<div class="rcp-photo rp-none"><label class="rp-add photo-pick">'+I.camera+'<span>'+(busy?'Laddar upp…':'Lägg till foto')+'</span><input type="file" accept="image/*" data-change="photo" data-id="'+esc(r.id)+'"'+(S.photoBusy?' disabled':'')+'></label>'+score+heart+'</div>';
  return'<div class="rcp-photo"><img src="'+esc(img)+'" alt="'+esc(r.title)+'">'+(busy?'<span class="rp-gl rp-busy">Laddar upp…</span>':'')+
   '<button class="rp-gl rp-edit" data-act="rcpSheet" data-id="'+esc(r.id)+'" data-k="photo" aria-label="Byt eller ta bort fotot">'+I.pencil+'</button>'+score+heart+'</div>'}
-/* Raden under titeln: önska nästa vecka, hur ofta (telefonens egen väljare) och mer */
-function rcpActions(r){const wished=wishes().some(x=>x.id===r.id),f=freqOf(r.id),a=autoFreq(r.id);
- const short=w=>w==null?'Hur ofta?':w===0?'Aldrig':w===1?'Varje vecka':w===2?'Varannan vecka':w===26?'Sällan':'Var '+w+':e vecka';
- const opts='<option value="auto"'+(f.own?'':' selected')+'>Efter betyget'+(a!=null?' ('+freqName(a).toLowerCase()+')':'')+'</option>'+FREQS.map(([n,l])=>'<option value="'+n+'"'+(f.own&&f.w===n?' selected':'')+'>'+l+'</option>').join('');
+/* Raden under titeln: önska nästa vecka, tidigast igen och mer */
+function rcpActions(r){const wished=wishes().some(x=>x.id===r.id),l=matLage(r.id);
+ const lbl=l.paus?'Pausad':(l.harBas||l.betyg)?'Tidigast '+String(l.w).replace('.',',')+' v':'Tidigast igen';
  return'<div class="rp-row">'+
   '<button class="rp-ib'+(wished?' on':'')+'" data-act="wish" data-id="'+esc(r.id)+'" aria-pressed="'+wished+'"><span class="c">'+(wished?I.tick:I.calPlus)+'</span><span class="l">'+(wished?'Önskad nästa v':'Önska nästa v')+'</span></button>'+
-  '<label class="rp-ib"><span class="c">'+I.repeat+'</span><span class="l">'+short(f.w)+'</span><select data-change="rfreq" data-id="'+esc(r.id)+'" aria-label="Hur ofta ska receptet komma tillbaka">'+opts+'</select></label>'+
+  '<button class="rp-ib" data-act="rcpSheet" data-id="'+esc(r.id)+'" data-k="tidigast"><span class="c">'+I.repeat+'</span><span class="l">'+lbl+'</span></button>'+
   '<button class="rp-ib" data-act="rcpSheet" data-id="'+esc(r.id)+'" data-k="more"><span class="c">'+I.dots+'</span><span class="l">Mer</span></button></div>'}
+// Bladet Tidigast igen: varför rätten får komma tillbaka när den får
+function tidigastHtml(r){const l=matLage(r.id),b=baseOf(r.id),def=MP.grundintervall(r);
+ const row=(k,v)=>'<div class="ti-row"><span>'+k+'</span><b>'+v+'</b></div>';
+ const ny=!l.harBas&&!l.betyg;
+ let h='<div class="ti-big">'+(l.paus?'Pausad':ny?'Inte satt än':veckor(l.w))+'</div><div class="ti-sub">'+(l.paus?esc(l.paus):ny?'Väljs när ni betygsätter rätten första gången':l.redo?'Kan föreslås nu':'Kan föreslås från '+esc(dateShort(l.tidigastDatum)))+'</div>';
+ h+='<div class="ti-rows">'+
+  row('Baslinje',b!=null?(b===0?'Aldrig':veckor(b)):'Förval '+veckor(def))+
+  row('Stjärnor',l.betyg?starNum(l.s):'Inget betyg än')+
+  (l.harBas||l.betyg?row('Favorit',isFav(r.id)?'Ja, 20 % tätare':'Nej'):'')+
+  row('Senast lagad',l.senast?esc(dateShort(l.senast)):'Inte än')+
+  (l.n?row('Lagad',l.n+(l.n===1?' gång':' gånger')):'')+'</div>';
+ h+='<div class="ti-foot">Bättre stjärnor ger kortare tid, sämre ger längre. 1,5 stjärna över 3,5 halverar tiden, 1,5 under fördubblar den.</div>';
+ return h}
 /* Åtgärdsblad i iOS-stil för fotot och Mer */
 function rcpSheetHtml(enter){const x=S.rcpSheet,r=recipeById(x.id);if(!r)return'';const id=esc(r.id),last=lastServed(r.id);
  let items='',head=esc(r.title);
  if(x.k==='photo')items='<label class="it photo-pick">'+I.camera+'Byt foto<input type="file" accept="image/*" data-change="photo" data-id="'+id+'"></label>'+
   (x.confirm?'<button class="it red strong" data-act="photoRemove" data-id="'+id+'">'+I.trash+'Ja, ta bort fotot</button>':'<button class="it red" data-act="rcpConfirm">'+I.trash+'Ta bort fotot</button>');
+ else if(x.k==='tidigast'){head='<b>Tidigast igen</b><br>'+esc(r.title)+tidigastHtml(r)}
  else if(x.k==='unbank'){head='Ta bort '+esc(r.title)+' ur receptbanken? Fotot tas också bort.';items='<button class="it red strong" data-act="bankToggle" data-id="'+id+'">'+I.bookmark+'Ta bort ur receptbanken</button>'}
- else{if(last){const f=freqOf(r.id);head+='<br>Senast på menyn '+esc(dateShort(last))+(f.w?' · tidigast igen '+esc(dateShort(addDays(last,f.w*7))):'')}
+ else{if(last){const l=matLage(r.id);head+='<br>Senast lagad '+esc(dateShort(last))+(l.tidigastDatum&&!l.paus?' · tidigast igen '+esc(dateShort(l.tidigastDatum)):'')}
   items=(inBank(r.id)?'<button class="it" data-act="bankToggle" data-id="'+id+'">'+I.bookmark+'Ta bort ur receptbanken</button>':'<button class="it" data-act="bankToggle" data-id="'+id+'">'+I.bookmark+'Spara i receptbanken</button>')+
   (x.confirm?'<div class="ttl">Receptet tas bort ur receptbanken och föreslås aldrig igen.</div><button class="it red strong" data-act="deleteRecipe" data-id="'+id+'">'+I.trash+'Ja, föreslå aldrig igen</button>':'<button class="it red" data-act="rcpConfirm">'+I.trash+'Föreslå aldrig igen</button>')}
- return'<div class="asheet'+enter+'" data-act="sheetBg"><div class="as-panel" role="dialog" aria-modal="true" aria-label="'+(x.k==='photo'?'Foto':x.k==='unbank'?'Ta bort ur receptbanken':'Mer')+'"><div class="grp"><div class="ttl">'+head+'</div>'+items+'</div><div class="grp"><button class="it strong" data-act="sheetClose">Avbryt</button></div></div></div>'}
+ return'<div class="asheet'+enter+'" data-act="sheetBg"><div class="as-panel" role="dialog" aria-modal="true" aria-label="'+(x.k==='photo'?'Foto':x.k==='tidigast'?'Tidigast igen':x.k==='unbank'?'Ta bort ur receptbanken':'Mer')+'"><div class="grp"><div class="ttl">'+head+'</div>'+items+'</div><div class="grp"><button class="it strong" data-act="sheetClose">'+(x.k==='tidigast'?'Stäng':'Avbryt')+'</button></div></div></div>'}
 /* Matfoton: bilden förminskas i telefonen, laddas upp till Drive via Apps Script och
    adressen sparas på receptet i receptbanken (receptet sparas där om det inte redan finns) */
 const imgOf=id=>{const b=bankList().find(x=>x.id===id);return b&&b.img||''};
@@ -1050,6 +1072,7 @@ function renderOverlay(){
   const body='<div class="rate-head"><div class="rate-ic" aria-hidden="true">'+foodIcon(r.title)+'</div><div class="hl">'+esc(r.title)+'</div></div>'+
    (who?'':sh('Vem betygsätter?')+'<div class="vpick">'+people().map(p=>'<label><input type="radio" name="who" value="'+esc(p)+'" required><span>'+esc(p)+'</span></label>').join('')+'</div>')+
    sh('Hur gott var det?')+stars+sh('Ska vi laga det igen?')+verd+
+   (baseOf(r.id)==null?sh('Hur ofta får den komma tillbaka som tidigast?')+'<div class="vpick basw">'+BASW.map(w=>'<label><input type="radio" name="bas" value="'+w+'"'+(w===MP.grundintervall(r)?' checked':'')+'><span>'+w+' v</span></label>').join('')+'</div><div class="foot">Det här är startvärdet. Sedan ändras det med stjärnorna: bättre betyg ger kortare tid.</div>':'')+
    sh('Kommentar')+group('<div class="cell"><input class="field" name="c" maxlength="140" placeholder="T.ex. mer kryddor nästa gång" value="'+esc(cur.c||'')+'" aria-label="Kommentar"></div>')+
    '<div class="foot">Bra betyg sparar receptet i receptbanken, och veckoplaneringen tar hänsyn till betygen.</div>';
   o.innerHTML=sheetHtml('rate','Betyg','<button class="tb strong">Spara</button>',body,enter);return}
@@ -1870,7 +1893,7 @@ const ACT={
   updJSON('ekonomi',{},o=>{ekoListIn(o,e.list,l=>l.filter(x=>x.id!==e.id));return o});toast('Utgiften är borttagen')},
  wxVar(){const W=wxModel();if(!W)return;const sc=wxScene(W),L=[...new Set(figVariants(sc.sleep))],cur=figVariant(sc);S.wxVar=L[(L.indexOf(cur)+1)%L.length];render()},
  wxRefresh(){loadWx(true).then(ok=>{if(ok){lsSet('ext',JSON.stringify(EXT))}render();if(!ok)toast('Vädret kunde inte hämtas')})},
- cookDone(id){S.cook=null;A.cookStep=null;wake();ACT.rate(id)},
+ cookDone(id){S.cook=null;A.cookStep=null;wake();markCooked(id);ACT.rate(id)},
  rate(id){S.rate={id};S.sheet='rate';render()},
  bankFilter(id){S.bankFilter=id;render()},
  bankAdd(id){addToBank(recipeById(id));render()},
@@ -1960,8 +1983,7 @@ document.addEventListener('input',e=>{if(e.target.id==='ork')orkPreview(e.target
 document.addEventListener('change',e=>{const el=e.target.closest('[data-change]');if(!el)return;const id=el.dataset.id;
  if(el.dataset.change==='photo'){const f=el.files&&el.files[0];el.value='';if(S.rcpSheet){S.rcpSheet=null;render()}uploadPhoto(id,f);return}
  if(el.dataset.change==='ork'){el.blur();ACT.budget(String(ORK[Number(el.value)].min));return}
- if(el.dataset.change==='rfreq'){const r=recipeById(id),v=el.value;updJSON('frekvens',{},o=>{if(v==='auto')delete o[id];else o[id]={w:Number(v),t:r?r.title:''};return o});toast(v==='auto'?'Följer betyget':freqName(Number(v)));return}
- if(el.dataset.change==='eko'){const v=Math.max(0,Number(String(el.value).replace(',','.'))||0);updJSON('ekonomi',{},o=>{o[id]=v;return o});return}
+  if(el.dataset.change==='eko'){const v=Math.max(0,Number(String(el.value).replace(',','.'))||0);updJSON('ekonomi',{},o=>{o[id]=v;return o});return}
  const f=el.dataset.change==='freq'?{freq:Number(el.value)}:{who:el.value};mutate('clean',id,f);apiPost({action:'cleanSet',id,fields:f})});
 document.addEventListener('submit',async e=>{const f=e.target.closest('[data-form]');if(!f)return;e.preventDefault();const d=Object.fromEntries(new FormData(f));
  if(f.dataset.form==='setup'){S.key=String(d.key||'').trim().toLowerCase();S.error='';S.sync='busy';render();
@@ -1999,6 +2021,8 @@ document.addEventListener('submit',async e=>{const f=e.target.closest('[data-for
   const sN=Number(d.s),v=d.v||(sN>=4?'igen':sN===3?'okej':'aldrig'),e={s:sN,v,c:String(d.c||'').trim(),d:today()};
   closeSheets();A.user=Date.now();
   updJSON('betyg',{},o=>{o[r.id]=o[r.id]||{p:{}};o[r.id].t=r.title;o[r.id].p=o[r.id].p||{};o[r.id].p[who]=e;return o});
+  if(baseOf(r.id)==null){const w=Number(d.bas)||MP.grundintervall(r);updJSON('frekvens',{},o=>{if(!o[r.id]||o[r.id].w==null)o[r.id]={w,t:r.title,d:today()};return o})}
+  if(!(lagadAll()[r.id]||{}).n)markCooked(r.id);
   const saved=(sN>=4||v==='igen')&&addToBank(r,true);
   toast(saved?'Tack! Receptet sparades i receptbanken':'Tack för betyget!');if(sN>=4)confetti();return}
  if(f.dataset.form==='wish'){const r=S.wishFor&&recipeById(S.wishFor),t=r?r.title:String(d.t||'').trim();if(!t)return;

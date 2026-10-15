@@ -555,6 +555,16 @@ button.fig-box:active{opacity:1;transform:scale(.96)}
 .vpick input:focus-visible+span{outline:2px solid var(--accent)}
 .vpick.col{flex-direction:column;gap:6px}
 .vpick.col span{justify-content:flex-start;padding:0 16px;font-weight:500}
+.vpick.basw{gap:6px}
+.vpick.basw label{flex:1 1 0;min-width:0}
+.vpick.basw span{font-size:14px}
+.ti-big{margin-top:10px;font-size:28px;line-height:34px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.ti-sub{font-size:14px;color:var(--ink-2);margin-bottom:10px}
+.ti-rows{text-align:left;border-top:.5px solid var(--line)}
+.ti-row{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:.5px solid var(--line);font-size:14px;line-height:19px}
+.ti-row span{color:var(--ink-2)}
+.ti-row b{color:var(--ink);font-weight:600;text-align:right}
+.ti-foot{text-align:left;margin-top:10px;font-size:12px;line-height:16px}
 
 /* ===== Ekonomi ===== */
 .side-only{display:none!important}
@@ -993,7 +1003,8 @@ body.wall:has(.board) .arr-foot{left:28px;transform:none;width:calc((100% - 60px
 <div class="timers" id="timers" aria-live="polite"></div>
 <div id="toast" hidden class="toast" role="status"></div>
 <script src="config.js?v=37"></script>
-<script src="app.js?v=54"></script>
+<script src="matpoang.js?v=1"></script>
+<script src="app.js?v=55"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
