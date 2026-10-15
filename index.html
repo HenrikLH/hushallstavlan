@@ -866,34 +866,32 @@ body.dragging .bwx-h{scroll-snap-type:none}
 .bcol .btasks .cell{min-height:44px}
 /* ===== Ändra ordning på rutorna ===== */
 .ov .widget{-webkit-touch-callout:none}
-.arranging .widget.arr{cursor:default;outline:2px dashed color-mix(in srgb,var(--accent) 55%,transparent);outline-offset:-2px;animation:arrIn .25s ease;position:relative}
-.arranging .widget.arr>*:not(.arr-bar){pointer-events:none;opacity:.5}
-.arr-bar{display:flex;align-items:center;gap:4px;margin:-6px -8px 4px;padding:2px 2px 6px;border-bottom:.5px solid var(--line)}
-.arr-h{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;color:var(--ink-2);cursor:grab;touch-action:none;background:var(--accent-soft)}
-.arr-h svg{width:20px;height:20px}
-.arr-n{flex:1;min-width:0;font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-left:4px}
-.arr-b{display:grid;place-items:center;width:36px;height:36px;border-radius:18px;color:var(--accent)}
-.arr-b svg{width:20px;height:20px}.arr-b:disabled{opacity:.25}
-.arr-b:active{background:var(--accent-soft)}
-.wpair .arr-n{display:none}.wpair .arr-bar{gap:0;justify-content:space-between}.wpair .arr-h{width:32px;height:34px}.wpair .arr-b{width:26px;height:34px}.wpair .arr-b svg{width:18px;height:18px}
-.widget.dragging{z-index:50;outline-style:solid!important;box-shadow:0 16px 40px rgba(0,0,0,.25);transition:none;cursor:grabbing}
-.drop-a{box-shadow:0 -5px 0 0 var(--accent)}.drop-b{box-shadow:0 5px 0 0 var(--accent)}
-.wpair .drop-a{box-shadow:-5px 0 0 0 var(--accent)}.wpair .drop-b{box-shadow:5px 0 0 0 var(--accent)}
-.bcol.drop-col{outline:3px solid var(--accent);outline-offset:-3px;border-radius:20px}
+.arranging{-webkit-user-select:none;user-select:none}
+.arranging .widget.arr{cursor:grab;position:relative;overflow:visible;animation:wig .3s ease-in-out infinite alternate}
+.arranging .widget.arr:nth-child(2n){animation-delay:-.15s;animation-duration:.34s}
+.arranging .widget.arr>*:not(.arr-x):not(.arr-s){pointer-events:none}
+@keyframes wig{from{rotate:-.45deg}to{rotate:.45deg}}
+body.wall .arranging .widget.arr{animation-name:wigs}
+@keyframes wigs{from{rotate:-.2deg}to{rotate:.2deg}}
+.arranging .widget.ph{animation:none;background:transparent;outline:2px dashed color-mix(in srgb,var(--accent) 60%,transparent);outline-offset:-2px}
+.arranging .widget.ph>*{visibility:hidden}
+.arr-x,.arr-s{position:absolute;z-index:3;display:grid;place-items:center;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,.18)}
+.arr-x{top:-9px;left:-9px;width:28px;height:28px;background:var(--surface-raised);color:var(--ink);border:.5px solid var(--line)}
+.arr-x svg{width:16px;height:16px}
+.arr-s{right:-9px;bottom:-9px;width:32px;height:32px;background:var(--accent);color:var(--on-accent)}
+.arr-s svg{width:17px;height:17px}
+.lift-root .widget.lift{animation:none;rotate:1.5deg;scale:1.04;box-shadow:0 18px 44px rgba(0,0,0,.28);cursor:grabbing}
+.lift-root .lift .arr-x,.lift-root .lift .arr-s{display:none}
 .arr-foot{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--tabbar) + var(--tabgap) + 10px);z-index:60;display:flex;align-items:center;gap:8px;
  width:min(640px,calc(100% - 24px));padding:8px 8px 8px 14px;border-radius:24px;background:var(--surface-raised);border:.5px solid var(--line);box-shadow:0 10px 30px rgba(0,0,0,.18)}
 .arr-hid{flex:1;min-width:0;display:flex;align-items:center;gap:6px;overflow-x:auto;scrollbar-width:none;font-size:14px}
 .arr-hid .pill{height:32px;padding:0 10px}.arr-hid .pill svg{width:14px;height:14px}
 .arr-foot .btn-fill{height:40px;padding:0 20px;border-radius:20px;font-weight:600;font-size:16px}
-.widgets.arranging{padding-bottom:90px;gap:8px}
-.widgets.arranging .widget.arr{padding:8px 10px}
-.widgets.arranging .widget.arr>*:not(.arr-bar){display:none}
-.widgets.arranging .arr-bar{margin:0;padding:0;border:0}
-.arr-n small{font-weight:400;color:var(--ink-2);font-size:13px;margin-left:6px}
+.widgets.arranging{padding-bottom:90px}
 .arr-intro{margin:12px 16px 4px;color:var(--ink-2);font-size:15px;line-height:20px}
-@keyframes arrIn{from{transform:scale(.98)}to{transform:none}}
 body.wall .board.arranging .bcol[data-col]{overflow:visible;min-width:0}
 body.wall:has(.board) .arr-foot{left:28px;transform:none;width:calc((100% - 60px) * .345 - 16px);bottom:calc(var(--tabbar) + var(--tabgap) + 22px)}
+@media (prefers-reduced-motion:reduce){.arranging .widget.arr{animation:none}}
 </style>
 </head>
 <body>
