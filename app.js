@@ -72,7 +72,21 @@ if(!VIEW_IDS.includes(S.view))S.view='oversikt';
 
 const D=()=>S.data||{settings:{},shop:[],tasks:[],clean:[],menu:[],events:[],offers:[],recipes:[]};
 const settings=()=>D().settings||{};
-const people=()=>{const p=String(settings().personer||'').split(',').map(s=>s.trim()).filter(Boolean);return p.length?p:['Henrik','Cornelia']};
+// Raden personer i Inställningar: "Henrik:indigo, Cornelia:teal". Färgen efter kolon är valfri.
+const personList=()=>{const p=String(settings().personer||'').split(',').map(s=>{const[n,c]=s.split(':');return{n:n.trim(),c:(c||'').trim()}}).filter(x=>x.n);return p.length?p:[{n:'Henrik',c:''},{n:'Cornelia',c:''}]};
+const people=()=>personList().map(x=>x.n);
+/* Användarfärger: [namn, ljust läge, text i ljust, mörkt läge, text i mörkt] */
+const PCOL={indigo:['Indigo','#4B4FC4','#3D41A8','#8C8FF2','#AEB0FF'],bla:['Blå','#1F6FB2','#185C95','#5AAEEE','#86C4F4'],teal:['Teal','#0F8C83','#0B6E67','#35C2B5','#62D8CC'],
+ gron:['Grön','#2E8540','#226B32','#4CC764','#7ADB8D'],plommon:['Plommon','#8E3B9E','#7A2F89','#C985D8','#DCA6E8'],vinrod:['Vinröd','#A3253F','#A3253F','#D9566F','#EC7088'],
+ rosa:['Rosa','#C2457E','#A8346A','#F07EB0','#F7A3C8'],orange:['Orange','#C25E0A','#A34E06','#F2994A','#F7B57A'],grafit:['Grafit','#5B6472','#4A525E','#A3ACB9','#C2C9D3']};
+const PCOL_DEF=['indigo','teal'];
+const personColor=i=>{const c=(personList()[i]||{}).c;return PCOL[c]?c:PCOL_DEF[i]||'grafit'};
+const rgba=(h,a)=>'rgba('+[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)).join(',')+','+a+')';
+let pcolKey='';
+function applyPersonColors(){const ks=[0,1].map(personColor),key=ks.join();if(key===pcolKey)return;pcolKey=key;
+ const v=dark=>ks.map((k,i)=>{const c=PCOL[k],m=dark?c[3]:c[1];return'--p'+(i+1)+':'+m+';--p'+(i+1)+'-soft:'+rgba(m,dark?.22:.13)+';--p'+(i+1)+'-ink:'+(dark?c[4]:c[2])}).join(';');
+ let el=document.getElementById('pcol');if(!el){el=document.createElement('style');el.id='pcol';document.head.appendChild(el)}
+ el.textContent=':root{'+v(false)+'}@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){'+v(true)+'}}:root[data-theme="dark"]{'+v(true)+'}'}
 const recipeById=id=>D().recipes.find(r=>r.id===id)||bankList().find(r=>r.id===id);
 /* ---------- betyg, önskelista och receptbank ----------
    Sparas som JSON i fliken Inställningar (raderna betyg, onskelista och receptbank_1…7)
@@ -359,7 +373,7 @@ function watchTitle(){
  if(!lt||!('IntersectionObserver' in window)){show(false);return}
  io=new IntersectionObserver(es=>{const e=es[es.length-1];show(!e.isIntersecting&&e.boundingClientRect.top<bar.offsetHeight)},{rootMargin:'-'+(bar.offsetHeight||44)+'px 0px 0px 0px',threshold:0});
  io.observe(lt)}
-function doRender(){
+function doRender(){applyPersonColors();
  document.body.classList.toggle('wall',S.wall);document.body.classList.toggle('is-night',S.view==='oversikt'&&nightOn());document.body.dataset.view=S.view;
  document.body.classList.toggle('cook-open',!!S.cook);
  const nav=document.getElementById('nav'),m=document.getElementById('main');
@@ -938,7 +952,9 @@ function renderOverlay(){
  if(k==='settings'){const st=settings(),topic=D().ntfyTopic||'';
   const meRow=(id,l)=>'<button type="button" class="cell link" data-act="me" data-id="'+esc(id)+'" aria-pressed="'+(S.me===id)+'"><span class="grow">'+esc(l)+'</span>'+(S.me===id?'<span class="mark">'+I.tick+'</span>':'')+'</button>';
   const body=sh('Vem använder den här enheten?')+group(people().map(p=>meRow(p,p)).join('')+meRow('','Gemensam skärm'))+
-  sh('Namn i hushållet')+group('<div class="cell"><input class="field" id="set-p1" name="p1" aria-label="Person 1" value="'+esc(people()[0])+'"></div><div class="cell"><input class="field" id="set-p2" name="p2" aria-label="Person 2" value="'+esc(people()[1]||'')+'"></div>')+
+  sh('Namn och färg i hushållet')+[0,1].map(i=>group('<div class="cell"><span class="pdot p'+(i+1)+'"></span><input class="field" id="set-p'+(i+1)+'" name="p'+(i+1)+'" aria-label="Person '+(i+1)+'" value="'+esc(people()[i]||'')+'"></div>'+
+   '<div class="cell"><div class="pcols" role="radiogroup" aria-label="Färg för person '+(i+1)+'">'+Object.keys(PCOL).map(k=>'<label title="'+PCOL[k][0]+'"><input type="radio" name="c'+(i+1)+'" value="'+k+'"'+(personColor(i)===k?' checked':'')+'><span style="--c:'+PCOL[k][1]+';--cd:'+PCOL[k][3]+'"></span></label>').join('')+'</div></div>')).join('<div style="height:10px"></div>')+
+  '<div class="foot">Färgen används för era händelser, uppgifter, sysslor och i Ekonomi.</div>'+
   sh('Städtid och budget')+group(fieldCell('Vardag, min','<input class="field r" id="set-wd" name="wd" inputmode="numeric" value="'+esc(st.stadtid_vardag||20)+'" style="max-width:110px">')+fieldCell('Helg, min','<input class="field r" id="set-we" name="we" inputmode="numeric" value="'+esc(st.stadtid_helg||40)+'" style="max-width:110px">')+fieldCell('Mat/vecka, kr','<input class="field r" id="set-budget" name="budget" inputmode="numeric" value="'+esc(st.matbudget||'')+'" style="max-width:110px">'))+
   sh('Utseende')+'<div class="seg-wrap">'+segc('Utseende','theme',[['system','System'],['light','Ljust'],['dark','Mörkt']],S.theme)+'</div>'+
   sh('Schemat i kalenderrutan')+'<div class="seg-wrap">'+segc('Schemat i kalenderrutan','calStyle',[['1','Tid kvar'],['2','Stapel'],['3','Tidsaxel']],CAL_STYLE)+'</div>'+
@@ -1796,7 +1812,7 @@ document.addEventListener('submit',async e=>{const f=e.target.closest('[data-for
  if(f.dataset.form==='prefs'){const st=settings();
   const ch=PREFS.map(([k])=>[k,String(d[k]||'').replace(/\s+\n/g,'\n').trim()]).filter(([k,v])=>String(st[k]||'')!==v);
   closeSheets();ch.forEach(([k,v])=>{st[k]=v;apiPost({action:'setting',k,v})});render();toast(ch.length?'Preferenserna är sparade':'Inget ändrades');return}
- if(f.dataset.form==='settings'){const p=[d.p1.trim()||'Henrik',d.p2.trim()||'Cornelia'].join(', ');const st=settings();
+ if(f.dataset.form==='settings'){const p=[[d.p1.trim()||'Henrik',d.c1],[d.p2.trim()||'Cornelia',d.c2]].map(([n,c])=>n.replace(/[:,]/g,' ').trim()+(PCOL[c]?':'+c:'')).join(', ');const st=settings();
   const ch=[['personer',p],['stadtid_vardag',String(Number(d.wd)||20)],['stadtid_helg',String(Number(d.we)||40)],['matbudget',String(Number(d.budget)||0)]].filter(([k,v])=>String(st[k]||'')!==v);
   ch.forEach(([k,v])=>{st[k]=v;apiPost({action:'setting',k,v})});S.sheet=null;render();if(ch.length)toast('Sparat')}
 });
