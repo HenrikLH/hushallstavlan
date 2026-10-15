@@ -36,6 +36,16 @@ const I={
  back:'<svg viewBox="0 0 13 21" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.5 2L2.5 10.5l8 8.5"/></svg>',
  tick:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 8.5l3.5 3.5 7.5-8"/></svg>',
  x:'<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9"/></svg>',
+ heart:SV+'<path d="M12 20.3s-7.6-4.5-7.6-10.1A4.3 4.3 0 0 1 12 7.4a4.3 4.3 0 0 1 7.6 2.8c0 5.6-7.6 10.1-7.6 10.1z"/></svg>',
+ heartOn:'<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.3s-7.6-4.5-7.6-10.1A4.3 4.3 0 0 1 12 7.4a4.3 4.3 0 0 1 7.6 2.8c0 5.6-7.6 10.1-7.6 10.1z"/></svg>',
+ pencil:SV+'<path d="M4 20h4L19.2 8.8a2 2 0 0 0 0-2.8l-1.2-1.2a2 2 0 0 0-2.8 0L4 16z"/><path d="M13.5 6.5l4 4"/></svg>',
+ star:'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg>',
+ starO:SV+'<path d="M12 3.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg>',
+ calPlus:SV+'<rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4M12 13v5M9.5 15.5h5"/></svg>',
+ repeat:SV+'<path d="M17 2.5l3 3-3 3"/><path d="M4 11.5v-2a4 4 0 0 1 4-4h12"/><path d="M7 21.5l-3-3 3-3"/><path d="M20 12.5v2a4 4 0 0 1-4 4H4"/></svg>',
+ dots:'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="19" cy="12" r="1.9"/></svg>',
+ camera:SV+'<path d="M4 8.5h3l1.6-2.5h6.8L17 8.5h3a1 1 0 0 1 1 1V18a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.3" r="3.4"/></svg>',
+ trash:SV+'<path d="M4.5 6.5h15M9.5 6.5V4.5h5v2M6.5 6.5l1 13h9l1-13"/></svg>',
  play:'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg>',
  cake:SV+'<path d="M4 21h16M5 21v-7.5a1.5 1.5 0 0 1 1.5-1.5h11a1.5 1.5 0 0 1 1.5 1.5V21"/><path d="M5 16c1.2 1 2.3 1 3.5 0s2.3-1 3.5 0 2.3 1 3.5 0 2.3-1 3.5 0"/><path d="M12 12V8.5"/><path d="M12 3.5c1 1.2 1.3 2.2.6 2.9a.9.9 0 0 1-1.2 0c-.7-.7-.4-1.7.6-2.9z"/></svg>',
  clock:SV+'<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg>'
@@ -678,8 +688,8 @@ function recipeDetail(r){
  const act=Math.min(S.step[r.id]||0,r.steps.length-1),actHits=stepIngredients(r,r.steps[act]);
  NB.title=r.title;NB.back=true;
  let h='<div class="rcp-top"><button class="back" data-act="recipeBack">'+I.back+'Mat</button>';
- if(imgOf(r.id))h+='<div class="rcp-photo"><img src="'+esc(imgOf(r.id))+'" alt="'+esc(r.title)+'"></div>';
- h+='<div class="chips-row">'+whoChip(r.who)+(r.when?'<span class="chip">'+esc(r.when)+'</span>':'')+(r.freezes?'<span class="chip v">Går att frysa</span>':'')+'</div><h1 class="t1" id="lt">'+esc(r.title)+'</h1></div>';
+ h+=rcpPhoto(r);
+ h+='<div class="chips-row">'+whoChip(r.who)+(r.when?'<span class="chip">'+esc(r.when)+'</span>':'')+(r.freezes?'<span class="chip v">Går att frysa</span>':'')+'</div><h1 class="t1" id="lt">'+esc(r.title)+'</h1>'+rcpActions(r)+'</div>';
  const facts=[['Tid','<span class="num">'+r.min+'</span> min']];if(r.kr)facts.push(['Per portion',kr(r.kr)]);if(r.protein)facts.push(['Protein',esc(r.protein)]);
  h+='<div class="group" style="margin-top:16px"><div class="rcp-facts" style="grid-template-columns:repeat('+facts.length+',minmax(0,1fr))">'+facts.map(([l,v])=>'<div><div class="fn">'+l+'</div><div class="v">'+v+'</div></div>').join('')+'</div></div>';
  if(r.why)h+='<div class="group" style="margin-top:12px"><div class="note">'+esc(r.why)+'</div></div>';
@@ -697,7 +707,6 @@ function recipeDetail(r){
    (hs.length?'<div class="uses">'+hs.map(it=>'<span>'+esc((qtyText(it,f)+' '+it.n).trim())+'</span>').join('')+'</div>':'')+(timerBtn?'<div class="pills">'+timerBtn+'</div>':''))+'</div></li>'}).join('')+'</ol></div>';
  if(r.tips)h+='<div class="group" style="margin-top:12px"><div class="note">'+esc(r.tips)+'</div></div>';
  h+=rateBlock(r);
- h+=freqBlock(r);
  h+='</div></div>';
  return h}
 /* Hur ofta ett recept ska komma tillbaka. Sparas i Inställningar: frekvens = {id:{w,t}} (w=0 betyder aldrig),
@@ -711,20 +720,36 @@ function autoFreq(id){const g=ratingOf(id);if(!g)return null;if(g.never)return 0
  return g.avg>=4.75?3:(g.avg>=3.75||igen)?6:g.avg>=2.75?12:0}
 function freqOf(id){const x=freqs()[id];return x&&x.w!=null?{w:Number(x.w),own:true}:{w:autoFreq(id),own:false}}
 const freqChip=id=>{const w=freqOf(id).w;return w==null?'':'<span class="chip">'+(w===0?'Aldrig':w===1?'Varje vecka':w===26?'Sällan':'Var '+w+':e v')+'</span>'};
-function freqBlock(r){const f=freqOf(r.id),a=autoFreq(r.id),last=lastServed(r.id);
+function rateBlock(r){const g=ratingOf(r.id);if(!g)return'';
+ return sh('Betyg','<span class="st">'+starsTxt(g.avg)+'</span> '+g.avg.toFixed(1).replace('.',','))+
+  group(g.people.map(([p,e])=>'<div class="cell"><div class="grow"><div class="title">'+esc(p)+' <span class="st">'+starsTxt(e.s)+'</span></div><div class="meta"><span class="chip '+(e.v==='igen'?'v':e.v==='aldrig'?'h':'')+'">'+esc(VERD[e.v]||'')+'</span>'+(e.c?'<span>'+esc(e.c)+'</span>':'')+(e.d?'<span>'+esc(dateShort(e.d))+'</span>':'')+'</div></div></div>').join('')+
+  '<button class="cell link" data-act="rate" data-id="'+esc(r.id)+'"><span class="grow" style="color:var(--accent)">'+(S.me&&g.people.some(([p])=>p===S.me)?'Ändra ditt betyg':'Betygsätt receptet')+'</span>'+chevron+'</button>')}
+/* Receptets bild: pennan byter eller tar bort fotot, hjärtat sparar i receptbanken och betyget står i nedre kanten */
+function rcpPhoto(r){const img=imgOf(r.id),g=ratingOf(r.id),saved=inBank(r.id),busy=S.photoBusy===r.id;
+ const heart='<button class="rp-gl rp-heart'+(saved?' on':'')+'" data-act="bankToggle" data-id="'+esc(r.id)+'" aria-pressed="'+saved+'" aria-label="'+(saved?'Sparat i receptbanken. Tryck för att ta bort':'Spara i receptbanken')+'">'+(saved?I.heartOn:I.heart)+'</button>';
+ const score='<button class="rp-gl rp-score" data-act="rate" data-id="'+esc(r.id)+'" aria-label="'+(g?'Betyg '+g.avg.toFixed(1)+' av 5. Tryck för att betygsätta':'Betygsätt receptet')+'">'+
+  (g?I.star+'<b class="num">'+g.avg.toFixed(1).replace('.',',')+'</b><small>· '+g.people.length+' betyg</small>':I.starO+'<b>Betygsätt</b>')+'</button>';
+ if(!img)return'<div class="rcp-photo rp-none"><label class="rp-add photo-pick">'+I.camera+'<span>'+(busy?'Laddar upp…':'Lägg till foto')+'</span><input type="file" accept="image/*" data-change="photo" data-id="'+esc(r.id)+'"'+(S.photoBusy?' disabled':'')+'></label>'+score+heart+'</div>';
+ return'<div class="rcp-photo"><img src="'+esc(img)+'" alt="'+esc(r.title)+'">'+(busy?'<span class="rp-gl rp-busy">Laddar upp…</span>':'')+
+  '<button class="rp-gl rp-edit" data-act="rcpSheet" data-id="'+esc(r.id)+'" data-k="photo" aria-label="Byt eller ta bort fotot">'+I.pencil+'</button>'+score+heart+'</div>'}
+/* Raden under titeln: önska nästa vecka, hur ofta (telefonens egen väljare) och mer */
+function rcpActions(r){const wished=wishes().some(x=>x.id===r.id),f=freqOf(r.id),a=autoFreq(r.id);
+ const short=w=>w==null?'Hur ofta?':w===0?'Aldrig':w===1?'Varje vecka':w===2?'Varannan vecka':w===26?'Sällan':'Var '+w+':e vecka';
  const opts='<option value="auto"'+(f.own?'':' selected')+'>Efter betyget'+(a!=null?' ('+freqName(a).toLowerCase()+')':'')+'</option>'+FREQS.map(([n,l])=>'<option value="'+n+'"'+(f.own&&f.w===n?' selected':'')+'>'+l+'</option>').join('');
- let next='';if(last&&f.w)next=addDays(last,f.w*7);
- return sh('Hur ofta?')+group(fieldCell('Laga','<span class="menu"><select data-change="rfreq" data-id="'+esc(r.id)+'" aria-label="Hur ofta">'+opts+'</select></span>')+
-  (last?'<div class="cell"><div class="grow"><div class="meta">Senast på menyn '+esc(dateShort(last))+(next?' · tidigast igen '+esc(dateShort(next)):'')+'</div></div></div>':''))+
-  '<div class="foot">'+(f.w==null?'Betygsätt receptet så föreslås hur ofta det kommer tillbaka. ':'')+'Veckoplaneringen tar med receptet igen när det har gått så här länge.</div>'}
-function rateBlock(r){const g=ratingOf(r.id),wished=wishes().some(x=>x.id===r.id),me=S.me&&g&&g.people.find(([p])=>p===S.me);
- let h=sh('Betyg',g?'<span class="st">'+starsTxt(g.avg)+'</span> '+g.avg.toFixed(1).replace('.',','):'');
- h+=group((g?g.people.map(([p,e])=>'<div class="cell"><div class="grow"><div class="title">'+esc(p)+' <span class="st">'+starsTxt(e.s)+'</span></div><div class="meta"><span class="chip '+(e.v==='igen'?'v':e.v==='aldrig'?'h':'')+'">'+esc(VERD[e.v]||'')+'</span>'+(e.c?'<span>'+esc(e.c)+'</span>':'')+(e.d?'<span>'+esc(dateShort(e.d))+'</span>':'')+'</div></div></div>').join(''):emptyCell('Ingen har betygsatt receptet än.'))+
-  '<button class="cell link" data-act="rate" data-id="'+esc(r.id)+'"><span class="grow" style="color:var(--accent)">'+(me?'Ändra ditt betyg':'Betygsätt receptet')+'</span>'+chevron+'</button>');
- h+='<div class="pills" style="padding:12px 16px 0">'+(inBank(r.id)?'<span class="pill on">'+I.tick+'I receptbanken</span>':'<button class="pill" data-act="bankAdd" data-id="'+esc(r.id)+'">Spara i receptbanken</button>')+
-  '<button class="pill'+(wished?' on':'')+'" data-act="wish" data-id="'+esc(r.id)+'">'+(wished?I.tick+'Önskad nästa vecka':'Vill ha nästa vecka')+'</button>'+
-  (S.confirm==='delRecipe'?'<span class="sub" style="width:100%">Ta bort receptet ur receptbanken så att det aldrig föreslås igen?</span><button class="tb red strong" data-act="deleteRecipe" data-id="'+esc(r.id)+'">Ja, ta bort</button><button class="tb" data-act="confirmNo">Avbryt</button>':'<button class="pill red" data-act="deleteRecipeAsk">Ta bort receptet</button>')+'<label class="pill photo-pick">'+(S.photoBusy===r.id?'Laddar upp…':(imgOf(r.id)?'Byt foto':'Lägg till foto'))+'<input type="file" accept="image/*" data-change="photo" data-id="'+esc(r.id)+'"'+(S.photoBusy?' disabled':'')+'></label></div>';
- return h}
+ return'<div class="rp-row">'+
+  '<button class="rp-ib'+(wished?' on':'')+'" data-act="wish" data-id="'+esc(r.id)+'" aria-pressed="'+wished+'"><span class="c">'+(wished?I.tick:I.calPlus)+'</span><span class="l">'+(wished?'Önskad nästa v':'Önska nästa v')+'</span></button>'+
+  '<label class="rp-ib"><span class="c">'+I.repeat+'</span><span class="l">'+short(f.w)+'</span><select data-change="rfreq" data-id="'+esc(r.id)+'" aria-label="Hur ofta ska receptet komma tillbaka">'+opts+'</select></label>'+
+  '<button class="rp-ib" data-act="rcpSheet" data-id="'+esc(r.id)+'" data-k="more"><span class="c">'+I.dots+'</span><span class="l">Mer</span></button></div>'}
+/* Åtgärdsblad i iOS-stil för fotot och Mer */
+function rcpSheetHtml(enter){const x=S.rcpSheet,r=recipeById(x.id);if(!r)return'';const id=esc(r.id),last=lastServed(r.id);
+ let items='',head=esc(r.title);
+ if(x.k==='photo')items='<label class="it photo-pick">'+I.camera+'Byt foto<input type="file" accept="image/*" data-change="photo" data-id="'+id+'"></label>'+
+  (x.confirm?'<button class="it red strong" data-act="photoRemove" data-id="'+id+'">'+I.trash+'Ja, ta bort fotot</button>':'<button class="it red" data-act="rcpConfirm">'+I.trash+'Ta bort fotot</button>');
+ else if(x.k==='unbank'){head='Ta bort '+esc(r.title)+' ur receptbanken? Fotot tas också bort.';items='<button class="it red strong" data-act="bankToggle" data-id="'+id+'">'+I.heart+'Ta bort ur receptbanken</button>'}
+ else{if(last){const f=freqOf(r.id);head+='<br>Senast på menyn '+esc(dateShort(last))+(f.w?' · tidigast igen '+esc(dateShort(addDays(last,f.w*7))):'')}
+  items=(inBank(r.id)?'<button class="it" data-act="bankToggle" data-id="'+id+'">'+I.heart+'Ta bort ur receptbanken</button>':'<button class="it" data-act="bankToggle" data-id="'+id+'">'+I.heart+'Spara i receptbanken</button>')+
+  (x.confirm?'<div class="ttl">Receptet tas bort ur receptbanken och föreslås aldrig igen.</div><button class="it red strong" data-act="deleteRecipe" data-id="'+id+'">'+I.trash+'Ja, föreslå aldrig igen</button>':'<button class="it red" data-act="rcpConfirm">'+I.trash+'Föreslå aldrig igen</button>')}
+ return'<div class="asheet'+enter+'" data-act="sheetBg"><div class="as-panel" role="dialog" aria-modal="true" aria-label="'+(x.k==='photo'?'Foto':x.k==='unbank'?'Ta bort ur receptbanken':'Mer')+'"><div class="grp"><div class="ttl">'+head+'</div>'+items+'</div><div class="grp"><button class="it strong" data-act="sheetClose">Avbryt</button></div></div></div>'}
 /* Matfoton: bilden förminskas i telefonen, laddas upp till Drive via Apps Script och
    adressen sparas på receptet i receptbanken (receptet sparas där om det inte redan finns) */
 const imgOf=id=>{const b=bankList().find(x=>x.id===id);return b&&b.img||''};
@@ -891,7 +916,7 @@ function sheetHtml(form,title,right,body,enter){return'<div class="sheet'+enter+
 const fieldCell=(label,input)=>'<label class="cell"><span class="grow">'+label+'</span>'+input+'</label>';
 function renderOverlay(){
  const o=document.getElementById('overlay');
- const k=S.cook?'cook':S.sheet==='settings'?'settings':S.sheet==='rate'?'rate':S.sheet==='income'?'income':S.sheet==='cost'?'cost':S.sheet==='prefs'?'prefs':S.sheet==='swap'?'swap':S.sheet==='wish'?'wish':S.shopAdd?'shop':S.taskAdd?'task':'';
+ const k=S.cook?'cook':S.sheet==='settings'?'settings':S.sheet==='rate'?'rate':S.sheet==='income'?'income':S.sheet==='cost'?'cost':S.sheet==='prefs'?'prefs':S.sheet==='swap'?'swap':S.sheet==='wish'?'wish':S.rcpSheet?'rcpSheet':S.shopAdd?'shop':S.taskAdd?'task':'';
  const prev=o.dataset.k||'';
  // Rita inte om ett öppet blad medan någon skriver i det
  if(k&&k!=='cook'&&k===prev&&busyTyping()&&o.contains(document.activeElement))return;
@@ -960,6 +985,7 @@ function renderOverlay(){
     '<div class="cell"><input class="field" name="note" placeholder="Anteckning" value="'+esc(c.note||'')+'" aria-label="Anteckning"></div>')+
    (e.id?'<div style="height:22px"></div>'+group('<button type="button" class="cell link center red" data-act="ekoDel">Ta bort utgiften</button>'):'');
   o.innerHTML=sheetHtml('cost',e.id?'Ändra utgift':'Ny utgift','<button class="tb strong">Spara</button>',body,enter);return}
+ if(k==='rcpSheet'){const h=rcpSheetHtml(enter);if(!h){closeSheets();o.innerHTML='';o.dataset.k='';return}o.innerHTML=h;return}
  if(k==='rate'){const r=recipeById(S.rate&&S.rate.id);if(!r){closeSheets();o.innerHTML='';o.dataset.k='';return}
   const who=S.me||'',x=(ratings()[r.id]||{}).p||{},cur=x[who]||{};
   const stars='<div class="stars" role="radiogroup" aria-label="Stjärnor">'+[5,4,3,2,1].map(n=>'<input type="radio" name="s" id="st'+n+'" value="'+n+'"'+(Number(cur.s)===n?' checked':'')+' required><label for="st'+n+'" aria-label="'+n+' stjärnor">★</label>').join('')+'</div>';
@@ -1617,7 +1643,7 @@ function confetti(){if(calm())return;const cv=document.createElement('canvas'),d
 
 /* ---------- local mutations (optimistic) ---------- */
 function mutate(list,id,fields){const it=D()[list].find(x=>x.id===id);if(it)Object.assign(it,fields);render()}
-function closeSheets(){S.sheet=null;S.swap=null;S.wishFor=null;S.rate=null;S.ekoEdit=null;S.shopAdd=false;S.taskAdd=false}
+function closeSheets(){S.rcpSheet=null;S.sheet=null;S.swap=null;S.wishFor=null;S.rate=null;S.ekoEdit=null;S.shopAdd=false;S.taskAdd=false}
 
 /* ---------- actions ---------- */
 function boxEdit(fn){const wall=wallBoardOn(),L=layout(wall,wall?WALL_DEF:OV_DEF());fn(L);saveLayout(wall,L);render()}
@@ -1672,8 +1698,17 @@ const ACT={
  swapRemoveAsk(){S.confirm='swapRemove';render()},
  swapRemove(){doSwap(null)},
  swapTo(id){const r=recipeById(id);if(r)doSwap(r)},
- deleteRecipeAsk(){S.confirm='delRecipe';render()},
- deleteRecipe(id){const r=recipeById(id);if(!r)return;S.confirm=null;A.user=Date.now();
+ rcpSheet(id,el){S.rcpSheet={id,k:el.dataset.k};render()},
+ rcpConfirm(){if(S.rcpSheet){S.rcpSheet.confirm=true;render()}},
+ bankToggle(id){const r=recipeById(id);if(!r)return;const sure=S.rcpSheet&&S.rcpSheet.k==='unbank';S.rcpSheet=null;
+  if(!inBank(id)){addToBank(r,true);toast('Sparat i receptbanken');render();return}
+  // fotot sparas på receptet i receptbanken, så fråga först om det försvinner
+  if(imgOf(id)&&!sure){S.rcpSheet={id,k:'unbank'};render();return}
+  A.user=Date.now();BANK_ROWS().forEach(k=>{if(parseJ(settings()[k],[]).some(x=>x.id===id))updJSON(k,[],a=>a.filter(x=>x.id!==id))});
+  toast('Borttaget ur receptbanken');render()},
+ photoRemove(id){S.rcpSheet=null;A.user=Date.now();BANK_ROWS().forEach(k=>{if(parseJ(settings()[k],[]).some(x=>x.id===id))updJSON(k,[],a=>a.map(x=>x.id===id?Object.assign({},x,{img:''}):x))});
+  toast('Fotot är borttaget');render()},
+ deleteRecipe(id){const r=recipeById(id);if(!r)return;S.confirm=null;S.rcpSheet=null;A.user=Date.now();
   BANK_ROWS().forEach(k=>{if(parseJ(settings()[k],[]).some(x=>x.id===id))updJSON(k,[],a=>a.filter(x=>x.id!==id))});
   updJSON('frekvens',{},o=>{o[id]={w:0,t:r.title};return o});
   if(wishes().some(x=>x.id===id))updJSON('onskelista',[],a=>a.filter(x=>x.id!==id));
@@ -1719,7 +1754,7 @@ document.addEventListener('click',e=>{const el=e.target.closest('[data-act]');if
 document.addEventListener('toggle',e=>{const d=e.target;if(d&&d.dataset&&d.dataset.k)S.open[d.dataset.k]=d.open},true);
 document.addEventListener('input',e=>{if(e.target.id==='ork')orkPreview(e.target);if(e.target.id==='split-amt')splitPreview(e.target)});
 document.addEventListener('change',e=>{const el=e.target.closest('[data-change]');if(!el)return;const id=el.dataset.id;
- if(el.dataset.change==='photo'){const f=el.files&&el.files[0];el.value='';uploadPhoto(id,f);return}
+ if(el.dataset.change==='photo'){const f=el.files&&el.files[0];el.value='';if(S.rcpSheet){S.rcpSheet=null;render()}uploadPhoto(id,f);return}
  if(el.dataset.change==='ork'){el.blur();ACT.budget(String(ORK[Number(el.value)].min));return}
  if(el.dataset.change==='rfreq'){const r=recipeById(id),v=el.value;updJSON('frekvens',{},o=>{if(v==='auto')delete o[id];else o[id]={w:Number(v),t:r?r.title:''};return o});toast(v==='auto'?'Följer betyget':freqName(Number(v)));return}
  if(el.dataset.change==='eko'){const v=Math.max(0,Number(String(el.value).replace(',','.'))||0);updJSON('ekonomi',{},o=>{o[id]=v;return o});return}

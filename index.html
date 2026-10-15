@@ -649,6 +649,47 @@ button.fig-box:active{opacity:1;transform:scale(.96)}
 .photo-pick input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
 .rcp-photo{margin:10px 0 4px;border-radius:18px;overflow:hidden;aspect-ratio:4/3;background:var(--fill)}
 .rcp-photo img{width:100%;height:100%;object-fit:cover;display:block}
+/* Receptets bild med penna, betyg och hjärta, och raden under titeln */
+.rcp-photo{position:relative}
+.rp-gl{position:absolute;display:flex;align-items:center;justify-content:center;gap:6px;color:#fff;background:rgba(20,20,22,.5);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:.5px solid rgba(255,255,255,.2)}
+.rp-gl svg{width:20px;height:20px}
+.rp-edit{top:10px;right:10px;width:40px;height:40px;border-radius:20px}
+.rp-heart{bottom:10px;right:10px;width:48px;height:48px;border-radius:24px}
+.rp-heart svg{width:26px;height:26px}
+.rp-heart.on{color:#ff5a7a}
+.rp-heart:active{transform:scale(.9)}
+.rp-score{bottom:10px;left:10px;height:36px;padding:0 13px;border-radius:18px;font-size:15px}
+.rp-score b{font-weight:600}
+.rp-score small{font-size:13px;opacity:.8}
+.rp-score svg{width:17px;height:17px;color:#FFB800}
+.rp-busy{top:10px;left:10px;height:30px;padding:0 12px;border-radius:15px;font-size:13px;font-weight:600}
+.rp-none{background:var(--surface);border:1.5px dashed var(--line);aspect-ratio:16/8}
+.rp-none .rp-gl{color:var(--ink);background:var(--fill);border:0;-webkit-backdrop-filter:none;backdrop-filter:none}
+.rp-none .rp-heart.on{color:#ff5a7a}
+.rp-none .rp-score svg{color:#FFB800}
+.rp-add{position:absolute;inset:0 0 56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--accent);font-size:16px;font-weight:600}
+.rp-add svg{width:36px;height:36px}
+.rp-row{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin:14px 0 4px}
+.rp-ib{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--accent);cursor:pointer}
+.rp-ib .c{width:52px;height:52px;border-radius:26px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;transition:transform .15s}
+.rp-ib:active .c{transform:scale(.92)}
+.rp-ib .c svg{width:24px;height:24px}
+.rp-ib .l{font-size:13px;color:var(--ink-2);white-space:nowrap}
+.rp-ib.on .c{background:var(--accent);color:var(--on-accent)}
+.rp-ib.on .l{color:var(--ink)}
+.rp-ib select{position:absolute;inset:0;opacity:0;width:100%;cursor:pointer;font-size:16px}
+.asheet{position:fixed;inset:0;z-index:70;background:rgba(0,0,0,.4);display:flex;align-items:flex-end;justify-content:center}
+.asheet.enter{animation:fade .2s ease}
+.as-panel{width:min(560px,100%);padding:0 8px calc(8px + var(--sab))}
+.asheet.enter .as-panel{animation:up .3s cubic-bezier(.2,.8,.2,1)}
+.as-panel .grp{background:var(--surface-raised);border-radius:14px;overflow:hidden;margin-top:8px}
+.as-panel .ttl{padding:13px 16px;text-align:center;color:var(--ink-2);font-size:13px;line-height:18px;border-bottom:.5px solid var(--line)}
+.as-panel .it{position:relative;display:flex;align-items:center;justify-content:center;gap:10px;width:100%;height:57px;font-size:19px;color:var(--accent);border-bottom:.5px solid var(--line);cursor:pointer}
+.as-panel .it:last-child{border-bottom:0}
+.as-panel .it svg{width:22px;height:22px}
+.as-panel .it.red{color:var(--red)}
+.as-panel .it.strong{font-weight:600}
+@media (prefers-reduced-motion:reduce){.asheet.enter,.asheet.enter .as-panel{animation:none}}
 .calw{cursor:default}
 .wk{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px;margin:2px -6px 0}
 .wk-d{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0 7px;border-radius:12px}
@@ -901,7 +942,7 @@ body.wall:has(.board) .arr-foot{left:28px;transform:none;width:calc((100% - 60px
 <div class="timers" id="timers" aria-live="polite"></div>
 <div id="toast" hidden class="toast" role="status"></div>
 <script src="config.js?v=37"></script>
-<script src="app.js?v=47"></script>
+<script src="app.js?v=48"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
