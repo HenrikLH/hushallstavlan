@@ -26,7 +26,7 @@ const COLS = {
   tasks: ['done', 'title', 'due', 'who', 'note', 'id', 'source', 'repeat'],
   clean: ['id', 'room', 'title', 'freq', 'min', 'lastDone', 'prevDone', 'doneBy', 'who', 'tip', 'plannedFor', 'snoozeUntil', 'order'],
   menu: ['date', 'who', 'title', 'recipe', 'addon', 'note'],
-  events: ['date', 'time', 'title', 'who', 'source'],
+  events: ['date', 'time', 'title', 'who', 'source', 'id', 'flags'],
   recipes: ['id', 'group', 'who', 'when', 'title', 'portions', 'min', 'kr', 'protein', 'freezes', 'course', 'why', 'ingredients', 'steps', 'tips'],
   offers: ['item', 'price', 'store', 'note']
 };
@@ -254,6 +254,19 @@ function doPost(e) {
         break;
       }
       case 'taskClearDone': deleteDone_('tasks'); break;
+      case 'taskEdit': {
+        const f = b.fields || {}, out = {};
+        if (f.title != null) out.title = String(f.title).slice(0, 200);
+        if (f.due != null) out.due = /^\d{4}-\d{2}-\d{2}$/.test(String(f.due)) ? String(f.due) : '';
+        if (f.who != null) out.who = String(f.who).slice(0, 40);
+        if (f.repeat != null) out.repeat = REPEATS_[f.repeat] ? f.repeat : '';
+        if (out.repeat && !out.due) out.due = today_();
+        setCells_('tasks', findRow_('tasks', b.id), out);
+        break;
+      }
+      case 'taskDelete': sheet_('tasks').deleteRow(findRow_('tasks', b.id)); break;
+      case 'eventEdit': eventEdit_(b, false); break;
+      case 'eventDelete': eventEdit_(b, true); break;
       case 'cleanDone': {
         const row = findRow_('clean', b.id);
         const t = readTab_('clean').filter(function (x) { return x.id === b.id; })[0];
@@ -469,12 +482,21 @@ function calRows_() {
   const td = today_(), from = day_(td), to = day_(addDays_(td, CAL_DAYS));
   const fmt = function (d, f) { return Utilities.formatDate(d, TZ, f); };
   const rows = [], seen = {};
-  CALENDARS.forEach(function (c) {
+  let found = 0;
+  CALENDARS.forEach(function (c, ci) {
     const cal = cal_(c.id);
     if (!cal) return;
+    found++;
+    // Helgdagar och födelsedagar från kontakterna går inte att ändra från appen (de får inget id)
+    const ro = c.id.indexOf('#holiday@') >= 0;
     cal.getEvents(from, to).forEach(function (ev) {
+      let ty = '';
       try { if (ev.getMyStatus() === CalendarApp.GuestStatus.NO) return; } catch (e) { }
-      try { const ty = String(ev.getEventType()); if (ty === 'WORKING_LOCATION') return; } catch (e) { }
+      try { ty = String(ev.getEventType()); if (ty === 'WORKING_LOCATION') return; } catch (e) { }
+      const id = ro || ty === 'BIRTHDAY' ? '' : ci + '|' + ev.getId();
+      let rec = false;
+      try { rec = ev.isRecurringEvent(); } catch (e) { }
+      const flags = (ev.isAllDayEvent() ? 'a' : '') + (rec ? 'r' : '');
       let who = c.who;
       if (!who) { try { who = CREATORS[String(ev.getCreators()[0] || '').toLowerCase()] || ''; } catch (e) { } }
       const add = function (date, time) {
@@ -484,7 +506,7 @@ function calRows_() {
         const k = date + '|' + time + '|' + title.toLowerCase();
         if (seen[k]) return;
         seen[k] = true;
-        rows.push([date, time, title, who, 'kalender']);
+        rows.push([date, time, title, who, 'kalender', id, flags]);
       };
       if (ev.isAllDayEvent()) {
         const s = fmt(ev.getAllDayStartDate(), 'yyyy-MM-dd'), e = fmt(ev.getAllDayEndDate(), 'yyyy-MM-dd');
@@ -495,7 +517,19 @@ function calRows_() {
       }
     });
   });
+  // Kommer skriptet inte åt någon kalender ska fliken inte tömmas; felet syns under Körningar i Apps Script
+  if (!found) throw new Error('Kommer inte åt kalendrarna som ' + Session.getEffectiveUser().getEmail() + '. Kör kalenderTest.');
   return rows;
+}
+/** Kör för hand i Apps Script: visar vilket konto skriptet kör som och vad det hittar i varje kalender. */
+function kalenderTest() {
+  Logger.log('Skriptet kör som: ' + Session.getEffectiveUser().getEmail());
+  const td = today_(), from = day_(td), to = day_(addDays_(td, CAL_DAYS));
+  CALENDARS.forEach(function (c) {
+    const cal = cal_(c.id);
+    Logger.log(c.id + ': ' + (cal ? cal.getEvents(from, to).length + ' händelser' : 'kommer inte åt kalendern'));
+  });
+  Logger.log('Rader till fliken Händelser: ' + calRows_().length);
 }
 function sortEvents_(rows) {
   return rows.sort(function (a, b) { return a[0].localeCompare(b[0]) || String(a[1]).localeCompare(String(b[1])) || String(a[2]).localeCompare(String(b[2])); });
@@ -506,18 +540,74 @@ function kalenderSynk() {
   const lock = LockService.getScriptLock();
   if (!lock.tryLock(30000)) return;
   try {
-    const td = today_(), sh = sheet_('events');
-    const cur = sh.getDataRange().getDisplayValues().slice(1).filter(function (r) { return r.some(String); });
-    const keep = cur.filter(function (r) { return r[4] !== 'kalender' && r[0] >= td; }).map(function (r) { return r.slice(0, 5); });
-    const rows = sortEvents_(keep.concat(calRows_()));
-    const same = rows.length === cur.length && rows.every(function (r, i) { return r.join('|') === cur[i].slice(0, 5).join('|'); });
-    if (!same) {
-      const n = Math.max(cur.length, 1);
-      sh.getRange(2, 1, n, 5).clearContent();
-      if (rows.length) sh.getRange(2, 1, rows.length, 5).setNumberFormat('@').setValues(rows);
-    }
+    kalenderSynk_();
+    const td = today_();
     if (props_().getProperty('BDAY_SYNC') !== td) { fodelsedagarSynk_(); props_().setProperty('BDAY_SYNC', td); }
   } finally { lock.releaseLock(); }
+}
+// Skriver om fliken Händelser från kalendrarna. Rader som inte kommer från kalendern behålls.
+function kalenderSynk_() {
+  const td = today_(), sh = sheet_('events'), W = COLS.events.length;
+  if (!sh.getRange(1, 6).getDisplayValue()) sh.getRange(1, 6, 1, 2).setValues([['Id', 'Flaggor']]);
+  const cur = sh.getDataRange().getDisplayValues().slice(1).filter(function (r) { return r.some(String); })
+    .map(function (r) { r = r.slice(0, W); while (r.length < W) r.push(''); return r; });
+  const keep = cur.filter(function (r) { return r[4] !== 'kalender' && r[0] >= td; });
+  const rows = sortEvents_(keep.concat(calRows_()));
+  const same = rows.length === cur.length && rows.every(function (r, i) { return r.join('|') === cur[i].join('|'); });
+  if (!same) {
+    const n = Math.max(cur.length, 1);
+    sh.getRange(2, 1, n, W).clearContent();
+    if (rows.length) sh.getRange(2, 1, rows.length, W).setNumberFormat('@').setValues(rows);
+  }
+}
+
+/* ---------------- ändra och ta bort händelser från appen ----------------
+   Händelser från Google Kalender har ett id (kalenderns nummer i CALENDARS + "|" + händelsens id) och ändras
+   direkt i kalendern. Händelser som bara finns i fliken Händelser (utan id) ändras i fliken.
+   b.date/b.time/b.title är händelsen som den ser ut i appen, b.fields de nya värdena,
+   b.all = true tar bort hela serien för en återkommande händelse. */
+function hm_(s) { const m = String(s || '').match(/^(\d{1,2})[.:](\d{2})$/); return m ? ('0' + m[1]).slice(-2) + ':' + m[2] : ''; }
+function eventEdit_(b, del) {
+  const f = b.fields || {};
+  if (!b.id) {
+    const sh = sheet_('events'), rows = readTab_('events').filter(function (e) {
+      return !e.id && e.date === b.date && e.time === String(b.time || '') && e.title === b.title;
+    });
+    if (!rows.length) throw new Error('Hittade inte händelsen.');
+    if (del) { sh.deleteRow(rows[0]._row); return; }
+    const out = {};
+    if (f.title != null) out.title = String(f.title).slice(0, 200);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(String(f.date || ''))) out.date = f.date;
+    if (f.allDay) out.time = '';
+    else if (hm_(f.start)) out.time = hm_(f.start).replace(':', '.') + (hm_(f.end) ? '–' + hm_(f.end).replace(':', '.') : '');
+    setCells_('events', rows[0]._row, out);
+    return;
+  }
+  const i = String(b.id).indexOf('|'), c = CALENDARS[Number(String(b.id).slice(0, i))], eid = String(b.id).slice(i + 1);
+  const cal = c && cal_(c.id);
+  if (!cal) throw new Error('Hittade inte kalendern.');
+  let ev = null;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(String(b.date || ''))) ev = cal.getEventsForDay(day_(b.date)).filter(function (e) { return e.getId() === eid; })[0] || null;
+  if (!ev) ev = cal.getEventById(eid);
+  if (!ev) throw new Error('Händelsen finns inte längre i kalendern.');
+  if (del) {
+    if (b.all && ev.isRecurringEvent()) ev.getEventSeries().deleteEventSeries();
+    else ev.deleteEvent();
+  } else {
+    if (f.title != null && String(f.title).trim() && String(f.title).trim() !== b.title) ev.setTitle(String(f.title).trim().slice(0, 200));
+    const date = /^\d{4}-\d{2}-\d{2}$/.test(String(f.date || '')) ? f.date : b.date;
+    if (f.allDay) {
+      if (!ev.isAllDayEvent() || date !== b.date) ev.setAllDayDate(day_(date));
+    } else if (hm_(f.start)) {
+      const at = function (t) { return Utilities.parseDate(date + ' ' + t, TZ, 'yyyy-MM-dd HH:mm'); };
+      const start = at(hm_(f.start));
+      const len = ev.isAllDayEvent() ? 3600000 : Math.max(0, ev.getEndTime().getTime() - ev.getStartTime().getTime());
+      let end = hm_(f.end) ? at(hm_(f.end)) : new Date(start.getTime() + len);
+      if (end < start) end = new Date(end.getTime() + 864e5);
+      if (ev.isAllDayEvent() || start.getTime() !== ev.getStartTime().getTime() || end.getTime() !== ev.getEndTime().getTime()) ev.setTime(start, end);
+    }
+  }
+  kalenderSynk_();
 }
 
 // Födelsedagar ett år framåt: "Namn, född ÅÅÅÅ" och Googles födelsedagshändelser ("Födelsedag för Namn").
