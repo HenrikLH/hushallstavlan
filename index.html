@@ -226,6 +226,7 @@ body.wall .clock{display:block}
   .ov{columns:2;column-gap:14px;margin:8px 16px 0}
   .ov .widgets{display:contents}
   .ov>.hero,.ov .widgets>*{break-inside:avoid;margin:0 0 14px}
+  .ov>.smc{break-inside:avoid;margin:0 0 14px}
   .ov .widget,.ov .wpair{display:flex;width:100%}
   .ov .widget{flex-direction:column}
   .ov .wpair>.widget{flex:1;margin:0}
@@ -434,6 +435,19 @@ button.fig-box{display:block;padding:0;border-radius:18px;transition:transform .
 button.fig-box:active{opacity:1;transform:scale(.96)}
 .fig-tip{font-size:11px;line-height:13px;color:var(--ink-2);text-align:center;align-self:center;max-width:140px;margin-top:2px}
 .hero+.widgets{margin-top:12px}
+.smc{background:var(--surface);border-radius:20px;margin:12px 16px 0;padding:14px 16px 6px}
+.smc+.widgets{margin-top:12px}
+.smc-h{display:flex;align-items:center;gap:6px;font-size:13px;line-height:18px;font-weight:600;color:var(--accent)}
+.smc-h svg{width:16px;height:16px}
+.smc-r{padding:10px 0 8px}
+.smc-r+.smc-r{border-top:.5px solid var(--line)}
+.smc-t{display:flex;align-items:center;gap:12px}
+.smc-t .title{font-size:17px;line-height:22px;font-weight:600;margin-top:4px}
+.smc-face{font-size:40px;line-height:44px;width:48px;text-align:center;transition:transform .15s}
+.smc-sl{width:100%;margin:14px 0 2px;accent-color:var(--accent);height:28px}
+.smc-lb{display:flex;justify-content:space-between;font-size:22px;padding:0 2px}
+.smc-b{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+.smc-b .btn-fill{padding:0 22px;height:38px;border-radius:19px}
 /* ===== Vädersidan ===== */
 .wx-hero{text-align:center;padding:4px 16px 8px;display:flex;flex-direction:column;align-items:center}
 .wx-place{font-size:28px;line-height:34px;font-weight:500}

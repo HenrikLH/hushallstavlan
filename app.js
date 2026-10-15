@@ -545,7 +545,7 @@ V.oversikt=function(){
  const tasksNow=d.tasks.filter(x=>!x.done&&isDate(x.due)&&x.due<=t).sort((a,b)=>a.due.localeCompare(b.due));
  const tasksSoon=d.tasks.filter(x=>!x.done&&!(isDate(x.due)&&x.due<=t)).sort((a,b)=>(a.due||'9').localeCompare(b.due||'9')).slice(0,4);
  let h=head('Översikt');
- h+='<div class="ov">'+heroHtml();
+ h+='<div class="ov">'+heroHtml()+(S.arrange?'':smileyCard());
  const H={kal:calWidget()};
  const isT=nextDay&&nextDay.date===t;
  H.mat=widget('mat','w2',I.fork,(isT||!nextDay)?'Middag ikväll':'Nästa middag',nextDay&&!isT?esc(dateShort(nextDay.date)):'',
@@ -770,17 +770,38 @@ const freqs=()=>parseJ(settings().frekvens,{});
 const lagadAll=()=>parseJ(settings().lagad,{});
 const lastServed=id=>{const l=lagadAll()[id],r=parseJ(settings().receptlogg,{})[id]||'';return l&&l.d&&l.d>r?l.d:r};
 const baseOf=id=>{const x=freqs()[id];return x&&x.w!=null&&x.w!==''?Number(x.w):null};
+/* Smileys: smileys = {id:[[måltidens datum, 1|0|-1|'x', vem, svarsdatum], ...]} de 10 senaste per rätt. 'x' = lagade inte.
+   Stjärnorna räknas från betyget och flyttas av smileys som kom efter den senaste manuella ändringen. */
+const smileysAll=()=>parseJ(settings().smileys,{});
+const smileysOf=id=>(smileysAll()[id]||[]).filter(x=>typeof x[1]==='number').map(x=>[x[3]||x[0],x[1]]);
+const betygDatum=g=>g?g.people.map(([,e])=>e.d||'').sort().pop()||'':'';
 function matLage(id){const g=ratingOf(id),b=baseOf(id),r=recipeById(id),l=lagadAll()[id]||{},last=lastServed(id);
- const d={s0:g?g.avg:null,smileys:[],bas:b!=null?b:(r?MP.grundintervall(r):2),fav:isFav(id),aldrig:!!(g&&g.never),lagad:{n:Number(l.n)||0,d:last||null}};
+ const d={s0:g?g.avg:null,smileys:smileysOf(id),sedan:betygDatum(g),bas:b!=null?b:(r?MP.grundintervall(r):2),fav:isFav(id),aldrig:!!(g&&g.never),lagad:{n:Number(l.n)||0,d:last||null}};
  return Object.assign(MP.lage(d,today()),{harBas:b!=null,betyg:!!g})}
 // Stjärnor med upp till två decimaler, t.ex. 4,45
 const starNum=n=>String(Math.round(n*100)/100).replace('.',',');
 const veckor=w=>(w===1?'1 vecka':String(w).replace('.',',')+' veckor');
 const freqChip=id=>{const l=matLage(id);if(!l.harBas&&!l.betyg)return'';return'<span class="chip">'+(l.paus?'Pausad':'Tidigast '+String(l.w).replace('.',',')+' v')+'</span>'};
 // Spara att rätten är lagad i dag: räknar upp lagad och sätter receptlogg
-function markCooked(id){const t=today();
- updJSON('lagad',{},o=>{const x=o[id]||{n:0};if(x.d!==t)o[id]={n:(Number(x.n)||0)+1,d:t};return o});
- updJSON('receptlogg',{},o=>{o[id]=t;return o})}
+// Spara att rätten är lagad (i dag eller den dag den stod på matsedeln): räknar upp lagad och sätter receptlogg
+function markCooked(id,dt){const t=dt||today();
+ updJSON('lagad',{},o=>{const x=o[id]||{n:0};if(x.d!==t)o[id]={n:(Number(x.n)||0)+1,d:x.d&&x.d>t?x.d:t};return o});
+ updJSON('receptlogg',{},o=>{if(!o[id]||o[id]<t)o[id]=t;return o})}
+/* Smiley-frågan på översikten: gårdagens middagar, och kvällens efter kl. 19, som inte har fått svar */
+const SMIL=[[-1,'☹️','Inte så god'],[0,'😐','Okej'],[1,'😊','God']];
+function smileyAsk(){const t=today(),y=addDays(t,-1),late=new Date().getHours()>=19,all=smileysAll(),seen=new Set();
+ return D().menu.filter(m=>{const r=m.recipe&&recipeById(m.recipe);if(!r||r.course==='efterrätt'||m.who==='Borta')return false;
+  if(!(m.date===y||(late&&m.date===t)))return false;const k=m.recipe+'|'+m.date;if(seen.has(k))return false;seen.add(k);
+  return!(all[m.recipe]||[]).some(x=>x[0]===m.date)}).slice(0,3)}
+function smileyCard(){const L=smileyAsk();if(!L.length)return'';const t=today(),allT=L.every(m=>m.date===t);
+ return'<section class="smc"><div class="smc-h">'+I.fork+'<span>'+(allT?'Hur var maten ikväll?':'Hur var maten igår?')+'</span></div>'+
+  L.map(m=>{const r=recipeById(m.recipe);return'<form class="smc-r" data-form="smiley" data-id="'+esc(m.recipe)+'" data-date="'+esc(m.date)+'">'+
+   '<div class="smc-t"><div class="grow"><div class="chips-row">'+whoChip(m.who)+'</div><div class="title">'+esc(r.title)+'</div></div><span class="smc-face" aria-hidden="true">😐</span></div>'+
+   '<input class="smc-sl" type="range" name="v" min="-1" max="1" step="1" value="0" aria-label="Hur god var '+esc(r.title)+'? Ledsen, neutral eller glad">'+
+   '<div class="smc-lb" aria-hidden="true">'+SMIL.map(([,e])=>'<span>'+e+'</span>').join('')+'</div>'+
+   '<div class="smc-b"><button type="button" class="tb" data-act="smileySkip" data-id="'+esc(m.recipe)+'" data-date="'+esc(m.date)+'">Lagade inte</button><button class="btn-fill">Spara</button></div></form>'}).join('')+'</section>'}
+function saveSmiley(id,date,v){const who=S.me||'';
+ updJSON('smileys',{},o=>{o[id]=(o[id]||[]).filter(x=>x[0]!==date).concat([[date,v,who,today()]]).slice(-10);return o})}
 function rateBlock(r){const g=ratingOf(r.id);if(!g)return'';
  return sh('Betyg','<span class="st">'+starsTxt(g.avg)+'</span> '+starNum(matLage(r.id).s))+
   group(g.people.map(([p,e])=>'<div class="cell"><div class="grow"><div class="title">'+esc(p)+' <span class="st">'+starsTxt(e.s)+'</span></div><div class="meta"><span class="chip '+(e.v==='igen'?'v':e.v==='aldrig'?'h':'')+'">'+esc(VERD[e.v]||'')+'</span>'+(e.c?'<span>'+esc(e.c)+'</span>':'')+(e.d?'<span>'+esc(dateShort(e.d))+'</span>':'')+'</div></div></div>').join('')+
@@ -811,6 +832,7 @@ function tidigastHtml(r){const l=matLage(r.id),b=baseOf(r.id),def=MP.grundinterv
  h+='<div class="ti-rows">'+
   row('Baslinje',b!=null?(b===0?'Aldrig':veckor(b)):'Förval '+veckor(def))+
   row('Stjärnor',l.betyg?starNum(l.s):'Inget betyg än')+
+  (smileysOf(r.id).length?row('Smileys',SMIL.map(([v,e])=>e+' '+smileysOf(r.id).filter(x=>x[1]===v).length).join(' · ')):'')+
   (l.harBas||l.betyg?row('Favorit',isFav(r.id)?'Ja, 20 % tätare':'Nej'):'')+
   row('Senast lagad',l.senast?esc(dateShort(l.senast)):'Inte än')+
   (l.n?row('Lagad',l.n+(l.n===1?' gång':' gånger')):'')+'</div>';
@@ -1858,6 +1880,7 @@ function closeSheets(){S.edit=null;S.rcpSheet=null;S.sheet=null;S.swap=null;S.wi
 /* ---------- actions ---------- */
 function boxEdit(fn){const wall=wallBoardOn(),L=layout(wall,wall?WALL_DEF:OV_DEF());fn(L);saveLayout(wall,L);render()}
 const ACT={
+ smileySkip(id,el){A.user=Date.now();saveSmiley(id,el.dataset.date,'x');toast('Okej, den räknas inte som lagad')},
  wakeBoard(){render()},
  nav(id){if(id!=='oversikt')S.arrange=false;try{document.activeElement&&document.activeElement.blur()}catch(e){}id=normView(id);S.shopAdd=false;S.taskAdd=false;S.view=id;S.recipe=null;S.confirm=null;lsSet('view',id);try{history.replaceState(null,'','#'+id)}catch(e){}window.scrollTo(0,0);render()},
  refresh(){refresh()},
@@ -1979,7 +2002,8 @@ document.addEventListener('click',e=>{const el=e.target.closest('[data-act]');if
 // Kom ihåg vilka hopfällbara sektioner som är öppna mellan renderingar
 document.addEventListener('toggle',e=>{const d=e.target;if(d&&d.dataset&&d.dataset.k)S.open[d.dataset.k]=d.open},true);
 document.addEventListener('change',e=>{if(e.target.id==='ee-allday'){const t=document.getElementById('ee-times');if(t)t.hidden=e.target.checked}});
-document.addEventListener('input',e=>{if(e.target.id==='ork')orkPreview(e.target);if(e.target.id==='split-amt')splitPreview(e.target)});
+document.addEventListener('input',e=>{if(e.target.classList.contains('smc-sl')){const f=e.target.closest('.smc-r').querySelector('.smc-face');if(f)f.textContent=SMIL[Number(e.target.value)+1][1]}
+ if(e.target.id==='ork')orkPreview(e.target);if(e.target.id==='split-amt')splitPreview(e.target)});
 document.addEventListener('change',e=>{const el=e.target.closest('[data-change]');if(!el)return;const id=el.dataset.id;
  if(el.dataset.change==='photo'){const f=el.files&&el.files[0];el.value='';if(S.rcpSheet){S.rcpSheet=null;render()}uploadPhoto(id,f);return}
  if(el.dataset.change==='ork'){el.blur();ACT.budget(String(ORK[Number(el.value)].min));return}
@@ -2017,6 +2041,8 @@ document.addEventListener('submit',async e=>{const f=e.target.closest('[data-for
   const to=d.owner||e.list||'shared',moved=e.id&&to!==e.list;
   updJSON('ekonomi',{},o=>{if(moved)ekoListIn(o,e.list,l=>l.filter(x=>x.id!==c.id));ekoListIn(o,to,l=>l.some(x=>x.id===c.id)?l.map(x=>x.id===c.id?c:x):l.concat([c]));return o});
   toast(moved?'Flyttad till '+(to==='shared'?'gemensamma':to+'s')+' utgifter':e.id?'Sparat':'Utgiften är tillagd');return}
+ if(f.dataset.form==='smiley'){const id=f.dataset.id,dt=f.dataset.date,v=Number(d.v)||0;A.user=Date.now();
+  saveSmiley(id,dt,v);markCooked(id,dt);toast(v>0?'Vad bra! Rätten kommer tillbaka lite oftare':v<0?'Noterat. Rätten kommer tillbaka mer sällan':'Tack!');return}
  if(f.dataset.form==='rate'){const r=recipeById(S.rate&&S.rate.id),who=S.me||d.who;if(!r||!who||!d.s)return;
   const sN=Number(d.s),v=d.v||(sN>=4?'igen':sN===3?'okej':'aldrig'),e={s:sN,v,c:String(d.c||'').trim(),d:today()};
   closeSheets();A.user=Date.now();
