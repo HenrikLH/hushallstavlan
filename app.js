@@ -158,7 +158,7 @@ function renderNav(nav){
  const ax=(el,a)=>{const cs=getComputedStyle(el),o=a==='x'?cs.overflowX:cs.overflowY;return/(auto|scroll)/.test(o)&&(a==='x'?el.scrollWidth>el.clientWidth+1:el.scrollHeight>el.clientHeight+1)};
  const scroller=(el,a)=>{for(;el&&el!==document.body&&el!==document.documentElement;el=el.parentElement)if(ax(el,a))return el;return null};
  document.addEventListener('pointerdown',e=>{cancelAnimationFrame(glide);
-  if(!on()||e.button>0||!S.data||e.target.closest('input,select,textarea,[contenteditable],.nav,.dr-slide')||(S.arrange&&e.target.closest('[data-box]')))return;
+  if(!on()||e.button>0||!S.data||e.target.closest('input,select,textarea,[contenteditable],.nav,.dr-slide,.car')||(S.arrange&&e.target.closest('[data-box]')))return;
   st={id:e.pointerId,x0:e.clientX,y0:e.clientY,x:e.clientX,y:e.clientY,t:performance.now(),v:0,mouse:e.pointerType!=='touch',a:null,el:null,tg:e.target}});
  addEventListener('pointermove',e=>{if(!st||e.pointerId!==st.id)return;const dx=e.clientX-st.x0,dy=e.clientY-st.y0;
   if(!st.a){if(Math.hypot(dx,dy)<10)return;st.a=Math.abs(dx)>Math.abs(dy)?'x':'y';st.el=scroller(st.tg,st.a);if(st.mouse)document.body.classList.add('dragging')}
@@ -186,7 +186,7 @@ function renderNav(nav){
  // Svep som börjar vid skärmkanten lämnas åt Safaris bakåtgest, och listor som scrollar i sidled scrollar som vanligt.
  let t=null;
  document.addEventListener('touchstart',e=>{t=null;if(on()||e.touches.length!==1||!S.data)return;const p=e.touches[0];
-  if(p.clientX<24||p.clientX>innerWidth-24||!inMain(e.target)||e.target.closest('input,select,textarea,[contenteditable],.dr-slide')||scroller(e.target,'x'))return;
+  if(p.clientX<24||p.clientX>innerWidth-24||!inMain(e.target)||e.target.closest('input,select,textarea,[contenteditable],.dr-slide,.car')||scroller(e.target,'x'))return;
   t={x0:p.clientX,y0:p.clientY,x:p.clientX,y:p.clientY,t0:performance.now()}},{passive:true});
  document.addEventListener('touchmove',e=>{if(!t)return;if(e.touches.length!==1){t=null;return}t.x=e.touches[0].clientX;t.y=e.touches[0].clientY},{passive:true});
  document.addEventListener('touchcancel',()=>{t=null},{passive:true});
@@ -582,7 +582,7 @@ V.mat=function(){
  h+=segc('Visa','matTab',[['vecka','Vecka'],['inkop','Inköp'],['recept','Recept'],['bank','Receptbank']],S.matTab);
  return h+(ink?ink.body:S.matTab==='recept'?matRecipes():S.matTab==='bank'?matBank():matWeek())};
 /* Receptbanken: stora kort att bläddra i när man inte vet vad man vill äta */
-const FOOD=[[/soppa/i,'🍲'],[/dal|curry/i,'🍛'],[/gryta/i,'🥘'],[/kyckling/i,'🍗'],[/lax|fisk|torsk|sej/i,'🐟'],[/pasta|lasagne|spagetti/i,'🍝'],[/sallad|bulgur/i,'🥗'],[/shakshuka|ägg|omelett/i,'🍳'],[/blåbär|bär|efterrätt|kaka/i,'🫐'],[/pizza/i,'🍕'],[/taco|tortilla/i,'🌮'],[/burgare/i,'🍔'],[/fläsk|kött|biff/i,'🥩'],[/blomkål|grönsak|aubergine/i,'🥦']];
+const FOOD=[[/soppa/i,'🍲'],[/chili/i,'🌶️'],[/rödbet|falafel|bönbiff|linsbiff|grönsaksbiff/i,'🧆'],[/dal|curry/i,'🍛'],[/gryta/i,'🥘'],[/kyckling/i,'🍗'],[/lax|fisk|torsk|sej/i,'🐟'],[/pasta|lasagne|spagetti/i,'🍝'],[/sallad|bulgur/i,'🥗'],[/shakshuka|ägg|omelett/i,'🍳'],[/blåbär|bär|efterrätt|kaka/i,'🫐'],[/pizza/i,'🍕'],[/taco|tortilla/i,'🌮'],[/burgare/i,'🍔'],[/fläsk|kött|biff/i,'🥩'],[/blomkål|grönsak|aubergine/i,'🥦']];
 const foodIcon=t=>(FOOD.find(([re])=>re.test(t||''))||[0,'🍽️'])[1];
 const kind=r=>{const w=effWho(r);return w==='Kött/Veg'?'kv':w==='Henrik'?'k':w==='Vegetariskt'?'v':w==='Gemensam'?'g':''};
 // Filtren för receptbanken och inspirationen
@@ -978,7 +978,11 @@ function portView(){const C=portCalc(),{P,B}=C,mon=parse(P.vecka),sun=parse(addD
   (C.svinn.length?'<div class="fn pt-svinn">Blir över och håller inte: '+esc(lista(C.svinn.slice(0,3).map(x=>planVaraNamn(x).toLowerCase()+' ('+kr(x.overKr)+')')))+'</div>':'<div class="fn pt-ok">Inget som inte håller blir över</div>')+'</div>';
  // Storkok: lunch måndag–fredag
  const kort=(X,p,chosen)=>{if(!chosen){const q=C.Q(p,X.n),nx=C.dag.find(y=>y.p.dag>p.dag&&y.t!=='ratt'&&y.t!=='rest');if(p.typ!=='storkok')X.pk=X.n>2&&nx?'Lagas '+X.n+' portioner, räcker även till '+portDag(nx.p.dag):'Lagas 2 portioner';return planCard(X,q).replace(' data-k="',' data-n="'+X.n+'" data-k="')}return planCard(X,C.Q(p),true)};
- const forslag=(X,p)=>{const visas=X.val.length+(X.bonus?1:0);return X.val.map(x=>kort(x,p)).join('')+(X.bonus?kort(X.bonus,p):'')+(X.antalOk>visas?'<button class="cell link" data-act="planMore" data-id="'+p.id+'"><span class="grow" style="color:var(--accent)">Andra förslag</span><span class="meta">'+X.antalOk+' rätter ryms</span></button>':'')};
+ const forslag=(X,p)=>{const visas=X.val.length+(X.bonus?1:0);
+  // Karusell: den rätt som passar bäst stort, de andra ett svep bort (och runt igen)
+  if(FL_STYLE==='karusell'&&visas){const alla=X.val.concat(X.bonus?[X.bonus]:[]).sort((a,c)=>(c.p?c.p.summa:0)-(a.p?a.p.summa:0));
+   return'</div>'+portKarusell(alla,p,C)+'<div class="group">'+(X.antalOk>visas?'<button class="cell link" data-act="planMore" data-id="'+p.id+'"><span class="grow" style="color:var(--accent)">Fyra andra förslag</span><span class="meta">'+X.antalOk+' rätter ryms</span></button>':'')}
+  return X.val.map(x=>kort(x,p)).join('')+(X.bonus?kort(X.bonus,p):'')+(X.antalOk>visas?'<button class="cell link" data-act="planMore" data-id="'+p.id+'"><span class="grow" style="color:var(--accent)">Andra förslag</span><span class="meta">'+X.antalOk+' rätter ryms</span></button>':'')};
  PLATSER2.filter(p=>p.typ==='storkok').forEach(p=>{const X=C.plats[p.id],open=!X.valt||S.planOpen===p.id;
   h+=sh(esc(p.namn),'5 portioner · lunch mån–fre');
   let g=X.valt?kort(X.valt,p,true):'';
@@ -1003,6 +1007,35 @@ function portView(){const C=portCalc(),{P,B}=C,mon=parse(P.vecka),sun=parse(addD
  if(hemma.length)h+='<div class="foot">Finns hemma och används: '+esc(hemma.map(x=>x.k).join(', '))+'.</div>';
  h+='<div class="pl-send"><button class="btn-fill" data-act="portSend"'+(C.klar?'':' disabled')+'>Skicka till veckosedeln</button><div class="foot">'+(C.klar?'Rätterna, resterna och mackorna läggs på veckosedeln och varorna i inköpslistan.':'Varje middag behöver en rätt, rester eller macka, och båda storkoken behöver väljas.')+' Priserna är ungefärliga.</div></div>';
  return h}
+// Förslagen som stora kort i en karusell som loopar. Varje kort: bild (eller ikon), namn, pris, portioner och kort om rätten
+let FL_STYLE=lsGet('forslag')==='lista'?'lista':'karusell';
+function portKarusell(alla,p,C){const n=alla.length,i0=Math.min(Math.max(1,(S.carIdx||{})[p.id]||1),n);
+ const nx=C.dag.find(y=>y.p.dag>p.dag&&y.t!=='ratt'&&y.t!=='rest');
+ const kortet=(x,klon)=>{const r=x.r,img=r.img||imgOf(r.id),q=C.Q(p,x.n),pv=protVal(p.id,r),stars=x.l.betyg?'★ '+starNum(x.l.s):'Ny';
+  const tag=whoChip(pv?'Kött/Veg':r.who)+(x.onskad?'<span class="chip v">Önskad</span>':x.bonus?'<span class="chip g">Bonus</span>':isFav(r.id)?'<span class="chip k">Favorit</span>':'');
+  const port=p.typ==='storkok'?p.port+' portioner, lunch mån–fre':x.n>2&&nx?'Lagas '+x.n+' portioner, räcker även till '+portDag(nx.p.dag):'Lagas 2 portioner';
+  const om=[r.min?r.min+' min':'',pv?protById(pv.k).namn+' till '+kottPerson()+', '+protById(pv.v).namn.toLowerCase()+' till '+vegPerson():''].filter(Boolean).join(' · ');
+  return'<div class="car-s '+kind(r)+'"'+(klon?' aria-hidden="true"':'')+'><button class="car-img" data-act="recipe" data-id="'+esc(r.id)+'" tabindex="'+(klon?-1:0)+'" aria-label="Öppna '+esc(r.title)+'">'+(img?'<img src="'+esc(img)+'" alt="" loading="lazy" onerror="this.remove()">':'')+'<span aria-hidden="true">'+foodIcon(r.title)+'</span></button>'+
+   '<div class="car-b"><span class="chips-row">'+tag+'</span><div class="car-t">'+esc(r.title)+'</div><div class="car-m"><span>'+stars+'</span> · <span class="num">Handla för '+kr(Math.round(x.t.kassa))+'</span></div>'+
+   '<div class="car-p">'+esc(port)+'</div>'+(om?'<div class="car-o">'+esc(om)+'</div>':'')+(r.why?'<div class="car-w">'+esc(r.why)+'</div>':'')+
+   '<button class="btn-fill car-v" data-act="planPick" data-id="'+esc(r.id)+'" data-k="'+p.id+'" data-n="'+x.n+'"'+(klon?' tabindex="-1"':'')+'>Välj</button></div></div>'};
+ const sl=n>1?[kortet(alla[n-1],1)].concat(alla.map(x=>kortet(x)),[kortet(alla[0],1)]):alla.map(x=>kortet(x));
+ return'<div class="car'+(n>1?' loop':'')+'" data-car="'+p.id+'" data-n="'+n+'" data-i="'+(n>1?i0:0)+'" aria-roledescription="karusell"><div class="car-tr" style="--i:'+(n>1?i0:0)+'">'+sl.join('')+'</div></div>'+
+  (n>1?'<div class="car-dots" aria-hidden="true">'+alla.map((x,i)=>'<i'+(i+1===i0?' class="on"':'')+'></i>').join('')+'</div>':'')}
+// Svep i karusellen. Klonerna i ändarna gör att den loopar: efter sista kortet kommer det första igen
+(function(){let g=null;
+ const set=(car,i,anim)=>{const tr=car.firstElementChild,n=Number(car.dataset.n);tr.style.transition=anim?'':'none';tr.style.setProperty('--dx','0px');tr.style.setProperty('--i',i);car.dataset.i=i;
+  const k=((i-1)%n+n)%n;car.nextElementSibling&&car.nextElementSibling.querySelectorAll('i').forEach((d,j)=>d.classList.toggle('on',j===k));(S.carIdx||(S.carIdx={}))[car.dataset.car]=k+1};
+ document.addEventListener('pointerdown',e=>{const car=e.target.closest('.car.loop');if(!car||e.button>0)return;g={car,x0:e.clientX,y0:e.clientY,dx:0,a:null,id:e.pointerId}},true);
+ addEventListener('pointermove',e=>{if(!g||e.pointerId!==g.id)return;const dx=e.clientX-g.x0,dy=e.clientY-g.y0;
+  if(!g.a){if(Math.hypot(dx,dy)<8)return;g.a=Math.abs(dx)>Math.abs(dy)?'x':'y';if(g.a==='x')g.car.firstElementChild.style.transition='none'}
+  if(g.a!=='x')return;g.dx=dx;g.car.firstElementChild.style.setProperty('--dx',dx+'px')});
+ const end=e=>{if(!g||e.pointerId!==g.id)return;const s=g;g=null;if(s.a!=='x')return;
+  const w=s.car.offsetWidth*.89,i=Number(s.car.dataset.i),j=Math.abs(s.dx)>Math.min(60,w*.2)?i+(s.dx<0?1:-1):i;
+  set(s.car,j,true);const n=Number(s.car.dataset.n);
+  if(j===0||j===n+1)setTimeout(()=>{if(s.car.isConnected)set(s.car,j===0?n:1,false)},320);
+  const stop=ev=>{ev.stopPropagation();ev.preventDefault()};if(Math.abs(s.dx)>8){addEventListener('click',stop,{capture:true,once:true});setTimeout(()=>removeEventListener('click',stop,true),60)}};
+ addEventListener('pointerup',end);addEventListener('pointercancel',end)})();
 function portSend(){const C=portCalc();if(!C.klar)return;const{P}=C,me=S.me||'',vd=d=>addDays(P.vecka,d);
  PLANP=P;const menu=[],lab={};
  C.valda.forEach(p=>{const r=recipeById(P.val[p.id]),date=vd(p.dag),q=C.Q(p);lab[p.id]=planEtikett(p,date);const pv=protVal(p.id,r);
@@ -1401,6 +1434,7 @@ function renderOverlay(){
   sh('Städtid och budget')+group(fieldCell('Vardag, min','<input class="field r" id="set-wd" name="wd" inputmode="numeric" value="'+esc(st.stadtid_vardag||20)+'" style="max-width:110px">')+fieldCell('Helg, min','<input class="field r" id="set-we" name="we" inputmode="numeric" value="'+esc(st.stadtid_helg||40)+'" style="max-width:110px">')+fieldCell('Mat/vecka, kr','<input class="field r" id="set-budget" name="budget" inputmode="numeric" value="'+esc(st.matbudget||'')+'" style="max-width:110px">'))+
   sh('Utseende')+'<div class="seg-wrap">'+segc('Utseende','theme',[['system','System'],['light','Ljust'],['dark','Mörkt']],S.theme)+'</div>'+
   sh('Schemat i kalenderrutan')+'<div class="seg-wrap">'+segc('Schemat i kalenderrutan','calStyle',[['1','Tid kvar'],['2','Stapel'],['3','Tidsaxel']],CAL_STYLE)+'</div>'+
+  sh('Förslag i Planera med portioner')+'<div class="seg-wrap">'+segc('Förslag i Planera med portioner','flStyle',[['karusell','Stort kort'],['lista','Lista']],FL_STYLE)+'</div>'+
   sh('Översikten')+group('<button type="button" class="cell link" data-act="arrange"><span class="grow">Ändra ordning på rutorna</span>'+chevron+'</button>')+'<div class="foot">Gäller bara den här enheten. Du kan också hålla fingret på en ruta en stund.</div>'+
   sh('Skärm')+group(fieldCell('Väggläge','<input type="checkbox" role="switch" class="switch" data-act="wall" aria-label="Väggläge"'+(S.wall?' checked':'')+'>')+statusHtml())+
   (topic?sh('Notiser')+group('<div class="cell"><span class="grow copy">'+esc(topic)+'</span><button type="button" class="pill" data-act="copy" data-id="'+esc(topic)+'">Kopiera</button></div>')+'<div class="foot">Installera appen ntfy och prenumerera på det här ämnet. Använd servern ntfy.sh.</div>':'')+
@@ -2265,6 +2299,7 @@ const ACT={
  me(id){S.me=id;lsSet('me',id);render()},
  logout(){S.key='';S.data=null;S.sheet=null;lsSet('key',null);lsSet('cache',null);render()},
  copy(id){try{navigator.clipboard.writeText(id).then(()=>toast('Kopierat'),()=>toast('Markera och kopiera texten'))}catch(e){toast('Markera och kopiera texten')}},
+ flStyle(id){FL_STYLE=id==='lista'?'lista':'karusell';lsSet('forslag',FL_STYLE==='lista'?'lista':null);render()},
  calStyle(id){CAL_STYLE=['1','3'].includes(id)?id:'2';lsSet('calStyle',CAL_STYLE==='2'?null:CAL_STYLE);render()},
  theme(id){S.theme=['light','dark'].includes(id)?id:'system';lsSet('theme',S.theme==='system'?null:S.theme);applyTheme(true);render()},
  wall(){S.wall=!S.wall;lsSet('wall',S.wall?'1':'0');fitScrollbar();wake();render()},

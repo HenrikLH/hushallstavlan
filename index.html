@@ -593,6 +593,28 @@ button.fig-box:active{opacity:1;transform:scale(.96)}
 .pt-port .title{font-size:15px}
 .pt-btn{flex:none;color:var(--accent);font-size:15px;padding:6px 4px}
 .pt-fler .title{font-size:15px;white-space:normal}
+.group:empty{display:none}
+.car{overflow:hidden;margin:0 0 8px;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.car-tr{display:flex;align-items:stretch;transform:translateX(calc(7% - var(--i,0) * 89% + var(--dx,0px)));transition:transform .3s cubic-bezier(.25,.8,.3,1)}
+.car:not(.loop) .car-tr{transform:translateX(16px)}
+.car:not(.loop) .car-s{flex-basis:calc(100% - 32px)}
+.car-s{flex:0 0 86%;margin-right:3%;background:var(--surface);border-radius:16px;overflow:hidden;display:flex;flex-direction:column}
+.car-img{position:relative;display:grid;place-items:center;width:100%;aspect-ratio:16/10;font-size:84px;line-height:1;background:var(--fill);overflow:hidden}
+.car-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1}
+.car-s.k .car-img{background:linear-gradient(135deg,var(--meat-bg),transparent 80%),var(--fill)}
+.car-s.v .car-img{background:linear-gradient(135deg,var(--veg-bg),transparent 80%),var(--fill)}
+.car-s.g .car-img{background:linear-gradient(135deg,var(--gem-bg),transparent 80%),var(--fill)}
+.car-s.kv .car-img{background:linear-gradient(135deg,var(--meat-bg),var(--veg-bg) 60%,transparent 90%),var(--fill)}
+.car-b{display:flex;flex-direction:column;gap:4px;padding:12px 16px 16px;flex:1}
+.car-t{font-size:20px;line-height:25px;font-weight:600;margin-top:2px}
+.car-m,.car-o{font-size:15px;color:var(--ink-2)}
+.car-p{font-size:15px;font-weight:500}
+.car-w{font-size:14px;line-height:19px;color:var(--ink-2);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.car-v{margin-top:auto;height:44px;font-size:16px}
+.car-b .car-w+.car-v,.car-b .car-o+.car-v,.car-b .car-p+.car-v{margin-top:10px}
+.car-dots{display:flex;justify-content:center;gap:6px;margin:0 0 12px}
+.car-dots i{width:7px;height:7px;border-radius:50%;background:var(--ink-3);opacity:.45}
+.car-dots i.on{background:var(--accent);opacity:1}
 .pl-send{margin:20px 16px 0}
 .pl-send .btn-fill{width:100%}
 .pl-send .btn-fill[disabled]{opacity:.4}
