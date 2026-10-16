@@ -148,7 +148,10 @@
     // Återanvändning: andelen av rätten som inte behöver köpas, eller hur mycket svinn den räddar (40 kr räddat ger full)
     const andel = ensam.kr > 0 ? 1 - kassa / ensam.kr : 0, raddat = (fore.svinn - efter.svinn + ensam.svinn) / 40;
     const ateranvandning = Math.max(0, Math.min(1, Math.max(andel, raddat)));
-    return { marginal, kassa, ensam: ensam.kostnad, ateranvandning, svinnFore: fore.svinn, svinnEfter: efter.svinn };
+    // Vilka varor rätten delar: där den behöver färre nya förpackningar än om den lagades ensam, för att det blir över av en vara som redan köps (eller finns hemma)
+    const n = (k, x) => { const y = x.rad.find(r => r.k === k); return y ? y.n : 0 };
+    const delar = ensam.rad.filter(r => n(r.k, efter) - n(r.k, fore) < r.n).map(r => r.namn && r.namn.length ? r.namn[0] : r.k);
+    return { marginal, kassa, ensam: ensam.kostnad, ensamKr: ensam.kr, ateranvandning, delar, svinnFore: fore.svinn, svinnEfter: efter.svinn };
   }
   // Hur mycket som ska köpas, i ord: "2 st", "1 kg", "2 × 400 g"
   function forp(x) {

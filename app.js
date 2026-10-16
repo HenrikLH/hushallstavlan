@@ -738,9 +738,11 @@ function planCalc(){
 function planEtikett(p,date){if(p.typ==='storkok')return'Storkok '+(p.who==='Vegetariskt'?'veg':'kött');const d=['Sön','Mån','Tis','Ons','Tor','Fre','Lör'][parse(date).getDay()];return p.typ==='vardag'&&p.who==='Gemensam'?d+' middag':p.who==='Gemensam'?'Helg ('+d.toLowerCase()+')':d+' '+(p.who==='Vegetariskt'?'veg':'kött')}
 function planCard(x,p,chosen){const r=x.r,stars=x.l.betyg?'★ '+starNum(x.l.s):'Ny',re=Math.round(x.t.ateranvandning*100);
  const tag=x.onskad?'<span class="chip v">Önskad</span>':x.bonus?'<span class="chip g">Bonus</span>':isFav(r.id)?'<span class="chip k">Favorit</span>':'';
- const meta='<span>'+stars+'</span><span class="num">+'+Math.round(x.t.kassa)+' kr</span>'+(re>=20?'<span class="pl-re">'+re+' % finns redan</span>':'')+(x.ok===false?'<span class="pl-over">Över budget</span>':'');
- if(chosen)return'<div class="cell pl-c on"><button class="grow pl-b" data-act="recipe" data-id="'+esc(r.id)+'"><span class="pl-ic" aria-hidden="true">'+foodIcon(r.title)+'</span><span class="grow"><span class="title">'+esc(r.title)+'</span><span class="meta">'+meta+'</span></span></button><button class="pill" data-act="planByt" data-id="'+p.id+'">Byt</button></div>';
- return'<button class="cell pl-c" data-act="planPick" data-id="'+esc(r.id)+'" data-k="'+p.id+'"><span class="pl-ic" aria-hidden="true">'+foodIcon(r.title)+'</span><span class="grow"><span class="chips-row">'+tag+'</span><span class="title">'+esc(r.title)+'</span><span class="meta">'+meta+'</span></span><span class="pl-add" aria-hidden="true">'+I.plus+'</span></button>'}
+ const pp=r.kr?Number(r.kr):x.t.ensamKr/p.port;
+ const meta='<span>'+stars+'</span><span class="num">'+kr(pp)+'/port</span><span class="num">+'+Math.round(x.t.kassa)+' kr i kassan</span>'+(x.ok===false?'<span class="pl-over">Över budget</span>':'');
+ const delar=x.t.delar&&x.t.delar.length&&re>=10?'<span class="pl-re">Använder det som blir över av '+esc(x.t.delar.slice(0,3).join(', ')+(x.t.delar.length>3?' m.fl.':''))+'</span>':'';
+ if(chosen)return'<div class="cell pl-c on"><button class="grow pl-b" data-act="recipe" data-id="'+esc(r.id)+'"><span class="pl-ic" aria-hidden="true">'+foodIcon(r.title)+'</span><span class="grow"><span class="title">'+esc(r.title)+'</span><span class="meta">'+meta+'</span>'+delar+'</span></button><button class="pill" data-act="planByt" data-id="'+p.id+'">Byt</button></div>';
+ return'<button class="cell pl-c" data-act="planPick" data-id="'+esc(r.id)+'" data-k="'+p.id+'"><span class="pl-ic" aria-hidden="true">'+foodIcon(r.title)+'</span><span class="grow"><span class="chips-row">'+tag+'</span><span class="title">'+esc(r.title)+'</span><span class="meta">'+meta+'</span>'+delar+'</span><span class="pl-add" aria-hidden="true">'+I.plus+'</span></button>'}
 function planView(){const C=planCalc(),{P,B}=C,mon=parse(P.vecka),sun=parse(addDays(P.vecka,6));
  NB.title='Planera veckan';NB.back=true;
  const wk=isoWeek(mon);
@@ -757,7 +759,7 @@ function planView(){const C=planCalc(),{P,B}=C,mon=parse(P.vecka),sun=parse(addD
   if(p.valfri&&!X.valt&&P.v2!=='ja')g+='<button class="cell link" data-act="planV2" data-id="nej"><span class="grow" style="color:var(--ink-2)">Macka i stället</span></button>';
   h+=group(g||emptyCell('Inga rätter passar just nu.'))});
  const rad=C.korg.rad.filter(x=>x.n>0).sort((a,c)=>c.kr-a.kr),hemma=C.korg.rad.filter(x=>x.fran>0);
- if(rad.length)h+=sh('Att köpa',kr(C.korg.kr))+group(rad.map(x=>'<div class="cell"><div class="grow"><div class="title">'+esc(planVaraNamn(x))+'</div><div class="meta">'+esc(MV.forp(x))+'</div></div><span class="val">'+kr(x.kr)+'</span></div>').join(''));
+ if(rad.length)h+=sh('Att köpa',kr(C.korg.kr))+group(rad.map(x=>'<div class="cell"><div class="grow"><div class="title">'+esc(planVaraNamn(x))+'</div><div class="meta">'+esc(MV.forp(x)+' · '+C.valda.filter(p=>planBehov(recipeById(C.P.val[p.id]),p)[x.k]).map(p=>p.namn).join(', '))+'</div></div><span class="val">'+kr(x.kr)+'</span></div>').join(''));
  if(hemma.length)h+='<div class="foot">Finns hemma och används: '+esc(hemma.map(x=>x.k).join(', '))+'.</div>';
  h+='<div class="pl-send"><button class="btn-fill" data-act="planSend"'+(C.klar?'':' disabled')+'>Skicka till veckosedeln</button><div class="foot">'+(C.klar?'Rätterna läggs på veckosedeln och varorna i inköpslistan.':'Välj en rätt till varje plats först.')+' Priserna är ungefärliga.</div></div>';
  return h}
