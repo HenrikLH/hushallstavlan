@@ -1270,10 +1270,11 @@ function inkopParts(){
  const groups=[['alla','Alla'],['offer','Erbjudanden'],['Vardag','Vardag'],['Helg','Helg'],['Storkok kött','Storkok kött'],['Storkok veg','Storkok veg'],['Bas','Bas'],['egen','Egna']];
  const match=i=>f==='alla'?true:f==='offer'?!!i.offer:f==='egen'?i.source==='egen':f==='Vardag'?(i.meals||[]).some(m=>m==='Vardag'||/^(Mån|Tis|Ons|Tor)/.test(m)):(i.meals||[]).some(m=>m.startsWith(f));
  const items=all.filter(match),left=all.filter(i=>!i.done),bought=all.filter(i=>i.done);
- const total=shopCost(all),port=planPortions(),mealCost=shopCost(all.filter(i=>!isBase(i))),B=Number(st.matbudget)||0;
+ // Hela listan och Kvar att betala gäller allt på listan. Per portion och budget gäller veckans mat, samma siffror som på veckosedeln
+ const total=shopCost(all),port=veckaPortioner(),mealCost=veckaKostnad(),B=Number(st.matbudget)||0;
  const sub=left.length+' kvar · ca '+kr(shopCost(left)),tools='<button class="ib plus" data-act="shopAdd" aria-label="Ny vara">'+I.plus+'</button>';let h='';
  h+='<div class="stats'+(B?' s4':'')+'"><div class="stat"><span class="fn">Hela listan</span><b>'+nv('s-total',total,'kr')+'</b></div><div class="stat"><span class="fn">Kvar att betala</span><b>'+nv('s-left',shopCost(left),'kr')+'</b></div><div class="stat"><span class="fn">Mat per portion</span><b>'+(port?kr(mealCost/port):'–')+'</b><span class="fn">'+port+' portioner</span></div>'+
-  (B?'<div class="stat"><span class="fn">Budget '+kr(B)+'</span><b>'+(total>B?'+'+kr(total-B):kr(B-total)+' kvar')+'</b><div class="thin '+(total>B?'bad':total>B*.9?'warn':'')+'"><i style="width:'+Math.min(100,Math.round(total/B*100))+'%"></i></div></div>':'')+'</div>';
+  (B?'<div class="stat"><span class="fn">Matbudget '+kr(B)+'</span><b>'+(mealCost>B?'+'+kr(mealCost-B):kr(B-mealCost)+' kvar')+'</b><div class="thin '+(mealCost>B?'bad':mealCost>B*.9?'warn':'')+'"><i style="width:'+Math.min(100,Math.round(mealCost/B*100))+'%"></i></div></div>':'')+'</div>';
  const ask=S.confirm==='shopEmpty'?['Töm hela listan? Alla '+all.length+' varor tas bort.','shopEmptyYes','Ja, töm']:S.confirm==='shopImport'?['Hämta varorna till rätterna på veckosedeln? De ersätter varorna från förra planen. Egna varor ligger kvar.','shopImportYes','Ja, hämta']:null;
  h+=ask?'<div class="sh-ask"><span class="sub">'+esc(ask[0])+'</span><span class="pills"><button class="tb strong'+(ask[1]==='shopEmptyYes'?' red':'')+'" data-act="'+ask[1]+'">'+ask[2]+'</button><button class="tb" data-act="confirmNo">Avbryt</button></span></div>'
   :'<div class="sh-tools"><button class="pill" data-act="shopImport">'+I.imp+'Hämta från veckosedeln</button>'+(all.length?'<button class="pill red" data-act="shopEmpty">'+I.trash+'Töm listan</button>':'')+'</div>';
