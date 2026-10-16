@@ -620,7 +620,7 @@ const kind=r=>{const w=effWho(r);return w==='Kött/Veg'?'kv':w==='Henrik'?'k':w=
 // Filtren för receptbanken och inspirationen
 const RFILT=[['alla','Alla'],['k','Kött'],['v','Vegetariskt'],['kv','Kött/Veg'],['g','Gemensam'],['snabbt','Snabbt'],['storkok','Storkok'],['efter','Efterrätt']];
 function rfOk(f,r,w){return f==='alla'||(f==='snabbt'?r.min&&r.min<=30:f==='storkok'?/storkok/i.test((r.group||'')+r.title):f==='efter'?r.course==='efterrätt':f==='onskat'?w.has(r.id):kind(r)===f)}
-const fchips=(act,fs,f)=>'<div class="fchips" role="group" aria-label="Filter">'+fs.map(([k,l])=>'<button data-act="'+act+'" data-id="'+k+'" aria-pressed="'+(f===k)+'">'+l+'</button>').join('')+'</div>';
+const fchips=(act,fs,f)=>'<div class="fchips" role="group" aria-label="Filter">'+fs.map(([k,l])=>'<button data-act="'+act+'" data-id="'+k+'" aria-pressed="'+(f2===k)+'">'+l+'</button>').join('')+'</div>';
 // Stort kort med bild, hjärta och bokmärke. Används i receptbanken och bland inspirationen
 function rCard(r,o){o=o||{};const g=ratingOf(r.id),wished=o.wish&&o.wish.has(r.id),img=r.img||imgOf(r.id);
  return'<article class="bcard '+kind(r)+'"><div class="bimgw"><button class="bimg" data-act="recipe" data-id="'+esc(r.id)+'" aria-label="Öppna '+esc(r.title)+'">'+(img?'<img src="'+esc(img)+'" alt="" loading="lazy">':'<span aria-hidden="true">'+foodIcon(r.title)+'</span>')+'</button>'+bookBtn(r,'bc-gl')+favBtn(r,'bc-gl')+'</div>'+
@@ -1267,8 +1267,10 @@ function matRecipes(){
 // Inköpslistan visas som en flik i Mat; ger rubrikens undertext, verktyg och innehåll
 function inkopParts(){
  const d=D(),all=d.shop,f=S.shopFilter,st=settings();
- const groups=[['alla','Alla'],['offer','Erbjudanden'],['Vardag','Vardag'],['Helg','Helg'],['Storkok kött','Storkok kött'],['Storkok veg','Storkok veg'],['Bas','Bas'],['egen','Egna']];
- const match=i=>f==='alla'?true:f==='offer'?!!i.offer:f==='egen'?i.source==='egen':f==='Vardag'?(i.meals||[]).some(m=>m==='Vardag'||/^(Mån|Tis|Ons|Tor)/.test(m)):(i.meals||[]).some(m=>m.startsWith(f));
+ // Filtret visar butikens avdelningar som finns på listan, så man kan handla en avdelning i taget
+ const kats=CATS.filter(c=>all.some(i=>shopKat(i)===c)),f2=f==='offer'&&all.some(i=>i.offer)||kats.includes(f)?f:'alla';
+ const groups=[['alla','Alla']].concat(all.some(i=>i.offer)?[['offer','Erbjudanden']]:[],kats.map(c=>[c,c+' '+all.filter(i=>shopKat(i)===c&&!i.done).length]));
+ const match=i=>f2==='alla'?true:f2==='offer'?!!i.offer:shopKat(i)===f2;
  const items=all.filter(match),left=all.filter(i=>!i.done),bought=all.filter(i=>i.done);
  // Hela listan och Kvar att betala gäller allt på listan. Per portion och budget gäller veckans mat, samma siffror som på veckosedeln
  const total=shopCost(all),port=veckaPortioner(),mealCost=veckaKostnad(),B=Number(st.matbudget)||0;
@@ -1283,7 +1285,7 @@ function inkopParts(){
  h+='<div class="fchips" role="group" aria-label="Filter">'+groups.map(([k,l])=>'<button data-act="shopFilter" data-id="'+esc(k)+'" aria-pressed="'+(f===k)+'">'+l+'</button>').join('')+'</div>';
  h+='<div class="split"><div class="col">';
  if(!all.length)h+='<div style="height:22px"></div>'+group(emptyCell('Listan är tom. Tryck på Hämta varor för veckans rätter, eller lägg till egna varor med plus.'));
- CATS.forEach(c=>{const g=items.filter(i=>(CATS.includes(i.cat)?i.cat:'Övrigt')===c).sort((a,b)=>(a.done-b.done)||(a.order||0)-(b.order||0));if(!g.length)return;
+ CATS.forEach(c=>{const g=items.filter(i=>shopKat(i)===c).sort((a,b)=>(a.done-b.done)||(a.order||0)-(b.order||0));if(!g.length)return;
   h+=sh(c,kr(shopCost(g)))+group(g.map(shopRow).join(''))});
  if(bought.length)h+='<div class="pills" style="padding:12px 16px 0 24px">'+(S.confirm==='clearShop'?'<span class="sub">Ta bort '+bought.length+' avbockade?</span><button class="tb red strong" data-act="clearShopYes">Ja, ta bort</button><button class="tb" data-act="confirmNo">Avbryt</button>':'<button class="tb red" data-act="clearShop">Rensa avbockade ('+bought.length+')</button>')+'</div>';
  h+='</div><div class="col">';
@@ -1293,11 +1295,17 @@ function inkopParts(){
  return{sub,tools,body:h+'</div></div>'}}
 /* Hämta från veckosedeln: räknar fram varorna till veckans rätter (middagar 2 eller 4 portioner, storkok 5 eller 10)
    och skickar veckan på nytt med planSend, som byter ut förra planens varor och låter egna varor ligga kvar */
-// Samma kategorier som catOf_ i Kod.gs, så att varorna hamnar rätt innan arket har svarat
-function katGissa(n){n=String(n).toLowerCase();
- return /kyckling|fläsk|nöt|färs|korv|bacon|lax|torsk|sej|fisk|räk|kalkon|lamm|skinka/.test(n)?'Kött & fisk':/mjölk|grädde|kvarg|yoghurt|ost|smör|ägg|keso|crème|fraiche|feta|halloumi/.test(n)?'Mejeri & ägg':/fryst|frysta/.test(n)?'Frys':/bröd|tortilla|pita|bulle/.test(n)?'Bröd'
- :/lök|vitlök|morot|potatis|tomat|gurka|paprika|sallad|spenat|kål|broccoli|zucchini|aubergine|svamp|champinjon|citron|lime|äpple|banan|bär|ingefära|persilja|koriander|dill|basilika|purjo|selleri|rödbet|squash|avokado|pumpa|majs/.test(n)?'Frukt & grönt'
- :/pasta|ris|bulgur|matvete|linser|bönor|kikärt|mjöl|havre|nötter|frön|olja|buljong|krossade|konserv|socker|kryddor|spiskummin|gurkmeja|paprikapulver|curry|soja|vinäger|honung|quinoa|couscous/.test(n)?'Torrvaror':'Övrigt'}
+// Avdelning i butiken räknas fram i appen från varans namn, utan att fråga kalkylarket.
+// Ordningen spelar roll: "krossade tomater" är torrvara, "kokosmjölk" och "jordnötssmör" är inte mejeri. Okänt hamnar i Övrigt
+const KAT=[['Frys',/fryst|frysta|frysen|glass\b|edamame/],
+ ['Torrvaror',/torkade|gula ärtor|pasta|spaghetti|spagetti|makaron|penne|fusilli|lasagneplattor|nudlar|(^|\s)ris\b|jasminris|basmatiris|fullkornsris|risotto|bulgur|matvete|couscous|quinoa|linser|bönor|kikärt|mjöl(?!k)|havre|gryn|flingor|müsli|nötter|mandel|cashew|valnöt|jordnöt|hasselnöt|frön|sesam|olja|buljong|fond\b|krossade|passerade|tomatpuré|konserv|burk|socker|honung|sirap|kryddor|spiskummin|gurkmeja|kanel|paprikapulver|chiliflakes|curry|garam|oregano|timjan torkad|soja|vinäger|kokosmjölk|kokos|tahini|pesto|ketchup|senap|majonnäs|sambal|sriracha|sås\b|salt\b|peppar\b|bakpulver|jäst|kakao|russin|dadlar|tonfisk|sylt/],
+ ['Kött & fisk',/kyckling|fläsk|nötkött|nötfärs|färs|korv|bacon|lax|torsk|sej\b|fisk|räk|kalkon|lamm|skinka|sidfläsk|lägg\b|biff|entrecote|karré|kotlett|köttbull|makrill|sill\b|salami|chorizo|kassler|högrev|grytbitar|gris|filé|kött/],
+ ['Mejeri & ägg',/mjölk|grädde|gräddfil|crème|creme|fraiche|kvarg|yoghurt|(^|[^r])ost(ar)?\b|smör|ägg|keso|kesella|cottage|feta|halloumi|mozzarella|parmesan|ricotta|mascarpone|havredryck|ostdryck|filmjölk|(^|\s)fil(\s|$)|tzatziki/],
+ ['Bröd',/bröd|tortilla|pita|bulle|bullar|knäcke|baguette|fralla|frallor|wraps|naan|tunnbröd|ciabatta|limpa/],
+ ['Frukt & grönt',/lök|vitlök|morot|morötter|potatis|tomat|gurka|paprika|sallad|sallat|isberg|rucola|ruccola|spenat|kål|broccoli|blomkål|zucchini|squash|aubergine|svamp|champinjon|citron|lime|äpple|päron|banan|apelsin|clementin|mandarin|mango|kiwi|melon|vindruv|druvor|plommon|bär\b|blåbär|hallon|jordgubb|ingefära|persilja|koriander|dill|basilika|mynta|gräslök|timjan|rosmarin|örter|purjo|selleri|rödbet|rotfrukt|kålrot|palsternacka|sötpotatis|rädis|fänkål|sparris|avokado|pumpa|majs|chili|böngroddar|sockerärt|haricots|edamame|groddar/]];
+function katGissa(n){n=String(n||'').toLowerCase();const k=KAT.find(([,re])=>re.test(n));return k?k[0]:'Övrigt'}
+// Egna varor behåller avdelningen man valde själv; allt annat räknas fram från namnet
+function shopKat(i){return i.source==='egen'&&CATS.includes(i.cat)&&i.cat!=='Övrigt'?i.cat:katGissa(i.name)}
 function shopImport(){
  // planSend byter ändå ut alla varor från planer, så de behöver inte raderas en och en först (det tog lång tid).
  // Bara egna varor som väntar på att tas bort skickas, och redan köade raderingar av planvaror stryks ur utkorgen
@@ -1757,7 +1765,7 @@ function renderOverlay(){
   o.innerHTML=sheetHtml('rate','Betyg','<button class="tb strong">Spara</button>',body,enter);return}
  if(k==='shop'){
   const body='<div style="height:16px"></div>'+group('<div class="cell"><input class="field" id="shop-name" name="name" placeholder="Vara, t.ex. havregryn" required autocomplete="off" aria-label="Vara"></div><div class="cell"><input class="field" id="shop-qty" name="qty" placeholder="Mängd" aria-label="Mängd"></div><div class="cell"><input class="field" id="shop-price" name="price" inputmode="decimal" placeholder="Pris kr" aria-label="Pris kr"></div>'+
-   fieldCell('Kategori',menuSel('id="shop-cat" name="cat"',CATS.map(c=>'<option>'+c+'</option>').join(''))));
+   fieldCell('Avdelning',menuSel('id="shop-cat" name="cat"','<option value="">Automatiskt</option>'+CATS.map(c=>'<option>'+c+'</option>').join(''))));
   o.innerHTML=sheetHtml('shop','Ny vara','<button class="tb strong">Lägg till</button>',body,enter);return}
  if(k==='task'){
   const body='<div style="height:16px"></div>'+group('<div class="cell"><input class="field" id="task-title" name="title" placeholder="Vad behöver göras?" required autocomplete="off" aria-label="Uppgift"></div>'+
@@ -2780,9 +2788,9 @@ document.addEventListener('submit',async e=>{const f=e.target.closest('[data-for
  if(f.dataset.form==='setup'){S.key=String(d.key||'').trim().toLowerCase();S.error='';S.sync='busy';render();
   try{const data=await apiGet();lsSet('key',S.key);setData(data);S.sync='idle';if(!S.me)S.sheet='settings'}catch(err){S.error=err.message;S.key=''}render();return}
  if(f.dataset.form==='shop'){if(!d.name.trim())return;const price=parseFloat(String(d.price||'').replace(',','.'));
-  D().shop.push({id:'tmp'+Date.now(),done:false,name:d.name.trim(),qty:d.qty.trim(),cat:d.cat,meals:[],price:isNaN(price)?null:price,offer:'',source:'egen',addedBy:S.me,order:1000});
+  const cat=d.cat||katGissa(d.name);D().shop.push({id:'tmp'+Date.now(),done:false,name:d.name.trim(),qty:d.qty.trim(),cat,meals:[],price:isNaN(price)?null:price,offer:'',source:'egen',addedBy:S.me,order:1000});
   f.reset();render();setTimeout(()=>document.getElementById('shop-name')?.focus(),30);
-  apiPost({action:'shopAdd',name:d.name.trim(),qty:d.qty.trim(),cat:d.cat,price:isNaN(price)?'':price});toast('Tillagd')}
+  apiPost({action:'shopAdd',name:d.name.trim(),qty:d.qty.trim(),cat,price:isNaN(price)?'':price});toast('Tillagd')}
  if(f.dataset.form==='task'){if(!d.title.trim())return;
   const rp=repName(d.repeat)?d.repeat:'',due=d.due||(rp?today():'');
   D().tasks.push({id:'tmp'+Date.now(),done:false,title:d.title.trim(),due,who:d.who||'',note:'',source:'egen',repeat:rp});S.taskAdd=false;render();
