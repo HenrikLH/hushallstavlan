@@ -1499,7 +1499,7 @@ function calWidget(){const t=today(),wk=[];for(let i=0;i<7;i++)wk.push(addDays(t
  // under ett streck: dagens att göra-uppgifter med egen rubrik
  const ts=D().tasks.filter(x=>x.due===sel&&!x.done);
  // saknade stående överföringar visas bara för den det gäller och aldrig på väggen
- const ovs=wallBoardOn()||!people().includes(S.me)?[]:[['shared',ovOpen('shared')],[S.me,ovOpen(S.me)]].flatMap(([l,a])=>a.map(c=>({l,c})));
+ const ovs=S.wall||wallBoardOn()||!people().includes(S.me)?[]:[['shared',ovOpen('shared')],[S.me,ovOpen(S.me)]].flatMap(([l,a])=>a.map(c=>({l,c})));
  const todo=(ts.length||ovs.length)&&!wallBoardOn()?'<div class="wk-todo wk-link" data-act="taskList" role="link" tabindex="0" aria-label="Att göra, öppna Uppgifter"><div class="wk-sub">Att göra</div><div class="evs">'+
   ovs.map(x=>'<div class="ev task ov-task" data-act="ovGo" data-id="'+esc(x.l+'|'+x.c.id)+'" role="link" tabindex="0"><span>'+(ovState(x.c)==='andrad'?'Uppdatera':'Lägg in')+' stående överföring: '+esc(x.c.name)+'</span></div>').join('')+
   ts.map(x=>'<div class="ev task"><span>'+esc(x.title)+evWho(x)+'</span></div>').join('')+'</div></div>':'';
@@ -2307,13 +2307,14 @@ function splitPreview(el){const v=Number(String(el.value).replace(/\s/g,'').repl
 function ovWarn(l){const n=ovOpen(l).length;if(!n)return'';
  return'<button class="ov-warn" data-act="ovNext" data-list="'+esc(l)+'"><span class="ovs saknas" aria-hidden="true">!</span><span class="grow"><b>'+(n===1?'1 utgift saknar':n+' utgifter saknar')+' stående överföring</b><span>Lägg in '+(n===1?'den':'dem')+' i banken och bocka av här</span></span>'+chevron+'</button>'}
 function ovAllOk(l){const n=ekoList(l).length;return n&&!ovOpen(l).length?'<div class="foot ov-allok">'+I.tick+(n===1?'Har':'Alla '+n+' har')+' en stående överföring från '+esc(ovFrom(l))+'</div>':''}
-// I väggläge är Ekonomi låst med en kod. Låset går i igen när man lämnar Ekonomi. Inga gränser för antal försök.
-const EKO_PIN='1912';
+// I väggläge och på gemensam skärm (ingen vald person) är Ekonomi låst med en kod, oavsett skärmstorlek.
+// Låset går i igen när man lämnar Ekonomi. Inga gränser för antal försök.
+const EKO_PIN='1912',ekoLocked=()=>(S.wall||!people().includes(S.me))&&!S.ekoOpen;
 function ekoLock(){const n=(S.pin||'').length;
  return'<div class="pin'+(S.pinBad?' bad':'')+'"><div class="pin-ic">'+I.lock+'</div><h2>Ekonomi är låst</h2><div class="fn">Skriv koden för att öppna</div>'+
   '<div class="pin-dots" aria-label="'+n+' av 4 siffror">'+[0,1,2,3].map(i=>'<i class="'+(i<n?'on':'')+'"></i>').join('')+'</div>'+
   '<div class="pin-pad">'+['1','2','3','4','5','6','7','8','9','','0','del'].map(k=>k===''?'<span></span>':'<button class="pin-k'+(k==='del'?' del':'')+'" data-act="pin" data-id="'+k+'" aria-label="'+(k==='del'?'Radera':k)+'">'+(k==='del'?'Radera':k)+'</button>').join('')+'</div></div>'}
-V.ekonomi=function(){if(wallBoardOn()&&!S.ekoOpen)return ekoLock();const m=S.ekoMonth||thisMonth(),c=ekoCalc(m),o=c.o;
+V.ekonomi=function(){if(ekoLocked())return ekoLock();const m=S.ekoMonth||thisMonth(),c=ekoCalc(m),o=c.o;
  let h=head('Ekonomi',{sub:'Fasta utgifter och fördelning',tools:'<button class="ib plus" data-act="ekoCost" data-list="shared" aria-label="Ny utgift">'+I.plus+'</button>'});
  h+='<div class="mswitch"><button class="ib" data-act="ekoMonth" data-d="-1" aria-label="Förra månaden">'+I.back+'</button><div class="hl">'+esc(cap(monthName(m)))+'</div><button class="ib flip" data-act="ekoMonth" data-d="1" aria-label="Nästa månad">'+I.back+'</button></div>';
  // Inkomst och fördelning
@@ -2559,7 +2560,7 @@ const ACT={
  ekoCost(id,el){S.ekoEdit={list:el.dataset.list,id:id||null};S.sheet='cost';render()},
  ovShow(id,el){S.ekoEdit=null;S.ovEdit={list:el&&el.dataset.list||'shared',id};S.sheet='ov';render()},
  ovNext(id,el){const l=el&&el.dataset.list||'shared',c=ovOpen(l)[0];if(c)ACT.ovShow(c.id,{dataset:{list:l}})},
- ovGo(id){const[l,cid]=String(id).split('|');ACT.nav('ekonomi');if(!wallBoardOn())ACT.ovShow(cid,{dataset:{list:l}})},
+ ovGo(id){const[l,cid]=String(id).split('|');ACT.nav('ekonomi');if(!ekoLocked())ACT.ovShow(cid,{dataset:{list:l}})},
  pin(k){S.pinBad=false;S.pin=k==='del'?(S.pin||'').slice(0,-1):((S.pin||'')+k).slice(0,4);
   if(S.pin.length===4){if(S.pin===EKO_PIN){S.ekoOpen=true;S.pin=''}else{S.pinBad=true;S.pin='';setTimeout(()=>{S.pinBad=false;render()},600)}}render()},
  ovLater(){closeSheets();render()},
