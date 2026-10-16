@@ -418,7 +418,7 @@ function doRender(){applyPersonColors();
  A.before(m);
  m.innerHTML=banner+(V[S.view]||V.oversikt)();
  placeSky();fitBoard();
- watchTitle();plPin();
+ watchTitle();plPin();vvFix();
  A.after(m);
 }
 document.addEventListener('focusout',e=>{setTimeout(()=>{if(pendingRender&&!busyTyping())render()},50);
@@ -2684,6 +2684,14 @@ document.addEventListener('touchend',()=>{const el=SWP.el;if(!el)return;SWP.el=n
 // Planera veckan: visa den lilla budgetraden när den stora rutan har gått in under navigeringsfältet
 function plPin(){const m=document.querySelector('.pl-mini'),b=document.querySelector('.pl-bud');if(!m||!b)return;const nb=document.getElementById('navbar'),top=nb?nb.getBoundingClientRect().bottom:0;m.classList.toggle('show',b.getBoundingClientRect().bottom<top+4)}
 document.addEventListener('scroll',plPin,{passive:true});if(window.visualViewport)visualViewport.addEventListener('resize',plPin);
+// iPhone: ibland hamnar skärmen förskjuten mot sidan (oftast efter tangentbordet), och då följer flikraden och listen
+// högst upp med när man scrollar. Vi mäter förskjutningen och flyttar tillbaka dem till skärmens kanter
+function vvFix(){const v=window.visualViewport,r=document.documentElement;if(!v)return;
+ const a=document.activeElement,typing=a&&a.matches&&a.matches('input,textarea,select,[contenteditable]');
+ let t=0,b=0;if(!typing&&v.scale<1.01){t=Math.round(v.offsetTop);if(Math.abs(t)<2)t=0;b=t}
+ r.style.setProperty('--vvt',t+'px');r.style.setProperty('--vvb',b+'px')}
+if(window.visualViewport){visualViewport.addEventListener('resize',vvFix);visualViewport.addEventListener('scroll',vvFix)}
+document.addEventListener('scroll',vvFix,{passive:true});document.addEventListener('focusin',vvFix);document.addEventListener('focusout',()=>[0,120,450].forEach(t=>setTimeout(vvFix,t)));
 document.addEventListener('touchcancel',()=>{if(SWP.el){swpSet(SWP.el,0,true);SWP.el=null}},{passive:true});
 // Ett svep ska inte räknas som ett tryck på raden, och ett tryck på en öppen rad stänger den
 document.addEventListener('click',e=>{const el=e.target.closest('.dr-slide');if(!el)return;
