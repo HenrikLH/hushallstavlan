@@ -413,7 +413,10 @@ function doRender(){applyPersonColors();
  watchTitle();plPin();
  A.after(m);
 }
-document.addEventListener('focusout',()=>setTimeout(()=>{if(pendingRender&&!busyTyping())render()},50));
+document.addEventListener('focusout',e=>{setTimeout(()=>{if(pendingRender&&!busyTyping())render()},50);
+ /* iPhone: när tangentbordet stängs kan sidan bli kvar förskjuten, så att menyn längst ner och fälten som ska
+    följa med vid scroll hamnar fel. En scroll till samma ställe får Safari att räkna om, när tangentbordet har gått ner */
+ if(e.target&&e.target.matches&&e.target.matches('input,textarea,select'))[120,450].forEach(t=>setTimeout(()=>{const a=document.activeElement;if(!a||!a.matches('input,textarea,select'))window.scrollTo(window.scrollX,window.scrollY)},t))});
 function setupHtml(){return'<form class="setup" data-form="setup"><h1 class="lt">Hemma</h1><p>Skriv hushållets kod för att öppna tavlan. Du behöver bara göra det en gång på den här enheten.</p>'+
  '<div class="sh">Hushållskod</div><div class="group"><div class="cell"><input id="setup-key" name="key" class="field" placeholder="t.ex. lingon-tass-42" autocomplete="off" autocapitalize="none" spellcheck="false" required></div></div>'+
  '<div class="block"><button class="btn-fill" style="width:100%">Öppna tavlan</button></div>'+(S.error?'<div class="banner">'+esc(S.error)+'</div>':'')+'</form>'}
@@ -825,7 +828,7 @@ function planCalc(){
 function planEtikett(p,date){if(p.typ==='storkok')return'Storkok '+(p.who==='Vegetariskt'?'veg':'kött');const d=['Sön','Mån','Tis','Ons','Tor','Fre','Lör'][parse(date).getDay()];return p.typ==='vardag'&&p.who==='Gemensam'?d+' middag':p.who==='Gemensam'?'Helg ('+d.toLowerCase()+')':d+' '+(p.who==='Vegetariskt'?'veg':'kött')}
 function planCard(x,p,chosen){const r=x.r,stars=x.l.betyg?'★ '+starNum(x.l.s):'Ny',re=Math.round(x.t.ateranvandning*100);
  const pv=protVal(p.id,r);
- const tag=(pv?'<span class="chip kv">Kött/Veg</span>':'')+(x.onskad?'<span class="chip v">Önskad</span>':x.bonus?'<span class="chip g">Bonus</span>':isFav(r.id)?'<span class="chip k">Favorit</span>':'');
+ const tag=whoChip(pv?'Kött/Veg':r.who)+(x.onskad?'<span class="chip v">Önskad</span>':x.bonus?'<span class="chip g">Bonus</span>':isFav(r.id)?'<span class="chip k">Favorit</span>':'');
  const pp=pv?protBasPris(r)+(protPris(protById(pv.k))+protPris(protById(pv.v)))/2:r.kr?Number(r.kr):x.t.ensamKr/p.port;
  const meta='<span>'+stars+'</span><span class="num">'+kr(pp)+'/port</span><span class="num">+'+Math.round(x.t.kassa)+' kr i kassan</span>'+(!chosen&&x.ok===false?'<span class="pl-over">Ryms inte med resten av veckan</span>':'');
  // Hur mycket billigare rätten blir tillsammans med veckans andra val, och en infoknapp som visar vilka varor som återanvänds
@@ -2268,7 +2271,7 @@ document.addEventListener('touchend',()=>{const el=SWP.el;if(!el)return;SWP.el=n
  const ow=swpW(el);swpSet(el,x<-ow/2?-ow:0,true)});
 // Planera veckan: visa den lilla budgetraden när den stora rutan har gått in under navigeringsfältet
 function plPin(){const m=document.querySelector('.pl-mini'),b=document.querySelector('.pl-bud');if(!m||!b)return;const nb=document.getElementById('navbar'),top=nb?nb.getBoundingClientRect().bottom:0;m.classList.toggle('show',b.getBoundingClientRect().bottom<top+4)}
-document.addEventListener('scroll',plPin,{passive:true});
+document.addEventListener('scroll',plPin,{passive:true});if(window.visualViewport)visualViewport.addEventListener('resize',plPin);
 document.addEventListener('touchcancel',()=>{if(SWP.el){swpSet(SWP.el,0,true);SWP.el=null}},{passive:true});
 // Ett svep ska inte räknas som ett tryck på raden, och ett tryck på en öppen rad stänger den
 document.addEventListener('click',e=>{const el=e.target.closest('.dr-slide');if(!el)return;
