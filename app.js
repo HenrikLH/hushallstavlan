@@ -268,8 +268,14 @@ let fitScrollbar=()=>{};
  document.addEventListener('contextmenu',e=>{if(e.target.closest('#clock'))e.preventDefault()})})();
 
 /* ---------- api ---------- */
+/* Ta bort en vara med svep. Raden försvinner direkt, men borttagningen skickas först när Ångra har försvunnit (5 s),
+   när nästa vara tas bort eller när appen läggs undan */
+const DEL={item:null,idx:-1,t:0};
+function delCommit(){if(!DEL.item)return;clearTimeout(DEL.t);const id=DEL.item.id;DEL.item=null;undoHide();apiPost({action:'shopDelete',id})}
+function undoHide(){const u=document.getElementById('undo');if(u)u.hidden=true}
+addEventListener('visibilitychange',()=>{if(document.hidden)delCommit()});
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>t.hidden=true,2800)}
-function setData(d){S.data=d;S.lastSync=new Date();S.error='';try{lsSet('cache',JSON.stringify(d))}catch(e){}}
+function setData(d){if(d&&DEL.item&&Array.isArray(d.shop))d.shop=d.shop.filter(x=>x.id!==DEL.item.id);S.data=d;S.lastSync=new Date();S.error='';try{lsSet('cache',JSON.stringify(d))}catch(e){}}
 async function apiGet(){
  const r=await fetch(CFG.api+'?key='+encodeURIComponent(S.key)+'&t='+Date.now(),{cache:'no-store'});
  const j=await r.json();if(!j.ok)throw new Error(j.error||'Okänt fel');return j.data}
@@ -1255,7 +1261,8 @@ function inkopParts(){
  const offers=all.filter(i=>i.offer);
  if(offers.length)h+=sh('Erbjudanden på listan')+group(offers.map(i=>'<div class="cell"><div class="grow"><div class="title">'+esc(i.name)+'</div><div class="meta">'+esc(i.offer)+'</div></div></div>').join(''))+'<div class="foot">Priserna är uppskattade. Kolla hyllkanten i butiken.</div>';
  return{sub,tools,body:h+'</div></div>'}}
-function shopRow(i){const chips=(i.offer?'<span class="chip offer">'+esc(i.store||'Erbjudande')+'</span>':'')+(i.meals||[]).map(m=>'<span class="chip">'+esc(m)+'</span>').join('')+(i.source==='egen'&&i.addedBy?'<span class="chip">'+esc(i.addedBy)+'</span>':'');
+function shopRow(i){return'<div class="dr-wrap"><button class="dr-act del" data-act="shopDel" data-full="shopDel" data-id="'+esc(i.id)+'" aria-label="Ta bort '+esc(i.name)+'">'+I.trash+'<span>Ta bort</span></button>'+shopRowIn(i).replace('<div class="cell ck','<div class="cell dr-slide ck')+'</div>'}
+function shopRowIn(i){const chips=(i.offer?'<span class="chip offer">'+esc(i.store||'Erbjudande')+'</span>':'')+(i.meals||[]).map(m=>'<span class="chip">'+esc(m)+'</span>').join('')+(i.source==='egen'&&i.addedBy?'<span class="chip">'+esc(i.addedBy)+'</span>':'');
  return'<div class="cell ck'+(i.done?' done':'')+'"><input type="checkbox" class="check" data-act="shopToggle" data-id="'+esc(i.id)+'" aria-label="'+esc(i.name)+'"'+(i.done?' checked':'')+'><button class="grow rowbtn" data-act="shopToggle" data-id="'+esc(i.id)+'"><div class="title">'+esc(i.name)+'</div>'+((i.qty||chips)?'<div class="meta">'+(i.qty?'<span>'+esc(i.qty)+'</span>':'')+chips+'</div>':'')+'</button><span class="val">'+(i.price?kr(i.price):'')+'</span></div>'}
 
 function scaled(r){const p=S.scale[r.id]||r.portions;return{p,f:p/r.portions}}
@@ -2560,6 +2567,9 @@ const ACT={
  timerStop(id){S.timers=S.timers.filter(t=>t.k!==id);tick()},
  shopFilter(id){S.shopFilter=id;render()},
  shopAdd(){S.shopAdd=!S.shopAdd;render();if(S.shopAdd)setTimeout(()=>document.getElementById('shop-name')?.focus(),30)},
+ shopDel(id){delCommit();const list=D().shop,idx=list.findIndex(x=>x.id===id);if(idx<0)return;DEL.item=list[idx];DEL.idx=idx;S.data.shop=list.filter(x=>x.id!==id);render();
+  const u=document.getElementById('undo');u.querySelector('.ud-t').textContent=DEL.item.name+' togs bort';u.hidden=false;DEL.t=setTimeout(delCommit,5000)},
+ shopUndo(){if(!DEL.item)return;clearTimeout(DEL.t);const list=D().shop.slice();list.splice(Math.min(DEL.idx,list.length),0,DEL.item);S.data.shop=list;DEL.item=null;undoHide();render()},
  shopToggle(id){const i=D().shop.find(x=>x.id===id);if(!i)return;const done=!i.done;checkAnim(id,done,()=>{mutate('shop',id,{done});apiPost({action:'shopToggle',id,done})})},
  clearShop(){S.confirm='clearShop';render()},
  clearShopYes(){S.confirm=null;leaveAnim('shopToggle',D().shop.filter(i=>i.done),()=>{S.data.shop=D().shop.filter(i=>!i.done);render();apiPost({action:'shopClearDone'})})},

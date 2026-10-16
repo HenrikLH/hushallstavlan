@@ -239,6 +239,7 @@ function doPost(e) {
         break;
       }
       case 'shopClearDone': deleteDone_('shop'); break;
+      case 'shopDelete': { let r = 0; try { r = findRow_('shop', String(b.id || '')); } catch (err) {} if (r) sheet_('shop').deleteRow(r); break; }
       case 'taskToggle': {
         const row = findRow_('tasks', b.id);
         const t = readTab_('tasks').filter(function (x) { return x.id === b.id; })[0];
@@ -422,9 +423,9 @@ function planSend_(b, by) {
   menu.forEach(function (m) {
     msh.appendRow([m.date, S(m.who, 30), S(m.title), S(m.recipe, 60), S(m.addon), S(m.note)]);
   });
-  // Inköp: ta bort det som skickades för samma vecka och inte är köpt, lägg sedan till veckans varor
+  // Inköp: töm listan på allt utom det ni själva har lagt till och inte köpt än, lägg sedan till veckans varor
   const tag = 'plan' + b.start.replace(/-/g, ''), ssh = sheet_('shop');
-  readTab_('shop').filter(function (i) { return !i.done && String(i.id).indexOf(tag) === 0; })
+  readTab_('shop').filter(function (i) { return i.done || i.source !== 'egen'; })
     .map(function (i) { return i._row; }).sort(function (a, c) { return c - a; }).forEach(function (r) { ssh.deleteRow(r); });
   shop.forEach(function (i, n) {
     if (!i.name) return;
