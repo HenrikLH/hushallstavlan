@@ -1136,7 +1136,7 @@ function autoGen(X,seed){const P=X.P,lock=P.lock||{},rng=seedRng(P.vecka+'|'+see
  for(let d=0;d<7;d++)if(!lock['d'+d]&&pl.dag[d].t!=='rest'){const id=pick('d'+d,pl,3);if(id)pl.dag[d]={t:'ratt',id,n:2}}
  autoNorm(pl,lock);
  // Gör om: rätterna från förra förslaget (utom de låsta) får ett avdrag, så att det blir en ny vecka
- X.undvik=old&&seed>0?new Set(autoItems(old).filter(x=>!lock[x.key]).map(x=>x.id)):null;
+ X.undvik=old&&seed>0&&!X.behall?new Set(autoItems(old).filter(x=>!lock[x.key]).map(x=>x.id)):null;
  let cur=pl,cv=autoEval(cur,X).val,best=cur,bv=cv;const N=1400;
  for(let i=0;i<N;i++){const T=8*Math.pow(.2/8,i/N),q=autoClone(cur),m=rng(),d=Math.floor(rng()*7),k='d'+d;
   if(m<.42){if(lock[k])continue;const id=pick(k,q);if(!id)continue;const was=q.dag[d];if(was.t==='rest')q.dag[d-1].n=2;q.dag[d]={t:'ratt',id,n:was.t==='ratt'?was.n:2}}
@@ -1149,6 +1149,8 @@ function autoGen(X,seed){const P=X.P,lock=P.lock||{},rng=seedRng(P.vecka+'|'+see
  X.undvik=null;return best}
 function autoState(){const P=planState();P.lock=P.lock||{};P.prio=P.prio||'balans';P.skMode=P.skMode||'auto';P.gen=P.gen||0;return P}
 // Håller val och protein i samma form som de andra planerarna, så att proteinbladet fungerar
+// Nytt förslag efter ändrat val: låsta rätter behålls, övriga räknas om med de nya vikterna
+function autoNy(P){PLANP=P;const X=autoCtx(P);X.behall=1;P.plan=autoGen(X,P.gen);P.plan.vecka=P.vecka;autoSync(P);PLANP=null;planSave(P)}
 function autoSync(P){P.val={};if(P.plan)autoItems(P.plan).forEach(x=>P.val[x.key]=x.id)}
 function autoCalc(){const P=autoState();PLANP=P;let X=autoCtx(P);
  if(!P.plan||!P.plan.dag||P.plan.vecka!==P.vecka){P.plan=autoGen(X,P.gen);P.plan.vecka=P.vecka;autoSync(P);planSave(P);X=autoCtx(P)}
@@ -2469,8 +2471,8 @@ const ACT={
  planByt(id){S.planOpen=S.planOpen===id?null:id;render()},
  planUnpick(id){const P=planState();delete P.val[id];if(P.port)delete P.port[id];planSave(P);S.planOpen=null;render()},
  autoOpen(){S.plan='auto';S.planOpen=null;window.scrollTo(0,0);render()},
- autoPrio(id){const P=autoState();P.prio=AUTO_W[id]?id:'balans';P.plan=null;planSave(P);render()},
- autoSk(id){const P=autoState();P.skMode=['two','gem'].includes(id)?id:'auto';['sk','sv','sg'].forEach(k=>delete P.lock[k]);P.plan=null;planSave(P);render()},
+ autoPrio(id){const P=autoState();P.prio=AUTO_W[id]?id:'balans';autoNy(P);render()},
+ autoSk(id){const P=autoState();P.skMode=['two','gem'].includes(id)?id:'auto';['sk','sv','sg'].forEach(k=>delete P.lock[k]);autoNy(P);render()},
  autoGor(){const P=autoState();P.gen++;PLANP=P;const X=autoCtx(P);P.plan=autoGen(X,P.gen);P.plan.vecka=P.vecka;autoSync(P);PLANP=null;planSave(P);render();toast('Ny vecka föreslagen')},
  autoLock(id){const P=autoState();if(P.lock[id])delete P.lock[id];else P.lock[id]=1;planSave(P);render()},
  autoNasta(id){autoNasta(id)},
