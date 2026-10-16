@@ -1280,7 +1280,7 @@ function inkopParts(){
  const ask=S.confirm==='shopEmpty'?{ic:I.trash,red:1,t:'Töm hela listan?',x:'Alla '+all.length+' varor tas bort, även egna. Du kan ångra direkt efteråt.',y:'shopEmptyYes',yl:'Töm'}
   :S.confirm==='shopImport'?{ic:I.imp,t:'Hämta varorna för '+wk.toLowerCase()+'?',x:'Varorna från förra planen byts ut mot det rätterna på veckosedeln behöver. Egna varor ligger kvar.',y:'shopImportYes',yl:'Hämta'}:null;
  h+=ask?'<div class="sh-ask"><div class="sh-ah"><span class="sh-ic'+(ask.red?' red':'')+'">'+ask.ic+'</span><b>'+esc(ask.t)+'</b></div><p>'+esc(ask.x)+'</p><div class="sh-ab"><button class="sh-no" data-act="confirmNo">Avbryt</button><button class="sh-yes'+(ask.red?' red':'')+'" data-act="'+ask.y+'">'+ask.yl+'</button></div></div>'
-  :'<div class="sh-tools"><button class="sh-btn" data-act="shopImport"'+(S.importing?' disabled':'')+'><span class="sh-ic">'+(S.importing?'<i class="spin"></i>':I.imp)+'</span><span class="sh-tx"><b>'+(S.importing?'Hämtar…':'Hämta varor')+'</b><span class="fn">'+esc(isDate(vs)?wk:'Från veckosedeln')+'</span></span></button>'
+  :'<div class="sh-tools"><button class="sh-btn" data-act="shopImport"><span class="sh-ic">'+I.imp+'</span><span class="sh-tx"><b>Hämta varor</b><span class="fn">'+esc(isDate(vs)?wk:'Från veckosedeln')+'</span></span></button>'
   +'<button class="sh-btn" data-act="shopEmpty"'+(all.length?'':' disabled')+'><span class="sh-ic red">'+I.trash+'</span><span class="sh-tx"><b>Töm listan</b><span class="fn">'+(all.length?all.length+' varor':'Listan är tom')+'</span></span></button></div>';
  h+='<div class="fchips" role="group" aria-label="Filter">'+groups.map(([k,l])=>'<button data-act="shopFilter" data-id="'+esc(k)+'" aria-pressed="'+(f===k)+'">'+l+'</button>').join('')+'</div>';
  h+='<div class="split"><div class="col">';
@@ -1295,6 +1295,11 @@ function inkopParts(){
  return{sub,tools,body:h+'</div></div>'}}
 /* Hämta från veckosedeln: räknar fram varorna till veckans rätter (middagar 2 eller 4 portioner, storkok 5 eller 10)
    och skickar veckan på nytt med planSend, som byter ut förra planens varor och låter egna varor ligga kvar */
+// Samma kategorier som catOf_ i Kod.gs, så att varorna hamnar rätt innan arket har svarat
+function katGissa(n){n=String(n).toLowerCase();
+ return /kyckling|fläsk|nöt|färs|korv|bacon|lax|torsk|sej|fisk|räk|kalkon|lamm|skinka/.test(n)?'Kött & fisk':/mjölk|grädde|kvarg|yoghurt|ost|smör|ägg|keso|crème|fraiche|feta|halloumi/.test(n)?'Mejeri & ägg':/fryst|frysta/.test(n)?'Frys':/bröd|tortilla|pita|bulle/.test(n)?'Bröd'
+ :/lök|vitlök|morot|potatis|tomat|gurka|paprika|sallad|spenat|kål|broccoli|zucchini|aubergine|svamp|champinjon|citron|lime|äpple|banan|bär|ingefära|persilja|koriander|dill|basilika|purjo|selleri|rödbet|squash|avokado|pumpa|majs/.test(n)?'Frukt & grönt'
+ :/pasta|ris|bulgur|matvete|linser|bönor|kikärt|mjöl|havre|nötter|frön|olja|buljong|krossade|konserv|socker|kryddor|spiskummin|gurkmeja|paprikapulver|curry|soja|vinäger|honung|quinoa|couscous/.test(n)?'Torrvaror':'Övrigt'}
 function shopImport(){
  // planSend byter ändå ut alla varor från planer, så de behöver inte raderas en och en först (det tog lång tid).
  // Bara egna varor som väntar på att tas bort skickas, och redan köade raderingar av planvaror stryks ur utkorgen
@@ -1308,10 +1313,11 @@ function shopImport(){
  if(!list.length){toast('Veckosedeln har inga rätter med recept.');return}
  const korg=MV.korg(list.map(x=>x.b),planLager());
  const shop=korg.rad.filter(x=>x.n>0).map(x=>({name:planVaraNamn(x),qty:MV.forp(x),price:Math.round(x.kr),meals:[...new Set(list.filter(i=>i.b[x.k]).map(i=>lab[i.key]))]}));
- S.importing=true;S.postErr='';render();
- const klart=async()=>{for(let i=0;i<60&&OUTBOX.length&&navigator.onLine;i++){await flush();if(OUTBOX.length)await new Promise(r=>setTimeout(r,500))}};
- apiPost({action:'planSend',start:vs,end:ve,menu:rows.map(m=>({date:m.date,who:m.who,title:m.title,recipe:m.recipe||'',addon:m.addon||'',note:m.note||''})),shop,recipes:[],lager:korg.rest,settings:{}})
-  .then(klart).catch(e=>{S.postErr=String(e)}).then(()=>{S.importing=false;render();if(S.postErr)return;if(!OUTBOX.length)toast(shop.length+' varor hämtade från veckosedeln');else toast('Sparas när nätet är tillbaka');refresh(true)})}
+ // Varorna visas direkt i telefonen och sparas i kalkylarket i bakgrunden via utkorgen, som när man bockar av
+ const tag='plan'+vs.replace(/-/g,''),egna=D().shop.filter(i=>i.source==='egen'&&!i.done);
+ S.data.shop=egna.concat(shop.map((x,n)=>({id:tag+'-'+n,name:x.name,qty:x.qty,price:x.price,meals:x.meals,cat:katGissa(x.name),done:false,source:'veckoplan'})));
+ S.shopFilter='alla';render();toast(shop.length+' varor hämtade från veckosedeln');
+ apiPost({action:'planSend',start:vs,end:ve,menu:rows.map(m=>({date:m.date,who:m.who,title:m.title,recipe:m.recipe||'',addon:m.addon||'',note:m.note||''})),shop,recipes:[],lager:korg.rest,settings:{}})}
 function shopRow(i){return'<div class="dr-wrap"><button class="dr-act del" data-act="shopDel" data-full="shopDel" data-id="'+esc(i.id)+'" aria-label="Ta bort '+esc(i.name)+'">'+I.trash+'<span>Ta bort</span></button>'+shopRowIn(i).replace('<div class="cell ck','<div class="cell dr-slide ck')+'</div>'}
 function shopRowIn(i){const chips=(i.offer?'<span class="chip offer">'+esc(i.store||'Erbjudande')+'</span>':'')+(i.meals||[]).map(m=>'<span class="chip">'+esc(m)+'</span>').join('')+(i.source==='egen'&&i.addedBy?'<span class="chip">'+esc(i.addedBy)+'</span>':'');
  return'<div class="cell ck'+(i.done?' done':'')+'"><input type="checkbox" class="check" data-act="shopToggle" data-id="'+esc(i.id)+'" aria-label="'+esc(i.name)+'"'+(i.done?' checked':'')+'><button class="grow rowbtn" data-act="shopToggle" data-id="'+esc(i.id)+'"><div class="title">'+esc(i.name)+'</div>'+((i.qty||chips)?'<div class="meta">'+(i.qty?'<span>'+esc(i.qty)+'</span>':'')+chips+'</div>':'')+'</button><span class="val">'+(i.price?kr(i.price):'')+'</span></div>'}
