@@ -115,9 +115,21 @@ function ratingOf(id){const x=ratings()[id];if(!x||!x.p)return null;const ps=Obj
 const VERD={igen:'Laga igen',okej:'Okej',aldrig:'Aldrig mer'};
 const starsTxt=n=>'★★★★★'.slice(0,Math.round(n))+'☆☆☆☆☆'.slice(0,5-Math.round(n));
 // Läs färskt värde från kalkylarket, ändra och skriv tillbaka, så att två telefoner inte skriver över varandra
-async function updJSON(k,def,fn){const st=settings();st[k]=JSON.stringify(fn(parseJ(st[k],def)));render();
- let v=st[k];try{const fresh=await apiGet();if(fresh.settings&&k in fresh.settings){v=JSON.stringify(fn(parseJ(fresh.settings[k],def)));S.data.settings[k]=v}}catch(e){}
- return apiPost({action:'setting',k,v})}
+/* Ändringar i en JSON-rad görs direkt i telefonen och skickas sedan som hela raden. Före sändning hämtas
+   arket så att ändringar från den andra telefonen inte skrivs över. Flera snabba ändringar i samma rad
+   (t.ex. bocka av flera överföringar i rad) köas, och alla ändringar som ännu inte skickats läggs på det
+   hämtade värdet. Annars kunde ett andra tryck skicka en gammal rad och sudda ut det första. */
+const UPD={q:{},chain:{},n:0};
+function updJSON(k,def,fn){const st=settings();st[k]=JSON.stringify(fn(parseJ(st[k],def)));render();
+ (UPD.q[k]=UPD.q[k]||[]).push(fn);UPD.n++;
+ const run=async()=>{try{
+  if(!UPD.q[k].length)return;
+  let fresh=null;
+  if(!OUTBOX.some(b=>b.action==='setting'&&b.k===k)){try{const d=await apiGet();if(d.settings&&k in d.settings)fresh=d.settings[k]}catch(e){}}
+  const fns=UPD.q[k].splice(0);let v=settings()[k];
+  if(fresh!=null&&!OUTBOX.some(b=>b.action==='setting'&&b.k===k)){let o=parseJ(fresh,def);fns.forEach(f=>{o=f(o)});v=JSON.stringify(o);S.data.settings[k]=v;render()}
+  await apiPost({action:'setting',k,v})}finally{UPD.n--}};
+ return UPD.chain[k]=(UPD.chain[k]||Promise.resolve()).then(run,run)}
 function bankSnap(r){const x=JSON.parse(JSON.stringify(r));x.savedAt=today();delete x.when;delete x.fav;return x}
 // Ändra ett recept som redan ligger i receptbanken
 function bankEdit(id,fn){A.user=Date.now();BANK_ROWS().forEach(k=>{if(parseJ(settings()[k],[]).some(x=>x.id===id))updJSON(k,[],a=>a.map(x=>x.id===id?fn(Object.assign({},x)):x))})}
@@ -300,7 +312,7 @@ async function flush(){
    OUTBOX.shift();S.pending=OUTBOX.length;saveOutbox();
    if(!j.ok){toast(/okänd åtgärd/i.test(j.error||'')?'Det här kräver att Kod.gs uppdateras på datorn först.':'Ändringen sparades inte: '+(j.error||'Okänt fel'));if(!OUTBOX.length){S.sync='idle';flushing=false;refresh(true);return}continue}
    lastServer=j.data;
-   if(!OUTBOX.length){setData(j.data);S.sync='idle'}}
+   if(!OUTBOX.length){if(!UPD.n)setData(j.data);S.sync='idle'}}
  }finally{flushing=false}
  render()}
 if(OUTBOX.length)setTimeout(flush,800);
@@ -314,9 +326,9 @@ addEventListener('online',()=>flush());
 setInterval(()=>{if(OUTBOX.length)flush()},15000);
 async function refresh(silent){
  if(!S.key||!CFG.api)return;
- if(S.pending)return;
+ if(S.pending||UPD.n)return;
  if(!silent){S.sync='busy';renderStatus()}
- try{const d=await apiGet();if(!S.pending){setData(d);S.sync='idle'}}
+ try{const d=await apiGet();if(!S.pending&&!UPD.n){setData(d);S.sync='idle'}}
  catch(e){S.sync='err';S.error=e.message;if(/hushållskod/i.test(e.message)){S.key='';lsSet('key',null)}}
  render()}
 
