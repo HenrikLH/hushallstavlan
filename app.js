@@ -802,19 +802,23 @@ function planCalc(){
  aktiva.forEach(p=>{
   const andra=aktiva.filter(q=>q.id!==p.id&&valt(q.id)),bAndra=andra.map(q=>planBehov(valt(q.id),q)),ut=tagna(p.id);
   const kvar=B*CF.marginal-MV.korg(bAndra,lager).kr-macka;
-  const tomma=aktiva.filter(q=>q.id!==p.id&&!valt(q.id)),ovr=G.rad.filter(x=>x.q.id!==p.id).map(x=>x.bh),basA=MV.korg(bAndra,lager).kr;
+  // De andra tomma måltiderna fylls på billigaste sätt utan den här, så att varje måltid får samma chans
+  const tomma=aktiva.filter(q=>q.id!==p.id&&!valt(q.id)),F=minFyll(tomma,bAndra,ut),ovr=F.rad.map(x=>x.bh),Fby=new Set(F.rad.map(x=>x.id)),basA=MV.korg(bAndra,lager).kr;
   const mal=Math.max(1,kvar*p.port/(p.port+tomma.reduce((a,q)=>a+q.port,0)));
   const huvud=andra.map(q=>MP.huvudravara(valt(q.id)));
   const mk2=(r,extra)=>{const b=planBehov(r,p),t=MV.tillagg(bAndra,b,lager),l=matLage(r.id);
    const pp=MP.poang(r,{fav:isFav(r.id)},l,Object.assign({},ctxBas,{prisKvot:t.kassa/mal,ateranvandning:t.ateranvandning,valda:huvud}));
-   return Object.assign({r,t,l,p:pp,ok:MV.korg(bAndra.concat(ovr,[b]),lager).kr-basA<=kvar},extra||{})};
-  let lista=kand[p.id].filter(r=>!ut.has(r.id)&&r.id!==P.val[p.id]&&matLage(r.id).redo).map(r=>mk2(r));
-  const ok=lista.filter(x=>x.ok);lista=ok.length?ok:lista.sort((a,c)=>a.t.kassa-c.t.kassa).slice(0,3);
+   // Är rätten redan den billigaste till en annan måltid räknas veckan om utan den där, så att samma rätt inte räknas två gånger
+   const over=Fby.has(r.id)?MV.korg(bAndra.concat([b]),lager).kr-basA+minFyll(tomma,bAndra.concat([b]),new Set([...ut,r.id])).sum-kvar:MV.korg(bAndra.concat(ovr,[b]),lager).kr-basA-kvar;
+   return Object.assign({r,t,l,p:pp,ok:over<=0,over},extra||{})};
+  // Bara rätter som ryms i budgeten visas. Ryms ingen alls får vyn veta hur mycket som saknas
+  const alla=kand[p.id].filter(r=>!ut.has(r.id)&&r.id!==P.val[p.id]&&matLage(r.id).redo).map(r=>mk2(r)),lista=alla.filter(x=>x.ok);
   const f=MP.foreslag(lista,seedRng(P.vecka+p.id+(P.seed[p.id]||0)),3);
-  const w=wish.filter(x=>WISHSLOT[x.slot]===p.id||(p.typ==='vardag'&&WISHSLOT[x.slot]==='v1')).map(x=>recipeById(x.id)).filter(r=>r&&!ut.has(r.id)&&r.id!==P.val[p.id]&&!f.val.some(y=>y.r.id===r.id));
-  const val=w.slice(0,1).map(r=>mk2(r,{onskad:true})).concat(f.val).slice(0,3);
-  plats[p.id]={p,kvar,valt:valt(p.id)?mk2(valt(p.id)):null,val,bonus:f.bonus&&!val.some(y=>y.r.id===f.bonus.r.id)?Object.assign({},f.bonus,{bonus:true}):null}});
- const reserv=G.sum;
+  const w=wish.filter(x=>WISHSLOT[x.slot]===p.id||(p.typ==='vardag'&&WISHSLOT[x.slot]==='v1')).map(x=>recipeById(x.id)).filter(r=>r&&!ut.has(r.id)&&r.id!==P.val[p.id]&&!f.val.some(y=>y.r.id===r.id)).map(r=>mk2(r,{onskad:true})).filter(x=>x.ok);
+  const val=w.slice(0,1).concat(f.val).slice(0,3);
+  plats[p.id]={p,kvar,antal:alla.length,antalOk:lista.length,saknas:alla.length&&!lista.length?Math.min(...alla.map(x=>x.over)):0,billigast:alla.length?Math.min(...alla.map(x=>x.over))+kvar:Infinity,valt:valt(p.id)?mk2(valt(p.id)):null,val,bonus:f.bonus&&!val.some(y=>y.r.id===f.bonus.r.id)?Object.assign({},f.bonus,{bonus:true}):null}});
+ // Det billigaste av två sätt att räkna: hela fyllningen på en gång, eller varje tom måltids billigaste rätt plus resten
+ const reserv=Math.min(G.sum,...tomma.map(p=>plats[p.id].billigast));
  PLANP=null;
  return{P,B,v2:nV>=2,nV,aktiva,plats,valda,korg,macka,kassa:korg.kr+macka,tomma,reserv,klar:valda.length===aktiva.length}}
 // Etiketten som Kod.gs använder för att veta vilken rätt en vara hör till (samma som mealLabel_)
@@ -832,7 +836,7 @@ function planCard(x,p,chosen){const r=x.r,stars=x.l.betyg?'★ '+starNum(x.l.s):
  return'<button class="cell pl-c" data-act="planPick" data-id="'+esc(r.id)+'" data-k="'+p.id+'"><span class="pl-ic" aria-hidden="true">'+foodIcon(r.title)+'</span><span class="grow"><span class="chips-row">'+tag+'</span><span class="title">'+esc(r.title)+'</span><span class="meta">'+meta+'</span>'+(pv?'<span class="pl-pv">'+esc(protById(pv.k).ic+' '+protById(pv.k).namn+' till '+kottPerson()+', '+protById(pv.v).ic+' '+protById(pv.v).namn+' till '+vegPerson())+'</span>':'')+delar+'</span><span class="pl-add" aria-hidden="true">'+I.plus+'</span></button>'}
 // Lägsta budget som räcker till det som är valt plus de billigaste rätterna på de tomma platserna
 const minBud=C=>Math.ceil((C.kassa+C.reserv)/MP.CFG.marginal/10)*10;
-const tommaTxt=C=>C.tomma.length===1?'Den tomma platsen kostar':'De '+C.tomma.length+' tomma platserna kostar';
+const tommaTxt=C=>antal(C.tomma.length,'måltid','måltider')+' kvar att välja';
 function planView(){const C=planCalc(),{P,B}=C,mon=parse(P.vecka),sun=parse(addDays(P.vecka,6));
  NB.title='Planera veckan';NB.back=true;
  const wk=isoWeek(mon);
@@ -840,9 +844,10 @@ function planView(){const C=planCalc(),{P,B}=C,mon=parse(P.vecka),sun=parse(addD
  const pct=Math.min(100,Math.round(C.kassa/B*100)),over=C.kassa>B;
  h+='<div class="pl-bud"><div class="pl-bt"><div><span class="fn">I kassan</span><b class="num">'+kr(C.kassa)+'</b></div><label class="pl-bb"><span class="fn">Budget</span><input class="num" type="number" inputmode="numeric" min="200" max="5000" step="10" value="'+B+'" data-change="planBudget" aria-label="Veckobudget i kronor"></label></div>'+
   '<div class="thin'+(over?' bad':'')+'"><i style="width:'+pct+'%"></i></div><div class="fn">'+(over?'Över budget med '+kr(C.kassa-B):'Kvar '+kr(B-C.kassa))+' · '+antal(C.nV,'vardagsrätt','vardagsrätter')+', '+antal(4-C.nV,'mackkväll','mackkvällar')+' ('+kr(C.macka)+')</div>'+
-  (C.tomma.length?(C.kassa+C.reserv>B*MP.CFG.marginal?'<div class="fn pl-warn">'+tommaTxt(C)+' minst '+kr(C.reserv)+', så resten av veckan ryms inte. '+(C.valda.length?'Byt en dyr rätt eller höj budgeten till '+kr(minBud(C))+'.':'Den billigaste veckan behöver en budget på ungefär '+kr(minBud(C))+'.')+'</div>':'<div class="fn">'+tommaTxt(C)+' minst '+kr(C.reserv)+'.</div>'):'')+'</div>';
+  (C.tomma.length?(C.kassa+C.reserv>B*MP.CFG.marginal?'<div class="fn pl-warn">'+tommaTxt(C)+'. De kostar minst '+kr(C.reserv)+' och ryms inte i budgeten. '+(C.valda.length?'Byt en dyr rätt eller höj budgeten till ungefär '+kr(minBud(C))+'.':'Den billigaste veckan behöver en budget på ungefär '+kr(minBud(C))+'.')+'</div>':'<div class="fn">'+tommaTxt(C)+' · minst '+kr(C.reserv)+'</div>'):'')+'</div>';
  // Liten budgetrad som följer med när den stora rutan har scrollats förbi
  h+='<div class="pl-pin"><div class="pl-mini" aria-hidden="true"><span class="fn">I kassan</span><b class="num">'+kr(C.kassa)+'</b><div class="thin'+(over?' bad':'')+'"><i style="width:'+pct+'%"></i></div><span class="fn'+(over?' bad':'')+'">'+(over?'Över '+kr(C.kassa-B):'Kvar '+kr(B-C.kassa))+'</span></div></div>';
+ const heltOver=C.tomma.length&&C.kassa+C.reserv>B*MP.CFG.marginal;
  // Mackkvällar: välj hur många av måndag–torsdag som blir macka. Resten av kvällarna får en vardagsrätt
  const nM=4-C.nV,md=mackDagar(C.nV).map(d=>DAYS[(d+1)%7]);
  h+=sh('Vardagskvällar','Måndag–torsdag')+group('<div class="cell pl-mk"><div class="grow"><div class="title">'+(nM?antal(nM,'mackkväll','mackkvällar'):'Inga mackkvällar')+'</div><div class="meta">'+(nM?esc(cap(lista(md)))+' · '+kr(C.macka):'Vardagsrätt alla fyra kvällarna')+(typeof P.mack==='number'?'':' · Valt efter budgeten')+'</div></div>'+
@@ -851,12 +856,15 @@ function planView(){const C=planCalc(),{P,B}=C,mon=parse(P.vecka),sun=parse(addD
   const open=!X.valt||S.planOpen===p.id;
   h+=sh(esc(p.namn),p.port+' portioner'+(p.not?' · '+p.not:''));
   let g=X.valt?planCard(X.valt,p,true):'';
-  if(open){g+=X.val.map(x=>planCard(x,p)).join('')+(X.bonus?planCard(X.bonus,p):'')+'<button class="cell link" data-act="planMore" data-id="'+p.id+'"><span class="grow" style="color:var(--accent)">Andra förslag</span></button>'}
+  const visas=X.val.length+(X.bonus?1:0);
+  if(open&&X.antalOk)g+=X.val.map(x=>planCard(x,p)).join('')+(X.bonus?planCard(X.bonus,p):'')+(X.antalOk>visas?'<button class="cell link" data-act="planMore" data-id="'+p.id+'"><span class="grow" style="color:var(--accent)">Andra förslag</span><span class="meta">'+X.antalOk+' rätter ryms</span></button>':'');
+  // Ryms ingen rätt alls: säg det tydligt, så att ingen tror att fler förslag skulle hjälpa
+  else if(open&&X.antal)g+='<div class="cell pl-none"><div class="grow"><div class="title">Ingen rätt ryms i budgeten</div><div class="meta">Appen har provat alla '+X.antal+' rätter som passar '+esc(p.namn.toLowerCase())+', och ingen går ihop med resten av veckan. '+(heltOver?'Se budgetrutan överst.':'Höj budgeten till ungefär '+kr(Math.ceil((B+X.saknas/MP.CFG.marginal)/10)*10)+' eller välj billigare rätter till andra måltider.')+'</div></div></div>';
   h+=group(g||emptyCell('Inga rätter passar just nu.'))});
  const rad=C.korg.rad.filter(x=>x.n>0).sort((a,c)=>c.kr-a.kr),hemma=C.korg.rad.filter(x=>x.fran>0);
  if(rad.length)h+=sh('Att köpa',kr(C.korg.kr))+group(rad.map(x=>'<div class="cell"><div class="grow"><div class="title">'+esc(planVaraNamn(x))+'</div><div class="meta">'+esc(MV.forp(x)+' · '+C.valda.filter(p=>planBehov(recipeById(C.P.val[p.id]),p)[x.k]).map(p=>p.namn).join(', '))+'</div></div><span class="val">'+kr(x.kr)+'</span></div>').join(''));
  if(hemma.length)h+='<div class="foot">Finns hemma och används: '+esc(hemma.map(x=>x.k).join(', '))+'.</div>';
- h+='<div class="pl-send"><button class="btn-fill" data-act="planSend"'+(C.klar?'':' disabled')+'>Skicka till veckosedeln</button><div class="foot">'+(C.klar?'Rätterna läggs på veckosedeln och varorna i inköpslistan.':'Välj en rätt till varje plats först.')+' Priserna är ungefärliga.</div></div>';
+ h+='<div class="pl-send"><button class="btn-fill" data-act="planSend"'+(C.klar?'':' disabled')+'>Skicka till veckosedeln</button><div class="foot">'+(C.klar?'Rätterna läggs på veckosedeln och varorna i inköpslistan.':'Välj en rätt till varje måltid först.')+' Priserna är ungefärliga.</div></div>';
  return h}
 const planVaraNamn=x=>x.namn&&x.namn.length===1?cap(x.namn[0]):cap(x.k)+(x.namn&&x.namn.length?' ('+x.namn.join(', ')+')':'');
 function isoWeek(d){const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));const n=t.getUTCDay()||7;t.setUTCDate(t.getUTCDate()+4-n);const y=new Date(Date.UTC(t.getUTCFullYear(),0,1));return Math.ceil(((t-y)/864e5+1)/7)}
