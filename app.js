@@ -770,9 +770,15 @@ function planCalc(){
  const standalone={};const ensam=(r,p)=>{const k=r.id+p.id;return standalone[k]??(standalone[k]=MV.korg([planBehov(r,p)],lager).kr)};
  const tagna=except=>new Set(PLATSER.filter(q=>q.id!==except&&valt(q.id)).map(q=>P.val[q.id]));
  const minKostnad=(p,ut)=>{const L=kand[p.id].filter(r=>!ut.has(r.id)&&matLage(r.id).redo);return L.length?Math.min(...L.map(r=>ensam(r,p))):0};
- // Billigaste rätten till en tom plats, räknat med det som blir över från de rätter som redan är valda (b)
- const minDelad=(q,b,ut)=>{const L=kand[q.id].filter(r=>!ut.has(r.id)&&matLage(r.id).redo);if(!L.length)return 0;const bas=MV.korg(b,lager).kr;
-  return Math.min(...L.map(r=>MV.korg(b.concat([planBehov(r,q)]),lager).kr-bas))};
+ /* Vad de tomma platserna minst kostar tillsammans. Platserna fylls en i taget med den rätt som kostar minst
+    ovanpå det som redan ligger i korgen (b), så att paket som räcker till flera rätter bara räknas en gång */
+ const fyllCache={};
+ const minFyll=(tomma,b,ut)=>{if(!tomma.length)return 0;const key=tomma.map(q=>q.id).join()+'|'+[...ut].sort().join();if(key in fyllCache)return fyllCache[key];
+  const korg=b.slice(),tagen=new Set(ut);let bas=MV.korg(korg,lager).kr,sum=0;
+  tomma.slice().sort((a,c)=>c.port-a.port).forEach(q=>{let best=null;
+   kand[q.id].forEach(r=>{if(tagen.has(r.id)||!matLage(r.id).redo)return;const bh=planBehov(r,q),k=MV.korg(korg.concat([bh]),lager).kr-bas;if(!best||k<best.k)best={k,bh,id:r.id}});
+   if(best){korg.push(best.bh);tagen.add(best.id);bas+=best.k;sum+=best.k}});
+  return fyllCache[key]=sum};
  // Vardagsrätt 2: med om du valt den, annars bara om budgeten räcker till en rätt i mellanpris
  let v2=P.v2==='ja'||!!valt('v2');
  if(!v2&&P.v2!=='nej'){const ut=tagna('v2'),andra=PLATSER.filter(q=>q.id!=='v2'),b=andra.filter(q=>valt(q.id)).map(q=>planBehov(valt(q.id),q));
@@ -785,7 +791,7 @@ function planCalc(){
  aktiva.forEach(p=>{
   const andra=aktiva.filter(q=>q.id!==p.id&&valt(q.id)),bAndra=andra.map(q=>planBehov(valt(q.id),q)),ut=tagna(p.id);
   const kvar=B*CF.marginal-MV.korg(bAndra,lager).kr-macka;
-  const tomma=aktiva.filter(q=>q.id!==p.id&&!valt(q.id)),mk=tomma.reduce((a,q)=>a+minDelad(q,bAndra,ut),0);
+  const tomma=aktiva.filter(q=>q.id!==p.id&&!valt(q.id)),mk=minFyll(tomma,bAndra,ut);
   const mal=Math.max(1,kvar*p.port/(p.port+tomma.reduce((a,q)=>a+q.port,0)));
   const huvud=andra.map(q=>MP.huvudravara(valt(q.id)));
   const mk2=(r,extra)=>{const b=planBehov(r,p),t=MV.tillagg(bAndra,b,lager),l=matLage(r.id);
@@ -799,7 +805,7 @@ function planCalc(){
   plats[p.id]={p,kvar,valt:valt(p.id)?mk2(valt(p.id)):null,val,bonus:f.bonus&&!val.some(y=>y.r.id===f.bonus.r.id)?Object.assign({},f.bonus,{bonus:true}):null}});
  const valda=aktiva.filter(p=>valt(p.id)),bValda=valda.map(p=>planBehov(valt(p.id),p)),korg=MV.korg(bValda,lager);
  // Vad de tomma platserna minst kommer att kosta, så att budgetrutan kan varna i tid
- const tomma=aktiva.filter(p=>!valt(p.id)),reserv=tomma.reduce((a,q)=>a+minDelad(q,bValda,tagna(q.id)),0);
+ const tomma=aktiva.filter(p=>!valt(p.id)),reserv=minFyll(tomma,bValda,new Set(valda.map(p=>P.val[p.id])));
  PLANP=null;
  return{P,B,v2,aktiva,plats,valda,korg,macka,kassa:korg.kr+macka,tomma,reserv,klar:valda.length===aktiva.length}}
 // Etiketten som Kod.gs använder för att veta vilken rätt en vara hör till (samma som mealLabel_)
@@ -815,6 +821,8 @@ function planCard(x,p,chosen){const r=x.r,stars=x.l.betyg?'★ '+starNum(x.l.s):
  // Vald rätt: bocken till vänster avmarkerar, svep åt vänster visar Byt som på veckosedeln
  if(chosen)return'<div class="dr-wrap"><button class="dr-act" data-act="planByt" data-full="planByt" data-id="'+p.id+'" aria-label="Byt '+esc(r.title)+'">'+I.swap+'<span>Byt</span></button><div class="cell pl-c on dr-slide"><button class="pl-chk" data-act="planUnpick" data-id="'+p.id+'" aria-pressed="true" aria-label="Vald. Tryck för att avmarkera '+esc(r.title)+'">'+I.tick+'</button><button class="grow pl-b" data-act="recipe" data-id="'+esc(r.id)+'"><span class="pl-ic" aria-hidden="true">'+foodIcon(r.title)+'</span><span class="grow"><span class="chips-row">'+tag+'</span><span class="title">'+esc(r.title)+'</span><span class="meta">'+meta+'</span>'+(pv?protPills(pv,'planProt',p.id):'')+delar+'</span></button><span class="dr-sw" aria-hidden="true">'+I.swap+'</span></div></div>';
  return'<button class="cell pl-c" data-act="planPick" data-id="'+esc(r.id)+'" data-k="'+p.id+'"><span class="pl-ic" aria-hidden="true">'+foodIcon(r.title)+'</span><span class="grow"><span class="chips-row">'+tag+'</span><span class="title">'+esc(r.title)+'</span><span class="meta">'+meta+'</span>'+(pv?'<span class="pl-pv">'+esc(protById(pv.k).ic+' '+protById(pv.k).namn+' till '+kottPerson()+', '+protById(pv.v).ic+' '+protById(pv.v).namn+' till '+vegPerson())+'</span>':'')+delar+'</span><span class="pl-add" aria-hidden="true">'+I.plus+'</span></button>'}
+// Lägsta budget som räcker till det som är valt plus de billigaste rätterna på de tomma platserna
+const minBud=C=>Math.ceil((C.kassa+C.reserv)/MP.CFG.marginal/10)*10;
 const tommaTxt=C=>C.tomma.length===1?'Den tomma platsen kostar':'De '+C.tomma.length+' tomma platserna kostar';
 function planView(){const C=planCalc(),{P,B}=C,mon=parse(P.vecka),sun=parse(addDays(P.vecka,6));
  NB.title='Planera veckan';NB.back=true;
@@ -823,7 +831,7 @@ function planView(){const C=planCalc(),{P,B}=C,mon=parse(P.vecka),sun=parse(addD
  const pct=Math.min(100,Math.round(C.kassa/B*100)),over=C.kassa>B;
  h+='<div class="pl-bud"><div class="pl-bt"><div><span class="fn">I kassan</span><b class="num">'+kr(C.kassa)+'</b></div><label class="pl-bb"><span class="fn">Budget</span><input class="num" type="number" inputmode="numeric" min="200" max="5000" step="10" value="'+B+'" data-change="planBudget" aria-label="Veckobudget i kronor"></label></div>'+
   '<div class="thin'+(over?' bad':'')+'"><i style="width:'+pct+'%"></i></div><div class="fn">'+(over?'Över budget med '+kr(C.kassa-B):'Kvar '+kr(B-C.kassa))+' · '+(C.v2?'2 vardagsrätter':'1 vardagsrätt')+', '+(4-(C.v2?2:1))+' mackkvällar ('+kr(C.macka)+')</div>'+
-  (C.tomma.length?(C.kassa+C.reserv>B?'<div class="fn pl-warn">'+tommaTxt(C)+' minst '+kr(C.reserv)+', så resten av veckan ryms inte. Byt en dyr rätt eller höj budgeten.</div>':'<div class="fn">'+tommaTxt(C)+' minst '+kr(C.reserv)+'.</div>'):'')+'</div>';
+  (C.tomma.length?(C.kassa+C.reserv>B*MP.CFG.marginal?'<div class="fn pl-warn">'+tommaTxt(C)+' minst '+kr(C.reserv)+', så resten av veckan ryms inte. '+(C.valda.length?'Byt en dyr rätt eller höj budgeten till '+kr(minBud(C))+'.':'Den billigaste veckan behöver en budget på ungefär '+kr(minBud(C))+'.')+'</div>':'<div class="fn">'+tommaTxt(C)+' minst '+kr(C.reserv)+'.</div>'):'')+'</div>';
  // Liten budgetrad som följer med när den stora rutan har scrollats förbi
  h+='<div class="pl-pin"><div class="pl-mini" aria-hidden="true"><span class="fn">I kassan</span><b class="num">'+kr(C.kassa)+'</b><div class="thin'+(over?' bad':'')+'"><i style="width:'+pct+'%"></i></div><span class="fn'+(over?' bad':'')+'">'+(over?'Över '+kr(C.kassa-B):'Kvar '+kr(B-C.kassa))+'</span></div></div>';
  PLATSER.forEach(p=>{const X=C.plats[p.id];
