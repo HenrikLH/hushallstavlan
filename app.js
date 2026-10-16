@@ -743,7 +743,9 @@ function planCard(x,p,chosen){const r=x.r,stars=x.l.betyg?'★ '+starNum(x.l.s):
  const tag=x.onskad?'<span class="chip v">Önskad</span>':x.bonus?'<span class="chip g">Bonus</span>':isFav(r.id)?'<span class="chip k">Favorit</span>':'';
  const pp=r.kr?Number(r.kr):x.t.ensamKr/p.port;
  const meta='<span>'+stars+'</span><span class="num">'+kr(pp)+'/port</span><span class="num">+'+Math.round(x.t.kassa)+' kr i kassan</span>'+(x.ok===false?'<span class="pl-over">Över budget</span>':'');
- const delar=x.t.delar&&x.t.delar.length&&re>=10?'<span class="pl-re">Använder det som blir över av '+esc(x.t.delar.slice(0,3).join(', ')+(x.t.delar.length>3?' m.fl.':''))+'</span>':'';
+ // Hur mycket billigare rätten blir tillsammans med veckans andra val, och en infoknapp som visar vilka varor som återanvänds
+ const pct=x.t.ensamKr>0?Math.round((1-x.t.kassa/x.t.ensamKr)*100):0,ik=p.id+'|'+r.id,open=!!(S.plInfo||{})[ik];
+ const delar=pct>=10&&x.t.delar&&x.t.delar.length?'<span class="pl-re'+(open?' open':'')+'"><span class="pl-rt">'+pct+' % billigare tillsammans med dina andra val<span class="pl-i" role="button" tabindex="0" data-act="planInfo" data-id="'+esc(ik)+'" aria-expanded="'+open+'" aria-label="Vilka varor återanvänds?">i</span></span><span class="pl-rd">Återanvänder: '+esc(x.t.delar.join(', '))+'</span></span>':'';
  if(chosen)return'<div class="cell pl-c on"><button class="grow pl-b" data-act="recipe" data-id="'+esc(r.id)+'"><span class="pl-ic" aria-hidden="true">'+foodIcon(r.title)+'</span><span class="grow"><span class="title">'+esc(r.title)+'</span><span class="meta">'+meta+'</span>'+delar+'</span></button><button class="pill" data-act="planByt" data-id="'+p.id+'">Byt</button></div>';
  return'<button class="cell pl-c" data-act="planPick" data-id="'+esc(r.id)+'" data-k="'+p.id+'"><span class="pl-ic" aria-hidden="true">'+foodIcon(r.title)+'</span><span class="grow"><span class="chips-row">'+tag+'</span><span class="title">'+esc(r.title)+'</span><span class="meta">'+meta+'</span>'+delar+'</span><span class="pl-add" aria-hidden="true">'+I.plus+'</span></button>'}
 function planView(){const C=planCalc(),{P,B}=C,mon=parse(P.vecka),sun=parse(addDays(P.vecka,6));
@@ -2028,6 +2030,7 @@ const ACT={
  planMore(id){const P=planState();P.seed[id]=(P.seed[id]||0)+1;planSave(P);render()},
  planV2(id){const P=planState();P.v2=id;if(id==='nej')delete P.val.v2;planSave(P);render()},
  planSend(){planSend()},
+ planInfo(id,el){S.plInfo=S.plInfo||{};S.plInfo[id]=!S.plInfo[id];const b=el.closest('.pl-re');if(b)b.classList.toggle('open',S.plInfo[id]);el.setAttribute('aria-expanded',S.plInfo[id])},
  scale(id,el){const r=recipeById(id);const{p}=scaled(r);S.scale[id]=Math.max(1,Math.min(20,p+Number(el.dataset.d)));render()},
  cook(id){S.cook={id,step:S.step[id]||0};wake();render()},
  pickStep(id,el){S.step[id]=Number(el.dataset.i);render();setTimeout(()=>{const li=document.querySelector('.steps li.active');if(li&&li.getBoundingClientRect().top<70)li.scrollIntoView({block:'start',behavior:'smooth'})},30)},
