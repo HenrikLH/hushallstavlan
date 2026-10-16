@@ -31,6 +31,7 @@ const I={
  sparkles:SV+'<path d="M10 3.5l1.7 4.8 4.8 1.7-4.8 1.7L10 16.5l-1.7-4.8L3.5 10l4.8-1.7z"/><path d="M17.5 14l.9 2.6 2.6.9-2.6.9-.9 2.6-.9-2.6-2.6-.9 2.6-.9z"/></svg>',
  cal:SV+'<rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>',
  gear:SV+'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
+ swap:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8.5h14.5M15 5l3.5 3.5L15 12"/><path d="M20 15.5H5.5M9 12l-3.5 3.5L9 19"/></svg>',
  plus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 4.5v15M4.5 12h15"/></svg>',
  chev:'<svg viewBox="0 0 8 13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 1.5l5 5-5 5"/></svg>',
  back:'<svg viewBox="0 0 13 21" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.5 2L2.5 10.5l8 8.5"/></svg>',
@@ -604,10 +605,14 @@ function matBank(){
  h+=sh(I.bookmarkOn.replace('<svg','<svg class="shic"')+'Sparade recept','<span class="num">'+saved.length+'</span>');
  h+=saved.length?'<div class="bank">'+saved.map(r=>rCard(r,{wish:w})).join('')+'</div>':group(emptyCell(f==='alla'?'Inga sparade recept än. Tryck på bokmärket på ett recept för att spara det.':'Inga sparade recept matchar filtret.'));
  return h+'<div class="foot">Veckoplaneringen väljer bland favoriterna och de sparade recepten. Favoriter kommer tillbaka oftare.</div>'}
-function mealCell(m){const r=m.recipe&&recipeById(m.recipe),i=D().menu.indexOf(m),canSwap=m.who!=='Borta'&&m.date>=today();
- const inner='<div class="grow"><div class="chips-row">'+whoChip(m.who)+'</div><div class="title" style="margin-top:3px">'+esc(m.title)+'</div>'+(m.addon?'<div class="meta">+ Kött: '+esc(m.addon)+'</div>':'')+(m.note?'<div class="meta">'+esc(m.note)+'</div>':'')+(m.recipe&&ratingOf(m.recipe)?'<div class="meta"><span class="st">'+starsTxt(ratingOf(m.recipe).avg)+'</span></div>':'')+'</div>'+(r&&r.kr?'<span class="val">'+kr(r.kr)+'/port</span>':'');
- const swap=canSwap?'<button class="pill" data-act="swap" data-id="'+i+'" aria-label="Byt '+esc(m.title)+'">'+(m.recipe?'Byt':'Välj rätt')+'</button>':'';
- return r?'<div class="cell meal-cell"><button class="grow rowbtn" data-act="recipe" data-id="'+esc(m.recipe)+'" style="display:flex;align-items:center;gap:12px;text-align:left">'+inner+'</button>'+swap+'</div>':'<div class="cell meal-cell">'+inner+swap+'</div>'}
+// Miniatyr: receptets foto, annars en matsymbol
+const dishThumb=(r,t)=>{const img=r&&(r.img||imgOf(r.id));return'<span class="dr-th" aria-hidden="true">'+'<span>'+foodIcon(t)+'</span>'+(img?'<img src="'+esc(img)+'" alt="" loading="lazy" onerror="this.remove()">':'')+'</span>'};
+/* En rätt på veckosedeln: bild, namn, dagar, pris och betyg. Byt finns så länge rätten har en dag kvar */
+function mealCell(m,rows){rows=rows||[m];const r=m.recipe&&recipeById(m.recipe),t=today(),days=[...new Set(rows.map(y=>y.date).filter(isDate))].sort(),left=days.filter(d=>d>=t);
+ const g=m.recipe&&ratingOf(m.recipe),meta=[days.map(d=>cap(DAYS3[parse(d).getDay()])).join(', '),r&&r.kr?kr(r.kr)+'/port':'',g?'<span class="dr-st">★ '+starNum(matLage(m.recipe).s)+'</span>':''].filter(Boolean).join('<span class="dot" aria-hidden="true">·</span>');
+ const inner=dishThumb(r,m.title)+'<span class="grow"><span class="chips-row">'+whoChip(m.who)+'</span><span class="title">'+esc(m.title)+'</span><span class="meta">'+meta+'</span>'+(m.addon?'<span class="dr-sub">+ Kött: '+esc(m.addon)+'</span>':'')+(m.note?'<span class="dr-sub">'+esc(m.note)+'</span>':'')+'</span>';
+ const end=m.who==='Borta'?'':!left.length?'<span class="dr-done">'+I.tick+'Ätit</span>':'<button class="dr-sw" data-act="swap" data-id="'+D().menu.indexOf(m)+'" aria-label="Byt '+esc(m.title)+'"><span class="dr-swi">'+I.swap+'</span><span>'+(m.recipe?'Byt':'Välj')+'</span></button>';
+ return'<div class="cell dr'+(left.length?'':' past')+'">'+(r?'<button class="dr-main" data-act="recipe" data-id="'+esc(m.recipe)+'">'+inner+'</button>':'<div class="dr-main">'+inner+'</div>')+end+'</div>'}
 function recipeCell(r,meta){return'<button class="cell link" data-act="recipe" data-id="'+esc(r.id)+'"><div class="grow"><div class="title">'+esc(r.title)+'</div><div class="meta">'+meta+'</div></div>'+whoChip(r.who)+chevron+'</button>'}
 /* Hushållets matpreferenser: rader i Inställningar som veckoplaneringen läser när den gör menyn */
 const PREFS=[['pref_henrik','Kött','k','Henriks mat, t.ex. proteinrik och kalorisnål'],['pref_veg','Vegetariskt','v','Den vegetariska maten, t.ex. kost och GI'],['pref_ekonomi','Ekonomi','','Budget, butiker och svinn'],['pref_ovrigt','Övrigt','','Sådant ni inte gillar, allergier, önskemål']];
@@ -626,7 +631,8 @@ const isStorkok=r=>!!r&&(r.group==='Storkok'||/^storkok/i.test(r.title||''));
 // Rätter som kan ersätta en rätt på matsedeln: samma sort först, sedan goda och efterlängtade recept först
 function swapCandidates(m){const cur=m.recipe&&recipeById(m.recipe),onMenu=new Set(D().menu.map(x=>x.recipe).filter(Boolean)),t=today();
  const want=m.who==='Gemensam'?['Gemensam','Vegetariskt']:[m.who],sk=isStorkok(cur)||/^storkok/i.test(m.title||'');
- return allRecipes().filter(r=>!onMenu.has(r.id)&&r.course!=='efterrätt'&&!matLage(r.id).paus).map(r=>{
+ const seen=new Set();// receptbanken först, sedan inspirationsrecepten
+ return allRecipes().concat(inspoList()).filter(r=>{if(!r||!r.id||seen.has(r.id))return false;seen.add(r.id);return true}).filter(r=>!onMenu.has(r.id)&&r.course!=='efterrätt'&&!matLage(r.id).paus).map(r=>{
   const g=ratingOf(r.id),l=matLage(r.id),last=lastServed(r.id),ago=last?Math.round((Date.parse(t)-Date.parse(last))/864e5):null;
   const due=ago==null?1.5:Math.min(2,ago/(Math.max(l.w,1)*7));
   const kind=(want.indexOf(r.who)>=0?2:0)+(isStorkok(r)===sk?1:0);
@@ -649,11 +655,12 @@ function doSwap(r){const sw=S.swap;if(!sw)return;if(!navigator.onLine){toast('At
 /* Veckan: rätterna indelade i Storkok, Vardag och Helg i stället för dag för dag */
 function weekDishes(){const d=D(),st=settings(),seen=new Set(),out=[];
  const inV=m=>!isDate(st.vecka_start)||!isDate(st.vecka_slut)||!isDate(m.date)||(m.date>=st.vecka_start&&m.date<=st.vecka_slut);
- d.menu.filter(inV).forEach(m=>{if(m.who==='Borta'||(!m.recipe&&/^macka$/i.test(m.title)))return;const key=m.recipe||(m.who+'|'+m.title);if(seen.has(key))return;seen.add(key);
-  const r=m.recipe&&recipeById(m.recipe);out.push({m,r,g:r&&r.group?(isStorkok(r)?'Storkok':r.group):(m.who==='Gemensam'?'Helg':'Vardag')})});
+ d.menu.filter(inV).forEach(m=>{if(m.who==='Borta'||(!m.recipe&&/^macka$/i.test(m.title)))return;const key=m.recipe||(m.who+'|'+m.title);const prev=out.find(x=>x.key===key);
+  if(prev){prev.rows.push(m);if(prev.m.date<today()&&m.date>=today())prev.m=m;return}seen.add(key);
+  const r=m.recipe&&recipeById(m.recipe);out.push({key,rows:[m],m,r,g:r&&r.group?(isStorkok(r)?'Storkok':r.group):(m.who==='Gemensam'?'Helg':'Vardag')})});
  String(settings().storkok||'').split(',').map(x=>x.trim()).filter(id=>id&&!seen.has(id)).forEach(id=>{const r=recipeById(id);if(r){seen.add(id);out.push({m:null,r,g:'Storkok'})}});
  return out}
-function dishCell(x){const{m,r}=x;if(m)return mealCell(m);return recipeCell(r,r.portions+' portioner'+(r.kr?' · '+kr(r.kr)+'/port':''))}
+function dishCell(x){const{m,r}=x;if(m)return mealCell(m,x.rows);return recipeCell(r,r.portions+' portioner'+(r.kr?' · '+kr(r.kr)+'/port':''))}
 const planBtn=()=>'<button class="pl-open" data-act="planOpen"><span class="pl-ic" aria-hidden="true">🗓️</span><span class="grow"><span class="title">Planera nästa vecka</span><span class="meta">Välj rätter inom budgeten '+kr(planBudget())+'</span></span>'+chevron+'</button>';
 function matWeek(){
  const d=D(),st=settings(),ds=weekDishes();let h=planBtn();
@@ -1154,23 +1161,22 @@ function renderOverlay(){
   const body=PREFS.map(([key,l,,ph])=>sh(l)+group('<div class="cell"><textarea class="field area" name="'+key+'" rows="'+Math.max(3,Math.ceil(String(st[key]||'').length/34)+1)+'" maxlength="600" placeholder="'+esc(ph)+'" aria-label="'+esc(l)+'">'+esc(st[key]||'')+'</textarea></div>')).join('')+
    '<div class="foot">Sparas i kalkylarket. Veckoplaneringen läser dem nästa gång den gör menyn.</div>';
   o.innerHTML=sheetHtml('prefs','Matpreferenser','<button class="tb strong">Spara</button>',body,enter);return}
- if(k==='swap'){const sw=S.swap||{},m=sw.m||{},cands=swapCandidates(m);let body='<div style="height:16px"></div>'+group('<div class="cell"><div class="grow"><div class="chips-row">'+whoChip(m.who)+'<span class="chip">'+esc(dateShort(m.date))+'</span></div><div class="title" style="margin-top:3px">'+esc(m.title)+'</div></div></div>');
-  if(sw.step==='pick'){const same=cands.filter(c=>c.score>=20),other=cands.filter(c=>c.score<20);
-   const row=c=>'<button type="button" class="cell link" data-act="swapTo" data-id="'+esc(c.r.id)+'"><div class="grow"><div class="title">'+esc(c.r.title)+'</div><div class="meta">'+whoChip(c.r.who)+'<span>'+swapWhy(c)+'</span></div></div>'+chevron+'</button>';
-   body+=sh('Välj en rätt')+group(same.length?same.map(row).join(''):emptyCell('Inga rätter av samma sort i receptbanken.'))+(other.length?sh('Andra rätter')+group(other.map(row).join('')):'')+
-    '<div class="pills" style="padding:12px 16px 0"><button type="button" class="pill" data-act="swapStep" data-id="ask">Tillbaka</button></div>'}
-  else if(sw.step==='suggest'){const c=cands[(sw.i||0)%Math.max(1,cands.length)];
-   body+=sh('Förslag')+(c?group('<div class="cell"><div class="grow"><div class="chips-row">'+whoChip(c.r.who)+(c.r.min?'<span class="chip num">'+c.r.min+' min</span>':'')+'</div><div class="title" style="margin-top:3px">'+esc(c.r.title)+'</div><div class="meta">'+swapWhy(c)+'</div></div></div>')+
-    '<div class="block" style="display:flex;gap:8px"><button type="button" class="btn-fill" style="flex:1" data-act="swapTo" data-id="'+esc(c.r.id)+'">Ta den här</button>'+(cands.length>1?'<button type="button" class="btn-tint" style="flex:1" data-act="swapNext">Ett annat förslag</button>':'')+'</div>'+
-    '<div class="foot">Inköpslistan uppdateras: varor som bara behövdes till den gamla rätten tas bort och ingredienserna till den nya läggs till.</div>'
-    :group(emptyCell('Receptbanken har inga fler rätter att föreslå. Ta bort rätten, eller önska något till nästa vecka.')))+
-    '<div class="pills" style="padding:12px 16px 0"><button type="button" class="pill" data-act="swapStep" data-id="ask">Tillbaka</button></div>'}
-  else body+=sh('Vill du önska något själv?')+group('<button type="button" class="cell link" data-act="swapStep" data-id="pick"><span class="grow" style="color:var(--accent)">Ja, jag väljer från receptbanken</span>'+chevron+'</button>'+
-    '<button type="button" class="cell link" data-act="swapStep" data-id="suggest"><span class="grow" style="color:var(--accent)">Nej, föreslå något</span>'+chevron+'</button>')+
-    sh('Eller')+group(S.confirm==='swapRemove'?'<div class="cell"><span class="grow">Ta bort rätten utan att lägga in någon ny?</span><button type="button" class="tb red strong" data-act="swapRemove">Ja, ta bort</button><button type="button" class="tb" data-act="confirmNo">Avbryt</button></div>':
-     '<button type="button" class="cell link center red" data-act="swapRemoveAsk">Ta bort utan ny rätt</button>')+
-    '<div class="foot">'+(m.recipe&&D().menu.filter(x=>x.recipe===m.recipe).length>1?'Rätten står på flera dagar och byts överallt. ':'')+'Varor som bara behövdes till rätten tas bort från inköpslistan.</div>';
-  o.innerHTML=sheetHtml('swap',m.recipe?'Byt rätt':'Välj rätt','<span></span>',body,enter);return}
+ if(k==='swap'){const sw=S.swap||{},m=sw.m||{},cands=swapCandidates(m),same=cands.filter(c=>c.score>=20),top=same.slice(0,3),rest=cands.filter(c=>!top.includes(c));
+  const cur=m.recipe&&recipeById(m.recipe),many=m.recipe&&D().menu.filter(x=>x.recipe===m.recipe).length>1;
+  const meta=c=>[c.ago==null?'Inte lagad på länge':c.ago<0?'Planerad':'Senast för '+(c.ago<14?c.ago+' dagar':Math.round(c.ago/7)+' veckor')+' sedan',c.r.kr?kr(c.r.kr)+'/port':'',c.r.min?c.r.min+' min':''].filter(Boolean).join(' · ');
+  const stars=c=>c.g?'<span class="dr-st">★ '+starNum(matLage(c.r.id).s)+'</span>':'<span class="sw-new">Ny</span>';
+  const card=c=>'<button type="button" class="sw-card'+(sw.sel===c.r.id?' on':'')+'" data-act="swapSel" data-id="'+esc(c.r.id)+'" aria-pressed="'+(sw.sel===c.r.id)+'">'+dishThumb(c.r,c.r.title).replace('dr-th','sw-img')+
+   '<span class="sw-cb"><span class="sw-top">'+whoChip(c.r.who)+stars(c)+'</span><span class="title">'+esc(c.r.title)+'</span><span class="meta">'+meta(c)+'</span></span><span class="sw-ck" aria-hidden="true">'+I.tick+'</span></button>';
+  const row=c=>'<button type="button" class="cell sw-row'+(sw.sel===c.r.id?' on':'')+'" data-act="swapSel" data-id="'+esc(c.r.id)+'" aria-pressed="'+(sw.sel===c.r.id)+'" data-q="'+esc((c.r.title+' '+(c.r.who||'')).toLowerCase())+'">'+dishThumb(c.r,c.r.title)+
+   '<span class="grow"><span class="title">'+esc(c.r.title)+'</span><span class="meta">'+whoChip(c.r.who)+stars(c)+'<span>'+meta(c)+'</span></span></span><span class="sw-ck" aria-hidden="true">'+I.tick+'</span></button>';
+  let body='<div class="sw-now">'+dishThumb(cur,m.title)+'<div class="grow"><div class="fn">'+(many?'Står på flera dagar och byts överallt':'Byter '+esc(dateShort(m.date)))+'</div><div class="title">'+esc(m.title)+'</div></div></div>';
+  body+=sh('Förslag','<span class="fn">Samma sort, goda och efterlängtade först</span>')+(top.length?'<div class="sw-cards">'+top.map(card).join('')+'</div>':group(emptyCell('Inga rätter av samma sort i receptbanken just nu.')));
+  if(rest.length)body+=sh('Alla rätter')+'<div class="sw-search"><input type="search" id="sw-q" placeholder="Sök bland '+rest.length+' rätter" aria-label="Sök rätt" autocomplete="off" enterkeyhint="search"></div>'+group(rest.map(row).join(''))+'<div class="foot sw-none" hidden>Inga rätter matchar sökningen.</div>';
+  body+='<div class="sw-info"><div class="foot">Inköpslistan uppdateras: varor som bara behövdes till den gamla rätten tas bort och den nya rättens läggs till.</div>'+
+   (S.confirm==='swapRemove'?'<div class="sw-rm"><span>Ta bort rätten utan att lägga in någon ny?</span><button type="button" class="tb red strong" data-act="swapRemove">Ta bort</button><button type="button" class="tb" data-act="confirmNo">Avbryt</button></div>':
+    '<button type="button" class="sw-rmb" data-act="swapRemoveAsk">Ta bort rätten utan att välja en ny</button>')+'</div>'+
+   '<div class="sw-foot"><button type="button" class="btn-fill" data-act="swapGo"'+(sw.sel?'':' disabled')+'>'+(sw.sel?'Byt till '+esc(recipeById(sw.sel).title):'Välj en rätt')+'</button></div>';
+  o.innerHTML=sheetHtml('swap',m.recipe?'Byt rätt':'Välj rätt','<button type="button" class="tb strong" data-act="swapGo"'+(sw.sel?'':' disabled')+'>Byt</button>',body,enter);return}
  if(k==='wish'){const r=S.wishFor&&recipeById(S.wishFor),sel=slotFor(r);
   const body=(r?'<div style="height:16px"></div>'+group('<div class="cell"><div class="grow"><div class="chips-row">'+whoChip(r.who)+'</div><div class="title" style="margin-top:3px">'+esc(r.title)+'</div></div></div>'):
    sh('Vad vill du äta?')+group('<div class="cell"><input class="field" name="t" required maxlength="120" placeholder="T.ex. lasagne eller pad thai" aria-label="Rätt" autocomplete="off"></div>'))+
@@ -2039,9 +2045,12 @@ const ACT={
   S.wishFor=id;S.sheet='wish';render()},
  wishNew(){S.wishFor=null;S.sheet='wish';render()},
  wishDel(id){const w=wishes()[Number(id)];if(!w)return;A.user=Date.now();updJSON('onskelista',[],a=>a.filter(x=>!(x.t===w.t&&x.d===w.d&&x.slot===w.slot)));toast('Önskemålet är borttaget')},
- swap(id){const m=D().menu[Number(id)];if(!m)return;S.swap={m:Object.assign({},m),step:'ask',i:0};S.confirm=null;S.sheet='swap';render()},
- swapStep(id){if(!S.swap)return;S.swap.step=id;S.confirm=null;render()},
- swapNext(){if(!S.swap)return;S.swap.i=(S.swap.i||0)+1;render()},
+ swap(id){const m=D().menu[Number(id)];if(!m)return;S.swap={m:Object.assign({},m),sel:null};S.confirm=null;S.sheet='swap';render()},
+ // Markera en rätt utan att rita om bladet, så att scroll och sökning ligger kvar
+ swapSel(id){if(!S.swap)return;S.swap.sel=S.swap.sel===id?null:id;const r=S.swap.sel&&recipeById(S.swap.sel);
+  document.querySelectorAll('#overlay [data-act="swapSel"]').forEach(b=>{const on=b.dataset.id===S.swap.sel;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)});
+  document.querySelectorAll('#overlay [data-act="swapGo"]').forEach(b=>{b.disabled=!r;if(b.classList.contains('btn-fill'))b.textContent=r?'Byt till '+r.title:'Välj en rätt'})},
+ swapGo(){const r=S.swap&&S.swap.sel&&recipeById(S.swap.sel);if(r)doSwap(r)},
  swapRemoveAsk(){S.confirm='swapRemove';render()},
  swapRemove(){doSwap(null)},
  swapTo(id){const r=recipeById(id);if(r)doSwap(r)},
@@ -2116,7 +2125,8 @@ document.addEventListener('click',e=>{const el=e.target.closest('[data-act]');if
 // Kom ihåg vilka hopfällbara sektioner som är öppna mellan renderingar
 document.addEventListener('toggle',e=>{const d=e.target;if(d&&d.dataset&&d.dataset.k)S.open[d.dataset.k]=d.open},true);
 document.addEventListener('change',e=>{if(e.target.id==='ee-allday'){const t=document.getElementById('ee-times');if(t)t.hidden=e.target.checked}});
-document.addEventListener('input',e=>{if(e.target.classList.contains('smc-sl')){const f=e.target.closest('.smc-r').querySelector('.smc-face');if(f)f.textContent=SMIL[Number(e.target.value)+1][1]}
+document.addEventListener('input',e=>{if(e.target.id==='sw-q'){const q=e.target.value.trim().toLowerCase();let n=0;document.querySelectorAll('#overlay .sw-row').forEach(b=>{const ok=!q||b.dataset.q.includes(q);b.hidden=!ok;if(ok)n++});const f=document.querySelector('#overlay .sw-none');if(f)f.hidden=n>0;return}
+ if(e.target.classList.contains('smc-sl')){const f=e.target.closest('.smc-r').querySelector('.smc-face');if(f)f.textContent=SMIL[Number(e.target.value)+1][1]}
  if(e.target.id==='ork')orkPreview(e.target);if(e.target.id==='split-amt')splitPreview(e.target)});
 document.addEventListener('change',e=>{const el=e.target.closest('[data-change]');if(!el)return;const id=el.dataset.id;
  if(el.dataset.change==='photo'){const f=el.files&&el.files[0];el.value='';if(S.rcpSheet){S.rcpSheet=null;render()}uploadPhoto(id,f);return}
