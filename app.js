@@ -711,6 +711,9 @@ function planCalc(){
  const standalone={};const ensam=(r,p)=>{const k=r.id+p.id;return standalone[k]??(standalone[k]=MV.korg([planBehov(r,p)],lager).kr)};
  const tagna=except=>new Set(PLATSER.filter(q=>q.id!==except&&valt(q.id)).map(q=>P.val[q.id]));
  const minKostnad=(p,ut)=>{const L=kand[p.id].filter(r=>!ut.has(r.id)&&matLage(r.id).redo);return L.length?Math.min(...L.map(r=>ensam(r,p))):0};
+ // Billigaste rätten till en tom plats, räknat med det som blir över från de rätter som redan är valda (b)
+ const minDelad=(q,b,ut)=>{const L=kand[q.id].filter(r=>!ut.has(r.id)&&matLage(r.id).redo);if(!L.length)return 0;const bas=MV.korg(b,lager).kr;
+  return Math.min(...L.map(r=>MV.korg(b.concat([planBehov(r,q)]),lager).kr-bas))};
  // Vardagsrätt 2: med om du valt den, annars bara om budgeten räcker till en rätt i mellanpris
  let v2=P.v2==='ja'||!!valt('v2');
  if(!v2&&P.v2!=='nej'){const ut=tagna('v2'),andra=PLATSER.filter(q=>q.id!=='v2'),b=andra.filter(q=>valt(q.id)).map(q=>planBehov(valt(q.id),q));
@@ -723,7 +726,7 @@ function planCalc(){
  aktiva.forEach(p=>{
   const andra=aktiva.filter(q=>q.id!==p.id&&valt(q.id)),bAndra=andra.map(q=>planBehov(valt(q.id),q)),ut=tagna(p.id);
   const kvar=B*CF.marginal-MV.korg(bAndra,lager).kr-macka;
-  const tomma=aktiva.filter(q=>q.id!==p.id&&!valt(q.id)),mk=tomma.reduce((a,q)=>a+minKostnad(q,ut),0);
+  const tomma=aktiva.filter(q=>q.id!==p.id&&!valt(q.id)),mk=tomma.reduce((a,q)=>a+minDelad(q,bAndra,ut),0);
   const mal=Math.max(1,kvar*p.port/(p.port+tomma.reduce((a,q)=>a+q.port,0)));
   const huvud=andra.map(q=>MP.huvudravara(valt(q.id)));
   const mk2=(r,extra)=>{const b=planBehov(r,p),t=MV.tillagg(bAndra,b,lager),l=matLage(r.id);
@@ -735,26 +738,30 @@ function planCalc(){
   const w=wish.filter(x=>WISHSLOT[x.slot]===p.id||(p.typ==='vardag'&&WISHSLOT[x.slot]==='v1')).map(x=>recipeById(x.id)).filter(r=>r&&!ut.has(r.id)&&r.id!==P.val[p.id]&&!f.val.some(y=>y.r.id===r.id));
   const val=w.slice(0,1).map(r=>mk2(r,{onskad:true})).concat(f.val).slice(0,3);
   plats[p.id]={p,kvar,valt:valt(p.id)?mk2(valt(p.id)):null,val,bonus:f.bonus&&!val.some(y=>y.r.id===f.bonus.r.id)?Object.assign({},f.bonus,{bonus:true}):null}});
- const valda=aktiva.filter(p=>valt(p.id)),korg=MV.korg(valda.map(p=>planBehov(valt(p.id),p)),lager);
- return{P,B,v2,aktiva,plats,valda,korg,macka,kassa:korg.kr+macka,klar:valda.length===aktiva.length}}
+ const valda=aktiva.filter(p=>valt(p.id)),bValda=valda.map(p=>planBehov(valt(p.id),p)),korg=MV.korg(bValda,lager);
+ // Vad de tomma platserna minst kommer att kosta, så att budgetrutan kan varna i tid
+ const tomma=aktiva.filter(p=>!valt(p.id)),reserv=tomma.reduce((a,q)=>a+minDelad(q,bValda,tagna(q.id)),0);
+ return{P,B,v2,aktiva,plats,valda,korg,macka,kassa:korg.kr+macka,tomma,reserv,klar:valda.length===aktiva.length}}
 // Etiketten som Kod.gs använder för att veta vilken rätt en vara hör till (samma som mealLabel_)
 function planEtikett(p,date){if(p.typ==='storkok')return'Storkok '+(p.who==='Vegetariskt'?'veg':'kött');const d=['Sön','Mån','Tis','Ons','Tor','Fre','Lör'][parse(date).getDay()];return p.typ==='vardag'&&p.who==='Gemensam'?d+' middag':p.who==='Gemensam'?'Helg ('+d.toLowerCase()+')':d+' '+(p.who==='Vegetariskt'?'veg':'kött')}
 function planCard(x,p,chosen){const r=x.r,stars=x.l.betyg?'★ '+starNum(x.l.s):'Ny',re=Math.round(x.t.ateranvandning*100);
  const tag=x.onskad?'<span class="chip v">Önskad</span>':x.bonus?'<span class="chip g">Bonus</span>':isFav(r.id)?'<span class="chip k">Favorit</span>':'';
  const pp=r.kr?Number(r.kr):x.t.ensamKr/p.port;
- const meta='<span>'+stars+'</span><span class="num">'+kr(pp)+'/port</span><span class="num">+'+Math.round(x.t.kassa)+' kr i kassan</span>'+(x.ok===false?'<span class="pl-over">Över budget</span>':'');
+ const meta='<span>'+stars+'</span><span class="num">'+kr(pp)+'/port</span><span class="num">+'+Math.round(x.t.kassa)+' kr i kassan</span>'+(!chosen&&x.ok===false?'<span class="pl-over">Ryms inte med resten av veckan</span>':'');
  // Hur mycket billigare rätten blir tillsammans med veckans andra val, och en infoknapp som visar vilka varor som återanvänds
  const pct=x.t.ensamKr>0?Math.round((1-x.t.kassa/x.t.ensamKr)*100):0,ik=p.id+'|'+r.id,open=!!(S.plInfo||{})[ik];
  const delar=pct>=10&&x.t.delar&&x.t.delar.length?'<span class="pl-re'+(open?' open':'')+'"><span class="pl-rt">'+pct+' % billigare tillsammans med dina andra val<span class="pl-i" role="button" tabindex="0" data-act="planInfo" data-id="'+esc(ik)+'" aria-expanded="'+open+'" aria-label="Vilka varor återanvänds?">i</span></span><span class="pl-rd">Återanvänder: '+esc(x.t.delar.join(', '))+'</span></span>':'';
  if(chosen)return'<div class="cell pl-c on"><button class="grow pl-b" data-act="recipe" data-id="'+esc(r.id)+'"><span class="pl-ic" aria-hidden="true">'+foodIcon(r.title)+'</span><span class="grow"><span class="title">'+esc(r.title)+'</span><span class="meta">'+meta+'</span>'+delar+'</span></button><button class="pill" data-act="planByt" data-id="'+p.id+'">Byt</button></div>';
  return'<button class="cell pl-c" data-act="planPick" data-id="'+esc(r.id)+'" data-k="'+p.id+'"><span class="pl-ic" aria-hidden="true">'+foodIcon(r.title)+'</span><span class="grow"><span class="chips-row">'+tag+'</span><span class="title">'+esc(r.title)+'</span><span class="meta">'+meta+'</span>'+delar+'</span><span class="pl-add" aria-hidden="true">'+I.plus+'</span></button>'}
+const tommaTxt=C=>C.tomma.length===1?'Den tomma platsen kostar':'De '+C.tomma.length+' tomma platserna kostar';
 function planView(){const C=planCalc(),{P,B}=C,mon=parse(P.vecka),sun=parse(addDays(P.vecka,6));
  NB.title='Planera veckan';NB.back=true;
  const wk=isoWeek(mon);
  let h='<div class="rcp-top"><button class="back" data-act="planClose">'+I.back+'Mat</button></div><header class="head"><div class="head-row"><h1 class="lt">Vecka '+wk+'</h1></div><div class="sub">'+esc(cap(DAYS[mon.getDay()])+' '+mon.getDate()+' '+MON[mon.getMonth()]+' – '+DAYS[sun.getDay()]+' '+sun.getDate()+' '+MON[sun.getMonth()])+'</div></header>';
  const pct=Math.min(100,Math.round(C.kassa/B*100)),over=C.kassa>B;
  h+='<div class="pl-bud"><div class="pl-bt"><div><span class="fn">I kassan</span><b class="num">'+kr(C.kassa)+'</b></div><label class="pl-bb"><span class="fn">Budget</span><input class="num" type="number" inputmode="numeric" min="200" max="5000" step="10" value="'+B+'" data-change="planBudget" aria-label="Veckobudget i kronor"></label></div>'+
-  '<div class="thin'+(over?' bad':'')+'"><i style="width:'+pct+'%"></i></div><div class="fn">'+(over?'Över budget med '+kr(C.kassa-B):'Kvar '+kr(B-C.kassa))+' · '+(C.v2?'2 vardagsrätter':'1 vardagsrätt')+', '+(4-(C.v2?2:1))+' mackkvällar ('+kr(C.macka)+')</div></div>';
+  '<div class="thin'+(over?' bad':'')+'"><i style="width:'+pct+'%"></i></div><div class="fn">'+(over?'Över budget med '+kr(C.kassa-B):'Kvar '+kr(B-C.kassa))+' · '+(C.v2?'2 vardagsrätter':'1 vardagsrätt')+', '+(4-(C.v2?2:1))+' mackkvällar ('+kr(C.macka)+')</div>'+
+  (C.tomma.length?(C.kassa+C.reserv>B?'<div class="fn pl-warn">'+tommaTxt(C)+' minst '+kr(C.reserv)+', så resten av veckan ryms inte. Byt en dyr rätt eller höj budgeten.</div>':'<div class="fn">'+tommaTxt(C)+' minst '+kr(C.reserv)+'.</div>'):'')+'</div>';
  PLATSER.forEach(p=>{const X=C.plats[p.id];
   if(!X){h+=sh(esc(p.namn),'Macka')+group('<div class="cell"><div class="grow"><div class="title">Macka</div><div class="meta">'+(P.v2==='nej'?'Ni valde macka den här kvällen.':'Budgeten räcker inte till en vardagsrätt till.')+'</div></div><button class="pill" data-act="planV2" data-id="ja">Lägg till ändå</button></div>');return}
   const open=!X.valt||S.planOpen===p.id;
