@@ -872,6 +872,15 @@ button.fig-box:active{opacity:1;transform:scale(.96)}
 .pin-pad{display:grid;grid-template-columns:repeat(3,84px);gap:16px 26px}
 .pin-k{width:84px;height:84px;border-radius:50%;background:var(--surface);color:var(--ink);font-size:32px;font-weight:500;font-variant-numeric:tabular-nums}
 .pin-k.del{background:none;font-size:17px;color:var(--accent)}
+.pc.p1{--pc:var(--p1);--pc-soft:var(--p1-soft);--pc-ink:var(--p1-ink)}.pc.p2{--pc:var(--p2);--pc-soft:var(--p2-soft);--pc-ink:var(--p2-ink)}
+.pcn{color:var(--pc-ink)!important;font-weight:500}
+.eko-card.pc{background:var(--pc-soft)}
+.eko-card.pc .eko-name{color:var(--pc-ink)}
+.eko-card.pc .eko-left b:not(.red){color:var(--pc-ink)}
+.eko-card.pc .eko-rows .tot{border-top-color:var(--pc)}
+.eko-pl .sh>span:first-child{color:var(--pc-ink);font-weight:600}
+.eko-add{color:var(--accent)}.eko-pl .eko-add{color:var(--pc-ink)}
+.vpick label.pc input:checked+span{background:var(--pc);color:#fff}
 .hist{gap:12px}
 .hist .hm{width:84px;flex:none;font-size:15px}
 .hbar{flex:1;display:flex;gap:2px;height:10px;min-width:0}
@@ -1276,7 +1285,7 @@ body.wall:has(.board) .arr-foot{left:28px;transform:none;width:calc((100% - 60px
 <script src="matvaror.js?v=3"></script>
 <script src="matpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=79"></script>
+<script src="app.js?v=80"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
