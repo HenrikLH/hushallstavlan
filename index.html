@@ -139,6 +139,7 @@ html.sb-auto.scrolling,html.sb-auto.scrolling *{scrollbar-color:var(--line) tran
 .cell+.cell::before,.cell+.ingx::before,.ingx+.cell::before{content:"";position:absolute;top:0;left:16px;right:0;border-top:.5px solid var(--line)}
 .cell.ck{gap:14px}
 .cell.ck::before,.cell.lead::before{left:52px!important}
+.dr-wrap+.dr-wrap>.cell.ck::before{content:"";position:absolute;top:0;right:0;border-top:.5px solid var(--line)}
 .grow{flex:1;min-width:0}
 .title{overflow-wrap:anywhere}
 .meta{font-size:15px;line-height:20px;letter-spacing:-.24px;color:var(--ink-2);display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px;margin-top:2px}
@@ -462,6 +463,10 @@ button.fig-box:active{opacity:1;transform:scale(.96)}
 .dr-slide{background:var(--surface);touch-action:pan-y;will-change:transform}
 .dr-act{position:absolute;top:0;right:0;bottom:0;width:84px;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:0;gap:4px;background:var(--accent);color:var(--on-accent);font-size:13px;font-weight:600}
 .dr-act svg{width:22px;height:22px}
+.dr-act.del{background:var(--red,#FF3B30);color:#fff}
+.toast.undo{display:flex;align-items:center;gap:14px;padding:8px 8px 8px 18px;text-align:left}.toast.undo[hidden]{display:none}
+.ud-t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ud-b{border:0;background:var(--accent);color:var(--on-accent);font:inherit;font-weight:600;padding:7px 14px;border-radius:16px}
 .dr-done{flex:none;display:flex;align-items:center;gap:4px;font-size:13px;color:var(--ink-3);padding-right:4px}
 .dr-done svg{width:13px;height:13px}
 .dr.past .dr-th{opacity:.55}
@@ -1262,11 +1267,12 @@ body.wall:has(.board) .arr-foot{left:28px;transform:none;width:calc((100% - 60px
 <div id="overlay"></div>
 <div class="timers" id="timers" aria-live="polite"></div>
 <div id="toast" hidden class="toast" role="status"></div>
+<div id="undo" hidden class="toast undo" role="status"><span class="ud-t"></span><button type="button" class="ud-b" data-act="shopUndo">Ångra</button></div>
 <script src="config.js?v=37"></script>
 <script src="matvaror.js?v=3"></script>
 <script src="matpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=73"></script>
+<script src="app.js?v=75"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
