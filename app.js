@@ -1277,11 +1277,9 @@ function inkopParts(){
   (B?'<div class="stat"><span class="fn">Matbudget '+kr(B)+'</span><b>'+(mealCost>B?'+'+kr(mealCost-B):kr(B-mealCost)+' kvar')+'</b><div class="thin '+(mealCost>B?'bad':mealCost>B*.9?'warn':'')+'"><i style="width:'+Math.min(100,Math.round(mealCost/B*100))+'%"></i></div></div>':'')+'</div>';
  // Två knappar under siffrorna: hämta veckans varor och töm listan. Frågan visas i samma kort innan något händer
  const vs=st.vecka_start,wk=isDate(vs)?'Vecka '+isoWeek(parse(vs)):'veckan';
- const ask=S.confirm==='shopEmpty'?{ic:I.trash,red:1,t:'Töm hela listan?',x:'Alla '+all.length+' varor tas bort, även egna. Du kan ångra direkt efteråt.',y:'shopEmptyYes',yl:'Töm'}
-  :S.confirm==='shopImport'?{ic:I.imp,t:'Hämta varorna för '+wk.toLowerCase()+'?',x:'Varorna från förra planen byts ut mot det rätterna på veckosedeln behöver. Egna varor ligger kvar.',y:'shopImportYes',yl:'Hämta'}:null;
- h+=ask?'<div class="sh-ask"><div class="sh-ah"><span class="sh-ic'+(ask.red?' red':'')+'">'+ask.ic+'</span><b>'+esc(ask.t)+'</b></div><p>'+esc(ask.x)+'</p><div class="sh-ab"><button class="sh-no" data-act="confirmNo">Avbryt</button><button class="sh-yes'+(ask.red?' red':'')+'" data-act="'+ask.y+'">'+ask.yl+'</button></div></div>'
-  :'<div class="sh-tools"><button class="sh-btn" data-act="shopImport"><span class="sh-ic">'+I.imp+'</span><span class="sh-tx"><b>Hämta varor</b><span class="fn">'+esc(isDate(vs)?wk:'Från veckosedeln')+'</span></span></button>'
-  +'<button class="sh-btn" data-act="shopEmpty"'+(all.length?'':' disabled')+'><span class="sh-ic red">'+I.trash+'</span><span class="sh-tx"><b>Töm listan</b><span class="fn">'+(all.length?all.length+' varor':'Listan är tom')+'</span></span></button></div>';
+ // Håll in knappen för att bekräfta: en fyllning går över knappen och åtgärden körs när den är full
+ h+='<div class="sh-tools"><button type="button" class="sh-btn" data-hold="shopImportYes" aria-label="Håll in för att hämta varor för '+esc(wk.toLowerCase())+'"><i class="sh-fill"></i><span class="sh-ic">'+I.imp+'</span><b>Hämta varor</b></button>'
+  +'<button type="button" class="sh-btn red" data-hold="shopEmptyYes"'+(all.length?'':' disabled')+' aria-label="Håll in för att tömma listan"><i class="sh-fill"></i><span class="sh-ic">'+I.trash+'</span><b>Töm listan</b></button></div>';
  h+='<div class="fchips" role="group" aria-label="Filter">'+groups.map(([k,l])=>'<button data-act="shopFilter" data-id="'+esc(k)+'" aria-pressed="'+(f===k)+'">'+l+'</button>').join('')+'</div>';
  h+='<div class="split"><div class="col">';
  if(!all.length)h+='<div style="height:22px"></div>'+group(emptyCell('Listan är tom. Tryck på Hämta varor för veckans rätter, eller lägg till egna varor med plus.'));
@@ -2721,6 +2719,15 @@ const ACT={
  orkPick(id){const el=document.getElementById('ork');if(el){el.value=id;orkPreview(el)}ACT.budget(String(ORK[Number(id)].min))},
  budget(id){const v=today()+'|'+id;S.data.settings.stadtid_idag=v;render();apiPost({action:'setting',k:'stadtid_idag',v})}
 };
+// Knappar med data-hold bekräftas genom att hållas in 1 s. Släpper man eller scrollar avbryts det
+(()=>{let h=null,fired=0;const T=1000;
+ const stop=()=>{if(!h)return;clearTimeout(h.t);h.el.classList.remove('holding');h=null};
+ document.addEventListener('pointerdown',e=>{const el=e.target.closest('[data-hold]');if(!el||el.disabled||e.button>0)return;stop();
+  el.classList.add('holding');h={el,x:e.clientX,y:e.clientY,t:setTimeout(()=>{const a=el.dataset.hold;stop();fired=Date.now();try{navigator.vibrate&&navigator.vibrate(15)}catch(x){}ACT[a]&&ACT[a]()},T)}});
+ document.addEventListener('pointermove',e=>{if(h&&Math.hypot(e.clientX-h.x,e.clientY-h.y)>12)stop()});
+ ['pointerup','pointercancel','scroll'].forEach(k=>document.addEventListener(k,stop,true));
+ document.addEventListener('click',e=>{const el=e.target.closest('[data-hold]');if(el&&Date.now()-fired>800)toast('Håll in knappen för att '+(el.dataset.hold==='shopEmptyYes'?'tömma listan':'hämta varorna'))});
+ document.addEventListener('contextmenu',e=>{if(e.target.closest('[data-hold]'))e.preventDefault()})})();
 document.addEventListener('click',e=>{const el=e.target.closest('[data-act]');if(!el)return;const a=el.dataset.act;if(!ACT[a])return;
  if(el.tagName==='INPUT'&&el.type==='checkbox')e.preventDefault();
  ACT[a](el.dataset.id,el,e)});
