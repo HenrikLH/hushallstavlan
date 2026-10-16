@@ -163,6 +163,13 @@ html.sb-auto.scrolling,html.sb-auto.scrolling *{scrollbar-color:var(--line) tran
 .chip{display:inline-flex;align-items:center;border-radius:6px;padding:1px 7px;font-size:12px;line-height:16px;font-weight:600;letter-spacing:0;background:var(--fill);color:var(--ink-2);white-space:nowrap}
 .chip.p1{background:var(--p1-soft);color:var(--p1-ink)}
 .chip.p2{background:var(--p2-soft);color:var(--p2-ink)}
+.kv{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.kv-l{border-radius:12px;padding:8px 10px 9px;background:var(--p1-soft)}.kv-l.p2{background:var(--p2-soft)}
+.steps li.active .kv-l{background:var(--surface)}
+.kv-h{display:flex;align-items:center;gap:6px;font-size:13px;line-height:18px;font-weight:600;color:var(--p1-ink)}.kv-l.p2 .kv-h{color:var(--p2-ink)}
+.kv-h .av{width:20px;height:20px;border-radius:10px;flex:none;background:var(--p1);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}.kv-l.p2 .av{background:var(--p2)}
+.kv-t{margin-top:3px;font-size:15px;line-height:20px;color:var(--ink)}
+.cook .kv{padding:18px 16px 0;max-width:36ch;gap:10px}.cook .kv-l{padding:10px 12px 12px}.cook .kv-h{font-size:15px}.cook .kv-t{font-size:22px;line-height:28px;font-weight:600}
 .chip.v{background:var(--veg-bg);color:var(--veg-ink)}
 .chip.k{background:var(--meat-bg);color:var(--meat-ink)}
 .chip.g,.chip.offer{background:var(--gem-bg);color:var(--gem-ink)}
@@ -1224,6 +1231,7 @@ body.wall:has(.board) .arr-foot{left:28px;transform:none;width:calc((100% - 60px
 <script src="config.js?v=37"></script>
 <script src="matvaror.js?v=3"></script>
 <script src="matpoang.js?v=1"></script>
+<script src="kottveg.js?v=1"></script>
 <script src="app.js?v=69"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
