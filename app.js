@@ -1480,7 +1480,11 @@ function calWidget(){const t=today(),wk=[];for(let i=0;i<7;i++)wk.push(addDays(t
  strip+='</div>';
  // under ett streck: dagens att göra-uppgifter med egen rubrik
  const ts=D().tasks.filter(x=>x.due===sel&&!x.done);
- const todo=ts.length&&!wallBoardOn()?'<div class="wk-todo wk-link" data-act="taskList" role="link" tabindex="0" aria-label="Att göra, öppna Uppgifter"><div class="wk-sub">Att göra</div><div class="evs">'+ts.map(x=>'<div class="ev task"><span>'+esc(x.title)+evWho(x)+'</span></div>').join('')+'</div></div>':'';
+ // saknade stående överföringar visas bara för den det gäller och aldrig på väggen
+ const ovs=wallBoardOn()||!people().includes(S.me)?[]:[['shared',ovOpen('shared')],[S.me,ovOpen(S.me)]].flatMap(([l,a])=>a.map(c=>({l,c})));
+ const todo=(ts.length||ovs.length)&&!wallBoardOn()?'<div class="wk-todo wk-link" data-act="taskList" role="link" tabindex="0" aria-label="Att göra, öppna Uppgifter"><div class="wk-sub">Att göra</div><div class="evs">'+
+  ovs.map(x=>'<div class="ev task ov-task" data-act="ovGo" data-id="'+esc(x.l+'|'+x.c.id)+'" role="link" tabindex="0"><span>'+(ovState(x.c)==='andrad'?'Uppdatera':'Lägg in')+' stående överföring: '+esc(x.c.name)+'</span></div>').join('')+
+  ts.map(x=>'<div class="ev task"><span>'+esc(x.title)+evWho(x)+'</span></div>').join('')+'</div></div>':'';
  return'<section class="widget w2 calw"><button class="wh" data-act="calOpen" data-id="'+sel+'" style="width:100%">'+I.cal+'<span>Kalender</span><span class="r">'+esc(cap(MON[parse(sel).getMonth()]))+'</span></button>'+strip+
   // schemadelen öppnar kalendern på vald dag, att göra-delen öppnar uppgiftslistan
   '<div class="wk-day"><div id="cal-rows" class="wk-link" data-d="'+sel+'" data-act="calOpen" data-id="'+sel+'" role="link" tabindex="0" aria-label="Schema, öppna kalendern">'+calDayRows(sel)+'</div>'+todo+'</div></section>'}
@@ -1651,18 +1655,18 @@ function renderOverlay(){
    sh('Betalning')+group(fieldCell('Sätt',menuSel('name="pay"',pays.map(x=>'<option value="'+x+'"'+(x===(c.pay||'')?' selected':'')+'>'+(x||'Inget valt')+'</option>').join('')))+
     fieldCell('Dag i månaden','<input class="field r" name="day" value="'+esc(c.day||'')+'" placeholder="t.ex. 28 eller sista" style="max-width:170px">')+
     '<div class="cell"><input class="field" name="note" placeholder="Anteckning" value="'+esc(c.note||'')+'" aria-label="Anteckning"></div>')+
-   (e.id&&e.list==='shared'?sh('Stående överföring')+group(ovState(c)==='ok'?'<div class="cell"><span class="ovs ok" aria-hidden="true">'+I.tick+'</span><span class="grow">Inlagd'+(c.ov.t?' '+esc(dateShort(c.ov.t)):'')+'</span><button type="button" class="linkbtn" data-act="ovUndo">Ångra</button></div>':
-     '<button type="button" class="cell link" data-act="ovShow" data-id="'+esc(c.id)+'"><span class="ovs '+ovState(c)+'" aria-hidden="true">!</span><span class="grow" style="color:var(--orange)">'+(ovState(c)==='andrad'?'Uppdatera och bekräfta':'Bekräfta att den är inlagd')+'</span>'+chevron+'</button>'):'')+
+   sh('Stående överföring från '+esc(ovFrom(e.list||'shared')))+group(fieldCell('Överföringsdag','<input class="field r" name="tday" inputmode="numeric" value="'+esc(c.tday||'')+'" placeholder="28" style="max-width:120px">')+(!e.id?'':ovState(c)==='ok'?'<div class="cell"><span class="ovs ok" aria-hidden="true">'+I.tick+'</span><span class="grow">Inlagd'+(c.ov.t?' '+esc(dateShort(c.ov.t)):'')+'</span><button type="button" class="linkbtn" data-act="ovUndo">Ångra</button></div>':
+     '<button type="button" class="cell link" data-act="ovShow" data-id="'+esc(c.id)+'" data-list="'+esc(e.list)+'"><span class="ovs '+ovState(c)+'" aria-hidden="true">!</span><span class="grow" style="color:var(--orange)">'+(ovState(c)==='andrad'?'Uppdatera och bekräfta':'Bekräfta att den är inlagd')+'</span>'+chevron+'</button>'))+
    (e.id?'<div style="height:22px"></div>'+group('<button type="button" class="cell link center red" data-act="ekoDel">Ta bort utgiften</button>'):'');
   o.innerHTML=sheetHtml('cost',e.id?'Ändra utgift':'Ny utgift','<button class="tb strong">Spara</button>',body,enter);return}
- if(k==='ov'){const c=ekoList('shared').find(x=>x.id===S.ovId);if(!c){closeSheets();o.innerHTML='';o.dataset.k='';return}
-  const st=ovState(c),was=c.ov&&st==='andrad'?c.ov:null,dag=ovDay(c.day),row=(l,v)=>'<div class="ti-row"><span>'+l+'</span><b>'+v+'</b></div>';
+ if(k==='ov'){const L=(S.ovEdit||{}).list||'shared',c=ekoList(L).find(x=>x.id===(S.ovEdit||{}).id);if(!c){closeSheets();o.innerHTML='';o.dataset.k='';return}
+  const st=ovState(c),was=c.ov&&st==='andrad'?c.ov:null,row=(l,v)=>'<div class="ti-row"><span>'+l+'</span><b>'+v+'</b></div>';
   const body='<div class="ov-sheet"><div class="ov-flow" aria-hidden="true"><span>'+I.lock+'</span><i></i><span>'+I_EKO+'</span></div>'+
    '<div class="ti-big">'+kr(c.amount)+'</div><div class="ti-sub">'+esc(c.name)+' · '+esc(ovEvery[c.period||'månad'].toLowerCase())+'</div>'+
-   '<div class="ti-rows">'+row('Från',esc(ovFrom()))+row('Till',esc(ovTo()))+row('Belopp',kr(c.amount))+row('Upprepas',esc(ovEvery[c.period||'månad']))+
-    row('Datum',dag?'Senast '+esc(dag):'Före dragningen')+'</div>'+
-   (was?'<div class="ov-was">Ändrad sedan sist. Förut '+kr(was.a)+(was.p&&was.p!==(c.period||'månad')?' per '+esc(was.p):'')+(was.d&&String(was.d)!==String(c.day||'')?', dras '+esc(dayTxt(was.d)):'')+'. Ändra den befintliga överföringen i banken.</div>':'')+
-   '<button type="button" class="btn-fill" data-act="ovDone" data-id="'+esc(c.id)+'">'+I.tick+(was?'Den är ändrad':'Den är inlagd')+'</button>'+
+   '<div class="ti-rows">'+row('Från',esc(ovFrom(L)))+row('Till',esc(ovTo))+row('Belopp',kr(c.amount))+row('Upprepas',esc(ovEvery[c.period||'månad']))+
+    row('Datum','Den '+esc(dayTxt(ovTday(c))))+'</div>'+
+   (was?'<div class="ov-was">Ändrad sedan sist. Förut '+kr(was.a)+(was.p&&was.p!==(c.period||'månad')?' per '+esc(was.p):'')+(String(was.d||'28')!==ovTday(c)?', den '+esc(dayTxt(was.d||'28')):'')+'. Ändra den befintliga överföringen i banken.</div>':'')+
+   '<button type="button" class="btn-fill" data-act="ovDone" data-id="'+esc(c.id)+'" data-list="'+esc(L)+'">'+I.tick+(was?'Den är ändrad':'Den är inlagd')+'</button>'+
    '<button type="button" class="ov-later" data-act="ovLater">Gör det senare</button>'+
    '<div class="ti-foot fn">Utgiften visas som '+(was?'ändrad':'saknad')+' tills du bockar av den.</div></div>';
   o.innerHTML=sheetHtml('ov','Stående överföring','<span class="tb" aria-hidden="true"></span>',body,enter);return}
@@ -2263,15 +2267,16 @@ function ekoCalc(m){const o=ekoData(),ps=people(),all=ekoInc();let src=m,inc=all
   const dep=up(shared*share),pdep=up(own);return{p,inc:i,share,sharedPart:shared*share,dep,own,pdep,sum:dep+pdep,left:i-dep-pdep}});
  return{m,src,own:src===m,tot,shared,per,o}}
 const pcls=p=>'p'+(Math.max(0,people().indexOf(p))+1);
-/* Stående överföring från låsta kontot till betalkontot, bara för gemensamma utgifter.
-   När man bekräftar sparas beloppet, perioden och dagen i c.ov. Ändras något av dem efteråt
-   måste överföringen i banken ändras också, och då visas utgiften som ändrad tills man bekräftar igen. */
-const ovFrom=()=>ekoData().ovFrom||'Låsta kontot',ovTo=()=>ekoData().ovTo||'Betalkontot';
-const ovState=c=>!c.ov?'saknas':(Number(c.ov.a)!==Number(c.amount)||(c.ov.p||'månad')!==(c.period||'månad')||String(c.ov.d||'')!==String(c.day||''))?'andrad':'ok';
-const ovOpen=()=>ekoList('shared').filter(c=>ovState(c)!=='ok');
-const ovDay=d=>{d=String(d||'').trim();if(!d)return'';if(/^sista/i.test(d))return'näst sista i månaden';const n=Number(d);return n>1?dayTxt(n-1):n===1?'sista i månaden innan':d};
+/* Stående överföring från ett låst konto till betalkontot. Gemensamma utgifter dras från kontot
+   Våra fasta utgifter, egna utgifter från var och ens konto Mina fasta utgifter. När man bekräftar sparas
+   beloppet, perioden och överföringsdagen i c.ov. Ändras något av dem måste överföringen i banken ändras
+   också, och då visas utgiften som ändrad tills man bekräftar igen. */
+const ovFrom=l=>l==='shared'?'Våra fasta utgifter':'Mina fasta utgifter',ovTo='Betalkontot';
+const ovTday=c=>String(c.tday||'').trim()||'28';
+const ovState=c=>!c.ov?'saknas':(Number(c.ov.a)!==Number(c.amount)||(c.ov.p||'månad')!==(c.period||'månad')||String(c.ov.d||'28')!==ovTday(c))?'andrad':'ok';
+const ovOpen=l=>ekoList(l).filter(c=>ovState(c)!=='ok');
 const ovEvery={'månad':'Varje månad','kvartal':'Var tredje månad','år':'En gång om året'};
-function costRow(c,list,split){const pm=perMonth(c),meta=[c.pay,dayTxt(c.day),c.note].filter(Boolean).join(' · '),ov=list==='shared'?ovState(c):'';
+function costRow(c,list,split){const pm=perMonth(c),meta=[c.pay,dayTxt(c.day),c.note].filter(Boolean).join(' · '),ov=ovState(c);
  return'<button class="cell link'+(ov?' ov-row':'')+'" data-act="ekoCost" data-id="'+esc(c.id)+'" data-list="'+esc(list)+'">'+
   (ov?'<span class="ovs '+ov+'" aria-label="'+(ov==='ok'?'Stående överföring inlagd':ov==='andrad'?'Överföringen behöver ändras':'Stående överföring saknas')+'">'+(ov==='ok'?I.tick:'!')+'</span>':'')+
   '<div class="grow"><div class="title">'+esc(c.name)+'</div>'+
@@ -2281,7 +2286,16 @@ function costRow(c,list,split){const pm=perMonth(c),meta=[c.pay,dayTxt(c.day),c.
   '</div><span class="val num">'+kr(pm)+'</span>'+chevron+'</button>'}
 function splitPreview(el){const v=Number(String(el.value).replace(/\s/g,'').replace(',','.'))||0,c=ekoCalc(S.ekoMonth||thisMonth()),out=document.getElementById('split-out');
  if(out)out.innerHTML=c.per.map(x=>'<div><span class="fn"><span class="pdot '+pcls(x.p)+'"></span>'+esc(x.p)+' '+(x.share*100).toFixed(1).replace('.',',')+' %</span><b class="num">'+kr(v*x.share)+'</b></div>').join('')}
-V.ekonomi=function(){const m=S.ekoMonth||thisMonth(),c=ekoCalc(m),o=c.o;
+function ovWarn(l){const n=ovOpen(l).length;if(!n)return'';
+ return'<button class="ov-warn" data-act="ovNext" data-list="'+esc(l)+'"><span class="ovs saknas" aria-hidden="true">!</span><span class="grow"><b>'+(n===1?'1 utgift saknar':n+' utgifter saknar')+' stående överföring</b><span>Lägg in '+(n===1?'den':'dem')+' i banken och bocka av här</span></span>'+chevron+'</button>'}
+function ovAllOk(l){const n=ekoList(l).length;return n&&!ovOpen(l).length?'<div class="foot ov-allok">'+I.tick+(n===1?'Har':'Alla '+n+' har')+' en stående överföring från '+esc(ovFrom(l))+'</div>':''}
+// I väggläge är Ekonomi låst med en kod. Låset går i igen när man lämnar Ekonomi. Inga gränser för antal försök.
+const EKO_PIN='1912';
+function ekoLock(){const n=(S.pin||'').length;
+ return'<div class="pin'+(S.pinBad?' bad':'')+'"><div class="pin-ic">'+I.lock+'</div><h2>Ekonomi är låst</h2><div class="fn">Skriv koden för att öppna</div>'+
+  '<div class="pin-dots" aria-label="'+n+' av 4 siffror">'+[0,1,2,3].map(i=>'<i class="'+(i<n?'on':'')+'"></i>').join('')+'</div>'+
+  '<div class="pin-pad">'+['1','2','3','4','5','6','7','8','9','','0','del'].map(k=>k===''?'<span></span>':'<button class="pin-k'+(k==='del'?' del':'')+'" data-act="pin" data-id="'+k+'" aria-label="'+(k==='del'?'Radera':k)+'">'+(k==='del'?'Radera':k)+'</button>').join('')+'</div></div>'}
+V.ekonomi=function(){if(wallBoardOn()&&!S.ekoOpen)return ekoLock();const m=S.ekoMonth||thisMonth(),c=ekoCalc(m),o=c.o;
  let h=head('Ekonomi',{sub:'Fasta utgifter och fördelning',tools:'<button class="ib plus" data-act="ekoCost" data-list="shared" aria-label="Ny utgift">'+I.plus+'</button>'});
  h+='<div class="mswitch"><button class="ib" data-act="ekoMonth" data-d="-1" aria-label="Förra månaden">'+I.back+'</button><div class="hl">'+esc(cap(monthName(m)))+'</div><button class="ib flip" data-act="ekoMonth" data-d="1" aria-label="Nästa månad">'+I.back+'</button></div>';
  // Inkomst och fördelning
@@ -2302,13 +2316,10 @@ V.ekonomi=function(){const m=S.ekoMonth||thisMonth(),c=ekoCalc(m),o=c.o;
  h+='<div class="foot">Avrundat uppåt till '+kr(o.round||100)+' med '+(o.buffer!=null?o.buffer:2)+' % buffert, som i kalkylen.</div>';
  // Gemensamma utgifter
  h+='<div class="split"><div class="col">';
- const miss=ovOpen(),nSh=(o.shared||[]).length;
- h+=sh('Gemensamma fasta',kr(c.shared)+'/mån');
- if(miss.length)h+='<button class="ov-warn" data-act="ovNext"><span class="ovs saknas" aria-hidden="true">!</span><span class="grow"><b>'+(miss.length===1?'1 utgift saknar':miss.length+' utgifter saknar')+' stående överföring</b><span>Lägg in '+(miss.length===1?'den':'dem')+' i banken och bocka av här</span></span>'+chevron+'</button>';
- h+=group((o.shared||[]).map(x=>costRow(x,'shared',c.per)).join('')+'<button class="cell link" data-act="ekoCost" data-list="shared"><span class="grow" style="color:var(--accent)">Lägg till utgift</span></button>');
- if(nSh&&!miss.length)h+='<div class="foot ov-allok">'+I.tick+'Alla '+nSh+' har en stående överföring från '+esc(ovFrom().toLowerCase())+'</div>';
+ h+=sh('Gemensamma fasta',kr(c.shared)+'/mån')+ovWarn('shared');
+ h+=group((o.shared||[]).map(x=>costRow(x,'shared',c.per)).join('')+'<button class="cell link" data-act="ekoCost" data-list="shared"><span class="grow" style="color:var(--accent)">Lägg till utgift</span></button>')+ovAllOk('shared');
  h+='</div><div class="col">';
- people().forEach(p=>{const l=(o.personal||{})[p]||[];h+=sh(esc(p)+'s fasta',kr(sumMonth(l))+'/mån')+group(l.map(x=>costRow(x,p)).join('')+'<button class="cell link" data-act="ekoCost" data-list="'+esc(p)+'"><span class="grow" style="color:var(--accent)">Lägg till utgift</span></button>')});
+ people().forEach(p=>{const l=(o.personal||{})[p]||[];h+=sh(esc(p)+'s fasta',kr(sumMonth(l))+'/mån')+ovWarn(p)+group(l.map(x=>costRow(x,p)).join('')+'<button class="cell link" data-act="ekoCost" data-list="'+esc(p)+'"><span class="grow" style="color:var(--accent)">Lägg till utgift</span></button>')+ovAllOk(p)});
  h+='</div></div>';
  // Dela en kostnad
  h+=sh('Dela en kostnad')+group('<div class="cell"><input class="field" id="split-amt" inputmode="decimal" placeholder="Belopp att dela, t.ex. 1000" aria-label="Belopp att dela"></div><div class="cell eko-calc" id="split-out" aria-live="polite"></div>');
@@ -2464,14 +2475,14 @@ function confetti(){if(calm())return;const cv=document.createElement('canvas'),d
 
 /* ---------- local mutations (optimistic) ---------- */
 function mutate(list,id,fields){const it=D()[list].find(x=>x.id===id);if(it)Object.assign(it,fields);render()}
-function closeSheets(){S.protFor=null;S.edit=null;S.rcpSheet=null;S.sheet=null;S.swap=null;S.wishFor=null;S.rate=null;S.ekoEdit=null;S.shopAdd=false;S.taskAdd=false}
+function closeSheets(){S.protFor=null;S.edit=null;S.rcpSheet=null;S.sheet=null;S.swap=null;S.wishFor=null;S.rate=null;S.ekoEdit=null;S.ovEdit=null;S.shopAdd=false;S.taskAdd=false}
 
 /* ---------- actions ---------- */
 function boxEdit(fn){const wall=wallBoardOn(),L=layout(wall,wall?WALL_DEF:OV_DEF());fn(L);saveLayout(wall,L);render()}
 const ACT={
  smileySkip(id,el){A.user=Date.now();saveSmiley(id,el.dataset.date,'x');toast('Okej, den räknas inte som lagad')},
  wakeBoard(){render()},
- nav(id){if(id!=='oversikt')S.arrange=false;try{document.activeElement&&document.activeElement.blur()}catch(e){}id=normView(id);S.shopAdd=false;S.taskAdd=false;S.view=id;S.recipe=null;S.confirm=null;lsSet('view',id);try{history.replaceState(null,'','#'+id)}catch(e){}window.scrollTo(0,0);render()},
+ nav(id){if(id!=='oversikt')S.arrange=false;if(normView(id)!=='ekonomi'){S.ekoOpen=false;S.pin=''}try{document.activeElement&&document.activeElement.blur()}catch(e){}id=normView(id);S.shopAdd=false;S.taskAdd=false;S.view=id;S.recipe=null;S.confirm=null;lsSet('view',id);try{history.replaceState(null,'','#'+id)}catch(e){}window.scrollTo(0,0);render()},
  refresh(){refresh()},
  settings(){S.sheet='settings';render()},
  arrange(){closeSheets();S.arrange=true;ACT.nav('oversikt')},
@@ -2528,14 +2539,17 @@ const ACT={
  ekoMonth(id,el){S.ekoMonth=addMonths(S.ekoMonth||thisMonth(),Number(el.dataset.d));render()},
  ekoIncome(){S.sheet='income';render()},
  ekoCost(id,el){S.ekoEdit={list:el.dataset.list,id:id||null};S.sheet='cost';render()},
- ovShow(id){S.ekoEdit=null;S.ovId=id;S.sheet='ov';render()},
- ovNext(){const c=ovOpen()[0];if(c)ACT.ovShow(c.id)},
+ ovShow(id,el){S.ekoEdit=null;S.ovEdit={list:el&&el.dataset.list||'shared',id};S.sheet='ov';render()},
+ ovNext(id,el){const l=el&&el.dataset.list||'shared',c=ovOpen(l)[0];if(c)ACT.ovShow(c.id,{dataset:{list:l}})},
+ ovGo(id){const[l,cid]=String(id).split('|');ACT.nav('ekonomi');if(!wallBoardOn())ACT.ovShow(cid,{dataset:{list:l}})},
+ pin(k){S.pinBad=false;S.pin=k==='del'?(S.pin||'').slice(0,-1):((S.pin||'')+k).slice(0,4);
+  if(S.pin.length===4){if(S.pin===EKO_PIN){S.ekoOpen=true;S.pin=''}else{S.pinBad=true;S.pin='';setTimeout(()=>{S.pinBad=false;render()},600)}}render()},
  ovLater(){closeSheets();render()},
- ovDone(id){const c=ekoList('shared').find(x=>x.id===id);if(!c)return;closeSheets();A.user=Date.now();
-  updJSON('ekonomi',{},o=>{ekoListIn(o,'shared',l=>l.map(x=>x.id===id?Object.assign({},x,{ov:{a:Number(x.amount),p:x.period||'månad',d:String(x.day||''),t:today()}}):x));return o});
-  const n=ovOpen().length;toast(n?'Bra! '+n+' kvar att lägga in':'Bra! Alla har en stående överföring')},
+ ovDone(id,el){const L=el.dataset.list||'shared',c=ekoList(L).find(x=>x.id===id);if(!c)return;closeSheets();A.user=Date.now();
+  updJSON('ekonomi',{},o=>{ekoListIn(o,L,l=>l.map(x=>x.id===id?Object.assign({},x,{ov:{a:Number(x.amount),p:x.period||'månad',d:ovTday(x),t:today()}}):x));return o});
+  const n=ovOpen(L).length;toast(n?'Bra! '+n+' kvar att lägga in':'Bra! Alla har en stående överföring')},
  ovUndo(){const e=S.ekoEdit;if(!e||!e.id)return;A.user=Date.now();
-  updJSON('ekonomi',{},o=>{ekoListIn(o,'shared',l=>l.map(x=>{if(x.id!==e.id)return x;const y=Object.assign({},x);delete y.ov;return y}));return o})},
+  updJSON('ekonomi',{},o=>{ekoListIn(o,e.list,l=>l.map(x=>{if(x.id!==e.id)return x;const y=Object.assign({},x);delete y.ov;return y}));return o})},
  ekoDel(){const e=S.ekoEdit;if(!e||!e.id)return;closeSheets();A.user=Date.now();A.flip=true;
   updJSON('ekonomi',{},o=>{ekoListIn(o,e.list,l=>l.filter(x=>x.id!==e.id));return o});toast('Utgiften är borttagen')},
  wxVar(){const W=wxModel();if(!W)return;const sc=wxScene(W),L=[...new Set(figVariants(sc.sleep))],cur=figVariant(sc);S.wxVar=L[(L.indexOf(cur)+1)%L.length];render()},
@@ -2691,12 +2705,12 @@ document.addEventListener('submit',async e=>{const f=e.target.closest('[data-for
   closeSheets();A.user=Date.now();updJSON('ekonomi_inkomst',{},o=>{o[m]=v;return o});toast('Inkomsten för '+monthName(m)+' är sparad');return}
  if(f.dataset.form==='cost'){const e=S.ekoEdit||{},amt=Number(String(d.amount||'').replace(/\s/g,'').replace(',','.'));if(!d.name||!isFinite(amt))return;
   const old=e.id?ekoList(e.list).find(x=>x.id===e.id):null;
-  const c={id:e.id||('x'+Date.now().toString(36)),name:d.name.trim(),amount:amt,period:d.period||'månad',pay:d.pay||'',day:String(d.day||'').trim(),note:String(d.note||'').trim()};
-  if(old&&old.ov)c.ov=old.ov;
-  closeSheets();A.user=Date.now();A.flip=true;
+  const c={id:e.id||('x'+Date.now().toString(36)),name:d.name.trim(),amount:amt,period:d.period||'månad',pay:d.pay||'',day:String(d.day||'').trim(),note:String(d.note||'').trim(),tday:String(d.tday||'').trim()};
   const to=d.owner||e.list||'shared',moved=e.id&&to!==e.list;
-  // en ny gemensam utgift, eller en vars belopp eller dag ändrats, behöver en stående överföring
-  if(to==='shared'&&ovState(c)!=='ok'&&(!old||moved||!old.ov||ovState(old)==='ok')){S.ovId=c.id;S.sheet='ov'}
+  if(old&&old.ov&&!moved)c.ov=old.ov;   // flyttas utgiften dras den från ett annat konto, så då behövs en ny överföring
+  closeSheets();A.user=Date.now();A.flip=true;
+  // en ny utgift, eller en vars belopp, period eller överföringsdag ändrats, behöver en stående överföring
+  if(ovState(c)!=='ok'&&(!old||moved||ovState(old)==='ok')){S.ovEdit={list:to,id:c.id};S.sheet='ov'}
   updJSON('ekonomi',{},o=>{if(moved)ekoListIn(o,e.list,l=>l.filter(x=>x.id!==c.id));ekoListIn(o,to,l=>l.some(x=>x.id===c.id)?l.map(x=>x.id===c.id?c:x):l.concat([c]));return o});
   if(S.sheet!=='ov')toast(moved?'Flyttad till '+(to==='shared'?'gemensamma':to+'s')+' utgifter':e.id?'Sparat':'Utgiften är tillagd');return}
  if(f.dataset.form==='smiley'){const id=f.dataset.id,dt=f.dataset.date,v=Number(d.v)||0;A.user=Date.now();
