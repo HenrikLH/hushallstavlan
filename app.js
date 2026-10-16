@@ -612,10 +612,10 @@ function mealCell(m,rows){rows=rows||[m];const r=m.recipe&&recipeById(m.recipe),
  const g=m.recipe&&ratingOf(m.recipe),meta=[days.map(d=>cap(DAYS3[parse(d).getDay()])).join(', '),r&&r.kr?kr(r.kr)+'/port':'',g?'<span class="dr-st">★ '+starNum(matLage(m.recipe).s)+'</span>':''].filter(Boolean).join('<span class="dot" aria-hidden="true">·</span>');
  const inner=dishThumb(r,m.title)+'<span class="grow"><span class="chips-row">'+whoChip(m.who)+'</span><span class="title">'+esc(m.title)+'</span><span class="meta">'+meta+'</span>'+(m.addon?'<span class="dr-sub">+ Kött: '+esc(m.addon)+'</span>':'')+(m.note?'<span class="dr-sub">'+esc(m.note)+'</span>':'')+'</span>';
  const can=m.who!=='Borta'&&left.length,i=D().menu.indexOf(m),lab=(m.recipe?'Byt ':'Välj rätt i stället för ')+esc(m.title);
- const end=m.who==='Borta'?'':!left.length?'<span class="dr-done">'+I.tick+'Ätit</span>':'<button class="dr-sw" data-act="swap" data-id="'+i+'" aria-label="'+lab+'">'+I.swap+'</button>';
+ const end=m.who==='Borta'?'':!left.length?'<span class="dr-done">'+I.tick+'Ätit</span>':'<span class="dr-sw" aria-hidden="true">'+I.swap+'</span>';
  const row='<div class="cell dr'+(left.length?'':' past')+(can?' dr-slide':'')+'">'+(r?'<button class="dr-main" data-act="recipe" data-id="'+esc(m.recipe)+'">'+inner+'</button>':'<div class="dr-main">'+inner+'</div>')+end+'</div>';
  // Svep åt vänster för att visa Byt, som i iPhones listor
- return can?'<div class="dr-wrap"><button class="dr-act" data-act="swap" data-id="'+i+'" tabindex="-1" aria-hidden="true">'+I.swap+'<span>'+(m.recipe?'Byt':'Välj')+'</span></button>'+row+'</div>':row}
+ return can?'<div class="dr-wrap"><button class="dr-act" data-act="swap" data-id="'+i+'" aria-label="'+lab+'">'+I.swap+'<span>'+(m.recipe?'Byt':'Välj')+'</span></button>'+row+'</div>':row}
 function recipeCell(r,meta){return'<button class="cell link" data-act="recipe" data-id="'+esc(r.id)+'"><div class="grow"><div class="title">'+esc(r.title)+'</div><div class="meta">'+meta+'</div></div>'+whoChip(r.who)+chevron+'</button>'}
 /* Hushållets matpreferenser: rader i Inställningar som veckoplaneringen läser när den gör menyn */
 const PREFS=[['pref_henrik','Kött','k','Henriks mat, t.ex. proteinrik och kalorisnål'],['pref_veg','Vegetariskt','v','Den vegetariska maten, t.ex. kost och GI'],['pref_ekonomi','Ekonomi','','Budget, butiker och svinn'],['pref_ovrigt','Övrigt','','Sådant ni inte gillar, allergier, önskemål']];
@@ -2133,21 +2133,27 @@ document.addEventListener('click',e=>{const el=e.target.closest('[data-act]');if
 // Kom ihåg vilka hopfällbara sektioner som är öppna mellan renderingar
 document.addEventListener('toggle',e=>{const d=e.target;if(d&&d.dataset&&d.dataset.k)S.open[d.dataset.k]=d.open},true);
 document.addEventListener('change',e=>{if(e.target.id==='ee-allday'){const t=document.getElementById('ee-times');if(t)t.hidden=e.target.checked}});
-/* Svep på veckosedelns rader: drar raden åt vänster och visar Byt bakom. Bara en rad är öppen åt gången */
+/* Svep på veckosedelns rader, som i iPhones listor: dra åt vänster så visas Byt bakom raden.
+   Drar man hela vägen (över halva raden) öppnas bytet direkt. Bara en rad är öppen åt gången */
 const SWP={el:null,x:0,y:0,base:0,dx:0,dir:'',moved:false};const SWW=84;
-function swpSet(el,x,anim){el.style.transition=anim?'transform .25s cubic-bezier(.2,.8,.2,1)':'none';el.style.transform=x?'translateX('+x+'px)':'';el.classList.toggle('open',x<0)}
+function swpSet(el,x,anim){const b=el.previousElementSibling,t=anim?'.25s cubic-bezier(.2,.8,.2,1)':'0s';
+ el.style.transition='transform '+t;el.style.transform=x?'translateX('+x+'px)':'';el.classList.toggle('open',x<0);
+ if(b&&b.classList.contains('dr-act')){b.style.transition='width '+t;b.style.width=Math.max(SWW,-x)+'px'}}
 function swpCloseAll(ex){document.querySelectorAll('.dr-slide.open').forEach(x=>{if(x!==ex)swpSet(x,0,true)})}
-document.addEventListener('touchstart',e=>{const el=e.target.closest('.dr-slide');if(!el){swpCloseAll();return}const t=e.touches[0];
+document.addEventListener('touchstart',e=>{SWP.el=null;if(e.target.closest('.dr-act'))return;const el=e.target.closest('.dr-slide');if(!el){swpCloseAll();return}const t=e.touches[0];
  swpCloseAll(el);Object.assign(SWP,{el,x:t.clientX,y:t.clientY,base:el.classList.contains('open')?-SWW:0,dx:0,dir:'',moved:false})},{passive:true});
 document.addEventListener('touchmove',e=>{const el=SWP.el;if(!el)return;const t=e.touches[0],dx=t.clientX-SWP.x,dy=t.clientY-SWP.y;
  if(!SWP.dir&&Math.abs(dx)+Math.abs(dy)>8)SWP.dir=Math.abs(dx)>Math.abs(dy)?'x':'y';if(SWP.dir!=='x')return;
- SWP.moved=true;SWP.dx=dx;let x=SWP.base+dx;if(x>0)x=0;if(x<-SWW)x=-SWW+(x+SWW)/3;swpSet(el,x,false)},{passive:true});
+ SWP.moved=true;SWP.dx=dx;swpSet(el,Math.min(0,Math.max(-el.offsetWidth,SWP.base+dx)),false)},{passive:true});
 document.addEventListener('touchend',()=>{const el=SWP.el;if(!el)return;SWP.el=null;if(SWP.dir!=='x')return;
- const x=SWP.base+SWP.dx;swpSet(el,x<-SWW/2?-SWW:0,true);if(navigator.vibrate&&x<-SWW/2&&!SWP.base)navigator.vibrate(8)});
+ const x=SWP.base+SWP.dx,w=el.offsetWidth,b=el.previousElementSibling;
+ if(x<-w*0.5&&b){swpSet(el,-w,true);if(navigator.vibrate)navigator.vibrate(10);setTimeout(()=>{ACT.swap(b.dataset.id)},180);return}
+ swpSet(el,x<-SWW/2?-SWW:0,true)});
+document.addEventListener('touchcancel',()=>{if(SWP.el){swpSet(SWP.el,0,true);SWP.el=null}},{passive:true});
 // Ett svep ska inte räknas som ett tryck på raden, och ett tryck på en öppen rad stänger den
 document.addEventListener('click',e=>{const el=e.target.closest('.dr-slide');if(!el)return;
  if(SWP.moved){SWP.moved=false;e.stopPropagation();e.preventDefault();return}
- if(el.classList.contains('open')&&!e.target.closest('.dr-sw')){e.stopPropagation();e.preventDefault();swpSet(el,0,true)}},true);
+ if(el.classList.contains('open')){e.stopPropagation();e.preventDefault();swpSet(el,0,true)}},true);
 document.addEventListener('input',e=>{if(e.target.id==='sw-q'){const q=e.target.value.trim().toLowerCase();let n=0;document.querySelectorAll('#overlay .sw-row').forEach(b=>{const ok=!q||b.dataset.q.includes(q);b.hidden=!ok;if(ok)n++});const f=document.querySelector('#overlay .sw-none');if(f)f.hidden=n>0;return}
  if(e.target.classList.contains('smc-sl')){const f=e.target.closest('.smc-r').querySelector('.smc-face');if(f)f.textContent=SMIL[Number(e.target.value)+1][1]}
  if(e.target.id==='ork')orkPreview(e.target);if(e.target.id==='split-amt')splitPreview(e.target)});
