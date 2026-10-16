@@ -463,6 +463,8 @@ function head(title,o){o=o||{};NB.title=title;
  return'<header class="head">'+(o.eyebrow?'<div class="eyebrow">'+o.eyebrow+'</div>':'')+'<div class="head-row"><h1 class="lt" id="lt">'+esc(title)+'</h1><div class="tools">'+(o.tools||'')+gearBtn+'</div></div>'+(o.sub?'<div class="sub">'+o.sub+'</div>':'')+'</header>'}
 const sh=(l,r,cls)=>'<div class="sh'+(cls?' '+cls:'')+'"><span>'+l+'</span>'+(r!=null&&r!==''?'<span class="r">'+r+'</span>':'')+'</div>';
 const group=inner=>'<div class="group">'+inner+'</div>';
+// Rubrik inuti en lista: listan är en enda yta där kategorierna skiljs åt av en rubrik med streck under
+const gh=(l,r,cls)=>'<div class="gh'+(cls?' '+cls:'')+'"><span>'+l+'</span>'+(r!=null&&r!==''?'<span class="r">'+r+'</span>':'')+'</div>';
 // Segmentreglage; markeringen är ett eget element så att den kan glida mellan valen
 function segc(label,act,opts,cur){const i=Math.max(0,opts.findIndex(o=>o[0]===cur));
  return'<div class="segc" role="group" aria-label="'+esc(label)+'" data-seg="'+esc(act)+'" style="--n:'+opts.length+';--i:'+i+'"><i class="seg-thumb" aria-hidden="true"></i>'+opts.map(([k,l])=>'<button type="button" data-act="'+act+'" data-id="'+k+'" aria-pressed="'+(cur===k)+'">'+l+'</button>').join('')+'</div>'}
@@ -723,22 +725,21 @@ function raeckerKort(ds){const st=settings(),vs=st.vecka_start;if(!isDate(vs))re
  return'<div class="rk'+(brist?' bad':'')+'"><div class="rk-h">'+rub+'</div>'+rader.map(r=>'<div class="rk-r"><span class="grow">'+r.l+'</span><span class="rk-n">'+r.n+' av '+r.beh+'</span><span class="rk-s'+(r.diff<0?' bad':'')+'">'+r.txt+'</span></div>').join('')+'</div>'}
 function matWeek(){
  const d=D(),st=settings(),ds=weekDishes();let h=planBtn();
- if(!ds.length)return h+'<div style="height:22px"></div>'+group(emptyCell('Veckans mat är inte planerad än. Tryck på Veckoförslag.'))+wishesBlock();
+ if(!ds.length)return h+'<div style="height:22px"></div>'+group(emptyCell('Veckans mat är inte planerad än. Tryck på Veckoförslag.'));
  const total=veckaKostnad(),port=veckaPortioner();
  h+='<div class="stats"><div class="stat"><span class="fn">Maten kostar ca</span><b>'+nv('m-total',total,'kr')+'</b></div><div class="stat"><span class="fn">Portioner</span><b>'+nv('m-port',port)+'</b></div><div class="stat"><span class="fn">Per portion</span><b>'+(port?nv('m-per',total/port,'kr'):'–')+'</b></div></div>'+raeckerKort(ds);
- const order={Henrik:0,Vegetariskt:1,Gemensam:2};
+ const order={Henrik:0,Vegetariskt:1,Gemensam:2};let vd='';
  [...new Set(['Vardag','Helg','Storkok'].concat(ds.map(x=>x.g)))].forEach(g=>{const list=ds.filter(x=>x.g===g).sort((a,b)=>(order[(a.r||a.m).who]??3)-(order[(b.r||b.m).who]??3));if(!list.length)return;
   const vs=isDate(st.vecka_start)?st.vecka_start:'',slut=vs?addDays(vs,g==='Vardag'?3:6):'',inV=y=>!vs||!isDate(y.date)||(y.date>=vs&&y.date<=addDays(vs,6));
   list.forEach(x=>{if(!x.m)return;const n=dishPort(x.m,x.r);if(x.r&&x.r.course==='efterrätt'){x.flex={slut,txt:''};return}
    const kv=Math.floor(n/2);x.flex={slut,txt:'',port:{n,txt:g==='Storkok'?n+(n===1?' lunch':' luncher'):kv<1?'räcker inte en kväll':kv===1?'räcker 1 kväll':'räcker '+kv+' kvällar'}}});
   const namn=g==='Storkok'?'Lunchlådor':g==='Vardag'?'Vardagar':g,sub=g==='Storkok'?'Görs i helgen':g==='Vardag'?'Mån–tor, valfri kväll':g==='Helg'?'Fre–sön':'';
-  h+=sh(esc(namn),(sub?esc(sub)+' · ':'')+'<span class="num">'+list.length+' '+(list.length===1?'rätt':'rätter')+'</span>')+group(list.map(dishCell).join(''));
+  vd+=gh(esc(namn),(sub?esc(sub)+' · ':'')+'<span class="num">'+list.length+' '+(list.length===1?'rätt':'rätter')+'</span>')+list.map(dishCell).join('');
   const mack=g==='Storkok'?0:d.menu.filter(y=>inV(y)&&/^macka$/i.test(y.title)&&isDate(y.date)&&((parse(y.date).getDay()>=1&&parse(y.date).getDay()<=4)===(g==='Vardag'))).length;
-  if(mack)h+='<div class="foot">Dessutom macka '+mack+(mack===1?' kväll':' kvällar')+'.</div>';
-  if(g==='Storkok'&&st.storkok_not)h+='<div class="foot">'+esc(st.storkok_not)+'</div>'});
- if(d.offers.length){h+=sh('Erbjudanden menyn bygger på')+group(d.offers.map(o=>'<div class="cell"><div class="grow"><div class="title">'+esc(o.item)+'</div><div class="meta">'+esc(o.store)+(o.note?' · '+esc(o.note):'')+'</div></div><span class="val">'+esc(o.price)+'</span></div>').join(''));
-  if(st.erbjudanden_not)h+='<div class="foot">'+esc(st.erbjudanden_not)+'</div>'}
- return h+wishesBlock()}
+  if(mack)vd+='<div class="gh-foot">Dessutom macka '+mack+(mack===1?' kväll':' kvällar')+'.</div>';
+  if(g==='Storkok'&&st.storkok_not)vd+='<div class="gh-foot">'+esc(st.storkok_not)+'</div>'});
+ h+='<div class="g-one">'+group(vd)+'</div>';
+ return h}
 /* ---------- Valfritt protein (kategorin Kött/Veg) ----------
    Rätter med ett tydligt huvudprotein lagas som en grundrätt där var och en väljer sitt eget protein.
    Henrik väljer bland allt, den vegetariska i hushållet bara vegetariskt (inget ägg). Kan stängas av per recept (frekvens[id].vp=false). */
@@ -1302,8 +1303,8 @@ function inkopParts(){
  h+='<div class="fchips" role="group" aria-label="Filter">'+groups.map(([k,l])=>'<button data-act="shopFilter" data-id="'+esc(k)+'" aria-pressed="'+(f2===k)+'">'+l+'</button>').join('')+'</div>';
  h+='<div class="split"><div class="col">';
  if(!all.length)h+='<div style="height:22px"></div>'+group(emptyCell('Listan är tom. Tryck på Hämta varor för veckans rätter, eller lägg till egna varor med plus.'));
- CATS.forEach(c=>{const g=items.filter(i=>shopKat(i)===c).sort((a,b)=>(a.done-b.done)||(a.order||0)-(b.order||0));if(!g.length)return;
-  h+=sh(c,kr(shopCost(g)))+group(g.map(shopRow).join(''))});
+ const delar=CATS.map(c=>{const g=items.filter(i=>shopKat(i)===c).sort((a,b)=>(a.done-b.done)||(a.order||0)-(b.order||0));return g.length?gh(c,kr(shopCost(g)))+g.map(shopRow).join(''):''}).join('');
+ if(delar)h+='<div class="g-one">'+group(delar)+'</div>';
  if(bought.length)h+='<div class="pills" style="padding:12px 16px 0 24px">'+(S.confirm==='clearShop'?'<span class="sub">Ta bort '+bought.length+' avbockade?</span><button class="tb red strong" data-act="clearShopYes">Ja, ta bort</button><button class="tb" data-act="confirmNo">Avbryt</button>':'<button class="tb red" data-act="clearShop">Rensa avbockade ('+bought.length+')</button>')+'</div>';
  h+='</div><div class="col">';
 
@@ -1525,7 +1526,7 @@ V.uppgifter=function(){
  h+=segc('Visa','taskTab',[['lista','Lista'],['kalender','Kalender']],S.taskTab);
  if(S.taskTab==='kalender')return h+calView();
  h+='<div class="split"><div class="col">';
- g.forEach(([l,xs])=>{if(!xs.length)return;h+=sh(l,xs.length,l==='Försenade'?'red':'')+group(xs.map(taskRow).join(''))});
+ const td=g.filter(([,xs])=>xs.length).map(([l,xs])=>gh(l,xs.length,l==='Försenade'?'red':'')+xs.map(taskRow).join('')).join('');if(td)h+='<div class="g-one">'+group(td)+'</div>';
  if(!open.length)h+='<div style="height:22px"></div>'+group(emptyCell('Inget att göra just nu.'));
  h+='</div><div class="col">';
  if(done.length)h+='<details data-k="done"'+(S.open.done||S.confirm==='clearTasks'?' open':'')+'><summary class="sh"><span>Klara ('+done.length+')</span></summary>'+group(done.map(taskRow).join(''))+
