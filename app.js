@@ -51,6 +51,7 @@ const I={
  repeat:SV+'<path d="M17 2.5l3 3-3 3"/><path d="M4 11.5v-2a4 4 0 0 1 4-4h12"/><path d="M7 21.5l-3-3 3-3"/><path d="M20 12.5v2a4 4 0 0 1-4 4H4"/></svg>',
  dots:'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="19" cy="12" r="1.9"/></svg>',
  camera:SV+'<path d="M4 8.5h3l1.6-2.5h6.8L17 8.5h3a1 1 0 0 1 1 1V18a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.3" r="3.4"/></svg>',
+ imp:SV+'<path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 19.5h14"/></svg>',
  trash:SV+'<path d="M4.5 6.5h15M9.5 6.5V4.5h5v2M6.5 6.5l1 13h9l1-13"/></svg>',
  play:'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg>',
  cake:SV+'<path d="M4 21h16M5 21v-7.5a1.5 1.5 0 0 1 1.5-1.5h11a1.5 1.5 0 0 1 1.5 1.5V21"/><path d="M5 16c1.2 1 2.3 1 3.5 0s2.3-1 3.5 0 2.3 1 3.5 0 2.3-1 3.5 0"/><path d="M12 12V8.5"/><path d="M12 3.5c1 1.2 1.3 2.2.6 2.9a.9.9 0 0 1-1.2 0c-.7-.7-.4-1.7.6-2.9z"/></svg>',
@@ -282,12 +283,15 @@ let fitScrollbar=()=>{};
 /* ---------- api ---------- */
 /* Ta bort en vara med svep. Raden försvinner direkt, men borttagningen skickas först när Ångra har försvunnit (5 s),
    när nästa vara tas bort eller när appen läggs undan */
-const DEL={item:null,idx:-1,t:0};
-function delCommit(){if(!DEL.item)return;clearTimeout(DEL.t);const id=DEL.item.id;DEL.item=null;undoHide();apiPost({action:'shopDelete',id})}
+const DEL={items:null,list:null,t:0};
+function delCommit(){if(!DEL.items)return;clearTimeout(DEL.t);const ids=DEL.items.map(x=>x.id);DEL.items=null;DEL.list=null;undoHide();ids.forEach(id=>apiPost({action:'shopDelete',id}))}
+// Tar bort varorna direkt i appen och visar Ångra i 5 sekunder
+function delStart(items,msg){delCommit();if(!items.length)return;const ids=new Set(items.map(x=>x.id));DEL.list=D().shop.slice();DEL.items=items;S.data.shop=D().shop.filter(x=>!ids.has(x.id));render();
+ const u=document.getElementById('undo');u.querySelector('.ud-t').textContent=msg;u.hidden=false;DEL.t=setTimeout(delCommit,5000)}
 function undoHide(){const u=document.getElementById('undo');if(u)u.hidden=true}
 addEventListener('visibilitychange',()=>{if(document.hidden)delCommit()});
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>t.hidden=true,2800)}
-function setData(d){if(d&&DEL.item&&Array.isArray(d.shop))d.shop=d.shop.filter(x=>x.id!==DEL.item.id);S.data=d;S.lastSync=new Date();S.error='';try{lsSet('cache',JSON.stringify(d))}catch(e){}}
+function setData(d){if(d&&DEL.items&&Array.isArray(d.shop)){const ids=new Set(DEL.items.map(x=>x.id));d.shop=d.shop.filter(x=>!ids.has(x.id))}S.data=d;S.lastSync=new Date();S.error='';try{lsSet('cache',JSON.stringify(d))}catch(e){}}
 async function apiGet(){
  const r=await fetch(CFG.api+'?key='+encodeURIComponent(S.key)+'&t='+Date.now(),{cache:'no-store'});
  const j=await r.json();if(!j.ok)throw new Error(j.error||'Okänt fel');return j.data}
@@ -1270,6 +1274,9 @@ function inkopParts(){
  const sub=left.length+' kvar · ca '+kr(shopCost(left)),tools='<button class="ib plus" data-act="shopAdd" aria-label="Ny vara">'+I.plus+'</button>';let h='';
  h+='<div class="stats'+(B?' s4':'')+'"><div class="stat"><span class="fn">Hela listan</span><b>'+nv('s-total',total,'kr')+'</b></div><div class="stat"><span class="fn">Kvar att betala</span><b>'+nv('s-left',shopCost(left),'kr')+'</b></div><div class="stat"><span class="fn">Mat per portion</span><b>'+(port?kr(mealCost/port):'–')+'</b><span class="fn">'+port+' portioner</span></div>'+
   (B?'<div class="stat"><span class="fn">Budget '+kr(B)+'</span><b>'+(total>B?'+'+kr(total-B):kr(B-total)+' kvar')+'</b><div class="thin '+(total>B?'bad':total>B*.9?'warn':'')+'"><i style="width:'+Math.min(100,Math.round(total/B*100))+'%"></i></div></div>':'')+'</div>';
+ const ask=S.confirm==='shopEmpty'?['Töm hela listan? Alla '+all.length+' varor tas bort.','shopEmptyYes','Ja, töm']:S.confirm==='shopImport'?['Hämta varorna till rätterna på veckosedeln? De ersätter varorna från förra planen. Egna varor ligger kvar.','shopImportYes','Ja, hämta']:null;
+ h+=ask?'<div class="sh-ask"><span class="sub">'+esc(ask[0])+'</span><span class="pills"><button class="tb strong'+(ask[1]==='shopEmptyYes'?' red':'')+'" data-act="'+ask[1]+'">'+ask[2]+'</button><button class="tb" data-act="confirmNo">Avbryt</button></span></div>'
+  :'<div class="sh-tools"><button class="pill" data-act="shopImport">'+I.imp+'Hämta från veckosedeln</button>'+(all.length?'<button class="pill red" data-act="shopEmpty">'+I.trash+'Töm listan</button>':'')+'</div>';
  h+='<div class="fchips" role="group" aria-label="Filter">'+groups.map(([k,l])=>'<button data-act="shopFilter" data-id="'+esc(k)+'" aria-pressed="'+(f===k)+'">'+l+'</button>').join('')+'</div>';
  h+='<div class="split"><div class="col">';
  if(!all.length)h+='<div style="height:22px"></div>'+group(emptyCell('Listan är tom. Veckoplaneringen fyller i den på söndagar, och ni kan lägga till egna varor.'));
@@ -1281,6 +1288,18 @@ function inkopParts(){
  const offers=all.filter(i=>i.offer);
  if(offers.length)h+=sh('Erbjudanden på listan')+group(offers.map(i=>'<div class="cell"><div class="grow"><div class="title">'+esc(i.name)+'</div><div class="meta">'+esc(i.offer)+'</div></div></div>').join(''))+'<div class="foot">Priserna är uppskattade. Kolla hyllkanten i butiken.</div>';
  return{sub,tools,body:h+'</div></div>'}}
+/* Hämta från veckosedeln: räknar fram varorna till veckans rätter (middagar 2 eller 4 portioner, storkok 5 eller 10)
+   och skickar veckan på nytt med planSend, som byter ut förra planens varor och låter egna varor ligga kvar */
+function shopImport(){const st=settings(),vs=st.vecka_start,ve=st.vecka_slut;if(!isDate(vs)||!isDate(ve)){toast('Veckosedeln har ingen vecka än.');return}
+ const rows=D().menu.filter(m=>isDate(m.date)&&m.date>=vs&&m.date<=ve),lab={},list=[];
+ rows.forEach(m=>{const r=m.recipe&&recipeById(m.recipe);if(!r||m.who==='Borta')return;const sk=isStorkok(r),x=/\((\d+) portioner\)/.exec(m.note||''),n=sk?(x?Number(x[1]):5):/4 portioner/.test(m.note||'')?4:2;
+  const pa=protFromAddon(m.addon),rr=pa?protRecipe(r,{r:r.id,k:pa.k,v:pa.v}):r;
+  const key='m'+list.length;const dw=parse(m.date).getDay();lab[key]=sk?(m.who==='Vegetariskt'?'Storkok veg':m.who==='Henrik'?'Storkok kött':'Storkok'):dw>=1&&dw<=4?'Vardag':'Helg';list.push({key,b:MV.behov(rr,n/(Number(r.portions)||2))})});
+ if(!list.length){toast('Veckosedeln har inga rätter med recept.');return}
+ const korg=MV.korg(list.map(x=>x.b),planLager());
+ const shop=korg.rad.filter(x=>x.n>0).map(x=>({name:planVaraNamn(x),qty:MV.forp(x),price:Math.round(x.kr),meals:[...new Set(list.filter(i=>i.b[x.k]).map(i=>lab[i.key]))]}));
+ apiPost({action:'planSend',start:vs,end:ve,menu:rows.map(m=>({date:m.date,who:m.who,title:m.title,recipe:m.recipe||'',addon:m.addon||'',note:m.note||''})),shop,recipes:[],lager:korg.rest,settings:{}}).then(()=>refresh(true));
+ toast(shop.length+' varor hämtas från veckosedeln')}
 function shopRow(i){return'<div class="dr-wrap"><button class="dr-act del" data-act="shopDel" data-full="shopDel" data-id="'+esc(i.id)+'" aria-label="Ta bort '+esc(i.name)+'">'+I.trash+'<span>Ta bort</span></button>'+shopRowIn(i).replace('<div class="cell ck','<div class="cell dr-slide ck')+'</div>'}
 function shopRowIn(i){const chips=(i.offer?'<span class="chip offer">'+esc(i.store||'Erbjudande')+'</span>':'')+(i.meals||[]).map(m=>'<span class="chip">'+esc(m)+'</span>').join('')+(i.source==='egen'&&i.addedBy?'<span class="chip">'+esc(i.addedBy)+'</span>':'');
  return'<div class="cell ck'+(i.done?' done':'')+'"><input type="checkbox" class="check" data-act="shopToggle" data-id="'+esc(i.id)+'" aria-label="'+esc(i.name)+'"'+(i.done?' checked':'')+'><button class="grow rowbtn" data-act="shopToggle" data-id="'+esc(i.id)+'"><div class="title">'+esc(i.name)+'</div>'+((i.qty||chips)?'<div class="meta">'+(i.qty?'<span>'+esc(i.qty)+'</span>':'')+chips+'</div>':'')+'</button><span class="val">'+(i.price?kr(i.price):'')+'</span></div>'}
@@ -2639,9 +2658,13 @@ const ACT={
  timerStop(id){S.timers=S.timers.filter(t=>t.k!==id);tick()},
  shopFilter(id){S.shopFilter=id;render()},
  shopAdd(){S.shopAdd=!S.shopAdd;render();if(S.shopAdd)setTimeout(()=>document.getElementById('shop-name')?.focus(),30)},
- shopDel(id){delCommit();const list=D().shop,idx=list.findIndex(x=>x.id===id);if(idx<0)return;DEL.item=list[idx];DEL.idx=idx;S.data.shop=list.filter(x=>x.id!==id);render();
-  const u=document.getElementById('undo');u.querySelector('.ud-t').textContent=DEL.item.name+' togs bort';u.hidden=false;DEL.t=setTimeout(delCommit,5000)},
- shopUndo(){if(!DEL.item)return;clearTimeout(DEL.t);const list=D().shop.slice();list.splice(Math.min(DEL.idx,list.length),0,DEL.item);S.data.shop=list;DEL.item=null;undoHide();render()},
+ shopDel(id){const x=D().shop.find(y=>y.id===id);if(x)delStart([x],x.name+' togs bort')},
+ shopUndo(){if(!DEL.items)return;clearTimeout(DEL.t);const keep=new Set(DEL.items.map(x=>x.id)),now=new Set(D().shop.map(x=>x.id));
+  S.data.shop=DEL.list.filter(x=>now.has(x.id)||keep.has(x.id)).concat(D().shop.filter(x=>!DEL.list.some(y=>y.id===x.id)));DEL.items=null;DEL.list=null;undoHide();render()},
+ shopEmpty(){S.confirm='shopEmpty';render()},
+ shopEmptyYes(){S.confirm=null;const all=D().shop.slice();delStart(all,all.length+(all.length===1?' vara':' varor')+' togs bort')},
+ shopImport(){S.confirm='shopImport';render()},
+ shopImportYes(){S.confirm=null;shopImport()},
  shopToggle(id){const i=D().shop.find(x=>x.id===id);if(!i)return;const done=!i.done;checkAnim(id,done,()=>{mutate('shop',id,{done});apiPost({action:'shopToggle',id,done})})},
  clearShop(){S.confirm='clearShop';render()},
  clearShopYes(){S.confirm=null;leaveAnim('shopToggle',D().shop.filter(i=>i.done),()=>{S.data.shop=D().shop.filter(i=>!i.done);render();apiPost({action:'shopClearDone'})})},
