@@ -409,7 +409,7 @@ function doRender(){applyPersonColors();
  A.before(m);
  m.innerHTML=banner+(V[S.view]||V.oversikt)();
  placeSky();fitBoard();
- watchTitle();
+ watchTitle();plPin();
  A.after(m);
 }
 document.addEventListener('focusout',()=>setTimeout(()=>{if(pendingRender&&!busyTyping())render()},50));
@@ -812,17 +812,20 @@ function planCard(x,p,chosen){const r=x.r,stars=x.l.betyg?'★ '+starNum(x.l.s):
  // Hur mycket billigare rätten blir tillsammans med veckans andra val, och en infoknapp som visar vilka varor som återanvänds
  const pct=x.t.ensamKr>0?Math.round((1-x.t.kassa/x.t.ensamKr)*100):0,ik=p.id+'|'+r.id,open=!!(S.plInfo||{})[ik];
  const delar=pct>=10&&x.t.delar&&x.t.delar.length?'<span class="pl-re'+(open?' open':'')+'"><span class="pl-rt">'+pct+' % billigare tillsammans med dina andra val<span class="pl-i" role="button" tabindex="0" data-act="planInfo" data-id="'+esc(ik)+'" aria-expanded="'+open+'" aria-label="Vilka varor återanvänds?">i</span></span><span class="pl-rd">Återanvänder: '+esc(x.t.delar.join(', '))+'</span></span>':'';
- if(chosen)return'<div class="cell pl-c on"><button class="grow pl-b" data-act="recipe" data-id="'+esc(r.id)+'"><span class="pl-ic" aria-hidden="true">'+foodIcon(r.title)+'</span><span class="grow"><span class="chips-row">'+tag+'</span><span class="title">'+esc(r.title)+'</span><span class="meta">'+meta+'</span>'+(pv?protPills(pv,'planProt',p.id):'')+delar+'</span></button><button class="pill" data-act="planByt" data-id="'+p.id+'">Byt</button></div>';
+ // Vald rätt: svep åt vänster för Avmarkera och Byt, som på veckosedeln. Helt svep byter
+ if(chosen)return'<div class="dr-wrap"><div class="dr-act pl-acts" data-full="planByt" data-id="'+p.id+'"><button class="pl-un" data-act="planUnpick" data-id="'+p.id+'" aria-label="Avmarkera '+esc(r.title)+'">'+I.x+'<span>Avmarkera</span></button><button class="pl-sw" data-act="planByt" data-id="'+p.id+'" aria-label="Byt '+esc(r.title)+'">'+I.swap+'<span>Byt</span></button></div><div class="cell pl-c on dr-slide" data-w="168"><button class="grow pl-b" data-act="recipe" data-id="'+esc(r.id)+'"><span class="pl-ic" aria-hidden="true">'+foodIcon(r.title)+'</span><span class="grow"><span class="chips-row">'+tag+'</span><span class="title">'+esc(r.title)+'</span><span class="meta">'+meta+'</span>'+(pv?protPills(pv,'planProt',p.id):'')+delar+'</span></button><span class="dr-sw" aria-hidden="true">'+I.swap+'</span></div></div>';
  return'<button class="cell pl-c" data-act="planPick" data-id="'+esc(r.id)+'" data-k="'+p.id+'"><span class="pl-ic" aria-hidden="true">'+foodIcon(r.title)+'</span><span class="grow"><span class="chips-row">'+tag+'</span><span class="title">'+esc(r.title)+'</span><span class="meta">'+meta+'</span>'+(pv?'<span class="pl-pv">'+esc(protById(pv.k).ic+' '+protById(pv.k).namn+' till '+kottPerson()+', '+protById(pv.v).ic+' '+protById(pv.v).namn+' till '+vegPerson())+'</span>':'')+delar+'</span><span class="pl-add" aria-hidden="true">'+I.plus+'</span></button>'}
 const tommaTxt=C=>C.tomma.length===1?'Den tomma platsen kostar':'De '+C.tomma.length+' tomma platserna kostar';
 function planView(){const C=planCalc(),{P,B}=C,mon=parse(P.vecka),sun=parse(addDays(P.vecka,6));
  NB.title='Planera veckan';NB.back=true;
  const wk=isoWeek(mon);
- let h='<div class="rcp-top"><button class="back" data-act="planClose">'+I.back+'Mat</button></div><header class="head"><div class="head-row"><h1 class="lt">Vecka '+wk+'</h1></div><div class="sub">'+esc(cap(DAYS[mon.getDay()])+' '+mon.getDate()+' '+MON[mon.getMonth()]+' – '+DAYS[sun.getDay()]+' '+sun.getDate()+' '+MON[sun.getMonth()])+'</div></header>';
+ let h='<div class="rcp-top"><button class="back" data-act="planClose">'+I.back+'Mat</button></div><header class="head"><div class="head-row"><h1 class="lt" id="lt">Vecka '+wk+'</h1></div><div class="sub">'+esc(cap(DAYS[mon.getDay()])+' '+mon.getDate()+' '+MON[mon.getMonth()]+' – '+DAYS[sun.getDay()]+' '+sun.getDate()+' '+MON[sun.getMonth()])+'</div></header>';
  const pct=Math.min(100,Math.round(C.kassa/B*100)),over=C.kassa>B;
  h+='<div class="pl-bud"><div class="pl-bt"><div><span class="fn">I kassan</span><b class="num">'+kr(C.kassa)+'</b></div><label class="pl-bb"><span class="fn">Budget</span><input class="num" type="number" inputmode="numeric" min="200" max="5000" step="10" value="'+B+'" data-change="planBudget" aria-label="Veckobudget i kronor"></label></div>'+
   '<div class="thin'+(over?' bad':'')+'"><i style="width:'+pct+'%"></i></div><div class="fn">'+(over?'Över budget med '+kr(C.kassa-B):'Kvar '+kr(B-C.kassa))+' · '+(C.v2?'2 vardagsrätter':'1 vardagsrätt')+', '+(4-(C.v2?2:1))+' mackkvällar ('+kr(C.macka)+')</div>'+
   (C.tomma.length?(C.kassa+C.reserv>B?'<div class="fn pl-warn">'+tommaTxt(C)+' minst '+kr(C.reserv)+', så resten av veckan ryms inte. Byt en dyr rätt eller höj budgeten.</div>':'<div class="fn">'+tommaTxt(C)+' minst '+kr(C.reserv)+'.</div>'):'')+'</div>';
+ // Liten budgetrad som följer med när den stora rutan har scrollats förbi
+ h+='<div class="pl-pin"><div class="pl-mini" aria-hidden="true"><span class="fn">I kassan</span><b class="num">'+kr(C.kassa)+'</b><div class="thin'+(over?' bad':'')+'"><i style="width:'+pct+'%"></i></div><span class="fn'+(over?' bad':'')+'">'+(over?'Över '+kr(C.kassa-B):'Kvar '+kr(B-C.kassa))+'</span></div></div>';
  PLATSER.forEach(p=>{const X=C.plats[p.id];
   if(!X){h+=sh(esc(p.namn),'Macka')+group('<div class="cell"><div class="grow"><div class="title">Macka</div><div class="meta">'+(P.v2==='nej'?'Ni valde macka den här kvällen.':'Budgeten räcker inte till en vardagsrätt till.')+'</div></div><button class="pill" data-act="planV2" data-id="ja">Lägg till ändå</button></div>');return}
   const open=!X.valt||S.planOpen===p.id;
@@ -2114,6 +2117,7 @@ const ACT={
  planClose(){S.plan=false;S.planOpen=null;window.scrollTo(0,0);render()},
  planPick(id,el){const P=planState();P.val[el.dataset.k]=id;planSave(P);S.planOpen=null;render()},
  planByt(id){S.planOpen=S.planOpen===id?null:id;render()},
+ planUnpick(id){const P=planState();delete P.val[id];planSave(P);S.planOpen=null;render()},
  planMore(id){const P=planState();P.seed[id]=(P.seed[id]||0)+1;planSave(P);render()},
  planV2(id){const P=planState();P.v2=id;if(id==='nej')delete P.val.v2;planSave(P);render()},
  planSend(){planSend()},
@@ -2227,19 +2231,23 @@ document.addEventListener('change',e=>{if(e.target.id==='ee-allday'){const t=doc
 /* Svep på veckosedelns rader, som i iPhones listor: dra åt vänster så visas Byt bakom raden.
    Drar man hela vägen (över halva raden) öppnas bytet direkt. Bara en rad är öppen åt gången */
 const SWP={el:null,x:0,y:0,base:0,dx:0,dir:'',moved:false};const SWW=84;
+const swpW=el=>Number(el.dataset.w)||SWW,swpFull=el=>Math.max(el.offsetWidth*0.5,swpW(el)+50);
 function swpSet(el,x,anim){const b=el.previousElementSibling,t=anim?'.25s cubic-bezier(.2,.8,.2,1)':'0s';
  el.style.transition='transform '+t;el.style.transform=x?'translateX('+x+'px)':'';el.classList.toggle('open',x<0);
- if(b&&b.classList.contains('dr-act')){b.style.transition='width '+t;b.style.width=Math.max(SWW,-x)+'px'}}
+ if(b&&b.classList.contains('dr-act')){b.style.transition='width '+t;b.style.width=Math.max(swpW(el),-x)+'px';b.classList.toggle('full',-x>swpFull(el))}}
 function swpCloseAll(ex){document.querySelectorAll('.dr-slide.open').forEach(x=>{if(x!==ex)swpSet(x,0,true)})}
 document.addEventListener('touchstart',e=>{SWP.el=null;if(e.target.closest('.dr-act'))return;const el=e.target.closest('.dr-slide');if(!el){swpCloseAll();return}const t=e.touches[0];
- swpCloseAll(el);Object.assign(SWP,{el,x:t.clientX,y:t.clientY,base:el.classList.contains('open')?-SWW:0,dx:0,dir:'',moved:false})},{passive:true});
+ swpCloseAll(el);Object.assign(SWP,{el,x:t.clientX,y:t.clientY,base:el.classList.contains('open')?-swpW(el):0,dx:0,dir:'',moved:false})},{passive:true});
 document.addEventListener('touchmove',e=>{const el=SWP.el;if(!el)return;const t=e.touches[0],dx=t.clientX-SWP.x,dy=t.clientY-SWP.y;
  if(!SWP.dir&&Math.abs(dx)+Math.abs(dy)>8)SWP.dir=Math.abs(dx)>Math.abs(dy)?'x':'y';if(SWP.dir!=='x')return;
  SWP.moved=true;SWP.dx=dx;swpSet(el,Math.min(0,Math.max(-el.offsetWidth,SWP.base+dx)),false)},{passive:true});
 document.addEventListener('touchend',()=>{const el=SWP.el;if(!el)return;SWP.el=null;if(SWP.dir!=='x')return;
  const x=SWP.base+SWP.dx,w=el.offsetWidth,b=el.previousElementSibling;
- if(x<-w*0.5&&b){swpSet(el,-w,true);if(navigator.vibrate)navigator.vibrate(10);setTimeout(()=>{ACT.swap(b.dataset.id)},180);return}
- swpSet(el,x<-SWW/2?-SWW:0,true)});
+ if(x<-swpFull(el)&&b){swpSet(el,-w,true);if(navigator.vibrate)navigator.vibrate(10);setTimeout(()=>{ACT[b.dataset.full||'swap'](b.dataset.id)},180);return}
+ const ow=swpW(el);swpSet(el,x<-ow/2?-ow:0,true)});
+// Planera veckan: visa den lilla budgetraden när den stora rutan har gått in under navigeringsfältet
+function plPin(){const m=document.querySelector('.pl-mini'),b=document.querySelector('.pl-bud');if(!m||!b)return;const nb=document.getElementById('navbar'),top=nb?nb.getBoundingClientRect().bottom:0;m.classList.toggle('show',b.getBoundingClientRect().bottom<top+4)}
+document.addEventListener('scroll',plPin,{passive:true});
 document.addEventListener('touchcancel',()=>{if(SWP.el){swpSet(SWP.el,0,true);SWP.el=null}},{passive:true});
 // Ett svep ska inte räknas som ett tryck på raden, och ett tryck på en öppen rad stänger den
 document.addEventListener('click',e=>{const el=e.target.closest('.dr-slide');if(!el)return;
