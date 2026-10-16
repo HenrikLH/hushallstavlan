@@ -1586,13 +1586,7 @@ function wxSceneHtml(W,o){o=o||{};const P=WX_POS(),sc=wxScene(W),now=new Date(),
  // stjärnor när det är mörkt och klart
  if(sc.dark&&!covered)s+='<g class="fx-stars" fill="#E6ECFF">'+[[24,22],[70,48],[112,16],[150,40],[196,12],[236,34],[282,20],[330,44],[48,84],[178,70],[300,76],[350,14]].slice(0,sc.sky==='partly'?5:12)
   .map(([x,y],i)=>'<circle class="tw'+(i%3?' d'+(i%3+1):'')+'" cx="'+x+'" cy="'+Math.round(y*H/150)+'" r="'+(i%4?.9:1.3)+'"/>').join('')+'</g>';
- // solen och månen: vänster öster, höger väster, överkanten är dagens högsta solhöjd
- const pos=(b,top)=>({x:Math.max(18,Math.min(342,180+b.az/90*160)),y:H-Math.max(0,Math.min(1,b.alt/Math.max(top,10)))*(H-26)});
- const nq=k.sun.alt<-1&&nightFrac(now,P);   // på natten vandrar månen i en båge från öster till väster, i sin verkliga fas
- if(nq!==false){const f=nq,z=64,x=125+f*200,y=H-30-(H-80)*Math.sin(Math.PI*f);
-  s+='<svg class="sc-moon" x="'+(x-z/2).toFixed(1)+'" y="'+(y-z/2).toFixed(1)+'" width="'+z+'" height="'+z+'" opacity="'+(covered?.35:1)+'" overflow="visible">'+moonSvg(k.moon.frac,k.moon.waxing,z)+'</svg>'}
- else if(k.moon.alt>-1){const q=pos(k.moon,Math.max(pk.sun,pk.moon*.8)),z=40;s+='<svg x="'+(q.x-z/2).toFixed(1)+'" y="'+(q.y-z/2).toFixed(1)+'" width="'+z+'" height="'+z+'" opacity="'+((covered?.35:1)*(k.sun.alt>0?.6:1))+'" overflow="visible">'+moonSvg(k.moon.frac,k.moon.waxing,z).replace(/^<svg /,'<svg width="40" height="40" ')+'</svg>'}
- if(k.sun.alt>-1){const q=pos(k.sun,pk.sun),z=64;s+='<svg class="sc-sun" x="'+(q.x-z/2).toFixed(1)+'" y="'+(q.y-z/2).toFixed(1)+'" width="'+z+'" height="'+z+'" opacity="'+(covered?.4:1)+'" overflow="visible">'+sunSvg(k.sun.alt<8,z)+'</svg>'}
+ // solen och månen går längs samma bana som i översikten (arcHtml), ovanför hundarna
  // kullar och träd i fjärran, sedan gräset hundarna står på
  s+='<path d="M0 '+(H-6)+' Q60 '+(H-34)+' 130 '+(H-12)+' T260 '+(H-20)+' T360 '+(H-10)+' V'+HT+' H0Z" fill="'+hill(g2)+'"/>';
  const leaf=snowy?'#E9EEF5':mo>=8&&mo<=10?['#D9894A','#C9694F','#E0A24A']:mo<=2||mo===11?null:['#5E9440','#6FA34C','#4F8A3C'];
@@ -1609,7 +1603,7 @@ function wxSceneHtml(W,o){o=o||{};const P=WX_POS(),sc=wxScene(W),now=new Date(),
  // vädret över hela miljön (moln och nederbörd) och hundarna till vänster
  const fx=figSvg(sc,{bare:1,nodogs:1,seed:3});
  return'<div class="wx-scene'+(o.cls?' '+o.cls:'')+(sc.sky==='fog'&&!sc.dark?' sc-light':'')+'" style="color:'+(sc.dark?'#E6ECFF':'#3A4458')+'"><svg class="sc-bg" viewBox="0 0 360 '+HT+'" preserveAspectRatio="xMidYMax slice" aria-hidden="true">'+s+'</svg>'+
-  '<div class="sc-fx" aria-hidden="true">'+fx+'</div>'+
+  arcHtml(W,'w')+'<div class="sc-fx" aria-hidden="true">'+fx+'</div>'+
   '<button class="fig-box sc-dogs" data-act="wxVar" aria-label="'+esc(sc.label)+'. Visa en annan bild av hundarna">'+figSvg(sc,{bare:1})+'</button>'+(o.inner||'')+'</div>'}
 /* Gräsplätten hundarna står på i översikten. Ingen annan bakgrund: årstiden och vädret syns i gräset,
    med påskliljor runt påsk, löv på hösten och snö som ligger kvar tills det töar. */
@@ -1802,7 +1796,7 @@ function arcHtml(W,v){const P=WX_POS(),sc=wxScene(W),now=new Date(),k=SKY(now,P.
  let s='<svg viewBox="0 0 100 100" preserveAspectRatio="none"><defs>'+fade('t','currentColor')+fade('d',day?'#F5B940':'#9AA8D6')+'</defs><path class="trk" stroke="url(#'+gid+'t)" d="M0 100 A50 '+ry+' 0 0 1 100 100"/>'+
   '<path class="done" stroke="url(#'+gid+'d)" d="M0 100 A50 '+ry+' 0 0 1 '+x.toFixed(2)+' '+y.toFixed(2)+'"/></svg>';
  if(!day&&!covered)s+=[[18,40],[34,14],[62,8],[80,30],[50,46],[90,60]].slice(0,sc.sky==='partly'?3:6).map(([a,b],i)=>'<i class="arc-st tw'+(i%3?' d'+(i%3+1):'')+'" style="left:'+a+'%;top:'+b+'%"></i>').join('');
- const z=34;
+ const z=v==='w'?48:34;
  s+='<div class="sky-b '+(day?'sky-sun':'sky-moon')+'" style="left:'+x.toFixed(1)+'%;top:'+y.toFixed(1)+'%;opacity:'+(covered?.4:1)+'">'+(day?sunSvg(k.sun.alt<8,z*1.5):moonSvg(k.moon.frac,k.moon.waxing,z))+'</div>';
  return'<div class="arc '+v+'" aria-hidden="true">'+s+'</div>'}
 // b (vald): bågen i högra delen av rutan bakom temperaturen; a = bågen tätt över hundarna
