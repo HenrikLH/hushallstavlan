@@ -466,8 +466,18 @@ button.fig-box:active{opacity:1;transform:scale(.96)}
 .dr-slide{background:var(--surface);touch-action:pan-y;will-change:transform}
 .dr-act{position:absolute;top:0;right:0;bottom:0;width:84px;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:0;gap:4px;background:var(--accent);color:var(--on-accent);font-size:13px;font-weight:600}
 .dr-act svg{width:22px;height:22px}
-.sh-tools{display:flex;gap:8px;flex-wrap:wrap;padding:12px 16px 0}.sh-tools .pill svg{width:16px;height:16px}.pill.red{color:var(--red)}
-.sh-ask{margin:12px 16px 0;padding:12px 14px;border-radius:12px;background:var(--surface);display:flex;flex-direction:column;gap:10px}
+.sh-tools{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:10px 16px 0}
+.sh-btn{display:flex;align-items:center;gap:10px;min-width:0;padding:10px 12px;border-radius:12px;background:var(--surface);text-align:left;color:var(--ink)}
+.sh-btn:active{background:var(--fill)}.sh-btn:disabled{opacity:.45}.sh-btn[data-act=shopImport]:disabled{opacity:1}
+.sh-tx{min-width:0}.sh-tx b{display:block;font-size:16px;line-height:21px;font-weight:600;letter-spacing:-.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sh-tx .fn{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sh-ic{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent)}.sh-ic svg{width:18px;height:18px}
+.sh-ic.red{background:color-mix(in srgb,var(--red) 14%,transparent);color:var(--red)}
+.sh-ic .spin{width:16px;height:16px;border-radius:50%;border:2px solid currentColor;border-right-color:transparent;animation:shspin .8s linear infinite}@keyframes shspin{to{transform:rotate(360deg)}}
+.sh-ask{margin:10px 16px 0;padding:14px;border-radius:12px;background:var(--surface)}
+.sh-ah{display:flex;align-items:center;gap:10px}.sh-ah b{font-size:17px;line-height:22px;font-weight:600;letter-spacing:-.4px}
+.sh-ask p{margin:8px 0 14px;font-size:15px;line-height:20px;color:var(--gray)}
+.sh-ab{display:grid;grid-template-columns:1fr 1fr;gap:10px}.sh-ab button{display:flex;align-items:center;justify-content:center;height:44px;border-radius:12px;font-size:17px;font-weight:600;letter-spacing:-.4px}
+.sh-no{background:var(--fill);color:var(--ink)}.sh-yes{background:var(--accent);color:#fff}.sh-yes.red{background:var(--red)}
 .dr-act.del{background:var(--red,#FF3B30);color:#fff}
 .toast.undo{display:flex;align-items:center;gap:14px;padding:8px 8px 8px 18px;text-align:left}.toast.undo[hidden]{display:none}
 .ud-t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

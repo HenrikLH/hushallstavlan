@@ -297,7 +297,7 @@ async function apiGet(){
  const j=await r.json();if(!j.ok)throw new Error(j.error||'Okänt fel');return j.data}
 /* Ändringar sparas först i telefonen (utkorgen) och skickas sedan i tur och ordning.
    Utan nät ligger de kvar och skickas när nätet kommer tillbaka, så inget försvinner i butiken.
-   Medan något väntar skrivs telefonens data inte över av äldre data från kalkylarket. */
+   Medan något klartr skrivs telefonens data inte över av äldre data från kalkylarket. */
 const OUTBOX=(()=>{try{const a=JSON.parse(lsGet('outbox')||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}})();
 S.pending=OUTBOX.length;
 const saveOutbox=()=>{lsSet('outbox',OUTBOX.length?JSON.stringify(OUTBOX):null);try{if(S.data)lsSet('cache',JSON.stringify(S.data))}catch(e){}};
@@ -409,7 +409,7 @@ let rq=0,pendingRender=false;
 function render(){if(rq)return;rq=setTimeout(()=>{rq=0;doRender()},0)}
 function busyTyping(){const a=document.activeElement;return a&&a.closest&&a.closest('#main,#overlay')&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)&&a.type!=='checkbox'}
 function renderStatus(){const el=document.getElementById('sync');if(el)el.outerHTML=statusHtml()}
-const waitTxt=n=>n+(n===1?' ändring väntar':' ändringar väntar')+' på nät';
+const waitTxt=n=>n+(n===1?' ändring klartr':' ändringar klartr')+' på nät';
 function statusHtml(){const t=S.lastSync?pad(S.lastSync.getHours())+':'+pad(S.lastSync.getMinutes()):'';
  const n=OUTBOX.length,cls=S.sync==='busy'?'busy':(S.sync==='err'||S.sync==='offline')?'err':'';const txt=S.sync==='offline'&&n?waitTxt(n):S.sync==='busy'?'Sparar…':S.sync==='err'?'Ingen kontakt':(t?'Uppdaterad '+t:'Inte uppdaterad än');
  return'<button type="button" class="cell link sync '+cls+'" id="sync" data-act="refresh"><i></i><span class="grow">'+txt+'</span><span class="val">Uppdatera</span></button>'}
@@ -1275,12 +1275,16 @@ function inkopParts(){
  const sub=left.length+' kvar · ca '+kr(shopCost(left)),tools='<button class="ib plus" data-act="shopAdd" aria-label="Ny vara">'+I.plus+'</button>';let h='';
  h+='<div class="stats'+(B?' s4':'')+'"><div class="stat"><span class="fn">Hela listan</span><b>'+nv('s-total',total,'kr')+'</b></div><div class="stat"><span class="fn">Kvar att betala</span><b>'+nv('s-left',shopCost(left),'kr')+'</b></div><div class="stat"><span class="fn">Mat per portion</span><b>'+(port?kr(mealCost/port):'–')+'</b><span class="fn">'+port+' portioner</span></div>'+
   (B?'<div class="stat"><span class="fn">Matbudget '+kr(B)+'</span><b>'+(mealCost>B?'+'+kr(mealCost-B):kr(B-mealCost)+' kvar')+'</b><div class="thin '+(mealCost>B?'bad':mealCost>B*.9?'warn':'')+'"><i style="width:'+Math.min(100,Math.round(mealCost/B*100))+'%"></i></div></div>':'')+'</div>';
- const ask=S.confirm==='shopEmpty'?['Töm hela listan? Alla '+all.length+' varor tas bort.','shopEmptyYes','Ja, töm']:S.confirm==='shopImport'?['Hämta varorna till rätterna på veckosedeln? De ersätter varorna från förra planen. Egna varor ligger kvar.','shopImportYes','Ja, hämta']:null;
- h+=ask?'<div class="sh-ask"><span class="sub">'+esc(ask[0])+'</span><span class="pills"><button class="tb strong'+(ask[1]==='shopEmptyYes'?' red':'')+'" data-act="'+ask[1]+'">'+ask[2]+'</button><button class="tb" data-act="confirmNo">Avbryt</button></span></div>'
-  :'<div class="sh-tools"><button class="pill" data-act="shopImport">'+I.imp+'Hämta från veckosedeln</button>'+(all.length?'<button class="pill red" data-act="shopEmpty">'+I.trash+'Töm listan</button>':'')+'</div>';
+ // Två knappar under siffrorna: hämta veckans varor och töm listan. Frågan visas i samma kort innan något händer
+ const vs=st.vecka_start,wk=isDate(vs)?'Vecka '+isoWeek(parse(vs)):'veckan';
+ const ask=S.confirm==='shopEmpty'?{ic:I.trash,red:1,t:'Töm hela listan?',x:'Alla '+all.length+' varor tas bort, även egna. Du kan ångra direkt efteråt.',y:'shopEmptyYes',yl:'Töm'}
+  :S.confirm==='shopImport'?{ic:I.imp,t:'Hämta varorna för '+wk.toLowerCase()+'?',x:'Varorna från förra planen byts ut mot det rätterna på veckosedeln behöver. Egna varor ligger kvar.',y:'shopImportYes',yl:'Hämta'}:null;
+ h+=ask?'<div class="sh-ask"><div class="sh-ah"><span class="sh-ic'+(ask.red?' red':'')+'">'+ask.ic+'</span><b>'+esc(ask.t)+'</b></div><p>'+esc(ask.x)+'</p><div class="sh-ab"><button class="sh-no" data-act="confirmNo">Avbryt</button><button class="sh-yes'+(ask.red?' red':'')+'" data-act="'+ask.y+'">'+ask.yl+'</button></div></div>'
+  :'<div class="sh-tools"><button class="sh-btn" data-act="shopImport"'+(S.importing?' disabled':'')+'><span class="sh-ic">'+(S.importing?'<i class="spin"></i>':I.imp)+'</span><span class="sh-tx"><b>'+(S.importing?'Hämtar…':'Hämta varor')+'</b><span class="fn">'+esc(isDate(vs)?wk:'Från veckosedeln')+'</span></span></button>'
+  +'<button class="sh-btn" data-act="shopEmpty"'+(all.length?'':' disabled')+'><span class="sh-ic red">'+I.trash+'</span><span class="sh-tx"><b>Töm listan</b><span class="fn">'+(all.length?all.length+' varor':'Listan är tom')+'</span></span></button></div>';
  h+='<div class="fchips" role="group" aria-label="Filter">'+groups.map(([k,l])=>'<button data-act="shopFilter" data-id="'+esc(k)+'" aria-pressed="'+(f===k)+'">'+l+'</button>').join('')+'</div>';
  h+='<div class="split"><div class="col">';
- if(!all.length)h+='<div style="height:22px"></div>'+group(emptyCell('Listan är tom. Veckoplaneringen fyller i den på söndagar, och ni kan lägga till egna varor.'));
+ if(!all.length)h+='<div style="height:22px"></div>'+group(emptyCell('Listan är tom. Tryck på Hämta varor för veckans rätter, eller lägg till egna varor med plus.'));
  CATS.forEach(c=>{const g=items.filter(i=>(CATS.includes(i.cat)?i.cat:'Övrigt')===c).sort((a,b)=>(a.done-b.done)||(a.order||0)-(b.order||0));if(!g.length)return;
   h+=sh(c,kr(shopCost(g)))+group(g.map(shopRow).join(''))});
  if(bought.length)h+='<div class="pills" style="padding:12px 16px 0 24px">'+(S.confirm==='clearShop'?'<span class="sub">Ta bort '+bought.length+' avbockade?</span><button class="tb red strong" data-act="clearShopYes">Ja, ta bort</button><button class="tb" data-act="confirmNo">Avbryt</button>':'<button class="tb red" data-act="clearShop">Rensa avbockade ('+bought.length+')</button>')+'</div>';
@@ -1299,10 +1303,10 @@ function shopImport(){delCommit();const st=settings(),vs=st.vecka_start,ve=st.ve
  if(!list.length){toast('Veckosedeln har inga rätter med recept.');return}
  const korg=MV.korg(list.map(x=>x.b),planLager());
  const shop=korg.rad.filter(x=>x.n>0).map(x=>({name:planVaraNamn(x),qty:MV.forp(x),price:Math.round(x.kr),meals:[...new Set(list.filter(i=>i.b[x.k]).map(i=>lab[i.key]))]}));
- S.postErr='';toast('Hämtar varorna…');
+ S.importing=true;S.postErr='';render();
  const klart=async()=>{for(let i=0;i<60&&OUTBOX.length&&navigator.onLine;i++){await flush();if(OUTBOX.length)await new Promise(r=>setTimeout(r,500))}};
  apiPost({action:'planSend',start:vs,end:ve,menu:rows.map(m=>({date:m.date,who:m.who,title:m.title,recipe:m.recipe||'',addon:m.addon||'',note:m.note||''})),shop,recipes:[],lager:korg.rest,settings:{}})
-  .then(klart).then(()=>{if(S.postErr)return;toast(OUTBOX.length?'Sparas när nätet är tillbaka':shop.length+' varor hämtade från veckosedeln');refresh(true)})}
+  .then(klart).then(()=>{S.importing=false;render();if(S.postErr)return;if(!OUTBOX.length)toast(shop.length+' varor hämtade från veckosedeln');else toast('Sparas när nätet är tillbaka');refresh(true)})}
 function shopRow(i){return'<div class="dr-wrap"><button class="dr-act del" data-act="shopDel" data-full="shopDel" data-id="'+esc(i.id)+'" aria-label="Ta bort '+esc(i.name)+'">'+I.trash+'<span>Ta bort</span></button>'+shopRowIn(i).replace('<div class="cell ck','<div class="cell dr-slide ck')+'</div>'}
 function shopRowIn(i){const chips=(i.offer?'<span class="chip offer">'+esc(i.store||'Erbjudande')+'</span>':'')+(i.meals||[]).map(m=>'<span class="chip">'+esc(m)+'</span>').join('')+(i.source==='egen'&&i.addedBy?'<span class="chip">'+esc(i.addedBy)+'</span>':'');
  return'<div class="cell ck'+(i.done?' done':'')+'"><input type="checkbox" class="check" data-act="shopToggle" data-id="'+esc(i.id)+'" aria-label="'+esc(i.name)+'"'+(i.done?' checked':'')+'><button class="grow rowbtn" data-act="shopToggle" data-id="'+esc(i.id)+'"><div class="title">'+esc(i.name)+'</div>'+((i.qty||chips)?'<div class="meta">'+(i.qty?'<span>'+esc(i.qty)+'</span>':'')+chips+'</div>':'')+'</button><span class="val">'+(i.price?kr(i.price):'')+'</span></div>'}
