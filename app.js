@@ -375,6 +375,14 @@ function evWho(e){const w=evParts(e).name||evPerson(e);return w?' '+personChip(w
 const personChip=w=>'<span class="chip'+(people().includes(w)?' '+pcls(w):'')+'">'+esc(w)+'</span>';
 const shopCost=items=>items.reduce((s,i)=>s+(Number(i.price)||0),0);
 const isBase=i=>(i.meals||[]).length>0&&(i.meals||[]).every(m=>m==='Bas');
+/* Veckosedelns siffror räknas på veckan som skickats: varorna som planen lade i inköpslistan (även de som redan är köpta)
+   och portionerna som ska ätas, alltså två per middag och storkokets portioner. Mackor räknas inte */
+function veckaKostnad(){const vs=settings().vecka_start,tag=isDate(vs)?'plan'+vs.replace(/-/g,''):'',sh=D().shop.filter(i=>!isBase(i));
+ const plan=tag?sh.filter(i=>String(i.id).indexOf(tag)===0):[];return shopCost(plan.length?plan:sh.filter(i=>i.source!=='egen'))}
+function veckaPortioner(){const st=settings(),vs=st.vecka_start,ve=st.vecka_slut,inV=m=>!isDate(vs)||!isDate(ve)||!isDate(m.date)||(m.date>=vs&&m.date<=ve);let n=0;
+ D().menu.filter(inV).forEach(m=>{if(m.who==='Borta'||/^macka$/i.test(m.title))return;const r=m.recipe&&recipeById(m.recipe);if(r&&r.course==='efterrätt')return;
+  if(r&&isStorkok(r)){const x=/\((\d+) portioner\)/.exec(m.note||'');n+=x?Number(x[1]):5}else if(r||/^rester:/i.test(m.title))n+=2});
+ return n||planPortions()}
 function planPortions(){const ids=new Set();D().menu.forEach(m=>{if(m.recipe)ids.add(m.recipe)});
  String(settings().storkok||'').split(',').map(s=>s.trim()).filter(Boolean).forEach(id=>ids.add(id));
  let n=0;ids.forEach(id=>{const r=recipeById(id);if(r&&r.course!=='efterrätt')n+=r.portions||0});return n}
@@ -684,7 +692,7 @@ const planBtn=()=>(DEV?'<button class="pl-open" data-act="planOpen"><span class=
 function matWeek(){
  const d=D(),st=settings(),ds=weekDishes();let h=planBtn();
  if(!ds.length)return h+'<div style="height:22px"></div>'+group(emptyCell('Veckans mat är inte planerad än. Tryck på Planera nästa vecka.'))+wishesBlock()+prefsBlock();
- const total=shopCost(d.shop.filter(i=>!isBase(i))),port=planPortions();
+ const total=veckaKostnad(),port=veckaPortioner();
  h+='<div class="stats"><div class="stat"><span class="fn">Maten kostar ca</span><b>'+nv('m-total',total,'kr')+'</b></div><div class="stat"><span class="fn">Portioner</span><b>'+nv('m-port',port)+'</b></div><div class="stat"><span class="fn">Per portion</span><b>'+(port?nv('m-per',total/port,'kr'):'–')+'</b></div></div>';
  const order={Henrik:0,Vegetariskt:1,Gemensam:2};
  [...new Set(['Vardag','Helg','Storkok'].concat(ds.map(x=>x.g)))].forEach(g=>{const list=ds.filter(x=>x.g===g).sort((a,b)=>(order[(a.r||a.m).who]??3)-(order[(b.r||b.m).who]??3));if(!list.length)return;
