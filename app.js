@@ -1501,7 +1501,7 @@ function calWidget(){const t=today(),wk=[];for(let i=0;i<7;i++)wk.push(addDays(t
  // saknade stående överföringar visas bara för den det gäller och aldrig på väggen
  const ovs=S.wall||wallBoardOn()||!people().includes(S.me)?[]:[['shared',ovOpen('shared')],[S.me,ovOpen(S.me)]].flatMap(([l,a])=>a.map(c=>({l,c})));
  const todo=(ts.length||ovs.length)&&!wallBoardOn()?'<div class="wk-todo wk-link" data-act="taskList" role="link" tabindex="0" aria-label="Att göra, öppna Uppgifter"><div class="wk-sub">Att göra</div><div class="evs">'+
-  ovs.map(x=>'<div class="ev task ov-task" data-act="ovGo" data-id="'+esc(x.l+'|'+x.c.id)+'" role="link" tabindex="0"><span>'+(ovState(x.c)==='andrad'?'Uppdatera':'Lägg in')+' stående överföring: '+esc(x.c.name)+'</span></div>').join('')+
+  ovs.map(x=>'<div class="ev task ov-task" data-act="ovGo" data-id="'+esc(x.l+'|'+x.c.id)+'" role="link" tabindex="0"><span class="ovs tap saknas" data-act="ovDone" data-id="'+esc(x.c.id)+'" data-list="'+esc(x.l)+'" role="button" tabindex="0" aria-label="Bekräfta att den är inlagd">!</span><span>'+(ovState(x.c)==='andrad'?'Uppdatera':'Lägg in')+' stående överföring: '+esc(x.c.name)+'</span></div>').join('')+
   ts.map(x=>'<div class="ev task"><span>'+esc(x.title)+evWho(x)+'</span></div>').join('')+'</div></div>':'';
  return'<section class="widget w2 calw"><button class="wh" data-act="calOpen" data-id="'+sel+'" style="width:100%">'+I.cal+'<span>Kalender</span><span class="r">'+esc(cap(MON[parse(sel).getMonth()]))+'</span></button>'+strip+
   // schemadelen öppnar kalendern på vald dag, att göra-delen öppnar uppgiftslistan
@@ -2296,7 +2296,8 @@ const ovOpen=l=>ekoList(l).filter(c=>ovState(c)!=='ok');
 const ovEvery={'månad':'Varje månad','kvartal':'Var tredje månad','år':'En gång om året'};
 function costRow(c,list,split){const pm=perMonth(c),meta=[c.pay,dayTxt(c.day),c.note].filter(Boolean).join(' · '),ov=ovState(c);
  return'<button class="cell link'+(ov?' ov-row':'')+'" data-act="ekoCost" data-id="'+esc(c.id)+'" data-list="'+esc(list)+'">'+
-  (ov?'<span class="ovs '+ov+'" aria-label="'+(ov==='ok'?'Stående överföring inlagd':ov==='andrad'?'Överföringen behöver ändras':'Stående överföring saknas')+'">'+(ov==='ok'?I.tick:'!')+'</span>':'')+
+  // ett tryck på utropstecknet bekräftar att överföringen är inlagd
+  (ov==='ok'?'<span class="ovs ok" aria-label="Stående överföring inlagd">'+I.tick+'</span>':'<span class="ovs tap '+ov+'" data-act="ovDone" data-id="'+esc(c.id)+'" data-list="'+esc(list)+'" role="button" tabindex="0" aria-label="'+(ov==='andrad'?'Bekräfta att överföringen är ändrad':'Bekräfta att stående överföring är inlagd')+'">!</span>')+
   '<div class="grow"><div class="title">'+esc(c.name)+'</div>'+
   (ov&&ov!=='ok'?'<div class="ovtxt">'+(ov==='andrad'?'Uppdatera överföringen':'Stående överföring saknas')+'</div>':'')+
   ((meta||c.period!=='månad')?'<div class="meta">'+(c.period!=='månad'?'<span class="num">'+kr(c.amount)+'/'+esc(c.period)+'</span>':'')+(meta?'<span>'+esc(meta)+'</span>':'')+'</div>':'')+
@@ -2566,7 +2567,7 @@ const ACT={
  ovLater(){closeSheets();render()},
  ovDone(id,el){const L=el.dataset.list||'shared',c=ekoList(L).find(x=>x.id===id);if(!c)return;closeSheets();A.user=Date.now();
   updJSON('ekonomi',{},o=>{ekoListIn(o,L,l=>l.map(x=>x.id===id?Object.assign({},x,{ov:{a:Number(x.amount),p:x.period||'månad',d:ovTday(x),t:today()}}):x));return o});
-  const n=ovOpen(L).length;toast(n?'Bra! '+n+' kvar att lägga in':'Bra! Alla har en stående överföring')},
+  toast(c.name+' är bekräftad')},
  ovUndo(){const e=S.ekoEdit;if(!e||!e.id)return;A.user=Date.now();
   updJSON('ekonomi',{},o=>{ekoListIn(o,e.list,l=>l.map(x=>{if(x.id!==e.id)return x;const y=Object.assign({},x);delete y.ov;return y}));return o})},
  ekoDel(){const e=S.ekoEdit;if(!e||!e.id)return;closeSheets();A.user=Date.now();A.flip=true;
