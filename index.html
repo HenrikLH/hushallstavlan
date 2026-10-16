@@ -70,6 +70,9 @@ svg{flex:none}
 
 /* ===== 3. Skal: svävande flikrad, samma på telefon, dator och vägg ===== */
 .nav{position:fixed;z-index:20;display:flex}
+/* Följer skärmen även när iPhone har förskjutit sidan (se vvFix i app.js) */
+.nav,.toast,.timers,.outbox,.arr-foot,.sheet{translate:0 var(--vvb,0px)}
+.navbar{translate:0 var(--vvt,0px)}
 .nav button{display:flex;align-items:center;min-width:0;color:var(--gray)}
 .nav .brand,.nav-pill{display:none}
 /* Flikrad i glas med en markering som glider mellan flikarna och kan dras */
@@ -1272,7 +1275,7 @@ body.wall:has(.board) .arr-foot{left:28px;transform:none;width:calc((100% - 60px
 <script src="matvaror.js?v=3"></script>
 <script src="matpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=75"></script>
+<script src="app.js?v=77"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
