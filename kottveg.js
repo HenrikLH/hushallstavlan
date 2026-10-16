@@ -152,5 +152,40 @@ window.KottVeg={
  {t:'Fräs lök, vitlök, ingefära och curry.'},
  {t:'Tillsätt tomater, kokosmjölk och blomkål och dela grytan i två kastruller.',k:'Lägg {kott} i den ena.',v:'Lägg {veg} i den andra.'},
  {t:'Låt båda sjuda.',timer:20},
- {t:'Rör ner spenaten. Koka riset och portionera i lådor. Skriv namn på lådorna.'}]}
+ {t:'Rör ner spenaten. Koka riset och portionera i lådor. Skriv namn på lådorna.'}]},
+'insp-kikartsgryta-storkok':{dk:'kyckling',s:[
+ {t:'Hacka lök och vitlök och fräs dem i olivolja med ingefära och kryddor.'},
+ {g:1,k:'Skär kycklingen i bitar och bryn den i en egen panna.',v:'Skölj kikärtorna.'},
+ {t:'Tillsätt tomater och kokosmjölk och dela grytan i två kastruller.',k:'Lägg {kott} i den ena.',v:'Lägg {veg} i den andra.'},
+ {t:'Låt båda puttra.',timer:25},
+ {t:'Koka matvetet.',timer:15},
+ {t:'Rör ner spenaten i båda grytorna, smaka av och portionera i lådor. Skriv namn på lådorna.'}]},
+'insp-sk-marockansk-kikarta':{dk:'kyckling',s:[
+ {t:'Hacka lök och vitlök och skär morötterna i bitar.'},
+ {t:'Fräs dem med kryddorna.'},
+ {g:1,k:'Skär kycklingen i bitar och bryn den i en egen panna.',v:'Skölj kikärtorna.'},
+ {t:'Tillsätt tomater och buljong och dela grytan i två kastruller.',k:'Lägg {kott} i den ena.',v:'Lägg {veg} i den andra.'},
+ {t:'Låt båda puttra.',timer:30},
+ {t:'Koka bulgurn och portionera i lådor. Skriv namn på lådorna.',timer:12}]},
+'insp-sk-svart-bongryta':{dk:'kyckling',s:[
+ {t:'Tärna sötpotatis och hacka lök och vitlök.'},
+ {t:'Fräs lök, vitlök och kryddor.'},
+ {g:1,k:'Skär kycklingen i bitar och bryn den i en egen panna.',v:'Skölj bönorna.'},
+ {t:'Tillsätt sötpotatis, tomater och 3 dl vatten och dela grytan i två kastruller.',k:'Lägg {kott} i den ena.',v:'Lägg {veg} i den andra.'},
+ {t:'Låt båda puttra.',timer:30},
+ {t:'Pressa i lime. Koka riset och portionera i lådor. Skriv namn på lådorna.'}]},
+'insp-sk-ratatouille-bonor':{dk:'kyckling',s:[
+ {t:'Tärna alla grönsaker.'},
+ {t:'Fräs lök och vitlök i olivolja, lägg i aubergine och zucchini.'},
+ {g:1,k:'Skär kycklingen i bitar och bryn den i en egen panna.',v:'Skölj bönorna.'},
+ {t:'Tillsätt paprika, tomater och timjan och dela grytan i två kastruller.',k:'Lägg {kott} i den ena.',v:'Lägg {veg} i den andra.'},
+ {t:'Låt båda puttra.',timer:35},
+ {t:'Koka bulgurn och portionera i lådor. Skriv namn på lådorna.',timer:12}]},
+'insp-sk-veg-gulasch':{dk:'kyckling',s:[
+ {t:'Tärna grönsakerna och fräs dem med kryddorna.'},
+ {g:1,k:'Skär kycklingen i bitar och bryn den i en egen panna.',v:'Skölj bönorna.'},
+ {t:'Tillsätt tomater och buljong och dela grytan i två kastruller.',k:'Lägg {kott} i den ena.',v:'Lägg {veg} i den andra.'},
+ {t:'Låt båda puttra.',timer:30},
+ {t:'Koka matkornet.',timer:25},
+ {t:'Smaka av och portionera i lådor. Skriv namn på lådorna.'}]}
 };

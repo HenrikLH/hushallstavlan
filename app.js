@@ -1128,15 +1128,16 @@ function autoNorm(pl,lock){const D=pl.dag;
  return pl}
 const autoClone=pl=>({mode:pl.mode,st:pl.st.map(x=>Object.assign({},x)),dag:pl.dag.map(x=>Object.assign({},x))});
 function autoGen(X,seed){const P=X.P,lock=P.lock||{},rng=seedRng(P.vecka+'|'+seed),old=P.plan,used=pl=>new Set(autoItems(pl).map(x=>x.id));
- const pick=(k,pl,top)=>{const u=used(pl),L=X.rank(k).filter(c=>!u.has(c.id)).slice(0,top||12);return L.length?L[Math.floor(rng()*rng()*L.length)].id:null};
+ // Gör om: rätterna från de två senaste förslagen (utom de låsta) väljs inte igen så länge det finns andra som passar
+ const las=new Set(old?autoItems(old).filter(x=>lock[x.key]).map(x=>x.id):[]);
+ X.undvik=seed>0&&!X.behall&&P.hist&&P.hist.length?new Set(P.hist.flat().filter(id=>!las.has(id))):null;
+ const pick=(k,pl,top)=>{const u=used(pl);let L=X.rank(k).filter(c=>!u.has(c.id));if(X.undvik){const L2=L.filter(c=>!X.undvik.has(c.id));if(L2.length)L=L2}L=L.slice(0,top||12);return L.length?L[Math.floor(rng()*rng()*L.length)].id:null};
  const stFor=(mode,pl)=>(mode==='gem'?['sg']:['sk','sv']).map(k=>{const o=old&&old.st.find(x=>x.key===k);if(o&&lock[k])return Object.assign({},o);const id=pick(k,pl,3);return id?{key:k,id,n:k==='sg'?10:5}:null}).filter(Boolean);
  let pl={mode:P.skMode==='gem'?'gem':P.skMode==='two'?'two':(old&&old.mode)||'two',st:[],dag:Array(7).fill(null).map(()=>({t:'macka'}))};
  if(old)old.dag.forEach((x,d)=>{if(lock['d'+d]){pl.dag[d]=Object.assign({},x);if(x.n===4&&d<6)pl.dag[d+1]={t:'rest'}}});
  pl.st=stFor(pl.mode,pl);
  for(let d=0;d<7;d++)if(!lock['d'+d]&&pl.dag[d].t!=='rest'){const id=pick('d'+d,pl,3);if(id)pl.dag[d]={t:'ratt',id,n:2}}
  autoNorm(pl,lock);
- // Gör om: rätterna från förra förslaget (utom de låsta) får ett avdrag, så att det blir en ny vecka
- X.undvik=old&&seed>0&&!X.behall?new Set(autoItems(old).filter(x=>!lock[x.key]).map(x=>x.id)):null;
  let cur=pl,cv=autoEval(cur,X).val,best=cur,bv=cv;const N=1400;
  for(let i=0;i<N;i++){const T=8*Math.pow(.2/8,i/N),q=autoClone(cur),m=rng(),d=Math.floor(rng()*7),k='d'+d;
   if(m<.42){if(lock[k])continue;const id=pick(k,q);if(!id)continue;const was=q.dag[d];if(was.t==='rest')q.dag[d-1].n=2;q.dag[d]={t:'ratt',id,n:was.t==='ratt'?was.n:2}}
@@ -2473,7 +2474,7 @@ const ACT={
  autoOpen(){S.plan='auto';S.planOpen=null;window.scrollTo(0,0);render()},
  autoPrio(id){const P=autoState();P.prio=AUTO_W[id]?id:'balans';autoNy(P);render()},
  autoSk(id){const P=autoState();P.skMode=['two','gem'].includes(id)?id:'auto';['sk','sv','sg'].forEach(k=>delete P.lock[k]);autoNy(P);render()},
- autoGor(){const P=autoState();P.gen++;PLANP=P;const X=autoCtx(P);P.plan=autoGen(X,P.gen);P.plan.vecka=P.vecka;autoSync(P);PLANP=null;planSave(P);render();toast('Ny vecka föreslagen')},
+ autoGor(){const P=autoState();P.gen++;if(P.plan)P.hist=[autoItems(P.plan).filter(x=>!P.lock[x.key]).map(x=>x.id)].concat(P.hist||[]).slice(0,2);PLANP=P;const X=autoCtx(P);P.plan=autoGen(X,P.gen);P.plan.vecka=P.vecka;autoSync(P);PLANP=null;planSave(P);render();toast('Ny vecka föreslagen')},
  autoLock(id){const P=autoState();if(P.lock[id])delete P.lock[id];else P.lock[id]=1;planSave(P);render()},
  autoNasta(id){autoNasta(id)},
  autoSend(){autoSend()},
