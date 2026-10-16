@@ -284,7 +284,7 @@ let fitScrollbar=()=>{};
 /* Ta bort en vara med svep. Raden försvinner direkt, men borttagningen skickas först när Ångra har försvunnit (5 s),
    när nästa vara tas bort eller när appen läggs undan */
 const DEL={items:null,list:null,t:0};
-function delCommit(){if(!DEL.items)return;clearTimeout(DEL.t);const ids=DEL.items.map(x=>x.id);DEL.items=null;DEL.list=null;undoHide();ids.forEach(id=>apiPost({action:'shopDelete',id}))}
+function delCommit(keep){if(!DEL.items)return;clearTimeout(DEL.t);const ids=DEL.items.filter(x=>!keep||keep(x)).map(x=>x.id);DEL.items=null;DEL.list=null;undoHide();ids.forEach(id=>apiPost({action:'shopDelete',id}))}
 // Tar bort varorna direkt i appen och visar Ångra i 5 sekunder
 function delStart(items,msg){delCommit();if(!items.length)return;const ids=new Set(items.map(x=>x.id));DEL.list=D().shop.slice();DEL.items=items;S.data.shop=D().shop.filter(x=>!ids.has(x.id));render();
  const u=document.getElementById('undo');u.querySelector('.ud-t').textContent=msg;u.hidden=false;DEL.t=setTimeout(delCommit,5000)}
@@ -1295,7 +1295,12 @@ function inkopParts(){
  return{sub,tools,body:h+'</div></div>'}}
 /* Hämta från veckosedeln: räknar fram varorna till veckans rätter (middagar 2 eller 4 portioner, storkok 5 eller 10)
    och skickar veckan på nytt med planSend, som byter ut förra planens varor och låter egna varor ligga kvar */
-function shopImport(){delCommit();const st=settings(),vs=st.vecka_start,ve=st.vecka_slut;if(!isDate(vs)||!isDate(ve)){toast('Veckosedeln har ingen vecka än.');return}
+function shopImport(){
+ // planSend byter ändå ut alla varor från planer, så de behöver inte raderas en och en först (det tog lång tid).
+ // Bara egna varor som väntar på att tas bort skickas, och redan köade raderingar av planvaror stryks ur utkorgen
+ delCommit(x=>x.source==='egen');
+ for(let i=OUTBOX.length-1;i>=(flushing?1:0);i--)if(OUTBOX[i].action==='shopDelete'&&/^plan/.test(String(OUTBOX[i].id||'')))OUTBOX.splice(i,1);
+ S.pending=OUTBOX.length;saveOutbox();const st=settings(),vs=st.vecka_start,ve=st.vecka_slut;if(!isDate(vs)||!isDate(ve)){toast('Veckosedeln har ingen vecka än.');return}
  const rows=D().menu.filter(m=>isDate(m.date)&&m.date>=vs&&m.date<=ve),lab={},list=[];
  rows.forEach(m=>{const r=m.recipe&&recipeById(m.recipe);if(!r||m.who==='Borta')return;const sk=isStorkok(r),x=/\((\d+) portioner\)/.exec(m.note||''),n=sk?(x?Number(x[1]):5):/4 portioner/.test(m.note||'')?4:2;
   const pa=protFromAddon(m.addon),rr=pa?protRecipe(r,{r:r.id,k:pa.k,v:pa.v}):r;
@@ -1306,7 +1311,7 @@ function shopImport(){delCommit();const st=settings(),vs=st.vecka_start,ve=st.ve
  S.importing=true;S.postErr='';render();
  const klart=async()=>{for(let i=0;i<60&&OUTBOX.length&&navigator.onLine;i++){await flush();if(OUTBOX.length)await new Promise(r=>setTimeout(r,500))}};
  apiPost({action:'planSend',start:vs,end:ve,menu:rows.map(m=>({date:m.date,who:m.who,title:m.title,recipe:m.recipe||'',addon:m.addon||'',note:m.note||''})),shop,recipes:[],lager:korg.rest,settings:{}})
-  .then(klart).then(()=>{S.importing=false;render();if(S.postErr)return;if(!OUTBOX.length)toast(shop.length+' varor hämtade från veckosedeln');else toast('Sparas när nätet är tillbaka');refresh(true)})}
+  .then(klart).catch(e=>{S.postErr=String(e)}).then(()=>{S.importing=false;render();if(S.postErr)return;if(!OUTBOX.length)toast(shop.length+' varor hämtade från veckosedeln');else toast('Sparas när nätet är tillbaka');refresh(true)})}
 function shopRow(i){return'<div class="dr-wrap"><button class="dr-act del" data-act="shopDel" data-full="shopDel" data-id="'+esc(i.id)+'" aria-label="Ta bort '+esc(i.name)+'">'+I.trash+'<span>Ta bort</span></button>'+shopRowIn(i).replace('<div class="cell ck','<div class="cell dr-slide ck')+'</div>'}
 function shopRowIn(i){const chips=(i.offer?'<span class="chip offer">'+esc(i.store||'Erbjudande')+'</span>':'')+(i.meals||[]).map(m=>'<span class="chip">'+esc(m)+'</span>').join('')+(i.source==='egen'&&i.addedBy?'<span class="chip">'+esc(i.addedBy)+'</span>':'');
  return'<div class="cell ck'+(i.done?' done':'')+'"><input type="checkbox" class="check" data-act="shopToggle" data-id="'+esc(i.id)+'" aria-label="'+esc(i.name)+'"'+(i.done?' checked':'')+'><button class="grow rowbtn" data-act="shopToggle" data-id="'+esc(i.id)+'"><div class="title">'+esc(i.name)+'</div>'+((i.qty||chips)?'<div class="meta">'+(i.qty?'<span>'+esc(i.qty)+'</span>':'')+chips+'</div>':'')+'</button><span class="val">'+(i.price?kr(i.price):'')+'</span></div>'}
