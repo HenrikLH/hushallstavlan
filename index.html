@@ -553,6 +553,11 @@ button.fig-box:active{opacity:1;transform:scale(.96)}
 .pl-chk{flex:none;width:28px;height:28px;margin-right:-2px;border-radius:14px;background:var(--accent);color:var(--on-accent);display:flex;align-items:center;justify-content:center}
 .pl-chk svg{width:15px;height:15px}
 .pl-chk:active{transform:scale(.9)}
+.pl-step{flex:none;display:flex;align-items:center;background:var(--fill);border-radius:10px;height:34px}
+.pl-step button{width:44px;height:34px;display:flex;align-items:center;justify-content:center;color:var(--accent)}
+.pl-step button:disabled{color:var(--ink-3)}
+.pl-step button svg{width:18px;height:18px}
+.pl-step .num{min-width:22px;text-align:center;font-size:17px;font-weight:600;border-left:.5px solid var(--line);border-right:.5px solid var(--line);line-height:20px;padding:0 6px}
 .pl-pin{position:sticky;top:calc(var(--sat) + var(--navbar));z-index:14;height:0;margin:0 16px}
 .pl-mini{display:flex;align-items:center;gap:8px;padding:9px 14px;border-radius:14px;background:color-mix(in srgb,var(--surface) 96%,transparent);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);box-shadow:0 6px 20px rgba(0,0,0,.18);margin-top:8px;opacity:0;transform:translateY(-8px);pointer-events:none;transition:opacity .18s ease,transform .18s ease}
 .pl-mini.show{opacity:1;transform:none}
