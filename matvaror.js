@@ -61,7 +61,7 @@
     ['kycklingfilé', /kyckling(?!.*(färs|buljong))/, 1000, 110, 0, 130, 1],
     ['kalkon', /kalkon(?!.*färs)/, 500, 70, 0, 0, 1],
     ['färs', /färs/, 500, 60, 0, 0, 1],
-    ['fläsk', /fläsk|kassler|sidfläsk/, 1000, 90, 0, 150, 1],
+    ['fläsk', /fläsk|kassler|sidfläsk/, 500, 65, 0, 150, 1],
     ['lax', /lax/, 500, 100, 0, 125, 1],
     ['vit fisk', /torsk|sej/, 400, 45, 0, 125, 1],
     ['räkor', /räkor/, 500, 80, 0, 0, 1],
