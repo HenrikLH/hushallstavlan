@@ -1,7 +1,7 @@
 // Sparar appens filer så att den startar snabbt och fungerar utan nät.
 // Hushållets data hämtas alltid från kalkylarket.
-const VERSION = 'ht-v67';
-const SHELL = ['./', './index.html', './matvaror.js?v=2', './matpoang.js?v=1', './app.js?v=63', './config.js?v=37', './manifest.webmanifest', './icons/icon-192.png?v=5', './icons/icon-192-dark.png?v=5', './icons/apple-touch-icon.png?v=5', './icons/apple-touch-icon-dark.png?v=5'];
+const VERSION = 'ht-v68';
+const SHELL = ['./', './index.html', './matvaror.js?v=2', './matpoang.js?v=1', './app.js?v=64', './config.js?v=37', './manifest.webmanifest', './icons/icon-192.png?v=5', './icons/icon-192-dark.png?v=5', './icons/apple-touch-icon.png?v=5', './icons/apple-touch-icon-dark.png?v=5'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
