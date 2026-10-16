@@ -446,10 +446,14 @@ button.fig-box:active{opacity:1;transform:scale(.96)}
 .dr .dot{color:var(--ink-3)}
 .dr-st{color:#C58A00;font-weight:600;font-variant-numeric:tabular-nums}
 .dr-sub{display:block;font-size:13px;line-height:17px;color:var(--ink-2);margin-top:2px}
-.dr-sw{flex:none;display:flex;flex-direction:column;align-items:center;gap:3px;min-width:48px;padding:4px 0;color:var(--accent);font-size:12px;font-weight:600}
-.dr-swi{width:38px;height:38px;border-radius:19px;background:color-mix(in srgb,var(--accent) 12%,transparent);display:flex;align-items:center;justify-content:center}
-.dr-swi svg{width:19px;height:19px}
-.dr-sw:active .dr-swi{transform:scale(.92)}
+.dr-sw{flex:none;align-self:center;width:34px;height:34px;margin-right:-4px;border-radius:17px;display:flex;align-items:center;justify-content:center;color:var(--ink-3)}
+.dr-sw svg{width:18px;height:18px}
+.dr-sw:active{background:var(--fill)}
+.dr-wrap{position:relative;overflow:hidden}
+.dr-wrap+.dr-wrap .dr::before,.dr-wrap+.cell::before,.cell+.dr-wrap .dr::before{content:"";position:absolute;top:0;left:16px;right:0;border-top:.5px solid var(--line)}
+.dr-slide{background:var(--surface);touch-action:pan-y;will-change:transform}
+.dr-act{position:absolute;top:0;right:0;bottom:0;width:84px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:var(--accent);color:var(--on-accent);font-size:13px;font-weight:600}
+.dr-act svg{width:22px;height:22px}
 .dr-done{flex:none;display:flex;align-items:center;gap:4px;font-size:13px;color:var(--ink-3);padding-right:4px}
 .dr-done svg{width:13px;height:13px}
 .dr.past .dr-th{opacity:.55}
