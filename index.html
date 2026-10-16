@@ -11,10 +11,10 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Hemma">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" id="touch-icon" href="icons/apple-touch-icon.png?v=5">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=5" media="(prefers-color-scheme: light)">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192-dark.png?v=5" media="(prefers-color-scheme: dark)">
-<script>/* Hemskärmsikonen väljs när appen läggs till: mörk om telefonen är i mörkt läge */try{if(matchMedia('(prefers-color-scheme: dark)').matches)document.getElementById('touch-icon').href='icons/apple-touch-icon-dark.png?v=5'}catch(e){}</script>
+<link rel="apple-touch-icon" id="touch-icon" href="icons/apple-touch-icon.png?v=6">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=6" media="(prefers-color-scheme: light)">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192-dark.png?v=6" media="(prefers-color-scheme: dark)">
+<script>/* Hemskärmsikonen väljs när appen läggs till: mörk om telefonen är i mörkt läge */try{if(matchMedia('(prefers-color-scheme: dark)').matches)document.getElementById('touch-icon').href='icons/apple-touch-icon-dark.png?v=6'}catch(e){}</script>
 <style>
 /* ===== 1. Tokens (iOS systemfärger, se docs/ios-design.md) ===== */
 :root{
@@ -70,6 +70,9 @@ svg{flex:none}
 
 /* ===== 3. Skal: svävande flikrad, samma på telefon, dator och vägg ===== */
 .nav{position:fixed;z-index:20;display:flex}
+/* Följer skärmen även när iPhone har förskjutit sidan (se vvFix i app.js) */
+.nav,.toast,.timers,.outbox,.arr-foot,.sheet{translate:0 var(--vvb,0px)}
+.navbar{translate:0 var(--vvt,0px)}
 .nav button{display:flex;align-items:center;min-width:0;color:var(--gray)}
 .nav .brand,.nav-pill{display:none}
 /* Flikrad i glas med en markering som glider mellan flikarna och kan dras */
@@ -834,6 +837,50 @@ button.fig-box:active{opacity:1;transform:scale(.96)}
 .eko-mini{display:flex;justify-content:space-between;gap:10px}
 .eko-mini>div{display:flex;flex-direction:column;min-width:0}
 .eko-mini b{font-size:22px;line-height:28px;font-weight:700;white-space:nowrap}
+.ovs{flex:none;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:14px;font-weight:700;line-height:1}
+.ovs svg{width:12px;height:12px}
+.ovs.ok{background:rgba(52,199,89,.16);color:var(--green)}
+.ovs.saknas,.ovs.andrad{background:var(--orange);color:#fff}
+.ov-row{align-items:flex-start}.ov-row .ovs{margin-top:1px}
+.ovtxt{font-size:15px;line-height:20px;color:var(--orange);font-weight:500;margin-top:2px}
+.ov-warn{display:flex;align-items:center;gap:12px;width:calc(100% - 32px);margin:0 16px 10px;padding:12px 14px;border-radius:14px;background:rgba(255,149,0,.13);color:var(--ink);text-align:left}
+.ov-warn .grow{display:flex;flex-direction:column;gap:2px}
+.ov-warn b{font-size:16px;font-weight:600}.ov-warn .grow>span{font-size:14px;color:var(--ink-2)}
+.ov-warn .chev{color:var(--orange)}
+.ov-allok{display:flex;align-items:center;gap:6px;padding-top:8px}.ov-allok svg{width:12px;height:12px;color:var(--green);flex:none}
+.ov-sheet{text-align:center;padding:4px 16px 8px}
+.ov-flow{display:flex;align-items:center;justify-content:center;gap:10px;color:var(--accent)}
+.ov-flow span{display:inline-flex;width:44px;height:44px;border-radius:50%;background:var(--accent-soft);align-items:center;justify-content:center}
+.ov-flow svg{width:22px;height:22px}
+.ov-flow i{display:block;width:44px;border-top:2px dashed currentColor;position:relative}
+.ov-flow i::after{content:"";position:absolute;right:-2px;top:-6px;border:5px solid transparent;border-left:7px solid currentColor;border-right:0}
+.ov-was{margin:12px 0 0;padding:10px 12px;border-radius:12px;background:rgba(255,149,0,.13);font-size:14px;line-height:19px;text-align:left}
+.ov-sheet .btn-fill{width:100%;margin-top:18px}
+.ov-later{display:block;width:100%;height:44px;margin-top:6px;color:var(--accent);font-size:17px}
+.ovs.tap{position:relative;cursor:pointer}.ovs.tap::after{content:"";position:absolute;inset:-11px}
+.ov-task{display:flex;align-items:center;gap:8px}.ov-task .ovs{width:20px;height:20px;font-size:12px}
+.pin{display:flex;flex-direction:column;align-items:center;text-align:center;padding:64px 16px 40px}
+.pin-ic{display:flex;width:64px;height:64px;border-radius:50%;background:var(--accent-soft);color:var(--accent);align-items:center;justify-content:center}
+.pin-ic svg{width:30px;height:30px}
+.pin h2{margin:16px 0 4px;font-size:24px;font-weight:700}
+.pin-dots{display:flex;gap:18px;margin:26px 0 30px}
+.pin-dots i{width:16px;height:16px;border-radius:50%;border:2px solid var(--ink-2);transition:background .15s}
+.pin-dots i.on{background:var(--ink);border-color:var(--ink)}
+.pin.bad .pin-dots{animation:pinShake .45s}
+.pin.bad .pin-dots i{border-color:var(--red)}
+@keyframes pinShake{20%,60%{transform:translateX(-10px)}40%,80%{transform:translateX(10px)}}
+.pin-pad{display:grid;grid-template-columns:repeat(3,84px);gap:16px 26px}
+.pin-k{width:84px;height:84px;border-radius:50%;background:var(--surface);color:var(--ink);font-size:32px;font-weight:500;font-variant-numeric:tabular-nums}
+.pin-k.del{background:none;font-size:17px;color:var(--accent)}
+.pc.p1{--pc:var(--p1);--pc-soft:var(--p1-soft);--pc-ink:var(--p1-ink)}.pc.p2{--pc:var(--p2);--pc-soft:var(--p2-soft);--pc-ink:var(--p2-ink)}
+.pcn{color:var(--pc-ink)!important;font-weight:500}
+.eko-card.pc{background:var(--pc-soft)}
+.eko-card.pc .eko-name{color:var(--pc-ink)}
+.eko-card.pc .eko-left b:not(.red){color:var(--pc-ink)}
+.eko-card.pc .eko-rows .tot{border-top-color:var(--pc)}
+.eko-pl .sh>span:first-child{color:var(--pc-ink);font-weight:600}
+.eko-add{color:var(--accent)}.eko-pl .eko-add{color:var(--pc-ink)}
+.vpick label.pc input:checked+span{background:var(--pc);color:#fff}
 .hist{gap:12px}
 .hist .hm{width:84px;flex:none;font-size:15px}
 .hbar{flex:1;display:flex;gap:2px;height:10px;min-width:0}
@@ -1238,7 +1285,7 @@ body.wall:has(.board) .arr-foot{left:28px;transform:none;width:calc((100% - 60px
 <script src="matvaror.js?v=3"></script>
 <script src="matpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=75"></script>
+<script src="app.js?v=81"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
