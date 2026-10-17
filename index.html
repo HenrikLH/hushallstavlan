@@ -733,6 +733,16 @@ html.ny .chip.lk::before{display:none}
 .wx2-bar>div+div{border-left:1px solid var(--line);padding:0 0 0 12px}
 .wx2-bar b{font-size:12px;letter-spacing:.3px;text-transform:uppercase;color:var(--ink-2);font-weight:600}
 .wx2-bar span{font-size:15px;line-height:20px}
+/* dagskurvan i stället för bilden */
+.wxC-box{position:relative;margin:14px -4px 0}
+.wxC-svg{display:block;width:100%;height:auto;color:var(--ink);overflow:visible}
+.wxC-t{font-size:12px;font-weight:600;text-anchor:middle;fill:var(--ink)}
+.wxC-h{font-size:11px;text-anchor:middle;fill:var(--ink-2)}
+.wxC-st{font-size:10px;text-anchor:middle;fill:var(--ink-2)}
+.wxC-sun{stroke:var(--ink-2);stroke-opacity:.35;stroke-dasharray:2 3}
+.wxC-base{stroke:var(--line)}
+.wxC-ic{position:absolute;inset:0}
+.wxC-ic span{position:absolute;transform:translateX(-50%);font-size:17px;line-height:1}
 .wx-scene .sc-bg{position:absolute;inset:0;width:100%;height:100%;display:block}
 .wx-scene .sc-fx{position:absolute;left:0;right:0;bottom:70px;height:136px;pointer-events:none;display:flex;justify-content:flex-end}
 .wx-scene .sc-fx .fig{width:auto;aspect-ratio:170/130;height:100%}
@@ -1594,7 +1604,7 @@ html.ny button:focus:not(:focus-visible){outline:none}
 <script src="matvaror.js?v=3"></script>
 <script src="matpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=110"></script>
+<script src="app.js?v=111"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>

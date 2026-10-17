@@ -1865,6 +1865,7 @@ function renderOverlay(){
   sh('Namn i hushållet')+group([0,1].map(i=>'<div class="cell"><span class="pdot p'+(i+1)+'"></span><input class="field" id="set-p'+(i+1)+'" name="p'+(i+1)+'" aria-label="Person '+(i+1)+'" value="'+esc(people()[i]||'')+'"><input type="hidden" name="c'+(i+1)+'" value="'+personColor(i)+'"></div>').join(''))+
   sh('Städtid och budget')+group(fieldCell('Vardag, min','<input class="field r" id="set-wd" name="wd" inputmode="numeric" value="'+esc(st.stadtid_vardag||20)+'" style="max-width:110px">')+fieldCell('Helg, min','<input class="field r" id="set-we" name="we" inputmode="numeric" value="'+esc(st.stadtid_helg||40)+'" style="max-width:110px">')+fieldCell('Mat/vecka, kr','<input class="field r" id="set-budget" name="budget" inputmode="numeric" value="'+esc(st.matbudget||'')+'" style="max-width:110px">'))+
   sh('Utseende')+group('<button type="button" class="cell link" data-act="farg"><span class="grow">Färgval</span><span class="meta">'+esc({system:'System',light:'Ljust',dark:'Mörkt'}[S.theme]+' · '+(ACCENT==='min'?'Min färg':PCOL[accentKey()][0]))+'</span>'+chevron+'</button>')+'<div class="foot">Ljust eller mörkt, accentfärg och era färger i hushållet.</div>'+
+  sh('Vädervyn')+'<div class="seg-wrap">'+segc('Vädervyn','wxvy',[['kurva','Dagskurva'],['bild','Bild med hundar']],WXVY)+'</div><div class="foot">Dagskurvan visar temperaturen de närmaste 24 timmarna. Gäller bara den här enheten.</div>'+
   sh('Hundar i bilden')+'<div class="seg-wrap">'+segc('Hundar i bilden','hundar',[['vaxla','Växla'],['bada','Båda'],['brun','Bruna'],['svart','Svarta']],HUNDAR)+'</div><div class="foot">Växla byter var tredje timme. Du kan också trycka på hundarna i Väder för att byta. Gäller bara den här enheten.</div>'+
   sh('Schemat i kalenderrutan')+'<div class="seg-wrap">'+segc('Schemat i kalenderrutan','calStyle',[['1','Tid kvar'],['2','Stapel'],['3','Tidsaxel']],CAL_STYLE)+'</div>'+
   (DEV?sh('Förslag i Planera med portioner')+'<div class="seg-wrap">'+segc('Förslag i Planera med portioner','flStyle',[['karusell','Stort kort'],['lista','Lista']],FL_STYLE)+'</div>':'')+
@@ -2613,6 +2614,33 @@ function windText(x){const w=x.w||0;if(w<.3)return'Lugnt';
  return(k==='Storm'||k==='Orkan'?k+', '+windDir(x.wd)+' vind':k+' '+windDir(x.wd)+' vind')+', '+Math.round(w)+'\u00a0m/s'}
 function windDir(d){return['nordlig','nordostlig','ostlig','sydostlig','sydlig','sydvästlig','västlig','nordvästlig'][Math.round(((d||0)%360)/45)%8]}
 function feels(T,w){return(T<=10&&w>1.3)?13.12+0.6215*T-11.37*Math.pow(w*3.6,0.16)+0.3965*T*Math.pow(w*3.6,0.16):T}
+/* Vädervyn utan hundar (val i Inställningar, ls ht.wxvy): dagens temperaturkurva i stället för bilden */
+let WXVY=lsGet('wxvy')==='bild'?'bild':'kurva';
+function wxTopHtml(W,P,ic,tx,d0){return'<div class="wx2-top"><div><div class="wx-place">'+esc(P.name)+'</div><div class="wx-big num" id="lt">'+deg(W.now.T)+'</div></div>'+
+  '<div class="wx2-r"><div class="wx2-cond"><span aria-hidden="true">'+ic+'</span>'+esc(tx)+'</div><div class="wx-hl num">H:'+deg(d0.max)+'  L:'+deg(d0.min)+'</div></div></div>'}
+function wxBarHtml(W,F){return'<div class="wx2-bar"><div><b>'+esc(capS(F.when))+'</b><span>'+esc(F.tip)+'</span></div><div><b>Vind</b><span>'+esc(windText(W.now))+'</span></div></div>'}
+// dagens temperaturkurva med väderikoner, nederbörd och solens upp/ner
+function wxHeroC(W,P,ic,tx,d0,F,sun){const H=W.hours.slice(0,25),w=326,h=172,x0=10,x1=w-10,yT=34,yB=104;
+ const lo=Math.min(...H.map(x=>x.T)),hi=Math.max(...H.map(x=>x.T)),sp=Math.max(3,hi-lo);
+ const X=i=>x0+(x1-x0)*i/(H.length-1),Y=T=>yB-(T-lo)/sp*(yB-yT);
+ let d='';H.forEach((x,i)=>{d+=(i?' L':'M')+X(i).toFixed(1)+' '+Y(x.T).toFixed(1)});
+ const gid='wc'+(++FIG_N);
+ let s='<svg viewBox="0 0 '+w+' '+h+'" class="wxC-svg"><defs><linearGradient id="'+gid+'" x1="0" y1="0" x2="1" y2="0">'+H.map((x,i)=>'<stop offset="'+(i/(H.length-1)).toFixed(3)+'" stop-color="'+tempCol(x.T)+'"/>').join('')+'</linearGradient>'+
+  '<linearGradient id="'+gid+'f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="currentColor" stop-opacity=".10"/><stop offset="1" stop-color="currentColor" stop-opacity="0"/></linearGradient></defs>';
+ // natten skuggad
+ const t0=H[0].d.getTime(),t1=H[H.length-1].d.getTime(),tx_=t=>x0+(x1-x0)*(t-t0)/(t1-t0);
+ [today(),addDays(today(),1)].forEach(dt=>{const st=sunTimes(dt,P.lat,P.lon);if(!st)return;[[st[0],'↑'],[st[1],'↓']].forEach(([t,a])=>{const xx=tx_(t.getTime?t.getTime():t);if(xx<x0||xx>x1)return;
+  s+='<line x1="'+xx.toFixed(1)+'" x2="'+xx.toFixed(1)+'" y1="22" y2="'+(yB+14)+'" class="wxC-sun"/><text x="'+xx.toFixed(1)+'" y="16" class="wxC-st">'+a+' '+hhmm(t)+'</text>'})});
+ s+='<path d="'+d+' L'+x1+' '+(yB+14)+' L'+x0+' '+(yB+14)+'Z" fill="url(#'+gid+'f)"/><path d="'+d+'" fill="none" stroke="url(#'+gid+')" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>';
+ // nederbörd som staplar längst ner
+ H.forEach((x,i)=>{if(x.pr>=.1){const bh=Math.min(16,4+x.pr*8);s+='<rect x="'+(X(i)-3).toFixed(1)+'" y="'+(yB+14-bh).toFixed(1)+'" width="6" height="'+bh.toFixed(1)+'" rx="2" fill="#5AA9F0" opacity=".7"/>'}});
+ s+='<line x1="'+x0+'" x2="'+x1+'" y1="'+(yB+14)+'" y2="'+(yB+14)+'" class="wxC-base"/>';
+ // var tredje timme: ikon, grader och klockslag
+ H.forEach((x,i)=>{if(i%4)return;const xx=X(i),yy=Y(x.T);s+='<circle cx="'+xx.toFixed(1)+'" cy="'+yy.toFixed(1)+'" r="'+(i?3:5)+'" fill="'+(i?'var(--surface)':tempCol(x.T))+'" stroke="'+tempCol(x.T)+'" stroke-width="2"/>'+
+  '<text x="'+xx.toFixed(1)+'" y="'+(yy-10).toFixed(1)+'" class="wxC-t">'+deg(x.T)+'</text><text x="'+xx.toFixed(1)+'" y="'+(h-2)+'" class="wxC-h">'+(i?pad(x.d.getHours()):'Nu')+'</text>'});
+ const icons=H.map((x,i)=>i%4?'':'<span style="left:'+(X(i)/w*100).toFixed(2)+'%;top:'+((yB+19)/h*100).toFixed(1)+'%">'+symInfo(x.s)[0]+'</span>').join('');
+ return'<section class="wx2 wxC">'+wxTopHtml(W,P,ic,tx,d0)+'<div class="wxC-box">'+s+'</svg><div class="wxC-ic">'+icons+'</div></div>'+wxBarHtml(W,F)+'</section>'}
+
 V.vader=function(){const W=wxModel(),P=WX_POS();
  let h='<div class="rcp-top"><button class="back" data-act="nav" data-id="oversikt">'+I.back+'Översikt</button></div>';
  NB.title='Väder';
@@ -2620,7 +2648,8 @@ V.vader=function(){const W=wxModel(),P=WX_POS();
  const[ic,tx]=symInfo(W.now.s),d0=W.days[0],F=wxToday(W),sun=sunTimes(today(),P.lat,P.lon);
  // vädret ligger i miljöbilden: ort och temperatur uppe till vänster, väderläget uppe till höger, tips och vind i en remsa nederst
  // UI 2.0: samma bild som på Översikt i större format (träd, kulle och gräsplätt som tonar ut i rutan), råden under bilden
- if(NY)h+='<section class="wx2"><div class="wx2-top"><div><div class="wx-place">'+esc(P.name)+'</div><div class="wx-big num" id="lt">'+deg(W.now.T)+'</div></div>'+
+ if(NY&&WXVY==='kurva')h+=wxHeroC(W,P,ic,tx,d0,F,sun);
+ else if(NY)h+='<section class="wx2"><div class="wx2-top"><div><div class="wx-place">'+esc(P.name)+'</div><div class="wx-big num" id="lt">'+deg(W.now.T)+'</div></div>'+
   '<div class="wx2-r"><div class="wx2-cond"><span aria-hidden="true">'+ic+'</span>'+esc(tx)+'</div><div class="wx-hl num">H:'+deg(d0.max)+'  L:'+deg(d0.min)+'</div></div></div>'+
   arcHtml(W,'w')+'<div class="gs wx2-gs">'+(BAKGRUND?backdropSvg(wxScene(W)):'')+'<button class="fig-box grass" data-act="wxVar" aria-label="Visa andra hundar">'+figSvg(wxScene(W),{bare:1,patch:1})+'</button></div>'+
   '<div class="wx2-bar"><div><b>'+esc(capS(F.when))+'</b><span>'+esc(F.tip)+'</span></div><div><b>Vind</b><span>'+esc(windText(W.now))+'</span></div></div></section>';
@@ -2892,6 +2921,7 @@ const ACT={
  refresh(){refresh()},
  settings(){S.sheet='settings';render()},
  farg(){S.sheet='farg';render()},
+ wxvy(id){WXVY=id==='bild'?'bild':'kurva';lsSet('wxvy',WXVY==='bild'?'bild':null);render()},
  hundar(id){HUNDAR=['bada','brun','svart'].includes(id)?id:'vaxla';lsSet('hundar',HUNDAR==='vaxla'?null:HUNDAR);S.wxVar=null;render()},
  accMin(){ACT.accent(ACCENT==='min'?accentKey():'min')},
  accent(id){ACCENT=id==='min'||colOk(id)?id:'vinrod';lsSet('accent',ACCENT==='vinrod'?null:ACCENT);render()},
