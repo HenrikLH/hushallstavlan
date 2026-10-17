@@ -25,6 +25,7 @@ if [ "${1:-}" = "--ta-bort" ]; then
   sudo rm -f "$LIGHTDM"
   gsettings set org.cinnamon.desktop.screensaver lock-enabled true || true
   gsettings set org.cinnamon.desktop.session idle-delay 600 || true
+  gsettings set org.nemo.preferences click-policy double 2>/dev/null || true
   echo "Klart. Kioskläge och automatisk inloggning är avstängda efter nästa omstart."
   exit 0
 fi
@@ -103,8 +104,10 @@ mkdir -p "$(dirname "$MENY")" "$(dirname "$SKRIVBORD")"
 grep -v '^X-GNOME' "$AUTOSTART" | sed "s/sleep $VANTA; //" > "$MENY"
 cp "$MENY" "$SKRIVBORD"; chmod +x "$MENY" "$SKRIVBORD"
 gio set "$SKRIVBORD" metadata::trusted true 2>/dev/null || true
+# Ett tryck räcker för att öppna ikoner på skrivbordet (dubbeltryck fungerar dåligt med pekskärm)
+gsettings set org.nemo.preferences click-policy single 2>/dev/null || true
 
 echo
 echo "Klart! Starta om datorn så loggar den in och öppnar tavlan av sig själv."
 echo "Lämna helskärmen: håll fingret på klockan i översikten i tre sekunder (eller Alt+F4)."
-echo "Öppna tavlan igen med ikonen Hushållstavlan på skrivbordet eller i menyn."
+echo "Öppna tavlan igen med ett tryck på ikonen Hushållstavlan på skrivbordet, eller via menyn."
