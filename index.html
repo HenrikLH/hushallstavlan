@@ -1436,6 +1436,32 @@ html.ny .nav button[aria-current="page"] svg{stroke-width:2.2}
   html.ny .nav button{font-size:13px;line-height:15px}
 }
 
+/* Menyväljare (Inställningar): Kapsel och Klassisk, per enhet */
+html.ny.seg-kapsel .segc{height:40px;border-radius:999px;padding:4px;background:var(--pill);box-shadow:inset 0 0 0 .5px var(--glass-line)}
+html.ny.seg-kapsel .seg-thumb{top:4px;bottom:4px;left:4px;width:calc((100% - 8px) / var(--n,2));border-radius:999px;background:var(--seg-on);box-shadow:0 2px 8px rgba(0,0,0,.12),0 0 0 .5px rgba(0,0,0,.04)}
+html.ny.seg-kapsel .segc button{font-size:15px;font-weight:600;border-radius:999px}
+html.ny.seg-kapsel .subseg .segc{max-width:none;margin:10px 16px 0;height:34px;padding:3px}
+html.ny.seg-kapsel .subseg .seg-thumb{top:3px;bottom:3px;left:3px;width:calc((100% - 6px) / var(--n,2))}
+html.ny.seg-kapsel .subseg .segc button{font-size:14px}
+html.ny.seg-klassisk .segc{height:32px;border-radius:9px;padding:2px;background:rgba(118,118,128,.14)}
+html.ny.seg-klassisk .seg-thumb{top:2px;bottom:2px;left:2px;width:calc((100% - 4px) / var(--n,2));border-radius:7px;background:var(--seg-on);box-shadow:0 3px 8px rgba(0,0,0,.12),0 3px 1px rgba(0,0,0,.04),0 0 0 .5px rgba(0,0,0,.04)}
+html.ny.seg-klassisk .segc button{font-size:13px;font-weight:400;color:var(--ink)}
+html.ny.seg-klassisk .segc button[aria-pressed="true"]{font-weight:600}
+html.ny.seg-klassisk .segc button+button::before{content:'';position:absolute;left:0;top:8px;bottom:8px;width:1px;background:rgba(142,142,147,.35);transition:opacity .2s}
+html.ny.seg-klassisk .segc button[aria-pressed="true"]::before,html.ny.seg-klassisk .segc button[aria-pressed="true"]+button::before{opacity:0}
+html.ny.seg-klassisk .subseg .segc{max-width:none;margin:8px 16px 0;height:32px}
+html.ny.seg-klassisk .subseg .segc button{font-size:13px}
+/* Flikraden som flytande glaskapsel med glidande markering */
+html.ny.nav-glas .nav{background:var(--glass);-webkit-backdrop-filter:saturate(180%) blur(24px);backdrop-filter:saturate(180%) blur(24px);border:.5px solid var(--glass-line);box-shadow:0 10px 30px rgba(0,0,0,.16),0 1px 3px rgba(0,0,0,.08)}
+html.ny.nav-glas .nav-pill{display:block}
+@media (max-width:899px){
+  html.ny.nav-glas{--tabbar:64px;--tabgap:max(calc(var(--sab) - 6px),12px)}
+  html.ny.nav-glas .nav{left:calc(14px + var(--sal));right:calc(14px + var(--sar));bottom:var(--tabgap);height:var(--tabbar);padding:4px;border-radius:calc(var(--tabbar) / 2)}
+  html.ny.nav-glas .nav button{font-size:10px;line-height:12px;font-weight:600;gap:2px}
+  html.ny.nav-glas .nav button svg{width:24px;height:24px}
+}
+@media (min-width:900px){html.ny.nav-glas .nav{border-radius:calc(var(--tabbar) / 2)}html.ny.nav-glas .nav-pill{top:6px;bottom:6px;left:6px;width:calc((100% - 12px) / 5);border-radius:calc(var(--tabbar) / 2 - 6px)}}
+
 /* Rubriker och text */
 html.ny .lt{font-size:32px;line-height:38px;letter-spacing:-.6px}
 html.ny .eyebrow{font-size:13px;letter-spacing:.2px;font-weight:600}

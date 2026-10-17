@@ -1251,6 +1251,10 @@ const nyNu=()=>!(DEV&&lsGet('ny')==='0');
 let NY=nyNu();
 function applyNy(){document.documentElement.classList.toggle('ny',NY)}
 applyNy();
+// menyväljarens och flikradens utseende i UI 2.0, valt per enhet i Inställningar
+let SEGSTIL=['kapsel','klassisk'].includes(lsGet('segstil'))?lsGet('segstil'):'standard',FLIKRAD=lsGet('flikrad')==='glas'?'glas':'fast';
+function applyStil(){const c=document.documentElement.classList;c.toggle('seg-kapsel',SEGSTIL==='kapsel');c.toggle('seg-klassisk',SEGSTIL==='klassisk');c.toggle('nav-glas',FLIKRAD==='glas')}
+applyStil();
 function portKarusell(alla,p,C){const n=alla.length,i0=Math.min(Math.max(1,(S.carIdx||{})[p.id]||1),n);
  const nx=C.dag.find(y=>y.p.dag>p.dag&&y.t!=='ratt'&&y.t!=='rest');
  const kortet=(x,klon)=>{const r=x.r,img=r.img||imgOf(r.id),q=C.Q(p,x.n),pv=protVal(p.id,r),stars=x.l.betyg?'★ '+starNum(x.l.s):'Ny';
@@ -1868,6 +1872,8 @@ function renderOverlay(){
   sh('Namn i hushållet')+group([0,1].map(i=>'<div class="cell"><span class="pdot p'+(i+1)+'"></span><input class="field" id="set-p'+(i+1)+'" name="p'+(i+1)+'" aria-label="Person '+(i+1)+'" value="'+esc(people()[i]||'')+'"><input type="hidden" name="c'+(i+1)+'" value="'+personColor(i)+'"></div>').join(''))+
   sh('Städtid och budget')+group(fieldCell('Vardag, min','<input class="field r" id="set-wd" name="wd" inputmode="numeric" value="'+esc(st.stadtid_vardag||20)+'" style="max-width:110px">')+fieldCell('Helg, min','<input class="field r" id="set-we" name="we" inputmode="numeric" value="'+esc(st.stadtid_helg||40)+'" style="max-width:110px">')+fieldCell('Mat/vecka, kr','<input class="field r" id="set-budget" name="budget" inputmode="numeric" value="'+esc(st.matbudget||'')+'" style="max-width:110px">'))+
   sh('Utseende')+group('<button type="button" class="cell link" data-act="farg"><span class="grow">Färgval</span><span class="meta">'+esc({system:'System',light:'Ljust',dark:'Mörkt'}[S.theme]+' · '+(ACCENT==='min'?'Min färg':PCOL[accentKey()][0]))+'</span>'+chevron+'</button>')+'<div class="foot">Ljust eller mörkt, accentfärg och era färger i hushållet.</div>'+
+  (NY?sh('Menyväljare')+'<div class="seg-wrap">'+segc('Menyväljare','segstil',[['standard','Standard'],['kapsel','Kapsel'],['klassisk','Klassisk']],SEGSTIL)+'</div>'+
+   sh('Flikraden')+'<div class="seg-wrap">'+segc('Flikraden','flikrad',[['fast','Fast i botten'],['glas','Flytande glas']],FLIKRAD)+'</div><div class="foot">Kapsel och Flytande glas liknar iOS 26, Klassisk liknar äldre iOS. Gäller bara den här enheten.</div>':'')+
   sh('Vädervyn')+'<div class="seg-wrap">'+segc('Vädervyn','wxvy',[['kurva','Dagskurva'],['bild','Bild med hundar']],WXVY)+'</div><div class="foot">Dagskurvan visar temperaturen de närmaste 24 timmarna. Gäller bara den här enheten.</div>'+
   sh('Låsa rätter')+'<div class="seg-wrap">'+segc('Låsa rätter','lasstil',[['rad','Runt rätten'],['bild','Runt bilden']],LASSTIL)+'</div><div class="foot">Håll in en rätt på veckosedeln i en sekund för att låsa den. Föreslå en ny vecka behåller låsta rätter. Gäller bara den här enheten.</div>'+
   sh('Hundar i bilden')+'<div class="seg-wrap">'+segc('Hundar i bilden','hundar',[['vaxla','Växla'],['bada','Båda'],['brun','Bruna'],['svart','Svarta']],HUNDAR)+'</div><div class="foot">Växla byter var tredje timme. Du kan också trycka på hundarna i Väder för att byta. Gäller bara den här enheten.</div>'+
@@ -2956,6 +2962,8 @@ const ACT={
  // dagskurvan: visa en timmes väder utan att rita om sidan, så att remsan står kvar där man scrollat
  wxHr(id){const i=Number(id)||0,x=WXC_H[i];if(!x)return;S.wxSel=i;const r=document.querySelector('.wxC-sel');if(r)r.setAttribute('x',(i*WXC_SW).toFixed(1));const inf=document.querySelector('.wxC-info');if(inf)inf.innerHTML=wxHrInfo(x,i)},
  lasstil(id){LASSTIL=id==='bild'?'bild':'rad';lsSet('lasstil',LASSTIL==='bild'?'bild':null);render()},
+ segstil(id){SEGSTIL=['kapsel','klassisk'].includes(id)?id:'standard';lsSet('segstil',SEGSTIL==='standard'?null:SEGSTIL);applyStil();render()},
+ flikrad(id){FLIKRAD=id==='glas'?'glas':'fast';lsSet('flikrad',FLIKRAD==='glas'?'glas':null);applyStil();render()},
  wxvy(id){WXVY=id==='bild'?'bild':'kurva';lsSet('wxvy',WXVY==='bild'?'bild':null);render()},
  hundar(id){HUNDAR=['bada','brun','svart'].includes(id)?id:'vaxla';lsSet('hundar',HUNDAR==='vaxla'?null:HUNDAR);S.wxVar=null;render()},
  accMin(){ACT.accent(ACCENT==='min'?accentKey():'min')},
