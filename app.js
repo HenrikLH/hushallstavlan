@@ -680,8 +680,23 @@ function matDessert(){
  if(!INSPO.list&&INSPO.busy)return h+group(emptyCell('Hämtar recept…'));
  if(fler.length)h+=sh('Att prova','<span class="num">'+fler.length+'</span>')+'<div class="bank mini">'+fler.map(r=>rCard(r)).join('')+'</div>';
  return h+'<div class="foot">Efterrätter föreslås aldrig när veckan planeras.</div>'}
+/* Efterrätt på veckosedeln: en valfri plats per vecka, sparad i inställningen vecka_efterratt som {v: veckans start, id}.
+   Den följer med när man hämtar varor men räknas inte in i portionerna */
+function weekDessert(){const st=settings(),o=parseJ(st.vecka_efterratt,null),r=o&&o.id&&o.v===(st.vecka_start||'')?recipeById(o.id):null;return r&&isDessert(r)?r:null}
+function setWeekDessert(id){const v=id?JSON.stringify({v:settings().vecka_start||'',id}):'';settings().vecka_efterratt=v;render();apiPost({action:'setting',k:'vecka_efterratt',v})}
+// Receptets ingredienser som rader på inköpslistan. Samma vara slås ihop, mängder utan mått (salt, lite citronsaft) och vatten hoppas över
+function dessertVaror(r,f,lista){const m=new Map();
+ (r.groups||[]).forEach(g=>(g.items||[]).forEach(it=>{if(it.q==null)return;
+  const n=String(it.n||'').replace(/\(.*?\)/g,'').replace(/,.*$/,'').replace(/^(kallt|kall|kalla|smält|mjukt|lite)\s+/i,'').trim();if(!n||/^vatten$/i.test(n))return;
+  const k=n.toLowerCase(),x=m.get(k)||{name:n,u:{}};x.u[it.u||'']=(x.u[it.u||'']||0)+it.q*(f||1);m.set(k,x)}));
+ // Varor som redan står (obockade) på listan läggs inte till en gång till
+ const har=new Set((lista||D().shop).filter(i=>!i.done).map(i=>String(i.name||'').toLowerCase()));
+ return[...m.values()].filter(x=>!har.has(x.name.toLowerCase())).map(x=>({name:cap(x.name),qty:Object.entries(x.u).map(([u,q])=>(fmtQ(q)+' '+u).trim()).join(' + ')}))}
+function dessertTillInkop(id){const r=recipeById(id);if(!r)return;const v=dessertVaror(r,scaled(r).f);
+ v.forEach((x,i)=>{const cat=katGissa(x.name);D().shop.push({id:'tmp'+Date.now()+'-'+i,done:false,name:x.name,qty:x.qty,cat,meals:['Efterrätt'],price:null,offer:'',source:'egen',addedBy:S.me,order:1000});apiPost({action:'shopAdd',name:x.name,qty:x.qty,cat,price:''})});
+ render();toast(v.length?v.length+(v.length===1?' vara lagd':' varor lagda')+' i inköpslistan':'Allt står redan på inköpslistan')}
 // Miniatyr: receptets foto, annars en matsymbol
-const dishThumb=(r,t)=>{const img=r&&(r.img||imgOf(r.id));return'<span class="dr-th" aria-hidden="true">'+'<span>'+foodIcon(t)+'</span>'+(img?'<img src="'+esc(img)+'" alt="" loading="lazy" onerror="this.remove()">':'')+'</span>'};
+const dishThumb=(r,t)=>{const img=r&&(r.img||imgOf(r.id));return'<span class="dr-th" aria-hidden="true">'+'<span>'+foodIcon(t,r)+'</span>'+(img?'<img src="'+esc(img)+'" alt="" loading="lazy" onerror="this.remove()">':'')+'</span>'};
 /* En rätt på veckosedeln: bild, namn, dagar, pris och betyg. Byt finns så länge rätten har en dag kvar */
 function mealCell(m,rows,flex){rows=rows||[m];const r=m.recipe&&recipeById(m.recipe),t=today(),days=[...new Set(rows.map(y=>y.date).filter(isDate))].sort(),left=flex&&flex.slut?(t<=flex.slut?[flex.slut]:[]):days.filter(d=>d>=t);
  const g=m.recipe&&ratingOf(m.recipe),meta=[flex?(flex.port?'':flex.txt):days.map(d=>cap(DAYS3[parse(d).getDay()])).join(', '),r&&r.kr?kr(r.kr)+'/port':'',g?'<span class="dr-st">★ '+starNum(matLage(m.recipe).s)+'</span>':''].filter(Boolean).join('<span class="dot" aria-hidden="true">·</span>');
@@ -782,6 +797,10 @@ function matWeek(){
   const mack=g==='Storkok'?0:d.menu.filter(y=>inV(y)&&/^macka$/i.test(y.title)&&isDate(y.date)&&((parse(y.date).getDay()>=1&&parse(y.date).getDay()<=4)===(g==='Vardag'))).length;
   if(mack)vd+='<div class="gh-foot">Dessutom macka '+mack+(mack===1?' kväll':' kvällar')+'.</div>';
   if(g==='Storkok'&&st.storkok_not)vd+='<div class="gh-foot">'+esc(st.storkok_not)+'</div>'});
+ const dr=weekDessert();
+ vd+=gh('Efterrätt','Valfri')+(dr?'<div class="cell dess-c"><button class="grow dess-b" data-act="recipe" data-id="'+esc(dr.id)+'">'+dishThumb(dr,dr.title)+'<span class="grow"><span class="title">'+esc(dr.title)+'</span><span class="meta">'+[dr.portions?dr.portions+' portioner':'',dr.min?dr.min+' min':''].filter(Boolean).join(' · ')+'</span></span></button>'+
+  '<button class="dess-x" data-act="dessClear" aria-label="Ta bort efterrätten från veckosedeln">'+I.x+'</button></div>':
+  '<button class="cell dess-empty" data-act="dessPick"><span class="dess-plus" aria-hidden="true">'+I.plus+'</span><span class="grow"><span class="title">Lägg till en efterrätt</span><span class="meta">Varorna kommer med när du hämtar varor</span></span></button>');
  h+='<div class="g-one">'+group(vd)+'</div>';
  return h}
 /* ---------- Valfritt protein (kategorin Kött/Veg) ----------
@@ -1346,16 +1365,16 @@ function inkopParts(){
  const total=shopCost(all),port=veckaPortioner(),mealCost=veckaKostnad(),B=Number(st.matbudget)||0;
  let sub=left.length+' kvar · ca '+kr(shopCost(left)),tools='<button class="ib plus" data-act="shopAdd" aria-label="Ny vara">'+I.plus+'</button>',h='';
  const vs=st.vecka_start,wk=isDate(vs)?'Vecka '+isoWeek(parse(vs)):'veckan';
- if(NY){sub='';tools='<button class="ib" data-act="shopMore" aria-label="Fler val för listan">'+I.dots+'</button>'+tools;
+ if(NY){sub='';
   h+='<div class="wsum"><div class="wsum-n"><b class="num">'+left.length+'</b><span>'+(left.length===1?'vara kvar':'varor kvar')+' · ca '+kr(shopCost(left))+'</span></div>'+
    (B?'<div class="wsum-m">Veckans mat '+kr(mealCost)+' av '+kr(B)+(mealCost>B?' · '+kr(mealCost-B)+' över':' · '+kr(B-mealCost)+' kvar')+'</div><div class="thin '+(mealCost>B?'bad':mealCost>B*.9?'warn':'')+'"><i style="width:'+Math.min(100,Math.round(mealCost/B*100))+'%"></i></div>':'')+'</div>'+
    '<form class="add-row" data-form="shopQuick"><input class="field" name="name" placeholder="Lägg till vara" aria-label="Lägg till vara" autocomplete="off" enterkeyhint="done"><button class="add-go" aria-label="Lägg till">'+I.plus+'</button></form>'}
  else{h+='<div class="stats'+(B?' s4':'')+'"><div class="stat"><span class="fn">Hela listan</span><b>'+nv('s-total',total,'kr')+'</b></div><div class="stat"><span class="fn">Kvar att betala</span><b>'+nv('s-left',shopCost(left),'kr')+'</b></div><div class="stat"><span class="fn">Mat per portion</span><b>'+(port?kr(mealCost/port):'–')+'</b><span class="fn">'+port+' portioner</span></div>'+
-  (B?'<div class="stat"><span class="fn">Matbudget '+kr(B)+'</span><b>'+(mealCost>B?'+'+kr(mealCost-B):kr(B-mealCost)+' kvar')+'</b><div class="thin '+(mealCost>B?'bad':mealCost>B*.9?'warn':'')+'"><i style="width:'+Math.min(100,Math.round(mealCost/B*100))+'%"></i></div></div>':'')+'</div>';
+  (B?'<div class="stat"><span class="fn">Matbudget '+kr(B)+'</span><b>'+(mealCost>B?'+'+kr(mealCost-B):kr(B-mealCost)+' kvar')+'</b><div class="thin '+(mealCost>B?'bad':mealCost>B*.9?'warn':'')+'"><i style="width:'+Math.min(100,Math.round(mealCost/B*100))+'%"></i></div></div>':'')+'</div>'}
  // Två knappar under siffrorna: hämta veckans varor och töm listan. Frågan visas i samma kort innan något händer
  // Håll in knappen för att bekräfta: en fyllning går över knappen och åtgärden körs när den är full
  h+='<div class="sh-tools"><button type="button" class="sh-btn" data-hold="shopImportYes" aria-label="Håll in för att hämta varor för '+esc(wk.toLowerCase())+'"><i class="sh-fill"></i><span class="sh-ic">'+I.imp+'</span><b>Hämta varor</b></button>'
-  +'<button type="button" class="sh-btn red" data-hold="shopEmptyYes"'+(all.length?'':' disabled')+' aria-label="Håll in för att tömma listan"><i class="sh-fill"></i><span class="sh-ic">'+I.trash+'</span><b>Töm listan</b></button></div>'}
+  +'<button type="button" class="sh-btn red" data-hold="shopEmptyYes"'+(all.length?'':' disabled')+' aria-label="Håll in för att tömma listan"><i class="sh-fill"></i><span class="sh-ic">'+I.trash+'</span><b>Töm listan</b></button></div>';
  h+='<div class="fchips" role="group" aria-label="Filter">'+groups.map(([k,l])=>'<button data-act="shopFilter" data-id="'+esc(k)+'" aria-pressed="'+(f2===k)+'">'+l+'</button>').join('')+'</div>';
  h+='<div class="split"><div class="col">';
  if(!all.length)h+='<div style="height:22px"></div>'+group(emptyCell('Listan är tom. Tryck på Hämta varor för veckans rätter, eller lägg till egna varor med plus.'));
@@ -1372,8 +1391,8 @@ function inkopParts(){
 // Avdelning i butiken räknas fram i appen från varans namn, utan att fråga kalkylarket.
 // Ordningen spelar roll: "krossade tomater" är torrvara, "kokosmjölk" och "jordnötssmör" är inte mejeri. Okänt hamnar i Övrigt
 const KAT=[['Frys',/fryst|frysta|frysen|glass\b|edamame/],
- ['Torrvaror',/torkade|gula ärtor|pasta|spaghetti|spagetti|makaron|penne|fusilli|lasagneplattor|nudlar|(^|\s)ris\b|jasminris|basmatiris|fullkornsris|risotto|bulgur|matvete|couscous|quinoa|linser|bönor|kikärt|mjöl(?!k)|havre|gryn|flingor|müsli|nötter|mandel|cashew|valnöt|jordnöt|hasselnöt|frön|sesam|olja|buljong|fond\b|krossade|passerade|tomatpuré|konserv|burk|socker|honung|sirap|kryddor|spiskummin|gurkmeja|kanel|paprikapulver|chiliflakes|curry|garam|oregano|timjan torkad|soja|vinäger|kokosmjölk|kokos|tahini|pesto|ketchup|senap|majonnäs|sambal|sriracha|sås\b|salt\b|peppar\b|bakpulver|jäst|kakao|russin|dadlar|tonfisk|sylt/],
- ['Kött & fisk',/kyckling|fläsk|nötkött|nötfärs|färs|korv|bacon|lax|torsk|sej\b|fisk|räk|kalkon|lamm|skinka|sidfläsk|lägg\b|biff|entrecote|karré|kotlett|köttbull|makrill|sill\b|salami|chorizo|kassler|högrev|grytbitar|gris|filé|kött/],
+ ['Torrvaror',/torkade|gula ärtor|pasta|spaghetti|spagetti|makaron|penne|fusilli|lasagneplattor|nudlar|(^|\s)ris\b|jasminris|basmatiris|fullkornsris|risotto|bulgur|matvete|couscous|quinoa|linser|bönor|kikärt|mjöl(?!k)|havre|gryn|flingor|müsli|nötter|mandel|cashew|valnöt|jordnöt|hasselnöt|frön|sesam|olja|buljong|fond\b|krossade|passerade|tomatpuré|konserv|burk|socker|honung|sirap|kryddor|spiskummin|gurkmeja|kanel|paprikapulver|chiliflakes|curry|garam|oregano|timjan torkad|soja|vinäger|kokosmjölk|kokos|tahini|pesto|ketchup|senap|majonnäs|sambal|sriracha|sås\b|salt\b|peppar\b|bakpulver|jäst|kakao|russin|dadlar|tonfisk|sylt|stärkelse|maizena|digestive|kex\b|kardemumma|vanilj/],
+ ['Kött & fisk',/kyckling|fläsk|nötkött|nötfärs|färs(?!k)|korv|bacon|lax|torsk|sej\b|fisk|räk|kalkon|lamm|skinka|sidfläsk|lägg\b|biff|entrecote|karré|kotlett|köttbull|makrill|sill\b|salami|chorizo|kassler|högrev|grytbitar|gris|filé|kött/],
  ['Mejeri & ägg',/mjölk|grädde|gräddfil|crème|creme|fraiche|kvarg|yoghurt|(^|[^r])ost(ar)?\b|smör|ägg|keso|kesella|cottage|feta|halloumi|mozzarella|parmesan|ricotta|mascarpone|havredryck|ostdryck|filmjölk|(^|\s)fil(\s|$)|tzatziki/],
  ['Bröd',/bröd|tortilla|pita|bulle|bullar|knäcke|baguette|fralla|frallor|wraps|naan|tunnbröd|ciabatta|limpa/],
  ['Frukt & grönt',/lök|vitlök|morot|morötter|potatis|tomat|gurka|paprika|sallad|sallat|isberg|rucola|ruccola|spenat|kål|broccoli|blomkål|zucchini|squash|aubergine|svamp|champinjon|citron|lime|äpple|päron|banan|apelsin|clementin|mandarin|mango|kiwi|melon|vindruv|druvor|plommon|bär\b|blåbär|hallon|jordgubb|ingefära|persilja|koriander|dill|basilika|mynta|gräslök|timjan|rosmarin|örter|purjo|selleri|rödbet|rotfrukt|kålrot|palsternacka|sötpotatis|rädis|fänkål|sparris|avokado|pumpa|majs|chili|böngroddar|sockerärt|haricots|edamame|groddar/]];
@@ -1390,9 +1409,11 @@ function shopImport(tyst){
  rows.forEach(m=>{const r=m.recipe&&recipeById(m.recipe);if(!r||m.who==='Borta')return;const sk=isStorkok(r),n=dishPort(m,r);
   const pa=protFromAddon(m.addon),rr=pa?protRecipe(r,{r:r.id,k:pa.k,v:pa.v}):r;
   const key='m'+list.length;const dw=parse(m.date).getDay();lab[key]=sk?(m.who==='Vegetariskt'?'Storkok veg':m.who==='Henrik'?'Storkok kött':'Storkok'):dw>=1&&dw<=4?'Vardag':'Helg';list.push({key,b:MV.behov(rr,n/(Number(r.portions)||2))})});
- if(!list.length){toast('Veckosedeln har inga rätter med recept.');return}
+ // Efterrätten tas med som receptets egna rader, utan pris, eftersom bakvaror som färskost och digestivekex inte finns bland basvarorna
+ const dr=weekDessert(),dv=dr?dessertVaror(dr,1,D().shop.filter(i=>i.source==='egen')).map(x=>({name:x.name,qty:x.qty,price:null,meals:['Efterrätt']})):[];
+ if(!list.length&&!dv.length){toast('Veckosedeln har inga rätter med recept.');return}
  const korg=MV.korg(list.map(x=>x.b),planLager());
- const shop=korg.rad.filter(x=>x.n>0).map(x=>({name:planVaraNamn(x),qty:MV.forp(x),price:Math.round(x.kr),meals:[...new Set(list.filter(i=>i.b[x.k]).map(i=>lab[i.key]))]}));
+ const shop=korg.rad.filter(x=>x.n>0).map(x=>({name:planVaraNamn(x),qty:MV.forp(x),price:Math.round(x.kr),meals:[...new Set(list.filter(i=>i.b[x.k]).map(i=>lab[i.key]))]})).concat(dv);
  // Varorna visas direkt i telefonen och sparas i kalkylarket i bakgrunden via utkorgen, som när man bockar av
  const tag='plan'+vs.replace(/-/g,''),egna=D().shop.filter(i=>i.source==='egen'&&!i.done);
  S.data.shop=egna.concat(shop.map((x,n)=>({id:tag+'-'+n,name:x.name,qty:x.qty,price:x.price,meals:x.meals,cat:katGissa(x.name),done:false,source:'veckoplan'})));
@@ -1534,8 +1555,10 @@ function rcpPhoto(r){const img=imgOf(r.id)||r.img||'',g=ratingOf(r.id),busy=S.ph
   '<button class="rp-gl rp-edit" data-act="rcpSheet" data-id="'+esc(r.id)+'" data-k="photo" aria-label="Byt eller ta bort fotot">'+I.pencil+'</button>'+score+heart+'</div>'}
 /* Raden under titeln: önska nästa vecka, tidigast igen och mer */
 function rcpActions(r){const wished=wishes().some(x=>x.id===r.id),l=matLage(r.id);
- if(isDessert(r))return'<div class="rp-row rp-row-e"><span class="rp-note">Efterrätter föreslås aldrig när veckan planeras</span>'+
-  '<button class="rp-ib" data-act="rcpSheet" data-id="'+esc(r.id)+'" data-k="more"><span class="c">'+I.dots+'</span><span class="l">Mer</span></button></div>';
+ if(isDessert(r)){const pa=weekDessert()===r;return'<div class="rp-row">'+
+  '<button class="rp-ib" data-act="dessShop" data-id="'+esc(r.id)+'"><span class="c">'+I.basket+'</span><span class="l">Till inköpslistan</span></button>'+
+  '<button class="rp-ib'+(pa?' on':'')+'" data-act="'+(pa?'dessClear':'dessSet')+'" data-id="'+esc(r.id)+'" aria-pressed="'+pa+'"><span class="c">'+(pa?I.tick:I.calPlus)+'</span><span class="l">'+(pa?'På veckosedeln':'Till veckosedeln')+'</span></button>'+
+  '<button class="rp-ib" data-act="rcpSheet" data-id="'+esc(r.id)+'" data-k="more"><span class="c">'+I.dots+'</span><span class="l">Mer</span></button></div>'}
  const lbl=l.paus?'Pausad':(l.harBas||l.betyg)?'Tidigast '+String(l.w).replace('.',',')+' v':'Tidigast igen';
  return'<div class="rp-row">'+
   '<button class="rp-ib'+(wished?' on':'')+'" data-act="wish" data-id="'+esc(r.id)+'" aria-pressed="'+wished+'"><span class="c">'+(wished?I.tick:I.calPlus)+'</span><span class="l">'+(wished?'Önskad nästa v':'Önska nästa v')+'</span></button>'+
@@ -1740,7 +1763,7 @@ function sheetHtml(form,title,right,body,enter,left){return'<div class="sheet'+e
 const fieldCell=(label,input)=>'<label class="cell"><span class="grow">'+label+'</span>'+input+'</label>';
 function renderOverlay(){
  const o=document.getElementById('overlay');
- const k=S.cook?'cook':S.sheet==='settings'?'settings':S.sheet==='farg'?'farg':S.sheet==='rate'?'rate':S.sheet==='income'?'income':S.sheet==='cost'?'cost':S.sheet==='ov'?'ov':S.sheet==='prefs'?'prefs':S.sheet==='swap'?'swap':S.sheet==='prot'?'prot':S.sheet==='wish'?'wish':S.sheet==='shopMore'?'shopMore':S.rcpSheet?'rcpSheet':S.sheet==='taskEdit'?'taskEdit':S.sheet==='evEdit'?'evEdit':S.shopAdd?'shop':S.taskAdd?'task':'';
+ const k=S.cook?'cook':S.sheet==='settings'?'settings':S.sheet==='farg'?'farg':S.sheet==='rate'?'rate':S.sheet==='income'?'income':S.sheet==='cost'?'cost':S.sheet==='ov'?'ov':S.sheet==='prefs'?'prefs':S.sheet==='swap'?'swap':S.sheet==='prot'?'prot':S.sheet==='wish'?'wish':S.sheet==='shopMore'?'shopMore':S.sheet==='dess'?'dess':S.rcpSheet?'rcpSheet':S.sheet==='taskEdit'?'taskEdit':S.sheet==='evEdit'?'evEdit':S.shopAdd?'shop':S.taskAdd?'task':'';
  const prev=o.dataset.k||'';
  // Rita inte om ett öppet blad medan någon skriver i det
  if(k&&k!=='cook'&&k===prev&&busyTyping()&&o.contains(document.activeElement))return;
@@ -1847,6 +1870,8 @@ function renderOverlay(){
    '<button type="button" class="ov-later" data-act="ovLater">Gör det senare</button>'+
    '<div class="ti-foot fn">Utgiften visas som '+(was?'ändrad':'saknad')+' tills du bockar av den.</div></div>';
   o.innerHTML=sheetHtml('ov','Stående överföring','<span class="tb" aria-hidden="true"></span>',body,enter);return}
+ if(k==='dess'){const seen=new Set(),all=allRecipes().concat(inspoList()).filter(r=>{if(!isDessert(r)||seen.has(r.id))return false;seen.add(r.id);return true}).sort((a,b)=>(inBank(b.id)?1:0)-(inBank(a.id)?1:0)),cur=weekDessert();
+  o.innerHTML=sheetHtml('dess','Välj efterrätt','<span class="tb" aria-hidden="true"></span>','<div style="height:16px"></div>'+group(all.map(r=>'<button type="button" class="cell sw-row'+(cur===r?' on':'')+'" data-act="dessSet" data-id="'+esc(r.id)+'">'+dishThumb(r,r.title)+'<span class="grow"><span class="title">'+esc(r.title)+'</span><span class="meta">'+[inBank(r.id)?'Sparad':'',r.portions?r.portions+' portioner':'',r.min?r.min+' min':''].filter(Boolean).join(' · ')+'</span></span><span class="sw-ck" aria-hidden="true">'+I.tick+'</span></button>').join('')||emptyCell('Inga efterrätter än.'))+'<div class="foot">Efterrätten räknas inte in i portionerna. Dess varor kommer med när du hämtar varor till inköpslistan.</div>',enter);return}
  if(k==='shopMore'){const st=settings(),vs=st.vecka_start,wk=isDate(vs)?'vecka '+isoWeek(parse(vs)):'veckan',n=D().shop.length;
   o.innerHTML='<div class="asheet'+enter+'" data-act="sheetBg"><div class="as-panel" role="dialog" aria-modal="true" aria-label="Inköpslistan"><div class="grp"><div class="ttl">'+(S.shopMoreC?'Ta bort alla '+n+' varor på listan? Du kan ångra i några sekunder.':'Inköpslistan')+'</div>'+
    (S.shopMoreC?'<button class="it red strong" data-act="shopMoreEmpty">'+I.trash+'Ja, töm listan</button>':
@@ -2784,7 +2809,7 @@ const ACT={
  design(id){NY=id==='ny';lsSet('ny',NY?null:'0');applyNy();render()},
  dev(){DEV=!DEV;lsSet('dev',DEV?'1':null);NY=nyNu();applyNy();if(!DEV&&S.plan&&S.plan!=='auto')S.plan=null;render()},
  wall(){S.wall=!S.wall;lsSet('wall',S.wall?'1':'0');fitScrollbar();wake();render()},
- matTab(id){S.matTab=['recept','bank','inkop'].includes(id)?id:'vecka';lsSet('matTab',S.matTab);S.recipe=null;render()},
+ matTab(id){S.matTab=['recept','bank','efter','inkop'].includes(id)?id:'vecka';lsSet('matTab',S.matTab);S.recipe=null;render()},
  recipe(id){S.view='mat';S.recipe=id;lsSet('view','mat');try{history.replaceState(null,'','#mat')}catch(e){}window.scrollTo(0,0);render()},
  recipeBack(){if(S.recipe)S.recipe=null;else S.plan=false;window.scrollTo(0,0);render()},
  planOpen(){S.plan=true;S.planOpen=null;window.scrollTo(0,0);render()},
@@ -2891,6 +2916,10 @@ const ACT={
   m.note=portNote(m,r,n);render();clearTimeout(ACT.portStep.t);ACT.portStep.t=setTimeout(()=>shopImport(true),1200)},
  wsumMini(){S.wsumOpen=!S.wsumOpen;document.querySelectorAll('.wcard').forEach(c=>{c.classList.toggle('open',S.wsumOpen);const b=c.querySelector('.wm-top');if(b)b.setAttribute('aria-expanded',S.wsumOpen)});wsPin()},
  shopMore(){S.sheet='shopMore';S.shopMoreC=false;render()},
+ dessPick(){S.sheet='dess';render()},
+ dessSet(id){closeSheets();setWeekDessert(id);toast('Efterrätten ligger på veckosedeln')},
+ dessClear(){setWeekDessert('')},
+ dessShop(id){dessertTillInkop(id)},
  shopMoreAsk(){S.shopMoreC=true;render()},
  shopMoreImp(){closeSheets();render();shopImport()},
  shopMoreEmpty(){closeSheets();S.shopMoreC=false;ACT.shopEmptyYes()},
