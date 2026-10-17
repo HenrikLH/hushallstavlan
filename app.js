@@ -264,7 +264,7 @@ function subSwipe(dx){const sub=SUBS[S.view];if(!sub||S.recipe||S.cook||S.sheet)
  const sg=document.querySelector('#main .segc[data-seg="'+k+'"]');if(sg&&sg.getBoundingClientRect().top<0)window.scrollTo(0,0);
  ACT[k](list[j]);return true}
 
-let fitScrollbar=()=>{};
+let fitScrollbar=()=>{},hideCursor=()=>{};
 /* Rullningslisten på stora skärmar och i väggläge syns bara medan man scrollar */
 (function(){const el=document.documentElement;let t=0;
  const fit=()=>el.classList.toggle('sb-auto',S.wall||matchMedia('(min-width:900px)').matches);fit();addEventListener('resize',fit);
@@ -277,7 +277,47 @@ let fitScrollbar=()=>{};
  setInterval(()=>{if(!S.wall)return;const idle=Date.now()-(A.touch||0)>120000;
   if(idle&&S.arrange){S.arrange=false;render()}
   if(idle&&(S.view!=='oversikt'||S.sheet||S.shopAdd||S.taskAdd||S.recipe||window.scrollY>0)&&!S.cook){closeSheets();S.recipe=null;ACT.nav('oversikt')}
-  else if(S.view==='oversikt'&&document.body.classList.contains('is-night')!==nightOn())render()},20000)})();
+  else if(S.view==='oversikt'&&document.body.classList.contains('is-night')!==nightOn())render();
+  autoTheme()},20000)})();
+
+/* Muspekaren syns inte i väggläge. Flyttar man en riktig mus syns den i tre sekunder; pekskärmen räknas inte. */
+(function(){const el=document.documentElement;let t=0,lastTouch=0;
+ const hide=()=>el.classList.toggle('no-cur',S.wall);hide();hideCursor=hide;
+ document.addEventListener('pointerdown',e=>{if(e.pointerType!=='mouse')lastTouch=Date.now()},true);
+ document.addEventListener('pointermove',e=>{if(!S.wall||e.pointerType!=='mouse'||Date.now()-lastTouch<1500)return;el.classList.remove('no-cur');clearTimeout(t);t=setTimeout(hide,3000)},{passive:true})})();
+
+/* Rummets ljus: väggskärmen tittar med kameran en gång i minuten och räknar ut hur ljust det är.
+   Bara medelljusheten i en bild på 32×24 punkter används; bilden sparas aldrig och skickas ingenstans.
+   Mörkt rum ger mörkt läge och en svagare bild (sidan kan inte styra datorns egen ljusstyrka).
+   Under nattläget är kameran av och tavlan alltid mörk. */
+const CAM={on:lsGet('kamera')==='1',lvl:null,dark:false,dim:true,thr:Number(lsGet('kamGrans'))||25,err:'',busy:false};
+CAM.dim=lsGet('kamDampa')!=='0';
+const wallDark=()=>S.wall&&(inNight()||CAM.on&&CAM.dark);
+function autoTheme(){const d=wallDark();if(d!==autoTheme.was){const first=autoTheme.was===undefined;autoTheme.was=d;if(!first){applyTheme(true);render()}}
+ let el=document.getElementById('dimmer');const k=S.wall&&CAM.on&&CAM.dim&&CAM.lvl!=null&&!inNight()?Math.max(0,Math.min(1,(CAM.thr+15-CAM.lvl)/(CAM.thr+15)))*.45:0;
+ if(!el&&k>0){el=document.createElement('div');el.id='dimmer';el.setAttribute('aria-hidden','true');document.body.appendChild(el)}
+ if(el)el.style.opacity=k.toFixed(2)}
+async function camSample(){if(!CAM.on||!S.wall||CAM.busy||document.visibilityState!=='visible'||inNight())return;
+ if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)){CAM.err='Den här webbläsaren kan inte använda kameran';camShow();return}
+ CAM.busy=true;let st=null;
+ try{st=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:160},height:{ideal:120},facingMode:'user'},audio:false});
+  const tr=st.getVideoTracks()[0];
+  // fast exponering om kameran tillåter det, annars jämnar kameran själv ut ljuset och mörka rum ser ljusare ut än de är
+  try{const c=tr.getCapabilities?tr.getCapabilities():{};if(c.exposureMode&&c.exposureMode.includes('manual')&&c.exposureTime){const e=Math.max(c.exposureTime.min,Math.min(c.exposureTime.max,166));await tr.applyConstraints({advanced:[{exposureMode:'manual',exposureTime:e}]})}}catch(e){}
+  const v=document.createElement('video');v.muted=true;v.playsInline=true;v.srcObject=st;await v.play();
+  await new Promise(r=>setTimeout(r,1200));
+  const cv=document.createElement('canvas');cv.width=32;cv.height=24;const g=cv.getContext('2d',{willReadFrequently:true});g.drawImage(v,0,0,32,24);
+  const px=g.getImageData(0,0,32,24).data;let sum=0;for(let i=0;i<px.length;i+=4)sum+=.2126*px[i]+.7152*px[i+1]+.0722*px[i+2];
+  const lvl=sum/(px.length/4)/255*100;g.clearRect(0,0,32,24);v.srcObject=null;
+  CAM.lvl=CAM.lvl==null?lvl:CAM.lvl*.5+lvl*.5;CAM.err='';
+  // lite marginal åt båda hållen så att tavlan inte slår fram och tillbaka i skymningen
+  if(CAM.dark&&CAM.lvl>CAM.thr+6)CAM.dark=false;else if(!CAM.dark&&CAM.lvl<CAM.thr)CAM.dark=true}
+ catch(e){CAM.err=e&&e.name==='NotAllowedError'?'Kameran är inte tillåten. Tryck på Tillåt när tavlan frågar':e&&e.name==='NotFoundError'?'Hittar ingen kamera':'Kameran svarar inte'}
+ finally{if(st)st.getTracks().forEach(t=>t.stop());CAM.busy=false}
+ camShow();autoTheme()}
+function camShow(){const el=document.querySelector('[data-cam-lvl]');if(el)el.textContent=camTxt()}
+const camTxt=()=>!CAM.on?'':CAM.err?CAM.err:inNight()?'Av under nattläget':CAM.lvl==null?'Mäter …':Math.round(CAM.lvl)+' %'+(CAM.dark?' · mörkt':' · ljust');
+setInterval(camSample,60000);setTimeout(camSample,3000);
 
 /* Ändra ordning: håll fingret på en ruta på Översikt tills rutorna vickar och dra sedan, som på mobilens hemskärm.
    De andra rutorna glider undan medan man drar. Klockan räknas inte (där sitter kioskens stäng-gest). */
@@ -571,14 +611,22 @@ function arrangeFoot(L,wall){if(!S.arrange)return'';
    utan att scrolla: tid och väder | kalender och middag | städ, inköp och födelsedagar.
    Mellan 22 och 06 visas ett mörkt nattläge, och efter två minuter utan beröring går tavlan tillbaka hit. */
 const wallBoardOn=()=>S.wall&&matchMedia('(min-width:900px)').matches;
-const nightOn=()=>{const h=new Date().getHours();return S.wall&&(h>=22||h<6)&&Date.now()-(A.touch||0)>120000};
+// Nattlägets tider väljs i Inställningar → Väggskärm (bara den här enheten), som standard 22–06
+const NATT=(()=>{const v=String(lsGet('natt')||''),m=/^(\d+)-(\d+)$/.exec(v);return{on:v!=='av',a:m?+m[1]:1320,b:m?+m[2]:360}})();
+const saveNatt=()=>lsSet('natt',!NATT.on?'av':NATT.a===1320&&NATT.b===360?null:NATT.a+'-'+NATT.b);
+const inNight=(d)=>{if(!S.wall||!NATT.on||NATT.a===NATT.b)return false;d=d||new Date();const m=d.getHours()*60+d.getMinutes();return NATT.a<NATT.b?m>=NATT.a&&m<NATT.b:m>=NATT.a||m<NATT.b};
+const nattTid=m=>pad(Math.floor(m/60))+':'+pad(m%60);
+const nightOn=()=>inNight()&&Date.now()-(A.touch||0)>120000;
+// Klockan i nattläget flyttar sig varje timme så att samma bildpunkter inte lyser hela natten (inbränning)
+const NPOS=[[0,0],[-20,-15],[18,12],[-16,14],[20,-13],[-6,-19],[8,17],[-22,3],[22,2],[4,-9],[-10,8],[14,-4]];
+const nightPos=d=>{d=d||new Date();const doy=Math.floor((d-new Date(d.getFullYear(),0,0))/864e5),p=NPOS[(d.getHours()+doy*5)%NPOS.length];return'translate('+p[0]+'vw,'+p[1]+'vh)'};
 function wallNight(){const n=new Date(),t=today(),tm=addDays(t,1),W=wxModel();
  const first=D().events.filter(e=>e.date===tm).sort((a,b)=>String(a.time||'').localeCompare(String(b.time||'')))[0];
  const f=W&&W.days.find(x=>x.date===tm);
- return'<div class="night" data-act="wakeBoard"><div class="clock num" id="clock">'+pad(n.getHours())+':'+pad(n.getMinutes())+'</div>'+
+ return'<div class="night" data-act="wakeBoard"><div class="night-in" style="transform:'+nightPos(n)+'" data-h="'+n.getHours()+'"><div class="clock num" id="clock">'+pad(n.getHours())+':'+pad(n.getMinutes())+'</div>'+
   '<div class="night-l">I morgon '+esc(dayHead(tm))+'</div>'+
   (first?'<div class="night-l">'+esc(first.time?String(first.time).split(/\s*[–-]\s*/)[0]+' ':'')+esc(first.title)+'</div>':'')+
-  (f?'<div class="night-l">'+symInfo(f.sym)[0]+' '+deg(f.min)+' till '+deg(f.max)+'</div>':'')+'</div>'}
+  (f?'<div class="night-l">'+symInfo(f.sym)[0]+' '+deg(f.min)+' till '+deg(f.max)+'</div>':'')+'</div></div>'}
 // Mer väder under hundarna på väggen: kommande timmar och tre dagar framåt
 function wallWx(){const W=wxModel();if(!W)return'';
  // ett dygn framåt, timme för timme; svep i sidled för fler timmar, tryck för att öppna vädret
@@ -1904,7 +1952,7 @@ function sheetHtml(form,title,right,body,enter,left){return'<div class="sheet'+e
 const fieldCell=(label,input)=>'<label class="cell"><span class="grow">'+label+'</span>'+input+'</label>';
 function renderOverlay(){
  const o=document.getElementById('overlay');
- const k=S.cook?'cook':S.sheet==='settings'?'settings':S.sheet==='farg'?'farg':S.sheet==='rate'?'rate':S.sheet==='income'?'income':S.sheet==='cost'?'cost':S.sheet==='ov'?'ov':S.sheet==='prefs'?'prefs':S.sheet==='swap'?'swap':S.sheet==='prot'?'prot':S.sheet==='wish'?'wish':S.sheet==='shopMore'?'shopMore':S.sheet==='dess'?'dess':S.sheet==='slot'?'slot':S.rcpSheet?'rcpSheet':S.sheet==='taskEdit'?'taskEdit':S.sheet==='evEdit'?'evEdit':S.shopAdd?'shop':S.taskAdd?'task':'';
+ const k=S.cook?'cook':S.sheet==='settings'?'settings':S.sheet==='farg'?'farg':S.sheet==='vagg'?'vagg':S.sheet==='rate'?'rate':S.sheet==='income'?'income':S.sheet==='cost'?'cost':S.sheet==='ov'?'ov':S.sheet==='prefs'?'prefs':S.sheet==='swap'?'swap':S.sheet==='prot'?'prot':S.sheet==='wish'?'wish':S.sheet==='shopMore'?'shopMore':S.sheet==='dess'?'dess':S.sheet==='slot'?'slot':S.rcpSheet?'rcpSheet':S.sheet==='taskEdit'?'taskEdit':S.sheet==='evEdit'?'evEdit':S.shopAdd?'shop':S.taskAdd?'task':'';
  const prev=o.dataset.k||'';
  // Rita inte om ett öppet blad medan någon skriver i det
  if(k&&k!=='cook'&&k===prev&&busyTyping()&&o.contains(document.activeElement))return;
@@ -1932,13 +1980,25 @@ function renderOverlay(){
   sh('Schemat i kalenderrutan')+'<div class="seg-wrap">'+segc('Schemat i kalenderrutan','calStyle',[['1','Tid kvar'],['2','Stapel'],['3','Tidsaxel']],CAL_STYLE)+'</div>'+
   (DEV?sh('Förslag i Planera med portioner')+'<div class="seg-wrap">'+segc('Förslag i Planera med portioner','flStyle',[['karusell','Stort kort'],['lista','Lista']],FL_STYLE)+'</div>':'')+
   sh('Översikten')+group('<button type="button" class="cell link" data-act="arrange"><span class="grow">Ändra ordning på rutorna</span>'+chevron+'</button>')+'<div class="foot">Gäller bara den här enheten. Du kan också hålla fingret på en ruta en stund.</div>'+
-  sh('Skärm')+group(fieldCell('Väggläge','<input type="checkbox" role="switch" class="switch" data-act="wall" aria-label="Väggläge"'+(S.wall?' checked':'')+'>')+statusHtml())+
+  sh('Skärm')+group(fieldCell('Väggläge','<input type="checkbox" role="switch" class="switch" data-act="wall" aria-label="Väggläge"'+(S.wall?' checked':'')+'>')+
+   (S.wall?'<button type="button" class="cell link" data-act="vagg"><span class="grow">Väggskärm</span><span class="meta">'+esc((NATT.on?'Natt '+nattTid(NATT.a)+'–'+nattTid(NATT.b):'Inget nattläge')+(CAM.on?' · kamera':''))+'</span>'+chevron+'</button>':'')+statusHtml())+
   (topic?sh('Notiser')+group('<div class="cell"><span class="grow copy">'+esc(topic)+'</span><button type="button" class="pill" data-act="copy" data-id="'+esc(topic)+'">Kopiera</button></div>')+'<div class="foot">Installera appen ntfy och prenumerera på det här ämnet. Använd servern ntfy.sh.</div>':'')+
   sh('Utvecklare')+group(fieldCell('Utvecklarläge','<input type="checkbox" role="switch" class="switch" data-act="dev" aria-label="Utvecklarläge"'+(DEV?' checked':'')+'>'))+'<div class="foot">Visar menyer som inte är färdiga, just nu Planera nästa vecka och Planera med portioner. Gäller bara den här enheten.</div>'+
   (DEV?sh('Design')+'<div class="seg-wrap">'+segc('Design','design',[['gammal','UI 1.0'],['ny','UI '+UI_VER]],NY?'ny':'gammal')+'</div><div class="foot">UI 1.0 är den gamla designen. Gäller bara den här enheten och bara i utvecklarläget.</div>':'')+
   sh('Den här enheten')+group('<button type="button" class="cell link center red" data-act="logout">Logga ut</button>')+
   '<div class="foot ver">Hushållstavlan · UI '+(NY?UI_VER:'1.0')+' · version '+esc(APP_VER)+'</div>';
   o.innerHTML=sheetHtml('settings','Inställningar','<button class="tb strong">Spara</button>',body,enter);segSlide(o);return}
+ if(k==='vagg'){const tOpts=cur=>Array.from({length:48},(_,i)=>i*30).map(m=>'<option value="'+m+'"'+(m===cur?' selected':'')+'>'+nattTid(m)+'</option>').join('');
+  const body=sh('Nattläge')+group(fieldCell('Nattläge','<input type="checkbox" role="switch" class="switch" data-act="natt" aria-label="Nattläge"'+(NATT.on?' checked':'')+'>')+
+    (NATT.on?'<div class="cell"><span class="grow">Från</span>'+menuSel('data-change="nattA" aria-label="Nattläget börjar"',tOpts(NATT.a))+'</div><div class="cell"><span class="grow">Till</span>'+menuSel('data-change="nattB" aria-label="Nattläget slutar"',tOpts(NATT.b))+'</div>':''))+
+   '<div class="foot">Under de här tiderna visar tavlan bara en dämpad klocka när ingen har rört den på två minuter, och appen är i mörkt läge. Klockan flyttar sig lite varje timme så att den inte bränns in i skärmen. Tryck på skärmen för att väcka tavlan.</div>'+
+   sh('Rummets ljus')+group(fieldCell('Använd kameran','<input type="checkbox" role="switch" class="switch" data-act="kamera" aria-label="Använd kameran för rummets ljus"'+(CAM.on?' checked':'')+'>')+
+    (CAM.on?'<div class="cell"><span class="grow">Ljus i rummet</span><span class="meta" data-cam-lvl>'+esc(camTxt())+'</span></div>'+
+     fieldCell('Dämpa skärmen när det är mörkt','<input type="checkbox" role="switch" class="switch" data-act="kamDampa" aria-label="Dämpa skärmen när det är mörkt"'+(CAM.dim?' checked':'')+'>'):''))+
+   (CAM.on?sh('Mörkt läge under')+'<div class="seg-wrap">'+segc('Mörkt läge under','kamGrans',[['15','15 %'],['25','25 %'],['35','35 %'],['45','45 %']],String(CAM.thr))+'</div>':'')+
+   '<div class="foot">Kameran tittar en gång i minuten och räknar bara ut hur ljust det är. Ingen bild sparas eller skickas någonstans. När rummet blir mörkare än gränsen byter tavlan till mörkt läge och dämpar bilden. Under nattläget är kameran avstängd. Gäller bara den här enheten.</div>'+
+   '<div class="foot">Muspekaren är dold i väggläge. Flyttar du musen syns den en kort stund.</div>';
+  o.innerHTML=sheetHtml('vagg','Väggskärm','<button type="button" class="tb strong" data-act="sheetClose">Klar</button>',body,enter,'<button type="button" class="back" data-act="settings">'+I.back+'Inställningar</button>');segSlide(o);return}
  if(k==='farg'){const mi=people().indexOf(S.me);if(enter)[FARG_OPEN,FARG_X].forEach(o=>Object.keys(o).forEach(k=>delete o[k]));
   // en rad färgcirklar som går att dra i sidled för fler färger; efter ett val fälls en rad med toner av färgen ut under
   const strip=farbList(),near=h=>strip.reduce((b,k)=>Math.min(Math.abs(colPos(k).h-h),360-Math.abs(colPos(k).h-h))<Math.min(Math.abs(colPos(b).h-h),360-Math.abs(colPos(b).h-h))?k:b,strip[0]);
@@ -2922,12 +2982,14 @@ V.fod=function(){const L=bdays(),t=parse(today()),mode=S.fodMode||'hjul';
  return h};
 
 /* ---------- utseende ---------- */
-const isDark=()=>S.theme==='dark'||S.theme==='system'&&matchMedia('(prefers-color-scheme: dark)').matches;
+// På väggskärmen kan tavlan bli mörk av sig själv: under nattläget och, med kameran påslagen, när rummet är mörkt
+const themeNow=()=>wallDark()?'dark':S.theme;
+const isDark=()=>themeNow()==='dark'||themeNow()==='system'&&matchMedia('(prefers-color-scheme: dark)').matches;
 function applyTheme(fade){const root=document.documentElement;
  if(fade&&!calm()){root.classList.add('theme-fade');clearTimeout(applyTheme.t);applyTheme.t=setTimeout(()=>root.classList.remove('theme-fade'),450)}
- if(S.theme==='system')root.removeAttribute('data-theme');else root.setAttribute('data-theme',S.theme);
- document.querySelectorAll('meta[name="theme-color"]').forEach(mt=>{const dark=S.theme==='dark'||(S.theme==='system'&&/dark/.test(mt.media));mt.content=dark?'#000000':'#F2F2F7'})}
-applyTheme(false);
+ const th=themeNow();if(th==='system')root.removeAttribute('data-theme');else root.setAttribute('data-theme',th);
+ document.querySelectorAll('meta[name="theme-color"]').forEach(mt=>{const dark=th==='dark'||(th==='system'&&/dark/.test(mt.media));mt.content=dark?'#000000':'#F2F2F7'})}
+autoTheme();applyTheme(false);
 
 /* ---------- animationer ----------
    Vyerna ritas om helt vid varje ändring. A.before/A.after jämför före och efter
@@ -3040,7 +3102,12 @@ const ACT={
  theme(id){S.theme=['light','dark'].includes(id)?id:'system';lsSet('theme',S.theme==='system'?null:S.theme);applyTheme(true);render()},
  design(id){NY=id==='ny';lsSet('ny',NY?null:'0');applyNy();render()},
  dev(){DEV=!DEV;lsSet('dev',DEV?'1':null);NY=nyNu();applyNy();if(!DEV&&S.plan&&S.plan!=='auto')S.plan=null;render()},
- wall(){S.wall=!S.wall;lsSet('wall',S.wall?'1':'0');fitScrollbar();wake();render()},
+ wall(){S.wall=!S.wall;lsSet('wall',S.wall?'1':'0');fitScrollbar();hideCursor();wake();autoTheme();applyTheme(true);render();camSample()},
+ vagg(){S.sheet='vagg';render()},
+ natt(){NATT.on=!NATT.on;saveNatt();autoTheme();render()},
+ kamera(){CAM.on=!CAM.on;lsSet('kamera',CAM.on?'1':null);if(!CAM.on){CAM.lvl=null;CAM.dark=false;CAM.err=''}autoTheme();render();camSample()},
+ kamDampa(){CAM.dim=!CAM.dim;lsSet('kamDampa',CAM.dim?null:'0');autoTheme()},
+ kamGrans(id){CAM.thr=Number(id)||25;lsSet('kamGrans',CAM.thr===25?null:String(CAM.thr));if(CAM.lvl!=null){CAM.dark=CAM.lvl<CAM.thr}autoTheme();render()},
  matTab(id){S.matTab=['recept','bank','efter','inkop'].includes(id)?id:'vecka';lsSet('matTab',S.matTab);S.recipe=null;render()},
  recipe(id){S.view='mat';S.recipe=id;lsSet('view','mat');try{history.replaceState(null,'','#mat')}catch(e){}window.scrollTo(0,0);render()},
  recipeBack(){if(S.recipe)S.recipe=null;else S.plan=false;window.scrollTo(0,0);render()},
@@ -3297,6 +3364,7 @@ document.addEventListener('change',e=>{const el=e.target.closest('[data-change]'
  if(el.dataset.change==='photo'){const f=el.files&&el.files[0];el.value='';if(S.rcpSheet){S.rcpSheet=null;render()}uploadPhoto(id,f);return}
  if(el.dataset.change==='ork'){el.blur();ACT.budget(String(ORK[Number(el.value)].min));return}
  if(el.dataset.change==='accent'){ACT.accent(el.value);return}
+ if(el.dataset.change==='nattA'||el.dataset.change==='nattB'){NATT[el.dataset.change==='nattA'?'a':'b']=Number(el.value)||0;saveNatt();autoTheme();applyTheme(true);render();return}
  if(el.dataset.change==='pcol'){setPcol(Number(id),el.value);return}
  if(el.dataset.change==='planBudget'){const v=Math.round(Number(el.value));if(!(v>=200&&v<=5000)){toast('Skriv en budget mellan 200 och 5 000 kr');render();return}settings().matbudget=String(v);render();apiPost({action:'setting',k:'matbudget',v:String(v)});return}
   if(el.dataset.change==='eko'){const v=Math.max(0,Number(String(el.value).replace(',','.'))||0);updJSON('ekonomi',{},o=>{o[id]=v;return o});return}
@@ -3375,6 +3443,7 @@ function beep(){if(!actx)return;try{for(let i=0;i<3;i++){const o=actx.createOsci
 function tick(){
  const c=document.getElementById('clock');if(c){const n=new Date(),txt=pad(n.getHours())+':'+pad(n.getMinutes());
   if(c.dataset.v!==txt){flipClock(c,txt);const cr=document.getElementById('cal-rows');if(cr)cr.innerHTML=calDayRows(cr.dataset.d)}}
+ const ni=document.querySelector('.night-in');if(ni){const h=String(new Date().getHours());if(ni.dataset.h!==h){ni.dataset.h=h;ni.style.transform=nightPos()}}
  const box=document.getElementById('timers');
  box.innerHTML=S.timers.map(t=>{const ms=t.end-Date.now();if(ms<=0&&!t.ring){t.ring=true;beep();try{navigator.vibrate&&navigator.vibrate([300,150,300])}catch(e){}}const s=Math.max(0,Math.ceil(ms/1000));
   return'<div class="timer'+(t.ring?' ring':'')+'"><span>'+esc(t.label)+'</span><span class="num">'+(t.ring?'Klart!':Math.floor(s/60)+':'+pad(s%60))+'</span><button data-act="timerStop" data-id="'+t.k+'" aria-label="Stäng timer">'+I.x+'</button></div>'}).join('');
