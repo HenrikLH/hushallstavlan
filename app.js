@@ -202,8 +202,10 @@ function renderNav(nav){
   nav.classList.remove('ut');nav.classList.toggle('mini',m);if(!m)nav.classList.add('ut');mini.classList.toggle('on',m);};
  nav.addEventListener('click',e=>{if(nav.classList.contains('mini')&&!e.target.closest('button'))set(false)});
  nav.addEventListener('animationend',e=>{if(e.animationName==='navFranMini')nav.classList.remove('ut')});
- document.addEventListener('scroll',()=>{const y=scrollY,d=y-y0;y0=y;if(!on()){set(false);acc=0;return}
+ document.addEventListener('scroll',()=>{const y=scrollY,d=y-y0,yp=y0;y0=y;if(!on()){set(false);acc=0;return}
   if(y<40){acc=0;set(false);return}
+  // längst ner studsar sidan tillbaka en bit; den rörelsen räknas inte som att man scrollar uppåt
+  const max=document.documentElement.scrollHeight-innerHeight;if(y>=max-4||yp>=max-4){acc=0;return}
   acc=(acc>0)===(d>0)?acc+d:d;if(acc>24)set(true);else if(acc<-24)set(false)},{passive:true});
  mini.addEventListener('click',()=>set(false))})();
 
