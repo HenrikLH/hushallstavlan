@@ -94,6 +94,16 @@ function applyPersonColors(){const ks=[0,1].map(personColor),key=ks.join();if(ke
  const v=dark=>ks.map((k,i)=>{const c=PCOL[k],m=dark?c[3]:c[1];return'--p'+(i+1)+':'+m+';--p'+(i+1)+'-soft:'+rgba(m,dark?.22:.13)+';--p'+(i+1)+'-ink:'+(dark?c[4]:c[2])}).join(';');
  let el=document.getElementById('pcol');if(!el){el=document.createElement('style');el.id='pcol';document.head.appendChild(el)}
  el.textContent=':root{'+v(false)+'}@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){'+v(true)+'}}:root[data-theme="dark"]{'+v(true)+'}'}
+/* Accentfärgen (Inställningar → Färgval) gäller bara den här enheten: en av användarfärgerna eller "min färg",
+   som följer färgen för den som använder enheten. Vinröd är standard. */
+let ACCENT=lsGet('accent')||'vinrod';
+const accentKey=()=>{if(ACCENT==='min'){const i=people().indexOf(S.me);return i>=0?personColor(i):'vinrod'}return PCOL[ACCENT]?ACCENT:'vinrod'};
+let accKey='';
+function applyAccent(){const k=accentKey();if(k===accKey)return;accKey=k;let el=document.getElementById('acc');
+ if(k==='vinrod'){if(el)el.remove();return}
+ if(!el){el=document.createElement('style');el.id='acc';document.head.appendChild(el)}
+ const c=PCOL[k],v=dark=>{const m=dark?c[4]:c[1];return'--accent:'+m+';--accent-soft:'+rgba(m,dark?.22:.12)+';--on-accent:'+(dark?shadeHex(m,.16):'#FFFFFF')};
+ el.textContent=':root{'+v(false)+'}@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){'+v(true)+'}}:root[data-theme="dark"]{'+v(true)+'}'}
 const recipeById=id=>D().recipes.find(r=>r.id===id)||bankList().find(r=>r.id===id)||inspoList().find(r=>r.id===id);
 /* Inspiration: recept från nätet i inspiration.json (följer med appen, inte kalkylarket).
    Hjärtat sparar som favorit och bokmärket som sparat recept i receptbanken. */
@@ -429,7 +439,7 @@ function watchTitle(){
  if(!lt||!('IntersectionObserver' in window)){show(false);return}
  io=new IntersectionObserver(es=>{const e=es[es.length-1];show(!e.isIntersecting&&e.boundingClientRect.top<bar.offsetHeight)},{rootMargin:'-'+(bar.offsetHeight||44)+'px 0px 0px 0px',threshold:0});
  io.observe(lt)}
-function doRender(){applyPersonColors();
+function doRender(){applyPersonColors();applyAccent();
  document.body.classList.toggle('wall',S.wall);document.body.classList.toggle('is-night',S.view==='oversikt'&&nightOn());document.body.dataset.view=S.view;
  document.body.classList.toggle('cook-open',!!S.cook);
  const nav=document.getElementById('nav'),m=document.getElementById('main');
@@ -1707,11 +1717,11 @@ function cleanRow(t,showWhy,offer){const d=doneToday(t),r=ratio(t);
 function bigRow(t){return'<div class="cell"><div class="grow"><div class="title">'+esc(t.title)+'</div><div class="meta"><span class="chip">'+esc(t.room)+'</span><span>'+t.min+' min</span><span>'+(t.lastDone?'senast '+esc(dateShort(t.lastDone)):'inte gjort än')+'</span></div></div><div class="pills" style="flex-wrap:nowrap"><button class="pill" data-act="planSat" data-id="'+esc(t.id)+'">Lördag</button><button class="pill" data-act="planToday" data-id="'+esc(t.id)+'">Idag</button></div></div>'}
 
 /* ---------- overlay ---------- */
-function sheetHtml(form,title,right,body,enter){return'<div class="sheet'+enter+'" data-act="sheetBg"><form class="sheet-panel" data-form="'+form+'" role="dialog" aria-modal="true" aria-label="'+title+'"><div class="grabber" aria-hidden="true"></div><div class="sheet-head"><button type="button" class="tb" data-act="sheetClose">Avbryt</button><h2>'+title+'</h2>'+right+'</div><div class="sheet-body">'+body+'</div></form></div>'}
+function sheetHtml(form,title,right,body,enter,left){return'<div class="sheet'+enter+'" data-act="sheetBg"><form class="sheet-panel" data-form="'+form+'" role="dialog" aria-modal="true" aria-label="'+title+'"><div class="grabber" aria-hidden="true"></div><div class="sheet-head">'+(left||'<button type="button" class="tb" data-act="sheetClose">Avbryt</button>')+'<h2>'+title+'</h2>'+right+'</div><div class="sheet-body">'+body+'</div></form></div>'}
 const fieldCell=(label,input)=>'<label class="cell"><span class="grow">'+label+'</span>'+input+'</label>';
 function renderOverlay(){
  const o=document.getElementById('overlay');
- const k=S.cook?'cook':S.sheet==='settings'?'settings':S.sheet==='rate'?'rate':S.sheet==='income'?'income':S.sheet==='cost'?'cost':S.sheet==='ov'?'ov':S.sheet==='prefs'?'prefs':S.sheet==='swap'?'swap':S.sheet==='prot'?'prot':S.sheet==='wish'?'wish':S.sheet==='shopMore'?'shopMore':S.rcpSheet?'rcpSheet':S.sheet==='taskEdit'?'taskEdit':S.sheet==='evEdit'?'evEdit':S.shopAdd?'shop':S.taskAdd?'task':'';
+ const k=S.cook?'cook':S.sheet==='settings'?'settings':S.sheet==='farg'?'farg':S.sheet==='rate'?'rate':S.sheet==='income'?'income':S.sheet==='cost'?'cost':S.sheet==='ov'?'ov':S.sheet==='prefs'?'prefs':S.sheet==='swap'?'swap':S.sheet==='prot'?'prot':S.sheet==='wish'?'wish':S.sheet==='shopMore'?'shopMore':S.rcpSheet?'rcpSheet':S.sheet==='taskEdit'?'taskEdit':S.sheet==='evEdit'?'evEdit':S.shopAdd?'shop':S.taskAdd?'task':'';
  const prev=o.dataset.k||'';
  // Rita inte om ett öppet blad medan någon skriver i det
  if(k&&k!=='cook'&&k===prev&&busyTyping()&&o.contains(document.activeElement))return;
@@ -1733,6 +1743,7 @@ function renderOverlay(){
   '<div class="foot">Färgen används för era händelser, uppgifter, sysslor och i Ekonomi.</div>'+
   sh('Städtid och budget')+group(fieldCell('Vardag, min','<input class="field r" id="set-wd" name="wd" inputmode="numeric" value="'+esc(st.stadtid_vardag||20)+'" style="max-width:110px">')+fieldCell('Helg, min','<input class="field r" id="set-we" name="we" inputmode="numeric" value="'+esc(st.stadtid_helg||40)+'" style="max-width:110px">')+fieldCell('Mat/vecka, kr','<input class="field r" id="set-budget" name="budget" inputmode="numeric" value="'+esc(st.matbudget||'')+'" style="max-width:110px">'))+
   sh('Utseende')+'<div class="seg-wrap">'+segc('Utseende','theme',[['system','System'],['light','Ljust'],['dark','Mörkt']],S.theme)+'</div>'+
+  '<div style="height:10px"></div>'+group('<button type="button" class="cell link" data-act="farg"><span class="acc-dot" style="--c:'+PCOL[accentKey()][1]+';--cd:'+PCOL[accentKey()][4]+'"></span><span class="grow">Färgval</span><span class="meta">'+esc(ACCENT==='min'?'Min färg':PCOL[accentKey()][0])+'</span>'+chevron+'</button>')+
   sh('Schemat i kalenderrutan')+'<div class="seg-wrap">'+segc('Schemat i kalenderrutan','calStyle',[['1','Tid kvar'],['2','Stapel'],['3','Tidsaxel']],CAL_STYLE)+'</div>'+
   (DEV?sh('Förslag i Planera med portioner')+'<div class="seg-wrap">'+segc('Förslag i Planera med portioner','flStyle',[['karusell','Stort kort'],['lista','Lista']],FL_STYLE)+'</div>':'')+
   sh('Översikten')+group('<button type="button" class="cell link" data-act="arrange"><span class="grow">Ändra ordning på rutorna</span>'+chevron+'</button>')+'<div class="foot">Gäller bara den här enheten. Du kan också hålla fingret på en ruta en stund.</div>'+
@@ -1743,6 +1754,11 @@ function renderOverlay(){
   sh('Den här enheten')+group('<button type="button" class="cell link center red" data-act="logout">Logga ut</button>')+
   '<div class="foot ver">Hushållstavlan · UI '+(NY?UI_VER:'1.0')+' · version '+esc(APP_VER)+'</div>';
   o.innerHTML=sheetHtml('settings','Inställningar','<button class="tb strong">Spara</button>',body,enter);segSlide(o);return}
+ if(k==='farg'){const mi=people().indexOf(S.me),row=(id,name,c,note)=>'<button type="button" class="cell link" data-act="accent" data-id="'+id+'" aria-pressed="'+(ACCENT===id)+'"><span class="acc-dot" style="--c:'+c[1]+';--cd:'+c[4]+'"></span><span class="grow">'+esc(name)+(note?'<span class="meta" style="display:block">'+esc(note)+'</span>':'')+'</span>'+(ACCENT===id?'<span class="mark">'+I.tick+'</span>':'')+'</button>';
+  const body=(mi>=0?group(row('min','Min färg',PCOL[personColor(mi)],'Samma som din färg i hushållet, '+PCOL[personColor(mi)][0].toLowerCase())):'')+
+   sh('Accentfärg')+group(Object.keys(PCOL).map(k=>row(k,PCOL[k][0]+(k==='vinrod'?' (standard)':''),PCOL[k])).join(''))+
+   '<div class="foot">Accentfärgen används för knappar, länkar, flikraden och markeringar. Den gäller bara den här enheten.</div>';
+  o.innerHTML=sheetHtml('farg','Färgval','<button type="button" class="tb strong" data-act="sheetClose">Klar</button>',body,enter,'<button type="button" class="back" data-act="settings">'+(I.back||'‹')+'Inställningar</button>');return}
  if(k==='prefs'){const st=settings();
   const body=PREFS.map(([key,l,,ph])=>sh(l)+group('<div class="cell"><textarea class="field area" name="'+key+'" rows="'+Math.max(3,Math.ceil(String(st[key]||'').length/34)+1)+'" maxlength="600" placeholder="'+esc(ph)+'" aria-label="'+esc(l)+'">'+esc(st[key]||'')+'</textarea></div>')).join('')+
    '<div class="foot">Sparas i kalkylarket. Veckoplaneringen läser dem nästa gång den gör menyn.</div>';
@@ -1914,26 +1930,37 @@ function symInfo(s){const b=symBase(s),night=/_night$/.test(s||'');
  if(/snow/.test(b))return[/heavy/.test(b)?'❄️':'🌨️',/showers/.test(b)?'Snöbyar':/heavy/.test(b)?'Kraftigt snöfall':/light/.test(b)?'Lätt snöfall':'Snöfall'];
  if(/rain/.test(b))return[/heavy/.test(b)?'🌧️':(/showers|light/.test(b)?'🌦️':'🌧️'),/showers/.test(b)?(/heavy/.test(b)?'Kraftiga regnskurar':/light/.test(b)?'Lätta regnskurar':'Regnskurar'):(/heavy/.test(b)?'Kraftigt regn':/light/.test(b)?'Lätt regn':'Regn')];
  return{clearsky:[night?'🌙':'☀️','Klart'],fair:[night?'🌙':'🌤️','Mest klart'],partlycloudy:[night?'☁️':'⛅','Halvklart'],cloudy:['☁️','Mulet'],fog:[FOG_IC,'Dimma']}[b]||['🌡️','']}
-// temperaturfärg efter verklig temperatur (som Apples väder): mörkblått under 0, ljusblått till 15, grönt till 20,
-// gult till 25, orange till 30 och rött över; färgerna glider över i varandra vid gränserna
-const T_COL=[[-15,'#2B3FB0'],[-3,'#3478F6'],[3,'#5AC8FA'],[13,'#64D2E6'],[17.5,'#4CD964'],[22.5,'#FFD60A'],[27.5,'#FF9F0A'],[32,'#FF453A'],[40,'#D70015']];
+// temperaturfärg efter verklig temperatur, som en tydlig skala där färgen byter ton var femte grad:
+// lila i sträng kyla, blått kring nollan, turkost kring 10, grönt kring 15, gult kring 20, orange kring 25 och rött över 30
+const T_COL=[[-15,'#7A5CF0'],[-5,'#3D6BF5'],[0,'#2F8CFF'],[5,'#2FBDF2'],[10,'#2CD3B5'],[15,'#6FD957'],[20,'#F2D43A'],[25,'#FF9F0A'],[30,'#FF5A36'],[36,'#E0203F']];
 function tempCol(T){const c=T_COL;if(T<=c[0][0])return c[0][1];for(let i=1;i<c.length;i++)if(T<=c[i][0])return mixHex(c[i-1][1],c[i][1],(T-c[i-1][0])/(c[i][0]-c[i-1][0]));return c[c.length-1][1]}
 function tempGrad(a,b){if(b-a<.5)return tempCol((a+b)/2);const n=Math.max(2,Math.ceil(b-a)+1);
  return'linear-gradient(90deg,'+Array.from({length:n},(_,i)=>tempCol(a+(b-a)*i/(n-1))+' '+(i/(n-1)*100).toFixed(1)+'%').join(',')+')'}
 const capS=s=>s?s.charAt(0).toUpperCase()+s.slice(1):s;
 const deg=t=>Math.round(t)+'°';
 const mm=v=>(Math.round(v*10)/10).toLocaleString('sv-SE')+' mm';
-// Dagens klädsel: dagtid som är kvar idag, eller morgondagen efter kl 20
+// Dagens klädsel: dagtid som är kvar idag, eller morgondagen efter kl 20. Råden utgår från den kallaste
+// känns som-temperaturen (med vinden) under de timmarna, eftersom man ska klara den kallaste stunden ute.
+// Regn, snö, åska, sol och dimma läggs till efter klädraden i stället för att ersätta den.
+const KLADER=[[22,'Shorts och t-shirt'],[18,'T-shirt och en tröja med'],[14,'Tröja eller tunn jacka'],[10,'Vår- eller höstjacka'],[5,'Varm jacka'],
+ [0,'Varm jacka och mössa'],[-5,'Vinterjacka, mössa, vantar'],[-12,'Vinterkläder och halsduk'],[-99,'Långkalsonger och vinterkläder']];
+function kladRad(t,host){const k=KLADER.find(([g])=>t>=g)[1];return k==='Vår- eller höstjacka'?(host?'Höstjacka':'Vårjacka'):k}
 function wxToday(W){const n=new Date(),late=n.getHours()>=20,day=late?addDays(today(),1):today();
  const hs=W.hours.filter(x=>ymd(x.d)===day&&x.d.getHours()>=(late?8:Math.min(n.getHours(),20))&&x.d.getHours()<=20);const L=hs.length?hs:[W.now];
  const max=Math.max(...L.map(x=>x.T)),pr=L.reduce((a,x)=>a+(x.pr||0),0),syms=L.map(x=>symBase(x.s)).join(' ');
- const kind=/thunder/.test(syms)?'storm':(/snow|sleet/.test(syms)&&max<2)?'snow':(pr>=0.6||/rain|sleet/.test(syms)&&pr>=0.3)?'rain':/fog/.test(symBase(W.now.s))?'fog':
-  max>=20?'hot':max>=14?'warm':max>=7?'mild':max>=0?'cold':'freezing';
+ const fl=L.map(x=>feels(x.T,x.w||0)),low=Math.min(...fl),high=Math.max(...fl);
+ const storm=/thunder/.test(syms),snow=/snow|sleet/.test(syms)&&max<2,rain=!snow&&(pr>=0.6||/rain|sleet/.test(syms)&&pr>=0.3),fog=/fog/.test(symBase(W.now.s));
+ const kind=storm?'storm':snow?'snow':rain?'rain':fog?'fog':max>=20?'hot':max>=14?'warm':max>=7?'mild':max>=0?'cold':'freezing';
  const sunny=/clearsky|fair/.test(syms)&&!/cloudy/.test(syms.replace('partlycloudy',''));
- const nt=isNight();
- const tip={hot:nt?'Shorts och t-shirt':'Shorts, t-shirt och solglasögon',warm:'T-shirt räcker'+(sunny&&!nt?', ta solglasögon':''),mild:'Lätt jacka',cold:'Jacka, mössa och vantar',freezing:'Varmt på dig, det är minusgrader',
-  rain:'Ta med paraply',snow:'Vinterkläder, det snöar',storm:'Paraply, och håll dig inne vid åska',fog:'Dimmigt, ta reflex'}[kind];
- return{kind,night:nt,sunny,max,pr,tip,when:late?'i morgon':'idag'}}
+ const nt=isNight(),m=parse(day).getMonth(),host=m>=7||m<=1;
+ const add=[];
+ if(storm)add.push('paraply, åska');else if(rain)add.push(pr>=4?'regnkläder':'paraply');
+ if(snow)add.push('kängor');
+ if(fog)add.push('reflex');
+ if(high-low>=8&&low<14)add.push('lager på lager');
+ if(sunny&&!nt&&high>=16)add.push('solglasögon');
+ const tip=kladRad(low,host)+(add.length?' + '+add[0]:'');
+ return{kind,night:nt,sunny,max,low,pr,tip,when:late?'i morgon':'idag'}}
 function isNight(){const P=WX_POS(),s=sunTimes(today(),P.lat,P.lon),n=new Date();return s?(n<s[0]||n>s[1]):false}
 
 /* Vädervovvarna: hushållets två franska bulldoggar i Kurzgesagt-anda.
@@ -2203,6 +2230,57 @@ function grassPatch(sc,id){const ss=grassSeason(today()),snow=snowLevel(sc),fros
  if(snow<2)fr+=[[34,136,3,6,31],[62,136.5,3,5,32],[104,136.5,3,6,33],[134,136,3,5,34]].map(([x,y,n,h,k])=>clump(x,y,n,h,k*7)).join('');
  if(deep)fr+='<g fill="url(#'+id+'gs)"><path d="'+blob(50,134,21,4.6,.25,21)+'"/><path d="'+blob(114,134.5,22,4.6,.25,23)+'"/></g>';
  return{back:b,front:fr}}
+/* Bakgrunden bakom gräsplätten: en mjuk kulle och ett träd efter årstiden. Inget har en hård kant mot rutan:
+   kullen tonar ut med en mask och små tuvor läcker ut runt om, precis som gräset. 1 enhet = 1 px, marken ligger
+   på y=175 och plätten med hundarna står i den högra delen (x 80-220). */
+function backdropSvg(sc){const id='bd'+(++FIG_N),ss=grassSeason(today()),snow=snowLevel(sc),frost=!snow&&sc.T<0,f=v=>v.toFixed(1);
+ const rnd=k=>{const x=Math.sin(k*57.3+1.7)*43758.5453;return x-Math.floor(x)};
+ let[g1,g2]=GRASS[ss];if(frost){g1=mixHex(g1,'#E2ECF5',.42);g2=mixHex(g2,'#C6D5E4',.3)}
+ const blob=(cx,cy,rx,ry,j,seed)=>{const n=14,P=[];for(let i=0;i<n;i++){const a=i/n*2*Math.PI,r=1+(rnd(i+seed)-.5)*j;P.push([cx+Math.cos(a)*rx*r,cy+Math.sin(a)*ry*r])}
+  const mid=(p,q)=>[(p[0]+q[0])/2,(p[1]+q[1])/2];let d='M'+mid(P[n-1],P[0]).map(f).join(' ');
+  P.forEach((p,i)=>{const m=mid(p,P[(i+1)%n]);d+=' Q'+f(p[0])+' '+f(p[1])+' '+f(m[0])+' '+f(m[1])});return d+'Z'};
+ const far=snow>=2?'#DCE5EF':mixHex(g2,'#9FB0A0',.35),near=snow>=2?'#EEF3F8':g1;
+ // masken: helt synlig nere vid plätten och tonar ut uppåt och åt vänster
+ let s='<defs><radialGradient id="'+id+'f" cx="120" cy="164" r="125" gradientUnits="userSpaceOnUse" gradientTransform="translate(120 164) scale(1 .3) translate(-120 -164)"><stop offset=".3" stop-color="#fff"/><stop offset=".75" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>'+
+  '<mask id="'+id+'m"><rect width="230" height="190" fill="url(#'+id+'f)"/></mask>'+
+  '<linearGradient id="'+id+'v" x1="0" y1="0" x2="0" y2="190" gradientUnits="userSpaceOnUse"><stop offset=".89" stop-color="#fff"/><stop offset=".985" stop-color="#fff" stop-opacity="0"/></linearGradient><mask id="'+id+'b"><rect width="230" height="190" fill="url(#'+id+'v)"/></mask>'+
+  '<filter id="'+id+'n"><feColorMatrix type="matrix" values=".66 .04 0 0 .02  .02 .7 .04 0 .03  0 .06 .9 0 .07  0 0 0 1 0"/></filter></defs>';
+ let g='<g mask="url(#'+id+'b)"><g mask="url(#'+id+'m)">';
+ // två kullar: en avlägsen och en närmare som trädet står på
+ g+='<path d="M-10 172 Q30 128 92 136 Q150 142 240 120 V190 H-10Z" fill="'+far+'" opacity=".35"/>';
+ g+='<path d="M-10 182 Q20 150 64 152 Q108 154 150 164 Q190 172 240 160 V190 H-10Z" fill="'+near+'" opacity=".62"/>';
+ g+='<g opacity=".7">'+[[40,160,26,3.4,mixHex(near,'#FFFFFF',.18)],[100,166,22,3,shadeHex(near,.86)],[18,170,14,2.6,shadeHex(near,.86)]].map(([x,y,rx,ry,c],i)=>'<path d="'+blob(x,y,rx,ry,.4,i*5)+'" fill="'+c+'"/>').join('')+'</g>';
+ g+='</g></g>';
+ // tuvor som läcker ut från kullen
+ g+=[[-2,166,4,1.6],[8,160,2.5,1.1],[20,150,2.2,1],[70,148,2.5,1],[112,152,3,1.2],[190,158,2.4,1]].map(([x,y,rx,ry])=>'<ellipse cx="'+x+'" cy="'+y+'" rx="'+rx+'" ry="'+ry+'" fill="'+near+'" opacity=".55"/>').join('');
+ // trädet: stam och krona av runda klungor, ljus uppe till vänster och hård skugga till höger som hundarna
+ const TX=52,TY=160,bare=ss==='winter'||ss==='early'||(ss==='autumn3'&&snow>=1);
+ const leaf={spring:['#9ED36A','#6FAE48'],easter:['#9ED36A','#6FAE48'],summer:['#6DB04A','#4A8A35'],autumn1:['#B7B74A','#8E9138'],autumn2:['#E3A23E','#C46F2E'],autumn3:['#C0763A','#94532C']}[ss];
+ const bark='#6E5641',barkD='#55412F';
+ let t='<path d="M'+(TX-4.5)+' '+TY+' Q'+(TX-3)+' '+(TY-26)+' '+(TX-2.6)+' '+(TY-46)+' L'+(TX+2.6)+' '+(TY-46)+' Q'+(TX+3.2)+' '+(TY-26)+' '+(TX+5.5)+' '+TY+'Z" fill="'+bark+'"/>'+
+  '<path d="M'+(TX+.8)+' '+TY+' Q'+(TX+1.6)+' '+(TY-26)+' '+(TX+1.2)+' '+(TY-46)+' L'+(TX+2.6)+' '+(TY-46)+' Q'+(TX+3.2)+' '+(TY-26)+' '+(TX+5.5)+' '+TY+'Z" fill="'+barkD+'"/>';
+ const br=[[TX,TY-30,TX-16,TY-52],[TX,TY-38,TX+15,TY-58],[TX-1,TY-46,TX-4,TY-70],[TX-9,TY-44,TX-22,TY-60],[TX+8,TY-50,TX+20,TY-66],[TX-3,TY-60,TX-12,TY-76],[TX-3,TY-62,TX+6,TY-80]];
+ const brP=br.map(([a,b,c,d],i)=>'M'+a+' '+b+' Q'+f((a+c)/2+(i%2?3:-3))+' '+f((b+d)/2)+' '+c+' '+d);
+ // kala grenar får små kvistar i spetsarna, och snö ligger som en vit kant ovanpå grenarna
+ const tw=bare?br.map(([a,b,c,d],i)=>'M'+c+' '+d+' l'+(i%2?4:-4)+' -5 M'+f((a+c)/2)+' '+f((b+d)/2)+' l'+(i%2?-4:4)+' -4').join(' '):'';
+ if(bare&&snow>=1)t+='<g stroke="#FFFFFF" stroke-linecap="round" fill="none" transform="translate(0 -1.3)">'+brP.map((d,i)=>'<path d="'+d+'" stroke-width="'+(i<3?2.8:1.9)+'"/>').join('')+'<path d="'+tw+'" stroke-width="1.4"/></g>';
+ t+='<g stroke="'+bark+'" stroke-linecap="round" fill="none">'+brP.map((d,i)=>'<path d="'+d+'" stroke-width="'+(i<3?2.6:1.6)+'"/>').join('')+(tw?'<path d="'+tw+'" stroke-width="1"/>':'')+'</g>';
+ if(!bare){const[L1,L2]=leaf,lite=mixHex(L1,'#FFFFFF',.22),sparse=ss==='autumn3';
+  const CL=[[TX-14,TY-58,15],[TX+12,TY-62,14],[TX-2,TY-76,17],[TX-20,TY-72,11],[TX+20,TY-76,11],[TX+2,TY-56,13],[TX-8,TY-90,11],[TX+10,TY-88,10]].filter((_,i)=>!sparse||i%2===0);
+  t+='<g clip-path="none">'+CL.map(([x,y,r])=>'<circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="'+L1+'"/>').join('')+'</g>';
+  // skuggsidan till höger
+  t+='<clipPath id="'+id+'c">'+CL.map(([x,y,r])=>'<circle cx="'+x+'" cy="'+y+'" r="'+r+'"/>').join('')+'</clipPath><g clip-path="url(#'+id+'c)"><path d="M'+(TX+2)+' '+(TY-110)+' Q'+(TX-6)+' '+(TY-70)+' '+(TX+8)+' '+(TY-40)+' H'+(TX+40)+' V'+(TY-110)+'Z" fill="'+L2+'"/></g>';
+  t+=CL.slice(0,4).map(([x,y,r],i)=>'<circle cx="'+f(x-r*.35)+'" cy="'+f(y-r*.35)+'" r="'+f(r*.38)+'" fill="'+lite+'" opacity=".55"/>').join('');
+  if(ss==='spring'||ss==='easter')t+=[[TX-18,TY-66],[TX+6,TY-82],[TX+16,TY-64],[TX-6,TY-58],[TX-12,TY-84],[TX+22,TY-78]].map(([x,y])=>'<circle cx="'+x+'" cy="'+y+'" r="1.8" fill="#FFFFFF"/><circle cx="'+x+'" cy="'+y+'" r=".7" fill="#F2B6C6"/>').join('');
+  if(ss==='summer')t+=[[TX-16,TY-62],[TX+12,TY-70],[TX+2,TY-84]].map(([x,y])=>'<circle cx="'+x+'" cy="'+y+'" r="1.9" fill="#D94A3A"/>').join('');
+  // fallande löv på hösten
+  if(/autumn/.test(ss)&&!snow)t+='<g class="bd-leaves">'+[[TX+26,TY-40,0],[TX-28,TY-30,1.6],[TX+40,TY-20,3.1]].map(([x,y,d],i)=>'<path d="M'+x+' '+y+' q2.2 -1.6 4.4 0 q-2.2 1.6 -4.4 0Z" fill="'+(i%2?L2:L1)+'" style="animation-delay:-'+d+'s"/>').join('')+'</g>'}
+ if(snow>=1&&!bare)t+=('<path d="M'+(TX-26)+' '+(TY-78)+' Q'+(TX-10)+' '+(TY-108)+' '+(TX+16)+' '+(TY-94)+' Q'+(TX+30)+' '+(TY-86)+' '+(TX+28)+' '+(TY-80)+' Q'+(TX+6)+' '+(TY-92)+' '+(TX-26)+' '+(TY-78)+'Z" fill="#FFFFFF" opacity=".92"/>');
+ // trädets skugga på kullen och löv på marken
+ t='<ellipse cx="'+(TX+6)+'" cy="'+(TY+1)+'" rx="18" ry="2.6" fill="'+shadeHex(near,.75)+'" opacity=".7"/>'+t;
+ if(/autumn/.test(ss)&&snow<2)t+=[[TX-20,TY+4],[TX+14,TY+6],[TX+30,TY+3],[TX-6,TY+8]].map(([x,y],i)=>'<path d="M'+x+' '+y+' q2 -1.4 4 0 q-2 1.4 -4 0Z" fill="'+(leaf?leaf[i%2]:'#C0763A')+'"/>').join('');
+ g+='<g opacity=".92">'+t+'</g>';
+ return'<svg class="bd" viewBox="0 0 230 190" aria-hidden="true">'+s+(sc.dark?'<g filter="url(#'+id+'n)">'+g+'</g>':g)+'</svg>'}
 function figSvg(sc,o){o=o||{};const id='fg'+(++FIG_N),ph=sc.phase,dark=sc.dark,warmL=ph==='dawn'||ph==='golden';
  const wet=/^(drizzle|rain|sleet)$/.test(sc.type),snow=sc.type==='snow',sleet=sc.type==='sleet',lv=sc.lv;
  const sunC=warmL?'#FFB877':'#FFE7A3',sunD=warmL?'#FF9F5A':'#FFD666';
@@ -2322,6 +2400,7 @@ function arcHtml(W,v){const P=WX_POS(),sc=wxScene(W),now=new Date(),k=SKY(now,P.
  s+='<div class="sky-b '+(day?'sky-sun':'sky-moon')+'" style="left:'+x.toFixed(1)+'%;top:'+y.toFixed(1)+'%;opacity:'+(covered?.4:1)+'">'+(day?sunSvg(k.sun.alt<8,z*1.5):moonSvg(k.moon.frac,k.moon.waxing,z))+'</div>';
  return'<div class="arc '+v+'" aria-hidden="true">'+s+'</div>'}
 // b (vald): bågen i högra delen av rutan bakom temperaturen; a = bågen tätt över hundarna
+let BAKGRUND=lsGet('bakgrund')!=='0';
 const GRASS_V=lsGet('grass')==='a'?'a':'b',grassOn=()=>!wallBoardOn();
 function heroHtml(){const n=new Date(),t=today(),dy=EXT.day&&EXT.day.date===t?EXT.day:null,hh=n.getHours(),W=wxModel(),P=WX_POS();
  const greet=hh<5?'God natt':hh<10?'God morgon':hh<17?'Hej':hh<22?'God kväll':'God natt';
@@ -2331,7 +2410,7 @@ function heroHtml(){const n=new Date(),t=today(),dy=EXT.day&&EXT.day.date===t?EX
   wx='<button class="hero-wx" data-act="nav" data-id="vader" aria-label="Väder: '+esc(tx)+', '+deg(W.now.T)+'. Öppna vädret">'+
    '<div class="wx-now"><span class="wx-ic" aria-hidden="true">'+ic+'</span><span class="wx-t num">'+deg(W.now.T)+'</span></div>'+
    '<div class="fn">'+esc(tx)+'</div><div class="fn num">H:'+deg(d0.max)+' L:'+deg(d0.min)+'</div>'+
-   (grassOn()?'<div class="gs '+GRASS_V+'">'+(GRASS_V==='a'?arcHtml(W,'a'):'')+'<div class="fig-box grass" aria-hidden="true">'+figSvg(wxScene(W),{bare:1,patch:1})+'</div></div>':'<div class="fig-box" aria-hidden="true">'+figSvg(wxScene(W),{bare:1})+'</div>')+'<div class="fig-tip">'+esc((F.when==='i morgon'?'I morgon: ':'')+F.tip)+'</div></button>'}
+   (grassOn()?'<div class="gs '+GRASS_V+'">'+(GRASS_V==='a'?arcHtml(W,'a'):'')+(BAKGRUND?backdropSvg(wxScene(W)):'')+'<div class="fig-box grass" aria-hidden="true">'+figSvg(wxScene(W),{bare:1,patch:1})+'</div></div>':'<div class="fig-box" aria-hidden="true">'+figSvg(wxScene(W),{bare:1})+'</div>')+'<div class="fig-tip">'+esc((F.when==='i morgon'?'I morgon: ':'')+F.tip)+'</div></button>'}
  const ny=NY&&!wallBoardOn(),facts=ny?[]:['Vecka '+isoWeek(n)];
  if(dy&&dy.holiday)facts.push(dy.holiday);else if(dy&&dy.flag)facts.push('Flaggdag: '+dy.flag);
  // I nya designen står solen före namnsdagen
@@ -2634,6 +2713,8 @@ const ACT={
  nav(id){if(id!=='oversikt')S.arrange=false;if(normView(id)!=='ekonomi'){S.ekoOpen=false;S.pin=''}try{document.activeElement&&document.activeElement.blur()}catch(e){}id=normView(id);S.shopAdd=false;S.taskAdd=false;S.view=id;S.recipe=null;S.confirm=null;lsSet('view',id);try{history.replaceState(null,'','#'+id)}catch(e){}window.scrollTo(0,0);render()},
  refresh(){refresh()},
  settings(){S.sheet='settings';render()},
+ farg(){S.sheet='farg';render()},
+ accent(id){ACCENT=id==='min'||PCOL[id]?id:'vinrod';lsSet('accent',ACCENT==='vinrod'?null:ACCENT);render()},
  arrange(){closeSheets();S.arrange=true;ACT.nav('oversikt')},
  arrangeDone(){S.arrange=false;render()},
  boxSize(id){boxEdit(L=>{L.size[id]=L.size[id]==='h'?'f':'h'})},
