@@ -413,9 +413,11 @@ body.wall .clock{display:block}
 .gs.a{padding-top:50px}.gs.b{padding-top:62px}
 .gs .fig-box{margin:0;position:relative;z-index:1}
 .gs>.bd{position:absolute;right:-10px;bottom:0;width:230px;height:190px;pointer-events:none;overflow:visible}
-.bd-leaves path{animation:bdLeaf 6s linear infinite;transform-box:fill-box}
-@keyframes bdLeaf{0%{transform:translate(0,0) rotate(0);opacity:0}10%{opacity:1}100%{transform:translate(-14px,42px) rotate(260deg);opacity:0}}
-@media (prefers-reduced-motion:reduce){.bd-leaves path{animation:none;opacity:0}}
+.bd-leaves>g{animation:bdFall 7s linear infinite;opacity:0}
+.bd-leaves path{transform-box:fill-box;transform-origin:center;animation:bdSpin 1.6s ease-in-out infinite alternate}
+@keyframes bdFall{0%{transform:translate(0,0);opacity:0}8%{opacity:1}25%{transform:translate(calc(var(--dx)*.2 + 5px),calc(var(--dy)*.25))}50%{transform:translate(calc(var(--dx)*.5 - 4px),calc(var(--dy)*.5))}75%{transform:translate(calc(var(--dx)*.75 + 4px),calc(var(--dy)*.75))}92%{opacity:1}100%{transform:translate(var(--dx),var(--dy));opacity:0}}
+@keyframes bdSpin{from{transform:rotate(-35deg) scaleY(1)}to{transform:rotate(40deg) scaleY(.55)}}
+@media (prefers-reduced-motion:reduce){.bd-leaves{display:none}}
 .fig-box.grass{height:124px}
 .arc{position:absolute;pointer-events:none;color:var(--ink-2)}
 .gs.a .arc{left:2px;right:2px;top:12px;bottom:114px}

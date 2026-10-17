@@ -2230,6 +2230,16 @@ function grassPatch(sc,id){const ss=grassSeason(today()),snow=snowLevel(sc),fros
  if(snow<2)fr+=[[34,136,3,6,31],[62,136.5,3,5,32],[104,136.5,3,6,33],[134,136,3,5,34]].map(([x,y,n,h,k])=>clump(x,y,n,h,k*7)).join('');
  if(deep)fr+='<g fill="url(#'+id+'gs)"><path d="'+blob(50,134,21,4.6,.25,21)+'"/><path d="'+blob(114,134.5,22,4.6,.25,23)+'"/></g>';
  return{back:b,front:fr}}
+/* Trädets lövstadier genom året. Varje nyckeldag har [dag på året, hur tät kronan är 0-1, ljus färg, skuggfärg];
+   mellan nyckeldagarna glider täthet och färg över i varandra, så att trädet ändras lite varje dag. */
+const TREE_K=[[1,0,'#8A6A4A','#6E5641'],[70,0,'#8A6A4A','#6E5641'],[95,.12,'#C9E58C','#A9CF6A'],[115,.34,'#BFE57A','#93CC55'],[132,.62,'#AEDF66','#82C24A'],
+ [155,.95,'#98D45C','#6AAE42'],[190,1,'#7CB34A','#55913A'],[228,1,'#8EAE40','#6A8A30'],[256,1,'#AEB540','#87902F'],[272,.97,'#DDB53C','#B4892C'],
+ [286,.9,'#F0922C','#CC5E24'],[297,.78,'#E9562A','#B33424'],[308,.5,'#C2462C','#8E2C22'],[320,.2,'#9A5A34','#713E26'],[332,0,'#8A6A4A','#6E5641'],[366,0,'#8A6A4A','#6E5641']];
+function treeStage(t){const d=parse(t),y=d.getFullYear(),doy=Math.round((d-new Date(y,0,1))/864e5)+1;
+ let i=1;while(i<TREE_K.length-1&&TREE_K[i][0]<doy)i++;const A=TREE_K[i-1],B=TREE_K[i],k=Math.max(0,Math.min(1,(doy-A[0])/((B[0]-A[0])||1)));
+ const ramp=(a,b,c,e)=>doy<a||doy>e?0:doy<b?(doy-a)/(b-a):doy<=c?1:(e-doy)/(e-c);
+ return{doy,d:A[1]+(B[1]-A[1])*k,c:[mixHex(A[2],B[2],k),mixHex(A[3],B[3],k)],c2:doy>280&&doy<315?'#F7C23A':null,
+  bloom:ramp(108,118,128,140),fruit:ramp(225,240,262,275),fall:ramp(268,290,304,326),ground:ramp(272,300,330,350),gc:doy>300?['#A8552E','#7E4128']:null}}
 /* Bakgrunden bakom gräsplätten: en mjuk kulle och ett träd efter årstiden. Inget har en hård kant mot rutan:
    kullen tonar ut med en mask och små tuvor läcker ut runt om, precis som gräset. 1 enhet = 1 px, marken ligger
    på y=175 och plätten med hundarna står i den högra delen (x 80-220). */
@@ -2253,32 +2263,42 @@ function backdropSvg(sc){const id='bd'+(++FIG_N),ss=grassSeason(today()),snow=sn
  g+='</g></g>';
  // tuvor som läcker ut från kullen
  g+=[[-2,166,4,1.6],[8,160,2.5,1.1],[20,150,2.2,1],[70,148,2.5,1],[112,152,3,1.2],[190,158,2.4,1]].map(([x,y,rx,ry])=>'<ellipse cx="'+x+'" cy="'+y+'" rx="'+rx+'" ry="'+ry+'" fill="'+near+'" opacity=".55"/>').join('');
- // trädet: stam och krona av runda klungor, ljus uppe till vänster och hård skugga till höger som hundarna
- const TX=52,TY=160,bare=ss==='winter'||ss==='early'||(ss==='autumn3'&&snow>=1);
- const leaf={spring:['#9ED36A','#6FAE48'],easter:['#9ED36A','#6FAE48'],summer:['#6DB04A','#4A8A35'],autumn1:['#B7B74A','#8E9138'],autumn2:['#E3A23E','#C46F2E'],autumn3:['#C0763A','#94532C']}[ss];
- const bark='#6E5641',barkD='#55412F';
+ // trädet: stam och krona av runda klungor, ljus uppe till vänster och hård skugga till höger som hundarna.
+ // Lövet följer året steg för steg (treeStage): knoppar, musöron, ljust försommargrönt, mörkare gröngul högsommar,
+ // gulnande, brandgult och eldigt rött med fallande löv, sena bruna löv och till sist kala grenar.
+ const TX=52,TY=160,T=treeStage(today()),den=T.d,bare=den<.04;
+ const bark='#6E5641',barkD='#55412F',[L1,L2]=T.c;
  let t='<path d="M'+(TX-4.5)+' '+TY+' Q'+(TX-3)+' '+(TY-26)+' '+(TX-2.6)+' '+(TY-46)+' L'+(TX+2.6)+' '+(TY-46)+' Q'+(TX+3.2)+' '+(TY-26)+' '+(TX+5.5)+' '+TY+'Z" fill="'+bark+'"/>'+
   '<path d="M'+(TX+.8)+' '+TY+' Q'+(TX+1.6)+' '+(TY-26)+' '+(TX+1.2)+' '+(TY-46)+' L'+(TX+2.6)+' '+(TY-46)+' Q'+(TX+3.2)+' '+(TY-26)+' '+(TX+5.5)+' '+TY+'Z" fill="'+barkD+'"/>';
  const br=[[TX,TY-30,TX-16,TY-52],[TX,TY-38,TX+15,TY-58],[TX-1,TY-46,TX-4,TY-70],[TX-9,TY-44,TX-22,TY-60],[TX+8,TY-50,TX+20,TY-66],[TX-3,TY-60,TX-12,TY-76],[TX-3,TY-62,TX+6,TY-80]];
  const brP=br.map(([a,b,c,d],i)=>'M'+a+' '+b+' Q'+f((a+c)/2+(i%2?3:-3))+' '+f((b+d)/2)+' '+c+' '+d);
- // kala grenar får små kvistar i spetsarna, och snö ligger som en vit kant ovanpå grenarna
- const tw=bare?br.map(([a,b,c,d],i)=>'M'+c+' '+d+' l'+(i%2?4:-4)+' -5 M'+f((a+c)/2)+' '+f((b+d)/2)+' l'+(i%2?-4:4)+' -4').join(' '):'';
+ // grenarna syns så länge kronan är gles; kvistar i spetsarna och snö som en vit kant ovanpå
+ const showBr=den<.75,tw=showBr?br.map(([a,b,c,d],i)=>'M'+c+' '+d+' l'+(i%2?4:-4)+' -5 M'+f((a+c)/2)+' '+f((b+d)/2)+' l'+(i%2?-4:4)+' -4').join(' '):'';
  if(bare&&snow>=1)t+='<g stroke="#FFFFFF" stroke-linecap="round" fill="none" transform="translate(0 -1.3)">'+brP.map((d,i)=>'<path d="'+d+'" stroke-width="'+(i<3?2.8:1.9)+'"/>').join('')+'<path d="'+tw+'" stroke-width="1.4"/></g>';
  t+='<g stroke="'+bark+'" stroke-linecap="round" fill="none">'+brP.map((d,i)=>'<path d="'+d+'" stroke-width="'+(i<3?2.6:1.6)+'"/>').join('')+(tw?'<path d="'+tw+'" stroke-width="1"/>':'')+'</g>';
- if(!bare){const[L1,L2]=leaf,lite=mixHex(L1,'#FFFFFF',.22),sparse=ss==='autumn3';
-  const CL=[[TX-14,TY-58,15],[TX+12,TY-62,14],[TX-2,TY-76,17],[TX-20,TY-72,11],[TX+20,TY-76,11],[TX+2,TY-56,13],[TX-8,TY-90,11],[TX+10,TY-88,10]].filter((_,i)=>!sparse||i%2===0);
-  t+='<g clip-path="none">'+CL.map(([x,y,r])=>'<circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="'+L1+'"/>').join('')+'</g>';
-  // skuggsidan till höger
-  t+='<clipPath id="'+id+'c">'+CL.map(([x,y,r])=>'<circle cx="'+x+'" cy="'+y+'" r="'+r+'"/>').join('')+'</clipPath><g clip-path="url(#'+id+'c)"><path d="M'+(TX+2)+' '+(TY-110)+' Q'+(TX-6)+' '+(TY-70)+' '+(TX+8)+' '+(TY-40)+' H'+(TX+40)+' V'+(TY-110)+'Z" fill="'+L2+'"/></g>';
-  t+=CL.slice(0,4).map(([x,y,r],i)=>'<circle cx="'+f(x-r*.35)+'" cy="'+f(y-r*.35)+'" r="'+f(r*.38)+'" fill="'+lite+'" opacity=".55"/>').join('');
-  if(ss==='spring'||ss==='easter')t+=[[TX-18,TY-66],[TX+6,TY-82],[TX+16,TY-64],[TX-6,TY-58],[TX-12,TY-84],[TX+22,TY-78]].map(([x,y])=>'<circle cx="'+x+'" cy="'+y+'" r="1.8" fill="#FFFFFF"/><circle cx="'+x+'" cy="'+y+'" r=".7" fill="#F2B6C6"/>').join('');
-  if(ss==='summer')t+=[[TX-16,TY-62],[TX+12,TY-70],[TX+2,TY-84]].map(([x,y])=>'<circle cx="'+x+'" cy="'+y+'" r="1.9" fill="#D94A3A"/>').join('');
-  // fallande löv på hösten
-  if(/autumn/.test(ss)&&!snow)t+='<g class="bd-leaves">'+[[TX+26,TY-40,0],[TX-28,TY-30,1.6],[TX+40,TY-20,3.1]].map(([x,y,d],i)=>'<path d="M'+x+' '+y+' q2.2 -1.6 4.4 0 q-2.2 1.6 -4.4 0Z" fill="'+(i%2?L2:L1)+'" style="animation-delay:-'+d+'s"/>').join('')+'</g>'}
- if(snow>=1&&!bare)t+=('<path d="M'+(TX-26)+' '+(TY-78)+' Q'+(TX-10)+' '+(TY-108)+' '+(TX+16)+' '+(TY-94)+' Q'+(TX+30)+' '+(TY-86)+' '+(TX+28)+' '+(TY-80)+' Q'+(TX+6)+' '+(TY-92)+' '+(TX-26)+' '+(TY-78)+'Z" fill="#FFFFFF" opacity=".92"/>');
- // trädets skugga på kullen och löv på marken
- t='<ellipse cx="'+(TX+6)+'" cy="'+(TY+1)+'" rx="18" ry="2.6" fill="'+shadeHex(near,.75)+'" opacity=".7"/>'+t;
- if(/autumn/.test(ss)&&snow<2)t+=[[TX-20,TY+4],[TX+14,TY+6],[TX+30,TY+3],[TX-6,TY+8]].map(([x,y],i)=>'<path d="M'+x+' '+y+' q2 -1.4 4 0 q-2 1.4 -4 0Z" fill="'+(leaf?leaf[i%2]:'#C0763A')+'"/>').join('');
+ // knoppar och glesa löv: små prickar vid grenspetsarna, fler ju längre lövet har kommit
+ const tips=br.flatMap(([a,b,c,d],i)=>[[c,d],[(a+c)/2,(b+d)/2],[c+(i%2?4:-4),d-5],[(a+3*c)/4,(b+3*d)/4]]);
+ if(!bare&&den<.62){const n=Math.round(tips.length*Math.min(1,den/.35)*1.6),r=1.2+den*4.2;
+  t+=Array.from({length:n},(_,k)=>{const[x,y]=tips[k%tips.length],j=Math.floor(k/tips.length),ox=(rnd(k+70)-.5)*(6+j*6),oy=(rnd(k+90)-.5)*(5+j*5);
+   return'<circle cx="'+f(x+ox)+'" cy="'+f(y+oy)+'" r="'+f(r*(.7+rnd(k+5)*.5))+'" fill="'+(k%3?L1:L2)+'"/>'}).join('')}
+ // tät krona av klungor när lövet är utslaget
+ if(den>=.5){const k0=Math.min(1,(den-.5)/.4),lite=mixHex(L1,'#FFFFFF',.22);
+  const CL=[[TX-14,TY-58,15],[TX+12,TY-62,14],[TX-2,TY-76,17],[TX-20,TY-72,11],[TX+20,TY-76,11],[TX+2,TY-56,13],[TX-8,TY-90,11],[TX+10,TY-88,10]].map(([x,y,r])=>[x,y,r*(.55+.45*k0)]).slice(0,Math.max(3,Math.round(8*Math.min(1,den+.1))));
+  t+='<g>'+CL.map(([x,y,r])=>'<circle cx="'+x+'" cy="'+y+'" r="'+f(r)+'" fill="'+L1+'"/>').join('')+
+   '<clipPath id="'+id+'c">'+CL.map(([x,y,r])=>'<circle cx="'+x+'" cy="'+y+'" r="'+f(r)+'"/>').join('')+'</clipPath><g clip-path="url(#'+id+'c)"><path d="M'+(TX+2)+' '+(TY-110)+' Q'+(TX-6)+' '+(TY-70)+' '+(TX+8)+' '+(TY-40)+' H'+(TX+40)+' V'+(TY-110)+'Z" fill="'+L2+'"/></g>'+
+   CL.slice(0,4).map(([x,y,r])=>'<circle cx="'+f(x-r*.35)+'" cy="'+f(y-r*.35)+'" r="'+f(r*.38)+'" fill="'+lite+'" opacity=".55"/>').join('')+'</g>'}
+ // blom på våren och äpplen på sensommaren
+ if(T.bloom)t+=[[TX-18,TY-66],[TX+6,TY-82],[TX+16,TY-64],[TX-6,TY-58],[TX-12,TY-84],[TX+22,TY-78],[TX-22,TY-56],[TX+2,TY-70]].slice(0,Math.round(8*T.bloom)).map(([x,y])=>'<circle cx="'+x+'" cy="'+y+'" r="1.9" fill="#FFFFFF"/><circle cx="'+x+'" cy="'+y+'" r=".75" fill="#F2B6C6"/>').join('');
+ if(T.fruit)t+=[[TX-16,TY-62],[TX+12,TY-70],[TX+2,TY-84],[TX-6,TY-72],[TX+18,TY-60]].slice(0,Math.round(5*T.fruit)).map(([x,y])=>'<circle cx="'+x+'" cy="'+y+'" r="2" fill="#D94A3A"/><circle cx="'+(x-.6)+'" cy="'+(y-.7)+'" r=".6" fill="#FFB3A6"/>').join('');
+ // fallande löv: fler ju mer det är höst, varje löv singlar ned i egen takt och vajar åt sidan
+ if(T.fall&&!snow&&!sc.thunder){const n=Math.round(T.fall*7),src=[[TX+18,TY-60],[TX-22,TY-64],[TX+4,TY-80],[TX-10,TY-56],[TX+24,TY-74],[TX-16,TY-82],[TX+10,TY-52]];
+  t+='<g class="bd-leaves">'+src.slice(0,n).map(([x,y],i)=>{const c=[L1,L2,T.c2||L1][i%3],dur=5+rnd(i+11)*4,dl=rnd(i+23)*dur,dx=-10-rnd(i+31)*26*(i%2?1:-.5),dy=TY+4-y+rnd(i+3)*6;
+   return'<g style="--dx:'+f(dx)+'px;--dy:'+f(dy)+'px;animation-duration:'+f(dur)+'s;animation-delay:-'+f(dl)+'s"><path d="M'+x+' '+y+' q3.2 -2.4 6.4 0 q-3.2 2.4 -6.4 0Z" fill="'+c+'"/></g>'}).join('')+'</g>'}
+ if(snow>=1&&!bare&&den>=.5)t+='<path d="M'+(TX-26)+' '+(TY-78)+' Q'+(TX-10)+' '+(TY-108)+' '+(TX+16)+' '+(TY-94)+' Q'+(TX+30)+' '+(TY-86)+' '+(TX+28)+' '+(TY-80)+' Q'+(TX+6)+' '+(TY-92)+' '+(TX-26)+' '+(TY-78)+'Z" fill="#FFFFFF" opacity=".92"/>';
+ // trädets skugga på kullen och fallna löv på marken
+ t='<ellipse cx="'+(TX+6)+'" cy="'+(TY+1)+'" rx="'+f(10+8*den)+'" ry="2.6" fill="'+shadeHex(near,.75)+'" opacity=".7"/>'+t;
+ if(T.ground&&snow<2){const G=[[TX-20,TY+4],[TX+14,TY+6],[TX+30,TY+3],[TX-6,TY+8],[TX-30,TY+7],[TX+22,TY+9],[TX+4,TY+3],[TX-14,TY+10],[TX+38,TY+7],[TX-38,TY+3]],gc=T.gc||[L1,L2];
+  t+=G.slice(0,Math.round(10*T.ground)).map(([x,y],i)=>'<path d="M'+x+' '+y+' q2 -1.4 4 0 q-2 1.4 -4 0Z" fill="'+gc[i%2]+'" transform="rotate('+Math.round(rnd(i+50)*80-40)+' '+(x+2)+' '+y+')"/>').join('')}
  g+='<g opacity=".92">'+t+'</g>';
  return'<svg class="bd" viewBox="0 0 230 190" aria-hidden="true">'+s+(sc.dark?'<g filter="url(#'+id+'n)">'+g+'</g>':g)+'</svg>'}
 function figSvg(sc,o){o=o||{};const id='fg'+(++FIG_N),ph=sc.phase,dark=sc.dark,warmL=ph==='dawn'||ph==='golden';
