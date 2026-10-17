@@ -818,6 +818,18 @@ button.fig-box:active{opacity:1;transform:scale(.96)}
 .stars input:checked~label{color:#FFB800}
 .stars input:checked+label{transform:scale(1.12)}
 .stars input:focus-visible+label{outline:2px solid var(--accent);border-radius:8px}
+/* Färgslidern i Färgval: alla nyanser i en remsa och en knopp i vald färg, som temperaturstapeln i Väder */
+.hue-cell{padding-top:14px;padding-bottom:14px}
+input.hue{-webkit-appearance:none;appearance:none;width:100%;height:14px;margin:6px 0;border-radius:7px;background:var(--grad);outline:none;touch-action:none;cursor:pointer}
+input.hue::-webkit-slider-thumb{-webkit-appearance:none;width:30px;height:30px;border-radius:50%;background:var(--k);border:4px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.35)}
+input.hue::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:var(--k);border:4px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.35)}
+input.hue:focus-visible::-webkit-slider-thumb{outline:2px solid var(--accent);outline-offset:3px}
+/* tonerna av vald färg fälls ut under slidern efter ett val */
+.shades{display:grid;grid-template-rows:0fr}.shades>div{overflow:hidden;min-height:0}
+.shades.open{grid-template-rows:1fr}.shades.grow{animation:shOpen .35s ease}
+.shades .cell{border-top:.5px solid var(--line)}
+@keyframes shOpen{from{grid-template-rows:0fr;opacity:0}to{grid-template-rows:1fr;opacity:1}}
+@media (prefers-reduced-motion:reduce){.shades.grow{animation:none}}
 .pcols{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px;width:100%;padding:4px 0}
 .pcols input{position:absolute;opacity:0;pointer-events:none}
 .pcols span{display:block;width:30px;height:30px;border-radius:50%;background:var(--c);cursor:pointer;box-shadow:0 0 0 2px var(--surface),0 0 0 2px transparent;transition:box-shadow .2s}

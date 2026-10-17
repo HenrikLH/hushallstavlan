@@ -87,7 +87,20 @@ const PCOL={indigo:['Indigo','#4B4FC4','#3D41A8','#8C8FF2','#AEB0FF'],bla:['Blå
  gron:['Grön','#2E8540','#226B32','#4CC764','#7ADB8D'],plommon:['Plommon','#8E3B9E','#7A2F89','#C985D8','#DCA6E8'],vinrod:['Vinröd','#A3253F','#A3253F','#D9566F','#EC7088'],
  rosa:['Rosa','#C2457E','#A8346A','#F07EB0','#F7A3C8'],orange:['Orange','#C25E0A','#A34E06','#F2994A','#F7B57A'],grafit:['Grafit','#5B6472','#4A525E','#A3ACB9','#C2C9D3']};
 const PCOL_DEF=['indigo','teal'];
-const personColor=i=>{const c=(personList()[i]||{}).c;return PCOL[c]?c:PCOL_DEF[i]||'grafit'};
+/* Fria färger från färgslidern i Färgval: nyckeln h<nyans 0-360>s<ton 0-6>, nyans över 360 är grått.
+   Ton 0 är ljusast och 6 mörkast; 3 är mitten som väljs först. Färgerna läggs in i PCOL när de används. */
+const hslHex=(h,s,l)=>{s/=100;l/=100;const f=n=>{const k=(n+h/30)%12,c=l-s*Math.min(l,1-l)*Math.max(-1,Math.min(k-3,9-k,1));return Math.round(255*c).toString(16).padStart(2,'0')};return'#'+f(0)+f(8)+f(4)};
+const hexHue=x=>{const[r,g,b]=[1,3,5].map(i=>parseInt(x.slice(i,i+2),16)/255),M=Math.max(r,g,b),m=Math.min(r,g,b),d=M-m;if(d<.08)return 370;
+ const h=M===r?((g-b)/d)%6:M===g?(b-r)/d+2:(r-g)/d+4;return Math.round((h*60+360)%360)};
+const HUE_NAMN=[[12,'Röd'],[38,'Orange'],[62,'Gul'],[88,'Gulgrön'],[150,'Grön'],[185,'Turkos'],[212,'Himmelsblå'],[242,'Blå'],[268,'Indigo'],[298,'Lila'],[332,'Rosa'],[347,'Hallon'],[361,'Röd']];
+function genCol(H,t){const g=H>360,sa=g?0:H>40&&H<175?56:66,lo=g?0:H>48&&H<175?6:H>14&&H<=48?-5:0;
+ const L=[60,53,46,40,34,28,22][t]-lo,Ld=[80,74,68,62,56,50,44][t]-lo/2;
+ const nm=g?'Grå':HUE_NAMN.find(x=>H<x[0])[1],adj=t<=1?'Ljus ':t>=5?'Mörk ':'';
+ return[adj?adj+nm.toLowerCase():nm,hslHex(H%360,sa,L),hslHex(H%360,sa,L-7),hslHex(H%360,g?0:72,Ld),hslHex(H%360,g?0:72,Math.min(Ld+6,88))]}
+const colOk=k=>{if(PCOL[k])return true;const m=/^h(\d{1,3})s([0-6])$/.exec(k||'');if(!m||+m[1]>380)return false;PCOL[k]=genCol(+m[1],+m[2]);return true};
+// var på slidern en färg ligger och vilken ton den har (de fasta färgerna har ingen ton i raden)
+const colPos=k=>{const m=/^h(\d+)s(\d)$/.exec(k);if(m)return{h:+m[1],t:+m[2]};return{h:colOk(k)?hexHue(PCOL[k][1]):0,t:-1}};
+const personColor=i=>{const c=(personList()[i]||{}).c;return colOk(c)?c:PCOL_DEF[i]||'grafit'};
 const rgba=(h,a)=>'rgba('+[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)).join(',')+','+a+')';
 let pcolKey='';
 function applyPersonColors(){const ks=[0,1].map(personColor),key=ks.join();if(key===pcolKey)return;pcolKey=key;
@@ -97,7 +110,10 @@ function applyPersonColors(){const ks=[0,1].map(personColor),key=ks.join();if(ke
 /* Accentfärgen (Inställningar → Färgval) gäller bara den här enheten: en av användarfärgerna eller "min färg",
    som följer färgen för den som använder enheten. Vinröd är standard. */
 let ACCENT=lsGet('accent')||'vinrod';
-const accentKey=()=>{if(ACCENT==='min'){const i=people().indexOf(S.me);return i>=0?personColor(i):'vinrod'}return PCOL[ACCENT]?ACCENT:'vinrod'};
+const FARG_OPEN={};
+function setPcol(i,key){const L=personList().slice(0,2);while(L.length<2)L.push({n:['Henrik','Cornelia'][L.length],c:''});if(!colOk(key))return;L[i].c=key;
+ const v=L.map(x=>x.n+':'+(colOk(x.c)?x.c:PCOL_DEF[L.indexOf(x)])).join(', ');settings().personer=v;render();apiPost({action:'setting',k:'personer',v})}   // vilka tonrader som är utfällda i Färgval (2 = fälls ut just nu)
+const accentKey=()=>{if(ACCENT==='min'){const i=people().indexOf(S.me);return i>=0?personColor(i):'vinrod'}return colOk(ACCENT)?ACCENT:'vinrod'};
 let accKey='';
 function applyAccent(){const k=accentKey();if(k===accKey)return;accKey=k;let el=document.getElementById('acc');
  if(k==='vinrod'){if(el)el.remove();return}
@@ -421,7 +437,7 @@ function planPortions(){const ids=new Set();D().menu.forEach(m=>{if(m.recipe)ids
 /* ---------- render ---------- */
 let rq=0,pendingRender=false;
 function render(){if(rq)return;rq=setTimeout(()=>{rq=0;doRender()},0)}
-function busyTyping(){const a=document.activeElement;return a&&a.closest&&a.closest('#main,#overlay')&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)&&a.type!=='checkbox'}
+function busyTyping(){const a=document.activeElement;return a&&a.closest&&a.closest('#main,#overlay')&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)&&!/^(checkbox|radio|range)$/.test(a.type)}
 function renderStatus(){const el=document.getElementById('sync');if(el)el.outerHTML=statusHtml()}
 const waitTxt=n=>n+(n===1?' ändring klartr':' ändringar klartr')+' på nät';
 function statusHtml(){const t=S.lastSync?pad(S.lastSync.getHours())+':'+pad(S.lastSync.getMinutes()):'';
@@ -1783,6 +1799,7 @@ function renderOverlay(){
   sh('Namn i hushållet')+group([0,1].map(i=>'<div class="cell"><span class="pdot p'+(i+1)+'"></span><input class="field" id="set-p'+(i+1)+'" name="p'+(i+1)+'" aria-label="Person '+(i+1)+'" value="'+esc(people()[i]||'')+'"><input type="hidden" name="c'+(i+1)+'" value="'+personColor(i)+'"></div>').join(''))+
   sh('Städtid och budget')+group(fieldCell('Vardag, min','<input class="field r" id="set-wd" name="wd" inputmode="numeric" value="'+esc(st.stadtid_vardag||20)+'" style="max-width:110px">')+fieldCell('Helg, min','<input class="field r" id="set-we" name="we" inputmode="numeric" value="'+esc(st.stadtid_helg||40)+'" style="max-width:110px">')+fieldCell('Mat/vecka, kr','<input class="field r" id="set-budget" name="budget" inputmode="numeric" value="'+esc(st.matbudget||'')+'" style="max-width:110px">'))+
   sh('Utseende')+group('<button type="button" class="cell link" data-act="farg"><span class="grow">Färgval</span><span class="meta">'+esc({system:'System',light:'Ljust',dark:'Mörkt'}[S.theme]+' · '+(ACCENT==='min'?'Min färg':PCOL[accentKey()][0]))+'</span>'+chevron+'</button>')+'<div class="foot">Ljust eller mörkt, accentfärg och era färger i hushållet.</div>'+
+  sh('Hundar i bilden')+'<div class="seg-wrap">'+segc('Hundar i bilden','hundar',[['vaxla','Växla'],['bada','Båda'],['brun','Bruna'],['svart','Svarta']],HUNDAR)+'</div><div class="foot">Växla byter var tredje timme. Du kan också trycka på hundarna i Väder för att byta. Gäller bara den här enheten.</div>'+
   sh('Schemat i kalenderrutan')+'<div class="seg-wrap">'+segc('Schemat i kalenderrutan','calStyle',[['1','Tid kvar'],['2','Stapel'],['3','Tidsaxel']],CAL_STYLE)+'</div>'+
   (DEV?sh('Förslag i Planera med portioner')+'<div class="seg-wrap">'+segc('Förslag i Planera med portioner','flStyle',[['karusell','Stort kort'],['lista','Lista']],FL_STYLE)+'</div>':'')+
   sh('Översikten')+group('<button type="button" class="cell link" data-act="arrange"><span class="grow">Ändra ordning på rutorna</span>'+chevron+'</button>')+'<div class="foot">Gäller bara den här enheten. Du kan också hålla fingret på en ruta en stund.</div>'+
@@ -1793,14 +1810,21 @@ function renderOverlay(){
   sh('Den här enheten')+group('<button type="button" class="cell link center red" data-act="logout">Logga ut</button>')+
   '<div class="foot ver">Hushållstavlan · UI '+(NY?UI_VER:'1.0')+' · version '+esc(APP_VER)+'</div>';
   o.innerHTML=sheetHtml('settings','Inställningar','<button class="tb strong">Spara</button>',body,enter);segSlide(o);return}
- if(k==='farg'){const mi=people().indexOf(S.me);
-  const dots=(name,chg,id,cur,keys,lab)=>'<div class="cell"><div class="pcols" role="radiogroup" aria-label="'+esc(lab)+'">'+keys.map(c=>{const pc=PCOL[c==='min'?personColor(mi):c];
-   return'<label title="'+(c==='min'?'Min färg':pc[0])+'"><input type="radio" name="'+name+'" value="'+c+'" data-change="'+chg+'"'+(id!=null?' data-id="'+id+'"':'')+(cur===c?' checked':'')+'><span style="--c:'+pc[1]+';--cd:'+pc[chg==='accent'?4:3]+'"></span></label>'}).join('')+'</div></div>';
-  const accName=ACCENT==='min'?'Min färg':PCOL[accentKey()][0]+(accentKey()==='vinrod'?' (standard)':'');
+ if(k==='farg'){const mi=people().indexOf(S.me),dk=isDark();
+  // färgslidern med alla nyanser och grått längst till höger; efter ett val fälls en rad med toner av färgen ut under
+  const grad=[...Array(13)].map((_,j)=>genCol(j*30,3)[dk?3:1]+' '+(j*30/380*100).toFixed(1)+'%').join(',')+','+genCol(370,3)[dk?3:1]+' 96%';
+  const picker=(name,chg,id,cur,lab)=>{const pc=PCOL[cur],P=colPos(cur),open=FARG_OPEN[name];
+   return'<div class="cell hue-cell"><input type="range" class="hue" min="0" max="380" step="1" value="'+P.h+'" data-hue="'+name+'" data-change="'+chg+'"'+(id!=null?' data-id="'+id+'"':'')+' aria-label="'+esc(lab)+'" style="--grad:linear-gradient(90deg,'+grad+');--k:'+pc[dk?3:1]+'"></div>'+
+    '<div class="shades'+(open?' open'+(open===2?' grow':''):'')+'" data-shades="'+name+'"><div><div class="cell"><div class="pcols" role="radiogroup" aria-label="Toner av '+esc(pc[0].toLowerCase())+'">'+
+    [0,1,2,3,4,5,6].map(t=>{const key='h'+P.h+'s'+t;colOk(key);const c=PCOL[key];return'<label title="'+esc(c[0])+'"><input type="radio" name="'+name+'" value="'+key+'" data-change="'+chg+'"'+(id!=null?' data-id="'+id+'"':'')+(P.t===t?' checked':'')+'><span style="--c:'+c[1]+';--cd:'+c[chg==='accent'?4:3]+'"></span></label>'}).join('')+'</div></div></div></div>'};
+  Object.keys(FARG_OPEN).forEach(k=>{if(FARG_OPEN[k]===2)FARG_OPEN[k]=1});
+  const accName=ACCENT==='min'?'Min färg ('+PCOL[accentKey()][0].toLowerCase()+')':PCOL[accentKey()][0]+(accentKey()==='vinrod'?' (standard)':'');
   const body=sh('Ljust eller mörkt')+'<div class="seg-wrap">'+segc('Ljust eller mörkt','theme',[['system','System'],['light','Ljust'],['dark','Mörkt']],S.theme)+'</div>'+
-   sh('Accentfärg')+group('<div class="cell"><span class="grow">Knappar och länkar</span><span class="meta">'+esc(accName)+'</span></div>'+dots('acc','accent',null,ACCENT==='min'?'min':accentKey(),Object.keys(PCOL),'Accentfärg'))+
-   '<div class="foot">Gäller bara den här enheten.'+(mi>=0?' <button type="button" class="lnk-in" data-act="accent" data-id="min">Använd min färg</button>':'')+'</div>'+
-   sh('Färg i hushållet')+people().slice(0,2).map((n,i)=>group('<div class="cell"><span class="grow">'+esc(n)+'</span><span class="meta">'+esc(PCOL[personColor(i)][0])+'</span></div>'+dots('pc'+i,'pcol',i,personColor(i),Object.keys(PCOL),'Färg för '+n))).join('<div style="height:10px"></div>')+
+   sh('Accentfärg')+group('<div class="cell"><span class="grow">Knappar och länkar</span><span class="meta" data-name="acc">'+esc(accName)+'</span></div>'+
+    (ACCENT==='min'?'':picker('acc','accent',null,accentKey(),'Accentfärg'))+
+    (mi>=0?fieldCell('Samma som min färg','<input type="checkbox" role="switch" class="switch" data-act="accMin" aria-label="Samma som min färg"'+(ACCENT==='min'?' checked':'')+'>'):''))+
+   '<div class="foot">'+(ACCENT==='min'?'Knapparna följer din färg i hushållet nedanför. ':'')+'Gäller bara den här enheten.</div>'+
+   sh('Färg i hushållet')+people().slice(0,2).map((n,i)=>group('<div class="cell"><span class="grow">'+esc(n)+'</span><span class="meta" data-name="pc'+i+'">'+esc(PCOL[personColor(i)][0])+'</span></div>'+picker('pc'+i,'pcol',i,personColor(i),'Färg för '+n))).join('<div style="height:10px"></div>')+
    '<div class="foot">Används för era händelser, uppgifter, sysslor och i Ekonomi. Gäller alla enheter.</div>';
   o.innerHTML=sheetHtml('farg','Färgval','<button type="button" class="tb strong" data-act="sheetClose">Klar</button>',body,enter,'<button type="button" class="back" data-act="settings">'+I.back+'Inställningar</button>');segSlide(o);return}
  if(k==='prefs'){const st=settings();
@@ -2498,8 +2522,10 @@ loadExt();setInterval(loadExt,10*60000);
 
 // Vilka hundar som visas: växlar var tredje timme, oftast båda
 // a/b = fawn/svart sittande, A/B = liggande och sovande; ordningen är från vänster
+let HUNDAR=['bada','brun','svart'].includes(lsGet('hundar'))?lsGet('hundar'):'vaxla';
 const figVariants=sleep=>sleep?['AB','AB','BA','A','B']:['ab','ab','ab','ba','ba','a','a','b','b'];
-function figVariant(sc){const L=figVariants(sc.sleep);if(S.wxVar&&L.includes(S.wxVar))return S.wxVar;const n=new Date(),key=today()+'|'+Math.floor(n.getHours()/3)+'|'+(sc.sleep?1:0);let h=0;for(const c of key)h=(h*31+c.charCodeAt(0))>>>0;return L[h%L.length]}
+function figVariant(sc){const L=figVariants(sc.sleep);if(S.wxVar&&L.includes(S.wxVar))return S.wxVar;
+ if(HUNDAR!=='vaxla'){const v={bada:'ab',brun:'a',svart:'b'}[HUNDAR];return sc.sleep?v.toUpperCase():v}const n=new Date(),key=today()+'|'+Math.floor(n.getHours()/3)+'|'+(sc.sleep?1:0);let h=0;for(const c of key)h=(h*31+c.charCodeAt(0))>>>0;return L[h%L.length]}
 // Scenen ritas om när ljuset eller vädret ändras, till exempel vid solnedgången, även om prognosen inte hämtats på nytt
 let SCENE_KEY='';
 const sceneKey=()=>{const W=wxModel();if(!W)return'';const c=wxScene(W);return[c.phase,c.sky,c.type,c.lv,c.thunder,c.tc,c.wl,Math.floor(Date.now()/6e5)].join('|')};   // himlakropparna flyttas var tionde minut
@@ -2521,7 +2547,7 @@ V.vader=function(){const W=wxModel(),P=WX_POS();
  // UI 2.0: samma bild som på Översikt i större format (träd, kulle och gräsplätt som tonar ut i rutan), råden under bilden
  if(NY)h+='<section class="wx2"><div class="wx2-top"><div><div class="wx-place">'+esc(P.name)+'</div><div class="wx-big num" id="lt">'+deg(W.now.T)+'</div></div>'+
   '<div class="wx2-r"><div class="wx2-cond"><span aria-hidden="true">'+ic+'</span>'+esc(tx)+'</div><div class="wx-hl num">H:'+deg(d0.max)+'  L:'+deg(d0.min)+'</div></div></div>'+
-  arcHtml(W,'w')+'<div class="gs wx2-gs">'+(BAKGRUND?backdropSvg(wxScene(W)):'')+'<div class="fig-box grass" aria-hidden="true">'+figSvg(wxScene(W),{bare:1,patch:1})+'</div></div>'+
+  arcHtml(W,'w')+'<div class="gs wx2-gs">'+(BAKGRUND?backdropSvg(wxScene(W)):'')+'<button class="fig-box grass" data-act="wxVar" aria-label="Visa andra hundar">'+figSvg(wxScene(W),{bare:1,patch:1})+'</button></div>'+
   '<div class="wx2-bar"><div><b>'+esc(capS(F.when))+'</b><span>'+esc(F.tip)+'</span></div><div><b>Vind</b><span>'+esc(windText(W.now))+'</span></div></div></section>';
  else h+=wxSceneHtml(W,{h:330,g:100,inner:'<div class="sc-head"><div class="wx-place">'+esc(P.name)+'</div><div class="wx-big num" id="lt">'+deg(W.now.T)+'</div><div><div class="wx-cond">'+esc(tx)+'</div><div class="wx-hl num">H:'+deg(d0.max)+'  L:'+deg(d0.min)+'</div></div></div>'+
   '<div class="sc-bar"><div><b>'+esc(capS(F.when))+'</b><span>'+esc(F.tip)+'</span></div><div><b>Vind</b><span>'+esc(windText(W.now))+'</span></div></div>'});
@@ -2699,6 +2725,7 @@ V.fod=function(){const L=bdays(),t=parse(today()),mode=S.fodMode||'hjul';
  return h};
 
 /* ---------- utseende ---------- */
+const isDark=()=>S.theme==='dark'||S.theme==='system'&&matchMedia('(prefers-color-scheme: dark)').matches;
 function applyTheme(fade){const root=document.documentElement;
  if(fade&&!calm()){root.classList.add('theme-fade');clearTimeout(applyTheme.t);applyTheme.t=setTimeout(()=>root.classList.remove('theme-fade'),450)}
  if(S.theme==='system')root.removeAttribute('data-theme');else root.setAttribute('data-theme',S.theme);
@@ -2790,7 +2817,9 @@ const ACT={
  refresh(){refresh()},
  settings(){S.sheet='settings';render()},
  farg(){S.sheet='farg';render()},
- accent(id){ACCENT=id==='min'||PCOL[id]?id:'vinrod';lsSet('accent',ACCENT==='vinrod'?null:ACCENT);render()},
+ hundar(id){HUNDAR=['bada','brun','svart'].includes(id)?id:'vaxla';lsSet('hundar',HUNDAR==='vaxla'?null:HUNDAR);S.wxVar=null;render()},
+ accMin(){ACT.accent(ACCENT==='min'?accentKey():'min')},
+ accent(id){ACCENT=id==='min'||colOk(id)?id:'vinrod';lsSet('accent',ACCENT==='vinrod'?null:ACCENT);render()},
  arrange(){closeSheets();S.arrange=true;ACT.nav('oversikt')},
  arrangeDone(){S.arrange=false;render()},
  boxSize(id){boxEdit(L=>{L.size[id]=L.size[id]==='h'?'f':'h'})},
@@ -3018,15 +3047,21 @@ document.addEventListener('scroll',e=>{const t=e.target;if(t&&t.classList&&t.cla
 // Månaden bredvid Schema följer de dagar som syns i raden
 function wkMonth(w){const ds=w.querySelectorAll('.wk-d'),mo=w.closest('.calw')&&w.closest('.calw').querySelector('.wk-mo');if(!ds.length||!mo)return;
  const i=Math.min(ds.length-1,Math.round(w.scrollLeft/ds[0].offsetWidth)+3),k=ds[i].dataset.id;if(isDate(k))mo.textContent=MON[parse(k).getMonth()]}
-document.addEventListener('input',e=>{if(e.target.id==='sw-q'){const q=e.target.value.trim().toLowerCase();let n=0;document.querySelectorAll('#overlay .sw-row').forEach(b=>{const ok=!q||b.dataset.q.includes(q);b.hidden=!ok;if(ok)n++});const f=document.querySelector('#overlay .sw-none');if(f)f.hidden=n>0;return}
+document.addEventListener('input',e=>{const hu=e.target.dataset&&e.target.dataset.hue;
+ if(hu){const k='h'+e.target.value+'s3',dk=isDark();colOk(k);e.target.style.setProperty('--k',PCOL[k][dk?3:1]);
+  const m=document.querySelector('#overlay [data-name="'+hu+'"]');if(m)m.textContent=PCOL[k][0];return}
+ if(e.target.id==='sw-q'){const q=e.target.value.trim().toLowerCase();let n=0;document.querySelectorAll('#overlay .sw-row').forEach(b=>{const ok=!q||b.dataset.q.includes(q);b.hidden=!ok;if(ok)n++});const f=document.querySelector('#overlay .sw-none');if(f)f.hidden=n>0;return}
  if(e.target.classList.contains('smc-sl')){const f=e.target.closest('.smc-r').querySelector('.smc-face');if(f)f.textContent=SMIL[Number(e.target.value)+1][1]}
  if(e.target.id==='ork')orkPreview(e.target);if(e.target.id==='split-amt')splitPreview(e.target)});
 document.addEventListener('change',e=>{const el=e.target.closest('[data-change]');if(!el)return;const id=el.dataset.id;
+ // färgslidern: släppt nyans blir mittentonen, och raden med toner fälls ut
+ if(el.dataset.hue){const hk='h'+el.value+'s3';colOk(hk);if(!FARG_OPEN[el.dataset.hue])FARG_OPEN[el.dataset.hue]=2;el.blur();
+  if(el.dataset.change==='accent'){ACT.accent(hk);return}
+  setPcol(Number(id),hk);return}
  if(el.dataset.change==='photo'){const f=el.files&&el.files[0];el.value='';if(S.rcpSheet){S.rcpSheet=null;render()}uploadPhoto(id,f);return}
  if(el.dataset.change==='ork'){el.blur();ACT.budget(String(ORK[Number(el.value)].min));return}
  if(el.dataset.change==='accent'){ACT.accent(el.value);return}
- if(el.dataset.change==='pcol'){const i=Number(id),L=personList().slice(0,2);while(L.length<2)L.push({n:['Henrik','Cornelia'][L.length],c:''});if(!PCOL[el.value])return;L[i].c=el.value;
-  const v=L.map(x=>x.n+':'+(PCOL[x.c]?x.c:PCOL_DEF[L.indexOf(x)])).join(', ');settings().personer=v;render();apiPost({action:'setting',k:'personer',v});return}
+ if(el.dataset.change==='pcol'){setPcol(Number(id),el.value);return}
  if(el.dataset.change==='planBudget'){const v=Math.round(Number(el.value));if(!(v>=200&&v<=5000)){toast('Skriv en budget mellan 200 och 5 000 kr');render();return}settings().matbudget=String(v);render();apiPost({action:'setting',k:'matbudget',v:String(v)});return}
   if(el.dataset.change==='eko'){const v=Math.max(0,Number(String(el.value).replace(',','.'))||0);updJSON('ekonomi',{},o=>{o[id]=v;return o});return}
  const f=el.dataset.change==='freq'?{freq:Number(el.value)}:{who:el.value};mutate('clean',id,f);apiPost({action:'cleanSet',id,fields:f})});
@@ -3091,7 +3126,7 @@ document.addEventListener('submit',async e=>{const f=e.target.closest('[data-for
  if(f.dataset.form==='prefs'){const st=settings();
   const ch=PREFS.map(([k])=>[k,String(d[k]||'').replace(/\s+\n/g,'\n').trim()]).filter(([k,v])=>String(st[k]||'')!==v);
   closeSheets();ch.forEach(([k,v])=>{st[k]=v;apiPost({action:'setting',k,v})});render();toast(ch.length?'Preferenserna är sparade':'Inget ändrades');return}
- if(f.dataset.form==='settings'){const p=[[d.p1.trim()||'Henrik',d.c1],[d.p2.trim()||'Cornelia',d.c2]].map(([n,c])=>n.replace(/[:,]/g,' ').trim()+(PCOL[c]?':'+c:'')).join(', ');const st=settings();
+ if(f.dataset.form==='settings'){const p=[[d.p1.trim()||'Henrik',d.c1],[d.p2.trim()||'Cornelia',d.c2]].map(([n,c])=>n.replace(/[:,]/g,' ').trim()+(colOk(c)?':'+c:'')).join(', ');const st=settings();
   const ch=[['personer',p],['stadtid_vardag',String(Number(d.wd)||20)],['stadtid_helg',String(Number(d.we)||40)],['matbudget',String(Number(d.budget)||0)]].filter(([k,v])=>String(st[k]||'')!==v);
   ch.forEach(([k,v])=>{st[k]=v;apiPost({action:'setting',k,v})});S.sheet=null;render();if(ch.length)toast('Sparat')}
 });
