@@ -1476,6 +1476,24 @@ html.ny.nav-glas .nav-pill{display:block}
   @keyframes navTillMini{0%{transform:scale(1);opacity:1}38%{transform:scale(.9);opacity:1}100%{transform:scale(.2);opacity:0}}
   @keyframes navFranMini{0%{transform:scale(.2);opacity:0}55%{transform:scale(.97);opacity:1}100%{transform:scale(1);opacity:1}}
   @media (prefers-reduced-motion:reduce){html.ny.nav-glas .nav.mini,html.ny.nav-glas .nav.ut{animation-duration:.01s}}
+  /* Piller: menyn zoomas ut nedåt och tonas bort medan ett smalt piller med bara ikonerna glider upp
+     halvvägs nedanför skärmkanten, som om det gått ner under horisonten. Bara transform och opacitet. */
+  html.ny.nav-piller .nav{transform-origin:50% 100%}
+  html.ny.nav-piller .nav.mini{animation:navTillPiller .5s cubic-bezier(.4,0,.2,1) both}
+  html.ny.nav-piller .nav.ut{animation:navFranPiller .5s cubic-bezier(.2,.8,.2,1) both}
+  html.ny.nav-piller .nav-mini{display:none}
+  html.ny .nav-piller{display:none}
+  html.ny.nav-piller .nav-piller{display:flex;align-items:flex-start;justify-content:space-between;position:fixed;z-index:21;left:50%;bottom:-22px;width:236px;height:60px;margin-left:-118px;padding:7px 14px 0;border-radius:30px;
+    background:var(--glass);-webkit-backdrop-filter:saturate(180%) blur(24px);backdrop-filter:saturate(180%) blur(24px);border:.5px solid var(--glass-line);box-shadow:0 6px 24px rgba(0,0,0,.18),0 1px 3px rgba(0,0,0,.08);
+    opacity:0;transform:translateY(26px) scale(1.25,.8);pointer-events:none;translate:0 var(--vvb,0px);will-change:transform,opacity;transition:opacity .18s ease,transform .32s cubic-bezier(.4,0,.2,1)}
+  html.ny.nav-piller .nav-piller.on{opacity:1;transform:none;pointer-events:auto;transition:opacity .24s ease .18s,transform .5s cubic-bezier(.2,.9,.25,1.1) .14s}
+  html.ny .nav-piller button{width:36px;height:30px;display:grid;place-items:center;color:var(--ink-2)}
+  html.ny .nav-piller button svg{width:23px;height:23px}
+  html.ny .nav-piller button[aria-current]{color:var(--accent)}
+  html.ny .nav-piller button[aria-current] svg{stroke-width:2.2}
+  @keyframes navTillPiller{0%{transform:none;opacity:1}40%{transform:scale(.92);opacity:1}100%{transform:translateY(40px) scale(.45,.6);opacity:0}}
+  @keyframes navFranPiller{0%{transform:translateY(40px) scale(.45,.6);opacity:0}55%{transform:scale(.98);opacity:1}100%{transform:none;opacity:1}}
+  @media (prefers-reduced-motion:reduce){html.ny.nav-piller .nav.mini,html.ny.nav-piller .nav.ut{animation-duration:.01s}}
 }
 @media (min-width:900px){html.ny.nav-glas .nav{border-radius:calc(var(--tabbar) / 2)}html.ny.nav-glas .nav-pill{top:6px;bottom:6px;left:6px;width:calc((100% - 12px) / 5);border-radius:calc(var(--tabbar) / 2 - 6px)}}
 

@@ -193,13 +193,17 @@ function renderNav(nav){
  nav.addEventListener('click',e=>{if(skip){e.stopPropagation();e.preventDefault()}},true)})();
 // Svävande menyrad på telefon: krymper till en rund knapp nere till vänster när man scrollar nedåt,
 // växer ut igen när man scrollar uppåt, når toppen eller trycker på knappen.
-(function(){const nav=document.getElementById('nav'),mini=document.createElement('button');let y0=scrollY,acc=0;
+// Piller: menyn zoomas ut till ett smalt piller med bara de fem ikonerna, halvvägs nedanför skärmkanten.
+(function(){const nav=document.getElementById('nav'),mini=document.createElement('button'),pil=document.createElement('div');let y0=scrollY,acc=0;
  mini.className='nav-mini';mini.type='button';mini.setAttribute('aria-label','Visa menyn');document.body.appendChild(mini);
- const on=()=>NY&&FLIKRAD==='glas'&&!S.wall&&innerWidth<900&&!nav.classList.contains('none');
+ pil.className='nav-piller';pil.setAttribute('aria-label','Vyer');document.body.appendChild(pil);
+ const on=()=>NY&&FLIKRAD!=='fast'&&!S.wall&&innerWidth<900&&!nav.classList.contains('none');
  const set=m=>{if(nav.classList.contains('mini')===m)return;
-  if(m){const b=nav.querySelector('button[aria-current] svg');mini.innerHTML=b?b.outerHTML:''}
-  nav.classList.remove('ut');nav.classList.toggle('mini',m);if(!m)nav.classList.add('ut');mini.classList.toggle('on',m)};
- nav.addEventListener('animationend',e=>{if(e.animationName==='navFranMini')nav.classList.remove('ut')});
+  if(m){const b=nav.querySelector('button[aria-current] svg');mini.innerHTML=b?b.outerHTML:'';
+   pil.innerHTML=VIEWS.map(([id,l,ic])=>'<button data-act="nav" data-id="'+id+'" aria-label="'+l+'"'+(id===S.view?' aria-current="page"':'')+'>'+ic+'</button>').join('')}
+  nav.classList.remove('ut');nav.classList.toggle('mini',m);if(!m)nav.classList.add('ut');mini.classList.toggle('on',m);pil.classList.toggle('on',m)};
+ pil.addEventListener('click',e=>{if(!e.target.closest('button'))set(false)});
+ nav.addEventListener('animationend',e=>{if(e.animationName==='navFranMini'||e.animationName==='navFranPiller')nav.classList.remove('ut')});
  document.addEventListener('scroll',()=>{const y=scrollY,d=y-y0;y0=y;if(!on()){set(false);acc=0;return}
   if(y<40){acc=0;set(false);return}
   acc=(acc>0)===(d>0)?acc+d:d;if(acc>24)set(true);else if(acc<-24)set(false)},{passive:true});
@@ -1297,8 +1301,8 @@ let NY=nyNu();
 function applyNy(){document.documentElement.classList.toggle('ny',NY)}
 applyNy();
 // menyväljarens och flikradens utseende i UI 2.0, valt per enhet i Inställningar
-let SEGSTIL=['kapsel','klassisk'].includes(lsGet('segstil'))?lsGet('segstil'):'standard',FLIKRAD=lsGet('flikrad')==='glas'?'glas':'fast';
-function applyStil(){const c=document.documentElement.classList;c.toggle('seg-kapsel',SEGSTIL==='kapsel');c.toggle('seg-klassisk',SEGSTIL==='klassisk');c.toggle('nav-glas',FLIKRAD==='glas')}
+let SEGSTIL=['kapsel','klassisk'].includes(lsGet('segstil'))?lsGet('segstil'):'standard',FLIKRAD=['glas','piller'].includes(lsGet('flikrad'))?lsGet('flikrad'):'fast';
+function applyStil(){const c=document.documentElement.classList;c.toggle('seg-kapsel',SEGSTIL==='kapsel');c.toggle('seg-klassisk',SEGSTIL==='klassisk');c.toggle('nav-glas',FLIKRAD!=='fast');c.toggle('nav-piller',FLIKRAD==='piller')}
 applyStil();
 function portKarusell(alla,p,C){const n=alla.length,i0=Math.min(Math.max(1,(S.carIdx||{})[p.id]||1),n);
  const nx=C.dag.find(y=>y.p.dag>p.dag&&y.t!=='ratt'&&y.t!=='rest');
@@ -1921,7 +1925,7 @@ function renderOverlay(){
   sh('Städtid och budget')+group(fieldCell('Vardag, min','<input class="field r" id="set-wd" name="wd" inputmode="numeric" value="'+esc(st.stadtid_vardag||20)+'" style="max-width:110px">')+fieldCell('Helg, min','<input class="field r" id="set-we" name="we" inputmode="numeric" value="'+esc(st.stadtid_helg||40)+'" style="max-width:110px">')+fieldCell('Mat/vecka, kr','<input class="field r" id="set-budget" name="budget" inputmode="numeric" value="'+esc(st.matbudget||'')+'" style="max-width:110px">'))+
   sh('Utseende')+group('<button type="button" class="cell link" data-act="farg"><span class="grow">Färgval</span><span class="meta">'+esc({system:'System',light:'Ljust',dark:'Mörkt'}[S.theme]+' · '+(ACCENT==='min'?'Min färg':PCOL[accentKey()][0]))+'</span>'+chevron+'</button>')+'<div class="foot">Ljust eller mörkt, accentfärg och era färger i hushållet.</div>'+
   (NY?sh('Form på knappar och rutor')+'<div class="seg-wrap">'+segc('Form på knappar och rutor','segstil',[['standard','Kantiga'],['kapsel','Runda'],['klassisk','Raka']],SEGSTIL)+'</div><div class="foot">Gäller växlingsknappar, rutor, listor och knappar i hela appen. Kantiga har lätt rundade hörn. Runda har helt runda knappar och mjukare rutor, som i iOS 26. Raka har små hörn och streck mellan valen, som i äldre iOS. Text, höjd och färg är samma i alla tre. Gäller bara den här enheten.</div>'+
-   sh('Menyraden längst ner')+'<div class="seg-wrap">'+segc('Menyraden längst ner','flikrad',[['fast','Fast'],['glas','Svävande']],FLIKRAD)+'</div><div class="foot">Fast ligger kant i kant längst ner. Svävande är en rundad glasbubbla ovanpå innehållet, som i iOS 26. Gäller bara den här enheten.</div>':'')+
+   sh('Menyraden längst ner')+'<div class="seg-wrap">'+segc('Menyraden längst ner','flikrad',[['fast','Fast'],['glas','Svävande'],['piller','Piller']],FLIKRAD)+'</div><div class="foot">Fast ligger kant i kant längst ner. Svävande är en rundad glasbubbla ovanpå innehållet, som i iOS 26, och krymper till en rund knapp när du scrollar. Piller krymper i stället till ett smalt piller med bara ikonerna, halvt nedanför skärmkanten. Gäller bara den här enheten.</div>':'')+
   sh('Vädervyn')+'<div class="seg-wrap">'+segc('Vädervyn','wxvy',[['kurva','Dagskurva'],['bild','Bild med hundar']],WXVY)+'</div><div class="foot">Dagskurvan visar temperaturen de närmaste 24 timmarna. Gäller bara den här enheten.</div>'+
   sh('Låsa rätter')+'<div class="seg-wrap">'+segc('Låsa rätter','lasstil',[['rad','Runt rätten'],['bild','Runt bilden']],LASSTIL)+'</div><div class="foot">Håll in en rätt på veckosedeln i en sekund för att låsa den. Föreslå en ny vecka behåller låsta rätter. Gäller bara den här enheten.</div>'+
   sh('Hundar i bilden')+'<div class="seg-wrap">'+segc('Hundar i bilden','hundar',[['vaxla','Växla'],['bada','Båda'],['brun','Bruna'],['svart','Svarta']],HUNDAR)+'</div><div class="foot">Växla byter var tredje timme. Du kan också trycka på hundarna i Väder för att byta. Gäller bara den här enheten.</div>'+
@@ -3014,7 +3018,7 @@ const ACT={
  wxHr(id){const i=Number(id)||0,x=WXC_H[i];if(!x)return;S.wxSel=i;const r=document.querySelector('.wxC-sel');if(r)r.setAttribute('x',(i*WXC_SW).toFixed(1));const inf=document.querySelector('.wxC-info');if(inf)inf.innerHTML=wxHrInfo(x,i)},
  lasstil(id){LASSTIL=id==='bild'?'bild':'rad';lsSet('lasstil',LASSTIL==='bild'?'bild':null);render()},
  segstil(id){SEGSTIL=['kapsel','klassisk'].includes(id)?id:'standard';lsSet('segstil',SEGSTIL==='standard'?null:SEGSTIL);applyStil();render()},
- flikrad(id){FLIKRAD=id==='glas'?'glas':'fast';lsSet('flikrad',FLIKRAD==='glas'?'glas':null);applyStil();render()},
+ flikrad(id){FLIKRAD=['glas','piller'].includes(id)?id:'fast';lsSet('flikrad',FLIKRAD==='fast'?null:FLIKRAD);applyStil();render()},
  wxvy(id){WXVY=id==='bild'?'bild':'kurva';lsSet('wxvy',WXVY==='bild'?'bild':null);render()},
  hundar(id){HUNDAR=['bada','brun','svart'].includes(id)?id:'vaxla';lsSet('hundar',HUNDAR==='vaxla'?null:HUNDAR);S.wxVar=null;render()},
  accMin(){ACT.accent(ACCENT==='min'?accentKey():'min')},
