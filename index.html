@@ -437,7 +437,7 @@ body.wall .clock{display:block}
 .sky-stars{position:absolute;inset:0;width:100%;height:100%;fill:var(--ink-2);opacity:.55}
 .sky-stars .tw{animation:figTw 2.6s ease-in-out infinite}.sky-stars .d2{animation-delay:-.9s}.sky-stars .d3{animation-delay:-1.7s}
 .hero .clock{display:block;font-size:56px;line-height:1;font-weight:700;letter-spacing:-1.5px;padding:0}
-body.wall .hero .clock{font-size:96px;letter-spacing:-3px}
+body.wall:has(.board) .hero .clock{font-size:96px;letter-spacing:-3px}
 .hero-date{font-size:15px;line-height:20px;letter-spacing:-.24px;color:var(--ink-2);margin-top:6px}
 .hero-greet{margin-top:14px;font-size:17px;line-height:22px;font-weight:600}
 .hero-facts{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
@@ -705,6 +705,23 @@ button.fig-box:active{opacity:1;transform:scale(.96)}
 .wx-tip .wx-wind-h{margin-top:8px}
 /* vädervyns miljö: himmel, kullar och gräs bakom hundarna */
 .wx-scene{position:relative;height:330px;margin:4px 16px 0;border-radius:22px;overflow:hidden}
+.wx2{position:relative;margin:4px 16px 0;padding:14px 16px 12px;border-radius:20px;background:var(--surface);overflow:hidden}
+.wx2-top{display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:2}
+.wx2 .wx-place{font-size:17px;line-height:22px;color:var(--ink-2)}
+.wx2 .wx-big{margin:0;font-size:72px;line-height:1;font-weight:700;letter-spacing:-2px}
+.wx2-r{text-align:right;padding-top:4px}
+.wx2-cond{display:flex;align-items:center;justify-content:flex-end;gap:6px;font-size:17px;line-height:22px}
+.wx2-cond span{font-size:26px;line-height:1}
+.wx2 .wx-hl{font-size:15px;line-height:20px;color:var(--ink-2);margin-top:2px}
+.wx2>.arc.w{right:22px;width:220px;top:96px;height:74px;color:var(--ink-2)}
+.wx2-gs{width:210px;margin:18px -4px 0 auto;padding:0}
+.wx2-gs .fig-box.grass{width:210px;height:186px}
+.wx2-gs>.bd{right:-15px;width:345px;height:285px}
+.wx2-bar{position:relative;z-index:2;display:grid;grid-template-columns:1fr 1fr;margin-top:8px;padding-top:10px;border-top:1px solid var(--line)}
+.wx2-bar>div{display:flex;flex-direction:column;gap:2px;padding-right:10px}
+.wx2-bar>div+div{border-left:1px solid var(--line);padding:0 0 0 12px}
+.wx2-bar b{font-size:12px;letter-spacing:.3px;text-transform:uppercase;color:var(--ink-2);font-weight:600}
+.wx2-bar span{font-size:15px;line-height:20px}
 .wx-scene .sc-bg{position:absolute;inset:0;width:100%;height:100%;display:block}
 .wx-scene .sc-fx{position:absolute;left:0;right:0;bottom:70px;height:136px;pointer-events:none;display:flex;justify-content:flex-end}
 .wx-scene .sc-fx .fig{width:auto;aspect-ratio:170/130;height:100%}
@@ -1407,8 +1424,8 @@ html.ny .wl .cell{padding:10px 0;min-height:48px}
 html.ny .wl .cell .title{font-size:17px}
 html.ny .ov-cell .ovs{width:24px;height:24px;margin:0 0 0 0;background:#FBF0DF;color:var(--orange)}
 html.ny .ov-cell .chev{color:var(--accent)}
-html.ny body:not(.wall) .hero-greet{display:none}
-html.ny body:not(.wall) .hero-date{font-size:15px;line-height:20px;color:var(--ink-2);margin-top:2px}
+html.ny body:not(:has(.board)) .hero-greet{display:none}
+html.ny body:not(:has(.board)) .hero-date{font-size:15px;line-height:20px;color:var(--ink-2);margin-top:2px}
 html.ny .hero{background:var(--surface);border-radius:20px;padding:16px}
 html.ny .hero-facts{flex-direction:column;gap:2px;margin-top:8px}
 html.ny .hero-facts span{background:none;padding:0;font-size:15px;line-height:20px;border-radius:0;color:var(--ink-2)}
@@ -1429,8 +1446,8 @@ html.ny .smc-skip{font-size:15px;min-height:40px;padding:0;margin-top:4px}
 html.ny .ov>.smc{margin-top:12px}
 @media (min-width:900px){html.ny .ov>.smc{margin:0 0 14px}}
 html.ny .hero-greet{display:none}
-html.ny body:not(.wall) .hero-l{display:flex;flex-direction:column;padding-bottom:4px}
-html.ny body:not(.wall) .hero-facts{margin-top:auto;padding-top:10px}
+html.ny body:not(:has(.board)) .hero-l{display:flex;flex-direction:column;padding-bottom:4px}
+html.ny body:not(:has(.board)) .hero-facts{margin-top:auto;padding-top:10px}
 html.ny .ny-smc .smc-t{flex-wrap:wrap;row-gap:10px}
 html.ny .ny-smc .smc-t .grow{flex-basis:100%}
 /* Väggen i ny design: lugn bakgrund, stora svarta rubriker i hela rutor */
