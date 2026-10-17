@@ -534,7 +534,7 @@ function doRender(){applyPersonColors();applyAccent();
  A.before(m);
  m.innerHTML=banner+(V[S.view]||V.oversikt)();
  {const w=m.querySelector('.wk-sw');if(w&&S.wkX){w.scrollLeft=S.wkX;wkMonth(w)}}
- {const w=m.querySelector('.wxC-sc');if(w&&S.wxX)w.scrollLeft=S.wxX}
+ {const w=m.querySelector('.wxC-sc');if(w)w.scrollLeft=S.wxX!=null?S.wxX:WXC_NP*WXC_SW}
  placeSky();fitBoard();
  watchTitle();plPin();wsPin();vvFix();
  A.after(m);
@@ -2184,6 +2184,14 @@ async function loadWx(force){const P=WX_POS();if(!force&&EXT.yr&&Date.now()-EXT.
   const j=await r.json(),H=j.hourly;const ts=H.time.map((t,k)=>{const b=OM_SYM[H.weather_code[k]]||'cloudy',dn=/^(clearsky|fair|partlycloudy|.*showers)$/.test(b)?(H.is_day[k]?'_day':'_night'):'';
    return{t:t+':00Z',T:H.temperature_2m[k],w:H.wind_speed_10m[k],wd:H.wind_direction_10m[k],h:H.relative_humidity_2m[k],p:H.pressure_msl[k],s:b+dn,pr:H.precipitation[k],pr6:null,s6:''}});
   EXT.yr={at:Date.now(),src:'om',lat:P.lat,ts};return true}catch(e2){return false}}}
+/* Senaste dygnet till dagskurvan. Yr ger bara prognos framåt, så de passerade timmarna hämtas från Open-Meteo (past_days=1),
+   som bygger på väderanalysen för platsen. Hämtas om en gång i timmen. */
+async function loadPast(force){const P=WX_POS();if(!force&&EXT.past&&Date.now()-EXT.past.at<60*60000&&EXT.past.lat===P.lat)return false;
+ try{const r=await fetch('https://api.open-meteo.com/v1/forecast?latitude='+P.lat+'&longitude='+P.lon+'&hourly=temperature_2m,weather_code,precipitation,wind_speed_10m,wind_direction_10m,is_day&timezone=UTC&past_days=1&forecast_days=1&wind_speed_unit=ms');
+  if(!r.ok)throw new Error(r.status);const j=await r.json(),H=j.hourly,now=Date.now();
+  const ts=H.time.map((t,k)=>{const b=OM_SYM[H.weather_code[k]]||'cloudy',dn=/^(clearsky|fair|partlycloudy|.*showers)$/.test(b)?(H.is_day[k]?'_day':'_night'):'';
+   return{t:t+':00Z',T:H.temperature_2m[k],w:H.wind_speed_10m[k],wd:H.wind_direction_10m[k],s:b+dn,pr:H.precipitation[k]}}).filter(x=>x.T!=null&&Date.parse(x.t)<now&&Date.parse(x.t)>now-26*36e5);
+  EXT.past={at:now,lat:P.lat,ts};return true}catch(e){return false}}
 // Samlad bild: nu, kommande timmar och dagar (lokal tid)
 function wxModel(){const y=EXT.yr;if(!y||!y.ts||!y.ts.length||Date.now()-y.at>12*3600000)return null;
  const now=Date.now(),hrs=y.ts.map(x=>Object.assign({},x,{d:new Date(x.t)})).filter(x=>x.d.getTime()>now-3600000);if(!hrs.length)return null;
@@ -2718,7 +2726,7 @@ function heroHtml(){const n=new Date(),t=today(),dy=EXT.day&&EXT.day.date===t?EX
  (ny?[so,nd]:[nd,so]).filter(Boolean).forEach(f=>facts.push(f));
  return'<section class="hero'+(wx?' has-wx':'')+'">'+(W?(grassOn()?(grassV()==='b'?arcHtml(W,'b'):''):skyHtml(W)):'')+'<div class="hero-l"><div class="clock num" id="clock">'+pad(hh)+':'+pad(n.getMinutes())+'</div><div class="hero-date">'+esc(cap(dayHead(t)))+'</div>'+(ny?'<div class="hero-date">Vecka '+isoWeek(n)+'</div>':'')+
   '<div class="hero-greet">'+greet+(S.me?', '+esc(S.me):'')+'!</div><div class="hero-facts">'+facts.map(f=>'<span>'+esc(f)+'</span>').join('')+'</div></div>'+wx+'</section>'}
-async function loadExt(){const t=today();let changed=await loadWx();
+async function loadExt(){const t=today();let changed=await loadWx();if(await loadPast())changed=true;
  if(!EXT.day||EXT.day.date!==t){try{const[y,mo,d]=t.split('-');
   const r=await fetch('https://sholiday.faboul.se/dagar/v2.1/'+y+'/'+mo+'/'+d);const j=await r.json(),x=j.dagar&&j.dagar[0];
   if(x){EXT.day={date:t,names:x.namnsdag||[],holiday:x.helgdag||'',flag:x.flaggdag||''};changed=true}}catch(e){}}
@@ -2747,51 +2755,62 @@ function feels(T,w){return(T<=10&&w>1.3)?13.12+0.6215*T-11.37*Math.pow(w*3.6,0.1
 let WXVY=lsGet('wxvy')==='bild'?'bild':'kurva';
 // Hur en låst rätt visas på veckosedeln: streck runt hela rätten (rad) eller runt bilden (bild). Gäller den här enheten
 let LASSTIL=lsGet('lasstil')==='bild'?'bild':'rad';
-function wxTopHtml(W,P,ic,tx,d0){return'<div class="wx2-top"><div><div class="wx-place">'+esc(P.name)+'</div><div class="wx-big num" id="lt">'+deg(W.now.T)+'</div></div>'+
-  '<div class="wx2-r"><div class="wx2-cond"><span aria-hidden="true">'+ic+'</span>'+esc(tx)+'</div><div class="wx-hl num">H:'+deg(d0.max)+'  L:'+deg(d0.min)+'</div></div></div>'}
+// UI 2.0 med dagskurvan: ikonen står i Nu-kolumnen, så här står bara väderläget i text
+function wxTopHtml(W,P,ic,tx,d0,noIc){return'<div class="wx2-top"><div><div class="wx-place">'+esc(P.name)+'</div><div class="wx-big num" id="lt">'+deg(W.now.T)+'</div></div>'+
+  '<div class="wx2-r"><div class="wx2-cond">'+(noIc?'':'<span aria-hidden="true">'+ic+'</span>')+esc(tx)+'</div><div class="wx-hl num">H:'+deg(d0.max)+'  L:'+deg(d0.min)+'</div></div></div>'}
 function wxBarHtml(W,F){return'<div class="wx2-bar"><div><b>'+esc(capS(F.when))+'</b><span>'+esc(F.tip)+'</span></div><div><b>Vind</b><span>'+esc(windText(W.now))+'</span></div></div>'}
-/* Dagskurvan: temperaturkurvan överst och kommande timmar i tretimmarssteg under, i samma remsa som scrollar i sidled.
-   Åtta steg (24 timmar) ryms i bredd; kurvan ritas timme för timme och följer med när man scrollar.
-   Tryck på ett steg för att se dess väder under remsan. Natten är lite mörkare. */
-let WXC_H=[],WXC_SW=40;
+/* Dagskurvan: temperaturkurvan överst och timmarna i tretimmarssteg under, i samma remsa som scrollar i sidled.
+   Åtta steg (24 timmar) ryms i bredd. Remsan börjar vid Nu; till vänster ligger det senaste dygnet (svagare), till höger upp till 48 timmar framåt.
+   Kurvan ritas timme för timme och följer med när man scrollar. Tryck på ett steg för att se dess väder under remsan.
+   Raden under remsan upprepar inte det som redan syns: grader står i kolumnerna, vinden nu i Vind-rutan. */
+let WXC_H=[],WXC_SW=40,WXC_NP=0;
 function wxHours(W){const L=[];for(const x of (W.all||W.hours)){const p=L[L.length-1];if(p&&x.d-p.d>36e5*1.5)break;L.push(x);if(L.length>=48)break}return L}
-// ett steg = tre timmar: väder och temperatur från första timmen, nederbörden summerad
+// passerade timmar, en hel timme i taget bakåt från första prognostimmen, högst ett dygn och i hela tretimmarssteg
+function wxPast(H0){const p=EXT.past;if(!p||!p.ts)return[];const by={};p.ts.forEach(x=>{by[Date.parse(x.t)]=x});
+ const L=[];for(let k=1;k<=24;k++){const t=H0.d.getTime()-k*36e5,x=by[t];if(!x)break;L.unshift(Object.assign({},x,{d:new Date(t),past:1}))}
+ return L.slice(L.length%3)}
 // natt eller dag efter solens verkliga tider, inte efter prognosens symbolnamn
 function wxDayNight(x,P,t){const st=sunTimes(ymd(t),P.lat,P.lon),b=symBase(x.s);if(!st||/_polartwilight$/.test(x.s||''))return x;const up=t>=st[0]&&t<=st[1];
  return Object.assign({},x,{s:b+(/^(clearsky|fair|partlycloudy)$|showers/.test(b)?(up?'_day':'_night'):'')})}
+// ett steg = tre timmar: väder och temperatur från första timmen, nederbörden summerad
 function wxSegs(H){const G=[];for(let i=0;i+2<H.length;i+=3){const g=H.slice(i,i+3);G.push(Object.assign({},g[0],{pr:g.reduce((a,x)=>a+(x.pr||0),0),hr:i}))}return G}
-function wxHrInfo(x,k){const[,t]=symInfo(x.s),e=new Date(x.d.getTime()+3*36e5);return'<b>'+(k?'Kl '+pad(x.d.getHours())+'–'+pad(e.getHours())+(ymd(x.d)!==today()?' '+DAYS3[x.d.getDay()]:''):'Nu')+'</b><span>'+deg(x.T)+(t?', '+t.toLowerCase():'')+'</span>'+
- '<span>Känns som '+deg(feels(x.T,x.w||0))+'</span><span>'+esc(windText(x))+'</span><span>'+(x.pr>=.1?mm(x.pr)+' nederbörd':'Uppehåll')+'</span>'}
-function wxHeroC(W,P,ic,tx,d0,F,sun){const H=wxHours(W),G=WXC_H=wxSegs(H).map(x=>wxDayNight(x,P,new Date(x.d.getTime()+90*6e4)));
+function wxHrInfo(x,k){const t=symInfo(x.s)[1],e=new Date(x.d.getTime()+3*36e5),pr=x.pr>=.1?mm(x.pr)+(x.past?' föll':' nederbörd'):'Uppehåll';
+ // Nu: temperaturen, väderläget och vinden syns redan ovanför och i Vind-rutan
+ if(k===WXC_NP)return'<b>Nu</b><span>Känns som '+deg(feels(x.T,x.w||0))+'</span><span>'+pr+' de närmaste tre timmarna</span>';
+ return'<b>Kl '+pad(x.d.getHours())+'–'+pad(e.getHours())+(ymd(x.d)!==today()?' '+DAYS3[x.d.getDay()]:'')+'</b>'+(t?'<span>'+esc(t)+'</span>':'')+
+  '<span>Känns som '+deg(feels(x.T,x.w||0))+'</span><span>'+esc(windText(x))+'</span><span>'+pr+'</span>'}
+function wxHeroC(W,P,ic,tx,d0,F,sun){const F0=wxHours(W),PA=wxPast(F0[0]),H=PA.concat(F0),np=WXC_NP=PA.length/3,G=WXC_H=wxSegs(H).map(x=>wxDayNight(x,P,new Date(x.d.getTime()+90*6e4)));
  // åtta steg ska rymmas i kortets bredd
  const mw=(document.getElementById('main')||document.querySelector('main')||document.body).clientWidth||innerWidth;
  const cw=WXC_SW=Math.max(36,Math.floor((Math.min(mw,700)-64)/8*10)/10),hw=cw/3,n=G.length,w=n*cw,h=182,yT=24,yB=70,base=88,f=v=>v.toFixed(1);
  const HX=j=>cw/2+j*hw,lo=Math.min(...H.map(x=>x.T)),hi=Math.max(...H.map(x=>x.T)),sp=Math.max(4,hi-lo),Y=T=>yB-(T-lo)/sp*(yB-yT);
  const m=Math.min(H.length,(n-1)*3+1),pts=H.slice(0,m).map((x,j)=>[HX(j),Y(x.T)]);
- // mjuk kurva timme för timme
- let d='M'+f(pts[0][0])+' '+f(pts[0][1]);
- for(let i=0;i<pts.length-1;i++){const p0=pts[i-1]||pts[i],p1=pts[i],p2=pts[i+1],p3=pts[i+2]||p2;
-  d+=' C'+f(p1[0]+(p2[0]-p0[0])/6)+' '+f(p1[1]+(p2[1]-p0[1])/6)+' '+f(p2[0]-(p3[0]-p1[0])/6)+' '+f(p2[1]-(p3[1]-p1[1])/6)+' '+f(p2[0])+' '+f(p2[1])}
+ // mjuk kurva timme för timme; det som har varit ritas svagare
+ const curve=(a,b)=>{let d='M'+f(pts[a][0])+' '+f(pts[a][1]);
+  for(let i=a;i<b;i++){const p0=pts[i-1]||pts[i],p1=pts[i],p2=pts[i+1],p3=pts[i+2]||p2;
+   d+=' C'+f(p1[0]+(p2[0]-p0[0])/6)+' '+f(p1[1]+(p2[1]-p0[1])/6)+' '+f(p2[0]-(p3[0]-p1[0])/6)+' '+f(p2[1]-(p3[1]-p1[1])/6)+' '+f(p2[0])+' '+f(p2[1])}return d};
+ const nh=np*3,d=curve(0,pts.length-1),dPast=nh?curve(0,nh):'',dNow=curve(nh,pts.length-1);
  const gid='wc'+(++FIG_N),t0=H[0].d.getTime(),tX=t=>HX(0)+(t-t0)/36e5*hw,xe=pts[pts.length-1][0];
  let s='<svg width="'+f(w)+'" height="'+h+'" viewBox="0 0 '+f(w)+' '+h+'" class="wxC-svg"><defs><linearGradient id="'+gid+'" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="'+f(w)+'" y2="0">'+pts.map((p,j)=>'<stop offset="'+(p[0]/w).toFixed(4)+'" stop-color="'+tempCol(H[j].T)+'"/>').join('')+'</linearGradient>'+
   '<linearGradient id="'+gid+'f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="currentColor" stop-opacity=".10"/><stop offset="1" stop-color="currentColor" stop-opacity="0"/></linearGradient></defs>';
  // natten: från solnedgången till soluppgången
  const sunM=[];
- for(let k=-1;k<3;k++){const st=sunTimes(addDays(today(),k),P.lat,P.lon),nx=sunTimes(addDays(today(),k+1),P.lat,P.lon);if(!st)continue;
+ for(let k=-2;k<3;k++){const st=sunTimes(addDays(today(),k),P.lat,P.lon),nx=sunTimes(addDays(today(),k+1),P.lat,P.lon);if(!st)continue;
   sunM.push([st[0],'↑'],[st[1],'↓']);if(nx){const a=Math.max(0,tX(st[1].getTime())),b=Math.min(w,tX(nx[0].getTime()));if(b>a)s+='<rect x="'+f(a)+'" y="0" width="'+f(b-a)+'" height="'+h+'" class="wxC-night"/>'}}
  sunM.forEach(([t,a])=>{const xx=tX(t.getTime());if(xx<4||xx>w-4)return;s+='<line x1="'+f(xx)+'" x2="'+f(xx)+'" y1="14" y2="'+base+'" class="wxC-sun"/><text x="'+f(xx)+'" y="9" class="wxC-st">'+a+' '+hhmm(t)+'</text>'});
- s+='<path d="'+d+' L'+f(xe)+' '+base+' L'+f(HX(0))+' '+base+'Z" fill="url(#'+gid+'f)"/><rect class="wxC-sel" x="'+f((S.wxSel||0)*cw)+'" y="0" width="'+f(cw)+'" height="'+h+'" rx="12"/>'+
-  '<path d="'+d+'" fill="none" stroke="url(#'+gid+')" stroke-width="3" stroke-linecap="round"/><line x1="0" x2="'+f(w)+'" y1="'+base+'" y2="'+base+'" class="wxC-base"/>';
+ const sel=Math.max(0,Math.min(np+(S.wxSel||0),n-1));
+ s+='<path d="'+d+' L'+f(xe)+' '+base+' L'+f(HX(0))+' '+base+'Z" fill="url(#'+gid+'f)"/><rect class="wxC-sel" x="'+f(sel*cw)+'" y="0" width="'+f(cw)+'" height="'+h+'" rx="12"/>'+
+  (dPast?'<path d="'+dPast+'" fill="none" stroke="url(#'+gid+')" stroke-width="3" stroke-linecap="round" class="wxC-was"/>':'')+
+  '<path d="'+dNow+'" fill="none" stroke="url(#'+gid+')" stroke-width="3" stroke-linecap="round"/><line x1="0" x2="'+f(w)+'" y1="'+base+'" y2="'+base+'" class="wxC-base"/>';
  // under kurvan: klockslag, ikon (i HTML), grader och nederbörd per steg
- G.forEach((x,i)=>{const xx=cw*i+cw/2,yy=Y(x.T);
-  if(x.pr>=.1){const bh=Math.min(16,3+x.pr*4);s+='<rect x="'+f(xx-6)+'" y="'+f(base-bh)+'" width="12" height="'+f(bh)+'" rx="2.5" class="wxC-pr"/>'}
-  s+='<circle cx="'+f(xx)+'" cy="'+f(yy)+'" r="'+(i?3:5)+'" fill="'+(i?'var(--surface)':tempCol(x.T))+'" stroke="'+tempCol(x.T)+'" stroke-width="2"/>'+
-   '<text x="'+f(xx)+'" y="106" class="wxC-h'+(i?'':' nu')+'">'+(i?pad(x.d.getHours()):'Nu')+'</text>'+
-   '<text x="'+f(xx)+'" y="160" class="wxC-t">'+deg(x.T)+'</text>'+
-   (x.pr>=.1?'<text x="'+f(xx)+'" y="177" class="wxC-mm">'+String(Math.round(x.pr*10)/10).replace('.',',')+'</text>':'')});
- const cols=G.map((x,i)=>'<button class="wxC-col" data-act="wxHr" data-id="'+i+'" style="left:'+f(i*cw)+'px;width:'+f(cw)+'px" aria-label="'+(i?'Klockan '+pad(x.d.getHours()):'Nu')+', '+deg(x.T)+'"><span>'+symInfo(x.s)[0]+'</span></button>').join('');
- const sel=Math.min(S.wxSel||0,n-1);
- return'<section class="wx2 wxC">'+wxTopHtml(W,P,ic,tx,d0)+'<div class="wxC-sc"><div class="wxC-in" style="width:'+f(w)+'px">'+s+'</svg>'+cols+'</div></div>'+
+ G.forEach((x,i)=>{const xx=cw*i+cw/2,yy=Y(x.T),nu=i===np,was=i<np?' wxC-was':'';
+  if(x.pr>=.1){const bh=Math.min(16,3+x.pr*4);s+='<rect x="'+f(xx-6)+'" y="'+f(base-bh)+'" width="12" height="'+f(bh)+'" rx="2.5" class="wxC-pr'+was+'"/>'}
+  s+='<circle cx="'+f(xx)+'" cy="'+f(yy)+'" r="'+(nu?5:3)+'" fill="'+(nu?tempCol(x.T):'var(--surface)')+'" stroke="'+tempCol(x.T)+'" stroke-width="2"'+(was?' class="wxC-was"':'')+'/>'+
+   '<text x="'+f(xx)+'" y="106" class="wxC-h'+(nu?' nu':'')+was+'">'+(nu?'Nu':pad(x.d.getHours()))+'</text>'+
+   '<text x="'+f(xx)+'" y="160" class="wxC-t'+was+'">'+deg(x.T)+'</text>'+
+   (x.pr>=.1?'<text x="'+f(xx)+'" y="177" class="wxC-mm'+was+'">'+String(Math.round(x.pr*10)/10).replace('.',',')+'</text>':'')});
+ const cols=G.map((x,i)=>'<button class="wxC-col'+(i<np?' wxC-was':'')+'" data-act="wxHr" data-id="'+i+'" style="left:'+f(i*cw)+'px;width:'+f(cw)+'px" aria-label="'+(i===np?'Nu':(i<np?'Var klockan ':'Klockan ')+pad(x.d.getHours()))+', '+deg(x.T)+'"><span>'+symInfo(x.s)[0]+'</span></button>').join('');
+ return'<section class="wx2 wxC">'+wxTopHtml(W,P,ic,tx,d0,1)+'<div class="wxC-sc"><div class="wxC-in" style="width:'+f(w)+'px">'+s+'</svg>'+cols+'</div></div>'+
   '<div class="wxC-info" aria-live="polite">'+wxHrInfo(G[sel],sel)+'</div>'+wxBarHtml(W,F)+'</section>'}
 
 V.vader=function(){const W=wxModel(),P=WX_POS();
@@ -3077,7 +3096,7 @@ const ACT={
  settings(){S.sheet='settings';render()},
  farg(){S.sheet='farg';render()},
  // dagskurvan: visa en timmes väder utan att rita om sidan, så att remsan står kvar där man scrollat
- wxHr(id){const i=Number(id)||0,x=WXC_H[i];if(!x)return;S.wxSel=i;const r=document.querySelector('.wxC-sel');if(r)r.setAttribute('x',(i*WXC_SW).toFixed(1));const inf=document.querySelector('.wxC-info');if(inf)inf.innerHTML=wxHrInfo(x,i)},
+ wxHr(id){const i=Number(id)||0,x=WXC_H[i];if(!x)return;S.wxSel=i-WXC_NP;const r=document.querySelector('.wxC-sel');if(r)r.setAttribute('x',(i*WXC_SW).toFixed(1));const inf=document.querySelector('.wxC-info');if(inf)inf.innerHTML=wxHrInfo(x,i)},
  lasstil(id){LASSTIL=id==='bild'?'bild':'rad';lsSet('lasstil',LASSTIL==='bild'?'bild':null);render()},
  segstil(id){SEGSTIL=['kapsel','klassisk'].includes(id)?id:'standard';lsSet('segstil',SEGSTIL==='standard'?null:SEGSTIL);applyStil();render()},
  flikrad(id){FLIKRAD=['glas','piller'].includes(id)?id:'fast';lsSet('flikrad',FLIKRAD==='fast'?null:FLIKRAD);applyStil();render()},
