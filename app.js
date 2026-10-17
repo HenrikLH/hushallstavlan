@@ -140,7 +140,8 @@ const isFav=id=>bankList().some(x=>x.id===id&&x.fav);
 // Kalorier per portion: raden kcal i Inställningar, {receptId: kcal}; en lista [kcal, …] läses som första värdet. Fylls av veckoplaneringen.
 function kcalOf(id){const v=parseJ(settings().kcal,{})[id];if(v==null||v==='')return null;const n=Number(Array.isArray(v)?v[0]:v);return n>0?{n:Math.round(n)}:null}
 const ratings=()=>parseJ(settings().betyg,{});
-const wishes=()=>parseJ(settings().onskelista,[]);
+// Veckans efterrätt ligger också i önskelistan (som {efter:1,...}) men är inget önskemål
+const wishes=()=>parseJ(settings().onskelista,[]).filter(x=>x&&!x.efter);
 function ratingOf(id){const x=ratings()[id];if(!x||!x.p)return null;const ps=Object.entries(x.p).filter(([,e])=>e&&e.s);if(!ps.length)return null;
  return{avg:ps.reduce((a,[,e])=>a+Number(e.s),0)/ps.length,people:ps,never:ps.some(([,e])=>e.v==='aldrig')}}
 const VERD={igen:'Laga igen',okej:'Okej',aldrig:'Aldrig mer'};
@@ -700,10 +701,11 @@ function matDessert(){
  if(!INSPO.list&&INSPO.busy)return h+group(emptyCell('Hämtar recept…'));
  if(fler.length)h+=sh('Att prova','<span class="num">'+fler.length+'</span>')+'<div class="bank mini">'+fler.map(r=>rCard(r)).join('')+'</div>';
  return h+'<div class="foot">Efterrätter föreslås aldrig när veckan planeras.</div>'}
-/* Efterrätt på veckosedeln: en valfri plats per vecka, sparad i inställningen vecka_efterratt som {v: veckans start, id}.
+/* Efterrätt på veckosedeln: en valfri plats per vecka. Sparas som {efter:1, v: veckans start, id} i önskelistan,
+   eftersom appen bara får skriva vissa inställningar och då behövs ingen ändring i Kod.gs.
    Den följer med när man hämtar varor men räknas inte in i portionerna */
-function weekDessert(){const st=settings(),o=parseJ(st.vecka_efterratt,null),r=o&&o.id&&o.v===(st.vecka_start||'')?recipeById(o.id):null;return r&&isDessert(r)?r:null}
-function setWeekDessert(id){const v=id?JSON.stringify({v:settings().vecka_start||'',id}):'';settings().vecka_efterratt=v;render();apiPost({action:'setting',k:'vecka_efterratt',v})}
+function weekDessert(){const st=settings(),o=parseJ(st.onskelista,[]).find(x=>x&&x.efter),r=o&&o.id&&o.v===(st.vecka_start||'')?recipeById(o.id):null;return r&&isDessert(r)?r:null}
+function setWeekDessert(id){const v=settings().vecka_start||'';A.user=Date.now();updJSON('onskelista',[],a=>a.filter(x=>x&&!x.efter).concat(id?[{efter:1,v,id}]:[]))}
 // Receptets ingredienser som rader på inköpslistan. Samma vara slås ihop, mängder utan mått (salt, lite citronsaft) och vatten hoppas över
 function dessertVaror(r,f,lista){const m=new Map();
  (r.groups||[]).forEach(g=>(g.items||[]).forEach(it=>{if(it.q==null)return;
