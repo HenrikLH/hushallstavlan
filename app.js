@@ -2437,7 +2437,7 @@ const durTxt=m=>m<60?m+' min':Math.floor(m/60)+' h'+(m%60?' '+m%60+' min':'');
 // sol- och månbanans horisont: mitt i namnsdagsraden (annars faktaraden), aldrig under hundarnas fötter
 function placeSky(){const h=document.querySelector('.hero');if(!h)return;
  const arc=h.querySelector('.arc.b'),gf=h.querySelector('.fig-box.grass');
- if(arc&&gf){const hr=h.getBoundingClientRect(),fr=gf.getBoundingClientRect();const hl=[...h.querySelectorAll('.hero-wx .fn')].pop();arc.style.bottom=Math.round(hr.bottom-fr.top+2)+'px';if(hl)arc.style.top=Math.round(hl.getBoundingClientRect().bottom-hr.top+16)+'px'}
+ if(arc&&gf){const hr=h.getBoundingClientRect(),fr=gf.getBoundingClientRect();const hl=[...h.querySelectorAll('.hero-wx .fn')].pop();arc.style.bottom=Math.round(hr.bottom-fr.top-34)+'px';if(hl)arc.style.top=Math.round(hl.getBoundingClientRect().bottom-hr.top+16)+'px'}
  const chips=[...h.querySelectorAll('.hero-facts span')],c=chips.find(x=>/^Namnsdag/.test(x.textContent))||chips[Math.floor((chips.length-1)/2)],fig=h.querySelector('.fig-box');
  if(!c)return;const top=h.getBoundingClientRect().top,r=c.getBoundingClientRect();let y=r.top+r.height/2-top;
  if(fig){const f=fig.getBoundingClientRect();y=Math.min(y,f.bottom-top-6)}
