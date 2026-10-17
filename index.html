@@ -1439,12 +1439,12 @@ html.ny .nav button[aria-current="page"] svg{stroke-width:2.2}
 }
 
 /* Menyväljare (Inställningar): Kapsel och Klassisk, per enhet */
-html.ny.seg-kapsel .segc{height:44px;border-radius:22px;padding:4px}
-html.ny.seg-kapsel .seg-thumb{top:4px;bottom:4px;left:4px;width:calc((100% - 8px) / var(--n,2));border-radius:18px}
+html.ny.seg-kapsel .segc{height:36px;border-radius:18px;padding:3px}
+html.ny.seg-kapsel .seg-thumb{top:3px;bottom:3px;left:3px;width:calc((100% - 6px) / var(--n,2));border-radius:15px}
 html.ny.seg-kapsel .segc button{border-radius:999px}
-html.ny.seg-klassisk .segc{height:44px;border-radius:10px;padding:3px}
-html.ny.seg-klassisk .seg-thumb{top:3px;bottom:3px;left:3px;width:calc((100% - 6px) / var(--n,2));border-radius:7px}
-html.ny.seg-klassisk .segc button+button::before{content:'';position:absolute;left:0;top:12px;bottom:12px;width:1px;background:rgba(142,142,147,.35);transition:opacity .2s}
+html.ny.seg-klassisk .segc{height:36px;border-radius:9px;padding:2px}
+html.ny.seg-klassisk .seg-thumb{top:2px;bottom:2px;left:2px;width:calc((100% - 4px) / var(--n,2));border-radius:7px}
+html.ny.seg-klassisk .segc button+button::before{content:'';position:absolute;left:0;top:9px;bottom:9px;width:1px;background:rgba(142,142,147,.35);transition:opacity .2s}
 html.ny.seg-klassisk .segc button[aria-pressed="true"]::before,html.ny.seg-klassisk .segc button[aria-pressed="true"]+button::before{opacity:0}
 /* Samma form överallt: rutor, listor och knappar följer valet av växlingsknappar */
 html.ny.seg-kapsel :is(.group,.widget,.hero,.bhero,.stat,.wsum,.wcard,.wk-tom,.sw-now,.sw-card,.pt-bas,.pt,.pt-sum,.pl-open,.pl-bud,.pt-koll,.car-s,.smc,.wx2,.wx-scene,.wx-tile,.bcard){border-radius:26px}
@@ -1505,11 +1505,11 @@ html.ny .ev .chip{font-size:15px;margin-left:6px}
 
 /* Knappar, reglage och filter */
 html.ny .btn-fill,html.ny .btn-tint{border-radius:12px}
-/* växlingsknapparna har samma höjd och text som raderna i listorna */
-html.ny .segc{height:44px;border-radius:16px;padding:3px}
+/* växlingsknapparna har samma text som raderna i listorna men är tunnare */
+html.ny .segc{height:36px;border-radius:12px;padding:3px}
 html.ny .segc button{font-size:17px;font-weight:400;letter-spacing:-.2px;color:var(--ink-2)}
 html.ny .segc button[aria-pressed="true"]{font-weight:600;color:var(--ink)}
-html.ny .seg-thumb{top:3px;bottom:3px;left:3px;width:calc((100% - 6px) / var(--n,2));border-radius:13px;background:var(--seg-on);box-shadow:0 1px 3px rgba(0,0,0,.14)}
+html.ny .seg-thumb{top:3px;bottom:3px;left:3px;width:calc((100% - 6px) / var(--n,2));border-radius:9px;background:var(--seg-on);box-shadow:0 1px 3px rgba(0,0,0,.14)}
 html.ny .fchips button{background:var(--surface);box-shadow:inset 0 0 0 1px var(--line);height:34px;border-radius:17px}
 html.ny .fchips button[aria-pressed="true"]{background:var(--ink);color:var(--bg);box-shadow:none}
 html.ny .stat{border-radius:16px}
@@ -1668,7 +1668,7 @@ html.ny button:focus:not(:focus-visible){outline:none}
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=116"></script>
+<script src="app.js?v=117"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
