@@ -477,6 +477,7 @@ function doRender(){applyPersonColors();applyAccent();
  A.before(m);
  m.innerHTML=banner+(V[S.view]||V.oversikt)();
  {const w=m.querySelector('.wk-sw');if(w&&S.wkX){w.scrollLeft=S.wkX;wkMonth(w)}}
+ {const w=m.querySelector('.wxC-sc');if(w&&S.wxX)w.scrollLeft=S.wxX}
  placeSky();fitBoard();
  watchTitle();plPin();wsPin();vvFix();
  A.after(m);
@@ -2619,27 +2620,42 @@ let WXVY=lsGet('wxvy')==='bild'?'bild':'kurva';
 function wxTopHtml(W,P,ic,tx,d0){return'<div class="wx2-top"><div><div class="wx-place">'+esc(P.name)+'</div><div class="wx-big num" id="lt">'+deg(W.now.T)+'</div></div>'+
   '<div class="wx2-r"><div class="wx2-cond"><span aria-hidden="true">'+ic+'</span>'+esc(tx)+'</div><div class="wx-hl num">H:'+deg(d0.max)+'  L:'+deg(d0.min)+'</div></div></div>'}
 function wxBarHtml(W,F){return'<div class="wx2-bar"><div><b>'+esc(capS(F.when))+'</b><span>'+esc(F.tip)+'</span></div><div><b>Vind</b><span>'+esc(windText(W.now))+'</span></div></div>'}
-// dagens temperaturkurva med väderikoner, nederbörd och solens upp/ner
-function wxHeroC(W,P,ic,tx,d0,F,sun){const H=W.hours.slice(0,25),w=326,h=172,x0=10,x1=w-10,yT=34,yB=104;
- const lo=Math.min(...H.map(x=>x.T)),hi=Math.max(...H.map(x=>x.T)),sp=Math.max(3,hi-lo);
- const X=i=>x0+(x1-x0)*i/(H.length-1),Y=T=>yB-(T-lo)/sp*(yB-yT);
- let d='';H.forEach((x,i)=>{d+=(i?' L':'M')+X(i).toFixed(1)+' '+Y(x.T).toFixed(1)});
- const gid='wc'+(++FIG_N);
- let s='<svg viewBox="0 0 '+w+' '+h+'" class="wxC-svg"><defs><linearGradient id="'+gid+'" x1="0" y1="0" x2="1" y2="0">'+H.map((x,i)=>'<stop offset="'+(i/(H.length-1)).toFixed(3)+'" stop-color="'+tempCol(x.T)+'"/>').join('')+'</linearGradient>'+
+/* Dagskurvan: kommande timmar och temperaturkurvan i samma remsa som scrollar i sidled.
+   Varje timme är en kolumn med klockslag, ikon, grader och nederbörd; kurvan går genom kolumnerna och följer med.
+   Tryck på en timme för att se den timmens väder under remsan. Natten är lite mörkare. */
+const WXC_W=48;
+let WXC_H=[];
+function wxHours(W){const L=[];for(const x of (W.all||W.hours)){const p=L[L.length-1];if(p&&x.d-p.d>36e5*1.5)break;L.push(x);if(L.length>=48)break}return L}
+function wxHrInfo(x,k){const[,t]=symInfo(x.s);return'<b>'+(k?'Kl '+pad(x.d.getHours())+(ymd(x.d)!==today()?' '+DAYS3[x.d.getDay()]:''):'Nu')+'</b><span>'+deg(x.T)+(t?', '+t.toLowerCase():'')+'</span>'+
+ '<span>Känns som '+deg(feels(x.T,x.w||0))+'</span><span>'+esc(windText(x))+'</span><span>'+(x.pr>=.1?mm(x.pr)+' nederbörd':'Uppehåll')+'</span>'}
+function wxHeroC(W,P,ic,tx,d0,F,sun){const H=WXC_H=wxHours(W),cw=WXC_W,n=H.length,w=n*cw,h=176,yT=78,yB=126,base=146;
+ const lo=Math.min(...H.map(x=>x.T)),hi=Math.max(...H.map(x=>x.T)),sp=Math.max(4,hi-lo);
+ const X=i=>i*cw+cw/2,Y=T=>yB-(T-lo)/sp*(yB-yT),f=v=>v.toFixed(1);
+ const pts=H.map((x,i)=>[X(i),Y(x.T)]);
+ // mjuk kurva genom alla timmar
+ let d='M'+f(pts[0][0])+' '+f(pts[0][1]);
+ for(let i=0;i<n-1;i++){const p0=pts[i-1]||pts[i],p1=pts[i],p2=pts[i+1],p3=pts[i+2]||p2;
+  d+=' C'+f(p1[0]+(p2[0]-p0[0])/6)+' '+f(p1[1]+(p2[1]-p0[1])/6)+' '+f(p2[0]-(p3[0]-p1[0])/6)+' '+f(p2[1]-(p3[1]-p1[1])/6)+' '+f(p2[0])+' '+f(p2[1])}
+ const gid='wc'+(++FIG_N),t0=H[0].d.getTime(),tX=t=>X(0)+(t-t0)/36e5*cw;
+ let s='<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" class="wxC-svg"><defs><linearGradient id="'+gid+'" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="'+w+'" y2="0">'+H.map((x,i)=>'<stop offset="'+(X(i)/w).toFixed(4)+'" stop-color="'+tempCol(x.T)+'"/>').join('')+'</linearGradient>'+
   '<linearGradient id="'+gid+'f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="currentColor" stop-opacity=".10"/><stop offset="1" stop-color="currentColor" stop-opacity="0"/></linearGradient></defs>';
- // natten skuggad
- const t0=H[0].d.getTime(),t1=H[H.length-1].d.getTime(),tx_=t=>x0+(x1-x0)*(t-t0)/(t1-t0);
- [today(),addDays(today(),1)].forEach(dt=>{const st=sunTimes(dt,P.lat,P.lon);if(!st)return;[[st[0],'↑'],[st[1],'↓']].forEach(([t,a])=>{const xx=tx_(t.getTime?t.getTime():t);if(xx<x0||xx>x1)return;
-  s+='<line x1="'+xx.toFixed(1)+'" x2="'+xx.toFixed(1)+'" y1="22" y2="'+(yB+14)+'" class="wxC-sun"/><text x="'+xx.toFixed(1)+'" y="16" class="wxC-st">'+a+' '+hhmm(t)+'</text>'})});
- s+='<path d="'+d+' L'+x1+' '+(yB+14)+' L'+x0+' '+(yB+14)+'Z" fill="url(#'+gid+'f)"/><path d="'+d+'" fill="none" stroke="url(#'+gid+')" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>';
- // nederbörd som staplar längst ner
- H.forEach((x,i)=>{if(x.pr>=.1){const bh=Math.min(16,4+x.pr*8);s+='<rect x="'+(X(i)-3).toFixed(1)+'" y="'+(yB+14-bh).toFixed(1)+'" width="6" height="'+bh.toFixed(1)+'" rx="2" fill="#5AA9F0" opacity=".7"/>'}});
- s+='<line x1="'+x0+'" x2="'+x1+'" y1="'+(yB+14)+'" y2="'+(yB+14)+'" class="wxC-base"/>';
- // var tredje timme: ikon, grader och klockslag
- H.forEach((x,i)=>{if(i%4)return;const xx=X(i),yy=Y(x.T);s+='<circle cx="'+xx.toFixed(1)+'" cy="'+yy.toFixed(1)+'" r="'+(i?3:5)+'" fill="'+(i?'var(--surface)':tempCol(x.T))+'" stroke="'+tempCol(x.T)+'" stroke-width="2"/>'+
-  '<text x="'+xx.toFixed(1)+'" y="'+(yy-10).toFixed(1)+'" class="wxC-t">'+deg(x.T)+'</text><text x="'+xx.toFixed(1)+'" y="'+(h-2)+'" class="wxC-h">'+(i?pad(x.d.getHours()):'Nu')+'</text>'});
- const icons=H.map((x,i)=>i%4?'':'<span style="left:'+(X(i)/w*100).toFixed(2)+'%;top:'+((yB+19)/h*100).toFixed(1)+'%">'+symInfo(x.s)[0]+'</span>').join('');
- return'<section class="wx2 wxC">'+wxTopHtml(W,P,ic,tx,d0)+'<div class="wxC-box">'+s+'</svg><div class="wxC-ic">'+icons+'</div></div>'+wxBarHtml(W,F)+'</section>'}
+ // natten: från solnedgången till soluppgången
+ const sunM=[];
+ for(let k=-1;k<3;k++){const st=sunTimes(addDays(today(),k),P.lat,P.lon),nx=sunTimes(addDays(today(),k+1),P.lat,P.lon);if(!st)continue;
+  sunM.push([st[0],'↑'],[st[1],'↓']);if(nx){const a=Math.max(0,tX(st[1].getTime())),b=Math.min(w,tX(nx[0].getTime()));if(b>a)s+='<rect x="'+f(a)+'" y="0" width="'+f(b-a)+'" height="'+h+'" class="wxC-night"/>'}}
+ sunM.forEach(([t,a])=>{const xx=tX(t.getTime());if(xx<4||xx>w-4)return;s+='<line x1="'+f(xx)+'" x2="'+f(xx)+'" y1="'+(yT-24)+'" y2="'+base+'" class="wxC-sun"/><text x="'+f(xx)+'" y="'+(h-2)+'" class="wxC-st">'+a+' '+hhmm(t)+'</text>'});
+ s+='<path d="'+d+' L'+f(X(n-1))+' '+base+' L'+f(X(0))+' '+base+'Z" fill="url(#'+gid+'f)"/><rect class="wxC-sel" x="'+(S.wxSel||0)*cw+'" y="0" width="'+cw+'" height="'+h+'" rx="12"/><path d="'+d+'" fill="none" stroke="url(#'+gid+')" stroke-width="3" stroke-linecap="round"/>';
+ s+='<line x1="0" x2="'+w+'" y1="'+base+'" y2="'+base+'" class="wxC-base"/>';
+ H.forEach((x,i)=>{const xx=X(i),yy=Y(x.T);
+  if(x.pr>=.1){const bh=Math.min(18,3+x.pr*6);s+='<rect x="'+f(xx-5)+'" y="'+f(base-bh)+'" width="10" height="'+f(bh)+'" rx="2.5" class="wxC-pr"/>'}
+  s+='<text x="'+f(xx)+'" y="14" class="wxC-h'+(i?'':' nu')+'">'+(i?pad(x.d.getHours()):'Nu')+'</text>'+
+   '<circle cx="'+f(xx)+'" cy="'+f(yy)+'" r="'+(i?3:5)+'" fill="'+(i?'var(--surface)':tempCol(x.T))+'" stroke="'+tempCol(x.T)+'" stroke-width="2"/>'+
+   '<text x="'+f(xx)+'" y="'+f(yy-11)+'" class="wxC-t">'+deg(x.T)+'</text>'+
+   (x.pr>=.1&&!sunM.some(([t])=>Math.abs(tX(t.getTime())-xx)<cw*.6)?'<text x="'+f(xx)+'" y="'+(h-2)+'" class="wxC-mm">'+String(Math.round(x.pr*10)/10).replace('.',',')+'</text>':'')});
+ // ikonerna och tryckytorna ligger ovanpå i HTML
+ const cols=H.map((x,i)=>'<button class="wxC-col" data-act="wxHr" data-id="'+i+'" style="left:'+i*cw+'px;width:'+cw+'px" aria-label="'+(i?'Klockan '+pad(x.d.getHours()):'Nu')+', '+deg(x.T)+'"><span>'+symInfo(x.s)[0]+'</span></button>').join('');
+ return'<section class="wx2 wxC">'+wxTopHtml(W,P,ic,tx,d0)+'<div class="wxC-sc"><div class="wxC-in" style="width:'+w+'px">'+s+'</svg>'+cols+'</div></div>'+
+  '<div class="wxC-info" aria-live="polite">'+wxHrInfo(H[S.wxSel||0]||H[0],S.wxSel||0)+'</div>'+wxBarHtml(W,F)+'</section>'}
 
 V.vader=function(){const W=wxModel(),P=WX_POS();
  let h='<div class="rcp-top"><button class="back" data-act="nav" data-id="oversikt">'+I.back+'Översikt</button></div>';
@@ -2655,8 +2671,8 @@ V.vader=function(){const W=wxModel(),P=WX_POS();
   '<div class="wx2-bar"><div><b>'+esc(capS(F.when))+'</b><span>'+esc(F.tip)+'</span></div><div><b>Vind</b><span>'+esc(windText(W.now))+'</span></div></div></section>';
  else h+=wxSceneHtml(W,{h:330,g:100,inner:'<div class="sc-head"><div class="wx-place">'+esc(P.name)+'</div><div class="wx-big num" id="lt">'+deg(W.now.T)+'</div><div><div class="wx-cond">'+esc(tx)+'</div><div class="wx-hl num">H:'+deg(d0.max)+'  L:'+deg(d0.min)+'</div></div></div>'+
   '<div class="sc-bar"><div><b>'+esc(capS(F.when))+'</b><span>'+esc(F.tip)+'</span></div><div><b>Vind</b><span>'+esc(windText(W.now))+'</span></div></div>'});
- // Timmar
- h+='<div class="group wx-card"><div class="wx-cap">'+I.clock+'Kommande timmar</div><div class="hours" role="list">'+W.hours.slice(0,25).map((x,k)=>{const[ii]=symInfo(x.s);
+ // Timmar (ingår i dagskurvan)
+ if(!(NY&&WXVY==='kurva'))h+='<div class="group wx-card"><div class="wx-cap">'+I.clock+'Kommande timmar</div><div class="hours" role="list">'+W.hours.slice(0,25).map((x,k)=>{const[ii]=symInfo(x.s);
   return'<div class="hr" role="listitem"><span class="fn">'+(k?pad(x.d.getHours()):'Nu')+'</span><span class="hi" aria-hidden="true">'+ii+'</span><b class="num">'+deg(x.T)+'</b><span class="hp num">'+(x.pr>=0.1?mm(x.pr).replace(' mm',''):'')+'</span></div>'}).join('')+'</div></div>';
  // Dagar
  const lo=Math.min(...W.days.map(x=>x.min)),hi=Math.max(...W.days.map(x=>x.max)),span=Math.max(1,hi-lo);
@@ -2921,6 +2937,8 @@ const ACT={
  refresh(){refresh()},
  settings(){S.sheet='settings';render()},
  farg(){S.sheet='farg';render()},
+ // dagskurvan: visa en timmes väder utan att rita om sidan, så att remsan står kvar där man scrollat
+ wxHr(id){const i=Number(id)||0,x=WXC_H[i];if(!x)return;S.wxSel=i;const r=document.querySelector('.wxC-sel');if(r)r.setAttribute('x',i*WXC_W);const inf=document.querySelector('.wxC-info');if(inf)inf.innerHTML=wxHrInfo(x,i)},
  wxvy(id){WXVY=id==='bild'?'bild':'kurva';lsSet('wxvy',WXVY==='bild'?'bild':null);render()},
  hundar(id){HUNDAR=['bada','brun','svart'].includes(id)?id:'vaxla';lsSet('hundar',HUNDAR==='vaxla'?null:HUNDAR);S.wxVar=null;render()},
  accMin(){ACT.accent(ACCENT==='min'?accentKey():'min')},
@@ -3156,7 +3174,7 @@ document.addEventListener('click',e=>{const el=e.target.closest('.dr-slide');if(
  if(SWP.moved){SWP.moved=false;e.stopPropagation();e.preventDefault();return}
  if(el.classList.contains('open')||el.classList.contains('openl')){e.stopPropagation();e.preventDefault();swpSet(el,0,true)}},true);
 // Dagraden i kalenderrutan minns var man svepte, så att den inte hoppar tillbaka när sidan ritas om
-document.addEventListener('scroll',e=>{const t=e.target;if(t&&t.classList&&t.classList.contains('wk-sw')){S.wkX=t.scrollLeft;wkMonth(t)}},true);
+document.addEventListener('scroll',e=>{const t=e.target;if(t&&t.classList&&t.classList.contains('wk-sw')){S.wkX=t.scrollLeft;wkMonth(t)}if(t&&t.classList&&t.classList.contains('wxC-sc'))S.wxX=t.scrollLeft;},true);
 // Månaden bredvid Schema följer de dagar som syns i raden
 function wkMonth(w){const ds=w.querySelectorAll('.wk-d'),mo=w.closest('.calw')&&w.closest('.calw').querySelector('.wk-mo');if(!ds.length||!mo)return;
  const i=Math.min(ds.length-1,Math.round(w.scrollLeft/ds[0].offsetWidth)+3),k=ds[i].dataset.id;if(isDate(k))mo.textContent=MON[parse(k).getMonth()]}

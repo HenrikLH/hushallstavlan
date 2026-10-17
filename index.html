@@ -734,15 +734,24 @@ html.ny .chip.lk::before{display:none}
 .wx2-bar b{font-size:12px;letter-spacing:.3px;text-transform:uppercase;color:var(--ink-2);font-weight:600}
 .wx2-bar span{font-size:15px;line-height:20px}
 /* dagskurvan i stället för bilden */
-.wxC-box{position:relative;margin:14px -4px 0}
-.wxC-svg{display:block;width:100%;height:auto;color:var(--ink);overflow:visible}
-.wxC-t{font-size:12px;font-weight:600;text-anchor:middle;fill:var(--ink)}
-.wxC-h{font-size:11px;text-anchor:middle;fill:var(--ink-2)}
+.wxC-sc{margin:12px -16px 0;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y;-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent)}
+.wxC-sc::-webkit-scrollbar{display:none}
+.wxC-in{position:relative;margin:0 16px;padding-right:16px;box-sizing:content-box}
+.wxC-svg{display:block;color:var(--ink);overflow:visible}
+.wxC-t{font-size:13px;font-weight:600;text-anchor:middle;fill:var(--ink);font-variant-numeric:tabular-nums}
+.wxC-h{font-size:13px;text-anchor:middle;fill:var(--ink-2);font-variant-numeric:tabular-nums}
+.wxC-h.nu{fill:var(--accent);font-weight:600}
 .wxC-st{font-size:10px;text-anchor:middle;fill:var(--ink-2)}
+.wxC-mm{font-size:10px;font-weight:600;text-anchor:middle;fill:#2E9CC0}
+.wxC-pr{fill:#5AA9F0;opacity:.75}
 .wxC-sun{stroke:var(--ink-2);stroke-opacity:.35;stroke-dasharray:2 3}
 .wxC-base{stroke:var(--line)}
-.wxC-ic{position:absolute;inset:0}
-.wxC-ic span{position:absolute;transform:translateX(-50%);font-size:17px;line-height:1}
+.wxC-night{fill:currentColor;opacity:.035}
+.wxC-sel{fill:var(--accent-soft);transition:x .2s}
+.wxC-col{position:absolute;top:0;height:176px;padding:0;border:0;background:none;color:inherit;-webkit-tap-highlight-color:transparent}
+.wxC-col span{position:absolute;left:50%;top:22px;transform:translateX(-50%);font-size:21px;line-height:26px}
+.wxC-info{display:flex;flex-wrap:wrap;gap:2px 10px;margin-top:8px;font-size:14px;line-height:19px;color:var(--ink-2)}
+.wxC-info b{color:var(--ink);font-weight:600}
 .wx-scene .sc-bg{position:absolute;inset:0;width:100%;height:100%;display:block}
 .wx-scene .sc-fx{position:absolute;left:0;right:0;bottom:70px;height:136px;pointer-events:none;display:flex;justify-content:flex-end}
 .wx-scene .sc-fx .fig{width:auto;aspect-ratio:170/130;height:100%}
