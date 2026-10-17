@@ -2620,42 +2620,46 @@ let WXVY=lsGet('wxvy')==='bild'?'bild':'kurva';
 function wxTopHtml(W,P,ic,tx,d0){return'<div class="wx2-top"><div><div class="wx-place">'+esc(P.name)+'</div><div class="wx-big num" id="lt">'+deg(W.now.T)+'</div></div>'+
   '<div class="wx2-r"><div class="wx2-cond"><span aria-hidden="true">'+ic+'</span>'+esc(tx)+'</div><div class="wx-hl num">H:'+deg(d0.max)+'  L:'+deg(d0.min)+'</div></div></div>'}
 function wxBarHtml(W,F){return'<div class="wx2-bar"><div><b>'+esc(capS(F.when))+'</b><span>'+esc(F.tip)+'</span></div><div><b>Vind</b><span>'+esc(windText(W.now))+'</span></div></div>'}
-/* Dagskurvan: kommande timmar och temperaturkurvan i samma remsa som scrollar i sidled.
-   Varje timme är en kolumn med klockslag, ikon, grader och nederbörd; kurvan går genom kolumnerna och följer med.
-   Tryck på en timme för att se den timmens väder under remsan. Natten är lite mörkare. */
-const WXC_W=48;
-let WXC_H=[];
+/* Dagskurvan: temperaturkurvan överst och kommande timmar i tretimmarssteg under, i samma remsa som scrollar i sidled.
+   Åtta steg (24 timmar) ryms i bredd; kurvan ritas timme för timme och följer med när man scrollar.
+   Tryck på ett steg för att se dess väder under remsan. Natten är lite mörkare. */
+let WXC_H=[],WXC_SW=40;
 function wxHours(W){const L=[];for(const x of (W.all||W.hours)){const p=L[L.length-1];if(p&&x.d-p.d>36e5*1.5)break;L.push(x);if(L.length>=48)break}return L}
-function wxHrInfo(x,k){const[,t]=symInfo(x.s);return'<b>'+(k?'Kl '+pad(x.d.getHours())+(ymd(x.d)!==today()?' '+DAYS3[x.d.getDay()]:''):'Nu')+'</b><span>'+deg(x.T)+(t?', '+t.toLowerCase():'')+'</span>'+
+// ett steg = tre timmar: väder och temperatur från första timmen, nederbörden summerad
+function wxSegs(H){const G=[];for(let i=0;i+2<H.length;i+=3){const g=H.slice(i,i+3);G.push(Object.assign({},g[0],{pr:g.reduce((a,x)=>a+(x.pr||0),0),hr:i}))}return G}
+function wxHrInfo(x,k){const[,t]=symInfo(x.s),e=new Date(x.d.getTime()+3*36e5);return'<b>'+(k?'Kl '+pad(x.d.getHours())+'–'+pad(e.getHours())+(ymd(x.d)!==today()?' '+DAYS3[x.d.getDay()]:''):'Nu')+'</b><span>'+deg(x.T)+(t?', '+t.toLowerCase():'')+'</span>'+
  '<span>Känns som '+deg(feels(x.T,x.w||0))+'</span><span>'+esc(windText(x))+'</span><span>'+(x.pr>=.1?mm(x.pr)+' nederbörd':'Uppehåll')+'</span>'}
-function wxHeroC(W,P,ic,tx,d0,F,sun){const H=WXC_H=wxHours(W),cw=WXC_W,n=H.length,w=n*cw,h=176,yT=78,yB=126,base=146;
- const lo=Math.min(...H.map(x=>x.T)),hi=Math.max(...H.map(x=>x.T)),sp=Math.max(4,hi-lo);
- const X=i=>i*cw+cw/2,Y=T=>yB-(T-lo)/sp*(yB-yT),f=v=>v.toFixed(1);
- const pts=H.map((x,i)=>[X(i),Y(x.T)]);
- // mjuk kurva genom alla timmar
+function wxHeroC(W,P,ic,tx,d0,F,sun){const H=wxHours(W),G=WXC_H=wxSegs(H);
+ // åtta steg ska rymmas i kortets bredd
+ const mw=(document.getElementById('main')||document.querySelector('main')||document.body).clientWidth||innerWidth;
+ const cw=WXC_SW=Math.max(36,Math.floor((Math.min(mw,700)-64)/8*10)/10),hw=cw/3,n=G.length,w=n*cw,h=182,yT=24,yB=70,base=88,f=v=>v.toFixed(1);
+ const HX=j=>cw/2+j*hw,lo=Math.min(...H.map(x=>x.T)),hi=Math.max(...H.map(x=>x.T)),sp=Math.max(4,hi-lo),Y=T=>yB-(T-lo)/sp*(yB-yT);
+ const m=Math.min(H.length,(n-1)*3+1),pts=H.slice(0,m).map((x,j)=>[HX(j),Y(x.T)]);
+ // mjuk kurva timme för timme
  let d='M'+f(pts[0][0])+' '+f(pts[0][1]);
- for(let i=0;i<n-1;i++){const p0=pts[i-1]||pts[i],p1=pts[i],p2=pts[i+1],p3=pts[i+2]||p2;
+ for(let i=0;i<pts.length-1;i++){const p0=pts[i-1]||pts[i],p1=pts[i],p2=pts[i+1],p3=pts[i+2]||p2;
   d+=' C'+f(p1[0]+(p2[0]-p0[0])/6)+' '+f(p1[1]+(p2[1]-p0[1])/6)+' '+f(p2[0]-(p3[0]-p1[0])/6)+' '+f(p2[1]-(p3[1]-p1[1])/6)+' '+f(p2[0])+' '+f(p2[1])}
- const gid='wc'+(++FIG_N),t0=H[0].d.getTime(),tX=t=>X(0)+(t-t0)/36e5*cw;
- let s='<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" class="wxC-svg"><defs><linearGradient id="'+gid+'" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="'+w+'" y2="0">'+H.map((x,i)=>'<stop offset="'+(X(i)/w).toFixed(4)+'" stop-color="'+tempCol(x.T)+'"/>').join('')+'</linearGradient>'+
+ const gid='wc'+(++FIG_N),t0=H[0].d.getTime(),tX=t=>HX(0)+(t-t0)/36e5*hw,xe=pts[pts.length-1][0];
+ let s='<svg width="'+f(w)+'" height="'+h+'" viewBox="0 0 '+f(w)+' '+h+'" class="wxC-svg"><defs><linearGradient id="'+gid+'" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="'+f(w)+'" y2="0">'+pts.map((p,j)=>'<stop offset="'+(p[0]/w).toFixed(4)+'" stop-color="'+tempCol(H[j].T)+'"/>').join('')+'</linearGradient>'+
   '<linearGradient id="'+gid+'f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="currentColor" stop-opacity=".10"/><stop offset="1" stop-color="currentColor" stop-opacity="0"/></linearGradient></defs>';
  // natten: från solnedgången till soluppgången
  const sunM=[];
  for(let k=-1;k<3;k++){const st=sunTimes(addDays(today(),k),P.lat,P.lon),nx=sunTimes(addDays(today(),k+1),P.lat,P.lon);if(!st)continue;
   sunM.push([st[0],'↑'],[st[1],'↓']);if(nx){const a=Math.max(0,tX(st[1].getTime())),b=Math.min(w,tX(nx[0].getTime()));if(b>a)s+='<rect x="'+f(a)+'" y="0" width="'+f(b-a)+'" height="'+h+'" class="wxC-night"/>'}}
- sunM.forEach(([t,a])=>{const xx=tX(t.getTime());if(xx<4||xx>w-4)return;s+='<line x1="'+f(xx)+'" x2="'+f(xx)+'" y1="'+(yT-24)+'" y2="'+base+'" class="wxC-sun"/><text x="'+f(xx)+'" y="'+(h-2)+'" class="wxC-st">'+a+' '+hhmm(t)+'</text>'});
- s+='<path d="'+d+' L'+f(X(n-1))+' '+base+' L'+f(X(0))+' '+base+'Z" fill="url(#'+gid+'f)"/><rect class="wxC-sel" x="'+(S.wxSel||0)*cw+'" y="0" width="'+cw+'" height="'+h+'" rx="12"/><path d="'+d+'" fill="none" stroke="url(#'+gid+')" stroke-width="3" stroke-linecap="round"/>';
- s+='<line x1="0" x2="'+w+'" y1="'+base+'" y2="'+base+'" class="wxC-base"/>';
- H.forEach((x,i)=>{const xx=X(i),yy=Y(x.T);
-  if(x.pr>=.1){const bh=Math.min(18,3+x.pr*6);s+='<rect x="'+f(xx-5)+'" y="'+f(base-bh)+'" width="10" height="'+f(bh)+'" rx="2.5" class="wxC-pr"/>'}
-  s+='<text x="'+f(xx)+'" y="14" class="wxC-h'+(i?'':' nu')+'">'+(i?pad(x.d.getHours()):'Nu')+'</text>'+
-   '<circle cx="'+f(xx)+'" cy="'+f(yy)+'" r="'+(i?3:5)+'" fill="'+(i?'var(--surface)':tempCol(x.T))+'" stroke="'+tempCol(x.T)+'" stroke-width="2"/>'+
-   '<text x="'+f(xx)+'" y="'+f(yy-11)+'" class="wxC-t">'+deg(x.T)+'</text>'+
-   (x.pr>=.1&&!sunM.some(([t])=>Math.abs(tX(t.getTime())-xx)<cw*.6)?'<text x="'+f(xx)+'" y="'+(h-2)+'" class="wxC-mm">'+String(Math.round(x.pr*10)/10).replace('.',',')+'</text>':'')});
- // ikonerna och tryckytorna ligger ovanpå i HTML
- const cols=H.map((x,i)=>'<button class="wxC-col" data-act="wxHr" data-id="'+i+'" style="left:'+i*cw+'px;width:'+cw+'px" aria-label="'+(i?'Klockan '+pad(x.d.getHours()):'Nu')+', '+deg(x.T)+'"><span>'+symInfo(x.s)[0]+'</span></button>').join('');
- return'<section class="wx2 wxC">'+wxTopHtml(W,P,ic,tx,d0)+'<div class="wxC-sc"><div class="wxC-in" style="width:'+w+'px">'+s+'</svg>'+cols+'</div></div>'+
-  '<div class="wxC-info" aria-live="polite">'+wxHrInfo(H[S.wxSel||0]||H[0],S.wxSel||0)+'</div>'+wxBarHtml(W,F)+'</section>'}
+ sunM.forEach(([t,a])=>{const xx=tX(t.getTime());if(xx<4||xx>w-4)return;s+='<line x1="'+f(xx)+'" x2="'+f(xx)+'" y1="14" y2="'+base+'" class="wxC-sun"/><text x="'+f(xx)+'" y="9" class="wxC-st">'+a+' '+hhmm(t)+'</text>'});
+ s+='<path d="'+d+' L'+f(xe)+' '+base+' L'+f(HX(0))+' '+base+'Z" fill="url(#'+gid+'f)"/><rect class="wxC-sel" x="'+f((S.wxSel||0)*cw)+'" y="0" width="'+f(cw)+'" height="'+h+'" rx="12"/>'+
+  '<path d="'+d+'" fill="none" stroke="url(#'+gid+')" stroke-width="3" stroke-linecap="round"/><line x1="0" x2="'+f(w)+'" y1="'+base+'" y2="'+base+'" class="wxC-base"/>';
+ // under kurvan: klockslag, ikon (i HTML), grader och nederbörd per steg
+ G.forEach((x,i)=>{const xx=cw*i+cw/2,yy=Y(x.T);
+  if(x.pr>=.1){const bh=Math.min(16,3+x.pr*4);s+='<rect x="'+f(xx-6)+'" y="'+f(base-bh)+'" width="12" height="'+f(bh)+'" rx="2.5" class="wxC-pr"/>'}
+  s+='<circle cx="'+f(xx)+'" cy="'+f(yy)+'" r="'+(i?3:5)+'" fill="'+(i?'var(--surface)':tempCol(x.T))+'" stroke="'+tempCol(x.T)+'" stroke-width="2"/>'+
+   '<text x="'+f(xx)+'" y="106" class="wxC-h'+(i?'':' nu')+'">'+(i?pad(x.d.getHours()):'Nu')+'</text>'+
+   '<text x="'+f(xx)+'" y="160" class="wxC-t">'+deg(x.T)+'</text>'+
+   (x.pr>=.1?'<text x="'+f(xx)+'" y="177" class="wxC-mm">'+String(Math.round(x.pr*10)/10).replace('.',',')+'</text>':'')});
+ const cols=G.map((x,i)=>'<button class="wxC-col" data-act="wxHr" data-id="'+i+'" style="left:'+f(i*cw)+'px;width:'+f(cw)+'px" aria-label="'+(i?'Klockan '+pad(x.d.getHours()):'Nu')+', '+deg(x.T)+'"><span>'+symInfo(x.s)[0]+'</span></button>').join('');
+ const sel=Math.min(S.wxSel||0,n-1);
+ return'<section class="wx2 wxC">'+wxTopHtml(W,P,ic,tx,d0)+'<div class="wxC-sc"><div class="wxC-in" style="width:'+f(w)+'px">'+s+'</svg>'+cols+'</div></div>'+
+  '<div class="wxC-info" aria-live="polite">'+wxHrInfo(G[sel],sel)+'</div>'+wxBarHtml(W,F)+'</section>'}
 
 V.vader=function(){const W=wxModel(),P=WX_POS();
  let h='<div class="rcp-top"><button class="back" data-act="nav" data-id="oversikt">'+I.back+'Översikt</button></div>';
@@ -2938,7 +2942,7 @@ const ACT={
  settings(){S.sheet='settings';render()},
  farg(){S.sheet='farg';render()},
  // dagskurvan: visa en timmes väder utan att rita om sidan, så att remsan står kvar där man scrollat
- wxHr(id){const i=Number(id)||0,x=WXC_H[i];if(!x)return;S.wxSel=i;const r=document.querySelector('.wxC-sel');if(r)r.setAttribute('x',i*WXC_W);const inf=document.querySelector('.wxC-info');if(inf)inf.innerHTML=wxHrInfo(x,i)},
+ wxHr(id){const i=Number(id)||0,x=WXC_H[i];if(!x)return;S.wxSel=i;const r=document.querySelector('.wxC-sel');if(r)r.setAttribute('x',(i*WXC_SW).toFixed(1));const inf=document.querySelector('.wxC-info');if(inf)inf.innerHTML=wxHrInfo(x,i)},
  wxvy(id){WXVY=id==='bild'?'bild':'kurva';lsSet('wxvy',WXVY==='bild'?'bild':null);render()},
  hundar(id){HUNDAR=['bada','brun','svart'].includes(id)?id:'vaxla';lsSet('hundar',HUNDAR==='vaxla'?null:HUNDAR);S.wxVar=null;render()},
  accMin(){ACT.accent(ACCENT==='min'?accentKey():'min')},
