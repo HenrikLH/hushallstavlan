@@ -752,15 +752,43 @@ function slotFor(r){if(!r)return SLOTS[0];const sk=r.group==='Storkok'||/^storko
  return sk?(r.who==='Vegetariskt'?SLOTS[6]:SLOTS[5]):r.who==='Gemensam'?SLOTS[2]:r.who==='Vegetariskt'?SLOTS[1]:SLOTS[0]}
 function allRecipes(){const seen=new Set(),out=[];bankList().concat(D().recipes).forEach(r=>{if(r&&r.id&&!seen.has(r.id)){seen.add(r.id);out.push(r)}});return out}
 const isStorkok=r=>!!r&&(r.group==='Storkok'||/^storkok/i.test(r.title||''));
-// Rätter som kan ersätta en rätt på matsedeln: samma sort först, sedan goda och efterlängtade recept först
-function swapCandidates(m){const cur=m.recipe&&recipeById(m.recipe),onMenu=new Set(D().menu.map(x=>x.recipe).filter(Boolean)),t=today();
- const want=m.who==='Gemensam'?['Gemensam','Vegetariskt']:[m.who],sk=isStorkok(cur)||/^storkok/i.test(m.title||'');
+/* Rätter som kan ersätta en rätt på matsedeln, eller fylla en tom plats (o.slot). Samma sort först, sedan efter poäng.
+   Poängen är restpoängen (restpoang.js): grundpoängen (smak, dags igen, pris, hjärta, nyhet, säsong), justerad mot det som
+   redan ligger i veckan. Rätter som tar vara på dyra och känsliga rester, eller som är billiga att handla till, kommer högre.
+   Ligger inget känsligt över blir poängen i stort sett grundpoängen. */
+let SWC=null;
+// Veckans rätter (utom den som byts ut) som varubehov
+function veckaBehov(utan){const b=[],rs=[];if(weekTarget().ny)return{b,rs};
+ weekDishes().forEach(x=>{const r=x.r;if(!r||isDessert(r)||r.id===utan||!(r.groups||[]).length)return;const port=x.m?dishPort(x.m,r):(Number(r.portions)||5);b.push(MV.behov(r,port/(Number(r.portions)||2)));rs.push(r)});
+ return{b,rs}}
+function swapCandidates(m,o){o=o||{};const d=D(),key=JSON.stringify([m.date,m.who,m.title,m.recipe,o,settings().vecka_start,settings().lager,planBudget()])+d.menu.map(x=>x.date+(x.recipe||x.title)+x.note).join()+d.recipes.length+bankList().length;
+ if(SWC&&SWC.key===key)return SWC.val;
+ const cur=m.recipe&&recipeById(m.recipe),onMenu=new Set(d.menu.map(x=>x.recipe).filter(Boolean)),t=today();
+ const want=m.who==='Gemensam'?['Gemensam','Vegetariskt']:[m.who],sk=o.slot?!!o.sk:isStorkok(cur)||/^storkok/i.test(m.title||'');
  const seen=new Set();// receptbanken först, sedan inspirationsrecepten
- return allRecipes().concat(inspoList()).filter(r=>{if(!r||!r.id||seen.has(r.id))return false;seen.add(r.id);return true}).filter(r=>!onMenu.has(r.id)&&r.course!=='efterrätt'&&!matLage(r.id).paus).map(r=>{
+ const base=allRecipes().concat(inspoList()).filter(r=>{if(!r||!r.id||seen.has(r.id))return false;seen.add(r.id);return true}).filter(r=>!onMenu.has(r.id)&&r.course!=='efterrätt'&&!matLage(r.id).paus).map(r=>{
   const g=ratingOf(r.id),l=matLage(r.id),last=lastServed(r.id),ago=last?Math.round((Date.parse(t)-Date.parse(last))/864e5):null;
-  const due=ago==null?1.5:Math.min(2,ago/(Math.max(l.w,1)*7));
-  const kind=(want.indexOf(r.who)>=0?2:0)+(isStorkok(r)===sk?1:0);
-  return{r,g,ago,score:kind*10+l.s+due}}).sort((a,b)=>b.score-a.score)}
+  let kind,extra=l.redo?0:-15;// rätter som inte fått komma tillbaka än hamnar längre ner
+  if(o.slot){if(sk)kind=o.want?(r.who===o.want?1:0):0;
+   // Middagar: rätter som passar båda först, och rätter för rätt del av veckan lite före
+   else{kind=0;extra+=(r.who==='Vegetariskt'||r.who==='Gemensam'||protInfo(r)?8:0)+(r.group===o.g?4:0)}}
+  else kind=(want.indexOf(r.who)>=0?2:0)+(isStorkok(r)===sk?1:0);
+  return{r,g,ago,l,kind,extra}});
+ const V=veckaBehov(m.recipe),lager=planLager(),manad=parse(t).getMonth()+1,port=r=>isStorkok(r)?(Number(r.portions)||5):2;
+ RP.CFG.mal=planBudget()*MP.CFG.marginal/24;
+ const med=base.filter(c=>(c.r.groups||[]).length);
+ RP.rangordna(med.map(c=>({r:c.r,d:{fav:isFav(c.r.id)},l:c.l,port:port(c.r),b:MV.behov(c.r,port(c.r)/(Number(c.r.portions)||2)),extra:c.extra,c})),V.b,lager,{veckaRatter:V.rs,manad})
+  .forEach(y=>Object.assign(y.x.c,{J:y.J,kop:y.kop,raddat:y.raddat,anvander:y.anvander}));
+ // Recept utan ingredienser: grundpoäng med mellanpris
+ base.forEach(c=>{if(c.J==null)c.J=RP.grund(c.r,{fav:isFav(c.r.id)},c.l,{perPort:RP.CFG.mal,manad})+c.extra;c.score=c.kind*1000+c.J});
+ const val=base.sort((a,b)=>b.score-a.score);val.rester=RP.veckansRester(V.b,lager);
+ SWC={key,val};return val}
+// Vad som blir över i veckan, överst i bladen när det är värt något
+function resterRad(L){const v=(L||[]).filter(x=>x.hotat>=1.5).slice(0,4);if(v.reduce((a,x)=>a+x.hotat,0)<4)return'';
+ return'<div class="foot sw-rest">Blir över i veckan: '+esc(v.map(x=>x.k+' ('+kr(x.kr)+')').join(', '))+'. Rätter som tar vara på det kommer högre.</div>'}
+// Etikett och pris för en kandidat
+const tarVara=c=>c.raddat>=2&&c.anvander&&c.anvander.length?'<span class="chip g">Tar vara på '+esc(lista(c.anvander.slice(0,2)))+'</span>':'';
+const handla=c=>c.kop!=null?'Handla för '+kr(c.kop):'';
 function swapWhy(c){const p=[];if(c.g)p.push(starsTxt(c.g.avg));p.push(c.ago==null?'inte lagad på ett tag':c.ago<0?'planerad':'senast för '+(c.ago<14?c.ago+' dagar':Math.round(c.ago/7)+' veckor')+' sedan');if(c.r.kr)p.push(kr(c.r.kr)+'/port');return p.join(' · ')}
 function wishesBlock(){const w=wishes();
  return sh('Önskemål till nästa vecka','<button class="linkbtn" data-act="wishNew">Önska</button>')+
@@ -1308,7 +1336,8 @@ function portSend(){const C=portCalc();if(!C.klar)return;const{P}=C,me=S.me||'',
    som ger mest poäng (uppskattade rätter som inte varit för nyligen) för pengarna, med lite svinn och utan för mycket av
    samma råvara. Budgeten är en spärr. Du kan låsa en rätt, byta till nästa rätt i poängordning eller göra om resten. */
 // Macka är dyr i poäng så att den bara blir kvar när budgeten inte räcker till en rätt
-const AUTO_W={billigt:{kr:.5,rest:.95,macka:-15},balans:{kr:.3,rest:.85,macka:-15},omvaxlande:{kr:.18,rest:.65,macka:-15}};
+// var = vad en ny huvudråvara i veckan är värd i kronor (omväxling som inte kostar mer vinner)
+const AUTO_W={billigt:{kr:.5,rest:.95,macka:-15,var:4},balans:{kr:.3,rest:.85,macka:-15,var:6},omvaxlande:{kr:.18,rest:.65,macka:-15,var:10}};
 const AUTO_SK={sk:PLATSER[0],sv:PLATSER[1]};
 const autoNamn=k=>k==='sk'?'Storkok kött':k==='sv'?'Storkok vegetariskt':k==='sg'?'Gemensamt storkok':cap(portDag(Number(k.slice(1))));
 // Allt som behövs för att räkna på en vecka: kandidater i poängordning per funktion, poäng och varubehov
@@ -1330,9 +1359,11 @@ function autoEval(pl,X){const it=autoItems(pl),korg=MV.korg(it.map(X.behov),X.la
  pl.st.forEach(x=>{const s=X.score(x.id,x.key);u+=x.key==='sg'?s*2.7:s*1.5});
  pl.dag.forEach((x,d)=>{if(x.t==='ratt'){const s=X.score(x.id,'d'+d);u+=s+(x.n>=4?s*W.rest:0)}else if(x.t==='macka')u+=W.macka});
  it.forEach(x=>{const h=MP.huvudravara(recipeById(x.id));hv[h]=(hv[h]||0)+1;ids[x.id]=(ids[x.id]||0)+1});
- Object.values(hv).forEach(c=>{if(c===2)pen+=8;if(c>2)pen+=150*(c-2)});if(X.undvik)it.forEach(x=>{if(X.undvik.has(x.id))pen+=14});Object.values(ids).forEach(c=>{if(c>1)pen+=500});
+ Object.values(hv).forEach(c=>{if(c>2)pen+=150*(c-2)});if(X.undvik)it.forEach(x=>{if(X.undvik.has(x.id))pen+=14});Object.values(ids).forEach(c=>{if(c>1)pen+=500});
  const over=Math.max(0,kassa-X.tak);
- return{val:u-W.kr*kassa-.3*korg.svinn-pen-(over?300+over*5:0),kassa,korg,mack,over,hv}}
+ // Svinnet räknas som det som riskerar att slängas: rester värderade i kronor gånger risken att de blir dåliga
+ const hot=RP.hotat(RP.rester(korg)),fam=Object.keys(hv).length;
+ return{val:u-W.kr*kassa-.3*hot+.3*(W.var||6)*fam-pen-(over?300+over*5:0),kassa,korg,mack,over,hv,hot}}
 // Rester bara kvällen efter, och bara efter en rätt som lagas till 4 portioner
 function autoNorm(pl,lock){const D=pl.dag;
  for(let d=0;d<7;d++){const x=D[d];
@@ -1384,7 +1415,7 @@ function autoView(){const C=autoCalc(),{P,B,E}=C,mon=parse(P.vecka),sun=parse(ad
  const pct=Math.min(100,Math.round(E.kassa/B*100)),over=E.kassa>B;
  h+='<div class="pl-bud"><div class="pl-bt"><div><span class="fn">I kassan</span><b class="num">'+kr(E.kassa)+'</b></div><label class="pl-bb"><span class="fn">Budget</span><input class="num" type="number" inputmode="numeric" min="200" max="5000" step="10" value="'+B+'" data-change="planBudget" aria-label="Veckobudget i kronor"></label></div>'+
   '<div class="thin'+(over?' bad':'')+'"><i style="width:'+pct+'%"></i></div><div class="fn">'+(over?'Över budget med '+kr(E.kassa-B)+'. Tryck på Gör om veckan.':'Kvar '+kr(B-E.kassa))+'</div>'+
-  '<div class="au-stats"><span><b class="num">'+kr(E.korg.svinn)+'</b><span class="fn">blir över</span></span><span><b class="num">'+C.olika+'</b><span class="fn">olika rätter</span></span><span><b class="num">'+(C.betyg?starNum(Math.round(C.betyg*10)/10):'–')+'</b><span class="fn">snittbetyg</span></span><span><b class="num">'+E.mack+'</b><span class="fn">'+(E.mack===1?'macka':'mackor')+'</span></span></div></div>';
+  '<div class="au-stats"><span><b class="num">'+kr(E.hot)+'</b><span class="fn">kan slängas</span></span><span><b class="num">'+C.olika+'</b><span class="fn">olika rätter</span></span><span><b class="num">'+(C.betyg?starNum(Math.round(C.betyg*10)/10):'–')+'</b><span class="fn">snittbetyg</span></span><span><b class="num">'+E.mack+'</b><span class="fn">'+(E.mack===1?'macka':'mackor')+'</span></span></div></div>';
  h+='<div class="pl-pin"><div class="pl-mini" aria-hidden="true"><span class="fn">I kassan</span><b class="num">'+kr(E.kassa)+'</b><div class="thin'+(over?' bad':'')+'"><i style="width:'+pct+'%"></i></div><span class="fn'+(over?' bad':'')+'">'+(over?'Över '+kr(E.kassa-B):'Kvar '+kr(B-E.kassa))+'</span></div></div>';
  // Två val som styr förslaget, med en mening under som säger vad det valda betyder
  const PRIO_TXT={billigt:'Billigare rätter och fler rester, så samma middag kommer oftare två kvällar i rad.',balans:'En blandning: rester när det sparar pengar, annars olika rätter.',omvaxlande:'Fler olika rätter och färre rester. Kostar mer.'};
@@ -1587,7 +1618,7 @@ function recipeDetail(r){
    Sparas i Inställningar: frekvens = {id:{w,t,d}} där w är baslinjen i veckor som sattes första gången rätten lagades (0 = aldrig),
    I samma post: n = hur många gånger rätten lagats och l = senast. receptlogg = {id:'ÅÅÅÅ-MM-DD'} fylls av söndagsrutinen.
    Allt ligger i rader som appen redan får skriva, så ingen ändring i Kod.gs behövs. */
-const MP=window.MatPoang;
+const MP=window.MatPoang,RP=window.RestPoang;
 const BASW=[1,2,3,4,6,8,12];
 const freqs=()=>parseJ(settings().frekvens,{});
 const lagadAll=()=>{const o={};Object.entries(freqs()).forEach(([id,x])=>{if(x&&(x.n||x.l))o[id]={n:Number(x.n)||0,d:x.l||''}});return o};
@@ -1923,16 +1954,16 @@ function renderOverlay(){
   body+='<div class="pt-sum"><div><span>Grundrätten</span><b>'+kr(bas)+'/port</b></div><div><span>'+esc(K.namn)+' till '+esc(kottPerson())+'</span><b>'+kr(pk)+'</b></div><div><span>'+esc(Vg.namn)+' till '+esc(vegPerson())+'</span><b>'+kr(pvv)+'</b></div><div class="tot"><span>Per portion</span><b>'+kr(bas+(pk+pvv)/2)+'</b></div></div>';
   body+='<div class="foot">Valet blir förval nästa gång rätten föreslås. '+esc(vegPerson())+' får bara vegetariska alternativ utan ägg. Varorna räknas i hela förpackningar i inköpslistan.</div>';
   o.innerHTML=sheetHtml('prot','Välj protein','<button type="button" class="tb strong" data-act="sheetClose">Klar</button>',body,enter);return}
- if(k==='swap'){const sw=S.swap||{},m=sw.m||{},cands=swapCandidates(m),same=cands.filter(c=>c.score>=20),top=same.slice(0,3),rest=cands.filter(c=>!top.includes(c));
+ if(k==='swap'){const sw=S.swap||{},m=sw.m||{},cands=swapCandidates(m),same=cands.filter(c=>c.kind>=2),top=same.slice(0,3),rest=cands.filter(c=>!top.includes(c));
   const cur=m.recipe&&recipeById(m.recipe),many=m.recipe&&D().menu.filter(x=>x.recipe===m.recipe).length>1;
-  const meta=c=>[c.ago==null?'Inte lagad på länge':c.ago<0?'Planerad':'Senast för '+(c.ago<14?c.ago+' dagar':Math.round(c.ago/7)+' veckor')+' sedan',c.r.kr?kr(c.r.kr)+'/port':'',c.r.min?c.r.min+' min':''].filter(Boolean).join(' · ');
+  const meta=c=>[c.ago==null?'Inte lagad på länge':c.ago<0?'Planerad':'Senast för '+(c.ago<14?c.ago+' dagar':Math.round(c.ago/7)+' veckor')+' sedan',handla(c),c.r.min?c.r.min+' min':''].filter(Boolean).join(' · ');
   const stars=c=>c.g?'<span class="dr-st">★ '+starNum(matLage(c.r.id).s)+'</span>':'<span class="sw-new">Ny</span>';
   const card=c=>'<button type="button" class="sw-card'+(sw.sel===c.r.id?' on':'')+'" data-act="swapSel" data-id="'+esc(c.r.id)+'" aria-pressed="'+(sw.sel===c.r.id)+'">'+dishThumb(c.r,c.r.title).replace('dr-th','sw-img')+
-   '<span class="sw-cb"><span class="sw-top">'+whoChip(effWho(c.r))+stars(c)+'</span><span class="title">'+esc(c.r.title)+'</span><span class="meta">'+meta(c)+'</span></span><span class="sw-ck" aria-hidden="true">'+I.tick+'</span></button>';
+   '<span class="sw-cb"><span class="sw-top">'+whoChip(effWho(c.r))+stars(c)+tarVara(c)+'</span><span class="title">'+esc(c.r.title)+'</span><span class="meta">'+meta(c)+'</span></span><span class="sw-ck" aria-hidden="true">'+I.tick+'</span></button>';
   const row=c=>'<button type="button" class="cell sw-row'+(sw.sel===c.r.id?' on':'')+'" data-act="swapSel" data-id="'+esc(c.r.id)+'" aria-pressed="'+(sw.sel===c.r.id)+'" data-q="'+esc((c.r.title+' '+(c.r.who||'')).toLowerCase())+'">'+dishThumb(c.r,c.r.title)+
-   '<span class="grow"><span class="title">'+esc(c.r.title)+'</span><span class="meta">'+whoChip(effWho(c.r))+stars(c)+'<span>'+meta(c)+'</span></span></span><span class="sw-ck" aria-hidden="true">'+I.tick+'</span></button>';
+   '<span class="grow"><span class="title">'+esc(c.r.title)+'</span><span class="meta">'+whoChip(effWho(c.r))+stars(c)+tarVara(c)+'<span>'+meta(c)+'</span></span></span><span class="sw-ck" aria-hidden="true">'+I.tick+'</span></button>';
   let body='<div class="sw-now">'+dishThumb(cur,m.title)+'<div class="grow"><div class="fn">'+(many?'Står på flera dagar och byts överallt':'Byter '+esc(dateShort(m.date)))+'</div><div class="title">'+esc(m.title)+'</div></div></div>';
-  body+=sh('Förslag','<span class="fn">Samma sort, goda och efterlängtade först</span>')+(top.length?'<div class="sw-cards">'+top.map(card).join('')+'</div>':group(emptyCell('Inga rätter av samma sort i receptbanken just nu.')));
+  body+=sh('Förslag','<span class="fn">Samma sort, bäst för veckan först</span>')+resterRad(cands.rester)+(top.length?'<div class="sw-cards">'+top.map(card).join('')+'</div>':group(emptyCell('Inga rätter av samma sort i receptbanken just nu.')));
   if(rest.length)body+=sh('Alla rätter')+'<div class="sw-search"><input type="search" id="sw-q" placeholder="Sök bland '+rest.length+' rätter" aria-label="Sök rätt" autocomplete="off" enterkeyhint="search"></div>'+group(rest.map(row).join(''))+'<div class="foot sw-none" hidden>Inga rätter matchar sökningen.</div>';
   body+='<div class="sw-info"><div class="foot">Inköpslistan uppdateras: varor som bara behövdes till den gamla rätten tas bort och den nya rättens läggs till.</div>'+
    (S.confirm==='swapRemove'?'<div class="sw-rm"><span>Ta bort rätten utan att lägga in någon ny?</span><button type="button" class="tb red strong" data-act="swapRemove">Ta bort</button><button type="button" class="tb" data-act="confirmNo">Avbryt</button></div>':
@@ -1974,11 +2005,14 @@ function renderOverlay(){
    '<button type="button" class="ov-later" data-act="ovLater">Gör det senare</button>'+
    '<div class="ti-foot fn">Utgiften visas som '+(was?'ändrad':'saknad')+' tills du bockar av den.</div></div>';
   o.innerHTML=sheetHtml('ov','Stående överföring','<span class="tb" aria-hidden="true"></span>',body,enter);return}
- if(k==='slot'){const g=S.slotG||'Vardag',sk=g==='Storkok',cands=swapCandidates({who:'Gemensam',title:sk?'Storkok':''}).filter(c=>isStorkok(c.r)===sk&&(c.r.groups||[]).length).slice(0,40);
-  const meta=c=>[c.g?'★ '+starNum(matLage(c.r.id).s):'Ny',c.r.kr?kr(c.r.kr)+'/port':'',c.r.min?c.r.min+' min':''].filter(Boolean).join(' · ');
-  const row=c=>'<button type="button" class="cell sw-row" data-act="slotSet" data-id="'+esc(c.r.id)+'">'+dishThumb(c.r,c.r.title)+'<span class="grow"><span class="title">'+esc(c.r.title)+'</span><span class="meta">'+whoChip(effWho(c.r))+'<span>'+meta(c)+'</span></span></span></button>';
+ if(k==='slot'){const g=S.slotG||'Vardag',sk=g==='Storkok';
+  // Storkok: den sort som saknas i veckan kommer först (ett med kött och ett vegetariskt)
+  let want=null;if(sk){const has=new Set(weekDishes().filter(x=>x.g==='Storkok'&&x.r).map(x=>x.r.who));want=has.has('Henrik')&&!has.has('Vegetariskt')?'Vegetariskt':has.has('Vegetariskt')&&!has.has('Henrik')?'Henrik':null}
+  const all=swapCandidates({who:'Gemensam',title:sk?'Storkok':''},{slot:1,sk,want,g}),cands=all.filter(c=>isStorkok(c.r)===sk&&(c.r.groups||[]).length).slice(0,40);
+  const meta=c=>[c.g?'★ '+starNum(matLage(c.r.id).s):'Ny',handla(c),c.r.min?c.r.min+' min':''].filter(Boolean).join(' · ');
+  const row=c=>'<button type="button" class="cell sw-row" data-act="slotSet" data-id="'+esc(c.r.id)+'">'+dishThumb(c.r,c.r.title)+'<span class="grow"><span class="title">'+esc(c.r.title)+'</span><span class="meta">'+whoChip(effWho(c.r))+tarVara(c)+'<span>'+meta(c)+'</span></span></span></button>';
   const body='<div style="height:16px"></div>'+(sk?'':group('<button type="button" class="cell sw-row" data-act="slotSet" data-id="macka"><span class="dr-th" aria-hidden="true"><span>🥪</span></span><span class="grow"><span class="title">Macka</span><span class="meta"><span>'+kr(MP.CFG.mackaKr)+' för två</span></span></span></button>'))+
-   sh(sk?'Storkok':'Rätter','Bäst först')+group(cands.map(row).join('')||emptyCell('Inga rätter passar.'));
+   sh(sk?'Storkok':'Rätter','Bäst först')+resterRad(all.rester)+group(cands.map(row).join('')||emptyCell('Inga rätter passar.'));
   o.innerHTML=sheetHtml('slot',sk?'Lägg till ett storkok':g==='Vardag'?'Vardagskväll':'Helgkväll','<span class="tb" aria-hidden="true"></span>',body,enter);return}
  if(k==='dess'){const seen=new Set(),all=allRecipes().concat(inspoList()).filter(r=>{if(!isDessert(r)||seen.has(r.id))return false;seen.add(r.id);return true}).sort((a,b)=>(inBank(b.id)?1:0)-(inBank(a.id)?1:0)),cur=weekDessert();
   o.innerHTML=sheetHtml('dess','Välj efterrätt','<span class="tb" aria-hidden="true"></span>','<div style="height:16px"></div>'+group(all.map(r=>'<button type="button" class="cell sw-row'+(cur===r?' on':'')+'" data-act="dessSet" data-id="'+esc(r.id)+'">'+dishThumb(r,r.title)+'<span class="grow"><span class="title">'+esc(r.title)+'</span><span class="meta">'+[inBank(r.id)?'Sparad':'',r.portions?r.portions+' portioner':'',r.min?r.min+' min':''].filter(Boolean).join(' · ')+'</span></span><span class="sw-ck" aria-hidden="true">'+I.tick+'</span></button>').join('')||emptyCell('Inga efterrätter än.'))+'<div class="foot">Efterrätten räknas inte in i portionerna. Dess varor kommer med när du hämtar varor till inköpslistan.</div>',enter);return}
