@@ -1743,12 +1743,9 @@ function renderOverlay(){
  if(k==='settings'){const st=settings(),topic=D().ntfyTopic||'';
   const meRow=(id,l)=>'<button type="button" class="cell link" data-act="me" data-id="'+esc(id)+'" aria-pressed="'+(S.me===id)+'"><span class="grow">'+esc(l)+'</span>'+(S.me===id?'<span class="mark">'+I.tick+'</span>':'')+'</button>';
   const body=sh('Vem använder den här enheten?')+group(people().map(p=>meRow(p,p)).join('')+meRow('','Gemensam skärm'))+
-  sh('Namn och färg i hushållet')+[0,1].map(i=>group('<div class="cell"><span class="pdot p'+(i+1)+'"></span><input class="field" id="set-p'+(i+1)+'" name="p'+(i+1)+'" aria-label="Person '+(i+1)+'" value="'+esc(people()[i]||'')+'"></div>'+
-   '<div class="cell"><div class="pcols" role="radiogroup" aria-label="Färg för person '+(i+1)+'">'+Object.keys(PCOL).map(k=>'<label title="'+PCOL[k][0]+'"><input type="radio" name="c'+(i+1)+'" value="'+k+'"'+(personColor(i)===k?' checked':'')+'><span style="--c:'+PCOL[k][1]+';--cd:'+PCOL[k][3]+'"></span></label>').join('')+'</div></div>')).join('<div style="height:10px"></div>')+
-  '<div class="foot">Färgen används för era händelser, uppgifter, sysslor och i Ekonomi.</div>'+
+  sh('Namn i hushållet')+group([0,1].map(i=>'<div class="cell"><span class="pdot p'+(i+1)+'"></span><input class="field" id="set-p'+(i+1)+'" name="p'+(i+1)+'" aria-label="Person '+(i+1)+'" value="'+esc(people()[i]||'')+'"><input type="hidden" name="c'+(i+1)+'" value="'+personColor(i)+'"></div>').join(''))+
   sh('Städtid och budget')+group(fieldCell('Vardag, min','<input class="field r" id="set-wd" name="wd" inputmode="numeric" value="'+esc(st.stadtid_vardag||20)+'" style="max-width:110px">')+fieldCell('Helg, min','<input class="field r" id="set-we" name="we" inputmode="numeric" value="'+esc(st.stadtid_helg||40)+'" style="max-width:110px">')+fieldCell('Mat/vecka, kr','<input class="field r" id="set-budget" name="budget" inputmode="numeric" value="'+esc(st.matbudget||'')+'" style="max-width:110px">'))+
-  sh('Utseende')+'<div class="seg-wrap">'+segc('Utseende','theme',[['system','System'],['light','Ljust'],['dark','Mörkt']],S.theme)+'</div>'+
-  '<div style="height:10px"></div>'+group('<button type="button" class="cell link" data-act="farg"><span class="acc-dot" style="--c:'+PCOL[accentKey()][1]+';--cd:'+PCOL[accentKey()][4]+'"></span><span class="grow">Färgval</span><span class="meta">'+esc(ACCENT==='min'?'Min färg':PCOL[accentKey()][0])+'</span>'+chevron+'</button>')+
+  sh('Utseende')+group('<button type="button" class="cell link" data-act="farg"><span class="grow">Färgval</span><span class="meta">'+esc({system:'System',light:'Ljust',dark:'Mörkt'}[S.theme]+' · '+(ACCENT==='min'?'Min färg':PCOL[accentKey()][0]))+'</span>'+chevron+'</button>')+'<div class="foot">Ljust eller mörkt, accentfärg och era färger i hushållet.</div>'+
   sh('Schemat i kalenderrutan')+'<div class="seg-wrap">'+segc('Schemat i kalenderrutan','calStyle',[['1','Tid kvar'],['2','Stapel'],['3','Tidsaxel']],CAL_STYLE)+'</div>'+
   (DEV?sh('Förslag i Planera med portioner')+'<div class="seg-wrap">'+segc('Förslag i Planera med portioner','flStyle',[['karusell','Stort kort'],['lista','Lista']],FL_STYLE)+'</div>':'')+
   sh('Översikten')+group('<button type="button" class="cell link" data-act="arrange"><span class="grow">Ändra ordning på rutorna</span>'+chevron+'</button>')+'<div class="foot">Gäller bara den här enheten. Du kan också hålla fingret på en ruta en stund.</div>'+
@@ -1759,11 +1756,13 @@ function renderOverlay(){
   sh('Den här enheten')+group('<button type="button" class="cell link center red" data-act="logout">Logga ut</button>')+
   '<div class="foot ver">Hushållstavlan · UI '+(NY?UI_VER:'1.0')+' · version '+esc(APP_VER)+'</div>';
   o.innerHTML=sheetHtml('settings','Inställningar','<button class="tb strong">Spara</button>',body,enter);segSlide(o);return}
- if(k==='farg'){const mi=people().indexOf(S.me),row=(id,name,c,note)=>'<button type="button" class="cell link" data-act="accent" data-id="'+id+'" aria-pressed="'+(ACCENT===id)+'"><span class="acc-dot" style="--c:'+c[1]+';--cd:'+c[4]+'"></span><span class="grow">'+esc(name)+(note?'<span class="meta" style="display:block">'+esc(note)+'</span>':'')+'</span>'+(ACCENT===id?'<span class="mark">'+I.tick+'</span>':'')+'</button>';
-  const body=(mi>=0?group(row('min','Min färg',PCOL[personColor(mi)],'Samma som din färg i hushållet, '+PCOL[personColor(mi)][0].toLowerCase())):'')+
-   sh('Accentfärg')+group(Object.keys(PCOL).map(k=>row(k,PCOL[k][0]+(k==='vinrod'?' (standard)':''),PCOL[k])).join(''))+
-   '<div class="foot">Accentfärgen används för knappar, länkar, flikraden och markeringar. Den gäller bara den här enheten.</div>';
-  o.innerHTML=sheetHtml('farg','Färgval','<button type="button" class="tb strong" data-act="sheetClose">Klar</button>',body,enter,'<button type="button" class="back" data-act="settings">'+(I.back||'‹')+'Inställningar</button>');return}
+ if(k==='farg'){const mi=people().indexOf(S.me),opt=(v,l,on)=>'<option value="'+v+'"'+(on?' selected':'')+'>'+esc(l)+'</option>';
+  const accOpts=(mi>=0?opt('min','Min färg ('+PCOL[personColor(mi)][0].toLowerCase()+')',ACCENT==='min'):'')+Object.keys(PCOL).map(c=>opt(c,PCOL[c][0]+(c==='vinrod'?' (standard)':''),ACCENT===c)).join('');
+  const body=sh('Ljust eller mörkt')+'<div class="seg-wrap">'+segc('Ljust eller mörkt','theme',[['system','System'],['light','Ljust'],['dark','Mörkt']],S.theme)+'</div>'+
+   sh('Accentfärg')+group('<div class="cell"><span class="grow">Knappar och länkar</span>'+menuSel('data-change="accent" aria-label="Accentfärg"',accOpts)+'</div>')+'<div class="foot">Gäller bara den här enheten.</div>'+
+   sh('Färg i hushållet')+group(people().slice(0,2).map((n,i)=>'<div class="cell"><span class="grow">'+esc(n)+'</span>'+menuSel('data-change="pcol" data-id="'+i+'" aria-label="Färg för '+esc(n)+'"',Object.keys(PCOL).map(c=>opt(c,PCOL[c][0],personColor(i)===c)).join(''))+'</div>').join(''))+
+   '<div class="foot">Används för era händelser, uppgifter, sysslor och i Ekonomi. Gäller alla enheter.</div>';
+  o.innerHTML=sheetHtml('farg','Färgval','<button type="button" class="tb strong" data-act="sheetClose">Klar</button>',body,enter,'<button type="button" class="back" data-act="settings">'+I.back+'Inställningar</button>');segSlide(o);return}
  if(k==='prefs'){const st=settings();
   const body=PREFS.map(([key,l,,ph])=>sh(l)+group('<div class="cell"><textarea class="field area" name="'+key+'" rows="'+Math.max(3,Math.ceil(String(st[key]||'').length/34)+1)+'" maxlength="600" placeholder="'+esc(ph)+'" aria-label="'+esc(l)+'">'+esc(st[key]||'')+'</textarea></div>')).join('')+
    '<div class="foot">Sparas i kalkylarket. Veckoplaneringen läser dem nästa gång den gör menyn.</div>';
@@ -2974,6 +2973,9 @@ document.addEventListener('input',e=>{if(e.target.id==='sw-q'){const q=e.target.
 document.addEventListener('change',e=>{const el=e.target.closest('[data-change]');if(!el)return;const id=el.dataset.id;
  if(el.dataset.change==='photo'){const f=el.files&&el.files[0];el.value='';if(S.rcpSheet){S.rcpSheet=null;render()}uploadPhoto(id,f);return}
  if(el.dataset.change==='ork'){el.blur();ACT.budget(String(ORK[Number(el.value)].min));return}
+ if(el.dataset.change==='accent'){ACT.accent(el.value);return}
+ if(el.dataset.change==='pcol'){const i=Number(id),L=personList().slice(0,2);while(L.length<2)L.push({n:['Henrik','Cornelia'][L.length],c:''});if(!PCOL[el.value])return;L[i].c=el.value;
+  const v=L.map(x=>x.n+':'+(PCOL[x.c]?x.c:PCOL_DEF[L.indexOf(x)])).join(', ');settings().personer=v;render();apiPost({action:'setting',k:'personer',v});return}
  if(el.dataset.change==='planBudget'){const v=Math.round(Number(el.value));if(!(v>=200&&v<=5000)){toast('Skriv en budget mellan 200 och 5 000 kr');render();return}settings().matbudget=String(v);render();apiPost({action:'setting',k:'matbudget',v:String(v)});return}
   if(el.dataset.change==='eko'){const v=Math.max(0,Number(String(el.value).replace(',','.'))||0);updJSON('ekonomi',{},o=>{o[id]=v;return o});return}
  const f=el.dataset.change==='freq'?{freq:Number(el.value)}:{who:el.value};mutate('clean',id,f);apiPost({action:'cleanSet',id,fields:f})});
