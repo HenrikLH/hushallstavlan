@@ -818,12 +818,12 @@ button.fig-box:active{opacity:1;transform:scale(.96)}
 .stars input:checked~label{color:#FFB800}
 .stars input:checked+label{transform:scale(1.12)}
 .stars input:focus-visible+label{outline:2px solid var(--accent);border-radius:8px}
-/* Färgslidern i Färgval: alla nyanser i en remsa och en knopp i vald färg, som temperaturstapeln i Väder */
-.hue-cell{padding-top:14px;padding-bottom:14px}
-input.hue{-webkit-appearance:none;appearance:none;width:100%;height:14px;margin:6px 0;border-radius:7px;background:var(--grad);outline:none;touch-action:none;cursor:pointer}
-input.hue::-webkit-slider-thumb{-webkit-appearance:none;width:30px;height:30px;border-radius:50%;background:var(--k);border:4px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.35)}
-input.hue::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:var(--k);border:4px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.35)}
-input.hue:focus-visible::-webkit-slider-thumb{outline:2px solid var(--accent);outline-offset:3px}
+/* Färgraden i Färgval: dra i sidled för fler färger, kanterna tonar ut så att det syns att det finns mer */
+.strip-cell{padding-left:0;padding-right:0}
+.pcols.pstrip{flex-wrap:nowrap;justify-content:flex-start;gap:14px;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x proximity;scrollbar-width:none;padding:8px 22px;
+ -webkit-mask-image:linear-gradient(90deg,transparent,#000 22px,#000 calc(100% - 22px),transparent);mask-image:linear-gradient(90deg,transparent,#000 22px,#000 calc(100% - 22px),transparent)}
+.pcols.pstrip::-webkit-scrollbar{display:none}
+.pstrip label{flex:none;scroll-snap-align:center}
 /* tonerna av vald färg fälls ut under slidern efter ett val */
 .shades{display:grid;grid-template-rows:0fr}.shades>div{overflow:hidden;min-height:0}
 .shades.open{grid-template-rows:1fr}.shades.grow{animation:shOpen .35s ease}

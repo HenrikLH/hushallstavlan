@@ -97,6 +97,10 @@ function genCol(H,t){const g=H>360,sa=g?0:H>40&&H<175?56:66,lo=g?0:H>48&&H<175?6
  const L=[60,53,46,40,34,28,22][t]-lo,Ld=[80,74,68,62,56,50,44][t]-lo/2;
  const nm=g?'Grå':HUE_NAMN.find(x=>H<x[0])[1],adj=t<=1?'Ljus ':t>=5?'Mörk ':'';
  return[adj?adj+nm.toLowerCase():nm,hslHex(H%360,sa,L),hslHex(H%360,sa,L-7),hslHex(H%360,g?0:72,Ld),hslHex(H%360,g?0:72,Math.min(Ld+6,88))]}
+// färgerna i raden: de namngivna färgerna och fler nyanser emellan, ordnade som regnbågen, grafit sist
+let FARB=null;const farbList=()=>FARB||(FARB=(()=>{const n=Object.keys(PCOL).filter(k=>!/^h\d/.test(k)&&k!=='grafit'),L=[...n];
+ for(let h=0;h<360;h+=20)if(!n.some(k=>{const d=Math.abs(hexHue(PCOL[k][1])-h);return Math.min(d,360-d)<12})){const k='h'+h+'s3';colOk(k);L.push(k)}
+ return L.sort((a,b)=>colPos(a).h-colPos(b).h).concat('grafit')})());
 const colOk=k=>{if(PCOL[k])return true;const m=/^h(\d{1,3})s([0-6])$/.exec(k||'');if(!m||+m[1]>380)return false;PCOL[k]=genCol(+m[1],+m[2]);return true};
 // var på slidern en färg ligger och vilken ton den har (de fasta färgerna har ingen ton i raden)
 const colPos=k=>{const m=/^h(\d+)s(\d)$/.exec(k);if(m)return{h:+m[1],t:+m[2]};return{h:colOk(k)?hexHue(PCOL[k][1]):0,t:-1}};
@@ -110,7 +114,7 @@ function applyPersonColors(){const ks=[0,1].map(personColor),key=ks.join();if(ke
 /* Accentfärgen (Inställningar → Färgval) gäller bara den här enheten: en av användarfärgerna eller "min färg",
    som följer färgen för den som använder enheten. Vinröd är standard. */
 let ACCENT=lsGet('accent')||'vinrod';
-const FARG_OPEN={};
+const FARG_OPEN={},FARG_X={};
 function setPcol(i,key){const L=personList().slice(0,2);while(L.length<2)L.push({n:['Henrik','Cornelia'][L.length],c:''});if(!colOk(key))return;L[i].c=key;
  const v=L.map(x=>x.n+':'+(colOk(x.c)?x.c:PCOL_DEF[L.indexOf(x)])).join(', ');settings().personer=v;render();apiPost({action:'setting',k:'personer',v})}   // vilka tonrader som är utfällda i Färgval (2 = fälls ut just nu)
 const accentKey=()=>{if(ACCENT==='min'){const i=people().indexOf(S.me);return i>=0?personColor(i):'vinrod'}return colOk(ACCENT)?ACCENT:'vinrod'};
@@ -1810,13 +1814,14 @@ function renderOverlay(){
   sh('Den här enheten')+group('<button type="button" class="cell link center red" data-act="logout">Logga ut</button>')+
   '<div class="foot ver">Hushållstavlan · UI '+(NY?UI_VER:'1.0')+' · version '+esc(APP_VER)+'</div>';
   o.innerHTML=sheetHtml('settings','Inställningar','<button class="tb strong">Spara</button>',body,enter);segSlide(o);return}
- if(k==='farg'){const mi=people().indexOf(S.me),dk=isDark();
-  // färgslidern med alla nyanser och grått längst till höger; efter ett val fälls en rad med toner av färgen ut under
-  const grad=[...Array(13)].map((_,j)=>genCol(j*30,3)[dk?3:1]+' '+(j*30/380*100).toFixed(1)+'%').join(',')+','+genCol(370,3)[dk?3:1]+' 96%';
-  const picker=(name,chg,id,cur,lab)=>{const pc=PCOL[cur],P=colPos(cur),open=FARG_OPEN[name];
-   return'<div class="cell hue-cell"><input type="range" class="hue" min="0" max="380" step="1" value="'+P.h+'" data-hue="'+name+'" data-change="'+chg+'"'+(id!=null?' data-id="'+id+'"':'')+' aria-label="'+esc(lab)+'" style="--grad:linear-gradient(90deg,'+grad+');--k:'+pc[dk?3:1]+'"></div>'+
+ if(k==='farg'){const mi=people().indexOf(S.me);if(enter)[FARG_OPEN,FARG_X].forEach(o=>Object.keys(o).forEach(k=>delete o[k]));
+  // en rad färgcirklar som går att dra i sidled för fler färger; efter ett val fälls en rad med toner av färgen ut under
+  const strip=farbList(),near=h=>strip.reduce((b,k)=>Math.min(Math.abs(colPos(k).h-h),360-Math.abs(colPos(k).h-h))<Math.min(Math.abs(colPos(b).h-h),360-Math.abs(colPos(b).h-h))?k:b,strip[0]);
+  const dot=(name,chg,id,key,on,lab)=>{const c=PCOL[key];return'<label title="'+esc(lab||c[0])+'"><input type="radio" name="'+name+'" value="'+key+'" data-change="'+chg+'"'+(id!=null?' data-id="'+id+'"':'')+(on?' checked':'')+'><span style="--c:'+c[1]+';--cd:'+c[chg==='accent'?4:3]+'"></span></label>'};
+  const picker=(name,chg,id,cur,lab)=>{const pc=PCOL[cur],P=colPos(cur),open=FARG_OPEN[name],base=strip.includes(cur)?cur:/^h\d+s\d$/.test(cur)&&strip.includes('h'+P.h+'s3')?'h'+P.h+'s3':near(P.h);
+   return'<div class="cell strip-cell"><div class="pcols pstrip" role="radiogroup" aria-label="'+esc(lab)+'" data-strip="'+name+'">'+strip.map(k=>dot(name+'-f',chg,id,k,k===base)).join('')+'</div></div>'+
     '<div class="shades'+(open?' open'+(open===2?' grow':''):'')+'" data-shades="'+name+'"><div><div class="cell"><div class="pcols" role="radiogroup" aria-label="Toner av '+esc(pc[0].toLowerCase())+'">'+
-    [0,1,2,3,4,5,6].map(t=>{const key='h'+P.h+'s'+t;colOk(key);const c=PCOL[key];return'<label title="'+esc(c[0])+'"><input type="radio" name="'+name+'" value="'+key+'" data-change="'+chg+'"'+(id!=null?' data-id="'+id+'"':'')+(P.t===t?' checked':'')+'><span style="--c:'+c[1]+';--cd:'+c[chg==='accent'?4:3]+'"></span></label>'}).join('')+'</div></div></div></div>'};
+    [0,1,2,3,4,5,6].map(t=>{const key='h'+colPos(base).h+'s'+t;colOk(key);return dot(name,chg,id,key,cur===key)}).join('')+'</div></div></div></div>'};
   Object.keys(FARG_OPEN).forEach(k=>{if(FARG_OPEN[k]===2)FARG_OPEN[k]=1});
   const accName=ACCENT==='min'?'Min färg ('+PCOL[accentKey()][0].toLowerCase()+')':PCOL[accentKey()][0]+(accentKey()==='vinrod'?' (standard)':'');
   const body=sh('Ljust eller mörkt')+'<div class="seg-wrap">'+segc('Ljust eller mörkt','theme',[['system','System'],['light','Ljust'],['dark','Mörkt']],S.theme)+'</div>'+
@@ -1826,7 +1831,9 @@ function renderOverlay(){
    '<div class="foot">'+(ACCENT==='min'?'Knapparna följer din färg i hushållet nedanför. ':'')+'Gäller bara den här enheten.</div>'+
    sh('Färg i hushållet')+people().slice(0,2).map((n,i)=>group('<div class="cell"><span class="grow">'+esc(n)+'</span><span class="meta" data-name="pc'+i+'">'+esc(PCOL[personColor(i)][0])+'</span></div>'+picker('pc'+i,'pcol',i,personColor(i),'Färg för '+n))).join('<div style="height:10px"></div>')+
    '<div class="foot">Används för era händelser, uppgifter, sysslor och i Ekonomi. Gäller alla enheter.</div>';
-  o.innerHTML=sheetHtml('farg','Färgval','<button type="button" class="tb strong" data-act="sheetClose">Klar</button>',body,enter,'<button type="button" class="back" data-act="settings">'+I.back+'Inställningar</button>');segSlide(o);return}
+  o.innerHTML=sheetHtml('farg','Färgval','<button type="button" class="tb strong" data-act="sheetClose">Klar</button>',body,enter,'<button type="button" class="back" data-act="settings">'+I.back+'Inställningar</button>');segSlide(o);
+  // raden står kvar där den var, och första gången med vald färg i mitten
+  o.querySelectorAll('[data-strip]').forEach(sp=>{const x=FARG_X[sp.dataset.strip];if(x!=null){sp.scrollLeft=x;return}const c=sp.querySelector('input:checked');if(c){const l=c.parentElement;sp.scrollLeft=l.offsetLeft-(sp.clientWidth-l.offsetWidth)/2}});return}
  if(k==='prefs'){const st=settings();
   const body=PREFS.map(([key,l,,ph])=>sh(l)+group('<div class="cell"><textarea class="field area" name="'+key+'" rows="'+Math.max(3,Math.ceil(String(st[key]||'').length/34)+1)+'" maxlength="600" placeholder="'+esc(ph)+'" aria-label="'+esc(l)+'">'+esc(st[key]||'')+'</textarea></div>')).join('')+
    '<div class="foot">Sparas i kalkylarket. Veckoplaneringen läser dem nästa gång den gör menyn.</div>';
@@ -3047,17 +3054,12 @@ document.addEventListener('scroll',e=>{const t=e.target;if(t&&t.classList&&t.cla
 // Månaden bredvid Schema följer de dagar som syns i raden
 function wkMonth(w){const ds=w.querySelectorAll('.wk-d'),mo=w.closest('.calw')&&w.closest('.calw').querySelector('.wk-mo');if(!ds.length||!mo)return;
  const i=Math.min(ds.length-1,Math.round(w.scrollLeft/ds[0].offsetWidth)+3),k=ds[i].dataset.id;if(isDate(k))mo.textContent=MON[parse(k).getMonth()]}
-document.addEventListener('input',e=>{const hu=e.target.dataset&&e.target.dataset.hue;
- if(hu){const k='h'+e.target.value+'s3',dk=isDark();colOk(k);e.target.style.setProperty('--k',PCOL[k][dk?3:1]);
-  const m=document.querySelector('#overlay [data-name="'+hu+'"]');if(m)m.textContent=PCOL[k][0];return}
- if(e.target.id==='sw-q'){const q=e.target.value.trim().toLowerCase();let n=0;document.querySelectorAll('#overlay .sw-row').forEach(b=>{const ok=!q||b.dataset.q.includes(q);b.hidden=!ok;if(ok)n++});const f=document.querySelector('#overlay .sw-none');if(f)f.hidden=n>0;return}
+document.addEventListener('input',e=>{if(e.target.id==='sw-q'){const q=e.target.value.trim().toLowerCase();let n=0;document.querySelectorAll('#overlay .sw-row').forEach(b=>{const ok=!q||b.dataset.q.includes(q);b.hidden=!ok;if(ok)n++});const f=document.querySelector('#overlay .sw-none');if(f)f.hidden=n>0;return}
  if(e.target.classList.contains('smc-sl')){const f=e.target.closest('.smc-r').querySelector('.smc-face');if(f)f.textContent=SMIL[Number(e.target.value)+1][1]}
  if(e.target.id==='ork')orkPreview(e.target);if(e.target.id==='split-amt')splitPreview(e.target)});
 document.addEventListener('change',e=>{const el=e.target.closest('[data-change]');if(!el)return;const id=el.dataset.id;
- // färgslidern: släppt nyans blir mittentonen, och raden med toner fälls ut
- if(el.dataset.hue){const hk='h'+el.value+'s3';colOk(hk);if(!FARG_OPEN[el.dataset.hue])FARG_OPEN[el.dataset.hue]=2;el.blur();
-  if(el.dataset.change==='accent'){ACT.accent(hk);return}
-  setPcol(Number(id),hk);return}
+ // färgraden: ett val fäller ut tonerna av färgen under raden
+ {const sp=el.closest('[data-strip]');if(sp&&!FARG_OPEN[sp.dataset.strip]){FARG_OPEN[sp.dataset.strip]=2;FARG_X[sp.dataset.strip]=sp.scrollLeft}else if(sp)FARG_X[sp.dataset.strip]=sp.scrollLeft}
  if(el.dataset.change==='photo'){const f=el.files&&el.files[0];el.value='';if(S.rcpSheet){S.rcpSheet=null;render()}uploadPhoto(id,f);return}
  if(el.dataset.change==='ork'){el.blur();ACT.budget(String(ORK[Number(el.value)].min));return}
  if(el.dataset.change==='accent'){ACT.accent(el.value);return}
