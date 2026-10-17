@@ -637,7 +637,7 @@ V.mat=function(){
  const ink=S.matTab==='inkop'?inkopParts():null;
  let h=head('Mat',ink?{sub:ink.sub,tools:ink.tools}:{sub:weekSub()});
  if(NY){const rt=S.matTab==='recept'||S.matTab==='bank';h+=segc('Visa','matTab',[['vecka','Vecka'],['inkop','Inköp'],['recept','Recept']],rt?'recept':S.matTab);
-  if(rt)h+='<div class="subseg">'+fchips('matTab',[['recept','Inspiration'],['bank','Mina recept']],S.matTab)+'</div>'}
+  if(rt)h+='<div class="subseg">'+segc('Recept','matTab',[['recept','Inspiration'],['bank','Mina recept']],S.matTab)+'</div>'}
  else h+=segc('Visa','matTab',[['vecka','Vecka'],['inkop','Inköp'],['recept','Recept'],['bank','Receptbank']],S.matTab);
  return h+(ink?ink.body:S.matTab==='recept'?matRecipes():S.matTab==='bank'?matBank():matWeek())};
 /* Receptbanken: stora kort att bläddra i när man inte vet vad man vill äta */

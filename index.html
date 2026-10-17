@@ -533,6 +533,7 @@ button.fig-box:active{opacity:1;transform:scale(.96)}
 .sw-rm span{flex:1}
 /* Valfritt protein (Kött/Veg) */
 .chip.kv{background:linear-gradient(90deg,var(--meat-bg),var(--veg-bg));color:var(--ink)}
+.chip.kv{display:inline-flex;flex-direction:row;gap:0;margin-top:0}
 .bcard.kv .bimg{background:linear-gradient(135deg,var(--meat-bg),var(--veg-bg) 60%,transparent 90%),var(--fill)}
 .pl-pr{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
 .ppl{display:inline-flex;align-items:center;gap:4px;height:26px;padding:0 8px 0 3px;border-radius:13px;background:var(--fill);font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap}
@@ -1461,9 +1462,6 @@ html.ny .bwx-r{color:var(--green)}
 html.ny .bhero{border-radius:20px}
 
 /* Mat i ny design: sammanfattning, underval för recept, synlig Byt, snabbfält i Inköp */
-html.ny .subseg .fchips{gap:22px;margin-top:12px;border-bottom:.5px solid var(--line);margin-left:16px;margin-right:16px;padding:0}
-html.ny .subseg .fchips button{background:none!important;border:0!important;border-radius:0;padding:6px 0 8px;height:auto;color:var(--ink-2)!important;font-size:15px;font-weight:600}
-html.ny .subseg .fchips button[aria-pressed="true"]{color:var(--ink)!important;box-shadow:inset 0 -2px 0 var(--ink)}
 html.ny .wsum-n b,html.ny .wsum-n b .nv{font-size:28px!important;line-height:32px;font-weight:700!important;color:var(--ink)!important;letter-spacing:-.5px}
 html.ny .wk-new{margin:14px 16px 0;width:calc(100% - 32px)}
 html.ny .pl-open+.wk-new{margin-top:10px}
@@ -1533,6 +1531,12 @@ html.ny .wcard.open .wm-body{display:block}
 html.ny .wm-h{font-size:15px;font-weight:600;padding:8px 0 2px}
 html.ny .wm-h.bad{color:var(--orange)}
 html.ny .wm-b{border-top:.5px solid var(--line);margin-top:6px;padding-top:8px}
+/* Underval i Recept: ett mindre segment, centrerat under huvudvalet */
+html.ny .subseg .segc{max-width:280px;margin:12px auto 0;height:30px}
+html.ny .subseg .segc button{font-size:14px}
+html.ny .subseg+.fchips{margin-top:12px}
+html.ny .chip.kv{gap:6px}
+html.ny button:focus:not(:focus-visible){outline:none}
 </style>
 </head>
 <body>
@@ -1546,7 +1550,7 @@ html.ny .wm-b{border-top:.5px solid var(--line);margin-top:6px;padding-top:8px}
 <script src="matvaror.js?v=3"></script>
 <script src="matpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=101"></script>
+<script src="app.js?v=102"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
