@@ -724,14 +724,16 @@ function mealCell(m,rows,flex){rows=rows||[m];const r=m.recipe&&recipeById(m.rec
  const g=m.recipe&&ratingOf(m.recipe),meta=[flex?(flex.port?'':flex.txt):days.map(d=>cap(DAYS3[parse(d).getDay()])).join(', '),r&&r.kr?kr(r.kr)+'/port':'',g?'<span class="dr-st">★ '+starNum(matLage(m.recipe).s)+'</span>':''].filter(Boolean).join('<span class="dot" aria-hidden="true">·</span>');
  const pa=protFromAddon(m.addon);
  const lst=!!(m.recipe&&weekLocks(weekTarget().vs).has(m.recipe));
- const inner=dishThumb(r,m.title)+'<span class="grow"><span class="chips-row">'+whoChip(pa?'Kött/Veg':m.who)+'</span><span class="title">'+esc(m.title)+'</span><span class="meta">'+meta+'</span>'+(pa?protPills(pa):m.addon?'<span class="dr-sub">+ Kött: '+esc(m.addon)+'</span>':'')+(noteUtanPort(m.note)?'<span class="dr-sub">'+esc(noteUtanPort(m.note))+'</span>':'')+'</span>';
+ const hl=!!(m.who!=='Borta'&&m.recipe&&(flex&&flex.slut?today()<=flex.slut:rows.some(y=>isDate(y.date)&&y.date>=today()))),lkm='<span class="lk-ring" aria-hidden="true"></span><span class="lk-bd" aria-hidden="true">'+I.lock+'</span>',th=dishThumb(r,m.title);
+ const inner=(hl&&LASSTIL==='bild'?'<span class="lk-tw'+(lst?' lk-on':'')+'" data-lk>'+th+lkm+'</span>':th)+'<span class="grow"><span class="chips-row">'+whoChip(pa?'Kött/Veg':m.who)+'</span><span class="title">'+esc(m.title)+'</span><span class="meta">'+meta+'</span>'+(pa?protPills(pa):m.addon?'<span class="dr-sub">+ Kött: '+esc(m.addon)+'</span>':'')+(noteUtanPort(m.note)?'<span class="dr-sub">'+esc(noteUtanPort(m.note))+'</span>':'')+'</span>';
  // Portionerna med plus och minus under rätten. Ändringen sparas och inköpslistan räknas om
  const P=flex&&flex.port,pr=P?'<div class="dr-port"><span class="grow"><b>'+P.n+(P.n===1?' portion':' portioner')+'</b>'+(P.txt&&!NY?'<span class="meta">'+cap(P.txt)+'</span>':'')+'</span><span class="pl-step" role="group" aria-label="Portioner"><button type="button" data-act="portStep" data-id="'+D().menu.indexOf(m)+'" data-d="-1" aria-label="Färre portioner"'+(P.n<=1?' disabled':'')+'>'+I.minus+'</button><span class="num" aria-live="polite">'+P.n+'</span><button type="button" data-act="portStep" data-id="'+D().menu.indexOf(m)+'" data-d="1" aria-label="Fler portioner"'+(P.n>=20?' disabled':'')+'>'+I.plus+'</button></span></div>':'';
  const can=m.who!=='Borta'&&left.length,i=D().menu.indexOf(m),lab=(m.recipe?'Byt ':'Välj rätt i stället för ')+esc(m.title);
  const end=m.who==='Borta'?'':!left.length?'<span class="dr-done">'+I.tick+'Ätit</span>':NY?'<button class="dr-byt" data-act="swap" data-id="'+D().menu.indexOf(m)+'" aria-label="'+(m.recipe?'Byt ':'Välj rätt i stället för ')+esc(m.title)+'">'+I.swap+'</button>':'<span class="dr-sw" aria-hidden="true">'+I.swap+'</span>';
- const hl=can&&m.recipe,lock=hl?'<button class="dr-lock'+(lst?' on':'')+'" data-act="weekLock" data-id="'+esc(m.recipe)+'" aria-pressed="'+lst+'" aria-label="'+(lst?'Lås upp ':'Lås ')+esc(m.title)+'">'+(lst?I.lock:I.unlock)+'</button>':'';
- const row='<div class="cell dr'+(left.length?'':' past')+(can?' dr-slide':'')+(hl?' hl':'')+'">'+lock+(r?'<button class="dr-main" data-act="recipe" data-id="'+esc(m.recipe)+'">'+inner+'</button>':'<div class="dr-main">'+inner+'</div>')+end+pr+'</div>';
- // Svep åt vänster för Byt och åt höger för Ta bort, som i iPhones listor. Hela vägen byter eller tar bort direkt. Hänglåset låser rätten
+ const rad=hl&&LASSTIL!=='bild';
+ // Håll in rätten för att låsa den (eller låsa upp). data-hold-lock bär receptet
+ const row='<div class="cell dr'+(left.length?'':' past')+(can?' dr-slide':'')+(rad?' lk-rad'+(lst?' lk-on':''):'')+'"'+(rad?' data-lk':'')+(hl?' data-hold-lock="'+esc(m.recipe)+'" data-lst="'+(lst?1:0)+'"':'')+'>'+(rad?lkm:'')+(r?'<button class="dr-main" data-act="recipe" data-id="'+esc(m.recipe)+'">'+inner+'</button>':'<div class="dr-main">'+inner+'</div>')+end+pr+'</div>';
+ // Svep åt vänster för Byt och åt höger för Ta bort, som i iPhones listor. Hela vägen byter eller tar bort direkt
  return can?'<div class="dr-wrap"><button class="dr-act" data-act="swap" data-id="'+i+'" aria-label="'+lab+'">'+I.swap+'<span>'+(m.recipe?'Byt':'Välj')+'</span></button>'+
   '<button class="dr-actl" data-act="weekDel" data-id="'+i+'" aria-label="Ta bort '+esc(m.title)+'">'+I.trash+'<span>Ta bort</span></button>'+row+'</div>':row}
 function recipeCell(r,meta){return'<button class="cell link" data-act="recipe" data-id="'+esc(r.id)+'"><div class="grow"><div class="title">'+esc(r.title)+'</div><div class="meta">'+meta+'</div></div>'+whoChip(r.who)+chevron+'</button>'}
@@ -1866,6 +1868,7 @@ function renderOverlay(){
   sh('Städtid och budget')+group(fieldCell('Vardag, min','<input class="field r" id="set-wd" name="wd" inputmode="numeric" value="'+esc(st.stadtid_vardag||20)+'" style="max-width:110px">')+fieldCell('Helg, min','<input class="field r" id="set-we" name="we" inputmode="numeric" value="'+esc(st.stadtid_helg||40)+'" style="max-width:110px">')+fieldCell('Mat/vecka, kr','<input class="field r" id="set-budget" name="budget" inputmode="numeric" value="'+esc(st.matbudget||'')+'" style="max-width:110px">'))+
   sh('Utseende')+group('<button type="button" class="cell link" data-act="farg"><span class="grow">Färgval</span><span class="meta">'+esc({system:'System',light:'Ljust',dark:'Mörkt'}[S.theme]+' · '+(ACCENT==='min'?'Min färg':PCOL[accentKey()][0]))+'</span>'+chevron+'</button>')+'<div class="foot">Ljust eller mörkt, accentfärg och era färger i hushållet.</div>'+
   sh('Vädervyn')+'<div class="seg-wrap">'+segc('Vädervyn','wxvy',[['kurva','Dagskurva'],['bild','Bild med hundar']],WXVY)+'</div><div class="foot">Dagskurvan visar temperaturen de närmaste 24 timmarna. Gäller bara den här enheten.</div>'+
+  sh('Låsa rätter')+'<div class="seg-wrap">'+segc('Låsa rätter','lasstil',[['rad','Runt rätten'],['bild','Runt bilden']],LASSTIL)+'</div><div class="foot">Håll in en rätt på veckosedeln i en sekund för att låsa den. Föreslå en ny vecka behåller låsta rätter. Gäller bara den här enheten.</div>'+
   sh('Hundar i bilden')+'<div class="seg-wrap">'+segc('Hundar i bilden','hundar',[['vaxla','Växla'],['bada','Båda'],['brun','Bruna'],['svart','Svarta']],HUNDAR)+'</div><div class="foot">Växla byter var tredje timme. Du kan också trycka på hundarna i Väder för att byta. Gäller bara den här enheten.</div>'+
   sh('Schemat i kalenderrutan')+'<div class="seg-wrap">'+segc('Schemat i kalenderrutan','calStyle',[['1','Tid kvar'],['2','Stapel'],['3','Tidsaxel']],CAL_STYLE)+'</div>'+
   (DEV?sh('Förslag i Planera med portioner')+'<div class="seg-wrap">'+segc('Förslag i Planera med portioner','flStyle',[['karusell','Stort kort'],['lista','Lista']],FL_STYLE)+'</div>':'')+
@@ -2616,6 +2619,8 @@ function windDir(d){return['nordlig','nordostlig','ostlig','sydostlig','sydlig',
 function feels(T,w){return(T<=10&&w>1.3)?13.12+0.6215*T-11.37*Math.pow(w*3.6,0.16)+0.3965*T*Math.pow(w*3.6,0.16):T}
 /* Vädervyn utan hundar (val i Inställningar, ls ht.wxvy): dagens temperaturkurva i stället för bilden */
 let WXVY=lsGet('wxvy')==='bild'?'bild':'kurva';
+// Hur en låst rätt visas på veckosedeln: streck runt hela rätten (rad) eller runt bilden (bild). Gäller den här enheten
+let LASSTIL=lsGet('lasstil')==='bild'?'bild':'rad';
 function wxTopHtml(W,P,ic,tx,d0){return'<div class="wx2-top"><div><div class="wx-place">'+esc(P.name)+'</div><div class="wx-big num" id="lt">'+deg(W.now.T)+'</div></div>'+
   '<div class="wx2-r"><div class="wx2-cond"><span aria-hidden="true">'+ic+'</span>'+esc(tx)+'</div><div class="wx-hl num">H:'+deg(d0.max)+'  L:'+deg(d0.min)+'</div></div></div>'}
 function wxBarHtml(W,F){return'<div class="wx2-bar"><div><b>'+esc(capS(F.when))+'</b><span>'+esc(F.tip)+'</span></div><div><b>Vind</b><span>'+esc(windText(W.now))+'</span></div></div>'}
@@ -2921,6 +2926,7 @@ const ACT={
  refresh(){refresh()},
  settings(){S.sheet='settings';render()},
  farg(){S.sheet='farg';render()},
+ lasstil(id){LASSTIL=id==='bild'?'bild':'rad';lsSet('lasstil',LASSTIL==='bild'?'bild':null);render()},
  wxvy(id){WXVY=id==='bild'?'bild':'kurva';lsSet('wxvy',WXVY==='bild'?'bild':null);render()},
  hundar(id){HUNDAR=['bada','brun','svart'].includes(id)?id:'vaxla';lsSet('hundar',HUNDAR==='vaxla'?null:HUNDAR);S.wxVar=null;render()},
  accMin(){ACT.accent(ACCENT==='min'?accentKey():'min')},
@@ -3109,6 +3115,34 @@ const ACT={
  ['pointerup','pointercancel','scroll'].forEach(k=>document.addEventListener(k,stop,true));
  document.addEventListener('click',e=>{const el=e.target.closest('[data-hold]');if(el&&Date.now()-fired>800)toast('Håll in knappen för att '+(el.dataset.hold==='shopEmptyYes'?'tömma listan':'hämta varorna'))});
  document.addEventListener('contextmenu',e=>{if(e.target.closest('[data-hold]'))e.preventDefault()})})();
+/* Håll in en rätt på veckosedeln för att låsa den: ett streck i accentfärgen ritas runt rätten (eller bilden) på 1 s.
+   Släpper man tidigt går strecket tillbaka. En låst rätt låses upp på samma sätt, då backar strecket. Rör man fingret avbryts det */
+(()=>{const T=1000,WAIT=120;let h=null,fired=0;
+ const rr=(w,h,r,i)=>{const a=i,b=w-i,c=i,d=h-i,m=w/2;return'M'+m+' '+c+'H'+(b-r)+'A'+r+' '+r+' 0 0 1 '+b+' '+(c+r)+'V'+(d-r)+'A'+r+' '+r+' 0 0 1 '+(b-r)+' '+d+'H'+(a+r)+'A'+r+' '+r+' 0 0 1 '+a+' '+(d-r)+'V'+(c+r)+'A'+r+' '+r+' 0 0 1 '+(a+r)+' '+c+'Z'};
+ const end=back=>{if(!h)return;const x=h;h=null;clearTimeout(x.w);cancelAnimationFrame(x.raf);
+  if(!x.p){return}
+  // Har strecket hunnit synas räknas det inte som ett tryck, så receptet öppnas inte när man släpper
+  fired=Date.now();
+  if(!back){x.p.remove();x.k.classList.remove('lk-anim');return}
+  // Strecket glider tillbaka till där det började
+  const to=x.lst?1:0;let last=performance.now();const f=t=>{const dt=Math.max(0,t-last);last=t;x.v=x.v<to?Math.min(to,x.v+dt/250):Math.max(to,x.v-dt/250);x.p.style.strokeDasharray=x.v+' 2';x.p.style.strokeOpacity=x.v<.002?0:1;
+   if(x.v!==to)requestAnimationFrame(f);else{x.p.parentNode.remove();x.k.classList.remove('lk-anim')}};requestAnimationFrame(f)};
+ const start=x=>{const k=x.k,w=k.offsetWidth,ht=k.offsetHeight,rad=k.classList.contains('lk-rad');
+  const NS='http://www.w3.org/2000/svg',svg=document.createElementNS(NS,'svg'),p=document.createElementNS(NS,'path');svg.setAttribute('class','lk-svg');svg.setAttribute('aria-hidden','true');
+  p.setAttribute('d',rr(w,ht,rad?12:13,rad?2:-1.5));p.setAttribute('pathLength','1');svg.appendChild(p);k.appendChild(svg);k.classList.add('lk-anim');
+  x.p=p;x.v=x.lst?1:0;p.style.strokeDasharray=x.v+' 2';p.style.strokeOpacity=x.v<.002?0:1;let last=performance.now();
+  const f=t=>{if(h!==x)return;const dt=Math.max(0,Math.min(50,t-last));last=t;x.v=Math.max(0,Math.min(1,x.v+(x.lst?-1:1)*dt/T));
+   if(x.lst?x.v<=0:x.v>=1){p.style.strokeDasharray=x.v+' 2';fired=Date.now();try{navigator.vibrate&&navigator.vibrate(15)}catch(e){}
+    if(x.lst)k.classList.remove('lk-on');else k.classList.add('lk-on');end(false);weekLock(x.id);return}
+   p.style.strokeDasharray=x.v+' 2';p.style.strokeOpacity=x.v<.002?0:1;x.raf=requestAnimationFrame(f)};x.raf=requestAnimationFrame(f)};
+ document.addEventListener('pointerdown',e=>{if(e.button>0)return;const row=e.target.closest('[data-hold-lock]');if(!row||e.target.closest('.pl-step,.dr-byt,.dr-act,.dr-actl'))return;
+  if(row.classList.contains('open')||row.classList.contains('openl'))return;end(true);
+  const k=row.querySelector('[data-lk]')||row;h={row,k,id:row.dataset.holdLock,lst:k.classList.contains('lk-on'),x:e.clientX,y:e.clientY};const x=h;x.w=setTimeout(()=>{if(h===x)start(x)},WAIT)});
+ document.addEventListener('pointermove',e=>{if(h&&Math.hypot(e.clientX-h.x,e.clientY-h.y)>10)end(true)},{passive:true});
+ ['pointerup','pointercancel'].forEach(k=>document.addEventListener(k,()=>end(true),true));document.addEventListener('scroll',()=>end(true),{capture:true,passive:true});
+ // Efter en låsning ska fingret som släpps inte öppna receptet
+ document.addEventListener('click',e=>{if(Date.now()-fired<700&&e.target.closest('[data-hold-lock]')){e.stopPropagation();e.preventDefault()}},true);
+ document.addEventListener('contextmenu',e=>{if(e.target.closest('[data-hold-lock]'))e.preventDefault()})})();
 document.addEventListener('click',e=>{const el=e.target.closest('[data-act]');if(!el)return;const a=el.dataset.act;if(!ACT[a])return;
  if(el.tagName==='INPUT'&&el.type==='checkbox')e.preventDefault();
  ACT[a](el.dataset.id,el,e)});
