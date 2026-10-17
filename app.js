@@ -611,10 +611,14 @@ function arrangeFoot(L,wall){if(!S.arrange)return'';
    utan att scrolla: tid och väder | kalender och middag | städ, inköp och födelsedagar.
    Mellan 22 och 06 visas ett mörkt nattläge, och efter två minuter utan beröring går tavlan tillbaka hit. */
 const wallBoardOn=()=>S.wall&&matchMedia('(min-width:900px)').matches;
-// Nattlägets tider väljs i Inställningar → Väggskärm (bara den här enheten), som standard 22–06
-const NATT=(()=>{const v=String(lsGet('natt')||''),m=/^(\d+)-(\d+)$/.exec(v);return{on:v!=='av',a:m?+m[1]:1320,b:m?+m[2]:360}})();
+// Nattlägets tider väljs i Inställningar → Nattläge (bara den här enheten), som standard 22–06
+const NATT=(()=>{const v=String(lsGet('natt')||''),m=/^(\d+)-(\d+)$/.exec(v);return{on:v!=='av',a:m?+m[1]:1320,b:m?+m[2]:360,sol:lsGet('nattSol')==='1'}})();
+// med Följ solnedgång och soluppgång är det natt från solnedgången till soluppgången, efter ortens riktiga soltider
+const nattSol=d=>{const P=WX_POS();return sunTimes(ymd(d||new Date()),P.lat,P.lon)};
 const saveNatt=()=>lsSet('natt',!NATT.on?'av':NATT.a===1320&&NATT.b===360?null:NATT.a+'-'+NATT.b);
-const inNight=(d)=>{if(!S.wall||!NATT.on||NATT.a===NATT.b)return false;d=d||new Date();const m=d.getHours()*60+d.getMinutes();return NATT.a<NATT.b?m>=NATT.a&&m<NATT.b:m>=NATT.a||m<NATT.b};
+const inNight=(d)=>{if(!S.wall||!NATT.on)return false;d=d||new Date();
+ if(NATT.sol){const s=nattSol(d);return s?d<s[0]||d>s[1]:false}
+ if(NATT.a===NATT.b)return false;const m=d.getHours()*60+d.getMinutes();return NATT.a<NATT.b?m>=NATT.a&&m<NATT.b:m>=NATT.a||m<NATT.b};
 const nattTid=m=>pad(Math.floor(m/60))+':'+pad(m%60);
 const nightOn=()=>inNight()&&Date.now()-(A.touch||0)>120000;
 // Klockan i nattläget flyttar sig varje timme så att samma bildpunkter inte lyser hela natten (inbränning)
@@ -1981,24 +1985,26 @@ function renderOverlay(){
   (DEV?sh('Förslag i Planera med portioner')+'<div class="seg-wrap">'+segc('Förslag i Planera med portioner','flStyle',[['karusell','Stort kort'],['lista','Lista']],FL_STYLE)+'</div>':'')+
   sh('Översikten')+group('<button type="button" class="cell link" data-act="arrange"><span class="grow">Ändra ordning på rutorna</span>'+chevron+'</button>')+'<div class="foot">Gäller bara den här enheten. Du kan också hålla fingret på en ruta en stund.</div>'+
   sh('Skärm')+group(fieldCell('Väggläge','<input type="checkbox" role="switch" class="switch" data-act="wall" aria-label="Väggläge"'+(S.wall?' checked':'')+'>')+
-   (S.wall?'<button type="button" class="cell link" data-act="vagg"><span class="grow">Väggskärm</span><span class="meta">'+esc((NATT.on?'Natt '+nattTid(NATT.a)+'–'+nattTid(NATT.b):'Inget nattläge')+(CAM.on?' · kamera':''))+'</span>'+chevron+'</button>':'')+statusHtml())+
+   (S.wall?'<button type="button" class="cell link" data-act="vagg"><span class="grow">Nattläge</span><span class="meta">'+esc((!NATT.on?'Av':NATT.sol?'Solnedgång–soluppgång':nattTid(NATT.a)+'–'+nattTid(NATT.b))+(CAM.on?' · kamera':''))+'</span>'+chevron+'</button>':'')+statusHtml())+
   (topic?sh('Notiser')+group('<div class="cell"><span class="grow copy">'+esc(topic)+'</span><button type="button" class="pill" data-act="copy" data-id="'+esc(topic)+'">Kopiera</button></div>')+'<div class="foot">Installera appen ntfy och prenumerera på det här ämnet. Använd servern ntfy.sh.</div>':'')+
   sh('Utvecklare')+group(fieldCell('Utvecklarläge','<input type="checkbox" role="switch" class="switch" data-act="dev" aria-label="Utvecklarläge"'+(DEV?' checked':'')+'>'))+'<div class="foot">Visar menyer som inte är färdiga, just nu Planera nästa vecka och Planera med portioner. Gäller bara den här enheten.</div>'+
   (DEV?sh('Design')+'<div class="seg-wrap">'+segc('Design','design',[['gammal','UI 1.0'],['ny','UI '+UI_VER]],NY?'ny':'gammal')+'</div><div class="foot">UI 1.0 är den gamla designen. Gäller bara den här enheten och bara i utvecklarläget.</div>':'')+
   sh('Den här enheten')+group('<button type="button" class="cell link center red" data-act="logout">Logga ut</button>')+
   '<div class="foot ver">Hushållstavlan · UI '+(NY?UI_VER:'1.0')+' · version '+esc(APP_VER)+'</div>';
   o.innerHTML=sheetHtml('settings','Inställningar','<button class="tb strong">Spara</button>',body,enter);segSlide(o);return}
- if(k==='vagg'){const tOpts=cur=>Array.from({length:48},(_,i)=>i*30).map(m=>'<option value="'+m+'"'+(m===cur?' selected':'')+'>'+nattTid(m)+'</option>').join('');
+ if(k==='vagg'){const ss=nattSol(),tIn=(ch,cur,lab)=>'<input type="text" inputmode="numeric" maxlength="5" placeholder="tt:mm" class="field r ntid" data-change="'+ch+'" value="'+nattTid(cur)+'" aria-label="'+lab+'">',dm=d=>nattTid(d.getHours()*60+d.getMinutes());
   const body=sh('Nattläge')+group(fieldCell('Nattläge','<input type="checkbox" role="switch" class="switch" data-act="natt" aria-label="Nattläge"'+(NATT.on?' checked':'')+'>')+
-    (NATT.on?'<div class="cell"><span class="grow">Från</span>'+menuSel('data-change="nattA" aria-label="Nattläget börjar"',tOpts(NATT.a))+'</div><div class="cell"><span class="grow">Till</span>'+menuSel('data-change="nattB" aria-label="Nattläget slutar"',tOpts(NATT.b))+'</div>':''))+
-   '<div class="foot">Under de här tiderna visar tavlan bara en dämpad klocka när ingen har rört den på två minuter, och appen är i mörkt läge. Klockan flyttar sig lite varje timme så att den inte bränns in i skärmen. Tryck på skärmen för att väcka tavlan.</div>'+
+    (NATT.on?fieldCell('Följ solnedgång och soluppgång','<input type="checkbox" role="switch" class="switch" data-act="nattSolv" aria-label="Följ solnedgång och soluppgång"'+(NATT.sol?' checked':'')+'>')+
+     (NATT.sol?'<div class="cell"><span class="grow">Aktiveras</span><span class="meta">Vid solnedgången'+(ss?', i dag '+dm(ss[1]):'')+'</span></div><div class="cell"><span class="grow">Avaktiveras</span><span class="meta">Vid soluppgången'+(ss?', i dag '+dm(ss[0]):'')+'</span></div>'
+      :fieldCell('Aktiveras',tIn('nattA',NATT.a,'Nattläget aktiveras klockan'))+fieldCell('Avaktiveras',tIn('nattB',NATT.b,'Nattläget avaktiveras klockan'))):''))+
+   '<div class="foot">Under nattläget visar tavlan bara en dämpad klocka när ingen har rört den på två minuter, och appen är i mörkt läge. Klockan flyttar sig lite varje timme så att den inte bränns in i skärmen. Tryck på skärmen för att väcka tavlan.</div>'+
    sh('Rummets ljus')+group(fieldCell('Använd kameran','<input type="checkbox" role="switch" class="switch" data-act="kamera" aria-label="Använd kameran för rummets ljus"'+(CAM.on?' checked':'')+'>')+
     (CAM.on?'<div class="cell"><span class="grow">Ljus i rummet</span><span class="meta" data-cam-lvl>'+esc(camTxt())+'</span></div>'+
      fieldCell('Dämpa skärmen när det är mörkt','<input type="checkbox" role="switch" class="switch" data-act="kamDampa" aria-label="Dämpa skärmen när det är mörkt"'+(CAM.dim?' checked':'')+'>'):''))+
    (CAM.on?sh('Mörkt läge under')+'<div class="seg-wrap">'+segc('Mörkt läge under','kamGrans',[['15','15 %'],['25','25 %'],['35','35 %'],['45','45 %']],String(CAM.thr))+'</div>':'')+
    '<div class="foot">Kameran tittar en gång i minuten och räknar bara ut hur ljust det är. Ingen bild sparas eller skickas någonstans. När rummet blir mörkare än gränsen byter tavlan till mörkt läge och dämpar bilden. Under nattläget är kameran avstängd. Gäller bara den här enheten.</div>'+
    '<div class="foot">Muspekaren är dold i väggläge. Flyttar du musen syns den en kort stund.</div>';
-  o.innerHTML=sheetHtml('vagg','Väggskärm','<button type="button" class="tb strong" data-act="sheetClose">Klar</button>',body,enter,'<button type="button" class="back" data-act="settings">'+I.back+'Inställningar</button>');segSlide(o);return}
+  o.innerHTML=sheetHtml('vagg','Nattläge','<button type="button" class="tb strong" data-act="sheetClose">Klar</button>',body,enter,'<button type="button" class="back" data-act="settings">'+I.back+'Inställningar</button>');segSlide(o);return}
  if(k==='farg'){const mi=people().indexOf(S.me);if(enter)[FARG_OPEN,FARG_X].forEach(o=>Object.keys(o).forEach(k=>delete o[k]));
   // en rad färgcirklar som går att dra i sidled för fler färger; efter ett val fälls en rad med toner av färgen ut under
   const strip=farbList(),near=h=>strip.reduce((b,k)=>Math.min(Math.abs(colPos(k).h-h),360-Math.abs(colPos(k).h-h))<Math.min(Math.abs(colPos(b).h-h),360-Math.abs(colPos(b).h-h))?k:b,strip[0]);
@@ -3105,6 +3111,7 @@ const ACT={
  wall(){S.wall=!S.wall;lsSet('wall',S.wall?'1':'0');fitScrollbar();hideCursor();wake();autoTheme();applyTheme(true);render();camSample()},
  vagg(){S.sheet='vagg';render()},
  natt(){NATT.on=!NATT.on;saveNatt();autoTheme();render()},
+ nattSolv(){NATT.sol=!NATT.sol;lsSet('nattSol',NATT.sol?'1':null);autoTheme();applyTheme(true);render()},
  kamera(){CAM.on=!CAM.on;lsSet('kamera',CAM.on?'1':null);if(!CAM.on){CAM.lvl=null;CAM.dark=false;CAM.err=''}autoTheme();render();camSample()},
  kamDampa(){CAM.dim=!CAM.dim;lsSet('kamDampa',CAM.dim?null:'0');autoTheme()},
  kamGrans(id){CAM.thr=Number(id)||25;lsSet('kamGrans',CAM.thr===25?null:String(CAM.thr));if(CAM.lvl!=null){CAM.dark=CAM.lvl<CAM.thr}autoTheme();render()},
@@ -3364,7 +3371,10 @@ document.addEventListener('change',e=>{const el=e.target.closest('[data-change]'
  if(el.dataset.change==='photo'){const f=el.files&&el.files[0];el.value='';if(S.rcpSheet){S.rcpSheet=null;render()}uploadPhoto(id,f);return}
  if(el.dataset.change==='ork'){el.blur();ACT.budget(String(ORK[Number(el.value)].min));return}
  if(el.dataset.change==='accent'){ACT.accent(el.value);return}
- if(el.dataset.change==='nattA'||el.dataset.change==='nattB'){NATT[el.dataset.change==='nattA'?'a':'b']=Number(el.value)||0;saveNatt();autoTheme();applyTheme(true);render();return}
+ if(el.dataset.change==='nattA'||el.dataset.change==='nattB'){// klockslaget skrivs in fritt: 22:00, 22.00, 2200 eller bara 22
+ const k=el.dataset.change==='nattA'?'a':'b',v=String(el.value||'').trim(),m=/^(\d{1,2})(?:[:.,\s]?(\d{2}))?$/.exec(v);
+ if(!m||+m[1]>23||+(m[2]||0)>59){el.value=nattTid(NATT[k]);toast('Skriv klockslaget som till exempel 22:00');return}
+ NATT[k]=+m[1]*60+ +(m[2]||0);el.value=nattTid(NATT[k]);saveNatt();autoTheme();applyTheme(true);return}
  if(el.dataset.change==='pcol'){setPcol(Number(id),el.value);return}
  if(el.dataset.change==='planBudget'){const v=Math.round(Number(el.value));if(!(v>=200&&v<=5000)){toast('Skriv en budget mellan 200 och 5 000 kr');render();return}settings().matbudget=String(v);render();apiPost({action:'setting',k:'matbudget',v:String(v)});return}
   if(el.dataset.change==='eko'){const v=Math.max(0,Number(String(el.value).replace(',','.'))||0);updJSON('ekonomi',{},o=>{o[id]=v;return o});return}
