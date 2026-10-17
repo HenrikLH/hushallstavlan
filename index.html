@@ -1498,6 +1498,13 @@ html.ny.nav-glas .nav-pill{display:block}
   @media (prefers-reduced-motion:reduce){html.ny.nav-piller .nav,html.ny.nav-piller .nav *{transition-duration:.01s!important}}
 }
 @media (min-width:900px){html.ny.nav-glas .nav{border-radius:calc(var(--tabbar) / 2)}html.ny.nav-glas .nav-pill{top:6px;bottom:6px;left:6px;width:calc((100% - 12px) / 5);border-radius:calc(var(--tabbar) / 2 - 6px)}}
+/* Menyraden följer formvalet: Runda = kapsel, Kantiga = rundade hörn, Raka = små hörn */
+html.ny.nav-glas:not(.seg-kapsel) .nav{border-radius:20px}
+html.ny.nav-glas:not(.seg-kapsel) .nav-pill{border-radius:16px}
+html.ny.nav-glas:not(.seg-kapsel) .nav-mini{border-radius:20px}
+html.ny.nav-glas.seg-klassisk .nav{border-radius:12px}
+html.ny.nav-glas.seg-klassisk .nav-pill{border-radius:8px}
+html.ny.nav-glas.seg-klassisk .nav-mini{border-radius:12px}
 
 /* Rubriker och text */
 html.ny .lt{font-size:32px;line-height:38px;letter-spacing:-.6px}
@@ -1693,7 +1700,7 @@ html.ny .ws-card .wk-new{margin:0;width:100%;height:44px;border-radius:0 0 14px 
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=123"></script>
+<script src="app.js?v=124"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
