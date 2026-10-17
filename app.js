@@ -3264,7 +3264,9 @@ document.addEventListener('scroll',plPin,{passive:true});document.addEventListen
 // högst upp med när man scrollar. Vi mäter förskjutningen och flyttar tillbaka dem till skärmens kanter
 function vvFix(){const v=window.visualViewport,r=document.documentElement;if(!v)return;
  const a=document.activeElement,typing=a&&a.matches&&a.matches('input,textarea,select,[contenteditable]');
- let t=0,b=0;if(!typing&&v.scale<1.01){t=Math.round(v.offsetTop);if(Math.abs(t)<2)t=0;b=t}
+ let t=0,b=0;
+ // när sidan dras ner förbi toppen blir offsetTop negativt; då ska menyerna ligga kvar
+ if(!typing&&v.scale<1.01&&scrollY>=0){t=Math.max(0,Math.round(v.offsetTop));if(t<2)t=0;b=t}
  r.style.setProperty('--vvt',t+'px');r.style.setProperty('--vvb',b+'px')}
 if(window.visualViewport){visualViewport.addEventListener('resize',vvFix);visualViewport.addEventListener('scroll',vvFix)}
 document.addEventListener('scroll',vvFix,{passive:true});document.addEventListener('focusin',vvFix);document.addEventListener('focusout',()=>[0,120,450].forEach(t=>setTimeout(vvFix,t)));
