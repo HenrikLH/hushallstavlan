@@ -1409,7 +1409,9 @@ html.ny{
   --red:#C0281B;--orange:#9A5800;--green:#1E7A3C;--gray:#6B6862;
   --bar:rgba(255,255,255,.97);--track:#E4E1DB;--pill:rgba(70,60,45,.1);
   --veg-ink:#1E7A3C;--gem-ink:#9A5800;--meat-ink:#7A5C38;
-  --tabgap:0px;--tabbar:calc(56px + var(--sab));
+  --tabgap:0px;--tabbar:calc(56px + var(--sab-nav));
+  /* hemindikatorn behöver inte hela säkerhetsmarginalen under flikarna */
+  --sab-nav:max(calc(var(--sab) - 16px),6px);
 }
 @media (prefers-color-scheme: dark){ html.ny:not([data-theme="light"]){
   --bg:#111111;--surface:#1D1D1E;--surface-raised:#2A2A2B;--fill:rgba(255,255,255,.08);
@@ -1424,7 +1426,7 @@ html.ny[data-theme="dark"]{
 html.ny body{letter-spacing:-.2px}
 
 /* Flikraden: fast i botten med tydliga etiketter, inget innehåll syns igenom */
-html.ny .nav{left:0;right:0;bottom:0;height:var(--tabbar);padding:4px calc(4px + var(--sar)) var(--sab) calc(4px + var(--sal));border-radius:0;background:var(--surface);-webkit-backdrop-filter:none;backdrop-filter:none;border:0;border-top:.5px solid var(--line);box-shadow:none}
+html.ny .nav{left:0;right:0;bottom:0;height:var(--tabbar);padding:4px calc(4px + var(--sar)) var(--sab-nav) calc(4px + var(--sal));border-radius:0;background:var(--surface);-webkit-backdrop-filter:none;backdrop-filter:none;border:0;border-top:.5px solid var(--line);box-shadow:none}
 html.ny .nav-pill{display:none}
 html.ny .nav button{font-size:11px;line-height:13px;color:var(--ink-2);gap:3px}
 html.ny .nav button svg{width:26px;height:26px}
@@ -1447,11 +1449,21 @@ html.ny.seg-klassisk .seg-thumb{top:2px;bottom:2px;left:2px;width:calc((100% - 4
 html.ny.seg-klassisk .segc button+button::before{content:'';position:absolute;left:0;top:8px;bottom:8px;width:1px;background:rgba(142,142,147,.35);transition:opacity .2s}
 html.ny.seg-klassisk .segc button[aria-pressed="true"]::before,html.ny.seg-klassisk .segc button[aria-pressed="true"]+button::before{opacity:0}
 html.ny.seg-klassisk .subseg .segc{max-width:none;margin:8px 16px 0;height:32px}
+/* Samma form överallt: rutor, listor och knappar följer valet av växlingsknappar */
+html.ny.seg-kapsel :is(.group,.widget,.hero,.bhero,.stat,.wsum,.wcard,.wk-tom,.sw-now,.sw-card,.pt-bas,.pt,.pt-sum,.pl-open,.pl-bud,.pt-koll,.car-s,.smc,.wx2,.wx-scene,.wx-tile,.bcard){border-radius:26px}
+html.ny.seg-kapsel :is(.btn-fill,.btn-tint,.sh-btn,.add-row){border-radius:999px}
+html.ny.seg-kapsel .add-row .add-go{border-radius:50%}
+html.ny.seg-kapsel .banner{border-radius:22px}
+html.ny.seg-klassisk :is(.group,.widget,.hero,.bhero,.stat,.wsum,.wcard,.wk-tom,.sw-now,.sw-card,.pt-bas,.pt,.pt-sum,.pl-open,.pl-bud,.pt-koll,.car-s,.smc,.wx2,.wx-scene,.wx-tile,.bcard){border-radius:10px}
+html.ny.seg-klassisk :is(.widget,.hero,.bhero,.wx2,.wx-scene,.bcard){border-radius:12px}
+html.ny.seg-klassisk :is(.btn-fill,.btn-tint,.sh-btn,.add-row){border-radius:10px}
+html.ny.seg-klassisk .add-row .add-go{border-radius:8px}
+html.ny.seg-klassisk .banner{border-radius:10px}
 /* Flikraden som flytande glaskapsel med glidande markering */
 html.ny.nav-glas .nav{background:var(--glass);-webkit-backdrop-filter:saturate(180%) blur(24px);backdrop-filter:saturate(180%) blur(24px);border:.5px solid var(--glass-line);box-shadow:0 10px 30px rgba(0,0,0,.16),0 1px 3px rgba(0,0,0,.08)}
 html.ny.nav-glas .nav-pill{display:block}
 @media (max-width:899px){
-  html.ny.nav-glas{--tabbar:64px;--tabgap:max(calc(var(--sab) - 6px),12px)}
+  html.ny.nav-glas{--tabbar:64px;--tabgap:max(calc(var(--sab) - 18px),10px)}
   html.ny.nav-glas .nav{left:calc(14px + var(--sal));right:calc(14px + var(--sar));bottom:var(--tabgap);height:var(--tabbar);padding:4px;border-radius:calc(var(--tabbar) / 2)}
 }
 @media (min-width:900px){html.ny.nav-glas .nav{border-radius:calc(var(--tabbar) / 2)}html.ny.nav-glas .nav-pill{top:6px;bottom:6px;left:6px;width:calc((100% - 12px) / 5);border-radius:calc(var(--tabbar) / 2 - 6px)}}
