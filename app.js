@@ -668,7 +668,7 @@ function mealCell(m,rows,flex){rows=rows||[m];const r=m.recipe&&recipeById(m.rec
  // Portionerna med plus och minus under rätten. Ändringen sparas och inköpslistan räknas om
  const P=flex&&flex.port,pr=P?'<div class="dr-port"><span class="grow"><b>'+P.n+(P.n===1?' portion':' portioner')+'</b>'+(P.txt?'<span class="meta">'+cap(P.txt)+'</span>':'')+'</span><span class="pl-step" role="group" aria-label="Portioner"><button type="button" data-act="portStep" data-id="'+D().menu.indexOf(m)+'" data-d="-1" aria-label="Färre portioner"'+(P.n<=1?' disabled':'')+'>'+I.minus+'</button><span class="num" aria-live="polite">'+P.n+'</span><button type="button" data-act="portStep" data-id="'+D().menu.indexOf(m)+'" data-d="1" aria-label="Fler portioner"'+(P.n>=20?' disabled':'')+'>'+I.plus+'</button></span></div>':'';
  const can=m.who!=='Borta'&&left.length,i=D().menu.indexOf(m),lab=(m.recipe?'Byt ':'Välj rätt i stället för ')+esc(m.title);
- const end=m.who==='Borta'?'':!left.length?'<span class="dr-done">'+I.tick+'Ätit</span>':NY?'<button class="dr-byt" data-act="swap" data-id="'+D().menu.indexOf(m)+'" aria-label="'+(m.recipe?'Byt ':'Välj rätt i stället för ')+esc(m.title)+'">'+(m.recipe?'Byt':'Välj')+'</button>':'<span class="dr-sw" aria-hidden="true">'+I.swap+'</span>';
+ const end=m.who==='Borta'?'':!left.length?'<span class="dr-done">'+I.tick+'Ätit</span>':NY?'<button class="dr-byt" data-act="swap" data-id="'+D().menu.indexOf(m)+'" aria-label="'+(m.recipe?'Byt ':'Välj rätt i stället för ')+esc(m.title)+'">'+I.swap+'</button>':'<span class="dr-sw" aria-hidden="true">'+I.swap+'</span>';
  const row='<div class="cell dr'+(left.length?'':' past')+(can?' dr-slide':'')+'">'+(r?'<button class="dr-main" data-act="recipe" data-id="'+esc(m.recipe)+'">'+inner+'</button>':'<div class="dr-main">'+inner+'</div>')+end+pr+'</div>';
  // Svep åt vänster för att visa Byt, som i iPhones listor
  return can?'<div class="dr-wrap"><button class="dr-act" data-act="swap" data-id="'+i+'" aria-label="'+lab+'">'+I.swap+'<span>'+(m.recipe?'Byt':'Välj')+'</span></button>'+row+'</div>':row}
@@ -737,9 +737,12 @@ function raeckerKort(ds){const st=settings(),vs=st.vecka_start;if(!isDate(vs))re
 // Nya designen: en knapp för veckoförslaget och en sammanfattning med kostnad, portioner och om maten räcker
 const planBtnNy=()=>(DEV?planBtn().replace(/<button class="pl-open pt-open" data-act="autoOpen">[\s\S]*$/,''):'')+'<button class="btn-tint wk-new" data-act="autoOpen">'+I.swap+'Föreslå en ny vecka</button>';
 function weekSummary(ds,total,port){const rk=raeckerKort(ds),bad=/class="rk bad"/.test(rk),rub=(rk.match(/<div class="rk-h">([^<]*)<\/div>/)||[])[1]||'',B=Number(settings().matbudget)||0;
- return'<div class="wsum"><div class="wsum-n"><b class="num">'+nv('m-total',total,'kr')+'</b><span>för veckans mat'+(B?' · budget '+kr(B):'')+'</span></div>'+
+ // Den lilla raden visas under navigeringsfältet när sammanfattningen har scrollats bort (samma som i Planera veckan)
+ // Tryck på raden för att fälla ut hela räcker-listan även när man har scrollat
+ const mini='<div class="pl-pin"><div class="pl-mini wsum-mini'+(S.wsumOpen?' open':'')+'"><button type="button" class="wm-top" data-act="wsumMini" aria-expanded="'+!!S.wsumOpen+'"><b class="num">'+kr(total)+'</b><span class="fn">'+port+' port</span><span class="grow"></span>'+(rub?'<span class="wsum-s'+(bad?' bad':'')+'"><span class="dotc"></span>'+(bad?'Räcker inte':'Räcker')+'</span>':'')+'<span class="wm-ch" aria-hidden="true">'+chevron+'</span></button>'+(rub?'<div class="wm-body">'+rk.replace(/<div class="rk-h">[^<]*<\/div>/,'')+'</div>':'')+'</div></div>';
+ return'<div class="wsum pl-bud"><div class="wsum-n"><b class="num">'+nv('m-total',total,'kr')+'</b><span>för veckans mat'+(B?' · budget '+kr(B):'')+'</span></div>'+
   '<div class="wsum-m">'+port+' portioner'+(port?' · '+kr(total/port)+' per portion':'')+'</div>'+
-  (rub?'<details class="wsum-d"><summary class="wsum-s'+(bad?' bad':'')+'"><span class="dotc" aria-hidden="true"></span><span class="grow">'+esc(rub)+'</span><span class="lnk">Visa</span></summary>'+rk.replace(/<div class="rk-h">[^<]*<\/div>/,'')+'</details>':'')+'</div>'}
+  (rub?'<details class="wsum-d"><summary class="wsum-s'+(bad?' bad':'')+'"><span class="dotc" aria-hidden="true"></span><span class="grow">'+esc(rub)+'</span><span class="lnk">Visa</span></summary>'+rk.replace(/<div class="rk-h">[^<]*<\/div>/,'')+'</details>':'')+'</div>'+mini}
 function matWeek(){
  const d=D(),st=settings(),ds=weekDishes();let h=NY?planBtnNy():planBtn();
  if(!ds.length)return h+'<div style="height:22px"></div>'+group(emptyCell('Veckans mat är inte planerad än. Tryck på Veckoförslag.'));
@@ -2757,6 +2760,7 @@ const ACT={
  shopImport(){S.confirm='shopImport';render()},
  portStep(id,el){const m=D().menu[Number(id)];if(!m)return;const r=m.recipe&&recipeById(m.recipe),n=Math.max(1,Math.min(20,dishPort(m,r)+Number(el.dataset.d)));
   m.note=portNote(m,r,n);render();clearTimeout(ACT.portStep.t);ACT.portStep.t=setTimeout(()=>shopImport(true),1200)},
+ wsumMini(id,el){S.wsumOpen=!S.wsumOpen;const m=el.closest('.wsum-mini');m.classList.toggle('open',S.wsumOpen);el.setAttribute('aria-expanded',S.wsumOpen)},
  shopMore(){S.sheet='shopMore';S.shopMoreC=false;render()},
  shopMoreAsk(){S.shopMoreC=true;render()},
  shopMoreImp(){closeSheets();render();shopImport()},
