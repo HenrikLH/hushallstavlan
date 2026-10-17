@@ -1267,6 +1267,12 @@ body.dragging .bwx-h{scroll-snap-type:none}
 .bhero .hero-wx .wx-now{justify-content:flex-start}
 .bhero .hero-wx .fig-box{grid-column:2;grid-row:1/span 4;margin:0}
 .bhero .fig-tip{margin-top:6px}
+/* UI 2.0 på väggtavlan: samma bild som på Översikt, större och under väderraderna */
+.bhero .hero-wx .gs.wb{grid-column:1/-1;grid-row:auto;justify-self:end;width:196px;margin:-64px -6px 0 0;padding-top:52px}
+.gs.wb .fig-box.grass{width:196px;height:174px}
+.gs.wb>.bd{right:-14px;width:322px;height:266px}
+.gs.wb .arc{left:8px;right:4px;top:0;bottom:166px}
+.bhero .hero-wx .gs.wb~.fig-tip{grid-column:1/-1;justify-self:end;margin-right:40px}
 /* sol och måne i högra delen, så att de inte hamnar bakom klockan */
 .bhero .sky{left:66%;overflow:visible}
 .bcol .wpair{flex:0 0 auto}

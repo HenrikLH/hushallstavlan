@@ -2442,7 +2442,9 @@ function arcHtml(W,v){const P=WX_POS(),sc=wxScene(W),now=new Date(),k=SKY(now,P.
  return'<div class="arc '+v+'" aria-hidden="true">'+s+'</div>'}
 // b (vald): bågen i högra delen av rutan bakom temperaturen; a = bågen tätt över hundarna
 let BAKGRUND=lsGet('bakgrund')!=='0';
-const GRASS_V=lsGet('grass')==='a'?'a':'b',grassOn=()=>!wallBoardOn();
+const GRASS_V=lsGet('grass')==='a'?'a':'b',grassOn=()=>NY||!wallBoardOn();
+// på väggtavlan ligger solbanan inne i bilden (variant a), eftersom hörnet uppe till höger har klockan och kugghjulet
+const grassV=()=>wallBoardOn()?'a':GRASS_V;
 function heroHtml(){const n=new Date(),t=today(),dy=EXT.day&&EXT.day.date===t?EXT.day:null,hh=n.getHours(),W=wxModel(),P=WX_POS();
  const greet=hh<5?'God natt':hh<10?'God morgon':hh<17?'Hej':hh<22?'God kväll':'God natt';
  const sun=sunTimes(t,P.lat,P.lon);
@@ -2451,13 +2453,13 @@ function heroHtml(){const n=new Date(),t=today(),dy=EXT.day&&EXT.day.date===t?EX
   wx='<button class="hero-wx" data-act="nav" data-id="vader" aria-label="Väder: '+esc(tx)+', '+deg(W.now.T)+'. Öppna vädret">'+
    '<div class="wx-now"><span class="wx-ic" aria-hidden="true">'+ic+'</span><span class="wx-t num">'+deg(W.now.T)+'</span></div>'+
    '<div class="fn">'+esc(tx)+'</div><div class="fn num">H:'+deg(d0.max)+' L:'+deg(d0.min)+'</div>'+
-   (grassOn()?'<div class="gs '+GRASS_V+'">'+(GRASS_V==='a'?arcHtml(W,'a'):'')+(BAKGRUND?backdropSvg(wxScene(W)):'')+'<div class="fig-box grass" aria-hidden="true">'+figSvg(wxScene(W),{bare:1,patch:1})+'</div></div>':'<div class="fig-box" aria-hidden="true">'+figSvg(wxScene(W),{bare:1})+'</div>')+'<div class="fig-tip">'+esc((F.when==='i morgon'?'I morgon: ':'')+F.tip)+'</div></button>'}
+   (grassOn()?'<div class="gs '+grassV()+(wallBoardOn()?' wb':'')+'">'+(grassV()==='a'?arcHtml(W,'a'):'')+(BAKGRUND?backdropSvg(wxScene(W)):'')+'<div class="fig-box grass" aria-hidden="true">'+figSvg(wxScene(W),{bare:1,patch:1})+'</div></div>':'<div class="fig-box" aria-hidden="true">'+figSvg(wxScene(W),{bare:1})+'</div>')+'<div class="fig-tip">'+esc((F.when==='i morgon'?'I morgon: ':'')+F.tip)+'</div></button>'}
  const ny=NY&&!wallBoardOn(),facts=ny?[]:['Vecka '+isoWeek(n)];
  if(dy&&dy.holiday)facts.push(dy.holiday);else if(dy&&dy.flag)facts.push('Flaggdag: '+dy.flag);
  // I nya designen står solen före namnsdagen
  const nd=dy&&dy.names.length?'Namnsdag: '+dy.names.join(', '):'',so=sun?'Sol '+hhmm(sun[0])+'–'+hhmm(sun[1]):'';
  (ny?[so,nd]:[nd,so]).filter(Boolean).forEach(f=>facts.push(f));
- return'<section class="hero'+(wx?' has-wx':'')+'">'+(W?(grassOn()?(GRASS_V==='b'?arcHtml(W,'b'):''):skyHtml(W)):'')+'<div class="hero-l"><div class="clock num" id="clock">'+pad(hh)+':'+pad(n.getMinutes())+'</div><div class="hero-date">'+esc(cap(dayHead(t)))+'</div>'+(ny?'<div class="hero-date">Vecka '+isoWeek(n)+'</div>':'')+
+ return'<section class="hero'+(wx?' has-wx':'')+'">'+(W?(grassOn()?(grassV()==='b'?arcHtml(W,'b'):''):skyHtml(W)):'')+'<div class="hero-l"><div class="clock num" id="clock">'+pad(hh)+':'+pad(n.getMinutes())+'</div><div class="hero-date">'+esc(cap(dayHead(t)))+'</div>'+(ny?'<div class="hero-date">Vecka '+isoWeek(n)+'</div>':'')+
   '<div class="hero-greet">'+greet+(S.me?', '+esc(S.me):'')+'!</div><div class="hero-facts">'+facts.map(f=>'<span>'+esc(f)+'</span>').join('')+'</div></div>'+wx+'</section>'}
 async function loadExt(){const t=today();let changed=await loadWx();
  if(!EXT.day||EXT.day.date!==t){try{const[y,mo,d]=t.split('-');
