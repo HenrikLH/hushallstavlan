@@ -181,7 +181,7 @@ function renderNav(nav){
 // Dra fingret längs flikraden för att flytta markeringen, släpp för att byta flik.
 (function(){const nav=document.getElementById('nav');let st=null,skip=false;
  const at=x=>{const r=nav.getBoundingClientRect(),w=(r.width-8)/VIEWS.length,dx=Math.min(Math.max(x-r.left-4-w/2,0),w*(VIEWS.length-1));return{dx,j:Math.round(dx/w)}};
- nav.addEventListener('pointerdown',e=>{if(e.button>0)return;st={x0:e.clientX,id:e.pointerId,moved:false}});
+ nav.addEventListener('pointerdown',e=>{if(e.button>0||nav.classList.contains('mini'))return;st={x0:e.clientX,id:e.pointerId,moved:false}});
  nav.addEventListener('pointermove',e=>{if(!st||e.pointerId!==st.id)return;
   if(!st.moved){if(Math.abs(e.clientX-st.x0)<8)return;st.moved=true;nav.classList.add('drag');try{nav.setPointerCapture(e.pointerId)}catch(_){}}
   const p=at(e.clientX);nav.style.setProperty('--dx',p.dx+'px');nav.querySelectorAll('button').forEach((b,k)=>b.classList.toggle('over',k===p.j))});
@@ -191,6 +191,16 @@ function renderNav(nav){
   if(go&&VIEWS[p.j][0]!==S.view)ACT.nav(VIEWS[p.j][0])};
  nav.addEventListener('pointerup',e=>end(e,true));nav.addEventListener('pointercancel',e=>end(e,false));
  nav.addEventListener('click',e=>{if(skip){e.stopPropagation();e.preventDefault()}},true)})();
+// Svävande menyrad på telefon: krymper till en rund knapp nere till vänster när man scrollar nedåt,
+// växer ut igen när man scrollar uppåt, når toppen eller trycker på knappen.
+(function(){const nav=document.getElementById('nav');let y0=scrollY,acc=0;
+ const on=()=>NY&&FLIKRAD==='glas'&&!S.wall&&innerWidth<900&&!nav.classList.contains('none');
+ const set=m=>{if(nav.classList.contains('mini')===m)return;nav.classList.remove('ut');void nav.offsetWidth;nav.classList.toggle('mini',m);if(!m)nav.classList.add('ut')};
+ nav.addEventListener('animationend',()=>nav.classList.remove('ut'));
+ document.addEventListener('scroll',()=>{const y=scrollY,d=y-y0;y0=y;if(!on()){set(false);acc=0;return}
+  if(y<40){acc=0;set(false);return}
+  acc=(acc>0)===(d>0)?acc+d:d;if(acc>24)set(true);else if(acc<-24)set(false)},{passive:true});
+ nav.addEventListener('click',e=>{if(nav.classList.contains('mini')){e.stopPropagation();e.preventDefault();set(false)}},true)})();
 
 /* Dra för att scrolla och svep mellan flikarna på stora skärmar och i väggläge.
    På Linux kommer pekskärmens rörelser ofta fram som musrörelser, och då scrollar webbläsaren
@@ -1903,7 +1913,7 @@ function renderOverlay(){
   sh('Namn i hushållet')+group([0,1].map(i=>'<div class="cell"><span class="pdot p'+(i+1)+'"></span><input class="field" id="set-p'+(i+1)+'" name="p'+(i+1)+'" aria-label="Person '+(i+1)+'" value="'+esc(people()[i]||'')+'"><input type="hidden" name="c'+(i+1)+'" value="'+personColor(i)+'"></div>').join(''))+
   sh('Städtid och budget')+group(fieldCell('Vardag, min','<input class="field r" id="set-wd" name="wd" inputmode="numeric" value="'+esc(st.stadtid_vardag||20)+'" style="max-width:110px">')+fieldCell('Helg, min','<input class="field r" id="set-we" name="we" inputmode="numeric" value="'+esc(st.stadtid_helg||40)+'" style="max-width:110px">')+fieldCell('Mat/vecka, kr','<input class="field r" id="set-budget" name="budget" inputmode="numeric" value="'+esc(st.matbudget||'')+'" style="max-width:110px">'))+
   sh('Utseende')+group('<button type="button" class="cell link" data-act="farg"><span class="grow">Färgval</span><span class="meta">'+esc({system:'System',light:'Ljust',dark:'Mörkt'}[S.theme]+' · '+(ACCENT==='min'?'Min färg':PCOL[accentKey()][0]))+'</span>'+chevron+'</button>')+'<div class="foot">Ljust eller mörkt, accentfärg och era färger i hushållet.</div>'+
-  (NY?sh('Form på knappar och rutor')+'<div class="seg-wrap">'+segc('Form på knappar och rutor','segstil',[['standard','Kantiga'],['kapsel','Runda'],['klassisk','Tunna']],SEGSTIL)+'</div><div class="foot">Gäller växlingsknappar, rutor, listor och knappar i hela appen. Kantiga har lätt rundade hörn. Runda har helt runda knappar och mjukare rutor, som i iOS 26. Tunna har lägre knappar med streck mellan valen och skarpare hörn, som i äldre iOS. Gäller bara den här enheten.</div>'+
+  (NY?sh('Form på knappar och rutor')+'<div class="seg-wrap">'+segc('Form på knappar och rutor','segstil',[['standard','Kantiga'],['kapsel','Runda'],['klassisk','Raka']],SEGSTIL)+'</div><div class="foot">Gäller växlingsknappar, rutor, listor och knappar i hela appen. Kantiga har lätt rundade hörn. Runda har helt runda knappar och mjukare rutor, som i iOS 26. Raka har små hörn och streck mellan valen, som i äldre iOS. Text och höjd är samma i alla tre. Gäller bara den här enheten.</div>'+
    sh('Menyraden längst ner')+'<div class="seg-wrap">'+segc('Menyraden längst ner','flikrad',[['fast','Fast'],['glas','Svävande']],FLIKRAD)+'</div><div class="foot">Fast ligger kant i kant längst ner. Svävande är en rundad glasbubbla ovanpå innehållet, som i iOS 26. Gäller bara den här enheten.</div>':'')+
   sh('Vädervyn')+'<div class="seg-wrap">'+segc('Vädervyn','wxvy',[['kurva','Dagskurva'],['bild','Bild med hundar']],WXVY)+'</div><div class="foot">Dagskurvan visar temperaturen de närmaste 24 timmarna. Gäller bara den här enheten.</div>'+
   sh('Låsa rätter')+'<div class="seg-wrap">'+segc('Låsa rätter','lasstil',[['rad','Runt rätten'],['bild','Runt bilden']],LASSTIL)+'</div><div class="foot">Håll in en rätt på veckosedeln i en sekund för att låsa den. Föreslå en ny vecka behåller låsta rätter. Gäller bara den här enheten.</div>'+

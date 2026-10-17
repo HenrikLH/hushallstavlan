@@ -1439,16 +1439,13 @@ html.ny .nav button[aria-current="page"] svg{stroke-width:2.2}
 }
 
 /* Menyväljare (Inställningar): Kapsel och Klassisk, per enhet */
-html.ny.seg-kapsel .segc{height:40px;border-radius:999px;padding:4px;background:var(--pill);box-shadow:inset 0 0 0 .5px var(--glass-line)}
-html.ny.seg-kapsel .seg-thumb{top:4px;bottom:4px;left:4px;width:calc((100% - 8px) / var(--n,2));border-radius:999px;background:var(--seg-on);box-shadow:0 2px 8px rgba(0,0,0,.12),0 0 0 .5px rgba(0,0,0,.04)}
+html.ny.seg-kapsel .segc{height:44px;border-radius:22px;padding:4px}
+html.ny.seg-kapsel .seg-thumb{top:4px;bottom:4px;left:4px;width:calc((100% - 8px) / var(--n,2));border-radius:18px}
 html.ny.seg-kapsel .segc button{border-radius:999px}
-html.ny.seg-kapsel .subseg .segc{max-width:none;margin:10px 16px 0;height:34px;padding:3px}
-html.ny.seg-kapsel .subseg .seg-thumb{top:3px;bottom:3px;left:3px;width:calc((100% - 6px) / var(--n,2))}
-html.ny.seg-klassisk .segc{height:32px;border-radius:9px;padding:2px;background:rgba(118,118,128,.14)}
-html.ny.seg-klassisk .seg-thumb{top:2px;bottom:2px;left:2px;width:calc((100% - 4px) / var(--n,2));border-radius:7px;background:var(--seg-on);box-shadow:0 3px 8px rgba(0,0,0,.12),0 3px 1px rgba(0,0,0,.04),0 0 0 .5px rgba(0,0,0,.04)}
-html.ny.seg-klassisk .segc button+button::before{content:'';position:absolute;left:0;top:8px;bottom:8px;width:1px;background:rgba(142,142,147,.35);transition:opacity .2s}
+html.ny.seg-klassisk .segc{height:44px;border-radius:10px;padding:3px}
+html.ny.seg-klassisk .seg-thumb{top:3px;bottom:3px;left:3px;width:calc((100% - 6px) / var(--n,2));border-radius:7px}
+html.ny.seg-klassisk .segc button+button::before{content:'';position:absolute;left:0;top:12px;bottom:12px;width:1px;background:rgba(142,142,147,.35);transition:opacity .2s}
 html.ny.seg-klassisk .segc button[aria-pressed="true"]::before,html.ny.seg-klassisk .segc button[aria-pressed="true"]+button::before{opacity:0}
-html.ny.seg-klassisk .subseg .segc{max-width:none;margin:8px 16px 0;height:32px}
 /* Samma form överallt: rutor, listor och knappar följer valet av växlingsknappar */
 html.ny.seg-kapsel :is(.group,.widget,.hero,.bhero,.stat,.wsum,.wcard,.wk-tom,.sw-now,.sw-card,.pt-bas,.pt,.pt-sum,.pl-open,.pl-bud,.pt-koll,.car-s,.smc,.wx2,.wx-scene,.wx-tile,.bcard){border-radius:26px}
 html.ny.seg-kapsel :is(.btn-fill,.btn-tint,.sh-btn,.add-row){border-radius:999px}
@@ -1465,6 +1462,20 @@ html.ny.nav-glas .nav-pill{display:block}
 @media (max-width:899px){
   html.ny.nav-glas{--tabbar:64px;--tabgap:max(calc(var(--sab) - 18px),10px)}
   html.ny.nav-glas .nav{left:calc(14px + var(--sal));right:calc(14px + var(--sar));bottom:var(--tabgap);height:var(--tabbar);padding:4px;border-radius:calc(var(--tabbar) / 2)}
+  /* när man scrollar nedåt zoomas menyn först ut och drar sig sedan ihop till en rund knapp till vänster */
+  html.ny.nav-glas .nav{transition:right .52s cubic-bezier(.32,.72,0,1) .12s;transform-origin:left center}
+  html.ny.nav-glas .nav button{transition:flex-grow .52s cubic-bezier(.32,.72,0,1) .12s,opacity .22s ease .12s,color .2s}
+  html.ny.nav-glas .nav button span{max-height:14px;overflow:hidden;transition:opacity .16s ease,max-height .4s cubic-bezier(.32,.72,0,1) .12s}
+  html.ny.nav-glas .nav-pill{transition:transform .5s cubic-bezier(.3,1.3,.5,1),opacity .18s ease .3s}
+  html.ny.nav-glas .nav.mini{right:calc(100% - 14px - var(--sal) - var(--tabbar));animation:navUt .64s cubic-bezier(.32,.72,0,1)}
+  html.ny.nav-glas .nav.ut{animation:navIn .64s cubic-bezier(.32,.72,0,1)}
+  html.ny.nav-glas .nav.mini button{transition:flex-grow .52s cubic-bezier(.32,.72,0,1) .12s,opacity .12s ease,color .2s}
+  html.ny.nav-glas .nav.mini button:not([aria-current]){flex-grow:0;opacity:0;pointer-events:none}
+  html.ny.nav-glas .nav.mini button span{opacity:0;max-height:0;transition:opacity .12s ease,max-height .4s cubic-bezier(.32,.72,0,1) .12s}
+  html.ny.nav-glas .nav.mini .nav-pill{opacity:0;transition:opacity .1s ease}
+  @keyframes navUt{0%{transform:scale(1)}28%{transform:scale(.88)}100%{transform:scale(1)}}
+  @keyframes navIn{0%{transform:scale(1)}30%{transform:scale(.92)}100%{transform:scale(1)}}
+  @media (prefers-reduced-motion:reduce){html.ny.nav-glas .nav.mini,html.ny.nav-glas .nav.ut{animation:none}}
 }
 @media (min-width:900px){html.ny.nav-glas .nav{border-radius:calc(var(--tabbar) / 2)}html.ny.nav-glas .nav-pill{top:6px;bottom:6px;left:6px;width:calc((100% - 12px) / 5);border-radius:calc(var(--tabbar) / 2 - 6px)}}
 
@@ -1494,10 +1505,11 @@ html.ny .ev .chip{font-size:15px;margin-left:6px}
 
 /* Knappar, reglage och filter */
 html.ny .btn-fill,html.ny .btn-tint{border-radius:12px}
-html.ny .segc{height:36px;border-radius:10px;padding:3px}
-html.ny .segc button{font-size:15px;color:var(--ink-2)}
-html.ny .segc button[aria-pressed="true"]{color:var(--ink)}
-html.ny .seg-thumb{top:3px;bottom:3px;left:3px;width:calc((100% - 6px) / var(--n,2));border-radius:8px;background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.14)}
+/* växlingsknapparna har samma höjd och text som raderna i listorna */
+html.ny .segc{height:44px;border-radius:16px;padding:3px}
+html.ny .segc button{font-size:17px;font-weight:400;letter-spacing:-.2px;color:var(--ink-2)}
+html.ny .segc button[aria-pressed="true"]{font-weight:600;color:var(--ink)}
+html.ny .seg-thumb{top:3px;bottom:3px;left:3px;width:calc((100% - 6px) / var(--n,2));border-radius:13px;background:var(--seg-on);box-shadow:0 1px 3px rgba(0,0,0,.14)}
 html.ny .fchips button{background:var(--surface);box-shadow:inset 0 0 0 1px var(--line);height:34px;border-radius:17px}
 html.ny .fchips button[aria-pressed="true"]{background:var(--ink);color:var(--bg);box-shadow:none}
 html.ny .stat{border-radius:16px}
@@ -1638,8 +1650,7 @@ html.ny .wm-h{font-size:15px;font-weight:600;padding:8px 0 2px}
 html.ny .wm-h.bad{color:var(--orange)}
 html.ny .wm-b{border-top:.5px solid var(--line);margin-top:6px;padding-top:8px}
 /* Underval i Recept: ett mindre segment, centrerat under huvudvalet */
-html.ny .subseg .segc{max-width:280px;margin:12px auto 0;height:30px}
-html.ny .subseg .segc button{font-size:14px}
+html.ny .subseg .segc{margin:12px 16px 0}
 html.ny .subseg+.fchips{margin-top:12px}
 html.ny .chip.kv{gap:6px}
 html.ny button:focus:not(:focus-visible){outline:none}
