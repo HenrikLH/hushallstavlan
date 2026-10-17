@@ -1057,6 +1057,10 @@ button.fig-box:active{opacity:1;transform:scale(.96)}
 .rp-add{position:absolute;inset:0 0 56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--accent);font-size:16px;font-weight:600}
 .rp-add svg{width:36px;height:36px}
 .rp-row{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin:14px 0 4px}
+.rp-row.rp-row-e{grid-template-columns:1fr auto;align-items:center;gap:12px}.rp-note{font-size:13px;line-height:18px;color:var(--ink-2)}.rp-row-e .rp-ib{min-width:64px}
+.chip.e{background:rgba(255,45,85,.13);color:#C2185B}
+.bcard.e .bimg{background:linear-gradient(135deg,rgba(255,45,85,.14),transparent 80%),var(--fill)}
+html.ny .chip.e::before{content:"";width:8px;height:8px;border-radius:50%;flex:none;background:#FF2D55}
 .rp-ib{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--accent);cursor:pointer}
 .rp-ib .c{width:52px;height:52px;border-radius:26px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;transition:transform .15s}
 .rp-ib:active .c{transform:scale(.92)}
@@ -1551,7 +1555,7 @@ html.ny button:focus:not(:focus-visible){outline:none}
 <script src="matvaror.js?v=3"></script>
 <script src="matpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=102"></script>
+<script src="app.js?v=103"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>

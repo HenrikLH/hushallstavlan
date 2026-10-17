@@ -68,7 +68,7 @@ const OLD_VIEWS={matsedel:'vecka',recept:'recept',inkop:'inkop'};
 const CFG=window.HT_CONFIG||{};
 const S={theme:['light','dark'].includes(lsGet('theme'))?lsGet('theme'):'system',key:lsGet('key')||'',me:lsGet('me')||'',view:lsGet('view')||'oversikt',wall:lsGet('wall')==='1',
  data:null,sync:'idle',lastSync:null,error:'',recipe:null,scale:{},cook:null,shopFilter:'alla',shopAdd:false,taskAdd:false,
- sheet:null,confirm:null,timers:[],pending:0,step:{},matTab:['recept','bank','inkop'].includes(lsGet('matTab'))?lsGet('matTab'):'vecka',taskTab:lsGet('taskTab')==='kalender'?'kalender':'lista',calDay:null,calMonth:null,ovDay:null,taskDue:'',bankFilter:'alla',rate:null,open:{}};
+ sheet:null,confirm:null,timers:[],pending:0,step:{},matTab:['recept','bank','efter','inkop'].includes(lsGet('matTab'))?lsGet('matTab'):'vecka',taskTab:lsGet('taskTab')==='kalender'?'kalender':'lista',calDay:null,calMonth:null,ovDay:null,taskDue:'',bankFilter:'alla',rate:null,open:{}};
 try{const c=lsGet('cache');if(c)S.data=JSON.parse(c)}catch(e){}
 // Gamla vyer (Matsedel, Recept) ligger nu i fliken Mat
 function normView(id){if(OLD_VIEWS[id]){S.matTab=OLD_VIEWS[id];lsSet('matTab',S.matTab);return'mat'}return id}
@@ -108,7 +108,7 @@ const recipeById=id=>D().recipes.find(r=>r.id===id)||bankList().find(r=>r.id===i
 /* Inspiration: recept från nätet i inspiration.json (följer med appen, inte kalkylarket).
    Hjärtat sparar som favorit och bokmärket som sparat recept i receptbanken. */
 const INSPO={list:null,busy:false};
-function inspoList(){if(!INSPO.list&&!INSPO.busy){INSPO.busy=true;fetch('inspiration.json?v=1').then(r=>r.json()).then(a=>{INSPO.list=Array.isArray(a)?a:[];render()}).catch(()=>{INSPO.busy=false})}return INSPO.list||[]}
+function inspoList(){if(!INSPO.list&&!INSPO.busy){INSPO.busy=true;fetch('inspiration.json?v=2').then(r=>r.json()).then(a=>{INSPO.list=Array.isArray(a)?a:[];render()}).catch(()=>{INSPO.busy=false})}return INSPO.list||[]}
 /* ---------- betyg, önskelista och receptbank ----------
    Sparas som JSON i fliken Inställningar (raderna betyg, onskelista och receptbank_1…7)
    via appens vanliga inställningsanrop, så Apps Script-skriptet behöver inte ändras. */
@@ -219,7 +219,7 @@ function renderNav(nav){
   if(Math.abs(dx)>70&&Math.abs(dx)>1.8*Math.abs(dy)&&performance.now()-g.t0<800&&!document.querySelector('#overlay .sheet'))subSwipe(dx)},{passive:true})})();
 
 /* Undermenyerna i Mat och Uppgifter i samma ordning som segmentreglaget. Svep åt vänster = nästa. */
-const SUBS={mat:['matTab',['vecka','inkop','recept','bank']],uppgifter:['taskTab',['lista','kalender']]};
+const SUBS={mat:['matTab',['vecka','inkop','recept','bank','efter']],uppgifter:['taskTab',['lista','kalender']]};
 function subSwipe(dx){const sub=SUBS[S.view];if(!sub||S.recipe||S.cook||S.sheet)return false;
  const[k,list]=sub,i=list.indexOf(S[k]),j=i+(dx<0?1:-1);if(i<0||j<0||j>=list.length)return false;
  A.dir=dx<0?'in-right':'in-left';A.user=Date.now();
@@ -636,26 +636,29 @@ V.mat=function(){
  if(S.plan&&(S.plan==='auto'||DEV))return S.plan==='port'?portView():S.plan==='auto'?autoView():planView();
  const ink=S.matTab==='inkop'?inkopParts():null;
  let h=head('Mat',ink?{sub:ink.sub,tools:ink.tools}:{sub:weekSub()});
- if(NY){const rt=S.matTab==='recept'||S.matTab==='bank';h+=segc('Visa','matTab',[['vecka','Vecka'],['inkop','Inköp'],['recept','Recept']],rt?'recept':S.matTab);
-  if(rt)h+='<div class="subseg">'+segc('Recept','matTab',[['recept','Inspiration'],['bank','Mina recept']],S.matTab)+'</div>'}
- else h+=segc('Visa','matTab',[['vecka','Vecka'],['inkop','Inköp'],['recept','Recept'],['bank','Receptbank']],S.matTab);
- return h+(ink?ink.body:S.matTab==='recept'?matRecipes():S.matTab==='bank'?matBank():matWeek())};
+ if(NY){const rt=S.matTab==='recept'||S.matTab==='bank'||S.matTab==='efter';h+=segc('Visa','matTab',[['vecka','Vecka'],['inkop','Inköp'],['recept','Recept']],rt?'recept':S.matTab);
+  if(rt)h+='<div class="subseg">'+segc('Recept','matTab',[['recept','Inspiration'],['bank','Mina recept'],['efter','Efterrätter']],S.matTab)+'</div>'}
+ else h+=segc('Visa','matTab',[['vecka','Vecka'],['inkop','Inköp'],['recept','Recept'],['bank','Receptbank'],['efter','Efterrätter']],S.matTab);
+ return h+(ink?ink.body:S.matTab==='recept'?matRecipes():S.matTab==='bank'?matBank():S.matTab==='efter'?matDessert():matWeek())};
 /* Receptbanken: stora kort att bläddra i när man inte vet vad man vill äta */
 const FOOD=[[/soppa/i,'🍲'],[/chili/i,'🌶️'],[/rödbet|falafel|bönbiff|linsbiff|grönsaksbiff/i,'🧆'],[/dal|curry/i,'🍛'],[/gryta/i,'🥘'],[/kyckling/i,'🍗'],[/lax|fisk|torsk|sej/i,'🐟'],[/pasta|lasagne|spagetti/i,'🍝'],[/sallad|bulgur/i,'🥗'],[/shakshuka|ägg|omelett/i,'🍳'],[/blåbär|bär|efterrätt|kaka/i,'🫐'],[/pizza/i,'🍕'],[/taco|tortilla/i,'🌮'],[/burgare/i,'🍔'],[/fläsk|kött|biff/i,'🥩'],[/blomkål|grönsak|aubergine/i,'🥦']];
-const foodIcon=t=>(FOOD.find(([re])=>re.test(t||''))||[0,'🍽️'])[1];
-const kind=r=>{const w=effWho(r);return w==='Kött/Veg'?'kv':w==='Henrik'?'k':w==='Vegetariskt'?'v':w==='Gemensam'?'g':''};
+const SOTT=[[/päron/i,'🍐'],[/äpple/i,'🍎'],[/glass/i,'🍨'],[/choklad/i,'🍫'],[/paj/i,'🥧'],[/bollar/i,'🍪'],[/kompott|rabarber|hallon|jordgubb/i,'🍓'],[/blåbär/i,'🫐'],[/parfait|yoghurt|kvarg|pudding/i,'🍮']];
+const foodIcon=(t,r)=>(r&&isDessert(r)?SOTT.find(([re])=>re.test(t||''))||[0,'🍰']:FOOD.find(([re])=>re.test(t||''))||[0,'🍽️'])[1];
+const isDessert=r=>!!r&&r.course==='efterrätt';
+const kind=r=>{if(isDessert(r))return'e';const w=effWho(r);return w==='Kött/Veg'?'kv':w==='Henrik'?'k':w==='Vegetariskt'?'v':w==='Gemensam'?'g':''};
 // Filtren för receptbanken och inspirationen
-const RFILT=[['alla','Alla'],['k','Kött'],['v','Vegetariskt'],['kv','Kött/Veg'],['g','Gemensam'],['snabbt','Snabbt'],['storkok','Storkok'],['efter','Efterrätt']];
-function rfOk(f,r,w){return f==='alla'||(f==='snabbt'?r.min&&r.min<=30:f==='storkok'?/storkok/i.test((r.group||'')+r.title):f==='efter'?r.course==='efterrätt':f==='onskat'?w.has(r.id):kind(r)===f)}
+// Efterrätter har en egen flik och visas inte bland inspirationen eller i Mina recept
+const RFILT=[['alla','Alla'],['k','Kött'],['v','Vegetariskt'],['kv','Kött/Veg'],['g','Gemensam'],['snabbt','Snabbt'],['storkok','Storkok']];
+function rfOk(f,r,w){return f==='efter'?isDessert(r):isDessert(r)?false:f==='alla'||(f==='snabbt'?r.min&&r.min<=30:f==='storkok'?/storkok/i.test((r.group||'')+r.title):f==='efter'?r.course==='efterrätt':f==='onskat'?w.has(r.id):kind(r)===f)}
 const fchips=(act,fs,f)=>'<div class="fchips" role="group" aria-label="Filter">'+fs.map(([k,l])=>'<button data-act="'+act+'" data-id="'+k+'" aria-pressed="'+(f===k)+'">'+l+'</button>').join('')+'</div>';
 // Stort kort med bild, hjärta och bokmärke. Används i receptbanken och bland inspirationen
 function rCard(r,o){o=o||{};const g=ratingOf(r.id),wished=o.wish&&o.wish.has(r.id),img=r.img||imgOf(r.id);
- return'<article class="bcard '+kind(r)+'"><div class="bimgw"><button class="bimg" data-act="recipe" data-id="'+esc(r.id)+'" aria-label="Öppna '+esc(r.title)+'">'+(img?'<img src="'+esc(img)+'" alt="" loading="lazy">':'<span aria-hidden="true">'+foodIcon(r.title)+'</span>')+'</button>'+bookBtn(r,'bc-gl')+favBtn(r,'bc-gl')+'</div>'+
- '<div class="bbody"><div class="chips-row">'+whoChip(effWho(r))+(o.wish?freqChip(r.id):'')+(r.min?'<span class="chip num">'+r.min+' min</span>':'')+(r.kr?'<span class="chip num">'+kr(r.kr)+'/port</span>':'')+'</div>'+
+ return'<article class="bcard '+kind(r)+'"><div class="bimgw"><button class="bimg" data-act="recipe" data-id="'+esc(r.id)+'" aria-label="Öppna '+esc(r.title)+'">'+(img?'<img src="'+esc(img)+'" alt="" loading="lazy">':'<span aria-hidden="true">'+foodIcon(r.title,r)+'</span>')+'</button>'+bookBtn(r,'bc-gl')+favBtn(r,'bc-gl')+'</div>'+
+ '<div class="bbody"><div class="chips-row">'+(isDessert(r)?'<span class="chip e">Efterrätt</span>':whoChip(effWho(r)))+(o.wish?freqChip(r.id):'')+(r.min?'<span class="chip num">'+r.min+' min</span>':'')+(r.kr?'<span class="chip num">'+kr(r.kr)+'/port</span>':'')+'</div>'+
  '<button class="btitle" data-act="recipe" data-id="'+esc(r.id)+'">'+esc(r.title)+'</button>'+
  (o.wish?(g?'<div class="bstars"><span class="st" aria-label="'+g.avg.toFixed(1)+' av 5">'+starsTxt(g.avg)+'</span>'+g.people.map(([p,e])=>'<span class="fn">'+esc(p)+': '+esc(VERD[e.v]||'')+'</span>').join('')+'</div>':'<div class="fn">Inget betyg än</div>'):(r.why?'<div class="fn bwhy">'+esc(r.why)+'</div>':''))+
  (r.src?'<a class="fn bsrc" href="'+esc(r.src)+'" target="_blank" rel="noopener">Från '+esc(r.srcName||new URL(r.src).hostname.replace(/^www\./,''))+'</a>':'')+
- (o.wish?'<button class="pill'+(wished?' on':'')+'" data-act="wish" data-id="'+esc(r.id)+'">'+(wished?I.tick+'Önskad nästa vecka':'Vill ha nästa vecka')+'</button>':'')+'</div></article>'}
+ (o.wish&&!isDessert(r)?'<button class="pill'+(wished?' on':'')+'" data-act="wish" data-id="'+esc(r.id)+'">'+(wished?I.tick+'Önskad nästa vecka':'Vill ha nästa vecka')+'</button>':'')+'</div></article>'}
 /* Receptbanken: favoriter (hjärta) och sparade recept (bokmärke) */
 function matBank(){
  const f=S.bankFilter||'alla',w=new Set(wishes().map(x=>x.id));
@@ -668,6 +671,15 @@ function matBank(){
  h+=sh(I.bookmarkOn.replace('<svg','<svg class="shic"')+'Sparade recept','<span class="num">'+saved.length+'</span>');
  h+=saved.length?'<div class="bank">'+saved.map(r=>rCard(r,{wish:w})).join('')+'</div>':group(emptyCell(f==='alla'?'Inga sparade recept än. Tryck på bokmärket på ett recept för att spara det.':'Inga sparade recept matchar filtret.'));
  return h+'<div class="foot">Veckoplaneringen väljer bland favoriterna och de sparade recepten. Favoriter kommer tillbaka oftare.</div>'}
+/* Efterrätter: en egen kategori. De föreslås aldrig av veckoplaneringen eller Byt, men finns här när man vill laga något sött */
+function matDessert(){
+ const seen=new Set(),all=allRecipes().concat(inspoList()).filter(r=>{if(!isDessert(r)||seen.has(r.id))return false;seen.add(r.id);return true});
+ const mine=all.filter(r=>inBank(r.id)).sort((a,b)=>(b.fav?1:0)-(a.fav?1:0)||((ratingOf(b.id)||{avg:0}).avg-(ratingOf(a.id)||{avg:0}).avg)),fler=all.filter(r=>!inBank(r.id));
+ let h=sh(I.heartOn.replace('<svg','<svg class="shic fav"')+'Mina efterrätter','<span class="num">'+mine.length+'</span>');
+ h+=mine.length?'<div class="bank">'+mine.map(r=>rCard(r)).join('')+'</div>':group(emptyCell('Inga sparade efterrätter än. Tryck på hjärtat eller bokmärket på en efterrätt nedan.'));
+ if(!INSPO.list&&INSPO.busy)return h+group(emptyCell('Hämtar recept…'));
+ if(fler.length)h+=sh('Att prova','<span class="num">'+fler.length+'</span>')+'<div class="bank mini">'+fler.map(r=>rCard(r)).join('')+'</div>';
+ return h+'<div class="foot">Efterrätter föreslås aldrig när veckan planeras.</div>'}
 // Miniatyr: receptets foto, annars en matsymbol
 const dishThumb=(r,t)=>{const img=r&&(r.img||imgOf(r.id));return'<span class="dr-th" aria-hidden="true">'+'<span>'+foodIcon(t)+'</span>'+(img?'<img src="'+esc(img)+'" alt="" loading="lazy" onerror="this.remove()">':'')+'</span>'};
 /* En rätt på veckosedeln: bild, namn, dagar, pris och betyg. Byt finns så länge rätten har en dag kvar */
@@ -1319,7 +1331,7 @@ function matRecipes(){
  const all=inspoList(),f=S.inspoFilter||'alla';let h=fchips('inspoFilter',RFILT,f);
  if(!INSPO.list)return h+'<div style="height:16px"></div>'+group(emptyCell(INSPO.busy?'Hämtar recept…':'Recepten kunde inte hämtas. Försök igen när du har nät.'));
  const list=all.filter(r=>rfOk(f,r,new Set()));
- h+='<p class="inspo-intro">'+all.length+' recept att inspireras av. '+I.heartOn.replace('<svg','<svg class="ic fav"')+' gör ett recept till favorit och '+I.bookmarkOn.replace('<svg','<svg class="ic"')+' sparar det i receptbanken, så kan veckoplaneringen välja det.</p>';
+ h+='<p class="inspo-intro">'+all.filter(r=>!isDessert(r)).length+' recept att inspireras av. '+I.heartOn.replace('<svg','<svg class="ic fav"')+' gör ett recept till favorit och '+I.bookmarkOn.replace('<svg','<svg class="ic"')+' sparar det i receptbanken, så kan veckoplaneringen välja det.</p>';
  return h+(list.length?'<div class="bank mini">'+list.map(r=>rCard(r)).join('')+'</div>':group(emptyCell('Inga recept matchar filtret.')))}
 
 // Inköpslistan visas som en flik i Mat; ger rubrikens undertext, verktyg och innehåll
@@ -1433,7 +1445,7 @@ function recipeDetail(r){
  NB.title=r.title;NB.back=true;
  let h='<div class="rcp-top"><button class="back" data-act="recipeBack">'+I.back+'Mat</button>';
  h+=rcpPhoto(r);
- h+='<div class="chips-row">'+whoChip(effWho(r))+(r.when?'<span class="chip">'+esc(r.when)+'</span>':'')+(r.freezes?'<span class="chip v">Går att frysa</span>':'')+'</div><h1 class="t1" id="lt">'+esc(r.title)+'</h1>'+rcpActions(r)+'</div>';
+ h+='<div class="chips-row">'+(isDessert(r)?'<span class="chip e">Efterrätt</span>':whoChip(effWho(r)))+(r.when?'<span class="chip">'+esc(r.when)+'</span>':'')+(r.freezes?'<span class="chip v">Går att frysa</span>':'')+'</div><h1 class="t1" id="lt">'+esc(r.title)+'</h1>'+rcpActions(r)+'</div>';
  const cookBtn='<div class="block"><button class="btn-fill" style="width:100%" data-act="cook" data-id="'+esc(r.id)+'">'+I.play+'Börja laga</button></div>';
  if(NY)h+=cookBtn;
  const facts=[['Tid','<span class="num">'+r.min+'</span> min']];if(r.kr)facts.push(['Per portion',kr(r.kr)]);if(r.protein){const pr=String(r.protein).replace(/\s*\/\s*port(ion)?\.?$/i,''),ph=pr.match(/^henriks?\s+(?:del\s+)?(?:ca\s+)?(.+)$/i);facts.push(['Protein',esc(ph?ph[1]:pr)])}
@@ -1522,6 +1534,8 @@ function rcpPhoto(r){const img=imgOf(r.id)||r.img||'',g=ratingOf(r.id),busy=S.ph
   '<button class="rp-gl rp-edit" data-act="rcpSheet" data-id="'+esc(r.id)+'" data-k="photo" aria-label="Byt eller ta bort fotot">'+I.pencil+'</button>'+score+heart+'</div>'}
 /* Raden under titeln: önska nästa vecka, tidigast igen och mer */
 function rcpActions(r){const wished=wishes().some(x=>x.id===r.id),l=matLage(r.id);
+ if(isDessert(r))return'<div class="rp-row rp-row-e"><span class="rp-note">Efterrätter föreslås aldrig när veckan planeras</span>'+
+  '<button class="rp-ib" data-act="rcpSheet" data-id="'+esc(r.id)+'" data-k="more"><span class="c">'+I.dots+'</span><span class="l">Mer</span></button></div>';
  const lbl=l.paus?'Pausad':(l.harBas||l.betyg)?'Tidigast '+String(l.w).replace('.',',')+' v':'Tidigast igen';
  return'<div class="rp-row">'+
   '<button class="rp-ib'+(wished?' on':'')+'" data-act="wish" data-id="'+esc(r.id)+'" aria-pressed="'+wished+'"><span class="c">'+(wished?I.tick:I.calPlus)+'</span><span class="l">'+(wished?'Önskad nästa v':'Önska nästa v')+'</span></button>'+
@@ -2821,7 +2835,7 @@ const ACT={
  rate(id){S.rate={id};S.sheet='rate';render()},
  bankFilter(id){S.bankFilter=id;render()},
  bankAdd(id){addToBank(recipeById(id));render()},
- wish(id){const r=recipeById(id);if(!r)return;const on=wishes().some(x=>x.id===id);
+ wish(id){const r=recipeById(id);if(!r||isDessert(r))return;const on=wishes().some(x=>x.id===id);
   if(on){A.user=Date.now();updJSON('onskelista',[],a=>a.filter(x=>x.id!==id));toast('Borttagen från önskelistan');return}
   S.wishFor=id;S.sheet='wish';render()},
  wishNew(){S.wishFor=null;S.sheet='wish';render()},
