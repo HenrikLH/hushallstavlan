@@ -193,17 +193,15 @@ function renderNav(nav){
  nav.addEventListener('click',e=>{if(skip){e.stopPropagation();e.preventDefault()}},true)})();
 // Svävande menyrad på telefon: krymper till en rund knapp nere till vänster när man scrollar nedåt,
 // växer ut igen när man scrollar uppåt, når toppen eller trycker på knappen.
-// Piller: menyn zoomas ut till ett smalt piller med bara de fem ikonerna, halvvägs nedanför skärmkanten.
-(function(){const nav=document.getElementById('nav'),mini=document.createElement('button'),pil=document.createElement('div');let y0=scrollY,acc=0;
+// Piller: samma kapsel krymper till ett litet piller med bara ikonerna, halvt nedanför skärmkanten (bara CSS).
+(function(){const nav=document.getElementById('nav'),mini=document.createElement('button');let y0=scrollY,acc=0;
  mini.className='nav-mini';mini.type='button';mini.setAttribute('aria-label','Visa menyn');document.body.appendChild(mini);
- pil.className='nav-piller';pil.setAttribute('aria-label','Vyer');document.body.appendChild(pil);
  const on=()=>NY&&FLIKRAD!=='fast'&&!S.wall&&innerWidth<900&&!nav.classList.contains('none');
  const set=m=>{if(nav.classList.contains('mini')===m)return;
-  if(m){const b=nav.querySelector('button[aria-current] svg');mini.innerHTML=b?b.outerHTML:'';
-   pil.innerHTML=VIEWS.map(([id,l,ic])=>'<button data-act="nav" data-id="'+id+'" aria-label="'+l+'"'+(id===S.view?' aria-current="page"':'')+'>'+ic+'</button>').join('')}
-  nav.classList.remove('ut');nav.classList.toggle('mini',m);if(!m)nav.classList.add('ut');mini.classList.toggle('on',m);pil.classList.toggle('on',m)};
- pil.addEventListener('click',e=>{if(!e.target.closest('button'))set(false)});
- nav.addEventListener('animationend',e=>{if(e.animationName==='navFranMini'||e.animationName==='navFranPiller')nav.classList.remove('ut')});
+  if(m){const b=nav.querySelector('button[aria-current] svg');mini.innerHTML=b?b.outerHTML:''}
+  nav.classList.remove('ut');nav.classList.toggle('mini',m);if(!m)nav.classList.add('ut');mini.classList.toggle('on',m);};
+ nav.addEventListener('click',e=>{if(nav.classList.contains('mini')&&!e.target.closest('button'))set(false)});
+ nav.addEventListener('animationend',e=>{if(e.animationName==='navFranMini')nav.classList.remove('ut')});
  document.addEventListener('scroll',()=>{const y=scrollY,d=y-y0;y0=y;if(!on()){set(false);acc=0;return}
   if(y<40){acc=0;set(false);return}
   acc=(acc>0)===(d>0)?acc+d:d;if(acc>24)set(true);else if(acc<-24)set(false)},{passive:true});
