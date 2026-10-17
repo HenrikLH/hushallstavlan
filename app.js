@@ -518,7 +518,8 @@ function segc(label,act,opts,cur){const i=Math.max(0,opts.findIndex(o=>o[0]===cu
  return'<div class="segc" role="group" aria-label="'+esc(label)+'" data-seg="'+esc(act)+'" style="--n:'+opts.length+';--i:'+i+'"><i class="seg-thumb" aria-hidden="true"></i>'+opts.map(([k,l])=>'<button type="button" data-act="'+act+'" data-id="'+k+'" aria-pressed="'+(cur===k)+'">'+l+'</button>').join('')+'</div>'}
 const emptyCell=t=>'<div class="cell empty">'+t+'</div>';
 const chevron='<span class="chev">'+I.chev+'</span>';
-function weekSub(){const st=settings(),W=weekTarget();if(W.ny)return'Vecka '+isoWeek(parse(W.vs))+' · inte planerad än';return esc(st.vecka_rubrik||'')+(isDate(st.uppdaterad)?' · uppdaterad '+esc(dateShort(st.uppdaterad)):'')}
+function weekSub(){const st=settings(),W=weekTarget();if(W.ny)return'Vecka '+isoWeek(parse(W.vs))+' · inte planerad än';if(NY){const a=parse(W.vs),b=parse(W.ve),m=x=>MON[x.getMonth()];return'Vecka '+isoWeek(a)+' · '+a.getDate()+(m(a)===m(b)?'':' '+m(a))+'–'+b.getDate()+' '+m(b)}
+ return esc(st.vecka_rubrik||'')+(isDate(st.uppdaterad)?' · uppdaterad '+esc(dateShort(st.uppdaterad)):'')}
 const dayHead=s=>{const d=parse(s);return DAYS[d.getDay()]+' '+d.getDate()+' '+MON[d.getMonth()]};
 
 const V={};
@@ -893,7 +894,10 @@ function raeckerKort(ds){const st=settings(),vs=st.vecka_start;if(!isDate(vs))re
  const brist=kvSaknas||lSaknas,rub=!brist?'Maten räcker hela veckan':'Maten räcker inte: '+[kvSaknas?kvSaknas+(kvSaknas===1?' kväll':' kvällar')+' utan middag':'',lSaknas?lSaknas+(lSaknas===1?' lunchlåda':' lunchlådor')+' för lite':''].filter(Boolean).join(' och ');
  return'<div class="rk'+(brist?' bad':'')+'"><div class="rk-h">'+rub+'</div>'+rader.map(r=>'<div class="rk-r"><span class="grow">'+r.l+'</span><span class="rk-n">'+r.n+' av '+r.beh+'</span><span class="rk-s'+(r.diff<0?' bad':'')+'">'+r.txt+'</span></div>').join('')+'</div>'}
 // Nya designen: en knapp för veckoförslaget och en sammanfattning med kostnad, portioner och om maten räcker
-const planBtnNy=()=>(DEV?planBtn().replace(/<button class="pl-open pt-open" data-act="autoOpen">[\s\S]*$/,''):'')+'<button class="btn-tint wk-new" data-act="autoOpen">'+I.swap+'Föreslå en ny vecka</button>';
+// Knappen ligger längst ner i sammanfattningsrutan när veckan har rätter, annars ensam
+const planBtnDev=()=>DEV?planBtn().replace(/<button class="pl-open pt-open" data-act="autoOpen">[\s\S]*$/,''):'';
+const wkNewBtn=()=>'<button class="btn-tint wk-new" data-act="autoOpen">'+I.swap+'Föreslå en ny vecka</button>';
+const planBtnNy=()=>planBtnDev()+wkNewBtn();
 function weekSummary(ds,total,port){const rk=raeckerKort(ds),bad=/class="rk bad"/.test(rk),rub=(rk.match(/<div class="rk-h">([^<]*)<\/div>/)||[])[1]||'',B=Number(settings().matbudget)||0;
  // Översta raden finns två gånger: i rutan och som en kopia som ligger fast under navigeringsfältet.
  // Kopian visas exakt när rutans överkant når fältet, så det ser ut som att raden glider fast. Tryck fäller ut räcker-listan
@@ -902,9 +906,9 @@ function weekSummary(ds,total,port){const rk=raeckerKort(ds),bad=/class="rk bad"
   (rub?'<span class="wsum-s'+(bad?' bad':'')+'"><span class="dotc"></span>'+(bad?'Räcker inte':'Räcker')+'</span>':'')+'<span class="wm-ch" aria-hidden="true">'+chevron+'</span></button>';
  const body='<div class="wm-body">'+(rub?'<div class="wm-h'+(bad?' bad':'')+'">'+esc(rub)+'</div>'+rk.replace(/<div class="rk-h">[^<]*<\/div>/,''):'')+
   (B?'<div class="rk-r wm-b"><span class="grow">Budget '+kr(B)+'</span><span class="rk-s'+(total>B?' bad':'')+'">'+(total>B?kr(total-B)+' över':kr(B-total)+' kvar')+'</span></div>':'')+'</div>';
- return'<div class="ws-pin" aria-hidden="true"><div class="wcard ws-mini'+op+'">'+top(0)+body+'</div></div><div class="wcard ws-card'+op+'">'+top(1)+body+'</div>'}
+ return'<div class="ws-pin" aria-hidden="true"><div class="wcard ws-mini'+op+'">'+top(0)+body+'</div></div><div class="wcard ws-card'+op+'">'+top(1)+body+wkNewBtn()+'</div>'}
 function matWeek(){
- const d=D(),st=settings(),W=weekTarget(),ds=W.ny?[]:weekDishes();let h=NY?planBtnNy():planBtn();
+ const d=D(),st=settings(),W=weekTarget(),ds=W.ny?[]:weekDishes();let h=NY?(ds.length?planBtnDev():planBtnNy()):planBtn();
  const total=veckaKostnad(),port=veckaPortioner();
  if(ds.length){if(NY)h+=weekSummary(ds,total,port);else h+='<div class="stats"><div class="stat"><span class="fn">Maten kostar ca</span><b>'+nv('m-total',total,'kr')+'</b></div><div class="stat"><span class="fn">Portioner</span><b>'+nv('m-port',port)+'</b></div><div class="stat"><span class="fn">Per portion</span><b>'+(port?nv('m-per',total/port,'kr'):'–')+'</b></div></div>'+raeckerKort(ds)}
  else h+='<div class="wk-tom"><b>'+(W.ny?'Vecka '+isoWeek(parse(W.vs))+' är inte planerad än':'Veckan är tom')+'</b><span>Fyll platserna själv eller tryck på Föreslå en ny vecka.</span></div>';
