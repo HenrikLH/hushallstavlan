@@ -1505,11 +1505,11 @@ html.ny .ev .chip{font-size:15px;margin-left:6px}
 
 /* Knappar, reglage och filter */
 html.ny .btn-fill,html.ny .btn-tint{border-radius:12px}
-/* växlingsknapparna har samma text som raderna i listorna men är tunnare */
-html.ny .segc{height:36px;border-radius:12px;padding:3px}
-html.ny .segc button{font-size:17px;font-weight:400;letter-spacing:-.2px;color:var(--ink-2)}
+/* växlingsknapparna har samma bakgrund, text och textfärg som raderna i listorna men är tunnare */
+html.ny .segc{height:36px;border-radius:12px;padding:3px;background:var(--surface)}
+html.ny .segc button{font-size:17px;font-weight:400;letter-spacing:-.2px;color:var(--ink)}
 html.ny .segc button[aria-pressed="true"]{font-weight:600;color:var(--ink)}
-html.ny .seg-thumb{top:3px;bottom:3px;left:3px;width:calc((100% - 6px) / var(--n,2));border-radius:9px;background:var(--seg-on);box-shadow:0 1px 3px rgba(0,0,0,.14)}
+html.ny .seg-thumb{top:3px;bottom:3px;left:3px;width:calc((100% - 6px) / var(--n,2));border-radius:9px;background:var(--track);box-shadow:none}
 html.ny .fchips button{background:var(--surface);box-shadow:inset 0 0 0 1px var(--line);height:34px;border-radius:17px}
 html.ny .fchips button[aria-pressed="true"]{background:var(--ink);color:var(--bg);box-shadow:none}
 html.ny .stat{border-radius:16px}
@@ -1668,7 +1668,7 @@ html.ny button:focus:not(:focus-visible){outline:none}
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=118"></script>
+<script src="app.js?v=119"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
