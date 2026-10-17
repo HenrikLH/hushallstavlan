@@ -1267,12 +1267,17 @@ body.dragging .bwx-h{scroll-snap-type:none}
 .bhero .hero-wx .wx-now{justify-content:flex-start}
 .bhero .hero-wx .fig-box{grid-column:2;grid-row:1/span 4;margin:0}
 .bhero .fig-tip{margin-top:6px}
-/* UI 2.0 på väggtavlan: samma bild som på Översikt, större och under väderraderna */
-.bhero .hero-wx .gs.wb{grid-column:1/-1;grid-row:auto;justify-self:end;width:196px;margin:-64px -6px 0 0;padding-top:52px}
-.gs.wb .fig-box.grass{width:196px;height:174px}
-.gs.wb>.bd{right:-14px;width:322px;height:266px}
-.gs.wb .arc{left:8px;right:4px;top:0;bottom:166px}
-.bhero .hero-wx .gs.wb~.fig-tip{grid-column:1/-1;justify-self:end;margin-right:40px}
+/* UI 2.0 på väggtavlan: vädret uppe till höger under kugghjulet, översiktens bild längst ner ovanför regnraden */
+.bhero .hero:has(.hero-pic){flex:1 1 auto;display:flex;flex-direction:column;position:relative;min-height:0}
+.bhero .hero:has(.hero-pic)+.bwx{flex:0 0 auto}
+.bhero .hero-wx.wbt{position:absolute;top:142px;right:22px;margin:0;display:flex;flex-direction:column;align-items:flex-end;text-align:right;gap:0}
+.bhero .hero-wx.wbt .wx-now{justify-content:flex-end}
+.bhero .hero-wx.wbt .fig-tip{margin-top:4px;text-align:right;max-width:200px}
+.hero-pic{display:block;margin:auto auto -14px;transform:translateX(34px);padding:0;background:none;border:0;color:inherit;font:inherit;cursor:pointer}
+.hero-pic .gs.wb{position:relative;width:250px;padding-top:66px;margin:0 auto}
+.gs.wb .fig-box.grass{width:250px;height:222px}
+.gs.wb>.bd{right:-6px;width:360px;height:297px}
+.gs.wb .arc{left:10px;right:6px;top:34px;bottom:212px}
 /* sol och måne i högra delen, så att de inte hamnar bakom klockan */
 .bhero .sky{left:66%;overflow:visible}
 .bcol .wpair{flex:0 0 auto}
