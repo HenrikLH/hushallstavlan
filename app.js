@@ -724,15 +724,16 @@ function mealCell(m,rows,flex){rows=rows||[m];const r=m.recipe&&recipeById(m.rec
  const g=m.recipe&&ratingOf(m.recipe),meta=[flex?(flex.port?'':flex.txt):days.map(d=>cap(DAYS3[parse(d).getDay()])).join(', '),r&&r.kr?kr(r.kr)+'/port':'',g?'<span class="dr-st">★ '+starNum(matLage(m.recipe).s)+'</span>':''].filter(Boolean).join('<span class="dot" aria-hidden="true">·</span>');
  const pa=protFromAddon(m.addon);
  const lst=!!(m.recipe&&weekLocks(weekTarget().vs).has(m.recipe));
- const inner=dishThumb(r,m.title)+'<span class="grow"><span class="chips-row">'+whoChip(pa?'Kött/Veg':m.who)+(lst?'<span class="chip lk">'+I.lock+'Låst</span>':'')+'</span><span class="title">'+esc(m.title)+'</span><span class="meta">'+meta+'</span>'+(pa?protPills(pa):m.addon?'<span class="dr-sub">+ Kött: '+esc(m.addon)+'</span>':'')+(noteUtanPort(m.note)?'<span class="dr-sub">'+esc(noteUtanPort(m.note))+'</span>':'')+'</span>';
+ const inner=dishThumb(r,m.title)+'<span class="grow"><span class="chips-row">'+whoChip(pa?'Kött/Veg':m.who)+'</span><span class="title">'+esc(m.title)+'</span><span class="meta">'+meta+'</span>'+(pa?protPills(pa):m.addon?'<span class="dr-sub">+ Kött: '+esc(m.addon)+'</span>':'')+(noteUtanPort(m.note)?'<span class="dr-sub">'+esc(noteUtanPort(m.note))+'</span>':'')+'</span>';
  // Portionerna med plus och minus under rätten. Ändringen sparas och inköpslistan räknas om
  const P=flex&&flex.port,pr=P?'<div class="dr-port"><span class="grow"><b>'+P.n+(P.n===1?' portion':' portioner')+'</b>'+(P.txt&&!NY?'<span class="meta">'+cap(P.txt)+'</span>':'')+'</span><span class="pl-step" role="group" aria-label="Portioner"><button type="button" data-act="portStep" data-id="'+D().menu.indexOf(m)+'" data-d="-1" aria-label="Färre portioner"'+(P.n<=1?' disabled':'')+'>'+I.minus+'</button><span class="num" aria-live="polite">'+P.n+'</span><button type="button" data-act="portStep" data-id="'+D().menu.indexOf(m)+'" data-d="1" aria-label="Fler portioner"'+(P.n>=20?' disabled':'')+'>'+I.plus+'</button></span></div>':'';
  const can=m.who!=='Borta'&&left.length,i=D().menu.indexOf(m),lab=(m.recipe?'Byt ':'Välj rätt i stället för ')+esc(m.title);
  const end=m.who==='Borta'?'':!left.length?'<span class="dr-done">'+I.tick+'Ätit</span>':NY?'<button class="dr-byt" data-act="swap" data-id="'+D().menu.indexOf(m)+'" aria-label="'+(m.recipe?'Byt ':'Välj rätt i stället för ')+esc(m.title)+'">'+I.swap+'</button>':'<span class="dr-sw" aria-hidden="true">'+I.swap+'</span>';
- const row='<div class="cell dr'+(left.length?'':' past')+(can?' dr-slide':'')+'"'+(can?' data-w="168"':'')+'>'+(r?'<button class="dr-main" data-act="recipe" data-id="'+esc(m.recipe)+'">'+inner+'</button>':'<div class="dr-main">'+inner+'</div>')+end+pr+'</div>';
- // Svep åt vänster för Ta bort och Byt, åt höger för Lås, som i iPhones listor. Hela vägen åt vänster byter, hela vägen åt höger låser
- return can?'<div class="dr-wrap"><div class="dr-act dr-two" data-full="swap" data-id="'+i+'"><button class="dr-del" data-act="weekDel" data-id="'+i+'" aria-label="Ta bort '+esc(m.title)+'">'+I.trash+'<span>Ta bort</span></button><button data-act="swap" data-id="'+i+'" aria-label="'+lab+'">'+I.swap+'<span>'+(m.recipe?'Byt':'Välj')+'</span></button></div>'+
-  (m.recipe?'<button class="dr-actl'+(lst?' on':'')+'" data-act="weekLock" data-id="'+esc(m.recipe)+'" aria-label="'+(lst?'Lås upp ':'Lås ')+esc(m.title)+'">'+(lst?I.unlock:I.lock)+'<span>'+(lst?'Lås upp':'Lås')+'</span></button>':'')+row+'</div>':row}
+ const hl=can&&m.recipe,lock=hl?'<button class="dr-lock'+(lst?' on':'')+'" data-act="weekLock" data-id="'+esc(m.recipe)+'" aria-pressed="'+lst+'" aria-label="'+(lst?'Lås upp ':'Lås ')+esc(m.title)+'">'+(lst?I.lock:I.unlock)+'</button>':'';
+ const row='<div class="cell dr'+(left.length?'':' past')+(can?' dr-slide':'')+(hl?' hl':'')+'">'+lock+(r?'<button class="dr-main" data-act="recipe" data-id="'+esc(m.recipe)+'">'+inner+'</button>':'<div class="dr-main">'+inner+'</div>')+end+pr+'</div>';
+ // Svep åt vänster för Byt och åt höger för Ta bort, som i iPhones listor. Hela vägen byter eller tar bort direkt. Hänglåset låser rätten
+ return can?'<div class="dr-wrap"><button class="dr-act" data-act="swap" data-id="'+i+'" aria-label="'+lab+'">'+I.swap+'<span>'+(m.recipe?'Byt':'Välj')+'</span></button>'+
+  '<button class="dr-actl" data-act="weekDel" data-id="'+i+'" aria-label="Ta bort '+esc(m.title)+'">'+I.trash+'<span>Ta bort</span></button>'+row+'</div>':row}
 function recipeCell(r,meta){return'<button class="cell link" data-act="recipe" data-id="'+esc(r.id)+'"><div class="grow"><div class="title">'+esc(r.title)+'</div><div class="meta">'+meta+'</div></div>'+whoChip(r.who)+chevron+'</button>'}
 /* Hushållets matpreferenser: rader i Inställningar som veckoplaneringen läser när den gör menyn */
 const PREFS=[['pref_henrik','Kött','k','Henriks mat, t.ex. proteinrik och kalorisnål'],['pref_veg','Vegetariskt','v','Den vegetariska maten, t.ex. kost och GI'],['pref_ekonomi','Ekonomi','','Budget, butiker och svinn'],['pref_ovrigt','Övrigt','','Sådant ni inte gillar, allergier, önskemål']];
@@ -3084,8 +3085,8 @@ document.addEventListener('click',e=>{const el=e.target.closest('[data-act]');if
 // Kom ihåg vilka hopfällbara sektioner som är öppna mellan renderingar
 document.addEventListener('toggle',e=>{const d=e.target;if(d&&d.dataset&&d.dataset.k)S.open[d.dataset.k]=d.open},true);
 document.addEventListener('change',e=>{if(e.target.id==='ee-allday'){const t=document.getElementById('ee-times');if(t)t.hidden=e.target.checked}});
-/* Svep på veckosedelns rader, som i iPhones listor: dra åt vänster så visas Ta bort och Byt bakom raden,
-   dra åt höger så visas Lås. Drar man hela vägen (över halva raden) byter eller låser man direkt. Bara en rad är öppen åt gången */
+/* Svep på veckosedelns rader, som i iPhones listor: dra åt vänster så visas Byt bakom raden,
+   dra åt höger så visas Ta bort. Drar man hela vägen (över halva raden) byter eller tar man bort direkt. Bara en rad är öppen åt gången */
 const SWP={el:null,x:0,y:0,base:0,dx:0,dir:'',moved:false};const SWW=84;
 const swpW=el=>Number(el.dataset.w)||SWW,swpFull=el=>Math.max(el.offsetWidth*0.5,swpW(el)+50);
 const swpB=el=>el.parentElement&&el.parentElement.querySelector(':scope>.dr-act'),swpL=el=>el.parentElement&&el.parentElement.querySelector(':scope>.dr-actl');
@@ -3102,7 +3103,7 @@ document.addEventListener('touchmove',e=>{const el=SWP.el;if(!el)return;const t=
 document.addEventListener('touchend',()=>{const el=SWP.el;if(!el)return;SWP.el=null;if(SWP.dir!=='x')return;
  const x=SWP.base+SWP.dx,w=el.offsetWidth,b=swpB(el),l=swpL(el);
  if(x<-swpFull(el)&&b){swpSet(el,-w,true);if(navigator.vibrate)navigator.vibrate(10);setTimeout(()=>{ACT[b.dataset.full||'swap'](b.dataset.id)},180);return}
- // Hela vägen åt höger låser (eller låser upp) och raden glider tillbaka
+ // Hela vägen åt höger tar bort rätten
  if(l&&x>Math.max(w*0.5,SWW+50)){if(navigator.vibrate)navigator.vibrate(10);swpSet(el,0,true);setTimeout(()=>ACT[l.dataset.act](l.dataset.id),200);return}
  const ow=swpW(el);swpSet(el,x<-ow/2?-ow:l&&x>SWW/2?SWW:0,true)});
 // Planera veckan: visa den lilla budgetraden när den stora rutan har gått in under navigeringsfältet
