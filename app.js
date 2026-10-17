@@ -445,6 +445,7 @@ function doRender(){applyPersonColors();
  const banner=S.sync==='offline'&&OUTBOX.length?'<div class="outbox" role="status">'+I.clock+'<span class="grow">'+waitTxt(OUTBOX.length)+'</span><span class="muted">Skickas automatiskt</span></div>':S.sync==='err'?'<div class="banner">Ingen kontakt med kalkylarket just nu. Du ser senast hämtade data. '+esc(S.error)+'</div>':'';
  A.before(m);
  m.innerHTML=banner+(V[S.view]||V.oversikt)();
+ {const w=m.querySelector('.wk-sw');if(w&&S.wkX){w.scrollLeft=S.wkX;wkMonth(w)}}
  placeSky();fitBoard();
  watchTitle();plPin();vvFix();
  A.after(m);
@@ -1606,11 +1607,12 @@ function calDayRows(sel){const d=D(),t=today();
  return head+ax+'<div class="evs">'+allday.concat(timed).map(e=>{const x=st.get(e)||{};
   const r=x.st==='now'?'<span class="cd now">'+x.left+' kvar</span>':x.st==='next'?'<span class="cd">om '+x.inn+'</span>':'';
   return'<div class="ev'+(x.st==='past'?' past':'')+'"><span class="t short">'+esc(e.time?String(e.time).split(/\s*[–-]\s*/)[0]:'Heldag')+'</span><span class="grow">'+evTitle(e)+who(e)+'</span>'+r+'</div>'}).join('')+'</div>'}
-function calWidget(){const t=today(),wk=[];for(let i=0;i<7;i++)wk.push(addDays(t,i));
+// Dagraden: fyra veckor framåt att svepa i på telefonen, en vecka på väggen
+function calWidget(){const t=today(),wk=[],N=wallBoardOn()?7:28;for(let i=0;i<N;i++)wk.push(addDays(t,i));
  const sel=wk.includes(S.ovDay)?S.ovDay:t;
- let strip='<div class="wk" role="group" aria-label="Veckans dagar">';
+ let strip='<div class="wk'+(N>7?' wk-sw':'')+'" role="group" aria-label="Kommande dagar">';
  wk.forEach((k,i)=>{const dt=parse(k),dots=calDots(k);
-  strip+='<button class="wk-d'+(i===0?' today':'')+(k===sel?' sel':'')+'" data-act="ovDay" data-id="'+k+'" aria-pressed="'+(k===sel)+'" aria-label="'+esc(dateLong(k))+(dots.length?', '+dots.length+' saker':'')+'"><span class="wd">'+(i===0?'Idag':cap(DAYS[dt.getDay()].slice(0,3)))+'</span><span class="n num">'+dt.getDate()+'</span><span class="dots">'+dots.map(c=>'<i class="'+c+'"></i>').join('')+'</span></button>'});
+  strip+='<button class="wk-d'+(i===0?' today':'')+(k===sel?' sel':'')+(i%7===0?' snap':'')+'" data-act="ovDay" data-id="'+k+'" aria-pressed="'+(k===sel)+'" aria-label="'+esc(dateLong(k))+(dots.length?', '+dots.length+' saker':'')+'"><span class="wd'+(i&&dt.getDate()===1?' m':'')+'">'+(i===0?'Idag':dt.getDate()===1?cap(MON[dt.getMonth()].slice(0,3)):cap(DAYS[dt.getDay()].slice(0,3)))+'</span><span class="n num">'+dt.getDate()+'</span><span class="dots">'+dots.map(c=>'<i class="'+c+'"></i>').join('')+'</span></button>'});
  strip+='</div>';
  // under ett streck: dagens att göra-uppgifter med egen rubrik
  const ts=D().tasks.filter(x=>x.due===sel&&!x.done);
@@ -1619,7 +1621,7 @@ function calWidget(){const t=today(),wk=[];for(let i=0;i<7;i++)wk.push(addDays(t
  const todo=(ts.length||ovs.length)&&!wallBoardOn()&&!NY?'<div class="wk-todo wk-link" data-act="taskList" role="link" tabindex="0" aria-label="Att göra, öppna Uppgifter"><div class="wk-sub">Att göra</div><div class="evs">'+
   ovs.map(x=>'<div class="ev task ov-task" data-act="ovGo" data-id="'+esc(x.l+'|'+x.c.id)+'" role="link" tabindex="0"><span class="ovs tap saknas" data-act="ovDone" data-id="'+esc(x.c.id)+'" data-list="'+esc(x.l)+'" role="button" tabindex="0" aria-label="Bekräfta att den är inlagd">!</span><span>'+(ovState(x.c)==='andrad'?'Uppdatera':'Lägg in')+' stående överföring: '+esc(x.c.name)+'</span></div>').join('')+
   ts.map(x=>'<div class="ev task"><span>'+esc(x.title)+evWho(x)+'</span></div>').join('')+'</div></div>':'';
- return'<section class="widget w2 calw"><button class="wh" data-act="calOpen" data-id="'+sel+'" style="width:100%">'+I.cal+(NY?'<span>Schema</span><span class="r lnk">Kalender</span>':'<span>Kalender</span><span class="r">'+esc(cap(MON[parse(sel).getMonth()]))+'</span>')+'</button>'+strip+
+ return'<section class="widget w2 calw"><button class="wh" data-act="calOpen" data-id="'+sel+'" style="width:100%">'+I.cal+(NY?'<span>Schema'+(N>7?' <span class="wk-mo">'+esc(MON[parse(t).getMonth()])+'</span>':'')+'</span><span class="r lnk">Kalender</span>':'<span>Kalender</span><span class="r">'+esc(cap(MON[parse(sel).getMonth()]))+'</span>')+'</button>'+strip+
   // schemadelen öppnar kalendern på vald dag, att göra-delen öppnar uppgiftslistan
   '<div class="wk-day"><div id="cal-rows" class="wk-link" data-d="'+sel+'" data-act="calOpen" data-id="'+sel+'" role="link" tabindex="0" aria-label="Schema, öppna kalendern">'+calDayRows(sel)+'</div>'+todo+'</div></section>'}
 function calView(){const t=today(),sel=S.calDay||t,m=S.calMonth||ymKey(sel),[y,mo]=m.split('-').map(Number);
@@ -2330,12 +2332,12 @@ function heroHtml(){const n=new Date(),t=today(),dy=EXT.day&&EXT.day.date===t?EX
    '<div class="wx-now"><span class="wx-ic" aria-hidden="true">'+ic+'</span><span class="wx-t num">'+deg(W.now.T)+'</span></div>'+
    '<div class="fn">'+esc(tx)+'</div><div class="fn num">H:'+deg(d0.max)+' L:'+deg(d0.min)+'</div>'+
    (grassOn()?'<div class="gs '+GRASS_V+'">'+(GRASS_V==='a'?arcHtml(W,'a'):'')+'<div class="fig-box grass" aria-hidden="true">'+figSvg(wxScene(W),{bare:1,patch:1})+'</div></div>':'<div class="fig-box" aria-hidden="true">'+figSvg(wxScene(W),{bare:1})+'</div>')+'<div class="fig-tip">'+esc((F.when==='i morgon'?'I morgon: ':'')+F.tip)+'</div></button>'}
- const facts=['Vecka '+isoWeek(n)];
+ const ny=NY&&!wallBoardOn(),facts=ny?[]:['Vecka '+isoWeek(n)];
  if(dy&&dy.holiday)facts.push(dy.holiday);else if(dy&&dy.flag)facts.push('Flaggdag: '+dy.flag);
  // I nya designen står solen före namnsdagen
  const nd=dy&&dy.names.length?'Namnsdag: '+dy.names.join(', '):'',so=sun?'Sol '+hhmm(sun[0])+'–'+hhmm(sun[1]):'';
- (NY?[so,nd]:[nd,so]).filter(Boolean).forEach(f=>facts.push(f));
- return'<section class="hero'+(wx?' has-wx':'')+'">'+(W?(grassOn()?(GRASS_V==='b'?arcHtml(W,'b'):''):skyHtml(W)):'')+'<div class="hero-l"><div class="clock num" id="clock">'+pad(hh)+':'+pad(n.getMinutes())+'</div><div class="hero-date">'+esc(cap(dayHead(t)))+'</div>'+
+ (ny?[so,nd]:[nd,so]).filter(Boolean).forEach(f=>facts.push(f));
+ return'<section class="hero'+(wx?' has-wx':'')+'">'+(W?(grassOn()?(GRASS_V==='b'?arcHtml(W,'b'):''):skyHtml(W)):'')+'<div class="hero-l"><div class="clock num" id="clock">'+pad(hh)+':'+pad(n.getMinutes())+'</div><div class="hero-date">'+esc(cap(dayHead(t)))+'</div>'+(ny?'<div class="hero-date">Vecka '+isoWeek(n)+'</div>':'')+
   '<div class="hero-greet">'+greet+(S.me?', '+esc(S.me):'')+'!</div><div class="hero-facts">'+facts.map(f=>'<span>'+esc(f)+'</span>').join('')+'</div></div>'+wx+'</section>'}
 async function loadExt(){const t=today();let changed=await loadWx();
  if(!EXT.day||EXT.day.date!==t){try{const[y,mo,d]=t.split('-');
@@ -2846,6 +2848,11 @@ document.addEventListener('touchcancel',()=>{if(SWP.el){swpSet(SWP.el,0,true);SW
 document.addEventListener('click',e=>{const el=e.target.closest('.dr-slide');if(!el)return;
  if(SWP.moved){SWP.moved=false;e.stopPropagation();e.preventDefault();return}
  if(el.classList.contains('open')){e.stopPropagation();e.preventDefault();swpSet(el,0,true)}},true);
+// Dagraden i kalenderrutan minns var man svepte, så att den inte hoppar tillbaka när sidan ritas om
+document.addEventListener('scroll',e=>{const t=e.target;if(t&&t.classList&&t.classList.contains('wk-sw')){S.wkX=t.scrollLeft;wkMonth(t)}},true);
+// Månaden bredvid Schema följer de dagar som syns i raden
+function wkMonth(w){const ds=w.querySelectorAll('.wk-d'),mo=w.closest('.calw')&&w.closest('.calw').querySelector('.wk-mo');if(!ds.length||!mo)return;
+ const i=Math.min(ds.length-1,Math.round(w.scrollLeft/ds[0].offsetWidth)+3),k=ds[i].dataset.id;if(isDate(k))mo.textContent=MON[parse(k).getMonth()]}
 document.addEventListener('input',e=>{if(e.target.id==='sw-q'){const q=e.target.value.trim().toLowerCase();let n=0;document.querySelectorAll('#overlay .sw-row').forEach(b=>{const ok=!q||b.dataset.q.includes(q);b.hidden=!ok;if(ok)n++});const f=document.querySelector('#overlay .sw-none');if(f)f.hidden=n>0;return}
  if(e.target.classList.contains('smc-sl')){const f=e.target.closest('.smc-r').querySelector('.smc-face');if(f)f.textContent=SMIL[Number(e.target.value)+1][1]}
  if(e.target.id==='ork')orkPreview(e.target);if(e.target.id==='split-amt')splitPreview(e.target)});

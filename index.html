@@ -1421,7 +1421,7 @@ html.ny .ov>.smc{margin-top:12px}
 @media (min-width:900px){html.ny .ov>.smc{margin:0 0 14px}}
 html.ny .hero-greet{display:none}
 html.ny body:not(.wall) .hero-l{display:flex;flex-direction:column;padding-bottom:4px}
-html.ny body:not(.wall) .hero-facts{margin-top:10px}
+html.ny body:not(.wall) .hero-facts{margin-top:auto;padding-top:10px}
 html.ny .ny-smc .smc-t{flex-wrap:wrap;row-gap:10px}
 html.ny .ny-smc .smc-t .grow{flex-basis:100%}
 /* Väggen i ny design: lugn bakgrund, stora svarta rubriker i hela rutor */
@@ -1481,6 +1481,12 @@ html.ny .ov-warn span:not(.ovs){color:var(--ink-2)}
 html.ny .brooms .warn b{background:var(--ink-3)!important}
 html.ny .brooms .bad b{background:var(--orange)!important}
 html.ny .brooms>div:not(.warn):not(.bad) b{background:var(--green)!important}
+/* Svepbar dagrad med fyra veckor (telefon) */
+.wk.wk-sw{display:grid;grid-auto-flow:column;grid-template-columns:none;grid-auto-columns:calc((100% - 12px)/7);overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
+.wk.wk-sw::-webkit-scrollbar{display:none}
+.wk.wk-sw .snap{scroll-snap-align:start}
+.wk-d .wd.m{color:var(--accent)}
+.wk-mo{font-weight:400;color:var(--ink-2)}
 </style>
 </head>
 <body>
@@ -1494,7 +1500,7 @@ html.ny .brooms>div:not(.warn):not(.bad) b{background:var(--green)!important}
 <script src="matvaror.js?v=3"></script>
 <script src="matpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=95"></script>
+<script src="app.js?v=96"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
