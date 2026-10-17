@@ -457,7 +457,7 @@ function doRender(){applyPersonColors();applyAccent();
  m.innerHTML=banner+(V[S.view]||V.oversikt)();
  {const w=m.querySelector('.wk-sw');if(w&&S.wkX){w.scrollLeft=S.wkX;wkMonth(w)}}
  placeSky();fitBoard();
- watchTitle();plPin();vvFix();
+ watchTitle();plPin();wsPin();vvFix();
  A.after(m);
 }
 document.addEventListener('focusout',e=>{setTimeout(()=>{if(pendingRender&&!busyTyping())render()},50);
@@ -747,12 +747,14 @@ function raeckerKort(ds){const st=settings(),vs=st.vecka_start;if(!isDate(vs))re
 // Nya designen: en knapp för veckoförslaget och en sammanfattning med kostnad, portioner och om maten räcker
 const planBtnNy=()=>(DEV?planBtn().replace(/<button class="pl-open pt-open" data-act="autoOpen">[\s\S]*$/,''):'')+'<button class="btn-tint wk-new" data-act="autoOpen">'+I.swap+'Föreslå en ny vecka</button>';
 function weekSummary(ds,total,port){const rk=raeckerKort(ds),bad=/class="rk bad"/.test(rk),rub=(rk.match(/<div class="rk-h">([^<]*)<\/div>/)||[])[1]||'',B=Number(settings().matbudget)||0;
- // Den lilla raden visas under navigeringsfältet när sammanfattningen har scrollats bort (samma som i Planera veckan)
- // Tryck på raden för att fälla ut hela räcker-listan även när man har scrollat
- const mini='<div class="pl-pin"><div class="pl-mini wsum-mini'+(S.wsumOpen?' open':'')+'"><button type="button" class="wm-top" data-act="wsumMini" aria-expanded="'+!!S.wsumOpen+'"><b class="num">'+kr(total)+'</b><span class="fn">'+port+' port</span><span class="grow"></span>'+(rub?'<span class="wsum-s'+(bad?' bad':'')+'"><span class="dotc"></span>'+(bad?'Räcker inte':'Räcker')+'</span>':'')+'<span class="wm-ch" aria-hidden="true">'+chevron+'</span></button>'+(rub?'<div class="wm-body">'+rk.replace(/<div class="rk-h">[^<]*<\/div>/,'')+'</div>':'')+'</div></div>';
- return'<div class="wsum pl-bud"><div class="wsum-n"><b class="num">'+nv('m-total',total,'kr')+'</b><span>för veckans mat'+(B?' · budget '+kr(B):'')+'</span></div>'+
-  '<div class="wsum-m">'+port+' portioner'+(port?' · '+kr(total/port)+' per portion':'')+'</div>'+
-  (rub?'<details class="wsum-d"><summary class="wsum-s'+(bad?' bad':'')+'"><span class="dotc" aria-hidden="true"></span><span class="grow">'+esc(rub)+'</span><span class="lnk">Visa</span></summary>'+rk.replace(/<div class="rk-h">[^<]*<\/div>/,'')+'</details>':'')+'</div>'+mini}
+ // Översta raden finns två gånger: i rutan och som en kopia som ligger fast under navigeringsfältet.
+ // Kopian visas exakt när rutans överkant når fältet, så det ser ut som att raden glider fast. Tryck fäller ut räcker-listan
+ const op=S.wsumOpen?' open':'',top=big=>'<button type="button" class="wm-top" data-act="wsumMini" aria-expanded="'+!!S.wsumOpen+'"><b class="num">'+(big?nv('m-total',total,'kr'):kr(total))+'</b>'+
+  '<span class="wm-c"><span>'+port+' portioner</span><span>'+(port?kr(total/port)+' per portion':'')+'</span></span><span class="grow"></span>'+
+  (rub?'<span class="wsum-s'+(bad?' bad':'')+'"><span class="dotc"></span>'+(bad?'Räcker inte':'Räcker')+'</span>':'')+'<span class="wm-ch" aria-hidden="true">'+chevron+'</span></button>';
+ const body='<div class="wm-body">'+(rub?'<div class="wm-h'+(bad?' bad':'')+'">'+esc(rub)+'</div>'+rk.replace(/<div class="rk-h">[^<]*<\/div>/,''):'')+
+  (B?'<div class="rk-r wm-b"><span class="grow">Budget '+kr(B)+'</span><span class="rk-s'+(total>B?' bad':'')+'">'+(total>B?kr(total-B)+' över':kr(B-total)+' kvar')+'</span></div>':'')+'</div>';
+ return'<div class="ws-pin" aria-hidden="true"><div class="wcard ws-mini'+op+'">'+top(0)+body+'</div></div><div class="wcard ws-card'+op+'">'+top(1)+body+'</div>'}
 function matWeek(){
  const d=D(),st=settings(),ds=weekDishes();let h=NY?planBtnNy():planBtn();
  if(!ds.length)return h+'<div style="height:22px"></div>'+group(emptyCell('Veckans mat är inte planerad än. Tryck på Veckoförslag.'));
@@ -2866,7 +2868,7 @@ const ACT={
  shopImport(){S.confirm='shopImport';render()},
  portStep(id,el){const m=D().menu[Number(id)];if(!m)return;const r=m.recipe&&recipeById(m.recipe),n=Math.max(1,Math.min(20,dishPort(m,r)+Number(el.dataset.d)));
   m.note=portNote(m,r,n);render();clearTimeout(ACT.portStep.t);ACT.portStep.t=setTimeout(()=>shopImport(true),1200)},
- wsumMini(id,el){S.wsumOpen=!S.wsumOpen;const m=el.closest('.wsum-mini');m.classList.toggle('open',S.wsumOpen);el.setAttribute('aria-expanded',S.wsumOpen)},
+ wsumMini(){S.wsumOpen=!S.wsumOpen;document.querySelectorAll('.wcard').forEach(c=>{c.classList.toggle('open',S.wsumOpen);const b=c.querySelector('.wm-top');if(b)b.setAttribute('aria-expanded',S.wsumOpen)});wsPin()},
  shopMore(){S.sheet='shopMore';S.shopMoreC=false;render()},
  shopMoreAsk(){S.shopMoreC=true;render()},
  shopMoreImp(){closeSheets();render();shopImport()},
@@ -2944,7 +2946,10 @@ document.addEventListener('touchend',()=>{const el=SWP.el;if(!el)return;SWP.el=n
  const ow=swpW(el);swpSet(el,x<-ow/2?-ow:0,true)});
 // Planera veckan: visa den lilla budgetraden när den stora rutan har gått in under navigeringsfältet
 function plPin(){const m=document.querySelector('.pl-mini'),b=document.querySelector('.pl-bud');if(!m||!b)return;const nb=document.getElementById('navbar'),top=nb?nb.getBoundingClientRect().bottom:0;m.classList.toggle('show',b.getBoundingClientRect().bottom<top+4)}
-document.addEventListener('scroll',plPin,{passive:true});if(window.visualViewport)visualViewport.addEventListener('resize',plPin);
+// Veckosedeln: kopian av översta raden visas när rutan når navigeringsfältet och krymper lite (--k går 0→1) ju längre man scrollar
+function wsPin(){const c=document.querySelector('.ws-card'),m=document.querySelector('.ws-mini');if(!c||!m)return;const nb=document.getElementById('navbar'),top=nb?nb.getBoundingClientRect().bottom:0;
+ const d=top-c.getBoundingClientRect().top,on=d>=0&&scrollY>0;m.classList.toggle('show',on);m.style.setProperty('--k',on?Math.min(1,d/90).toFixed(3):0)}
+document.addEventListener('scroll',plPin,{passive:true});document.addEventListener('scroll',wsPin,{passive:true});if(window.visualViewport)visualViewport.addEventListener('resize',plPin);
 // iPhone: ibland hamnar skärmen förskjuten mot sidan (oftast efter tangentbordet), och då följer flikraden och listen
 // högst upp med när man scrollar. Vi mäter förskjutningen och flyttar tillbaka dem till skärmens kanter
 function vvFix(){const v=window.visualViewport,r=document.documentElement;if(!v)return;

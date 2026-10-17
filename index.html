@@ -1484,8 +1484,6 @@ html.ny .wsum-d[open] .lnk{visibility:hidden}
 html.ny .wsum-d .rk{margin:6px 0 0;padding:0;background:none}
 html.ny .dr-byt{flex:none;align-self:center;width:36px;height:36px;background:none;color:var(--ink-3);display:grid;place-items:center;margin-right:-6px;opacity:.75}
 html.ny .dr-byt svg{width:17px;height:17px}
-html.ny .wsum-mini{gap:10px;background:var(--surface)}
-html.ny .wsum-mini .wsum-s{font-size:15px;min-height:0;gap:6px}
 html.ny .add-row{display:flex;gap:8px;margin:12px 16px 0;padding:4px 4px 4px 14px;border-radius:12px;background:var(--surface);align-items:center}
 html.ny .add-row .field{flex:1;min-width:0;height:40px;padding:0;background:none;border:0;font-size:17px}
 html.ny .add-row .add-go{width:36px;height:36px;border-radius:10px;background:var(--accent);color:#fff;display:grid;place-items:center;flex:none}
@@ -1516,15 +1514,25 @@ html.ny .brooms>div:not(.warn):not(.bad) b{background:var(--green)!important}
 .wk.wk-sw .snap{scroll-snap-align:start}
 .wk-d .wd.m{color:var(--accent)}
 .wk-mo{font-weight:400;color:var(--ink-2)}
-html.ny .wsum-mini{flex-direction:column;align-items:stretch;padding:0}
-html.ny .wsum-mini.show{pointer-events:auto}
-html.ny .wm-top{display:flex;align-items:center;gap:10px;padding:9px 14px;width:100%;text-align:left;color:var(--ink)}
 html.ny .wm-ch{display:grid;color:var(--ink-3);transition:transform .2s}
 html.ny .wm-ch svg{width:14px;height:14px}
-html.ny .wsum-mini.open .wm-ch{transform:rotate(90deg)}
-html.ny .wm-body{display:none;padding:0 14px 10px;border-top:.5px solid var(--line)}
-html.ny .wsum-mini.open .wm-body{display:block}
 html.ny .wm-body .rk{margin:6px 0 0;padding:0;background:none}
+/* Veckosedelns sammanfattning: rutan och den fasta kopian av översta raden ser likadana ut (--k krymper kopian) */
+html.ny .wcard{background:var(--surface);border-radius:14px}
+html.ny .ws-card{margin:0 16px}
+html.ny .ws-pin{position:sticky;top:calc(var(--sat) + var(--navbar));z-index:14;height:0;margin:14px 16px 0}
+html.ny .ws-mini{visibility:hidden;pointer-events:none;box-shadow:0 8px 22px rgba(0,0,0,calc(.22 * var(--k,0)))}
+html.ny .ws-mini.show{visibility:visible;pointer-events:auto}
+html.ny .wm-top{display:flex;align-items:center;gap:12px;width:100%;text-align:left;color:var(--ink);padding:calc(14px - 5px * var(--k,0)) 16px}
+html.ny .wm-top b,html.ny .wm-top b .nv{font-size:calc(28px - 8px * var(--k,0));line-height:1.15;font-weight:700;letter-spacing:-.5px;white-space:nowrap}
+html.ny .wm-c{display:flex;flex-direction:column;font-size:13px;line-height:17px;color:var(--ink-2);white-space:nowrap}
+html.ny .wm-top .wsum-s{font-size:15px;min-height:0;gap:6px;white-space:nowrap}
+html.ny .wcard.open .wm-ch{transform:rotate(90deg)}
+html.ny .wm-body{display:none;padding:2px 16px 12px;margin:0 0 0;border-top:.5px solid var(--line)}
+html.ny .wcard.open .wm-body{display:block}
+html.ny .wm-h{font-size:15px;font-weight:600;padding:8px 0 2px}
+html.ny .wm-h.bad{color:var(--orange)}
+html.ny .wm-b{border-top:.5px solid var(--line);margin-top:6px;padding-top:8px}
 </style>
 </head>
 <body>
@@ -1538,7 +1546,7 @@ html.ny .wm-body .rk{margin:6px 0 0;padding:0;background:none}
 <script src="matvaror.js?v=3"></script>
 <script src="matpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=99"></script>
+<script src="app.js?v=100"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
