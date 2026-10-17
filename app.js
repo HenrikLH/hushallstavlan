@@ -1756,11 +1756,14 @@ function renderOverlay(){
   sh('Den här enheten')+group('<button type="button" class="cell link center red" data-act="logout">Logga ut</button>')+
   '<div class="foot ver">Hushållstavlan · UI '+(NY?UI_VER:'1.0')+' · version '+esc(APP_VER)+'</div>';
   o.innerHTML=sheetHtml('settings','Inställningar','<button class="tb strong">Spara</button>',body,enter);segSlide(o);return}
- if(k==='farg'){const mi=people().indexOf(S.me),opt=(v,l,on)=>'<option value="'+v+'"'+(on?' selected':'')+'>'+esc(l)+'</option>';
-  const accOpts=(mi>=0?opt('min','Min färg ('+PCOL[personColor(mi)][0].toLowerCase()+')',ACCENT==='min'):'')+Object.keys(PCOL).map(c=>opt(c,PCOL[c][0]+(c==='vinrod'?' (standard)':''),ACCENT===c)).join('');
+ if(k==='farg'){const mi=people().indexOf(S.me);
+  const dots=(name,chg,id,cur,keys,lab)=>'<div class="cell"><div class="pcols" role="radiogroup" aria-label="'+esc(lab)+'">'+keys.map(c=>{const pc=PCOL[c==='min'?personColor(mi):c];
+   return'<label title="'+(c==='min'?'Min färg':pc[0])+'"><input type="radio" name="'+name+'" value="'+c+'" data-change="'+chg+'"'+(id!=null?' data-id="'+id+'"':'')+(cur===c?' checked':'')+'><span style="--c:'+pc[1]+';--cd:'+pc[chg==='accent'?4:3]+'"></span></label>'}).join('')+'</div></div>';
+  const accName=ACCENT==='min'?'Min färg':PCOL[accentKey()][0]+(accentKey()==='vinrod'?' (standard)':'');
   const body=sh('Ljust eller mörkt')+'<div class="seg-wrap">'+segc('Ljust eller mörkt','theme',[['system','System'],['light','Ljust'],['dark','Mörkt']],S.theme)+'</div>'+
-   sh('Accentfärg')+group('<div class="cell"><span class="grow">Knappar och länkar</span>'+menuSel('data-change="accent" aria-label="Accentfärg"',accOpts)+'</div>')+'<div class="foot">Gäller bara den här enheten.</div>'+
-   sh('Färg i hushållet')+group(people().slice(0,2).map((n,i)=>'<div class="cell"><span class="grow">'+esc(n)+'</span>'+menuSel('data-change="pcol" data-id="'+i+'" aria-label="Färg för '+esc(n)+'"',Object.keys(PCOL).map(c=>opt(c,PCOL[c][0],personColor(i)===c)).join(''))+'</div>').join(''))+
+   sh('Accentfärg')+group('<div class="cell"><span class="grow">Knappar och länkar</span><span class="meta">'+esc(accName)+'</span></div>'+dots('acc','accent',null,ACCENT==='min'?'min':accentKey(),Object.keys(PCOL),'Accentfärg'))+
+   '<div class="foot">Gäller bara den här enheten.'+(mi>=0?' <button type="button" class="lnk-in" data-act="accent" data-id="min">Använd min färg</button>':'')+'</div>'+
+   sh('Färg i hushållet')+people().slice(0,2).map((n,i)=>group('<div class="cell"><span class="grow">'+esc(n)+'</span><span class="meta">'+esc(PCOL[personColor(i)][0])+'</span></div>'+dots('pc'+i,'pcol',i,personColor(i),Object.keys(PCOL),'Färg för '+n))).join('<div style="height:10px"></div>')+
    '<div class="foot">Används för era händelser, uppgifter, sysslor och i Ekonomi. Gäller alla enheter.</div>';
   o.innerHTML=sheetHtml('farg','Färgval','<button type="button" class="tb strong" data-act="sheetClose">Klar</button>',body,enter,'<button type="button" class="back" data-act="settings">'+I.back+'Inställningar</button>');segSlide(o);return}
  if(k==='prefs'){const st=settings();
