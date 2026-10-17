@@ -590,7 +590,7 @@ V.oversikt=function(){
  const tasksNow=d.tasks.filter(x=>!x.done&&isDate(x.due)&&x.due<=t).sort((a,b)=>a.due.localeCompare(b.due));
  const tasksSoon=d.tasks.filter(x=>!x.done&&!(isDate(x.due)&&x.due<=t)).sort((a,b)=>(a.due||'9').localeCompare(b.due||'9')).slice(0,4);
  const hh=now.getHours(),greet=hh<5?'God natt':hh<10?'God morgon':hh<17?'Hej':hh<22?'God kväll':'God natt';
- let h=NY?head(greet+(people().includes(S.me)?', '+S.me:''),{eyebrow:esc(cap(dayHead(t)))+' · Vecka '+isoWeek(now)}):head('Översikt');
+ let h=NY?head(greet+(people().includes(S.me)?', '+S.me:'')):head('Översikt');
  h+='<div class="ov">'+heroHtml()+(S.arrange||NY?'':smileyCard());
  const H={kal:calWidget()};
  const isT=nextDay&&nextDay.date===t;
@@ -2330,10 +2330,11 @@ function heroHtml(){const n=new Date(),t=today(),dy=EXT.day&&EXT.day.date===t?EX
    '<div class="wx-now"><span class="wx-ic" aria-hidden="true">'+ic+'</span><span class="wx-t num">'+deg(W.now.T)+'</span></div>'+
    '<div class="fn">'+esc(tx)+'</div><div class="fn num">H:'+deg(d0.max)+' L:'+deg(d0.min)+'</div>'+
    (grassOn()?'<div class="gs '+GRASS_V+'">'+(GRASS_V==='a'?arcHtml(W,'a'):'')+'<div class="fig-box grass" aria-hidden="true">'+figSvg(wxScene(W),{bare:1,patch:1})+'</div></div>':'<div class="fig-box" aria-hidden="true">'+figSvg(wxScene(W),{bare:1})+'</div>')+'<div class="fig-tip">'+esc((F.when==='i morgon'?'I morgon: ':'')+F.tip)+'</div></button>'}
- const facts=NY&&!wallBoardOn()?[]:['Vecka '+isoWeek(n)];
+ const facts=['Vecka '+isoWeek(n)];
  if(dy&&dy.holiday)facts.push(dy.holiday);else if(dy&&dy.flag)facts.push('Flaggdag: '+dy.flag);
- if(dy&&dy.names.length)facts.push('Namnsdag: '+dy.names.join(', '));
- if(sun)facts.push('Sol '+hhmm(sun[0])+'–'+hhmm(sun[1]));
+ // I nya designen står solen före namnsdagen
+ const nd=dy&&dy.names.length?'Namnsdag: '+dy.names.join(', '):'',so=sun?'Sol '+hhmm(sun[0])+'–'+hhmm(sun[1]):'';
+ (NY?[so,nd]:[nd,so]).filter(Boolean).forEach(f=>facts.push(f));
  return'<section class="hero'+(wx?' has-wx':'')+'">'+(W?(grassOn()?(GRASS_V==='b'?arcHtml(W,'b'):''):skyHtml(W)):'')+'<div class="hero-l"><div class="clock num" id="clock">'+pad(hh)+':'+pad(n.getMinutes())+'</div><div class="hero-date">'+esc(cap(dayHead(t)))+'</div>'+
   '<div class="hero-greet">'+greet+(S.me?', '+esc(S.me):'')+'!</div><div class="hero-facts">'+facts.map(f=>'<span>'+esc(f)+'</span>').join('')+'</div></div>'+wx+'</section>'}
 async function loadExt(){const t=today();let changed=await loadWx();

@@ -1398,7 +1398,8 @@ html.ny .wl .cell{padding:10px 0;min-height:48px}
 html.ny .wl .cell .title{font-size:17px}
 html.ny .ov-cell .ovs{width:24px;height:24px;margin:0 0 0 0;background:#FBF0DF;color:var(--orange)}
 html.ny .ov-cell .chev{color:var(--accent)}
-html.ny body:not(.wall) .hero-date,html.ny body:not(.wall) .hero-greet{display:none}
+html.ny body:not(.wall) .hero-greet{display:none}
+html.ny body:not(.wall) .hero-date{font-size:15px;line-height:20px;color:var(--ink-2);margin-top:2px}
 html.ny .hero{background:var(--surface);border-radius:20px;padding:16px}
 html.ny .hero-facts{flex-direction:column;gap:2px;margin-top:8px}
 html.ny .hero-facts span{background:none;padding:0;font-size:15px;line-height:20px;border-radius:0;color:var(--ink-2)}
@@ -1420,7 +1421,7 @@ html.ny .ov>.smc{margin-top:12px}
 @media (min-width:900px){html.ny .ov>.smc{margin:0 0 14px}}
 html.ny .hero-greet{display:none}
 html.ny body:not(.wall) .hero-l{display:flex;flex-direction:column;padding-bottom:4px}
-html.ny body:not(.wall) .hero-facts{margin-top:auto}
+html.ny body:not(.wall) .hero-facts{margin-top:10px}
 html.ny .ny-smc .smc-t{flex-wrap:wrap;row-gap:10px}
 html.ny .ny-smc .smc-t .grow{flex-basis:100%}
 /* Väggen i ny design: lugn bakgrund, stora svarta rubriker i hela rutor */
@@ -1493,7 +1494,7 @@ html.ny .brooms>div:not(.warn):not(.bad) b{background:var(--green)!important}
 <script src="matvaror.js?v=3"></script>
 <script src="matpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=94"></script>
+<script src="app.js?v=95"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
