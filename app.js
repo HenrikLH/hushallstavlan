@@ -2071,12 +2071,16 @@ function wxModel(){const y=EXT.yr;if(!y||!y.ts||!y.ts.length||Date.now()-y.at>12
 const symBase=s=>String(s||'').replace(/_(day|night|polartwilight)$/,'');
 // dimma ritas själv: telefonens dimemoji ser ut som en suddig grå fyrkant
 const FOG_IC='<svg class="ic-fog" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><g fill="none" stroke="#A7B0BF" stroke-width="2.2" stroke-linecap="round"><path d="M3 8c2-1.4 4-1.4 6 0s4 1.4 6 0 4-1.4 6 0"/><path d="M3 13c2-1.4 4-1.4 6 0s4 1.4 6 0 4-1.4 6 0" opacity=".8"/><path d="M5 18c1.7-1.2 3.3-1.2 5 0s3.3 1.2 5 0 3.3-1.2 4 0" opacity=".6"/></g></svg>';
+// måne med moln för halvklara och mest klara nätter (det finns ingen sådan emoji)
+const MOON_C=big=>'<svg class="ic-mc" viewBox="0 0 24 24" width="1em" height="1em" aria-hidden="true"><path d="M12.6 2.6a7.4 7.4 0 1 0 7.6 9.8A6 6 0 0 1 12.6 2.6z" fill="#F6C344"/>'+
+ (big?'<path d="M8.6 21.2h10.2a3.6 3.6 0 0 0 .3-7.2 4.9 4.9 0 0 0-9.3 1.5 2.9 2.9 0 0 0-1.2 5.7z" fill="#EEF1F6" stroke="#B9C2CF" stroke-width=".8"/>'
+  :'<path d="M13.4 21.4h6.4a2.6 2.6 0 0 0 .2-5.2 3.5 3.5 0 0 0-6.6 1 2.1 2.1 0 0 0 0 4.2z" fill="#EEF1F6" stroke="#B9C2CF" stroke-width=".8"/>')+'</svg>';
 function symInfo(s){const b=symBase(s),night=/_night$/.test(s||'');
  if(/thunder/.test(b))return['⛈️','Åska'];
  if(/sleet/.test(b))return['🌨️',(/showers/.test(b)?'Byar av ':'')+'snöblandat regn'];
  if(/snow/.test(b))return[/heavy/.test(b)?'❄️':'🌨️',/showers/.test(b)?'Snöbyar':/heavy/.test(b)?'Kraftigt snöfall':/light/.test(b)?'Lätt snöfall':'Snöfall'];
- if(/rain/.test(b))return[/heavy/.test(b)?'🌧️':(/showers|light/.test(b)?'🌦️':'🌧️'),/showers/.test(b)?(/heavy/.test(b)?'Kraftiga regnskurar':/light/.test(b)?'Lätta regnskurar':'Regnskurar'):(/heavy/.test(b)?'Kraftigt regn':/light/.test(b)?'Lätt regn':'Regn')];
- return{clearsky:[night?'🌙':'☀️','Klart'],fair:[night?'🌙':'🌤️','Mest klart'],partlycloudy:[night?'☁️':'⛅','Halvklart'],cloudy:['☁️','Mulet'],fog:[FOG_IC,'Dimma']}[b]||['🌡️','']}
+ if(/rain/.test(b))return[/heavy/.test(b)||(night&&/showers/.test(b))?'🌧️':(/showers|light/.test(b)?'🌦️':'🌧️'),/showers/.test(b)?(/heavy/.test(b)?'Kraftiga regnskurar':/light/.test(b)?'Lätta regnskurar':'Regnskurar'):(/heavy/.test(b)?'Kraftigt regn':/light/.test(b)?'Lätt regn':'Regn')];
+ return{clearsky:[night?'🌙':'☀️','Klart'],fair:[night?MOON_C(0):'🌤️','Mest klart'],partlycloudy:[night?MOON_C(1):'⛅','Halvklart'],cloudy:['☁️','Mulet'],fog:[FOG_IC,'Dimma']}[b]||['🌡️','']}
 // temperaturfärg efter verklig temperatur, som en tydlig skala där färgen byter ton var femte grad:
 // lila i sträng kyla, blått kring nollan, turkost kring 10, grönt kring 15, gult kring 20, orange kring 25 och rött över 30
 const T_COL=[[-15,'#7A5CF0'],[-5,'#3D6BF5'],[0,'#2F8CFF'],[5,'#2FBDF2'],[10,'#2CD3B5'],[15,'#6FD957'],[20,'#F2D43A'],[25,'#FF9F0A'],[30,'#FF5A36'],[36,'#E0203F']];
@@ -2626,10 +2630,13 @@ function wxBarHtml(W,F){return'<div class="wx2-bar"><div><b>'+esc(capS(F.when))+
 let WXC_H=[],WXC_SW=40;
 function wxHours(W){const L=[];for(const x of (W.all||W.hours)){const p=L[L.length-1];if(p&&x.d-p.d>36e5*1.5)break;L.push(x);if(L.length>=48)break}return L}
 // ett steg = tre timmar: väder och temperatur från första timmen, nederbörden summerad
+// natt eller dag efter solens verkliga tider, inte efter prognosens symbolnamn
+function wxDayNight(x,P,t){const st=sunTimes(ymd(t),P.lat,P.lon),b=symBase(x.s);if(!st||/_polartwilight$/.test(x.s||''))return x;const up=t>=st[0]&&t<=st[1];
+ return Object.assign({},x,{s:b+(/^(clearsky|fair|partlycloudy)$|showers/.test(b)?(up?'_day':'_night'):'')})}
 function wxSegs(H){const G=[];for(let i=0;i+2<H.length;i+=3){const g=H.slice(i,i+3);G.push(Object.assign({},g[0],{pr:g.reduce((a,x)=>a+(x.pr||0),0),hr:i}))}return G}
 function wxHrInfo(x,k){const[,t]=symInfo(x.s),e=new Date(x.d.getTime()+3*36e5);return'<b>'+(k?'Kl '+pad(x.d.getHours())+'–'+pad(e.getHours())+(ymd(x.d)!==today()?' '+DAYS3[x.d.getDay()]:''):'Nu')+'</b><span>'+deg(x.T)+(t?', '+t.toLowerCase():'')+'</span>'+
  '<span>Känns som '+deg(feels(x.T,x.w||0))+'</span><span>'+esc(windText(x))+'</span><span>'+(x.pr>=.1?mm(x.pr)+' nederbörd':'Uppehåll')+'</span>'}
-function wxHeroC(W,P,ic,tx,d0,F,sun){const H=wxHours(W),G=WXC_H=wxSegs(H);
+function wxHeroC(W,P,ic,tx,d0,F,sun){const H=wxHours(W),G=WXC_H=wxSegs(H).map(x=>wxDayNight(x,P,new Date(x.d.getTime()+90*6e4)));
  // åtta steg ska rymmas i kortets bredd
  const mw=(document.getElementById('main')||document.querySelector('main')||document.body).clientWidth||innerWidth;
  const cw=WXC_SW=Math.max(36,Math.floor((Math.min(mw,700)-64)/8*10)/10),hw=cw/3,n=G.length,w=n*cw,h=182,yT=24,yB=70,base=88,f=v=>v.toFixed(1);
