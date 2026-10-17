@@ -388,7 +388,7 @@ function evParts(e){const t=String(e.title||'').trim(),ps=people(),is=s=>ps.find
 const evTitle=e=>esc(evParts(e).title);
 function evWho(e){const w=evParts(e).name||evPerson(e);return w?' '+personChip(w):''}
 // Namnchip i personens egen färg (--p1/--p2), grå för den som inte finns bland personerna
-const personChip=w=>'<span class="chip'+(people().includes(w)?' '+pcls(w):'')+'">'+esc(w)+'</span>';
+const personChip=w=>'<span class="chip'+(people().includes(w)?' '+pcls(w):NY?' o':'')+'">'+esc(w)+'</span>';
 const shopCost=items=>items.reduce((s,i)=>s+(Number(i.price)||0),0);
 const isBase=i=>(i.meals||[]).length>0&&(i.meals||[]).every(m=>m==='Bas');
 /* Veckosedelns siffror räknas på veckan som skickats: varorna som planen lade i inköpslistan (även de som redan är köpta)
@@ -459,8 +459,10 @@ function setupHtml(){return'<form class="setup" data-form="setup"><h1 class="lt"
 
 /* Byggstenar */
 const gearBtn='<button class="ib" data-act="settings" aria-label="Inställningar">'+I.gear+'</button>';
+// Ny design: initialen i personens färg öppnar Inställningar, så att man ser vem enheten är inställd på
+const meBtn=()=>people().includes(S.me)?'<button class="ib me-av '+pcls(S.me)+'" data-act="settings" aria-label="Inställningar, '+esc(S.me)+'"><span>'+esc(S.me.slice(0,1).toUpperCase())+'</span></button>':gearBtn;
 function head(title,o){o=o||{};NB.title=title;
- return'<header class="head">'+(o.eyebrow?'<div class="eyebrow">'+o.eyebrow+'</div>':'')+'<div class="head-row"><h1 class="lt" id="lt">'+esc(title)+'</h1><div class="tools">'+(o.tools||'')+gearBtn+'</div></div>'+(o.sub?'<div class="sub">'+o.sub+'</div>':'')+'</header>'}
+ return'<header class="head">'+(o.eyebrow?'<div class="eyebrow">'+o.eyebrow+'</div>':'')+'<div class="head-row"><h1 class="lt" id="lt">'+esc(title)+'</h1><div class="tools">'+(o.tools||'')+(NY?meBtn():gearBtn)+'</div></div>'+(o.sub?'<div class="sub">'+o.sub+'</div>':'')+'</header>'}
 const sh=(l,r,cls)=>'<div class="sh'+(cls?' '+cls:'')+'"><span>'+l+'</span>'+(r!=null&&r!==''?'<span class="r">'+r+'</span>':'')+'</div>';
 const group=inner=>'<div class="group">'+inner+'</div>';
 // Rubrik inuti en lista: listan är en enda yta där kategorierna skiljs åt av en rubrik med streck under
@@ -486,13 +488,13 @@ const SV2='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-wid
 const IA={minus:SV2+'<path d="M6 12h12"/></svg>',grow:SV2+'<path d="M14 4h6v6M10 20H4v-6M20 4l-6.5 6.5M4 20l6.5-6.5"/></svg>',shrink:SV2+'<path d="M20 10h-6V4M4 14h6v6M14 10l6-6M10 14l-6 6"/></svg>'};
 let PREVIEW=null,DRAG_ID=null;// medan en ruta dras ritas tavlan med den tillfälliga ordningen
 function layout(wall,def){if(PREVIEW&&PREVIEW.wall===wall)return PREVIEW.L;
- const k=wall?'wallLayout':'ovLayout',Z=SIZES[wall?'wall':'ov'];let o=null;try{o=JSON.parse(lsGet(k)||'null')}catch(e){}
+ const k=(wall?'wallLayout':'ovLayout')+(NY?'Ny':''),Z=SIZES[wall?'wall':'ov'];let o=null;try{o=JSON.parse(lsGet(k)||'null')}catch(e){}
  const known=new Set(def.flat()),hidden=(o&&Array.isArray(o.hidden)?o.hidden:[]).filter(x=>known.has(x));
  let cols=o&&Array.isArray(o.cols)&&o.cols.length===def.length?o.cols.map(c=>c.filter(x=>known.has(x))):def.map(c=>c.slice());
  const seen=new Set(cols.flat().concat(hidden));def.forEach((c,i)=>c.forEach(x=>{if(!seen.has(x))cols[i].push(x)}));// nya rutor hamnar på sin vanliga plats
  const size={};known.forEach(id=>{const v=o&&o.size&&o.size[id];size[id]=Z.can.includes(id)&&(v?v==='h':Z.half.includes(id))?'h':'f'});
  return{cols,hidden,size}}
-function saveLayout(wall,L){lsSet(wall?'wallLayout':'ovLayout',L?JSON.stringify({cols:L.cols,hidden:L.hidden,size:L.size}):null)}
+function saveLayout(wall,L){lsSet((wall?'wallLayout':'ovLayout')+(NY?'Ny':''),L?JSON.stringify({cols:L.cols,hidden:L.hidden,size:L.size}):null)}
 // I ändra-läget vickar rutorna och får sina knappar. Innehållet syns som vanligt men går inte att trycka på.
 function boxify(id,html,wall,L){if(!html)return'';
  const half=L.size[id]==='h';
@@ -587,8 +589,9 @@ V.oversikt=function(){
  const left=d.shop.filter(i=>!i.done);
  const tasksNow=d.tasks.filter(x=>!x.done&&isDate(x.due)&&x.due<=t).sort((a,b)=>a.due.localeCompare(b.due));
  const tasksSoon=d.tasks.filter(x=>!x.done&&!(isDate(x.due)&&x.due<=t)).sort((a,b)=>(a.due||'9').localeCompare(b.due||'9')).slice(0,4);
- let h=head('Översikt');
- h+='<div class="ov">'+heroHtml()+(S.arrange?'':smileyCard());
+ const hh=now.getHours(),greet=hh<5?'God natt':hh<10?'God morgon':hh<17?'Hej':hh<22?'God kväll':'God natt';
+ let h=NY?head(greet+(people().includes(S.me)?', '+S.me:''),{eyebrow:esc(cap(dayHead(t)))+' · Vecka '+isoWeek(now)}):head('Översikt');
+ h+='<div class="ov">'+heroHtml()+(S.arrange||NY?'':smileyCard());
  const H={kal:calWidget()};
  const isT=nextDay&&nextDay.date===t;
  H.mat=widget('mat','w2',I.fork,(isT||!nextDay)?'Middag ikväll':'Nästa middag',nextDay&&!isT?esc(dateShort(nextDay.date)):'',
@@ -597,15 +600,20 @@ V.oversikt=function(){
  H.stad=widget('stad','',I.sparkles,'Städ','','<div class="wbig">'+nv('w-clean',doneN)+'<small>/'+totN+'</small></div><div class="sub">'+nv('w-min',cp.minLeft)+' min kvar</div><div class="thin"><i style="width:'+(totN?Math.round(doneN/totN*100):0)+'%"></i></div>');
  H.inkop=widget('inkop','',I.basket,'Inköp','','<div class="wbig">'+nv('w-shop',left.length)+'</div><div class="sub">kvar · ca '+nv('w-shopkr',shopCost(left),'kr')+'</div>');
  const tl=tasksNow.concat(tasksSoon).slice(0,5);
- H.upg=widget('uppgifter','w2',I.list,'Uppgifter',tasksNow.length?tasksNow.length+' idag':'',tl.length?'<div class="wl">'+tl.map(taskRow).join('')+'</div>':'<div class="wempty">Inget att göra just nu.</div>');
+ if(NY){// Ny design: Att göra med bockar och de stående överföringar som saknas, i stället för två listor
+  const ovs=!people().includes(S.me)?[]:[['shared',ovOpen('shared')],[S.me,ovOpen(S.me)]].flatMap(([l,a])=>a.map(c=>({l,c})));
+  const ovRows=ovs.map(x=>'<div class="cell ck ov-cell" data-act="ovGo" data-id="'+esc(x.l+'|'+x.c.id)+'" role="link" tabindex="0"><span class="ovs tap saknas" data-act="ovDone" data-id="'+esc(x.c.id)+'" data-list="'+esc(x.l)+'" role="button" tabindex="0" aria-label="Bekräfta att den är inlagd">!</span><div class="grow"><div class="title">'+(ovState(x.c)==='andrad'?'Uppdatera':'Lägg in')+' stående överföring</div><div class="meta"><span>'+esc(x.c.name)+'</span></div></div>'+chevron+'</div>').join('');
+  const all=d.tasks.filter(x=>!x.done).length;
+  H.upg=widget('uppgifter','w2',I.list,'Att göra',all?'Alla '+all:'',(ovRows||tl.length)?'<div class="wl">'+ovRows+tl.map(taskRow).join('')+'</div>':'<div class="wempty">Inget att göra just nu.</div>')}
+ else H.upg=widget('uppgifter','w2',I.list,'Uppgifter',tasksNow.length?tasksNow.length+' idag':'',tl.length?'<div class="wl">'+tl.map(taskRow).join('')+'</div>':'<div class="wempty">Inget att göra just nu.</div>');
  const rh=roomHealth();
  H.hem=widget('stad','w2',I.home,'Hemmet','',rh.length?'<div class="wl">'+rh.map(healthRow).join('')+'</div>':'<div class="wempty">Städschemat är tomt.</div>');
  H.imorgon=tm?widget('mat','w2',I.cal,'Imorgon',esc(dateShort(tm.date)),(eventsHtml(tm)||'<div class="wempty">Inga händelser.</div>')+(tm.meals.length?wMeals(tm):'')):'';
  H.fod=bdWidget();
  const L=layout(false,OV_DEF());
- return h+(S.arrange?'<p class="arr-intro">Håll kvar och dra en ruta dit du vill ha den. − döljer rutan och hörnknappen gör den halv eller hel. Gäller bara den här enheten.</p>':'')+'<div class="widgets'+(S.arrange?' arranging':'')+'">'+boxRow(L.cols[0].filter(id=>H[id]),false,H,L)+'</div></div>'+arrangeFoot(L,false)};
+ return h+(S.arrange?'<p class="arr-intro">Håll kvar och dra en ruta dit du vill ha den. − döljer rutan och hörnknappen gör den halv eller hel. Gäller bara den här enheten.</p>':'')+'<div class="widgets'+(S.arrange?' arranging':'')+'">'+boxRow(L.cols[0].filter(id=>H[id]),false,H,L)+'</div>'+(NY&&!S.arrange?smileyCard():'')+'</div>'+arrangeFoot(L,false)};
 // utan egen ordning ligger födelsedagarna näst sist
-const OV_DEF=()=>[dayOf(addDays(today(),1))?['kal','mat','stad','inkop','upg','hem','fod','imorgon']:['kal','mat','stad','inkop','upg','fod','hem','imorgon']];
+const OV_DEF=()=>NY?[['kal','upg','mat','stad','inkop','fod','hem','imorgon']]:[dayOf(addDays(today(),1))?['kal','mat','stad','inkop','upg','hem','fod','imorgon']:['kal','mat','stad','inkop','upg','fod','hem','imorgon']];
 function wMeals(d){return(d.meals||[]).map(m=>{const r=m.recipe&&recipeById(m.recipe);const tag=r?'button':'div';
  return'<'+tag+' class="wmeal"'+(r?' data-act="recipe" data-id="'+esc(m.recipe)+'"':'')+'><div class="top">'+whoChip(m.who)+(r&&r.kr?'<span class="val">'+kr(r.kr)+'/port</span>':'')+'</div><div class="hl title">'+esc(m.title)+'</div>'+(m.addon?'<div class="sub">+ Kött: '+esc(m.addon)+'</div>':'')+'</'+tag+'>'}).join('')}
 const healthRow=r=>'<div class="cell room"><div class="grow"><div>'+esc(r.room)+'</div><div class="cap '+healthCls(r.score)+'"><i style="width:'+Math.round(r.score*100)+'%"></i></div></div><span class="hw '+healthCls(r.score)+'">'+healthWord(r.score)+'</span></div>';
@@ -617,7 +625,9 @@ V.mat=function(){
  if(S.plan&&(S.plan==='auto'||DEV))return S.plan==='port'?portView():S.plan==='auto'?autoView():planView();
  const ink=S.matTab==='inkop'?inkopParts():null;
  let h=head('Mat',ink?{sub:ink.sub,tools:ink.tools}:{sub:weekSub()});
- h+=segc('Visa','matTab',[['vecka','Vecka'],['inkop','Inköp'],['recept','Recept'],['bank','Receptbank']],S.matTab);
+ if(NY){const rt=S.matTab==='recept'||S.matTab==='bank';h+=segc('Visa','matTab',[['vecka','Vecka'],['inkop','Inköp'],['recept','Recept']],rt?'recept':S.matTab);
+  if(rt)h+='<div class="subseg">'+fchips('matTab',[['recept','Inspiration'],['bank','Mina recept']],S.matTab)+'</div>'}
+ else h+=segc('Visa','matTab',[['vecka','Vecka'],['inkop','Inköp'],['recept','Recept'],['bank','Receptbank']],S.matTab);
  return h+(ink?ink.body:S.matTab==='recept'?matRecipes():S.matTab==='bank'?matBank():matWeek())};
 /* Receptbanken: stora kort att bläddra i när man inte vet vad man vill äta */
 const FOOD=[[/soppa/i,'🍲'],[/chili/i,'🌶️'],[/rödbet|falafel|bönbiff|linsbiff|grönsaksbiff/i,'🧆'],[/dal|curry/i,'🍛'],[/gryta/i,'🥘'],[/kyckling/i,'🍗'],[/lax|fisk|torsk|sej/i,'🐟'],[/pasta|lasagne|spagetti/i,'🍝'],[/sallad|bulgur/i,'🥗'],[/shakshuka|ägg|omelett/i,'🍳'],[/blåbär|bär|efterrätt|kaka/i,'🫐'],[/pizza/i,'🍕'],[/taco|tortilla/i,'🌮'],[/burgare/i,'🍔'],[/fläsk|kött|biff/i,'🥩'],[/blomkål|grönsak|aubergine/i,'🥦']];
@@ -657,7 +667,7 @@ function mealCell(m,rows,flex){rows=rows||[m];const r=m.recipe&&recipeById(m.rec
  // Portionerna med plus och minus under rätten. Ändringen sparas och inköpslistan räknas om
  const P=flex&&flex.port,pr=P?'<div class="dr-port"><span class="grow"><b>'+P.n+(P.n===1?' portion':' portioner')+'</b>'+(P.txt?'<span class="meta">'+cap(P.txt)+'</span>':'')+'</span><span class="pl-step" role="group" aria-label="Portioner"><button type="button" data-act="portStep" data-id="'+D().menu.indexOf(m)+'" data-d="-1" aria-label="Färre portioner"'+(P.n<=1?' disabled':'')+'>'+I.minus+'</button><span class="num" aria-live="polite">'+P.n+'</span><button type="button" data-act="portStep" data-id="'+D().menu.indexOf(m)+'" data-d="1" aria-label="Fler portioner"'+(P.n>=20?' disabled':'')+'>'+I.plus+'</button></span></div>':'';
  const can=m.who!=='Borta'&&left.length,i=D().menu.indexOf(m),lab=(m.recipe?'Byt ':'Välj rätt i stället för ')+esc(m.title);
- const end=m.who==='Borta'?'':!left.length?'<span class="dr-done">'+I.tick+'Ätit</span>':'<span class="dr-sw" aria-hidden="true">'+I.swap+'</span>';
+ const end=m.who==='Borta'?'':!left.length?'<span class="dr-done">'+I.tick+'Ätit</span>':NY?'<button class="dr-byt" data-act="swap" data-id="'+D().menu.indexOf(m)+'" aria-label="'+(m.recipe?'Byt ':'Välj rätt i stället för ')+esc(m.title)+'">'+(m.recipe?'Byt':'Välj')+'</button>':'<span class="dr-sw" aria-hidden="true">'+I.swap+'</span>';
  const row='<div class="cell dr'+(left.length?'':' past')+(can?' dr-slide':'')+'">'+(r?'<button class="dr-main" data-act="recipe" data-id="'+esc(m.recipe)+'">'+inner+'</button>':'<div class="dr-main">'+inner+'</div>')+end+pr+'</div>';
  // Svep åt vänster för att visa Byt, som i iPhones listor
  return can?'<div class="dr-wrap"><button class="dr-act" data-act="swap" data-id="'+i+'" aria-label="'+lab+'">'+I.swap+'<span>'+(m.recipe?'Byt':'Välj')+'</span></button>'+row+'</div>':row}
@@ -723,11 +733,17 @@ function raeckerKort(ds){const st=settings(),vs=st.vecka_start;if(!isDate(vs))re
  const kvSaknas=rader.slice(0,2).reduce((a,r)=>a+(r.diff<0?Math.ceil(-r.diff/2):0),0),lSaknas=Math.max(0,-rader[2].diff);
  const brist=kvSaknas||lSaknas,rub=!brist?'Maten räcker hela veckan':'Maten räcker inte: '+[kvSaknas?kvSaknas+(kvSaknas===1?' kväll':' kvällar')+' utan middag':'',lSaknas?lSaknas+(lSaknas===1?' lunchlåda':' lunchlådor')+' för lite':''].filter(Boolean).join(' och ');
  return'<div class="rk'+(brist?' bad':'')+'"><div class="rk-h">'+rub+'</div>'+rader.map(r=>'<div class="rk-r"><span class="grow">'+r.l+'</span><span class="rk-n">'+r.n+' av '+r.beh+'</span><span class="rk-s'+(r.diff<0?' bad':'')+'">'+r.txt+'</span></div>').join('')+'</div>'}
+// Nya designen: en knapp för veckoförslaget och en sammanfattning med kostnad, portioner och om maten räcker
+const planBtnNy=()=>(DEV?planBtn().replace(/<button class="pl-open pt-open" data-act="autoOpen">[\s\S]*$/,''):'')+'<button class="btn-tint wk-new" data-act="autoOpen">'+I.swap+'Föreslå en ny vecka</button>';
+function weekSummary(ds,total,port){const rk=raeckerKort(ds),bad=/class="rk bad"/.test(rk),rub=(rk.match(/<div class="rk-h">([^<]*)<\/div>/)||[])[1]||'',B=Number(settings().matbudget)||0;
+ return'<div class="wsum"><div class="wsum-n"><b class="num">'+nv('m-total',total,'kr')+'</b><span>för veckans mat'+(B?' · budget '+kr(B):'')+'</span></div>'+
+  '<div class="wsum-m">'+port+' portioner'+(port?' · '+kr(total/port)+' per portion':'')+'</div>'+
+  (rub?'<details class="wsum-d"><summary class="wsum-s'+(bad?' bad':'')+'"><span class="dotc" aria-hidden="true"></span><span class="grow">'+esc(rub)+'</span><span class="lnk">Visa</span></summary>'+rk.replace(/<div class="rk-h">[^<]*<\/div>/,'')+'</details>':'')+'</div>'}
 function matWeek(){
- const d=D(),st=settings(),ds=weekDishes();let h=planBtn();
+ const d=D(),st=settings(),ds=weekDishes();let h=NY?planBtnNy():planBtn();
  if(!ds.length)return h+'<div style="height:22px"></div>'+group(emptyCell('Veckans mat är inte planerad än. Tryck på Veckoförslag.'));
  const total=veckaKostnad(),port=veckaPortioner();
- h+='<div class="stats"><div class="stat"><span class="fn">Maten kostar ca</span><b>'+nv('m-total',total,'kr')+'</b></div><div class="stat"><span class="fn">Portioner</span><b>'+nv('m-port',port)+'</b></div><div class="stat"><span class="fn">Per portion</span><b>'+(port?nv('m-per',total/port,'kr'):'–')+'</b></div></div>'+raeckerKort(ds);
+ if(NY)h+=weekSummary(ds,total,port);else h+='<div class="stats"><div class="stat"><span class="fn">Maten kostar ca</span><b>'+nv('m-total',total,'kr')+'</b></div><div class="stat"><span class="fn">Portioner</span><b>'+nv('m-port',port)+'</b></div><div class="stat"><span class="fn">Per portion</span><b>'+(port?nv('m-per',total/port,'kr'):'–')+'</b></div></div>'+raeckerKort(ds);
  const order={Henrik:0,Vegetariskt:1,Gemensam:2};let vd='';
  [...new Set(['Vardag','Helg','Storkok'].concat(ds.map(x=>x.g)))].forEach(g=>{const list=ds.filter(x=>x.g===g).sort((a,b)=>(order[(a.r||a.m).who]??3)-(order[(b.r||b.m).who]??3));if(!list.length)return;
   const vs=isDate(st.vecka_start)?st.vecka_start:'',slut=vs?addDays(vs,g==='Vardag'?3:6):'',inV=y=>!vs||!isDate(y.date)||(y.date>=vs&&y.date<=addDays(vs,6));
@@ -1097,6 +1113,10 @@ function portView(){const C=portCalc(),{P,B}=C,mon=parse(P.vecka),sun=parse(addD
 let FL_STYLE=lsGet('forslag')==='lista'?'lista':'karusell';
 // Utvecklarläge: visar menyer som inte är färdiga. Gäller bara den här enheten
 let DEV=lsGet('dev')==='1';
+// Ny design ("Lugn"): eget utseende som slås på per enhet i Inställningar. Av = appen ser ut som förut
+let NY=lsGet('ny')==='1';
+function applyNy(){document.documentElement.classList.toggle('ny',NY)}
+applyNy();
 function portKarusell(alla,p,C){const n=alla.length,i0=Math.min(Math.max(1,(S.carIdx||{})[p.id]||1),n);
  const nx=C.dag.find(y=>y.p.dag>p.dag&&y.t!=='ratt'&&y.t!=='rest');
  const kortet=(x,klon)=>{const r=x.r,img=r.img||imgOf(r.id),q=C.Q(p,x.n),pv=protVal(p.id,r),stars=x.l.betyg?'★ '+starNum(x.l.s):'Ny';
@@ -1292,14 +1312,18 @@ function inkopParts(){
  const items=all.filter(match),left=all.filter(i=>!i.done),bought=all.filter(i=>i.done);
  // Hela listan och Kvar att betala gäller allt på listan. Per portion och budget gäller veckans mat, samma siffror som på veckosedeln
  const total=shopCost(all),port=veckaPortioner(),mealCost=veckaKostnad(),B=Number(st.matbudget)||0;
- const sub=left.length+' kvar · ca '+kr(shopCost(left)),tools='<button class="ib plus" data-act="shopAdd" aria-label="Ny vara">'+I.plus+'</button>';let h='';
- h+='<div class="stats'+(B?' s4':'')+'"><div class="stat"><span class="fn">Hela listan</span><b>'+nv('s-total',total,'kr')+'</b></div><div class="stat"><span class="fn">Kvar att betala</span><b>'+nv('s-left',shopCost(left),'kr')+'</b></div><div class="stat"><span class="fn">Mat per portion</span><b>'+(port?kr(mealCost/port):'–')+'</b><span class="fn">'+port+' portioner</span></div>'+
+ let sub=left.length+' kvar · ca '+kr(shopCost(left)),tools='<button class="ib plus" data-act="shopAdd" aria-label="Ny vara">'+I.plus+'</button>',h='';
+ const vs=st.vecka_start,wk=isDate(vs)?'Vecka '+isoWeek(parse(vs)):'veckan';
+ if(NY){sub='';tools='<button class="ib" data-act="shopMore" aria-label="Fler val för listan">'+I.dots+'</button>'+tools;
+  h+='<div class="wsum"><div class="wsum-n"><b class="num">'+left.length+'</b><span>'+(left.length===1?'vara kvar':'varor kvar')+' · ca '+kr(shopCost(left))+'</span></div>'+
+   (B?'<div class="wsum-m">Veckans mat '+kr(mealCost)+' av '+kr(B)+(mealCost>B?' · '+kr(mealCost-B)+' över':' · '+kr(B-mealCost)+' kvar')+'</div><div class="thin '+(mealCost>B?'bad':mealCost>B*.9?'warn':'')+'"><i style="width:'+Math.min(100,Math.round(mealCost/B*100))+'%"></i></div>':'')+'</div>'+
+   '<form class="add-row" data-form="shopQuick"><input class="field" name="name" placeholder="Lägg till vara" aria-label="Lägg till vara" autocomplete="off" enterkeyhint="done"><button class="add-go" aria-label="Lägg till">'+I.plus+'</button></form>'}
+ else{h+='<div class="stats'+(B?' s4':'')+'"><div class="stat"><span class="fn">Hela listan</span><b>'+nv('s-total',total,'kr')+'</b></div><div class="stat"><span class="fn">Kvar att betala</span><b>'+nv('s-left',shopCost(left),'kr')+'</b></div><div class="stat"><span class="fn">Mat per portion</span><b>'+(port?kr(mealCost/port):'–')+'</b><span class="fn">'+port+' portioner</span></div>'+
   (B?'<div class="stat"><span class="fn">Matbudget '+kr(B)+'</span><b>'+(mealCost>B?'+'+kr(mealCost-B):kr(B-mealCost)+' kvar')+'</b><div class="thin '+(mealCost>B?'bad':mealCost>B*.9?'warn':'')+'"><i style="width:'+Math.min(100,Math.round(mealCost/B*100))+'%"></i></div></div>':'')+'</div>';
  // Två knappar under siffrorna: hämta veckans varor och töm listan. Frågan visas i samma kort innan något händer
- const vs=st.vecka_start,wk=isDate(vs)?'Vecka '+isoWeek(parse(vs)):'veckan';
  // Håll in knappen för att bekräfta: en fyllning går över knappen och åtgärden körs när den är full
  h+='<div class="sh-tools"><button type="button" class="sh-btn" data-hold="shopImportYes" aria-label="Håll in för att hämta varor för '+esc(wk.toLowerCase())+'"><i class="sh-fill"></i><span class="sh-ic">'+I.imp+'</span><b>Hämta varor</b></button>'
-  +'<button type="button" class="sh-btn red" data-hold="shopEmptyYes"'+(all.length?'':' disabled')+' aria-label="Håll in för att tömma listan"><i class="sh-fill"></i><span class="sh-ic">'+I.trash+'</span><b>Töm listan</b></button></div>';
+  +'<button type="button" class="sh-btn red" data-hold="shopEmptyYes"'+(all.length?'':' disabled')+' aria-label="Håll in för att tömma listan"><i class="sh-fill"></i><span class="sh-ic">'+I.trash+'</span><b>Töm listan</b></button></div>'}
  h+='<div class="fchips" role="group" aria-label="Filter">'+groups.map(([k,l])=>'<button data-act="shopFilter" data-id="'+esc(k)+'" aria-pressed="'+(f2===k)+'">'+l+'</button>').join('')+'</div>';
  h+='<div class="split"><div class="col">';
  if(!all.length)h+='<div style="height:22px"></div>'+group(emptyCell('Listan är tom. Tryck på Hämta varor för veckans rätter, eller lägg till egna varor med plus.'));
@@ -1390,6 +1414,8 @@ function recipeDetail(r){
  let h='<div class="rcp-top"><button class="back" data-act="recipeBack">'+I.back+'Mat</button>';
  h+=rcpPhoto(r);
  h+='<div class="chips-row">'+whoChip(effWho(r))+(r.when?'<span class="chip">'+esc(r.when)+'</span>':'')+(r.freezes?'<span class="chip v">Går att frysa</span>':'')+'</div><h1 class="t1" id="lt">'+esc(r.title)+'</h1>'+rcpActions(r)+'</div>';
+ const cookBtn='<div class="block"><button class="btn-fill" style="width:100%" data-act="cook" data-id="'+esc(r.id)+'">'+I.play+'Börja laga</button></div>';
+ if(NY)h+=cookBtn;
  const facts=[['Tid','<span class="num">'+r.min+'</span> min']];if(r.kr)facts.push(['Per portion',kr(r.kr)]);if(r.protein){const pr=String(r.protein).replace(/\s*\/\s*port(ion)?\.?$/i,''),ph=pr.match(/^henriks?\s+(?:del\s+)?(?:ca\s+)?(.+)$/i);facts.push(['Protein',esc(ph?ph[1]:pr)])}
  const kc=kcalOf(r.id);if(kc)facts.push(['Kalorier','<span class="num">'+kc.n+'</span> kcal']);
  h+='<div class="group" style="margin-top:16px"><div class="rcp-facts'+(facts.length>3?' f4':'')+'" style="grid-template-columns:repeat('+facts.length+',minmax(0,1fr))">'+facts.map(([l,v])=>'<div><div class="fn">'+l+'</div><div class="v">'+v+'</div></div>').join('')+'</div></div>';
@@ -1399,7 +1425,7 @@ function recipeDetail(r){
    :'<div class="cell"><div class="grow"><div class="meta" style="color:var(--ink)">'+(on?'Receptet har '+esc(orig.namn.toLowerCase())+'. När veckan planeras väljer var och en sitt protein, och resten av rätten lagas en gång.':'Avstängt. Rätten lagas med '+esc(orig.namn.toLowerCase())+' som i receptet.')+'</div></div></div>')+
    '<div class="foot"><button class="linkbtn" data-act="protToggle" data-id="'+esc(r.id)+'">'+(on?'Stäng av för den här rätten':'Slå på valfritt protein')+'</button></div>'}
  if(r.src)h+='<div class="foot"><a href="'+esc(r.src)+'" target="_blank" rel="noopener" style="color:var(--accent)">Inspiration från '+esc(r.srcName||'nätet')+'</a></div>';
- h+='<div class="block"><button class="btn-fill" style="width:100%" data-act="cook" data-id="'+esc(r.id)+'">'+I.play+'Börja laga</button></div>';
+ if(!NY)h+=cookBtn;
  h+='<div class="recipe"><div class="col">';
  h+='<div class="sh with-ctl"><span>Ingredienser</span><span class="stepper"><button data-act="scale" data-id="'+esc(r.id)+'" data-d="-1" aria-label="Färre portioner">−</button><span><b>'+p+'</b> port</span><button data-act="scale" data-id="'+esc(r.id)+'" data-d="1" aria-label="Fler portioner">+</button></span></div>';
  h+=ingList(rr,f,actHits)+'<div class="foot">Markerat: det som behövs i steg '+(act+1)+'.</div>';
@@ -1447,6 +1473,10 @@ function smileyAsk(){const t=today(),y=addDays(t,-1),late=new Date().getHours()>
   if(!(m.date===y||(late&&m.date===t)))return false;const k=m.recipe+'|'+m.date;if(seen.has(k))return false;seen.add(k);
   return!(all[m.recipe]||[]).some(x=>x[0]===m.date)}).slice(0,3)}
 function smileyCard(){const L=smileyAsk();if(!L.length)return'';const t=today(),allT=L.every(m=>m.date===t);
+ if(NY)return'<section class="smc ny-smc"><h2 class="smc-q">'+(allT?'Hur var maten ikväll?':'Hur var maten igår?')+'</h2>'+
+  L.map(m=>{const r=recipeById(m.recipe),a='data-id="'+esc(m.recipe)+'" data-date="'+esc(m.date)+'"';return'<div class="smc-r"><div class="smc-t"><div class="grow"><div class="title">'+esc(r.title)+'</div><div class="meta"><span>Tryck på en min så sparas den</span></div></div>'+
+   SMIL.map(([v,e,n])=>'<button type="button" class="smc-f" data-act="smileyQuick" data-v="'+v+'" '+a+' aria-label="'+esc(r.title)+': '+esc(n)+'">'+e+'</button>').join('')+'</div>'+
+   '<button type="button" class="tb smc-skip" data-act="smileySkip" '+a+'>Vi lagade den inte</button></div>'}).join('')+'</section>';
  return'<section class="smc"><div class="smc-h">'+I.fork+'<span>'+(allT?'Hur var maten ikväll?':'Hur var maten igår?')+'</span></div>'+
   L.map(m=>{const r=recipeById(m.recipe);return'<form class="smc-r" data-form="smiley" data-id="'+esc(m.recipe)+'" data-date="'+esc(m.date)+'">'+
    '<div class="smc-t"><div class="grow"><div class="chips-row">'+whoChip(m.who)+'</div><div class="title">'+esc(r.title)+'</div></div><span class="smc-face" aria-hidden="true">😐</span></div>'+
@@ -1525,6 +1555,7 @@ V.uppgifter=function(){
  let h=head('Uppgifter',{sub:open.length+' att göra',tools:'<button class="ib plus" data-act="taskAdd" aria-label="Ny uppgift">'+I.plus+'</button>'});
  h+=segc('Visa','taskTab',[['lista','Lista'],['kalender','Kalender']],S.taskTab);
  if(S.taskTab==='kalender')return h+calView();
+ if(NY)h+='<form class="add-row" data-form="taskQuick"><input class="field" name="title" placeholder="Ny uppgift" aria-label="Ny uppgift" autocomplete="off" enterkeyhint="done"><button class="add-go" aria-label="Lägg till">'+I.plus+'</button></form>';
  h+='<div class="split"><div class="col">';
  const td=g.filter(([,xs])=>xs.length).map(([l,xs])=>gh(l,xs.length,l==='Försenade'?'red':'')+xs.map(taskRow).join('')).join('');if(td)h+='<div class="g-one">'+group(td)+'</div>';
  if(!open.length)h+='<div style="height:22px"></div>'+group(emptyCell('Inget att göra just nu.'));
@@ -1581,10 +1612,10 @@ function calWidget(){const t=today(),wk=[];for(let i=0;i<7;i++)wk.push(addDays(t
  const ts=D().tasks.filter(x=>x.due===sel&&!x.done);
  // saknade stående överföringar visas bara för den det gäller och aldrig på väggen
  const ovs=S.wall||wallBoardOn()||!people().includes(S.me)?[]:[['shared',ovOpen('shared')],[S.me,ovOpen(S.me)]].flatMap(([l,a])=>a.map(c=>({l,c})));
- const todo=(ts.length||ovs.length)&&!wallBoardOn()?'<div class="wk-todo wk-link" data-act="taskList" role="link" tabindex="0" aria-label="Att göra, öppna Uppgifter"><div class="wk-sub">Att göra</div><div class="evs">'+
+ const todo=(ts.length||ovs.length)&&!wallBoardOn()&&!NY?'<div class="wk-todo wk-link" data-act="taskList" role="link" tabindex="0" aria-label="Att göra, öppna Uppgifter"><div class="wk-sub">Att göra</div><div class="evs">'+
   ovs.map(x=>'<div class="ev task ov-task" data-act="ovGo" data-id="'+esc(x.l+'|'+x.c.id)+'" role="link" tabindex="0"><span class="ovs tap saknas" data-act="ovDone" data-id="'+esc(x.c.id)+'" data-list="'+esc(x.l)+'" role="button" tabindex="0" aria-label="Bekräfta att den är inlagd">!</span><span>'+(ovState(x.c)==='andrad'?'Uppdatera':'Lägg in')+' stående överföring: '+esc(x.c.name)+'</span></div>').join('')+
   ts.map(x=>'<div class="ev task"><span>'+esc(x.title)+evWho(x)+'</span></div>').join('')+'</div></div>':'';
- return'<section class="widget w2 calw"><button class="wh" data-act="calOpen" data-id="'+sel+'" style="width:100%">'+I.cal+'<span>Kalender</span><span class="r">'+esc(cap(MON[parse(sel).getMonth()]))+'</span></button>'+strip+
+ return'<section class="widget w2 calw"><button class="wh" data-act="calOpen" data-id="'+sel+'" style="width:100%">'+I.cal+(NY?'<span>Schema</span><span class="r lnk">Kalender</span>':'<span>Kalender</span><span class="r">'+esc(cap(MON[parse(sel).getMonth()]))+'</span>')+'</button>'+strip+
   // schemadelen öppnar kalendern på vald dag, att göra-delen öppnar uppgiftslistan
   '<div class="wk-day"><div id="cal-rows" class="wk-link" data-d="'+sel+'" data-act="calOpen" data-id="'+sel+'" role="link" tabindex="0" aria-label="Schema, öppna kalendern">'+calDayRows(sel)+'</div>'+todo+'</div></section>'}
 function calView(){const t=today(),sel=S.calDay||t,m=S.calMonth||ymKey(sel),[y,mo]=m.split('-').map(Number);
@@ -1628,6 +1659,8 @@ function taskRow(x){const t=today(),late=isDate(x.due)&&x.due<t&&!x.done;
 const ORK=[{min:10,name:'Lite ork'},{min:20,name:'Normal ork'},{min:40,name:'Mycket ork'}];
 const orkIndex=B=>{let best=0;ORK.forEach((o,i)=>{if(Math.abs(o.min-B)<Math.abs(ORK[best].min-B))best=i});return best};
 function orkSlider(B){const i=orkIndex(B),o=ORK[i];
+ // Nya designen: tre knappar i ett segment i stället för reglaget
+ if(NY)return sh('Hur mycket ork har ni idag?','<span class="num">'+o.min+' min</span>')+'<div class="ork-seg">'+segc('Dagens ork','orkPick',ORK.map((x,k)=>[String(k),x.name.replace(' ork','')]),String(i))+'</div><div class="foot">Gäller bara idag. I morgon börjar det om på '+tomorrowDefault()+' min.</div>';
  return sh('Dagens ork')+'<div class="group ork"><div class="cell ork-head"><span id="ork-now">'+o.name+'</span><span class="val" id="ork-min">'+o.min+' min</span></div><div class="ork-body">'+
  '<div class="ork-track" style="--pos:'+(i*50)+'%"><input type="range" id="ork" min="0" max="2" step="1" value="'+i+'" data-change="ork" aria-label="Tid för städning idag" aria-valuetext="'+o.name+', '+o.min+' minuter"></div>'+
  '<div class="ork-labels" aria-hidden="true">'+ORK.map((x,k)=>'<button type="button" tabindex="-1" data-act="orkPick" data-id="'+k+'" class="'+(k===i?'on':'')+'"><b>'+x.name+'</b><span>'+x.min+' min</span></button>').join('')+'</div></div></div>'+
@@ -1672,7 +1705,7 @@ function sheetHtml(form,title,right,body,enter){return'<div class="sheet'+enter+
 const fieldCell=(label,input)=>'<label class="cell"><span class="grow">'+label+'</span>'+input+'</label>';
 function renderOverlay(){
  const o=document.getElementById('overlay');
- const k=S.cook?'cook':S.sheet==='settings'?'settings':S.sheet==='rate'?'rate':S.sheet==='income'?'income':S.sheet==='cost'?'cost':S.sheet==='ov'?'ov':S.sheet==='prefs'?'prefs':S.sheet==='swap'?'swap':S.sheet==='prot'?'prot':S.sheet==='wish'?'wish':S.rcpSheet?'rcpSheet':S.sheet==='taskEdit'?'taskEdit':S.sheet==='evEdit'?'evEdit':S.shopAdd?'shop':S.taskAdd?'task':'';
+ const k=S.cook?'cook':S.sheet==='settings'?'settings':S.sheet==='rate'?'rate':S.sheet==='income'?'income':S.sheet==='cost'?'cost':S.sheet==='ov'?'ov':S.sheet==='prefs'?'prefs':S.sheet==='swap'?'swap':S.sheet==='prot'?'prot':S.sheet==='wish'?'wish':S.sheet==='shopMore'?'shopMore':S.rcpSheet?'rcpSheet':S.sheet==='taskEdit'?'taskEdit':S.sheet==='evEdit'?'evEdit':S.shopAdd?'shop':S.taskAdd?'task':'';
  const prev=o.dataset.k||'';
  // Rita inte om ett öppet blad medan någon skriver i det
  if(k&&k!=='cook'&&k===prev&&busyTyping()&&o.contains(document.activeElement))return;
@@ -1694,6 +1727,7 @@ function renderOverlay(){
   '<div class="foot">Färgen används för era händelser, uppgifter, sysslor och i Ekonomi.</div>'+
   sh('Städtid och budget')+group(fieldCell('Vardag, min','<input class="field r" id="set-wd" name="wd" inputmode="numeric" value="'+esc(st.stadtid_vardag||20)+'" style="max-width:110px">')+fieldCell('Helg, min','<input class="field r" id="set-we" name="we" inputmode="numeric" value="'+esc(st.stadtid_helg||40)+'" style="max-width:110px">')+fieldCell('Mat/vecka, kr','<input class="field r" id="set-budget" name="budget" inputmode="numeric" value="'+esc(st.matbudget||'')+'" style="max-width:110px">'))+
   sh('Utseende')+'<div class="seg-wrap">'+segc('Utseende','theme',[['system','System'],['light','Ljust'],['dark','Mörkt']],S.theme)+'</div>'+
+  sh('Design')+'<div class="seg-wrap">'+segc('Design','design',[['gammal','Nuvarande'],['ny','Ny design']],NY?'ny':'gammal')+'</div><div class="foot">Ny design är lugnare och tydligare. Gäller bara den här enheten och går att byta tillbaka när du vill.</div>'+
   sh('Schemat i kalenderrutan')+'<div class="seg-wrap">'+segc('Schemat i kalenderrutan','calStyle',[['1','Tid kvar'],['2','Stapel'],['3','Tidsaxel']],CAL_STYLE)+'</div>'+
   (DEV?sh('Förslag i Planera med portioner')+'<div class="seg-wrap">'+segc('Förslag i Planera med portioner','flStyle',[['karusell','Stort kort'],['lista','Lista']],FL_STYLE)+'</div>':'')+
   sh('Översikten')+group('<button type="button" class="cell link" data-act="arrange"><span class="grow">Ändra ordning på rutorna</span>'+chevron+'</button>')+'<div class="foot">Gäller bara den här enheten. Du kan också hålla fingret på en ruta en stund.</div>'+
@@ -1769,6 +1803,11 @@ function renderOverlay(){
    '<button type="button" class="ov-later" data-act="ovLater">Gör det senare</button>'+
    '<div class="ti-foot fn">Utgiften visas som '+(was?'ändrad':'saknad')+' tills du bockar av den.</div></div>';
   o.innerHTML=sheetHtml('ov','Stående överföring','<span class="tb" aria-hidden="true"></span>',body,enter);return}
+ if(k==='shopMore'){const st=settings(),vs=st.vecka_start,wk=isDate(vs)?'vecka '+isoWeek(parse(vs)):'veckan',n=D().shop.length;
+  o.innerHTML='<div class="asheet'+enter+'" data-act="sheetBg"><div class="as-panel" role="dialog" aria-modal="true" aria-label="Inköpslistan"><div class="grp"><div class="ttl">'+(S.shopMoreC?'Ta bort alla '+n+' varor på listan? Du kan ångra i några sekunder.':'Inköpslistan')+'</div>'+
+   (S.shopMoreC?'<button class="it red strong" data-act="shopMoreEmpty">'+I.trash+'Ja, töm listan</button>':
+    '<button class="it" data-act="shopMoreImp">'+I.imp+'Hämta varor för '+esc(wk)+'</button>'+(n?'<button class="it red" data-act="shopMoreAsk">'+I.trash+'Töm listan</button>':''))+
+   '</div><div class="grp"><button class="it strong" data-act="sheetClose">Avbryt</button></div></div></div>';return}
  if(k==='rcpSheet'){const h=rcpSheetHtml(enter);if(!h){closeSheets();o.innerHTML='';o.dataset.k='';return}o.innerHTML=h;return}
  if(k==='rate'){const r=recipeById(S.rate&&S.rate.id);if(!r){closeSheets();o.innerHTML='';o.dataset.k='';return}
   const who=S.me||'',x=(ratings()[r.id]||{}).p||{},cur=x[who]||{};
@@ -2286,7 +2325,7 @@ function heroHtml(){const n=new Date(),t=today(),dy=EXT.day&&EXT.day.date===t?EX
    '<div class="wx-now"><span class="wx-ic" aria-hidden="true">'+ic+'</span><span class="wx-t num">'+deg(W.now.T)+'</span></div>'+
    '<div class="fn">'+esc(tx)+'</div><div class="fn num">H:'+deg(d0.max)+' L:'+deg(d0.min)+'</div>'+
    (grassOn()?'<div class="gs '+GRASS_V+'">'+(GRASS_V==='a'?arcHtml(W,'a'):'')+'<div class="fig-box grass" aria-hidden="true">'+figSvg(wxScene(W),{bare:1,patch:1})+'</div></div>':'<div class="fig-box" aria-hidden="true">'+figSvg(wxScene(W),{bare:1})+'</div>')+'<div class="fig-tip">'+esc((F.when==='i morgon'?'I morgon: ':'')+F.tip)+'</div></button>'}
- const facts=['Vecka '+isoWeek(n)];
+ const facts=NY&&!wallBoardOn()?[]:['Vecka '+isoWeek(n)];
  if(dy&&dy.holiday)facts.push(dy.holiday);else if(dy&&dy.flag)facts.push('Flaggdag: '+dy.flag);
  if(dy&&dy.names.length)facts.push('Namnsdag: '+dy.names.join(', '));
  if(sun)facts.push('Sol '+hhmm(sun[0])+'–'+hhmm(sun[1]));
@@ -2581,6 +2620,7 @@ function closeSheets(){S.protFor=null;S.edit=null;S.rcpSheet=null;S.sheet=null;S
 /* ---------- actions ---------- */
 function boxEdit(fn){const wall=wallBoardOn(),L=layout(wall,wall?WALL_DEF:OV_DEF());fn(L);saveLayout(wall,L);render()}
 const ACT={
+ smileyQuick(id,el){const v=Number(el.dataset.v)||0;A.user=Date.now();saveSmiley(id,el.dataset.date,v);markCooked(id,el.dataset.date);toast(v>0?'Vad bra! Rätten kommer tillbaka lite oftare':v<0?'Noterat. Rätten kommer tillbaka mer sällan':'Tack!')},
  smileySkip(id,el){A.user=Date.now();saveSmiley(id,el.dataset.date,'x');toast('Okej, den räknas inte som lagad')},
  wakeBoard(){render()},
  nav(id){if(id!=='oversikt')S.arrange=false;if(normView(id)!=='ekonomi'){S.ekoOpen=false;S.pin=''}try{document.activeElement&&document.activeElement.blur()}catch(e){}id=normView(id);S.shopAdd=false;S.taskAdd=false;S.view=id;S.recipe=null;S.confirm=null;lsSet('view',id);try{history.replaceState(null,'','#'+id)}catch(e){}window.scrollTo(0,0);render()},
@@ -2601,6 +2641,7 @@ const ACT={
  flStyle(id){FL_STYLE=id==='lista'?'lista':'karusell';lsSet('forslag',FL_STYLE==='lista'?'lista':null);render()},
  calStyle(id){CAL_STYLE=['1','3'].includes(id)?id:'2';lsSet('calStyle',CAL_STYLE==='2'?null:CAL_STYLE);render()},
  theme(id){S.theme=['light','dark'].includes(id)?id:'system';lsSet('theme',S.theme==='system'?null:S.theme);applyTheme(true);render()},
+ design(id){NY=id==='ny';lsSet('ny',NY?'1':null);applyNy();render()},
  dev(){DEV=!DEV;lsSet('dev',DEV?'1':null);if(!DEV&&S.plan&&S.plan!=='auto')S.plan=null;render()},
  wall(){S.wall=!S.wall;lsSet('wall',S.wall?'1':'0');fitScrollbar();wake();render()},
  matTab(id){S.matTab=['recept','bank','inkop'].includes(id)?id:'vecka';lsSet('matTab',S.matTab);S.recipe=null;render()},
@@ -2708,6 +2749,10 @@ const ACT={
  shopImport(){S.confirm='shopImport';render()},
  portStep(id,el){const m=D().menu[Number(id)];if(!m)return;const r=m.recipe&&recipeById(m.recipe),n=Math.max(1,Math.min(20,dishPort(m,r)+Number(el.dataset.d)));
   m.note=portNote(m,r,n);render();clearTimeout(ACT.portStep.t);ACT.portStep.t=setTimeout(()=>shopImport(true),1200)},
+ shopMore(){S.sheet='shopMore';S.shopMoreC=false;render()},
+ shopMoreAsk(){S.shopMoreC=true;render()},
+ shopMoreImp(){closeSheets();render();shopImport()},
+ shopMoreEmpty(){closeSheets();S.shopMoreC=false;ACT.shopEmptyYes()},
  shopImportYes(){S.confirm=null;shopImport()},
  shopToggle(id){const i=D().shop.find(x=>x.id===id);if(!i)return;const done=!i.done;checkAnim(id,done,()=>{mutate('shop',id,{done});apiPost({action:'shopToggle',id,done})})},
  clearShop(){S.confirm='clearShop';render()},
@@ -2807,10 +2852,18 @@ document.addEventListener('change',e=>{const el=e.target.closest('[data-change]'
 document.addEventListener('submit',async e=>{const f=e.target.closest('[data-form]');if(!f)return;e.preventDefault();const d=Object.fromEntries(new FormData(f));
  if(f.dataset.form==='setup'){S.key=String(d.key||'').trim().toLowerCase();S.error='';S.sync='busy';render();
   try{const data=await apiGet();lsSet('key',S.key);setData(data);S.sync='idle';if(!S.me)S.sheet='settings'}catch(err){S.error=err.message;S.key=''}render();return}
+ // Snabbfältet i Inköp (nya designen): bara namnet, avdelningen räknas fram och fältet står kvar för nästa vara
+ if(f.dataset.form==='shopQuick'){const n=String(d.name||'').trim();if(!n)return;const cat=katGissa(n);
+  D().shop.push({id:'tmp'+Date.now(),done:false,name:n,qty:'',cat,meals:[],price:null,offer:'',source:'egen',addedBy:S.me,order:1000});
+  render();setTimeout(()=>document.querySelector('.add-row .field')?.focus(),30);apiPost({action:'shopAdd',name:n,qty:'',cat,price:''});return}
  if(f.dataset.form==='shop'){if(!d.name.trim())return;const price=parseFloat(String(d.price||'').replace(',','.'));
   const cat=d.cat||katGissa(d.name);D().shop.push({id:'tmp'+Date.now(),done:false,name:d.name.trim(),qty:d.qty.trim(),cat,meals:[],price:isNaN(price)?null:price,offer:'',source:'egen',addedBy:S.me,order:1000});
   f.reset();render();setTimeout(()=>document.getElementById('shop-name')?.focus(),30);
   apiPost({action:'shopAdd',name:d.name.trim(),qty:d.qty.trim(),cat,price:isNaN(price)?'':price});toast('Tillagd')}
+ // Snabbfältet i Uppgifter (nya designen): utan datum och person, de går att lägga till genom att trycka på uppgiften
+ if(f.dataset.form==='taskQuick'){const t=String(d.title||'').trim();if(!t)return;
+  D().tasks.push({id:'tmp'+Date.now(),done:false,title:t,due:'',who:'',note:'',source:'egen',repeat:''});render();
+  setTimeout(()=>document.querySelector('.add-row .field')?.focus(),30);apiPost({action:'taskAdd',title:t,due:'',who:'',repeat:''});return}
  if(f.dataset.form==='task'){if(!d.title.trim())return;
   const rp=repName(d.repeat)?d.repeat:'',due=d.due||(rp?today():'');
   D().tasks.push({id:'tmp'+Date.now(),done:false,title:d.title.trim(),due,who:d.who||'',note:'',source:'egen',repeat:rp});S.taskAdd=false;render();

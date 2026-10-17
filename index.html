@@ -1297,6 +1297,188 @@ body.wall:has(.board) .arr-foot{left:28px;transform:none;width:calc((100% - 60px
 .gh .r{font-size:14px;font-weight:400;letter-spacing:-.1px;color:var(--gray);white-space:nowrap}
 .gh.red>span:first-child{color:var(--red)}
 .gh-foot{padding:6px 16px 10px;font-size:13px;line-height:18px;color:var(--gray)}
+
+/* ===== Ny design ("Lugn") – gäller bara när html har klassen ny (Inställningar → Design) =====
+   Regler: den vinröda färgen betyder "tryck här", rubriker är svarta, personer visas som en prick
+   och namn, statusfärger klarar kontrastkravet och flikraden ligger fast i botten. */
+html.ny{
+  --bg:#F4F3F0;--surface:#FFFFFF;--surface-raised:#FFFFFF;--fill:rgba(70,60,45,.08);
+  --ink:#1D1C1A;--ink-2:#5F5C57;--ink-3:#8F8A83;--line:#E3E0DA;
+  --red:#C0281B;--orange:#9A5800;--green:#1E7A3C;--gray:#6B6862;
+  --bar:rgba(255,255,255,.97);--track:#E4E1DB;--pill:rgba(70,60,45,.1);
+  --veg-ink:#1E7A3C;--gem-ink:#9A5800;--meat-ink:#7A5C38;
+  --tabgap:0px;--tabbar:calc(56px + var(--sab));
+}
+@media (prefers-color-scheme: dark){ html.ny:not([data-theme="light"]){
+  --bg:#111111;--surface:#1D1D1E;--surface-raised:#2A2A2B;--fill:rgba(255,255,255,.08);
+  --ink:#F3F2EF;--ink-2:#B4B0A8;--ink-3:#77736D;--line:#333233;
+  --red:#FF7A6B;--orange:#F2B045;--green:#5BD07D;--gray:#9A968F;--bar:rgba(29,29,30,.97);--track:#3A3A3B;--pill:rgba(255,255,255,.12);
+  --veg-ink:#5BD07D;--gem-ink:#F2B045;--meat-ink:#C8A57A }}
+html.ny[data-theme="dark"]{
+  --bg:#111111;--surface:#1D1D1E;--surface-raised:#2A2A2B;--fill:rgba(255,255,255,.08);
+  --ink:#F3F2EF;--ink-2:#B4B0A8;--ink-3:#77736D;--line:#333233;
+  --red:#FF7A6B;--orange:#F2B045;--green:#5BD07D;--gray:#9A968F;--bar:rgba(29,29,30,.97);--track:#3A3A3B;--pill:rgba(255,255,255,.12);
+  --veg-ink:#5BD07D;--gem-ink:#F2B045;--meat-ink:#C8A57A }
+html.ny body{letter-spacing:-.2px}
+
+/* Flikraden: fast i botten med tydliga etiketter, inget innehåll syns igenom */
+html.ny .nav{left:0;right:0;bottom:0;height:var(--tabbar);padding:4px calc(4px + var(--sar)) var(--sab) calc(4px + var(--sal));border-radius:0;background:var(--surface);-webkit-backdrop-filter:none;backdrop-filter:none;border:0;border-top:.5px solid var(--line);box-shadow:none}
+html.ny .nav-pill{display:none}
+html.ny .nav button{font-size:11px;line-height:13px;color:var(--ink-2);gap:3px}
+html.ny .nav button svg{width:26px;height:26px}
+html.ny .nav button[aria-current="page"]{color:var(--accent)}
+html.ny .nav button[aria-current="page"] svg{stroke-width:2.2}
+@media (min-width:900px){
+  html.ny{--tabgap:16px;--tabbar:68px}
+  html.ny .nav{left:50%;right:auto;bottom:var(--tabgap);width:min(600px,calc(100% - 28px));transform:translateX(-50%);height:var(--tabbar);padding:6px;border-radius:20px;border:.5px solid var(--line);box-shadow:0 6px 24px rgba(0,0,0,.08)}
+  html.ny .nav button{font-size:13px;line-height:15px}
+}
+
+/* Rubriker och text */
+html.ny .lt{font-size:32px;line-height:38px;letter-spacing:-.6px}
+html.ny .eyebrow{font-size:13px;letter-spacing:.2px;font-weight:600}
+html.ny .head .sub{margin-top:2px;color:var(--ink-2)}
+html.ny .sh{text-transform:none;font-size:15px;line-height:20px;font-weight:600;letter-spacing:-.2px;color:var(--ink-2);padding-left:20px}
+html.ny .sh.red{color:var(--red)}
+html.ny .foot{padding-left:20px}
+html.ny .group{border-radius:16px}
+html.ny .meta{column-gap:10px}
+
+/* Initialen i personens färg i stället för kugghjulet */
+html.ny .me-av span{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--p1);color:#fff;font-size:15px;font-weight:700;letter-spacing:0}
+html.ny .me-av.p2 span{background:var(--p2)}
+
+/* Etiketter blir text: personer och sorter får en färgad prick */
+html.ny .chip{background:none!important;padding:0;border-radius:0;font-size:inherit;line-height:inherit;font-weight:400;letter-spacing:inherit;color:var(--ink-2)!important;gap:6px}
+html.ny .chip.p1::before,html.ny .chip.p2::before,html.ny .chip.o::before,html.ny .chip.v::before,html.ny .chip.k::before,html.ny .chip.g::before,html.ny .chip.kv::before,html.ny .chip.offer::before{content:"";width:8px;height:8px;border-radius:50%;flex:none;background:var(--ink-3)}
+html.ny .chip.p1::before{background:var(--p1)}html.ny .chip.p2::before{background:var(--p2)}
+html.ny .chip.v::before{background:var(--green)}html.ny .chip.k::before{background:#A2845E}html.ny .chip.g::before,html.ny .chip.offer::before{background:var(--orange)}
+html.ny .chip.kv::before{background:linear-gradient(90deg,#A2845E 50%,var(--green) 50%)}
+html.ny .chips-row{gap:2px 12px}
+html.ny .chips-row .chip{font-size:13px;line-height:18px;font-weight:500}
+html.ny .ev .chip{font-size:15px;margin-left:6px}
+
+/* Knappar, reglage och filter */
+html.ny .btn-fill,html.ny .btn-tint{border-radius:12px}
+html.ny .segc{height:36px;border-radius:10px;padding:3px}
+html.ny .segc button{font-size:15px;color:var(--ink-2)}
+html.ny .segc button[aria-pressed="true"]{color:var(--ink)}
+html.ny .seg-thumb{top:3px;bottom:3px;left:3px;width:calc((100% - 6px) / var(--n,2));border-radius:8px;background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.14)}
+html.ny .fchips button{background:var(--surface);box-shadow:inset 0 0 0 1px var(--line);height:34px;border-radius:17px}
+html.ny .fchips button[aria-pressed="true"]{background:var(--ink);color:var(--bg);box-shadow:none}
+html.ny .stat{border-radius:16px}
+html.ny .check::before{border:2px solid var(--ink-3);width:24px;height:24px}
+html.ny .banner{border-radius:12px}
+
+/* Översikt: rutor med svarta rubriker, länken till höger är det enda röda */
+html.ny .widget{border-radius:20px;padding:16px}
+html.ny .wh{font-size:20px;line-height:26px;font-weight:700;letter-spacing:-.3px;color:var(--ink);gap:8px;margin-bottom:2px}
+html.ny .wh svg{display:none}
+html.ny .wh>span:not(.r){flex:1;text-align:left}
+html.ny .wh .r{margin-left:0;font-size:15px;font-weight:600;color:var(--accent);letter-spacing:-.2px}
+html.ny .wh .r::after,html.ny .wh .r.lnk::after{content:"";display:inline-block;width:7px;height:12px;margin-left:5px;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 13'%3E%3Cpath d='M1.5 1.5l5 5-5 5' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 13'%3E%3Cpath d='M1.5 1.5l5 5-5 5' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat}
+/* halva rutor: liten grå rubrik med ikon, siffran är det viktiga */
+html.ny .widget:not(.w2):not(.calw) .wh{font-size:13px;line-height:18px;font-weight:600;color:var(--ink-2);letter-spacing:0}
+html.ny .widget:not(.w2):not(.calw) .wh svg{display:block;width:16px;height:16px}
+html.ny .widget:not(.w2):not(.calw) .wh .r{color:var(--ink-2);font-weight:400;font-size:13px}
+html.ny .widget:not(.w2):not(.calw) .wh .r::after{display:none}
+html.ny .wbig{font-size:28px}
+html.ny .wk-sub{color:var(--ink);font-size:17px;line-height:22px;font-weight:650}
+html.ny #cal-rows>.wk-sub{display:none}
+html.ny .wk-d .wd{font-size:12px;line-height:15px}
+html.ny .wk-d .n{width:34px;height:34px;font-size:19px}
+html.ny .wk-day{margin-top:6px;padding-top:4px}
+html.ny .ev{font-size:17px;line-height:22px;padding:8px 0}
+html.ny .ev+.ev{border-top:.5px solid var(--line)}
+html.ny .ev .t{width:100px;font-size:15px}
+html.ny .pbt{font-size:15px;color:var(--ink-2)}
+html.ny .pb{max-width:none;height:4px}
+html.ny .wl .cell{padding:10px 0;min-height:48px}
+html.ny .wl .cell .title{font-size:17px}
+html.ny .ov-cell .ovs{width:24px;height:24px;margin:0 0 0 0;background:#FBF0DF;color:var(--orange)}
+html.ny .ov-cell .chev{color:var(--accent)}
+html.ny body:not(.wall) .hero-date,html.ny body:not(.wall) .hero-greet{display:none}
+html.ny .hero{background:var(--surface);border-radius:20px;padding:16px}
+html.ny .hero-facts{flex-direction:column;gap:2px;margin-top:8px}
+html.ny .hero-facts span{background:none;padding:0;font-size:15px;line-height:20px;border-radius:0;color:var(--ink-2)}
+html.ny .fig-tip{font-size:13px;line-height:16px;color:var(--ink-2)}
+html.ny .hero-wx .fn{font-size:15px;line-height:20px}
+@media (prefers-color-scheme: dark){html.ny:not([data-theme="light"]) .ov-cell .ovs{background:#3A2D16}}
+html.ny[data-theme="dark"] .ov-cell .ovs{background:#3A2D16}
+
+/* Matbetyget: ett tryck på en min sparar */
+html.ny .ny-smc{padding:16px}
+html.ny .smc-q{font-size:20px;line-height:26px;font-weight:700;letter-spacing:-.3px;margin:0 0 4px}
+html.ny .ny-smc .smc-r{padding:8px 0 0}
+html.ny .ny-smc .smc-t{gap:8px}
+html.ny .ny-smc .title{font-size:17px;font-weight:600;margin:0}
+html.ny .smc-f{width:46px;height:46px;border-radius:50%;background:var(--fill);font-size:26px;line-height:1;display:grid;place-items:center;flex:none;transition:transform .15s}
+html.ny .smc-f:active{transform:scale(.9);opacity:1}
+html.ny .smc-skip{font-size:15px;min-height:40px;padding:0;margin-top:4px}
+html.ny .ov>.smc{margin-top:12px}
+@media (min-width:900px){html.ny .ov>.smc{margin:0 0 14px}}
+html.ny .hero-greet{display:none}
+html.ny body:not(.wall) .hero-l{display:flex;flex-direction:column;padding-bottom:4px}
+html.ny body:not(.wall) .hero-facts{margin-top:auto}
+html.ny .ny-smc .smc-t{flex-wrap:wrap;row-gap:10px}
+html.ny .ny-smc .smc-t .grow{flex-basis:100%}
+/* Väggen i ny design: lugn bakgrund, stora svarta rubriker i hela rutor */
+html.ny body.wall::before{display:none}
+html.ny .board .widget:not(.calw) .wh{font-size:20px;line-height:26px;font-weight:700;color:var(--ink);letter-spacing:-.3px}
+html.ny .board .widget:not(.calw) .wh svg{display:none}
+html.ny .board .widget:not(.calw) .wh .r{font-size:15px;color:var(--ink-2);font-weight:400}
+html.ny .board .wpair .widget .wh{font-size:13px;line-height:18px;font-weight:600;color:var(--ink-2);letter-spacing:0}
+html.ny .board .wpair .widget .wh svg{display:block}
+html.ny .bwx-r{color:var(--green)}
+html.ny .bhero{border-radius:20px}
+
+/* Mat i ny design: sammanfattning, underval för recept, synlig Byt, snabbfält i Inköp */
+html.ny .subseg .fchips{gap:22px;margin-top:12px;border-bottom:.5px solid var(--line);margin-left:16px;margin-right:16px;padding:0}
+html.ny .subseg .fchips button{background:none!important;border:0!important;border-radius:0;padding:6px 0 8px;height:auto;color:var(--ink-2)!important;font-size:15px;font-weight:600}
+html.ny .subseg .fchips button[aria-pressed="true"]{color:var(--ink)!important;box-shadow:inset 0 -2px 0 var(--ink)}
+html.ny .wsum-n b,html.ny .wsum-n b .nv{font-size:28px!important;line-height:32px;font-weight:700!important;color:var(--ink)!important;letter-spacing:-.5px}
+html.ny .wk-new{margin:14px 16px 0;width:calc(100% - 32px)}
+html.ny .pl-open+.wk-new{margin-top:10px}
+html.ny .wsum{margin:14px 16px 0;padding:14px 16px;border-radius:14px;background:var(--surface)}
+html.ny .wsum-n{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+html.ny .wsum-n b{font-size:28px;line-height:32px;font-weight:700;letter-spacing:-.5px}
+html.ny .wsum-n span{font-size:15px;color:var(--ink-2)}
+html.ny .wsum-m{font-size:15px;color:var(--ink-2);margin-top:2px}
+html.ny .wsum .thin{margin-top:10px}
+html.ny .wsum-d{margin-top:10px;border-top:.5px solid var(--line);padding-top:10px}
+html.ny .wsum-s{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:600;list-style:none;cursor:pointer;min-height:28px}
+html.ny .wsum-s::-webkit-details-marker{display:none}
+html.ny .wsum-s .dotc{width:10px;height:10px;border-radius:50%;background:var(--green);flex:none}
+html.ny .wsum-s.bad .dotc{background:var(--orange)}
+html.ny .wsum-s.bad{color:var(--orange)}
+html.ny .wsum-s .lnk{color:var(--accent);font-weight:400}
+html.ny .wsum-d[open] .lnk{visibility:hidden}
+html.ny .wsum-d .rk{margin:6px 0 0;padding:0;background:none}
+html.ny .dr-byt{flex:none;align-self:center;height:32px;padding:0 14px;border-radius:16px;background:var(--fill);color:var(--accent);font-size:15px;font-weight:600}
+html.ny .add-row{display:flex;gap:8px;margin:12px 16px 0;padding:4px 4px 4px 14px;border-radius:12px;background:var(--surface);align-items:center}
+html.ny .add-row .field{flex:1;min-width:0;height:40px;padding:0;background:none;border:0;font-size:17px}
+html.ny .add-row .add-go{width:36px;height:36px;border-radius:10px;background:var(--accent);color:#fff;display:grid;place-items:center;flex:none}
+html.ny .add-row .add-go svg{width:18px;height:18px}
+html.ny .rcp-photo{aspect-ratio:16/9}
+html.ny .rcp-top+.block{margin-top:14px}
+/* Uppgifter, Städ i ny design */
+html.ny .ork-seg .segc{margin-top:0}
+html.ny .cap.warn>i{background:var(--ink-3)}
+html.ny .hw.warn{color:var(--ink-2)}
+html.ny .hw{font-weight:500}
+html.ny .cap.bad>i{background:var(--orange)}
+html.ny .hw.bad{color:var(--orange)}
+/* Ekonomi i ny design: vita personkort, färgen bara i punkten och staplarna, lugnare varning */
+html.ny .eko-card{background:var(--surface)!important;box-shadow:none}
+html.ny .eko-card .eko-left b{color:var(--ink)!important}
+html.ny .eko-card .eko-left b.red{color:var(--red)!important}
+html.ny .eko-card .eko-name{color:var(--ink)!important}
+html.ny .ov-warn{background:var(--surface)!important;color:var(--ink)!important}
+html.ny .ov-warn b{color:var(--ink)!important}
+html.ny .ov-warn span:not(.ovs){color:var(--ink-2)}
+html.ny .brooms .warn b{background:var(--ink-3)!important}
+html.ny .brooms .bad b{background:var(--orange)!important}
+html.ny .brooms>div:not(.warn):not(.bad) b{background:var(--green)!important}
 </style>
 </head>
 <body>
