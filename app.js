@@ -193,14 +193,17 @@ function renderNav(nav){
  nav.addEventListener('click',e=>{if(skip){e.stopPropagation();e.preventDefault()}},true)})();
 // Svävande menyrad på telefon: krymper till en rund knapp nere till vänster när man scrollar nedåt,
 // växer ut igen när man scrollar uppåt, når toppen eller trycker på knappen.
-(function(){const nav=document.getElementById('nav');let y0=scrollY,acc=0;
+(function(){const nav=document.getElementById('nav'),mini=document.createElement('button');let y0=scrollY,acc=0;
+ mini.className='nav-mini';mini.type='button';mini.setAttribute('aria-label','Visa menyn');document.body.appendChild(mini);
  const on=()=>NY&&FLIKRAD==='glas'&&!S.wall&&innerWidth<900&&!nav.classList.contains('none');
- const set=m=>{if(nav.classList.contains('mini')===m)return;nav.classList.remove('ut');void nav.offsetWidth;nav.classList.toggle('mini',m);if(!m)nav.classList.add('ut')};
- nav.addEventListener('animationend',()=>nav.classList.remove('ut'));
+ const set=m=>{if(nav.classList.contains('mini')===m)return;
+  if(m){const b=nav.querySelector('button[aria-current] svg');mini.innerHTML=b?b.outerHTML:''}
+  nav.classList.remove('ut');nav.classList.toggle('mini',m);if(!m)nav.classList.add('ut');mini.classList.toggle('on',m)};
+ nav.addEventListener('animationend',e=>{if(e.animationName==='navFranMini')nav.classList.remove('ut')});
  document.addEventListener('scroll',()=>{const y=scrollY,d=y-y0;y0=y;if(!on()){set(false);acc=0;return}
   if(y<40){acc=0;set(false);return}
   acc=(acc>0)===(d>0)?acc+d:d;if(acc>24)set(true);else if(acc<-24)set(false)},{passive:true});
- nav.addEventListener('click',e=>{if(nav.classList.contains('mini')){e.stopPropagation();e.preventDefault();set(false)}},true)})();
+ mini.addEventListener('click',()=>set(false))})();
 
 /* Dra för att scrolla och svep mellan flikarna på stora skärmar och i väggläge.
    På Linux kommer pekskärmens rörelser ofta fram som musrörelser, och då scrollar webbläsaren
