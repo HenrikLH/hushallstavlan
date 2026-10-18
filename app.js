@@ -2756,14 +2756,16 @@ let WXVY=lsGet('wxvy')==='bild'?'bild':'kurva';
 // Hur en låst rätt visas på veckosedeln: streck runt hela rätten (rad) eller runt bilden (bild). Gäller den här enheten
 let LASSTIL=lsGet('lasstil')==='bild'?'bild':'rad';
 // UI 2.0 med dagskurvan: ikonen står i Nu-kolumnen, så här står bara väderläget i text
-function wxTopHtml(W,P,ic,tx,d0,noIc){return'<div class="wx2-top"><div><div class="wx-place">'+esc(P.name)+'</div><div class="wx-big num" id="lt">'+deg(W.now.T)+'</div></div>'+
-  '<div class="wx2-r"><div class="wx2-cond">'+(noIc?'':'<span aria-hidden="true">'+ic+'</span>')+esc(tx)+'</div><div class="wx-hl num">H:'+deg(d0.max)+'  L:'+deg(d0.min)+'</div></div></div>'}
+function wxTopHtml(W,P,ic,tx,d0,noIc,extra){return'<div class="wx2-top"><div><div class="wx-place">'+esc(P.name)+'</div><div class="wx-big num" id="lt">'+deg(W.now.T)+'</div></div>'+
+  '<div class="wx2-r"><div class="wx2-cond">'+(noIc?'':'<span aria-hidden="true">'+ic+'</span>')+esc(tx)+'</div><div class="wx-hl num">H:'+deg(d0.max)+'  L:'+deg(d0.min)+'</div>'+(extra||'')+'</div></div>'}
 function wxBarHtml(W,F){return'<div class="wx2-bar"><div><b>'+esc(capS(F.when))+'</b><span>'+esc(F.tip)+'</span></div><div><b>Vind</b><span>'+esc(windText(W.now))+'</span></div></div>'}
 /* Dagskurvan: temperaturkurvan överst och timmarna i tretimmarssteg under, i samma remsa som scrollar i sidled.
    Åtta steg (24 timmar) ryms i bredd. Remsan börjar vid Nu; till vänster ligger det senaste dygnet (svagare), till höger upp till 48 timmar framåt.
    Kurvan ritas timme för timme och följer med när man scrollar. Tryck på ett steg för att se dess väder under remsan.
    Raden under remsan upprepar inte det som redan syns: grader står i kolumnerna, vinden nu i Vind-rutan. */
 let WXC_H=[],WXC_SW=40,WXC_NP=0;
+// stegens längd: 3 timmar eller 1 timme (knappen 3 h/1 h, sparas på enheten)
+let WXC_K=lsGet('wxsteg')==='1'?1:3;
 function wxHours(W){const L=[];for(const x of (W.all||W.hours)){const p=L[L.length-1];if(p&&x.d-p.d>36e5*1.5)break;L.push(x);if(L.length>=48)break}return L}
 // passerade timmar, en hel timme i taget bakåt från första prognostimmen, högst ett dygn och i hela tretimmarssteg
 function wxPast(H0){const p=EXT.past;if(!p||!p.ts)return[];const by={};p.ts.forEach(x=>{by[Date.parse(x.t)]=x});
@@ -2772,24 +2774,24 @@ function wxPast(H0){const p=EXT.past;if(!p||!p.ts)return[];const by={};p.ts.forE
 // natt eller dag efter solens verkliga tider, inte efter prognosens symbolnamn
 function wxDayNight(x,P,t){const st=sunTimes(ymd(t),P.lat,P.lon),b=symBase(x.s);if(!st||/_polartwilight$/.test(x.s||''))return x;const up=t>=st[0]&&t<=st[1];
  return Object.assign({},x,{s:b+(/^(clearsky|fair|partlycloudy)$|showers/.test(b)?(up?'_day':'_night'):'')})}
-// ett steg = tre timmar: väder och temperatur från första timmen, nederbörden summerad
-function wxSegs(H){const G=[];for(let i=0;i+2<H.length;i+=3){const g=H.slice(i,i+3);G.push(Object.assign({},g[0],{pr:g.reduce((a,x)=>a+(x.pr||0),0),hr:i}))}return G}
-function wxHrInfo(x,k){const t=symInfo(x.s)[1],e=new Date(x.d.getTime()+3*36e5),pr=x.pr>=.1?mm(x.pr)+(x.past?' föll':' nederbörd'):'Uppehåll';
+// ett steg = tre timmar (eller en): väder och temperatur från första timmen, nederbörden summerad
+function wxSegs(H,k){const G=[];for(let i=0;i+k-1<H.length;i+=k){const g=H.slice(i,i+k);G.push(Object.assign({},g[0],{pr:g.reduce((a,x)=>a+(x.pr||0),0),hr:i}))}return G}
+function wxHrInfo(x,k){const K=WXC_K,t=symInfo(x.s)[1],e=new Date(x.d.getTime()+K*36e5),pr=x.pr>=.1?mm(x.pr)+(x.past?' föll':' nederbörd'):'Uppehåll';
  // Nu: temperaturen, väderläget och vinden syns redan ovanför och i Vind-rutan
- if(k===WXC_NP)return'<b>Nu</b><span>Känns som '+deg(feels(x.T,x.w||0))+'</span><span>'+pr+' de närmaste tre timmarna</span>';
- return'<b>Kl '+pad(x.d.getHours())+'–'+pad(e.getHours())+(ymd(x.d)!==today()?' '+DAYS3[x.d.getDay()]:'')+'</b>'+(t?'<span>'+esc(t)+'</span>':'')+
+ if(k===WXC_NP)return'<b>Nu</b><span>Känns som '+deg(feels(x.T,x.w||0))+'</span><span>'+pr+(K===1?' den närmaste timmen':' de närmaste tre timmarna')+'</span>';
+ return'<b>Kl '+pad(x.d.getHours())+(K===1?'':'–'+pad(e.getHours()))+(ymd(x.d)!==today()?' '+DAYS3[x.d.getDay()]:'')+'</b>'+(t?'<span>'+esc(t)+'</span>':'')+
   '<span>Känns som '+deg(feels(x.T,x.w||0))+'</span><span>'+esc(windText(x))+'</span><span>'+pr+'</span>'}
-function wxHeroC(W,P,ic,tx,d0,F,sun){const F0=wxHours(W),PA=wxPast(F0[0]),H=PA.concat(F0),np=WXC_NP=PA.length/3,G=WXC_H=wxSegs(H).map(x=>wxDayNight(x,P,new Date(x.d.getTime()+90*6e4)));
+function wxHeroC(W,P,ic,tx,d0,F,sun){const K=WXC_K,F0=wxHours(W),PA=wxPast(F0[0]),H=PA.concat(F0),np=WXC_NP=PA.length/K,G=WXC_H=wxSegs(H,K).map(x=>wxDayNight(x,P,new Date(x.d.getTime()+K*30*6e4)));
  // åtta steg ska rymmas i kortets bredd
  const mw=(document.getElementById('main')||document.querySelector('main')||document.body).clientWidth||innerWidth;
- const cw=WXC_SW=Math.max(36,Math.floor((Math.min(mw,700)-64)/8*10)/10),hw=cw/3,n=G.length,w=n*cw,h=182,yT=24,yB=70,base=88,f=v=>v.toFixed(1);
+ const cw=WXC_SW=Math.max(36,Math.floor((Math.min(mw,700)-64)/8*10)/10),hw=cw/K,n=G.length,w=n*cw,h=182,yT=24,yB=70,base=88,f=v=>v.toFixed(1);
  const HX=j=>cw/2+j*hw,lo=Math.min(...H.map(x=>x.T)),hi=Math.max(...H.map(x=>x.T)),sp=Math.max(4,hi-lo),Y=T=>yB-(T-lo)/sp*(yB-yT);
- const m=Math.min(H.length,(n-1)*3+1),pts=H.slice(0,m).map((x,j)=>[HX(j),Y(x.T)]);
+ const m=Math.min(H.length,(n-1)*K+1),pts=H.slice(0,m).map((x,j)=>[HX(j),Y(x.T)]);
  // mjuk kurva timme för timme; det som har varit ritas svagare
  const curve=(a,b)=>{let d='M'+f(pts[a][0])+' '+f(pts[a][1]);
   for(let i=a;i<b;i++){const p0=pts[i-1]||pts[i],p1=pts[i],p2=pts[i+1],p3=pts[i+2]||p2;
    d+=' C'+f(p1[0]+(p2[0]-p0[0])/6)+' '+f(p1[1]+(p2[1]-p0[1])/6)+' '+f(p2[0]-(p3[0]-p1[0])/6)+' '+f(p2[1]-(p3[1]-p1[1])/6)+' '+f(p2[0])+' '+f(p2[1])}return d};
- const nh=np*3,d=curve(0,pts.length-1),dPast=nh?curve(0,nh):'',dNow=curve(nh,pts.length-1);
+ const nh=np*K,d=curve(0,pts.length-1),dPast=nh?curve(0,nh):'',dNow=curve(nh,pts.length-1);
  const gid='wc'+(++FIG_N),t0=H[0].d.getTime(),tX=t=>HX(0)+(t-t0)/36e5*hw,xe=pts[pts.length-1][0];
  let s='<svg width="'+f(w)+'" height="'+h+'" viewBox="0 0 '+f(w)+' '+h+'" class="wxC-svg"><defs><linearGradient id="'+gid+'" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="'+f(w)+'" y2="0">'+pts.map((p,j)=>'<stop offset="'+(p[0]/w).toFixed(4)+'" stop-color="'+tempCol(H[j].T)+'"/>').join('')+'</linearGradient>'+
   '<linearGradient id="'+gid+'f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="currentColor" stop-opacity=".10"/><stop offset="1" stop-color="currentColor" stop-opacity="0"/></linearGradient></defs>';
@@ -2804,13 +2806,14 @@ function wxHeroC(W,P,ic,tx,d0,F,sun){const F0=wxHours(W),PA=wxPast(F0[0]),H=PA.c
   '<path d="'+dNow+'" fill="none" stroke="url(#'+gid+')" stroke-width="3" stroke-linecap="round"/><line x1="0" x2="'+f(w)+'" y1="'+base+'" y2="'+base+'" class="wxC-base"/>';
  // under kurvan: klockslag, ikon (i HTML), grader och nederbörd per steg
  G.forEach((x,i)=>{const xx=cw*i+cw/2,yy=Y(x.T),nu=i===np,was=i<np?' wxC-was':'';
-  if(x.pr>=.1){const bh=Math.min(16,3+x.pr*4);s+='<rect x="'+f(xx-6)+'" y="'+f(base-bh)+'" width="12" height="'+f(bh)+'" rx="2.5" class="wxC-pr'+was+'"/>'}
+  if(x.pr>=.1){const bh=Math.min(16,3+x.pr*12/K);s+='<rect x="'+f(xx-6)+'" y="'+f(base-bh)+'" width="12" height="'+f(bh)+'" rx="2.5" class="wxC-pr'+was+'"/>'}
   s+='<circle cx="'+f(xx)+'" cy="'+f(yy)+'" r="'+(nu?5:3)+'" fill="'+(nu?tempCol(x.T):'var(--surface)')+'" stroke="'+tempCol(x.T)+'" stroke-width="2"'+(was?' class="wxC-was"':'')+'/>'+
    '<text x="'+f(xx)+'" y="106" class="wxC-h'+(nu?' nu':'')+was+'">'+(nu?'Nu':pad(x.d.getHours()))+'</text>'+
    '<text x="'+f(xx)+'" y="160" class="wxC-t'+was+'">'+deg(x.T)+'</text>'+
    (x.pr>=.1?'<text x="'+f(xx)+'" y="177" class="wxC-mm'+was+'">'+String(Math.round(x.pr*10)/10).replace('.',',')+'</text>':'')});
  const cols=G.map((x,i)=>'<button class="wxC-col'+(i<np?' wxC-was':'')+'" data-act="wxHr" data-id="'+i+'" style="left:'+f(i*cw)+'px;width:'+f(cw)+'px" aria-label="'+(i===np?'Nu':(i<np?'Var klockan ':'Klockan ')+pad(x.d.getHours()))+', '+deg(x.T)+'"><span>'+symInfo(x.s)[0]+'</span></button>').join('');
- return'<section class="wx2 wxC">'+wxTopHtml(W,P,ic,tx,d0,1)+'<div class="wxC-sc"><div class="wxC-in" style="width:'+f(w)+'px">'+s+'</svg>'+cols+'</div></div>'+
+ const tg='<div class="wxC-k" role="group" aria-label="Steg i grafen">'+[[3,'3 h'],[1,'1 h']].map(([k,l])=>'<button data-act="wxK" data-id="'+k+'" aria-pressed="'+(K===k)+'">'+l+'</button>').join('')+'</div>';
+ return'<section class="wx2 wxC">'+wxTopHtml(W,P,ic,tx,d0,1,tg)+'<div class="wxC-sc"><div class="wxC-in" style="width:'+f(w)+'px">'+s+'</svg>'+cols+'</div></div>'+
   '<div class="wxC-info" aria-live="polite">'+wxHrInfo(G[sel],sel)+'</div>'+wxBarHtml(W,F)+'</section>'}
 
 V.vader=function(){const W=wxModel(),P=WX_POS();
@@ -3096,6 +3099,13 @@ const ACT={
  settings(){S.sheet='settings';render()},
  farg(){S.sheet='farg';render()},
  // dagskurvan: visa en timmes väder utan att rita om sidan, så att remsan står kvar där man scrollat
+ // 3 h/1 h: alla steg byts på en gång. Det valda steget (eller det som står längst till vänster om det valda inte syns)
+ // står kvar på samma plats på skärmen, och valet följer med till steget som börjar på samma timme
+ wxK(id){const k=Number(id)===1?1:3,o=WXC_K;if(k===o)return;const sc=document.querySelector('.wxC-sc'),cw=WXC_SW,np=WXC_NP;
+  const x=sc?sc.scrollLeft:(S.wxX!=null?S.wxX:np*cw),sel=np+(S.wxSel||0),vis=!!sc&&sel*cw>=x-cw/2&&sel*cw<=x+sc.clientWidth-cw;
+  const f=vis?sel:Math.round(x/cw),off=f*cw-x,fh=(f-np)*o,sh=(S.wxSel||0)*o;
+  WXC_K=k;lsSet('wxsteg',k===1?'1':null);S.wxSel=Math.floor(sh/k);
+  const nnp=np*o/k;S.wxX=Math.max(0,(nnp+Math.floor(fh/k))*cw-off);render()},
  wxHr(id){const i=Number(id)||0,x=WXC_H[i];if(!x)return;S.wxSel=i-WXC_NP;const r=document.querySelector('.wxC-sel');if(r)r.setAttribute('x',(i*WXC_SW).toFixed(1));const inf=document.querySelector('.wxC-info');if(inf)inf.innerHTML=wxHrInfo(x,i)},
  lasstil(id){LASSTIL=id==='bild'?'bild':'rad';lsSet('lasstil',LASSTIL==='bild'?'bild':null);render()},
  segstil(id){SEGSTIL=['kapsel','klassisk'].includes(id)?id:'standard';lsSet('segstil',SEGSTIL==='standard'?null:SEGSTIL);applyStil();render()},
