@@ -805,7 +805,17 @@ function dessertTillInkop(id){const r=recipeById(id);if(!r)return;const v=desser
  render();toast(v.length?v.length+(v.length===1?' vara lagd':' varor lagda')+' i inköpslistan':'Allt står redan på inköpslistan')}
 // Miniatyr: receptets foto, annars en matsymbol
 const dishThumb=(r,t)=>{const img=r&&(r.img||imgOf(r.id));return'<span class="dr-th" aria-hidden="true">'+'<span>'+foodIcon(t,r)+'</span>'+(img?'<img src="'+esc(img)+'" alt="" loading="lazy" onerror="this.remove()">':'')+'</span>'};
-/* En rätt på veckosedeln: bild, namn, dagar, pris och betyg. Byt finns så länge rätten har en dag kvar */
+// Låsmarkering: strecket och hänglåset runt bilden eller runt hela raden (Inställningar → Låsa rätter)
+const LKM='<span class="lk-ring" aria-hidden="true"></span><span class="lk-bd" aria-hidden="true">'+I.lock+'</span>';
+const lkBild=(th,on)=>LASSTIL==='bild'?'<span class="lk-tw'+(on?' lk-on':'')+'" data-lk>'+th+LKM+'</span>':th;
+const lkRad=on=>LASSTIL==='bild'?'':' lk-rad'+(on?' lk-on':'');
+const lkIn=()=>LASSTIL==='bild'?'':' data-lk';
+const lkStart=()=>LASSTIL==='bild'?'':LKM;
+// Svep på en rätt: åt vänster visas Ta bort (eller Nästa i Veckoförslag), åt höger låser eller låser upp man direkt
+const swLas=(id,on,act)=>'<button class="dr-actl lk-sw" data-act="'+(act||'swLock')+'" data-id="'+esc(id)+'" aria-label="'+(on?'Lås upp':'Lås')+'">'+(on?I.unlock||I.lock:I.lock)+'<span>'+(on?'Lås upp':'Lås')+'</span></button>';
+const swDel=(act,id,lab)=>'<button class="dr-act del" data-act="'+act+'" data-full="'+act+'" data-id="'+esc(id)+'" aria-label="Ta bort '+esc(lab)+'">'+I.trash+'<span>Ta bort</span></button>';
+const xKnapp=(act,id,lab)=>'<button class="dr-x" data-act="'+act+'" data-id="'+esc(id)+'" aria-label="Ta bort '+esc(lab)+'">'+I.x+'</button>';
+/* En rätt på veckosedeln: bild, namn, dagar, pris och betyg. Krysset tar bort, svep åt vänster tar bort och svep åt höger låser */
 function mealCell(m,rows,flex){rows=rows||[m];const r=m.recipe&&recipeById(m.recipe),t=today(),days=[...new Set(rows.map(y=>y.date).filter(isDate))].sort(),left=flex&&flex.slut?(t<=flex.slut?[flex.slut]:[]):days.filter(d=>d>=t);
  const g=m.recipe&&ratingOf(m.recipe),meta=[flex?(flex.port?'':flex.txt):days.map(d=>cap(DAYS3[parse(d).getDay()])).join(', '),r&&r.kr?kr(r.kr)+'/port':'',g?'<span class="dr-st">★ '+starNum(matLage(m.recipe).s)+'</span>':''].filter(Boolean).join('<span class="dot" aria-hidden="true">·</span>');
  const pa=protFromAddon(m.addon);
@@ -814,14 +824,13 @@ function mealCell(m,rows,flex){rows=rows||[m];const r=m.recipe&&recipeById(m.rec
  const inner=(hl&&LASSTIL==='bild'?'<span class="lk-tw'+(lst?' lk-on':'')+'" data-lk>'+th+lkm+'</span>':th)+'<span class="grow"><span class="chips-row">'+whoChip(pa?'Kött/Veg':m.who)+'</span><span class="title">'+esc(m.title)+'</span><span class="meta">'+meta+'</span>'+(pa?protPills(pa):m.addon?'<span class="dr-sub">+ Kött: '+esc(m.addon)+'</span>':'')+(noteUtanPort(m.note)?'<span class="dr-sub">'+esc(noteUtanPort(m.note))+'</span>':'')+'</span>';
  // Portionerna med plus och minus under rätten. Ändringen sparas och inköpslistan räknas om
  const P=flex&&flex.port,pr=P?'<div class="dr-port"><span class="grow"><b>'+P.n+(P.n===1?' portion':' portioner')+'</b>'+(P.txt&&!NY?'<span class="meta">'+cap(P.txt)+'</span>':'')+'</span><span class="pl-step" role="group" aria-label="Portioner"><button type="button" data-act="portStep" data-id="'+D().menu.indexOf(m)+'" data-d="-1" aria-label="Färre portioner"'+(P.n<=1?' disabled':'')+'>'+I.minus+'</button><span class="num" aria-live="polite">'+P.n+'</span><button type="button" data-act="portStep" data-id="'+D().menu.indexOf(m)+'" data-d="1" aria-label="Fler portioner"'+(P.n>=20?' disabled':'')+'>'+I.plus+'</button></span></div>':'';
- const can=m.who!=='Borta'&&left.length,i=D().menu.indexOf(m),lab=(m.recipe?'Byt ':'Välj rätt i stället för ')+esc(m.title);
- const end=m.who==='Borta'?'':!left.length?'<span class="dr-done">'+I.tick+'Ätit</span>':NY?'<button class="dr-byt" data-act="swap" data-id="'+D().menu.indexOf(m)+'" aria-label="'+(m.recipe?'Byt ':'Välj rätt i stället för ')+esc(m.title)+'">'+I.swap+'</button>':'<span class="dr-sw" aria-hidden="true">'+I.swap+'</span>';
+ const can=m.who!=='Borta'&&left.length,i=D().menu.indexOf(m);
+ const end=m.who==='Borta'?'':!left.length?'<span class="dr-done">'+I.tick+'Ätit</span>':xKnapp('weekDel',i,m.title);
  const rad=hl&&LASSTIL!=='bild';
  // Håll in rätten för att låsa den (eller låsa upp). data-hold-lock bär receptet
  const row='<div class="cell dr'+(left.length?'':' past')+(can?' dr-slide':'')+(rad?' lk-rad'+(lst?' lk-on':''):'')+'"'+(rad?' data-lk':'')+(hl?' data-hold-lock="'+esc(m.recipe)+'" data-lst="'+(lst?1:0)+'"':'')+'>'+(rad?lkm:'')+(r?'<button class="dr-main" data-act="recipe" data-id="'+esc(m.recipe)+'">'+inner+'</button>':'<div class="dr-main">'+inner+'</div>')+end+pr+'</div>';
- // Svep åt vänster för Byt och åt höger för Ta bort, som i iPhones listor. Hela vägen byter eller tar bort direkt
- return can?'<div class="dr-wrap"><button class="dr-act" data-act="swap" data-id="'+i+'" aria-label="'+lab+'">'+I.swap+'<span>'+(m.recipe?'Byt':'Välj')+'</span></button>'+
-  '<button class="dr-actl" data-act="weekDel" data-id="'+i+'" aria-label="Ta bort '+esc(m.title)+'">'+I.trash+'<span>Ta bort</span></button>'+row+'</div>':row}
+ // Svep åt vänster tar bort (hela vägen direkt), svep åt höger låser eller låser upp
+ return can?'<div class="dr-wrap">'+swDel('weekDel',i,m.title)+(hl?swLas(m.recipe,lst):'')+row+'</div>':row}
 function recipeCell(r,meta){return'<button class="cell link" data-act="recipe" data-id="'+esc(r.id)+'"><div class="grow"><div class="title">'+esc(r.title)+'</div><div class="meta">'+meta+'</div></div>'+whoChip(r.who)+chevron+'</button>'}
 /* Hushållets matpreferenser: rader i Inställningar som veckoplaneringen läser när den gör menyn */
 const PREFS=[['pref_henrik','Kött','k','Henriks mat, t.ex. proteinrik och kalorisnål'],['pref_veg','Vegetariskt','v','Den vegetariska maten, t.ex. kost och GI'],['pref_ekonomi','Ekonomi','','Budget, butiker och svinn'],['pref_ovrigt','Övrigt','','Sådant ni inte gillar, allergier, önskemål']];
@@ -997,14 +1006,15 @@ function matWeek(){
   const mack=g==='Storkok'?[]:rows.filter(y=>/^macka$/i.test(y.title)&&((dagNr(W,y.date)<=3)===(g==='Vardag'))),nTom=['Vardag','Helg','Storkok'].includes(g)?tommaPlatser(W,ds,g):0;
   if(!list.length&&!mack.length&&!nTom)return;
   vd+=gh(esc(namn),(sub?esc(sub)+' · ':'')+'<span class="num">'+(list.length?list.length+' '+(list.length===1?'rätt':'rätter'):nTom?nTom+' '+(nTom===1?'tom plats':'tomma platser'):'')+'</span>')+list.map(dishCell).join('');
-  vd+=mack.map(y=>'<div class="cell dess-c mk-c"><span class="dess-b"><span class="dr-th" aria-hidden="true"><span>🥪</span></span><span class="grow"><span class="title">Macka</span><span class="meta">'+esc(kr(MP.CFG.mackaKr))+' för två</span></span></span><button class="dess-x" data-act="weekDel" data-id="'+d.menu.indexOf(y)+'" aria-label="Ta bort mackan">'+I.x+'</button></div>').join('');
+  vd+=mack.map(y=>'<div class="dr-wrap">'+swDel('weekDel',d.menu.indexOf(y),'mackan')+'<div class="cell dr dr-slide"><span class="dr-main"><span class="dr-th" aria-hidden="true"><span>🥪</span></span><span class="grow"><span class="title">Macka</span><span class="meta">'+esc(kr(MP.CFG.mackaKr))+' för två</span></span></span>'+xKnapp('weekDel',d.menu.indexOf(y),'mackan')+'</div></div>').join('');
   for(let i=0;i<nTom;i++)vd+=tom(g);
   });
  const dr=weekDessert();
  // Efterrätten låses som rätterna (håll in). Bara en låst efterrätt kommer med när man uppdaterar varorna
  const dl=dr&&weekLocks(st.vecka_start).has(dr.id);
- vd+=gh('Efterrätt','Valfri')+(dr?'<div class="cell dess-c lk-rad'+(dl?' lk-on':'')+'" data-lk data-hold-lock="'+esc(dr.id)+'" data-lst="'+(dl?1:0)+'"><span class="lk-ring" aria-hidden="true"></span><span class="lk-bd" aria-hidden="true">'+I.lock+'</span><button class="grow dess-b" data-act="recipe" data-id="'+esc(dr.id)+'">'+dishThumb(dr,dr.title)+'<span class="grow"><span class="title">'+esc(dr.title)+'</span><span class="meta">'+[dr.portions?dr.portions+' portioner':'',dr.min?dr.min+' min':''].filter(Boolean).join(' · ')+'</span></span></button>'+
-  '<button class="dess-x" data-act="dessClear" aria-label="Ta bort efterrätten från veckosedeln">'+I.x+'</button></div>':
+ vd+=gh('Efterrätt','Valfri')+(dr?'<div class="dr-wrap">'+swDel('dessClear',dr.id,dr.title)+swLas(dr.id,dl)+'<div class="cell dr dr-slide'+lkRad(dl)+'"'+lkIn()+' data-hold-lock="'+esc(dr.id)+'" data-lst="'+(dl?1:0)+'">'+lkStart()+
+  '<button class="dr-main" data-act="recipe" data-id="'+esc(dr.id)+'">'+lkBild(dishThumb(dr,dr.title),dl)+'<span class="grow"><span class="title">'+esc(dr.title)+'</span><span class="meta">'+[dr.portions?dr.portions+' portioner':'',dr.min?dr.min+' min':''].filter(Boolean).join('<span class="dot" aria-hidden="true">·</span>')+'</span></span></button>'+
+  xKnapp('dessClear',dr.id,dr.title)+'</div></div>':
   '<button class="cell dess-empty" data-act="dessPick"><span class="dess-plus" aria-hidden="true">'+I.plus+'</span><span class="grow"><span class="title">Lägg till en efterrätt</span><span class="meta">Lås den för att få med varorna</span></span></button>');
  h+='<div class="g-one">'+group(vd)+'</div>';
  return h}
@@ -1515,12 +1525,12 @@ function autoCard(C,x,sub){const P=C.P,r=recipeById(x.id);if(!r)return'';const l
  PLANP=P;const pv=x.key==='sk'||x.key==='sv'?null:protVal(x.key,r);PLANP=null;
  const ensam=MV.korg([C.X.behov(x)],C.X.lager).kr,stars=matLage(r.id).betyg?'★ '+starNum(matLage(r.id).s):'Ny';
  const tag=whoChip(pv?'Kött/Veg':r.who)+(isFav(r.id)?'<span class="chip k">Favorit</span>':'')+(r.freezes?'<span class="chip">Går att frysa</span>':'');
- // Samma rad som på veckosedeln: håll in för att låsa, svep åt vänster eller tryck på ⇄ för nästa rätt
+ // Samma rad som på veckosedeln: svep åt höger eller håll in för att låsa, svep åt vänster eller tryck på ⇄ för nästa rätt
  const meta=[stars,'<span class="num">Handla för '+kr(ensam)+'</span>',esc(sub)].join('<span class="dot" aria-hidden="true">·</span>');
- const row='<div class="cell dr au-r lk-rad'+(lock?' lk-on':' dr-slide')+'" data-lk data-hold-lock="'+x.key+'" data-lock-act="autoLock" data-lst="'+(lock?1:0)+'"><span class="lk-ring" aria-hidden="true"></span><span class="lk-bd" aria-hidden="true">'+I.lock+'</span>'+
-  '<button class="dr-main" data-act="recipe" data-id="'+esc(r.id)+'">'+dishThumb(r,r.title)+'<span class="grow"><span class="chips-row">'+tag+'</span><span class="title">'+esc(r.title)+'</span><span class="meta">'+meta+'</span>'+(pv?protPills(pv,'planProt',x.key):'')+'</span></button>'+
+ const row='<div class="cell dr au-r dr-slide'+lkRad(lock)+'"'+lkIn()+' data-hold-lock="'+x.key+'" data-lock-act="autoLock" data-lst="'+(lock?1:0)+'">'+lkStart()+
+  '<button class="dr-main" data-act="recipe" data-id="'+esc(r.id)+'">'+lkBild(dishThumb(r,r.title),lock)+'<span class="grow"><span class="chips-row">'+tag+'</span><span class="title">'+esc(r.title)+'</span><span class="meta">'+meta+'</span>'+(pv?protPills(pv,'planProt',x.key):'')+'</span></button>'+
   (lock?'':'<button class="dr-byt" data-act="autoNasta" data-id="'+x.key+'" aria-label="Nästa rätt i stället för '+esc(r.title)+'">'+I.swap+'</button>')+'</div>';
- return lock?row:'<div class="dr-wrap"><button class="dr-act" data-act="autoNasta" data-id="'+x.key+'" aria-label="Nästa rätt i stället för '+esc(r.title)+'">'+I.swap+'<span>Nästa</span></button>'+row+'</div>'}
+ return'<div class="dr-wrap">'+(lock?'':'<button class="dr-act" data-act="autoNasta" data-id="'+x.key+'" aria-label="Nästa rätt i stället för '+esc(r.title)+'">'+I.swap+'<span>Nästa</span></button>')+swLas(x.key,lock,'autoLock')+row+'</div>'}
 function autoView(){const C=autoCalc(),{P,B,E}=C,mon=parse(P.vecka),sun=parse(addDays(P.vecka,6)),pl=P.plan;
  NB.title='Veckoförslag';NB.back=true;
  let h='<div class="rcp-top"><button class="back" data-act="planClose">'+I.back+'Mat</button></div><header class="head"><div class="head-row"><h1 class="lt" id="lt">Vecka '+isoWeek(mon)+'</h1></div><div class="sub">'+esc(cap(DAYS[mon.getDay()])+' '+mon.getDate()+' '+MON[mon.getMonth()]+' – '+DAYS[sun.getDay()]+' '+sun.getDate()+' '+MON[sun.getMonth()])+' · veckoförslag</div></header>';
@@ -1534,7 +1544,7 @@ function autoView(){const C=autoCalc(),{P,B,E}=C,mon=parse(P.vecka),sun=parse(ad
  const SK_TXT={two:'Två storkok med 5 portioner var: ett med kött till '+kottPerson()+' och ett vegetariskt till '+vegPerson()+'.',gem:'Ett storkok med 10 portioner som ni delar. Samma grund, men '+kottPerson()+' får kött och '+vegPerson()+' vegetariskt protein. Oftast billigast.',auto:'Appen väljer det som ger bäst vecka inom budgeten. Just nu: '+(pl.mode==='gem'?'samma för båda.':'en var.')};
  h+=sh('Vad är viktigast den här veckan?')+'<div class="seg-wrap">'+segc('Vad är viktigast den här veckan?','autoPrio',[['billigt','Spara pengar'],['balans','Lagom'],['omvaxlande','Variation']],P.prio)+'</div><div class="foot au-ft">'+esc(PRIO_TXT[P.prio]||PRIO_TXT.balans)+'</div>';
  h+=sh('Lunchlådor (storkok)')+'<div class="seg-wrap">'+segc('Lunchlådor (storkok)','autoSk',[['two','En var'],['gem','Samma för båda'],['auto','Appen väljer']],P.skMode)+'</div><div class="foot au-ft">'+esc(SK_TXT[P.skMode]||SK_TXT.auto)+'</div>';
- h+='<div class="au-gor"><button class="btn-tint" data-act="autoGor">'+I.swap+'Gör om veckan</button><div class="foot">Byter alla rätter som inte är låsta. Håll in en rätt för att låsa den, och svep eller tryck på '+I.swap.replace('<svg','<svg class="ic-inl"')+' för nästa rätt.</div></div>';
+ h+='<div class="au-gor"><button class="btn-tint" data-act="autoGor">'+I.swap+'Gör om veckan</button><div class="foot">Byter alla rätter som inte är låsta. Svep åt höger eller håll in för att låsa. Svep åt vänster eller tryck på '+I.swap.replace('<svg','<svg class="ic-inl"')+' för nästa rätt.</div></div>';
  // Middagarna är inte bundna till en dag: vardagsrätterna lagas vilken kväll som helst måndag–torsdag, helgen är fredag–söndag.
  // Lunchlådorna lagas i helgen till nästa vecka
  const kvallar=n=>n+(n===1?' kväll':' kvällar');
@@ -1798,6 +1808,8 @@ function rcpPhoto(r){const img=imgOf(r.id)||r.img||'',g=ratingOf(r.id),busy=S.ph
 /* Raden under titeln: önska nästa vecka, tidigast igen och mer */
 // Står receptet på veckan som veckosedeln visar?
 const paVeckan=id=>{const W=weekTarget();return!W.ny&&weekRows(W).some(m=>m.recipe===id)};
+// Raden på veckosedeln som receptet står på (för Byt i Mer-menyn), -1 om det inte står där
+const veckoIdx=id=>{const W=weekTarget();if(W.ny)return-1;const m=weekRows(W).find(x=>x.recipe===id&&x.who!=='Borta');return m?D().menu.indexOf(m):-1};
 const veckoKnapp=(r,cls)=>{const pa=paVeckan(r.id);return'<button class="'+cls+(pa?' on':'')+'" data-act="'+(pa?'weekShow':'weekAdd')+'" data-id="'+esc(r.id)+'" aria-pressed="'+pa+'">'}
 function rcpActions(r){const l=matLage(r.id),pa=paVeckan(r.id);
  if(isDessert(r)){const pa=weekDessert()===r;return'<div class="rp-row">'+
@@ -1831,7 +1843,8 @@ function rcpSheetHtml(enter){const x=S.rcpSheet,r=recipeById(x.id);if(!r)return'
  else if(x.k==='tidigast'){head='<b>Tidigast igen</b><br>'+esc(r.title)+tidigastHtml(r)}
  else if(x.k==='unbank'){head='Ta bort '+esc(r.title)+' ur receptbanken? Fotot tas också bort.';items='<button class="it red strong" data-act="bankToggle" data-id="'+id+'">'+I.bookmark+'Ta bort ur receptbanken</button>'}
  else{if(last){const l=matLage(r.id);head+='<br>Senast lagad '+esc(dateShort(last))+(l.tidigastDatum&&!l.paus?' · tidigast igen '+esc(dateShort(l.tidigastDatum)):'')}
-  items=(inBank(r.id)?'<button class="it" data-act="bankToggle" data-id="'+id+'">'+I.bookmark+'Ta bort ur receptbanken</button>':'<button class="it" data-act="bankToggle" data-id="'+id+'">'+I.bookmark+'Spara i receptbanken</button>')+
+  const vi=veckoIdx(r.id);
+  items=(vi>=0?'<button class="it" data-act="rcpByt" data-id="'+vi+'">'+I.swap+'Byt mot en annan rätt</button>':'')+(inBank(r.id)?'<button class="it" data-act="bankToggle" data-id="'+id+'">'+I.bookmark+'Ta bort ur receptbanken</button>':'<button class="it" data-act="bankToggle" data-id="'+id+'">'+I.bookmark+'Spara i receptbanken</button>')+
   (x.confirm?'<div class="ttl">Receptet tas bort ur receptbanken och föreslås aldrig igen.</div><button class="it red strong" data-act="deleteRecipe" data-id="'+id+'">'+I.trash+'Ja, föreslå aldrig igen</button>':'<button class="it red" data-act="rcpConfirm">'+I.trash+'Föreslå aldrig igen</button>')}
  return'<div class="asheet'+enter+'" data-act="sheetBg"><div class="as-panel" role="dialog" aria-modal="true" aria-label="'+(x.k==='photo'?'Foto':x.k==='tidigast'?'Tidigast igen':x.k==='unbank'?'Ta bort ur receptbanken':'Mer')+'"><div class="grp"><div class="ttl">'+head+'</div>'+items+'</div><div class="grp"><button class="it strong" data-act="sheetClose">'+(x.k==='tidigast'?'Stäng':'Avbryt')+'</button></div></div></div>'}
 /* Matfoton: bilden förminskas i telefonen, laddas upp till Drive via Apps Script och
@@ -2055,10 +2068,11 @@ function pickSheet(k,enter){
  if(rest.length)body+=sh(alla)+group(rest.map(c=>pickRow(c,o)).join(''));
  if(!n&&!macka)body+=group(emptyCell(dess?'Inga efterrätter än.':'Inga rätter passar.'));
  body+='<div class="foot sw-none" hidden>Inget matchar sökningen.</div>';
- if(k==='swap')body+='<div class="foot pk-info">Inköpslistan räknas om efter bytet. Svep åt höger på rätten för att ta bort den utan att välja en ny.</div>';
+ if(k==='swap')body+='<div class="foot pk-info">Inköpslistan räknas om efter bytet.</div>';
  if(dess)body+='<div class="foot pk-info">Lås efterrätten på veckosedeln för att få med varorna när du uppdaterar inköpslistan.</div>';
- body+='<div class="sw-foot"><button type="button" class="btn-fill" data-act="pickGo"'+(S.psel?'':' disabled')+'>'+esc(pickBtnTxt(k,S.psel))+'</button></div>';
- return sheetHtml(k,title,'<span class="tb" aria-hidden="true"></span>',body,enter)}
+ // Knappen ligger under listan, utanför det som scrollar, så inga rader syns under den
+ const foot='<div class="sw-foot"><button type="button" class="btn-fill" data-act="pickGo"'+(S.psel?'':' disabled')+'>'+esc(pickBtnTxt(k,S.psel))+'</button></div>';
+ return sheetHtml(k,title,'<span class="tb" aria-hidden="true"></span>',body,enter).replace(/<\/form><\/div>$/,foot+'</form></div>')}
 function sheetHtml(form,title,right,body,enter,left){return'<div class="sheet'+enter+'" data-act="sheetBg"><form class="sheet-panel" data-form="'+form+'" role="dialog" aria-modal="true" aria-label="'+title+'"><div class="grabber" aria-hidden="true"></div><div class="sheet-head">'+(left||'<button type="button" class="tb" data-act="sheetClose">Avbryt</button>')+'<h2>'+title+'</h2>'+right+'</div><div class="sheet-body">'+body+'</div></form></div>'}
 const fieldCell=(label,input)=>'<label class="cell"><span class="grow">'+label+'</span>'+input+'</label>';
 function renderOverlay(){
@@ -2086,7 +2100,7 @@ function renderOverlay(){
   (NY?sh('Form på knappar och rutor')+'<div class="seg-wrap">'+segc('Form på knappar och rutor','segstil',[['standard','Kantiga'],['kapsel','Runda'],['klassisk','Raka']],SEGSTIL)+'</div><div class="foot">Gäller växlingsknappar, rutor, listor och knappar i hela appen. Kantiga har lätt rundade hörn. Runda har helt runda knappar och mjukare rutor, som i iOS 26. Raka har små hörn och streck mellan valen, som i äldre iOS. Text, höjd och färg är samma i alla tre. Gäller bara den här enheten.</div>'+
    sh('Menyraden längst ner')+'<div class="seg-wrap">'+segc('Menyraden längst ner','flikrad',[['fast','Fast'],['glas','Svävande'],['piller','Piller']],FLIKRAD)+'</div><div class="foot">Fast ligger kant i kant längst ner. Svävande är en rundad glasbubbla ovanpå innehållet, som i iOS 26, och krymper till en rund knapp när du scrollar. Piller krymper i stället till ett smalt piller med bara ikonerna, halvt nedanför skärmkanten. Gäller bara den här enheten.</div>':'')+
   sh('Vädervyn')+'<div class="seg-wrap">'+segc('Vädervyn','wxvy',[['kurva','Dagskurva'],['bild','Bild med hundar']],WXVY)+'</div><div class="foot">Dagskurvan visar temperaturen de närmaste 24 timmarna. Gäller bara den här enheten.</div>'+
-  sh('Låsa rätter')+'<div class="seg-wrap">'+segc('Låsa rätter','lasstil',[['rad','Runt rätten'],['bild','Runt bilden']],LASSTIL)+'</div><div class="foot">Håll in en rätt på veckosedeln i en sekund för att låsa den. Föreslå en ny vecka behåller låsta rätter. Gäller bara den här enheten.</div>'+
+  sh('Låsa rätter')+'<div class="seg-wrap">'+segc('Låsa rätter','lasstil',[['rad','Runt rätten'],['bild','Runt bilden']],LASSTIL)+'</div><div class="foot">Svep åt höger på en rätt eller håll in den i en sekund för att låsa den. Föreslå en ny vecka behåller låsta rätter. Gäller bara den här enheten.</div>'+
   sh('Hundar i bilden')+'<div class="seg-wrap">'+segc('Hundar i bilden','hundar',[['vaxla','Växla'],['bada','Båda'],['brun','Bruna'],['svart','Svarta']],HUNDAR)+'</div><div class="foot">Växla byter var tredje timme. Du kan också trycka på hundarna i Väder för att byta. Gäller bara den här enheten.</div>'+
   sh('Schemat i kalenderrutan')+'<div class="seg-wrap">'+segc('Schemat i kalenderrutan','calStyle',[['1','Tid kvar'],['2','Stapel'],['3','Tidsaxel']],CAL_STYLE)+'</div>'+
   (DEV?sh('Förslag i Planera med portioner')+'<div class="seg-wrap">'+segc('Förslag i Planera med portioner','flStyle',[['karusell','Stort kort'],['lista','Lista']],FL_STYLE)+'</div>':'')+
@@ -3239,6 +3253,7 @@ const ACT={
  autoPrio(id){const P=autoState();P.prio=AUTO_W[id]?id:'balans';autoNy(P);render()},
  autoSk(id){const P=autoState();P.skMode=['two','gem'].includes(id)?id:'auto';['sk','sv','sg'].forEach(k=>delete P.lock[k]);autoNy(P);render()},
  autoGor(){const P=autoState();P.gen++;if(P.plan)P.hist=[autoItems(P.plan).filter(x=>!P.lock[x.key]).map(x=>x.id)].concat(P.hist||[]).slice(0,2);PLANP=P;const X=autoCtx(P);P.plan=autoGen(X,P.gen);P.plan.vecka=P.vecka;autoSync(P);PLANP=null;planSave(P);render();toast('Ny vecka föreslagen')},
+ swLock(id){swpCloseAll();weekLock(id)},
  autoLock(id){const P=autoState();if(P.lock[id])delete P.lock[id];else P.lock[id]=1;planSave(P);render()},
  autoNasta(id){autoNasta(id)},
  autoSend(){autoSend()},
@@ -3299,6 +3314,7 @@ const ACT={
  pickGo(){const id=S.psel,k=document.getElementById('overlay').dataset.k;if(!id)return;S.psel=null;
   if(k==='swap'){const r=recipeById(id);if(r)doSwap(r)}else if(k==='slot')slotFill(S.slotG||'Vardag',id);else if(k==='dess')ACT.dessSet(id)},
  swapTo(id){const r=recipeById(id);if(r)doSwap(r)},
+ rcpByt(i){closeSheets();S.recipe=null;S.view='mat';lsSet('view','mat');S.matTab='vecka';lsSet('matTab','vecka');ACT.swap(i)},
  rcpSheet(id,el){S.rcpSheet={id,k:el.dataset.k};render()},
  rcpConfirm(){if(S.rcpSheet){S.rcpSheet.confirm=true;render()}},
  bankToggle(id){const r=recipeById(id);if(!r)return;const sure=S.rcpSheet&&S.rcpSheet.k==='unbank';S.rcpSheet=null;
@@ -3424,7 +3440,7 @@ const ACT={
    if(x.lst?x.v<=0:x.v>=1){p.style.strokeDasharray=x.v+' 2';fired=Date.now();try{navigator.vibrate&&navigator.vibrate(15)}catch(e){}
     if(x.lst)k.classList.remove('lk-on');else k.classList.add('lk-on');end(false);if(x.row.dataset.lockAct)ACT[x.row.dataset.lockAct](x.id);else weekLock(x.id);return}
    p.style.strokeDasharray=x.v+' 2';p.style.strokeOpacity=x.v<.002?0:1;x.raf=requestAnimationFrame(f)};x.raf=requestAnimationFrame(f)};
- document.addEventListener('pointerdown',e=>{if(e.button>0)return;const row=e.target.closest('[data-hold-lock]');if(!row||e.target.closest('.pl-step,.dr-byt,.dr-act,.dr-actl,.dess-x'))return;
+ document.addEventListener('pointerdown',e=>{if(e.button>0)return;const row=e.target.closest('[data-hold-lock]');if(!row||e.target.closest('.pl-step,.dr-byt,.dr-act,.dr-actl,.dess-x,.dr-x'))return;
   if(row.classList.contains('open')||row.classList.contains('openl'))return;end(true);
   const k=row.querySelector('[data-lk]')||row;h={row,k,id:row.dataset.holdLock,lst:k.classList.contains('lk-on'),x:e.clientX,y:e.clientY};const x=h;x.w=setTimeout(()=>{if(h===x)start(x)},WAIT)});
  document.addEventListener('pointermove',e=>{if(h&&Math.hypot(e.clientX-h.x,e.clientY-h.y)>10)end(true)},{passive:true});
@@ -3452,13 +3468,13 @@ document.addEventListener('touchstart',e=>{SWP.el=null;if(e.target.closest('.dr-
  swpCloseAll(el);Object.assign(SWP,{el,x:t.clientX,y:t.clientY,base:el.classList.contains('open')?-swpW(el):el.classList.contains('openl')?SWW:0,dx:0,dir:'',moved:false})},{passive:true});
 document.addEventListener('touchmove',e=>{const el=SWP.el;if(!el)return;const t=e.touches[0],dx=t.clientX-SWP.x,dy=t.clientY-SWP.y;
  if(!SWP.dir&&Math.abs(dx)+Math.abs(dy)>8)SWP.dir=Math.abs(dx)>Math.abs(dy)?'x':'y';if(SWP.dir!=='x')return;
- SWP.moved=true;SWP.dx=dx;swpSet(el,Math.min(swpL(el)?el.offsetWidth:0,Math.max(-el.offsetWidth,SWP.base+dx)),false)},{passive:true});
+ SWP.moved=true;SWP.dx=dx;swpSet(el,Math.min(swpL(el)?el.offsetWidth*0.6:0,Math.max(swpB(el)?-el.offsetWidth:0,SWP.base+dx)),false)},{passive:true});
 document.addEventListener('touchend',()=>{const el=SWP.el;if(!el)return;SWP.el=null;if(SWP.dir!=='x')return;
  const x=SWP.base+SWP.dx,w=el.offsetWidth,b=swpB(el),l=swpL(el);
  if(x<-swpFull(el)&&b){swpSet(el,-w,true);if(navigator.vibrate)navigator.vibrate(10);setTimeout(()=>{ACT[b.dataset.full||'swap'](b.dataset.id)},180);return}
- // Hela vägen åt höger tar bort rätten
- if(l&&x>Math.max(w*0.5,SWW+50)){if(navigator.vibrate)navigator.vibrate(10);swpSet(el,0,true);setTimeout(()=>ACT[l.dataset.act](l.dataset.id),200);return}
- const ow=swpW(el);swpSet(el,x<-ow/2?-ow:l&&x>SWW/2?SWW:0,true)});
+ // Åt höger låser eller låser upp så fort man släpper efter en bit, snabbare än att hålla in
+ if(l&&x>SWW*0.7){if(navigator.vibrate)navigator.vibrate(10);swpSet(el,0,true);setTimeout(()=>ACT[l.dataset.act](l.dataset.id),200);return}
+ const ow=swpW(el);swpSet(el,x<-ow/2&&b?-ow:0,true)});
 // Planera veckan: visa den lilla budgetraden när den stora rutan har gått in under navigeringsfältet
 function plPin(){const m=document.querySelector('.pl-mini'),b=document.querySelector('.pl-bud');if(!m||!b)return;const nb=document.getElementById('navbar'),top=nb?nb.getBoundingClientRect().bottom:0;m.classList.toggle('show',b.getBoundingClientRect().bottom<top+4)}
 // Veckosedeln: kopian av översta raden visas när rutan når navigeringsfältet och krymper lite (--k går 0→1) ju längre man scrollar

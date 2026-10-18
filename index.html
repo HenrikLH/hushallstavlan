@@ -556,14 +556,15 @@ html.ny .chip.lk::before{display:none}
 .sw-row.on{background:color-mix(in srgb,var(--accent) 7%,var(--surface))}
 .sw-row[hidden]{display:none}
 .sw-row .meta{display:block}.sw-row .sw-l1{display:flex;flex-wrap:wrap;align-items:center;gap:2px 8px;margin:2px 0 1px}
-.pk-info{margin:14px 16px 0;text-align:center}.pk-search{margin-top:10px}
-.sw-search{margin:0 16px 10px}
+.pk-info{margin:14px 16px 0;text-align:center}
+.sw-search{margin:0 16px 10px}.sw-search.pk-search{margin:10px 16px}
 .sw-search input{width:100%;height:38px;border-radius:10px;border:0;background:var(--fill);padding:0 12px;font-size:17px;color:var(--ink)}
 .sw-info{margin:14px 16px 0;text-align:center}
 .sw-info .foot{padding:0 8px}
-.sw-foot{position:sticky;bottom:0;margin-top:8px;padding:12px 16px 4px;background:linear-gradient(transparent,var(--bg) 14px)}
+.sw-foot{flex:none;padding:10px 16px calc(10px + var(--sab));background:var(--bg);box-shadow:0 -1px 0 var(--sep,rgba(128,128,128,.2))}
+.sheet-body:has(+.sw-foot){padding-bottom:16px}
 .sw-foot .btn-fill{width:100%;display:block;line-height:50px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sw-foot .btn-fill[disabled]{opacity:.4}
+.sw-foot .btn-fill[disabled]{opacity:1;background:var(--fill);color:var(--ink-3)}
 .sw-rmb{display:block;margin:10px auto 0;font-size:15px;color:var(--red)}
 .sw-rm{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:15px}
 .sw-rm span{flex:1}
@@ -641,6 +642,8 @@ html.ny .chip.lk::before{display:none}
 .pl-pin{position:sticky;top:calc(var(--sat) + var(--navbar));z-index:14;height:0;margin:0 16px}
 .pl-mini{display:flex;align-items:center;gap:8px;padding:9px 14px;border-radius:14px;background:color-mix(in srgb,var(--surface) 96%,transparent);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);box-shadow:0 6px 20px rgba(0,0,0,.18);margin-top:8px;opacity:0;transform:translateY(-8px);pointer-events:none;transition:opacity .18s ease,transform .18s ease}
 .pl-mini.show{opacity:1;transform:none}
+/* Fästa kassarutan: en remsa i bakgrundsfärgen ovanför, så att raderna inte syns mellan rubriken och rutan */
+.pl-pin:has(.pl-mini.show)::before,html.ny .ws-pin:has(.ws-mini.show)::before{content:'';position:absolute;left:-16px;right:-16px;top:-2px;height:64px;background:var(--bg);z-index:-1}
 .pl-mini b{font-size:17px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
 .pl-mini .thin{flex:1;height:6px;border-radius:3px;margin:0 4px}
 .pl-mini .fn{white-space:nowrap}
@@ -1135,6 +1138,8 @@ html.ny .chip.lk::before{display:none}
 .dess-c{gap:10px}.dess-b{display:flex;align-items:center;gap:12px;min-width:0;text-align:left;color:inherit}
 .dess-b .grow{display:flex;flex-direction:column;min-width:0}.dess-b .title,.dess-empty .title{font-size:17px;line-height:22px;color:var(--ink)}
 .dess-b .meta,.dess-empty .meta{font-size:13px;line-height:18px;color:var(--ink-2)}
+.dr-actl.lk-sw{background:var(--accent);color:var(--on-accent,#fff)}
+.dr-x{flex:none;align-self:center;width:36px;height:36px;margin-right:-6px;border-radius:50%;display:grid;place-items:center;color:var(--ink-3)}.dr-x svg{width:16px;height:16px}
 .dess-x{flex:none;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;color:var(--ink-3)}.dess-x svg{width:18px;height:18px}
 .dess-empty{display:flex;align-items:center;gap:12px;width:100%;text-align:left}.dess-empty .grow{display:flex;flex-direction:column}
 .dess-plus{flex:none;width:44px;height:44px;border-radius:10px;border:1.5px dashed var(--ink-3);display:grid;place-items:center;color:var(--ink-3)}.dess-plus svg{width:20px;height:20px}
@@ -1735,7 +1740,7 @@ html.ny .ws-card .wk-new{margin:0;width:100%;height:44px;border-radius:0 0 14px 
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=144"></script>
+<script src="app.js?v=145"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
