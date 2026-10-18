@@ -178,8 +178,10 @@ function renderNav(nav){
  nav.querySelectorAll('button').forEach((b,j)=>j===i?b.setAttribute('aria-current','page'):b.removeAttribute('aria-current'));
  // Ekonomi ligger inte i flikraden på telefon; då visas ingen markering där
  nav.classList.toggle('none',i<0||i>=VIEWS.length);nav.style.setProperty('--i',Math.max(0,Math.min(i,VIEWS.length-1)));
- // väggskärmen: personens cirkel längst till höger i menyraden
- const me=NY&&S.view==='oversikt'&&wallBoardOn()&&VKNAPP==='meny'?meBtn():'',el=nav.querySelector('.nav-me');
+ // väggskärmen: personens cirkel längst till höger i menyraden eller som egen knapp nere till höger, på alla sidor
+ const vk=NY&&wallBoardOn()?VKNAPP:'',me=vk==='meny'?meBtn():'',el=nav.querySelector('.nav-me');
+ let cm=document.getElementById('corner-me');
+ if(vk==='knapp'||vk==='rubrik'){const h=meBtn();if(!cm){cm=document.createElement('div');cm.id='corner-me';document.body.appendChild(cm)}cm.className=vk==='rubrik'?'top-me':'corner-me';if(cm.dataset.h!==h){cm.innerHTML=h;cm.dataset.h=h}}else if(cm)cm.remove();
  nav.classList.toggle('har-me',!!me);
  if(!me){if(el)el.remove()}else if(!el||el.dataset.h!==me){if(el)el.remove();nav.insertAdjacentHTML('beforeend','<div class="nav-me" data-h=""><i aria-hidden="true"></i>'+me+'</div>');nav.querySelector('.nav-me').dataset.h=me}}
 // Dra fingret längs flikraden för att flytta markeringen, släpp för att byta flik.
@@ -577,7 +579,7 @@ const gearBtn='<button class="ib" data-act="settings" aria-label="Inställningar
 // Gemensam skärm visar ett G i stället för kugghjulet
 const meBtn=()=>people().includes(S.me)?'<button class="ib me-av '+pcls(S.me)+'" data-act="settings" aria-label="Inställningar, '+esc(S.me)+'"><span>'+esc(S.me.slice(0,1).toUpperCase())+'</span></button>':'<button class="ib me-av pg" data-act="settings" aria-label="Inställningar, gemensam skärm"><span>G</span></button>';
 function head(title,o){o=o||{};NB.title=title;
- return'<header class="head">'+(o.eyebrow?'<div class="eyebrow">'+o.eyebrow+'</div>':'')+'<div class="head-row"><h1 class="lt" id="lt">'+esc(title)+'</h1><div class="tools">'+(o.tools||'')+(NY?meBtn():gearBtn)+'</div></div>'+(o.sub?'<div class="sub">'+o.sub+'</div>':'')+'</header>'}
+ return'<header class="head">'+(o.eyebrow?'<div class="eyebrow">'+o.eyebrow+'</div>':'')+'<div class="head-row"><h1 class="lt" id="lt">'+esc(title)+'</h1><div class="tools">'+(o.tools||'')+(!NY?gearBtn:wallBoardOn()?'':meBtn())+'</div></div>'+(o.sub?'<div class="sub">'+o.sub+'</div>':'')+'</header>'}
 const sh=(l,r,cls)=>'<div class="sh'+(cls?' '+cls:'')+'"><span>'+l+'</span>'+(r!=null&&r!==''?'<span class="r">'+r+'</span>':'')+'</div>';
 const group=inner=>'<div class="group">'+inner+'</div>';
 // Rubrik inuti en lista: listan är en enda yta där kategorierna skiljs åt av en rubrik med streck under
@@ -703,7 +705,7 @@ function wallBoard(){
   '<div class="wk-sub">Hemmet</div><div class="brooms">'+roomHealth().map(r=>'<div class="'+healthCls(r.score)+'"><span>'+esc(r.room)+'</span><i><b style="width:'+Math.round(r.score*100)+'%"></b></i></div>').join('')+'</div>');
  H.upg=widget('uppgifter','btasks',I.list,'Uppgifter',d.tasks.filter(x=>!x.done).length+' kvar',tasks.length?'<div class="wl">'+tasks.map(taskRow).join('')+'</div>':'<div class="wempty">Inget att göra.</div>');
  const L=layout(true,WALL_DEF);
- let h='<div class="board'+(S.arrange?' arranging':'')+(NY&&VKNAPP==='rubrik'?' har-top':'')+'">'+(!NY?'<div class="board-gear">'+gearBtn+'</div>':VKNAPP==='rubrik'?'<div class="wall-top"><h1 class="lt">'+(new Date().getHours()<10?'God morgon':new Date().getHours()<18?'Hej':'God kväll')+'</h1>'+meBtn()+'</div>':VKNAPP==='knapp'?'<div class="corner-me">'+meBtn()+'</div>':'');
+ let h='<div class="board'+(S.arrange?' arranging':'')+(NY&&VKNAPP==='rubrik'?' har-top':'')+'">'+(!NY?'<div class="board-gear">'+gearBtn+'</div>':VKNAPP==='rubrik'?'<div class="wall-top"><h1 class="lt">'+(new Date().getHours()<10?'God morgon':new Date().getHours()<18?'Hej':'God kväll')+'</h1></div>':'');
  h+='<div class="bcol bhero">'+heroHtml()+wallWx()+'</div>';
  L.cols.forEach((c,ci)=>{h+='<div class="bcol" data-col="'+ci+'">'+boxRow(c.filter(id=>H[id]),true,H,L)+'</div>'});
  return h+'</div>'+arrangeFoot(L,true)}
