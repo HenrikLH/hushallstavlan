@@ -1601,27 +1601,30 @@ function shopImport(tyst,o){o=o||{};
  delCommit(x=>x.source==='egen');
  for(let i=OUTBOX.length-1;i>=(flushing?1:0);i--)if(OUTBOX[i].action==='shopDelete'&&/^plan/.test(String(OUTBOX[i].id||''))||OUTBOX[i].action==='planSend')OUTBOX.splice(i,1);
  S.pending=OUTBOX.length;saveOutbox();const st=settings(),vs=st.vecka_start,ve=st.vecka_slut;if(!isDate(vs)||!isDate(ve)){toast('Veckosedeln har ingen vecka än.');return}
- const rows=D().menu.filter(m=>isDate(m.date)&&m.date>=vs&&m.date<=ve),lab={},list=[];
- rows.forEach(m=>{const r=m.recipe&&recipeById(m.recipe);if(!r||m.who==='Borta')return;const sk=isStorkok(r),n=dishPort(m,r);
+ // Bara låsta rätter ger varor på inköpslistan. Listan räknas om från dem, så en borttagen eller upplåst rätt tar bara bort sin egen del av en vara
+ const rows=D().menu.filter(m=>isDate(m.date)&&m.date>=vs&&m.date<=ve),lab={},list=[],L=weekLocks(vs);
+ rows.forEach(m=>{const r=m.recipe&&recipeById(m.recipe);if(!r||m.who==='Borta'||!L.has(r.id))return;const sk=isStorkok(r),n=dishPort(m,r);
   const pa=protFromAddon(m.addon),rr=pa?protRecipe(r,{r:r.id,k:pa.k,v:pa.v}):r;
   const key='m'+list.length;const dw=parse(m.date).getDay();lab[key]=sk?(m.who==='Vegetariskt'?'Storkok veg':m.who==='Henrik'?'Storkok kött':'Storkok'):dw>=1&&dw<=4?'Vardag':'Helg';list.push({key,b:MV.behov(rr,n/(Number(r.portions)||2))})});
  // Efterrätten tas med som receptets egna rader, utan pris, eftersom bakvaror som färskost och digestivekex inte finns bland basvarorna
  const dr=weekDessert(),dv=dr?dessertVaror(dr,1,D().shop.filter(i=>i.source==='egen')).map(x=>({name:x.name,qty:x.qty,price:null,meals:['Efterrätt']})):[];
- if(!list.length&&!dv.length&&!o.force){toast('Veckosedeln har inga rätter med recept.');return}
  const korg=MV.korg(list.map(x=>x.b),planLager());
  const shop=korg.rad.filter(x=>x.n>0).map(x=>({name:planVaraNamn(x),qty:MV.forp(x),price:shopPris(x),meals:[...new Set(list.filter(i=>i.b[x.k]).map(i=>lab[i.key]))]})).concat(dv);
  // Varorna visas direkt i telefonen och sparas i kalkylarket i bakgrunden via utkorgen, som när man bockar av
- const tag='plan'+vs.replace(/-/g,''),egna=D().shop.filter(i=>i.source==='egen'&&!i.done);
+ // Egna varor (inskrivna för hand) rörs aldrig, inte heller de avbockade
+ const tag='plan'+vs.replace(/-/g,''),egna=D().shop.filter(i=>i.source==='egen');
  // Det som redan är köpt (samma vara och mängd) står kvar avbockat, och bara varor som saknas läggs till
  const nyck=x=>String(x.name||'').toLowerCase()+'|'+String(x.qty||'').toLowerCase(),fore=new Set(D().shop.map(nyck)),kopt=new Set(D().shop.filter(i=>i.done&&i.source!=='egen').map(nyck));
- const nya=shop.filter(x=>!fore.has(nyck(x))).length;
+ const nya=shop.filter(x=>!fore.has(nyck(x))).length,nu=new Set(shop.map(nyck)),borta=D().shop.filter(i=>i.source!=='egen'&&!nu.has(nyck(i))).length;
  S.data.shop=egna.concat(shop.map((x,n)=>({id:tag+'-'+n,name:x.name,qty:x.qty,price:x.price,meals:x.meals,cat:katGissa(x.name),done:kopt.has(nyck(x)),source:'veckoplan'})));
- if(!tyst)S.shopFilter='alla';render();toast(o.msg||(tyst?'Inköpslistan uppdaterad':nya?nya+(nya===1?' vara lades till':' varor lades till'):'Inköpslistan har redan alla varor'));
+ if(!tyst)S.shopFilter='alla';render();toast(o.msg||(tyst?'Inköpslistan uppdaterad':!list.length&&!dv.length?'Inga låsta rätter. Lås rätterna du vill handla till.':nya||borta?[nya?nya+' tillagda':'',borta?borta+' borttagna':''].filter(Boolean).join(', '):'Inköpslistan stämmer med veckosedeln'));
  // Recept från inspirationen eller receptbanken som saknas i kalkylarkets flik Recept skickas med
  const inSheet=new Set(D().recipes.map(r=>r.id)),recipes=o.force?[...new Set(rows.map(m=>m.recipe).filter(Boolean))].map(recipeById).filter(r=>r&&!inSheet.has(r.id)&&!isDessert(r)).slice(0,12).map(bankSnap):[];
  apiPost({action:'planSend',start:vs,end:ve,menu:rows.map(m=>({date:m.date,who:m.who,title:m.title,recipe:m.recipe||'',addon:m.addon||'',note:m.note||''})),shop,recipes,lager:korg.rest,settings:o.settings||{}});
  // Kalkylarket skriver om alla veckans varor som inte köpta, så de köpta bockas av igen
- S.data.shop.forEach(i=>{if(i.done&&i.source==='veckoplan')apiPost({action:'shopToggle',id:i.id,done:true})})}
+ S.data.shop.forEach(i=>{if(i.done&&i.source==='veckoplan')apiPost({action:'shopToggle',id:i.id,done:true})});
+ // Kalkylarket tar bort avbockade egna varor när veckans varor skickas, så de läggs tillbaka avbockade
+ egna.filter(i=>i.done).forEach((i,n)=>{i.id='tmp'+Date.now()+'-k'+n;apiPost({action:'shopAdd',name:i.name,qty:i.qty||'',cat:i.cat||'Övrigt',price:i.price==null?'':i.price});apiPost({action:'shopToggle',id:i.id,done:true})})}
 function shopRow(i){return'<div class="dr-wrap"><button class="dr-act del" data-act="shopDel" data-full="shopDel" data-id="'+esc(i.id)+'" aria-label="Ta bort '+esc(i.name)+'">'+I.trash+'<span>Ta bort</span></button>'+shopRowIn(i).replace('<div class="cell ck','<div class="cell dr-slide ck')+'</div>'}
 function shopRowIn(i){const chips=(i.offer?'<span class="chip offer">'+esc(i.store||'Erbjudande')+'</span>':'')+(i.meals||[]).map(m=>'<span class="chip">'+esc(m)+'</span>').join('')+(i.source==='egen'&&i.addedBy?'<span class="chip">'+esc(i.addedBy)+'</span>':'');
  return'<div class="cell ck'+(i.done?' done':'')+'"><input type="checkbox" class="check" data-act="shopToggle" data-id="'+esc(i.id)+'" aria-label="'+esc(i.name)+'"'+(i.done?' checked':'')+'><button class="grow rowbtn" data-act="shopToggle" data-id="'+esc(i.id)+'"><div class="title">'+esc(i.name)+'</div>'+((i.qty||chips)?'<div class="meta">'+(i.qty?'<span>'+esc(i.qty)+'</span>':'')+chips+'</div>':'')+'</button>'+(i.price?'<span class="val">'+kr(i.price)+'</span>':'<span class="val nopris">prisuppgift saknas</span>')+'</div>'}
