@@ -1314,7 +1314,10 @@ body.wall::before{content:"";position:fixed;inset:-20%;z-index:-1;pointer-events
 .bcol .bclean{flex:1 1 auto;min-height:0;overflow:hidden}
 .bcol .bclean .cell{min-height:52px}
 .bcol .bclean .check{width:28px;height:28px}
-.board-gear{position:absolute;left:calc(35% - 52px);top:24px;z-index:3}
+/* Inställningsknappen i övre högra hörnet, på samma rad som rubriken i rutan längst upp till höger */
+.board-gear{position:absolute;right:27px;top:21px;z-index:3}
+.board .bcol[data-col]:last-child>:first-child .wh{padding-right:44px}
+.board.arranging .board-gear{display:none}
 body.wall:has(.board) main{padding-bottom:0}
 body.wall:has(.board) .head{display:none}
 /* Nattläge på väggen */
