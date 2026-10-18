@@ -1976,6 +1976,7 @@ const menuSel=(attrs,opts)=>'<span class="menu"><select '+attrs+'>'+opts+'</sele
 V.stad=function(){
  const cp=cleanPlan(),all=D().clean;
  let h=head('Städ',{sub:'Lite varje dag, så slipper ni storstäda'});
+ h+='<form class="add-row" data-form="cleanQuick" data-room=""><input class="field" name="title" placeholder="Ny syssla" aria-label="Ny syssla" autocomplete="off" enterkeyhint="done"><button type="button" class="add-go" data-act="quickGo" data-alt="cleanFocus" aria-label="Lägg till">'+I.plus+'</button></form>';
  if(!all.length)return h+'<div style="height:22px"></div>'+group(emptyCell('Städschemat är tomt. Lägg till sysslor under rummen nedan.'))+cleanAll(all,true);
  h+=orkSlider(cp.B);
  h+='<div class="split"><div class="col">';
@@ -2002,6 +2003,9 @@ function cleanAll(all,open){const mins=t=>[...new Set([5,10,15,20,25,30,45,60,90
    menuSel('data-change="who" data-id="'+esc(t.id)+'" aria-label="Vem"','<option value="">Vem som helst</option>'+people().map(p=>'<option'+(t.who===p?' selected':'')+'>'+esc(p)+'</option>').join(''))+'</div></div></div>')).join('')):'')+
   '<form class="add-row" data-form="cleanQuick" data-room="'+esc(room)+'"><input class="field" name="title" placeholder="Ny syssla" aria-label="Ny syssla i '+esc(room)+'" autocomplete="off" enterkeyhint="done"><button type="button" class="add-go" data-act="quickGo" data-alt="cleanFocus" aria-label="Lägg till i '+esc(room)+'">'+I.plus+'</button></form>'}).join('')+
   '<div class="foot">Svep åt vänster på en syssla för att ta bort den. Nya sysslor görs varje vecka och tar 10 minuter tills du ändrar det.</div></details>'}
+// Raden högst upp i Städ har inget rum, så rummet gissas från orden. Annars blir det Alla rum
+function rumGissa(t){t=t.toLowerCase();const R=[['Vardagsrum',/vardagsrum|soffa|(^|\s)tv($|[\s-])|bokhylla|soffbord/],['Kök',/kök|kyl|frys|spis|micro|mikro|ugn|disk|bänk|fläkt|skafferi/],['Toalett',/toa|wc|badrum|dusch|handfat|kakel|spegel|badkar/],['Hundar',/hund|koppel|matskål|tass/],['Sovrum',/sovrum|säng|lakan|täcke|kudd|garderob/],['Hall',/hall|sko|ytterkläder|dörrmatta|entré/]];
+ const m=R.find(([,re])=>re.test(t));return m?m[0]:'Alla rum'}
 // Svep åt vänster tar bort sysslan, som i Inköp
 const cleanSw=(t,html)=>'<div class="dr-wrap cs"><button class="dr-act del" data-act="cleanDel" data-full="cleanDel" data-id="'+esc(t.id)+'" aria-label="Ta bort '+esc(t.title)+'">'+I.trash+'<span>Ta bort</span></button>'+html.replace('<div class="cell','<div class="cell dr-slide')+'</div>';
 function cleanRow(t,showWhy,offer){const d=doneToday(t),r=ratio(t);
@@ -3512,10 +3516,10 @@ document.addEventListener('submit',async e=>{const f=e.target.closest('[data-for
   apiPost({action:'shopAdd',name:d.name.trim(),qty:d.qty.trim(),cat,price:isNaN(price)?'':price});toast('Tillagd')}
  // Snabbfältet i Uppgifter (nya designen): utan datum och person, de går att lägga till genom att trycka på uppgiften
  // Ny syssla i ett rum. Id:t skapas här så att sysslan går att ändra direkt
- if(f.dataset.form==='cleanQuick'){const t=String(d.title||'').trim(),room=f.dataset.room;if(!t)return;
+ if(f.dataset.form==='cleanQuick'){const t=String(d.title||'').trim(),room=f.dataset.room||rumGissa(t);if(!t)return;
   const id='s'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
   D().clean.push({id,room,title:t,freq:7,min:10,lastDone:'',prevDone:'',doneBy:'',who:'',tip:'',plannedFor:'',snoozeUntil:'',order:null});S.open.all=true;render();
-  setTimeout(()=>{const x=document.querySelector('form[data-form="cleanQuick"][data-room="'+room+'"] .field');if(x)x.focus()},30);
+  setTimeout(()=>{const x=document.querySelector('form[data-form="cleanQuick"][data-room="'+f.dataset.room+'"] .field');if(x)x.focus()},30);
   apiPost({action:'cleanAdd',id,room,title:t,freq:7,min:10});toast('Tillagd i '+room);return}
  if(f.dataset.form==='taskQuick'){const t=String(d.title||'').trim();if(!t)return;
   D().tasks.push({id:'tmp'+Date.now(),done:false,title:t,due:'',who:'',note:'',source:'egen',repeat:''});render();
