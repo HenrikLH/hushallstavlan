@@ -745,3 +745,152 @@ function godkannDrive() {
 
 /** Skicka en testnotis. */
 function testNotis() { ntfy_('Hushållstavlan', 'Notiserna fungerar!', ['tada']); }
+
+/* ---------------- Willyspriser ----------------
+   prisSynk körs varje morgon kl 5 och hämtar Willys priser för alla ingredienser i alla recept
+   (receptfliken och appens inspirationsrecept). Varorna och sökorden kommer från appens filer
+   matvaror.js och willys-sok.js på GitHub Pages, så nya recept och rättade sökningar följer med utan att Kod.gs ändras.
+   Resultatet sparas i inställningen "priser" (läses av appen) och en sammanfattning i "prislogg".
+   Kör startaPrisSynk en gång för att starta det dagliga schemat. */
+const WILLYS = 'https://www.willys.se';
+const WILLYS_BUTIK = '2204'; // Willys Värnamo Gröndal
+
+function startaPrisSynk() {
+  ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === 'prisSynk') ScriptApp.deleteTrigger(t); });
+  ScriptApp.newTrigger('prisSynk').timeBased().atHour(5).everyDays(1).inTimezone(TZ).create();
+  prisSynk();
+}
+
+function laddaJs_(fil, g) {
+  const t = UrlFetchApp.fetch(APP_URL + fil + '?t=' + Date.now(), { muteHttpExceptions: true });
+  if (t.getResponseCode() !== 200) throw new Error('Kunde inte hämta ' + fil + ': ' + t.getResponseCode());
+  new Function('window', 'globalThis', 'module', t.getContentText())(undefined, g, undefined);
+}
+
+function tal_(s) {
+  if (typeof s === 'number') return s;
+  const m = String(s == null ? '' : s).replace(/\s/g, '').match(/-?\d+(?:[.,]\d+)?/);
+  return m ? Number(m[0].replace(',', '.')) : 0;
+}
+
+// Antal styck i förpackningen ("12-pack", "6 st"), eller 0
+function styck_(x) {
+  const m = ((x.name || '') + ' ' + (x.displayVolume || '')).match(/(\d+)\s*(?:-?\s*pack|st\b|-p\b)/i);
+  return m ? Number(m[1]) : 0;
+}
+// Förpackningens vikt i gram (liter räknas som kg), eller 0
+function gram_(x) {
+  const m = String(x.displayVolume || '').replace(',', '.').match(/(\d+(?:\.\d+)?)\s*(kg|g|hg|l|dl|cl|ml)\b/i);
+  if (!m) return 0;
+  return Number(m[1]) * ({ kg: 1000, g: 1, hg: 100, l: 1000, dl: 100, cl: 10, ml: 1 })[m[2].toLowerCase()];
+}
+// Kampanjpris som gäller alla (inte bara Willys Plus och inte "köp 2"), annars null
+function kampanj_(x) {
+  const p = (x.potentialPromotions || []).find(function (p) {
+    return p && !/loyalty|plus|personal|member/i.test(String(p.campaignType || '') + ' ' + String(p.promotionTheme && p.promotionTheme.code || ''))
+      && !(Number(p.qualifyingCount) > 1);
+  });
+  if (!p) return null;
+  const pris = tal_(p.price && typeof p.price === 'object' ? p.price.value : p.price), jmf = tal_(p.comparePrice);
+  return pris > 0 ? { pris: pris, jmf: jmf } : null;
+}
+
+/* Ett pris för en vara: {kr, pkt} i matvarors enheter.
+   pkt <= 12 betyder styck (pris per förpackning med pkt styck), annars gram (pris per pkt gram). */
+function willysPris_(lista, mal, okand) {
+  let bast = null;
+  lista.forEach(function (x) {
+    const k = kampanj_(x), pris = k ? k.pris : tal_(x.priceValue != null ? x.priceValue : x.price);
+    const jmf = k && k.jmf ? k.jmf : tal_(x.comparePrice), enh = String(x.comparePriceUnit || '').toLowerCase();
+    if (!(pris > 0)) return;
+    let st = 0, perG = 0;
+    const n = styck_(x), g = gram_(x);
+    // Lösvikt: priset gäller per kg (som "Lök Gul ca: 175g, 10,90 kr/kg")
+    const perKg = /kg/i.test(String(x.priceUnit || '')) || (!!x.averageWeight && enh === 'kg' && Math.abs(jmf - pris) < 0.01);
+    if (perKg && x.averageWeight) st = pris * Number(x.averageWeight);
+    else if (n) st = pris / n;
+    else if (!perKg) st = pris;
+    if ((enh === 'kg' || enh === 'l') && jmf > 0) perG = jmf / 1000;
+    else if (perKg) perG = pris / 1000;
+    else if (g) perG = pris / g;
+    let r = null;
+    if (okand) {
+      if (n && n <= 12) r = { kr: pris, pkt: n };
+      else if (perKg) r = perG ? { kr: perG * 1000, pkt: 1000, per: perG } : null;
+      else if (g) r = { kr: pris, pkt: g, per: perG };
+      else r = { kr: pris, pkt: 1 };
+      if (r && !r.per) r.per = r.kr / r.pkt;
+    } else if (mal <= 12) { if (st) r = { kr: mal === 1 ? st : (n ? st * mal : pris), pkt: mal, per: st }; }
+    else if (perG) r = { kr: perG * mal, pkt: mal, per: perG };
+    if (r && (!bast || r.per < bast.per)) { r.namn = [x.name, x.manufacturer, x.displayVolume].filter(String).join(', '); r.kampanj = !!k; bast = r; }
+  });
+  return bast;
+}
+
+function prisSynk() {
+  const g = {};
+  laddaJs_('matvaror.js', g);
+  laddaJs_('willys-sok.js', g);
+  const MV = g.MatVaror, SOK = g.WillysSok || {};
+  // Alla varor som recepten behöver
+  const recept = readTab_('recipes').map(parseRecipe_);
+  try { JSON.parse(UrlFetchApp.fetch(APP_URL + 'inspiration.json?t=' + Date.now()).getContentText()).forEach(function (r) { recept.push(r); }); } catch (e) { }
+  const varor = {};
+  MV.V.forEach(function (v) { varor[v[0]] = { k: v[0], pkt: v[2] }; });
+  recept.forEach(function (r) { (r.groups || []).forEach(function (gr) { (gr.items || []).forEach(function (it) {
+    const v = MV.vara(it.n);
+    if (v && v.okand && v.k.length > 2 && !varor[v.k]) varor[v.k] = { k: v.k, okand: true };
+  }); }); });
+  const lista = Object.keys(varor).map(function (k) { return varor[k]; });
+  lista.forEach(function (v) {
+    const s = SOK[v.k] || [v.k];
+    v.q = s[0];
+    v.med = s[1] || new RegExp(v.k.split(/\s+/).filter(function (w) { return w.length > 2; }).map(function (w) { return '(?=.*' + w.slice(0, 4) + ')'; }).join(''), 'i');
+    v.utan = s[2] || null;
+  });
+  // Sök på willys.se, 20 åt gången. Går det inte att söka med butiken används Willys pris för hela landet.
+  const hdr = { Accept: 'application/json', 'User-Agent': 'Mozilla/5.0 (Hushallstavlan)' };
+  let exempel = null;
+  for (let i = 0; i < lista.length; i += 20) {
+    const del = lista.slice(i, i + 20);
+    const fraga = function (butik) {
+      return UrlFetchApp.fetchAll(del.map(function (v) {
+        return { url: WILLYS + '/search?q=' + encodeURIComponent(v.q) + '&size=30' + (butik ? '&storeId=' + WILLYS_BUTIK : ''), headers: hdr, muteHttpExceptions: true };
+      }));
+    };
+    let svar = fraga(true);
+    if (svar.some(function (r) { return r.getResponseCode() !== 200; })) svar = fraga(false);
+    svar.forEach(function (r, j) {
+      const v = del[j];
+      if (r.getResponseCode() !== 200) { v.fel = 'HTTP ' + r.getResponseCode(); return; }
+      let res = [];
+      try { res = JSON.parse(r.getContentText()).results || []; } catch (e) { v.fel = 'inte JSON'; return; }
+      if (!exempel && res[0]) { exempel = Object.assign({}, res[0]); delete exempel.image; }
+      if (!v.kampanjExempel) { const p = res.find(function (x) { return x.potentialPromotions && x.potentialPromotions.length; }); if (p) v.kampanjExempel = p.potentialPromotions[0]; }
+      res = res.filter(function (x) { const n = String(x.name || ''); return v.med.test(n) && !(v.utan && v.utan.test(n)); });
+      v.pris = willysPris_(res, v.pkt, v.okand);
+    });
+  }
+  const priser = {}, saknas = [], kampanjer = [];
+  let kampanjExempel = null;
+  lista.forEach(function (v) {
+    if (v.kampanjExempel && !kampanjExempel) kampanjExempel = v.kampanjExempel;
+    if (!v.pris) { saknas.push(v.k + (v.fel ? ' (' + v.fel + ')' : '')); return; }
+    const p = v.pris, o = { kr: Math.round(p.kr * 100) / 100, pkt: Math.round(p.pkt), vara: p.namn };
+    if (p.kampanj) { o.kampanj = 1; kampanjer.push(v.k); }
+    priser[v.k] = o;
+  });
+  const logg = { tid: Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd HH:mm'), butik: 'Willys Värnamo Gröndal (' + WILLYS_BUTIK + ')',
+    varor: lista.length, medPris: Object.keys(priser).length, saknas: saknas, kampanj: kampanjer, kampanjExempel: kampanjExempel, exempel: exempel };
+  const lock = LockService.getScriptLock();
+  lock.waitLock(60000);
+  try {
+    // Behåll gamla priser för varor som inte hittades den här gången
+    const forr = readSettings_().priser;
+    let gamla = {}; try { gamla = JSON.parse(forr || '{}'); } catch (e) { }
+    saknas.forEach(function (s) { const k = s.replace(/ \(.*\)$/, ''); if (gamla[k]) priser[k] = gamla[k]; });
+    writeSetting_('priser', JSON.stringify(priser));
+    writeSetting_('prislogg', JSON.stringify(logg));
+  } finally { lock.releaseLock(); }
+  Logger.log(logg.medPris + ' av ' + logg.varor + ' varor fick pris. Saknas: ' + saknas.join(', '));
+}

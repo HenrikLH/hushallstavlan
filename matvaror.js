@@ -59,6 +59,7 @@
     ['riven ost', /riven (lagrad )?ost|parmesan|mozzarella/, 300, 40, 40, 0, 1],
     ['fetaost', /feta/, 150, 25, 50, 0, 0],
     ['halloumi', /halloumi|paneer/, 200, 35, 0, 0, 0],
+    ['ägg', /^ägg(?!.*nudl)/, 12, 45, 0, 1, 1],
     ['kycklingfilé', /kyckling(?!.*(färs|buljong))/, 1000, 110, 0, 130, 1],
     ['kalkon', /kalkon(?!.*färs)/, 500, 70, 0, 0, 1],
     ['färs', /färs/, 500, 60, 0, 0, 1],
@@ -79,10 +80,10 @@
     ['rödbetor', /rödbet/, 500, 20, 0, 0, 1],
   ];
   // Skafferi: köps sällan och räknas inte i veckans kostnad
-  const SKAFFERI = /salt|peppar|olja|smör|vinäger|soja|buljong|tomatpuré|vatten|vitt vin|mjöl|jäst|senap|kryddor|krydda|spiskummin|kummin|oregano|kanel|timjan|paprikapulver|rökt paprika|chipotle|gurkmeja|garam|curry|chili|mejram|ingefära|vitlök|honung|sesam|kakao|vanilj|miso|sriracha|tahini|majsstärkelse|jalapeño|saffran|lingon|kokos(flingor|olja)|dadlar|jordnötssmör|majonnäs|socker|sirap/;
+  const SKAFFERI = /salt|peppar|olja|smör|vinäger|soja|buljong|tomatpuré|vatten|vitt vin|mjöl(?!k)|jäst|senap|kryddor|krydda|spiskummin|kummin|oregano|kanel|timjan|paprikapulver|rökt paprika|chipotle|gurkmeja|garam|curry|chili|mejram|ingefära|vitlök|honung|sesam|kakao|vanilj|miso|sriracha|tahini|majsstärkelse|jalapeño|saffran|lingon|kokos(flingor|olja)|dadlar|jordnötssmör|majonnäs|socker|sirap/;
 
   const norm = n => String(n || '').toLowerCase().trim();
-  /* Priser som en schemalagd rutin hämtar från butikerna och sparar i kalkylarkets inställning "priser":
+  /* Priser som Kod.gs (prisSynk) hämtar från willys.se varje morgon och sparar i kalkylarkets inställning "priser":
      {"gul lök": {"kr": 22, "pkt": 1000}, "ricotta": {"kr": 32, "pkt": 250}}. Nyckeln är en basvara eller ett ingrediensnamn.
      De går före priserna ovan, och ger pris åt ingredienser som annars saknar pris. */
   let P = {};
