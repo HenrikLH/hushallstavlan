@@ -1998,12 +1998,11 @@ function renderOverlay(){
   sh('Den här enheten')+group('<button type="button" class="cell link center red" data-act="logout">Logga ut</button>')+
   '<div class="foot ver">Hushållstavlan · UI '+(NY?UI_VER:'1.0')+' · version '+esc(APP_VER)+'</div>';
   o.innerHTML=sheetHtml('settings','Inställningar','<button class="tb strong">Spara</button>',body,enter);segSlide(o);return}
- if(k==='vagg'){const ss=nattSol(),tIn=(ch,cur,lab)=>'<input type="text" inputmode="numeric" maxlength="5" placeholder="tt:mm" class="field r ntid" data-change="'+ch+'" value="'+nattTid(cur)+'" aria-label="'+lab+'">',dm=d=>nattTid(d.getHours()*60+d.getMinutes());
+ if(k==='vagg'){const ss=nattSol(),tIn=(ch,cur,lab)=>'<input type="text" inputmode="numeric" maxlength="5" placeholder="tt:mm" class="field ntid" data-change="'+ch+'" value="'+nattTid(cur)+'" aria-label="'+lab+'"'+(NATT.sol?' disabled':'')+'>',dm=d=>nattTid(d.getHours()*60+d.getMinutes());
   const body=sh('Nattläge')+group(fieldCell('Nattläge','<input type="checkbox" role="switch" class="switch" data-act="natt" aria-label="Nattläge"'+(NATT.on?' checked':'')+'>')+
     (NATT.on?fieldCell('Följ solnedgång och soluppgång','<input type="checkbox" role="switch" class="switch" data-act="nattSolv" aria-label="Följ solnedgång och soluppgång"'+(NATT.sol?' checked':'')+'>')+
-     (NATT.sol?'<div class="cell"><span class="grow">Aktiveras</span><span class="meta">Vid solnedgången'+(ss?', i dag '+dm(ss[1]):'')+'</span></div><div class="cell"><span class="grow">Avaktiveras</span><span class="meta">Vid soluppgången'+(ss?', i dag '+dm(ss[0]):'')+'</span></div>'
-      :fieldCell('Aktiveras',tIn('nattA',NATT.a,'Nattläget aktiveras klockan'))+fieldCell('Avaktiveras',tIn('nattB',NATT.b,'Nattläget avaktiveras klockan'))):''))+
-   '<div class="foot">Under nattläget visar tavlan bara en dämpad klocka när ingen har rört den på två minuter, och appen är i mörkt läge. Klockan flyttar sig lite varje timme så att den inte bränns in i skärmen. Tryck på skärmen för att väcka tavlan.</div>'+
+     '<div class="cell ntid-row'+(NATT.sol?' off':'')+'"><span class="grow">Tid</span>'+tIn('nattA',NATT.a,'Nattläget börjar klockan')+'<span class="ntid-d">–</span>'+tIn('nattB',NATT.b,'Nattläget slutar klockan')+'</div>':''))+
+   '<div class="foot">'+(NATT.sol&&ss?'Nattläget följer solen: i dag från '+dm(ss[1])+' till '+dm(ss[0])+' i morgon. ':'')+'Under nattläget visar tavlan bara en dämpad klocka när ingen har rört den på två minuter, och appen är i mörkt läge. Klockan flyttar sig lite varje timme så att den inte bränns in i skärmen. Tryck på skärmen för att väcka tavlan.</div>'+
    sh('Rummets ljus')+group(fieldCell('Använd kameran','<input type="checkbox" role="switch" class="switch" data-act="kamera" aria-label="Använd kameran för rummets ljus"'+(CAM.on?' checked':'')+'>')+
     (CAM.on?'<div class="cell"><span class="grow">Ljus i rummet</span><span class="meta" data-cam-lvl>'+esc(camTxt())+'</span></div>'+
      fieldCell('Dämpa skärmen när det är mörkt','<input type="checkbox" role="switch" class="switch" data-act="kamDampa" aria-label="Dämpa skärmen när det är mörkt"'+(CAM.dim?' checked':'')+'>'):''))+
