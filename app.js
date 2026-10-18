@@ -379,7 +379,7 @@ function delStart(items,msg){delCommit();if(!items.length)return;const ids=new S
 function undoHide(){const u=document.getElementById('undo');if(u)u.hidden=true}
 addEventListener('visibilitychange',()=>{if(document.hidden)delCommit()});
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>t.hidden=true,2800)}
-function setData(d){if(d&&Array.isArray(d.menu))d.menu=d.menu.filter(m=>!(m&&!m.recipe&&/^ledig$/i.test(m.title||'')));if(d&&DEL.items&&Array.isArray(d.shop)){const ids=new Set(DEL.items.map(x=>x.id));d.shop=d.shop.filter(x=>!ids.has(x.id))}S.data=d;S.lastSync=new Date();S.error='';try{lsSet('cache',JSON.stringify(d))}catch(e){}}
+function setData(d){if(d&&Array.isArray(d.menu))d.menu=d.menu.filter(m=>!(m&&!m.recipe&&/^ledig$/i.test(m.title||'')));if(d&&DEL.items&&Array.isArray(d.shop)){const ids=new Set(DEL.items.map(x=>x.id));d.shop=d.shop.filter(x=>!ids.has(x.id))}S.data=d;if(window.MatVaror&&d&&d.settings)MatVaror.setPriser(parseJ(d.settings.priser,{}));S.lastSync=new Date();S.error='';try{lsSet('cache',JSON.stringify(d))}catch(e){}}
 async function apiGet(){
  const r=await fetch(CFG.api+'?key='+encodeURIComponent(S.key)+'&t='+Date.now(),{cache:'no-store'});
  const j=await r.json();if(!j.ok)throw new Error(j.error||'Okänt fel');return j.data}
@@ -869,7 +869,8 @@ function doSwap(r){const sw=S.swap;if(!sw)return;if(!navigator.onLine){toast('At
  S.confirm=null;closeSheets();A.user=Date.now();render();
  const rec=r?{id:r.id,group:r.group,who:r.who,title:r.title,portions:r.portions,min:r.min,kr:r.kr,protein:r.protein,freezes:r.freezes,course:r.course,why:r.why,groups:r.groups,steps:r.steps,tips:r.tips}:null;
  apiPost({action:'menuSwap',date:m.date,who:m.who,title:m.title,recipe:m.recipe||'',rec});
- toast(r?'Bytt till '+r.title+'. Inköpslistan uppdateras.':'Rätten är borttagen')}
+ // Kalkylarket lägger receptets rader utan pris i Inköp vid ett byte; listan räknas om från veckosedeln så att alla varor får pris och slås ihop
+ shopImport(true,{msg:r?'Bytt till '+r.title+'. Inköpslistan uppdateras.':'Rätten är borttagen'})}
 /* Veckan: rätterna indelade i Storkok, Vardag och Helg i stället för dag för dag */
 function weekDishes(){const d=D(),st=settings(),seen=new Set(),out=[];
  const inV=m=>!isDate(st.vecka_start)||!isDate(st.vecka_slut)||!isDate(m.date)||(m.date>=st.vecka_start&&m.date<=st.vecka_slut);
@@ -1202,6 +1203,8 @@ function planView(){const C=planCalc(),{P,B}=C,mon=parse(P.vecka),sun=parse(addD
  if(hemma.length)h+='<div class="foot">Finns hemma och används: '+esc(hemma.map(x=>x.k).join(', '))+'.</div>';
  h+='<div class="pl-send"><button class="btn-fill" data-act="planSend"'+(C.klar?'':' disabled')+'>Skicka till veckosedeln</button><div class="foot">'+(C.klar?'Rätterna läggs på veckosedeln och varorna i inköpslistan.':'Välj en rätt till varje måltid först.')+' Priserna är ungefärliga.</div></div>';
  return h}
+// Varor utan känt pris får inget pris på inköpslistan (där står "prisuppgift saknas")
+const shopPris=x=>x.okand?null:Math.round(x.kr);
 const planVaraNamn=x=>x.namn&&x.namn.length===1?cap(x.namn[0]):cap(x.k)+(x.namn&&x.namn.length?' ('+x.namn.join(', ')+')':'');
 function isoWeek(d){const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));const n=t.getUTCDay()||7;t.setUTCDate(t.getUTCDate()+4-n);const y=new Date(Date.UTC(t.getUTCFullYear(),0,1));return Math.ceil(((t-y)/864e5+1)/7)}
 function planSend(){const C=planCalc();if(!C.klar)return;const{P}=C,day=p=>addDays(P.vecka,p.dag),me=S.me||'';
@@ -1213,7 +1216,7 @@ function planSend(){const C=planCalc();if(!C.klar)return;const{P}=C,day=p=>addDa
  menu.sort((a,b)=>a.date.localeCompare(b.date));
  // Proteinet får namnet på den som ska äta det
  const vem={};C.valda.forEach(p=>{const pv=protVal(p.id,recipeById(P.val[p.id]));if(!pv)return;[[pv.k,kottPerson()],[pv.v,vegPerson()]].forEach(([id,n])=>{const k=MV.vara(protById(id).vara).k;(vem[k]||(vem[k]=new Set)).add(n)})});
- const shop=C.korg.rad.filter(x=>x.n>0).map(x=>({name:planVaraNamn(x)+(vem[x.k]?' – '+[...vem[x.k]].join(' och '):''),qty:MV.forp(x),price:Math.round(x.kr),
+ const shop=C.korg.rad.filter(x=>x.n>0).map(x=>({name:planVaraNamn(x)+(vem[x.k]?' – '+[...vem[x.k]].join(' och '):''),qty:MV.forp(x),price:shopPris(x),
   meals:C.valda.filter(p=>planBehov(recipeById(P.val[p.id]),p)[x.k]).map(p=>lab[p.id])}));
  const inSheet=new Set(D().recipes.map(r=>r.id)),recipes=C.valda.map(p=>recipeById(P.val[p.id])).filter(r=>!inSheet.has(r.id)).map(bankSnap);
  const sun=addDays(P.vecka,6),m=parse(P.vecka),s2=parse(sun);
@@ -1389,7 +1392,7 @@ function portSend(){const C=portCalc();if(!C.klar)return;const{P}=C,me=S.me||'',
   else if(x.t==='macka'||x.t==='auto')menu.push({date,who:'Gemensam',title:'Macka',recipe:'',addon:'',note:''})});
  menu.sort((a,b)=>a.date.localeCompare(b.date));
  const vem={};C.valda.forEach(p=>{const pv=protVal(p.id,recipeById(P.val[p.id]));if(!pv)return;[[pv.k,kottPerson()],[pv.v,vegPerson()]].forEach(([id,n])=>{const k=MV.vara(protById(id).vara).k;(vem[k]||(vem[k]=new Set)).add(n)})});
- const shop=C.korg.rad.filter(x=>x.n>0).map(x=>({name:planVaraNamn(x)+(vem[x.k]?' – '+[...vem[x.k]].join(' och '):''),qty:MV.forp(x),price:Math.round(x.kr),
+ const shop=C.korg.rad.filter(x=>x.n>0).map(x=>({name:planVaraNamn(x)+(vem[x.k]?' – '+[...vem[x.k]].join(' och '):''),qty:MV.forp(x),price:shopPris(x),
   meals:C.valda.filter(p=>planBehov(recipeById(P.val[p.id]),C.Q(p))[x.k]).map(p=>lab[p.id])}));
  PLANP=null;
  const inSheet=new Set(D().recipes.map(r=>r.id)),recipes=C.valda.map(p=>recipeById(P.val[p.id])).filter(r=>!inSheet.has(r.id)).map(bankSnap);
@@ -1522,7 +1525,7 @@ function autoSend(){const C=autoCalc(),{P}=C,pl=P.plan,vd=d=>addDays(P.vecka,d),
   else menu.push({date,who:'Gemensam',title:'Macka',recipe:'',addon:'',note:''})});
  menu.sort((a,b)=>a.date.localeCompare(b.date));
  const vem={};items.forEach(x=>{if(x.key==='sk'||x.key==='sv')return;const pv=protVal(x.key,recipeById(x.id));if(!pv)return;[[pv.k,kottPerson()],[pv.v,vegPerson()]].forEach(([id,n])=>{const k=MV.vara(protById(id).vara).k;(vem[k]||(vem[k]=new Set)).add(n)})});
- const shop=C.E.korg.rad.filter(x=>x.n>0).map(x=>({name:planVaraNamn(x)+(vem[x.k]?' – '+[...vem[x.k]].join(' och '):''),qty:MV.forp(x),price:Math.round(x.kr),meals:items.filter(i=>C.X.behov(i)[x.k]).map(i=>lab[i.key])}));
+ const shop=C.E.korg.rad.filter(x=>x.n>0).map(x=>({name:planVaraNamn(x)+(vem[x.k]?' – '+[...vem[x.k]].join(' och '):''),qty:MV.forp(x),price:shopPris(x),meals:items.filter(i=>C.X.behov(i)[x.k]).map(i=>lab[i.key])}));
  PLANP=null;
  const inSheet=new Set(D().recipes.map(r=>r.id)),recipes=items.map(x=>recipeById(x.id)).filter(r=>!inSheet.has(r.id)).map(bankSnap);
  const m=parse(P.vecka),s2=parse(sun);
@@ -1600,7 +1603,7 @@ function shopImport(tyst,o){o=o||{};
  const dr=weekDessert(),dv=dr?dessertVaror(dr,1,D().shop.filter(i=>i.source==='egen')).map(x=>({name:x.name,qty:x.qty,price:null,meals:['Efterrätt']})):[];
  if(!list.length&&!dv.length&&!o.force){toast('Veckosedeln har inga rätter med recept.');return}
  const korg=MV.korg(list.map(x=>x.b),planLager());
- const shop=korg.rad.filter(x=>x.n>0).map(x=>({name:planVaraNamn(x),qty:MV.forp(x),price:Math.round(x.kr),meals:[...new Set(list.filter(i=>i.b[x.k]).map(i=>lab[i.key]))]})).concat(dv);
+ const shop=korg.rad.filter(x=>x.n>0).map(x=>({name:planVaraNamn(x),qty:MV.forp(x),price:shopPris(x),meals:[...new Set(list.filter(i=>i.b[x.k]).map(i=>lab[i.key]))]})).concat(dv);
  // Varorna visas direkt i telefonen och sparas i kalkylarket i bakgrunden via utkorgen, som när man bockar av
  const tag='plan'+vs.replace(/-/g,''),egna=D().shop.filter(i=>i.source==='egen'&&!i.done);
  S.data.shop=egna.concat(shop.map((x,n)=>({id:tag+'-'+n,name:x.name,qty:x.qty,price:x.price,meals:x.meals,cat:katGissa(x.name),done:false,source:'veckoplan'})));
@@ -1610,7 +1613,7 @@ function shopImport(tyst,o){o=o||{};
  apiPost({action:'planSend',start:vs,end:ve,menu:rows.map(m=>({date:m.date,who:m.who,title:m.title,recipe:m.recipe||'',addon:m.addon||'',note:m.note||''})),shop,recipes,lager:korg.rest,settings:o.settings||{}})}
 function shopRow(i){return'<div class="dr-wrap"><button class="dr-act del" data-act="shopDel" data-full="shopDel" data-id="'+esc(i.id)+'" aria-label="Ta bort '+esc(i.name)+'">'+I.trash+'<span>Ta bort</span></button>'+shopRowIn(i).replace('<div class="cell ck','<div class="cell dr-slide ck')+'</div>'}
 function shopRowIn(i){const chips=(i.offer?'<span class="chip offer">'+esc(i.store||'Erbjudande')+'</span>':'')+(i.meals||[]).map(m=>'<span class="chip">'+esc(m)+'</span>').join('')+(i.source==='egen'&&i.addedBy?'<span class="chip">'+esc(i.addedBy)+'</span>':'');
- return'<div class="cell ck'+(i.done?' done':'')+'"><input type="checkbox" class="check" data-act="shopToggle" data-id="'+esc(i.id)+'" aria-label="'+esc(i.name)+'"'+(i.done?' checked':'')+'><button class="grow rowbtn" data-act="shopToggle" data-id="'+esc(i.id)+'"><div class="title">'+esc(i.name)+'</div>'+((i.qty||chips)?'<div class="meta">'+(i.qty?'<span>'+esc(i.qty)+'</span>':'')+chips+'</div>':'')+'</button><span class="val">'+(i.price?kr(i.price):'')+'</span></div>'}
+ return'<div class="cell ck'+(i.done?' done':'')+'"><input type="checkbox" class="check" data-act="shopToggle" data-id="'+esc(i.id)+'" aria-label="'+esc(i.name)+'"'+(i.done?' checked':'')+'><button class="grow rowbtn" data-act="shopToggle" data-id="'+esc(i.id)+'"><div class="title">'+esc(i.name)+'</div>'+((i.qty||chips)?'<div class="meta">'+(i.qty?'<span>'+esc(i.qty)+'</span>':'')+chips+'</div>':'')+'</button>'+(i.price?'<span class="val">'+kr(i.price)+'</span>':'<span class="val nopris">prisuppgift saknas</span>')+'</div>'}
 
 function scaled(r){const p=S.scale[r.id]||r.portions;return{p,f:p/r.portions}}
 const qtyText=(it,f)=>it.q!=null?fmtQ(it.q*f)+' '+(it.u||''):(it.u||'');
