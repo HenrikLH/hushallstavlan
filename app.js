@@ -3271,7 +3271,8 @@ const ACT={
  shopEmptyYes(){S.confirm=null;const all=D().shop.slice();delStart(all,all.length+(all.length===1?' vara':' varor')+' togs bort')},
  shopImport(){S.confirm='shopImport';render()},
  portStep(id,el){const m=D().menu[Number(id)];if(!m)return;const r=m.recipe&&recipeById(m.recipe),n=Math.max(1,Math.min(20,dishPort(m,r)+Number(el.dataset.d)));
-  m.note=portNote(m,r,n);render();clearTimeout(ACT.portStep.t);ACT.portStep.t=setTimeout(()=>shopImport(true),1200)},
+  // Skickas direkt: medan ändringen väntar i utkorgen skriver ingen uppdatering från arket över den nya portionen
+  m.note=portNote(m,r,n);shopImport(true)},
  wsumMini(){S.wsumOpen=!S.wsumOpen;document.querySelectorAll('.wcard').forEach(c=>{c.classList.toggle('open',S.wsumOpen);const b=c.querySelector('.wm-top');if(b)b.setAttribute('aria-expanded',S.wsumOpen)});wsPin()},
  shopMore(){S.sheet='shopMore';S.shopMoreC=false;render()},
  dessPick(){S.sheet='dess';render()},

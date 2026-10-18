@@ -239,7 +239,7 @@ function doPost(e) {
         break;
       }
       case 'shopClearDone': deleteDone_('shop'); break;
-      case 'shopDelete': { let r = 0; try { r = findRow_('shop', String(b.id || '')); } catch (err) {} if (r) sheet_('shop').deleteRow(r); break; }
+      case 'shopDelete': { let r = 0; try { r = findRow_('shop', String(b.id || '')); } catch (err) {} if (r) delRow_(sheet_('shop'), r); break; }
       case 'taskToggle': {
         const row = findRow_('tasks', b.id);
         const t = readTab_('tasks').filter(function (x) { return x.id === b.id; })[0];
@@ -265,7 +265,7 @@ function doPost(e) {
         setCells_('tasks', findRow_('tasks', b.id), out);
         break;
       }
-      case 'taskDelete': sheet_('tasks').deleteRow(findRow_('tasks', b.id)); break;
+      case 'taskDelete': delRow_(sheet_('tasks'), findRow_('tasks', b.id)); break;
       case 'eventEdit': eventEdit_(b, false); break;
       case 'eventDelete': eventEdit_(b, true); break;
       case 'cleanDone': {
@@ -325,9 +325,16 @@ function nextDue_(due, rep, td) {
   return d;
 }
 
+/* Tar bort en rad. Varje borttagen rad gör fliken kortare, och Google tillåter inte att alla rader under
+   rubrikraden försvinner ("Det går inte att ta bort alla rader som inte är frysta"). Därför läggs tomma rader
+   till längst ner innan fliken hinner bli så kort. */
+function delRow_(sh, r) {
+  if (sh.getMaxRows() <= sh.getFrozenRows() + 2) sh.insertRowsAfter(sh.getMaxRows(), 200);
+  sh.deleteRow(r);
+}
 function deleteDone_(key) {
   const sh = sheet_(key), rows = readTab_(key).filter(function (o) { return o.done; }).map(function (o) { return o._row; });
-  rows.sort(function (a, b) { return b - a; }).forEach(function (r) { sh.deleteRow(r); });
+  rows.sort(function (a, b) { return b - a; }).forEach(function (r) { delRow_(sh, r); });
 }
 
 /* ---------------- byta rätt på veckans matsedel ---------------- */
@@ -390,7 +397,7 @@ function menuSwap_(b, by) {
     if (keep.length === i.meals.length) return;
     if (keep.length) setCells_('shop', i._row, { meals: keep.join(', ') }); else del.push(i._row);
   });
-  del.sort(function (a, c) { return c - a; }).forEach(function (r) { sh.deleteRow(r); });
+  del.sort(function (a, c) { return c - a; }).forEach(function (r) { delRow_(sh, r); });
   if (rec) (rec.groups || []).forEach(function (g) {
     (g.items || []).forEach(function (i) {
       if (i.q == null || !i.n) return;
@@ -419,14 +426,14 @@ function planSend_(b, by) {
   // Matsedel: ta bort gamla rader (före i går) och det som redan ligger i den nya veckan, lägg sedan till veckan
   const msh = sheet_('menu'), y = addDays_(today_(), -1);
   readTab_('menu').filter(function (m) { return !isD(m.date) || m.date < y || (m.date >= b.start && m.date <= b.end); })
-    .map(function (m) { return m._row; }).sort(function (a, c) { return c - a; }).forEach(function (r) { msh.deleteRow(r); });
+    .map(function (m) { return m._row; }).sort(function (a, c) { return c - a; }).forEach(function (r) { delRow_(msh, r); });
   menu.forEach(function (m) {
     msh.appendRow([m.date, S(m.who, 30), S(m.title), S(m.recipe, 60), S(m.addon), S(m.note)]);
   });
   // Inköp: töm listan på allt utom det ni själva har lagt till och inte köpt än, lägg sedan till veckans varor
   const tag = 'plan' + b.start.replace(/-/g, ''), ssh = sheet_('shop');
   readTab_('shop').filter(function (i) { return i.done || i.source !== 'egen'; })
-    .map(function (i) { return i._row; }).sort(function (a, c) { return c - a; }).forEach(function (r) { ssh.deleteRow(r); });
+    .map(function (i) { return i._row; }).sort(function (a, c) { return c - a; }).forEach(function (r) { delRow_(ssh, r); });
   shop.forEach(function (i, n) {
     if (!i.name) return;
     const price = Number(i.price);
@@ -620,7 +627,7 @@ function eventEdit_(b, del) {
       return !e.id && e.date === b.date && e.time === String(b.time || '') && e.title === b.title;
     });
     if (!rows.length) throw new Error('Hittade inte händelsen.');
-    if (del) { sh.deleteRow(rows[0]._row); return; }
+    if (del) { delRow_(sh, rows[0]._row); return; }
     const out = {};
     if (f.title != null) out.title = String(f.title).slice(0, 200);
     if (/^\d{4}-\d{2}-\d{2}$/.test(String(f.date || ''))) out.date = f.date;
