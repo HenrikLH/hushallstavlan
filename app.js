@@ -1564,16 +1564,16 @@ function inkopParts(){
  if(NY){sub='';
   h+='<div class="wsum"><div class="wsum-n"><b class="num">'+left.length+'</b><span>'+(left.length===1?'vara kvar':'varor kvar')+' · ca '+kr(shopCost(left))+'</span></div>'+
    (B?'<div class="wsum-m">Veckans mat '+kr(mealCost)+' av '+kr(B)+(mealCost>B?' · '+kr(mealCost-B)+' över':' · '+kr(B-mealCost)+' kvar')+'</div><div class="thin '+(mealCost>B?'bad':mealCost>B*.9?'warn':'')+'"><i style="width:'+Math.min(100,Math.round(mealCost/B*100))+'%"></i></div>':'')+'</div>'+
-   '<form class="add-row" data-form="shopQuick"><input class="field" name="name" placeholder="Lägg till vara" aria-label="Lägg till vara" autocomplete="off" enterkeyhint="done"><button class="add-go" aria-label="Lägg till">'+I.plus+'</button></form>'}
+   '<form class="add-row" data-form="shopQuick"><input class="field" name="name" placeholder="Lägg till vara" aria-label="Lägg till vara" autocomplete="off" enterkeyhint="done"><button type="button" class="add-go" data-act="quickGo" data-alt="shopAdd" aria-label="Lägg till">'+I.plus+'</button></form>'}
  else{h+='<div class="stats'+(B?' s4':'')+'"><div class="stat"><span class="fn">Hela listan</span><b>'+nv('s-total',total,'kr')+'</b></div><div class="stat"><span class="fn">Kvar att betala</span><b>'+nv('s-left',shopCost(left),'kr')+'</b></div><div class="stat"><span class="fn">Mat per portion</span><b>'+(port?kr(mealCost/port):'–')+'</b><span class="fn">'+port+' portioner</span></div>'+
   (B?'<div class="stat"><span class="fn">Matbudget '+kr(B)+'</span><b>'+(mealCost>B?'+'+kr(mealCost-B):kr(B-mealCost)+' kvar')+'</b><div class="thin '+(mealCost>B?'bad':mealCost>B*.9?'warn':'')+'"><i style="width:'+Math.min(100,Math.round(mealCost/B*100))+'%"></i></div></div>':'')+'</div>'}
  // Två knappar under siffrorna: hämta veckans varor och töm listan. Frågan visas i samma kort innan något händer
  // Håll in knappen för att bekräfta: en fyllning går över knappen och åtgärden körs när den är full
- h+='<div class="sh-tools"><button type="button" class="sh-btn" data-hold="shopImportYes" aria-label="Håll in för att hämta varor för '+esc(wk.toLowerCase())+'"><i class="sh-fill"></i><span class="sh-ic">'+I.imp+'</span><b>Hämta varor</b></button>'
+ h+='<div class="sh-tools"><button type="button" class="sh-btn" data-act="shopImportYes" aria-label="Uppdatera varorna för '+esc(wk.toLowerCase())+'"><span class="sh-ic">'+I.imp+'</span><b>Uppdatera varor</b></button>'
   +'<button type="button" class="sh-btn red" data-hold="shopEmptyYes"'+(all.length?'':' disabled')+' aria-label="Håll in för att tömma listan"><i class="sh-fill"></i><span class="sh-ic">'+I.trash+'</span><b>Töm listan</b></button></div>';
  h+='<div class="fchips" role="group" aria-label="Filter">'+groups.map(([k,l])=>'<button data-act="shopFilter" data-id="'+esc(k)+'" aria-pressed="'+(f2===k)+'">'+l+'</button>').join('')+'</div>';
  h+='<div class="split"><div class="col">';
- if(!all.length)h+='<div style="height:22px"></div>'+group(emptyCell('Listan är tom. Tryck på Hämta varor för veckans rätter, eller lägg till egna varor med plus.'));
+ if(!all.length)h+='<div style="height:22px"></div>'+group(emptyCell('Listan är tom. Tryck på Uppdatera varor för veckans rätter, eller lägg till egna varor med plus.'));
  const delar=CATS.map(c=>{const g=items.filter(i=>shopKat(i)===c).sort((a,b)=>(a.done-b.done)||(a.order||0)-(b.order||0));return g.length?gh(c,kr(shopCost(g)))+g.map(shopRow).join(''):''}).join('');
  if(delar)h+='<div class="g-one">'+group(delar)+'</div>';
  if(bought.length)h+='<div class="pills" style="padding:12px 16px 0 24px">'+(S.confirm==='clearShop'?'<span class="sub">Ta bort '+bought.length+' avbockade?</span><button class="tb red strong" data-act="clearShopYes">Ja, ta bort</button><button class="tb" data-act="confirmNo">Avbryt</button>':'<button class="tb red" data-act="clearShop">Rensa avbockade ('+bought.length+')</button>')+'</div>';
@@ -1612,11 +1612,16 @@ function shopImport(tyst,o){o=o||{};
  const shop=korg.rad.filter(x=>x.n>0).map(x=>({name:planVaraNamn(x),qty:MV.forp(x),price:shopPris(x),meals:[...new Set(list.filter(i=>i.b[x.k]).map(i=>lab[i.key]))]})).concat(dv);
  // Varorna visas direkt i telefonen och sparas i kalkylarket i bakgrunden via utkorgen, som när man bockar av
  const tag='plan'+vs.replace(/-/g,''),egna=D().shop.filter(i=>i.source==='egen'&&!i.done);
- S.data.shop=egna.concat(shop.map((x,n)=>({id:tag+'-'+n,name:x.name,qty:x.qty,price:x.price,meals:x.meals,cat:katGissa(x.name),done:false,source:'veckoplan'})));
- if(!tyst)S.shopFilter='alla';render();toast(o.msg||(tyst?'Inköpslistan uppdaterad':shop.length+' varor hämtade från veckosedeln'));
+ // Det som redan är köpt (samma vara och mängd) står kvar avbockat, och bara varor som saknas läggs till
+ const nyck=x=>String(x.name||'').toLowerCase()+'|'+String(x.qty||'').toLowerCase(),fore=new Set(D().shop.map(nyck)),kopt=new Set(D().shop.filter(i=>i.done&&i.source!=='egen').map(nyck));
+ const nya=shop.filter(x=>!fore.has(nyck(x))).length;
+ S.data.shop=egna.concat(shop.map((x,n)=>({id:tag+'-'+n,name:x.name,qty:x.qty,price:x.price,meals:x.meals,cat:katGissa(x.name),done:kopt.has(nyck(x)),source:'veckoplan'})));
+ if(!tyst)S.shopFilter='alla';render();toast(o.msg||(tyst?'Inköpslistan uppdaterad':nya?nya+(nya===1?' vara lades till':' varor lades till'):'Inköpslistan har redan alla varor'));
  // Recept från inspirationen eller receptbanken som saknas i kalkylarkets flik Recept skickas med
  const inSheet=new Set(D().recipes.map(r=>r.id)),recipes=o.force?[...new Set(rows.map(m=>m.recipe).filter(Boolean))].map(recipeById).filter(r=>r&&!inSheet.has(r.id)&&!isDessert(r)).slice(0,12).map(bankSnap):[];
- apiPost({action:'planSend',start:vs,end:ve,menu:rows.map(m=>({date:m.date,who:m.who,title:m.title,recipe:m.recipe||'',addon:m.addon||'',note:m.note||''})),shop,recipes,lager:korg.rest,settings:o.settings||{}})}
+ apiPost({action:'planSend',start:vs,end:ve,menu:rows.map(m=>({date:m.date,who:m.who,title:m.title,recipe:m.recipe||'',addon:m.addon||'',note:m.note||''})),shop,recipes,lager:korg.rest,settings:o.settings||{}});
+ // Kalkylarket skriver om alla veckans varor som inte köpta, så de köpta bockas av igen
+ S.data.shop.forEach(i=>{if(i.done&&i.source==='veckoplan')apiPost({action:'shopToggle',id:i.id,done:true})})}
 function shopRow(i){return'<div class="dr-wrap"><button class="dr-act del" data-act="shopDel" data-full="shopDel" data-id="'+esc(i.id)+'" aria-label="Ta bort '+esc(i.name)+'">'+I.trash+'<span>Ta bort</span></button>'+shopRowIn(i).replace('<div class="cell ck','<div class="cell dr-slide ck')+'</div>'}
 function shopRowIn(i){const chips=(i.offer?'<span class="chip offer">'+esc(i.store||'Erbjudande')+'</span>':'')+(i.meals||[]).map(m=>'<span class="chip">'+esc(m)+'</span>').join('')+(i.source==='egen'&&i.addedBy?'<span class="chip">'+esc(i.addedBy)+'</span>':'');
  return'<div class="cell ck'+(i.done?' done':'')+'"><input type="checkbox" class="check" data-act="shopToggle" data-id="'+esc(i.id)+'" aria-label="'+esc(i.name)+'"'+(i.done?' checked':'')+'><button class="grow rowbtn" data-act="shopToggle" data-id="'+esc(i.id)+'"><div class="title">'+esc(i.name)+'</div>'+((i.qty||chips)?'<div class="meta">'+(i.qty?'<span>'+esc(i.qty)+'</span>':'')+chips+'</div>':'')+'</button>'+(i.price?'<span class="val">'+kr(i.price)+'</span>':'<span class="val nopris">prisuppgift saknas</span>')+'</div>'}
@@ -1810,7 +1815,7 @@ V.uppgifter=function(){
  let h=head('Uppgifter',{sub:open.length+' att göra',tools:'<button class="ib plus" data-act="taskAdd" aria-label="Ny uppgift">'+I.plus+'</button>'});
  h+=segc('Visa','taskTab',[['lista','Lista'],['kalender','Kalender']],S.taskTab);
  if(S.taskTab==='kalender')return h+calView();
- if(NY)h+='<form class="add-row" data-form="taskQuick"><input class="field" name="title" placeholder="Ny uppgift" aria-label="Ny uppgift" autocomplete="off" enterkeyhint="done"><button class="add-go" aria-label="Lägg till">'+I.plus+'</button></form>';
+ if(NY)h+='<form class="add-row" data-form="taskQuick"><input class="field" name="title" placeholder="Ny uppgift" aria-label="Ny uppgift" autocomplete="off" enterkeyhint="done"><button type="button" class="add-go" data-act="quickGo" data-alt="taskAdd" aria-label="Lägg till">'+I.plus+'</button></form>';
  h+='<div class="split"><div class="col">';
  const td=g.filter(([,xs])=>xs.length).map(([l,xs])=>gh(l,xs.length,l==='Försenade'?'red':'')+xs.map(taskRow).join('')).join('');if(td)h+='<div class="g-one">'+group(td)+'</div>';
  if(!open.length)h+='<div style="height:22px"></div>'+group(emptyCell('Inget att göra just nu.'));
@@ -2112,7 +2117,7 @@ function renderOverlay(){
  if(k==='shopMore'){const st=settings(),vs=st.vecka_start,wk=isDate(vs)?'vecka '+isoWeek(parse(vs)):'veckan',n=D().shop.length;
   o.innerHTML='<div class="asheet'+enter+'" data-act="sheetBg"><div class="as-panel" role="dialog" aria-modal="true" aria-label="Inköpslistan"><div class="grp"><div class="ttl">'+(S.shopMoreC?'Ta bort alla '+n+' varor på listan? Du kan ångra i några sekunder.':'Inköpslistan')+'</div>'+
    (S.shopMoreC?'<button class="it red strong" data-act="shopMoreEmpty">'+I.trash+'Ja, töm listan</button>':
-    '<button class="it" data-act="shopMoreImp">'+I.imp+'Hämta varor för '+esc(wk)+'</button>'+(n?'<button class="it red" data-act="shopMoreAsk">'+I.trash+'Töm listan</button>':''))+
+    '<button class="it" data-act="shopMoreImp">'+I.imp+'Uppdatera varor för '+esc(wk)+'</button>'+(n?'<button class="it red" data-act="shopMoreAsk">'+I.trash+'Töm listan</button>':''))+
    '</div><div class="grp"><button class="it strong" data-act="sheetClose">Avbryt</button></div></div></div>';return}
  if(k==='rcpSheet'){const h=rcpSheetHtml(enter);if(!h){closeSheets();o.innerHTML='';o.dataset.k='';return}o.innerHTML=h;return}
  if(k==='rate'){const r=recipeById(S.rate&&S.rate.id);if(!r){closeSheets();o.innerHTML='';o.dataset.k='';return}
@@ -3270,6 +3275,8 @@ const ACT={
  shopMoreImp(){closeSheets();render();shopImport()},
  shopMoreEmpty(){closeSheets();S.shopMoreC=false;ACT.shopEmptyYes()},
  shopImportYes(){S.confirm=null;shopImport()},
+ // Plusknappen i snabbfältet: lägger till det som står i fältet, eller öppnar Ny vara/Ny uppgift när fältet är tomt
+ quickGo(_,el){const f=el.closest('form'),v=f&&f.querySelector('.field');if(v&&v.value.trim()){f.requestSubmit?f.requestSubmit():f.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));return}ACT[el.dataset.alt]()},
  shopToggle(id){const i=D().shop.find(x=>x.id===id);if(!i)return;const done=!i.done;checkAnim(id,done,()=>{mutate('shop',id,{done});apiPost({action:'shopToggle',id,done})})},
  clearShop(){S.confirm='clearShop';render()},
  clearShopYes(){S.confirm=null;leaveAnim('shopToggle',D().shop.filter(i=>i.done),()=>{S.data.shop=D().shop.filter(i=>!i.done);render();apiPost({action:'shopClearDone'})})},
