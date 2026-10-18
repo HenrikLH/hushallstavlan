@@ -3388,11 +3388,13 @@ document.addEventListener('scroll',plPin,{passive:true});document.addEventListen
 function vvFix(){const v=window.visualViewport,r=document.documentElement;if(!v)return;
  const a=document.activeElement,typing=a&&a.matches&&a.matches('input,textarea,select,[contenteditable]');
  let t=0,b=0;
- // när sidan dras ner förbi toppen blir offsetTop negativt; då ska menyerna ligga kvar
- if(!typing&&v.scale<1.01&&scrollY>=0){t=Math.max(0,Math.round(v.offsetTop));if(t<2)t=0;b=t}
+ // när sidan dras ner förbi toppen blir offsetTop negativt; då ska menyerna ligga kvar.
+ // Längst ner studsar sidan förbi botten och då blir offsetTop positivt en stund; det är ingen förskjutning att rätta
+ const botten=scrollY+innerHeight>=document.documentElement.scrollHeight-2;
+ if(!typing&&v.scale<1.01&&scrollY>=0&&!botten){t=Math.max(0,Math.round(v.offsetTop));if(t<2)t=0;b=t}
  r.style.setProperty('--vvt',t+'px');r.style.setProperty('--vvb',b+'px')}
 if(window.visualViewport){visualViewport.addEventListener('resize',vvFix);visualViewport.addEventListener('scroll',vvFix)}
-document.addEventListener('scroll',vvFix,{passive:true});document.addEventListener('focusin',vvFix);document.addEventListener('focusout',()=>[0,120,450].forEach(t=>setTimeout(vvFix,t)));
+document.addEventListener('scroll',vvFix,{passive:true});document.addEventListener('focusin',vvFix);document.addEventListener('touchend',()=>[0,200,600].forEach(t=>setTimeout(vvFix,t)),{passive:true});document.addEventListener('focusout',()=>[0,120,450].forEach(t=>setTimeout(vvFix,t)));
 document.addEventListener('touchcancel',()=>{if(SWP.el){swpSet(SWP.el,0,true);SWP.el=null}},{passive:true});
 // Ett svep ska inte räknas som ett tryck på raden, och ett tryck på en öppen rad stänger den
 document.addEventListener('click',e=>{const el=e.target.closest('.dr-slide');if(!el)return;
