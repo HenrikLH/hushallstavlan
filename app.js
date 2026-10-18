@@ -3598,5 +3598,14 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 setInterval(()=>{if(document.visibilityState==='visible')refresh(true)},30000);
 let lastDay=today();setInterval(()=>{if(today()!==lastDay){lastDay=today();render()}},30000);
 
+/* Ny version: en skärm som alltid står på (gemensam skärm, väggtavlan) laddar aldrig om sig själv och kan därför
+   ligga kvar på en gammal version. Var tionde minut, och när appen visas igen, jämförs app.js-versionen med den
+   som ligger ute. Finns en ny laddas sidan om, men bara när ingen håller på med något och inget väntar på att sparas */
+(function(){const mine=(document.querySelector('script[src*="app.js?v="]')||{}).src||'',v0=(mine.match(/app\.js\?v=(\d+)/)||[])[1];if(!v0)return;let latest=null;
+ const lugnt=()=>!OUTBOX.length&&!S.sheet&&!S.cook&&!S.recipe&&!S.shopAdd&&!S.taskAdd&&!document.querySelector('input:focus,textarea:focus')&&Date.now()-(A.touch||0)>120000;
+ const kolla=async()=>{try{const t=await (await fetch('./index.html',{cache:'no-store'})).text(),v=(t.match(/app\.js\?v=(\d+)/)||[])[1];if(v&&v!==v0)latest=v}catch(e){}
+  if(latest&&(lugnt()||document.visibilityState!=='visible'))location.reload()};
+ setInterval(kolla,600000);
+ document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')setTimeout(kolla,1500)})})();
 render();if(S.key)refresh();wake();
 })();
