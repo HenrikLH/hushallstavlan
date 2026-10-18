@@ -401,6 +401,9 @@ async function flush(){
    let j;
    try{const r=await fetch(CFG.api,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign(b,{key:S.key,by:b.by!=null?b.by:S.me}))});j=await r.json()}
    catch(e){S.sync='offline';S.pending=OUTBOX.length;render();return}   // inget nät: försök igen senare
+   // Kalkylarket tar en ändring i taget. Är det upptaget (låst av en annan ändring eller kalendersynken) har inget sparats,
+   // så ändringen ligger kvar i utkorgen och skickas igen om en stund i stället för att visa ett fel
+   if(!j.ok&&/lock|lås/i.test(j.error||'')&&(OUTBOX[0].forsok=(OUTBOX[0].forsok||0)+1)<=20){saveOutbox();S.sync='busy';renderStatus();flushing=false;setTimeout(flush,4000+2000*Math.min(OUTBOX[0].forsok,10));return}
    OUTBOX.shift();S.pending=OUTBOX.length;saveOutbox();
    if(!j.ok){S.postErr=j.error||'fel';toast(/okänd åtgärd/i.test(j.error||'')?'Det här kräver att Kod.gs uppdateras på datorn först.':'Ändringen sparades inte: '+(j.error||'Okänt fel'));if(!OUTBOX.length){S.sync='idle';flushing=false;refresh(true);return}continue}
    lastServer=j.data;
@@ -1576,7 +1579,7 @@ function inkopParts(){
   (B?'<div class="stat"><span class="fn">Matbudget '+kr(B)+'</span><b>'+(mealCost>B?'+'+kr(mealCost-B):kr(B-mealCost)+' kvar')+'</b><div class="thin '+(mealCost>B?'bad':mealCost>B*.9?'warn':'')+'"><i style="width:'+Math.min(100,Math.round(mealCost/B*100))+'%"></i></div></div>':'')+'</div>'}
  // Två knappar under siffrorna: hämta veckans varor och töm listan. Frågan visas i samma kort innan något händer
  // Håll in knappen för att bekräfta: en fyllning går över knappen och åtgärden körs när den är full
- h+='<div class="sh-tools"><button type="button" class="sh-btn" data-act="shopImportYes" aria-label="Uppdatera varorna för '+esc(wk.toLowerCase())+'"><span class="sh-ic">'+I.imp+'</span><b>Uppdatera varor</b></button>'
+ h+='<div class="sh-tools"><button type="button" class="sh-btn" data-hold="shopImportYes" aria-label="Håll in för att uppdatera varorna för '+esc(wk.toLowerCase())+'"><i class="sh-fill"></i><span class="sh-ic">'+I.imp+'</span><b>Uppdatera varor</b></button>'
   +'<button type="button" class="sh-btn red" data-hold="shopEmptyYes"'+(all.length?'':' disabled')+' aria-label="Håll in för att tömma listan"><i class="sh-fill"></i><span class="sh-ic">'+I.trash+'</span><b>Töm listan</b></button></div>';
  h+='<div class="fchips" role="group" aria-label="Filter">'+groups.map(([k,l])=>'<button data-act="shopFilter" data-id="'+esc(k)+'" aria-pressed="'+(f2===k)+'">'+l+'</button>').join('')+'</div>';
  h+='<div class="split"><div class="col">';
@@ -3335,7 +3338,7 @@ const ACT={
   el.classList.add('holding');h={el,x:e.clientX,y:e.clientY,t:setTimeout(()=>{const a=el.dataset.hold;stop();fired=Date.now();try{navigator.vibrate&&navigator.vibrate(15)}catch(x){}ACT[a]&&ACT[a](el.dataset.id)},T)}});
  document.addEventListener('pointermove',e=>{if(h&&Math.hypot(e.clientX-h.x,e.clientY-h.y)>12)stop()});
  ['pointerup','pointercancel','scroll'].forEach(k=>document.addEventListener(k,stop,true));
- document.addEventListener('click',e=>{const el=e.target.closest('[data-hold]');if(el&&Date.now()-fired>800)toast('Håll in knappen för att '+({shopEmptyYes:'tömma listan',weekDelYes:'bekräfta'}[el.dataset.hold]||'hämta varorna'))});
+ document.addEventListener('click',e=>{const el=e.target.closest('[data-hold]');if(el&&Date.now()-fired>800)toast('Håll in knappen för att '+({shopEmptyYes:'tömma listan',weekDelYes:'bekräfta',shopImportYes:'uppdatera varorna'}[el.dataset.hold]||'bekräfta'))});
  document.addEventListener('contextmenu',e=>{if(e.target.closest('[data-hold]'))e.preventDefault()})})();
 /* Håll in en rätt på veckosedeln för att låsa den: ett streck i accentfärgen ritas runt rätten (eller bilden) på 1 s.
    Släpper man tidigt går strecket tillbaka. En låst rätt låses upp på samma sätt, då backar strecket. Rör man fingret avbryts det */
