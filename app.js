@@ -564,7 +564,8 @@ function setupHtml(){return'<form class="setup" data-form="setup"><h1 class="lt"
 /* Byggstenar */
 const gearBtn='<button class="ib" data-act="settings" aria-label="Inställningar">'+I.gear+'</button>';
 // Ny design: initialen i personens färg öppnar Inställningar, så att man ser vem enheten är inställd på
-const meBtn=()=>people().includes(S.me)?'<button class="ib me-av '+pcls(S.me)+'" data-act="settings" aria-label="Inställningar, '+esc(S.me)+'"><span>'+esc(S.me.slice(0,1).toUpperCase())+'</span></button>':gearBtn;
+// Gemensam skärm visar ett G i stället för kugghjulet
+const meBtn=()=>people().includes(S.me)?'<button class="ib me-av '+pcls(S.me)+'" data-act="settings" aria-label="Inställningar, '+esc(S.me)+'"><span>'+esc(S.me.slice(0,1).toUpperCase())+'</span></button>':'<button class="ib me-av pg" data-act="settings" aria-label="Inställningar, gemensam skärm"><span>G</span></button>';
 function head(title,o){o=o||{};NB.title=title;
  return'<header class="head">'+(o.eyebrow?'<div class="eyebrow">'+o.eyebrow+'</div>':'')+'<div class="head-row"><h1 class="lt" id="lt">'+esc(title)+'</h1><div class="tools">'+(o.tools||'')+(NY?meBtn():gearBtn)+'</div></div>'+(o.sub?'<div class="sub">'+o.sub+'</div>':'')+'</header>'}
 const sh=(l,r,cls)=>'<div class="sh'+(cls?' '+cls:'')+'"><span>'+l+'</span>'+(r!=null&&r!==''?'<span class="r">'+r+'</span>':'')+'</div>';
@@ -692,7 +693,7 @@ function wallBoard(){
   '<div class="wk-sub">Hemmet</div><div class="brooms">'+roomHealth().map(r=>'<div class="'+healthCls(r.score)+'"><span>'+esc(r.room)+'</span><i><b style="width:'+Math.round(r.score*100)+'%"></b></i></div>').join('')+'</div>');
  H.upg=widget('uppgifter','btasks',I.list,'Uppgifter',d.tasks.filter(x=>!x.done).length+' kvar',tasks.length?'<div class="wl">'+tasks.map(taskRow).join('')+'</div>':'<div class="wempty">Inget att göra.</div>');
  const L=layout(true,WALL_DEF);
- let h='<div class="board'+(S.arrange?' arranging':'')+'"><div class="board-gear">'+gearBtn+'</div>';
+ let h='<div class="board'+(S.arrange?' arranging':'')+'"><div class="board-gear">'+(NY?meBtn():gearBtn)+'</div>';
  h+='<div class="bcol bhero">'+heroHtml()+wallWx()+'</div>';
  L.cols.forEach((c,ci)=>{h+='<div class="bcol" data-col="'+ci+'">'+boxRow(c.filter(id=>H[id]),true,H,L)+'</div>'});
  return h+'</div>'+arrangeFoot(L,true)}
