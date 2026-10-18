@@ -555,6 +555,8 @@ html.ny .chip.lk::before{display:none}
 .sw-row .meta{font-size:13px;line-height:18px}
 .sw-row.on{background:color-mix(in srgb,var(--accent) 7%,var(--surface))}
 .sw-row[hidden]{display:none}
+.sw-row .meta{display:block}.sw-row .sw-l1{display:flex;flex-wrap:wrap;align-items:center;gap:2px 8px;margin:2px 0 1px}
+.pk-info{margin:14px 16px 0;text-align:center}.pk-search{margin-top:10px}
 .sw-search{margin:0 16px 10px}
 .sw-search input{width:100%;height:38px;border-radius:10px;border:0;background:var(--fill);padding:0 12px;font-size:17px;color:var(--ink)}
 .sw-info{margin:14px 16px 0;text-align:center}
@@ -706,6 +708,7 @@ html.ny .chip.lk::before{display:none}
 .au-btn:disabled{color:var(--ink-3)}
 .au-pos{white-space:nowrap;margin-left:auto;font-size:12px;color:var(--ink-3)}
 .au-c.locked{box-shadow:inset 3px 0 0 var(--accent)}
+.ic-inl{width:14px;height:14px;vertical-align:-2px}
 .au-dag{padding:10px 16px 0;font-size:13px;font-weight:600;color:var(--ink-2);text-transform:uppercase;letter-spacing:.3px}
 .au-rest{gap:12px}.au-dn{width:64px;flex:none;font-size:13px;font-weight:600;color:var(--ink-2);text-transform:uppercase;letter-spacing:.3px}
 .au-rest .grow{font-size:15px}
@@ -1727,11 +1730,11 @@ html.ny .ws-card .wk-new{margin:0;width:100%;height:44px;border-radius:0 0 14px 
 <div id="toast" hidden class="toast" role="status"></div>
 <div id="undo" hidden class="toast undo" role="status"><span class="ud-t"></span><button type="button" class="ud-b" data-act="shopUndo">Ångra</button></div>
 <script src="config.js?v=37"></script>
-<script src="matvaror.js?v=5"></script>
+<script src="matvaror.js?v=6"></script>
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=140"></script>
+<script src="app.js?v=141"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
