@@ -379,7 +379,7 @@ function delStart(items,msg){delCommit();if(!items.length)return;const ids=new S
 function undoHide(){const u=document.getElementById('undo');if(u)u.hidden=true}
 addEventListener('visibilitychange',()=>{if(document.hidden)delCommit()});
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>t.hidden=true,2800)}
-function setData(d){if(d&&Array.isArray(d.menu))d.menu=d.menu.filter(m=>!(m&&!m.recipe&&/^ledig$/i.test(m.title||'')));if(d&&DEL.items&&Array.isArray(d.shop)){const ids=new Set(DEL.items.map(x=>x.id));d.shop=d.shop.filter(x=>!ids.has(x.id))}S.data=d;S.lastSync=new Date();S.error='';try{lsSet('cache',JSON.stringify(d))}catch(e){}}
+function setData(d){if(d&&Array.isArray(d.menu))d.menu=d.menu.filter(m=>!(m&&!m.recipe&&/^ledig$/i.test(m.title||'')));if(d&&DEL.items&&Array.isArray(d.shop)){const ids=new Set(DEL.items.map(x=>x.id));d.shop=d.shop.filter(x=>!ids.has(x.id))}S.data=d;if(window.MatVaror&&d&&d.settings)MatVaror.setPriser(parseJ(d.settings.priser,{}));S.lastSync=new Date();S.error='';try{lsSet('cache',JSON.stringify(d))}catch(e){}}
 async function apiGet(){
  const r=await fetch(CFG.api+'?key='+encodeURIComponent(S.key)+'&t='+Date.now(),{cache:'no-store'});
  const j=await r.json();if(!j.ok)throw new Error(j.error||'Okänt fel');return j.data}
@@ -875,7 +875,8 @@ function doSwap(r){const sw=S.swap;if(!sw)return;if(!navigator.onLine){toast('At
  S.confirm=null;closeSheets();A.user=Date.now();render();
  const rec=r?{id:r.id,group:r.group,who:r.who,title:r.title,portions:r.portions,min:r.min,kr:r.kr,protein:r.protein,freezes:r.freezes,course:r.course,why:r.why,groups:r.groups,steps:r.steps,tips:r.tips}:null;
  apiPost({action:'menuSwap',date:m.date,who:m.who,title:m.title,recipe:m.recipe||'',rec});
- toast(r?'Bytt till '+r.title+'. Inköpslistan uppdateras.':'Rätten är borttagen')}
+ // Kalkylarket lägger receptets rader utan pris i Inköp vid ett byte; listan räknas om från veckosedeln så att alla varor får pris och slås ihop
+ shopImport(true,{msg:r?'Bytt till '+r.title+'. Inköpslistan uppdateras.':'Rätten är borttagen'})}
 /* Veckan: rätterna indelade i Storkok, Vardag och Helg i stället för dag för dag */
 function weekDishes(){const d=D(),st=settings(),seen=new Set(),out=[];
  const inV=m=>!isDate(st.vecka_start)||!isDate(st.vecka_slut)||!isDate(m.date)||(m.date>=st.vecka_start&&m.date<=st.vecka_slut);
@@ -990,9 +991,11 @@ function matWeek(){
   for(let i=0;i<nTom;i++)vd+=tom(g);
   if(g==='Storkok'&&st.storkok_not&&list.length)vd+='<div class="gh-foot">'+esc(st.storkok_not)+'</div>'});
  const dr=weekDessert();
- vd+=gh('Efterrätt','Valfri')+(dr?'<div class="cell dess-c"><button class="grow dess-b" data-act="recipe" data-id="'+esc(dr.id)+'">'+dishThumb(dr,dr.title)+'<span class="grow"><span class="title">'+esc(dr.title)+'</span><span class="meta">'+[dr.portions?dr.portions+' portioner':'',dr.min?dr.min+' min':''].filter(Boolean).join(' · ')+'</span></span></button>'+
+ // Efterrätten låses som rätterna (håll in). Bara en låst efterrätt kommer med när man uppdaterar varorna
+ const dl=dr&&weekLocks(st.vecka_start).has(dr.id);
+ vd+=gh('Efterrätt','Valfri')+(dr?'<div class="cell dess-c lk-rad'+(dl?' lk-on':'')+'" data-lk data-hold-lock="'+esc(dr.id)+'" data-lst="'+(dl?1:0)+'"><span class="lk-ring" aria-hidden="true"></span><span class="lk-bd" aria-hidden="true">'+I.lock+'</span><button class="grow dess-b" data-act="recipe" data-id="'+esc(dr.id)+'">'+dishThumb(dr,dr.title)+'<span class="grow"><span class="title">'+esc(dr.title)+'</span><span class="meta">'+[dr.portions?dr.portions+' portioner':'',dr.min?dr.min+' min':''].filter(Boolean).join(' · ')+'</span></span></button>'+
   '<button class="dess-x" data-act="dessClear" aria-label="Ta bort efterrätten från veckosedeln">'+I.x+'</button></div>':
-  '<button class="cell dess-empty" data-act="dessPick"><span class="dess-plus" aria-hidden="true">'+I.plus+'</span><span class="grow"><span class="title">Lägg till en efterrätt</span><span class="meta">Varorna kommer med när du hämtar varor</span></span></button>');
+  '<button class="cell dess-empty" data-act="dessPick"><span class="dess-plus" aria-hidden="true">'+I.plus+'</span><span class="grow"><span class="title">Lägg till en efterrätt</span><span class="meta">Lås den för att få med varorna</span></span></button>');
  h+='<div class="g-one">'+group(vd)+'</div>';
  return h}
 /* ---------- Valfritt protein (kategorin Kött/Veg) ----------
@@ -1214,6 +1217,8 @@ function planView(){const C=planCalc(),{P,B}=C,mon=parse(P.vecka),sun=parse(addD
  if(hemma.length)h+='<div class="foot">Finns hemma och används: '+esc(hemma.map(x=>x.k).join(', '))+'.</div>';
  h+='<div class="pl-send"><button class="btn-fill" data-act="planSend"'+(C.klar?'':' disabled')+'>Skicka till veckosedeln</button><div class="foot">'+(C.klar?'Rätterna läggs på veckosedeln och varorna i inköpslistan.':'Välj en rätt till varje måltid först.')+' Priserna är ungefärliga.</div></div>';
  return h}
+// Varor utan känt pris får inget pris på inköpslistan (där står "prisuppgift saknas")
+const shopPris=x=>x.okand?null:Math.round(x.kr);
 const planVaraNamn=x=>x.namn&&x.namn.length===1?cap(x.namn[0]):cap(x.k)+(x.namn&&x.namn.length?' ('+x.namn.join(', ')+')':'');
 function isoWeek(d){const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));const n=t.getUTCDay()||7;t.setUTCDate(t.getUTCDate()+4-n);const y=new Date(Date.UTC(t.getUTCFullYear(),0,1));return Math.ceil(((t-y)/864e5+1)/7)}
 function planSend(){const C=planCalc();if(!C.klar)return;const{P}=C,day=p=>addDays(P.vecka,p.dag),me=S.me||'';
@@ -1225,7 +1230,7 @@ function planSend(){const C=planCalc();if(!C.klar)return;const{P}=C,day=p=>addDa
  menu.sort((a,b)=>a.date.localeCompare(b.date));
  // Proteinet får namnet på den som ska äta det
  const vem={};C.valda.forEach(p=>{const pv=protVal(p.id,recipeById(P.val[p.id]));if(!pv)return;[[pv.k,kottPerson()],[pv.v,vegPerson()]].forEach(([id,n])=>{const k=MV.vara(protById(id).vara).k;(vem[k]||(vem[k]=new Set)).add(n)})});
- const shop=C.korg.rad.filter(x=>x.n>0).map(x=>({name:planVaraNamn(x)+(vem[x.k]?' – '+[...vem[x.k]].join(' och '):''),qty:MV.forp(x),price:Math.round(x.kr),
+ const shop=C.korg.rad.filter(x=>x.n>0).map(x=>({name:planVaraNamn(x)+(vem[x.k]?' – '+[...vem[x.k]].join(' och '):''),qty:MV.forp(x),price:shopPris(x),
   meals:C.valda.filter(p=>planBehov(recipeById(P.val[p.id]),p)[x.k]).map(p=>lab[p.id])}));
  const inSheet=new Set(D().recipes.map(r=>r.id)),recipes=C.valda.map(p=>recipeById(P.val[p.id])).filter(r=>!inSheet.has(r.id)).map(bankSnap);
  const sun=addDays(P.vecka,6),m=parse(P.vecka),s2=parse(sun);
@@ -1401,7 +1406,7 @@ function portSend(){const C=portCalc();if(!C.klar)return;const{P}=C,me=S.me||'',
   else if(x.t==='macka'||x.t==='auto')menu.push({date,who:'Gemensam',title:'Macka',recipe:'',addon:'',note:''})});
  menu.sort((a,b)=>a.date.localeCompare(b.date));
  const vem={};C.valda.forEach(p=>{const pv=protVal(p.id,recipeById(P.val[p.id]));if(!pv)return;[[pv.k,kottPerson()],[pv.v,vegPerson()]].forEach(([id,n])=>{const k=MV.vara(protById(id).vara).k;(vem[k]||(vem[k]=new Set)).add(n)})});
- const shop=C.korg.rad.filter(x=>x.n>0).map(x=>({name:planVaraNamn(x)+(vem[x.k]?' – '+[...vem[x.k]].join(' och '):''),qty:MV.forp(x),price:Math.round(x.kr),
+ const shop=C.korg.rad.filter(x=>x.n>0).map(x=>({name:planVaraNamn(x)+(vem[x.k]?' – '+[...vem[x.k]].join(' och '):''),qty:MV.forp(x),price:shopPris(x),
   meals:C.valda.filter(p=>planBehov(recipeById(P.val[p.id]),C.Q(p))[x.k]).map(p=>lab[p.id])}));
  PLANP=null;
  const inSheet=new Set(D().recipes.map(r=>r.id)),recipes=C.valda.map(p=>recipeById(P.val[p.id])).filter(r=>!inSheet.has(r.id)).map(bankSnap);
@@ -1534,7 +1539,7 @@ function autoSend(){const C=autoCalc(),{P}=C,pl=P.plan,vd=d=>addDays(P.vecka,d),
   else menu.push({date,who:'Gemensam',title:'Macka',recipe:'',addon:'',note:''})});
  menu.sort((a,b)=>a.date.localeCompare(b.date));
  const vem={};items.forEach(x=>{if(x.key==='sk'||x.key==='sv')return;const pv=protVal(x.key,recipeById(x.id));if(!pv)return;[[pv.k,kottPerson()],[pv.v,vegPerson()]].forEach(([id,n])=>{const k=MV.vara(protById(id).vara).k;(vem[k]||(vem[k]=new Set)).add(n)})});
- const shop=C.E.korg.rad.filter(x=>x.n>0).map(x=>({name:planVaraNamn(x)+(vem[x.k]?' – '+[...vem[x.k]].join(' och '):''),qty:MV.forp(x),price:Math.round(x.kr),meals:items.filter(i=>C.X.behov(i)[x.k]).map(i=>lab[i.key])}));
+ const shop=C.E.korg.rad.filter(x=>x.n>0).map(x=>({name:planVaraNamn(x)+(vem[x.k]?' – '+[...vem[x.k]].join(' och '):''),qty:MV.forp(x),price:shopPris(x),meals:items.filter(i=>C.X.behov(i)[x.k]).map(i=>lab[i.key])}));
  PLANP=null;
  const inSheet=new Set(D().recipes.map(r=>r.id)),recipes=items.map(x=>recipeById(x.id)).filter(r=>!inSheet.has(r.id)).map(bankSnap);
  const m=parse(P.vecka),s2=parse(sun);
@@ -1567,16 +1572,16 @@ function inkopParts(){
  if(NY){sub='';
   h+='<div class="wsum"><div class="wsum-n"><b class="num">'+left.length+'</b><span>'+(left.length===1?'vara kvar':'varor kvar')+' · ca '+kr(shopCost(left))+'</span></div>'+
    (B?'<div class="wsum-m">Veckans mat '+kr(mealCost)+' av '+kr(B)+(mealCost>B?' · '+kr(mealCost-B)+' över':' · '+kr(B-mealCost)+' kvar')+'</div><div class="thin '+(mealCost>B?'bad':mealCost>B*.9?'warn':'')+'"><i style="width:'+Math.min(100,Math.round(mealCost/B*100))+'%"></i></div>':'')+'</div>'+
-   '<form class="add-row" data-form="shopQuick"><input class="field" name="name" placeholder="Lägg till vara" aria-label="Lägg till vara" autocomplete="off" enterkeyhint="done"><button class="add-go" aria-label="Lägg till">'+I.plus+'</button></form>'}
+   '<form class="add-row" data-form="shopQuick"><input class="field" name="name" placeholder="Lägg till vara" aria-label="Lägg till vara" autocomplete="off" enterkeyhint="done"><button type="button" class="add-go" data-act="quickGo" data-alt="shopAdd" aria-label="Lägg till">'+I.plus+'</button></form>'}
  else{h+='<div class="stats'+(B?' s4':'')+'"><div class="stat"><span class="fn">Hela listan</span><b>'+nv('s-total',total,'kr')+'</b></div><div class="stat"><span class="fn">Kvar att betala</span><b>'+nv('s-left',shopCost(left),'kr')+'</b></div><div class="stat"><span class="fn">Mat per portion</span><b>'+(port?kr(mealCost/port):'–')+'</b><span class="fn">'+port+' portioner</span></div>'+
   (B?'<div class="stat"><span class="fn">Matbudget '+kr(B)+'</span><b>'+(mealCost>B?'+'+kr(mealCost-B):kr(B-mealCost)+' kvar')+'</b><div class="thin '+(mealCost>B?'bad':mealCost>B*.9?'warn':'')+'"><i style="width:'+Math.min(100,Math.round(mealCost/B*100))+'%"></i></div></div>':'')+'</div>'}
  // Två knappar under siffrorna: hämta veckans varor och töm listan. Frågan visas i samma kort innan något händer
  // Håll in knappen för att bekräfta: en fyllning går över knappen och åtgärden körs när den är full
- h+='<div class="sh-tools"><button type="button" class="sh-btn" data-hold="shopImportYes" aria-label="Håll in för att hämta varor för '+esc(wk.toLowerCase())+'"><i class="sh-fill"></i><span class="sh-ic">'+I.imp+'</span><b>Hämta varor</b></button>'
+ h+='<div class="sh-tools"><button type="button" class="sh-btn" data-act="shopImportYes" aria-label="Uppdatera varorna för '+esc(wk.toLowerCase())+'"><span class="sh-ic">'+I.imp+'</span><b>Uppdatera varor</b></button>'
   +'<button type="button" class="sh-btn red" data-hold="shopEmptyYes"'+(all.length?'':' disabled')+' aria-label="Håll in för att tömma listan"><i class="sh-fill"></i><span class="sh-ic">'+I.trash+'</span><b>Töm listan</b></button></div>';
  h+='<div class="fchips" role="group" aria-label="Filter">'+groups.map(([k,l])=>'<button data-act="shopFilter" data-id="'+esc(k)+'" aria-pressed="'+(f2===k)+'">'+l+'</button>').join('')+'</div>';
  h+='<div class="split"><div class="col">';
- if(!all.length)h+='<div style="height:22px"></div>'+group(emptyCell('Listan är tom. Tryck på Hämta varor för veckans rätter, eller lägg till egna varor med plus.'));
+ if(!all.length)h+='<div style="height:22px"></div>'+group(emptyCell('Listan är tom. Tryck på Uppdatera varor för veckans rätter, eller lägg till egna varor med plus.'));
  const delar=CATS.map(c=>{const g=items.filter(i=>shopKat(i)===c).sort((a,b)=>(a.done-b.done)||(a.order||0)-(b.order||0));return g.length?gh(c,kr(shopCost(g)))+g.map(shopRow).join(''):''}).join('');
  if(delar)h+='<div class="g-one">'+group(delar)+'</div>';
  if(bought.length)h+='<div class="pills" style="padding:12px 16px 0 24px">'+(S.confirm==='clearShop'?'<span class="sub">Ta bort '+bought.length+' avbockade?</span><button class="tb red strong" data-act="clearShopYes">Ja, ta bort</button><button class="tb" data-act="confirmNo">Avbryt</button>':'<button class="tb red" data-act="clearShop">Rensa avbockade ('+bought.length+')</button>')+'</div>';
@@ -1604,25 +1609,33 @@ function shopImport(tyst,o){o=o||{};
  delCommit(x=>x.source==='egen');
  for(let i=OUTBOX.length-1;i>=(flushing?1:0);i--)if(OUTBOX[i].action==='shopDelete'&&/^plan/.test(String(OUTBOX[i].id||''))||OUTBOX[i].action==='planSend')OUTBOX.splice(i,1);
  S.pending=OUTBOX.length;saveOutbox();const st=settings(),vs=st.vecka_start,ve=st.vecka_slut;if(!isDate(vs)||!isDate(ve)){toast('Veckosedeln har ingen vecka än.');return}
- const rows=D().menu.filter(m=>isDate(m.date)&&m.date>=vs&&m.date<=ve),lab={},list=[];
- rows.forEach(m=>{const r=m.recipe&&recipeById(m.recipe);if(!r||m.who==='Borta')return;const sk=isStorkok(r),n=dishPort(m,r);
+ // Bara låsta rätter ger varor på inköpslistan. Listan räknas om från dem, så en borttagen eller upplåst rätt tar bara bort sin egen del av en vara
+ const rows=D().menu.filter(m=>isDate(m.date)&&m.date>=vs&&m.date<=ve),lab={},list=[],L=weekLocks(vs);
+ rows.forEach(m=>{const r=m.recipe&&recipeById(m.recipe);if(!r||m.who==='Borta'||!L.has(r.id))return;const sk=isStorkok(r),n=dishPort(m,r);
   const pa=protFromAddon(m.addon),rr=pa?protRecipe(r,{r:r.id,k:pa.k,v:pa.v}):r;
   const key='m'+list.length;const dw=parse(m.date).getDay();lab[key]=sk?(m.who==='Vegetariskt'?'Storkok veg':m.who==='Henrik'?'Storkok kött':'Storkok'):dw>=1&&dw<=4?'Vardag':'Helg';list.push({key,b:MV.behov(rr,n/(Number(r.portions)||2))})});
- // Efterrätten tas med som receptets egna rader, utan pris, eftersom bakvaror som färskost och digestivekex inte finns bland basvarorna
- const dr=weekDessert(),dv=dr?dessertVaror(dr,1,D().shop.filter(i=>i.source==='egen')).map(x=>({name:x.name,qty:x.qty,price:null,meals:['Efterrätt']})):[];
- if(!list.length&&!dv.length&&!o.force){toast('Veckosedeln har inga rätter med recept.');return}
+ // Efterrätten tas med (bara när den är låst) som receptets egna rader, utan pris, eftersom bakvaror som färskost och digestivekex inte finns bland basvarorna
+ const dr=weekDessert(),dv=dr&&L.has(dr.id)?dessertVaror(dr,1,D().shop.filter(i=>i.source==='egen')).map(x=>({name:x.name,qty:x.qty,price:null,meals:['Efterrätt']})):[];
  const korg=MV.korg(list.map(x=>x.b),planLager());
- const shop=korg.rad.filter(x=>x.n>0).map(x=>({name:planVaraNamn(x),qty:MV.forp(x),price:Math.round(x.kr),meals:[...new Set(list.filter(i=>i.b[x.k]).map(i=>lab[i.key]))]})).concat(dv);
+ const shop=korg.rad.filter(x=>x.n>0).map(x=>({name:planVaraNamn(x),qty:MV.forp(x),price:shopPris(x),meals:[...new Set(list.filter(i=>i.b[x.k]).map(i=>lab[i.key]))]})).concat(dv);
  // Varorna visas direkt i telefonen och sparas i kalkylarket i bakgrunden via utkorgen, som när man bockar av
- const tag='plan'+vs.replace(/-/g,''),egna=D().shop.filter(i=>i.source==='egen'&&!i.done);
- S.data.shop=egna.concat(shop.map((x,n)=>({id:tag+'-'+n,name:x.name,qty:x.qty,price:x.price,meals:x.meals,cat:katGissa(x.name),done:false,source:'veckoplan'})));
- if(!tyst)S.shopFilter='alla';render();toast(o.msg||(tyst?'Inköpslistan uppdaterad':shop.length+' varor hämtade från veckosedeln'));
+ // Egna varor (inskrivna för hand) rörs aldrig, inte heller de avbockade
+ const tag='plan'+vs.replace(/-/g,''),egna=D().shop.filter(i=>i.source==='egen');
+ // Det som redan är köpt (samma vara och mängd) står kvar avbockat, och bara varor som saknas läggs till
+ const nyck=x=>String(x.name||'').toLowerCase()+'|'+String(x.qty||'').toLowerCase(),fore=new Set(D().shop.map(nyck)),kopt=new Set(D().shop.filter(i=>i.done&&i.source!=='egen').map(nyck));
+ const nya=shop.filter(x=>!fore.has(nyck(x))).length,nu=new Set(shop.map(nyck)),borta=D().shop.filter(i=>i.source!=='egen'&&!nu.has(nyck(i))).length;
+ S.data.shop=egna.concat(shop.map((x,n)=>({id:tag+'-'+n,name:x.name,qty:x.qty,price:x.price,meals:x.meals,cat:katGissa(x.name),done:kopt.has(nyck(x)),source:'veckoplan'})));
+ if(!tyst)S.shopFilter='alla';render();toast(o.msg||(tyst?'Inköpslistan uppdaterad':!list.length&&!dv.length?'Inga låsta rätter. Lås rätterna du vill handla till.':nya||borta?[nya?nya+' tillagda':'',borta?borta+' borttagna':''].filter(Boolean).join(', '):'Inköpslistan stämmer med veckosedeln'));
  // Recept från inspirationen eller receptbanken som saknas i kalkylarkets flik Recept skickas med
  const inSheet=new Set(D().recipes.map(r=>r.id)),recipes=o.force?[...new Set(rows.map(m=>m.recipe).filter(Boolean))].map(recipeById).filter(r=>r&&!inSheet.has(r.id)&&!isDessert(r)).slice(0,12).map(bankSnap):[];
- apiPost({action:'planSend',start:vs,end:ve,menu:rows.map(m=>({date:m.date,who:m.who,title:m.title,recipe:m.recipe||'',addon:m.addon||'',note:m.note||''})),shop,recipes,lager:korg.rest,settings:o.settings||{}})}
+ apiPost({action:'planSend',start:vs,end:ve,menu:rows.map(m=>({date:m.date,who:m.who,title:m.title,recipe:m.recipe||'',addon:m.addon||'',note:m.note||''})),shop,recipes,lager:korg.rest,settings:o.settings||{}});
+ // Kalkylarket skriver om alla veckans varor som inte köpta, så de köpta bockas av igen
+ S.data.shop.forEach(i=>{if(i.done&&i.source==='veckoplan')apiPost({action:'shopToggle',id:i.id,done:true})});
+ // Kalkylarket tar bort avbockade egna varor när veckans varor skickas, så de läggs tillbaka avbockade
+ egna.filter(i=>i.done).forEach((i,n)=>{i.id='tmp'+Date.now()+'-k'+n;apiPost({action:'shopAdd',name:i.name,qty:i.qty||'',cat:i.cat||'Övrigt',price:i.price==null?'':i.price});apiPost({action:'shopToggle',id:i.id,done:true})})}
 function shopRow(i){return'<div class="dr-wrap"><button class="dr-act del" data-act="shopDel" data-full="shopDel" data-id="'+esc(i.id)+'" aria-label="Ta bort '+esc(i.name)+'">'+I.trash+'<span>Ta bort</span></button>'+shopRowIn(i).replace('<div class="cell ck','<div class="cell dr-slide ck')+'</div>'}
 function shopRowIn(i){const chips=(i.offer?'<span class="chip offer">'+esc(i.store||'Erbjudande')+'</span>':'')+(i.meals||[]).map(m=>'<span class="chip">'+esc(m)+'</span>').join('')+(i.source==='egen'&&i.addedBy?'<span class="chip">'+esc(i.addedBy)+'</span>':'');
- return'<div class="cell ck'+(i.done?' done':'')+'"><input type="checkbox" class="check" data-act="shopToggle" data-id="'+esc(i.id)+'" aria-label="'+esc(i.name)+'"'+(i.done?' checked':'')+'><button class="grow rowbtn" data-act="shopToggle" data-id="'+esc(i.id)+'"><div class="title">'+esc(i.name)+'</div>'+((i.qty||chips)?'<div class="meta">'+(i.qty?'<span>'+esc(i.qty)+'</span>':'')+chips+'</div>':'')+'</button><span class="val">'+(i.price?kr(i.price):'')+'</span></div>'}
+ return'<div class="cell ck'+(i.done?' done':'')+'"><input type="checkbox" class="check" data-act="shopToggle" data-id="'+esc(i.id)+'" aria-label="'+esc(i.name)+'"'+(i.done?' checked':'')+'><button class="grow rowbtn" data-act="shopToggle" data-id="'+esc(i.id)+'"><div class="title">'+esc(i.name)+'</div>'+((i.qty||chips)?'<div class="meta">'+(i.qty?'<span>'+esc(i.qty)+'</span>':'')+chips+'</div>':'')+'</button>'+(i.price?'<span class="val">'+kr(i.price)+'</span>':'<span class="val nopris">prisuppgift saknas</span>')+'</div>'}
 
 function scaled(r){const p=S.scale[r.id]||r.portions;return{p,f:p/r.portions}}
 const qtyText=(it,f)=>it.q!=null?fmtQ(it.q*f)+' '+(it.u||''):(it.u||'');
@@ -1813,7 +1826,7 @@ V.uppgifter=function(){
  let h=head('Uppgifter',{sub:open.length+' att göra',tools:'<button class="ib plus" data-act="taskAdd" aria-label="Ny uppgift">'+I.plus+'</button>'});
  h+=segc('Visa','taskTab',[['lista','Lista'],['kalender','Kalender']],S.taskTab);
  if(S.taskTab==='kalender')return h+calView();
- if(NY)h+='<form class="add-row" data-form="taskQuick"><input class="field" name="title" placeholder="Ny uppgift" aria-label="Ny uppgift" autocomplete="off" enterkeyhint="done"><button class="add-go" aria-label="Lägg till">'+I.plus+'</button></form>';
+ if(NY)h+='<form class="add-row" data-form="taskQuick"><input class="field" name="title" placeholder="Ny uppgift" aria-label="Ny uppgift" autocomplete="off" enterkeyhint="done"><button type="button" class="add-go" data-act="quickGo" data-alt="taskAdd" aria-label="Lägg till">'+I.plus+'</button></form>';
  h+='<div class="split"><div class="col">';
  const td=g.filter(([,xs])=>xs.length).map(([l,xs])=>gh(l,xs.length,l==='Försenade'?'red':'')+xs.map(taskRow).join('')).join('');if(td)h+='<div class="g-one">'+group(td)+'</div>';
  if(!open.length)h+='<div style="height:22px"></div>'+group(emptyCell('Inget att göra just nu.'));
@@ -2116,7 +2129,7 @@ function renderOverlay(){
  if(k==='shopMore'){const st=settings(),vs=st.vecka_start,wk=isDate(vs)?'vecka '+isoWeek(parse(vs)):'veckan',n=D().shop.length;
   o.innerHTML='<div class="asheet'+enter+'" data-act="sheetBg"><div class="as-panel" role="dialog" aria-modal="true" aria-label="Inköpslistan"><div class="grp"><div class="ttl">'+(S.shopMoreC?'Ta bort alla '+n+' varor på listan? Du kan ångra i några sekunder.':'Inköpslistan')+'</div>'+
    (S.shopMoreC?'<button class="it red strong" data-act="shopMoreEmpty">'+I.trash+'Ja, töm listan</button>':
-    '<button class="it" data-act="shopMoreImp">'+I.imp+'Hämta varor för '+esc(wk)+'</button>'+(n?'<button class="it red" data-act="shopMoreAsk">'+I.trash+'Töm listan</button>':''))+
+    '<button class="it" data-act="shopMoreImp">'+I.imp+'Uppdatera varor för '+esc(wk)+'</button>'+(n?'<button class="it red" data-act="shopMoreAsk">'+I.trash+'Töm listan</button>':''))+
    '</div><div class="grp"><button class="it strong" data-act="sheetClose">Avbryt</button></div></div></div>';return}
  if(k==='rcpSheet'){const h=rcpSheetHtml(enter);if(!h){closeSheets();o.innerHTML='';o.dataset.k='';return}o.innerHTML=h;return}
  if(k==='rate'){const r=recipeById(S.rate&&S.rate.id);if(!r){closeSheets();o.innerHTML='';o.dataset.k='';return}
@@ -3275,6 +3288,8 @@ const ACT={
  shopMoreImp(){closeSheets();render();shopImport()},
  shopMoreEmpty(){closeSheets();S.shopMoreC=false;ACT.shopEmptyYes()},
  shopImportYes(){S.confirm=null;shopImport()},
+ // Plusknappen i snabbfältet: lägger till det som står i fältet, eller öppnar Ny vara/Ny uppgift när fältet är tomt
+ quickGo(_,el){const f=el.closest('form'),v=f&&f.querySelector('.field');if(v&&v.value.trim()){f.requestSubmit?f.requestSubmit():f.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));return}ACT[el.dataset.alt]()},
  shopToggle(id){const i=D().shop.find(x=>x.id===id);if(!i)return;const done=!i.done;checkAnim(id,done,()=>{mutate('shop',id,{done});apiPost({action:'shopToggle',id,done})})},
  clearShop(){S.confirm='clearShop';render()},
  clearShopYes(){S.confirm=null;leaveAnim('shopToggle',D().shop.filter(i=>i.done),()=>{S.data.shop=D().shop.filter(i=>!i.done);render();apiPost({action:'shopClearDone'})})},
@@ -3342,7 +3357,7 @@ const ACT={
    if(x.lst?x.v<=0:x.v>=1){p.style.strokeDasharray=x.v+' 2';fired=Date.now();try{navigator.vibrate&&navigator.vibrate(15)}catch(e){}
     if(x.lst)k.classList.remove('lk-on');else k.classList.add('lk-on');end(false);weekLock(x.id);return}
    p.style.strokeDasharray=x.v+' 2';p.style.strokeOpacity=x.v<.002?0:1;x.raf=requestAnimationFrame(f)};x.raf=requestAnimationFrame(f)};
- document.addEventListener('pointerdown',e=>{if(e.button>0)return;const row=e.target.closest('[data-hold-lock]');if(!row||e.target.closest('.pl-step,.dr-byt,.dr-act,.dr-actl'))return;
+ document.addEventListener('pointerdown',e=>{if(e.button>0)return;const row=e.target.closest('[data-hold-lock]');if(!row||e.target.closest('.pl-step,.dr-byt,.dr-act,.dr-actl,.dess-x'))return;
   if(row.classList.contains('open')||row.classList.contains('openl'))return;end(true);
   const k=row.querySelector('[data-lk]')||row;h={row,k,id:row.dataset.holdLock,lst:k.classList.contains('lk-on'),x:e.clientX,y:e.clientY};const x=h;x.w=setTimeout(()=>{if(h===x)start(x)},WAIT)});
  document.addEventListener('pointermove',e=>{if(h&&Math.hypot(e.clientX-h.x,e.clientY-h.y)>10)end(true)},{passive:true});

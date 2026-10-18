@@ -80,13 +80,23 @@
   const SKAFFERI = /salt|peppar|olja|smör|vinäger|soja|buljong|tomatpuré|vatten|vitt vin|mjöl|jäst|senap|kryddor|krydda|spiskummin|kummin|oregano|kanel|timjan|paprikapulver|rökt paprika|chipotle|gurkmeja|garam|curry|chili|mejram|ingefära|vitlök|honung|sesam|kakao|vanilj|miso|sriracha|tahini|majsstärkelse|jalapeño|saffran|lingon|kokos(flingor|olja)|dadlar|jordnötssmör|majonnäs|socker|sirap/;
 
   const norm = n => String(n || '').toLowerCase().trim();
+  /* Priser som en schemalagd rutin hämtar från butikerna och sparar i kalkylarkets inställning "priser":
+     {"gul lök": {"kr": 22, "pkt": 1000}, "ricotta": {"kr": 32, "pkt": 250}}. Nyckeln är en basvara eller ett ingrediensnamn.
+     De går före priserna ovan, och ger pris åt ingredienser som annars saknar pris. */
+  let P = {};
+  function setPriser(p) { P = {}; if (p && typeof p === 'object') Object.keys(p).forEach(k => { const x = p[k]; if (x && Number(x.kr) > 0) P[norm(k)] = x; }); }
   function vara(n) {
     n = norm(n);
     if (SKAFFERI.test(n)) return null;
     const v = V.find(([, re]) => re.test(n));
-    if (!v) return { k: n, pkt: 1, kr: 20, gdl: 100, gst: 1, hall: 0, okand: true };
-    const [k, , pkt, kr, gdl, gst, hall] = v;
-    return { k, pkt, kr, gdl, gst, hall: !!hall };
+    if (!v) {
+      const x = P[n];
+      if (x) return { k: n, pkt: Number(x.pkt) || 1, kr: Number(x.kr), gdl: Number(x.gdl) || 100, gst: Number(x.gst) || 1, hall: !!x.hall };
+      // Okänd vara: 20 kr används bara när veckan räknas, inköpslistan visar "prisuppgift saknas"
+      return { k: n, pkt: 1, kr: 20, gdl: 100, gst: 1, hall: 0, okand: true };
+    }
+    const [k, , pkt, kr, gdl, gst, hall] = v, x = P[k];
+    return x ? { k, pkt: Number(x.pkt) || pkt, kr: Number(x.kr), gdl, gst, hall: !!hall } : { k, pkt, kr, gdl, gst, hall: !!hall };
   }
   // Mängd i varans egen enhet: gram, eller styck när förpackningen räknas i styck (pkt i små tal)
   function mangd(it, v) {
@@ -138,7 +148,7 @@
       rest[k] = (lager[k] || 0) - fran + (x.v.hall ? over : 0);
       if (!rest[k]) delete rest[k];
       if (!x.v.hall) svinn += over * perG;
-      rad.push({ k, n, kr: n * x.v.kr, fran, over, overKr: over * perG, hall: x.v.hall, namn: x.namn, m: x.m, pkt: x.v.pkt });
+      rad.push({ k, n, kr: n * x.v.kr, okand: !!x.v.okand, fran, over, overKr: over * perG, hall: x.v.hall, namn: x.namn, m: x.m, pkt: x.v.pkt });
     });
     return { kr, kostnad: forbrukat + svinn, forbrukat, svinn, rad, rest, antal: rad.filter(x => x.n).length };
   }
@@ -160,6 +170,6 @@
     const g = x.pkt >= 1000 && x.pkt % 1000 === 0 ? (x.pkt / 1000) + ' kg' : x.pkt + ' g';
     return x.n === 1 ? g : x.n + ' × ' + g;
   }
-  root.MatVaror = { V, vara, mangd, behov, korg, tillagg, forp };
+  root.MatVaror = { V, setPriser, vara, mangd, behov, korg, tillagg, forp };
 })(typeof window !== 'undefined' ? window : globalThis);
 if (typeof module !== 'undefined') module.exports = globalThis.MatVaror;
