@@ -532,7 +532,9 @@ function doRender(){applyPersonColors();applyAccent();
  if(!S.data){m.innerHTML='<div class="setup"><h1 class="lt">Hemma</h1><p>Hämtar hushållets data…</p>'+(S.sync==='err'?'<div class="banner">'+esc(S.error)+'</div><div class="block"><button class="btn-tint" style="width:100%" data-act="refresh">Försök igen</button></div>':'')+'</div>';watchTitle();return}
  const banner=S.sync==='offline'&&OUTBOX.length?'<div class="outbox" role="status">'+I.clock+'<span class="grow">'+waitTxt(OUTBOX.length)+'</span><span class="muted">Skickas automatiskt</span></div>':S.sync==='err'?'<div class="banner">Ingen kontakt med kalkylarket just nu. Du ser senast hämtade data. '+esc(S.error)+'</div>':'';
  A.before(m);
- m.innerHTML=banner+(V[S.view]||V.oversikt)();
+ // Om en vy kraschar visas ett fel i stället, så att resten av appen (svep, menyn) fortsätter att fungera
+ let page;try{page=(V[S.view]||V.oversikt)()}catch(e){console.error(e);page='<div class="banner">Något gick fel när sidan skulle visas: '+esc(e.message)+'</div>'}
+ m.innerHTML=banner+page;
  {const w=m.querySelector('.wk-sw');if(w&&S.wkX){w.scrollLeft=S.wkX;wkMonth(w)}}
  {const w=m.querySelector('.wxC-sc');if(w)w.scrollLeft=S.wxX!=null?S.wxX:WXC_NP*WXC_SW}
  placeSky();fitBoard();
@@ -1892,7 +1894,7 @@ function calView(){const t=today(),sel=S.calDay||t,m=S.calMonth||ymKey(sel),[y,m
  const evRow=e=>{const w=evPerson(e);return'<div class="cell cal-ev edit" data-act="evEdit" data-id="'+d.events.indexOf(e)+'" role="button" tabindex="0"><span class="bar '+(w&&people().includes(w)?pcls(w):'o')+'"></span><span class="t num">'+esc(e.time||'Heldag')+'</span><span class="grow"><span class="title">'+evTitle(e)+'</span>'+(evWho(e)?'<span class="meta">'+evWho(e)+'</span>':'')+'</span></div>'};
  const body=evs.map(evRow).join('')+late.concat(ts).map(taskRow).join('');
  h+=group(body||emptyCell('Inget inplanerat. Tryck på Ny uppgift för att lägga till något.'));
- if(meals.length)h+=sh('Mat')+group(meals.map(mealCell).join(''));
+ if(meals.length)h+=sh('Mat')+group(meals.map(m=>mealCell(m)).join(''));
  // de närmaste dagarna i listform
  const next=[];for(let i=1;i<=6;i++){const k=addDays(sel,i),n=d.events.filter(e=>e.date===k).length+d.tasks.filter(x=>x.due===k&&!x.done).length;if(n)next.push([k,n])}
  if(next.length)h+=sh('Kommande dagar')+group(next.map(([k,n])=>'<button class="cell link" data-act="calDay" data-id="'+k+'"><span class="grow">'+esc(cap(dayHead(k)))+'</span><span class="val num">'+n+(n===1?' sak':' saker')+'</span>'+chevron+'</button>').join(''));
