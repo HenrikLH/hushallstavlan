@@ -797,7 +797,9 @@ function matDessert(){
    eftersom appen bara får skriva vissa inställningar och då behövs ingen ändring i Kod.gs.
    Den följer med när man hämtar varor men räknas inte in i portionerna */
 function weekDessert(){const st=settings(),o=parseJ(st.onskelista,[]).find(x=>x&&x.efter),r=o&&o.id&&o.v===(st.vecka_start||'')?recipeById(o.id):null;return r&&isDessert(r)?r:null}
-function setWeekDessert(id){const v=settings().vecka_start||'';A.user=Date.now();updJSON('onskelista',[],a=>a.filter(x=>x&&!x.efter).concat(id?[{efter:1,v,id}]:[]))}
+function setWeekDessert(id,n){const v=settings().vecka_start||'';A.user=Date.now();updJSON('onskelista',[],a=>a.filter(x=>x&&!x.efter).concat(id?[Object.assign({efter:1,v,id},n?{n}:{})]:[]))}
+// Efterrättens portioner: valda med − och + (n i önskelistan), annars receptets egna
+function dessPort(r){const o=parseJ(settings().onskelista,[]).find(x=>x&&x.efter);return Math.max(1,Math.min(20,Number(o&&o.id===r.id&&o.n)||Number(r.portions)||4))}
 // Receptets ingredienser som rader på inköpslistan. Samma vara slås ihop, mängder utan mått (salt, lite citronsaft) och vatten hoppas över
 function dessertVaror(r,f,lista){const m=new Map();
  (r.groups||[]).forEach(g=>(g.items||[]).forEach(it=>{if(it.q==null)return;
@@ -1018,9 +1020,10 @@ function matWeek(){
  const dr=weekDessert();
  // Efterrätten låses som rätterna (håll in). Bara en låst efterrätt kommer med när man uppdaterar varorna
  const dl=dr&&weekLocks(st.vecka_start).has(dr.id);
+ const dn=dr&&dessPort(dr),dpr=dr?'<div class="dr-port"><span class="grow"><b>'+dn+(dn===1?' portion':' portioner')+'</b></span><span class="pl-step" role="group" aria-label="Portioner"><button type="button" data-act="dessPortStep" data-d="-1" aria-label="Färre portioner"'+(dn<=1?' disabled':'')+'>'+I.minus+'</button><span class="num" aria-live="polite">'+dn+'</span><button type="button" data-act="dessPortStep" data-d="1" aria-label="Fler portioner"'+(dn>=20?' disabled':'')+'>'+I.plus+'</button></span></div>':'';
  vd+=gh('Efterrätt','Valfri')+(dr?'<div class="dr-wrap">'+swDel('dessClear',dr.id,dr.title)+swLas(dr.id,dl)+'<div class="cell dr dr-slide'+lkRad(dl)+'"'+lkIn()+' data-hold-lock="'+esc(dr.id)+'" data-lst="'+(dl?1:0)+'">'+lkStart()+
-  '<button class="dr-main" data-act="recipe" data-id="'+esc(dr.id)+'">'+lkBild(dishThumb(dr,dr.title),dl)+'<span class="grow"><span class="title">'+esc(dr.title)+'</span><span class="meta">'+[dr.portions?dr.portions+' portioner':'',dr.min?dr.min+' min':''].filter(Boolean).join('<span class="dot" aria-hidden="true">·</span>')+'</span></span></button>'+
-  xKnapp('dessClear',dr.id,dr.title)+'</div></div>':
+  '<button class="dr-main" data-act="recipe" data-id="'+esc(dr.id)+'">'+lkBild(dishThumb(dr,dr.title),dl)+'<span class="grow"><span class="chips-row"><span class="chip">Efterrätt</span></span><span class="title">'+esc(dr.title)+'</span><span class="meta">'+[dr.kr?kr(dr.kr)+'/port':'',dr.min?dr.min+' min':''].filter(Boolean).join('<span class="dot" aria-hidden="true">·</span>')+'</span></span></button>'+
+  xKnapp('dessClear',dr.id,dr.title)+dpr+'</div></div>':
   '<button class="cell dess-empty" data-act="dessPick"><span class="dess-plus" aria-hidden="true">'+I.plus+'</span><span class="grow"><span class="title">Lägg till en efterrätt</span><span class="meta">Lås den för att få med varorna</span></span></button>');
  h+='<div class="g-one">'+group(vd)+'</div>';
  return h}
@@ -1659,7 +1662,7 @@ function shopImport(tyst,o){o=o||{};
   const pa=protFromAddon(m.addon),rr=pa?protRecipe(r,{r:r.id,k:pa.k,v:pa.v}):r;
   const key='m'+list.length;const dw=parse(m.date).getDay();lab[key]=sk?(m.who==='Vegetariskt'?'Storkok veg':m.who==='Henrik'?'Storkok kött':'Storkok'):dw>=1&&dw<=4?'Vardag':'Helg';list.push({key,b:MV.behov(rr,n/(Number(r.portions)||2))})});
  // Efterrätten tas med (bara när den är låst) som receptets egna rader, utan pris, eftersom bakvaror som färskost och digestivekex inte finns bland basvarorna
- const dr=weekDessert(),dv=dr&&L.has(dr.id)?dessertVaror(dr,1,D().shop.filter(i=>i.source==='egen')).map(x=>({name:x.name,qty:x.qty,price:null,meals:['Efterrätt']})):[];
+ const dr=weekDessert(),dv=dr&&L.has(dr.id)?dessertVaror(dr,dessPort(dr)/(Number(dr.portions)||dessPort(dr)),D().shop.filter(i=>i.source==='egen')).map(x=>({name:x.name,qty:x.qty,price:null,meals:['Efterrätt']})):[];
  const korg=MV.korg(list.map(x=>x.b),planLager(vs));
  const shop=korg.rad.filter(x=>x.n>0).map(x=>({name:planVaraNamn(x),qty:MV.forp(x),price:shopPris(x),meals:[...new Set(list.filter(i=>i.b[x.k]).map(i=>lab[i.key]))]})).concat(dv);
  // Varorna visas direkt i telefonen och sparas i kalkylarket i bakgrunden via utkorgen, som när man bockar av
@@ -3366,6 +3369,9 @@ const ACT={
  weekDel(id){const m=D().menu[Number(id)];swpCloseAll();if(m&&m.recipe&&weekLocks(weekTarget().vs).has(m.recipe)){S.delAsk=Number(id);S.sheet='delLas';render();return}weekDel(id)},
  weekDelYes(id){S.delAsk=null;weekDel(id)},
  weekLock(id){weekLock(id);document.querySelectorAll('.dr-slide.open,.dr-slide.openl').forEach(x=>swpSet(x,0,true))},
+ // Ändrade portioner på en låst efterrätt räknar om inköpslistan, som för rätterna
+ dessPortStep(id,el){const r=weekDessert();if(!r)return;const n=Math.max(1,Math.min(20,dessPort(r)+Number(el.dataset.d)));setWeekDessert(r.id,n);
+  if(weekLocks(settings().vecka_start).has(r.id))shopImport(true);else render()},
  dessSet(id){closeSheets();setWeekDessert(id);toast('Efterrätten ligger på veckosedeln')},
  dessClear(){setWeekDessert('');toast('Efterrätten är borttagen')},
  dessShop(id){dessertTillInkop(id)},
