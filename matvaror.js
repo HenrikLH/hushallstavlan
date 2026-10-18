@@ -80,7 +80,7 @@
     ['rödbetor', /rödbet/, 500, 20, 0, 0, 1],
   ];
   // Skafferi: köps sällan och räknas inte i veckans kostnad
-  const SKAFFERI = /salt|peppar|olja|smör|vinäger|soja|buljong|tomatpuré|vatten|vitt vin|mjöl(?!k)|jäst|senap|kryddor|krydda|spiskummin|kummin|oregano|kanel|timjan|paprikapulver|rökt paprika|chipotle|gurkmeja|garam|curry|chili|mejram|ingefära|vitlök|honung|sesam|kakao|vanilj|miso|sriracha|tahini|majsstärkelse|jalapeño|saffran|lingon|kokos(flingor|olja)|dadlar|jordnötssmör|majonnäs|socker|sirap/;
+  const SKAFFERI = /salt|peppar|olja|smör|vinäger|soja|buljong|tomatpuré|vatten|vitt vin|mjöl(?!k)|jäst|senap|kryddor|krydda|spiskummin|kummin|oregano|kanel|timjan|paprikapulver|rökt paprika|chipotle|gurkmeja|garam|curry|chili|mejram|ingefära|vitlök|honung|sesam|kakao|vanilj|miso|sriracha|tahini|majsstärkelse|jalapeño|saffran|kardemumma|muskot|nejlika|lagerblad|kryddpeppar|lingon|kokos(flingor|olja)|dadlar|jordnötssmör|majonnäs|socker|sirap/;
 
   const norm = n => String(n || '').toLowerCase().trim();
   /* Priser som Kod.gs (prisSynk) hämtar från willys.se varje morgon och sparar i kalkylarkets inställning "priser":

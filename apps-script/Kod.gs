@@ -775,7 +775,7 @@ function tal_(s) {
 
 // Antal styck i förpackningen ("12-pack", "6 st"), eller 0
 function styck_(x) {
-  const m = ((x.name || '') + ' ' + (x.displayVolume || '')).match(/(\d+)\s*(?:-?\s*pack|st\b|-p\b)/i);
+  const m = ((x.name || '') + ' ' + (x.displayVolume || '')).match(/(\d+)\s*(?:-?\s*pack|st\b|-?p\b)/i);
   return m ? Number(m[1]) : 0;
 }
 // Förpackningens vikt i gram (liter räknas som kg), eller 0
@@ -835,6 +835,12 @@ function prisSynk() {
   // Alla varor som recepten behöver
   const recept = readTab_('recipes').map(parseRecipe_);
   try { JSON.parse(UrlFetchApp.fetch(APP_URL + 'inspiration.json?t=' + Date.now()).getContentText()).forEach(function (r) { recept.push(r); }); } catch (e) { }
+  // Recept som sparats i receptbanken i appen
+  const inst = readSettings_();
+  Object.keys(inst).forEach(function (k) {
+    if (!/^receptbank_\d+$/.test(k)) return;
+    try { (JSON.parse(inst[k] || '[]') || []).forEach(function (r) { recept.push(r); }); } catch (e) { }
+  });
   const varor = {};
   MV.V.forEach(function (v) { varor[v[0]] = { k: v[0], pkt: v[2] }; });
   recept.forEach(function (r) { (r.groups || []).forEach(function (gr) { (gr.items || []).forEach(function (it) {
@@ -888,7 +894,11 @@ function prisSynk() {
     // Behåll gamla priser för varor som inte hittades den här gången
     const forr = readSettings_().priser;
     let gamla = {}; try { gamla = JSON.parse(forr || '{}'); } catch (e) { }
-    saknas.forEach(function (s) { const k = s.replace(/ \(.*\)$/, ''); if (gamla[k]) priser[k] = gamla[k]; });
+    // (bara om den gamla produkten fortfarande passar sökningen, så att felaktiga träffar försvinner)
+    lista.forEach(function (v) {
+      const o = gamla[v.k], n = o && String(o.vara || '').split(',')[0];
+      if (!v.pris && o && n && v.med.test(n) && !(v.utan && v.utan.test(n))) priser[v.k] = o;
+    });
     writeSetting_('priser', JSON.stringify(priser));
     writeSetting_('prislogg', JSON.stringify(logg));
   } finally { lock.releaseLock(); }
