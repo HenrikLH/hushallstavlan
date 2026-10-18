@@ -754,7 +754,7 @@ html.ny .chip.lk::before{display:none}
 .wx2-bar b{font-size:12px;letter-spacing:.3px;text-transform:uppercase;color:var(--ink-2);font-weight:600}
 .wx2-bar span{font-size:15px;line-height:20px}
 /* dagskurvan i stället för bilden */
-.wxC-sc{margin:10px -16px 0;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y;-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 14px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 14px),transparent)}
+.wxC-sc{margin:10px -16px 0;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y;-webkit-mask-image:linear-gradient(90deg,transparent,#000 14px,#000 calc(100% - 14px),transparent);mask-image:linear-gradient(90deg,transparent,#000 14px,#000 calc(100% - 14px),transparent)}
 .wxC-sc::-webkit-scrollbar{display:none}
 .wxC-in{position:relative;margin:0 16px;padding-right:16px;box-sizing:content-box}
 .wxC-svg{display:block;color:var(--ink);overflow:visible}
@@ -766,6 +766,10 @@ html.ny .chip.lk::before{display:none}
 .wxC-pr{fill:#5AA9F0;opacity:.75}
 .wxC-sun{stroke:var(--ink-2);stroke-opacity:.35;stroke-dasharray:2 3}
 .wxC-base{stroke:var(--line)}
+.wxC-was{opacity:.5}
+.wxC-k{display:inline-flex;margin-top:8px;padding:2px;border-radius:9px;background:var(--fill,rgba(120,120,128,.12))}
+.wxC-k button{border:0;background:none;color:var(--ink-2);font:inherit;font-size:13px;font-weight:600;padding:3px 10px;border-radius:7px}
+.wxC-k button[aria-pressed="true"]{background:var(--surface-raised);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
 .wxC-night{fill:currentColor;opacity:.035}
 .wxC-sel{fill:currentColor;opacity:.045;transition:x .2s}
 .wxC-col{position:absolute;top:0;height:182px;padding:0;border:0;background:none;color:inherit;-webkit-tap-highlight-color:transparent}
