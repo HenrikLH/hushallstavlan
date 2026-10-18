@@ -1452,8 +1452,10 @@ html.ny .nav button svg{width:26px;height:26px}
 html.ny .nav button[aria-current="page"]{color:var(--accent)}
 html.ny .nav button[aria-current="page"] svg{stroke-width:2.2}
 @media (min-width:900px){
-  html.ny{--tabgap:16px;--tabbar:68px}
-  html.ny .nav{left:50%;right:auto;bottom:var(--tabgap);width:min(600px,calc(100% - 28px));transform:translateX(-50%);height:var(--tabbar);padding:6px;border-radius:20px;border:.5px solid var(--line);box-shadow:0 6px 24px rgba(0,0,0,.08)}
+  /* Fast: kant i kant längst ner även på stora skärmar, flikarna samlade i mitten */
+  html.ny:not(.nav-glas) .nav{left:0;right:0;width:auto;transform:none;margin:0;border-radius:0;padding-left:max(calc(4px + var(--sal)),calc(50% - 300px));padding-right:max(calc(4px + var(--sar)),calc(50% - 300px))}
+  html.ny.nav-glas{--tabgap:16px;--tabbar:68px}
+  html.ny.nav-glas .nav{left:50%;right:auto;bottom:var(--tabgap);width:min(600px,calc(100% - 28px));transform:translateX(-50%);height:var(--tabbar);padding:6px;border-radius:20px;border:.5px solid var(--line);box-shadow:0 6px 24px rgba(0,0,0,.08)}
   html.ny .nav button{font-size:13px;line-height:15px}
 }
 
@@ -1723,7 +1725,7 @@ html.ny .ws-card .wk-new{margin:0;width:100%;height:44px;border-radius:0 0 14px 
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=127"></script>
+<script src="app.js?v=128"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
