@@ -403,7 +403,7 @@ function realId(b){if(!/^tmp/.test(String(b.id||''))||!lastServer)return b.id;
  const list=/^shop/.test(b.action)?lastServer.shop:/^task/.test(b.action)?lastServer.tasks:[],k=/^shop/.test(b.action)?'name':'title';
  const hit=list.filter(x=>x[k]===b.tmpName).pop();return hit?hit.id:b.id}
 async function flush(){
- if(flushing||!OUTBOX.length)return;flushing=true;S.sync='busy';renderStatus();
+ if(flushing||!OUTBOX.length||!S.key)return;flushing=true;S.sync='busy';renderStatus();
  try{
   while(OUTBOX.length){const b=Object.assign({},OUTBOX[0]);b.id=realId(b);delete b.tmpName;
    let j;
@@ -412,6 +412,12 @@ async function flush(){
    // Kalkylarket tar en ändring i taget. Är det upptaget (låst av en annan ändring eller kalendersynken) har inget sparats,
    // så ändringen ligger kvar i utkorgen och skickas igen om en stund i stället för att visa ett fel
    if(!j.ok&&/lock|lås/i.test(j.error||'')&&(OUTBOX[0].forsok=(OUTBOX[0].forsok||0)+1)<=20){saveOutbox();S.sync='busy';renderStatus();flushing=false;setTimeout(flush,4000+2000*Math.min(OUTBOX[0].forsok,10));return}
+   // "Fel hushållskod" på en ändring trots att telefonen har koden: kontrollera koden med en vanlig hämtning.
+   // Godtas den var felet tillfälligt (ändringen kom fram utan kod), så ändringen skickas igen utan felmeddelande
+   if(!j.ok&&/hushållskod/i.test(j.error||'')&&(OUTBOX[0].kodForsok=(OUTBOX[0].kodForsok||0)+1)<=3){saveOutbox();
+    let giltig=true;try{await apiGet()}catch(e){if(/hushållskod/i.test(e.message))giltig=false;}
+    if(!giltig){S.key='';lsSet('key',null);S.sync='idle';flushing=false;toast('Hushållskoden godtas inte längre. Skriv in den igen, dina ändringar ligger kvar och skickas sedan.');render();return}
+    S.sync='busy';renderStatus();flushing=false;setTimeout(flush,1500*OUTBOX[0].kodForsok);return}
    OUTBOX.shift();S.pending=OUTBOX.length;saveOutbox();
    if(!j.ok){S.postErr=j.error||'fel';toast(/okänd åtgärd/i.test(j.error||'')?'Det här kräver att Kod.gs uppdateras på datorn först.':'Ändringen sparades inte: '+(j.error||'Okänt fel'));if(!OUTBOX.length){S.sync='idle';flushing=false;refresh(true);return}continue}
    lastServer=j.data;
