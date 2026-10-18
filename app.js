@@ -196,7 +196,7 @@ function renderNav(nav){
 // Piller: samma kapsel krymper till ett litet piller med bara ikonerna, halvt nedanför skärmkanten (bara CSS).
 (function(){const nav=document.getElementById('nav'),mini=document.createElement('button');let y0=scrollY,acc=0;
  mini.className='nav-mini';mini.type='button';mini.setAttribute('aria-label','Visa menyn');document.body.appendChild(mini);
- const on=()=>NY&&FLIKRAD!=='fast'&&!S.wall&&innerWidth<900&&!nav.classList.contains('none');
+ const on=()=>NY&&FLIKRAD!=='fast'&&!nav.classList.contains('none');
  const set=m=>{if(nav.classList.contains('mini')===m)return;
   if(m){const b=nav.querySelector('button[aria-current] svg');mini.innerHTML=b?b.outerHTML:''}
   nav.classList.remove('ut');nav.classList.toggle('mini',m);if(!m)nav.classList.add('ut');mini.classList.toggle('on',m);};
