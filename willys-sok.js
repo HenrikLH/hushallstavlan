@@ -23,12 +23,12 @@
     'aubergine': ['aubergine', /^aubergine/i, /fryst|grillad|kräm/i],
     'gurka': ['gurka', /^gurka/i, /syltad|inlagd|smörgås|salt|ättik|pickl/i],
     'tomat': ['tomater', /^tomat(er)? (runda|klass|kvist|eko)|^kvisttomat|^plommontomat/i, /krossad|puré|passerad|soltork|körsbär|cocktail|burk|ketchup|sås/i],
-    'körsbärstomater': ['körsbärstomater', /^(körsbärs|cocktail|mini|snack)\s*-?\s*tomat|^tomat(er)? (körsbär|cocktail|mini)/i, /burk|krossad|soltork|sås|juice|i tomat/i],
+    'körsbärstomater': ['körsbärstomater', /(^(körsbärs|cocktail|mini|snack)\s*-?\s*tomat|^tomat(er)? (körsbär|cocktail|mini)).*klass/i, /burk|krossad|soltork|sås|juice|i tomat/i],
     'broccoli': ['broccoli', /^broccoli/i, /fryst/i],
     'blomkål': ['blomkål', /^blomkål/i, /fryst|ris|gratäng/i],
     'vitkål': ['vitkål', /^vitkål/i, /strimlad|riven|inlagd|sallad/i],
     'grönkål': ['grönkål', /^grönkål/i, /fryst/i],
-    'champinjoner': ['champinjoner', /^champinjon/i, /burk|konserv|fryst|sås|skivade,? eldorado/i],
+    'champinjoner': ['champinjoner', /^champinjon.*klass/i, /burk|konserv|fryst|sås|skivade,? eldorado/i],
     'avokado': ['avokado', /^avokado/i, /guacamole|kräm|fryst|olja/i],
     'sallad': ['isbergssallad', /^isberg|^sallad (isberg|roman|huvud)|^romansallad/i, /fryst/i],
     'fryst spenat': ['spenat fryst', /(?=.*spenat)(?=.*fryst)/i, /stuvad|krämig/i],
@@ -49,7 +49,7 @@
     'matvete och matkorn': ['matvete', /^(matvete|matkorn)/i, /färdig|kokt/i],
     'quinoa': ['quinoa', /^quinoa/i, /färdig|kokt|crisp/i],
     'pasta': ['pasta', /^(pasta|spaghetti|penne|makaroner|fusilli|farfalle|tagliatelle|snabbmakaroner)/i, /sås|färsk|fylld|tortellini|ravioli|färdig|fryst|gratäng/i],
-    'nudlar': ['nudlar', /^(ägg|ris|vete|udon)?nudlar|^nudlar/i, /kopp|cup|smak|ramen/i],
+    'nudlar': ['äggnudlar', /^(ägg|ris|vete|udon|glas)nudlar|^nudlar (ägg|ris|vete)/i, /kopp|cup|smak|ramen|kimchi|korean|biff|kyckling|räk/i],
     'tortillas och bröd': ['tortilla', /^tortilla/i, /krydd|sås|kit|bowl|tubs/i],
     'bröd': ['rågbröd', /^(rågbröd|fullkornsbröd|grovt bröd|limpa|levain)/i, /knäck|ströbröd|fryst|orientalisk/i],
     'havregryn': ['havregryn', /^havregryn/i, /bar|müsli|granola/i],
@@ -82,9 +82,9 @@
     'ägg': ['ägg', /^ägg/i, /choklad|påsk|kokta|nudlar|pasta|vita|krydd|röra|kaka|sallad/i],
     // Ingredienser utan egen basvara
     'digestivekex': ['digestivekex', /^digestive/i, /choklad/i],
-    'selleri': ['blekselleri', /^(blek|stjälk)selleri|^selleri/i, /salt|fryst/i],
+    'selleri': ['selleri', /selleri/i, /rot|salt|fryst|frö/i],
     'butternutpumpa': ['butternut', /butternut/i, /fryst/i],
-    'rabarber': ['rabarber', /^rabarber/i, /fryst|sylt|kompott/i]
+    'rabarber': ['rabarber', /^rabarber/i, /fryst|sylt|kompott|saft|glas/i]
   };
   const ord = k => new RegExp('^' + k.split(/\s+/)[0].slice(0, 5).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
   const lagg = (k, s) => [s[0], s[1] || ord(k), s[2] ? new RegExp('(?:' + s[2].source + ')|(?:' + ALLTID.source + ')', 'i') : ALLTID];
