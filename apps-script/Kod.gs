@@ -280,8 +280,17 @@ function doPost(e) {
         setCells_('clean', row, { lastDone: t.prevDone, prevDone: '', doneBy: '' });
         break;
       }
+      case 'cleanAdd': {
+        // Appen skickar med ett eget id så att sysslan går att ändra direkt, innan svaret har kommit
+        const id = /^s[a-z0-9]{6,16}$/.test(String(b.id || '')) ? String(b.id) : newId_('s');
+        const room = String(b.room || 'Alla rum').slice(0, 40), title = String(b.title || '').slice(0, 120);
+        if (!title) throw new Error('Sysslan saknar namn.');
+        sheet_('clean').appendRow([id, room, title, Number(b.freq) || 7, Number(b.min) || 10, '', '', '', String(b.who || '').slice(0, 40), '', '', '', '']);
+        break;
+      }
+      case 'cleanDelete': { let r = 0; try { r = findRow_('clean', String(b.id || '')); } catch (err) {} if (r) delRow_(sheet_('clean'), r); break; }
       case 'cleanSet': {
-        const allowed = ['freq', 'who', 'plannedFor', 'snoozeUntil'], f = {};
+        const allowed = ['freq', 'min', 'who', 'plannedFor', 'snoozeUntil'], f = {};
         Object.keys(b.fields || {}).forEach(function (k) { if (allowed.indexOf(k) >= 0) f[k] = b.fields[k]; });
         setCells_('clean', findRow_('clean', b.id), f);
         break;

@@ -374,15 +374,20 @@ setInterval(camSample,60000);setTimeout(camSample,3000);
 const DEL={items:null,list:null,t:0};
 function delCommit(keep){if(!DEL.items)return;clearTimeout(DEL.t);const ids=DEL.items.filter(x=>!keep||keep(x)).map(x=>x.id);DEL.items=null;DEL.list=null;undoHide();ids.forEach(id=>apiPost({action:'shopDelete',id}))}
 // Tar bort varorna direkt i appen och visar Ångra i 5 sekunder
-function delStart(items,msg){delCommit();if(!items.length)return;const ids=new Set(items.map(x=>x.id));DEL.list=D().shop.slice();DEL.items=items;S.data.shop=D().shop.filter(x=>!ids.has(x.id));render();
- const u=document.getElementById('undo');u.querySelector('.ud-t').textContent=msg;u.hidden=false;DEL.t=setTimeout(delCommit,5000)}
+function delStart(items,msg){delCommit();cdelCommit();if(!items.length)return;const ids=new Set(items.map(x=>x.id));DEL.list=D().shop.slice();DEL.items=items;S.data.shop=D().shop.filter(x=>!ids.has(x.id));render();
+ const u=document.getElementById('undo');u.querySelector('.ud-t').textContent=msg;u.querySelector('.ud-b').dataset.act='shopUndo';u.hidden=false;DEL.t=setTimeout(delCommit,5000)}
+// Samma sak för sysslor i Städ
+const CDEL={item:null,list:null,t:0};
+function cdelCommit(){if(!CDEL.item)return;clearTimeout(CDEL.t);const id=CDEL.item.id;CDEL.item=null;CDEL.list=null;undoHide();apiPost({action:'cleanDelete',id})}
+function cdelStart(t){delCommit();cdelCommit();CDEL.list=D().clean.slice();CDEL.item=t;S.data.clean=D().clean.filter(x=>x.id!==t.id);render();
+ const u=document.getElementById('undo');u.querySelector('.ud-t').textContent=t.title+' togs bort';u.querySelector('.ud-b').dataset.act='cleanDelUndo';u.hidden=false;CDEL.t=setTimeout(cdelCommit,5000)}
 function undoHide(){const u=document.getElementById('undo');if(u)u.hidden=true}
-addEventListener('visibilitychange',()=>{if(document.hidden)delCommit()});
+addEventListener('visibilitychange',()=>{if(document.hidden){delCommit();cdelCommit()}});
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>t.hidden=true,2800)}
 // Kalkylarket vägrar ta bort sista raden under rubriken. En dold egen rad i Inköp gör att fliken aldrig töms helt.
 const PLATS='(rad för appen, ta inte bort)';let platsFinns=false;
 function platsVakt(a){if(platsFinns||!/^(planSend|shopDelete)$/.test(a))return;platsFinns=true;const it={action:'shopAdd',name:PLATS,qty:'',cat:'Övrigt',price:'',by:S.me};OUTBOX.push(it)}
-function setData(d){if(d&&Array.isArray(d.shop)){if(d.shop.some(x=>x.name===PLATS))platsFinns=true;d.shop=d.shop.filter(x=>x.name!==PLATS)}if(d&&Array.isArray(d.menu))d.menu=d.menu.filter(m=>!(m&&!m.recipe&&/^ledig$/i.test(m.title||'')));if(d&&DEL.items&&Array.isArray(d.shop)){const ids=new Set(DEL.items.map(x=>x.id));d.shop=d.shop.filter(x=>!ids.has(x.id))}S.data=d;if(window.MatVaror&&d&&d.settings)MatVaror.setPriser(parseJ(d.settings.priser,{}));S.lastSync=new Date();S.error='';try{lsSet('cache',JSON.stringify(d))}catch(e){}}
+function setData(d){if(d&&Array.isArray(d.shop)){if(d.shop.some(x=>x.name===PLATS))platsFinns=true;d.shop=d.shop.filter(x=>x.name!==PLATS)}if(d&&Array.isArray(d.menu))d.menu=d.menu.filter(m=>!(m&&!m.recipe&&/^ledig$/i.test(m.title||'')));if(d&&DEL.items&&Array.isArray(d.shop)){const ids=new Set(DEL.items.map(x=>x.id));d.shop=d.shop.filter(x=>!ids.has(x.id))}if(d&&CDEL.item&&Array.isArray(d.clean))d.clean=d.clean.filter(x=>x.id!==CDEL.item.id);S.data=d;if(window.MatVaror&&d&&d.settings)MatVaror.setPriser(parseJ(d.settings.priser,{}));S.lastSync=new Date();S.error='';try{lsSet('cache',JSON.stringify(d))}catch(e){}}
 async function apiGet(){
  const r=await fetch(CFG.api+'?key='+encodeURIComponent(S.key)+'&t='+Date.now(),{cache:'no-store'});
  const j=await r.json();if(!j.ok)throw new Error(j.error||'Okänt fel');return j.data}
@@ -1952,7 +1957,7 @@ const menuSel=(attrs,opts)=>'<span class="menu"><select '+attrs+'>'+opts+'</sele
 V.stad=function(){
  const cp=cleanPlan(),all=D().clean;
  let h=head('Städ',{sub:'Lite varje dag, så slipper ni storstäda'});
- if(!all.length)return h+'<div style="height:22px"></div>'+group(emptyCell('Städschemat är tomt.'));
+ if(!all.length)return h+'<div style="height:22px"></div>'+group(emptyCell('Städschemat är tomt. Lägg till sysslor under rummen nedan.'))+cleanAll(all,true);
  h+=orkSlider(cp.B);
  h+='<div class="split"><div class="col">';
  const rLeft=cp.routines.filter(t=>!doneToday(t)).length;
@@ -1966,17 +1971,25 @@ V.stad=function(){
  const bigDue=cp.big.filter(t=>ratio(t)>=.85),plannedLater=all.filter(t=>t.plannedFor&&t.plannedFor>today());
  h+=sh('Storstäd som närmar sig')+group(bigDue.length?bigDue.map(bigRow).join(''):emptyCell('Inget storstäd behövs just nu.'))+'<div class="foot">Planera in dem en lördag så kommer de med i det dagens pass.</div>';
  if(plannedLater.length)h+=sh('Inplanerat')+group(plannedLater.map(t=>'<div class="cell"><div class="grow"><div class="title">'+esc(t.title)+'</div><div class="meta">'+esc(dateShort(t.plannedFor))+' · '+t.min+' min</div></div><button class="pill" data-act="unplan" data-id="'+esc(t.id)+'">Ångra</button></div>').join(''));
- h+='<details data-k="all"'+(S.open.all?' open':'')+'><summary class="sh"><span>Alla sysslor och intervall</span></summary>'+ROOMS.map(room=>{const ts=all.filter(t=>t.room===room).sort((a,b)=>a.freq-b.freq);if(!ts.length)return'';
-  return'<div class="sh sub2">'+esc(room)+'</div>'+group(ts.map(t=>'<div class="cell"><div class="grow"><div class="title">'+esc(t.title)+'</div><div class="meta">'+t.min+' min · '+(t.lastDone?'senast '+esc(dateShort(t.lastDone)):'inte gjort än')+'</div><div class="menus">'+
-   menuSel('data-change="freq" data-id="'+esc(t.id)+'" aria-label="Intervall"',[1,2,3,4,5,7,14,30,90].map(f=>'<option value="'+f+'"'+(t.freq===f?' selected':'')+'>'+freqText(f)+'</option>').join(''))+
-   menuSel('data-change="who" data-id="'+esc(t.id)+'" aria-label="Vem"','<option value="">Vem som helst</option>'+people().map(p=>'<option'+(t.who===p?' selected':'')+'>'+esc(p)+'</option>').join(''))+'</div></div></div>').join(''))}).join('')+'</details>';
+ h+=cleanAll(all);
  h+=sh('Så fungerar schemat')+'<div class="foot">Varje syssla har ett intervall. Appen väljer de mest försenade sysslorna och fyller dagens pass upp till den tid ni har. Hinner ni inte kommer de först i kön i morgon.</div>';
  return h+'</div></div>'};
+// Alla sysslor rum för rum. Under varje rum finns samma lägg till-rad som i Inköp och Uppgifter
+function cleanAll(all,open){const mins=t=>[...new Set([5,10,15,20,25,30,45,60,90,120,t.min].filter(Boolean))].sort((a,b)=>a-b);
+ return'<details data-k="all"'+(open||S.open.all?' open':'')+'><summary class="sh"><span>Alla sysslor och intervall</span></summary>'+ROOMS.map(room=>{const ts=all.filter(t=>t.room===room).sort((a,b)=>a.freq-b.freq);
+  return'<div class="sh sub2">'+esc(room)+'</div>'+(ts.length?group(ts.map(t=>cleanSw(t,'<div class="cell"><div class="grow"><div class="title">'+esc(t.title)+'</div><div class="meta">'+(t.lastDone?'senast '+esc(dateShort(t.lastDone)):'inte gjort än')+'</div><div class="menus">'+
+   menuSel('data-change="freq" data-id="'+esc(t.id)+'" aria-label="Intervall"',[1,2,3,4,5,7,14,30,90].map(f=>'<option value="'+f+'"'+(t.freq===f?' selected':'')+'>'+freqText(f)+'</option>').join(''))+
+   menuSel('data-change="min" data-id="'+esc(t.id)+'" aria-label="Tid"',mins(t).map(m=>'<option value="'+m+'"'+(t.min===m?' selected':'')+'>'+m+' min</option>').join(''))+
+   menuSel('data-change="who" data-id="'+esc(t.id)+'" aria-label="Vem"','<option value="">Vem som helst</option>'+people().map(p=>'<option'+(t.who===p?' selected':'')+'>'+esc(p)+'</option>').join(''))+'</div></div></div>')).join('')):'')+
+  '<form class="add-row" data-form="cleanQuick" data-room="'+esc(room)+'"><input class="field" name="title" placeholder="Ny syssla" aria-label="Ny syssla i '+esc(room)+'" autocomplete="off" enterkeyhint="done"><button type="button" class="add-go" data-act="quickGo" data-alt="cleanFocus" aria-label="Lägg till i '+esc(room)+'">'+I.plus+'</button></form>'}).join('')+
+  '<div class="foot">Svep åt vänster på en syssla för att ta bort den. Nya sysslor görs varje vecka och tar 10 minuter tills du ändrar det.</div></details>'}
+// Svep åt vänster tar bort sysslan, som i Inköp
+const cleanSw=(t,html)=>'<div class="dr-wrap cs"><button class="dr-act del" data-act="cleanDel" data-full="cleanDel" data-id="'+esc(t.id)+'" aria-label="Ta bort '+esc(t.title)+'">'+I.trash+'<span>Ta bort</span></button>'+html.replace('<div class="cell','<div class="cell dr-slide')+'</div>';
 function cleanRow(t,showWhy,offer){const d=doneToday(t),r=ratio(t);
  const why=t.freq<=1?'':(planned(t)&&!d?'inplanerat':r>=2?'mycket försenat':r>=1?'dags nu':'snart dags');
- return'<div class="cell ck'+(d?' done':'')+'"><input type="checkbox" class="check" data-act="cleanToggle" data-id="'+esc(t.id)+'" aria-label="'+esc(t.title)+'"'+(d?' checked':'')+'><div class="grow"><div class="title">'+esc(t.title)+'</div><div class="meta"><span class="chip">'+esc(t.room)+'</span><span class="num">'+t.min+' min</span>'+(t.who?personChip(t.who):'')+(showWhy&&why?'<span>'+why+'</span>':'')+(d&&t.doneBy?'<span>klart av '+esc(t.doneBy)+'</span>':'')+(t.tip&&!d?'<span>'+esc(t.tip)+'</span>':'')+'</div></div>'+
- (offer?'<button class="pill" data-act="planToday" data-id="'+esc(t.id)+'">Ta idag</button>':(!d&&t.freq>1&&showWhy?'<button class="pill" data-act="snooze" data-id="'+esc(t.id)+'">I morgon</button>':''))+'</div>'}
-function bigRow(t){return'<div class="cell"><div class="grow"><div class="title">'+esc(t.title)+'</div><div class="meta"><span class="chip">'+esc(t.room)+'</span><span>'+t.min+' min</span><span>'+(t.lastDone?'senast '+esc(dateShort(t.lastDone)):'inte gjort än')+'</span></div></div><div class="pills" style="flex-wrap:nowrap"><button class="pill" data-act="planSat" data-id="'+esc(t.id)+'">Lördag</button><button class="pill" data-act="planToday" data-id="'+esc(t.id)+'">Idag</button></div></div>'}
+ return cleanSw(t,'<div class="cell ck'+(d?' done':'')+'"><input type="checkbox" class="check" data-act="cleanToggle" data-id="'+esc(t.id)+'" aria-label="'+esc(t.title)+'"'+(d?' checked':'')+'><div class="grow"><div class="title">'+esc(t.title)+'</div><div class="meta"><span class="chip">'+esc(t.room)+'</span><span class="num">'+t.min+' min</span>'+(t.who?personChip(t.who):'')+(showWhy&&why?'<span>'+why+'</span>':'')+(d&&t.doneBy?'<span>klart av '+esc(t.doneBy)+'</span>':'')+(t.tip&&!d?'<span>'+esc(t.tip)+'</span>':'')+'</div></div>'+
+ (offer?'<button class="pill" data-act="planToday" data-id="'+esc(t.id)+'">Ta idag</button>':(!d&&t.freq>1&&showWhy?'<button class="pill" data-act="snooze" data-id="'+esc(t.id)+'">I morgon</button>':''))+'</div>')}
+function bigRow(t){return cleanSw(t,'<div class="cell"><div class="grow"><div class="title">'+esc(t.title)+'</div><div class="meta"><span class="chip">'+esc(t.room)+'</span><span>'+t.min+' min</span><span>'+(t.lastDone?'senast '+esc(dateShort(t.lastDone)):'inte gjort än')+'</span></div></div><div class="pills" style="flex-wrap:nowrap"><button class="pill" data-act="planSat" data-id="'+esc(t.id)+'">Lördag</button><button class="pill" data-act="planToday" data-id="'+esc(t.id)+'">Idag</button></div></div>')}
 
 /* ---------- overlay ---------- */
 function sheetHtml(form,title,right,body,enter,left){return'<div class="sheet'+enter+'" data-act="sheetBg"><form class="sheet-panel" data-form="'+form+'" role="dialog" aria-modal="true" aria-label="'+title+'"><div class="grabber" aria-hidden="true"></div><div class="sheet-head">'+(left||'<button type="button" class="tb" data-act="sheetClose">Avbryt</button>')+'<h2>'+title+'</h2>'+right+'</div><div class="sheet-body">'+body+'</div></form></div>'}
@@ -3328,6 +3341,10 @@ const ACT={
  cleanToggle(id){const t=D().clean.find(x=>x.id===id);if(!t)return;
   if(doneToday(t))checkAnim(id,false,()=>{mutate('clean',id,{lastDone:t.prevDone||'',prevDone:'',doneBy:''});apiPost({action:'cleanUndo',id})});
   else checkAnim(id,true,()=>{mutate('clean',id,{prevDone:t.lastDone,lastDone:today(),doneBy:S.me,plannedFor:'',snoozeUntil:''});apiPost({action:'cleanDone',id})})},
+ cleanDel(id){const t=D().clean.find(x=>x.id===id);if(t)cdelStart(t)},
+ cleanDelUndo(){if(!CDEL.item)return;clearTimeout(CDEL.t);const t=CDEL.item,i=CDEL.list.findIndex(x=>x.id===t.id);CDEL.item=null;CDEL.list=null;
+  if(!D().clean.some(x=>x.id===t.id))D().clean.splice(Math.max(0,Math.min(i,D().clean.length)),0,t);undoHide();render()},
+ cleanFocus(){},
  snooze(id){const v=addDays(today(),1);mutate('clean',id,{snoozeUntil:v});apiPost({action:'cleanSet',id,fields:{snoozeUntil:v}});toast('Flyttad till i morgon')},
  planToday(id){mutate('clean',id,{plannedFor:today(),snoozeUntil:''});apiPost({action:'cleanSet',id,fields:{plannedFor:today(),snoozeUntil:''}})},
  planSat(id){const d=nextSaturday();mutate('clean',id,{plannedFor:d});apiPost({action:'cleanSet',id,fields:{plannedFor:d}});toast('Inplanerad '+dateShort(d))},
@@ -3443,7 +3460,7 @@ document.addEventListener('change',e=>{const el=e.target.closest('[data-change]'
  if(el.dataset.change==='pcol'){setPcol(Number(id),el.value);return}
  if(el.dataset.change==='planBudget'){const v=Math.round(Number(el.value));if(!(v>=200&&v<=5000)){toast('Skriv en budget mellan 200 och 5 000 kr');render();return}settings().matbudget=String(v);render();apiPost({action:'setting',k:'matbudget',v:String(v)});return}
   if(el.dataset.change==='eko'){const v=Math.max(0,Number(String(el.value).replace(',','.'))||0);updJSON('ekonomi',{},o=>{o[id]=v;return o});return}
- const f=el.dataset.change==='freq'?{freq:Number(el.value)}:{who:el.value};mutate('clean',id,f);apiPost({action:'cleanSet',id,fields:f})});
+ const f=el.dataset.change==='freq'?{freq:Number(el.value)}:el.dataset.change==='min'?{min:Number(el.value)}:{who:el.value};mutate('clean',id,f);apiPost({action:'cleanSet',id,fields:f})});
 document.addEventListener('submit',async e=>{const f=e.target.closest('[data-form]');if(!f)return;e.preventDefault();const d=Object.fromEntries(new FormData(f));
  if(f.dataset.form==='setup'){S.key=String(d.key||'').trim().toLowerCase();S.error='';S.sync='busy';render();
   try{const data=await apiGet();lsSet('key',S.key);setData(data);S.sync='idle';if(!S.me)S.sheet='settings'}catch(err){S.error=err.message;S.key=''}render();return}
@@ -3456,6 +3473,12 @@ document.addEventListener('submit',async e=>{const f=e.target.closest('[data-for
   f.reset();render();setTimeout(()=>document.getElementById('shop-name')?.focus(),30);
   apiPost({action:'shopAdd',name:d.name.trim(),qty:d.qty.trim(),cat,price:isNaN(price)?'':price});toast('Tillagd')}
  // Snabbfältet i Uppgifter (nya designen): utan datum och person, de går att lägga till genom att trycka på uppgiften
+ // Ny syssla i ett rum. Id:t skapas här så att sysslan går att ändra direkt
+ if(f.dataset.form==='cleanQuick'){const t=String(d.title||'').trim(),room=f.dataset.room;if(!t)return;
+  const id='s'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+  D().clean.push({id,room,title:t,freq:7,min:10,lastDone:'',prevDone:'',doneBy:'',who:'',tip:'',plannedFor:'',snoozeUntil:'',order:null});S.open.all=true;render();
+  setTimeout(()=>{const x=document.querySelector('form[data-form="cleanQuick"][data-room="'+room+'"] .field');if(x)x.focus()},30);
+  apiPost({action:'cleanAdd',id,room,title:t,freq:7,min:10});toast('Tillagd i '+room);return}
  if(f.dataset.form==='taskQuick'){const t=String(d.title||'').trim();if(!t)return;
   D().tasks.push({id:'tmp'+Date.now(),done:false,title:t,due:'',who:'',note:'',source:'egen',repeat:''});render();
   setTimeout(()=>document.querySelector('.add-row .field')?.focus(),30);apiPost({action:'taskAdd',title:t,due:'',who:'',repeat:''});return}

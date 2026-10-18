@@ -142,7 +142,10 @@ html.sb-auto.scrolling,html.sb-auto.scrolling *{scrollbar-color:var(--line) tran
 .cell+.cell::before,.cell+.ingx::before,.ingx+.cell::before{content:"";position:absolute;top:0;left:16px;right:0;border-top:.5px solid var(--line)}
 .cell.ck{gap:14px}
 .cell.ck::before,.cell.lead::before{left:52px!important}
+.dr-wrap+.dr-wrap>.cell::before{content:"";position:absolute;top:0;left:16px;right:0;border-top:.5px solid var(--line)}
 .dr-wrap+.dr-wrap>.cell.ck::before{content:"";position:absolute;top:0;right:0;border-top:.5px solid var(--line)}
+/* Städ: den röda Ta bort-ytan syns bara när raden dras, annars lyser den igenom i rundade hörn */
+.dr-wrap.cs:not(:has(>.dr-slide[style*="translate"]))>.dr-act{visibility:hidden}
 .grow{flex:1;min-width:0}
 .title{overflow-wrap:anywhere}
 .meta{font-size:15px;line-height:20px;letter-spacing:-.24px;color:var(--ink-2);display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px;margin-top:2px}
@@ -1728,7 +1731,7 @@ html.ny .ws-card .wk-new{margin:0;width:100%;height:44px;border-radius:0 0 14px 
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=138"></script>
+<script src="app.js?v=139"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
