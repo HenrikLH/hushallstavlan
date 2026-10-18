@@ -884,7 +884,6 @@ function weekDishes(){const d=D(),st=settings(),seen=new Set(),out=[];
   if(prev){prev.rows.push(m);if(prev.m.date<today()&&m.date>=today())prev.m=m;return}seen.add(key);
   const r=m.recipe&&recipeById(m.recipe);const dow=isDate(m.date)?parse(m.date).getDay():-1;
   out.push({key,rows:[m],m,r,g:r&&isStorkok(r)?'Storkok':dow>=1&&dow<=4?'Vardag':dow>=0?'Helg':r&&r.group?r.group:(m.who==='Gemensam'?'Helg':'Vardag')})});
- String(settings().storkok||'').split(',').map(x=>x.trim()).filter(id=>id&&!seen.has(id)).forEach(id=>{const r=recipeById(id);if(r){seen.add(id);out.push({m:null,r,g:'Storkok'})}});
  return out}
 // Veckosedeln binder inte rätterna till en dag: vardagsrätterna lagas valfri kväll mån–tor, helgrätterna fre–sön
 function dishCell(x){const{m,r}=x;if(m)return mealCell(m,x.rows,x.flex);return recipeCell(r,r.portions+' portioner'+(r.kr?' · '+kr(r.kr)+'/port':''))}
@@ -989,7 +988,7 @@ function matWeek(){
   vd+=gh(esc(namn),(sub?esc(sub)+' · ':'')+'<span class="num">'+(list.length?list.length+' '+(list.length===1?'rätt':'rätter'):nTom?nTom+' '+(nTom===1?'tom plats':'tomma platser'):'')+'</span>')+list.map(dishCell).join('');
   vd+=mack.map(y=>'<div class="cell dess-c mk-c"><span class="dess-b"><span class="dr-th" aria-hidden="true"><span>🥪</span></span><span class="grow"><span class="title">Macka</span><span class="meta">'+esc(kr(MP.CFG.mackaKr))+' för två</span></span></span><button class="dess-x" data-act="weekDel" data-id="'+d.menu.indexOf(y)+'" aria-label="Ta bort mackan">'+I.x+'</button></div>').join('');
   for(let i=0;i<nTom;i++)vd+=tom(g);
-  if(g==='Storkok'&&st.storkok_not&&list.length)vd+='<div class="gh-foot">'+esc(st.storkok_not)+'</div>'});
+  });
  const dr=weekDessert();
  // Efterrätten låses som rätterna (håll in). Bara en låst efterrätt kommer med när man uppdaterar varorna
  const dl=dr&&weekLocks(st.vecka_start).has(dr.id);
