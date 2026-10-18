@@ -1314,10 +1314,7 @@ body.wall::before{content:"";position:fixed;inset:-20%;z-index:-1;pointer-events
 .bcol .bclean{flex:1 1 auto;min-height:0;overflow:hidden}
 .bcol .bclean .cell{min-height:52px}
 .bcol .bclean .check{width:28px;height:28px}
-/* Inställningsknappen i övre högra hörnet, på samma rad som rubriken i rutan längst upp till höger */
-.board-gear{position:absolute;right:27px;top:21px;z-index:3}
-.board .bcol[data-col]:last-child>:first-child .wh{padding-right:44px}
-.board.arranging .board-gear{display:none}
+.board-gear{position:absolute;left:calc(35% - 52px);top:24px;z-index:3}
 body.wall:has(.board) main{padding-bottom:0}
 body.wall:has(.board) .head{display:none}
 /* Nattläge på väggen */
@@ -1729,6 +1726,23 @@ html.ny .head{margin-bottom:0}
 html.ny .segc,html.ny .wk-new,html.ny .ws-pin,html.ny .wsum,html.ny .add-row,html.ny .sh-tools,html.ny .fchips,html.ny .subseg .segc,html.ny .subseg+.fchips,html.ny .inspo-intro,html.ny .bank.mini,html.ny .g-one,html.ny .mswitch,html.ny .block{margin-top:10px}
 html.ny .sh{margin-top:18px}
 html.ny .ws-card .wk-new{margin:0;width:100%;height:44px;border-radius:0 0 14px 14px;background:none;border-top:.5px solid var(--line);font-size:16px}
+
+/* Inställningsknappen på väggskärmen (VKNAPP) */
+.nav-me{display:none}
+.nav.har-me .nav-me{position:absolute;right:12px;top:0;bottom:0;display:flex;align-items:center;gap:12px}
+.nav.har-me .nav-me i{width:1px;height:calc(100% - 28px);background:var(--line)}
+.nav.har-me .nav-me .ib{flex:none;width:48px!important;height:48px!important;min-height:0;padding:0;gap:0}
+.nav.har-me .nav-me .me-av span{width:36px;height:36px;max-height:none!important;opacity:1!important}
+html.ny.nav-glas .nav.har-me,html.ny.nav-piller .nav.har-me{--navw:min(672px,calc(100vw - 28px));padding-right:78px}
+html.ny.nav-glas .nav.har-me .nav-pill{width:calc((100% - 84px) / 5)}
+.nav.mini .nav-me{display:none!important}
+.corner-me{position:fixed;z-index:21;right:30px;bottom:var(--tabgap);width:var(--tabbar);height:var(--tabbar);border-radius:50%;display:grid;place-items:center;background:var(--glass);-webkit-backdrop-filter:saturate(180%) blur(24px);backdrop-filter:saturate(180%) blur(24px);border:.5px solid var(--glass-line);box-shadow:0 10px 30px rgba(0,0,0,.16),0 1px 3px rgba(0,0,0,.08)}
+.corner-me .me-av span{width:40px;height:40px;font-size:17px}
+.board.har-top{grid-template-rows:auto minmax(0,1fr)}
+.wall-top{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;padding:0 6px 0 4px;height:44px}
+.wall-top h1{margin:0;font-size:30px;line-height:36px;font-weight:700;letter-spacing:-.5px}
+.board.arranging .corner-me,.board.arranging .wall-top .ib{visibility:hidden}
+body.is-night .corner-me{opacity:0;pointer-events:none}
 </style>
 </head>
 <body>
@@ -1743,7 +1757,7 @@ html.ny .ws-card .wk-new{margin:0;width:100%;height:44px;border-radius:0 0 14px 
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=147"></script>
+<script src="app.js?v=148"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>

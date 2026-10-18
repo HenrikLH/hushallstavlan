@@ -177,10 +177,14 @@ function renderNav(nav){
  const i=VIEW_IDS.indexOf(S.view);
  nav.querySelectorAll('button').forEach((b,j)=>j===i?b.setAttribute('aria-current','page'):b.removeAttribute('aria-current'));
  // Ekonomi ligger inte i flikraden på telefon; då visas ingen markering där
- nav.classList.toggle('none',i<0||i>=VIEWS.length);nav.style.setProperty('--i',Math.max(0,Math.min(i,VIEWS.length-1)))}
+ nav.classList.toggle('none',i<0||i>=VIEWS.length);nav.style.setProperty('--i',Math.max(0,Math.min(i,VIEWS.length-1)));
+ // väggskärmen: personens cirkel längst till höger i menyraden
+ const me=NY&&S.view==='oversikt'&&wallBoardOn()&&VKNAPP==='meny'?meBtn():'',el=nav.querySelector('.nav-me');
+ nav.classList.toggle('har-me',!!me);
+ if(!me){if(el)el.remove()}else if(!el||el.dataset.h!==me){if(el)el.remove();nav.insertAdjacentHTML('beforeend','<div class="nav-me" data-h=""><i aria-hidden="true"></i>'+me+'</div>');nav.querySelector('.nav-me').dataset.h=me}}
 // Dra fingret längs flikraden för att flytta markeringen, släpp för att byta flik.
 (function(){const nav=document.getElementById('nav');let st=null,skip=false;
- const at=x=>{const r=nav.getBoundingClientRect(),w=(r.width-8)/VIEWS.length,dx=Math.min(Math.max(x-r.left-4-w/2,0),w*(VIEWS.length-1));return{dx,j:Math.round(dx/w)}};
+ const at=x=>{const r=nav.getBoundingClientRect(),w=(r.width-8-(nav.classList.contains('har-me')?parseFloat(getComputedStyle(nav).paddingRight)-4:0))/VIEWS.length,dx=Math.min(Math.max(x-r.left-4-w/2,0),w*(VIEWS.length-1));return{dx,j:Math.round(dx/w)}};
  nav.addEventListener('pointerdown',e=>{if(e.button>0||nav.classList.contains('mini'))return;st={x0:e.clientX,id:e.pointerId,moved:false}});
  nav.addEventListener('pointermove',e=>{if(!st||e.pointerId!==st.id)return;
   if(!st.moved){if(Math.abs(e.clientX-st.x0)<8)return;st.moved=true;nav.classList.add('drag');try{nav.setPointerCapture(e.pointerId)}catch(_){}}
@@ -699,7 +703,7 @@ function wallBoard(){
   '<div class="wk-sub">Hemmet</div><div class="brooms">'+roomHealth().map(r=>'<div class="'+healthCls(r.score)+'"><span>'+esc(r.room)+'</span><i><b style="width:'+Math.round(r.score*100)+'%"></b></i></div>').join('')+'</div>');
  H.upg=widget('uppgifter','btasks',I.list,'Uppgifter',d.tasks.filter(x=>!x.done).length+' kvar',tasks.length?'<div class="wl">'+tasks.map(taskRow).join('')+'</div>':'<div class="wempty">Inget att göra.</div>');
  const L=layout(true,WALL_DEF);
- let h='<div class="board'+(S.arrange?' arranging':'')+'"><div class="board-gear">'+(NY?meBtn():gearBtn)+'</div>';
+ let h='<div class="board'+(S.arrange?' arranging':'')+(NY&&VKNAPP==='rubrik'?' har-top':'')+'">'+(!NY?'<div class="board-gear">'+gearBtn+'</div>':VKNAPP==='rubrik'?'<div class="wall-top"><h1 class="lt">'+(new Date().getHours()<10?'God morgon':new Date().getHours()<18?'Hej':'God kväll')+'</h1>'+meBtn()+'</div>':VKNAPP==='knapp'?'<div class="corner-me">'+meBtn()+'</div>':'');
  h+='<div class="bcol bhero">'+heroHtml()+wallWx()+'</div>';
  L.cols.forEach((c,ci)=>{h+='<div class="bcol" data-col="'+ci+'">'+boxRow(c.filter(id=>H[id]),true,H,L)+'</div>'});
  return h+'</div>'+arrangeFoot(L,true)}
@@ -1408,6 +1412,8 @@ let NY=nyNu();
 function applyNy(){document.documentElement.classList.toggle('ny',NY)}
 applyNy();
 // menyväljarens och flikradens utseende i UI 2.0, valt per enhet i Inställningar
+// Var inställningsknappen sitter på väggskärmen: i menyraden, egen knapp nere till höger eller rubrikrad överst
+let VKNAPP=['knapp','rubrik'].includes(lsGet('vaggknapp'))?lsGet('vaggknapp'):'meny';
 let SEGSTIL=['kapsel','klassisk'].includes(lsGet('segstil'))?lsGet('segstil'):'standard',FLIKRAD=['glas','piller'].includes(lsGet('flikrad'))?lsGet('flikrad'):'fast';
 function applyStil(){const c=document.documentElement.classList;c.toggle('seg-kapsel',SEGSTIL==='kapsel');c.toggle('seg-klassisk',SEGSTIL==='klassisk');c.toggle('nav-glas',FLIKRAD!=='fast');c.toggle('nav-piller',FLIKRAD==='piller')}
 applyStil();
@@ -2107,6 +2113,7 @@ function renderOverlay(){
   sh('Städtid och budget')+group(fieldCell('Vardag, min','<input class="field r" id="set-wd" name="wd" inputmode="numeric" value="'+esc(st.stadtid_vardag||20)+'" style="max-width:110px">')+fieldCell('Helg, min','<input class="field r" id="set-we" name="we" inputmode="numeric" value="'+esc(st.stadtid_helg||40)+'" style="max-width:110px">')+fieldCell('Mat/vecka, kr','<input class="field r" id="set-budget" name="budget" inputmode="numeric" value="'+esc(st.matbudget||'')+'" style="max-width:110px">'))+
   sh('Utseende')+group('<button type="button" class="cell link" data-act="farg"><span class="grow">Färgval</span><span class="meta">'+esc({system:'System',light:'Ljust',dark:'Mörkt'}[S.theme]+' · '+(ACCENT==='min'?'Min färg':PCOL[accentKey()][0]))+'</span>'+chevron+'</button>')+'<div class="foot">Ljust eller mörkt, accentfärg och era färger i hushållet.</div>'+
   (NY?sh('Form på knappar och rutor')+'<div class="seg-wrap">'+segc('Form på knappar och rutor','segstil',[['standard','Kantiga'],['kapsel','Runda'],['klassisk','Raka']],SEGSTIL)+'</div><div class="foot">Gäller växlingsknappar, rutor, listor och knappar i hela appen. Kantiga har lätt rundade hörn. Runda har helt runda knappar och mjukare rutor, som i iOS 26. Raka har små hörn och streck mellan valen, som i äldre iOS. Text, höjd och färg är samma i alla tre. Gäller bara den här enheten.</div>'+
+   (S.wall?sh('Inställningsknappen på väggskärmen')+'<div class="seg-wrap">'+segc('Inställningsknappen på väggskärmen','vaggknapp',[['meny','I menyraden'],['knapp','Egen knapp'],['rubrik','Rubrikrad']],VKNAPP)+'</div><div class="foot">I menyraden sitter cirkeln längst till höger i menyn. Egen knapp är en rund knapp nere till höger. Rubrikrad lägger en rad överst med cirkeln till höger, som på telefonen. Gäller bara den här enheten.</div>':'')+
    sh('Menyraden längst ner')+'<div class="seg-wrap">'+segc('Menyraden längst ner','flikrad',[['fast','Fast'],['glas','Svävande'],['piller','Piller']],FLIKRAD)+'</div><div class="foot">Fast ligger kant i kant längst ner. Svävande är en rundad glasbubbla ovanpå innehållet, som i iOS 26, och krymper till en rund knapp när du scrollar. Piller krymper i stället till ett smalt piller med bara ikonerna, halvt nedanför skärmkanten. Gäller bara den här enheten.</div>':'')+
   sh('Vädervyn')+'<div class="seg-wrap">'+segc('Vädervyn','wxvy',[['kurva','Dagskurva'],['bild','Bild med hundar']],WXVY)+'</div><div class="foot">Dagskurvan visar temperaturen de närmaste 24 timmarna. Gäller bara den här enheten.</div>'+
   sh('Låsa rätter')+'<div class="seg-wrap">'+segc('Låsa rätter','lasstil',[['rad','Runt rätten'],['bild','Runt bilden']],LASSTIL)+'</div><div class="foot">Svep åt höger på en rätt eller håll in den i en sekund för att låsa den. Föreslå en ny vecka behåller låsta rätter. Gäller bara den här enheten.</div>'+
@@ -3221,6 +3228,7 @@ const ACT={
  wxHr(id){const i=Number(id)||0,x=WXC_H[i];if(!x)return;S.wxSel=i-WXC_NP;const r=document.querySelector('.wxC-sel');if(r)r.setAttribute('x',(i*WXC_SW).toFixed(1));const inf=document.querySelector('.wxC-info');if(inf)inf.innerHTML=wxHrInfo(x,i)},
  lasstil(id){LASSTIL=id==='bild'?'bild':'rad';lsSet('lasstil',LASSTIL==='bild'?'bild':null);render()},
  segstil(id){SEGSTIL=['kapsel','klassisk'].includes(id)?id:'standard';lsSet('segstil',SEGSTIL==='standard'?null:SEGSTIL);applyStil();render()},
+ vaggknapp(id){VKNAPP=['knapp','rubrik'].includes(id)?id:'meny';lsSet('vaggknapp',VKNAPP==='meny'?null:VKNAPP);render()},
  flikrad(id){FLIKRAD=['glas','piller'].includes(id)?id:'fast';lsSet('flikrad',FLIKRAD==='fast'?null:FLIKRAD);applyStil();render()},
  wxvy(id){WXVY=id==='bild'?'bild':'kurva';lsSet('wxvy',WXVY==='bild'?'bild':null);render()},
  hundar(id){HUNDAR=['bada','brun','svart'].includes(id)?id:'vaxla';lsSet('hundar',HUNDAR==='vaxla'?null:HUNDAR);S.wxVar=null;render()},
