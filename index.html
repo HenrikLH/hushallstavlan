@@ -1332,7 +1332,11 @@ body.is-night .nav{opacity:0;pointer-events:none}
 .night-in{display:flex;flex-direction:column;align-items:center;gap:10px;transition:transform 4s ease-in-out}
 /* Väggläge: muspekaren dold, och svagare bild när rummet är mörkt (kameran) */
 html.no-cur,html.no-cur *{cursor:none!important}
-.ntid{width:76px;flex:none;text-align:center;font-variant-numeric:tabular-nums}.ntid-d{color:var(--ink-3,#8a8a8f)}
+.ntid-row{flex-wrap:wrap;row-gap:6px}.ntid-pair{display:inline-flex;align-items:center;gap:6px;margin-left:auto;flex:none}
+.ntid-st{display:inline-flex;align-items:center;flex:none;background:var(--fill);border-radius:12px;padding:2px}
+.ntid-b{width:40px;height:40px;display:grid;place-items:center;font-size:22px;line-height:1;color:var(--accent);border-radius:10px}
+.ntid-b:active{background:var(--surface)}.ntid-b:disabled{color:inherit;opacity:1}
+.ntid{width:64px;flex:none;text-align:center;font-variant-numeric:tabular-nums;background:none;border:0;padding:0}.ntid-d{color:var(--ink-3,#8a8a8f)}
 .ntid-row.off .grow,.ntid-row.off .ntid,.ntid-row.off .ntid-d{opacity:.4}
 #dimmer{position:fixed;inset:0;background:#000;pointer-events:none;z-index:2147483000;opacity:0;transition:opacity 3s ease}
 .outbox{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--tabbar) + var(--tabgap) + 14px);z-index:70;display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:22px;background:var(--surface-raised);border:.5px solid var(--line);box-shadow:0 8px 24px rgba(0,0,0,.12);font-size:15px;font-weight:600;white-space:nowrap;max-width:calc(100% - 32px)}
@@ -1764,7 +1768,7 @@ body.is-night :is(.corner-me,.top-me){opacity:0;pointer-events:none}
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=150"></script>
+<script src="app.js?v=151"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>

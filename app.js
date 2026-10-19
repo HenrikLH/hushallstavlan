@@ -318,7 +318,7 @@ async function camSample(){if(!CAM.on||!S.wall||CAM.busy||document.visibilitySta
   CAM.lvl=CAM.lvl==null?lvl:CAM.lvl*.5+lvl*.5;CAM.err='';
   // lite marginal åt båda hållen så att tavlan inte slår fram och tillbaka i skymningen
   if(CAM.dark&&CAM.lvl>CAM.thr+6)CAM.dark=false;else if(!CAM.dark&&CAM.lvl<CAM.thr)CAM.dark=true}
- catch(e){CAM.err=e&&e.name==='NotAllowedError'?'Kameran är inte tillåten. Tryck på Tillåt när tavlan frågar':e&&e.name==='NotFoundError'?'Hittar ingen kamera':'Kameran svarar inte'}
+ catch(e){CAM.err=e&&e.name==='NotAllowedError'?'Kameran är inte tillåten. Tryck på Tillåt när tavlan frågar':e&&(e.name==='NotFoundError'||e.name==='OverconstrainedError')?'Webbläsaren hittar ingen kamera':'Kameran svarar inte'}
  finally{if(st)st.getTracks().forEach(t=>t.stop());CAM.busy=false}
  camShow();autoTheme()}
 function camShow(){const el=document.querySelector('[data-cam-lvl]');if(el)el.textContent=camTxt()}
@@ -2131,15 +2131,20 @@ function renderOverlay(){
   sh('Den här enheten')+group('<button type="button" class="cell link center red" data-act="logout">Logga ut</button>')+
   '<div class="foot ver">Hushållstavlan · UI '+(NY?UI_VER:'1.0')+' · version '+esc(APP_VER)+'</div>';
   o.innerHTML=sheetHtml('settings','Inställningar','<button class="tb strong">Spara</button>',body,enter);segSlide(o);return}
- if(k==='vagg'){const ss=nattSol(),tIn=(ch,cur,lab)=>'<input type="text" inputmode="numeric" maxlength="5" placeholder="tt:mm" class="field ntid" data-change="'+ch+'" value="'+nattTid(cur)+'" aria-label="'+lab+'"'+(NATT.sol?' disabled':'')+'>',dm=d=>nattTid(d.getHours()*60+d.getMinutes());
+ if(k==='vagg'){const ss=nattSol(),dis=NATT.sol?' disabled':'',
+   // väggskärmen har inget tangentbord: − och + ändrar en kvart åt gången, och med tangentbord går det också att skriva in tiden
+   tIn=(ch,cur,lab)=>{const k=ch==='nattA'?'a':'b';return'<span class="ntid-st"><button type="button" class="ntid-b" data-act="nattStep" data-id="'+k+':-15" aria-label="'+lab+', en kvart tidigare"'+dis+'>−</button>'+
+    '<input type="text" inputmode="numeric" maxlength="5" placeholder="tt:mm" class="field ntid" data-change="'+ch+'" value="'+nattTid(cur)+'" aria-label="'+lab+'"'+dis+'>'+
+    '<button type="button" class="ntid-b" data-act="nattStep" data-id="'+k+':15" aria-label="'+lab+', en kvart senare"'+dis+'>+</button></span>'},dm=d=>nattTid(d.getHours()*60+d.getMinutes());
   const body=sh('Nattläge')+group(fieldCell('Nattläge','<input type="checkbox" role="switch" class="switch" data-act="natt" aria-label="Nattläge"'+(NATT.on?' checked':'')+'>')+
     (NATT.on?fieldCell('Följ solnedgång och soluppgång','<input type="checkbox" role="switch" class="switch" data-act="nattSolv" aria-label="Följ solnedgång och soluppgång"'+(NATT.sol?' checked':'')+'>')+
-     '<div class="cell ntid-row'+(NATT.sol?' off':'')+'"><span class="grow">Tid</span>'+tIn('nattA',NATT.a,'Nattläget börjar klockan')+'<span class="ntid-d">–</span>'+tIn('nattB',NATT.b,'Nattläget slutar klockan')+'</div>':''))+
+     '<div class="cell ntid-row'+(NATT.sol?' off':'')+'"><span class="grow">Tid</span><span class="ntid-pair">'+tIn('nattA',NATT.a,'Nattläget börjar klockan')+'<span class="ntid-d">–</span>'+tIn('nattB',NATT.b,'Nattläget slutar klockan')+'</span>'+'</div>':''))+
    '<div class="foot">'+(NATT.sol&&ss?'Nattläget följer solen: i dag från '+dm(ss[1])+' till '+dm(ss[0])+' i morgon. ':'')+'Under nattläget visar tavlan bara en dämpad klocka när ingen har rört den på två minuter, och appen är i mörkt läge. Klockan flyttar sig lite varje timme så att den inte bränns in i skärmen. Tryck på skärmen för att väcka tavlan.</div>'+
    sh('Rummets ljus')+group(fieldCell('Använd kameran','<input type="checkbox" role="switch" class="switch" data-act="kamera" aria-label="Använd kameran för rummets ljus"'+(CAM.on?' checked':'')+'>')+
     (CAM.on?'<div class="cell"><span class="grow">Ljus i rummet</span><span class="meta" data-cam-lvl>'+esc(camTxt())+'</span></div>'+
      fieldCell('Dämpa skärmen när det är mörkt','<input type="checkbox" role="switch" class="switch" data-act="kamDampa" aria-label="Dämpa skärmen när det är mörkt"'+(CAM.dim?' checked':'')+'>'):''))+
    (CAM.on?sh('Mörkt läge under')+'<div class="seg-wrap">'+segc('Mörkt läge under','kamGrans',[['15','15 %'],['25','25 %'],['35','35 %'],['45','45 %']],String(CAM.thr))+'</div>':'')+
+   (CAM.on&&/hittar ingen/.test(CAM.err)?'<div class="foot">Surfacens kamera är ingen vanlig webbkamera, så Chromium ser den inte från början. Kör installationsskriptet för väggskärmen igen (kiosk/installera.sh) och starta om datorn, så försöker det göra kameran tillgänglig.</div>':'')+
    '<div class="foot">Kameran tittar en gång i minuten och räknar bara ut hur ljust det är. Ingen bild sparas eller skickas någonstans. När rummet blir mörkare än gränsen byter tavlan till mörkt läge och dämpar bilden. Under nattläget är kameran avstängd. Gäller bara den här enheten.</div>'+
    '<div class="foot">Muspekaren är dold i väggläge. Flyttar du musen syns den en kort stund.</div>';
   o.innerHTML=sheetHtml('vagg','Nattläge','<button type="button" class="tb strong" data-act="sheetClose">Klar</button>',body,enter,'<button type="button" class="back" data-act="settings">'+I.back+'Inställningar</button>');segSlide(o);return}
@@ -3258,6 +3263,8 @@ const ACT={
  wall(){S.wall=!S.wall;lsSet('wall',S.wall?'1':'0');fitScrollbar();hideCursor();wake();autoTheme();applyTheme(true);render();camSample()},
  vagg(){S.sheet='vagg';render()},
  natt(){NATT.on=!NATT.on;saveNatt();autoTheme();render()},
+ nattStep(id){if(NATT.sol)return;const[k,d]=String(id).split(':');if(!(k in NATT))return;NATT[k]=((Math.round(NATT[k]/15)*15+Number(d))%1440+1440)%1440;saveNatt();autoTheme();applyTheme(true);
+  const el=document.querySelector('[data-change="natt'+k.toUpperCase()+'"]');if(el)el.value=nattTid(NATT[k])},
  nattSolv(){NATT.sol=!NATT.sol;lsSet('nattSol',NATT.sol?'1':null);autoTheme();applyTheme(true);render()},
  kamera(){CAM.on=!CAM.on;lsSet('kamera',CAM.on?'1':null);if(!CAM.on){CAM.lvl=null;CAM.dark=false;CAM.err=''}autoTheme();render();camSample()},
  kamDampa(){CAM.dim=!CAM.dim;lsSet('kamDampa',CAM.dim?null:'0');autoTheme()},

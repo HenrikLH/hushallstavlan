@@ -4,6 +4,7 @@
 #  - startar tavlan i helskärm (kioskläge) direkt efter inloggning
 #  - stänger av skärmsläckare, skärmlås och viloläge
 #  - startar Claude-appen i bakgrunden bakom tavlan, om den är installerad
+#  - gör kameran tillgänglig för tavlan (rummets ljus), om datorns kamera går att nå
 # Kör som den vanliga användaren (inte med sudo); skriptet frågar efter lösenordet när det behövs.
 # Ångra med:  bash installera.sh --ta-bort
 set -euo pipefail
@@ -30,7 +31,7 @@ if [ "${1:-}" = "--ta-bort" ]; then
   exit 0
 fi
 
-echo "1/5  Chromium"
+echo "1/6  Chromium"
 if command -v chromium >/dev/null 2>&1; then BROWSER=chromium
 elif command -v chromium-browser >/dev/null 2>&1; then BROWSER=chromium-browser
 elif command -v google-chrome >/dev/null 2>&1; then BROWSER=google-chrome
@@ -41,11 +42,11 @@ else
 fi
 echo "     använder $BROWSER"
 
-echo "2/5  Automatisk inloggning för $ANV"
+echo "2/6  Automatisk inloggning för $ANV"
 sudo mkdir -p /etc/lightdm/lightdm.conf.d
 printf '[Seat:*]\nautologin-user=%s\nautologin-user-timeout=0\n' "$ANV" | sudo tee "$LIGHTDM" >/dev/null
 
-echo "3/5  Skärmen hålls tänd och olåst"
+echo "3/6  Skärmen hålls tänd och olåst"
 gsettings set org.cinnamon.desktop.screensaver lock-enabled false || true
 gsettings set org.cinnamon.desktop.screensaver idle-activation-enabled false 2>/dev/null || true
 gsettings set org.cinnamon.desktop.session idle-delay 0 || true
@@ -54,7 +55,7 @@ for k in sleep-display-ac sleep-display-battery sleep-inactive-ac-timeout sleep-
 done
 gsettings set org.cinnamon.settings-daemon.plugins.power lock-on-suspend false 2>/dev/null || true
 
-echo "4/5  Claude-appen startar i bakgrunden"
+echo "4/6  Claude-appen startar i bakgrunden"
 mkdir -p "$(dirname "$AUTOSTART")"
 # Hitta Claude-appens startfil bland de installerade programmen och starta den direkt vid inloggning.
 # Tavlan väntar längre än Claude, så att helskärmsfönstret hamnar överst.
@@ -87,7 +88,28 @@ else
   echo "     hittade ingen Claude-app bland programmen, hoppar över (kör skriptet igen när den är installerad)"
 fi
 
-echo "5/5  Tavlan startar i helskärm vid inloggning"
+echo "5/6  Kameran (för rummets ljus)"
+# Surface-datorernas kameror är inte vanliga webbkameror: de nås bara via libcamera, och Chromium når libcamera via PipeWire.
+# Steget installerar det som behövs om det finns i paketkällorna och slår bara på PipeWire-kameran i Chromium om libcamera hittar en kamera.
+KAMERA_FLAGG=""
+KPKT=""
+for p in libcamera-tools libspa-0.2-libcamera pipewire-libcamera; do
+  if apt-cache show "$p" >/dev/null 2>&1; then KPKT="$KPKT $p"; fi
+done
+if [ -n "$KPKT" ]; then sudo apt-get install -y $KPKT >/dev/null 2>&1 || echo "     kunde inte installera:$KPKT"; fi
+if ls /dev/video* >/dev/null 2>&1 && command -v v4l2-ctl >/dev/null 2>&1 && v4l2-ctl --list-devices 2>/dev/null | grep -qiE 'webcam|uvc|camera'; then
+  echo "     hittade en vanlig webbkamera, den fungerar direkt"
+elif command -v cam >/dev/null 2>&1 && cam -l 2>/dev/null | grep -qE '^[0-9]+:'; then
+  KAMERA_FLAGG=" --enable-features=WebRtcPipeWireCamera"
+  echo "     libcamera hittar kameran:"; cam -l 2>/dev/null | grep -E '^[0-9]+:' | sed 's/^/       /'
+  if ! systemctl --user is-active --quiet pipewire 2>/dev/null; then
+    echo "     OBS: PipeWire körs inte, så Chromium når ändå inte kameran. Installera pipewire och wireplumber och starta om."
+  fi
+else
+  echo "     hittade ingen kamera som Linux kan använda. Rummets ljus fungerar inte på den här datorn."
+fi
+
+echo "6/6  Tavlan startar i helskärm vid inloggning"
 # --password-store=basic: ingen fråga om nyckelring när inloggningen sker utan lösenord
 # --touch-events=enabled: pekskärmen skickar riktiga pekhändelser
 # --overscroll-history-navigation=0: ett svep i sidled bläddrar inte bakåt i webbläsaren
@@ -96,7 +118,7 @@ cat > "$AUTOSTART" <<EOF
 Type=Application
 Name=Hushållstavlan
 Comment=Startar tavlan i helskärm
-Exec=sh -c 'sleep $VANTA; $BROWSER --kiosk --app=$URL --password-store=basic --touch-events=enabled --overscroll-history-navigation=0 --noerrdialogs --disable-session-crashed-bubble --disable-infobars --check-for-update-interval=31536000'
+Exec=sh -c 'sleep $VANTA; $BROWSER --kiosk --app=$URL --password-store=basic --touch-events=enabled --overscroll-history-navigation=0 --noerrdialogs --disable-session-crashed-bubble --disable-infobars --check-for-update-interval=31536000$KAMERA_FLAGG'
 X-GNOME-Autostart-enabled=true
 EOF
 # Samma start som ikon i menyn och på skrivbordet, så att tavlan kan öppnas igen med fingret
