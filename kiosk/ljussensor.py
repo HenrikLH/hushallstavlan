@@ -11,7 +11,7 @@
 import glob, json, os, subprocess, threading, time, http.server
 
 TILLATNA = {'https://henriklh.github.io'}
-MIN_PROCENT = 3.0
+MIN_PROCENT = 1.0
 LEASE = 120
 TONING = 1.0
 BL = (glob.glob('/sys/class/backlight/*') or [None])[0]
@@ -124,7 +124,7 @@ class H(http.server.BaseHTTPRequestHandler):
                 mal = max(MIN_PROCENT, min(100.0, float(d['procent'])))
                 TILL['mal'] = mal; TILL['senast'] = time.time()
         except Exception:
-            return self.svara(400, {'fel': 'skicka {"procent": 3-100} eller {"normal": true}'})
+            return self.svara(400, {'fel': 'skicka {"procent": 1-100} eller {"normal": true}'})
         tona(mal)
         self.svara(200, self.status())
     def log_message(self, *a): pass

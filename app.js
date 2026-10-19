@@ -368,7 +368,7 @@ function kalSvg(){const a=(KAL&&KAL.all||[]).slice(-120);if(a.length<2)return'<s
 function kalDraw(full){if(S.sheet!=='ljuskal')return;if(full){render();return}
  const g=document.querySelector('.kal-g');if(g)g.outerHTML=kalSvg();const n=document.querySelector('[data-kal-lux]');if(n&&KAL&&KAL.all.length)n.textContent=luxTxt(KAL.all[KAL.all.length-1][1])}
 const BL_URL='http://127.0.0.1:8777/ljusstyrka',BL={ok:null,retry:0,sent:null,at:0,q:null,busy:false,t:0,last:0,gap:250,fb:null};
-const ljPct=b=>{const lo=Math.max(3,LJ.min),hi=Math.max(lo+1,LJ.max);return Math.round(lo*Math.pow(hi/lo,b))};
+const ljPct=b=>{const lo=Math.max(1,LJ.min),hi=Math.max(lo+1,LJ.max);return Math.round(lo*Math.pow(hi/lo,b))};
 async function blSend(body){try{const ac=new AbortController(),t=setTimeout(()=>ac.abort(),3000);
   const r=await fetch(BL_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:ac.signal});clearTimeout(t);if(!r.ok)throw 0;BL.ok=true;
 return true}
@@ -2280,7 +2280,7 @@ function renderOverlay(){
     :group(ljSlider('Känslighet','ljKans',LJ.kans,0,100,'Dämpar sent','Dämpar tidigt')))+
     (CAM.src==='kamera'?'':group(ljSlider('Mörkt läge när rummet är mörkare än','ljMork',morkPos(ljMork()),0,100,'Mörkare rum','Ljusare rum'))+
      '<div class="foot">Ljuset i rummet just nu står överst. Tavlan går tillbaka till ljust läge när rummet blivit 30 % ljusare än gränsen, så att den inte blinkar fram och tillbaka.</div>')+
-    group(ljSlider('Lägsta ljusstyrka','ljMin',LJ.min,3,40,'3 %','40 %')+ljSlider('Högsta ljusstyrka','ljMax',LJ.max,20,100,'20 %','100 %'))+
+    group(ljSlider('Lägsta ljusstyrka','ljMin',LJ.min,1,40,'1 %','40 %')+ljSlider('Högsta ljusstyrka','ljMax',LJ.max,20,100,'20 %','100 %'))+
     '<div class="foot">Skärmen följer rummets ljus steglöst. På väggskärmen ändras skärmens riktiga ljusstyrka; på andra datorer läggs en mörk hinna över bilden. Under nattläget står skärmen på lägsta ljusstyrkan.</div>':'')+
    (CAM.on&&/svarar inte|hittar ingen/.test(CAM.err)?'<div class="foot keep">Tavlan når inte ljussensorn. På väggskärmen läses den av en liten ljustjänst på datorn; kontrollera att den är igång. Under tiden har skärmen sin vanliga ljusstyrka.</div>':'')+
    '<div class="foot">Ingen bild sparas eller skickas någonstans. Gäller bara den här enheten.</div>'+
