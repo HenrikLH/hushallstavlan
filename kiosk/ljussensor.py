@@ -2,7 +2,7 @@
 # Ljustjänst för Hushållstavlan på väggdatorn.
 #   GET  /lux          -> {"lux": 9.4}
 #   GET  /ljusstyrka   -> {"procent": 10.0, "mal": 10.0, "normal": 60.0, "styrs": false}
-#   POST /ljusstyrka   {"procent": 35}   tonar skärmens riktiga ljusstyrka dit på ~2 s
+#   POST /ljusstyrka   {"procent": 35}   tonar skärmens riktiga ljusstyrka dit på ~1 s
 #   POST /ljusstyrka   {"normal": true}  tillbaka till normal ljusstyrka
 # Säkerhet: bara tavlans egen sida får ändra ljusstyrkan, aldrig under MIN_PROCENT, och hör tavlan
 # inte av sig på LEASE sekunder går skärmen tillbaka till normal ljusstyrka (så den aldrig fastnar mörk).
@@ -13,7 +13,7 @@ import glob, json, os, subprocess, threading, time, http.server
 TILLATNA = {'https://henriklh.github.io'}
 MIN_PROCENT = 3.0
 LEASE = 120
-TONING = 2.0
+TONING = 1.0
 BL = (glob.glob('/sys/class/backlight/*') or [None])[0]
 NORMAL_FIL = os.path.expanduser('~/.config/hushallstavlan-ljus.json')
 
@@ -48,24 +48,39 @@ def las_normal():
     try: return float(json.load(open(NORMAL_FIL))['normal'])
     except Exception: return None
 
-LAS = threading.Lock()
 TILL = {'mal': None, 'senast': 0.0, 'normal': None}
+NYTT = threading.Event()
+TONA_MOT = {'v': None}
 
 def tona(mal):
-    with LAS:
-        start = bl_las()
-        steg = max(1, int(TONING * 20))
-        for i in range(1, steg + 1):
-            bl_satt(start + (mal - start) * i / steg)
-            time.sleep(TONING / steg)
+    # bara det senaste målet gäller: en toning som pågår byter riktning direkt i stället för att ställa sig i kö
+    TONA_MOT['v'] = mal
+    NYTT.set()
+
+def tonare():
+    while True:
+        NYTT.wait()
+        NYTT.clear()
+        mal = TONA_MOT['v']
+        if mal is None:
+            continue
+        try:
+            start = bl_las()
+            steg = max(1, int(TONING * 10))
+            for i in range(1, steg + 1):
+                if NYTT.is_set():
+                    break
+                bl_satt(start + (mal - start) * i / steg)
+                time.sleep(TONING / steg)
+        except Exception:
+            pass
 
 def vakt():
     while True:
         time.sleep(5)
         if TILL['mal'] is not None and time.time() - TILL['senast'] > LEASE:
             TILL['mal'] = None
-            try: tona(TILL['normal'])
-            except Exception: pass
+            tona(TILL['normal'])
 
 class H(http.server.BaseHTTPRequestHandler):
     def huvuden(self, kod):
@@ -84,7 +99,7 @@ class H(http.server.BaseHTTPRequestHandler):
         self.huvuden(204); self.end_headers()
     def status(self):
         return {'procent': round(bl_las(), 1) if BL else None, 'mal': TILL['mal'], 'normal': TILL['normal'],
-                'styrs': TILL['mal'] is not None, 'min': MIN_PROCENT, 'lease': LEASE}
+                'styrs': TILL['mal'] is not None, 'min': MIN_PROCENT, 'lease': LEASE, 'avbrytbar': True}
     def do_GET(self):
         p = self.path.split('?')[0]
         if p == '/lux':
@@ -110,7 +125,7 @@ class H(http.server.BaseHTTPRequestHandler):
                 TILL['mal'] = mal; TILL['senast'] = time.time()
         except Exception:
             return self.svara(400, {'fel': 'skicka {"procent": 3-100} eller {"normal": true}'})
-        threading.Thread(target=tona, args=(mal,), daemon=True).start()
+        tona(mal)
         self.svara(200, self.status())
     def log_message(self, *a): pass
 
@@ -125,5 +140,6 @@ if BL:
         try: bl_satt(TILL['normal'])   # efter omstart eller krasch: börja alltid från normal ljusstyrka
         except Exception: pass
     threading.Thread(target=vakt, daemon=True).start()
+    threading.Thread(target=tonare, daemon=True).start()
 
 http.server.ThreadingHTTPServer(('127.0.0.1', 8777), H).serve_forever()
