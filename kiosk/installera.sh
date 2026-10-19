@@ -88,10 +88,18 @@ else
   echo "     hittade ingen Claude-app bland programmen, hoppar över (kör skriptet igen när den är installerad)"
 fi
 
-echo "5/6  Kameran (för rummets ljus)"
+echo "5/6  Ljussensorn och kameran (för rummets ljus)"
+# Surfacen har en ljussensor som Linux visar som en iio-enhet. Chromium läser den med AmbientLightSensor när funktionen slås på.
+FEATURES=""
+BLINK=""
+if grep -qsE '^als$|illuminance' /sys/bus/iio/devices/*/name 2>/dev/null || ls /sys/bus/iio/devices/*/in_illuminance* >/dev/null 2>&1; then
+  FEATURES="GenericSensorExtraClasses"; BLINK=" --enable-blink-features=AmbientLightSensor"
+  echo "     hittade ljussensorn, tavlan läser den"
+else
+  echo "     ingen ljussensor, tavlan provar kameran i stället"
+fi
 # Surface-datorernas kameror är inte vanliga webbkameror: de nås bara via libcamera, och Chromium når libcamera via PipeWire.
 # Steget installerar det som behövs om det finns i paketkällorna och slår bara på PipeWire-kameran i Chromium om libcamera hittar en kamera.
-KAMERA_FLAGG=""
 KPKT=""
 for p in libcamera-tools libspa-0.2-libcamera pipewire-libcamera; do
   if apt-cache show "$p" >/dev/null 2>&1; then KPKT="$KPKT $p"; fi
@@ -100,14 +108,15 @@ if [ -n "$KPKT" ]; then sudo apt-get install -y $KPKT >/dev/null 2>&1 || echo " 
 if ls /dev/video* >/dev/null 2>&1 && command -v v4l2-ctl >/dev/null 2>&1 && v4l2-ctl --list-devices 2>/dev/null | grep -qiE 'webcam|uvc|camera'; then
   echo "     hittade en vanlig webbkamera, den fungerar direkt"
 elif command -v cam >/dev/null 2>&1 && cam -l 2>/dev/null | grep -qE '^[0-9]+:'; then
-  KAMERA_FLAGG=" --enable-features=WebRtcPipeWireCamera"
+  FEATURES="${FEATURES:+$FEATURES,}WebRtcPipeWireCamera"
   echo "     libcamera hittar kameran:"; cam -l 2>/dev/null | grep -E '^[0-9]+:' | sed 's/^/       /'
   if ! systemctl --user is-active --quiet pipewire 2>/dev/null; then
     echo "     OBS: PipeWire körs inte, så Chromium når ändå inte kameran. Installera pipewire och wireplumber och starta om."
   fi
 else
-  echo "     hittade ingen kamera som Linux kan använda. Rummets ljus fungerar inte på den här datorn."
+  echo "     hittade ingen kamera som Linux kan använda"
 fi
+KAMERA_FLAGG="${FEATURES:+ --enable-features=$FEATURES}$BLINK"
 
 echo "6/6  Tavlan startar i helskärm vid inloggning"
 # --password-store=basic: ingen fråga om nyckelring när inloggningen sker utan lösenord

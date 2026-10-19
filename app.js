@@ -296,14 +296,27 @@ let fitScrollbar=()=>{},hideCursor=()=>{};
    Bara medelljusheten i en bild på 32×24 punkter används; bilden sparas aldrig och skickas ingenstans.
    Mörkt rum ger mörkt läge och en svagare bild (sidan kan inte styra datorns egen ljusstyrka).
    Under nattläget är kameran av och tavlan alltid mörk. */
-const CAM={on:lsGet('kamera')==='1',lvl:null,dark:false,dim:true,thr:Number(lsGet('kamGrans'))||25,err:'',busy:false};
+const CAM={on:lsGet('kamera')==='1',lvl:null,dark:false,dim:true,thr:Number(lsGet('kamGrans'))||25,lux:Number(lsGet('kamLux'))||15,src:'',err:'',busy:false};
+/* Har datorn en ljussensor (Surfacen har det) läser tavlan den i stället för kameran: riktiga lux, ingen bild och ingen lampa.
+   Chromium behöver startas med ljussensorn påslagen (kiosk/installera.sh gör det). Annars används kameran som förut. */
+let ALS=null,alsFail=false;
+const camThr=()=>CAM.src==='als'?CAM.lux:CAM.thr;
+function camJudge(){const t=camThr(),up=CAM.src==='als'?t*1.5+1:t+6;
+ // lite marginal åt båda hållen så att tavlan inte slår fram och tillbaka i skymningen
+ if(CAM.dark&&CAM.lvl>up)CAM.dark=false;else if(!CAM.dark&&CAM.lvl<t)CAM.dark=true}
+function alsStart(){if(ALS)return true;if(alsFail||!CAM.on||!S.wall||!('AmbientLightSensor' in window))return false;
+ try{const a=new AmbientLightSensor({frequency:0.2});
+  a.addEventListener('reading',()=>{const lx=a.illuminance;if(lx==null)return;CAM.lvl=CAM.src==='als'&&CAM.lvl!=null?CAM.lvl*.6+lx*.4:lx;CAM.src='als';CAM.err='';camJudge();camShow();autoTheme()});
+  a.addEventListener('error',()=>{alsStop();alsFail=true;if(CAM.src==='als'){CAM.src='';CAM.lvl=null}camSample()});
+  a.start();ALS=a;return true}catch(e){alsFail=true;return false}}
+function alsStop(){if(ALS){try{ALS.stop()}catch(e){}ALS=null}}
 CAM.dim=lsGet('kamDampa')!=='0';
 const wallDark=()=>S.wall&&(inNight()||CAM.on&&CAM.dark);
 function autoTheme(){const d=wallDark();if(d!==autoTheme.was){const first=autoTheme.was===undefined;autoTheme.was=d;if(!first){applyTheme(true);render()}}
- let el=document.getElementById('dimmer');const k=S.wall&&CAM.on&&CAM.dim&&CAM.lvl!=null&&!inNight()?Math.max(0,Math.min(1,(CAM.thr+15-CAM.lvl)/(CAM.thr+15)))*.45:0;
+ let el=document.getElementById('dimmer');const top=CAM.src==='als'?camThr()*2:camThr()+15,k=S.wall&&CAM.on&&CAM.dim&&CAM.lvl!=null&&!inNight()?Math.max(0,Math.min(1,(top-CAM.lvl)/top))*.45:0;
  if(!el&&k>0){el=document.createElement('div');el.id='dimmer';el.setAttribute('aria-hidden','true');document.body.appendChild(el)}
  if(el)el.style.opacity=k.toFixed(2)}
-async function camSample(){if(!CAM.on||!S.wall||CAM.busy||document.visibilityState!=='visible'||inNight())return;
+async function camSample(){if(!CAM.on||!S.wall)return;if(alsStart())return;if(CAM.busy||document.visibilityState!=='visible'||inNight())return;
  if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)){CAM.err='Den här webbläsaren kan inte använda kameran';camShow();return}
  CAM.busy=true;let st=null;
  try{st=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:160},height:{ideal:120},facingMode:'user'},audio:false});
@@ -315,14 +328,12 @@ async function camSample(){if(!CAM.on||!S.wall||CAM.busy||document.visibilitySta
   const cv=document.createElement('canvas');cv.width=32;cv.height=24;const g=cv.getContext('2d',{willReadFrequently:true});g.drawImage(v,0,0,32,24);
   const px=g.getImageData(0,0,32,24).data;let sum=0;for(let i=0;i<px.length;i+=4)sum+=.2126*px[i]+.7152*px[i+1]+.0722*px[i+2];
   const lvl=sum/(px.length/4)/255*100;g.clearRect(0,0,32,24);v.srcObject=null;
-  CAM.lvl=CAM.lvl==null?lvl:CAM.lvl*.5+lvl*.5;CAM.err='';
-  // lite marginal åt båda hållen så att tavlan inte slår fram och tillbaka i skymningen
-  if(CAM.dark&&CAM.lvl>CAM.thr+6)CAM.dark=false;else if(!CAM.dark&&CAM.lvl<CAM.thr)CAM.dark=true}
+  CAM.lvl=CAM.lvl==null?lvl:CAM.lvl*.5+lvl*.5;CAM.src='kamera';CAM.err='';camJudge()}
  catch(e){CAM.err=e&&e.name==='NotAllowedError'?'Kameran är inte tillåten. Tryck på Tillåt när tavlan frågar':e&&(e.name==='NotFoundError'||e.name==='OverconstrainedError')?'Webbläsaren hittar ingen kamera':'Kameran svarar inte'}
  finally{if(st)st.getTracks().forEach(t=>t.stop());CAM.busy=false}
  camShow();autoTheme()}
 function camShow(){const el=document.querySelector('[data-cam-lvl]');if(el)el.textContent=camTxt()}
-const camTxt=()=>!CAM.on?'':CAM.err?CAM.err:inNight()?'Av under nattläget':CAM.lvl==null?'Mäter …':Math.round(CAM.lvl)+' %'+(CAM.dark?' · mörkt':' · ljust');
+const camTxt=()=>!CAM.on?'':CAM.err?CAM.err:inNight()?'Av under nattläget':CAM.lvl==null?'Mäter …':(CAM.src==='als'?(CAM.lvl<10?CAM.lvl.toFixed(1).replace('.',','):Math.round(CAM.lvl))+' lux':Math.round(CAM.lvl)+' %')+(CAM.dark?' · mörkt':' · ljust');
 setInterval(camSample,60000);setTimeout(camSample,3000);
 
 /* Ändra ordning: håll fingret på en ruta på Översikt tills rutorna vickar och dra sedan, som på mobilens hemskärm.
@@ -2140,12 +2151,12 @@ function renderOverlay(){
     (NATT.on?fieldCell('Följ solnedgång och soluppgång','<input type="checkbox" role="switch" class="switch" data-act="nattSolv" aria-label="Följ solnedgång och soluppgång"'+(NATT.sol?' checked':'')+'>')+
      '<div class="cell ntid-row'+(NATT.sol?' off':'')+'"><span class="grow">Tid</span><span class="ntid-pair">'+tIn('nattA',NATT.a,'Nattläget börjar klockan')+'<span class="ntid-d">–</span>'+tIn('nattB',NATT.b,'Nattläget slutar klockan')+'</span>'+'</div>':''))+
    '<div class="foot">'+(NATT.sol&&ss?'Nattläget följer solen: i dag från '+dm(ss[1])+' till '+dm(ss[0])+' i morgon. ':'')+'Under nattläget visar tavlan bara en dämpad klocka när ingen har rört den på två minuter, och appen är i mörkt läge. Klockan flyttar sig lite varje timme så att den inte bränns in i skärmen. Tryck på skärmen för att väcka tavlan.</div>'+
-   sh('Rummets ljus')+group(fieldCell('Använd kameran','<input type="checkbox" role="switch" class="switch" data-act="kamera" aria-label="Använd kameran för rummets ljus"'+(CAM.on?' checked':'')+'>')+
-    (CAM.on?'<div class="cell"><span class="grow">Ljus i rummet</span><span class="meta" data-cam-lvl>'+esc(camTxt())+'</span></div>'+
+   sh('Rummets ljus')+group(fieldCell('Mät rummets ljus','<input type="checkbox" role="switch" class="switch" data-act="kamera" aria-label="Mät rummets ljus"'+(CAM.on?' checked':'')+'>')+
+    (CAM.on?'<div class="cell"><span class="grow">Ljus i rummet'+(CAM.src==='als'?' (ljussensorn)':CAM.src==='kamera'?' (kameran)':'')+'</span><span class="meta" data-cam-lvl>'+esc(camTxt())+'</span></div>'+
      fieldCell('Dämpa skärmen när det är mörkt','<input type="checkbox" role="switch" class="switch" data-act="kamDampa" aria-label="Dämpa skärmen när det är mörkt"'+(CAM.dim?' checked':'')+'>'):''))+
-   (CAM.on?sh('Mörkt läge under')+'<div class="seg-wrap">'+segc('Mörkt läge under','kamGrans',[['15','15 %'],['25','25 %'],['35','35 %'],['45','45 %']],String(CAM.thr))+'</div>':'')+
-   (CAM.on&&/hittar ingen/.test(CAM.err)?'<div class="foot">Surfacens kamera är ingen vanlig webbkamera, så Chromium ser den inte från början. Kör installationsskriptet för väggskärmen igen (kiosk/installera.sh) och starta om datorn, så försöker det göra kameran tillgänglig.</div>':'')+
-   '<div class="foot">Kameran tittar en gång i minuten och räknar bara ut hur ljust det är. Ingen bild sparas eller skickas någonstans. När rummet blir mörkare än gränsen byter tavlan till mörkt läge och dämpar bilden. Under nattläget är kameran avstängd. Gäller bara den här enheten.</div>'+
+   (CAM.on?sh('Mörkt läge under')+'<div class="seg-wrap">'+(CAM.src==='als'?segc('Mörkt läge under','kamLux',[['5','5 lux'],['15','15 lux'],['30','30 lux'],['60','60 lux']],String(CAM.lux)):segc('Mörkt läge under','kamGrans',[['15','15 %'],['25','25 %'],['35','35 %'],['45','45 %']],String(CAM.thr)))+'</div>':'')+
+   (CAM.on&&/hittar ingen/.test(CAM.err)?'<div class="foot">Webbläsaren når varken ljussensorn eller kameran. Kör installationsskriptet för väggskärmen igen (kiosk/installera.sh) och starta om tavlan, så slås ljussensorn på.</div>':'')+
+   '<div class="foot">Tavlan läser datorns ljussensor om den finns, annars tittar kameran en gång i minuten och räknar bara ut hur ljust det är. Ingen bild sparas eller skickas någonstans. När rummet blir mörkare än gränsen byter tavlan till mörkt läge och dämpar bilden. Gäller bara den här enheten.</div>'+
    '<div class="foot">Muspekaren är dold i väggläge. Flyttar du musen syns den en kort stund.</div>';
   o.innerHTML=sheetHtml('vagg','Nattläge','<button type="button" class="tb strong" data-act="sheetClose">Klar</button>',body,enter,'<button type="button" class="back" data-act="settings">'+I.back+'Inställningar</button>');segSlide(o);return}
  if(k==='farg'){const mi=people().indexOf(S.me);if(enter)[FARG_OPEN,FARG_X].forEach(o=>Object.keys(o).forEach(k=>delete o[k]));
@@ -3266,8 +3277,9 @@ const ACT={
  nattStep(id){if(NATT.sol)return;const[k,d]=String(id).split(':');if(!(k in NATT))return;NATT[k]=((Math.round(NATT[k]/15)*15+Number(d))%1440+1440)%1440;saveNatt();autoTheme();applyTheme(true);
   const el=document.querySelector('[data-change="natt'+k.toUpperCase()+'"]');if(el)el.value=nattTid(NATT[k])},
  nattSolv(){NATT.sol=!NATT.sol;lsSet('nattSol',NATT.sol?'1':null);autoTheme();applyTheme(true);render()},
- kamera(){CAM.on=!CAM.on;lsSet('kamera',CAM.on?'1':null);if(!CAM.on){CAM.lvl=null;CAM.dark=false;CAM.err=''}autoTheme();render();camSample()},
+ kamera(){CAM.on=!CAM.on;lsSet('kamera',CAM.on?'1':null);if(!CAM.on){alsStop();CAM.lvl=null;CAM.src='';CAM.dark=false;CAM.err=''}autoTheme();render();camSample()},
  kamDampa(){CAM.dim=!CAM.dim;lsSet('kamDampa',CAM.dim?null:'0');autoTheme()},
+ kamLux(id){CAM.lux=Number(id)||15;lsSet('kamLux',CAM.lux===15?null:String(CAM.lux));if(CAM.lvl!=null&&CAM.src==='als'){CAM.dark=CAM.lvl<CAM.lux}autoTheme();render()},
  kamGrans(id){CAM.thr=Number(id)||25;lsSet('kamGrans',CAM.thr===25?null:String(CAM.thr));if(CAM.lvl!=null){CAM.dark=CAM.lvl<CAM.thr}autoTheme();render()},
  matTab(id){S.matTab=['recept','bank','efter','inkop'].includes(id)?id:'vecka';lsSet('matTab',S.matTab);S.recipe=null;render()},
  recipe(id){S.view='mat';S.recipe=id;lsSet('view','mat');try{history.replaceState(null,'','#mat')}catch(e){}window.scrollTo(0,0);render()},
