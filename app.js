@@ -298,7 +298,14 @@ let fitScrollbar=()=>{},hideCursor=()=>{};
    Under nattläget är kameran av och tavlan alltid mörk. */
 const CAM={on:lsGet('kamera')==='1',lvl:null,dark:false,dim:true,thr:Number(lsGet('kamGrans'))||25,lux:Number(lsGet('kamLux'))||15,src:'',err:'',busy:false};
 /* Har datorn en ljussensor (Surfacen har det) läser tavlan den i stället för kameran: riktiga lux, ingen bild och ingen lampa.
-   Chromium behöver startas med ljussensorn påslagen (kiosk/installera.sh gör det). Annars används kameran som förut. */
+   Först frågas en liten ljustjänst på väggdatorn (http://127.0.0.1:8777/lux, svarar {"lux":10.2}), sedan webbläsarens
+   egen AmbientLightSensor, och sist kameran. På andra datorer finns ingen tjänst och då går tavlan vidare till nästa. */
+const LUX_URL='http://127.0.0.1:8777/lux';let luxFail=0;
+async function luxLocal(){if(Date.now()<luxFail)return false;
+ try{const ac=new AbortController(),t=setTimeout(()=>ac.abort(),3000);const r=await fetch(LUX_URL,{cache:'no-store',signal:ac.signal});clearTimeout(t);
+  const j=await r.json();if(!r.ok||typeof j.lux!=='number')throw 0;
+  CAM.lvl=CAM.src==='als'&&CAM.lvl!=null?CAM.lvl*.6+j.lux*.4:j.lux;CAM.src='als';CAM.err='';camJudge();camShow();autoTheme();return true}
+ catch(e){luxFail=Date.now()+300000;if(CAM.src==='als'&&!ALS){CAM.src='';CAM.lvl=null}return false}}
 let ALS=null,alsFail=false;
 const camThr=()=>CAM.src==='als'?CAM.lux:CAM.thr;
 function camJudge(){const t=camThr(),up=CAM.src==='als'?t*1.5+1:t+6;
@@ -316,7 +323,7 @@ function autoTheme(){const d=wallDark();if(d!==autoTheme.was){const first=autoTh
  let el=document.getElementById('dimmer');const top=CAM.src==='als'?camThr()*2:camThr()+15,k=S.wall&&CAM.on&&CAM.dim&&CAM.lvl!=null&&!inNight()?Math.max(0,Math.min(1,(top-CAM.lvl)/top))*.45:0;
  if(!el&&k>0){el=document.createElement('div');el.id='dimmer';el.setAttribute('aria-hidden','true');document.body.appendChild(el)}
  if(el)el.style.opacity=k.toFixed(2)}
-async function camSample(){if(!CAM.on||!S.wall)return;if(alsStart())return;if(CAM.busy||document.visibilityState!=='visible'||inNight())return;
+async function camSample(){if(!CAM.on||!S.wall)return;if(await luxLocal())return;if(alsStart())return;if(CAM.busy||document.visibilityState!=='visible'||inNight())return;
  if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)){CAM.err='Den här webbläsaren kan inte använda kameran';camShow();return}
  CAM.busy=true;let st=null;
  try{st=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:160},height:{ideal:120},facingMode:'user'},audio:false});
@@ -334,7 +341,8 @@ async function camSample(){if(!CAM.on||!S.wall)return;if(alsStart())return;if(CA
  camShow();autoTheme()}
 function camShow(){const el=document.querySelector('[data-cam-lvl]');if(el)el.textContent=camTxt()}
 const camTxt=()=>!CAM.on?'':CAM.err?CAM.err:inNight()?'Av under nattläget':CAM.lvl==null?'Mäter …':(CAM.src==='als'?(CAM.lvl<10?CAM.lvl.toFixed(1).replace('.',','):Math.round(CAM.lvl))+' lux':Math.round(CAM.lvl)+' %')+(CAM.dark?' · mörkt':' · ljust');
-setInterval(camSample,60000);setTimeout(camSample,3000);
+// ljustjänsten är billig att fråga, så den frågas var tionde sekund; kameran bara en gång i minuten
+let camN=0;setInterval(()=>{if(CAM.src==='als'&&!ALS||++camN%6===0)camSample()},10000);setTimeout(camSample,3000);
 
 /* Ändra ordning: håll fingret på en ruta på Översikt tills rutorna vickar och dra sedan, som på mobilens hemskärm.
    De andra rutorna glider undan medan man drar. Klockan räknas inte (där sitter kioskens stäng-gest). */
@@ -2155,7 +2163,7 @@ function renderOverlay(){
     (CAM.on?'<div class="cell"><span class="grow">Ljus i rummet'+(CAM.src==='als'?' (ljussensorn)':CAM.src==='kamera'?' (kameran)':'')+'</span><span class="meta" data-cam-lvl>'+esc(camTxt())+'</span></div>'+
      fieldCell('Dämpa skärmen när det är mörkt','<input type="checkbox" role="switch" class="switch" data-act="kamDampa" aria-label="Dämpa skärmen när det är mörkt"'+(CAM.dim?' checked':'')+'>'):''))+
    (CAM.on?sh('Mörkt läge under')+'<div class="seg-wrap">'+(CAM.src==='als'?segc('Mörkt läge under','kamLux',[['5','5 lux'],['15','15 lux'],['30','30 lux'],['60','60 lux']],String(CAM.lux)):segc('Mörkt läge under','kamGrans',[['15','15 %'],['25','25 %'],['35','35 %'],['45','45 %']],String(CAM.thr)))+'</div>':'')+
-   (CAM.on&&/hittar ingen/.test(CAM.err)?'<div class="foot">Webbläsaren når varken ljussensorn eller kameran. Kör installationsskriptet för väggskärmen igen (kiosk/installera.sh) och starta om tavlan, så slås ljussensorn på.</div>':'')+
+   (CAM.on&&/hittar ingen/.test(CAM.err)?'<div class="foot">Tavlan når varken ljussensorn eller kameran. På väggskärmen läses ljussensorn av en liten ljustjänst på datorn; kontrollera att den är igång.</div>':'')+
    '<div class="foot">Tavlan läser datorns ljussensor om den finns, annars tittar kameran en gång i minuten och räknar bara ut hur ljust det är. Ingen bild sparas eller skickas någonstans. När rummet blir mörkare än gränsen byter tavlan till mörkt läge och dämpar bilden. Gäller bara den här enheten.</div>'+
    '<div class="foot">Muspekaren är dold i väggläge. Flyttar du musen syns den en kort stund.</div>';
   o.innerHTML=sheetHtml('vagg','Nattläge','<button type="button" class="tb strong" data-act="sheetClose">Klar</button>',body,enter,'<button type="button" class="back" data-act="settings">'+I.back+'Inställningar</button>');segSlide(o);return}
@@ -3277,7 +3285,7 @@ const ACT={
  nattStep(id){if(NATT.sol)return;const[k,d]=String(id).split(':');if(!(k in NATT))return;NATT[k]=((Math.round(NATT[k]/15)*15+Number(d))%1440+1440)%1440;saveNatt();autoTheme();applyTheme(true);
   const el=document.querySelector('[data-change="natt'+k.toUpperCase()+'"]');if(el)el.value=nattTid(NATT[k])},
  nattSolv(){NATT.sol=!NATT.sol;lsSet('nattSol',NATT.sol?'1':null);autoTheme();applyTheme(true);render()},
- kamera(){CAM.on=!CAM.on;lsSet('kamera',CAM.on?'1':null);if(!CAM.on){alsStop();CAM.lvl=null;CAM.src='';CAM.dark=false;CAM.err=''}autoTheme();render();camSample()},
+ kamera(){CAM.on=!CAM.on;luxFail=0;lsSet('kamera',CAM.on?'1':null);if(!CAM.on){alsStop();CAM.lvl=null;CAM.src='';CAM.dark=false;CAM.err=''}autoTheme();render();camSample()},
  kamDampa(){CAM.dim=!CAM.dim;lsSet('kamDampa',CAM.dim?null:'0');autoTheme()},
  kamLux(id){CAM.lux=Number(id)||15;lsSet('kamLux',CAM.lux===15?null:String(CAM.lux));if(CAM.lvl!=null&&CAM.src==='als'){CAM.dark=CAM.lvl<CAM.lux}autoTheme();render()},
  kamGrans(id){CAM.thr=Number(id)||25;lsSet('kamGrans',CAM.thr===25?null:String(CAM.thr));if(CAM.lvl!=null){CAM.dark=CAM.lvl<CAM.thr}autoTheme();render()},
