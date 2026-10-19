@@ -397,7 +397,8 @@ function alsStop(){if(ALS){try{ALS.stop()}catch(e){}ALS=null}}
 CAM.dim=lsGet('kamDampa')!=='0';
 const wallDark=()=>S.wall&&(inNight()||CAM.on&&CAM.dark);
 function autoTheme(){const d=wallDark();if(d!==autoTheme.was){const first=autoTheme.was===undefined;autoTheme.was=d;if(!first){applyTheme(true);render()}}
- if(KAL||SMAK)return;
+ // autoTheme körs en gång innan resten av appen finns (A, nightOn); då väntar ljusstyrkan till nästa mätning
+ if(KAL||SMAK||!autoTheme.ok)return;
  // klockan i nattläget: lägsta ljusstyrkan; utan mätvärde eller utanför väggläge: vanlig ljusstyrka
  ljOut(!S.wall||!CAM.on||!CAM.dim?null:nightOn()?0:CAM.lvl==null?null:CAM.b)}
 async function camSample(){if(!CAM.on||!S.wall)return;if(await luxLocal())return;if(alsStart())return;if(CAM.busy||document.visibilityState!=='visible'||inNight())return;
@@ -3323,6 +3324,7 @@ const A={page:'',keys:null,rects:null,nums:{},bars:{},segs:{},done:null,user:0,c
   const was=this.done;this.done=st;if(!was||Date.now()-this.user>3000)return;
   const msg=st.shop&&!was.shop?'Allt är handlat! 🎉':st.clean&&!was.clean?'Dagens städpass är klart! ✨':st.tasks&&!was.tasks?'Alla dagens uppgifter är klara! 🎉':'';
   if(msg){toast(msg);confetti()}}};
+autoTheme.ok=true;
 function checkAnim(id,done,then){A.user=Date.now();
  const box=[...document.querySelectorAll('.cell input.check')].find(b=>b.dataset.id===id),row=box&&box.closest('.cell');
  if(!row||calm()){A.flip=true;then();return}
