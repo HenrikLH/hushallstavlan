@@ -3014,8 +3014,11 @@ function costRow(c,list,split){const pm=perMonth(c),meta=[c.pay,dayTxt(c.day),c.
   '</div><span class="val num">'+kr(pm)+'</span>'+chevron+'</button>'}
 function splitPreview(el){const v=Number(String(el.value).replace(/\s/g,'').replace(',','.'))||0,c=ekoCalc(S.ekoMonth||thisMonth()),out=document.getElementById('split-out');
  if(out)out.innerHTML=c.per.map(x=>'<div class="pc '+pcls(x.p)+'"><span class="fn pcn"><span class="pdot '+pcls(x.p)+'"></span>'+esc(x.p)+' '+(x.share*100).toFixed(1).replace('.',',')+' %</span><b class="num">'+kr(v*x.share)+'</b></div>').join('')}
-function ovWarn(l){const n=ovOpen(l).length;if(!n)return'';
- return'<button class="ov-warn" data-act="ovNext" data-list="'+esc(l)+'"><span class="ovs saknas" aria-hidden="true">!</span><span class="grow"><b>'+(n===1?'1 utgift saknar':n+' utgifter saknar')+' stående överföring</b><span>Lägg in '+(n===1?'den':'dem')+' i banken och bocka av här</span></span>'+chevron+'</button>'}
+/* Varje lista med fasta utgifter kan fällas ihop för kortare scrollning. Utfälld från början;
+   valet gäller tills appen stängs. Ihopfälld visar rubriken hur många som saknar överföring. */
+function ekoSec(l,title,sum,inner){const open=!(S.ekoFold||{})[l],n=ovOpen(l).length;
+ return'<button class="sh eko-fold'+(open?' open':'')+'" data-act="ekoFold" data-id="'+esc(l)+'" aria-expanded="'+open+'"><span>'+title+'</span><span class="r">'+
+  (!open&&n?'<span class="ovs saknas eko-fn" aria-label="'+n+' saknar stående överföring">'+n+'</span>':'')+sum+'<span class="eko-chev">'+I.chev+'</span></span></button>'+(open?inner:'')}
 function ovAllOk(l){const n=ekoList(l).length;return n&&!ovOpen(l).length?'<div class="foot ov-allok">'+I.tick+(n===1?'Har':'Alla '+n+' har')+' en stående överföring från '+esc(ovFrom(l))+'</div>':''}
 // I väggläge och på gemensam skärm (ingen vald person) är Ekonomi låst med en kod, oavsett skärmstorlek.
 // Låset går i igen när man lämnar Ekonomi. Inga gränser för antal försök.
@@ -3045,10 +3048,9 @@ V.ekonomi=function(){if(ekoLocked())return ekoLock();const m=S.ekoMonth||thisMon
  h+='<div class="foot">Avrundat uppåt till '+kr(o.round||100)+' med '+(o.buffer!=null?o.buffer:2)+' % buffert, som i kalkylen.</div>';
  // Gemensamma utgifter
  h+='<div class="split"><div class="col">';
- h+=sh('Gemensamma fasta',kr(c.shared)+'/mån')+ovWarn('shared');
- h+=group((o.shared||[]).map(x=>costRow(x,'shared',c.per)).join('')+'<button class="cell link" data-act="ekoCost" data-list="shared"><span class="grow" style="color:var(--accent)">Lägg till utgift</span></button>')+ovAllOk('shared');
+ h+=ekoSec('shared','Gemensamma fasta',kr(c.shared)+'/mån',group((o.shared||[]).map(x=>costRow(x,'shared',c.per)).join('')+'<button class="cell link" data-act="ekoCost" data-list="shared"><span class="grow" style="color:var(--accent)">Lägg till utgift</span></button>')+ovAllOk('shared'));
  h+='</div><div class="col">';
- people().forEach(p=>{const l=(o.personal||{})[p]||[];h+='<div class="eko-pl pc '+pcls(p)+'">'+sh('<span class="pdot '+pcls(p)+'"></span>'+esc(p)+'s fasta',kr(sumMonth(l))+'/mån')+ovWarn(p)+group(l.map(x=>costRow(x,p)).join('')+'<button class="cell link" data-act="ekoCost" data-list="'+esc(p)+'"><span class="grow eko-add">Lägg till utgift</span></button>')+ovAllOk(p)+'</div>'});
+ people().forEach(p=>{const l=(o.personal||{})[p]||[];h+='<div class="eko-pl pc '+pcls(p)+'">'+ekoSec(p,'<span class="pdot '+pcls(p)+'"></span>'+esc(p)+'s fasta',kr(sumMonth(l))+'/mån',group(l.map(x=>costRow(x,p)).join('')+'<button class="cell link" data-act="ekoCost" data-list="'+esc(p)+'"><span class="grow eko-add">Lägg till utgift</span></button>')+ovAllOk(p))+'</div>'});
  h+='</div></div>';
  // Dela en kostnad
  h+=sh('Dela en kostnad')+group('<div class="cell"><input class="field" id="split-amt" inputmode="decimal" placeholder="Belopp att dela, t.ex. 1000" aria-label="Belopp att dela"></div><div class="cell eko-calc" id="split-out" aria-live="polite"></div>');
@@ -3299,6 +3301,7 @@ const ACT={
  ekoIncome(){S.sheet='income';render()},
  ekoCost(id,el){S.ekoEdit={list:el.dataset.list,id:id||null};S.sheet='cost';render()},
  ovShow(id,el){S.ekoEdit=null;S.ovEdit={list:el&&el.dataset.list||'shared',id};S.sheet='ov';render()},
+ ekoFold(id){S.ekoFold=Object.assign({},S.ekoFold,{[id]:!(S.ekoFold||{})[id]});render()},
  ovNext(id,el){const l=el&&el.dataset.list||'shared',c=ovOpen(l)[0];if(c)ACT.ovShow(c.id,{dataset:{list:l}})},
  ovGo(id){const[l,cid]=String(id).split('|');ACT.nav('ekonomi');if(!ekoLocked())ACT.ovShow(cid,{dataset:{list:l}})},
  pin(k){S.pinBad=false;S.pin=k==='del'?(S.pin||'').slice(0,-1):((S.pin||'')+k).slice(0,4);
