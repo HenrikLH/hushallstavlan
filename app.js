@@ -304,7 +304,8 @@ const LUX_URL='http://127.0.0.1:8777/lux';let luxFail=0;
 async function luxLocal(){if(Date.now()<luxFail)return false;
  try{const ac=new AbortController(),t=setTimeout(()=>ac.abort(),3000);const r=await fetch(LUX_URL,{cache:'no-store',signal:ac.signal});clearTimeout(t);
   const j=await r.json();if(!r.ok||typeof j.lux!=='number')throw 0;
-  CAM.raw=j.lux;CAM.lvl=CAM.src==='als'&&CAM.lvl!=null?CAM.lvl*.4+j.lux*.6:j.lux;CAM.src='als';CAM.err='';ljHist(j.lux);camJudge();camShow();autoTheme();return true}
+  CAM.raw=j.lux;// små svängningar jämnas ut, men tänds eller släcks en lampa (mer än en fjärdedel) gäller det nya ljuset direkt
+  CAM.lvl=CAM.src==='als'&&CAM.lvl!=null&&Math.abs(j.lux-CAM.lvl)<=Math.max(CAM.lvl,j.lux)*.25?CAM.lvl*.4+j.lux*.6:j.lux;CAM.src='als';CAM.err='';ljHist(j.lux);camJudge();camShow();autoTheme();return true}
  catch(e){luxFail=Date.now()+300000;
   // tappar tavlan ljuset blir den aldrig kvar i mörkt läge: skärmen går tillbaka till det vanliga
   if(CAM.src==='als'&&!ALS){CAM.src='';CAM.lvl=null;CAM.dark=false;CAM.err='Ljussensorn svarar inte';camShow();autoTheme()}return false}}
@@ -366,15 +367,14 @@ function kalSvg(){const a=(KAL&&KAL.all||[]).slice(-120);if(a.length<2)return'<s
  return'<svg class="kal-g" viewBox="0 0 300 90" preserveAspectRatio="none" aria-hidden="true"><polyline points="'+pts+'" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>'}
 function kalDraw(full){if(S.sheet!=='ljuskal')return;if(full){render();return}
  const g=document.querySelector('.kal-g');if(g)g.outerHTML=kalSvg();const n=document.querySelector('[data-kal-lux]');if(n&&KAL&&KAL.all.length)n.textContent=luxTxt(KAL.all[KAL.all.length-1][1])}
-const BL_URL='http://127.0.0.1:8777/ljusstyrka',BL={ok:null,retry:0,sent:null,at:0,q:null,busy:false,t:0,last:0,gap:2500,fb:null};
+const BL_URL='http://127.0.0.1:8777/ljusstyrka',BL={ok:null,retry:0,sent:null,at:0,q:null,busy:false,t:0,last:0,gap:250,fb:null};
 const ljPct=b=>{const lo=Math.max(3,LJ.min),hi=Math.max(lo+1,LJ.max);return Math.round(lo*Math.pow(hi/lo,b))};
 async function blSend(body){try{const ac=new AbortController(),t=setTimeout(()=>ac.abort(),3000);
   const r=await fetch(BL_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:ac.signal});clearTimeout(t);if(!r.ok)throw 0;BL.ok=true;
-  // en ljustjänst som kan byta mål mitt i en toning tål täta ändringar; den äldre tonar klart varje ändring i tur och ordning
-  try{const j=await r.json();BL.gap=j&&j.avbrytbar?250:2500}catch(e){}return true}
+return true}
  catch(e){BL.ok=false;BL.retry=Date.now()+300000;BL.sent=null;return false}}
-/* Bara den senaste ändringen skickas, och aldrig tätare än tjänsten hinner med, annars ställer sig toningarna i kö
-   och skärmen släpar efter (reglage och knappar kändes döda). */
+/* Bara den senaste ändringen skickas, högst fyra gånger i sekunden, så att ett reglage som dras inte översvämmar
+   ljustjänsten. Tjänsten byter själv mål mitt i en toning. */
 function blQueue(body){BL.q=body;if(BL.busy||BL.t)return;const w=BL.last+BL.gap-Date.now();
  if(w>0){BL.t=setTimeout(()=>{BL.t=0;if(BL.q)blQueue(BL.q)},w);return}
  BL.busy=true;BL.q=null;BL.last=Date.now();
@@ -3392,7 +3392,7 @@ const ACT={
   const el=document.querySelector('[data-change="natt'+k.toUpperCase()+'"]');if(el)el.value=nattTid(NATT[k])},
  nattSolv(){NATT.sol=!NATT.sol;lsSet('nattSol',NATT.sol?'1':null);autoTheme();applyTheme(true);render()},
  kamera(){CAM.on=!CAM.on;luxFail=0;lsSet('kamera',CAM.on?'1':null);if(!CAM.on){alsStop();CAM.lvl=null;CAM.src='';CAM.dark=false;CAM.err=''}autoTheme();render();camSample()},
- kamDampa(){CAM.dim=!CAM.dim;lsSet('kamDampa',CAM.dim?null:'0');autoTheme()},
+ kamDampa(){CAM.dim=!CAM.dim;lsSet('kamDampa',CAM.dim?null:'0');autoTheme();render()},
  ljMode(id){LJ.auto=id==='auto';saveLJ();if(CAM.lvl!=null)camJudge();autoTheme();render()},
  ljKal(){if(KAL)kalStop();S.sheet='ljuskal';SMAK=null;kalStart();render()},
  ljSmak(){kalStop();S.sheet='ljuskal';const b=LJ.pts||[0,ljBase(.5),1];SMAK={i:0,v:[b[2],b[1],b[0]]};ljOut(SMAK.v[0]);render()},
