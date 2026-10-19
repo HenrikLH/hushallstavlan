@@ -66,7 +66,7 @@ const OLD_VIEWS={matsedel:'vecka',recept:'recept',inkop:'inkop'};
 
 /* ---------- state ---------- */
 const CFG=window.HT_CONFIG||{};
-const S={theme:['light','dark'].includes(lsGet('theme'))?lsGet('theme'):'system',key:lsGet('key')||'',me:lsGet('me')||'',view:lsGet('view')||'oversikt',wall:lsGet('wall')==='1',
+const S={hj:new Set(),theme:['light','dark'].includes(lsGet('theme'))?lsGet('theme'):'system',key:lsGet('key')||'',me:lsGet('me')||'',view:lsGet('view')||'oversikt',wall:lsGet('wall')==='1',
  data:null,sync:'idle',lastSync:null,error:'',recipe:null,scale:{},cook:null,shopFilter:'alla',shopAdd:false,taskAdd:false,
  sheet:null,confirm:null,timers:[],pending:0,step:{},matTab:['recept','bank','efter','inkop'].includes(lsGet('matTab'))?lsGet('matTab'):'vecka',taskTab:lsGet('taskTab')==='kalender'?'kalender':'lista',calDay:null,calMonth:null,ovDay:null,taskDue:'',bankFilter:'alla',rate:null,open:{}};
 try{const c=lsGet('cache');if(c)S.data=JSON.parse(c)}catch(e){}
@@ -2194,7 +2194,14 @@ const ljSlider=(label,id,v,min,max,l,r)=>'<div class="cell lj-sl"><div class="lj
 const fieldCell=(label,input)=>'<label class="cell"><span class="grow">'+label+'</span>'+input+'</label>';
 /* Ett öppet blad ritas om vid varje rendering (synkstatus, hämtning, ett tryck på en växlingsknapp). Då byts innehållet ut
    och bladet hoppade upp till toppen, så scrollpositionen sparas och sätts tillbaka när samma blad ritas igen */
+/* Förklaringarna i Inställningar är dolda från början. Rubriken får en liten pil och fäller ut texten under sig
+   (S.hj håller vilka som är öppna tills bladet stängs). Felmeddelanden har klassen foot keep och syns alltid. */
+function hjelpFold(body,key){const parts=body.split(/(?=<div class="sh[ "])/);
+ return parts.map((p,i)=>{if(!/^<div class="sh[ "]/.test(p)||!p.includes('<div class="foot">'))return p;const id=key+':'+i,on=S.hj.has(id);
+  return p.replace(/^<div class="sh([^"]*)"><span>([\s\S]*?)<\/span>/,(m,c,l)=>'<div class="sh sh-hj'+c+(on?' open':'')+'" data-act="hjelp" data-id="'+id+'" role="button" tabindex="0" aria-expanded="'+on+'"><span>'+l+'<i class="hj-ch" aria-hidden="true">'+I.chev+'</i></span>')
+   .split('<div class="foot">').join('<div class="foot hj'+(on?'':' hid')+'" data-hj="'+id+'">')}).join('')}
 function overlayKeepScroll(){const o=document.getElementById('overlay'),k=o.dataset.k||'',b=o.querySelector('.sheet-body'),y=b?b.scrollTop:0;
+ if(!k)S.hj=new Set();
  renderOverlay();
  const nb=o.querySelector('.sheet-body');if(y&&k&&o.dataset.k===k&&nb&&nb!==b)nb.scrollTop=y}
 function renderOverlay(){
@@ -2235,7 +2242,7 @@ function renderOverlay(){
   (DEV?sh('Design')+'<div class="seg-wrap">'+segc('Design','design',[['gammal','UI 1.0'],['ny','UI '+UI_VER]],NY?'ny':'gammal')+'</div><div class="foot">UI 1.0 är den gamla designen. Gäller bara den här enheten och bara i utvecklarläget.</div>':'')+
   sh('Den här enheten')+group('<button type="button" class="cell link center red" data-act="logout">Logga ut</button>')+
   '<div class="foot ver">Hushållstavlan · UI '+(NY?UI_VER:'1.0')+' · version '+esc(APP_VER)+'</div>';
-  o.innerHTML=sheetHtml('settings','Inställningar','<button class="tb strong">Spara</button>',body,enter);segSlide(o);return}
+  o.innerHTML=sheetHtml('settings','Inställningar','<button class="tb strong">Spara</button>',hjelpFold(body,'settings'),enter);segSlide(o);return}
  if(k==='ljuskal'){const K=KAL||{},nm=['full','mitten','lägsta'];let body='',right='<button type="button" class="tb strong" data-act="sheetClose">'+(K.step==='klar'||SMAK?'Klar':'Avbryt')+'</button>';
   if(SMAK){const i=SMAK.i,v=Math.round(SMAK.v[i]*100);
    body='<div class="kal"><div class="kal-n">'+(i+1)+' av 3</div><h3>Lampan på '+nm[i]+'</h3><p>Så här ljus blir skärmen när lampan står på '+nm[i]+'. Dra tills det känns rätt.</p></div>'+
@@ -2274,10 +2281,10 @@ function renderOverlay(){
      '<div class="foot">Ljuset i rummet just nu står överst. Tavlan går tillbaka till ljust läge när rummet blivit 30 % ljusare än gränsen, så att den inte blinkar fram och tillbaka.</div>')+
     group(ljSlider('Lägsta ljusstyrka','ljMin',LJ.min,3,40,'3 %','40 %')+ljSlider('Högsta ljusstyrka','ljMax',LJ.max,20,100,'20 %','100 %'))+
     '<div class="foot">Skärmen följer rummets ljus steglöst. På väggskärmen ändras skärmens riktiga ljusstyrka; på andra datorer läggs en mörk hinna över bilden. Under nattläget står skärmen på lägsta ljusstyrkan.</div>':'')+
-   (CAM.on&&/svarar inte|hittar ingen/.test(CAM.err)?'<div class="foot">Tavlan når inte ljussensorn. På väggskärmen läses den av en liten ljustjänst på datorn; kontrollera att den är igång. Under tiden har skärmen sin vanliga ljusstyrka.</div>':'')+
+   (CAM.on&&/svarar inte|hittar ingen/.test(CAM.err)?'<div class="foot keep">Tavlan når inte ljussensorn. På väggskärmen läses den av en liten ljustjänst på datorn; kontrollera att den är igång. Under tiden har skärmen sin vanliga ljusstyrka.</div>':'')+
    '<div class="foot">Ingen bild sparas eller skickas någonstans. Gäller bara den här enheten.</div>'+
    '<div class="foot">Muspekaren är dold i väggläge. Flyttar du musen syns den en kort stund.</div>';
-  o.innerHTML=sheetHtml('vagg','Nattläge','<button type="button" class="tb strong" data-act="sheetClose">Klar</button>',body,enter,'<button type="button" class="back" data-act="settings">'+I.back+'Inställningar</button>');segSlide(o);return}
+  o.innerHTML=sheetHtml('vagg','Nattläge','<button type="button" class="tb strong" data-act="sheetClose">Klar</button>',hjelpFold(body,'vagg'),enter,'<button type="button" class="back" data-act="settings">'+I.back+'Inställningar</button>');segSlide(o);return}
  if(k==='farg'){const mi=people().indexOf(S.me);if(enter)[FARG_OPEN,FARG_X].forEach(o=>Object.keys(o).forEach(k=>delete o[k]));
   // en rad färgcirklar som går att dra i sidled för fler färger; efter ett val fälls en rad med toner av färgen ut under
   const strip=farbList(),near=h=>strip.reduce((b,k)=>Math.min(Math.abs(colPos(k).h-h),360-Math.abs(colPos(k).h-h))<Math.min(Math.abs(colPos(b).h-h),360-Math.abs(colPos(b).h-h))?k:b,strip[0]);
@@ -2295,7 +2302,7 @@ function renderOverlay(){
    '<div class="foot">'+(ACCENT==='min'?'Knapparna följer din färg i hushållet nedanför. ':'')+'Gäller bara den här enheten.</div>'+
    sh('Färg i hushållet')+people().slice(0,2).map((n,i)=>group('<div class="cell"><span class="grow">'+esc(n)+'</span><span class="meta" data-name="pc'+i+'">'+esc(PCOL[personColor(i)][0])+'</span></div>'+picker('pc'+i,'pcol',i,personColor(i),'Färg för '+n))).join('<div style="height:10px"></div>')+
    '<div class="foot">Används för era händelser, uppgifter, sysslor och i Ekonomi. Gäller alla enheter.</div>';
-  o.innerHTML=sheetHtml('farg','Färgval','<button type="button" class="tb strong" data-act="sheetClose">Klar</button>',body,enter,'<button type="button" class="back" data-act="settings">'+I.back+'Inställningar</button>');segSlide(o);
+  o.innerHTML=sheetHtml('farg','Färgval','<button type="button" class="tb strong" data-act="sheetClose">Klar</button>',hjelpFold(body,'farg'),enter,'<button type="button" class="back" data-act="settings">'+I.back+'Inställningar</button>');segSlide(o);
   // raden står kvar där den var, och första gången med vald färg i mitten
   o.querySelectorAll('[data-strip]').forEach(sp=>{const x=FARG_X[sp.dataset.strip];if(x!=null){sp.scrollLeft=x;return}const c=sp.querySelector('input:checked');if(c){const l=c.parentElement;sp.scrollLeft=l.offsetLeft-(sp.clientWidth-l.offsetWidth)/2}});return}
  if(k==='prefs'){const st=settings();
@@ -3409,6 +3416,8 @@ const ACT={
  kamGrans(id){CAM.thr=Number(id)||25;lsSet('kamGrans',CAM.thr===25?null:String(CAM.thr));if(CAM.lvl!=null){CAM.dark=CAM.lvl<CAM.thr}autoTheme();render()},
  matTab(id){S.matTab=['recept','bank','efter','inkop'].includes(id)?id:'vecka';lsSet('matTab',S.matTab);S.recipe=null;render()},
  recipe(id){S.view='mat';S.recipe=id;lsSet('view','mat');try{history.replaceState(null,'','#mat')}catch(e){}window.scrollTo(0,0);render()},
+ hjelp(id,el){const on=!S.hj.has(id);if(on)S.hj.add(id);else S.hj.delete(id);el.classList.toggle('open',on);el.setAttribute('aria-expanded',String(on));
+  document.querySelectorAll('#overlay [data-hj="'+CSS.escape(id)+'"]').forEach(f=>f.classList.toggle('hid',!on))},
  recipeBack(){if(S.recipe)S.recipe=null;else S.plan=false;window.scrollTo(0,0);render()},
  planOpen(){S.plan=true;S.planOpen=null;window.scrollTo(0,0);render()},
  planClose(){S.plan=false;S.planOpen=null;window.scrollTo(0,0);render()},
