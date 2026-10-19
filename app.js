@@ -304,13 +304,77 @@ const LUX_URL='http://127.0.0.1:8777/lux';let luxFail=0;
 async function luxLocal(){if(Date.now()<luxFail)return false;
  try{const ac=new AbortController(),t=setTimeout(()=>ac.abort(),3000);const r=await fetch(LUX_URL,{cache:'no-store',signal:ac.signal});clearTimeout(t);
   const j=await r.json();if(!r.ok||typeof j.lux!=='number')throw 0;
-  CAM.lvl=CAM.src==='als'&&CAM.lvl!=null?CAM.lvl*.6+j.lux*.4:j.lux;CAM.src='als';CAM.err='';camJudge();camShow();autoTheme();return true}
- catch(e){luxFail=Date.now()+300000;if(CAM.src==='als'&&!ALS){CAM.src='';CAM.lvl=null}return false}}
+  CAM.raw=j.lux;CAM.lvl=CAM.src==='als'&&CAM.lvl!=null?CAM.lvl*.7+j.lux*.3:j.lux;CAM.src='als';CAM.err='';ljHist(j.lux);camJudge();camShow();autoTheme();return true}
+ catch(e){luxFail=Date.now()+300000;
+  // tappar tavlan ljuset blir den aldrig kvar i mörkt läge: skärmen går tillbaka till det vanliga
+  if(CAM.src==='als'&&!ALS){CAM.src='';CAM.lvl=null;CAM.dark=false;CAM.err='Ljussensorn svarar inte';camShow();autoTheme()}return false}}
 let ALS=null,alsFail=false;
-const camThr=()=>CAM.src==='als'?CAM.lux:CAM.thr;
-function camJudge(){const t=camThr(),up=CAM.src==='als'?t*1.5+1:t+6;
+/* Steglös ljusstyrka: rummets ljus (lux, eller kamerans %) räknas om till en upplevd ljusstyrka b mellan 0 och 1.
+   Ögat uppfattar ljus ungefär logaritmiskt, så kurvan går på log(lux) mellan rummets mörkaste och ljusaste läge.
+   Manuellt: Känslighet böjer kurvan (dämpar tidigt eller sent). Automatiskt: ändpunkterna kommer från kalibreringen med
+   dimmerlampan (eller från de senaste två veckorna med Lär dig själv), smakjusteringen ger kurvans form och varje
+   justering med slidern lär tavlan lite mer. Mörkt läge slås på när b går under 0,3. */
+const LJ=(()=>{let o={};try{o=JSON.parse(lsGet('ljus')||'{}')||{}}catch(e){}return Object.assign({auto:false,kans:50,min:5,max:40,cal:null,pts:null,lar:false,adj:[],hist:{}},o)})();
+const saveLJ=()=>lsSet('ljus',JSON.stringify(LJ));
+function ljHist(v){const d=today(),h=LJ.hist[d];if(!h)LJ.hist[d]=[v,v];else if(v<h[0]||v>h[1])LJ.hist[d]=[Math.min(h[0],v),Math.max(h[1],v)];else return;
+ const ks=Object.keys(LJ.hist).sort();ks.slice(0,-21).forEach(k=>delete LJ.hist[k]);clearTimeout(ljHist.t);ljHist.t=setTimeout(saveLJ,5000)}
+function ljRange(){const als=CAM.src!=='kamera';let lo=als?1:3,hi=als?300:60;
+ if(LJ.auto&&LJ.cal&&als){lo=LJ.cal[0];hi=LJ.cal[1]}
+ if(LJ.auto&&LJ.lar&&als){const d=Object.keys(LJ.hist).sort().slice(-14).map(k=>LJ.hist[k]);
+  if(d.length>=3){const med=a=>a.sort((x,y)=>x-y)[a.length>>1];lo=med(d.map(x=>x[0]));hi=med(d.map(x=>x[1]))}}
+ lo=Math.max(.1,lo);if(hi<lo*3)hi=lo*3;return[lo,hi]}
+const ljX=v=>{const[lo,hi]=ljRange(),L=Math.log10;return Math.max(0,Math.min(1,(L(Math.max(v,.01))-L(lo))/(L(hi)-L(lo))))};
+function ljBase(x){if(LJ.auto&&LJ.pts){const p=LJ.pts;return x<.5?p[0]+(p[1]-p[0])*x*2:p[1]+(p[2]-p[1])*(x-.5)*2}
+ return Math.pow(x,LJ.auto?1:Math.pow(2,(LJ.kans-50)/25))}
+function ljTarget(v){const x=ljX(v);let b=ljBase(x);
+ if(LJ.auto)LJ.adj.forEach(a=>{const age=(Date.now()-a[2])/864e5;b+=a[1]*Math.exp(-((x-a[0])**2)/.03)*Math.pow(.5,age/14)});
+ return Math.max(0,Math.min(1,b))}
+function camJudge(){CAM.b=ljTarget(CAM.lvl);
  // lite marginal åt båda hållen så att tavlan inte slår fram och tillbaka i skymningen
- if(CAM.dark&&CAM.lvl>up)CAM.dark=false;else if(!CAM.dark&&CAM.lvl<t)CAM.dark=true}
+ if(CAM.dark&&CAM.b>.38)CAM.dark=false;else if(!CAM.dark&&CAM.b<.3)CAM.dark=true}
+/* Skärmens riktiga ljusstyrka sätts av ljustjänsten på väggdatorn (POST /ljusstyrka {procent}). Finns ingen tjänst
+   läggs en svart hinna över bilden i stället. Tjänsten går själv tillbaka till det vanliga om tavlan tystnar i 2 minuter. */
+/* Kalibrering med dimmerlampan: lampan på full, tavlan väntar tills ljuset står still i en sekund, sedan vrids dimmern
+   ner till lägsta på ungefär fem sekunder medan tavlan läser sensorn tio gånger i sekunden. Ljusaste och mörkaste läget
+   blir kurvans ändpunkter. Efteråt kan man välja ljusstyrkan vid full, mitten och lägsta. */
+let KAL=null,SMAK=null;
+const kalStill=a=>{if(a.length<10)return false;const w=a.slice(-10).map(p=>p[1]),m=w.reduce((x,y)=>x+y,0)/w.length;return Math.max(...w)-Math.min(...w)<=m*.06+.3};
+async function kalTick(){if(!KAL||KAL.busy)return;KAL.busy=true;
+ try{const r=await fetch(LUX_URL,{cache:'no-store'}),j=await r.json();if(typeof j.lux!=='number')throw 0;const now=Date.now(),v=j.lux;
+  KAL.all.push([now,v]);if(KAL.all.length>600)KAL.all.shift();
+  if(KAL.step==='full'){if(kalStill(KAL.all)&&now-KAL.t0>1000){KAL.top=KAL.all.slice(-10).reduce((a,p)=>a+p[1],0)/10;KAL.step='ner';KAL.rec=[];kalDraw(true)}}
+  else if(KAL.step==='ner'){if(!KAL.t1&&v<KAL.top*.92)KAL.t1=now;if(KAL.t1)KAL.rec.push([now,v]);
+   if(KAL.t1&&v<KAL.top*.6&&kalStill(KAL.rec)){const dur=now-KAL.t1-1000;
+    if(dur<1000||KAL.rec.length<15){KAL.step='fel';kalDraw(true)}
+    else{// ändpunkterna är medelvärdet när ljuset stod still vid full och vid lägsta, så enstaka udda mätvärden inte räknas
+     const bot=KAL.rec.slice(-10).reduce((a,p)=>a+p[1],0)/10;
+     LJ.cal=[Math.max(.1,bot),Math.max(KAL.top,bot*3)];LJ.auto=true;saveLJ();KAL.step='klar';kalDraw(true)}}
+   else if(KAL.t1&&now-KAL.t1>30000){KAL.step='fel';kalDraw(true)}}
+  if(KAL&&KAL.step!=='klar'&&KAL.step!=='fel')kalDraw()}
+ catch(e){if(KAL){KAL.step='borta';kalDraw(true)}}
+ finally{if(KAL)KAL.busy=false}}
+function kalStart(){kalStop();KAL={step:'full',all:[],rec:[],t0:Date.now(),busy:false};ljOut(null);KAL.iv=setInterval(kalTick,100)}
+function kalStop(){if(KAL){clearInterval(KAL.iv);KAL=null}}
+// kurvan ritas live: ljus (log-skala) över tid
+function kalSvg(){const a=(KAL&&KAL.all||[]).slice(-120);if(a.length<2)return'<svg class="kal-g" viewBox="0 0 300 90"></svg>';
+ const L=v=>Math.log10(Math.max(v,.05)),vs=a.map(p=>L(p[1])),lo=Math.min(...vs)-.1,hi=Math.max(...vs)+.1,t0=a[0][0],t1=a[a.length-1][0]||t0+1;
+ const pts=a.map((p,i)=>((p[0]-t0)/Math.max(1,t1-t0)*300).toFixed(1)+','+(86-(vs[i]-lo)/(hi-lo)*82).toFixed(1)).join(' ');
+ return'<svg class="kal-g" viewBox="0 0 300 90" preserveAspectRatio="none" aria-hidden="true"><polyline points="'+pts+'" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>'}
+function kalDraw(full){if(S.sheet!=='ljuskal')return;if(full){render();return}
+ const g=document.querySelector('.kal-g');if(g)g.outerHTML=kalSvg();const n=document.querySelector('[data-kal-lux]');if(n&&KAL&&KAL.all.length)n.textContent=luxTxt(KAL.all[KAL.all.length-1][1])}
+const BL_URL='http://127.0.0.1:8777/ljusstyrka',BL={ok:null,retry:0,sent:null,at:0};
+const ljPct=b=>{const lo=Math.max(3,LJ.min),hi=Math.max(lo+1,LJ.max);return Math.round(lo*Math.pow(hi/lo,b))};
+async function blSend(body){try{const ac=new AbortController(),t=setTimeout(()=>ac.abort(),3000);
+  const r=await fetch(BL_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:ac.signal});clearTimeout(t);if(!r.ok)throw 0;BL.ok=true;return true}
+ catch(e){BL.ok=false;BL.retry=Date.now()+300000;BL.sent=null;return false}}
+function ljOut(b){// b=null: vanlig ljusstyrka
+ const useBL=BL.ok!==false||Date.now()>BL.retry;
+ if(b==null){if(BL.sent!=null&&useBL){BL.sent=null;blSend({normal:true})}}
+ else if(useBL){const pc=ljPct(b);if(BL.sent==null||Math.abs(pc-BL.sent)>=2||Date.now()-BL.at>60000){BL.sent=pc;BL.at=Date.now();blSend({procent:pc}).then(ok=>{if(!ok)ljFilm(b)})}}
+ ljFilm(b!=null&&BL.ok===false?b:null)}
+function ljFilm(b){let el=document.getElementById('dimmer');const k=b==null?0:(1-b)*.6;
+ if(!el&&k>0){el=document.createElement('div');el.id='dimmer';el.setAttribute('aria-hidden','true');document.body.appendChild(el)}
+ if(el)el.style.opacity=k.toFixed(2)}
 function alsStart(){if(ALS)return true;if(alsFail||!CAM.on||!S.wall||!('AmbientLightSensor' in window))return false;
  try{const a=new AmbientLightSensor({frequency:0.2});
   a.addEventListener('reading',()=>{const lx=a.illuminance;if(lx==null)return;CAM.lvl=CAM.src==='als'&&CAM.lvl!=null?CAM.lvl*.6+lx*.4:lx;CAM.src='als';CAM.err='';camJudge();camShow();autoTheme()});
@@ -320,9 +384,9 @@ function alsStop(){if(ALS){try{ALS.stop()}catch(e){}ALS=null}}
 CAM.dim=lsGet('kamDampa')!=='0';
 const wallDark=()=>S.wall&&(inNight()||CAM.on&&CAM.dark);
 function autoTheme(){const d=wallDark();if(d!==autoTheme.was){const first=autoTheme.was===undefined;autoTheme.was=d;if(!first){applyTheme(true);render()}}
- let el=document.getElementById('dimmer');const top=CAM.src==='als'?camThr()*2:camThr()+15,k=S.wall&&CAM.on&&CAM.dim&&CAM.lvl!=null&&!inNight()?Math.max(0,Math.min(1,(top-CAM.lvl)/top))*.45:0;
- if(!el&&k>0){el=document.createElement('div');el.id='dimmer';el.setAttribute('aria-hidden','true');document.body.appendChild(el)}
- if(el)el.style.opacity=k.toFixed(2)}
+ if(KAL||SMAK)return;
+ // klockan i nattläget: lägsta ljusstyrkan; utan mätvärde eller utanför väggläge: vanlig ljusstyrka
+ ljOut(!S.wall||!CAM.on||!CAM.dim?null:nightOn()?0:CAM.lvl==null?null:CAM.b)}
 async function camSample(){if(!CAM.on||!S.wall)return;if(await luxLocal())return;if(alsStart())return;if(CAM.busy||document.visibilityState!=='visible'||inNight())return;
  if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)){CAM.err='Den här webbläsaren kan inte använda kameran';camShow();return}
  CAM.busy=true;let st=null;
@@ -340,9 +404,10 @@ async function camSample(){if(!CAM.on||!S.wall)return;if(await luxLocal())return
  finally{if(st)st.getTracks().forEach(t=>t.stop());CAM.busy=false}
  camShow();autoTheme()}
 function camShow(){const el=document.querySelector('[data-cam-lvl]');if(el)el.textContent=camTxt()}
-const camTxt=()=>!CAM.on?'':CAM.err?CAM.err:inNight()?'Av under nattläget':CAM.lvl==null?'Mäter …':(CAM.src==='als'?(CAM.lvl<10?CAM.lvl.toFixed(1).replace('.',','):Math.round(CAM.lvl))+' lux':Math.round(CAM.lvl)+' %')+(CAM.dark?' · mörkt':' · ljust');
-// ljustjänsten är billig att fråga, så den frågas var tionde sekund; kameran bara en gång i minuten
-let camN=0;setInterval(()=>{if(CAM.src==='als'&&!ALS||++camN%6===0)camSample()},10000);setTimeout(camSample,3000);
+const luxTxt=v=>(v<10?v.toFixed(1).replace('.',','):Math.round(v))+' lux';
+const camTxt=()=>!CAM.on?'':CAM.err?CAM.err:CAM.lvl==null?'Mäter …':(CAM.src==='als'?luxTxt(CAM.lvl):Math.round(CAM.lvl)+' %')+' · skärm '+Math.round((inNight()?0:CAM.b)*100)+' %'+(CAM.dark?' · mörkt':'');
+// ljustjänsten är billig att fråga, så den frågas varannan sekund; kameran bara en gång i minuten
+let camN=0;setInterval(()=>{if(KAL)return;if(CAM.src==='als'&&!ALS||++camN%30===0)camSample()},2000);setTimeout(camSample,3000);
 
 /* Ändra ordning: håll fingret på en ruta på Översikt tills rutorna vickar och dra sedan, som på mobilens hemskärm.
    De andra rutorna glider undan medan man drar. Klockan räknas inte (där sitter kioskens stäng-gest). */
@@ -2110,10 +2175,12 @@ function pickSheet(k,enter){
  const foot='<div class="sw-foot"><button type="button" class="btn-fill" data-act="pickGo"'+(S.psel?'':' disabled')+'>'+esc(pickBtnTxt(k,S.psel))+'</button></div>';
  return sheetHtml(k,title,'<span class="tb" aria-hidden="true"></span>',body,enter).replace(/<\/form><\/div>$/,foot+'</form></div>')}
 function sheetHtml(form,title,right,body,enter,left){return'<div class="sheet'+enter+'" data-act="sheetBg"><form class="sheet-panel" data-form="'+form+'" role="dialog" aria-modal="true" aria-label="'+title+'"><div class="grabber" aria-hidden="true"></div><div class="sheet-head">'+(left||'<button type="button" class="tb" data-act="sheetClose">Avbryt</button>')+'<h2>'+title+'</h2>'+right+'</div><div class="sheet-body">'+body+'</div></form></div>'}
+// slider i en rad: rubrik och värde överst, reglaget under och förklaring i ändarna
+const ljSlider=(label,id,v,min,max,l,r)=>'<div class="cell lj-sl"><div class="lj-h"><span>'+label+'</span><span class="meta" data-ljv="'+id+'">'+v+(id==='ljKans'?'':' %')+'</span></div><input type="range" min="'+min+'" max="'+max+'" step="1" value="'+v+'" data-input="'+id+'" aria-label="'+label+'"><div class="lj-e"><span>'+l+'</span><span>'+r+'</span></div></div>';
 const fieldCell=(label,input)=>'<label class="cell"><span class="grow">'+label+'</span>'+input+'</label>';
 function renderOverlay(){
  const o=document.getElementById('overlay');
- const k=S.cook?'cook':S.sheet==='settings'?'settings':S.sheet==='farg'?'farg':S.sheet==='vagg'?'vagg':S.sheet==='rate'?'rate':S.sheet==='income'?'income':S.sheet==='cost'?'cost':S.sheet==='ov'?'ov':S.sheet==='prefs'?'prefs':S.sheet==='swap'?'swap':S.sheet==='prot'?'prot':S.sheet==='wish'?'wish':S.sheet==='shopMore'?'shopMore':S.sheet==='dess'?'dess':S.sheet==='slot'?'slot':S.sheet==='delLas'?'delLas':S.rcpSheet?'rcpSheet':S.sheet==='taskEdit'?'taskEdit':S.sheet==='evEdit'?'evEdit':S.shopAdd?'shop':S.taskAdd?'task':'';
+ const k=S.cook?'cook':S.sheet==='settings'?'settings':S.sheet==='farg'?'farg':S.sheet==='vagg'?'vagg':S.sheet==='ljuskal'?'ljuskal':S.sheet==='rate'?'rate':S.sheet==='income'?'income':S.sheet==='cost'?'cost':S.sheet==='ov'?'ov':S.sheet==='prefs'?'prefs':S.sheet==='swap'?'swap':S.sheet==='prot'?'prot':S.sheet==='wish'?'wish':S.sheet==='shopMore'?'shopMore':S.sheet==='dess'?'dess':S.sheet==='slot'?'slot':S.sheet==='delLas'?'delLas':S.rcpSheet?'rcpSheet':S.sheet==='taskEdit'?'taskEdit':S.sheet==='evEdit'?'evEdit':S.shopAdd?'shop':S.taskAdd?'task':'';
  const prev=o.dataset.k||'';
  // Rita inte om ett öppet blad medan någon skriver i det
  if(k&&k!=='cook'&&k===prev&&busyTyping()&&o.contains(document.activeElement))return;
@@ -2150,6 +2217,20 @@ function renderOverlay(){
   sh('Den här enheten')+group('<button type="button" class="cell link center red" data-act="logout">Logga ut</button>')+
   '<div class="foot ver">Hushållstavlan · UI '+(NY?UI_VER:'1.0')+' · version '+esc(APP_VER)+'</div>';
   o.innerHTML=sheetHtml('settings','Inställningar','<button class="tb strong">Spara</button>',body,enter);segSlide(o);return}
+ if(k==='ljuskal'){const K=KAL||{},nm=['full','mitten','lägsta'];let body='',right='<button type="button" class="tb strong" data-act="sheetClose">'+(K.step==='klar'||SMAK?'Klar':'Avbryt')+'</button>';
+  if(SMAK){const i=SMAK.i,v=Math.round(SMAK.v[i]*100);
+   body='<div class="kal"><div class="kal-n">'+(i+1)+' av 3</div><h3>Lampan på '+nm[i]+'</h3><p>Så här ljus blir skärmen när lampan står på '+nm[i]+'. Dra tills det känns rätt.</p></div>'+
+    group(ljSlider('Ljusstyrka','smak',v,0,100,'Mörkare','Ljusare'))+'<div class="kal-b"><button type="button" class="btn-fill" data-act="smakNext">'+(i<2?'Nästa':'Spara')+'</button></div>'}
+  else{const st=K.step;
+   body='<div class="kal">'+(st==='full'?'<div class="kal-n">1 av 2</div><h3>Vrid lampan till full styrka</h3><p>Tavlan väntar tills ljuset står still en sekund.</p>':
+     st==='ner'?'<div class="kal-n">2 av 2</div><h3>Vrid ner dimmern till lägsta</h3><p>Ta ungefär fem sekunder. Tavlan märker själv när du är klar.</p>':
+     st==='fel'?'<h3>Lite långsammare, tack</h3><p>Det gick för fort för att tavlan skulle hinna mäta. Vrid upp lampan och försök igen.</p>':
+     st==='borta'?'<h3>Ljussensorn svarar inte</h3><p>Kalibreringen behöver ljustjänsten på väggskärmen.</p>':
+     '<h3>Klart!</h3><p>Rummet går från '+luxTxt(LJ.cal[0])+' till '+luxTxt(LJ.cal[1])+'. Skärmen följer nu ljuset mellan de lägena.</p>')+
+    (st==='full'||st==='ner'?kalSvg()+'<div class="kal-lux" data-kal-lux>'+(K.all&&K.all.length?luxTxt(K.all[K.all.length-1][1]):'…')+'</div>':'')+'</div>'+
+    (st==='fel'||st==='borta'?'<div class="kal-b"><button type="button" class="btn-fill" data-act="ljKal">Försök igen</button></div>':
+     st==='klar'?'<div class="kal-b"><button type="button" class="btn-fill" data-act="ljSmak">Välj ljusstyrka efter smak</button></div>':'')}
+  o.innerHTML=sheetHtml('ljuskal','Kalibrera',right,body,enter,'<button type="button" class="back" data-act="vagg">'+I.back+'Nattläge</button>');return}
  if(k==='vagg'){const ss=nattSol(),dis=NATT.sol?' disabled':'',
    // väggskärmen har inget tangentbord: − och + ändrar en kvart åt gången, och med tangentbord går det också att skriva in tiden
    tIn=(ch,cur,lab)=>{const k=ch==='nattA'?'a':'b';return'<span class="ntid-st"><button type="button" class="ntid-b" data-act="nattStep" data-id="'+k+':-15" aria-label="'+lab+', en kvart tidigare"'+dis+'>−</button>'+
@@ -2161,10 +2242,19 @@ function renderOverlay(){
    '<div class="foot">'+(NATT.sol&&ss?'Nattläget följer solen: i dag från '+dm(ss[1])+' till '+dm(ss[0])+' i morgon. ':'')+'Under nattläget visar tavlan bara en dämpad klocka när ingen har rört den på två minuter, och appen är i mörkt läge. Klockan flyttar sig lite varje timme så att den inte bränns in i skärmen. Tryck på skärmen för att väcka tavlan.</div>'+
    sh('Rummets ljus')+group(fieldCell('Mät rummets ljus','<input type="checkbox" role="switch" class="switch" data-act="kamera" aria-label="Mät rummets ljus"'+(CAM.on?' checked':'')+'>')+
     (CAM.on?'<div class="cell"><span class="grow">Ljus i rummet'+(CAM.src==='als'?' (ljussensorn)':CAM.src==='kamera'?' (kameran)':'')+'</span><span class="meta" data-cam-lvl>'+esc(camTxt())+'</span></div>'+
-     fieldCell('Dämpa skärmen när det är mörkt','<input type="checkbox" role="switch" class="switch" data-act="kamDampa" aria-label="Dämpa skärmen när det är mörkt"'+(CAM.dim?' checked':'')+'>'):''))+
-   (CAM.on?sh('Mörkt läge under')+'<div class="seg-wrap">'+(CAM.src==='als'?segc('Mörkt läge under','kamLux',[['5','5 lux'],['15','15 lux'],['30','30 lux'],['60','60 lux']],String(CAM.lux)):segc('Mörkt läge under','kamGrans',[['15','15 %'],['25','25 %'],['35','35 %'],['45','45 %']],String(CAM.thr)))+'</div>':'')+
-   (CAM.on&&/hittar ingen/.test(CAM.err)?'<div class="foot">Tavlan når varken ljussensorn eller kameran. På väggskärmen läses ljussensorn av en liten ljustjänst på datorn; kontrollera att den är igång.</div>':'')+
-   '<div class="foot">Tavlan läser datorns ljussensor om den finns, annars tittar kameran en gång i minuten och räknar bara ut hur ljust det är. Ingen bild sparas eller skickas någonstans. När rummet blir mörkare än gränsen byter tavlan till mörkt läge och dämpar bilden. Gäller bara den här enheten.</div>'+
+     fieldCell('Anpassa skärmens ljusstyrka','<input type="checkbox" role="switch" class="switch" data-act="kamDampa" aria-label="Anpassa skärmens ljusstyrka"'+(CAM.dim?' checked':'')+'>'):''))+
+   (CAM.on?'<div class="seg-wrap">'+segc('Styrning','ljMode',[['man','Manuell'],['auto','Automatisk']],LJ.auto?'auto':'man')+'</div>'+
+    (LJ.auto?group('<button type="button" class="cell link" data-act="ljKal"'+(CAM.src==='als'?'':' disabled')+'><span class="grow">Kalibrera med lampan</span><span class="meta">'+esc(LJ.cal?luxTxt(LJ.cal[0])+' – '+luxTxt(LJ.cal[1]):'Inte gjort')+'</span>'+chevron+'</button>'+
+      (LJ.cal?'<button type="button" class="cell link" data-act="ljSmak"><span class="grow">Välj ljusstyrka efter smak</span><span class="meta">'+(LJ.pts?'Gjort':'Valfritt')+'</span>'+chevron+'</button>':'')+
+      fieldCell('Lär dig själv','<input type="checkbox" role="switch" class="switch" data-act="ljLar" aria-label="Lär dig själv"'+(LJ.lar?' checked':'')+'>')+
+      ljSlider('Ljusstyrka just nu','ljNu',Math.round((CAM.b==null?1:CAM.b)*100),0,100,'Mörkare','Ljusare')+
+      (LJ.adj.length?'<button type="button" class="cell link center" data-act="ljNollst">Återställ till kalibreringen</button>':''))+
+     '<div class="foot">Kalibrera: ställ dimmerlampan på full, tryck på Kalibrera och vrid ner den till lägsta på ungefär fem sekunder. Drar du i Ljusstyrka just nu lär sig tavlan hur du vill ha det i det ljuset. Lär dig själv följer rummets ljusaste och mörkaste stunder de senaste två veckorna, så att tavlan hänger med när dagsljuset ändras.</div>'
+    :group(ljSlider('Känslighet','ljKans',LJ.kans,0,100,'Dämpar sent','Dämpar tidigt')))+
+    group(ljSlider('Lägsta ljusstyrka','ljMin',LJ.min,3,40,'3 %','40 %')+ljSlider('Högsta ljusstyrka','ljMax',LJ.max,20,100,'20 %','100 %'))+
+    '<div class="foot">Skärmen följer rummets ljus steglöst, och under 30 % byter tavlan till mörkt läge. På väggskärmen ändras skärmens riktiga ljusstyrka; på andra datorer läggs en mörk hinna över bilden. Under nattläget står skärmen på lägsta ljusstyrkan.</div>':'')+
+   (CAM.on&&/svarar inte|hittar ingen/.test(CAM.err)?'<div class="foot">Tavlan når inte ljussensorn. På väggskärmen läses den av en liten ljustjänst på datorn; kontrollera att den är igång. Under tiden har skärmen sin vanliga ljusstyrka.</div>':'')+
+   '<div class="foot">Ingen bild sparas eller skickas någonstans. Gäller bara den här enheten.</div>'+
    '<div class="foot">Muspekaren är dold i väggläge. Flyttar du musen syns den en kort stund.</div>';
   o.innerHTML=sheetHtml('vagg','Nattläge','<button type="button" class="tb strong" data-act="sheetClose">Klar</button>',body,enter,'<button type="button" class="back" data-act="settings">'+I.back+'Inställningar</button>');segSlide(o);return}
  if(k==='farg'){const mi=people().indexOf(S.me);if(enter)[FARG_OPEN,FARG_X].forEach(o=>Object.keys(o).forEach(k=>delete o[k]));
@@ -3233,7 +3323,7 @@ function confetti(){if(calm())return;const cv=document.createElement('canvas'),d
 
 /* ---------- local mutations (optimistic) ---------- */
 function mutate(list,id,fields){const it=D()[list].find(x=>x.id===id);if(it)Object.assign(it,fields);render()}
-function closeSheets(){S.psel=null;S.protFor=null;S.edit=null;S.rcpSheet=null;S.sheet=null;S.swap=null;S.wishFor=null;S.rate=null;S.ekoEdit=null;S.ovEdit=null;S.shopAdd=false;S.taskAdd=false}
+function closeSheets(){if(KAL||SMAK){kalStop();SMAK=null;setTimeout(autoTheme)}S.psel=null;S.protFor=null;S.edit=null;S.rcpSheet=null;S.sheet=null;S.swap=null;S.wishFor=null;S.rate=null;S.ekoEdit=null;S.ovEdit=null;S.shopAdd=false;S.taskAdd=false}
 
 /* ---------- actions ---------- */
 function boxEdit(fn){const wall=wallBoardOn(),L=layout(wall,wall?WALL_DEF:OV_DEF());fn(L);saveLayout(wall,L);render()}
@@ -3280,13 +3370,20 @@ const ACT={
  design(id){NY=id==='ny';lsSet('ny',NY?null:'0');applyNy();render()},
  dev(){DEV=!DEV;lsSet('dev',DEV?'1':null);NY=nyNu();applyNy();if(!DEV&&S.plan&&S.plan!=='auto')S.plan=null;render()},
  wall(){S.wall=!S.wall;lsSet('wall',S.wall?'1':'0');fitScrollbar();hideCursor();wake();autoTheme();applyTheme(true);render();camSample()},
- vagg(){S.sheet='vagg';render()},
+ vagg(){kalStop();SMAK=null;S.sheet='vagg';autoTheme();render()},
  natt(){NATT.on=!NATT.on;saveNatt();autoTheme();render()},
  nattStep(id){if(NATT.sol)return;const[k,d]=String(id).split(':');if(!(k in NATT))return;NATT[k]=((Math.round(NATT[k]/15)*15+Number(d))%1440+1440)%1440;saveNatt();autoTheme();applyTheme(true);
   const el=document.querySelector('[data-change="natt'+k.toUpperCase()+'"]');if(el)el.value=nattTid(NATT[k])},
  nattSolv(){NATT.sol=!NATT.sol;lsSet('nattSol',NATT.sol?'1':null);autoTheme();applyTheme(true);render()},
  kamera(){CAM.on=!CAM.on;luxFail=0;lsSet('kamera',CAM.on?'1':null);if(!CAM.on){alsStop();CAM.lvl=null;CAM.src='';CAM.dark=false;CAM.err=''}autoTheme();render();camSample()},
  kamDampa(){CAM.dim=!CAM.dim;lsSet('kamDampa',CAM.dim?null:'0');autoTheme()},
+ ljMode(id){LJ.auto=id==='auto';saveLJ();if(CAM.lvl!=null)camJudge();autoTheme();render()},
+ ljKal(){if(KAL)kalStop();S.sheet='ljuskal';SMAK=null;kalStart();render()},
+ ljSmak(){kalStop();S.sheet='ljuskal';const b=LJ.pts||[0,ljBase(.5),1];SMAK={i:0,v:[b[2],b[1],b[0]]};ljOut(SMAK.v[0]);render()},
+ smakNext(){if(!SMAK)return;if(SMAK.i<2){SMAK.i++;ljOut(SMAK.v[SMAK.i]);render();return}
+  LJ.pts=[SMAK.v[2],SMAK.v[1],SMAK.v[0]];LJ.adj=[];saveLJ();SMAK=null;S.sheet='vagg';if(CAM.lvl!=null)camJudge();autoTheme();toast('Sparat. Skärmen följer nu din kurva');render()},
+ ljLar(){LJ.lar=!LJ.lar;saveLJ();if(CAM.lvl!=null)camJudge();autoTheme()},
+ ljNollst(){LJ.adj=[];saveLJ();if(CAM.lvl!=null)camJudge();autoTheme();render()},
  kamLux(id){CAM.lux=Number(id)||15;lsSet('kamLux',CAM.lux===15?null:String(CAM.lux));if(CAM.lvl!=null&&CAM.src==='als'){CAM.dark=CAM.lvl<CAM.lux}autoTheme();render()},
  kamGrans(id){CAM.thr=Number(id)||25;lsSet('kamGrans',CAM.thr===25?null:String(CAM.thr));if(CAM.lvl!=null){CAM.dark=CAM.lvl<CAM.thr}autoTheme();render()},
  matTab(id){S.matTab=['recept','bank','efter','inkop'].includes(id)?id:'vecka';lsSet('matTab',S.matTab);S.recipe=null;render()},
@@ -3555,6 +3652,15 @@ document.addEventListener('scroll',e=>{const t=e.target;if(t&&t.classList&&t.cla
 // Månaden bredvid Schema följer de dagar som syns i raden
 function wkMonth(w){const ds=w.querySelectorAll('.wk-d'),mo=w.closest('.calw')&&w.closest('.calw').querySelector('.wk-mo');if(!ds.length||!mo)return;
  const i=Math.min(ds.length-1,Math.round(w.scrollLeft/ds[0].offsetWidth)+3),k=ds[i].dataset.id;if(isDate(k))mo.textContent=MON[parse(k).getMonth()]}
+// reglagen för ljuset: ändringen syns direkt på skärmen och sparas när man släpper
+document.addEventListener('input',e=>{const id=e.target.dataset&&e.target.dataset.input;if(!id)return;const v=Number(e.target.value);
+ const m=document.querySelector('[data-ljv="'+id+'"]');if(m)m.textContent=v+(id==='ljKans'?'':' %');
+ if(id==='smak'){if(SMAK){SMAK.v[SMAK.i]=v/100;ljOut(v/100)}return}
+ if(id==='ljNu'){ljOut(v/100);return}
+ if(id==='ljKans')LJ.kans=v;if(id==='ljMin')LJ.min=v;if(id==='ljMax')LJ.max=v;if(CAM.lvl!=null)camJudge();BL.at=0;autoTheme()});
+document.addEventListener('change',e=>{const id=e.target.dataset&&e.target.dataset.input;if(!id||id==='smak')return;const v=Number(e.target.value);
+ if(id==='ljNu'&&CAM.lvl!=null){const x=ljX(CAM.lvl),d=v/100-ljTarget(CAM.lvl);if(Math.abs(d)>.02){LJ.adj.push([x,d,Date.now()]);LJ.adj=LJ.adj.slice(-20)}camJudge();autoTheme();saveLJ();render();return}
+ saveLJ();camShow()});
 document.addEventListener('input',e=>{if(e.target.id==='sw-q'){const q=e.target.value.trim().toLowerCase();let n=0;document.querySelectorAll('#overlay .sw-row').forEach(b=>{const ok=!q||b.dataset.q.includes(q);b.hidden=!ok;if(ok)n++});const f=document.querySelector('#overlay .sw-none');if(f)f.hidden=n>0;return}
  if(e.target.classList.contains('smc-sl')){const f=e.target.closest('.smc-r').querySelector('.smc-face');if(f)f.textContent=SMIL[Number(e.target.value)+1][1]}
  if(e.target.id==='ork')orkPreview(e.target);if(e.target.id==='split-amt')splitPreview(e.target)});

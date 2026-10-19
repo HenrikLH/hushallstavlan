@@ -1,0 +1,9 @@
+[Unit]
+Description=Ljussensor för Hushållstavlan (http://127.0.0.1:8777/lux)
+
+[Service]
+ExecStart=/usr/bin/python3 -I %h/.local/bin/ljussensor.py
+Restart=always
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,129 @@
+#!/usr/bin/env python3
+# Ljustjänst för Hushållstavlan på väggdatorn.
+#   GET  /lux          -> {"lux": 9.4}
+#   GET  /ljusstyrka   -> {"procent": 10.0, "mal": 10.0, "normal": 60.0, "styrs": false}
+#   POST /ljusstyrka   {"procent": 35}   tonar skärmens riktiga ljusstyrka dit på ~2 s
+#   POST /ljusstyrka   {"normal": true}  tillbaka till normal ljusstyrka
+# Säkerhet: bara tavlans egen sida får ändra ljusstyrkan, aldrig under MIN_PROCENT, och hör tavlan
+# inte av sig på LEASE sekunder går skärmen tillbaka till normal ljusstyrka (så den aldrig fastnar mörk).
+# Installera: kopiera till ~/.local/bin/ljussensor.py och ljussensor.service till ~/.config/systemd/user/,
+# kör sedan: systemctl --user daemon-reload && systemctl --user enable --now ljussensor
+import glob, json, os, subprocess, threading, time, http.server
+
+TILLATNA = {'https://henriklh.github.io'}
+MIN_PROCENT = 3.0
+LEASE = 120
+TONING = 2.0
+BL = (glob.glob('/sys/class/backlight/*') or [None])[0]
+NORMAL_FIL = os.path.expanduser('~/.config/hushallstavlan-ljus.json')
+
+def las_lux():
+    for d in glob.glob('/sys/bus/iio/devices/iio:device*'):
+        try:
+            if open(d + '/name').read().strip() != 'als':
+                continue
+            raw = float(open(d + '/in_illuminance_raw').read())
+            try: skala = float(open(d + '/in_illuminance_scale').read())
+            except OSError: skala = 1.0
+            try: offset = float(open(d + '/in_illuminance_offset').read())
+            except OSError: offset = 0.0
+            return round((raw + offset) * skala, 2)
+        except OSError:
+            continue
+    return None
+
+def bl_max():
+    return int(open(BL + '/max_brightness').read())
+
+def bl_las():
+    return int(open(BL + '/brightness').read()) / bl_max() * 100
+
+def bl_satt(procent):
+    v = max(1, round(procent / 100 * bl_max()))
+    subprocess.run(['busctl', 'call', 'org.freedesktop.login1', '/org/freedesktop/login1/session/auto',
+                    'org.freedesktop.login1.Session', 'SetBrightness', 'ssu', 'backlight', os.path.basename(BL), str(v)],
+                   check=True, capture_output=True, timeout=5)
+
+def las_normal():
+    try: return float(json.load(open(NORMAL_FIL))['normal'])
+    except Exception: return None
+
+LAS = threading.Lock()
+TILL = {'mal': None, 'senast': 0.0, 'normal': None}
+
+def tona(mal):
+    with LAS:
+        start = bl_las()
+        steg = max(1, int(TONING * 20))
+        for i in range(1, steg + 1):
+            bl_satt(start + (mal - start) * i / steg)
+            time.sleep(TONING / steg)
+
+def vakt():
+    while True:
+        time.sleep(5)
+        if TILL['mal'] is not None and time.time() - TILL['senast'] > LEASE:
+            TILL['mal'] = None
+            try: tona(TILL['normal'])
+            except Exception: pass
+
+class H(http.server.BaseHTTPRequestHandler):
+    def huvuden(self, kod):
+        self.send_response(kod)
+        o = self.headers.get('Origin')
+        self.send_header('Access-Control-Allow-Origin', o if o in TILLATNA else '*')
+        self.send_header('Access-Control-Allow-Private-Network', 'true')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.send_header('Vary', 'Origin')
+        self.send_header('Cache-Control', 'no-store')
+    def svara(self, kod, data):
+        body = json.dumps(data).encode()
+        self.huvuden(kod); self.send_header('Content-Type', 'application/json'); self.end_headers(); self.wfile.write(body)
+    def do_OPTIONS(self):
+        self.huvuden(204); self.end_headers()
+    def status(self):
+        return {'procent': round(bl_las(), 1) if BL else None, 'mal': TILL['mal'], 'normal': TILL['normal'],
+                'styrs': TILL['mal'] is not None, 'min': MIN_PROCENT, 'lease': LEASE}
+    def do_GET(self):
+        p = self.path.split('?')[0]
+        if p == '/lux':
+            lux = las_lux(); self.svara(200 if lux is not None else 503, {'lux': lux})
+        elif p == '/ljusstyrka':
+            self.svara(200 if BL else 503, self.status())
+        else:
+            self.svara(404, {'fel': 'okänd sökväg'})
+    def do_POST(self):
+        if self.path.split('?')[0] != '/ljusstyrka':
+            return self.svara(404, {'fel': 'okänd sökväg'})
+        if self.headers.get('Origin') not in TILLATNA:
+            return self.svara(403, {'fel': 'bara tavlan får ändra ljusstyrkan'})
+        if not BL:
+            return self.svara(503, {'fel': 'ingen skärm att styra'})
+        try:
+            n = int(self.headers.get('Content-Length') or 0)
+            d = json.loads(self.rfile.read(min(n, 1000)) or b'{}')
+            if d.get('normal'):
+                TILL['mal'] = None; mal = TILL['normal']
+            else:
+                mal = max(MIN_PROCENT, min(100.0, float(d['procent'])))
+                TILL['mal'] = mal; TILL['senast'] = time.time()
+        except Exception:
+            return self.svara(400, {'fel': 'skicka {"procent": 3-100} eller {"normal": true}'})
+        threading.Thread(target=tona, args=(mal,), daemon=True).start()
+        self.svara(200, self.status())
+    def log_message(self, *a): pass
+
+if BL:
+    # Normal ljusstyrka = den skärmen hade första gången tjänsten startade (ändras genom att redigera filen)
+    TILL['normal'] = las_normal()
+    if TILL['normal'] is None:
+        TILL['normal'] = max(MIN_PROCENT, round(bl_las(), 1))
+        os.makedirs(os.path.dirname(NORMAL_FIL), exist_ok=True)
+        json.dump({'normal': TILL['normal']}, open(NORMAL_FIL, 'w'))
+    else:
+        try: bl_satt(TILL['normal'])   # efter omstart eller krasch: börja alltid från normal ljusstyrka
+        except Exception: pass
+    threading.Thread(target=vakt, daemon=True).start()
+
+http.server.ThreadingHTTPServer(('127.0.0.1', 8777), H).serve_forever()
