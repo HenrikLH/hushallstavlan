@@ -4,16 +4,15 @@ Claude och Codex: följ AGENTS.md avsnitt 7. Ersätt inaktuell status; historik 
 
 ## Pågår nu
 
-- **UI 3.0**, ägare Codex, gren `codex/ui-3-0`, [PR #17](https://github.com/HenrikLH/hushallstavlan/pull/17). Henrik har godkänt publicering med UI 3.0 under utvecklarläget.
-- Val per enhet under Inställningar → Utvecklarläge → Design. Avstängt utvecklarläge använder UI 2.0. UI 2.0 är standard; dess stil- och layoutval bevaras. Ingen ändring i Kod.gs.
-- Gemensamma komponenter, Idag/vägg, receptsökning, inköpsmeny, grupperade inställningar och lugnare rörelser. Arbetsversion ht-v170 / app.js?v=161.
-- Verifierat: [CI 39432075068](https://github.com/HenrikLH/hushallstavlan/actions/runs/39432075068), app/test-commit `af52768`: åtta gröna lägen (UI 2/3 × telefon/vägg × ljust/mörkt). Alla vyer samt skapa/ändra/avbocka uppgifter, kalender, inköp, matlagning, städ och UI-byte/omstart. UI 2.0 jämförs mot main i 18 bilder per läge. Skärmbilder finns i CI i sju dagar.
-- Nästa steg: verifiera den flyttade utvecklarväljaren i CI, skapa ångra-gren och publicera #17. Kontrollera Pages och låt Henrik bekräfta iPhone-tangentbord/Surface; verklig hårdvara är inte verifierad i molnet.
+Ingen aktiv utvecklingsuppgift. UI 3.0 levereras i ht-v170 / app.js?v=161 via [PR #17](https://github.com/HenrikLH/hushallstavlan/pull/17), med Henriks publiceringsgodkännande.
 
 ## Att veta vid övertagande
 
-- Chromium kan inte laddas ned lokalt i Codex-miljön; använd `.github/workflows/emu.yml`. Ingen ytterligare omkörning behövs för samma app/test-kod. Endast överlämning ändrades efter grön CI.
+- UI 3.0 väljs per enhet under Inställningar → Utvecklarläge → Design (i UI 3.0 ligger utvecklarvalen under Avancerat). Avstängt utvecklarläge återgår till UI 2.0, som fortsatt är standard. UI 2.0:s stil- och layoutval bevaras. Ingen ändring i Kod.gs.
+- Verifierat: [CI 39433979642](https://github.com/HenrikLH/hushallstavlan/actions/runs/39433979642), app/test-commit `c0d49c9`: åtta gröna lägen (UI 2/3 × telefon/vägg × ljust/mörkt), funktionstester samt UI 2.0-bildjämförelse mot main. Utvecklarvalets synlighet och återgång efter omstart ingår. Endast denna överlämning ändrades efter grön CI.
+- Ångra-gren: `version-fore-ui3-20261020` (`0d30ab9`). Skärmbilder finns i CI i sju dagar. Chromium saknas lokalt i Codex; använd CI och återanvänd godkända resultat för samma app/test-kod.
 
 ## Väntar på Henrik
 
+- Bekräfta UI 3.0 med iPhone-tangentbord och på Surface; verklig hårdvara kan inte verifieras i molnet.
 - Bekräfta adaptiv ljusstyrka på Surface-skärmen (ht-v163–v169); hårdvaran kan inte verifieras i molnet.
