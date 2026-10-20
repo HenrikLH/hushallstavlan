@@ -80,12 +80,12 @@ Det finns ingen testsvit, men det finns en emulator som kör den riktiga `Kod.gs
 
 ```
 node verktyg/emu/run.js verktyg/emu/alla-flikar.js                 # telefon, alla flikar och undersidor
-LS='{"wall":"1"}' node verktyg/emu/run.js verktyg/emu/alla-flikar.js  # väggläge
+LS='{"wall":"1","me":""}' VP=1368x912 node verktyg/emu/run.js verktyg/emu/alla-flikar.js  # väggtavlan, gemensam skärm
 ```
 
 Playwright installeras med `npm install --no-save playwright && npx playwright install --with-deps chromium` om den saknas.
 
-Skärmbilder hamnar i `verktyg/emu/shots/` (ignoreras av git). Skriptet avslutas med kod 1 om sidan kraschar. Egna scenarier är en modul `async (pg, h) => {}`; se `lib.js` och `alla-flikar.js`. Miljövariabler: `NOW` (låtsasdatum), `THEME` (`light`/`dark`), `LS` (localStorage som JSON utan `ht.`-prefix), `SLOW` (ms fördröjning per anrop), `CHROMIUM` (sökväg till webbläsare). Väder från api.met.no fejkas; `data.js` är en ögonblicksbild av arket från 2026-10-18.
+Skärmbilder hamnar i `verktyg/emu/shots/` (ignoreras av git). Röktestet klickar på riktiga knappar och skriptet avslutas med kod 1 om sidan kraschar, en knapp saknas eller scenariot kastar fel (`SCENARIO FAIL`). Egna scenarier är en modul `async (pg, h) => {}`; se `lib.js` och `alla-flikar.js`. Miljövariabler: `NOW` (låtsasdatum), `THEME` (`light`/`dark`), `LS` (localStorage som JSON utan `ht.`-prefix), `SLOW` (ms fördröjning per anrop), `CHROMIUM` (sökväg till webbläsare), `VP` (fönsterstorlek, till exempel `1368x912`; utan den används telefon 390×844). Väder från api.met.no fejkas; `data.js` är en ögonblicksbild av arket från 2026-10-18.
 
 Minst detta före varje push:
 
