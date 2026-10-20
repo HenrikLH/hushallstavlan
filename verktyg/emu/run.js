@@ -17,7 +17,7 @@ const PORT=8700+Math.floor(Math.random()*200);
  const exe=process.env.CHROMIUM||(fs.existsSync('/opt/pw-browsers/chromium')?'/opt/pw-browsers/chromium':undefined);
  const b=await chromium.launch(exe?{executablePath:exe}:{});
  const theme=process.env.THEME||'light';
- const ctx=await b.newContext({viewport:(([w,hh])=>({width:+w,height:+hh}))((process.env.VP||'390x844').split('x')),deviceScaleFactor:process.env.VP?1:2,timezoneId:'Europe/Stockholm',locale:'sv-SE',colorScheme:theme,hasTouch:true,isMobile:!process.env.VP});
+ const ctx=await b.newContext({viewport:(([w,hh])=>({width:+w,height:+hh}))((process.env.VP||'390x844').split('x')),deviceScaleFactor:process.env.VP?1:2,timezoneId:'Europe/Stockholm',locale:'sv-SE',colorScheme:theme,reducedMotion:process.env.REDUCED==='1'?'reduce':'no-preference',hasTouch:true,isMobile:!process.env.VP});
  const NOW=process.env.NOW||'2026-10-18T16:50:00+02:00';
  await ctx.addInitScript(([NOW,ls])=>{const now=new Date(NOW).getTime(),D0=Date,off=now-D0.now();
    class FD extends D0{constructor(...a){super(...(a.length?a:[D0.now()+off]))}static now(){return D0.now()+off}};window.Date=FD;
@@ -38,7 +38,7 @@ const PORT=8700+Math.floor(Math.random()*200);
   if(u.startsWith('http://localhost'))return r.continue();return r.abort()});
  const h={
   OUT,gas,
-  async shot(n,full){await pg.waitForTimeout(350);await pg.screenshot({path:path.join(OUT,n+'.png'),fullPage:!!full});console.log('shot',n)},
+  async shot(n,full){await pg.waitForTimeout(350);await pg.screenshot({path:path.join(OUT,n+'.png'),fullPage:!!full,animations:process.env.REDUCED==='1'?'disabled':'allow'});console.log('shot',n)},
   async act(sel){const el=await pg.$(sel);if(!el){console.log('MISSING',sel);return false}await el.click();await pg.waitForTimeout(400);return true},
   async idle(ms){await pg.waitForTimeout(ms||1200)},
   async outbox(){return pg.evaluate(()=>localStorage.getItem('ht.outbox'))},
