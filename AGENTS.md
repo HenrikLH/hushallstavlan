@@ -83,6 +83,8 @@ node verktyg/emu/run.js verktyg/emu/alla-flikar.js                 # telefon, al
 LS='{"wall":"1"}' node verktyg/emu/run.js verktyg/emu/alla-flikar.js  # väggläge
 ```
 
+Playwright installeras med `npm install --no-save playwright && npx playwright install --with-deps chromium` om den saknas.
+
 Skärmbilder hamnar i `verktyg/emu/shots/` (ignoreras av git). Skriptet avslutas med kod 1 om sidan kraschar. Egna scenarier är en modul `async (pg, h) => {}`; se `lib.js` och `alla-flikar.js`. Miljövariabler: `NOW` (låtsasdatum), `THEME` (`light`/`dark`), `LS` (localStorage som JSON utan `ht.`-prefix), `SLOW` (ms fördröjning per anrop), `CHROMIUM` (sökväg till webbläsare). Väder från api.met.no fejkas; `data.js` är en ögonblicksbild av arket från 2026-10-18.
 
 Minst detta före varje push:
@@ -100,7 +102,9 @@ Flera agenter (Claude Code i flera trådar samtidigt, och Codex) jobbar i samma 
 - Efter varje push till `main`: lägg en rad överst i "Logg" i `OVERLAMNING.md` med datum (UTC), agent, version, vad som ändrats, ångra-gren, hur det testats och vad som återstår. Det är så nästa agent förstår vad som hänt.
 - Lägg till trailern `Agent: Codex` eller `Agent: Claude` sist i commit-meddelandet.
 - Lärdomar som gäller framåt (en fallgrop, ett önskemål från Henrik) skrivs in i **den här filen**, inte bara i ditt eget minne.
-- Rör inte en annan agents öppna gren eller pull request.
+- Pusha ofta till din egen gren, även halvfärdigt arbete. En agent kan bli avbruten (slut på användning, miljön stängs) och då ska nästa agent kunna fortsätta från grenen. Skriv grenens namn under "Pågår nu".
+- Codex lämnar sina ändringar som pull request mot `main`; Henrik slår ihop. Då fungerar GitHubs knapp Revert som ångra-punkt.
+- Rör inte en annan agents öppna gren eller pull request, utom för att fortsätta ett avbrutet arbete som står under "Pågår nu".
 
 ## 8. Kända fallgropar
 
