@@ -4,15 +4,15 @@ Claude och Codex: följ AGENTS.md avsnitt 7. Ersätt inaktuell status; historik 
 
 ## Pågår nu
 
-- **UI 3.0**, ägare Codex, gren `codex/ui-3-0`. Frivilligt val i Inställningar; UI 2.0 ska behålla befintligt utseende och beteende.
-- Gemensamma komponenter, Idag/vägg, receptsökning, enklare inköpsåtgärder och grupperade inställningar. Ingen ändring i Kod.gs.
-- Lokal syntax/diff kontrollerad. Nästa steg: CI telefon/vägg × ljust/mörkt × UI 2/3, funktionstester och bildjämförelse mot main. Rätta utfall och granska skärmbilder före färdig PR.
-- Arbetsversion ht-v170 / app.js?v=161. Inte publicerad till main; Henrik ska se och godkänna bilderna före sammanslagning.
+- **UI 3.0**, ägare Codex, gren `codex/ui-3-0`, [PR #17](https://github.com/HenrikLH/hushallstavlan/pull/17). Implementerat, väntar på Henriks visuella godkännande före main.
+- Val per enhet i Inställningar. UI 2.0 är standard; dess stil- och layoutval bevaras. Ingen ändring i Kod.gs.
+- Gemensamma komponenter, Idag/vägg, receptsökning, inköpsmeny, grupperade inställningar och lugnare rörelser. Arbetsversion ht-v170 / app.js?v=161.
+- Verifierat: [CI 39432075068](https://github.com/HenrikLH/hushallstavlan/actions/runs/39432075068), app/test-commit `af52768`: åtta gröna lägen (UI 2/3 × telefon/vägg × ljust/mörkt). Alla vyer samt skapa/ändra/avbocka uppgifter, kalender, inköp, matlagning, städ och UI-byte/omstart. UI 2.0 jämförs mot main i 18 bilder per läge. Skärmbilder finns i CI i sju dagar.
+- Nästa steg: efter godkännande, hämta main och kontrollera versionerna, skapa ångra-gren och slå ihop #17. Kontrollera Pages och låt Henrik bekräfta iPhone-tangentbord/Surface; verklig hårdvara är inte verifierad i molnet.
 
 ## Att veta vid övertagande
 
-- Röktest i `.github/workflows/emu.yml`: telefon/vägg × ljust/mörkt; bilder sparas i sju dagar. Rena dokumentations-PR:er undantas.
-- Senast verifierat: [CI 39409184761](https://github.com/HenrikLH/hushallstavlan/actions/runs/39409184761), commit `55ef626`: fyra gröna lägen. Appversion ht-v169. Lokal Chromium saknas i Codex-miljön; använd CI.
+- Chromium kan inte laddas ned lokalt i Codex-miljön; använd `.github/workflows/emu.yml`. Ingen ytterligare omkörning behövs för samma app/test-kod. Endast överlämning ändrades efter grön CI.
 
 ## Väntar på Henrik
 
