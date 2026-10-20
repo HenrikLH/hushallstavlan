@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict');
 module.exports=async(pg,h)=>{
  await require('./alla-flikar')(pg,h);
- const click=async(s)=>{await pg.locator(s).first().click();await h.idle(450)};
+ const click=async(s)=>{const el=pg.locator(s).first();if(s.includes('uiVersion')&&!await el.isVisible())await pg.locator('.u3-pref').filter({has:el}).locator('summary').click();await el.click();await h.idle(450)};
  const read=s=>pg.evaluate(s=>window.__d(s),s);
  const start=await read('U3');
  const klass=()=>pg.locator('html').evaluate(x=>x.classList.contains('ui3'));
