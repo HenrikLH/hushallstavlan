@@ -4,10 +4,10 @@ Claude och Codex: följ AGENTS.md avsnitt 7. Ersätt inaktuell status; historik 
 
 ## Pågår nu
 
-- **Inställningar och Personer**, ägare Codex, gren `codex/settings-personer`. Henrik godkände utfällbar pil för namn/färg och kategorier i UI 2.0 med bibehållet tema.
+- **Inställningar och Personer**, ägare Codex, gren `codex/settings-personer`, [PR #18](https://github.com/HenrikLH/hushallstavlan/pull/18). Henrik godkände utfällbar pil för namn/färg och kategorier i UI 2.0 med bibehållet tema.
 - Användarval, namn och färg samlas. Personers datanycklar bevaras; visningsnamn sparas i befintliga raden `personer`, utan ändring i Kod.gs. Se AGENTS.md.
-- Lokal syntax/diff kontrollerad. Nästa steg: CI telefon/vägg × ljust/mörkt × UI 2/3, granska bilder och namnbytes-/utkasttest, lämna PR för visuellt godkännande före main.
-- Arbetsversion ht-v171 / app.js?v=162. Hämta main och kontrollera versionsnumren före publicering.
+- Verifierat: [CI 39451054291](https://github.com/HenrikLH/hushallstavlan/actions/runs/39451054291), app/test-commit `d945d81`: åtta gröna lägen. Namn/färg, Avbryt/utkast, omstart och stabila uppgifts-/kalender-/ekonomi-/betygskopplingar testade; övriga UI 2.0-vyer bildjämförda mot main. Bilder granskade. Endast överlämning ändrad efter grön CI.
+- Arbetsversion ht-v171 / app.js?v=162. Nästa steg: Henriks visuella godkännande, hämta main och kontrollera versionerna, ångra-gren, sammanslagning och Pages-kontroll.
 
 ## Att veta vid övertagande
 
