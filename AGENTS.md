@@ -1,6 +1,6 @@
 # Hushållstavlan – instruktioner för AI-agenter
 
-Den här filen läses automatiskt av Codex (AGENTS.md) och, via `CLAUDE.md`, av Claude Code. Den är den gemensamma sanningen för alla agenter som utvecklar appen. Läs hela filen och sedan `OVERLAMNING.md` innan du ändrar något.
+Gemensam grund för Codex och Claude Code (via `CLAUDE.md`). Läs hela filen och `OVERLAMNING.md` när du tar över eller börjar en ny session. I samma session räcker det att läsa det som ändrats. Arbetsrutinen står i avsnitt 7.
 
 Om något här säger emot det Henrik skriver till dig gäller Henriks ord. Uppdatera då filen i samma ändring så att nästa agent vet.
 
@@ -62,7 +62,7 @@ Varje ändring som ska ut till användarna:
 4. Skriv versionen i commit-meddelandet, till exempel `Inköp: håll in för att tömma (ht-v170)`.
 5. Skapa ångra-grenen `version-fore-<namn>` från nuvarande `main`, slå ihop, pusha.
 6. Kontrollera att GitHub Actions-jobbet "pages build and deployment" faktiskt körde och blev grönt. Det har hänt att en push aldrig byggdes.
-7. Skriv en rad i `OVERLAMNING.md` (se avsnitt 7).
+7. Uppdatera aktuell status i `OVERLAMNING.md` och ta bort lösta punkter (se avsnitt 7). Dokumentation/testverktyg kräver ingen appversionshöjning.
 
 Krockar i `sw.js`/`index.html` vid sammanslagning: ta det högsta numret från båda sidor och lägg på ett.
 
@@ -85,26 +85,28 @@ LS='{"wall":"1","me":""}' VP=1368x912 node verktyg/emu/run.js verktyg/emu/alla-f
 
 Playwright installeras med `npm install --no-save playwright && npx playwright install --with-deps chromium` om den saknas.
 
+Om Chromium inte kan installeras lokalt: använd `.github/workflows/emu.yml` i PR:en. Den installerar webbläsaren och kör telefon/vägg × ljust/mörkt; bilder sparas i sju dagar. Kontrollera jobbresultaten. Rena dokumentations-PR:er hoppar över röktestet.
+
 Skärmbilder hamnar i `verktyg/emu/shots/` (ignoreras av git). Röktestet klickar på riktiga knappar och skriptet avslutas med kod 1 om sidan kraschar, en knapp saknas eller scenariot kastar fel (`SCENARIO FAIL`). Egna scenarier är en modul `async (pg, h) => {}`; se `lib.js` och `alla-flikar.js`. Miljövariabler: `NOW` (låtsasdatum), `THEME` (`light`/`dark`), `LS` (localStorage som JSON utan `ht.`-prefix), `SLOW` (ms fördröjning per anrop), `CHROMIUM` (sökväg till webbläsare), `VP` (fönsterstorlek, till exempel `1368x912`; utan den används telefon 390×844). Väder från api.met.no fejkas; `data.js` är en ögonblicksbild av arket från 2026-10-18.
 
-Minst detta före varje push:
+Före publicering av appändringar (lokalt eller i CI):
 
 - Kör `alla-flikar.js` i både telefon- och väggläge utan PAGEERROR.
 - **Öppna varje flik genom att klicka**, inte genom att sätta localStorage. Appen minns senaste fliken, så en krasch i en flik kan låsa hela Mat-delen.
 - Testa uppstart med de berörda inställningarna **redan påslagna** i localStorage, inte bara när de slås på efter laddning (en sådan bugg gav grå väggskärm).
 - Ta skärmbilder i ljust och mörkt läge för visuella ändringar.
+- Återanvänd godkända resultat för samma app- och testkod; ange testad commit/CI-länk. Kör om när relevant kod, testmiljö eller testfall ändrats, eller ett fel är olöst. Rena dokumentationsändringar behöver bara diff- och innehållskontroll.
 
 ## 7. Samarbete mellan agenter
 
-Flera agenter (Claude Code i flera trådar samtidigt, och Codex) jobbar i samma repo. De ser inte varandras samtal, minnen eller filer. **Repot är det enda gemensamma minnet.** Därför:
+Claude och Codex ser inte varandras samtal. **Repot är gemensamt minne.** Henrik ska kunna byta agent och skriva "fortsätt" utan att återberätta arbetet.
 
-- Läs `OVERLAMNING.md` först. Under "Pågår nu" står vem som jobbar med vad. Undvik samma område; skriv in dig själv där när du börjar något som tar mer än en push, och ta bort raden när du är klar.
-- Efter varje push till `main`: lägg en rad överst i "Logg" i `OVERLAMNING.md` med datum (UTC), agent, version, vad som ändrats, ångra-gren, hur det testats och vad som återstår. Det är så nästa agent förstår vad som hänt.
-- Lägg till trailern `Agent: Codex` eller `Agent: Claude` sist i commit-meddelandet.
-- Lärdomar som gäller framåt (en fallgrop, ett önskemål från Henrik) skrivs in i **den här filen**, inte bara i ditt eget minne.
-- Pusha ofta till din egen gren, även halvfärdigt arbete. En agent kan bli avbruten (slut på användning, miljön stängs) och då ska nästa agent kunna fortsätta från grenen. Skriv grenens namn under "Pågår nu".
-- Codex lämnar sina ändringar som pull request mot `main`; Henrik slår ihop. Då fungerar GitHubs knapp Revert som ångra-punkt.
-- Rör inte en annan agents öppna gren eller pull request, utom för att fortsätta ett avbrutet arbete som står under "Pågår nu".
+- **Vid övertagande:** hämta senaste main och läs grunden ovan, aktuell överlämning och relevanta öppna PR:er. Läs även överlämningen på den aktuella arbetsgrenen; main kan sakna pågående arbete. Läs commit-historik/diff och berörda funktioner vid behov, inte rutinmässigt 20 commits eller hela app.js. Redan inläst, oförändrat material behöver inte läsas igen.
+- **Ägarskap:** en agent per uppgift. Parallellt arbete ska beröra skilda funktioner/CSS-block. Vid Henriks begäran att fortsätta, eller tydligt pausmarkerat arbete, ta över den sparade grenen i egen checkout och uppdatera ägare. Behövs en ny gren: utgå från sparad commit och länka tidigare PR. Skriv aldrig samtidigt i samma arbetsgren. Fråga bara om flera uppgifter är lika rimliga eller ägarskapet är oklart.
+- **Före paus/agentbyte:** committa, pusha arbetsgrenen och öppna/uppdatera PR (utkast om ofärdig). Spara högst 5–8 rader per uppgift i `OVERLAMNING.md`: mål; ägare + gren/PR; berört område + nästa steg; viktiga beslut/hinder som inte framgår av koden; teststatus + testad commit/CI-länk. Vid skrivhinder: säg tydligt att arbetet ännu inte är tillgängligt för nästa agent.
+- **Håll minnet litet:** `AGENTS.md` innehåller bestående regler och arkitektur; `OVERLAMNING.md` bara aktuell status (sikta på högst 50 rader). Ersätt gamla punkter och ta bort avslutade uppgifter. Ingen växande logg, separat debriefing eller kopierad chatthistorik; git/PR/CI innehåller detaljerna. Spara bara sådant nästa agent behöver för att fortsätta rätt. Läs varandras kod när det löser en konkret oklarhet.
+- **Färdigt/publicering:** uppdatera överlämningen i samma PR, behåll olösta punkter som kräver Henrik och ta bort lösta. Codex lämnar PR mot main och slår ihop först efter Henriks godkännande ("Pusha"); agentbyte är inget publiceringstillstånd. Skriv `Agent: Codex` eller `Agent: Claude` sist i commit-meddelandet.
+- **Åtkomst:** git-push och GitHub-integrationen har separat autentisering. Integrationens Git-objektverktyg kan publicera till egen gren om git-push saknar inloggning; verifiera fjärrdiffen. Lägg aldrig tokens i repot.
 
 ## 8. Kända fallgropar
 
