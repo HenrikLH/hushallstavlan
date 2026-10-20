@@ -4,11 +4,11 @@ Claude och Codex: följ AGENTS.md avsnitt 7. Ersätt inaktuell status; historik 
 
 ## Pågår nu
 
-- **UI 3.0**, ägare Codex, gren `codex/ui-3-0`, [PR #17](https://github.com/HenrikLH/hushallstavlan/pull/17). Implementerat, väntar på Henriks visuella godkännande före main.
-- Val per enhet i Inställningar. UI 2.0 är standard; dess stil- och layoutval bevaras. Ingen ändring i Kod.gs.
+- **UI 3.0**, ägare Codex, gren `codex/ui-3-0`, [PR #17](https://github.com/HenrikLH/hushallstavlan/pull/17). Henrik har godkänt publicering med UI 3.0 under utvecklarläget.
+- Val per enhet under Inställningar → Utvecklarläge → Design. Avstängt utvecklarläge använder UI 2.0. UI 2.0 är standard; dess stil- och layoutval bevaras. Ingen ändring i Kod.gs.
 - Gemensamma komponenter, Idag/vägg, receptsökning, inköpsmeny, grupperade inställningar och lugnare rörelser. Arbetsversion ht-v170 / app.js?v=161.
 - Verifierat: [CI 39432075068](https://github.com/HenrikLH/hushallstavlan/actions/runs/39432075068), app/test-commit `af52768`: åtta gröna lägen (UI 2/3 × telefon/vägg × ljust/mörkt). Alla vyer samt skapa/ändra/avbocka uppgifter, kalender, inköp, matlagning, städ och UI-byte/omstart. UI 2.0 jämförs mot main i 18 bilder per läge. Skärmbilder finns i CI i sju dagar.
-- Nästa steg: efter godkännande, hämta main och kontrollera versionerna, skapa ångra-gren och slå ihop #17. Kontrollera Pages och låt Henrik bekräfta iPhone-tangentbord/Surface; verklig hårdvara är inte verifierad i molnet.
+- Nästa steg: verifiera den flyttade utvecklarväljaren i CI, skapa ångra-gren och publicera #17. Kontrollera Pages och låt Henrik bekräfta iPhone-tangentbord/Surface; verklig hårdvara är inte verifierad i molnet.
 
 ## Att veta vid övertagande
 
