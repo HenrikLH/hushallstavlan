@@ -5,6 +5,27 @@ module.exports=async(pg,h)=>{
  const orig=await read('({people:personList(),me:S.me,accent:ACCENT,theme:S.theme})'),ids=orig.people.map(x=>x.n),label='Alex, Test: 🧪';
  assert.deepEqual(await pg.locator('.pref-section>summary span').allTextContents(),['Personer','Utseende','Mat och städ','Översikt och väder','Enheten','Avancerat']);
  for(const [name,section] of [['budget','vardag'],['p1','personer']])assert.equal(await pg.locator('[name="'+name+'"]').evaluate(x=>x.closest('.pref-section').dataset.k),'pref-'+section);
+ // Kategorier får inte dölja UI 2.0:s reglage eller hjälptexternas utfällning.
+ const appearance=pg.locator('.pref-section[data-k="pref-utseende"]');
+ await click('.pref-section[data-k="pref-utseende"]>summary');
+ const help=appearance.locator('.sh-hj').filter({hasText:'Form på knappar och rutor'});
+ if(!await read('U3')){
+  assert.equal(await help.getAttribute('aria-expanded'),'false');
+  const hid=await help.getAttribute('data-id'),foot=pg.locator('[data-hj="'+hid+'"]');assert.equal(await foot.isVisible(),false);
+  await help.click();await h.idle(250);assert.equal(await foot.isVisible(),true);assert.equal(await help.getAttribute('aria-expanded'),'true');
+  await help.click();assert.equal(await foot.isVisible(),false);
+  const original=await read('SEGSTIL');
+  for(const shape of ['standard','kapsel','klassisk']){
+   await click('[data-act="segstil"][data-id="'+shape+'"]');
+   const style=await appearance.locator('.segc').first().evaluate(x=>{const c=getComputedStyle(x),b=getComputedStyle(x.closest('.pref-body')),t=getComputedStyle(x.querySelector('.seg-thumb'));return{bg:c.backgroundColor,body:b.backgroundColor,radius:parseFloat(c.borderRadius),thumb:t.backgroundColor}});
+   assert.notEqual(style.bg,style.body,'Reglagets yttre spår ska skilja sig från bakgrunden');assert.notEqual(style.bg,style.thumb,'Aktivt val ska synas');assert.ok(style.radius>0);
+   assert.equal(await appearance.locator('[data-act="segstil"][aria-pressed="true"]').count(),1);
+  }
+  await click('[data-act="segstil"][data-id="'+original+'"]');await h.shot('installningar-utseende');
+  await appearance.locator('.sh-hj').filter({hasText:'Form på knappar och rutor'}).click();await h.idle(250);await h.shot('installningar-hjalp');
+  await click('[data-act="flikrad"][aria-pressed="true"]');assert.equal(await appearance.locator('.sh-hj').filter({hasText:'Form på knappar och rutor'}).getAttribute('aria-expanded'),'true');
+ }
+ await appearance.locator('summary').click();
  await click('.pref-section[data-k="pref-personer"]>summary');await h.shot('personer-lista');
  await click('[data-act="personFold"][data-id="0"]');assert.equal(await read('S.me'),orig.me);
  await pg.locator('[name="p1"]').fill('Utkast');
