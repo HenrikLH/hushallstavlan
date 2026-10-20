@@ -2219,6 +2219,7 @@ function colorPicker(name,chg,id,cur,lab){
     [0,1,2,3,4,5,6].map(t=>{const key='h'+colPos(base).h+'s'+t;colOk(key);return dot(name,chg,id,key,cur===key)}).join('')+'</div></div></div></div>'};
 
  return picker(name,chg,id,cur,lab)}
+function restoreColorStrips(o){o.querySelectorAll('[data-strip]').forEach(sp=>{const x=FARG_X[sp.dataset.strip];if(x!=null){sp.scrollLeft=x;return}const c=sp.querySelector('input:checked');if(c){const l=c.parentElement;sp.scrollLeft=l.offsetLeft-(sp.clientWidth-l.offsetWidth)/2}})}
 // Sparar formulärutkast före omritning; ett val eller en synk får inte kasta det man skrivit.
 function rememberSettings(){const f=document.querySelector('form[data-form="settings"]');if(f)S.prefDraft=Object.fromEntries(new FormData(f))}
 function settingsGroups(parts){return parts.filter(x=>x[2]).map(([id,label,body])=>NY?'<details class="pref-section" data-k="pref-'+id+'"'+(S.open['pref-'+id]?' open':'')+'><summary class="sh"><span>'+label+'</span></summary><div class="pref-body">'+body+'</div></details>':sh(label)+body).join('')}
@@ -2264,7 +2265,7 @@ function renderOverlay(){
   (topic?sh('Notiser')+group('<div class="cell"><span class="grow copy">'+esc(topic)+'</span><button type="button" class="pill" data-act="copy" data-id="'+esc(topic)+'">Kopiera</button></div>')+'<div class="foot">Installera appen ntfy och prenumerera på det här ämnet. Använd servern ntfy.sh.</div>':'')+(S.wall?sh('Inställningsknappen på väggskärmen')+'<div class="seg-wrap">'+segc('Inställningsknappen på väggskärmen','vaggknapp',[['meny','I menyraden'],['knapp','Egen knapp'],['rubrik','Rubrikrad']],VKNAPP)+'</div><div class="foot">I menyraden sitter cirkeln längst till höger i menyn. Egen knapp är en rund knapp nere till höger. Rubrikrad lägger en rad överst med cirkeln till höger, som på telefonen. Gäller bara den här enheten.</div>':'')+sh('Den här enheten')+group('<button type="button" class="cell link center red" data-act="logout">Logga ut</button>')],
    ['avancerat','Avancerat',sh('Utvecklare')+group(fieldCell('Utvecklarläge','<input type="checkbox" role="switch" class="switch" data-act="dev" aria-label="Utvecklarläge"'+(DEV?' checked':'')+'>'))+'<div class="foot">Visar menyer som inte är färdiga, just nu Planera nästa vecka och Planera med portioner. Gäller bara den här enheten.</div>'+
   (DEV?sh('Design')+'<div class="seg-wrap">'+segc('Design','uiVersion',[['1','UI 1.0'],['2','UI 2.0'],['3','UI 3.0']],U3?'3':NY?'2':'1')+'</div><div class="foot">UI 3.0 provas här i utvecklarläget. UI 2.0 är standard och används när utvecklarläget stängs av. Gäller bara den här enheten; era uppgifter och listor är samma.</div>':'')]])+'<div class="foot ver">Hushållstavlan · UI '+(U3?'3.0':NY?UI_VER:'1.0')+' · version '+esc(APP_VER)+'</div>';
-  o.innerHTML=sheetHtml('settings','Inställningar','<button class="tb strong">Spara</button>',body,enter);if(S.prefDraft){Object.entries(S.prefDraft).forEach(([k,v])=>{const f=o.querySelector('[name="'+k+'"]');if(f&&!/radio|checkbox/.test(f.type))f.value=v})}segSlide(o);return}
+  o.innerHTML=sheetHtml('settings','Inställningar','<button class="tb strong">Spara</button>',body,enter);if(S.prefDraft){Object.entries(S.prefDraft).forEach(([k,v])=>{const f=o.querySelector('[name="'+k+'"]');if(f&&!/radio|checkbox/.test(f.type))f.value=v})}segSlide(o);restoreColorStrips(o);return}
  if(k==='ljuskal'){const K=KAL||{},nm=['full','mitten','lägsta'];let body='',right='<button type="button" class="tb strong" data-act="sheetClose">'+(K.step==='klar'||SMAK?'Klar':'Avbryt')+'</button>';
   if(SMAK){const i=SMAK.i,v=Math.round(SMAK.v[i]*100);
    body='<div class="kal"><div class="kal-n">'+(i+1)+' av 3</div><h3>Lampan på '+nm[i]+'</h3><p>Så här ljus blir skärmen när lampan står på '+nm[i]+'. Dra tills det känns rätt.</p></div>'+
@@ -2318,7 +2319,7 @@ function renderOverlay(){
    '<div class="foot">Personernas färger ändras under Personer i Inställningar.</div>';
   o.innerHTML=sheetHtml('farg','Färgval','<button type="button" class="tb strong" data-act="sheetClose">Klar</button>',hjelpFold(body,'farg'),enter,'<button type="button" class="back" data-act="settings">'+I.back+'Inställningar</button>');segSlide(o);
   // raden står kvar där den var, och första gången med vald färg i mitten
-  o.querySelectorAll('[data-strip]').forEach(sp=>{const x=FARG_X[sp.dataset.strip];if(x!=null){sp.scrollLeft=x;return}const c=sp.querySelector('input:checked');if(c){const l=c.parentElement;sp.scrollLeft=l.offsetLeft-(sp.clientWidth-l.offsetWidth)/2}});return}
+  restoreColorStrips(o);return}
  if(k==='prefs'){const st=settings();
   const body=PREFS.map(([key,l,,ph])=>sh(l)+group('<div class="cell"><textarea class="field area" name="'+key+'" rows="'+Math.max(3,Math.ceil(String(st[key]||'').length/34)+1)+'" maxlength="600" placeholder="'+esc(ph)+'" aria-label="'+esc(l)+'">'+esc(st[key]||'')+'</textarea></div>')).join('')+
    '<div class="foot">Sparas i kalkylarket. Veckoplaneringen läser dem nästa gång den gör menyn.</div>';

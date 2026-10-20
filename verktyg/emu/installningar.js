@@ -9,7 +9,7 @@ module.exports=async(pg,h)=>{
  await click('[data-act="personFold"][data-id="0"]');assert.equal(await read('S.me'),orig.me);
  await pg.locator('[name="p1"]').fill('Utkast');
  await pg.locator('label').filter({has:pg.locator('input[data-change="personColor"][data-id="0"][value="gron"]')}).first().click();await h.idle(500);
- assert.equal(await pg.locator('[name="p1"]').inputValue(),'Utkast');assert.equal(await pg.locator('[name="c1"]').inputValue(),'gron');assert.equal(await read('personLabel(people()[0])'),orig.people[0].label);
+ assert.equal(await pg.locator('[name="p1"]').inputValue(),'Utkast');assert.equal(await pg.locator('[name="c1"]').inputValue(),'gron');assert.ok(await pg.locator('[data-strip="pc0"]').evaluate(x=>x.scrollLeft>0),'Färgraden ska behålla scrollpositionen');assert.equal(await read('personLabel(people()[0])'),orig.people[0].label);
  await click('.person-select[data-id="'+ids[0]+'"]');assert.equal(await read('S.me'),ids[0]);
  await click('[data-act="personFold"][data-id="0"]');await click('[data-act="personFold"][data-id="0"]');assert.equal(await pg.locator('[name="p1"]').inputValue(),'Utkast');
  await click('[data-act="sheetClose"]');await click('[data-act="settings"]');assert.equal(await pg.locator('[name="p1"]').inputValue(),orig.people[0].label);assert.equal(await read('personColor(0)'),orig.people[0].c||'indigo');
@@ -20,8 +20,9 @@ module.exports=async(pg,h)=>{
  h.sheet('Städ').push(['person-clean','Kök','Gammal syssla',1,5,'','','',ids[0],'','','','']);
  h.sheet('Händelser').push(['2026-10-19','09:00','Möte',ids[0],'kalender','person-event','']);
  await pg.reload();await h.idle(1400);await click('[data-act="settings"]');await click('[data-act="personFold"][data-id="0"]');
- await pg.locator('[name="p1"]').fill(label);
+ await pg.locator('[name="p1"]').fill(orig.people[0].label);
  await pg.locator('label').filter({has:pg.locator('input[data-change="personColor"][data-id="0"][value="gron"]')}).first().click();await h.idle(400);await h.shot('personer-andra');
+ await pg.locator('[name="p1"]').fill(label);
  await click('form[data-form="settings"] .sheet-head .strong');await h.idle(1300);await h.waitFlush();
  assert.deepEqual(await read('people()'),ids);assert.equal(await read('personLabel(people()[0])'),label);assert.equal(await read('personColor(0)'),'gron');assert.equal(await read('S.me'),ids[0]);
  assert.equal(await read('D().tasks.find(x=>x.id==="person-task").who'),ids[0]);assert.equal(await read('D().clean.find(x=>x.id==="person-clean").who'),ids[0]);assert.equal(await read('D().events.find(x=>x.id==="person-event").who'),ids[0]);
