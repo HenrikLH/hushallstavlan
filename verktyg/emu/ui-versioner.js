@@ -2,17 +2,18 @@
 const assert=require('node:assert/strict');
 module.exports=async(pg,h)=>{
  await require('./alla-flikar')(pg,h);
- const click=async(s)=>{const el=pg.locator(s).first();if(s.includes('uiVersion')&&!await el.isVisible())await pg.locator('.u3-pref').filter({has:el}).locator('summary').click();await el.click();await h.idle(450)};
+ await require('./installningar')(pg,h);
+ const click=async(s)=>{const el=pg.locator(s).first();if(!await el.isVisible())await pg.locator('.pref-section').filter({has:el}).locator('summary').click();await el.click();await h.idle(450)};
  const read=s=>pg.evaluate(s=>window.__d(s),s);
  const start=await read('U3');
  const klass=()=>pg.locator('html').evaluate(x=>x.classList.contains('ui3'));
  assert.equal(await klass(),start);
  if(!await read('DEV')){assert.equal(await pg.locator('[data-act="uiVersion"]').count(),0);await click('[data-act="dev"]')}
- const design=pg.locator('[data-act="uiVersion"][data-id="3"]');if(!await design.isVisible())await pg.locator('.u3-pref').filter({has:design}).locator('summary').click();
+ const design=pg.locator('[data-act="uiVersion"][data-id="3"]');if(!await design.isVisible())await pg.locator('.pref-section').filter({has:design}).locator('summary').click();
  // Osparade hushållsfält och UI 2.0:s egna stilval överlever byte mellan versioner.
  const prefs=await pg.evaluate(()=>['segstil','flikrad','ovLayoutNy','wallLayoutNy'].map(k=>localStorage.getItem('ht.'+k)));
  const field=pg.locator('[name="budget"]');
- if(!(await field.isVisible()))await pg.locator('.u3-pref').filter({has:field}).locator('summary').click();
+ if(!(await field.isVisible()))await pg.locator('.pref-section').filter({has:field}).locator('summary').click();
  const original=await field.inputValue();await field.fill('1234');
  await click('[data-act="uiVersion"][data-id="'+(start?'2':'3')+'"]');assert.equal(await klass(),!start);
  assert.equal(await pg.locator('[name="budget"]').inputValue(),'1234');
@@ -63,7 +64,7 @@ module.exports=async(pg,h)=>{
  await click('#nav [data-act="nav"][data-id="oversikt"]');
  if(start&&await pg.locator('.board').count()){const nav=await pg.locator('#nav').boundingBox();for(const el of await pg.locator('.bmeal [data-act="cook"]').all()){const b=await el.boundingBox();assert.ok(b.y+b.height<=nav.y,'Middagens knappar ska rymmas ovanför menyn')}assert.ok(await pg.locator('[data-box="fod"]').isVisible(),'Födelsedagar ska synas på tavlan')}
  await click('[data-act="settings"]');
- if(start){while(await pg.locator('.u3-pref:not([open])>summary').count())await pg.locator('.u3-pref:not([open])>summary').first().click();await h.shot('installningar-oppna',true)}
+ if(start){while(await pg.locator('.pref-section:not([open])>summary').count())await pg.locator('.pref-section:not([open])>summary').first().click();await h.shot('installningar-oppna',true)}
  if(start){await click('[data-act="dev"]');assert.equal(await klass(),false);assert.equal(await pg.locator('[data-act="uiVersion"]').count(),0);await pg.reload();await h.idle(1200);assert.equal(await klass(),false)}
  console.log('PASS: alla vyer, UI-byte/omstart, oförändrade UI2-val, uppgift skapa/ändra/kalender/avbocka, inköp och matlagning');
 };

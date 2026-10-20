@@ -1,4 +1,4 @@
-// Jämför UI 2.0 med PR:ens main-bas. Ny gränssnittsväljare i Inställningar är avsiktlig.
+// Jämför UI 2.0 med PR:ens main-bas. Inställningarnas nya struktur är avsiktlig; övriga vyer och temat jämförs.
 const fs=require('fs'),path=require('path'),assert=require('node:assert/strict'),{PNG}=require('pngjs');
 const dir=path.join(__dirname,'shots'),base=path.join(__dirname,'baseline-shots');
 let n=0;for(const f of fs.readdirSync(base).filter(f=>f.endsWith('.png')&&!f.startsWith('installningar'))){
