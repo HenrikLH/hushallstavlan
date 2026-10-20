@@ -1869,6 +1869,28 @@ html.ui3 .board .u3-dinner+.u3-dinner{padding-top:6px}
 html.ui3 .board .u3-dinner>.btn-fill{min-height:44px;height:44px;margin-top:6px}
 @media (min-width:900px){html.ui3 .ov{column-gap:20px}html.ui3 .ov>.widget{margin-bottom:20px}html.ui3 .sheet{border-radius:24px}}
 @media (prefers-reduced-motion:reduce){html.ui3 *,html.ui3 *::before,html.ui3 *::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}}
+/* Inställningar: gemensamma kategorier och personrader, med det valda temats egna tokens. */
+.pref-section{margin:12px 16px 0;border-radius:16px;background:var(--surface);overflow:hidden}
+.pref-section>summary.sh{margin:0;padding:16px;min-height:56px;font-size:17px;line-height:22px;font-weight:600;letter-spacing:inherit;text-transform:none;color:var(--ink)}
+.pref-body{padding-bottom:12px}
+.pref-body>.sh{padding-top:16px}
+.pref-body>.group{margin-left:12px;margin-right:12px}
+.pref-body>.person-list{margin:0 12px}
+.person-row{display:flex;align-items:center;border-bottom:.5px solid var(--line)}
+.person-select{display:flex;align-items:center;gap:12px;flex:1;min-width:0;min-height:56px;padding:12px 16px;text-align:left}
+.person-select .grow{overflow-wrap:anywhere}
+.person-select .mark{display:flex;align-items:center;color:var(--accent)}
+.person-select .mark svg{width:20px;height:20px}
+.person-toggle{flex:none;margin-right:8px;min-width:44px;min-height:44px}
+.person-toggle svg{width:10px;height:16px;transition:transform .2s ease}
+.person-toggle[aria-expanded=true] svg{transform:rotate(90deg)}
+.person-edit{background:var(--fill);border-bottom:.5px solid var(--line)}
+.person-edit .field.r{max-width:70%;min-width:0}
+.person-edit .pcols label{min-width:44px;min-height:44px;display:grid;place-items:center}
+.person-edit .cell.strip-cell{padding-left:0;padding-right:0}
+html.ny.seg-kapsel .pref-section{border-radius:26px}
+html.ny.seg-klassisk .pref-section{border-radius:10px}
+@media (prefers-reduced-motion:reduce){.person-toggle svg{transition:none}}
 </style>
 </head>
 <body>
@@ -1883,7 +1905,7 @@ html.ui3 .board .u3-dinner>.btn-fill{min-height:44px;height:44px;margin-top:6px}
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=161"></script>
+<script src="app.js?v=162"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>

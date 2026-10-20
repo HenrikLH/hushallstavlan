@@ -4,7 +4,10 @@ Claude och Codex: följ AGENTS.md avsnitt 7. Ersätt inaktuell status; historik 
 
 ## Pågår nu
 
-Ingen aktiv utvecklingsuppgift. UI 3.0 levereras i ht-v170 / app.js?v=161 via [PR #17](https://github.com/HenrikLH/hushallstavlan/pull/17), med Henriks publiceringsgodkännande.
+- **Inställningar och Personer**, ägare Codex, gren `codex/settings-personer`. Henrik godkände utfällbar pil för namn/färg och kategorier i UI 2.0 med bibehållet tema.
+- Användarval, namn och färg samlas. Personers datanycklar bevaras; visningsnamn sparas i befintliga raden `personer`, utan ändring i Kod.gs. Se AGENTS.md.
+- Lokal syntax/diff kontrollerad. Nästa steg: CI telefon/vägg × ljust/mörkt × UI 2/3, granska bilder och namnbytes-/utkasttest, lämna PR för visuellt godkännande före main.
+- Arbetsversion ht-v171 / app.js?v=162. Hämta main och kontrollera versionsnumren före publicering.
 
 ## Att veta vid övertagande
 
