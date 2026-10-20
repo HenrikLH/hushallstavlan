@@ -3,6 +3,8 @@ name: Röktest och skärmbilder
 on:
   pull_request:
     branches: [main]
+    paths-ignore:
+      - '**/*.md'
   workflow_dispatch:
 
 permissions:
