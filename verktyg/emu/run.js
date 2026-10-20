@@ -17,7 +17,7 @@ const PORT=8700+Math.floor(Math.random()*200);
  const exe=process.env.CHROMIUM||(fs.existsSync('/opt/pw-browsers/chromium')?'/opt/pw-browsers/chromium':undefined);
  const b=await chromium.launch(exe?{executablePath:exe}:{});
  const theme=process.env.THEME||'light';
- const ctx=await b.newContext({viewport:(([w,hh])=>({width:+w,height:+hh}))((process.env.VP||'390x844').split('x')),deviceScaleFactor:process.env.VP?1:2,timezoneId:'Europe/Stockholm',locale:'sv-SE',colorScheme:theme,hasTouch:true,isMobile:!process.env.VP});
+ const ctx=await b.newContext({viewport:(([w,hh])=>({width:+w,height:+hh}))((process.env.VP||'390x844').split('x')),deviceScaleFactor:process.env.VP?1:2,timezoneId:'Europe/Stockholm',locale:'sv-SE',colorScheme:theme,reducedMotion:process.env.REDUCED==='1'?'reduce':'no-preference',hasTouch:true,isMobile:!process.env.VP});
  const NOW=process.env.NOW||'2026-10-18T16:50:00+02:00';
  await ctx.addInitScript(([NOW,ls])=>{const now=new Date(NOW).getTime(),D0=Date,off=now-D0.now();
    class FD extends D0{constructor(...a){super(...(a.length?a:[D0.now()+off]))}static now(){return D0.now()+off}};window.Date=FD;
@@ -25,7 +25,7 @@ const PORT=8700+Math.floor(Math.random()*200);
    navigator.serviceWorker&&(navigator.serviceWorker.register=()=>Promise.reject());
    window.__toasts=[];new MutationObserver(()=>{const t=document.getElementById('toast');if(t&&!t.hidden&&t.textContent&&window.__toasts[window.__toasts.length-1]!==t.textContent){window.__toasts.push(t.textContent);console.log('TOAST: '+t.textContent)}}).observe(document,{subtree:true,childList:true,attributes:true,characterData:true});
  },[NOW,JSON.parse(process.env.LS||'{}')]);
- const pg=await ctx.newPage();
+ const pg=await ctx.newPage();pg.setDefaultTimeout(10000);
  const log=[];
  pg.on('pageerror',e=>{log.push('PAGEERROR '+e.message);console.log('PAGEERROR',e.message,e.stack&&e.stack.split('\n')[1])});
  pg.on('console',m=>{const t=m.text();if(/TOAST|error|Error/.test(t)){console.log('console:',t)}});
@@ -38,7 +38,7 @@ const PORT=8700+Math.floor(Math.random()*200);
   if(u.startsWith('http://localhost'))return r.continue();return r.abort()});
  const h={
   OUT,gas,
-  async shot(n,full){await pg.waitForTimeout(350);await pg.screenshot({path:path.join(OUT,n+'.png'),fullPage:!!full});console.log('shot',n)},
+  async shot(n,full){await pg.waitForTimeout(350);await pg.screenshot({path:path.join(OUT,n+'.png'),fullPage:!!full,animations:process.env.REDUCED==='1'?'disabled':'allow'});console.log('shot',n)},
   async act(sel){const el=await pg.$(sel);if(!el){console.log('MISSING',sel);return false}await el.click();await pg.waitForTimeout(400);return true},
   async idle(ms){await pg.waitForTimeout(ms||1200)},
   async outbox(){return pg.evaluate(()=>localStorage.getItem('ht.outbox'))},
@@ -47,7 +47,7 @@ const PORT=8700+Math.floor(Math.random()*200);
   async waitFlush(){for(let i=0;i<60;i++){const o=await pg.evaluate(()=>localStorage.getItem('ht.outbox'));if(!o)return;await pg.waitForTimeout(500)}console.log('outbox still not empty')},
  };
  await pg.goto('http://localhost:'+PORT+'/');await pg.waitForTimeout(2000);
- try{await scen(pg,h)}catch(e){console.log('SCENARIO FAIL',e.message);process.exitCode=1}
+ try{await scen(pg,h)}catch(e){console.log('SCENARIO FAIL',e.message);await h.shot('fel');console.log('STATE',await pg.evaluate(()=>window.__d?window.__d('JSON.stringify({view:S.view,taskTab:S.taskTab,sheet:S.sheet,focus:document.activeElement&&document.activeElement.outerHTML})'):''));process.exitCode=1}
  if(log.length)process.exitCode=1;
  console.log('TOASTS',JSON.stringify(await pg.evaluate(()=>window.__toasts)));
  await b.close();srv.close()})();

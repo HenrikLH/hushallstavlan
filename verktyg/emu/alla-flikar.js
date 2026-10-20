@@ -9,9 +9,14 @@ module.exports=async(pg,h)=>{
   const b=await pg.evaluate(()=>{const x=[...document.querySelectorAll('.banner')].find(y=>/Något gick fel/.test(y.textContent));return x?x.textContent:''});
   if(b)fel('(banner) '+namn+': '+b);await h.shot(namn)};
  for(const v of ['oversikt','mat','uppgifter','stad','ekonomi'])await klick('[data-act="nav"][data-id="'+v+'"]','vy-'+v);
+ await klick('[data-act="nav"][data-id="uppgifter"]','uppgifter');
+ for(const t of ['kalender','lista'])await klick('[data-act="taskTab"][data-id="'+t+'"]','uppgifter-'+t);
  await klick('[data-act="nav"][data-id="mat"]','mat');
  for(const t of ['vecka','inkop','recept','bank','efter'])await klick('[data-act="matTab"][data-id="'+t+'"]','mat-'+t);
  await klick('[data-act="matTab"][data-id="vecka"]','mat-vecka-igen');
  await klick('[data-act="nav"][data-id="oversikt"]','tillbaka');
+ await klick('[data-act="nav"][data-id="vader"]','vader');
+ await klick('[data-act="nav"][data-id="oversikt"]','tillbaka-vader');
+ if(await pg.locator('[data-act="nav"][data-id="fod"]').count()){await klick('[data-act="nav"][data-id="fod"]','fodelsedagar');await klick('[data-act="nav"][data-id="oversikt"]','tillbaka-fodelsedagar')}
  await klick('[data-act="settings"]','installningar');
 };

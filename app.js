@@ -173,7 +173,8 @@ function addToBank(r,quiet,fav){if(!r||inBank(r.id))return false;const snap=bank
 /* ---------- flikrad ---------- */
 // Knapparna byggs en gång så att markeringen kan glida mellan flikarna i stället för att ritas om.
 function renderNav(nav){
- if(!nav.querySelector('.nav-pill'))nav.innerHTML='<div class="brand" aria-hidden="true">Hemma</div><div class="nav-pill" aria-hidden="true"></div>'+VIEWS.map(([id,l,ic])=>'<button data-act="nav" data-id="'+id+'">'+ic+'<span>'+l+'</span></button>').join('')+'';
+ if(nav.dataset.ui!==String(U3)){nav.innerHTML='';nav.dataset.ui=String(U3)}
+ if(!nav.querySelector('.nav-pill'))nav.innerHTML='<div class="brand" aria-hidden="true">Hemma</div><div class="nav-pill" aria-hidden="true"></div>'+VIEWS.map(([id,l,ic])=>'<button data-act="nav" data-id="'+id+'">'+ic+'<span>'+(U3&&id==='oversikt'?'Idag':l)+'</span></button>').join('')+'';
  const i=VIEW_IDS.indexOf(S.view);
  nav.querySelectorAll('button').forEach((b,j)=>j===i?b.setAttribute('aria-current','page'):b.removeAttribute('aria-current'));
  // Ekonomi ligger inte i flikraden på telefon; då visas ingen markering där
@@ -202,7 +203,7 @@ function renderNav(nav){
 // Piller: samma kapsel krymper till ett litet piller med bara ikonerna, halvt nedanför skärmkanten (bara CSS).
 (function(){const nav=document.getElementById('nav'),mini=document.createElement('button');let y0=scrollY,acc=0;
  mini.className='nav-mini';mini.type='button';mini.setAttribute('aria-label','Visa menyn');document.body.appendChild(mini);
- const on=()=>NY&&FLIKRAD!=='fast'&&!nav.classList.contains('none');
+ const on=()=>NY&&!U3&&FLIKRAD!=='fast'&&!nav.classList.contains('none');
  const set=m=>{if(nav.classList.contains('mini')===m)return;
   if(m){const b=nav.querySelector('button[aria-current] svg');mini.innerHTML=b?b.outerHTML:''}
   nav.classList.remove('ut');nav.classList.toggle('mini',m);if(!m)nav.classList.add('ut');mini.classList.toggle('on',m);};
@@ -439,7 +440,7 @@ let camN=0;setInterval(()=>{if(KAL)return;if(CAM.src==='als'&&!ALS||++camN%60===
   inner.appendChild(c);root.style.cssText+=';position:fixed;left:0;top:0;z-index:90;pointer-events:none;width:'+r.width/z+'px';root.classList.add('lift-root');document.body.appendChild(root);return{root,z}}
  function place(){const{root,z}=G.lf;root.style.transform='translate('+(G.px-G.dx)/z+'px,'+(G.py-G.dy)/z+'px)'}
  function start(id,px,py){const b=document.querySelector('[data-box="'+id+'"]');if(!b)return;const r=b.getBoundingClientRect(),wall=wallBoardOn();
-  const L=JSON.parse(JSON.stringify(layout(wall,wall?WALL_DEF:OV_DEF())));
+  const L=JSON.parse(JSON.stringify(layout(wall,wall?boardDefault():OV_DEF())));
   G={id,wall,L,px,py,dx:px-r.left,dy:py-r.top,lf:lift(b)};place();PREVIEW={wall,L};DRAG_ID=id;G.rects=redraw();eat=true;
   try{navigator.vibrate&&navigator.vibrate(10)}catch(err){}}
  function move(px,py){G.px=px;G.py=py;place();const X=px,Y=py+scrollY,R=G.rects,L=G.L;
@@ -704,13 +705,13 @@ const SV2='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-wid
 const IA={minus:SV2+'<path d="M6 12h12"/></svg>',grow:SV2+'<path d="M14 4h6v6M10 20H4v-6M20 4l-6.5 6.5M4 20l6.5-6.5"/></svg>',shrink:SV2+'<path d="M20 10h-6V4M4 14h6v6M14 10l6-6M10 14l-6 6"/></svg>'};
 let PREVIEW=null,DRAG_ID=null;// medan en ruta dras ritas tavlan med den tillfälliga ordningen
 function layout(wall,def){if(PREVIEW&&PREVIEW.wall===wall)return PREVIEW.L;
- const k=(wall?'wallLayout':'ovLayout')+(NY?'Ny':''),Z=SIZES[wall?'wall':'ov'];let o=null;try{o=JSON.parse(lsGet(k)||'null')}catch(e){}
+ const k=(wall?'wallLayout':'ovLayout')+(U3?'3':NY?'Ny':''),Z=SIZES[wall?'wall':'ov'];let o=null;try{o=JSON.parse(lsGet(k)||'null')}catch(e){}
  const known=new Set(def.flat()),hidden=(o&&Array.isArray(o.hidden)?o.hidden:[]).filter(x=>known.has(x));
  let cols=o&&Array.isArray(o.cols)&&o.cols.length===def.length?o.cols.map(c=>c.filter(x=>known.has(x))):def.map(c=>c.slice());
  const seen=new Set(cols.flat().concat(hidden));def.forEach((c,i)=>c.forEach(x=>{if(!seen.has(x))cols[i].push(x)}));// nya rutor hamnar på sin vanliga plats
  const size={};known.forEach(id=>{const v=o&&o.size&&o.size[id];size[id]=Z.can.includes(id)&&(v?v==='h':Z.half.includes(id))?'h':'f'});
  return{cols,hidden,size}}
-function saveLayout(wall,L){lsSet((wall?'wallLayout':'ovLayout')+(NY?'Ny':''),L?JSON.stringify({cols:L.cols,hidden:L.hidden,size:L.size}):null)}
+function saveLayout(wall,L){lsSet((wall?'wallLayout':'ovLayout')+(U3?'3':NY?'Ny':''),L?JSON.stringify({cols:L.cols,hidden:L.hidden,size:L.size}):null)}
 // I ändra-läget vickar rutorna och får sina knappar. Innehållet syns som vanligt men går inte att trycka på.
 function boxify(id,html,wall,L){if(!html)return'';
  const half=L.size[id]==='h';
@@ -802,12 +803,14 @@ function wallBoard(){
   (clean.length?'<div class="wl">'+clean.map(x=>'<div class="cell ck" data-act="cleanToggle" data-id="'+esc(x.id)+'"><input type="checkbox" class="check" data-act="cleanToggle" data-id="'+esc(x.id)+'" aria-label="'+esc(x.title)+'"><span class="grow">'+esc(x.title)+'</span><span class="val num">'+x.min+' min</span></div>').join('')+'</div>':'<div class="bdone'+(popDone?' pop':'')+'">'+I.tick+'Allt är gjort idag</div>')+
   '<div class="wk-sub">Hemmet</div><div class="brooms">'+roomHealth().map(r=>'<div class="'+healthCls(r.score)+'"><span>'+esc(r.room)+'</span><i><b style="width:'+Math.round(r.score*100)+'%"></b></i></div>').join('')+'</div>');
  H.upg=widget('uppgifter','btasks',I.list,'Uppgifter',d.tasks.filter(x=>!x.done).length+' kvar',tasks.length?'<div class="wl">'+tasks.map(taskRow).join('')+'</div>':'<div class="wempty">Inget att göra.</div>');
- const L=layout(true,WALL_DEF);
+ if(U3&&!d.clean.length)H.stad=widget('stad','bclean',I.sparkles,'Städ idag','','<div class="u3-empty"><p>Inga rutiner tillagda än.</p><button class="btn-tint" data-act="nav" data-id="stad">'+I.plus+'Lägg till rutin</button></div>');
+ const L=layout(true,boardDefault());
  let h='<div class="board'+(S.arrange?' arranging':'')+(NY&&VKNAPP==='rubrik'?' har-top':'')+'">'+(!NY?'<div class="board-gear">'+gearBtn+'</div>':VKNAPP==='rubrik'?'<div class="wall-top"><h1 class="lt">'+(new Date().getHours()<10?'God morgon':new Date().getHours()<18?'Hej':'God kväll')+'</h1></div>':'');
  h+='<div class="bcol bhero">'+heroHtml()+wallWx()+'</div>';
  L.cols.forEach((c,ci)=>{h+='<div class="bcol" data-col="'+ci+'">'+boxRow(c.filter(id=>H[id]),true,H,L)+'</div>'});
  return h+'</div>'+arrangeFoot(L,true)}
 const WALL_DEF=[['kal','mat','inkop','fod'],['stad','upg']];
+const boardDefault=()=>U3?[['kal','mat'],['upg','inkop','fod','stad']]:WALL_DEF;
 V.oversikt=function(){
  if(wallBoardOn())return wallBoard();
  const t=today(),now=new Date(),days=planDays();
@@ -818,7 +821,7 @@ V.oversikt=function(){
  const tasksNow=d.tasks.filter(x=>!x.done&&isDate(x.due)&&x.due<=t).sort((a,b)=>a.due.localeCompare(b.due));
  const tasksSoon=d.tasks.filter(x=>!x.done&&!(isDate(x.due)&&x.due<=t)).sort((a,b)=>(a.due||'9').localeCompare(b.due||'9')).slice(0,4);
  const hh=now.getHours(),greet=hh<5?'God natt':hh<10?'God morgon':hh<17?'Hej':hh<22?'God kväll':'God natt';
- let h=NY?head(greet+(people().includes(S.me)?', '+S.me:'')):head('Översikt');
+ let h=NY?head(greet+(people().includes(S.me)?', '+S.me:''),U3?{sub:cap(dayHead(t))}:undefined):head('Översikt');
  h+='<div class="ov">'+heroHtml()+(S.arrange||NY?'':smileyCard());
  const H={kal:calWidget()};
  const isT=nextDay&&nextDay.date===t;
@@ -826,6 +829,7 @@ V.oversikt=function(){
   nextDay?wMeals(nextDay):'<div class="wempty">Ingen matsedel inlagd än. Den fylls i när veckoplaneringen körs på söndag.</div>');
  const doneN=cp.routines.filter(doneToday).length+cp.doneRot.length,totN=cp.routines.length+cp.doneRot.length+cp.todo.length;
  H.stad=widget('stad','',I.sparkles,'Städ','','<div class="wbig">'+nv('w-clean',doneN)+'<small>/'+totN+'</small></div><div class="sub">'+nv('w-min',cp.minLeft)+' min kvar</div><div class="thin"><i style="width:'+(totN?Math.round(doneN/totN*100):0)+'%"></i></div>');
+ if(U3&&!d.clean.length)H.stad=widget('stad','',I.sparkles,'Städ','','<div class="u3-empty"><p>Inga rutiner tillagda än.</p><button class="btn-tint" data-act="nav" data-id="stad">Lägg till rutin</button></div>');
  H.inkop=widget('inkop','',I.basket,'Inköp','','<div class="wbig">'+nv('w-shop',left.length)+'</div><div class="sub">kvar · ca '+nv('w-shopkr',shopCost(left),'kr')+'</div>');
  const tl=tasksNow.concat(tasksSoon).slice(0,5);
  if(NY){// Ny design: Att göra med bockar och de stående överföringar som saknas, i stället för två listor
@@ -841,8 +845,8 @@ V.oversikt=function(){
  const L=layout(false,OV_DEF());
  return h+(S.arrange?'<p class="arr-intro">Håll kvar och dra en ruta dit du vill ha den. − döljer rutan och hörnknappen gör den halv eller hel. Gäller bara den här enheten.</p>':'')+'<div class="widgets'+(S.arrange?' arranging':'')+'">'+boxRow(L.cols[0].filter(id=>H[id]),false,H,L)+'</div>'+(NY&&!S.arrange?smileyCard():'')+'</div>'+arrangeFoot(L,false)};
 // utan egen ordning ligger födelsedagarna näst sist
-const OV_DEF=()=>NY?[['kal','upg','mat','stad','inkop','fod','hem','imorgon']]:[dayOf(addDays(today(),1))?['kal','mat','stad','inkop','upg','hem','fod','imorgon']:['kal','mat','stad','inkop','upg','fod','hem','imorgon']];
-function wMeals(d){return(d.meals||[]).map(m=>{const r=m.recipe&&recipeById(m.recipe);const tag=r?'button':'div';
+const OV_DEF=()=>U3?[['mat','upg','kal','inkop','stad','fod','hem','imorgon']]:NY?[['kal','upg','mat','stad','inkop','fod','hem','imorgon']]:[dayOf(addDays(today(),1))?['kal','mat','stad','inkop','upg','hem','fod','imorgon']:['kal','mat','stad','inkop','upg','fod','hem','imorgon']];
+function wMeals(d){if(U3)return(d.meals||[]).map(m=>{const r=m.recipe&&recipeById(m.recipe),go=r?'button':'div';return'<div class="u3-dinner"><'+go+' class="u3-meal"'+(r?' data-act="recipe" data-id="'+esc(r.id)+'"':'')+'>'+dishThumb(r,m.title)+'<span class="grow"><span class="chips-row">'+whoChip(m.who)+'</span><span class="hl">'+esc(m.title)+'</span>'+(m.addon?'<span class="meta">'+esc(m.addon)+'</span>':'')+(r&&r.min?'<span class="meta">'+r.min+' min'+(r.kr?' · '+kr(r.kr)+'/port':'')+'</span>':'')+'</span></'+go+'>'+(r&&r.steps&&r.steps.length?'<button class="btn-fill" data-act="cook" data-id="'+esc(r.id)+'">'+I.play+'Börja laga</button>':'')+'</div>'}).join('');return(d.meals||[]).map(m=>{const r=m.recipe&&recipeById(m.recipe);const tag=r?'button':'div';
  return'<'+tag+' class="wmeal"'+(r?' data-act="recipe" data-id="'+esc(m.recipe)+'"':'')+'><div class="top">'+whoChip(m.who)+(r&&r.kr?'<span class="val">'+kr(r.kr)+'/port</span>':'')+'</div><div class="hl title">'+esc(m.title)+'</div>'+(m.addon?'<div class="sub">+ Kött: '+esc(m.addon)+'</div>':'')+'</'+tag+'>'}).join('')}
 const healthRow=r=>'<div class="cell room"><div class="grow"><div>'+esc(r.room)+'</div><div class="cap '+healthCls(r.score)+'"><i style="width:'+Math.round(r.score*100)+'%"></i></div></div><span class="hw '+healthCls(r.score)+'">'+healthWord(r.score)+'</span></div>';
 function eventsHtml(d){if(!d||!d.events.length)return'';return'<div class="evs">'+d.events.map(e=>'<div class="ev"><span class="t">'+esc(e.time||'Heldag')+'</span><span>'+esc(e.title)+evWho(e)+'</span></div>').join('')+'</div>'}
@@ -856,6 +860,7 @@ V.mat=function(){
  if(NY){const rt=S.matTab==='recept'||S.matTab==='bank'||S.matTab==='efter';h+=segc('Visa','matTab',[['vecka','Vecka'],['inkop','Inköp'],['recept','Recept']],rt?'recept':S.matTab);
   if(rt)h+='<div class="subseg">'+segc('Recept','matTab',[['recept','Inspiration'],['bank','Mina recept'],['efter','Efterrätter']],S.matTab)+'</div>'}
  else h+=segc('Visa','matTab',[['vecka','Vecka'],['inkop','Inköp'],['recept','Recept'],['bank','Receptbank'],['efter','Efterrätter']],S.matTab);
+ if(U3&&['recept','bank','efter'].includes(S.matTab))h+=u3Search();
  return h+(ink?ink.body:S.matTab==='recept'?matRecipes():S.matTab==='bank'?matBank():S.matTab==='efter'?matDessert():matWeek())};
 /* Receptbanken: stora kort att bläddra i när man inte vet vad man vill äta */
 const FOOD=[[/soppa/i,'🍲'],[/chili/i,'🌶️'],[/rödbet|falafel|bönbiff|linsbiff|grönsaksbiff/i,'🧆'],[/dal|curry/i,'🍛'],[/gryta/i,'🥘'],[/kyckling/i,'🍗'],[/lax|fisk|torsk|sej/i,'🐟'],[/pasta|lasagne|spagetti/i,'🍝'],[/sallad|bulgur/i,'🥗'],[/shakshuka|ägg|omelett/i,'🍳'],[/blåbär|bär|efterrätt|kaka/i,'🫐'],[/pizza/i,'🍕'],[/taco|tortilla/i,'🌮'],[/burgare/i,'🍔'],[/fläsk|kött|biff/i,'🥩'],[/blomkål|grönsak|aubergine/i,'🥦']];
@@ -882,18 +887,18 @@ function matBank(){
  const all=bankList().map(r=>({r,g:ratingOf(r.id)})).sort((a,b)=>((b.g?b.g.avg:0)-(a.g?a.g.avg:0))||String(b.r.savedAt||'').localeCompare(String(a.r.savedAt||'')));
  let h=fchips('bankFilter',RFILT,f);
  if(!all.length)return h+'<div style="height:16px"></div>'+group(emptyCell('Receptbanken är tom än. Tryck på hjärtat eller bokmärket på ett recept, till exempel under Recept, så hamnar det här.'));
- const list=all.filter(({r})=>rfOk(f,r,w)).map(x=>x.r),fav=list.filter(r=>r.fav),saved=list.filter(r=>!r.fav);
+ const list=all.filter(({r})=>rfOk(f,r,w)&&u3RecipeMatch(r)).map(x=>x.r),fav=list.filter(r=>r.fav),saved=list.filter(r=>!r.fav);
  h+=sh(I.heartOn.replace('<svg','<svg class="shic fav"')+'Favoriter','<span class="num">'+fav.length+'</span>');
- h+=fav.length?'<div class="bank">'+fav.map(r=>rCard(r,{wish:w})).join('')+'</div>':group(emptyCell(f==='alla'?'Inga favoriter än. Tryck på hjärtat på ett recept ni gillar extra mycket.':'Inga favoriter matchar filtret.'));
+ h+=fav.length?'<div class="bank">'+fav.map(r=>rCard(r,{wish:w})).join('')+'</div>':group(emptyCell(U3&&S.u3Query?'Inga favoriter matchar sökningen.':f==='alla'?'Inga favoriter än. Tryck på hjärtat på ett recept ni gillar extra mycket.':'Inga favoriter matchar filtret.'));
  h+=sh(I.bookmarkOn.replace('<svg','<svg class="shic"')+'Sparade recept','<span class="num">'+saved.length+'</span>');
- h+=saved.length?'<div class="bank">'+saved.map(r=>rCard(r,{wish:w})).join('')+'</div>':group(emptyCell(f==='alla'?'Inga sparade recept än. Tryck på bokmärket på ett recept för att spara det.':'Inga sparade recept matchar filtret.'));
+ h+=saved.length?'<div class="bank">'+saved.map(r=>rCard(r,{wish:w})).join('')+'</div>':group(emptyCell(U3&&S.u3Query?'Inga sparade recept matchar sökningen.':f==='alla'?'Inga sparade recept än. Tryck på bokmärket på ett recept för att spara det.':'Inga sparade recept matchar filtret.'));
  return h+'<div class="foot">Veckoplaneringen väljer bland favoriterna och de sparade recepten. Favoriter kommer tillbaka oftare.</div>'}
 /* Efterrätter: en egen kategori. De föreslås aldrig av veckoplaneringen eller Byt, men finns här när man vill laga något sött */
 function matDessert(){
- const seen=new Set(),all=allRecipes().concat(inspoList()).filter(r=>{if(!isDessert(r)||seen.has(r.id))return false;seen.add(r.id);return true});
+ const seen=new Set(),all=allRecipes().concat(inspoList()).filter(r=>{if(!isDessert(r)||seen.has(r.id)||!u3RecipeMatch(r))return false;seen.add(r.id);return true});
  const mine=all.filter(r=>inBank(r.id)).sort((a,b)=>(b.fav?1:0)-(a.fav?1:0)||((ratingOf(b.id)||{avg:0}).avg-(ratingOf(a.id)||{avg:0}).avg)),fler=all.filter(r=>!inBank(r.id));
  let h=sh(I.heartOn.replace('<svg','<svg class="shic fav"')+'Mina efterrätter','<span class="num">'+mine.length+'</span>');
- h+=mine.length?'<div class="bank">'+mine.map(r=>rCard(r)).join('')+'</div>':group(emptyCell('Inga sparade efterrätter än. Tryck på hjärtat eller bokmärket på en efterrätt nedan.'));
+ h+=mine.length?'<div class="bank">'+mine.map(r=>rCard(r)).join('')+'</div>':group(emptyCell(U3&&S.u3Query?'Inga sparade efterrätter matchar sökningen.':'Inga sparade efterrätter än. Tryck på hjärtat eller bokmärket på en efterrätt nedan.'));
  if(!INSPO.list&&INSPO.busy)return h+group(emptyCell('Hämtar recept…'));
  if(fler.length)h+=sh('Att prova','<span class="num">'+fler.length+'</span>')+'<div class="bank mini">'+fler.map(r=>rCard(r)).join('')+'</div>';
  return h+'<div class="foot">Efterrätter föreslås aldrig när veckan planeras.</div>'}
@@ -1509,13 +1514,14 @@ const UI_VER='2.0';
 const APP_VER=((document.querySelector('script[src*="app.js?v="]')||{}).src||'').replace(/.*\?v=/,'')||'?';
 const nyNu=()=>!(DEV&&lsGet('ny')==='0');
 let NY=nyNu();
-function applyNy(){document.documentElement.classList.toggle('ny',NY)}
+let U3=DEV&&lsGet('ui')==='3';if(U3)NY=true;
+function applyNy(){document.documentElement.classList.toggle('ny',NY);document.documentElement.classList.toggle('ui3',U3)}
 applyNy();
 // menyväljarens och flikradens utseende i UI 2.0, valt per enhet i Inställningar
 // Var inställningsknappen sitter på väggskärmen: i menyraden, egen knapp nere till höger eller rubrikrad överst
 let VKNAPP=['knapp','rubrik'].includes(lsGet('vaggknapp'))?lsGet('vaggknapp'):'meny';
 let SEGSTIL=['kapsel','klassisk'].includes(lsGet('segstil'))?lsGet('segstil'):'standard',FLIKRAD=['glas','piller'].includes(lsGet('flikrad'))?lsGet('flikrad'):'fast';
-function applyStil(){const c=document.documentElement.classList;c.toggle('seg-kapsel',SEGSTIL==='kapsel');c.toggle('seg-klassisk',SEGSTIL==='klassisk');c.toggle('nav-glas',FLIKRAD!=='fast');c.toggle('nav-piller',FLIKRAD==='piller')}
+function applyStil(){const c=document.documentElement.classList;c.toggle('seg-kapsel',!U3&&SEGSTIL==='kapsel');c.toggle('seg-klassisk',!U3&&SEGSTIL==='klassisk');c.toggle('nav-glas',!U3&&FLIKRAD!=='fast');c.toggle('nav-piller',!U3&&FLIKRAD==='piller')}
 applyStil();
 function portKarusell(alla,p,C){const n=alla.length,i0=Math.min(Math.max(1,(S.carIdx||{})[p.id]||1),n);
  const nx=C.dag.find(y=>y.p.dag>p.dag&&y.t!=='ratt'&&y.t!=='rest');
@@ -1704,7 +1710,7 @@ function autoSend(){const C=autoCalc(),{P}=C,pl=P.plan,vd=d=>addDays(P.vecka,d),
 function matRecipes(){
  const all=inspoList(),f=S.inspoFilter||'alla';let h=fchips('inspoFilter',RFILT,f);
  if(!INSPO.list)return h+'<div style="height:16px"></div>'+group(emptyCell(INSPO.busy?'Hämtar recept…':'Recepten kunde inte hämtas. Försök igen när du har nät.'));
- const list=all.filter(r=>rfOk(f,r,new Set()));
+ const list=all.filter(r=>rfOk(f,r,new Set())&&u3RecipeMatch(r));
  h+='<p class="inspo-intro">'+all.filter(r=>!isDessert(r)).length+' recept att inspireras av. '+I.heartOn.replace('<svg','<svg class="ic fav"')+' gör ett recept till favorit och '+I.bookmarkOn.replace('<svg','<svg class="ic"')+' sparar det i receptbanken, så kan veckoplaneringen välja det.</p>';
  return h+(list.length?'<div class="bank mini">'+list.map(r=>rCard(r)).join('')+'</div>':group(emptyCell('Inga recept matchar filtret.')))}
 
@@ -1728,11 +1734,11 @@ function inkopParts(){
   (B?'<div class="stat"><span class="fn">Matbudget '+kr(B)+'</span><b>'+(mealCost>B?'+'+kr(mealCost-B):kr(B-mealCost)+' kvar')+'</b><div class="thin '+(mealCost>B?'bad':mealCost>B*.9?'warn':'')+'"><i style="width:'+Math.min(100,Math.round(mealCost/B*100))+'%"></i></div></div>':'')+'</div>'}
  // Två knappar under siffrorna: hämta veckans varor och töm listan. Frågan visas i samma kort innan något händer
  // Håll in knappen för att bekräfta: en fyllning går över knappen och åtgärden körs när den är full
- h+='<div class="sh-tools"><button type="button" class="sh-btn" data-hold="shopImportYes" aria-label="Håll in för att uppdatera varorna för '+esc(wk.toLowerCase())+'"><i class="sh-fill"></i><span class="sh-ic">'+I.imp+'</span><b>Uppdatera varor</b></button>'
+ h+=U3?'<div class="sh-tools"><button type="button" class="sh-btn" data-act="shopMore">'+I.dots+'Listans åtgärder</button></div>':'<div class="sh-tools"><button type="button" class="sh-btn" data-hold="shopImportYes" aria-label="Håll in för att uppdatera varorna för '+esc(wk.toLowerCase())+'"><i class="sh-fill"></i><span class="sh-ic">'+I.imp+'</span><b>Uppdatera varor</b></button>'
   +'<button type="button" class="sh-btn red" data-hold="shopEmptyYes"'+(all.length?'':' disabled')+' aria-label="Håll in för att tömma listan"><i class="sh-fill"></i><span class="sh-ic">'+I.trash+'</span><b>Töm listan</b></button></div>';
  h+='<div class="fchips" role="group" aria-label="Filter">'+groups.map(([k,l])=>'<button data-act="shopFilter" data-id="'+esc(k)+'" aria-pressed="'+(f2===k)+'">'+l+'</button>').join('')+'</div>';
  h+='<div class="split"><div class="col">';
- if(!all.length)h+='<div style="height:22px"></div>'+group(emptyCell('Listan är tom. Tryck på Uppdatera varor för veckans rätter, eller lägg till egna varor med plus.'));
+ if(!all.length)h+='<div style="height:22px"></div>'+group(emptyCell(U3?'Listan är tom. Lägg till en vara ovan, eller hämta veckans varor under Listans åtgärder.':'Listan är tom. Tryck på Uppdatera varor för veckans rätter, eller lägg till egna varor med plus.'));
  const delar=CATS.map(c=>{const g=items.filter(i=>shopKat(i)===c).sort((a,b)=>(a.done-b.done)||(a.order||0)-(b.order||0));return g.length?gh(c,kr(shopCost(g)))+g.map(shopRow).join(''):''}).join('');
  if(delar)h+='<div class="g-one">'+group(delar)+'</div>';
  if(bought.length)h+='<div class="pills" style="padding:12px 16px 0 24px">'+(S.confirm==='clearShop'?'<span class="sub">Ta bort '+bought.length+' avbockade?</span><button class="tb red strong" data-act="clearShopYes">Ja, ta bort</button><button class="tb" data-act="confirmNo">Avbryt</button>':'<button class="tb red" data-act="clearShop">Rensa avbockade ('+bought.length+')</button>')+'</div>';
@@ -2201,6 +2207,13 @@ function hjelpFold(body,key){const parts=body.split(/(?=<div class="sh[ "])/);
  return parts.map((p,i)=>{if(!/^<div class="sh[ "]/.test(p)||!p.includes('<div class="foot">'))return p;const id=key+':'+i,on=S.hj.has(id);
   return p.replace(/^<div class="sh([^"]*)"><span>([\s\S]*?)<\/span>/,(m,c,l)=>'<div class="sh sh-hj'+c+(on?' open':'')+'" data-act="hjelp" data-id="'+id+'" role="button" tabindex="0" aria-expanded="'+on+'"><span>'+l+'<i class="hj-ch" aria-hidden="true">'+I.chev+'</i></span>')
    .split('<div class="foot">').join('<div class="foot hj'+(on?'':' hid')+'" data-hj="'+id+'">')}).join('')}
+// UI 3.0 grupperar samma inställningsfält; formvärden och API är oförändrade.
+function u3Settings(body){const groups={'Hushållet':'','Utseende':'','Mat och väder':'','Väggskärm':'','Avancerat':''};let top='';
+ body.split(/(?=<div class="sh[ "])/).forEach(p=>{const l=(p.match(/^<div class="sh[^>]*><span>([^<]*)/)||[])[1]||'';if(!l||l==='Gränssnitt'){top+=p;return}
+ const k=/Vem använder|Namn i|Städtid/.test(l)?'Hushållet':/Skärm|väggskärmen/i.test(l)?'Väggskärm':/Utvecklare|Design|Den här enheten|Notiser/.test(l)?'Avancerat':/Vädervyn|Låsa rätter|Hundar|Schemat|Förslag/.test(l)?'Mat och väder':'Utseende';groups[k]+=p});
+ return top+Object.entries(groups).filter(([,v])=>v).map(([k,v],i)=>{const id='u3-pref-'+i;return'<details class="u3-pref" data-k="'+id+'"'+(S.open[id]?' open':'')+'><summary>'+k+chevron+'</summary>'+v+'</details>'}).join('')}
+const u3RecipeMatch=r=>!U3||!S.u3Query||String(r.title||'').toLocaleLowerCase('sv').includes(S.u3Query.toLocaleLowerCase('sv'));
+function u3Search(){return'<form class="add-row u3-search" data-form="recipeSearch"><input class="field" name="q" value="'+esc(S.u3Query||'')+'" placeholder="Sök bland recepten" aria-label="Sök bland recepten" enterkeyhint="search"><button class="tb strong">Sök</button>'+(S.u3Query?'<button type="button" class="ib" data-act="recipeSearchClear" aria-label="Rensa sökning">'+I.x+'</button>':'')+'</form>'}
 function overlayKeepScroll(){const o=document.getElementById('overlay'),k=o.dataset.k||'',b=o.querySelector('.sheet-body'),y=b?b.scrollTop:0;
  if(!k)S.hj=new Set();
  renderOverlay();
@@ -2227,7 +2240,7 @@ function renderOverlay(){
   sh('Namn i hushållet')+group([0,1].map(i=>'<div class="cell"><span class="pdot p'+(i+1)+'"></span><input class="field" id="set-p'+(i+1)+'" name="p'+(i+1)+'" aria-label="Person '+(i+1)+'" value="'+esc(people()[i]||'')+'"><input type="hidden" name="c'+(i+1)+'" value="'+personColor(i)+'"></div>').join(''))+
   sh('Städtid och budget')+group(fieldCell('Vardag, min','<input class="field r" id="set-wd" name="wd" inputmode="numeric" value="'+esc(st.stadtid_vardag||20)+'" style="max-width:110px">')+fieldCell('Helg, min','<input class="field r" id="set-we" name="we" inputmode="numeric" value="'+esc(st.stadtid_helg||40)+'" style="max-width:110px">')+fieldCell('Mat/vecka, kr','<input class="field r" id="set-budget" name="budget" inputmode="numeric" value="'+esc(st.matbudget||'')+'" style="max-width:110px">'))+
   sh('Utseende')+group('<button type="button" class="cell link" data-act="farg"><span class="grow">Färgval</span><span class="meta">'+esc({system:'System',light:'Ljust',dark:'Mörkt'}[S.theme]+' · '+(ACCENT==='min'?'Min färg':PCOL[accentKey()][0]))+'</span>'+chevron+'</button>')+'<div class="foot">Ljust eller mörkt, accentfärg och era färger i hushållet.</div>'+
-  (NY?sh('Form på knappar och rutor')+'<div class="seg-wrap">'+segc('Form på knappar och rutor','segstil',[['standard','Kantiga'],['kapsel','Runda'],['klassisk','Raka']],SEGSTIL)+'</div><div class="foot">Gäller växlingsknappar, rutor, listor och knappar i hela appen. Kantiga har lätt rundade hörn. Runda har helt runda knappar och mjukare rutor, som i iOS 26. Raka har små hörn och streck mellan valen, som i äldre iOS. Text, höjd och färg är samma i alla tre. Gäller bara den här enheten.</div>'+
+  (NY&&!U3?sh('Form på knappar och rutor')+'<div class="seg-wrap">'+segc('Form på knappar och rutor','segstil',[['standard','Kantiga'],['kapsel','Runda'],['klassisk','Raka']],SEGSTIL)+'</div><div class="foot">Gäller växlingsknappar, rutor, listor och knappar i hela appen. Kantiga har lätt rundade hörn. Runda har helt runda knappar och mjukare rutor, som i iOS 26. Raka har små hörn och streck mellan valen, som i äldre iOS. Text, höjd och färg är samma i alla tre. Gäller bara den här enheten.</div>'+
    (S.wall?sh('Inställningsknappen på väggskärmen')+'<div class="seg-wrap">'+segc('Inställningsknappen på väggskärmen','vaggknapp',[['meny','I menyraden'],['knapp','Egen knapp'],['rubrik','Rubrikrad']],VKNAPP)+'</div><div class="foot">I menyraden sitter cirkeln längst till höger i menyn. Egen knapp är en rund knapp nere till höger. Rubrikrad lägger en rad överst med cirkeln till höger, som på telefonen. Gäller bara den här enheten.</div>':'')+
    sh('Menyraden längst ner')+'<div class="seg-wrap">'+segc('Menyraden längst ner','flikrad',[['fast','Fast'],['glas','Svävande'],['piller','Piller']],FLIKRAD)+'</div><div class="foot">Fast ligger kant i kant längst ner. Svävande är en rundad glasbubbla ovanpå innehållet, som i iOS 26, och krymper till en rund knapp när du scrollar. Piller krymper i stället till ett smalt piller med bara ikonerna, halvt nedanför skärmkanten. Gäller bara den här enheten.</div>':'')+
   sh('Vädervyn')+'<div class="seg-wrap">'+segc('Vädervyn','wxvy',[['kurva','Dagskurva'],['bild','Bild med hundar']],WXVY)+'</div><div class="foot">Dagskurvan visar temperaturen de närmaste 24 timmarna. Gäller bara den här enheten.</div>'+
@@ -2240,10 +2253,10 @@ function renderOverlay(){
    (S.wall?'<button type="button" class="cell link" data-act="vagg"><span class="grow">Nattläge</span><span class="meta">'+esc((!NATT.on?'Av':NATT.sol?'Solnedgång–soluppgång':nattTid(NATT.a)+'–'+nattTid(NATT.b))+(CAM.on?' · kamera':''))+'</span>'+chevron+'</button>':'')+statusHtml())+
   (topic?sh('Notiser')+group('<div class="cell"><span class="grow copy">'+esc(topic)+'</span><button type="button" class="pill" data-act="copy" data-id="'+esc(topic)+'">Kopiera</button></div>')+'<div class="foot">Installera appen ntfy och prenumerera på det här ämnet. Använd servern ntfy.sh.</div>':'')+
   sh('Utvecklare')+group(fieldCell('Utvecklarläge','<input type="checkbox" role="switch" class="switch" data-act="dev" aria-label="Utvecklarläge"'+(DEV?' checked':'')+'>'))+'<div class="foot">Visar menyer som inte är färdiga, just nu Planera nästa vecka och Planera med portioner. Gäller bara den här enheten.</div>'+
-  (DEV?sh('Design')+'<div class="seg-wrap">'+segc('Design','design',[['gammal','UI 1.0'],['ny','UI '+UI_VER]],NY?'ny':'gammal')+'</div><div class="foot">UI 1.0 är den gamla designen. Gäller bara den här enheten och bara i utvecklarläget.</div>':'')+
+  (DEV?sh('Design')+'<div class="seg-wrap">'+segc('Design','uiVersion',[['1','UI 1.0'],['2','UI 2.0'],['3','UI 3.0']],U3?'3':NY?'2':'1')+'</div><div class="foot">UI 3.0 provas här i utvecklarläget. UI 2.0 är standard och används när utvecklarläget stängs av. Gäller bara den här enheten; era uppgifter och listor är samma.</div>':'')+
   sh('Den här enheten')+group('<button type="button" class="cell link center red" data-act="logout">Logga ut</button>')+
-  '<div class="foot ver">Hushållstavlan · UI '+(NY?UI_VER:'1.0')+' · version '+esc(APP_VER)+'</div>';
-  o.innerHTML=sheetHtml('settings','Inställningar','<button class="tb strong">Spara</button>',hjelpFold(body,'settings'),enter);segSlide(o);return}
+  '<div class="foot ver">Hushållstavlan · UI '+(U3?'3.0':NY?UI_VER:'1.0')+' · version '+esc(APP_VER)+'</div>';
+  o.innerHTML=sheetHtml('settings','Inställningar','<button class="tb strong">Spara</button>',U3?u3Settings(body):hjelpFold(body,'settings'),enter);if(S.u3Draft){Object.entries(S.u3Draft).forEach(([k,v])=>{const f=o.querySelector('[name="'+k+'"]');if(f)f.value=v});S.u3Draft=null}segSlide(o);return}
  if(k==='ljuskal'){const K=KAL||{},nm=['full','mitten','lägsta'];let body='',right='<button type="button" class="tb strong" data-act="sheetClose">'+(K.step==='klar'||SMAK?'Klar':'Avbryt')+'</button>';
   if(SMAK){const i=SMAK.i,v=Math.round(SMAK.v[i]*100);
    body='<div class="kal"><div class="kal-n">'+(i+1)+' av 3</div><h3>Lampan på '+nm[i]+'</h3><p>Så här ljus blir skärmen när lampan står på '+nm[i]+'. Dra tills det känns rätt.</p></div>'+
@@ -3275,9 +3288,10 @@ const themeNow=()=>wallDark()?'dark':S.theme;
 const isDark=()=>themeNow()==='dark'||themeNow()==='system'&&matchMedia('(prefers-color-scheme: dark)').matches;
 function applyTheme(fade){const root=document.documentElement;
  if(fade&&!calm()){root.classList.add('theme-fade');clearTimeout(applyTheme.t);applyTheme.t=setTimeout(()=>root.classList.remove('theme-fade'),450)}
- const th=themeNow();if(th==='system')root.removeAttribute('data-theme');else root.setAttribute('data-theme',th);
- document.querySelectorAll('meta[name="theme-color"]').forEach(mt=>{const dark=th==='dark'||(th==='system'&&/dark/.test(mt.media));mt.content=dark?'#000000':'#F2F2F7'})}
+ const th=themeNow();if(th==='system')root.removeAttribute('data-theme');else root.setAttribute('data-theme',th);root.classList.toggle('u3-dark',U3&&(th==='dark'||th==='system'&&matchMedia('(prefers-color-scheme: dark)').matches));
+ document.querySelectorAll('meta[name="theme-color"]').forEach(mt=>{const dark=th==='dark'||(th==='system'&&/dark/.test(mt.media));mt.content=U3?(dark?'#181A19':'#F6F4EF'):dark?'#000000':'#F2F2F7'})}
 autoTheme();applyTheme(false);
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(U3)applyTheme(false)});
 
 /* ---------- animationer ----------
    Vyerna ritas om helt vid varje ändring. A.before/A.after jämför före och efter
@@ -3298,7 +3312,7 @@ const A={page:'',keys:null,rects:null,nums:{},bars:{},segs:{},done:null,user:0,c
    if(!newPage){
     // Rader som flyttat sig glider till sin nya plats
     if(this.rects)m.querySelectorAll('.cell input.check').forEach(b=>{const old=this.rects[rowKey(b)];if(old==null)return;const row=b.closest('.cell'),dy=old-row.getBoundingClientRect().top;
-     if(Math.abs(dy)>2&&row.animate)row.animate([{transform:'translateY('+dy+'px)'},{transform:'none'}],{duration:420,easing:'cubic-bezier(.2,.9,.25,1)'})});
+     if(Math.abs(dy)>2&&row.animate)row.animate([{transform:'translateY('+dy+'px)'},{transform:'none'}],{duration:U3?240:420,easing:'cubic-bezier(.2,.9,.25,1)'})});
     // Nya rader fälls ut, men inte när en tillfällig rad får sitt riktiga id från kalkylarket
     if(this.keys&&![...this.keys].some(k=>/:tmp/.test(k))){const fresh=[...keys].filter(k=>!this.keys.has(k));
      if(fresh.length&&fresh.length<=3)fresh.forEach(k=>{const b=m.querySelector('.cell input.check[data-act="'+k.split(':')[0]+'"][data-id="'+CSS.escape(k.slice(k.indexOf(':')+1))+'"]');if(b)b.closest('.cell').classList.add('appear')})}
@@ -3308,7 +3322,7 @@ const A={page:'',keys:null,rects:null,nums:{},bars:{},segs:{},done:null,user:0,c
   this.dir=null;this.keys=keys;
   // Siffror räknas från förra värdet
   m.querySelectorAll('.nv').forEach(el=>{const k=el.dataset.n,v=Number(el.dataset.v),f=el.dataset.f,old=this.nums[k];this.nums[k]=v;
-   if(old==null||old===v||calm())return;const fmt=x=>f==='kr'?kr(x):String(Math.round(x));const t0=performance.now(),dur=650;
+   if(old==null||old===v||calm())return;const fmt=x=>f==='kr'?kr(x):String(Math.round(x));const t0=performance.now(),dur=U3?240:650;
    const step=now=>{const p=Math.min(1,(now-t0)/dur),e=1-Math.pow(1-p,3);el.textContent=fmt(old+(v-old)*e);if(p<1&&el.isConnected)requestAnimationFrame(step)};
    el.textContent=fmt(old);requestAnimationFrame(step)});
   // Staplar fylls från förra läget, eller från noll på en ny sida
@@ -3332,18 +3346,18 @@ function checkAnim(id,done,then){A.user=Date.now();
  requestAnimationFrame(()=>{box.checked=done;row.classList.add(done?'checking':'unchecking')});
  // på väggtavlan glider en avbockad städsyssla ut, och nästa flyttar upp
  const out=done&&row.closest('.board .bclean');if(out)setTimeout(()=>{row.style.height=row.offsetHeight+'px';void row.offsetHeight;row.classList.add('leaving')},380);
- setTimeout(()=>{A.flip=true;then()},out?700:done?400:180)}
+ setTimeout(()=>{A.flip=true;then()},U3?(out?480:done?180:120):out?700:done?400:180)}
 function leaveAnim(act,items,then){A.user=Date.now();const ids=new Set(items.map(i=>i.id));
  const rows=[...document.querySelectorAll('.cell input.check[data-act="'+act+'"]')].filter(b=>ids.has(b.dataset.id)).map(b=>b.closest('.cell'));
  if(!rows.length||calm()){then();return}
  rows.forEach(r=>{r.style.height=r.offsetHeight+'px';void r.offsetHeight;r.classList.add('leaving')});setTimeout(then,300)}
 function segSlide(root){root.querySelectorAll('.segc[data-seg]').forEach(sg=>{const k=sg.dataset.seg,i=Number(getComputedStyle(sg).getPropertyValue('--i'))||0,old=A.segs[k];A.segs[k]=i;
  const th=sg.querySelector('.seg-thumb');if(old==null||old===i||calm()||!th||!th.animate)return;
- th.animate([{transform:'translateX('+old*100+'%)'},{transform:'translateX('+i*100+'%)'}],{duration:380,easing:'cubic-bezier(.3,1.25,.5,1)'})})}
+ th.animate([{transform:'translateX('+old*100+'%)'},{transform:'translateX('+i*100+'%)'}],{duration:U3?200:380,easing:U3?'cubic-bezier(.2,.8,.2,1)':'cubic-bezier(.3,1.25,.5,1)'})})}
 function flipClock(c,txt){if(c.dataset.v===txt)return;const old=c.dataset.v||'';c.dataset.v=txt;
  if(!old||calm()){c.textContent=txt;return}
  c.innerHTML=[...txt].map((ch,i)=>'<span'+(ch!==old[i]?' class="fl"':'')+'>'+ch+'</span>').join('')}
-function confetti(){if(calm())return;const cv=document.createElement('canvas'),dpr=window.devicePixelRatio||1,W=innerWidth,H=innerHeight;
+function confetti(){if(calm()||U3)return;const cv=document.createElement('canvas'),dpr=window.devicePixelRatio||1,W=innerWidth,H=innerHeight;
  cv.className='confetti';cv.width=W*dpr;cv.height=H*dpr;document.body.appendChild(cv);const g=cv.getContext('2d');g.scale(dpr,dpr);
  const css=getComputedStyle(document.documentElement),cols=['--accent','--green','--orange','#FFCC00','#5AC8FA'].map(c=>c[0]==='-'?css.getPropertyValue(c).trim():c);
  const P=Array.from({length:140},(_,i)=>({x:W*(i%2?.15:.85),y:H*.75,vx:(i%2?1:-1)*(1+Math.random()*9),vy:-(9+Math.random()*9),r:Math.random()*6.28,vr:(Math.random()-.5)*.4,w:6+Math.random()*6,h:4+Math.random()*4,c:cols[i%cols.length]}));
@@ -3356,7 +3370,7 @@ function mutate(list,id,fields){const it=D()[list].find(x=>x.id===id);if(it)Obje
 function closeSheets(){if(KAL||SMAK){kalStop();SMAK=null;setTimeout(autoTheme)}S.psel=null;S.protFor=null;S.edit=null;S.rcpSheet=null;S.sheet=null;S.swap=null;S.wishFor=null;S.rate=null;S.ekoEdit=null;S.ovEdit=null;S.shopAdd=false;S.taskAdd=false}
 
 /* ---------- actions ---------- */
-function boxEdit(fn){const wall=wallBoardOn(),L=layout(wall,wall?WALL_DEF:OV_DEF());fn(L);saveLayout(wall,L);render()}
+function boxEdit(fn){const wall=wallBoardOn(),L=layout(wall,wall?boardDefault():OV_DEF());fn(L);saveLayout(wall,L);render()}
 const ACT={
  smileyQuick(id,el){const v=Number(el.dataset.v)||0;A.user=Date.now();saveSmiley(id,el.dataset.date,v);markCooked(id,el.dataset.date);toast(v>0?'Vad bra! Rätten kommer tillbaka lite oftare':v<0?'Noterat. Rätten kommer tillbaka mer sällan':'Tack!')},
  smileySkip(id,el){A.user=Date.now();saveSmiley(id,el.dataset.date,'x');toast('Okej, den räknas inte som lagad')},
@@ -3397,8 +3411,10 @@ const ACT={
  flStyle(id){FL_STYLE=id==='lista'?'lista':'karusell';lsSet('forslag',FL_STYLE==='lista'?'lista':null);render()},
  calStyle(id){CAL_STYLE=['1','3'].includes(id)?id:'2';lsSet('calStyle',CAL_STYLE==='2'?null:CAL_STYLE);render()},
  theme(id){S.theme=['light','dark'].includes(id)?id:'system';lsSet('theme',S.theme==='system'?null:S.theme);applyTheme(true);render()},
- design(id){NY=id==='ny';lsSet('ny',NY?null:'0');applyNy();render()},
- dev(){DEV=!DEV;lsSet('dev',DEV?'1':null);NY=nyNu();applyNy();if(!DEV&&S.plan&&S.plan!=='auto')S.plan=null;render()},
+ uiVersion(id){if(!DEV)return;const f=document.querySelector('form[data-form="settings"]');if(f)S.u3Draft=Object.fromEntries(new FormData(f));U3=id==='3';lsSet('ui',U3?'3':null);lsSet('ny',id==='1'?'0':null);NY=U3||nyNu();S.arrange=false;applyNy();applyStil();applyTheme(true);document.querySelector('.nav-mini')?.classList.remove('on');document.getElementById('nav').classList.remove('mini','ut');render()},
+ recipeSearchClear(){S.u3Query='';render()},
+ design(id){U3=false;lsSet('ui',null);NY=id==='ny';lsSet('ny',NY?null:'0');applyNy();applyStil();applyTheme(false);render()},
+ dev(){DEV=!DEV;lsSet('dev',DEV?'1':null);if(!DEV&&U3){U3=false;lsSet('ui',null);applyStil();applyTheme(false)}NY=U3||nyNu();applyNy();if(!DEV&&S.plan&&S.plan!=='auto')S.plan=null;render()},
  wall(){S.wall=!S.wall;lsSet('wall',S.wall?'1':'0');fitScrollbar();hideCursor();wake();autoTheme();applyTheme(true);render();camSample()},
  vagg(){kalStop();SMAK=null;S.sheet='vagg';autoTheme();render()},
  natt(){NATT.on=!NATT.on;saveNatt();autoTheme();render()},
@@ -3711,6 +3727,7 @@ document.addEventListener('change',e=>{const el=e.target.closest('[data-change]'
   if(el.dataset.change==='eko'){const v=Math.max(0,Number(String(el.value).replace(',','.'))||0);updJSON('ekonomi',{},o=>{o[id]=v;return o});return}
  const f=el.dataset.change==='freq'?{freq:Number(el.value)}:el.dataset.change==='min'?{min:Number(el.value)}:{who:el.value};mutate('clean',id,f);apiPost({action:'cleanSet',id,fields:f})});
 document.addEventListener('submit',async e=>{const f=e.target.closest('[data-form]');if(!f)return;e.preventDefault();const d=Object.fromEntries(new FormData(f));
+ if(U3&&f.dataset.form==='recipeSearch'){S.u3Query=String(d.q||'').trim();document.activeElement?.blur();render();return}
  if(f.dataset.form==='setup'){S.key=String(d.key||'').trim().toLowerCase();S.error='';S.sync='busy';render();
   try{const data=await apiGet();lsSet('key',S.key);setData(data);S.sync='idle';if(!S.me)S.sheet='settings'}catch(err){S.error=err.message;S.key=''}render();return}
  // Snabbfältet i Inköp (nya designen): bara namnet, avdelningen räknas fram och fältet står kvar för nästa vara
