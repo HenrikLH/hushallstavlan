@@ -93,6 +93,7 @@ Minst detta före varje push:
 - **Öppna varje flik genom att klicka**, inte genom att sätta localStorage. Appen minns senaste fliken, så en krasch i en flik kan låsa hela Mat-delen.
 - Testa uppstart med de berörda inställningarna **redan påslagna** i localStorage, inte bara när de slås på efter laddning (en sådan bugg gav grå väggskärm).
 - Ta skärmbilder i ljust och mörkt läge för visuella ändringar.
+- `alla-flikar.js` använder för närvarande direkta `ACT.nav`/`ACT.matTab`-anrop. Kör skriptet ändå, men komplettera med riktiga klick vid ändrad navigering; det bevisar inte ensamt att klickvägarna fungerar. Kontrollera även utskriften: `run.js` kan skriva `SCENARIO FAIL` utan att sätta felkod. Kör inte godkänt enbart på exitkod 0.
 
 ## 7. Samarbete mellan agenter
 
@@ -105,6 +106,17 @@ Flera agenter (Claude Code i flera trådar samtidigt, och Codex) jobbar i samma 
 - Pusha ofta till din egen gren, även halvfärdigt arbete. En agent kan bli avbruten (slut på användning, miljön stängs) och då ska nästa agent kunna fortsätta från grenen. Skriv grenens namn under "Pågår nu".
 - Codex lämnar sina ändringar som pull request mot `main`; Henrik slår ihop. Då fungerar GitHubs knapp Revert som ångra-punkt.
 - Rör inte en annan agents öppna gren eller pull request, utom för att fortsätta ett avbrutet arbete som står under "Pågår nu".
+
+### Korta checkpoints när en agent blir avbruten
+
+- Kontrollera även öppna PR:er och andra agenters nyligen uppdaterade fjärrgrenar vid start. En ändring i `OVERLAMNING.md` på en arbetsgren syns inte på `main`; en tom "Pågår nu" betyder därför inte säkert att området är ledigt.
+- Skriv område och berörda funktioner/CSS-block, inte bara filnamn: nästan allt ligger i samma två filer. Vid överlapp väljer den nya agenten ett annat område tills arbetet är samordnat.
+- Vid paus eller nära användningsgränsen: committa och pusha till egen gren, öppna/uppdatera en PR (utkast om arbetet inte är färdigt) och lämna en kort checkpoint under "Pågår nu" på grenen. Hänvisa till den i PR-beskrivningen.
+- Checkpoint, högst cirka tio rader: **mål · gren + commit · ändrat område · klart/återstår · testat/inte testat · beslut och varför · exakt nästa steg · hinder/kräver Henrik**. Skriv aldrig hemligheter eller hela chattutdrag.
+- En gräns innebär paus, aldrig tillstånd att slå ihop eller publicera. Övertagande ska vara uttryckligt markerat som avbrutet i "Pågår nu"; fortsätt på en egen gren från den sparade committen och länka föregående PR. Annars lämnas den andra agentens arbete i fred.
+- Spara bestående regler här, aktuell status i "Pågår nu" och resultatet som en kort rad i "Logg". Återberätta inte samma historik på flera ställen. Läs bara relevanta kodavsnitt efter startläsningen och håll varje PR till en uppgift för att spara tokens.
+- GitHub-integrationen och vanlig git-push har separat autentisering. Om git-push saknar inloggning kan integrationens Git-objektverktyg publicera en granskad commit till egen gren; verifiera fjärrgrenens diff innan PR. Lägg aldrig tokens i repot.
+- Endast dokumentation kräver ingen appversionshöjning. Codex lämnar PR mot `main` och slår bara ihop efter Henriks uttryckliga "Pusha"; en öppen PR är inte publicerad.
 
 ## 8. Kända fallgropar
 
