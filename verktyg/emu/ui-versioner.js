@@ -22,6 +22,7 @@ module.exports=async(pg,h)=>{
  await click('#nav [data-act="nav"][data-id="uppgifter"]');
  await click('[data-act="taskTab"][data-id="lista"]');
  const task='UI-test uppgift';await pg.locator('form[data-form="taskQuick"] input').fill(task);await pg.locator('form[data-form="taskQuick"] input').press('Enter');await h.idle(1800);await h.waitFlush();
+ await click('#nav [data-act="nav"][data-id="uppgifter"]');
  let t=await read('D().tasks.find(x=>x.title==="'+task+'")');assert.ok(t,'Ny uppgift ska sparas');
  await click('[data-act="taskEdit"][data-id="'+t.id+'"]');
  await pg.locator('form[data-form="taskEdit"] [name="due"]').fill('2026-10-19');
@@ -36,6 +37,7 @@ module.exports=async(pg,h)=>{
  assert.equal(await read('D().tasks.find(x=>x.title==="'+task+'").done'),true);
  await click('#nav [data-act="nav"][data-id="mat"]');await click('[data-act="matTab"][data-id="inkop"]');
  await pg.locator('form[data-form="shopQuick"] input').fill('UI-test äpplen');await pg.locator('form[data-form="shopQuick"] input').press('Enter');await h.idle(1600);await h.waitFlush();
+ await click('#nav [data-act="nav"][data-id="mat"]');
  const item=await read('D().shop.find(x=>x.name==="UI-test äpplen")');assert.ok(item);
  await click('input[data-act="shopToggle"][data-id="'+item.id+'"]');await h.idle(1200);await h.waitFlush();assert.equal(await read('D().shop.find(x=>x.name==="UI-test äpplen").done'),true);
  if(start){await click('[data-act="shopMore"]');assert.ok(await pg.locator('[data-act="shopMoreImp"]').isVisible());await click('[data-act="sheetClose"]')}
@@ -45,8 +47,19 @@ module.exports=async(pg,h)=>{
  await click('[data-act="cook"]');assert.ok(await pg.locator('[aria-label="Matlagningsläge"]').isVisible());await h.shot('matlagningslage');
  if(await pg.locator('[data-act="cookStep"][data-d="1"]').count())await click('[data-act="cookStep"][data-d="1"]');
  await click('[data-act="cookClose"]');
+ await click('#nav [data-act="nav"][data-id="stad"]');
+ await pg.locator('form[data-form="cleanQuick"] input').first().fill('UI-test damma');await pg.locator('form[data-form="cleanQuick"] input').first().press('Enter');await h.idle(1400);await h.waitFlush();
+ await click('#nav [data-act="nav"][data-id="stad"]');
+ assert.ok(await read('D().clean.some(x=>x.title==="UI-test damma")'),'Städrutin ska sparas');await h.shot('stad-med-rutin');
+ await click('#nav [data-act="nav"][data-id="ekonomi"]');
+ if(await read('ekoLocked()'))for(const k of String(await read('EKO_PIN')))await click('[data-act="pin"][data-id="'+k+'"]');
+ assert.equal(await read('ekoLocked()'),false);assert.ok(await pg.locator('[data-act="ekoIncome"]').count());await h.shot('ekonomi-oppen');
+ // Födelsedagar saknas i ögonblicksbilden: lägg testdata bara i låtsasarket.
+ const st=h.sheet('Inställningar'),bd=st.find(x=>x[0]==='fodelsedagar'),val=JSON.stringify([{namn:'Testperson',datum:'10-22',ar:1990}]);if(bd)bd[1]=val;else st.push(['fodelsedagar',val]);
+ await pg.reload();await h.idle(1400);await click('#nav [data-act="nav"][data-id="oversikt"]');
+ await click('[data-act="nav"][data-id="fod"]');assert.ok((await pg.locator('main').innerText()).includes('Testperson'));await h.shot('fodelsedagar');
  await click('#nav [data-act="nav"][data-id="oversikt"]');
  await click('[data-act="settings"]');
- if(start){for(const s of await pg.locator('.u3-pref:not([open])>summary').all())await s.click();await h.shot('installningar-oppna',true)}
+ if(start){while(await pg.locator('.u3-pref:not([open])>summary').count())await pg.locator('.u3-pref:not([open])>summary').first().click();await h.shot('installningar-oppna',true)}
  console.log('PASS: alla vyer, UI-byte/omstart, oförändrade UI2-val, uppgift skapa/ändra/kalender/avbocka, inköp och matlagning');
 };

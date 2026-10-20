@@ -47,7 +47,7 @@ jobs:
           THEME: ${{ matrix.theme }}
           SCREEN: ${{ matrix.screen }}
           UI: ${{ matrix.ui }}
-          REDUCED: '1'
+          REDUCED: ${{ matrix.ui == 3 && matrix.screen == 'telefon' && matrix.theme == 'dark' && '0' || '1' }}
         run: |
           export LS="$(node -e 'console.log(JSON.stringify({...process.env.UI==="3"?{ui:"3"}:{},...process.env.SCREEN==="vagg"?{wall:"1",me:""}:{}}))')"
           if [[ "$SCREEN" == "vagg" ]]; then export VP=1368x912; fi
