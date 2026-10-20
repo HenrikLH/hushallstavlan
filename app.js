@@ -796,7 +796,6 @@ function wallBoard(){
  const H={};
  H.kal=calWidget();
  H.mat=widget('mat','bmeal',I.fork,(isT||!nextDay)?'Middag ikväll':'Nästa middag',nextDay&&!isT?esc(dateShort(nextDay.date)):'',(nextDay?wMeals(nextDay):'<div class="wempty">Ingen matsedel än.</div>'));
- if(U3&&!d.clean.length)H.stad=widget('stad','',I.sparkles,'Städ','','<div class="u3-empty"><p>Inga rutiner tillagda än.</p><button class="btn-tint" data-act="nav" data-id="stad">Lägg till rutin</button></div>');
  H.inkop=widget('inkop','',I.basket,'Inköp','','<div class="wbig">'+left.length+'</div><div class="sub">kvar</div><div class="sub">ca '+kr(shopCost(left))+'</div>');
  H.fod=wallBd();
  H.stad=widget('stad','bclean',I.sparkles,'Städ idag',nv('stadN',doneN)+'/'+totN,
@@ -811,7 +810,7 @@ function wallBoard(){
  L.cols.forEach((c,ci)=>{h+='<div class="bcol" data-col="'+ci+'">'+boxRow(c.filter(id=>H[id]),true,H,L)+'</div>'});
  return h+'</div>'+arrangeFoot(L,true)}
 const WALL_DEF=[['kal','mat','inkop','fod'],['stad','upg']];
-const boardDefault=()=>U3?[['kal','mat','fod'],['upg','inkop','stad']]:WALL_DEF;
+const boardDefault=()=>U3?[['kal','mat'],['upg','inkop','fod','stad']]:WALL_DEF;
 V.oversikt=function(){
  if(wallBoardOn())return wallBoard();
  const t=today(),now=new Date(),days=planDays();
@@ -830,6 +829,7 @@ V.oversikt=function(){
   nextDay?wMeals(nextDay):'<div class="wempty">Ingen matsedel inlagd än. Den fylls i när veckoplaneringen körs på söndag.</div>');
  const doneN=cp.routines.filter(doneToday).length+cp.doneRot.length,totN=cp.routines.length+cp.doneRot.length+cp.todo.length;
  H.stad=widget('stad','',I.sparkles,'Städ','','<div class="wbig">'+nv('w-clean',doneN)+'<small>/'+totN+'</small></div><div class="sub">'+nv('w-min',cp.minLeft)+' min kvar</div><div class="thin"><i style="width:'+(totN?Math.round(doneN/totN*100):0)+'%"></i></div>');
+ if(U3&&!d.clean.length)H.stad=widget('stad','',I.sparkles,'Städ','','<div class="u3-empty"><p>Inga rutiner tillagda än.</p><button class="btn-tint" data-act="nav" data-id="stad">Lägg till rutin</button></div>');
  H.inkop=widget('inkop','',I.basket,'Inköp','','<div class="wbig">'+nv('w-shop',left.length)+'</div><div class="sub">kvar · ca '+nv('w-shopkr',shopCost(left),'kr')+'</div>');
  const tl=tasksNow.concat(tasksSoon).slice(0,5);
  if(NY){// Ny design: Att göra med bockar och de stående överföringar som saknas, i stället för två listor

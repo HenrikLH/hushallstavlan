@@ -1774,7 +1774,7 @@ body.is-night :is(.corner-me,.top-me){opacity:0;pointer-events:none}
 @keyframes hjIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){.hj-ch{transition:none}.foot.hj:not(.hid){animation:none}}
 /* UI 3.0 – opt-in per enhet. Alla regler är isolerade från UI 2.0. */
-html.ui3{--bg:#F6F4EF;--surface:#FFF;--surface-raised:#FFF;--ink:#252921;--ink-2:#62665F;--ink-3:#747970;--line:#E1E4DC;--fill:rgba(70,80,55,.07);--track:#E3E7DE;--pill:rgba(70,80,55,.09);--gray:#62665F;--green:#26703D;--tabbar:calc(64px + var(--sab-nav));--tabgap:0px}
+html.ui3{--bg:#F6F4EF;--surface:#FFF;--surface-raised:#FFF;--ink:#252921;--ink-2:#62665F;--ink-3:#677060;--line:#E1E4DC;--fill:rgba(70,80,55,.07);--track:#E3E7DE;--pill:rgba(70,80,55,.09);--gray:#62665F;--green:#26703D;--tabbar:calc(64px + var(--sab-nav));--tabgap:0px}
 html.ui3.u3-dark{--bg:#181A19;--surface:#242725;--surface-raised:#303530;--ink:#F3F3EE;--ink-2:#BEC5BC;--ink-3:#A3ADA0;--line:#3B433C;--fill:rgba(215,230,209,.08);--track:#3C453C;--pill:rgba(215,230,209,.12);--gray:#BEC5BC;--green:#85D49A}
 html.ui3 body{font-size:17px;line-height:1.45;letter-spacing:-.15px}
 html.ui3 :is(button,[role=button],input,select,textarea):focus-visible{outline:3px solid var(--accent);outline-offset:3px}
@@ -1798,6 +1798,7 @@ html.ui3 .segc{height:52px;padding:4px;border-radius:14px;background:var(--fill)
 html.ui3 .segc button{min-height:44px;font-size:15px;border-radius:10px;color:var(--ink-2)}
 html.ui3 .segc button[aria-pressed=true]{color:var(--ink);font-weight:650}
 html.ui3 .seg-thumb{top:4px;bottom:4px;left:4px;width:calc((100% - 8px) / var(--n,2));border-radius:10px;background:var(--surface);box-shadow:0 2px 5px rgba(20,35,20,.08)}
+html.ui3.u3-dark .seg-thumb{background:#3E493E;box-shadow:inset 0 0 0 1px #566151}
 html.ui3 .nav{background:var(--surface);border-top:1px solid var(--line)}
 html.ui3 .nav button{font-size:12px;line-height:16px;gap:3px;min-height:52px;position:relative}
 html.ui3 .nav button[aria-current=page]{color:var(--accent);font-weight:700}
@@ -1852,6 +1853,8 @@ html.ui3 .board{grid-template-columns:minmax(0,.95fr) minmax(0,1.1fr) minmax(0,1
 html.ui3 .board .cell{min-height:60px}
 html.ui3 .board .bclean .check{width:52px;height:52px;margin:-8px}
 html.ui3 .board .wh{min-height:58px}
+html.ui3 .board .bmeal .wh{min-height:50px}
+html.ui3 .board:not(.arranging) .bcol[data-col]{overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;padding-bottom:4px}
 html.ui3 .board :is(.ib,.btn-fill,.btn-tint){min-height:52px}
 html.ui3 .board .title{font-size:19px;line-height:1.35}
 html.ui3 .board .clock{font-size:clamp(60px,6vw,84px);line-height:1.1}
@@ -1860,9 +1863,9 @@ html.ui3 .board .hero-wx.wbt{top:130px;right:18px}
 html.ui3 .board .hero-pic{transform:none}
 html.ui3 .board .bhero .hero{padding:20px}
 html.ui3 .board .u3-meal>:first-child:not(.grow){width:48px;height:48px}
-html.ui3 .board .u3-meal .hl{font-size:17px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-html.ui3 .board .u3-dinner{padding-bottom:8px}
-html.ui3 .board .u3-dinner+.u3-dinner{padding-top:8px}
+html.ui3 .board .u3-meal .hl{font-size:17px;margin:2px 0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+html.ui3 .board .u3-dinner{padding-bottom:6px}
+html.ui3 .board .u3-dinner+.u3-dinner{padding-top:6px}
 html.ui3 .board .u3-dinner>.btn-fill{min-height:44px;height:44px;margin-top:6px}
 @media (min-width:900px){html.ui3 .ov{column-gap:20px}html.ui3 .ov>.widget{margin-bottom:20px}html.ui3 .sheet{border-radius:24px}}
 @media (prefers-reduced-motion:reduce){html.ui3 *,html.ui3 *::before,html.ui3 *::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}}

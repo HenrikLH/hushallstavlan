@@ -38,7 +38,7 @@ Telefon / väggskärm (PWA)  ──GET/POST──▶  Google Apps Script-webbapp
 ```
 
 - **Ingen byggprocess.** Statiska filer i repots rot publiceras med **GitHub Pages från `main`** på https://henriklh.github.io/hushallstavlan/. Allt som hamnar på `main` är i drift inom någon minut.
-- `index.html` (≈140 kB): all HTML-stomme och **all CSS** i en `<style>`. Ny design ("UI 2.0", standard) är CSS under `html.ny`. Gamla UI 1.0 finns bara i utvecklarläget och ska inte gå sönder, men nya funktioner byggs för UI 2.0.
+- `index.html` (≈140 kB): all HTML-stomme och **all CSS** i en `<style>`. Ny design ("UI 2.0", standard) är CSS under `html.ny`. Gamla UI 1.0 finns bara i utvecklarläget och ska inte gå sönder, UI 3.0 utvecklas som separat frivilligt val; UI 2.0 ska behålla sitt utseende och beteende tills Henrik säger annat.
 - `app.js` (≈470 kB): hela appen i en fil. Kompakt stil med långa rader och korta namn. **Skriv i samma stil och formatera aldrig om filen** (ingen Prettier/ESLint --fix): omformatering ger enorma diffar och krockar med andra agenters arbete.
   - `S` = tillstånd, `A` = appens objekt, `V` = vyer (`V.mat`, `V.oversikt` …), `ACT` = alla handlingar. Klick hanteras via `data-act="namn"` och `data-id`, `data-hold` för håll-in-knappar (1 s). Vyer returnerar HTML-strängar; `render()`/`doRender()` ritar om.
   - `apiGet()` hämtar allt, `setData()` tar emot det. `apiPost(body)` lägger ändringen i **utkorgen** `OUTBOX` (sparas i localStorage `ht.outbox`), `flush()` skickar en i taget och försöker igen vid nätfel och låsfel. Appen visar ändringen direkt (optimistiskt).

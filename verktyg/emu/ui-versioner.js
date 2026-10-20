@@ -59,6 +59,7 @@ module.exports=async(pg,h)=>{
  await pg.reload();await h.idle(1400);await click('#nav [data-act="nav"][data-id="oversikt"]');
  await click('[data-act="nav"][data-id="fod"]');assert.ok((await pg.locator('main').innerText()).includes('Testperson'));await h.shot('fodelsedagar');
  await click('#nav [data-act="nav"][data-id="oversikt"]');
+ if(start&&await pg.locator('.board').count()){const nav=await pg.locator('#nav').boundingBox();for(const el of await pg.locator('.bmeal [data-act="cook"]').all()){const b=await el.boundingBox();assert.ok(b.y+b.height<=nav.y,'Middagens knappar ska rymmas ovanför menyn')}assert.ok(await pg.locator('[data-box="fod"]').isVisible(),'Födelsedagar ska synas på tavlan')}
  await click('[data-act="settings"]');
  if(start){while(await pg.locator('.u3-pref:not([open])>summary').count())await pg.locator('.u3-pref:not([open])>summary').first().click();await h.shot('installningar-oppna',true)}
  console.log('PASS: alla vyer, UI-byte/omstart, oförändrade UI2-val, uppgift skapa/ändra/kalender/avbocka, inköp och matlagning');
