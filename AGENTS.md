@@ -80,12 +80,14 @@ Det finns ingen testsvit, men det finns en emulator som kör den riktiga `Kod.gs
 
 ```
 node verktyg/emu/run.js verktyg/emu/alla-flikar.js                 # telefon, alla flikar och undersidor
-LS='{"wall":"1"}' node verktyg/emu/run.js verktyg/emu/alla-flikar.js  # väggläge
+LS='{"wall":"1","me":""}' VP=1368x912 node verktyg/emu/run.js verktyg/emu/alla-flikar.js  # väggtavlan, gemensam skärm
 ```
 
 Playwright installeras med `npm install --no-save playwright && npx playwright install --with-deps chromium` om den saknas.
 
-Skärmbilder hamnar i `verktyg/emu/shots/` (ignoreras av git). Skriptet avslutas med kod 1 om sidan kraschar. Egna scenarier är en modul `async (pg, h) => {}`; se `lib.js` och `alla-flikar.js`. Miljövariabler: `NOW` (låtsasdatum), `THEME` (`light`/`dark`), `LS` (localStorage som JSON utan `ht.`-prefix), `SLOW` (ms fördröjning per anrop), `CHROMIUM` (sökväg till webbläsare). Väder från api.met.no fejkas; `data.js` är en ögonblicksbild av arket från 2026-10-18.
+Om agentmiljön blockerar webbläsarnedladdningen: installera beroendena i miljöns installationssteg före agentkörningen. Codex Cloud (Legacy) kallar fältet Setup script; nyare Cloud-miljöer använder Install script. Dessa miljöer är inte samma sak som ChatGPT Work. En rad i repot ändrar inte miljöinställningarna automatiskt. Alternativt kör `.github/workflows/emu.yml` samma röktest i GitHub Actions vid PR mot main: telefon/vägg i ljust/mörkt, med skärmbilder som artefakter. Kontrollera jobbresultaten innan testerna anges som godkända.
+
+Skärmbilder hamnar i `verktyg/emu/shots/` (ignoreras av git). Röktestet klickar på riktiga knappar och skriptet avslutas med kod 1 om sidan kraschar, en knapp saknas eller scenariot kastar fel (`SCENARIO FAIL`). Egna scenarier är en modul `async (pg, h) => {}`; se `lib.js` och `alla-flikar.js`. Miljövariabler: `NOW` (låtsasdatum), `THEME` (`light`/`dark`), `LS` (localStorage som JSON utan `ht.`-prefix), `SLOW` (ms fördröjning per anrop), `CHROMIUM` (sökväg till webbläsare), `VP` (fönsterstorlek, till exempel `1368x912`; utan den används telefon 390×844). Väder från api.met.no fejkas; `data.js` är en ögonblicksbild av arket från 2026-10-18.
 
 Minst detta före varje push:
 
@@ -93,7 +95,6 @@ Minst detta före varje push:
 - **Öppna varje flik genom att klicka**, inte genom att sätta localStorage. Appen minns senaste fliken, så en krasch i en flik kan låsa hela Mat-delen.
 - Testa uppstart med de berörda inställningarna **redan påslagna** i localStorage, inte bara när de slås på efter laddning (en sådan bugg gav grå väggskärm).
 - Ta skärmbilder i ljust och mörkt läge för visuella ändringar.
-- `alla-flikar.js` använder för närvarande direkta `ACT.nav`/`ACT.matTab`-anrop. Kör skriptet ändå, men komplettera med riktiga klick vid ändrad navigering; det bevisar inte ensamt att klickvägarna fungerar. Kontrollera även utskriften: `run.js` kan skriva `SCENARIO FAIL` utan att sätta felkod. Kör inte godkänt enbart på exitkod 0.
 
 ## 7. Samarbete mellan agenter
 
@@ -116,7 +117,7 @@ Flera agenter (Claude Code i flera trådar samtidigt, och Codex) jobbar i samma 
 - En gräns innebär paus, aldrig tillstånd att slå ihop eller publicera. Övertagande ska vara uttryckligt markerat som avbrutet i "Pågår nu"; fortsätt på en egen gren från den sparade committen och länka föregående PR. Annars lämnas den andra agentens arbete i fred.
 - Spara bestående regler här, aktuell status i "Pågår nu" och resultatet som en kort rad i "Logg". Återberätta inte samma historik på flera ställen. Läs bara relevanta kodavsnitt efter startläsningen och håll varje PR till en uppgift för att spara tokens.
 - GitHub-integrationen och vanlig git-push har separat autentisering. Om git-push saknar inloggning kan integrationens Git-objektverktyg publicera en granskad commit till egen gren; verifiera fjärrgrenens diff innan PR. Lägg aldrig tokens i repot.
-- Endast dokumentation kräver ingen appversionshöjning. Codex lämnar PR mot `main` och slår bara ihop efter Henriks uttryckliga "Pusha"; en öppen PR är inte publicerad.
+- Endast dokumentation och testverktyg kräver ingen appversionshöjning. Codex lämnar PR mot `main` och slår bara ihop efter Henriks uttryckliga "Pusha"; en öppen PR är inte publicerad.
 
 ## 8. Kända fallgropar
 

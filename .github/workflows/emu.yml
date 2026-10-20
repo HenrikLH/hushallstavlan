@@ -1,0 +1,53 @@
+name: Röktest och skärmbilder
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: emu-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  emu:
+    name: ${{ matrix.screen }} / ${{ matrix.theme }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        screen: [telefon, vagg]
+        theme: [light, dark]
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Installera testverktyg
+        run: npm install --no-save --package-lock=false playwright@1.62.1
+      - name: Installera Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Kör alla flikar med riktiga klick
+        env:
+          THEME: ${{ matrix.theme }}
+          SCREEN: ${{ matrix.screen }}
+        run: |
+          if [[ "$SCREEN" == "vagg" ]]; then
+            export LS='{"wall":"1","me":""}'
+            export VP=1368x912
+          fi
+          node verktyg/emu/run.js verktyg/emu/alla-flikar.js
+      - name: Spara skärmbilder
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: emu-${{ matrix.screen }}-${{ matrix.theme }}
+          path: verktyg/emu/shots/
+          if-no-files-found: warn
+          retention-days: 7
