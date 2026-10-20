@@ -4,10 +4,10 @@ Claude och Codex: följ AGENTS.md avsnitt 7. Ersätt inaktuell status; historik 
 
 ## Aktuell version
 
-- Inställningar och Personer godkända för publicering av Henrik, [PR #18](https://github.com/HenrikLH/hushallstavlan/pull/18), ht-v171 / app.js?v=162. Användarval, namn och färg samlade; UI 2.0 behåller sitt tema. Ingen ändring i Kod.gs.
-- Verifierat: [CI 39451054291](https://github.com/HenrikLH/hushallstavlan/actions/runs/39451054291), app/test-commit `d945d81`: åtta gröna lägen, personkopplingar och bildjämförelse av övriga UI 2.0-vyer. Endast överlämningen ändrad därefter.
-- Ångra-gren: `version-fore-personer-20261020` (`ba7dd76`). Chromium saknas lokalt; använd CI och återanvänd godkända resultat för samma app/test-kod.
-- UI 3.0 är valbar per enhet under Inställningar → Avancerat → Utvecklarläge → Design. Avstängt utvecklarläge återgår till UI 2.0. Personers stabila datanycklar och visningsnamn beskrivs i AGENTS.md.
+- UI 2.0:s inställningstema, [PR #19](https://github.com/HenrikLH/hushallstavlan/pull/19), godkänt för publicering av Henrik. Kategorier/Personer behålls med tydliga reglage och utfällbar hjälp.
+- Kategorikroppen använder UI 2.0:s ursprungliga bakgrund; reglagens befintliga färger/former bevaras. `hjelpFold` körs per kategori med egna nycklar. Ingen ändring i Kod.gs eller hushållsdata.
+- Version ht-v172 / app.js?v=163. [CI 39458762181](https://github.com/HenrikLH/hushallstavlan/actions/runs/39458762181), testad commit `24ffd5a`: åtta gröna lägen, tre reglageformer/kontrast, hjälp öppna/stäng/omritning och tidigare funktionstester. UI 2.0:s övriga 18 vybilder matchar main. Skärmbilder granskade. Endast överlämning ändrad därefter.
+- Ångra-gren `version-fore-installningstema-20261020` (`b6acaf0`, ht-v171). Chromium saknas lokalt; använd CI och återanvänd godkända resultat för oförändrad kod.
 
 ## Väntar på Henrik
 
