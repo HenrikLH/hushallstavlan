@@ -1,6 +1,6 @@
 # Recept: implementation inför publiceringsbeslut
 
-Klientrelease ht-v173 i PR #23, godkänd av Henrik för publicering tillsammans med användarcirkelns färgfix. Designunderlag: PR #21, implementation: PR #22. Ingen riktig Google-data har ändrats av agenten; Apps Script uppdateras manuellt av Henrik.
+Klientrelease ht-v173 i PR #23, godkänd av Henrik för publicering tillsammans med användarcirkelns färgfix. Designunderlag: PR #21, implementation: PR #22. Ingen riktig Google-data har ändrats av agenten. Henrik bekräftade 2026-10-21 att han uppdaterat Kod.gs, kört setupRecipes och distribuerat ny webbappversion. Klientens Pages-distribution är grön och ht-v173 verifierad live.
 
 ## Vad som finns
 
