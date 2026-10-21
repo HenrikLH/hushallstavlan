@@ -45,7 +45,7 @@ module.exports=async(pg,h)=>{
  await click('input[data-act="shopToggle"][data-id="'+item.id+'"]');await h.idle(1200);await h.waitFlush();assert.equal(await read('D().shop.find(x=>x.name==="UI-test äpplen").done'),true);
  if(start){await click('[data-act="shopMore"]');assert.ok(await pg.locator('[data-act="shopMoreImp"]').isVisible());await click('[data-act="sheetClose"]')}
  await click('[data-act="matTab"][data-id="recept"]');
- if(start){await pg.locator('form[data-form="recipeSearch"] input').fill('finnsinte123');await pg.locator('form[data-form="recipeSearch"] input').press('Enter');await h.idle(500);assert.equal(await pg.locator('.bank [data-act="recipe"]').count(),0);await h.shot('receptsok-tomt');await click('[data-act="recipeSearchClear"]');assert.equal(await pg.locator('form[data-form="recipeSearch"] input').inputValue(),'')}
+ if(start){await pg.locator('form[data-rcform="search"] input').fill('finnsinte123');await pg.locator('form[data-rcform="search"] input').press('Enter');await h.idle(500);assert.equal(await pg.locator('.bank [data-act="recipe"]').count(),0);await h.shot('receptsok-tomt');await click('[data-rc="clear"]');assert.equal(await pg.locator('form[data-rcform="search"] input').inputValue(),'')}
  await click('main [data-act="recipe"]');await h.shot('recept');
  await click('[data-act="cook"]');assert.ok(await pg.locator('[aria-label="Matlagningsläge"]').isVisible());await h.shot('matlagningslage');
  if(await pg.locator('[data-act="cookStep"][data-d="1"]').count())await click('[data-act="cookStep"][data-d="1"]');
