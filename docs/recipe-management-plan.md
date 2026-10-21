@@ -9,6 +9,7 @@ Status: endast analys, plan och fristående ljusa skisser. Ingen appfunktion imp
 - Bekräftat av Henrik: en receptändring lämnar redan planerade måltider orörda. En separat åtgärd erbjuder uppdatering av valda måltider, med förhandsvisning av inköpslistan.
 - Föreslaget, inte bekräftat: första importversionen behöver ingen betald AI-tjänst. Strukturerade receptsidor stöds; inklistrad text är reservvägen. Avvakta svar innan eventuell AI-integration.
 - Design ska godkännas innan produktionskod skrivs. Godkänd design ger inte publiceringstillstånd.
+- Designstyrning från Henrik: skisserna ska visa **Runda + Piller**. Receptvyerna ska återanvända appens gemensamma formval, färger, typografi, mellanrum och navigation; ingen separat receptdesign. Runda innebär kort med 26 px radie och kapslade kontroller/åtgärdsknappar. Piller är huvudmenyn med Mat/Ekonomi/Översikt/Uppgifter/Städ, inte Mat-delens underflikar; utfällt och kompakt scrolläge ska visas.
 - Behåll svenska UI 2.0, befintlig navigering och fungerande UI 1.0/3.0. Ingen ramverksändring eller omformatering av app.js.
 - Planen är för nuvarande hushållslagring. Konton för flera oberoende hushåll är ett separat projekt.
 
@@ -148,6 +149,8 @@ Skilj ”Ta bort från sparade”, ”Föreslå inte igen” och ”Arkivera mit
 Kör befintliga alla-flikar-/funktionskontroller och nya tester för faktiska risker. UI 2.0:s receptvyer får avsiktligt ändras; granska deras bilder separat i stället för att släppa alla visuella regressioner. Oförändrade vyer ska behålla tidigare utseende.
 
 Testmatris: telefon ljust/mörkt och vägg ljust/mörkt; relevant UI 1.0/3.0-kompatibilitet; gammal/uppdaterad Kod.gs; offline/återanslutning; två enheter; förlorat serversvar; gammalt recept från varje källa; samma id med olika snapshots; planerad portion/protein/storkok; ångra/återställ; importens felvägar; stora data och full lagring. Riktigt iPhone-tangentbord och Surface kräver Henriks hårdvarukontroll.
+
+Designmatris: verifiera Kantiga/Runda/Raka tillsammans med Fast/Svävande/Piller där recepten visas. Kontrollera gemensamma hörnradier, knappar, aktiva val, menyposition, mellanrum, textstorlekar, formulär, laddning/fel och hjälp mot befintliga Mat-, Översikt-, Uppgifter-, Städ- och Ekonomivyer. Ny receptkod ska använda de befintliga stilklasserna så att sparade enhetsval gäller genomgående. Det innebär ingen ny omdesign av övriga sidor i detta uppdrag.
 
 Visa faktiska ljusa screenshots av genomförandet och redovisa testad commit, resultat, begränsningar och nödvändig serveruppdatering. Spara arbetsgren/PR och överlämning. Vänta på ”Pusha”. Därefter: hämta aktuell main, ordna backup, kör godkänd serveruppdatering först med bakåtkompatibilitet, höj appversionen enligt AGENTS.md, skapa ångra-gren, publicera och verifiera Pages. En serverändring är också publicering och får inte ske i förväg.
 

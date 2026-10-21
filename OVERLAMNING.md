@@ -14,6 +14,7 @@ Claude och Codex: följ AGENTS.md avsnitt 7. Ersätt inaktuell status; historik 
 - Ägare Codex; gren `codex/recipe-management-plan`, endast dokumentation och fristående ljus prototyp. Plan: `docs/recipe-management-plan.md`; prototyp: `docs/mockups/recipe-management.html`; bilder: `outputs/recipe-management/`.
 - Henrik har bekräftat att receptredigering lämnar planerade måltider oförändrade; separat uppdatering kräver inköpsförhandsvisning. AI-fri import är föreslagen, svar om eventuell betald AI-integration inväntas.
 - Nästa steg: invänta designgodkännande före produktionskod; gemensamt receptuppslag, versionslagring och säker synk kommer före redigering/import. Ny Kod.gs behövs senare, ingen Google-data ändrad nu.
+- Henrik vill se Runda + Piller och kräver konsekvent design genom alla sidor/sektioner. Skisserna följer gemensamma former och visar femflikars huvudmeny i utfällt/kompakt läge; produktionskod ska återanvända appens stilval.
 - Kontroller: prototypens fyra ljusa bilder granskade; sök/filter, utkastfält, importreservväg och måltidsval provade, utan sidfel/horisontellt överflöde vid 320/390/736 px. Inga nya appfunktioner är implementerade eller testade.
 - Ingen sammanslagning, serveruppdatering eller publicering utan uttryckligt ”Pusha”. Väderändringen är fortfarande separat i PR #20.
 
