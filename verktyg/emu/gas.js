@@ -28,7 +28,7 @@ function makeBook(init){
   appendRow:a=>{const n=lastRow(s);s.rows.length=n;s.rows.push(a.slice());if(s.rows.length>s.maxRows)s.maxRows=s.rows.length},
   deleteRow:r=>{if(s.maxRows-1<=s.frozen)throw new Error('Det går inte att ta bort alla rader som inte är frysta.');s.rows.splice(r-1,1);s.maxRows--},
   insertRowsAfter:(a,n)=>{s.maxRows+=n}});
- return {sheets,getSheetByName:n=>sheets[n]?api(sheets[n]):null}}
+ return {sheets,getSheetByName:n=>sheets[n]?api(sheets[n]):null,insertSheet:n=>{if(sheets[n])throw new Error('Fliken finns redan');sheets[n]={name:n,rows:[],maxRows:50,frozen:1};return api(sheets[n])}}}
 const book=makeBook(require('./data.js'));
 const props={HUSHALLSKOD:'x',NTFY_TOPIC:''};
 let lockHeld=false;

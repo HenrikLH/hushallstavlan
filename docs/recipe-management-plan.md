@@ -1,14 +1,14 @@
-# Recept: plan inför designgodkännande
+# Recept: godkänd plan och genomförande
 
-Status: endast analys, plan och fristående ljusa skisser. Ingen appfunktion implementerad. Ingenting får publiceras utan Henriks uttryckliga ”Pusha”.
+Status: Henrik godkände implementationen 2026-10-21. Funktionerna finns på separat arbetsgren; se `recipe-management-release.md` för lagring, tester, begränsningar och återstående publiceringssteg. Ingenting får publiceras utan Henriks uttryckliga ”Pusha”.
 
-Ägare: Codex. Gren: `codex/recipe-management-plan`. Bas: `003680f` (main vid genomgången). Väderändringen ligger separat i PR #20.
+Ägare: Codex. Gren: `codex/recipe-management` (designunderlag i `codex/recipe-management-plan`). Bas: `003680f` (main vid genomgången). Väderändringen ligger separat i PR #20.
 
 ## Beslut och förutsättningar
 
 - Bekräftat av Henrik: en receptändring lämnar redan planerade måltider orörda. En separat åtgärd erbjuder uppdatering av valda måltider, med förhandsvisning av inköpslistan.
-- Föreslaget, inte bekräftat: första importversionen behöver ingen betald AI-tjänst. Strukturerade receptsidor stöds; inklistrad text är reservvägen. Avvakta svar innan eventuell AI-integration.
-- Design ska godkännas innan produktionskod skrivs. Godkänd design ger inte publiceringstillstånd.
+- Genomfört utan betald AI-tjänst: strukturerade receptdata och inklistrad text med manuell granskning. Ingen extern AI-integration har lagts till.
+- Designen med Runda + Piller godkänd för implementation. Godkännandet ger inte publiceringstillstånd.
 - Designstyrning från Henrik: skisserna ska visa **Runda + Piller**. Receptvyerna ska återanvända appens gemensamma formval, färger, typografi, mellanrum och navigation; ingen separat receptdesign. Runda innebär kort med 26 px radie och kapslade kontroller/åtgärdsknappar. Piller är huvudmenyn med Mat/Ekonomi/Översikt/Uppgifter/Städ, inte Mat-delens underflikar; utfällt och kompakt scrolläge ska visas.
 - Behåll svenska UI 2.0, befintlig navigering och fungerande UI 1.0/3.0. Ingen ramverksändring eller omformatering av app.js.
 - Planen är för nuvarande hushållslagring. Konton för flera oberoende hushåll är ett separat projekt.

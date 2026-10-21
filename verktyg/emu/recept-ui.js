@@ -1,0 +1,23 @@
+const assert=require('node:assert/strict'),gas=require('./gas');
+gas.ctx.setupRecipes();
+module.exports=async(pg,h)=>{
+ const click=async(s)=>{await pg.locator(s).first().click();await h.idle(180)};
+ await click('[data-act="matTab"][data-id="recept"]');await click('[data-act="matTab"][data-id="bank"]');
+ await click('[data-rc="new"]');await pg.locator('[data-rf="title"]').fill('Min testpasta');await pg.locator('[data-rf="portions"]').fill('4');await pg.locator('[data-rf="min"]').fill('25');
+ await pg.locator('[data-ri="0:0:amount"]').fill('400');await pg.locator('[data-ri="0:0:u"]').fill('g');await pg.locator('[data-ri="0:0:n"]').fill('pasta');await pg.locator('[data-rstep="0:t"]').fill('Koka pastan.');
+ await pg.locator('[data-rf="who"]').selectOption('Vegetariskt');
+ await h.shot('recept-editor',true);await h.shot('recept-editor-telefon');const before=JSON.stringify(h.sheet('Matsedel'));
+ await click('[data-rc="save"]');await h.idle(700);
+ assert(await pg.getByText('Receptet är sparat. Planerade måltider är oförändrade.',{exact:true}).isVisible());assert.equal(JSON.stringify(h.sheet('Matsedel')),before);
+ await click('[data-rc="finish"]');assert(await pg.locator('h1').filter({hasText:'Min testpasta'}).isVisible());
+ const first=await pg.evaluate(()=>window.__d('RC.savedId'));
+ await click('[data-rc="edit"]');await pg.locator('[data-rf="title"]').fill('Min uppdaterade pasta');await click('[data-rc="save"]');await h.idle(700);
+ const second=await pg.evaluate(()=>window.__d('RC.savedId'));assert(await pg.evaluate(id=>window.__d('recipeCandidates().filter(r=>recipeRoot(r.id)===recipeRoot('+JSON.stringify(id)+')).length===1'),first));assert(await pg.evaluate(()=>window.__d('recipePlanReady({_root:"test",groups:[{items:[{n:"pasta",q:null}]}]})===false')));assert.notEqual(first,second);assert.equal(await pg.evaluate(id=>window.__d('recipeById('+JSON.stringify(id)+').title'),first),'Min testpasta');
+ await click('[data-rc="finish"]');await click('#main [data-act="recipeBack"]');await pg.locator('[data-rcform="search"] input').fill('uppdaterade');await pg.locator('[data-rcform="search"]').evaluate(f=>f.requestSubmit());await h.idle(250);assert(await pg.getByRole('button',{name:'Min uppdaterade pasta',exact:true}).isVisible());
+ await h.shot('recept-sok',true);await h.shot('recept-sok-telefon');await click('[data-rc="import"]');await pg.locator('#rc-import-text').fill('Tomatgryta\n4 portioner\nIngredienser\n1/2 dl grädde\n2 st tomater\nGör så här\n1. Koka upp allt.');await click('[data-rc="parse"]');
+ assert.equal(await pg.locator('[data-rf="portions"]').inputValue(),'4');assert.equal(await pg.locator('[data-ri="0:0:amount"]').inputValue(),'1/2');await h.shot('recept-importgranskning',true);await h.shot('recept-import-telefon');
+ await click('[data-rc="leave"]');assert(await pg.getByText('Behålla utkastet?',{exact:true}).isVisible());await click('[data-rc="keep"]');
+ await click('[data-rc="resume"]');assert.equal(await pg.locator('[data-rf="title"]').inputValue(),'Tomatgryta');await click('[data-rc="leave"]');await click('[data-rc="discard"]');
+ await click('[data-rc="new"]');await pg.locator('[data-rf="title"]').fill('Min uppdaterade pasta');await pg.locator('[data-ri="0:0:amount"]').fill('400');await pg.locator('[data-ri="0:0:n"]').fill('pasta');await pg.locator('[data-rstep="0:t"]').fill('Koka.');await click('[data-rc="save"]');await h.idle(400);assert(await pg.getByText('Liknande recept finns',{exact:true}).isVisible());assert(await pg.locator('[data-rf="title"]').isVisible());await pg.locator('#rc-allow-duplicate').check();await click('[data-rc="save"]');await h.idle(400);assert(await pg.getByText('Receptet är sparat. Planerade måltider är oförändrade.',{exact:true}).isVisible());
+ console.log('PASS RECEPT UI: create/edit immutable version, unchanged menu, standard search, text import, keep/resume/discard draft.');
+};

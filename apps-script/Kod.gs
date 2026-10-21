@@ -128,6 +128,7 @@ function allData_() {
     events: strip_(readTab_('events')),
     offers: strip_(readTab_('offers')),
     recipes: readTab_('recipes').map(parseRecipe_),
+    recipeStore: recipeStore_(),
     ntfyTopic: props_().getProperty('NTFY_TOPIC') || ''
   };
 }
@@ -230,7 +231,9 @@ function doPost(e) {
     // Bilduppladdning behöver inget lås och svarar med bildens adress
     if (b.action === 'photoUpload') return json_({ ok: true, url: savePhoto_(b) });
     lock.waitLock(20000);
+    recipeRecover_();
     const by = String(b.by || '');
+    if (/^recipe(Save|Archive|PlanApply|Import)$/.test(String(b.action || ''))) return recipeAction_(b, by);
     switch (b.action) {
       case 'shopToggle': setCells_('shop', findRow_('shop', b.id), { done: !!b.done }); break;
       case 'shopAdd': {
@@ -715,6 +718,7 @@ function fodelsedagarSynk_() {
 
 /* ---------------- one-time setup ---------------- */
 function setup() {
+  setupRecipes();
   const p = props_();
   const words = ['lingon', 'tass', 'matvete', 'kvarg', 'purjo', 'hylla', 'kompis', 'skogen', 'bulle', 'linser', 'koppel', 'soffa', 'blabar', 'havre', 'mossa', 'stuga'];
   const pick = function () { return words[Math.floor(Math.random() * words.length)]; };
@@ -903,4 +907,116 @@ function prisSynk() {
     writeSetting_('prislogg', JSON.stringify(logg));
   } finally { lock.releaseLock(); }
   Logger.log(logg.medPris + ' av ' + logg.varor + ' varor fick pris. Saknas: ' + saknas.join(', '));
+}
+
+/* ---------------- Receptredigering: additiv lagring, versioner och kvittenser ---------------- */
+const RECIPE_TABS = { heads: 'Receptregister', versions: 'Receptversioner', journal: 'Receptjournal' };
+function setupRecipes() {
+  const book = SpreadsheetApp.getActive();
+  const headers = { heads: ['Recept-id','Versions-id','Revision','Arkiverat'], versions: ['Versions-id','Recept-id','Revision','Innehåll','Operation','Tid'], journal: ['Operation','Status','Innehåll','Tid'] };
+  Object.keys(headers).forEach(function(k) { if (!book.getSheetByName(RECIPE_TABS[k])) { const s = book.insertSheet(RECIPE_TABS[k]); s.appendRow(headers[k]); } });
+}
+function recipeSheet_(k) { return SpreadsheetApp.getActive().getSheetByName(RECIPE_TABS[k]); }
+function recipeRows_(k) { const s = recipeSheet_(k); return s ? s.getDataRange().getDisplayValues().slice(1).filter(function(r) { return r[0]; }) : []; }
+function recipeJson_(s, fallback) { try { return JSON.parse(s); } catch(e) { return fallback; } }
+function recipeStore_() {
+  if (!recipeSheet_('heads') || !recipeSheet_('versions') || !recipeSheet_('journal')) return null;
+  return { schema: 1, heads: recipeRows_('heads').map(function(r) { return { root:r[0], id:r[1], rev:Number(r[2]), archived:r[3]==='1' }; }),
+    versions: recipeRows_('versions').map(function(r) { return recipeJson_(r[3], null); }).filter(Boolean) };
+}
+function recipeHead_(root) { return recipeRows_('heads').map(function(r,i) { return { root:r[0],id:r[1],rev:Number(r[2]),archived:r[3]==='1',row:i+2 }; }).filter(function(x) { return x.root===root; })[0] || null; }
+function recipePutHead_(root, id, rev, archived) {
+  const h=recipeHead_(root), values=[[root,id,rev,archived?'1':'0']];
+  if(h)recipeSheet_('heads').getRange(h.row,1,1,4).setValues(values);else recipeSheet_('heads').appendRow(values[0]);
+}
+function recipeDigest_(x) { const s=JSON.stringify(x); let h=2166136261; for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0).toString(16); }
+function recipeState_() { return {menu:strip_(readTab_('menu')).filter(function(m){return m.recipe||!/^ledig$/i.test(m.title||'');}),shop:strip_(readTab_('shop')).filter(function(x){return x.name!=='(rad för appen, ta inte bort)';}),settings:readSettings_()}; }
+function recipeLimit_(s,n,label) { s=String(s==null?'':s);if(s.length>n)throw new Error(label+' är för långt.');return s; }
+function recipeSafeUrl_(s) { s=String(s||'').trim();if(s&&!/^https?:\/\/[^\s<>"\\]+$/i.test(s))throw new Error('Länken måste börja med https:// eller http://.');return recipeLimit_(s,2000,'Länken'); }
+function recipeValidate_(raw) {
+  if(!raw||typeof raw!=='object'||Array.isArray(raw))throw new Error('Receptet saknas.');
+  const r=JSON.parse(JSON.stringify(raw));
+  r.title=recipeLimit_(r.title,200,'Receptnamnet').trim();if(!r.title)throw new Error('Skriv ett receptnamn.');
+  r.portions=Number(r.portions);if(!isFinite(r.portions)||r.portions<=0||r.portions>1000)throw new Error('Ange mellan 0 och 1 000 portioner.');
+  r.min=r.min==null||r.min===''?null:Number(r.min);if(r.min!=null&&(!isFinite(r.min)||r.min<=0||r.min>10080))throw new Error('Tiden måste vara positiv eller lämnas tom.');
+  if(!Array.isArray(r.groups)||!r.groups.length||r.groups.length>30)throw new Error('Lägg till minst en ingrediensgrupp.');
+  let count=0;r.groups.forEach(function(g){g.title=recipeLimit_(g.title,100,'Gruppnamnet');if(!Array.isArray(g.items))throw new Error('Ingredienser saknas.');g.items.forEach(function(it){count++;it.n=recipeLimit_(it.n,200,'Ingrediensen').trim();it.u=recipeLimit_(it.u,30,'Enheten');if(!it.n)throw new Error('En ingrediens saknar namn.');if(it.q!=null&&it.q!==''){it.q=Number(it.q);if(!isFinite(it.q)||it.q<=0)throw new Error('Ingrediensmängden måste vara positiv.');}else it.q=null;if(it.raw)recipeLimit_(it.raw,500,'Originalmängden');});});
+  if(!count||count>150)throw new Error('Receptet behöver 1–150 ingredienser.');
+  if(!Array.isArray(r.steps)||!r.steps.length||r.steps.length>100)throw new Error('Receptet behöver 1–100 steg.');
+  r.steps.forEach(function(s){s.t=recipeLimit_(s.t,3000,'Instruktionen').trim();if(!s.t&&!s.k&&!s.v)throw new Error('Ett steg saknar instruktion.');if(s.timer!=null&&s.timer!==''&&(!isFinite(Number(s.timer))||Number(s.timer)<=0||Number(s.timer)>1440))throw new Error('Timern måste vara 1–1 440 minuter.');});
+  r.src=recipeSafeUrl_(r.src);r.img=recipeSafeUrl_(r.img);recipeLimit_(r.tips,4000,'Tipsen');recipeLimit_(r.group,40,'Kategorin');recipeLimit_(r.who,40,'Kostvalet');
+  if(JSON.stringify(r).length>40000)throw new Error('Receptet är för stort. Korta texten eller dela upp receptet.');
+  return r;
+}
+function recipeDupe_(r,root) {
+  const norm=recipeSourceKey_;
+  const store=recipeStore_(), all=readTab_('recipes').map(parseRecipe_);
+  if(store)store.heads.filter(function(h){return !h.archived;}).forEach(function(h){const v=store.versions.filter(function(x){return x.id===h.id;})[0];if(v)all.push(v);});
+  Object.keys(readSettings_()).filter(function(k){return /^receptbank_\d+$/.test(k);}).forEach(function(k){const a=recipeJson_(readSettings_()[k],[]);if(Array.isArray(a))a.forEach(function(x){all.push(x);});});
+  return all.filter(function(x){return (x._root||x.id)!==root&&((r.src&&norm(x.src)===norm(r.src))||String(x.title||'').trim().toLowerCase()===r.title.toLowerCase());}).map(function(x){return {id:x.id,title:x.title};}).slice(0,5);
+}
+function recipeAction_(b,by) {
+  if(!recipeStore_())throw new Error('Kör setupRecipes i uppdaterad Kod.gs först.');
+  if(b.action==='recipeImport')return json_({ok:true,candidates:recipeImport_(b.url)});
+  const op=String(b.op||'');if(!/^[a-z0-9-]{8,80}$/.test(op))throw new Error('Sparningen saknar giltig kvittens.');
+  if(b.action==='recipeSave') {
+    const root=String(b.root||'');if(!/^[a-z0-9-]{1,60}$/.test(root))throw new Error('Ogiltigt recept-id.');
+    const oldOp=recipeRows_('versions').filter(function(v){return v[4]===op;})[0],h=recipeHead_(root);
+    if(oldOp) { if(oldOp[1]!==root)throw new Error('Kvittensen hör till ett annat recept.');const rev=Number(oldOp[2]);if(h&&h.id===oldOp[0]||h&&h.rev>=rev)return json_({ok:true,savedId:oldOp[0],data:allData_()});if((h?h.rev:0)!==Number(b.expectedRev))return json_({ok:false,code:'conflict',error:'Receptet ändrades på en annan enhet. Ditt utkast finns kvar.',data:allData_()});recipePutHead_(root,oldOp[0],rev,false);return json_({ok:true,savedId:oldOp[0],data:allData_()}); }
+    if((h?h.rev:0)!==Number(b.expectedRev))return json_({ok:false,code:'conflict',error:'Receptet ändrades på en annan enhet. Ditt utkast finns kvar.',data:allData_()});
+    const r=recipeValidate_(b.recipe),dupes=recipeDupe_(r,root);if(dupes.length&&!b.allowDuplicate)return json_({ok:false,code:'duplicate',error:'Liknande recept finns redan. Bekräfta om du vill spara en egen variant.',duplicates:dupes});
+    if(!h&&b.base) { const base=JSON.parse(JSON.stringify(b.base));if(JSON.stringify(base).length>40000)throw new Error('Originalreceptet är för stort.');base.src=recipeSafeUrl_(base.src);base.img=recipeSafeUrl_(base.img);base.id=root;base._root=root;base._revision=0;if(!recipeRows_('versions').some(function(v){return v[0]===root;}))recipeSheet_('versions').appendRow([root,root,0,JSON.stringify(base),'','']); }
+    const rev=(h?h.rev:0)+1;r.id='rv-'+Utilities.getUuid().replace(/-/g,'');r._root=root;r._revision=rev;r.updatedAt=new Date().toISOString();r.updatedBy=recipeLimit_(by,40,'Namnet');
+    recipeSheet_('versions').appendRow([r.id,root,rev,JSON.stringify(r),op,r.updatedAt]);SpreadsheetApp.flush();recipePutHead_(root,r.id,rev,false);
+    return json_({ok:true,savedId:r.id,data:allData_()});
+  }
+  const receipt=recipeRows_('journal').filter(function(r){return r[0]===op;})[0];if(receipt)return json_({ok:true,data:allData_()});
+  let intent;
+  if(b.action==='recipeArchive') { const h=recipeHead_(b.root);if(!h||h.rev!==Number(b.expectedRev))return json_({ok:false,code:'conflict',error:'Receptet ändrades. Uppdatera och försök igen.',data:allData_()});intent={kind:'archive',root:h.root,id:h.id,rev:h.rev+1,archived:!!b.archived}; }
+  else {
+    const old=recipeState_();if(recipeDigest_(old)!==b.expectedState)return json_({ok:false,code:'conflict',error:'Veckan eller inköpslistan ändrades. Granska en ny förhandsvisning.',data:allData_()});
+    if(!Array.isArray(b.menu)||b.menu.length!==old.menu.length||!Array.isArray(b.shop)||b.shop.length>250)throw new Error('Ogiltig förhandsvisning.');
+    const heads=recipeStore_().heads;let changes=0;
+    b.menu.forEach(function(m,i){const p=old.menu[i];if(m.date!==p.date||m.who!==p.who||m.addon!==p.addon||m.note!==p.note)throw new Error('Bara receptet i vald måltid får ändras.');if(m.recipe!==p.recipe){changes++;if(!heads.some(function(h){return h.id===m.recipe&&!h.archived;}))throw new Error('Receptversionen är inte aktuell.');}else if(m.title!==p.title)throw new Error('En annan måltid ändrades.');});
+    if(!changes)throw new Error('Välj minst en måltid.');
+    const preserve=old.shop.filter(function(x){return x.done||x.source==='egen';});preserve.forEach(function(x){if(!b.shop.some(function(y){return JSON.stringify(x)===JSON.stringify(y);}))throw new Error('Egna och köpta varor måste behållas.');});
+    b.shop.forEach(function(x){recipeLimit_(x.name,200,'Varunamnet');recipeLimit_(x.qty,100,'Mängden');if(!Array.isArray(x.meals))throw new Error('Varan saknar måltidskoppling.');});
+    intent={kind:'plan',menu:b.menu,shop:b.shop};
+  }
+  if(JSON.stringify(intent).length>45000)throw new Error('Uppdateringen är för stor. Uppdatera färre måltider i taget.');
+  recipeSheet_('journal').appendRow([op,'pending',JSON.stringify(intent),new Date().toISOString()]);SpreadsheetApp.flush();recipeRecover_();
+  return json_({ok:true,data:allData_()});
+}
+function recipeWriteTab_(k,rows) {
+  const sh=sheet_(k),cols=COLS[k];if(sh.getLastRow()>1)sh.getRange(2,1,sh.getLastRow()-1,cols.length).clearContent();
+  if(rows.length)sh.getRange(2,1,rows.length,cols.length).setValues(rows.map(function(r){return cols.map(function(c){const v=r[c];return recipeTextCell_(c==='meals'?(v||[]).join(','):v==null?'':v);});}));
+}
+function recipeRecover_() {
+  recipeRows_('journal').forEach(function(row,i){if(row[1]!=='pending')return;const x=recipeJson_(row[2],null);if(!x)throw new Error('Receptuppdateringen behöver återställas från säkerhetskopian.');
+    if(x.kind==='archive')recipePutHead_(x.root,x.id,x.rev,x.archived);
+    else {recipeMaterialize_(x.menu);recipeWriteTab_('menu',x.menu);recipeWriteTab_('shop',x.shop);}
+    SpreadsheetApp.flush();recipeSheet_('journal').getRange(i+2,2).setValue('done');
+  });
+  const s=recipeSheet_('journal');if(s){let rows=recipeRows_('journal');while(rows.length>100&&rows[0][1]==='done'){delRow_(s,2);rows.shift();}}
+}
+/* Import: bara verifierade publika HTTPS-värdar; ingen HTML eller JavaScript körs. */
+const RECIPE_HOSTS=['www.ica.se','ica.se','www.koket.se','koket.se','www.arla.se','arla.se','www.coop.se','coop.se'];
+function recipeSourceKey_(s) { const m=/^(https?):\/\/([^/?#]+)([^?#]*)(?:\?([^#]*))?/i.exec(String(s||'').trim());if(!m)return'';const q=(m[4]||'').split('&').filter(function(p){return p&&!/^(utm_[^=]*|fbclid|gclid)=/i.test(p);}).sort().join('&');return m[1].toLowerCase()+'://'+m[2].toLowerCase().replace(/^www\./,'')+(m[3]||'/').replace(/\/$/,'')+(q?'?'+q:''); }
+function recipeTextCell_(v) { return typeof v==='string'&&/^\s*=/.test(v)?"'"+v:v; }
+function recipeMaterialize_(menu) { const have=readTab_('recipes').map(function(r){return r.id;}),versions=recipeStore_().versions;menu.forEach(function(m){if(!m.recipe||have.indexOf(m.recipe)>=0)return;const r=versions.filter(function(v){return v.id===m.recipe;})[0];if(!r){if(/^rv-/.test(m.recipe))throw new Error('En planerad receptversion saknas.');return;}const legacy=JSON.parse(JSON.stringify(r));legacy.steps=legacy.steps.map(function(s){return {t:[s.t,s.k?'Kött: '+s.k:'',s.v?'Vegetariskt: '+s.v:''].filter(Boolean).join(' '),timer:s.timer};});sheet_('recipes').appendRow(recipeRow_(legacy).map(recipeTextCell_));have.push(m.recipe);}); }
+function recipeImportUrl_(url) {
+  url=String(url||'').trim();const m=/^https:\/\/([a-z0-9.-]+)(\/[^\s<>"\\]*)?$/i.exec(url);
+  if(!m||RECIPE_HOSTS.indexOf(m[1].toLowerCase())<0||url.length>2000)throw new Error('Länkimport stöder tills vidare ICA, Köket, Arla och Coop. Klistra annars in recepttexten.');return url;
+}
+function recipeImport_(raw) {
+  let url=recipeImportUrl_(raw),res;
+  const p=props_(),now=Date.now(),last=Number(p.getProperty('RECIPE_IMPORT_AT')||0);if(now-last<5000)throw new Error('Vänta fem sekunder före nästa hämtning.');p.setProperty('RECIPE_IMPORT_AT',String(now));
+  for(let i=0;i<4;i++){res=UrlFetchApp.fetch(url,{followRedirects:false,muteHttpExceptions:true,validateHttpsCertificates:true});const code=res.getResponseCode();if(code>=300&&code<400){const hdr=res.getAllHeaders(),loc=hdr.Location||hdr.location;if(!loc)throw new Error('Omdirigeringen saknar adress.');const host=/^(https:\/\/[^/]+)/i.exec(url)[1];url=recipeImportUrl_(String(loc).charAt(0)==='/'?host+loc:String(loc));continue;}if(code!==200)throw new Error('Sidan kunde inte läsas. Klistra in recepttexten i stället.');break;}
+  if(!res||res.getResponseCode()!==200)throw new Error('För många omdirigeringar. Klistra in recepttexten.');
+  const html=res.getContentText();if(html.length>1500000)throw new Error('Sidan är för stor. Klistra in recepttexten.');
+  const out=[],re=/<script\b[^>]*type\s*=\s*["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script\s*>/gi;let m;
+  function walk(x,depth){if(!x||depth>20||out.length>=8)return;if(Array.isArray(x)){x.forEach(function(y){walk(y,depth+1);});return;}if(typeof x!=='object')return;const types=Array.isArray(x['@type'])?x['@type']:[x['@type']];if(types.indexOf('Recipe')>=0)out.push({raw:x,src:url});if(x['@graph'])walk(x['@graph'],depth+1);if(x.mainEntity)walk(x.mainEntity,depth+1);if(x.itemListElement)walk(x.itemListElement,depth+1);if(x.item)walk(x.item,depth+1);}
+  while((m=re.exec(html))){if(m[1].length>300000)continue;try{walk(JSON.parse(m[1]),0);}catch(e){}}
+  if(!out.length)throw new Error('Inget läsbart recept hittades. Klistra in recepttexten.');
+  if(JSON.stringify(out).length>300000)throw new Error('Receptinformationen är för stor. Klistra in recepttexten.');return out;
 }

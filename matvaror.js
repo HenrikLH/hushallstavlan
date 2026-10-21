@@ -130,6 +130,8 @@
     const out = {};
     (r.groups || []).forEach(g => (g.items || []).forEach(it => {
       const v = vara(it.n); if (!v) return;
+      // Nya recept får inte få en påhittad mängd för "efter smak" eller en oklar import.
+      if (r._root && it.q == null) return;
       const m = mangd(it, v) * f, x = (out[v.k] ||= { m: 0, v, namn: [] });
       x.m += m; const n = norm(it.n); if (!x.namn.includes(n)) x.namn.push(n);
     }));

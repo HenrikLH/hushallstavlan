@@ -1887,6 +1887,15 @@ html.ny:not(.ui3) .pref-body{background:var(--bg);border-top:.5px solid var(--li
 html.ny.seg-kapsel .pref-section{border-radius:26px}
 html.ny.seg-klassisk .pref-section{border-radius:10px}
 @media (prefers-reduced-motion:reduce){.person-toggle svg{transition:none}}
+
+/* Receptredigering använder samma group/btn/pill/segc som resten av appen. */
+.rc-tools{margin:14px 0 18px}.rc-tools .add-row{margin:0 0 10px}.rc-tools .add-go{font-size:13px!important;width:auto!important;padding:0 14px!important}.cell[data-rc]{display:flex;align-items:center;gap:8px}.cell[data-rc] svg{width:20px;height:20px;flex:none}.rc-editor .sh{flex-wrap:wrap;gap:6px}.rc-editor .sh .r{margin-left:0;font-size:12px}
+.rc-toolbar,.rc-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.rc-top{justify-content:space-between;margin:4px 0 12px}.rc-toolbar{padding:6px 0}.rc-toolbar label{display:flex;align-items:center;gap:8px}.rc-toolbar .pill[aria-pressed=true]{background:var(--ink);color:var(--surface)}
+.rc-field{display:flex;justify-content:space-between;gap:16px}.rc-field>span{flex:1;min-width:0}.rc-field .field{width:60%;min-width:0;text-align:right;font-size:16px}.rc-stack{display:flex!important;flex-direction:column;align-items:stretch!important;gap:10px}.rc-stack .field{width:100%;max-width:100%;font-size:16px}.rc-stack>label{width:100%}.rc-stack textarea{display:block;width:100%;resize:vertical;line-height:1.55;padding:6px 0;border:0;background:transparent;color:var(--ink)}
+.rc-ingredient{display:grid!important;grid-template-columns:54px 44px minmax(0,1fr) 32px;gap:8px;padding:12px 14px!important}.rc-ingredient .field{width:100%;min-width:0;font-size:16px}.rc-ingredient .ib{width:32px;min-width:32px;height:40px}.rc-ingredient .ib svg{width:18px;height:18px}.rc-timer{width:55px!important;text-align:center}.rc-price,.rc-draft-status{font-size:13px;color:var(--ink-2);margin:12px 4px;line-height:1.5}.rc-price small{display:block;font-size:12px;margin-top:4px}.rc-price>span{font-weight:600;color:var(--ink)}
+.rc-note{background:var(--fill);border-radius:14px;padding:14px 16px;margin:14px 0;line-height:1.55;font-size:14px}.rc-note p{margin:8px 0}.rc-preview-photo{padding:8px 16px}.rc-preview-photo img{width:100%;max-height:220px;object-fit:cover;border-radius:12px}.rc-save{width:100%}.rc-resume{background:var(--surface);border-radius:14px;margin:8px 0}.rc-note .cell{padding:12px 0}.rc-editor .group{margin-bottom:14px}html.ny.seg-kapsel .rc-note{border-radius:22px}html.ny.seg-kapsel .rc-resume{border-radius:26px}html.ny.seg-klassisk .rc-note,html.ny.seg-klassisk .rc-resume{border-radius:10px}
+@media(min-width:760px){body[data-view=mat] .rc-stack textarea{min-height:70px}.rc-field .field{max-width:65%}.rc-ingredient{grid-template-columns:80px 70px minmax(0,1fr) 40px}}
+
 </style>
 </head>
 <body>

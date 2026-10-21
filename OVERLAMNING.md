@@ -9,14 +9,13 @@ Claude och Codex: följ AGENTS.md avsnitt 7. Ersätt inaktuell status; historik 
 - Version ht-v172 / app.js?v=163. [CI 39458762181](https://github.com/HenrikLH/hushallstavlan/actions/runs/39458762181), testad commit `24ffd5a`: åtta gröna lägen, tre reglageformer/kontrast, hjälp öppna/stäng/omritning och tidigare funktionstester. UI 2.0:s övriga 18 vybilder matchar main. Skärmbilder granskade. Endast överlämning ändrad därefter.
 - Ångra-gren `version-fore-installningstema-20261020` (`b6acaf0`, ht-v171). Chromium saknas lokalt; använd CI och återanvänd godkända resultat för oförändrad kod.
 
-## Recept: plan och skisser, väntar på designgodkännande
+## Recept: implementerat, väntar på Pusha
 
-- Ägare Codex; gren `codex/recipe-management-plan`, endast dokumentation och fristående ljus prototyp. Plan: `docs/recipe-management-plan.md`; prototyp: `docs/mockups/recipe-management.html`; bilder: `outputs/recipe-management/`.
-- Henrik har bekräftat att receptredigering lämnar planerade måltider oförändrade; separat uppdatering kräver inköpsförhandsvisning. AI-fri import är föreslagen, svar om eventuell betald AI-integration inväntas.
-- Nästa steg: invänta designgodkännande före produktionskod; gemensamt receptuppslag, versionslagring och säker synk kommer före redigering/import. Ny Kod.gs behövs senare, ingen Google-data ändrad nu.
-- Henrik vill se Runda + Piller och kräver konsekvent design genom alla sidor/sektioner. Skisserna följer gemensamma former och visar femflikars huvudmeny i utfällt/kompakt läge; produktionskod ska återanvända appens stilval.
-- Kontroller: prototypens fyra ljusa bilder granskade; sök/filter, utkastfält, importreservväg och måltidsval provade, utan sidfel/horisontellt överflöde vid 320/390/736 px. Inga nya appfunktioner är implementerade eller testade.
-- Ingen sammanslagning, serveruppdatering eller publicering utan uttryckligt ”Pusha”. Väderändringen är fortfarande separat i PR #20.
+- Ägare Codex; gren `codex/recipe-management`, bas `003680f`. Henrik godkände Runda + Piller och bad börja implementationen. Plan/skisser i PR #21; väder-PR #20 är separat.
+- Klart: editor, standard-sök/filter, granskad länk/textimport, dubblettval, källor, prisosäkerhet, utkast/offline, versionslagring, arkivera/återställa och konfliktkontroll. Matsedel bevaras; valda måltider uppdateras endast efter inköpsgranskning.
+- Lagring/synk/kompatibilitet, importgränser och framtida serversteg: `docs/recipe-management-release.md`. Faktiska bilder: `outputs/recipe-management-implementation/`; tidigare bilder i `outputs/recipe-management/` är skisser.
+- Lokalt grönt: serverfel/återförsök, receptflöden i telefon/vägg ljust/mörkt, tvåenhetskonflikt, offline, dubbletter, foto, äldre kopior och gammal server. Befintliga UI3-telefon/UI2-vägg-funktionstester gröna. CI-resultat och testad commit finns i implementations-PR.
+- Nästa steg: granska implementations-PR/CI och riktiga bilder. Ingen main-merge, publicering eller Google-ändring utan ”Pusha”. Versionshöjningar väntar till dess (app/sw/matvaror).
 
 ## Väntar på Henrik
 

@@ -126,7 +126,7 @@ function applyAccent(){const k=accentKey();if(k===accKey)return;accKey=k;let el=
  if(!el){el=document.createElement('style');el.id='acc';document.head.appendChild(el)}
  const c=PCOL[k],v=dark=>{const m=dark?c[4]:c[1];return'--accent:'+m+';--accent-soft:'+rgba(m,dark?.22:.12)+';--on-accent:'+(dark?shadeHex(m,.16):'#FFFFFF')};
  el.textContent=':root{'+v(false)+'}@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){'+v(true)+'}}:root[data-theme="dark"]{'+v(true)+'}'}
-const recipeById=id=>D().recipes.find(r=>r.id===id)||bankList().find(r=>r.id===id)||inspoList().find(r=>r.id===id);
+const recipeById=id=>recipeGet(id);
 /* Inspiration: recept från nätet i inspiration.json (följer med appen, inte kalkylarket).
    Hjärtat sparar som favorit och bokmärket som sparat recept i receptbanken. */
 const INSPO={list:null,busy:false};
@@ -136,14 +136,15 @@ function inspoList(){if(!INSPO.list&&!INSPO.busy){INSPO.busy=true;fetch('inspira
    via appens vanliga inställningsanrop, så Apps Script-skriptet behöver inte ändras. */
 const parseJ=(s,d)=>{try{const v=JSON.parse(s);return v==null?d:v}catch(e){return d}};
 const BANK_ROWS=()=>Object.keys(settings()).filter(k=>/^receptbank_\d+$/.test(k)).sort((a,b)=>Number(a.split('_')[1])-Number(b.split('_')[1]));
-function bankList(){const seen=new Set(),out=[];BANK_ROWS().forEach(k=>parseJ(settings()[k],[]).forEach(x=>{if(x&&x.id&&!seen.has(x.id)){seen.add(x.id);out.push(x)}}));return out}
-const inBank=id=>bankList().some(x=>x.id===id);
-const isFav=id=>bankList().some(x=>x.id===id&&x.fav);
+function bankRaw(){const seen=new Set(),out=[];BANK_ROWS().forEach(k=>parseJ(settings()[k],[]).forEach(x=>{if(x&&x.id&&!seen.has(x.id)){seen.add(x.id);out.push(x)}}));return out}
+function bankList(){return recipeLibrary(true)}
+const inBank=id=>bankList().some(x=>recipeRoot(x.id)===recipeRoot(id));
+const isFav=id=>bankRaw().some(x=>recipeRoot(x.id)===recipeRoot(id)&&x.fav);
 // Kalorier per portion: raden kcal i Inställningar, {receptId: kcal}; en lista [kcal, …] läses som första värdet. Fylls av veckoplaneringen.
-function kcalOf(id){const v=parseJ(settings().kcal,{})[id];if(v==null||v==='')return null;const n=Number(Array.isArray(v)?v[0]:v);return n>0?{n:Math.round(n)}:null}
-const ratings=()=>parseJ(settings().betyg,{});
+function kcalOf(id){const v=parseJ(settings().kcal,{})[recipeRoot(id)];if(v==null||v==='')return null;const n=Number(Array.isArray(v)?v[0]:v);return n>0?{n:Math.round(n)}:null}
+const ratings=()=>recipeAliases(parseJ(settings().betyg,{}));
 // Veckans efterrätt och låsta rätter ligger också i önskelistan (som {efter:1,...} och {las:1,...}) men är inga önskemål
-const wishes=()=>parseJ(settings().onskelista,[]).filter(x=>x&&!x.efter&&!x.las);
+const wishes=()=>recipeWishes(parseJ(settings().onskelista,[])).filter(x=>x&&!x.efter&&!x.las);
 function ratingOf(id){const x=ratings()[id];if(!x||!x.p)return null;const ps=Object.entries(x.p).filter(([,e])=>e&&e.s);if(!ps.length)return null;
  return{avg:ps.reduce((a,[,e])=>a+Number(e.s),0)/ps.length,people:ps,never:ps.some(([,e])=>e.v==='aldrig')}}
 const VERD={igen:'Laga igen',okej:'Okej',aldrig:'Aldrig mer'};
@@ -154,19 +155,19 @@ const starsTxt=n=>'★★★★★'.slice(0,Math.round(n))+'☆☆☆☆☆'.sli
    (t.ex. bocka av flera överföringar i rad) köas, och alla ändringar som ännu inte skickats läggs på det
    hämtade värdet. Annars kunde ett andra tryck skicka en gammal rad och sudda ut det första. */
 const UPD={q:{},chain:{},n:0};
-function updJSON(k,def,fn){const st=settings();st[k]=JSON.stringify(fn(parseJ(st[k],def)));render();
+function updJSON(k,def,fn){const st=settings();st[k]=JSON.stringify(recipeChange(k,fn,parseJ(st[k],def)));render();
  (UPD.q[k]=UPD.q[k]||[]).push(fn);UPD.n++;
  const run=async()=>{try{
   if(!UPD.q[k].length)return;
   let fresh=null;
   if(!OUTBOX.some(b=>b.action==='setting'&&b.k===k)){try{const d=await apiGet();if(d.settings&&k in d.settings)fresh=d.settings[k]}catch(e){}}
   const fns=UPD.q[k].splice(0);let v=settings()[k];
-  if(fresh!=null&&!OUTBOX.some(b=>b.action==='setting'&&b.k===k)){let o=parseJ(fresh,def);fns.forEach(f=>{o=f(o)});v=JSON.stringify(o);S.data.settings[k]=v;render()}
+  if(fresh!=null&&!OUTBOX.some(b=>b.action==='setting'&&b.k===k)){let o=parseJ(fresh,def);fns.forEach(f=>{o=recipeChange(k,f,o)});v=JSON.stringify(o);S.data.settings[k]=v;render()}
   await apiPost({action:'setting',k,v})}finally{UPD.n--}};
  return UPD.chain[k]=(UPD.chain[k]||Promise.resolve()).then(run,run)}
 function bankSnap(r){const x=JSON.parse(JSON.stringify(r));x.savedAt=today();delete x.when;delete x.fav;return x}
 // Ändra ett recept som redan ligger i receptbanken
-function bankEdit(id,fn){A.user=Date.now();BANK_ROWS().forEach(k=>{if(parseJ(settings()[k],[]).some(x=>x.id===id))updJSON(k,[],a=>a.map(x=>x.id===id?fn(Object.assign({},x)):x))})}
+function bankEdit(id,fn){const original=id;id=recipeRoot(id);A.user=Date.now();let found=false;BANK_ROWS().forEach(k=>{if(parseJ(settings()[k],[]).some(x=>recipeRoot(x.id)===id)){found=true;updJSON(k,[],a=>a.map(x=>recipeRoot(x.id)===id?fn(Object.assign({},x)):x))}});if(!found&&recipeHead(original)){const row=BANK_ROWS().find(k=>String(settings()[k]||'[]').length<40000)||'receptbank_1',r=Object.assign({},recipeGet(recipeHead(original).id),{id});updJSON(row,[],a=>a.concat([fn(r)]))}}
 function addToBank(r,quiet,fav){if(!r||inBank(r.id))return false;const snap=bankSnap(r);if(fav)snap.fav=true;const len=JSON.stringify(snap).length;
  const row=BANK_ROWS().find(k=>String(settings()[k]||'[]').length+len<45000);
  if(!row){if(!quiet)toast('Receptbanken är full. Lägg till fler rader receptbank_N i Inställningar.');return false}
@@ -494,7 +495,7 @@ function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t
 // Kalkylarket vägrar ta bort sista raden under rubriken. En dold egen rad i Inköp gör att fliken aldrig töms helt.
 const PLATS='(rad för appen, ta inte bort)';let platsFinns=false;
 function platsVakt(a){if(platsFinns||!/^(planSend|shopDelete)$/.test(a))return;platsFinns=true;const it={action:'shopAdd',name:PLATS,qty:'',cat:'Övrigt',price:'',by:S.me};OUTBOX.push(it)}
-function setData(d){if(d&&Array.isArray(d.shop)){if(d.shop.some(x=>x.name===PLATS))platsFinns=true;d.shop=d.shop.filter(x=>x.name!==PLATS)}if(d&&Array.isArray(d.menu))d.menu=d.menu.filter(m=>!(m&&!m.recipe&&/^ledig$/i.test(m.title||'')));if(d&&DEL.items&&Array.isArray(d.shop)){const ids=new Set(DEL.items.map(x=>x.id));d.shop=d.shop.filter(x=>!ids.has(x.id))}if(d&&CDEL.item&&Array.isArray(d.clean))d.clean=d.clean.filter(x=>x.id!==CDEL.item.id);S.data=d;if(window.MatVaror&&d&&d.settings)MatVaror.setPriser(parseJ(d.settings.priser,{}));S.lastSync=new Date();S.error='';try{lsSet('cache',JSON.stringify(d))}catch(e){}}
+function setData(d){if(d&&S.data&&d.serverTime&&S.data.serverTime&&d.serverTime<S.data.serverTime)return;if(d&&Array.isArray(d.shop)){if(d.shop.some(x=>x.name===PLATS))platsFinns=true;d.shop=d.shop.filter(x=>x.name!==PLATS)}if(d&&Array.isArray(d.menu))d.menu=d.menu.filter(m=>!(m&&!m.recipe&&/^ledig$/i.test(m.title||'')));if(d&&DEL.items&&Array.isArray(d.shop)){const ids=new Set(DEL.items.map(x=>x.id));d.shop=d.shop.filter(x=>!ids.has(x.id))}if(d&&CDEL.item&&Array.isArray(d.clean))d.clean=d.clean.filter(x=>x.id!==CDEL.item.id);S.data=d;if(window.MatVaror&&d&&d.settings)MatVaror.setPriser(parseJ(d.settings.priser,{}));S.lastSync=new Date();S.error='';try{lsSet('cache',JSON.stringify(d))}catch(e){}}
 async function apiGet(){
  const r=await fetch(CFG.api+'?key='+encodeURIComponent(S.key)+'&t='+Date.now(),{cache:'no-store'});
  const j=await r.json();if(!j.ok)throw new Error(j.error||'Okänt fel');return j.data}
@@ -543,7 +544,7 @@ addEventListener('online',()=>flush());
 setInterval(()=>{if(OUTBOX.length)flush()},15000);
 async function refresh(silent){
  if(!S.key||!CFG.api)return;
- if(S.pending||UPD.n)return;
+ if(S.pending||UPD.n||RC.busy)return;
  if(!silent){S.sync='busy';renderStatus()}
  try{const d=await apiGet();if(!S.pending&&!UPD.n){setData(d);S.sync='idle'}}
  catch(e){S.sync='err';S.error=e.message;if(/hushållskod/i.test(e.message)){S.key='';lsSet('key',null)}}
@@ -855,6 +856,7 @@ function eventsHtml(d){if(!d||!d.events.length)return'';return'<div class="evs">
 
 /* Mat: Vecka | Recept */
 V.mat=function(){
+ if(RC.screen)return'<div class="rc-editor">'+recipeScreen()+'</div>';
  if(S.recipe){const r=recipeById(S.recipe);if(r)return recipeDetail(r);S.recipe=null}
  if(S.plan&&(S.plan==='auto'||DEV))return S.plan==='port'?portView():S.plan==='auto'?autoView():planView();
  const ink=S.matTab==='inkop'?inkopParts():null;
@@ -862,7 +864,7 @@ V.mat=function(){
  if(NY){const rt=S.matTab==='recept'||S.matTab==='bank'||S.matTab==='efter';h+=segc('Visa','matTab',[['vecka','Vecka'],['inkop','Inköp'],['recept','Recept']],rt?'recept':S.matTab);
   if(rt)h+='<div class="subseg">'+segc('Recept','matTab',[['recept','Inspiration'],['bank','Mina recept'],['efter','Efterrätter']],S.matTab)+'</div>'}
  else h+=segc('Visa','matTab',[['vecka','Vecka'],['inkop','Inköp'],['recept','Recept'],['bank','Receptbank'],['efter','Efterrätter']],S.matTab);
- if(U3&&['recept','bank','efter'].includes(S.matTab))h+=u3Search();
+ if(['recept','bank','efter'].includes(S.matTab))h+=recipeTools();
  return h+(ink?ink.body:S.matTab==='recept'?matRecipes():S.matTab==='bank'?matBank():S.matTab==='efter'?matDessert():matWeek())};
 /* Receptbanken: stora kort att bläddra i när man inte vet vad man vill äta */
 const FOOD=[[/soppa/i,'🍲'],[/chili/i,'🌶️'],[/rödbet|falafel|bönbiff|linsbiff|grönsaksbiff/i,'🧆'],[/dal|curry/i,'🍛'],[/gryta/i,'🥘'],[/kyckling/i,'🍗'],[/lax|fisk|torsk|sej/i,'🐟'],[/pasta|lasagne|spagetti/i,'🍝'],[/sallad|bulgur/i,'🥗'],[/shakshuka|ägg|omelett/i,'🍳'],[/blåbär|bär|efterrätt|kaka/i,'🫐'],[/pizza/i,'🍕'],[/taco|tortilla/i,'🌮'],[/burgare/i,'🍔'],[/fläsk|kött|biff/i,'🥩'],[/blomkål|grönsak|aubergine/i,'🥦']];
@@ -878,10 +880,10 @@ const fchips=(act,fs,f)=>'<div class="fchips" role="group" aria-label="Filter">'
 // Stort kort med bild, hjärta och bokmärke. Används i receptbanken och bland inspirationen
 function rCard(r,o){o=o||{};const g=ratingOf(r.id),wished=o.wish&&o.wish.has(r.id),img=r.img||imgOf(r.id);
  return'<article class="bcard '+kind(r)+'"><div class="bimgw"><button class="bimg" data-act="recipe" data-id="'+esc(r.id)+'" aria-label="Öppna '+esc(r.title)+'">'+(img?'<img src="'+esc(img)+'" alt="" loading="lazy">':'<span aria-hidden="true">'+foodIcon(r.title,r)+'</span>')+'</button>'+bookBtn(r,'bc-gl')+favBtn(r,'bc-gl')+'</div>'+
- '<div class="bbody"><div class="chips-row">'+(isDessert(r)?'<span class="chip e">Efterrätt</span>':whoChip(effWho(r)))+(o.wish?freqChip(r.id):'')+(r.min?'<span class="chip num">'+r.min+' min</span>':'')+(r.kr?'<span class="chip num">'+kr(r.kr)+'/port</span>':'')+'</div>'+
+ '<div class="bbody"><div class="chips-row">'+(isDessert(r)?'<span class="chip e">Efterrätt</span>':whoChip(effWho(r)))+(o.wish?freqChip(r.id):'')+(r.min?'<span class="chip num">'+r.min+' min</span>':'')+(r.kr?'<span class="chip num">Ca '+kr(r.kr)+'/port</span>':'')+'</div>'+
  '<button class="btitle" data-act="recipe" data-id="'+esc(r.id)+'">'+esc(r.title)+'</button>'+
  (o.wish?(g?'<div class="bstars"><span class="st" aria-label="'+g.avg.toFixed(1)+' av 5">'+starsTxt(g.avg)+'</span>'+g.people.map(([p,e])=>'<span class="fn">'+esc(personLabel(p))+': '+esc(VERD[e.v]||'')+'</span>').join('')+'</div>':'<div class="fn">Inget betyg än</div>'):(r.why?'<div class="fn bwhy">'+esc(r.why)+'</div>':''))+
- (r.src?'<a class="fn bsrc" href="'+esc(r.src)+'" target="_blank" rel="noopener">Från '+esc(r.srcName||new URL(r.src).hostname.replace(/^www\./,''))+'</a>':'')+
+ recipePrice(r).html+(r.src?'<a class="fn bsrc" href="'+esc(r.src)+'" target="_blank" rel="noopener">Från '+esc(r.srcName||new URL(r.src).hostname.replace(/^www\./,''))+'</a>':'')+
  (o.wish&&!isDessert(r)?veckoKnapp(r,'pill')+(paVeckan(r.id)?I.tick+'På veckosedeln':'Till veckosedeln')+'</button>':'')+'</div></article>'}
 /* Receptbanken: favoriter (hjärta) och sparade recept (bokmärke) */
 function matBank(){
@@ -897,7 +899,7 @@ function matBank(){
  return h+'<div class="foot">Veckoplaneringen väljer bland favoriterna och de sparade recepten. Favoriter kommer tillbaka oftare.</div>'}
 /* Efterrätter: en egen kategori. De föreslås aldrig av veckoplaneringen eller Byt, men finns här när man vill laga något sött */
 function matDessert(){
- const seen=new Set(),all=allRecipes().concat(inspoList()).filter(r=>{if(!isDessert(r)||seen.has(r.id)||!u3RecipeMatch(r))return false;seen.add(r.id);return true});
+ const seen=new Set(),all=recipeCandidates().filter(r=>{if(!isDessert(r)||seen.has(r.id)||!u3RecipeMatch(r))return false;seen.add(r.id);return true});
  const mine=all.filter(r=>inBank(r.id)).sort((a,b)=>(b.fav?1:0)-(a.fav?1:0)||((ratingOf(b.id)||{avg:0}).avg-(ratingOf(a.id)||{avg:0}).avg)),fler=all.filter(r=>!inBank(r.id));
  let h=sh(I.heartOn.replace('<svg','<svg class="shic fav"')+'Mina efterrätter','<span class="num">'+mine.length+'</span>');
  h+=mine.length?'<div class="bank">'+mine.map(r=>rCard(r)).join('')+'</div>':group(emptyCell(U3&&S.u3Query?'Inga sparade efterrätter matchar sökningen.':'Inga sparade efterrätter än. Tryck på hjärtat eller bokmärket på en efterrätt nedan.'));
@@ -963,7 +965,7 @@ function prefsBlock(){const st=settings(),rows=PREFS.filter(([k])=>String(st[k]|
 const SLOTS=['Vardagsmiddag, kött','Vardagsmiddag, vegetarisk','Fredagsmiddag','Lördagsmiddag','Söndagsmiddag','Storkok, kött','Storkok, vegetariskt'];
 function slotFor(r){if(!r)return SLOTS[0];const sk=r.group==='Storkok'||/^storkok/i.test(r.title||'');
  return sk?(r.who==='Vegetariskt'?SLOTS[6]:SLOTS[5]):r.who==='Gemensam'?SLOTS[2]:r.who==='Vegetariskt'?SLOTS[1]:SLOTS[0]}
-function allRecipes(){const seen=new Set(),out=[];bankList().concat(D().recipes).forEach(r=>{if(r&&r.id&&!seen.has(r.id)){seen.add(r.id);out.push(r)}});return out}
+function allRecipes(){return recipeLibrary(false)}
 const isStorkok=r=>!!r&&(r.group==='Storkok'||/^storkok/i.test(r.title||''));
 /* Rätter som kan ersätta en rätt på matsedeln, eller fylla en tom plats (o.slot). Samma sort först, sedan efter poäng.
    Poängen är restpoängen (restpoang.js): grundpoängen (smak, dags igen, pris, hjärta, nyhet, säsong), justerad mot det som
@@ -976,10 +978,10 @@ function veckaBehov(utan){const b=[],rs=[];if(weekTarget().ny)return{b,rs};
  return{b,rs}}
 function swapCandidates(m,o){o=o||{};const d=D(),key=JSON.stringify([m.date,m.who,m.title,m.recipe,o,settings().vecka_start,settings().lager,planBudget()])+d.menu.map(x=>x.date+(x.recipe||x.title)+x.note).join()+d.recipes.length+bankList().length+'|'+inspoList().length;
  if(SWC&&SWC.key===key)return SWC.val;
- const cur=m.recipe&&recipeById(m.recipe),onMenu=new Set(d.menu.map(x=>x.recipe).filter(Boolean)),t=today();
+ const cur=m.recipe&&recipeById(m.recipe),onMenu=new Set(d.menu.map(x=>recipeRoot(x.recipe)).filter(Boolean)),t=today();
  const want=m.who==='Gemensam'?['Gemensam','Vegetariskt']:[m.who],sk=o.slot?!!o.sk:isStorkok(cur)||/^storkok/i.test(m.title||'');
  const seen=new Set();// receptbanken först, sedan inspirationsrecepten
- const base=allRecipes().concat(inspoList()).filter(r=>{if(!r||!r.id||seen.has(r.id))return false;seen.add(r.id);return true}).filter(r=>!onMenu.has(r.id)&&r.course!=='efterrätt'&&!matLage(r.id).paus).map(r=>{
+ const base=recipeCandidates().filter(r=>{if(!r||!r.id||seen.has(r.id))return false;seen.add(r.id);return true}).filter(r=>recipePlanReady(r)&&!onMenu.has(recipeRoot(r.id))&&r.course!=='efterrätt'&&!matLage(r.id).paus).map(r=>{
   const g=ratingOf(r.id),l=matLage(r.id),last=lastServed(r.id),ago=last?Math.round((Date.parse(t)-Date.parse(last))/864e5):null;
   let kind,extra=l.redo?0:-15;// rätter som inte fått komma tillbaka än hamnar längre ner
   if(o.slot){if(sk)kind=o.want?(r.who===o.want?1:0):0;
@@ -1043,7 +1045,7 @@ function tommaPlatser(W,ds,g){const rows=weekRows(W);
  const tack=rows.filter(y=>inG(y)&&(y.who==='Borta'||/^macka$/i.test(y.title))).length+ds.filter(x=>x.g===g&&x.m&&!isDessert(x.r)).reduce((a,x)=>a+Math.max(1,Math.floor(dishPort(x.m,x.r)/2)),0);
  return Math.max(1,kv-tack)}// alltid minst en tom plats för en extra rätt
 // Låsta rätter: {las:1, v: veckans start, ids:[recept]} i önskelistan, så att båda ser samma lås
-function weekLocks(vs){const o=parseJ(settings().onskelista,[]).find(x=>x&&x.las&&x.v===vs);return new Set(o&&o.ids||[])}
+function weekLocks(vs){const o=parseJ(settings().onskelista,[]).find(x=>x&&x.las&&x.v===vs);const set=new Set((o&&o.ids||[]).map(recipeRoot));set.has=id=>Set.prototype.has.call(set,recipeRoot(id));set.add=id=>Set.prototype.add.call(set,recipeRoot(id));set.delete=id=>Set.prototype.delete.call(set,recipeRoot(id));return set}
 function setWeekLocks(vs,ids){A.user=Date.now();updJSON('onskelista',[],a=>a.filter(x=>x&&!x.las).concat(ids.length?[{las:1,v:vs,ids}]:[]))}
 // Skicka veckan som den ser ut i telefonen. Tom vecka får en rad Ledig, eftersom kalkylarket vill ha minst en rad
 function weekSend(W,msg){const st=settings(),out={};
@@ -1169,7 +1171,7 @@ const KV=window.KottVeg||{};
 // Egna recept: inte Kött/Veg när köttet är själva rätten eller rätten redan är delad med ett tillägg för Henrik
 const KV_NEJ=/biff|bullar|burgare|schnitzel|gratäng|lasagne|moussaka|pulled|soppa|färs|pytt|paj|kåldolm|korv|ärtsoppa/i;
 function protRaw(r,alla){if(!r||!r.id)return null;const sk=alla||S.plan==='auto',ck=r.id+(sk?'|a':'');if(ck in PROTC)return PROTC[ck];let out=null;
- const kv=KV[r.id],insp=/^insp-/.test(r.id);
+ const kv=KV[recipeRoot(r.id)],insp=/^insp-/.test(recipeRoot(r.id));
  if((sk||!isStorkok(r))&&r.course!=='efterrätt'&&(kv||!insp)){const hits=[],ord=[];(r.groups||[]).forEach(g=>(g.items||[]).forEach(i=>{ord.push(i.n);const v=MV.vara(i.n);if(v&&PKEY[v.k])hits.push(PKEY[v.k])}));
   const kott=[...new Set(hits.filter(id=>!protById(id).veg))],veg=[...new Set(hits.filter(id=>protById(id).veg))],set=kott.length?kott:veg;
   const nej=!kv&&(kott[0]==='fars'||KV_NEJ.test(r.title||'')||(r.groups||[]).some(g=>/tillägg/i.test(g.title||''))||
@@ -1186,7 +1188,7 @@ function protMinne(){return parseJ(lsGet('protval'),{})}
 function protVal(slot,r){const info=protInfo(r);if(!info)return null;const P=PLANP||planState(),x=P.prot&&P.prot[slot];
  if(x&&x.r===r.id)return x;const m=protMinne()[r.id];if(m)return{r:r.id,k:m.k,v:m.v};
  return protDef(r,info)}
-function protDef(r,info){const o=protById(info.id),kv=KV[r.id]||{};return{r:r.id,k:o.veg?kv.dk||TILL_KOTT[o.id]:o.id,v:o.veg?o.id:kv.dv||TILL_VEG[o.id]}}
+function protDef(r,info){const o=protById(info.id),kv=KV[recipeRoot(r.id)]||{};return{r:r.id,k:o.veg?kv.dk||TILL_KOTT[o.id]:o.id,v:o.veg?o.id:kv.dv||TILL_VEG[o.id]}}
 let PLANP=null;
 // Receptet med proteinet utbytt: varje person får sitt protein för sin halva av portionerna
 function protRecipe(r,val){const info=!protOff(r.id)&&protRaw(r,true);if(!info||!val)return r;const half=(Number(r.portions)||2)/2;
@@ -1213,10 +1215,10 @@ function protNu(r){if(!r||protOff(r.id))return null;const info=protRaw(r,true);i
 const PDEF={kyckling:'kycklingen',flask:'fläskfilén',fars:'färsen',kalkon:'kalkonen',lax:'laxen',torsk:'torsken',rakor:'räkorna',halloumi:'halloumin',tofu:'tofun',kikartor:'kikärtorna',bonor:'bönorna',linser:'linserna',feta:'fetaosten'};
 const PORD={kyckling:/kyckling/i,flask:/fläsk|kotlett|köttet/i,fars:/färs/i,kalkon:/kalkon/i,lax:/lax/i,torsk:/torsk|sej|fisk/i,rakor:/räk/i,halloumi:/halloumi/i,tofu:/tofu/i,kikartor:/kikärt/i,bonor:/bön/i,linser:/lins/i,feta:/feta/i};
 const protGen=id=>{const x=protById(id);return cap(PDEF[id])+': '+x.tips.charAt(0).toLowerCase()+x.tips.slice(1)};
-function kvSteps(r,val){if(!val)return r.steps;const info=protRaw(r,true),own=protById(info.id),kv=KV[r.id];
+function kvSteps(r,val){if(!val)return r.steps;const info=protRaw(r,true),own=protById(info.id),kv=KV[recipeRoot(r.id)];
  const fill=t=>String(t).replace(/\{kott\}/g,PDEF[val.k]).replace(/\{veg\}/g,PDEF[val.v]);
  if(kv){const ownK=own.veg?kv.dk:own.id,ownV=own.veg?own.id:kv.dv,lane=(t,g,ch,o)=>g?(ch===o&&t?t:protGen(ch)):t?fill(t):'';
-  return kv.s.map(x=>({t:x.t?fill(x.t):'',timer:x.timer,k:lane(x.k,x.g,val.k,ownK),v:lane(x.v,x.g,val.v,ownV)}))}
+  return (r._root?r.steps:kv.s).map(x=>({t:x.t?fill(x.t):'',timer:x.timer,k:lane(x.k,x.g,val.k,ownK),v:lane(x.v,x.g,val.v,ownV)}))}
  // Eget recept: steget där proteinet först nämns får en del per person när någon har ett annat protein
  let done=false;return r.steps.map(x=>{if(done||!PORD[own.id].test(x.t))return x;done=true;
   return{t:x.t,timer:x.timer,k:own.veg||val.k!==own.id?protGen(val.k)+' Laga det i en egen panna.':'',v:!own.veg||val.v!==own.id?protGen(val.v)+' Laga det i en egen panna.':''}})}
@@ -1258,7 +1260,7 @@ const lagTag=v=>Number(String(v||'').replace(/-/g,''))||0;
 function planLager(v){const o=parseJ(settings().lager,{}),fore=o._v&&o._v===lagTag(v),out={};
  Object.keys(o).forEach(k=>{if(fore?k.startsWith('_f:'):k[0]!=='_')out[fore?k.slice(3):k]=o[k]});return out}
 function lagerUt(v,rest){const out={_v:lagTag(v)},f=planLager(v);Object.keys(rest||{}).forEach(k=>{if(rest[k]>0)out[k]=rest[k]});Object.keys(f).forEach(k=>{if(f[k]>0)out['_f:'+k]=f[k]});return out}
-function planPool(){const seen=new Set();return allRecipes().concat(inspoList()).filter(r=>{if(!r||!r.id||seen.has(r.id)||r.course==='efterrätt'||!(r.groups||[]).length)return false;seen.add(r.id);return true})}
+function planPool(){const seen=new Set();return recipeCandidates().filter(r=>{if(!r||!r.id||!recipePlanReady(r)||seen.has(r.id)||r.course==='efterrätt'||!(r.groups||[]).length)return false;seen.add(r.id);return true})}
 const planPassar=(r,p)=>p.typ==='storkok'?isStorkok(r)&&r.who===p.who:p.typ==='helg'?r.group==='Helg'&&!isStorkok(r):r.group==='Vardag'&&!isStorkok(r)&&(r.who==='Vegetariskt'||r.who==='Gemensam'||!!protInfo(r));
 const planBehov=(r,p)=>MV.behov(protRecipe(r,protVal(p.id,r)),p.port/(Number(r.portions)||2));
 function seedRng(str){let h=2166136261;for(const c of str)h=Math.imul(h^c.charCodeAt(0),16777619);
@@ -1710,7 +1712,7 @@ function autoSend(){const C=autoCalc(),{P}=C,pl=P.plan,vd=d=>addDays(P.vecka,d),
  S.plan=false;S.matTab='vecka';lsSet('matTab','vecka');window.scrollTo(0,0);render();toast('Veckan skickas till veckosedeln och inköpslistan')}
 /* Recept: inspiration från nätet att spara i receptbanken */
 function matRecipes(){
- const all=inspoList(),f=S.inspoFilter||'alla';let h=fchips('inspoFilter',RFILT,f);
+ const all=inspoList().map(recipeLatest).filter(r=>!recipeArchived(r.id)),f=S.inspoFilter||'alla';let h=fchips('inspoFilter',RFILT,f);
  if(!INSPO.list)return h+'<div style="height:16px"></div>'+group(emptyCell(INSPO.busy?'Hämtar recept…':'Recepten kunde inte hämtas. Försök igen när du har nät.'));
  const list=all.filter(r=>rfOk(f,r,new Set())&&u3RecipeMatch(r));
  h+='<p class="inspo-intro">'+all.filter(r=>!isDessert(r)).length+' recept att inspireras av. '+I.heartOn.replace('<svg','<svg class="ic fav"')+' gör ett recept till favorit och '+I.bookmarkOn.replace('<svg','<svg class="ic"')+' sparar det i receptbanken, så kan veckoplaneringen välja det.</p>';
@@ -1799,7 +1801,7 @@ function shopRowIn(i){const chips=(i.offer?'<span class="chip offer">'+esc(i.sto
  return'<div class="cell ck'+(i.done?' done':'')+'"><input type="checkbox" class="check" data-act="shopToggle" data-id="'+esc(i.id)+'" aria-label="'+esc(i.name)+'"'+(i.done?' checked':'')+'><button class="grow rowbtn" data-act="shopToggle" data-id="'+esc(i.id)+'"><div class="title">'+esc(i.name)+'</div>'+((i.qty||chips)?'<div class="meta">'+(i.qty?'<span>'+esc(i.qty)+'</span>':'')+chips+'</div>':'')+'</button>'+(i.price?'<span class="val">'+kr(i.price)+'</span>':'<span class="val nopris">prisuppgift saknas</span>')+'</div>'}
 
 function scaled(r){const p=S.scale[r.id]||r.portions;return{p,f:p/r.portions}}
-const qtyText=(it,f)=>it.q!=null?fmtQ(it.q*f)+' '+(it.u||''):(it.u||'');
+const qtyText=(it,f)=>it.q!=null?fmtQ(it.q*f)+' '+(it.u||''):[it.raw||'',it.u||''].filter(Boolean).join(' ');
 const ingRow=(it,f,hit)=>'<div class="ingx'+(hit?' hit':'')+'"><span class="q">'+esc(qtyText(it,f))+'</span><span class="n">'+esc(it.n)+'</span></div>';
 function ingList(r,f,hits){return(r.groups||[]).map(g=>(g.title?'<div class="sh sub2">'+esc(g.title)+'</div>':'')+group(g.items.map(it=>ingRow(it,f,hits&&hits.includes(it))).join(''))).join('')}
 
@@ -1841,10 +1843,10 @@ function recipeDetail(r){
  NB.title=r.title;NB.back=true;
  let h='<div class="rcp-top"><button class="back" data-act="recipeBack">'+I.back+'Mat</button>';
  h+=rcpPhoto(r);
- h+='<div class="chips-row">'+(isDessert(r)?'<span class="chip e">Efterrätt</span>':whoChip(effWho(r)))+(r.freezes?'<span class="chip v">Går att frysa</span>':'')+'</div><h1 class="t1" id="lt">'+esc(r.title)+'</h1>'+rcpActions(r)+'</div>';
+ h+='<div class="chips-row">'+(isDessert(r)?'<span class="chip e">Efterrätt</span>':whoChip(effWho(r)))+(r.freezes?'<span class="chip v">Går att frysa</span>':'')+'</div><h1 class="t1" id="lt">'+esc(r.title)+'</h1>'+rcpActions(r)+'<div class="block"><button class="btn-tint" data-rc="edit" data-id="'+esc(r.id)+'">'+I.pencil+'Redigera recept</button></div>'+recipePrice(r).html+'</div>';
  const cookBtn='<div class="block"><button class="btn-fill" style="width:100%" data-act="cook" data-id="'+esc(r.id)+'">'+I.play+'Börja laga</button></div>';
  if(NY)h+=cookBtn;
- const facts=[['Tid','<span class="num">'+r.min+'</span> min']];if(r.kr)facts.push(['Per portion',kr(r.kr)]);if(r.protein){const pr=String(r.protein).replace(/\s*\/\s*port(ion)?\.?$/i,''),ph=pr.match(/^henriks?\s+(?:del\s+)?(?:ca\s+)?(.+)$/i);facts.push(['Protein',esc(ph?ph[1]:pr)])}
+ const facts=[['Tid',r.min?'<span class="num">'+r.min+'</span> min':'Ej angiven']];if(r.kr)facts.push(['Per portion',kr(r.kr)]);if(r.protein){const pr=String(r.protein).replace(/\s*\/\s*port(ion)?\.?$/i,''),ph=pr.match(/^henriks?\s+(?:del\s+)?(?:ca\s+)?(.+)$/i);facts.push(['Protein',esc(ph?ph[1]:pr)])}
  const kc=kcalOf(r.id);if(kc)facts.push(['Kalorier','<span class="num">'+kc.n+'</span> kcal']);
  h+='<div class="group" style="margin-top:16px"><div class="rcp-facts'+(facts.length>3?' f4':'')+'" style="grid-template-columns:repeat('+facts.length+',minmax(0,1fr))">'+facts.map(([l,v])=>'<div><div class="fn">'+l+'</div><div class="v">'+v+'</div></div>').join('')+'</div></div>';
  if(r.why)h+='<div class="group" style="margin-top:12px"><div class="note">'+esc(r.why)+'</div></div>';
@@ -1875,9 +1877,9 @@ function recipeDetail(r){
    Allt ligger i rader som appen redan får skriva, så ingen ändring i Kod.gs behövs. */
 const MP=window.MatPoang,RP=window.RestPoang;
 const BASW=[1,2,3,4,6,8,12];
-const freqs=()=>parseJ(settings().frekvens,{});
+const freqs=()=>recipeAliases(parseJ(settings().frekvens,{}));
 const lagadAll=()=>{const o={};Object.entries(freqs()).forEach(([id,x])=>{if(x&&(x.n||x.l))o[id]={n:Number(x.n)||0,d:x.l||''}});return o};
-const lastServed=id=>{const l=lagadAll()[id],r=parseJ(settings().receptlogg,{})[id]||'';return l&&l.d&&l.d>r?l.d:r};
+const lastServed=id=>{const l=lagadAll()[id],r=recipeAliases(parseJ(settings().receptlogg,{}))[id]||'';return l&&l.d&&l.d>r?l.d:r};
 const baseOf=id=>{const x=freqs()[id];return x&&x.w!=null&&x.w!==''?Number(x.w):null};
 /* Smileys sparas i betyget: betyg[id].sm = [[måltidens datum, 1|0|-1|'x', vem, svarsdatum], ...] de 10 senaste. 'x' = lagade inte.
    Stjärnorna räknas från betyget och flyttas av smileys som kom efter den senaste manuella ändringen. */
@@ -1920,7 +1922,7 @@ function rateBlock(r){const g=ratingOf(r.id);if(!g)return'';
 /* Receptets bild: pennan byter eller tar bort fotot, hjärtat gör receptet till favorit, bokmärket sparar det i receptbanken
    och betyget står i nedre kanten */
 const favBtn=(r,cls)=>{const on=isFav(r.id);return'<button class="'+cls+' rp-heart'+(on?' on':'')+'" data-act="favToggle" data-id="'+esc(r.id)+'" aria-pressed="'+on+'" aria-label="'+(on?'Favorit. Tryck för att ta bort som favorit':'Gör till favorit')+'">'+(on?I.heartOn:I.heart)+'</button>'};
-const bookBtn=(r,cls)=>{const on=inBank(r.id);return'<button class="'+cls+' rp-book'+(on?' on':'')+'" data-act="bankToggle" data-id="'+esc(r.id)+'" aria-pressed="'+on+'" aria-label="'+(on?'Sparat i receptbanken. Tryck för att ta bort':'Spara i receptbanken')+'">'+(on?I.bookmarkOn:I.bookmark)+'</button>'};
+const bookBtn=(r,cls)=>{if(recipeHead(r.id))return'';const on=inBank(r.id);return'<button class="'+cls+' rp-book'+(on?' on':'')+'" data-act="bankToggle" data-id="'+esc(r.id)+'" aria-pressed="'+on+'" aria-label="'+(on?'Sparat i receptbanken. Tryck för att ta bort':'Spara i receptbanken')+'">'+(on?I.bookmarkOn:I.bookmark)+'</button>'};
 function rcpPhoto(r){const img=imgOf(r.id)||r.img||'',g=ratingOf(r.id),busy=S.photoBusy===r.id;
  const heart=bookBtn(r,'rp-gl')+favBtn(r,'rp-gl');
  const score='<button class="rp-gl rp-score" data-act="rate" data-id="'+esc(r.id)+'" aria-label="'+(g?'Betyg '+g.avg.toFixed(1)+' av 5. Tryck för att betygsätta':'Betygsätt receptet')+'">'+
@@ -1968,16 +1970,17 @@ function rcpSheetHtml(enter){const x=S.rcpSheet,r=recipeById(x.id);if(!r)return'
  else{if(last){const l=matLage(r.id);head+='<br>Senast lagad '+esc(dateShort(last))+(l.tidigastDatum&&!l.paus?' · tidigast igen '+esc(dateShort(l.tidigastDatum)):'')}
   const vi=veckoIdx(r.id);
   items=(vi>=0?'<button class="it" data-act="rcpByt" data-id="'+vi+'">'+I.swap+'Byt mot en annan rätt</button>':'')+(inBank(r.id)?'<button class="it" data-act="bankToggle" data-id="'+id+'">'+I.bookmark+'Ta bort ur receptbanken</button>':'<button class="it" data-act="bankToggle" data-id="'+id+'">'+I.bookmark+'Spara i receptbanken</button>')+
-  (x.confirm?'<div class="ttl">Receptet tas bort ur receptbanken och föreslås aldrig igen.</div><button class="it red strong" data-act="deleteRecipe" data-id="'+id+'">'+I.trash+'Ja, föreslå aldrig igen</button>':'<button class="it red" data-act="rcpConfirm">'+I.trash+'Föreslå aldrig igen</button>')}
+  (x.confirm?'<div class="ttl">'+(recipeHead(r.id)?'Receptet föreslås aldrig igen men finns kvar i receptbanken.':'Receptet tas bort ur receptbanken och föreslås aldrig igen.')+'</div><button class="it red strong" data-act="deleteRecipe" data-id="'+id+'">'+I.trash+'Ja, föreslå aldrig igen</button>':'<button class="it red" data-act="rcpConfirm">'+I.trash+'Föreslå aldrig igen</button>')}
  return'<div class="asheet'+enter+'" data-act="sheetBg"><div class="as-panel" role="dialog" aria-modal="true" aria-label="'+(x.k==='photo'?'Foto':x.k==='tidigast'?'Tidigast igen':x.k==='unbank'?'Ta bort ur receptbanken':'Mer')+'"><div class="grp"><div class="ttl">'+head+'</div>'+items+'</div><div class="grp"><button class="it strong" data-act="sheetClose">'+(x.k==='tidigast'?'Stäng':'Avbryt')+'</button></div></div></div>'}
 /* Matfoton: bilden förminskas i telefonen, laddas upp till Drive via Apps Script och
    adressen sparas på receptet i receptbanken (receptet sparas där om det inte redan finns) */
-const imgOf=id=>{const b=bankList().find(x=>x.id===id);return b&&b.img||''};
+const imgOf=id=>{const v=recipeVersions().find(x=>x.id===id);if(v)return v.img||'';const b=bankRaw().find(x=>x.id===id);return b&&b.img||''};
 function shrinkImage(file,max){return new Promise((ok,bad)=>{const u=URL.createObjectURL(file),im=new Image();
  im.onload=()=>{const sc=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*sc);c.height=Math.round(im.height*sc);
   c.getContext('2d').drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);ok(c.toDataURL('image/jpeg',.82))};
  im.onerror=()=>{URL.revokeObjectURL(u);bad(new Error('Bilden kunde inte läsas'))};im.src=u})}
 async function uploadPhoto(id,file){const r=recipeById(id);if(!r||!file)return;if(!navigator.onLine){toast('Att spara foton kräver nät.');return}S.photoBusy=id;render();
+ if(recipeHead(id)){S.photoBusy=null;recipeEdit(id);recipeDraftPhoto(file);return}
  try{const data=await shrinkImage(file,1280);
   const res=await fetch(CFG.api,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'photoUpload',key:S.key,by:S.me,id,title:r.title,data})});
   const j=await res.json();if(!j.ok||!j.url)throw new Error(j.error||'Uppladdningen misslyckades');
@@ -2177,7 +2180,7 @@ function pickSheet(k,enter){
   top=cands.slice(0,3);rest=cands.slice(3);rester=all.rester;macka=!sk;
   title=sk?'Lägg till ett storkok':'Lägg till en rätt';ctxL='Lägger till';ctxT=sk?'Lunchlådor · görs i helgen till nästa vecka':g==='Vardag'?'Vardagar · mån–tor, valfri kväll':'Helg · fre–sön';alla=sk?'Alla storkok':alla;
   if(kott)note='Ett storkok i veckan har redan kött, så bara storkok utan kött visas.'}
- else{dess=true;const seen=new Set(),all=allRecipes().concat(inspoList()).filter(r=>{if(!isDessert(r)||seen.has(r.id))return false;seen.add(r.id);return true})
+ else{dess=true;const seen=new Set(),all=recipeCandidates().filter(r=>{if(!isDessert(r)||seen.has(r.id))return false;seen.add(r.id);return true})
    .sort((a,b)=>(inBank(b.id)?1:0)-(inBank(a.id)?1:0)||(isFav(b.id)?1:0)-(isFav(a.id)?1:0)||((ratingOf(b.id)||{avg:0}).avg-(ratingOf(a.id)||{avg:0}).avg)||a.title.localeCompare(b.title,'sv')).map(r=>({r,g:ratingOf(r.id)}));
   top=all.filter(c=>inBank(c.r.id)).slice(0,3);rest=all.filter(c=>!top.includes(c));
   title='Lägg till en efterrätt';ctxL='Lägger till';ctxT='Efterrätt · räknas inte in i portionerna';alla='Alla efterrätter'}
@@ -2228,7 +2231,7 @@ function settingsPeople(){const d=S.prefDraft||{},L=personList().slice(0,2);retu
  '<input type="hidden" name="c'+(i+1)+'" value="'+esc(c)+'"><div class="person-edit" id="'+key+'"'+(on?'':' hidden')+'>'+fieldCell('Namn','<input class="field r" name="p'+(i+1)+'" value="'+esc(n)+'" maxlength="40" aria-label="Namn för person '+(i+1)+'" autocomplete="off">')+
  '<div class="cell"><span class="grow">Personfärg</span><span class="meta">'+esc(PCOL[c][0])+'</span></div>'+colorPicker('pc'+i,'personColor',i,c,'Färg för '+n)+'</div>'}).join('')+
  '<button type="button" class="cell link" data-act="me" data-id="" aria-pressed="'+(!S.me)+'"><span class="grow">Gemensam skärm</span>'+(!S.me?'<span class="mark">'+I.tick+'</span>':'')+'</button></div><div class="foot">Välj vem som använder enheten. Pilen öppnar namn och färg. Namn och personfärg gäller alla enheter och sparas med Spara.</div>'}
-const u3RecipeMatch=r=>!U3||!S.u3Query||String(r.title||'').toLocaleLowerCase('sv').includes(S.u3Query.toLocaleLowerCase('sv'));
+const u3RecipeMatch=r=>recipeMatch(r);
 function u3Search(){return'<form class="add-row u3-search" data-form="recipeSearch"><input class="field" name="q" value="'+esc(S.u3Query||'')+'" placeholder="Sök bland recepten" aria-label="Sök bland recepten" enterkeyhint="search"><button class="tb strong">Sök</button>'+(S.u3Query?'<button type="button" class="ib" data-act="recipeSearchClear" aria-label="Rensa sökning">'+I.x+'</button>':'')+'</form>'}
 function overlayKeepScroll(){const o=document.getElementById('overlay'),k=o.dataset.k||'',b=o.querySelector('.sheet-body'),y=b?b.scrollTop:0;
  if(!k)S.hj=new Set();
@@ -3376,7 +3379,7 @@ const ACT={
  smileyQuick(id,el){const v=Number(el.dataset.v)||0;A.user=Date.now();saveSmiley(id,el.dataset.date,v);markCooked(id,el.dataset.date);toast(v>0?'Vad bra! Rätten kommer tillbaka lite oftare':v<0?'Noterat. Rätten kommer tillbaka mer sällan':'Tack!')},
  smileySkip(id,el){A.user=Date.now();saveSmiley(id,el.dataset.date,'x');toast('Okej, den räknas inte som lagad')},
  wakeBoard(){render()},
- nav(id){if(id!=='oversikt')S.arrange=false;if(normView(id)!=='ekonomi'){S.ekoOpen=false;S.pin=''}try{document.activeElement&&document.activeElement.blur()}catch(e){}id=normView(id);S.shopAdd=false;S.taskAdd=false;S.view=id;S.recipe=null;S.confirm=null;lsSet('view',id);try{history.replaceState(null,'','#'+id)}catch(e){}window.scrollTo(0,0);render()},
+ nav(id){if(RC.busy){toast('Vänta tills receptbegäran är klar.');return}if(RC.screen&&RC.edit&&RC.edit.dirty){RC.leaveTo=id;recipeLeave();S.view='mat';return}if(RC.screen)RC.screen=null;if(id!=='oversikt')S.arrange=false;if(normView(id)!=='ekonomi'){S.ekoOpen=false;S.pin=''}try{document.activeElement&&document.activeElement.blur()}catch(e){}id=normView(id);S.shopAdd=false;S.taskAdd=false;S.view=id;S.recipe=null;S.confirm=null;lsSet('view',id);try{history.replaceState(null,'','#'+id)}catch(e){}window.scrollTo(0,0);render()},
  refresh(){refresh()},
  settings(){if(S.sheet!=='farg')S.prefDraft=null;S.sheet='settings';render()},
  farg(){rememberSettings();S.sheet='farg';render()},
@@ -3434,11 +3437,11 @@ const ACT={
  ljNollst(){LJ.adj=[];saveLJ();if(CAM.lvl!=null)camJudge();autoTheme();render()},
  kamLux(id){CAM.lux=Number(id)||15;lsSet('kamLux',CAM.lux===15?null:String(CAM.lux));if(CAM.lvl!=null&&CAM.src==='als'){CAM.dark=CAM.lvl<CAM.lux}autoTheme();render()},
  kamGrans(id){CAM.thr=Number(id)||25;lsSet('kamGrans',CAM.thr===25?null:String(CAM.thr));if(CAM.lvl!=null){CAM.dark=CAM.lvl<CAM.thr}autoTheme();render()},
- matTab(id){S.matTab=['recept','bank','efter','inkop'].includes(id)?id:'vecka';lsSet('matTab',S.matTab);S.recipe=null;render()},
- recipe(id){S.view='mat';S.recipe=id;lsSet('view','mat');try{history.replaceState(null,'','#mat')}catch(e){}window.scrollTo(0,0);render()},
+ matTab(id){if(RC.screen&&RC.edit&&RC.edit.dirty){recipeLeave();return}RC.screen=null;S.matTab=['recept','bank','efter','inkop'].includes(id)?id:'vecka';lsSet('matTab',S.matTab);S.recipe=null;render()},
+ recipe(id){if(!S.recipe)RC.libraryY=window.scrollY;S.view='mat';S.recipe=id;lsSet('view','mat');try{history.replaceState(null,'','#mat')}catch(e){}window.scrollTo(0,0);render()},
  hjelp(id,el){const on=!S.hj.has(id);if(on)S.hj.add(id);else S.hj.delete(id);el.classList.toggle('open',on);el.setAttribute('aria-expanded',String(on));
   document.querySelectorAll('#overlay [data-hj="'+CSS.escape(id)+'"]').forEach(f=>f.classList.toggle('hid',!on))},
- recipeBack(){if(S.recipe)S.recipe=null;else S.plan=false;window.scrollTo(0,0);render()},
+ recipeBack(){if(RC.screen){recipeLeave();render();return}if(S.recipe)S.recipe=null;else S.plan=false;render();setTimeout(()=>window.scrollTo(0,RC.libraryY||0),30)},
  planOpen(){S.plan=true;S.planOpen=null;window.scrollTo(0,0);render()},
  planClose(){S.plan=false;S.planOpen=null;window.scrollTo(0,0);render()},
  planPick(id,el){const P=planState(),k=el.dataset.k;P.val[k]=id;if(P.port){if(el.dataset.n)P.port[k]=Number(el.dataset.n);delete P.mack[k]}planSave(P);S.planOpen=null;render()},
@@ -3525,9 +3528,9 @@ const ACT={
   const on=isFav(id);bankEdit(id,x=>{if(on)delete x.fav;else x.fav=true;return x});
   toast(on?'Inte längre favorit. Receptet ligger kvar bland sparade':'Sparat som favorit');render()},
  inspoFilter(id){S.inspoFilter=id;render()},
- photoRemove(id){S.rcpSheet=null;A.user=Date.now();BANK_ROWS().forEach(k=>{if(parseJ(settings()[k],[]).some(x=>x.id===id))updJSON(k,[],a=>a.map(x=>x.id===id?Object.assign({},x,{img:''}):x))});
+ photoRemove(id){if(recipeHead(id)){closeSheets();recipeEdit(id);if(RC.edit){RC.edit.recipe.img='';RC.edit.dirty=true;RC.notice='Fotot tas bort när den nya receptversionen sparas.';recipeDraftStore();}render();return}S.rcpSheet=null;A.user=Date.now();BANK_ROWS().forEach(k=>{if(parseJ(settings()[k],[]).some(x=>x.id===id))updJSON(k,[],a=>a.map(x=>x.id===id?Object.assign({},x,{img:''}):x))});
   toast('Fotot är borttaget');render()},
- deleteRecipe(id){const r=recipeById(id);if(!r)return;S.confirm=null;S.rcpSheet=null;A.user=Date.now();
+ deleteRecipe(id){const r=recipeById(id);if(!r)return;if(recipeHead(id)){updJSON('frekvens',{},o=>{o[id]=Object.assign({},o[id],{w:0,t:r.title});return o});S.rcpSheet=null;render();toast('Receptet föreslås inte igen. Det finns kvar i receptbanken.');return}S.confirm=null;S.rcpSheet=null;A.user=Date.now();
   BANK_ROWS().forEach(k=>{if(parseJ(settings()[k],[]).some(x=>x.id===id))updJSON(k,[],a=>a.filter(x=>x.id!==id))});
   updJSON('frekvens',{},o=>{o[id]={w:0,t:r.title};return o});
   if(wishes().some(x=>x.id===id))updJSON('onskelista',[],a=>a.filter(x=>x.id!==id));
@@ -3805,6 +3808,130 @@ document.addEventListener('submit',async e=>{const f=e.target.closest('[data-for
 window.addEventListener('hashchange',()=>{const h=location.hash.slice(1);if(!VIEW_IDS.includes(h)&&!OLD_VIEWS[h])return;const tab=S.matTab,v=normView(h);if(v!==S.view||tab!==S.matTab||S.recipe)ACT.nav(v)});
 document.addEventListener('keydown',e=>{if(S.cook){if(e.key==='ArrowRight')ACT.cookStep(null,{dataset:{d:1}});if(e.key==='ArrowLeft')ACT.cookStep(null,{dataset:{d:-1}});if(e.key==='Escape')ACT.cookClose()}else if((S.sheet||S.shopAdd||S.taskAdd)&&e.key==='Escape'){closeSheets();render()}});
 
+/* ---------- Receptbibliotek, oföränderliga versioner och lokala granskningsutkast ---------- */
+const RC={screen:null,edit:null,error:'',busy:false,q:'',fav:false,max:0,archived:false,importText:'',importUrl:'',candidates:[],notice:'',impact:null,dupes:[],confirmLeave:false};
+function recipeVersions(){return D().recipeStore&&D().recipeStore.versions||[]}
+function recipeRoot(id){const v=recipeVersions().find(r=>r.id===id);return v&&v._root||id}
+function recipeHead(id){const root=recipeRoot(id);return(D().recipeStore&&D().recipeStore.heads||[]).find(h=>h.root===root)}
+function recipeArchived(id){const h=recipeHead(id);return!!(h&&h.archived)}
+function recipeLegacy(id){const a=D().recipes.find(r=>r.id===id),b=bankRaw().find(r=>r.id===id),c=inspoList().find(r=>r.id===id);return a?Object.assign({},a,{img:b&&b.img||a.img||'',src:a.src||b&&b.src||c&&c.src||'',srcName:a.srcName||b&&b.srcName||c&&c.srcName||''}):b||c}
+function recipeGet(id){return recipeVersions().find(r=>r.id===id)||recipeLegacy(id)}
+function recipeCandidates(){const seen=new Set();return allRecipes().concat(inspoList()).map(r=>recipeLatest(r)).filter(r=>{const root=recipeRoot(r.id);if(seen.has(root)||recipeArchived(root))return false;seen.add(root);return true})}
+function recipePlanReady(r){return !r._root||!(r.groups||[]).some(g=>(g.items||[]).some(i=>i.q==null&&MV.vara(i.n)))}
+function recipeLatest(r){const h=recipeHead(r.id);return h?recipeGet(h.id)||r:r}
+function recipeLibrary(saved){const store=D().recipeStore,heads=store&&store.heads||[],seen=new Set(),out=[];
+ const source=bankRaw().concat(saved?[]:D().recipes);heads.forEach(h=>{const r=recipeGet(h.id);if(r)source.unshift(r)});
+ source.forEach(r=>{const root=recipeRoot(r.id),h=recipeHead(root);if(seen.has(root)||h&&h.archived)return;seen.add(root);const v=recipeLatest(r),b=bankRaw().find(x=>recipeRoot(x.id)===root);out.push(Object.assign({},v,{fav:!!(b&&b.fav),savedAt:b&&b.savedAt||v.updatedAt||''}))});return out}
+function recipeAliases(o){recipeVersions().forEach(r=>{if(r._root&&o[r._root]!=null)o[r.id]=o[r._root]});return o}
+function recipeWishes(a){return a.map(x=>{const h=x&&x.id&&!x.efter&&!x.las&&recipeHead(x.id);return h?Object.assign({},x,{id:h.id}):x})}
+function recipeChange(k,fn,o){if(k==='onskelista')return fn(recipeWishes(o));if(!['betyg','frekvens','kcal','receptlogg'].includes(k))return fn(o);o=fn(recipeAliases(o));const n={};Object.keys(o).forEach(id=>{n[recipeRoot(id)]=o[id]});return n}
+function recipeAllowed(){return !!(D().recipeStore&&D().recipeStore.schema===1)}
+function recipeClone(r){return JSON.parse(JSON.stringify(r))}
+function recipeSnapshot(r){const x=recipeClone(r),kv=KV[recipeRoot(r.id)];if(kv&&!r._root)x.steps=recipeClone(kv.s);return x}
+function recipeOp(){return 'rc-'+(crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+'-'+Math.random().toString(36).slice(2)).replace(/[^a-z0-9-]/g,'')}
+function recipeDraftRead(){try{const d=JSON.parse(localStorage.getItem('ht.recipeDraft')||'null');return d&&d.household===S.key&&d.schema===1?d:null}catch(e){return null}}
+function recipeDraftStore(){if(!RC.edit)return;try{localStorage.setItem('ht.recipeDraft',JSON.stringify({schema:1,household:S.key,edit:RC.edit,at:Date.now()}))}catch(e){RC.error='Utkastet ryms inte på enheten. Kopiera texten innan du lämnar sidan.'}}
+function recipeDraftClear(){try{localStorage.removeItem('ht.recipeDraft')}catch(e){}}
+function recipeEdit(id,resume){const existing=recipeDraftRead();if(!resume&&existing&&(existing.edit.dirty||existing.edit.pending)){if(id&&recipeRoot(id)===existing.edit.root){recipeEdit(null,true);return}RC.nextEdit=id||'';RC.screen='draftChoice';S.view='mat';render();return}const old=resume&&existing;if(old){RC.edit=old.edit}else{const r=id&&recipeGet(id),head=r&&recipeHead(id),base=r&&recipeSnapshot(r);RC.edit={root:r?recipeRoot(r.id):'r-'+recipeOp().slice(3),expectedRev:head?head.rev:0,base:!head?base:null,recipe:r?recipeSnapshot(recipeLatest(r)):{title:'',portions:2,min:null,group:'Vardag',who:'',course:'',groups:[{title:'',items:[{q:null,u:'',n:''}]}],steps:[{t:''}],src:'',img:'',tips:''},dirty:false,pending:false,request:null};}
+ if(!resume&&id&&!recipeHead(id)){const a=D().recipes.find(x=>x.id===id),b=bankRaw().find(x=>x.id===id);if(a&&b&&recipeComparable(a)!==recipeComparable(b))RC.edit.legacyChoices={sheet:recipeSnapshot(a),bank:recipeSnapshot(b)};}
+ RC.screen='edit';RC.error='';RC.notice='';RC.dupes=[];RC.confirmLeave=false;RC.archiveConfirm=false;S.recipe=null;S.view='mat';S.plan=false;closeSheets();recipeDraftStore();render();window.scrollTo(0,0)}
+function recipeTools(){const draft=recipeDraftRead();return'<div class="rc-tools"><form class="add-row" data-rcform="search"><input class="field" name="q" value="'+esc(RC.q)+'" placeholder="Sök recept eller ingrediens" aria-label="Sök recept eller ingrediens"><button class="add-go" aria-label="Sök">Sök</button></form><div class="rc-toolbar"><button class="pill" data-rc="new">'+I.plus+'Nytt recept</button><button class="pill" data-rc="import">Importera</button><button class="pill" data-rc="archived" aria-pressed="'+RC.archived+'">Arkiverade</button></div><div class="rc-toolbar"><button class="pill" data-rc="fav" aria-pressed="'+RC.fav+'">'+(RC.fav?'✓ ':'')+'Favoriter</button><button class="pill" data-rc="quick" aria-pressed="'+!!RC.max+'">'+(RC.max?'✓ ':'')+'Högst 30 min</button>'+((RC.q||RC.fav||RC.max)?'<button class="linkbtn" data-rc="clear">Rensa</button>':'')+'</div>'+(draft?'<button class="cell link rc-resume" data-rc="resume"><span class="grow">'+(draft.edit.pending?'Recept väntar på att sparas':'Fortsätt med ditt utkast')+'</span>'+chevron+'</button>':'')+'</div>'}
+function recipeMatch(r){const q=RC.q.trim().toLocaleLowerCase('sv'),txt=[r.title,...(r.groups||[]).flatMap(g=>(g.items||[]).map(i=>i.n))].join(' ').toLocaleLowerCase('sv');return(!q||txt.includes(q))&&(!RC.fav||isFav(r.id))&&(!RC.max||r.min>0&&r.min<=RC.max)}
+function recipePrice(r){const lines=(r.groups||[]).flatMap(g=>g.items||[]),prices=parseJ(settings().priser,{});let known=0,missing=0,estimated=0,unquantified=0;const dates=[];
+ lines.forEach(it=>{const v=window.MatVaror&&MatVaror.vara(it.n);if(!v)return;if(it.q==null){unquantified++;return}if(v.okand){missing++;return}known+=MatVaror.mangd(it,v)*v.kr/v.pkt;if(!prices[v.k])estimated++;});
+ const partial=missing+unquantified,amount=known/(Number(r.portions)||1),label=partial?'Känd delkostnad: '+kr(amount)+'/portion':known?'Ca '+kr(amount)+'/portion':r.kr?'Ca '+kr(r.kr)+'/portion · äldre uppskattning':'Prisuppgift saknas';
+ return{amount,known,label,missing,unquantified,estimated,partial,html:'<div class="rc-price"><span>'+esc(label)+'</span>'+((missing||unquantified)?'<small>'+[missing?'Pris saknas för '+missing+' ingrediens'+(missing===1?'':'er'):'',unquantified?unquantified+' mängd'+(unquantified===1?'':'er')+' behöver granskas':''].filter(Boolean).join(' · ')+'</small>':'')+'<small>'+esc(estimated?'Uppskattade baspriser ingår.':'Beräknat från tillgängliga priser; inte ett garanterat butikspris.')+'</small>'+recipePriceSource(prices)+'</div>'}}
+function recipePriceSource(prices){if(!Object.keys(prices).length)return'';const log=parseJ(settings().prislogg,{});return'<small>'+esc('Butikspriser: '+(log.tid||'datum saknas')+(log.butik?' · '+log.butik:''))+'</small>'}
+function recipeComparable(r){return JSON.stringify([r.title,Number(r.portions)||0,Number(r.min)||0,(r.groups||[]).map(g=>[g.title||'',(g.items||[]).map(i=>[i.q==null?null:Number(i.q),i.u||'',i.n])]),(r.steps||[]).map(s=>[s.t||'',s.timer||0,s.k||'',s.v||''])])}
+function recipeField(label,name,value,type){return'<label class="cell rc-field"><span>'+label+'</span><input class="field" data-rf="'+name+'" value="'+esc(value==null?'':value)+'"'+(type?' type="'+type+'"':'')+'></label>'}
+function recipeSelect(label,name,val,choices){if(val&&!choices.some(x=>x[0]===val))choices=choices.concat([[val,val]]);return'<label class="cell rc-field"><span>'+label+'</span><select class="field" data-rf="'+name+'">'+choices.map(([k,v])=>'<option value="'+esc(k)+'"'+(val===k?' selected':'')+'>'+esc(v)+'</option>').join('')+'</select></label>'}
+function recipeScreen(){const header=(title,sub)=>'<div class="rc-top"><button class="back" data-rc="leave">'+I.back+'Recept</button><span class="fn">'+(RC.busy?'Arbetar…':RC.edit&&RC.edit.pending?'Väntar på nät / nytt försök':'')+'</span></div>'+head(title,{sub});
+ const error=RC.error?'<div class="banner" role="alert">'+esc(RC.error)+'</div>':'',notice=RC.notice?'<div class="rc-note" role="status">'+esc(RC.notice)+'</div>':'';
+ if(RC.screen==='draftChoice')return header('Ett utkast finns redan','Välj hur du vill fortsätta')+group('<div class="cell">Ett tidigare receptutkast finns kvar på den här enheten. Det ersätts inte automatiskt.</div>')+'<div class="block"><button class="btn-fill" data-rc="resume">Fortsätt med utkastet</button></div><div class="block"><button class="btn-tint" data-rc="discardOpen">Kasta utkastet och öppna det nya</button></div>';
+ if(RC.screen==='import')return header('Importera recept','Granska och korrigera innan något sparas')+error+group('<label class="cell rc-stack">Länk till originalrecept<input class="field" type="url" id="rc-url" value="'+esc(RC.importUrl)+'" placeholder="https://…"></label>')+'<div class="block"><button class="btn-fill" data-rc="fetch"'+(RC.busy?' disabled':'')+'>Hämta från länk</button></div><div class="foot">För närvarande ICA, Köket, Arla och Coop när sidan innehåller läsbara receptdata. Inloggade, blockerade och andra sidor kan behöva textinmatning.</div>'+group('<label class="cell rc-stack">Eller klistra in recepttext<textarea class="field" id="rc-import-text" rows="8" placeholder="Receptnamn, ingredienser och Gör så här…">'+esc(RC.importText)+'</textarea></label>')+'<div class="block"><button class="btn-tint" data-rc="parse">Granska inklistrad text</button></div>'+RC.candidates.map((r,i)=>'<button class="cell link" data-rc="candidate" data-i="'+i+'"><span class="grow">'+esc(r.title||'Recept '+(i+1))+'</span>'+chevron+'</button>').join('');
+ if(RC.screen==='archived'){const heads=D().recipeStore&&D().recipeStore.heads||[];return header('Arkiverade recept','Planerade måltider och historik finns kvar')+error+group(heads.filter(h=>h.archived).map(h=>{const r=recipeGet(h.id);return'<div class="cell"><span class="grow">'+esc(r&&r.title||h.root)+'</span><button class="pill" data-rc="restore" data-id="'+esc(h.id)+'">Återställ</button></div>'}).join('')||emptyCell('Inga arkiverade recept.'))}
+ if(RC.screen==='impact')return recipeImpactHtml(header,error,notice);
+ const e=RC.edit;if(!e)return'';const r=e.recipe;
+ let h=header(e.base||e.expectedRev?'Redigera recept':'Nytt recept','Ändrar receptbanken. Planerade måltider behålls.')+error+notice;
+ if(RC.confirmLeave)h+='<div class="rc-note"><b>Behålla utkastet?</b><div class="pills"><button class="pill" data-rc="keep">Behåll och lämna</button><button class="pill" data-rc="discard">Kasta utkast</button><button class="pill" data-rc="stay">Fortsätt redigera</button></div></div>';
+ h+='<div class="rc-draft-status" role="status">'+(e.pending?'Sparningen är inte bekräftad. Ditt utkast finns kvar.':e.dirty?'Utkast sparat på den här enheten':'Utkast · inte sparat i hushållet')+'</div>';
+ if(e.legacyChoices)h+='<div class="rc-note"><b>Två äldre kopior skiljer sig</b><p>Välj vilken du vill redigera. Båda originalen behålls; planerade måltider ändras inte.</p><div class="pills"><button class="pill" data-rc="legacySheet">Utgå från kalkylarket</button><button class="pill" data-rc="legacyBank">Utgå från sparade kopian</button></div></div>';
+ h+=group('<div class="cell"><span class="grow">Foto (valfritt)</span><label class="pill photo-pick">'+I.camera+'Välj foto<input type="file" accept="image/*" id="rc-photo"></label>'+(r.img?'<button class="linkbtn" data-rc="photoClear">Ta bort</button>':'')+'</div>'+(r.img?'<div class="rc-preview-photo"><img src="'+esc(r.img)+'" alt="Receptfoto"></div>':'')+recipeField('Receptnamn','title',r.title)+recipeField('Portioner','portions',r.portions,'text')+recipeField('Total tid, min (valfritt)','min',r.min,'text')+recipeSelect('Kategori','group',r.group,[['Vardag','Vardagsmiddag'],['Helg','Helgmiddag'],['Storkok','Storkok'],['Efterrätt','Efterrätt']])+recipeSelect('Kost','who',r.who,[['','Ej angivet'],['Vegetariskt','Vegetariskt'],['Henrik','Kött'],['Kött/Veg','Kött/veg'],['Gemensam','Gemensam']]));
+ h+=sh('Ingredienser','Grundportioner; mängder kan behöva granskas');
+ (r.groups||[]).forEach((g,gi)=>{h+=group('<label class="cell rc-field"><span>Grupp (valfritt)</span><input class="field" data-rgroup="'+gi+'" value="'+esc(g.title||'')+'"></label>'+g.items.map((it,i)=>'<div class="cell rc-ingredient"><input class="field rc-amount" aria-label="Mängd" data-ri="'+gi+':'+i+':amount" value="'+esc(it.raw|| (it.q==null?'':String(it.q).replace('.',',')))+'" placeholder="Mängd"><input class="field rc-unit" aria-label="Enhet" data-ri="'+gi+':'+i+':u" value="'+esc(it.u||'')+'" placeholder="Enhet"><input class="field" aria-label="Ingrediens" data-ri="'+gi+':'+i+':n" value="'+esc(it.n)+'" placeholder="Ingrediens"><button class="ib" data-rc="delIngredient" data-i="'+gi+':'+i+'" aria-label="Ta bort ingrediens">'+I.x+'</button></div>').join('')+'<button class="cell link" data-rc="addIngredient" data-i="'+gi+'">'+I.plus+'Lägg till ingrediens</button>')});
+ h+='<button class="linkbtn" data-rc="addGroup">Lägg till ingrediensgrupp</button>'+sh('Gör så här');
+ h+=group(r.steps.map((s,i)=>'<div class="cell rc-stack"><label>Steg '+(i+1)+'<textarea class="field" data-rstep="'+i+':t" rows="3">'+esc(s.t||'')+'</textarea></label><div class="rc-toolbar"><label>Timer, min <input class="field rc-timer" data-rstep="'+i+':timer" value="'+esc(s.timer||'')+'" inputmode="numeric"></label><button class="pill" data-rc="stepUp" data-i="'+i+'"'+(!i?' disabled':'')+'>Upp</button><button class="pill" data-rc="stepDown" data-i="'+i+'"'+(i===r.steps.length-1?' disabled':'')+'>Ned</button><button class="linkbtn" data-rc="delStep" data-i="'+i+'">Ta bort</button></div>'+(s.k||s.v?'<label>Köttvariant<textarea class="field" data-rstep="'+i+':k" rows="2">'+esc(s.k||'')+'</textarea></label><label>Vegetarisk variant<textarea class="field" data-rstep="'+i+':v" rows="2">'+esc(s.v||'')+'</textarea></label>':'')+'</div>').join('')+'<button class="cell link" data-rc="addStep">'+I.plus+'Lägg till steg</button>');
+ h+=sh('Fler uppgifter')+group(recipeField('Källänk','src',r.src,'url')+recipeField('Källnamn','srcName',r.srcName)+ '<label class="cell rc-stack">Tips<textarea class="field" data-rf="tips" rows="3">'+esc(r.tips||'')+'</textarea></label><label class="cell"><span class="grow">Går att frysa</span><input type="checkbox" data-rf="freezes"'+(r.freezes?' checked':'')+'></label>');
+ h+='<div id="rc-price-preview">'+recipePrice(r).html+'</div>';
+ const dupes=recipeDuplicates(r,e.root);h+=(RC.dupes.length||dupes.length)?'<div class="rc-note"><b>Liknande recept finns</b>'+ (RC.dupes.length?RC.dupes:dupes).map(x=>'<div>'+esc(x.title)+'</div>').join('')+'<label class="cell"><input type="checkbox" id="rc-allow-duplicate"'+(e.allowDuplicate?' checked':'')+'> Spara ändå som min variant</label></div>':'';
+ if(!recipeAllowed())h+='<div class="banner">Receptredigering kräver uppdaterad Kod.gs och setupRecipes på datorn. Utkastet kan behållas här.</div>';
+ if(e.conflict)h+='<div class="rc-note"><b>En annan version finns: '+esc((recipeGet((recipeHead(e.root)||{}).id)||{}).title||'')+'</b><p>Ditt utkast bevaras. Öppna den senaste versionen eller spara utkastet som separat recept.</p><div class="pills"><button class="pill" data-rc="latest">Öppna senaste</button><button class="pill" data-rc="copy">Spara som nytt recept</button></div></div>';
+ h+='<div class="block"><button class="btn-fill rc-save" data-rc="save"'+(RC.busy||!recipeAllowed()||!!e.legacyChoices?' disabled':'')+'>'+(RC.busy?'Sparar…':e.pending?'Försök spara igen':'Spara recept')+'</button></div><div class="foot">Ingenting på matsedeln eller inköpslistan ändras av den här sparningen.</div>';
+ if(e.expectedRev)h+='<div class="block"><button class="btn-tint red" data-rc="archive">Arkivera recept</button></div>';return h}
+function recipeAmount(t){t=String(t||'').trim().replace(',','.').replace(/½/g,'1/2').replace(/¼/g,'1/4').replace(/¾/g,'3/4');const m=/^(?:(\d+)\s+)?(\d+)\/(\d+)$/.exec(t);if(m&&+m[3])return Number(m[1]||0)+Number(m[2])/Number(m[3]);return /^\d+(\.\d+)?$/.test(t)&&Number(t)>0?Number(t):null}
+function recipeDraftCapture(el){const e=RC.edit;if(!e)return;const r=e.recipe;if(el.dataset.rf){const k=el.dataset.rf;r[k]=el.type==='checkbox'?el.checked:el.value;if(k==='portions'||k==='min')r[k]=el.value.replace(',','.');if(k==='group')r.course=el.value==='Efterrätt'?'efterrätt':'';}
+ if(el.dataset.rgroup!=null)r.groups[Number(el.dataset.rgroup)].title=el.value;
+ if(el.dataset.ri){const[g,i,k]=el.dataset.ri.split(':'),it=r.groups[g].items[i];if(k==='amount'){it.raw=el.value;it.q=recipeAmount(el.value)}else it[k]=el.value;}
+ if(el.dataset.rstep){const[i,k]=el.dataset.rstep.split(':');r.steps[i][k]=el.value;}
+ if(el.id==='rc-allow-duplicate')e.allowDuplicate=el.checked;
+ e.dirty=true;e.request=null;e.pending=false;recipeDraftStore();const price=document.getElementById('rc-price-preview');if(price)price.innerHTML=recipePrice(r).html;const status=document.querySelector('.rc-draft-status');if(status)status.textContent=RC.error||'Utkast sparat på den här enheten';}
+function recipeSourceKey(s){const m=/^(https?):\/\/([^/?#]+)([^?#]*)(?:\?([^#]*))?/i.exec(String(s||'').trim());if(!m)return'';const q=(m[4]||'').split('&').filter(p=>p&&!/^(utm_[^=]*|fbclid|gclid)=/i.test(p)).sort().join('&');return m[1].toLowerCase()+'://'+m[2].toLowerCase().replace(/^www\./,'')+(m[3]||'/').replace(/\/$/,'')+(q?'?'+q:'')}
+function recipeDuplicates(r,root){const norm=recipeSourceKey;const title=String(r.title||'').trim().toLowerCase();if(!title)return[];const seen=new Set();return recipeLibrary(false).concat(inspoList()).filter(x=>{const id=recipeRoot(x.id);if(id===root||seen.has(id))return false;seen.add(id);const a=(r.groups||[]).flatMap(g=>g.items||[]).map(i=>i.n.toLowerCase()),b=(x.groups||[]).flatMap(g=>g.items||[]).map(i=>i.n.toLowerCase()),same=a.filter(n=>b.includes(n)).length;return title===String(x.title||'').trim().toLowerCase()||r.src&&norm(r.src)===norm(x.src)||a.length>=3&&same/Math.max(a.length,b.length)>.8&&String(x.title).toLowerCase().includes(title.split(' ')[0])}).slice(0,5)}
+async function recipeRpc(body){if(!navigator.onLine)throw new Error('Ingen anslutning. Utkastet finns kvar.');const household=S.key,controller=new AbortController(),timer=setTimeout(()=>controller.abort(),25000);try{const response=await fetch(CFG.api,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign({},body,{key:S.key,by:S.me})),signal:controller.signal});const j=await response.json();if(S.key!==household)throw new Error('Hushållet ändrades under begäran. Ditt ursprungliga utkast finns kvar.');return j}finally{clearTimeout(timer)}}
+async function recipeSave(){const e=RC.edit;if(!e||RC.busy||!recipeAllowed())return;if(e.legacyChoices){RC.error='Välj först vilken äldre kopia du vill utgå från.';render();return}const r=recipeClone(e.recipe);r.kr=null;r._root=e.root;delete r.importOriginal;r.portions=Number(r.portions);if(r.min!==''&&r.min!=null&&(!isFinite(Number(r.min))||Number(r.min)<=0)){RC.error='Tiden måste vara positiv eller lämnas tom.';render();return}r.min=r.min===''||r.min==null?null:Number(r.min);
+ if(!r.title.trim()||!(r.portions>0)||!r.groups.some(g=>g.items.some(i=>i.n.trim()))||!r.steps.some(s=>(s.t||'').trim()||s.k||s.v)){RC.error='Ange receptnamn, positivt portionsantal, minst en ingrediens och ett steg.';render();return}
+ if(r.groups.some(g=>g.items.some(i=>!i.n.trim()))||r.steps.some(s=>!String(s.t||'').trim()&&!s.k&&!s.v)){RC.error='Fyll i eller ta bort tomma ingredienser och steg.';render();return}
+ e.request=e.request||{action:'recipeSave',root:e.root,expectedRev:e.expectedRev,recipe:r,base:e.base,op:recipeOp(),allowDuplicate:!!e.allowDuplicate};e.request.allowDuplicate=!!e.allowDuplicate;e.pending=true;recipeDraftStore();
+ if(!navigator.onLine){RC.error='Väntar på nät. Sparningen försöks igen när anslutningen återkommer.';render();return}
+ RC.busy=true;RC.error='';render();try{const j=await recipeRpc(e.request);if(!j.ok){if(j.data)setData(j.data);RC.error=j.error;if(j.code==='conflict')e.conflict=true;if(j.code==='duplicate')RC.dupes=j.duplicates||[];recipeDraftStore();return}
+ setData(j.data);recipeDraftClear();RC.edit=null;RC.dupes=[];RC.screen='impact';RC.notice='Receptet är sparat. Planerade måltider är oförändrade.';RC.savedId=j.savedId;RC.impact=null;RC.selected=[];}
+ catch(err){RC.error='Sparningen är inte bekräftad. Utkastet finns kvar; försök igen. '+(err.name==='AbortError'?'Servern tog för lång tid.':err.message)}finally{RC.busy=false;render()}}
+async function recipeDraftPhoto(file){if(!file||!RC.edit)return;if(!navigator.onLine){RC.error='Foto kräver nät. Behåll textutkastet och lägg till fotot när du har anslutning.';render();return}RC.busy=true;render();try{const data=await shrinkImage(file,1280),j=await recipeRpc({action:'photoUpload',id:RC.edit.root,title:RC.edit.recipe.title,data});if(!j.ok)throw new Error(j.error);RC.edit.recipe.img=j.url;RC.edit.dirty=true;RC.edit.request=null;recipeDraftStore();}catch(e){RC.error=e.message}finally{RC.busy=false;render()}}
+function recipePlain(s){const el=new DOMParser().parseFromString(String(s||''),'text/html');return(el.body.textContent||'').trim()}
+function recipeParseLine(line){line=String(line||'').trim().replace(/^[•*-]\s*/,'');const m=/^((?:\d+\s+)?\d+\/\d+|\d+(?:[.,]\d+)?|[½¼¾])(?:\s+)(?:(kg|hg|g|dl|l|ml|cl|msk|tsk|st|burk|burkar|kruka|knippe)\.?\s+)?(.+)$/i.exec(line);return m?{q:recipeAmount(m[1]),raw:m[1],u:m[2]||'',n:m[3]}:{q:null,raw:'',u:'',n:line}}
+function recipeParseText(text){const lines=text.split(/\r?\n/).map(s=>s.trim()).filter(Boolean),r={title:lines[0]||'',portions:'',min:null,group:'Vardag',who:'',groups:[{title:'',items:[]}],steps:[],src:RC.importUrl,img:'',tips:''};let mode='';lines.slice(1).forEach(line=>{const p=/^(\d+)\s*(?:portioner|port|personer)\b/i.exec(line);if(p){r.portions=Number(p[1]);return}if(/^ingredienser:?$/i.test(line)){mode='ingredients';return}if(/^(gör så här|instruktioner|tillagning|steps|method):?$/i.test(line)){mode='steps';return}if(mode==='ingredients')r.groups[0].items.push(recipeParseLine(line));else if(mode==='steps')r.steps.push({t:line.replace(/^\d+[.)]\s*/,'')});});
+ if(!r.groups[0].items.length)r.groups[0].items=[{q:null,u:'',n:''}];if(!r.steps.length)r.steps=[{t:''}];r.importOriginal=text;return r}
+function recipeFromSchema(candidate){const x=candidate.raw,times=s=>{const m=/^P(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?)?$/.exec(String(s||''));return m?Number(m[1]||0)*1440+Number(m[2]||0)*60+Number(m[3]||0)+Math.ceil(Number(m[4]||0)/60):null},yieldText=String(Array.isArray(x.recipeYield)?x.recipeYield[0]:x.recipeYield||''),m=/^(\d+(?:[.,]\d+)?)\s*(?:portioner|portions|servings|personer|people)?$/i.exec(yieldText),steps=[];
+ function addStep(s){if(Array.isArray(s)){s.forEach(addStep);return}if(typeof s==='string'){s.split(/\n+/).filter(Boolean).forEach(t=>steps.push({t:recipePlain(t)}));return}if(s&&s.itemListElement){addStep(s.itemListElement);return}if(s&&s.text)steps.push({t:recipePlain(s.text)});}
+ addStep(x.recipeInstructions);return{title:recipePlain(x.name),portions:m?Number(m[1].replace(',','.')):'',min:times(x.totalTime)||((times(x.prepTime)||0)+(times(x.cookTime)||0))||null,prepMin:times(x.prepTime),cookMin:times(x.cookTime),group:'Vardag',who:'',groups:[{title:'',items:(Array.isArray(x.recipeIngredient)?x.recipeIngredient:[x.recipeIngredient]).filter(Boolean).map(t=>recipeParseLine(recipePlain(t)))}],steps:steps.length?steps:[{t:''}],src:candidate.src,srcName:new URL(candidate.src).hostname.replace(/^www\./,''),img:'',tips:'',importYield:yieldText}}
+function recipeImportDraft(r){const existing=recipeDraftRead();if(existing&&(existing.edit.dirty||existing.edit.pending)){RC.nextImport=r;RC.screen='draftChoice';render();return}recipeEdit(null);RC.edit.recipe=r;RC.edit.dirty=true;RC.notice='Kontrollera alla uppgifter. Oklara mängder och portionsantal måste granskas; inget är sparat än.';if(!r.groups[0].items.length)r.groups[0].items=[{q:null,u:'',n:''}];recipeDraftStore();render()}
+async function recipeFetch(){if(RC.busy)return;RC.importUrl=document.getElementById('rc-url').value.trim();RC.importText=document.getElementById('rc-import-text').value;RC.candidates=[];RC.busy=true;RC.error='';render();try{const j=await recipeRpc({action:'recipeImport',url:RC.importUrl});if(!j.ok)throw new Error(j.error);RC.candidates=j.candidates.map(recipeFromSchema);if(RC.candidates.length===1)recipeImportDraft(RC.candidates[0]);}catch(e){RC.error=e.message+' Länken och texten finns kvar.';}finally{RC.busy=false;render()}}
+function recipeDigest(x){const s=JSON.stringify(x);let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return(h>>>0).toString(16)}
+function recipePlanState(){return{menu:recipeClone(D().menu),shop:recipeClone(D().shop),settings:recipeClone(settings())}}
+function recipeImpactHtml(header,error,notice){const r=recipeGet(RC.savedId);if(!r)return header('Sparat','Receptet finns i biblioteket')+notice;
+ const rows=D().menu.map((m,i)=>({m,i})).filter(x=>x.m.recipe&&recipeRoot(x.m.recipe)===recipeRoot(r.id)&&x.m.recipe!==r.id&&x.m.date>=today());
+ let h=header('Uppdatera veckan?','Receptbanken är sparad; veckan är fortfarande oförändrad')+notice+error;
+ if(!rows.length)return h+group(emptyCell('Inga kommande måltider behöver uppdateras.'))+'<button class="btn-fill" data-rc="finish">Till receptet</button>';
+ h+=sh('Välj måltider')+group(rows.map(({m,i})=>'<label class="cell"><input type="checkbox" data-rcmeal="'+i+'"'+(RC.selected&&RC.selected.includes(i)?' checked':'')+'><span class="grow"><b>'+esc(dateShort(m.date))+' · '+esc(m.who)+'</b><div class="meta">'+esc(m.title)+'</div></span></label>').join(''));
+ h+='<div class="block"><button class="btn-tint" data-rc="preview"'+(RC.busy?' disabled':'')+'>Granska inköpsändringar</button></div>';
+ if(RC.impact){const p=RC.impact;h+=sh('Inköpslistans ändringar')+group(p.diff.map(x=>'<div class="cell"><div class="grow"><b>'+esc(x.name)+'</b><div class="meta">'+esc(x.text)+'</div></div></div>').join('')||emptyCell('Inga ändringar behövs på inköpslistan.'))+'<div class="foot">Egna varor och redan köpta varor behålls. Andra måltiders behov räknas med. Priser är uppskattade; okända mängder kan behöva kompletteras manuellt.</div><div class="block"><button class="btn-fill" data-rc="apply"'+(RC.busy?' disabled':'')+'>Uppdatera valda måltider och inköp</button></div>';}
+ return h+'<button class="linkbtn" data-rc="finish">Behåll veckan som den är</button>'}
+async function recipePreview(){if(RC.busy)return;if(OUTBOX.length||UPD.n){RC.error='Vänta tills pågående ändringar har sparats innan veckan granskas.';render();return}const selected=[...document.querySelectorAll('[data-rcmeal]:checked')].map(x=>Number(x.dataset.rcmeal));const selectedBefore=selected.map(i=>D().menu[i]&&[D().menu[i].date,D().menu[i].who,D().menu[i].recipe].join('|'));RC.selected=selected;if(!selected.length){RC.error='Välj minst en måltid.';render();return}RC.busy=true;render();try{const fresh=await apiGet();setData(fresh);const state=recipePlanState(),r=recipeGet(RC.savedId);if(!r)throw new Error('Receptet saknas.');const rows=recipeClone(state.menu);selected.forEach((i,j)=>{if(!rows[i]||[rows[i].date,rows[i].who,rows[i].recipe].join('|')!==selectedBefore[j]||recipeRoot(rows[i].recipe)!==recipeRoot(r.id))throw new Error('Måltiderna har ändrats. Välj igen.');rows[i].recipe=r.id;rows[i].title=r.title;});
+ const locked=weekLocks(settings().vecka_start),needs=[];rows.forEach(m=>{const rec=m.recipe&&recipeGet(m.recipe);if(!rec||m.who==='Borta')return;if(!locked.has(m.recipe)&&![...locked].some(id=>recipeRoot(id)===recipeRoot(m.recipe)))return;const n=dishPort(m,rec);const pv=protFromAddon(m.addon),rr=pv?protRecipe(rec,{r:rec.id,k:pv.k,v:pv.v}):rec;needs.push({b:MV.behov(rr,n/(Number(rec.portions)||2)),label:isDessert(rec)?'Efterrätt':isStorkok(rec)?'Storkok':new Date(m.date+'T12:00:00').getDay()>=1&&new Date(m.date+'T12:00:00').getDay()<=4?'Vardag':'Helg'});});
+ const k=MV.korg(needs.map(x=>x.b),planLager(settings().vecka_start)),preserved=state.shop.filter(x=>x.done||x.source==='egen'),bought=new Set(preserved.filter(x=>x.done).map(x=>x.name.toLowerCase()+'|'+String(x.qty).toLowerCase())),planned=k.rad.filter(x=>x.n>0).map((x,i)=>({id:'rc-'+RC.savedId.slice(-12)+'-'+i,done:false,name:planVaraNamn(x),qty:MV.forp(x),cat:katGissa(planVaraNamn(x)),meals:[...new Set(needs.filter(n=>n.b[x.k]).map(n=>n.label))],price:shopPris(x),offer:'',store:'',source:'veckoplan',addedBy:S.me,order:800+i})).filter(x=>!bought.has(x.name.toLowerCase()+'|'+x.qty.toLowerCase()));
+ const uncertain=[];rows.forEach(m=>{const rec=m.recipe&&recipeGet(m.recipe);if(!rec||!rec._root||![...locked].some(id=>recipeRoot(id)===recipeRoot(m.recipe)))return;(rec.groups||[]).forEach(g=>(g.items||[]).forEach(it=>{if(it.q==null&&MV.vara(it.n)&&!uncertain.some(x=>x.name===it.n)&&!preserved.some(x=>x.name.toLowerCase()===it.n.toLowerCase()))uncertain.push({id:'rc-unknown-'+uncertain.length,done:false,name:it.n,qty:it.raw||'Mängd behöver anges',cat:katGissa(it.n),meals:['Granska mängd'],price:null,offer:'',store:'',source:'veckoplan',addedBy:S.me,order:999})}))});planned.push(...uncertain);const shop=preserved.concat(planned),diff=[],before=state.shop.filter(x=>!x.done&&x.source!=='egen');planned.forEach(x=>{const old=before.find(y=>y.name===x.name);if(!old||old.qty!==x.qty)diff.push({name:x.name,text:old?old.qty+' → '+x.qty:'Lägg till '+x.qty});});before.filter(x=>!planned.some(y=>y.name===x.name)).forEach(x=>diff.push({name:x.name,text:'Tas bort från kvar att köpa'}));RC.impact={expectedState:recipeDigest(state),menu:rows,shop,diff,op:recipeOp()};RC.error='';
+ }catch(e){RC.impact=null;RC.error=e.message;}finally{RC.busy=false;render()}}
+async function recipeApply(){if(!RC.impact||RC.busy)return;RC.busy=true;render();try{const p=RC.impact,j=await recipeRpc({action:'recipePlanApply',op:p.op,expectedState:p.expectedState,menu:p.menu,shop:p.shop});if(!j.ok){if(j.data)setData(j.data);if(j.code==='conflict')RC.impact=null;throw new Error(j.error)}setData(j.data);RC.impact=null;RC.notice='Valda måltider och inköpslistan är uppdaterade.';}catch(e){RC.error=e.message+' Om svaret försvann kan du försöka igen med samma uppdatering.';}finally{RC.busy=false;render()}}
+async function recipeArchive(id,archived){const h=recipeHead(id);if(!h)return;RC.busy=true;render();try{const j=await recipeRpc({action:'recipeArchive',root:h.root,expectedRev:h.rev,archived,op:recipeOp()});if(!j.ok)throw new Error(j.error);setData(j.data);if(archived){RC.edit=null;recipeDraftClear()}RC.screen='archived';RC.notice=archived?'Arkiverat. Receptet kan återställas här.':'Receptet är återställt.';}catch(e){RC.error=e.message;}finally{RC.busy=false;render()}}
+function recipeLeave(){if(RC.edit&&RC.edit.dirty){RC.confirmLeave=true;render();return false}RC.screen=null;RC.edit=null;RC.error='';RC.notice='';RC.impact=null;return true}
+document.addEventListener('input',e=>{if(e.target.matches('[data-rf],[data-rgroup],[data-ri],[data-rstep],#rc-allow-duplicate'))recipeDraftCapture(e.target);if(e.target.id==='rc-url')RC.importUrl=e.target.value;if(e.target.id==='rc-import-text')RC.importText=e.target.value;});
+document.addEventListener('change',e=>{if(e.target.id==='rc-photo')recipeDraftPhoto(e.target.files[0]);if(e.target.matches('[data-rcmeal]')){RC.selected=[...document.querySelectorAll('[data-rcmeal]:checked')].map(x=>Number(x.dataset.rcmeal));RC.impact=null;}});
+document.addEventListener('submit',e=>{const f=e.target.closest('[data-rcform]');if(!f)return;e.preventDefault();e.stopImmediatePropagation();RC.q=new FormData(f).get('q')||'';document.activeElement?.blur();render();},true);
+document.addEventListener('click',e=>{const el=e.target.closest('[data-rc]');if(!el)return;e.preventDefault();e.stopImmediatePropagation();if(RC.busy)return;const act=el.dataset.rc,id=el.dataset.id,i=Number(el.dataset.i),edit=RC.edit,r=edit&&edit.recipe;RC.error='';
+ if(act==='new'){if(recipeDraftRead()){recipeEdit(null,true)}else recipeEdit(null);return}if(act==='resume'){RC.nextImport=null;RC.nextEdit=null;recipeEdit(null,true);return}if(act==='discardOpen'){const imported=RC.nextImport,next=RC.nextEdit;RC.nextImport=null;RC.nextEdit=null;recipeDraftClear();if(imported)recipeImportDraft(imported);else recipeEdit(next);return}if(act==='edit'){recipeEdit(id);return}
+ if(act==='import'){RC.screen='import';S.view='mat';closeSheets();RC.notice='';}if(act==='fetch'){recipeFetch();return}if(act==='parse'){const text=document.getElementById('rc-import-text').value;RC.importUrl=document.getElementById('rc-url').value;RC.importText=text;if(!text.trim()){RC.error='Klistra in recepttext först.';}else{recipeImportDraft(recipeParseText(text));return}}
+ if(act==='legacySheet'||act==='legacyBank'){edit.recipe=recipeClone(edit.legacyChoices[act==='legacySheet'?'sheet':'bank']);delete edit.legacyChoices;edit.dirty=true;recipeDraftStore();render();return}if(act==='candidate'){recipeImportDraft(RC.candidates[i]);return}if(act==='save'){recipeSave();return}if(act==='leave'){recipeLeave()}if(act==='keep'){recipeDraftStore();RC.edit=null;RC.screen=null;RC.confirmLeave=false;if(RC.leaveTo){const to=RC.leaveTo;RC.leaveTo=null;ACT.nav(to);}} if(act==='discard'){recipeDraftClear();RC.edit=null;RC.screen=null;RC.confirmLeave=false;if(RC.leaveTo){const to=RC.leaveTo;RC.leaveTo=null;ACT.nav(to);}} if(act==='stay')RC.confirmLeave=false;
+ if(act==='fav')RC.fav=!RC.fav;if(act==='quick')RC.max=RC.max?0:30;if(act==='clear'){RC.q='';RC.max=0;RC.fav=false}if(act==='archived')RC.screen='archived';
+ if(act==='addIngredient')r.groups[i].items.push({q:null,u:'',n:''});if(act==='delIngredient'){const[g,j]=el.dataset.i.split(':');r.groups[g].items.splice(Number(j),1)}if(act==='addGroup')r.groups.push({title:'',items:[{q:null,u:'',n:''}]});if(act==='addStep')r.steps.push({t:''});if(act==='delStep')r.steps.splice(i,1);if(act==='stepUp'&&i>0)[r.steps[i-1],r.steps[i]]=[r.steps[i],r.steps[i-1]];if(act==='stepDown'&&i<r.steps.length-1)[r.steps[i+1],r.steps[i]]=[r.steps[i],r.steps[i+1]];if(act==='photoClear')r.img='';
+ if(['addIngredient','delIngredient','addGroup','addStep','delStep','stepUp','stepDown','photoClear'].includes(act)){edit.dirty=true;edit.request=null;edit.pending=false;recipeDraftStore();}
+ if(act==='copy'){edit.root='r-'+recipeOp().slice(3);edit.expectedRev=0;edit.base=null;edit.conflict=false;edit.request=null;edit.recipe=recipeClone(edit.recipe);delete edit.recipe.id;delete edit.recipe._root;delete edit.recipe._revision;recipeDraftStore();}
+ if(act==='latest'){const latest=recipeHead(edit.root);if(latest){recipeDraftStore();RC.edit=null;RC.screen=null;S.recipe=latest.id;render();return}}
+ if(act==='archive'){if(!RC.archiveConfirm){RC.archiveConfirm=true;RC.error='Tryck på Arkivera igen för att bekräfta. Planerade måltider behålls.';}else{RC.archiveConfirm=false;recipeArchive(edit.root,true);return}}if(act==='restore'){recipeArchive(id,false);return}
+ if(act==='preview'){recipePreview();return}if(act==='apply'){recipeApply();return}if(act==='finish'){RC.screen=null;S.recipe=RC.savedId;RC.impact=null;RC.notice='';}
+ document.activeElement?.blur();render();},true);
+addEventListener('beforeunload',e=>{if(RC.edit&&RC.edit.dirty){recipeDraftStore();e.preventDefault();e.returnValue='';}});
+addEventListener('online',()=>{const saved=recipeDraftRead();if(saved&&saved.edit.pending&&!RC.busy){if(!RC.edit)RC.edit=saved.edit;recipeSave();}});
+
 /* ---------- timers, clock, wake lock ---------- */
 let actx=null;function unlockAudio(){try{actx=actx||new(window.AudioContext||window.webkitAudioContext)();actx.resume&&actx.resume()}catch(e){}}
 function beep(){if(!actx)return;try{for(let i=0;i<3;i++){const o=actx.createOscillator(),g=actx.createGain();o.frequency.value=880;o.connect(g);g.connect(actx.destination);const t=actx.currentTime+i*.35;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.3,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+.25);o.start(t);o.stop(t+.3)}}catch(e){}}
@@ -3829,7 +3956,7 @@ let lastDay=today();setInterval(()=>{if(today()!==lastDay){lastDay=today();rende
    ligga kvar på en gammal version. Var tionde minut, och när appen visas igen, jämförs app.js-versionen med den
    som ligger ute. Finns en ny laddas sidan om, men bara när ingen håller på med något och inget väntar på att sparas */
 (function(){const mine=(document.querySelector('script[src*="app.js?v="]')||{}).src||'',v0=(mine.match(/app\.js\?v=(\d+)/)||[])[1];if(!v0)return;let latest=null;
- const lugnt=()=>!OUTBOX.length&&!S.sheet&&!S.cook&&!S.recipe&&!S.shopAdd&&!S.taskAdd&&!document.querySelector('input:focus,textarea:focus')&&Date.now()-(A.touch||0)>120000;
+ const lugnt=()=>!RC.screen&&!RC.busy&&!OUTBOX.length&&!S.sheet&&!S.cook&&!S.recipe&&!S.shopAdd&&!S.taskAdd&&!document.querySelector('input:focus,textarea:focus')&&Date.now()-(A.touch||0)>120000;
  const kolla=async()=>{try{const t=await (await fetch('./index.html',{cache:'no-store'})).text(),v=(t.match(/app\.js\?v=(\d+)/)||[])[1];if(v&&v!==v0)latest=v}catch(e){}
   if(latest&&(lugnt()||document.visibilityState!=='visible'))location.reload()};
  setInterval(kolla,600000);
