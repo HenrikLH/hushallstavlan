@@ -4,7 +4,7 @@ Gren: `codex/recipe-management`. Designunderlag: PR #21. Ingen ändring är publ
 
 ## Vad som finns
 
-- Skapa och redigera namn, eget foto, portioner, tid, kategori/kost, ingrediensgrupper, mängder, instruktioner, stegordning, timer, källa och tips.
+- Skapa och redigera namn, eget foto, portioner, total-/förberedelse-/tillagningstid, kategori/kost, ingrediensgrupper, mängder, instruktioner, stegordning, timer, källa och tips.
 - Gemensam sökning på namn/ingredienser, favoriter, högst 30 minuter och befintliga kategorier i standardgränssnittet. Återanvänder appens form- och menyval, inklusive Runda + Piller.
 - Import från länk eller inklistrad text öppnar ett granskningsutkast. Ingenting sparas automatiskt. Liknande titel/källa/ingredienser ger varning; egen variant kräver uttrycklig bekräftelse.
 - Arkivering och återställning i stället för permanent radering. Arkiverade recept föreslås inte i nya veckoplaner. Redan planerade recept fungerar fortfarande.

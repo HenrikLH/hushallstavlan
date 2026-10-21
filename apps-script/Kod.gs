@@ -939,6 +939,7 @@ function recipeValidate_(raw) {
   r.title=recipeLimit_(r.title,200,'Receptnamnet').trim();if(!r.title)throw new Error('Skriv ett receptnamn.');
   r.portions=Number(r.portions);if(!isFinite(r.portions)||r.portions<=0||r.portions>1000)throw new Error('Ange mellan 0 och 1 000 portioner.');
   r.min=r.min==null||r.min===''?null:Number(r.min);if(r.min!=null&&(!isFinite(r.min)||r.min<=0||r.min>10080))throw new Error('Tiden måste vara positiv eller lämnas tom.');
+  ['prepMin','cookMin'].forEach(function(k){r[k]=r[k]==null||r[k]===''?null:Number(r[k]);if(r[k]!=null&&(!isFinite(r[k])||r[k]<=0||r[k]>10080))throw new Error('Förberedelse- och tillagningstid måste vara positiva eller lämnas tomma.');});
   if(!Array.isArray(r.groups)||!r.groups.length||r.groups.length>30)throw new Error('Lägg till minst en ingrediensgrupp.');
   let count=0;r.groups.forEach(function(g){g.title=recipeLimit_(g.title,100,'Gruppnamnet');if(!Array.isArray(g.items))throw new Error('Ingredienser saknas.');g.items.forEach(function(it){count++;it.n=recipeLimit_(it.n,200,'Ingrediensen').trim();it.u=recipeLimit_(it.u,30,'Enheten');if(!it.n)throw new Error('En ingrediens saknar namn.');if(it.q!=null&&it.q!==''){it.q=Number(it.q);if(!isFinite(it.q)||it.q<=0)throw new Error('Ingrediensmängden måste vara positiv.');}else it.q=null;if(it.raw)recipeLimit_(it.raw,500,'Originalmängden');});});
   if(!count||count>150)throw new Error('Receptet behöver 1–150 ingredienser.');
@@ -999,7 +1000,7 @@ function recipeRecover_() {
   });
   const s=recipeSheet_('journal');if(s){let rows=recipeRows_('journal');while(rows.length>100&&rows[0][1]==='done'){delRow_(s,2);rows.shift();}}
 }
-/* Import: bara verifierade publika HTTPS-värdar; ingen HTML eller JavaScript körs. */
+/* Import: bara tillåtna publika HTTPS-värdar; ingen HTML eller JavaScript körs. */
 const RECIPE_HOSTS=['www.ica.se','ica.se','www.koket.se','koket.se','www.arla.se','arla.se','www.coop.se','coop.se'];
 function recipeSourceKey_(s) { const m=/^(https?):\/\/([^/?#]+)([^?#]*)(?:\?([^#]*))?/i.exec(String(s||'').trim());if(!m)return'';const q=(m[4]||'').split('&').filter(function(p){return p&&!/^(utm_[^=]*|fbclid|gclid)=/i.test(p);}).sort().join('&');return m[1].toLowerCase()+'://'+m[2].toLowerCase().replace(/^www\./,'')+(m[3]||'/').replace(/\/$/,'')+(q?'?'+q:''); }
 function recipeTextCell_(v) { return typeof v==='string'&&/^\s*=/.test(v)?"'"+v:v; }
