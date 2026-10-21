@@ -765,8 +765,8 @@ function wallWx(){const W=wxModel();if(!W)return'';
  const hrs=W.hours.slice(1,25);
  const R=rainTxt(W);
  let h='<div class="bwx"><div class="bwx-r'+(R.wet?' wet':'')+'">'+(R.wet?UMB:I.tick)+'<span>'+esc(R.txt)+'</span></div>';
- h+='<div class="bwx-h" data-act="nav" data-id="vader" role="link" aria-label="Väder timme för timme, öppna vädret">'+hrs.map((x,k)=>{const[ic]=symInfo(x.s),hr=x.d.getHours(),nd=hr===0&&k>0;
-  return'<div class="'+(nd?'nd':'')+'"><span class="fn num">'+(nd?capS(DAYS3[x.d.getDay()]):pad(hr))+'</span><span class="hi">'+ic+'</span><b class="num">'+deg(x.T)+'</b>'+(x.pr>=0.1?'<span class="pr num">'+mm(x.pr)+'</span>':'<span class="pr"></span>')+'</div>'}).join('')+'</div></div>';
+ h+='<div class="bwx-h" data-act="nav" data-id="vader" role="link" aria-label="Väder timme för timme, öppna vädret">'+hrs.map(x=>{const[ic]=symInfo(x.s),hr=x.d.getHours(),nd=hr===0;
+  return'<div class="'+(nd?'nd':'')+'"><span class="fn num">'+(nd?capS(DAYS3[x.d.getDay()])+' 00':pad(hr))+'</span><span class="hi">'+ic+'</span><b class="num">'+deg(x.T)+'</b>'+(x.pr>=0.1?'<span class="pr num">'+mm(x.pr)+'</span>':'<span class="pr"></span>')+'</div>'}).join('')+'</div></div>';
  return h}
 // Paraply? Regnet under resten av dagen (efter kl. 18: i morgon dagtid), med tider och mängd
 const UMB='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 0 1 9 9H3a9 9 0 0 1 9-9z"/><path d="M12 12v7a2 2 0 0 0 4 0"/></svg>';
