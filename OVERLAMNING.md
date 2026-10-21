@@ -19,5 +19,7 @@ Claude och Codex: följ AGENTS.md avsnitt 7. Ersätt inaktuell status; historik 
 
 ## Väntar på Henrik
 
+- Efter uttryckligt publiceringstillstånd: klistra in hela uppdaterade Kod.gs från PR #22 på dator, kör `setupRecipes` och distribuera ny version. Ingen serveruppdatering är gjord. Gamla servern fungerar fortsatt men kan inte spara nya recept.
+
 - Bekräfta UI 3.0 med iPhone-tangentbord och på Surface; verklig hårdvara kan inte verifieras i molnet.
 - Bekräfta adaptiv ljusstyrka på Surface-skärmen (ht-v163–v169); hårdvaran kan inte verifieras i molnet.

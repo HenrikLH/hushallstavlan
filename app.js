@@ -167,7 +167,7 @@ function updJSON(k,def,fn){const st=settings();st[k]=JSON.stringify(recipeChange
  return UPD.chain[k]=(UPD.chain[k]||Promise.resolve()).then(run,run)}
 function bankSnap(r){const x=JSON.parse(JSON.stringify(r));x.savedAt=today();delete x.when;delete x.fav;return x}
 // Ändra ett recept som redan ligger i receptbanken
-function bankEdit(id,fn){const original=id;id=recipeRoot(id);A.user=Date.now();let found=false;BANK_ROWS().forEach(k=>{if(parseJ(settings()[k],[]).some(x=>recipeRoot(x.id)===id)){found=true;updJSON(k,[],a=>a.map(x=>recipeRoot(x.id)===id?fn(Object.assign({},x)):x))}});if(!found&&recipeHead(original)){const row=BANK_ROWS().find(k=>String(settings()[k]||'[]').length<40000)||'receptbank_1',r=Object.assign({},recipeGet(recipeHead(original).id),{id});updJSON(row,[],a=>a.concat([fn(r)]))}}
+function bankEdit(id,fn){const original=id;id=recipeRoot(id);A.user=Date.now();let found=false;BANK_ROWS().forEach(k=>{if(parseJ(settings()[k],[]).some(x=>recipeRoot(x.id)===id)){found=true;updJSON(k,[],a=>a.map(x=>recipeRoot(x.id)===id?fn(Object.assign({},x)):x))}});if(!found&&recipeHead(original)){const r=fn(Object.assign({},recipeGet(recipeHead(original).id),{id})),len=JSON.stringify(r).length,rows=BANK_ROWS(),row=rows.find(k=>String(settings()[k]||'[]').length+len<45000)||'receptbank_'+(Math.max(0,...rows.map(k=>Number(k.split('_')[1])))+1);updJSON(row,[],a=>a.concat([r]))}}
 function addToBank(r,quiet,fav){if(!r||inBank(r.id))return false;const snap=bankSnap(r);if(fav)snap.fav=true;const len=JSON.stringify(snap).length;
  const row=BANK_ROWS().find(k=>String(settings()[k]||'[]').length+len<45000);
  if(!row){if(!quiet)toast('Receptbanken är full. Lägg till fler rader receptbank_N i Inställningar.');return false}

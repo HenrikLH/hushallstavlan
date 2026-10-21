@@ -40,7 +40,9 @@ module.exports=async(pg,h)=>{
  await pg.locator('#rc-photo').setInputFiles({name:'test.png',mimeType:'image/png',buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a8ioAAAAASUVORK5CYII=','base64')});await h.idle(600);
  assert((await pg.evaluate(()=>window.__d('RC.edit.recipe.img'))).includes('test-photo'));await click('[data-rc="save"]');await h.idle(500);await click('[data-rc="finish"]');
  assert.equal(await pg.evaluate(()=>window.__d("recipeGet('legacy-double-test').title")),'Kopia i kalkylarket');
+ const oldRows=h.gas.book.sheets['Inställningar'].rows.filter(r=>/^receptbank_\d+$/.test(r[0]));oldRows.forEach(r=>{r[1]=JSON.stringify([{id:'capacity-'+r[0],title:'Fylld bankrad',tips:'x'.repeat(44950)}]);});const refreshed=JSON.parse(h.gas.handle('GET','',{})).data;await pg.evaluate(d=>window.__d('setData('+JSON.stringify(d)+')'),refreshed);
  await click('[data-act="favToggle"]');await h.idle(700);await h.waitFlush();assert(await pg.evaluate(()=>window.__d('isFav(S.recipe)')));
+ assert(h.gas.book.sheets['Inställningar'].rows.filter(r=>/^receptbank_\d+$/.test(r[0])).length>oldRows.length);
  console.log('PASS RECIPE LEGACY/PHOTO: choose older copy explicitly, photo saved in new version, original frozen, favourite uses stable identity.');
  console.log('PASS RECIPE RELIABILITY: planned version frozen, stale preview blocked, own/bought items preserved, stable lock, two-device conflict and copy, offline retry, archive/restore, structured web review.');
 };
