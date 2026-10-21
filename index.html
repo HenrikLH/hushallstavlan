@@ -1576,7 +1576,7 @@ html.ny .meta{column-gap:10px}
 /* Initialen i personens färg i stället för kugghjulet */
 html.ny .me-av span{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--p1);color:#fff;font-size:15px;font-weight:700;letter-spacing:0}
 html.ny .me-av.p2 span{background:var(--p2)}
-html.ny .me-av.pg span{background:var(--gem-ink)}
+html.ny .me-av.pg span{background:var(--accent);color:var(--on-accent)}
 
 /* Etiketter blir text: personer och sorter får en färgad prick */
 html.ny .chip{background:none!important;padding:0;border-radius:0;font-size:inherit;line-height:inherit;font-weight:400;letter-spacing:inherit;color:var(--ink-2)!important;gap:6px}
@@ -1906,11 +1906,11 @@ html.ny.seg-klassisk .pref-section{border-radius:10px}
 <div id="toast" hidden class="toast" role="status"></div>
 <div id="undo" hidden class="toast undo" role="status"><span class="ud-t"></span><button type="button" class="ud-b" data-act="shopUndo">Ångra</button></div>
 <script src="config.js?v=37"></script>
-<script src="matvaror.js?v=8"></script>
+<script src="matvaror.js?v=9"></script>
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=163"></script>
+<script src="app.js?v=164"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>

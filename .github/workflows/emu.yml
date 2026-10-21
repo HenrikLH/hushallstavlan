@@ -56,6 +56,7 @@ jobs:
           fi
           node verktyg/emu/run.js verktyg/emu/ui-versioner.js
           if [[ "$UI" == "2" ]]; then node verktyg/emu/jamfor-ui2.js; fi
+          node verktyg/emu/run.js verktyg/emu/anvandarfarger.js
           node verktyg/emu/recept-server.js
           node verktyg/emu/run.js verktyg/emu/recept-ui.js
           node verktyg/emu/run.js verktyg/emu/recept-reliability.js
