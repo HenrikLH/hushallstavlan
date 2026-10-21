@@ -30,6 +30,8 @@ Länkimport tillåter HTTPS på ICA, Köket, Arla och Coop. Den försöker läsa
 
 ## Kontroller
 
+Åtta gröna lägen i [CI 39667146110](https://github.com/HenrikLH/hushallstavlan/actions/runs/39667146110), kod/test-commit `3adae148bca234d3eebbd2a493580219d495b4f9`. UI 2:s oförändrade vyer matchar main. Riktiga ljusa/mörka bilder finns i `outputs/recipe-management-implementation/`. Endast dokumentation ändrad efter denna körning.
+
 - Serveremulator: kompatibilitet, idempotent setup, versionssparning, dubletter, validering, konflikt mellan enheter, avbrott/återförsök, arkivering, skydd mot ändrad inköpsförhandsvisning och kontrollerad JSON-LD-import/omdirigering.
 - Webbläsare med låtsaskalkylark: skapa/redigera, söka, granska textimport, dubblettbekräftelse, behålla/återuppta/kasta utkast, foto, äldre kopior, offline, konflikt och kopia, explicit måltidsuppdatering, bevarade egna/köpta varor, arkivera/återställa och gammal server utan de nya flikarna.
 - Telefon och väggstorlek, ljust/mörkt, UI 2 och UI 3; befintliga funktionstester för flikar, inställningar, personer, kalender, uppgifter, inköp och matlagning. CI jämför oförändrade UI 2-vyer mot main; receptvyerna har egna tester och bilder.
