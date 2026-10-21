@@ -1,6 +1,6 @@
 # Recept: implementation inför publiceringsbeslut
 
-Gren: `codex/recipe-management`. Designunderlag: PR #21. Ingen ändring är publicerad och inga riktiga Google-data har ändrats. Publicering kräver Henriks uttryckliga **Pusha**.
+Klientrelease ht-v173 i PR #23, godkänd av Henrik för publicering tillsammans med användarcirkelns färgfix. Designunderlag: PR #21, implementation: PR #22. Ingen riktig Google-data har ändrats av agenten; Apps Script uppdateras manuellt av Henrik.
 
 ## Vad som finns
 
@@ -37,11 +37,11 @@ Länkimport tillåter HTTPS på ICA, Köket, Arla och Coop. Den försöker läsa
 - Telefon och väggstorlek, ljust/mörkt, UI 2 och UI 3; befintliga funktionstester för flikar, inställningar, personer, kalender, uppgifter, inköp och matlagning. CI jämför oförändrade UI 2-vyer mot main; receptvyerna har egna tester och bilder.
 - Riktigt iPhone-tangentbord och Surface-kiosk behöver fortfarande kontrolleras på hårdvaran. Emulerade enheter ersätter inte den kontrollen.
 
-## Efter Pusha, inte nu
+## Serveruppdatering efter godkänd klientrelease
 
 1. Hämta aktuell main, kontrollera diff/CI och skapa ångra-gren enligt AGENTS.md.
 2. Höj service worker-, app- och matvaror-versioner utifrån aktuell main; versionshöjningen är avsiktligt uppskjuten tills publicering godkänts.
 3. Henrik klistrar från dator in hela [Kod.gs på arbetsgrenen](https://github.com/HenrikLH/hushallstavlan/blob/codex/recipe-management/apps-script/Kod.gs) i befintligt Apps Script-projekt. Kör `setupRecipes` (eller `setup`) en gång och distribuera en ny version med samma befintliga webbappsadress. Ändra inte hushållskod/adress.
 4. Publicera klienten först när tillståndet omfattar det; verifiera Pages och prova ett recept mellan två riktiga enheter. Klienten fungerar med gammal server, men nya recept kan inte sparas förrän servern/flikarna är klara.
 
-Publicera inte enbart för att planen, bilderna eller implementationen har godkänts. PR #20:s väderändring är separat.
+Henrik har uttryckligen godkänt publicering av recept och färgfix. PR #20:s väderändring är separat.
