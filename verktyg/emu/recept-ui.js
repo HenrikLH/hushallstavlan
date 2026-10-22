@@ -1,7 +1,7 @@
 const assert=require('node:assert/strict'),gas=require('./gas');
 gas.ctx.setupRecipes();
 module.exports=async(pg,h)=>{
- const click=async(s)=>{await pg.locator(s).first().click();await h.idle(180)};
+ const click=async(s)=>{if(/\[data-rc="(?:new|import)"\]/.test(s)&&!await pg.locator(s).first().isVisible()&&await pg.locator('.create-menu>summary').count())await pg.locator('.create-menu>summary').click();await pg.locator(s).first().click();await h.idle(400)};
  await click('[data-act="matTab"][data-id="recept"]');await click('[data-act="matTab"][data-id="bank"]');
  const search=pg.locator('[data-rcform="search"] .rc-search');assert.equal(await search.locator('svg').count(),1);assert.equal(await search.innerText(),'');
  const look=await search.evaluate(x=>{const c=getComputedStyle(x),p=getComputedStyle(x.form.querySelector('input'),'::placeholder'),b=x.getBoundingClientRect();return{color:c.color,placeholder:p.color,bg:c.backgroundColor,width:b.width,height:b.height}});

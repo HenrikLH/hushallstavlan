@@ -1902,6 +1902,61 @@ html.ny.seg-klassisk .pref-section{border-radius:10px}
 .rc-note{background:var(--fill);border-radius:14px;padding:14px 16px;margin:14px 0;line-height:1.55;font-size:14px}.rc-note p{margin:8px 0}.rc-preview-photo{padding:8px 16px}.rc-preview-photo img{width:100%;max-height:220px;object-fit:cover;border-radius:12px}.rc-save{width:100%}.rc-resume{background:var(--surface);border-radius:14px;margin:8px 0}.rc-note .cell{padding:12px 0}.rc-editor .group{margin-bottom:14px}html.ny.seg-kapsel .rc-note{border-radius:22px}html.ny.seg-kapsel .rc-resume{border-radius:26px}html.ny.seg-klassisk .rc-note,html.ny.seg-klassisk .rc-resume{border-radius:10px}
 @media(min-width:760px){body[data-view=mat] .rc-stack textarea{min-height:70px}.rc-field .field{max-width:65%}.rc-ingredient{grid-template-columns:80px 70px minmax(0,1fr) 40px}}
 
+/* Skapa: samma geometri och ikoner, tre valbara placeringar. */
+html.ny .create-control{position:relative;flex:none}
+html.ny .create-plus,html.ny .head .ib.plus{width:44px;height:44px;min-width:44px;min-height:44px;padding:0;border-radius:50%;display:grid;place-items:center;background:var(--accent);color:var(--on-accent,#fff);border:1px solid transparent;cursor:pointer;list-style:none;flex:none;transition:transform .18s ease,background .18s ease}
+html.ny .create-plus::-webkit-details-marker{display:none}
+html.ny .create-plus svg,html.ny .head .ib.plus svg{width:24px;height:24px;display:block}
+html.ny .create-plus:active{transform:scale(.94)}
+html.ny .create-plus:focus-visible,html.ny .create-options button:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+html.ny .create-profil .create-plus,html.ny .head .ib.plus{background:var(--surface);border-color:var(--line);color:var(--accent)}
+html.ny .head .tools{gap:12px}
+html.ny .sh-btn{height:44px}
+html.ny .fchips{gap:8px}
+html.ny .fchips button{min-height:44px}
+html.ny.seg-kapsel .fchips button{border-radius:999px}
+html.ny .create-close{display:none}html.ny .create-menu[open] .create-open{display:none}html.ny .create-menu[open] .create-close{display:block}
+html.ny .create-options{position:absolute;z-index:35;right:0;top:calc(100% + 10px);width:252px;max-width:calc(100vw - 32px);padding:6px;background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:0 10px 32px rgba(0,0,0,.25);animation:create-in .18s ease}
+html.ny .create-profil .create-options{right:-56px}
+html.ny .create-options button{width:100%;min-height:48px;display:flex;align-items:center;gap:12px;padding:8px 10px;border-radius:10px;text-align:left;color:var(--ink);font-size:15px;font-weight:600;line-height:22px}
+html.ny .create-options button+button{border-top:1px solid var(--line)}
+html.ny .create-options button:hover{background:var(--fill)}
+html.ny .create-options .sh-ic{width:28px;height:28px;margin:0;flex:none;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center}
+html.ny .create-options svg{width:16px;height:16px}
+html.ny .create-flytande{position:fixed;z-index:19;right:max(calc(16px + var(--sar)),calc((100vw - 820px)/2 + 16px));bottom:calc(var(--tabbar) + var(--tabgap) + 16px - var(--vvb,0px))}
+html.ny .create-flytande .create-plus{width:56px;height:56px;box-shadow:0 4px 16px rgba(0,0,0,.22)}
+html.ny .create-flytande .create-options{top:auto;bottom:calc(100% + 10px)}
+html.ny .has-create-float{padding-bottom:72px}
+html.ny body:has(.sheet) .create-flytande,html.ny body.cook-open .create-flytande,html.ny body:has(input:focus,textarea:focus) .create-flytande{display:none}
+html.ny .add-row{min-height:52px;padding:4px 4px 4px 14px;gap:10px}
+html.ny .add-row .field{height:44px}
+html.ny .add-row .add-go{width:44px;min-width:44px;height:44px;min-height:44px;color:var(--on-accent,#fff)}
+html.ny .add-row .add-go svg{width:24px;height:24px}
+html.ny .add-row .create-plus{border-radius:50%}
+html.ny .create-row-action{margin:10px 16px 0;display:flex;align-items:center;gap:12px;color:var(--ink-2)}
+html.ny .recipe-tools{margin:10px 16px 0}
+html.ny .rc-search-row{display:flex;align-items:center;gap:10px}
+html.ny .rc-search-row .add-row{flex:1;min-width:0;margin:0}
+html.ny .rc-tools .add-row .add-go.rc-search{color:var(--ink-3)}
+html.ny .recipe-filters{margin-top:10px;padding-bottom:10px;border-bottom:1px solid var(--line)}
+html.ny .recipe-filter-head,html.ny .recipe-result{min-height:44px;display:flex;align-items:center;justify-content:space-between;gap:12px;color:var(--ink-2);font-size:15px}
+html.ny .recipe-filter-head .tb{min-height:44px;font-size:15px}
+html.ny .recipe-filters .fchips{padding:0;margin:6px 0 0;gap:8px}
+html.ny .recipe-filters .fchips button{min-height:44px}
+html.ny .recipe-archive{display:flex;justify-content:flex-end;margin-top:6px}
+html.ny .recipe-archive .tb{min-height:44px;font-size:15px;display:flex;align-items:center;gap:8px}
+html.ny .recipe-result{margin:0 16px}
+html.ny .recipe-result span+span{font-size:13px}
+html.ny .recipe-empty{margin:0 16px}
+html.ny .recipe-empty .group{margin:0}
+html.ny .recipe-empty .tb{min-height:44px}
+html.ny .recipe-tools .rc-resume{margin-top:10px;border-radius:12px;background:var(--surface)}
+html.ny .recipe-library .bank.mini{margin-top:0}
+html.ny.seg-klassisk .create-options{border-radius:10px}
+html.ny.seg-kapsel .create-options{border-radius:22px}
+@media(min-width:900px){html.ny .recipe-filters .fchips{flex-wrap:wrap;overflow:visible}html.ny .recipe-library .bank.mini{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@keyframes create-in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){html.ny .create-plus{transition:none}html.ny .create-options{animation:none}}
 </style>
 </head>
 <body>
@@ -1916,7 +1971,7 @@ html.ny.seg-klassisk .pref-section{border-radius:10px}
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=165"></script>
+<script src="app.js?v=166"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>

@@ -4,11 +4,11 @@ Claude och Codex: följ AGENTS.md avsnitt 7. Ersätt inaktuell status; historik 
 
 ## Aktuell version
 
-- ht-v174 / app.js?v=165, [PR #25](https://github.com/HenrikLH/hushallstavlan/pull/25), godkänd för publicering av Henrik. Inställningsförslag B (sammanhängande ruta, separat spår, ljust aktivt val) och neutral sökikon i samma färg som receptfältets platshållare.
-- CSS begränsad till UI 2.0:s inställningsrutor; befintliga former och hjälp behålls. Gemensamma receptsökningen får SVG/44 px träffyta och behåller submit/Enter. Ingen Kod.gs- eller hushållsdataändring.
-- Bestående expertarbetsprincip tillagd i AGENTS.md (även Claude). Receptknappar/filter analyserade; uppdragsprompt lämnas i PR-beskrivning. Endast B och sökikon implementeras nu; större receptombyggnad behöver ett konkret lösningsförslag.
-- [CI 39736320731](https://github.com/HenrikLH/hushallstavlan/actions/runs/39736320731), kod/test-commit `3e68b8b`: åtta gröna lägen, tre reglageformer/kontrast, hjälppilar, sökikon/Enter, recept/synk och tidigare tester. UI 2.0:s 15 oförändrade vybilder matchar main. Telefon/vägg × ljust/mörkt bildgranskade; endast överlämning ändrad därefter.
-- Ångra-gren `version-fore-installningar-b-20261022` från `17a8bf5` (ht-v173).
+- ht-v175 / app.js?v=166. Henrik har godkänt bilder och publicering (”Pusha”, 2026-10-22). Ägare Codex, gren `codex/plus-alternativ`. PR #26 är föregående prototyp och ersätts av implementationen.
+- Utseende → Placering av plusknappen: Flytande / Vid profilen / Vid raden, per enhet. Recept öppnar Nytt/Importera; Uppgifter och Inköp återanvänder befintliga formulär/snabbfält. Delade mått/ikoner och neutralt sökfält.
+- Recept har kombinerbara filter, full återställning/resultatantal/tomlägen, separat filterminne per underflik och arkivlänk vid Mina recept. Ny efterrätt får rätt kategori; orörda tomma utkast städas vid Avbryt.
+- Lokalt grönt (appkod `d9a82be`): tre placeringar i telefon/vägg × ljust/mörkt; åtta UI2/UI3-röktester; recept-ui/reliability/server; UI-byte/inställningar/uppgifter/inköp. Åtta oförändrade vyer mot main i fyra lägen: 0 % pixeldiff. Bilder `outputs/plus-alternativ/`; CI på publiceringsgren/PR.
+- Ångra-gren `version-fore-plus-alternativ-20261022` från `35ad0a2` (ht-v174). Ingen Kod.gs-ändring behövs; ingen riktig hushållsdata ändrad.
 
 ## Att veta vid övertagande
 
