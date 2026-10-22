@@ -22,6 +22,7 @@ module.exports=async(pg,h)=>{
  // Avbryt lämnar hushållsdata orörda; gränssnittsvalet sparas per enhet direkt.
  await click('[data-act="sheetClose"]');await pg.reload();await h.idle(1600);assert.equal(await klass(),start);
  assert.equal(String(await read('settings().matbudget')||''),original);
+ await click('[data-act="settings"]');await click('[data-act="addPlace"][data-id="rad"]');await click('[data-act="sheetClose"]');
  await click('#nav [data-act="nav"][data-id="uppgifter"]');
  await click('[data-act="taskTab"][data-id="lista"]');
  const task='UI-test uppgift';await pg.locator('form[data-form="taskQuick"] input').fill(task);await pg.locator('form[data-form="taskQuick"] input').press('Enter');await h.idle(1800);await h.waitFlush();

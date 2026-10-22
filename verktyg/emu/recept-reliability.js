@@ -9,7 +9,7 @@ gas.book.sheets['Inköp'].rows.push([true,'Redan köpt testvara','1 st','Övrigt
 const legacyDouble={...baseline,id:'legacy-double-test',title:'Kopia i kalkylarket'};gas.book.sheets.Recept.rows.push(gas.ctx.recipeRow_(legacyDouble));
 const bankRow=gas.book.sheets['Inställningar'].rows.find(r=>r[0]==='receptbank_1');if(bankRow){const bank=JSON.parse(bankRow[1]);bank.push({...legacyDouble,title:'Sparad annan kopia'});bankRow[1]=JSON.stringify(bank);}else gas.book.sheets['Inställningar'].rows.push(['receptbank_1',JSON.stringify([{...legacyDouble,title:'Sparad annan kopia'}])]);
 module.exports=async(pg,h)=>{
- const click=async(s)=>{await pg.locator(s).first().click();await h.idle(180)};
+ const click=async(s)=>{if(/\[data-rc="(?:new|import)"\]/.test(s)&&!await pg.locator(s).first().isVisible()&&await pg.locator('.create-menu>summary').count())await pg.locator('.create-menu>summary').click();await pg.locator(s).first().click();await h.idle(400)};
  await click('[data-act="matTab"][data-id="vecka"]');await click('[data-act="recipe"][data-id="planned-edit-test"]');await click('[data-rc="edit"]');
  await pg.locator('[data-rf="title"]').fill('Redigerad testpasta');await pg.locator('[data-ri="0:0:amount"]').fill('500');await click('[data-rc="save"]');await h.idle(450);
  assert(h.sheet('Matsedel').some(r=>r[3]==='planned-edit-test'));
