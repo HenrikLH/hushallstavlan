@@ -1,0 +1,43 @@
+name: Receptförslag och skärmbilder
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'verktyg/ux/recept-forslag.js'
+      - 'verktyg/emu/recept-forslag.js'
+      - '.github/workflows/recept-forslag.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  proposal:
+    name: Förslag / ${{ matrix.screen }} / ${{ matrix.theme }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        screen: [telefon, vagg]
+        theme: [light, dark]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - run: npm install --no-save --package-lock=false playwright@1.62.1
+      - run: npx playwright install --with-deps chromium
+      - name: Diagnos, prototyp och tester
+        env:
+          THEME: ${{ matrix.theme }}
+          SCREEN: ${{ matrix.screen }}
+          REDUCED: '1'
+        run: |
+          export LS='{"segstil":"kapsel","flikrad":"piller"}'
+          if [[ "$SCREEN" == "vagg" ]]; then export VP=1368x912; export LS='{"wall":"1","me":"","segstil":"kapsel"}'; fi
+          node verktyg/emu/run.js verktyg/emu/recept-forslag.js
+      - uses: actions/upload-artifact@v5
+        if: ${{ !cancelled() }}
+        with:
+          name: recept-forslag-${{ matrix.screen }}-${{ matrix.theme }}
+          path: verktyg/emu/shots/
+          retention-days: 7
