@@ -4,10 +4,10 @@ Claude och Codex: följ AGENTS.md avsnitt 7. Ersätt inaktuell status; historik 
 
 ## Pågår nu
 
-- Receptens knappar/filter: ägare Codex, gren `codex/recept-filter-forslag`. Henrik beställer först grundorsaksanalys och konkret lösningsförslag med skärmbilder före större ombyggnad.
+- Receptens knappar/filter: ägare Codex, gren `codex/recept-filter-forslag`, [utkast PR #26](https://github.com/HenrikLH/hushallstavlan/pull/26). Henrik beställer först grundorsaksanalys och konkret lösningsförslag med skärmbilder före större ombyggnad.
 - Förslag och avgränsning: `docs/recept-filter-forslag.md`. Prototyp i `verktyg/ux/recept-forslag.js`, endast laddad av eget emulatorscenario. Produktionskod/version och hushållsdata ändras inte.
 - Återanvänd Inköps åtgärdsknappar och neutrala filterkapslar. En urvalsmodell med eget filterminne per underflik, kombinera mattyp/favorit/tid/storkok, full Rensa, korrekt träffantal/tomläge och arkivlänk vid Mina recept. Samlade kort, favoriter först. Befintlig editor/import/arkivsida behålls.
-- Syntax/diff kontrollerade. CI telefon/vägg × ljust/mörkt och bildgranskning återstår. Nästa steg: visa komplett förslag för Henrik; därefter separat implementation om godkänt.
+- [CI 39800233326](https://github.com/HenrikLH/hushallstavlan/actions/runs/39800233326), kod/test-commit `a803d32`: fyra gröna lägen, telefon/vägg × ljust/mörkt, alla föreslagna filterflöden och oförändrade emulerade hushållsdata. Bilder granskade och sparade i `outputs/recept-filter-forslag/`. Endast underlag/bilder/överlämning ändrad efter testerna. Nästa steg: Henriks designval, därefter faktisk implementation; slå inte ihop prototypen som om den ändrade appen.
 
 ## Aktuell version
 

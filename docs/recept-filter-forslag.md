@@ -32,4 +32,11 @@ Status: UX-förslag före ombyggnad. Produktionsfilerna app.js, index.html och K
 
 `verktyg/emu/recept-forslag.js` kör diagnos mot riktig app i emulerad miljö och därefter prototypen `verktyg/ux/recept-forslag.js`. Alla klick/sökningar går via riktiga UI-kontroller. Kontrollerar tre underflikar, kombinerade mattyp/favorit/tid/storkok, ingredienssökning med ikon/Enter, träffantal/tomläge/Rensa allt, separata filterminnen, arkiv/återställning och favorit/sparat i exempeldata. Nytt recept/Importera öppnar befintliga flöden med klick. Emulerade Matsedel, Inköp och Inställningar måste vara exakt oförändrade.
 
-`.github/workflows/recept-forslag.yml` kör telefon/vägg × ljust/mörkt och sparar skärmbilder i sju dagar. Teststatus fylls i OVERLAMNING.md efter körning.
+Verifierat i [CI 39800233326](https://github.com/HenrikLH/hushallstavlan/actions/runs/39800233326), kod/test-commit `a803d32`: fyra gröna lägen, telefon/vägg × ljust/mörkt. Inga PAGEERROR eller scenariofel. Endast underlag, bilder och överlämning ändrades efter detta.
+
+## Skärmbilder från den testade prototypen
+
+- [Telefon, mörkt](../outputs/recept-filter-forslag/telefon-dark.png) · [Telefon, ljust](../outputs/recept-filter-forslag/telefon-light.png)
+- [Vägg, mörkt](../outputs/recept-filter-forslag/vagg-dark.png) · [Vägg, ljust](../outputs/recept-filter-forslag/vagg-light.png)
+- [Kombinerade filter](../outputs/recept-filter-forslag/filter.png) · [Tomt resultat](../outputs/recept-filter-forslag/tomt.png)
+- [Inspiration](../outputs/recept-filter-forslag/inspiration.png) · [Efterrätter](../outputs/recept-filter-forslag/efterratter.png) · [Arkiv](../outputs/recept-filter-forslag/arkiv.png)
