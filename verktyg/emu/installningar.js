@@ -17,9 +17,14 @@ module.exports=async(pg,h)=>{
   const original=await read('SEGSTIL');
   for(const shape of ['standard','kapsel','klassisk']){
    await click('[data-act="segstil"][data-id="'+shape+'"]');
-   const style=await appearance.locator('.segc').first().evaluate(x=>{const c=getComputedStyle(x),b=getComputedStyle(x.closest('.pref-body')),t=getComputedStyle(x.querySelector('.seg-thumb'));return{bg:c.backgroundColor,body:b.backgroundColor,radius:parseFloat(c.borderRadius),thumb:t.backgroundColor}});
+   const style=await appearance.locator('.segc').first().evaluate(x=>{const c=getComputedStyle(x),b=getComputedStyle(x.closest('.pref-body')),t=getComputedStyle(x.querySelector('.seg-thumb')),card=getComputedStyle(x.closest('.pref-section')),active=getComputedStyle(x.querySelector('[aria-pressed=true]'));return{bg:c.backgroundColor,body:b.backgroundColor,radius:parseFloat(c.borderRadius),thumb:t.backgroundColor,card:card.backgroundColor,border:parseFloat(card.borderTopWidth),ink:active.color}});
    assert.notEqual(style.bg,style.body,'Reglagets yttre spår ska skilja sig från bakgrunden');assert.notEqual(style.bg,style.thumb,'Aktivt val ska synas');assert.ok(style.radius>0);
+   assert.equal(style.card,style.body,'Rubrik och innehåll ska ligga i samma sammanhängande ruta');assert.ok(style.border>0,'Rutan ska ha en synlig yttergräns');
+   const lum=s=>s.match(/[\d.]+/g).slice(0,3).map(Number).map(n=>n/255).map(n=>n<=.04045?n/12.92:((n+.055)/1.055)**2.4).reduce((a,n,i)=>a+n*[.2126,.7152,.0722][i],0),contrast=(a,b)=>(Math.max(lum(a),lum(b))+.05)/(Math.min(lum(a),lum(b))+.05);
+   assert.ok(contrast(style.ink,style.thumb)>=4.5,'Det aktiva valet ska ha läsbar text');
+   if(await read('isDark()'))assert.ok(contrast(style.thumb,style.bg)>=3,'B: ljust aktivt val ska tydligt skilja sig från spåret i mörkt läge');
    assert.equal(await appearance.locator('[data-act="segstil"][aria-pressed="true"]').count(),1);
+   if(shape==='kapsel')await h.shot('installningar-b-runda');
   }
   await click('[data-act="segstil"][data-id="'+original+'"]');await h.shot('installningar-utseende');
   await appearance.locator('.sh-hj').filter({hasText:'Form på knappar och rutor'}).click();await h.idle(250);await h.shot('installningar-hjalp');

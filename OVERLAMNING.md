@@ -2,7 +2,14 @@
 
 Claude och Codex: följ AGENTS.md avsnitt 7. Ersätt inaktuell status; historik och detaljer finns i git/PR/CI.
 
-## Aktuell version
+## Pågår nu
+
+- Ägare Codex, gren `codex/settings-b`: Henrik har valt inställningsförslag B (sammanhängande ruta, separat spår, ljust aktivt val) och beställt neutral sökikon i samma färg som receptfältets platshållare. Arbetsversion ht-v174 / app.js?v=165.
+- CSS begränsad till UI 2.0:s inställningsrutor; befintliga former och hjälp behålls. Gemensamma receptsökningen får SVG/44 px träffyta och behåller submit/Enter. Ingen Kod.gs- eller hushållsdataändring.
+- Bestående expertarbetsprincip tillagd i AGENTS.md (även Claude). Receptknappar/filter analyserade; uppdragsprompt lämnas i PR-beskrivning. Endast B och sökikon implementeras nu; större receptombyggnad behöver ett konkret lösningsförslag.
+- Syntax/diff kontrollerade; CI och faktiska skärmbilder återstår.
+
+## Publicerad version
 
 - Release ht-v173 / app.js?v=164 / matvaror.js?v=9, [PR #23](https://github.com/HenrikLH/hushallstavlan/pull/23). Henrik godkände uttryckligen publicering av färgfix och recept. G-cirkeln följer accent/on-accent; H/C följer personfärger.
 - Recept: editor, sök/filter, granskad import, dubblettval, prisosäkerhet, offlineutkast, versioner, arkivering och konfliktkontroll. Matsedel bevaras tills valda måltider/inköp uttryckligen uppdateras.
