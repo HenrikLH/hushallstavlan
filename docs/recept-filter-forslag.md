@@ -19,6 +19,7 @@ Status: UX-förslag före ombyggnad. Produktionsfilerna app.js, index.html och K
 4. Visa antalet faktiska träffar från samma urval som korten. Mina recept blir en samlad lista, favoriter först; hjärtan visar vilka de är. Inga tomma favoritgrupper överst. Återanvänd befintliga kompakta receptkort konsekvent i alla tre underflikar.
 5. Visa arkiverade är en tydlig navigeringslänk i Mina recepts filterområde. Behåll den befintliga arkivsidan/återställningen. Tillbaka återger Mina recepts tidigare sökning/filter; arkivering påverkar aldrig planerade receptversioner.
 6. Ett tomläge: Inga recept matchar dina val, med synlig återställning. Skilj en tom receptbank från ett filtrerat tomt resultat. Behåll laddnings-/nätfel som egna tillstånd.
+7. Visa veckodatum under Vecka/Inköp där det behövs; receptbiblioteket är oberoende av veckan. Det frigör utrymme för faktiska recept på telefonen.
 
 ## Gräns och nästa implementation
 

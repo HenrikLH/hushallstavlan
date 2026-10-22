@@ -21,18 +21,19 @@
  const seg=(options,current)=>'<div class="segc" style="--n:'+options.length+';--i:'+options.findIndex(x=>x[0]===current)+'"><div class="seg-thumb" aria-hidden="true"></div>'+options.map(([k,l])=>'<button type="button" data-ux="tab" data-value="'+k+'" aria-pressed="'+(k===current)+'">'+l+'</button>').join('')+'</div>';
  const card=r=>'<article class="bcard '+r.type+'" data-recipe="'+r.id+'"><div class="bimgw"><div class="bimg"><span aria-hidden="true">'+d('foodIcon('+JSON.stringify(r.title)+', '+JSON.stringify({course:r.type==='e'?'efterrätt':''})+')')+'</span></div><button type="button" class="bc-gl rp-book'+(r.saved?' on':'')+'" data-ux="save" data-id="'+r.id+'" aria-label="Spara '+esc(r.title)+'" aria-pressed="'+!!r.saved+'">'+(r.saved?I.bookmarkOn:I.bookmark)+'</button><button type="button" class="bc-gl rp-heart'+(r.fav?' on':'')+'" data-ux="heart" data-id="'+r.id+'" aria-label="Favorit '+esc(r.title)+'" aria-pressed="'+!!r.fav+'">'+(r.fav?I.heartOn:I.heart)+'</button></div><div class="bbody"><span class="chips-row"><span class="chip">'+label[r.type]+'</span><span class="chip">'+r.min+' min</span></span><h2 class="btitle">'+esc(r.title)+'</h2></div></article>';
  const style=document.createElement('style');style.textContent=`
- .ux-recept .ux-search{margin:12px 16px 0}.ux-recept .ux-filter{margin:10px 16px 0;padding-bottom:10px;border-bottom:1px solid var(--line)}
+ body[data-recipe-proposal] #navbar{display:none}
+ .ux-recept .ux-search{margin:12px 16px 0}.ux-recept .ux-search .add-row{margin:0}.ux-recept .ux-filter{margin:10px 16px 0;padding-bottom:10px;border-bottom:1px solid var(--line)}
  .ux-recept .ux-filter-head,.ux-recept .ux-result{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:34px;color:var(--ink-2);font-size:15px}
  .ux-recept .ux-filter-head .tb{font-size:15px;min-height:34px}.ux-recept .fchips{padding:0;margin-top:6px}.ux-recept .fchips button{min-height:36px}
  .ux-recept .ux-archive{display:flex;justify-content:flex-end;margin-top:6px}.ux-recept .ux-archive .tb{font-size:15px;display:flex;gap:6px;align-items:center;min-height:36px}.ux-recept .ux-archive svg{width:8px;height:12px}
  .ux-recept .ux-result{margin:8px 16px 0}.ux-recept .bank{margin-top:6px}.ux-recept .ux-empty{margin:8px 16px}.ux-recept .ux-empty .group{margin:0}.ux-recept .ux-empty .tb{margin-top:6px}
- .ux-recept .ux-result-note{font-size:13px}.ux-recept .sh-tools .sh-btn{min-height:44px}.ux-recept .bc-gl{min-width:40px;min-height:40px}.ux-recept .bank.mini .bc-gl.rp-book{right:54px}
+ .ux-recept .ux-result-note{font-size:13px}.ux-recept .bc-gl{min-width:40px;min-height:40px}.ux-recept .bank.mini .bc-gl.rp-book{right:54px}
  .ux-recept .ux-count{color:var(--ink-2);font-weight:400}.ux-recept .ux-return{margin:0 16px}.ux-recept .ux-archive-title{margin:10px 16px 0}
  @media(min-width:900px){.ux-recept .ux-filter{display:grid;grid-template-columns:1fr auto;gap:4px 14px}.ux-recept .ux-filter-head{grid-column:1/-1}.ux-recept .ux-filter .fchips{overflow:visible;flex-wrap:wrap}.ux-recept .ux-archive{grid-column:1/-1;margin:0}.ux-recept .bank.mini{grid-template-columns:repeat(3,minmax(0,1fr))}}
  `;document.head.append(style);
  function render(){
   const root=document.getElementById('main');root.classList.add('ux-recept');const f=filters[tab],n=count(f),list=recipes.filter(match).sort((a,b)=>Number(!!b.fav)-Number(!!a.fav));
-  let html=d('head("Mat",{sub:weekSub()})')+d('segc("Visa","matTab",[["vecka","Vecka"],["inkop","Inköp"],["recept","Recept"]],"recept")')+'<div class="subseg">'+seg(tabs,tab)+'</div>';
+  let html=d('head("Mat")')+d('segc("Visa","matTab",[["vecka","Vecka"],["inkop","Inköp"],["recept","Recept"]],"recept")')+'<div class="subseg">'+seg(tabs,tab)+'</div>';
   if(archive){const a=recipes.filter(r=>r.archived);root.innerHTML=html+'<div class="ux-return"><button class="back" data-ux="back">'+I.back+'Mina recept</button></div><div class="ux-archive-title"><h2 class="t2">Arkiverade recept <span class="ux-count">'+a.length+'</span></h2><p class="sub">Planerade måltider och historik finns kvar.</p></div><div class="group" style="margin-top:14px">'+(a.length?a.map(r=>'<div class="cell"><span class="grow">'+esc(r.title)+'</span><button type="button" class="tb" data-ux="restore" data-id="'+r.id+'">Återställ</button></div>').join(''):'<div class="cell empty">Inga arkiverade recept.</div>')+'</div>';return}
   html+='<div class="sh-tools"><button type="button" class="sh-btn" data-rc="new"><span class="sh-ic">'+I.plus+'</span><b>Nytt recept</b></button><button type="button" class="sh-btn" data-rc="import"><span class="sh-ic">'+I.imp+'</span><b>Importera</b></button></div>';
   html+='<div class="rc-tools ux-search"><form class="add-row" data-ux-form="search"><input class="field" name="q" value="'+esc(f.q)+'" placeholder="Sök recept eller ingrediens" aria-label="Sök recept eller ingrediens" enterkeyhint="search"><button type="submit" class="add-go rc-search" aria-label="Sök">'+I.search+'</button></form></div>';
@@ -49,5 +50,5 @@
   if(a==='tab'){tab=b.dataset.value;archive=false}if(a==='type')f.type=b.dataset.value;if(['fav','quick','batch'].includes(a))f[a]=!f[a];if(a==='clear')filters[tab]=initial();if(a==='archive')archive=true;if(a==='back')archive=false;if(a==='restore')r.archived=false;
   if(a==='heart'){r.fav=!r.fav;if(r.fav)r.saved=true}if(a==='save'){r.saved=!r.saved;if(!r.saved)r.fav=false}render();
  },true);
- window.__recipeProposal={render,snapshot:()=>JSON.parse(JSON.stringify({tab,archive,filters,recipes}))};render();
+ document.body.dataset.recipeProposal='1';window.__recipeProposal={render,snapshot:()=>JSON.parse(JSON.stringify({tab,archive,filters,recipes}))};render();window.scrollTo(0,0);
 })();

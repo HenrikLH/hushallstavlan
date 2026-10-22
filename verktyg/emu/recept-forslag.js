@@ -8,7 +8,8 @@ module.exports=async(pg,h)=>{
  console.log('DIAGNOS: samma pill-komponent för handlingar/filter; dubbelt snabbfilter; Rensa lämnar mattyp; global sökning och separat mattyp; olika resultatsammanställningar.');
  await pg.addScriptTag({path:path.join(__dirname,'../ux/recept-forslag.js')});
  const cards=()=>pg.locator('.ux-recept [data-recipe]'),state=()=>pg.evaluate(()=>window.__recipeProposal.snapshot());
- assert.equal(await cards().count(),4);assert.equal(await pg.locator('[data-ux="archive"]').count(),1);await h.shot('forslag-mina-recept');
+ assert.equal(await cards().count(),4);assert.equal(await pg.locator('[data-ux="archive"]').count(),1);
+ const head=await pg.locator('.ux-recept .head').boundingBox(),searchBox=await pg.locator('[data-ux-form="search"]').boundingBox(),toolsBox=await pg.locator('.ux-recept .sh-tools').boundingBox();assert.ok(head.y>=0);assert.ok(Math.abs(searchBox.x-toolsBox.x)<1,'Sökning och åtgärder ska följa samma sidmarginal');await h.shot('forslag-mina-recept');
  const action=await pg.locator('.ux-recept .sh-btn').first().evaluate(x=>({height:x.getBoundingClientRect().height,bg:getComputedStyle(x).backgroundColor,color:getComputedStyle(x).color,icon:x.querySelector('.sh-ic svg')!==null}));assert.ok(action.height>=40&&action.icon);
  const icon=await pg.locator('.ux-recept .rc-search').evaluate(x=>({color:getComputedStyle(x).color,placeholder:getComputedStyle(x.form.querySelector('input'),'::placeholder').color,bg:getComputedStyle(x).backgroundColor}));assert.equal(icon.color,icon.placeholder);assert.equal(icon.bg,'rgba(0, 0, 0, 0)');
  await click('[data-ux="type"][data-value="v"]');await click('[data-ux="fav"]');await click('[data-ux="quick"]');assert.equal(await cards().count(),1);assert.equal(await cards().first().getAttribute('data-recipe'),'linser');assert.match(await pg.locator('.ux-result').innerText(),/1 recept matchar/);await h.shot('forslag-filter-kombination');
