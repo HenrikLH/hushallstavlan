@@ -28,6 +28,9 @@ All text som användaren ser är på **svenska**, vardaglig och kort. Commit-med
 - **Listor**: en yta (ett kort) med tunna skiljelinjer mellan raderna och grupprubriker som band, inte en separat ruta per grupp.
 - Han vill helst kunna välja mellan alternativ (A/B/C) när det finns flera rimliga designer.
 - Apps Script (`Kod.gs`) kan han bara klistra in från en **dator**, inte från telefonen. Se avsnitt 5.
+- **Arbeta som ämnesexpert:** utgå från användarmålet och identifiera grundorsaken i kod och faktiskt beteende, även när Henrik beskriver symtomet eller använder andra ord. Skilj verifierade orsaker från antaganden.
+- Föreslå den enklaste åtgärd som löser hela grundproblemet och passar appens huvudsakliga mål. Återanvänd befintliga komponenter och rutiner; förklara kort lösning och avvägningar innan större ändringar.
+- Kontrollera befintliga verktyg/skills och åtkomst själv. Om något nödvändigt saknas: föreslå den enklaste lämpliga konfigureringen och ange exakt vilken åtkomst Henrik behöver ge. Begär inte ny åtkomst när befintliga verktyg räcker. Återkom med ett komplett, genomförbart lösningsförslag.
 
 ## 3. Arkitektur
 
