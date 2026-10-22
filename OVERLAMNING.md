@@ -4,7 +4,7 @@ Claude och Codex: följ AGENTS.md avsnitt 7. Ersätt inaktuell status; historik 
 
 ## Aktuell version
 
-- ht-v175 / app.js?v=166. Henrik har godkänt bilder och publicering (”Pusha”, 2026-10-22). Ägare Codex, gren `codex/plus-alternativ`. PR #26 är föregående prototyp och ersätts av implementationen.
+- ht-v175 / app.js?v=166, [PR #27](https://github.com/HenrikLH/hushallstavlan/pull/27). Henrik har godkänt bilder och publicering (”Pusha”, 2026-10-22). Ägare Codex, gren `codex/plus-alternativ`. PR #26 är föregående prototyp och ersätts av implementationen.
 - Utseende → Placering av plusknappen: Flytande / Vid profilen / Vid raden, per enhet. Recept öppnar Nytt/Importera; Uppgifter och Inköp återanvänder befintliga formulär/snabbfält. Delade mått/ikoner och neutralt sökfält.
 - Recept har kombinerbara filter, full återställning/resultatantal/tomlägen, separat filterminne per underflik och arkivlänk vid Mina recept. Ny efterrätt får rätt kategori; orörda tomma utkast städas vid Avbryt.
 - Lokalt grönt (appkod `d9a82be`): tre placeringar i telefon/vägg × ljust/mörkt; åtta UI2/UI3-röktester; recept-ui/reliability/server; UI-byte/inställningar/uppgifter/inköp. Åtta oförändrade vyer mot main i fyra lägen: 0 % pixeldiff. Bilder `outputs/plus-alternativ/`; CI på publiceringsgren/PR.
