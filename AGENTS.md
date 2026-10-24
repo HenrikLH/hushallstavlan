@@ -52,7 +52,7 @@ Telefon / väggskärm (PWA)  ──GET/POST──▶  Google Apps Script-webbapp
   - En skärm som alltid står på laddar om sig själv när `app.js?v=` i `index.html` har ändrats (kollas var tionde minut, bara när ingen gör något).
 - Andra filer: `matvaror.js` (basvaror, förpackningar, priser, kategorier), `matpoang.js`, `restpoang.js` (poäng för veckoförslag och rester), `kottveg.js` (rätter med kött- och vegvariant), `willys-sok.js`, `inspiration.json` (≈100 inspirationsrecept), `sw.js` (service worker), `config.js` (Apps Script-adressen), `bilder/`, `icons/`, `widget.html`/`widget.txt` (hemskärmswidget), `kiosk/` (installationsskript och ljussensortjänst för väggdatorn).
 - **Apps Script** (`apps-script/Kod.gs`): `doGet` ger all data (`settings, shop, tasks, clean, menu, events, offers, recipes`), `doPost` tar `{action, key, by, …}`. Flikar och kolumner står i `TABS` och `COLS` högst upp. Hushållskoden (`key`) kontrolleras i `checkKey_`.
-- **Inställningar som appen får skriva** måste stå i `SETTING_KEYS_WRITABLE` (eller vara `receptbank_N`). En ny nyckel ger annars felet "Inställningen kan inte ändras från appen" tills Henrik klistrat in ny `Kod.gs`. Återanvänd hellre en befintlig nyckel (till exempel lagras efterrätt och lås i `onskelista`).
+- **Inställningar som appen får skriva** måste stå i `SETTING_KEYS_WRITABLE` (eller vara `receptbank_N`). En ny nyckel ger annars felet "Inställningen kan inte ändras från appen" tills Henrik klistrat in ny `Kod.gs`. Återanvänd hellre en befintlig nyckel (till exempel lagras efterrätt, lås och egna födelsedagar `{fod:1,add,del}` i `onskelista`).
 
 ## 4. Versioner och publicering (gör så här varje gång)
 

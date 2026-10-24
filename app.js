@@ -145,7 +145,7 @@ const isFav=id=>bankRaw().some(x=>recipeRoot(x.id)===recipeRoot(id)&&x.fav);
 function kcalOf(id){const v=parseJ(settings().kcal,{})[recipeRoot(id)];if(v==null||v==='')return null;const n=Number(Array.isArray(v)?v[0]:v);return n>0?{n:Math.round(n)}:null}
 const ratings=()=>recipeAliases(parseJ(settings().betyg,{}));
 // Veckans efterrätt och låsta rätter ligger också i önskelistan (som {efter:1,...} och {las:1,...}) men är inga önskemål
-const wishes=()=>recipeWishes(parseJ(settings().onskelista,[])).filter(x=>x&&!x.efter&&!x.las);
+const wishes=()=>recipeWishes(parseJ(settings().onskelista,[])).filter(x=>x&&!x.efter&&!x.las&&!x.fod);
 function ratingOf(id){const x=ratings()[id];if(!x||!x.p)return null;const ps=Object.entries(x.p).filter(([,e])=>e&&e.s);if(!ps.length)return null;
  return{avg:ps.reduce((a,[,e])=>a+Number(e.s),0)/ps.length,people:ps,never:ps.some(([,e])=>e.v==='aldrig')}}
 const VERD={igen:'Laga igen',okej:'Okej',aldrig:'Aldrig mer'};
@@ -483,15 +483,15 @@ let camN=0;setInterval(()=>{if(KAL)return;if(CAM.src==='als'&&!ALS||++camN%60===
 const DEL={items:null,list:null,t:0};
 function delCommit(keep){if(!DEL.items)return;clearTimeout(DEL.t);const ids=DEL.items.filter(x=>!keep||keep(x)).map(x=>x.id);DEL.items=null;DEL.list=null;undoHide();ids.forEach(id=>apiPost({action:'shopDelete',id}))}
 // Tar bort varorna direkt i appen och visar Ångra i 5 sekunder
-function delStart(items,msg){delCommit();cdelCommit();if(!items.length)return;const ids=new Set(items.map(x=>x.id));DEL.list=D().shop.slice();DEL.items=items;S.data.shop=D().shop.filter(x=>!ids.has(x.id));render();
+function delStart(items,msg){delCommit();cdelCommit();fdelCommit();if(!items.length)return;const ids=new Set(items.map(x=>x.id));DEL.list=D().shop.slice();DEL.items=items;S.data.shop=D().shop.filter(x=>!ids.has(x.id));render();
  const u=document.getElementById('undo');u.querySelector('.ud-t').textContent=msg;u.querySelector('.ud-b').dataset.act='shopUndo';u.hidden=false;DEL.t=setTimeout(delCommit,5000)}
 // Samma sak för sysslor i Städ
 const CDEL={item:null,list:null,t:0};
 function cdelCommit(){if(!CDEL.item)return;clearTimeout(CDEL.t);const id=CDEL.item.id;CDEL.item=null;CDEL.list=null;undoHide();apiPost({action:'cleanDelete',id})}
-function cdelStart(t){delCommit();cdelCommit();CDEL.list=D().clean.slice();CDEL.item=t;S.data.clean=D().clean.filter(x=>x.id!==t.id);render();
+function cdelStart(t){delCommit();cdelCommit();fdelCommit();CDEL.list=D().clean.slice();CDEL.item=t;S.data.clean=D().clean.filter(x=>x.id!==t.id);render();
  const u=document.getElementById('undo');u.querySelector('.ud-t').textContent=t.title+' togs bort';u.querySelector('.ud-b').dataset.act='cleanDelUndo';u.hidden=false;CDEL.t=setTimeout(cdelCommit,5000)}
 function undoHide(){const u=document.getElementById('undo');if(u)u.hidden=true}
-addEventListener('visibilitychange',()=>{if(document.hidden){delCommit();cdelCommit()}});
+addEventListener('visibilitychange',()=>{if(document.hidden){delCommit();cdelCommit();fdelCommit()}});
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>t.hidden=true,2800)}
 // Kalkylarket vägrar ta bort sista raden under rubriken. En dold egen rad i Inköp gör att fliken aldrig töms helt.
 const PLATS='(rad för appen, ta inte bort)';let platsFinns=false;
@@ -700,14 +700,14 @@ const dayHead=s=>{const d=parse(s);return DAYS[d.getDay()]+' '+d.getDate()+' '+M
 const V={};
 /* En gemensam skapa-knapp, med sidans egna åtgärder. Valet sparas bara på enheten. */
 function addPlace(){return ['flytande','rad'].includes(lsGet('addPlace'))?lsGet('addPlace'):'profil'}
-function addContext(){if(!NY||S.recipe||S.cook||S.view==='mat'&&(RC.screen||S.plan))return null;if(S.view==='mat'&&['recept','bank','efter'].includes(S.matTab))return{recipe:true,label:'Lägg till recept'};if(S.view==='mat'&&S.matTab==='inkop')return{act:'shopAdd',form:'shopQuick',label:'Ny vara'};if(S.view==='uppgifter')return{act:'taskAdd',form:S.taskTab==='lista'?'taskQuick':'',label:'Ny uppgift'};if(S.view==='stad'&&addPlace()==='profil')return{act:'cleanAdd',form:'cleanQuick',label:'Ny syssla'};return null}
+function addContext(){if(!NY||S.recipe||S.cook||S.view==='mat'&&(RC.screen||S.plan))return null;if(S.view==='mat'&&['recept','bank','efter'].includes(S.matTab))return{recipe:true,label:'Lägg till recept'};if(S.view==='mat'&&S.matTab==='inkop')return{act:'shopAdd',form:'shopQuick',label:'Ny vara'};if(S.view==='uppgifter')return{act:'taskAdd',form:S.taskTab==='lista'?'taskQuick':'',label:'Ny uppgift'};if(S.view==='stad'&&addPlace()==='profil')return{act:'cleanAdd',form:'cleanQuick',label:'Ny syssla'};if(S.view==='fod')return{act:'fodAdd',form:'',label:'Ny födelsedag'};return null}
 function addControl(c,mode){return '<div class="create-control create-'+mode+'">'+(c.recipe?'<details class="create-menu"><summary class="create-plus" aria-label="Lägg till recept"><span class="create-open">'+I.plus+'</span><span class="create-close">'+I.x+'</span></summary><div class="create-options" aria-label="Lägg till recept"><button type="button" data-rc="new"><span class="sh-ic">'+I.plus+'</span>Nytt recept</button><button type="button" data-rc="import"><span class="sh-ic">'+I.imp+'</span>Importera recept</button></div></details>':'<button type="button" class="create-plus" data-act="'+c.act+'" aria-label="'+c.label+'">'+I.plus+'</button>')+'</div>'}
 function addLayout(m){document.getElementById('create-dock')?.remove();const c=addContext(),mode=addPlace();m.classList.toggle('has-create-float',!!c&&mode==='flytande');m.classList.toggle('recipe-library',!!c?.recipe);if(!c)return;
  m.querySelectorAll('.head .plus').forEach(x=>x.remove());const quick=c.form&&m.querySelector('form[data-form="'+c.form+'"]');
  if(mode==='rad'&&quick){quick.classList.add('create-row');quick.querySelector('.add-go').classList.add('create-plus');return}
  if(quick)quick.remove();const html=addControl(c,mode);
  if(mode==='profil')m.querySelector('.head .tools')?.insertAdjacentHTML('afterbegin',html);
- else if(mode==='rad'){const search=m.querySelector('.rc-search-row');if(search)search.insertAdjacentHTML('beforeend',html);else m.querySelector('.segc')?.insertAdjacentHTML('afterend','<div class="create-row-action">'+html+'<span>'+c.label+'</span></div>')}
+ else if(mode==='rad'){const search=m.querySelector('.rc-search-row');if(search)search.insertAdjacentHTML('beforeend',html);else(m.querySelector('.segc')||m.querySelector('.head'))?.insertAdjacentHTML('afterend','<div class="create-row-action">'+html+'<span>'+c.label+'</span></div>')}
  else document.body.insertAdjacentHTML('beforeend','<div id="create-dock">'+html+'</div>');
 }
 document.addEventListener('click',e=>{document.querySelectorAll('.create-menu[open]').forEach(x=>{if(!x.contains(e.target))x.open=false})});
@@ -2257,7 +2257,7 @@ function overlayKeepScroll(){const o=document.getElementById('overlay'),k=o.data
  const nb=o.querySelector('.sheet-body');if(y&&k&&o.dataset.k===k&&nb&&nb!==b)nb.scrollTop=y}
 function renderOverlay(){
  const o=document.getElementById('overlay');
- const k=S.cook?'cook':S.sheet==='settings'?'settings':S.sheet==='farg'?'farg':S.sheet==='vagg'?'vagg':S.sheet==='ljuskal'?'ljuskal':S.sheet==='rate'?'rate':S.sheet==='income'?'income':S.sheet==='cost'?'cost':S.sheet==='ov'?'ov':S.sheet==='prefs'?'prefs':S.sheet==='swap'?'swap':S.sheet==='prot'?'prot':S.sheet==='wish'?'wish':S.sheet==='shopMore'?'shopMore':S.sheet==='dess'?'dess':S.sheet==='slot'?'slot':S.sheet==='delLas'?'delLas':S.rcpSheet?'rcpSheet':S.sheet==='cleanAdd'?'cleanAdd':S.sheet==='taskEdit'?'taskEdit':S.sheet==='evEdit'?'evEdit':S.shopAdd?'shop':S.taskAdd?'task':'';
+ const k=S.cook?'cook':S.sheet==='settings'?'settings':S.sheet==='farg'?'farg':S.sheet==='vagg'?'vagg':S.sheet==='ljuskal'?'ljuskal':S.sheet==='rate'?'rate':S.sheet==='income'?'income':S.sheet==='cost'?'cost':S.sheet==='ov'?'ov':S.sheet==='prefs'?'prefs':S.sheet==='swap'?'swap':S.sheet==='prot'?'prot':S.sheet==='wish'?'wish':S.sheet==='shopMore'?'shopMore':S.sheet==='dess'?'dess':S.sheet==='slot'?'slot':S.sheet==='delLas'?'delLas':S.rcpSheet?'rcpSheet':S.sheet==='cleanAdd'?'cleanAdd':S.sheet==='fodAdd'?'fodAdd':S.sheet==='taskEdit'?'taskEdit':S.sheet==='evEdit'?'evEdit':S.shopAdd?'shop':S.taskAdd?'task':'';
  const prev=o.dataset.k||'';
  // Rita inte om ett öppet blad medan någon skriver i det
  if(k&&k!=='cook'&&k===prev&&busyTyping()&&o.contains(document.activeElement))return;
@@ -2418,6 +2418,13 @@ function renderOverlay(){
   o.innerHTML=sheetHtml('shop','Ny vara','<button class="tb strong">Lägg till</button>',body,enter);return}
  if(k==='cleanAdd'){
   o.innerHTML=sheetHtml('cleanQuick','Ny syssla','<button class="tb strong">Lägg till</button>',group('<div class="cell"><input class="field" id="clean-title" name="title" placeholder="Vad behöver göras?" aria-label="Syssla" required autocomplete="off" enterkeyhint="done"></div>')+'<div class="foot">Rummet väljs utifrån namnet. Du kan ändra sysslan efteråt.</div>',enter);return}
+ if(k==='fodAdd'){const t=parse(today()),ty=t.getFullYear();let yrs='<option value="">Vet inte</option>';for(let y=ty;y>=ty-110;y--)yrs+='<option>'+y+'</option>';
+  const body='<div style="height:16px"></div>'+group('<div class="cell"><input class="field" id="fod-name" name="namn" placeholder="Namn" required autocomplete="off" enterkeyhint="done" aria-label="Namn"></div>'+
+   fieldCell('Dag',menuSel('name="dag" aria-label="Dag"',Array.from({length:31},(_,i)=>'<option'+(i+1===t.getDate()?' selected':'')+'>'+(i+1)+'</option>').join('')))+
+   fieldCell('Månad',menuSel('name="man" aria-label="Månad"',MON.map((x,i)=>'<option value="'+(i+1)+'"'+(i===t.getMonth()?' selected':'')+'>'+cap(x)+'</option>').join('')))+
+   fieldCell('Födelseår',menuSel('name="ar" aria-label="Födelseår"',yrs)))+
+   '<div class="foot">Med födelseår visas hur gammal personen blir. Födelsedagar från kalendern kommer med av sig själva.</div>';
+  o.innerHTML=sheetHtml('fodAdd','Ny födelsedag','<button class="tb strong">Lägg till</button>',body,enter);return}
  if(k==='task'){
   const body='<div style="height:16px"></div>'+group('<div class="cell"><input class="field" id="task-title" name="title" placeholder="Vad behöver göras?" required autocomplete="off" aria-label="Uppgift"></div>'+
    fieldCell('Datum','<input class="field r" id="task-due" name="due" type="date" value="'+esc(S.taskDue||'')+'" style="max-width:170px">')+
@@ -3247,17 +3254,29 @@ V.ekonomi=function(){if(ekoLocked())return ekoLock();const m=S.ekoMonth||thisMon
    Listan står som JSON i fliken Inställningar (raden fodelsedagar) och skrivs av kalenderrutinen:
    [{"namn":"Leah","datum":"10-15","ar":2014}, …]. ar saknas när födelseåret inte står i kalendern. */
 const MON3=['jan','feb','mar','apr','maj','jun','jul','aug','sep','okt','nov','dec'];
-function bdays(){const t=today(),ty=Number(t.slice(0,4)),seen=new Set();
- return parseJ(settings().fodelsedagar,[]).map(x=>{const m=/^(\d{1,2})-(\d{1,2})$/.exec(String(x&&x.datum||''));if(!m||!x.namn)return null;
-  const mo=Number(m[1])-1,dd=Number(m[2]),k=x.namn+'|'+mo+'|'+dd;if(mo<0||mo>11||seen.has(k))return null;seen.add(k);
+/* Egna ändringar sparas i onskelista som {fod:1,add:[{namn,datum,ar}],del:['namn|MM-DD']}: appen får inte skriva raden fodelsedagar,
+   och kalendersynken bygger om den varje dag. Så skriver synken aldrig över den som lagts till eller tagits bort i appen. */
+function bdKey(x){const m=/^(\d{1,2})-(\d{1,2})$/.exec(String(x&&x.datum||''));return m&&x.namn?String(x.namn).trim()+'|'+pad(m[1])+'-'+pad(m[2]):''}
+function fodEgna(){const o=parseJ(settings().onskelista,[]).find(x=>x&&x.fod);return{add:o&&Array.isArray(o.add)?o.add:[],del:o&&Array.isArray(o.del)?o.del:[]}}
+function setFodEgna(fn){A.user=Date.now();updJSON('onskelista',[],a=>{const o=a.find(x=>x&&x.fod)||{},n=fn({add:(o.add||[]).slice(),del:(o.del||[]).slice()});
+ return a.filter(x=>!(x&&x.fod)).concat(n.add.length||n.del.length?[{fod:1,add:n.add,del:n.del}]:[])})}
+// Ta bort med svep: raden försvinner direkt och sparas när Ångra har försvunnit, som i Inköp
+const FDEL={k:null,t:0};
+function fdelCommit(){if(!FDEL.k)return;clearTimeout(FDEL.t);const k=FDEL.k,syncad=parseJ(settings().fodelsedagar,[]).some(x=>bdKey(x)===k);FDEL.k=null;undoHide();
+ setFodEgna(e=>({add:e.add.filter(x=>bdKey(x)!==k),del:syncad&&!e.del.includes(k)?e.del.concat([k]):e.del}))}
+function fdelStart(b){delCommit();cdelCommit();fdelCommit();FDEL.k=b.key;render();
+ const u=document.getElementById('undo');u.querySelector('.ud-t').textContent=b.name+' togs bort';u.querySelector('.ud-b').dataset.act='fodUndo';u.hidden=false;FDEL.t=setTimeout(fdelCommit,5000)}
+function bdays(){const t=today(),ty=Number(t.slice(0,4)),seen=new Set(),E=fodEgna(),bort=new Set(E.del.concat(FDEL.k?[FDEL.k]:[]));
+ return parseJ(settings().fodelsedagar,[]).concat(E.add).map(x=>{const m=/^(\d{1,2})-(\d{1,2})$/.exec(String(x&&x.datum||''));if(!m||!x.namn)return null;
+  const mo=Number(m[1])-1,dd=Number(m[2]),k=x.namn+'|'+mo+'|'+dd,key=bdKey(x);if(mo<0||mo>11||seen.has(k)||bort.has(key))return null;seen.add(k);
   let y=ty;const at=yy=>ymd(new Date(yy,mo,dd));if(at(y)<t)y++;const next=at(y),yr=Number(x.ar)||null;
-  return{name:String(x.namn),mo,dd,yr,next,days:Math.round((parse(next)-parse(t))/864e5),age:yr?y-yr:null,passed:y>ty}}).filter(Boolean)
+  return{name:String(x.namn),key,mo,dd,yr,next,days:Math.round((parse(next)-parse(t))/864e5),age:yr?y-yr:null,passed:y>ty}}).filter(Boolean)
   .sort((a,b)=>a.mo-b.mo||a.dd-b.dd||a.name.localeCompare(b.name,'sv'))}
 const bdWhen=b=>b.days===0?'idag':b.days===1?'imorgon':b.days<7?'på '+DAYS[parse(b.next).getDay()]:b.days<45?'om '+b.days+' dagar':'om '+Math.round(b.days/30.4)+' mån';
 const bdTurns=b=>b.age!=null?'fyller '+b.age:'fyller år';
 const bdNext=L=>L.slice().sort((a,b)=>a.days-b.days);
-function bdRow(b,o){o=o||{};return'<div class="cell bd'+(b.days===0?' today':'')+(b.passed&&o.dim?' past':'')+'"><span class="bd-date num"><b>'+b.dd+'</b><small>'+MON3[b.mo]+'</small></span>'+
- '<div class="grow"><div>'+esc(b.name)+'</div><div class="sub">'+esc(cap(bdTurns(b)))+(b.yr?' · född '+b.yr:'')+'</div></div><span class="bd-when'+(b.days<14?' soon':'')+'">'+esc(bdWhen(b))+'</span></div>'}
+function bdRow(b,o){o=o||{};return'<div class="dr-wrap cs"><button class="dr-act del" data-act="fodDel" data-full="fodDel" data-id="'+esc(b.key)+'" aria-label="Ta bort '+esc(b.name)+'">'+I.trash+'<span>Ta bort</span></button><div class="cell dr-slide bd'+(b.days===0?' today':'')+(b.passed&&o.dim?' past':'')+'"><span class="bd-date num"><b>'+b.dd+'</b><small>'+MON3[b.mo]+'</small></span>'+
+ '<div class="grow"><div>'+esc(b.name)+'</div><div class="sub">'+esc(cap(bdTurns(b)))+(b.yr?' · född '+b.yr:'')+'</div></div><span class="bd-when'+(b.days<14?' soon':'')+'">'+esc(bdWhen(b))+'</span></div></div>'}
 function bdWidget(){const L=bdNext(bdays()).slice(0,3);if(!L.length)return'';
  return widget('fod','w2',I.cake,'Födelsedagar','',
   '<div class="wl">'+L.map(b=>'<div class="cell bdw"><span class="grow">'+esc(b.name)+' <span class="muted">'+esc(bdTurns(b))+'</span></span><span class="bd-when'+(b.days<14?' soon':'')+'">'+esc(bdWhen(b))+'</span></div>').join('')+'</div>')}
@@ -3283,14 +3302,14 @@ function bdWheel(L,sel){const C=180,R0=102,R1=174,t=parse(today());
 
 V.fod=function(){const L=bdays(),t=parse(today()),mode=S.fodMode||'hjul';
  let h='<div class="rcp-top"><button class="back" data-act="nav" data-id="oversikt">'+I.back+'Översikt</button></div>';
- h+=head('Födelsedagar',{sub:L.length?L.length+' personer':''});
- if(!L.length)return h+group(emptyCell('Inga födelsedagar ännu. Listan fylls i när kalenderrutinen körs på söndag.'));
+ h+=head('Födelsedagar',{sub:L.length?L.length+' personer':'',tools:'<button class="ib plus" data-act="fodAdd" aria-label="Ny födelsedag">'+I.plus+'</button>'});
+ if(!L.length)return h+group(emptyCell('Inga födelsedagar ännu. Lägg till med plus, eller vänta på att listan fylls i från kalendern.'));
  h+=segc('Visning','fodMode',[['hjul','Årshjul'],['manad','Månader'],['lista','Tidslinje']],mode);
  const nx=bdNext(L),first=nx[0],same=nx.filter(b=>b.days===first.days);
  if(mode==='hjul'){const sel=S.fodMon!=null?S.fodMon:t.getMonth(),ML=L.filter(b=>b.mo===sel);
   h+='<div class="bd-wrap">'+bdWheel(L,sel)+'<div class="bd-center"><div class="eyebrow">'+(first.days===0?'Idag':'Nästa')+'</div><div class="bd-cn">'+esc(same.map(b=>b.name).join(' & '))+'</div><div class="sub">'+esc(cap(same.length===1?bdTurns(first):'fyller år')+(first.days?' '+bdWhen(first):''))+'</div></div></div>';
   h+=sh(cap(MON[sel]),ML.length?ML.length+(ML.length===1?' födelsedag':' födelsedagar'):'')+group(ML.length?ML.map(b=>bdRow(b)).join(''):emptyCell('Ingen fyller år i '+MON[sel]+'.'));
-  h+='<div class="foot">Tryck på en månad i hjulet för att se vilka som fyller år då.</div>'}
+  h+='<div class="foot">Tryck på en månad i hjulet för att se vilka som fyller år då. Svep vänster på ett namn för att ta bort det.</div>'}
  else if(mode==='manad'){h+='<div class="bd-grid">';
   for(let m=0;m<12;m++){const ML=L.filter(b=>b.mo===m),cur=m===t.getMonth();
    h+='<section class="bd-mon'+(cur?' now':'')+(!ML.length?' empty':'')+'"><div class="bd-mh"><span>'+cap(MON[m])+'</span>'+(ML.length?'<span class="n">'+ML.length+'</span>':'')+'</div>'+
@@ -3625,6 +3644,9 @@ const ACT={
  cleanDel(id){const t=D().clean.find(x=>x.id===id);if(t)cdelStart(t)},
  cleanDelUndo(){if(!CDEL.item)return;clearTimeout(CDEL.t);const t=CDEL.item,i=CDEL.list.findIndex(x=>x.id===t.id);CDEL.item=null;CDEL.list=null;
   if(!D().clean.some(x=>x.id===t.id))D().clean.splice(Math.max(0,Math.min(i,D().clean.length)),0,t);undoHide();render()},
+ fodAdd(){S.sheet='fodAdd';render();setTimeout(()=>document.getElementById('fod-name')?.focus(),30)},
+ fodDel(k){const b=bdays().find(x=>x.key===k);if(b)fdelStart(b)},
+ fodUndo(){if(!FDEL.k)return;clearTimeout(FDEL.t);FDEL.k=null;undoHide();render()},
  cleanAdd(){S.sheet='cleanAdd';render();setTimeout(()=>document.getElementById('clean-title')?.focus(),30)},
  cleanFocus(_,el){el?.closest('form')?.querySelector('.field')?.focus()},
  snooze(id){const v=addDays(today(),1);mutate('clean',id,{snoozeUntil:v});apiPost({action:'cleanSet',id,fields:{snoozeUntil:v}});toast('Flyttad till i morgon')},
@@ -3772,6 +3794,11 @@ document.addEventListener('submit',async e=>{const f=e.target.closest('[data-for
   D().clean.push({id,room,title:t,freq:7,min:10,lastDone:'',prevDone:'',doneBy:'',who:'',tip:'',plannedFor:'',snoozeUntil:'',order:null});const modal=S.sheet==='cleanAdd';if(modal)closeSheets();S.open.all=true;render();
   if(!modal)setTimeout(()=>{const x=document.querySelector('form[data-form="cleanQuick"][data-room="'+f.dataset.room+'"] .field');if(x)x.focus()},30);
   apiPost({action:'cleanAdd',id,room,title:t,freq:7,min:10});toast('Tillagd i '+room);return}
+ if(f.dataset.form==='fodAdd'){const namn=String(d.namn||'').trim(),dg=Number(d.dag),mn=Number(d.man),ar=Number(d.ar)||null,md=new Date(2000,mn,0).getDate();if(!namn)return;
+  if(dg>md){toast(cap(MON[mn-1])+' har bara '+md+' dagar');return}
+  const x={namn,datum:pad(mn)+'-'+pad(dg)},k=bdKey(x);if(ar)x.ar=ar;
+  if(bdays().some(b=>b.key===k)){toast(namn+' finns redan den '+dg+' '+MON[mn-1]);return}
+  closeSheets();S.fodMon=mn-1;setFodEgna(e=>({add:e.add.filter(y=>bdKey(y)!==k).concat([x]),del:e.del.filter(y=>y!==k)}));toast(namn+' är tillagd');return}
  if(f.dataset.form==='taskQuick'){const t=String(d.title||'').trim();if(!t)return;
   D().tasks.push({id:'tmp'+Date.now(),done:false,title:t,due:'',who:'',note:'',source:'egen',repeat:''});render();
   setTimeout(()=>document.querySelector('.add-row .field')?.focus(),30);apiPost({action:'taskAdd',title:t,due:'',who:'',repeat:''});return}
@@ -3856,7 +3883,7 @@ function recipeLibrary(saved){const store=D().recipeStore,heads=store&&store.hea
  const source=bankRaw().concat(saved?[]:D().recipes);heads.forEach(h=>{const r=recipeGet(h.id);if(r)source.unshift(r)});
  source.forEach(r=>{const root=recipeRoot(r.id),h=recipeHead(root);if(seen.has(root)||h&&h.archived)return;seen.add(root);const v=recipeLatest(r),b=bankRaw().find(x=>recipeRoot(x.id)===root);out.push(Object.assign({},v,{fav:!!(b&&b.fav),savedAt:b&&b.savedAt||v.updatedAt||''}))});return out}
 function recipeAliases(o){recipeVersions().forEach(r=>{if(r._root&&o[r._root]!=null)o[r.id]=o[r._root]});return o}
-function recipeWishes(a){return a.map(x=>{const h=x&&x.id&&!x.efter&&!x.las&&recipeHead(x.id);return h?Object.assign({},x,{id:h.id}):x})}
+function recipeWishes(a){return a.map(x=>{const h=x&&x.id&&!x.efter&&!x.las&&!x.fod&&recipeHead(x.id);return h?Object.assign({},x,{id:h.id}):x})}
 function recipeChange(k,fn,o){if(k==='onskelista')return fn(recipeWishes(o));if(!['betyg','frekvens','kcal','receptlogg'].includes(k))return fn(o);o=fn(recipeAliases(o));const n={};Object.keys(o).forEach(id=>{n[recipeRoot(id)]=o[id]});return n}
 function recipeAllowed(){return !!(D().recipeStore&&D().recipeStore.schema===1)}
 function recipeClone(r){return JSON.parse(JSON.stringify(r))}
