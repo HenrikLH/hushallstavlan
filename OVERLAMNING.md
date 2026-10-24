@@ -19,6 +19,10 @@ Claude och Codex: följ AGENTS.md avsnitt 7. Ersätt inaktuell status; historik 
 
 ## Att veta vid övertagande
 
+- ht-v177 / app.js?v=168: Codex `codex/matsedel-gester`. Henrik godkände bilder och publicering 2026-10-24. Datumspärr/automatisk Ätit borttagen; svep/radering/låsning fungerar hela visade veckan.
+- Test: telefon/vägg × ljust/mörkt över torsdag–lördag; båda låsstilarna via inställningar/omladdning, hålltryck och svep, låst borttagning/Avbryt samt sparning. Alla-flikar telefon/vägg. Bilder `outputs/matsedel-gester/`.
+- Ångra-gren `version-fore-matsedel-gester-20261024` från `22106b6` (ht-v176). Ingen Kod.gs-ändring eller riktig hushållsdata ändrad.
+
 - Recept/färgfix från [PR #23](https://github.com/HenrikLH/hushallstavlan/pull/23) ingår. G-cirkeln följer accent/on-accent; H/C följer personfärger. matvaror.js?v=9.
 - Recept: editor, sök/filter, granskad import, dubblettval, prisosäkerhet, offlineutkast, versioner, arkivering och konfliktkontroll. Matsedel bevaras tills valda måltider/inköp uttryckligen uppdateras.
 - Väder-PR #20 är separat.
