@@ -25,7 +25,8 @@ Claude och Codex: följ AGENTS.md avsnitt 7. Ersätt inaktuell status; historik 
 
 - Recept/färgfix från [PR #23](https://github.com/HenrikLH/hushallstavlan/pull/23) ingår. G-cirkeln följer accent/on-accent; H/C följer personfärger. matvaror.js?v=9.
 - Recept: editor, sök/filter, granskad import, dubblettval, prisosäkerhet, offlineutkast, versioner, arkivering och konfliktkontroll. Matsedel bevaras tills valda måltider/inköp uttryckligen uppdateras.
-- Väder-PR #20 är separat.
+- ht-v178 / app.js?v=169: dygnsgräns i lilla väderremsan, tunn linje och exempelvis Sön 00 utan vald bakgrund. Tidigare godkända PR #20 införs nu på Henriks begäran 2026-10-24; Codex `codex/vader-dagsslut`.
+- Test `vader-dygn.js`: ljust/mörkt, scroll/väderlänk och midnatt som första timme. Alla flikar telefon; bilder `outputs/vader-dygn/`. Ångra-gren `version-fore-vader-dygn-20261024` från `c207448`.
 - Lagring, synk, importbegränsningar och serversteg: `docs/recipe-management-release.md`. Bilder: `outputs/recipe-management-implementation/`. Ingen Google-data ändrad av agenten. Henrik bekräftade 2026-10-21 att Kod.gs är uppdaterad, setupRecipes körd och ny webbappversion distribuerad.
 
 ## Väntar på Henrik

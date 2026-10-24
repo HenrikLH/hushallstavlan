@@ -1366,7 +1366,7 @@ body.dragging .bwx-h{scroll-snap-type:none}
 .bwx-r{display:flex;align-items:center;gap:8px;padding:2px 0;font-size:15px;white-space:nowrap;overflow:hidden;line-height:1.3;font-weight:600;color:var(--accent)}
 .bwx-r svg{width:20px;height:20px;flex:none}
 .bwx-h div{flex:0 0 52px;scroll-snap-align:start;display:flex;flex-direction:column;gap:2px;align-items:center;padding:4px 0;border-radius:12px}
-.bwx-h div.nd{background:var(--fill)}.bwx-h div.nd .fn{color:var(--accent);font-weight:600}
+.bwx-h div.nd{position:relative;margin-left:8px;padding-left:8px;flex-basis:60px}.bwx-h div.nd:before{content:'';position:absolute;left:0;top:5px;bottom:9px;width:1px;background:var(--line)}.bwx-h div.nd .fn{color:var(--ink);font-weight:600;white-space:nowrap}
 .bwx-h .hi{font-size:22px;line-height:26px}.bwx-h b{font-size:16px}.bwx-h .fn{font-size:13px}.bwx-h .pr{font-size:11px;min-height:14px;color:var(--blue,#0a84ff)}
 .bwx-f{display:flex;justify-content:space-between;gap:8px;font-size:14px;color:var(--ink-2)}
 .bcol .bmeal{flex:0 0 auto}
@@ -1971,7 +1971,7 @@ html.ny.seg-kapsel .create-options{border-radius:22px}
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=168"></script>
+<script src="app.js?v=169"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
