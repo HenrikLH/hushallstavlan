@@ -1,36 +1,31 @@
-# Aktuell överlämning
+# Aktuell överlämning — 2026-10-24
 
-Claude och Codex: följ AGENTS.md avsnitt 7. Ersätt inaktuell status; historik och detaljer finns i git/PR/CI.
+Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs relevant kod/PR vid behov.
 
-## Aktuell version
+## Börja här
 
-- ht-v175 / app.js?v=166, [PR #27](https://github.com/HenrikLH/hushallstavlan/pull/27). Henrik har godkänt bilder och publicering (”Pusha”, 2026-10-22). Ägare Codex, gren `codex/plus-alternativ`. PR #26 är föregående prototyp och ersätts av implementationen.
-- Utseende → Placering av plusknappen: Flytande / Vid profilen / Vid raden, per enhet. Recept öppnar Nytt/Importera; Uppgifter och Inköp återanvänder befintliga formulär/snabbfält. Delade mått/ikoner och neutralt sökfält.
-- Recept har kombinerbara filter, full återställning/resultatantal/tomlägen, separat filterminne per underflik och arkivlänk vid Mina recept. Ny efterrätt får rätt kategori; orörda tomma utkast städas vid Avbryt.
-- Lokalt grönt (appkod `d9a82be`): tre placeringar i telefon/vägg × ljust/mörkt; åtta UI2/UI3-röktester; recept-ui/reliability/server; UI-byte/inställningar/uppgifter/inköp. Åtta oförändrade vyer mot main i fyra lägen: 0 % pixeldiff. Bilder `outputs/plus-alternativ/`; CI på publiceringsgren/PR.
-- Ångra-gren `version-fore-plus-alternativ-20261022` från `35ad0a2` (ht-v174). Ingen Kod.gs-ändring behövs; ingen riktig hushållsdata ändrad.
+- Hämta senaste main. Drift: **ht-v178 / app.js?v=169 / matvaror.js?v=9**, appcommit 547281d, [PR #30](https://github.com/HenrikLH/hushallstavlan/pull/30).
+- [Pages-publicering](https://github.com/HenrikLH/hushallstavlan/actions/runs/40094688899) grön; publik sw/index och appens filinnehåll verifierade. Inga öppna PR:er eller ofärdiga implementationer vid överlämningen.
+- Nästa steg: Henriks nästa konkreta uppgift eller återkoppling från telefon/Surface. Gör inte om redan godkända rättningar.
+- Henrik vill behålla UI 2.0:s tema och gemensamma komponenter. UI 3.0 är frivilligt i utvecklarläget. Bilder före visuella ändringar på main; ”Pusha” är publiceringsgodkännande.
+- Strömningen i ChatGPT har avbrutits flera gånger. Kontrollera gren/PR/main och Pages innan en avbruten publicering återupptas. Begär inte samma godkännande igen.
 
-## Senaste rättning: Städ följer profilpluset
+## Beteende som ska bevaras
 
-- ht-v176 / app.js?v=167. Henrik godkände publicering 2026-10-23 (”Pusha”). Ägare Codex, gren `codex/stad-plus-profil`.
-- Vid profilen visar Städ samma huvudknapp och döljer bara övre Ny syssla-fältet; Flytande/Vid raden och rumsfälten behålls. Profilpluset öppnar Ny syssla-bladet med befintlig sparning.
-- Lokalt godkänt på `fc38f97`: telefon/vägg × ljust/mörkt inkl. UI3, omstart, Avbryt, sparning via blad/snabbfält samt `ui-versioner.js`. Bilder `outputs/stad-plus-profil/`.
-- Ångra-gren `version-fore-stad-plus-20261023` från `1ceaa85` (ht-v175). Ingen Kod.gs-ändring eller riktig hushållsdata ändrad.
+- Plusplacering per enhet (ht.addPlace): Flytande / Vid profilen / Vid raden. Receptplus öppnar Nytt recept/Importera. Städ: Vid profilen flyttar pluset till huvudet och döljer endast övre Ny syssla-raden; övriga två behåller raden, rumsfält kvar. [PR #27](https://github.com/HenrikLH/hushallstavlan/pull/27), [#28](https://github.com/HenrikLH/hushallstavlan/pull/28).
+- Recept: neutralt förstoringsglas; kombinerbara filter, återställning/resultatantal/tomlägen, separat filterminne per underflik. Arkiv är separat navigering vid Mina recept. Bevara favoriter, sparat/arkiv/återställning, import/synk och utkast. Orörda tomma utkast städas; ny efterrätt får rätt kategori.
+- Veckosedel: **ingen automatisk Ätit-status eller datumspärr**. Efter torsdag kan vardagsrätter fortfarande tas bort/låsas. Vänstersvep visar Ta bort, högersvep och hålltryck låser/låser upp. Båda låsstilarna (rätt/bild) fungerar; låst borttagning kräver bekräftelse. [PR #29](https://github.com/HenrikLH/hushallstavlan/pull/29).
+- Lilla väderremsan: tunn linje före midnatt och dag + 00, ingen vald bakgrund; även när midnatt är första timmen. Scroll/väderlänk kvar. PR #30 ersätter stängda #20; inget väderarbete väntar längre.
+- Inga nya Kod.gs-steg krävs. Henrik bekräftade 2026-10-21 att Kod.gs/setupRecipes/distribution är uppdaterade. Receptlagring/server/import: docs/recipe-management-release.md. Ingen riktig hushållsdata ändrad av agenten.
 
-## Att veta vid övertagande
+## Verifiering och återställning
 
-- ht-v177 / app.js?v=168: Codex `codex/matsedel-gester`. Henrik godkände bilder och publicering 2026-10-24. Datumspärr/automatisk Ätit borttagen; svep/radering/låsning fungerar hela visade veckan.
-- Test: telefon/vägg × ljust/mörkt över torsdag–lördag; båda låsstilarna via inställningar/omladdning, hålltryck och svep, låst borttagning/Avbryt samt sparning. Alla-flikar telefon/vägg. Bilder `outputs/matsedel-gester/`.
-- Ångra-gren `version-fore-matsedel-gester-20261024` från `22106b6` (ht-v176). Ingen Kod.gs-ändring eller riktig hushållsdata ändrad.
+- verktyg/emu/stad-plus.js: telefon/vägg × ljust/mörkt inkl. UI3; inställningar/omstart/Avbryt/två sparvägar. ui-versioner.js godkänd. Bilder outputs/stad-plus-profil/.
+- verktyg/emu/matsedel-gester.js: torsdag–lördag, telefon/vägg × ljust/mörkt; båda låsstilarna via inställningar/omladdning, hålltryck/svep, låst bekräftelse/Avbryt, sparning efter omladdning. Alla-flikar telefon/vägg godkända på appkoden i #29. Bilder outputs/matsedel-gester/.
+- verktyg/emu/vader-dygn.js: ljust/mörkt på vägg, dygnsgräns inkl. första timmen, scroll/väderlänk; alla-flikar telefon godkända på appkoden i #30. Bilder outputs/vader-dygn/. Testerna använder låtsasdata.
+- Ångra-grenar: version-fore-vader-dygn-20261024 (ht-v177), version-fore-matsedel-gester-20261024 (ht-v176), version-fore-stad-plus-20261023 (ht-v175).
 
-- Recept/färgfix från [PR #23](https://github.com/HenrikLH/hushallstavlan/pull/23) ingår. G-cirkeln följer accent/on-accent; H/C följer personfärger. matvaror.js?v=9.
-- Recept: editor, sök/filter, granskad import, dubblettval, prisosäkerhet, offlineutkast, versioner, arkivering och konfliktkontroll. Matsedel bevaras tills valda måltider/inköp uttryckligen uppdateras.
-- ht-v178 / app.js?v=169: dygnsgräns i lilla väderremsan, tunn linje och exempelvis Sön 00 utan vald bakgrund. Tidigare godkända PR #20 införs nu på Henriks begäran 2026-10-24; Codex `codex/vader-dagsslut`.
-- Test `vader-dygn.js`: ljust/mörkt, scroll/väderlänk och midnatt som första timme. Alla flikar telefon; bilder `outputs/vader-dygn/`. Ångra-gren `version-fore-vader-dygn-20261024` från `c207448`.
-- Lagring, synk, importbegränsningar och serversteg: `docs/recipe-management-release.md`. Bilder: `outputs/recipe-management-implementation/`. Ingen Google-data ändrad av agenten. Henrik bekräftade 2026-10-21 att Kod.gs är uppdaterad, setupRecipes körd och ny webbappversion distribuerad.
+## Kräver verklig hårdvara
 
-## Väntar på Henrik
-
-
-- Bekräfta UI 3.0 med iPhone-tangentbord och på Surface; verklig hårdvara kan inte verifieras i molnet.
-- Bekräfta adaptiv ljusstyrka på Surface-skärmen (ht-v163–v169); hårdvaran kan inte verifieras i molnet.
+- Henrik: bekräfta UI 3.0 med iPhone-tangentbord och på Surface.
+- Henrik: bekräfta adaptiv ljusstyrka på Surface (ht-v163–v169). Kan inte verifieras i molnet.
