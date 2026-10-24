@@ -799,36 +799,49 @@ function kampanj_(x) {
   return pris > 0 ? { pris: pris, jmf: jmf } : null;
 }
 
-/* Ett pris för en vara: {kr, pkt} i matvarors enheter.
-   pkt <= 12 betyder styck (pris per förpackning med pkt styck), annars gram (pris per pkt gram). */
+/* Ett pris för en vara: förpackningen som köps i butiken.
+   {kr: förpackningens pris, pkt: förpackningens storlek i gram eller styck, st: 1 om pkt är styck, los: 1 för lösvikt, fp: 1}
+   mal = matvarornas standardmängd (gram, eller styck om <= 12). Den förpackning väljs som gör det billigast att köpa mal,
+   så 2 kg potatis väljs före en säck på 5 kg. Lösvikt räknas som mal gram eller en bit. Okända varor (okand) får den
+   förpackning som är billigast per kg eller styck bland dem som kostar högst dubbelt så mycket som den billigaste. */
 function willysPris_(lista, mal, okand) {
-  let bast = null;
+  const alla = [];
   lista.forEach(function (x) {
     const k = kampanj_(x), pris = k ? k.pris : tal_(x.priceValue != null ? x.priceValue : x.price);
     const jmf = k && k.jmf ? k.jmf : tal_(x.comparePrice), enh = String(x.comparePriceUnit || '').toLowerCase();
     if (!(pris > 0)) return;
-    let st = 0, perG = 0;
-    const n = styck_(x), g = gram_(x);
-    // Lösvikt: priset gäller per kg (som "Lök Gul ca: 175g, 10,90 kr/kg")
-    const perKg = /kg/i.test(String(x.priceUnit || '')) || (!!x.averageWeight && enh === 'kg' && Math.abs(jmf - pris) < 0.01);
-    if (perKg && x.averageWeight) st = pris * Number(x.averageWeight);
-    else if (n) st = pris / n;
-    else if (!perKg) st = pris;
-    if ((enh === 'kg' || enh === 'l') && jmf > 0) perG = jmf / 1000;
-    else if (perKg) perG = pris / 1000;
-    else if (g) perG = pris / g;
-    let r = null;
-    if (okand) {
-      if (n && n <= 12) r = { kr: pris, pkt: n };
-      else if (perKg) r = perG ? { kr: perG * 1000, pkt: 1000, per: perG } : null;
-      else if (g) r = { kr: pris, pkt: g, per: perG };
-      else r = { kr: pris, pkt: 1 };
-      if (r && !r.per) r.per = r.kr / r.pkt;
-    } else if (mal <= 12) { if (st) r = { kr: mal === 1 ? st : (n ? st * mal : pris), pkt: mal, per: st }; }
-    else if (perG) r = { kr: perG * mal, pkt: mal, per: perG };
-    if (r && (!bast || r.per < bast.per)) { r.namn = [x.name, x.manufacturer, x.displayVolume].filter(String).join(', '); r.kampanj = !!k; bast = r; }
+    const n = styck_(x), g = gram_(x), vikt = Number(x.averageWeight) || 0;
+    // Lösvikt och vikt som varierar: priset gäller per kg (som "Lök Gul ca: 175g, 10,90 kr/kg")
+    const perKg = /kg/i.test(String(x.priceUnit || '')) || (!!vikt && enh === 'kg' && Math.abs(jmf - pris) < 0.01);
+    const styck = okand ? (n > 0 && n <= 12) || (!g && !perKg) : mal <= 12;
+    let c = null;
+    if (styck) {
+      if (perKg && vikt) c = { kr: pris * vikt, pkt: 1, st: 1, los: 1 };
+      else if (n) c = { kr: pris, pkt: n, st: 1 };
+      else if (!perKg) c = { kr: pris, pkt: 1, st: 1 };
+    } else if (perKg) {
+      // En bit lösvikt (morot) köps i den mängd som behövs, en förpackning som väger ca 1 kg (färs) köps hel
+      c = vikt >= 0.3 ? { kr: pris * vikt, pkt: vikt * 1000 } : { kr: pris * (mal || 1000) / 1000, pkt: mal || 1000, los: 1 };
+    } else if (g) c = { kr: pris, pkt: g };
+    else if ((enh === 'kg' || enh === 'l') && jmf > 0) c = { kr: pris, pkt: pris / jmf * 1000 };
+    if (!c || !(c.pkt > 0)) return;
+    c.per = c.kr / c.pkt;
+    c.kop = okand ? c.kr : Math.ceil(mal / c.pkt - 1e-9) * c.kr;
+    c.namn = [x.name, x.manufacturer, x.displayVolume].filter(String).join(', ');
+    c.kampanj = !!k;
+    alla.push(c);
   });
-  return bast;
+  if (!alla.length) return null;
+  let urval = alla;
+  if (okand) {
+    // Blanda inte styck och gram: gram går före om det finns
+    const gram = alla.filter(function (c) { return !c.st; });
+    if (gram.length) urval = gram;
+    const min = Math.min.apply(null, urval.map(function (c) { return c.kr; }));
+    urval = urval.filter(function (c) { return c.kr <= min * 2; });
+    return urval.sort(function (a, b) { return a.per - b.per; })[0];
+  }
+  return urval.sort(function (a, b) { return a.kop - b.kop || a.per - b.per; })[0];
 }
 
 function prisSynk() {
@@ -847,10 +860,22 @@ function prisSynk() {
   });
   const varor = {};
   MV.V.forEach(function (v) { varor[v[0]] = { k: v[0], pkt: v[2] }; });
+  // Skafferivaror (smör, socker, mjöl ...) får också pris, för när de står på inköpslistan
+  const sk = function (n) { const v = MV.skafferi && MV.skafferi(n); if (v && v.k.length > 2 && !varor[v.k]) varor[v.k] = { k: v.k, pkt: v.mal }; };
+  (MV.SK || []).forEach(function (v) { if (v[0] !== 'kryddor') varor[v[0]] = { k: v[0], pkt: v[2] }; });
   recept.forEach(function (r) { (r.groups || []).forEach(function (gr) { (gr.items || []).forEach(function (it) {
     const v = MV.vara(it.n);
     if (v && v.okand && v.k.length > 2 && !varor[v.k]) varor[v.k] = { k: v.k, okand: true };
+    if (!v) sk(it.n);
   }); }); });
+  // Egna varor på inköpslistan (inskrivna för hand) som inte är en basvara söks på sitt namn
+  readTab_('shop').forEach(function (x) {
+    const n = String(x.name || '');
+    if (!n || /^\(rad för appen/.test(n)) return;
+    const v = MV.vara(n);
+    if (v && v.okand && v.k.length > 2 && !varor[v.k]) varor[v.k] = { k: v.k, okand: true };
+    if (!v) sk(n);
+  });
   const lista = Object.keys(varor).map(function (k) { return varor[k]; });
   lista.forEach(function (v) {
     const s = SOK[v.k] || [v.k];
@@ -886,7 +911,9 @@ function prisSynk() {
   lista.forEach(function (v) {
     if (v.kampanjExempel && !kampanjExempel) kampanjExempel = v.kampanjExempel;
     if (!v.pris) { saknas.push(v.k + (v.fel ? ' (' + v.fel + ')' : '')); return; }
-    const p = v.pris, o = { kr: Math.round(p.kr * 100) / 100, pkt: Math.round(p.pkt), vara: p.namn };
+    const p = v.pris, o = { kr: Math.round(p.kr * 100) / 100, pkt: Math.round(p.pkt), vara: p.namn, fp: 1 };
+    if (p.st) o.st = 1;
+    if (p.los) o.los = 1;
     if (p.kampanj) { o.kampanj = 1; kampanjer.push(v.k); }
     priser[v.k] = o;
   });
