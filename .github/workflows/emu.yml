@@ -61,6 +61,7 @@ jobs:
           node verktyg/emu/run.js verktyg/emu/recept-ui.js
           node verktyg/emu/run.js verktyg/emu/recept-reliability.js
           node verktyg/emu/run.js verktyg/emu/plus-alternativ.js
+          node verktyg/emu/run.js verktyg/emu/stad-plus.js
       - name: Spara skärmbilder
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v5

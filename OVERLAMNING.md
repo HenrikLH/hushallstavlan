@@ -10,6 +10,13 @@ Claude och Codex: följ AGENTS.md avsnitt 7. Ersätt inaktuell status; historik 
 - Lokalt grönt (appkod `d9a82be`): tre placeringar i telefon/vägg × ljust/mörkt; åtta UI2/UI3-röktester; recept-ui/reliability/server; UI-byte/inställningar/uppgifter/inköp. Åtta oförändrade vyer mot main i fyra lägen: 0 % pixeldiff. Bilder `outputs/plus-alternativ/`; CI på publiceringsgren/PR.
 - Ångra-gren `version-fore-plus-alternativ-20261022` från `35ad0a2` (ht-v174). Ingen Kod.gs-ändring behövs; ingen riktig hushållsdata ändrad.
 
+## Senaste rättning: Städ följer profilpluset
+
+- ht-v176 / app.js?v=167. Henrik godkände publicering 2026-10-23 (”Pusha”). Ägare Codex, gren `codex/stad-plus-profil`.
+- Vid profilen visar Städ samma huvudknapp och döljer bara övre Ny syssla-fältet; Flytande/Vid raden och rumsfälten behålls. Profilpluset öppnar Ny syssla-bladet med befintlig sparning.
+- Lokalt godkänt på `fc38f97`: telefon/vägg × ljust/mörkt inkl. UI3, omstart, Avbryt, sparning via blad/snabbfält samt `ui-versioner.js`. Bilder `outputs/stad-plus-profil/`.
+- Ångra-gren `version-fore-stad-plus-20261023` från `1ceaa85` (ht-v175). Ingen Kod.gs-ändring eller riktig hushållsdata ändrad.
+
 ## Att veta vid övertagande
 
 - Recept/färgfix från [PR #23](https://github.com/HenrikLH/hushallstavlan/pull/23) ingår. G-cirkeln följer accent/on-accent; H/C följer personfärger. matvaror.js?v=9.
