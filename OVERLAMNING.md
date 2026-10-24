@@ -10,6 +10,14 @@ Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs 
 - Henrik vill behålla UI 2.0:s tema och gemensamma komponenter. UI 3.0 är frivilligt i utvecklarläget. Bilder före visuella ändringar på main; ”Pusha” är publiceringsgodkännande.
 - Strömningen i ChatGPT har avbrutits flera gånger. Kontrollera gren/PR/main och Pages innan en avbruten publicering återupptas. Begär inte samma godkännande igen.
 
+## Pågår: priser efter förpackning (Claude)
+
+- Mål (Henrik 2026-10-24): inga varor utan pris. Inköp = hela förpackningar som köps, pris/portion = använd mängd.
+- Gren `claude/project-thread-646pna`, PR mot main, ht-v179 / app.js?v=170 / matvaror.js?v=10. Väntar på Henriks ”Pusha” efter bilder.
+- matvaror.js: riktig förpackning ur `priser` (nytt `fp`-format eller tolkat ur produktnamnet), SK = skafferipriser, `anvant`; styckvikter (gst) för blomkål m.fl. app.js: `shopKr` (pris för rader utan pris), `portKr`/`veckaAnvant` (per portion), efterrättens rader med förpackningspris.
+- **Väntar på Henrik:** klistra in apps-script/Kod.gs (willysPris_ väljer förpackningen som är billigast för standardmängden, prisar skafferi och egna varor, skriver `fp`) och kör `startaPrisSynk`. Utan den används gamla priser, då kan stora säckar (5 kg potatis) synas.
+- Test: alla-flikar telefon/vägg/mörkt, recept-ui/-reliability/-legacy, matsedel-gester och recept-server gröna lokalt på grenen.
+
 ## Beteende som ska bevaras
 
 - Plusplacering per enhet (ht.addPlace): Flytande / Vid profilen / Vid raden. Receptplus öppnar Nytt recept/Importera. Städ: Vid profilen flyttar pluset till huvudet och döljer endast övre Ny syssla-raden; övriga två behåller raden, rumsfält kvar. [PR #27](https://github.com/HenrikLH/hushallstavlan/pull/27), [#28](https://github.com/HenrikLH/hushallstavlan/pull/28).
