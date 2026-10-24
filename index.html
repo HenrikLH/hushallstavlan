@@ -1261,6 +1261,13 @@ body.wall::before{content:"";position:fixed;inset:-20%;z-index:-1;pointer-events
 .bd .bd-date small{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.3px;margin-top:2px}
 .bd .sub{font-size:13px;line-height:18px;color:var(--ink-2)}
 .bd.today .bd-date{background:var(--accent);color:var(--on-accent)}
+/* Egen färg per person i Födelsedagar (style med --bd, --bd-soft, --bd-ink) */
+.bd[style] .bd-date{background:var(--bd-soft);color:var(--bd-ink)}
+.bd.today[style] .bd-date{background:var(--bd);color:#fff}
+.bd-li[style] .d,.bd-li.next[style] .d{color:var(--bd-ink);font-weight:600}
+.bs-dots i[style]{background:var(--bd);opacity:.9}
+.bbd-l>div[style] .num{color:var(--bd-ink);font-weight:600}
+.cell.bd[data-act]{cursor:pointer}
 .bd-when{font-size:15px;color:var(--ink-2);white-space:nowrap;margin-left:auto}
 .bd-when.soon{color:var(--accent);font-weight:600}
 .bdw{gap:8px}

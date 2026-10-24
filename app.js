@@ -802,7 +802,7 @@ function wallBd(){const L=bdays();if(!L.length)return'';const t=parse(today()),m
  if(!mon.length){const nx=bdNext(L)[0];mm2=nx.mo;mon=L.filter(b=>b.mo===mm2).sort((a,b)=>a.dd-b.dd)}
  const more=mon.length>4?mon.length-3:0,show=more?mon.slice(0,3):mon;
  return widget('fod','bbd',I.cake,'Födelsedagar',esc(cap(MON[mm2])),'<div class="bbd-in"><div class="bbd-w">'+bdWheel(L,mm2)+'</div><div class="bbd-l">'+
-  show.map(b=>'<div class="'+(b.days===0?'today':b.passed?'past':'')+'"><span class="num">'+b.dd+'</span><span class="grow">'+esc(b.name)+'</span><span class="fn num">'+(b.age!=null?b.age:"")+'</span></div>').join('')+
+  show.map(b=>'<div class="'+(b.days===0?'today':b.passed?'past':'')+'"'+bdSt(b)+'><span class="num">'+b.dd+'</span><span class="grow">'+esc(b.name)+'</span><span class="fn num">'+(b.age!=null?b.age:"")+'</span></div>').join('')+
   (more?'<div class="fn">och '+more+' till</div>':'')+'</div></div>')}
 function wallBoard(){
  if(nightOn())return wallNight();
@@ -2418,13 +2418,17 @@ function renderOverlay(){
   o.innerHTML=sheetHtml('shop','Ny vara','<button class="tb strong">Lägg till</button>',body,enter);return}
  if(k==='cleanAdd'){
   o.innerHTML=sheetHtml('cleanQuick','Ny syssla','<button class="tb strong">Lägg till</button>',group('<div class="cell"><input class="field" id="clean-title" name="title" placeholder="Vad behöver göras?" aria-label="Syssla" required autocomplete="off" enterkeyhint="done"></div>')+'<div class="foot">Rummet väljs utifrån namnet. Du kan ändra sysslan efteråt.</div>',enter);return}
- if(k==='fodAdd'){const t=parse(today()),ty=t.getFullYear();let yrs='<option value="">Vet inte</option>';for(let y=ty;y>=ty-110;y--)yrs+='<option>'+y+'</option>';
-  const body='<div style="height:16px"></div>'+group('<div class="cell"><input class="field" id="fod-name" name="namn" placeholder="Namn" required autocomplete="off" enterkeyhint="done" aria-label="Namn"></div>'+
-   fieldCell('Dag',menuSel('name="dag" aria-label="Dag"',Array.from({length:31},(_,i)=>'<option'+(i+1===t.getDate()?' selected':'')+'>'+(i+1)+'</option>').join('')))+
-   fieldCell('Månad',menuSel('name="man" aria-label="Månad"',MON.map((x,i)=>'<option value="'+(i+1)+'"'+(i===t.getMonth()?' selected':'')+'>'+cap(x)+'</option>').join('')))+
+ if(k==='fodAdd'){const t=parse(today()),ty=t.getFullYear(),e=S.fodEdit&&bdays().find(b=>b.key===S.fodEdit),dd=e?e.dd:t.getDate(),mo=e?e.mo:t.getMonth(),col=e?e.col:'';
+  let yrs='<option value="">Vet inte</option>';for(let y=ty;y>=ty-110;y--)yrs+='<option'+(e&&e.yr===y?' selected':'')+'>'+y+'</option>';
+  const dot=(v,c,cd,lab,x)=>'<label title="'+esc(lab)+'"><input type="radio" name="col" value="'+v+'"'+(v===col?' checked':'')+' aria-label="'+esc(lab)+'"><span style="--c:'+c+';--cd:'+cd+(x||'')+'"></span></label>';
+  const body='<div style="height:16px"></div>'+group('<div class="cell"><input class="field" id="fod-name" name="namn" placeholder="Namn" value="'+esc(e?e.name:'')+'" required autocomplete="off" enterkeyhint="done" aria-label="Namn"></div>'+
+   fieldCell('Dag',menuSel('name="dag" aria-label="Dag"',Array.from({length:31},(_,i)=>'<option'+(i+1===dd?' selected':'')+'>'+(i+1)+'</option>').join('')))+
+   fieldCell('Månad',menuSel('name="man" aria-label="Månad"',MON.map((x,i)=>'<option value="'+(i+1)+'"'+(i===mo?' selected':'')+'>'+cap(x)+'</option>').join('')))+
    fieldCell('Födelseår',menuSel('name="ar" aria-label="Födelseår"',yrs)))+
-   '<div class="foot">Med födelseår visas hur gammal personen blir. Födelsedagar från kalendern kommer med av sig själva.</div>';
-  o.innerHTML=sheetHtml('fodAdd','Ny födelsedag','<button class="tb strong">Lägg till</button>',body,enter);return}
+   sh('Färg')+group('<div class="cell strip-cell"><div class="pcols pstrip" role="radiogroup" aria-label="Färg" data-strip="fodcol">'+dot('','var(--ink-2)','var(--ink-2)','Ingen egen färg',';background:transparent;border:2px dashed var(--c)')+farbList().map(c=>dot(c,PCOL[c][1],PCOL[c][3],PCOL[c][0])).join('')+'</div></div>')+
+   '<div class="foot">Färgen syns på datumet, i årshjulet och på väggtavlan. Med födelseår visas hur gammal personen blir.</div>'+
+   (e?'<div style="height:22px"></div>'+group('<button type="button" class="cell link center red" data-act="fodDelSheet" data-id="'+esc(e.key)+'">Ta bort födelsedagen</button>'):'');
+  o.innerHTML=sheetHtml('fodAdd',e?'Ändra födelsedag':'Ny födelsedag','<button class="tb strong">'+(e?'Spara':'Lägg till')+'</button>',body,enter);restoreColorStrips(o);return}
  if(k==='task'){
   const body='<div style="height:16px"></div>'+group('<div class="cell"><input class="field" id="task-title" name="title" placeholder="Vad behöver göras?" required autocomplete="off" aria-label="Uppgift"></div>'+
    fieldCell('Datum','<input class="field r" id="task-due" name="due" type="date" value="'+esc(S.taskDue||'')+'" style="max-width:170px">')+
@@ -3254,28 +3258,31 @@ V.ekonomi=function(){if(ekoLocked())return ekoLock();const m=S.ekoMonth||thisMon
    Listan står som JSON i fliken Inställningar (raden fodelsedagar) och skrivs av kalenderrutinen:
    [{"namn":"Leah","datum":"10-15","ar":2014}, …]. ar saknas när födelseåret inte står i kalendern. */
 const MON3=['jan','feb','mar','apr','maj','jun','jul','aug','sep','okt','nov','dec'];
-/* Egna ändringar sparas i onskelista som {fod:1,add:[{namn,datum,ar}],del:['namn|MM-DD']}: appen får inte skriva raden fodelsedagar,
+/* Egna ändringar sparas i onskelista som {fod:1,add:[{namn,datum,ar}],del:['namn|MM-DD'],col:{'namn|MM-DD':färg}}: appen får inte skriva raden fodelsedagar,
    och kalendersynken bygger om den varje dag. Så skriver synken aldrig över den som lagts till eller tagits bort i appen. */
 function bdKey(x){const m=/^(\d{1,2})-(\d{1,2})$/.exec(String(x&&x.datum||''));return m&&x.namn?String(x.namn).trim()+'|'+pad(m[1])+'-'+pad(m[2]):''}
-function fodEgna(){const o=parseJ(settings().onskelista,[]).find(x=>x&&x.fod);return{add:o&&Array.isArray(o.add)?o.add:[],del:o&&Array.isArray(o.del)?o.del:[]}}
-function setFodEgna(fn){A.user=Date.now();updJSON('onskelista',[],a=>{const o=a.find(x=>x&&x.fod)||{},n=fn({add:(o.add||[]).slice(),del:(o.del||[]).slice()});
- return a.filter(x=>!(x&&x.fod)).concat(n.add.length||n.del.length?[{fod:1,add:n.add,del:n.del}]:[])})}
+function fodEgna(){const o=parseJ(settings().onskelista,[]).find(x=>x&&x.fod);return{add:o&&Array.isArray(o.add)?o.add:[],del:o&&Array.isArray(o.del)?o.del:[],col:o&&o.col&&typeof o.col==='object'?o.col:{}}}
+function setFodEgna(fn){A.user=Date.now();updJSON('onskelista',[],a=>{const o=a.find(x=>x&&x.fod)||{},n=Object.assign({col:{}},fn({add:(o.add||[]).slice(),del:(o.del||[]).slice(),col:Object.assign({},o.col)}));
+ return a.filter(x=>!(x&&x.fod)).concat(n.add.length||n.del.length||Object.keys(n.col).length?[{fod:1,add:n.add,del:n.del,col:n.col}]:[])})}
+// Egen färg per person: style med --bd (prick), --bd-soft (bakgrund) och --bd-ink (text). Utan färg används accentfärgen
+const bdSt=b=>{if(!b.col||!colOk(b.col))return'';const c=PCOL[b.col],d=isDark(),m=d?c[3]:c[1];return' style="--bd:'+m+';--bd-soft:'+rgba(m,d?.22:.13)+';--bd-ink:'+(d?c[4]:c[2])+'"'};
+const bdFill=b=>b.col&&colOk(b.col)?' style="fill:'+PCOL[b.col][isDark()?3:1]+'"':'';
 // Ta bort med svep: raden försvinner direkt och sparas när Ångra har försvunnit, som i Inköp
 const FDEL={k:null,t:0};
 function fdelCommit(){if(!FDEL.k)return;clearTimeout(FDEL.t);const k=FDEL.k,syncad=parseJ(settings().fodelsedagar,[]).some(x=>bdKey(x)===k);FDEL.k=null;undoHide();
- setFodEgna(e=>({add:e.add.filter(x=>bdKey(x)!==k),del:syncad&&!e.del.includes(k)?e.del.concat([k]):e.del}))}
+ setFodEgna(e=>{delete e.col[k];return{add:e.add.filter(x=>bdKey(x)!==k),del:syncad&&!e.del.includes(k)?e.del.concat([k]):e.del,col:e.col}})}
 function fdelStart(b){delCommit();cdelCommit();fdelCommit();FDEL.k=b.key;render();
  const u=document.getElementById('undo');u.querySelector('.ud-t').textContent=b.name+' togs bort';u.querySelector('.ud-b').dataset.act='fodUndo';u.hidden=false;FDEL.t=setTimeout(fdelCommit,5000)}
 function bdays(){const t=today(),ty=Number(t.slice(0,4)),seen=new Set(),E=fodEgna(),bort=new Set(E.del.concat(FDEL.k?[FDEL.k]:[]));
- return parseJ(settings().fodelsedagar,[]).concat(E.add).map(x=>{const m=/^(\d{1,2})-(\d{1,2})$/.exec(String(x&&x.datum||''));if(!m||!x.namn)return null;
+ return E.add.concat(parseJ(settings().fodelsedagar,[])).map(x=>{const m=/^(\d{1,2})-(\d{1,2})$/.exec(String(x&&x.datum||''));if(!m||!x.namn)return null;
   const mo=Number(m[1])-1,dd=Number(m[2]),k=x.namn+'|'+mo+'|'+dd,key=bdKey(x);if(mo<0||mo>11||seen.has(k)||bort.has(key))return null;seen.add(k);
   let y=ty;const at=yy=>ymd(new Date(yy,mo,dd));if(at(y)<t)y++;const next=at(y),yr=Number(x.ar)||null;
-  return{name:String(x.namn),key,mo,dd,yr,next,days:Math.round((parse(next)-parse(t))/864e5),age:yr?y-yr:null,passed:y>ty}}).filter(Boolean)
+  return{name:String(x.namn),key,col:E.col[key]||'',mo,dd,yr,next,days:Math.round((parse(next)-parse(t))/864e5),age:yr?y-yr:null,passed:y>ty}}).filter(Boolean)
   .sort((a,b)=>a.mo-b.mo||a.dd-b.dd||a.name.localeCompare(b.name,'sv'))}
 const bdWhen=b=>b.days===0?'idag':b.days===1?'imorgon':b.days<7?'på '+DAYS[parse(b.next).getDay()]:b.days<45?'om '+b.days+' dagar':'om '+Math.round(b.days/30.4)+' mån';
 const bdTurns=b=>b.age!=null?'fyller '+b.age:'fyller år';
 const bdNext=L=>L.slice().sort((a,b)=>a.days-b.days);
-function bdRow(b,o){o=o||{};return'<div class="dr-wrap cs"><button class="dr-act del" data-act="fodDel" data-full="fodDel" data-id="'+esc(b.key)+'" aria-label="Ta bort '+esc(b.name)+'">'+I.trash+'<span>Ta bort</span></button><div class="cell dr-slide bd'+(b.days===0?' today':'')+(b.passed&&o.dim?' past':'')+'"><span class="bd-date num"><b>'+b.dd+'</b><small>'+MON3[b.mo]+'</small></span>'+
+function bdRow(b,o){o=o||{};return'<div class="dr-wrap cs"><button class="dr-act del" data-act="fodDel" data-full="fodDel" data-id="'+esc(b.key)+'" aria-label="Ta bort '+esc(b.name)+'">'+I.trash+'<span>Ta bort</span></button><div class="cell dr-slide bd'+(b.days===0?' today':'')+(b.passed&&o.dim?' past':'')+'" data-act="fodEdit" data-id="'+esc(b.key)+'" role="button" tabindex="0"'+bdSt(b)+'><span class="bd-date num"><b>'+b.dd+'</b><small>'+MON3[b.mo]+'</small></span>'+
  '<div class="grow"><div>'+esc(b.name)+'</div><div class="sub">'+esc(cap(bdTurns(b)))+(b.yr?' · född '+b.yr:'')+'</div></div><span class="bd-when'+(b.days<14?' soon':'')+'">'+esc(bdWhen(b))+'</span></div></div>'}
 function bdWidget(){const L=bdNext(bdays()).slice(0,3);if(!L.length)return'';
  return widget('fod','w2',I.cake,'Födelsedagar','',
@@ -3295,7 +3302,7 @@ function bdWheel(L,sel){const C=180,R0=102,R1=174,t=parse(today());
  const nx=bdNext(L)[0];
  // Födelsedagar som ligger nära varandra läggs i en inre bana så att prickarna inte täcker varandra
  const lanes=[];L.forEach(b=>{const a=ang(b.mo,b.dd);let k=0;while(lanes[k]!=null&&a-lanes[k]<.09)k++;lanes[k]=a;
-  const[x,y]=pt(R1-14-k*11,a);s+='<circle class="dot'+(b===nx?' next':'')+'" cx="'+x+'" cy="'+y+'" r="'+(b===nx?6:4.5)+'"/>'});
+  const[x,y]=pt(R1-14-k*11,a);const cc=b.col&&colOk(b.col)?PCOL[b.col][isDark()?3:1]:'';s+='<circle class="dot'+(b===nx?' next':'')+'" cx="'+x+'" cy="'+y+'" r="'+(b===nx?6:4.5)+'"'+(cc?' style="'+(b===nx?'stroke':'fill')+':'+cc+'"':'')+'/>'});
  const ta=ang(t.getMonth(),t.getDate()),[hx0,hy0]=pt(R1+3,ta),[hx1,hy1]=pt(R1+13,ta);
  s+='<line class="hand" x1="'+hx0+'" y1="'+hy0+'" x2="'+hx1+'" y2="'+hy1+'"/><circle class="hand-dot" cx="'+hx1+'" cy="'+hy1+'" r="3"/>';
  return s+'</svg>'}
@@ -3313,12 +3320,12 @@ V.fod=function(){const L=bdays(),t=parse(today()),mode=S.fodMode||'hjul';
  else if(mode==='manad'){h+='<div class="bd-grid">';
   for(let m=0;m<12;m++){const ML=L.filter(b=>b.mo===m),cur=m===t.getMonth();
    h+='<section class="bd-mon'+(cur?' now':'')+(!ML.length?' empty':'')+'"><div class="bd-mh"><span>'+cap(MON[m])+'</span>'+(ML.length?'<span class="n">'+ML.length+'</span>':'')+'</div>'+
-    (ML.length?ML.map(b=>'<div class="bd-li'+(b.passed?' past':'')+(b===first?' next':'')+'"><span class="d num">'+b.dd+'</span><span class="nm">'+esc(b.name)+'</span>'+(b.age!=null?'<span class="a num">'+b.age+'</span>':'')+'</div>').join(''):'<div class="bd-none">–</div>')+'</section>'}
+    (ML.length?ML.map(b=>'<div class="bd-li'+(b.passed?' past':'')+(b===first?' next':'')+'"'+bdSt(b)+'><span class="d num">'+b.dd+'</span><span class="nm">'+esc(b.name)+'</span>'+(b.age!=null?'<span class="a num">'+b.age+'</span>':'')+'</div>').join(''):'<div class="bd-none">–</div>')+'</section>'}
   h+='</div><div class="foot">Siffran efter namnet är åldern personen fyller. Grått har redan varit i år.</div>'}
  else{h+='<section class="bd-hero"><div class="eyebrow">'+(first.days===0?'Idag':'Nästa födelsedag')+'</div><div class="bd-hn">'+esc(same.map(b=>b.name).join(' & '))+'</div><div class="bd-hs">'+esc(cap(same.length===1?bdTurns(first):'fyller år'))+' '+esc(bdWhen(first))+'</div><div class="sub">'+esc(dateLong(first.next))+'</div></section>';
   // Årsremsa: tolv månader från och med den här, en prick per födelsedag
   h+='<div class="bd-strip">';for(let i=0;i<12;i++){const m=(t.getMonth()+i)%12,ML=L.filter(b=>b.mo===m);
-   h+='<div class="bs-col'+(i===0?' now':'')+'"><div class="bs-dots">'+ML.map(b=>'<i'+(b===first?' class="next"':'')+'></i>').join('')+'</div><span>'+MON3[m].charAt(0).toUpperCase()+'</span></div>'}
+   h+='<div class="bs-col'+(i===0?' now':'')+'"><div class="bs-dots">'+ML.map(b=>'<i'+(b===first?' class="next"':'')+bdSt(b)+'></i>').join('')+'</div><span>'+MON3[m].charAt(0).toUpperCase()+'</span></div>'}
   h+='</div>';
   let lastM=-1;const rows=[];nx.forEach(b=>{if(b.mo!==lastM){if(rows.length)h+=group(rows.splice(0).join(''));h+=sh(cap(MON[b.mo])+(parse(b.next).getFullYear()!==t.getFullYear()?' '+parse(b.next).getFullYear():''));lastM=b.mo}rows.push(bdRow(b))});
   if(rows.length)h+=group(rows.join(''))}
@@ -3409,7 +3416,7 @@ function confetti(){if(calm()||U3)return;const cv=document.createElement('canvas
 
 /* ---------- local mutations (optimistic) ---------- */
 function mutate(list,id,fields){const it=D()[list].find(x=>x.id===id);if(it)Object.assign(it,fields);render()}
-function closeSheets(){S.prefDraft=null;if(KAL||SMAK){kalStop();SMAK=null;setTimeout(autoTheme)}S.psel=null;S.protFor=null;S.edit=null;S.rcpSheet=null;S.sheet=null;S.swap=null;S.wishFor=null;S.rate=null;S.ekoEdit=null;S.ovEdit=null;S.shopAdd=false;S.taskAdd=false}
+function closeSheets(){S.prefDraft=null;S.fodEdit=null;if(KAL||SMAK){kalStop();SMAK=null;setTimeout(autoTheme)}S.psel=null;S.protFor=null;S.edit=null;S.rcpSheet=null;S.sheet=null;S.swap=null;S.wishFor=null;S.rate=null;S.ekoEdit=null;S.ovEdit=null;S.shopAdd=false;S.taskAdd=false}
 
 /* ---------- actions ---------- */
 function boxEdit(fn){const wall=wallBoardOn(),L=layout(wall,wall?boardDefault():OV_DEF());fn(L);saveLayout(wall,L);render()}
@@ -3644,7 +3651,9 @@ const ACT={
  cleanDel(id){const t=D().clean.find(x=>x.id===id);if(t)cdelStart(t)},
  cleanDelUndo(){if(!CDEL.item)return;clearTimeout(CDEL.t);const t=CDEL.item,i=CDEL.list.findIndex(x=>x.id===t.id);CDEL.item=null;CDEL.list=null;
   if(!D().clean.some(x=>x.id===t.id))D().clean.splice(Math.max(0,Math.min(i,D().clean.length)),0,t);undoHide();render()},
- fodAdd(){S.sheet='fodAdd';render();setTimeout(()=>document.getElementById('fod-name')?.focus(),30)},
+ fodAdd(){S.fodEdit=null;S.sheet='fodAdd';render();setTimeout(()=>document.getElementById('fod-name')?.focus(),30)},
+ fodEdit(k){if(!bdays().some(b=>b.key===k))return;S.fodEdit=k;S.sheet='fodAdd';render()},
+ fodDelSheet(k){closeSheets();const b=bdays().find(x=>x.key===k);if(b)fdelStart(b)},
  fodDel(k){const b=bdays().find(x=>x.key===k);if(b)fdelStart(b)},
  fodUndo(){if(!FDEL.k)return;clearTimeout(FDEL.t);FDEL.k=null;undoHide();render()},
  cleanAdd(){S.sheet='cleanAdd';render();setTimeout(()=>document.getElementById('clean-title')?.focus(),30)},
@@ -3796,9 +3805,14 @@ document.addEventListener('submit',async e=>{const f=e.target.closest('[data-for
   apiPost({action:'cleanAdd',id,room,title:t,freq:7,min:10});toast('Tillagd i '+room);return}
  if(f.dataset.form==='fodAdd'){const namn=String(d.namn||'').trim(),dg=Number(d.dag),mn=Number(d.man),ar=Number(d.ar)||null,md=new Date(2000,mn,0).getDate();if(!namn)return;
   if(dg>md){toast(cap(MON[mn-1])+' har bara '+md+' dagar');return}
-  const x={namn,datum:pad(mn)+'-'+pad(dg)},k=bdKey(x);if(ar)x.ar=ar;
-  if(bdays().some(b=>b.key===k)){toast(namn+' finns redan den '+dg+' '+MON[mn-1]);return}
-  closeSheets();S.fodMon=mn-1;setFodEgna(e=>({add:e.add.filter(y=>bdKey(y)!==k).concat([x]),del:e.del.filter(y=>y!==k)}));toast(namn+' är tillagd');return}
+  const x={namn,datum:pad(mn)+'-'+pad(dg)},k=bdKey(x),col=colOk(d.col)?d.col:'',ok=S.fodEdit,old=ok&&bdays().find(b=>b.key===ok);if(ar)x.ar=ar;
+  if(k!==ok&&bdays().some(b=>b.key===k)){toast(namn+' finns redan den '+dg+' '+MON[mn-1]);return}
+  // Ändrad person från kalendern: den gamla raden döljs och en egen läggs till. Oförändrad: bara färgen sparas
+  const same=old&&k===ok&&(old.yr||null)===ar,syncad=parseJ(settings().fodelsedagar,[]).some(y=>bdKey(y)===ok);
+  closeSheets();S.fodMon=mn-1;setFodEgna(e=>{if(ok)delete e.col[ok];if(col)e.col[k]=col;
+   if(same)return e;
+   const add=e.add.filter(y=>bdKey(y)!==k&&bdKey(y)!==ok).concat([x]),del=e.del.filter(y=>y!==k).concat(ok&&ok!==k&&syncad&&!e.del.includes(ok)?[ok]:[]);return{add,del,col:e.col}});
+  toast(old?'Sparat':namn+' är tillagd');return}
  if(f.dataset.form==='taskQuick'){const t=String(d.title||'').trim();if(!t)return;
   D().tasks.push({id:'tmp'+Date.now(),done:false,title:t,due:'',who:'',note:'',source:'egen',repeat:''});render();
   setTimeout(()=>document.querySelector('.add-row .field')?.focus(),30);apiPost({action:'taskAdd',title:t,due:'',who:'',repeat:''});return}

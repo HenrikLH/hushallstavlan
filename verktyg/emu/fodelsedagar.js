@@ -51,4 +51,28 @@ module.exports=async(pg,h)=>{
  // Veckosedelns önskemål ska inte se födelsedagsposten
  assert.equal(await pg.evaluate(()=>window.__d('wishes().length')),0);
  await h.shot('fod-4-efter-synk');
+ // Färg och ändring: tryck på Leah (från kalendern), välj färg och ändra födelseår
+ await click('.cell.bd[data-act="fodEdit"]:has-text("Leah")');
+ assert.equal(await pg.locator('form[data-form="fodAdd"] h2').innerText(),'Ändra födelsedag');
+ await pg.locator('form[data-form="fodAdd"] input[name="col"][value="teal"]').evaluate(x=>x.closest('label').scrollIntoView({inline:'center'}));
+ await pg.locator('form[data-form="fodAdd"] input[name="col"][value="teal"] + span').click();
+ await pg.selectOption('select[name="ar"]','2015');await h.shot('fod-5-andra');
+ await click('form[data-form="fodAdd"] .tb.strong');await h.waitFlush();
+ egna=JSON.parse(row('onskelista')[1]).find(x=>x.fod);
+ assert.equal(egna.col['Leah|10-25'],'teal');
+ assert.equal(await pg.locator('.cell.bd:has-text("Leah")').count(),1,'Leah ska bara finnas en gång');
+ assert.ok((await pg.locator('.cell.bd:has-text("Leah")').innerText()).includes('född 2015'));
+ assert.ok(await pg.locator('.cell.bd[style]:has-text("Leah")').count(),'Färgen ska synas');
+ // Bara färg på Testkusin, sedan årshjulet
+ await click('.cell.bd[data-act="fodEdit"]:has-text("Testkusin")');
+ await pg.locator('form[data-form="fodAdd"] input[name="col"][value="orange"]').evaluate(x=>x.closest('label').scrollIntoView({inline:'center'}));
+ await pg.locator('form[data-form="fodAdd"] input[name="col"][value="orange"] + span').click();
+ await click('form[data-form="fodAdd"] .tb.strong');await h.waitFlush();
+ await h.shot('fod-6-farger');
+ await click('[data-act="fodMode"][data-id="hjul"]');await h.shot('fod-7-hjul');
+ await click('[data-act="fodMode"][data-id="manad"]');await h.shot('fod-8-manader');
+ // Ta bort från bladet
+ await click('[data-act="fodMode"][data-id="lista"]');await click('.cell.bd[data-act="fodEdit"]:has-text("Testkusin")');await click('[data-act="fodDelSheet"]');
+ assert.ok(!(await main()).includes('Testkusin'));await click('#undo .ud-b');assert.ok((await main()).includes('Testkusin'));
+ await click('#nav [data-act="nav"][data-id="oversikt"]');await h.shot('fod-9-oversikt');
 };
