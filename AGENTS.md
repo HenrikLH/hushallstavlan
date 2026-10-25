@@ -42,7 +42,7 @@ Telefon / väggskärm (PWA)  ──GET/POST──▶  Google Apps Script-webbapp
 
 - **Ingen byggprocess.** Statiska filer i repots rot publiceras med **GitHub Pages från `main`** på https://henriklh.github.io/hushallstavlan/. Allt som hamnar på `main` är i drift inom någon minut.
 - `index.html` (≈140 kB): all HTML-stomme och **all CSS** i en `<style>`. Ny design ("UI 2.0", standard) är CSS under `html.ny`. Gamla UI 1.0 finns bara i utvecklarläget och ska inte gå sönder, UI 3.0 utvecklas som separat frivilligt val; UI 2.0 ska behålla sitt utseende och beteende tills Henrik säger annat.
-- `app.js` (≈470 kB): hela appen i en fil. Kompakt stil med långa rader och korta namn. **Skriv i samma stil och formatera aldrig om filen** (ingen Prettier/ESLint --fix): omformatering ger enorma diffar och krockar med andra agenters arbete.
+- `app.js` (≈530 kB, läs aldrig hela; se `node verktyg/karta.js`): hela appen i en fil. Kompakt stil med långa rader och korta namn. **Skriv i samma stil och formatera aldrig om filen** (ingen Prettier/ESLint --fix): omformatering ger enorma diffar och krockar med andra agenters arbete.
   - `S` = tillstånd, `A` = appens objekt, `V` = vyer (`V.mat`, `V.oversikt` …), `ACT` = alla handlingar. Klick hanteras via `data-act="namn"` och `data-id`, `data-hold` för håll-in-knappar (1 s). Vyer returnerar HTML-strängar; `render()`/`doRender()` ritar om.
   - `apiGet()` hämtar allt, `setData()` tar emot det. `apiPost(body)` lägger ändringen i **utkorgen** `OUTBOX` (sparas i localStorage `ht.outbox`), `flush()` skickar en i taget och försöker igen vid nätfel och låsfel. Appen visar ändringen direkt (optimistiskt).
   - Inställningar **per enhet** ligger i localStorage med prefix `ht.` (`lsGet`/`lsSet`). Inställningar för **hela hushållet** ligger i kalkylarkets flik Inställningar.
@@ -59,11 +59,12 @@ Telefon / väggskärm (PWA)  ──GET/POST──▶  Google Apps Script-webbapp
 Varje ändring som ska ut till användarna:
 
 1. Jobba på en egen gren, aldrig direkt på `main`.
-2. Precis innan du höjer versionen: `git fetch origin main && git merge origin/main` (andra agenter pushar ofta, ibland flera gånger i timmen).
-3. Höj versionen, alltid **ett steg över det som nu finns på main**:
-   - `sw.js`: `const VERSION = 'ht-vNNN'`
-   - `index.html` **och** `sw.js` (listan `SHELL`): `app.js?v=NNN`. Höj den även om bara CSS i `index.html` ändrats, annars laddar väggskärmen inte om.
-   - Har du ändrat `matvaror.js`, `kottveg.js`, `matpoang.js`, `restpoang.js` eller `config.js`: höj deras `?v=` på samma två ställen.
+2–3. Kör `node verktyg/version.js`. Det hämtar och slår ihop `origin/main`, löser krockar som bara gäller versionsnummer och höjer allt nedan ett steg över main. Stannar det på en riktig krock: lös den, `git add`, kör `node verktyg/version.js --utan-merge`. Skriptet gör detta (för hand om det inte går):
+   - `git fetch origin main && git merge origin/main` precis före höjningen (andra agenter pushar ofta).
+   - Versionen alltid **ett steg över det som nu finns på main**:
+     - `sw.js`: `const VERSION = 'ht-vNNN'`
+     - `index.html` **och** `sw.js` (listan `SHELL`): `app.js?v=NNN`. Höj den även om bara CSS i `index.html` ändrats, annars laddar väggskärmen inte om.
+     - Har du ändrat `matvaror.js`, `kottveg.js`, `matpoang.js`, `restpoang.js` eller `config.js`: höj deras `?v=` på samma två ställen.
 4. Skriv versionen i commit-meddelandet, till exempel `Inköp: håll in för att tömma (ht-v170)`.
 5. Skapa ångra-grenen `version-fore-<namn>` från nuvarande `main`, slå ihop, pusha.
 6. Kontrollera att GitHub Actions-jobbet "pages build and deployment" faktiskt körde och blev grönt. Det har hänt att en push aldrig byggdes.
@@ -99,7 +100,7 @@ Före publicering av appändringar (lokalt eller i CI):
 - Kör `alla-flikar.js` i både telefon- och väggläge utan PAGEERROR.
 - **Öppna varje flik genom att klicka**, inte genom att sätta localStorage. Appen minns senaste fliken, så en krasch i en flik kan låsa hela Mat-delen.
 - Testa uppstart med de berörda inställningarna **redan påslagna** i localStorage, inte bara när de slås på efter laddning (en sådan bugg gav grå väggskärm).
-- Ta skärmbilder i ljust och mörkt läge för visuella ändringar.
+- Kontrollera visuella ändringar i ljust och mörkt läge (skärmbilder; se avsnitt 9 om hur många som visas).
 - Återanvänd godkända resultat för samma app- och testkod; ange testad commit/CI-länk. Kör om när relevant kod, testmiljö eller testfall ändrats, eller ett fel är olöst. Rena dokumentationsändringar behöver bara diff- och innehållskontroll.
 
 ## 7. Samarbete mellan agenter
@@ -125,7 +126,17 @@ Claude och Codex ser inte varandras samtal. **Repot är gemensamt minne.** Henri
 - Ändringar i `inspiration.json`: recept har `id`, `title`, `group`, `who`, `portions`, `min`, `kr`, `protein`, `course` (`'efterrätt'` för efterrätter), `groups` (ingredienser) och `steps`.
 - Väggdatorns ljussensor och skärmljus går via en lokal tjänst (`kiosk/ljussensor.py`, http://127.0.0.1:8777). Den kan inte testas i molnet.
 
-## 9. Vad du inte ska göra
+## 9. Spara tokens (gäller alla agenter)
+
+Kvaliteten ska vara densamma; det är läsandet som ska bli mindre.
+
+- **Läs aldrig hela `app.js`, `index.html` eller `Kod.gs`.** Börja med `node verktyg/karta.js` (avsnitt med radintervall) eller `node verktyg/karta.js <namn>` (var en funktion, `V.x` eller `ACT.x` definieras; `-r` visar även var den används). Läs sedan bara det intervallet med offset/limit, och grep efter klassnamn i CSS:en.
+- Läs inte samma intervall igen i samma session om filen inte ändrats. Kör `git diff`/`git log -p -- <fil>` för att se vad andra ändrat i stället för att läsa om.
+- **Skärmbilder:** låt scenariot kontrollera med text (finns elementet, rätt text, ingen PAGEERROR). Titta själv bara på de bilder som behövs för att bedöma utseendet. Visa Henrik 1–2 bilder per visuell ändring (telefon, och vägg om den berörs; mörkt läge bara om ändringen påverkar färger) och fler först när han ber om det. Alternativ A/B/C: en bild per alternativ.
+- Små rättningar (en rad, en färg, en text) kräver inget fullt röktest i båda lägen om den berörda vyn testas; ange vad som testades.
+- En uppgift per tråd/session. Avsluta när den är publicerad och starta en ny för nästa sak, så att gammalt sammanhang inte följer med.
+
+## 10. Vad du inte ska göra
 
 - Pusha inte direkt till `main` utan ångra-gren och versionshöjning.
 - Ändra inte i Henriks Google-kalkylark, kalender eller e-post utan att han bett om det.

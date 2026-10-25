@@ -10,6 +10,8 @@ Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs 
 - Henrik vill behålla UI 2.0:s tema och gemensamma komponenter. UI 3.0 är frivilligt i utvecklarläget. Bilder före visuella ändringar på main; ”Pusha” är publiceringsgodkännande.
 - Strömningen i ChatGPT har avbrutits flera gånger. Kontrollera gren/PR/main och Pages innan en avbruten publicering återupptas. Begär inte samma godkännande igen.
 
+- Nytt 2026-10-25: `node verktyg/karta.js` (kodkarta) och `node verktyg/version.js` (merge + versionshöjning); regler i AGENTS.md avsnitt 9.
+
 ## Beteende som ska bevaras
 
 - Plusplacering per enhet (ht.addPlace): Flytande / Vid profilen / Vid raden. Receptplus öppnar Nytt recept/Importera. Städ: Vid profilen flyttar pluset till huvudet och döljer endast övre Ny syssla-raden; övriga två behåller raden, rumsfält kvar. [PR #27](https://github.com/HenrikLH/hushallstavlan/pull/27), [#28](https://github.com/HenrikLH/hushallstavlan/pull/28).
