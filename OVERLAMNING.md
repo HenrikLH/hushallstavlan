@@ -1,4 +1,4 @@
-# Aktuell överlämning — 2026-10-24
+# Aktuell överlämning — 2026-10-25
 
 Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs relevant kod/PR vid behov.
 
@@ -18,7 +18,8 @@ Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs 
 - Lilla väderremsan: tunn linje före midnatt och dag + 00, ingen vald bakgrund; även när midnatt är första timmen. Scroll/väderlänk kvar. PR #30 ersätter stängda #20; inget väderarbete väntar längre.
 - Födelsedagar (ht-v179): plus öppnar bladet Ny födelsedag (namn, dag, månad, år) och följer plusplaceringen; svep vänster tar bort med 5 s Ångra. Egna tillägg/borttag ligger i `onskelista` som `{fod:1,add,del}` och läggs ovanpå kalendersynkens `fodelsedagar`, så synken skriver aldrig över dem. Test: verktyg/emu/fodelsedagar.js. Ångra-gren version-fore-fodelsedagar-20261024.
 - Födelsedagar (ht-v180): håll in en rad 1 s (samma streck som lås, `data-hold-lock` + `data-lock-act="fodEdit"`) öppnar Ändra födelsedag (namn/datum/år/färg, Ta bort). Egen färg i `onskelista` `col:{'namn|MM-DD':färg}`; barn under 18 med känt födelseår får `BD_BARN` (orange) utan egen färg. Ångra-gren version-fore-fodelsedagsfarger.
-- Inga nya Kod.gs-steg krävs. Henrik bekräftade 2026-10-21 att Kod.gs/setupRecipes/distribution är uppdaterade. Receptlagring/server/import: docs/recipe-management-release.md. Ingen riktig hushållsdata ändrad av agenten.
+- **Väntar på Henrik (dator):** klistra in Kod.gs med `CAL_DAYS = 366` (kalendern ett år framåt i stället för 31 dagar) och publicera ny version. Ingen setup behövs. Ta bort punkten när han bekräftat.
+- Henrik bekräftade 2026-10-21 att Kod.gs/setupRecipes/distribution är uppdaterade. Receptlagring/server/import: docs/recipe-management-release.md. Ingen riktig hushållsdata ändrad av agenten.
 
 ## Verifiering och återställning
 

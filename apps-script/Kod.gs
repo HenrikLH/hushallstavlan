@@ -520,7 +520,7 @@ const CALENDARS = [
   { id: 'family15823199462493017779@group.calendar.google.com', who: '' },
   { id: 'sv.swedish#holiday@group.v.calendar.google.com', who: 'Båda' }
 ];
-const CAL_DAYS = 31;
+const CAL_DAYS = 366;
 // Vem en händelse i en gemensam kalender gäller, efter vem som skapade den
 const CREATORS = { 'henrik.lund.hellstrand.2@gmail.com': 'Henrik', 'cornelia.bomsjo@gmail.com': 'Cornelia' };
 
