@@ -2418,15 +2418,15 @@ function renderOverlay(){
   o.innerHTML=sheetHtml('shop','Ny vara','<button class="tb strong">Lägg till</button>',body,enter);return}
  if(k==='cleanAdd'){
   o.innerHTML=sheetHtml('cleanQuick','Ny syssla','<button class="tb strong">Lägg till</button>',group('<div class="cell"><input class="field" id="clean-title" name="title" placeholder="Vad behöver göras?" aria-label="Syssla" required autocomplete="off" enterkeyhint="done"></div>')+'<div class="foot">Rummet väljs utifrån namnet. Du kan ändra sysslan efteråt.</div>',enter);return}
- if(k==='fodAdd'){const t=parse(today()),ty=t.getFullYear(),e=S.fodEdit&&bdays().find(b=>b.key===S.fodEdit),dd=e?e.dd:t.getDate(),mo=e?e.mo:t.getMonth(),col=e?e.col:'';
+ if(k==='fodAdd'){const t=parse(today()),ty=t.getFullYear(),e=S.fodEdit&&bdays().find(b=>b.key===S.fodEdit),dd=e?e.dd:t.getDate(),mo=e?e.mo:t.getMonth(),col=e?e.own:'';
   let yrs='<option value="">Vet inte</option>';for(let y=ty;y>=ty-110;y--)yrs+='<option'+(e&&e.yr===y?' selected':'')+'>'+y+'</option>';
   const dot=(v,c,cd,lab,x)=>'<label title="'+esc(lab)+'"><input type="radio" name="col" value="'+v+'"'+(v===col?' checked':'')+' aria-label="'+esc(lab)+'"><span style="--c:'+c+';--cd:'+cd+(x||'')+'"></span></label>';
   const body='<div style="height:16px"></div>'+group('<div class="cell"><input class="field" id="fod-name" name="namn" placeholder="Namn" value="'+esc(e?e.name:'')+'" required autocomplete="off" enterkeyhint="done" aria-label="Namn"></div>'+
    fieldCell('Dag',menuSel('name="dag" aria-label="Dag"',Array.from({length:31},(_,i)=>'<option'+(i+1===dd?' selected':'')+'>'+(i+1)+'</option>').join('')))+
    fieldCell('Månad',menuSel('name="man" aria-label="Månad"',MON.map((x,i)=>'<option value="'+(i+1)+'"'+(i===mo?' selected':'')+'>'+cap(x)+'</option>').join('')))+
    fieldCell('Födelseår',menuSel('name="ar" aria-label="Födelseår"',yrs)))+
-   sh('Färg')+group('<div class="cell strip-cell"><div class="pcols pstrip" role="radiogroup" aria-label="Färg" data-strip="fodcol">'+dot('','var(--ink-2)','var(--ink-2)','Ingen egen färg',';background:transparent;border:2px dashed var(--c)')+farbList().map(c=>dot(c,PCOL[c][1],PCOL[c][3],PCOL[c][0])).join('')+'</div></div>')+
-   '<div class="foot">Färgen syns på datumet, i årshjulet och på väggtavlan. Med födelseår visas hur gammal personen blir.</div>'+
+   sh('Färg')+group('<div class="cell strip-cell"><div class="pcols pstrip" role="radiogroup" aria-label="Färg" data-strip="fodcol">'+dot('','var(--ink-2)','var(--ink-2)','Ingen egen färg (barn blir orange)',';background:transparent;border:2px dashed var(--c)')+farbList().map(c=>dot(c,PCOL[c][1],PCOL[c][3],PCOL[c][0])).join('')+'</div></div>')+
+   '<div class="foot">Färgen syns på datumet, i årshjulet och på väggtavlan. Utan egen färg blir barn under 18 orange, om födelseåret är ifyllt.</div>'+
    (e?'<div style="height:22px"></div>'+group('<button type="button" class="cell link center red" data-act="fodDelSheet" data-id="'+esc(e.key)+'">Ta bort födelsedagen</button>'):'');
   o.innerHTML=sheetHtml('fodAdd',e?'Ändra födelsedag':'Ny födelsedag','<button class="tb strong">'+(e?'Spara':'Lägg till')+'</button>',body,enter);restoreColorStrips(o);return}
  if(k==='task'){
@@ -3264,6 +3264,8 @@ function bdKey(x){const m=/^(\d{1,2})-(\d{1,2})$/.exec(String(x&&x.datum||''));r
 function fodEgna(){const o=parseJ(settings().onskelista,[]).find(x=>x&&x.fod);return{add:o&&Array.isArray(o.add)?o.add:[],del:o&&Array.isArray(o.del)?o.del:[],col:o&&o.col&&typeof o.col==='object'?o.col:{}}}
 function setFodEgna(fn){A.user=Date.now();updJSON('onskelista',[],a=>{const o=a.find(x=>x&&x.fod)||{},n=Object.assign({col:{}},fn({add:(o.add||[]).slice(),del:(o.del||[]).slice(),col:Object.assign({},o.col)}));
  return a.filter(x=>!(x&&x.fod)).concat(n.add.length||n.del.length||Object.keys(n.col).length?[{fod:1,add:n.add,del:n.del,col:n.col}]:[])})}
+// Barn (fyller under 18, födelseår känt) får orange om ingen egen färg är vald
+const BD_BARN='orange';
 // Egen färg per person: style med --bd (prick), --bd-soft (bakgrund) och --bd-ink (text). Utan färg används accentfärgen
 const bdSt=b=>{if(!b.col||!colOk(b.col))return'';const c=PCOL[b.col],d=isDark(),m=d?c[3]:c[1];return' style="--bd:'+m+';--bd-soft:'+rgba(m,d?.22:.13)+';--bd-ink:'+(d?c[4]:c[2])+'"'};
 const bdFill=b=>b.col&&colOk(b.col)?' style="fill:'+PCOL[b.col][isDark()?3:1]+'"':'';
@@ -3277,12 +3279,12 @@ function bdays(){const t=today(),ty=Number(t.slice(0,4)),seen=new Set(),E=fodEgn
  return E.add.concat(parseJ(settings().fodelsedagar,[])).map(x=>{const m=/^(\d{1,2})-(\d{1,2})$/.exec(String(x&&x.datum||''));if(!m||!x.namn)return null;
   const mo=Number(m[1])-1,dd=Number(m[2]),k=x.namn+'|'+mo+'|'+dd,key=bdKey(x);if(mo<0||mo>11||seen.has(k)||bort.has(key))return null;seen.add(k);
   let y=ty;const at=yy=>ymd(new Date(yy,mo,dd));if(at(y)<t)y++;const next=at(y),yr=Number(x.ar)||null;
-  return{name:String(x.namn),key,col:E.col[key]||'',mo,dd,yr,next,days:Math.round((parse(next)-parse(t))/864e5),age:yr?y-yr:null,passed:y>ty}}).filter(Boolean)
+  return{name:String(x.namn),key,own:E.col[key]||'',col:E.col[key]||(yr&&y-yr<18?BD_BARN:''),mo,dd,yr,next,days:Math.round((parse(next)-parse(t))/864e5),age:yr?y-yr:null,passed:y>ty}}).filter(Boolean)
   .sort((a,b)=>a.mo-b.mo||a.dd-b.dd||a.name.localeCompare(b.name,'sv'))}
 const bdWhen=b=>b.days===0?'idag':b.days===1?'imorgon':b.days<7?'på '+DAYS[parse(b.next).getDay()]:b.days<45?'om '+b.days+' dagar':'om '+Math.round(b.days/30.4)+' mån';
 const bdTurns=b=>b.age!=null?'fyller '+b.age:'fyller år';
 const bdNext=L=>L.slice().sort((a,b)=>a.days-b.days);
-function bdRow(b,o){o=o||{};return'<div class="dr-wrap cs"><button class="dr-act del" data-act="fodDel" data-full="fodDel" data-id="'+esc(b.key)+'" aria-label="Ta bort '+esc(b.name)+'">'+I.trash+'<span>Ta bort</span></button><div class="cell dr-slide bd'+(b.days===0?' today':'')+(b.passed&&o.dim?' past':'')+'" data-act="fodEdit" data-id="'+esc(b.key)+'" role="button" tabindex="0"'+bdSt(b)+'><span class="bd-date num"><b>'+b.dd+'</b><small>'+MON3[b.mo]+'</small></span>'+
+function bdRow(b,o){o=o||{};return'<div class="dr-wrap cs"><button class="dr-act del" data-act="fodDel" data-full="fodDel" data-id="'+esc(b.key)+'" aria-label="Ta bort '+esc(b.name)+'">'+I.trash+'<span>Ta bort</span></button><div class="cell dr-slide lk-rad bd'+(b.days===0?' today':'')+(b.passed&&o.dim?' past':'')+'" data-hold-lock="'+esc(b.key)+'" data-lock-act="fodEdit" data-lst="0"'+bdSt(b)+'><span class="bd-date num"><b>'+b.dd+'</b><small>'+MON3[b.mo]+'</small></span>'+
  '<div class="grow"><div>'+esc(b.name)+'</div><div class="sub">'+esc(cap(bdTurns(b)))+(b.yr?' · född '+b.yr:'')+'</div></div><span class="bd-when'+(b.days<14?' soon':'')+'">'+esc(bdWhen(b))+'</span></div></div>'}
 function bdWidget(){const L=bdNext(bdays()).slice(0,3);if(!L.length)return'';
  return widget('fod','w2',I.cake,'Födelsedagar','',
@@ -3316,7 +3318,7 @@ V.fod=function(){const L=bdays(),t=parse(today()),mode=S.fodMode||'hjul';
  if(mode==='hjul'){const sel=S.fodMon!=null?S.fodMon:t.getMonth(),ML=L.filter(b=>b.mo===sel);
   h+='<div class="bd-wrap">'+bdWheel(L,sel)+'<div class="bd-center"><div class="eyebrow">'+(first.days===0?'Idag':'Nästa')+'</div><div class="bd-cn">'+esc(same.map(b=>b.name).join(' & '))+'</div><div class="sub">'+esc(cap(same.length===1?bdTurns(first):'fyller år')+(first.days?' '+bdWhen(first):''))+'</div></div></div>';
   h+=sh(cap(MON[sel]),ML.length?ML.length+(ML.length===1?' födelsedag':' födelsedagar'):'')+group(ML.length?ML.map(b=>bdRow(b)).join(''):emptyCell('Ingen fyller år i '+MON[sel]+'.'));
-  h+='<div class="foot">Tryck på en månad i hjulet för att se vilka som fyller år då. Svep vänster på ett namn för att ta bort det.</div>'}
+  h+='<div class="foot">Tryck på en månad i hjulet för att se vilka som fyller år då. Håll in ett namn för att ändra, svep vänster för att ta bort.</div>'}
  else if(mode==='manad'){h+='<div class="bd-grid">';
   for(let m=0;m<12;m++){const ML=L.filter(b=>b.mo===m),cur=m===t.getMonth();
    h+='<section class="bd-mon'+(cur?' now':'')+(!ML.length?' empty':'')+'"><div class="bd-mh"><span>'+cap(MON[m])+'</span>'+(ML.length?'<span class="n">'+ML.length+'</span>':'')+'</div>'+

@@ -4,7 +4,7 @@ Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs 
 
 ## Börja här
 
-- Hämta senaste main. Drift: **ht-v179 / app.js?v=170 / matvaror.js?v=9** (födelsedagar: lägg till/ta bort).
+- Hämta senaste main. Drift: **ht-v180 / app.js?v=171 / matvaror.js?v=9** (födelsedagar: färger och håll in för att ändra).
 - [Pages-publicering](https://github.com/HenrikLH/hushallstavlan/actions/runs/40094688899) grön; publik sw/index och appens filinnehåll verifierade. Inga öppna PR:er eller ofärdiga implementationer vid överlämningen.
 - Nästa steg: Henriks nästa konkreta uppgift eller återkoppling från telefon/Surface. Gör inte om redan godkända rättningar.
 - Henrik vill behålla UI 2.0:s tema och gemensamma komponenter. UI 3.0 är frivilligt i utvecklarläget. Bilder före visuella ändringar på main; ”Pusha” är publiceringsgodkännande.
@@ -17,7 +17,7 @@ Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs 
 - Veckosedel: **ingen automatisk Ätit-status eller datumspärr**. Efter torsdag kan vardagsrätter fortfarande tas bort/låsas. Vänstersvep visar Ta bort, högersvep och hålltryck låser/låser upp. Båda låsstilarna (rätt/bild) fungerar; låst borttagning kräver bekräftelse. [PR #29](https://github.com/HenrikLH/hushallstavlan/pull/29).
 - Lilla väderremsan: tunn linje före midnatt och dag + 00, ingen vald bakgrund; även när midnatt är första timmen. Scroll/väderlänk kvar. PR #30 ersätter stängda #20; inget väderarbete väntar längre.
 - Födelsedagar (ht-v179): plus öppnar bladet Ny födelsedag (namn, dag, månad, år) och följer plusplaceringen; svep vänster tar bort med 5 s Ångra. Egna tillägg/borttag ligger i `onskelista` som `{fod:1,add,del}` och läggs ovanpå kalendersynkens `fodelsedagar`, så synken skriver aldrig över dem. Test: verktyg/emu/fodelsedagar.js. Ångra-gren version-fore-fodelsedagar-20261024.
-- **Pågår (Claude, gren claude/project-thread-tvlqgn):** egen färg per födelsedag. Tryck på en rad öppnar Ändra födelsedag (namn/datum/år/färg, Ta bort). Färg i `onskelista` `{fod:1,…,col:{'namn|MM-DD':färg}}`. Bilder visade, väntar på Henriks ”Pusha”; versionen höjs vid sammanslagning. fodelsedagar.js + alla-flikar telefon/vägg gröna.
+- Födelsedagar (ht-v180): håll in en rad 1 s (samma streck som lås, `data-hold-lock` + `data-lock-act="fodEdit"`) öppnar Ändra födelsedag (namn/datum/år/färg, Ta bort). Egen färg i `onskelista` `col:{'namn|MM-DD':färg}`; barn under 18 med känt födelseår får `BD_BARN` (orange) utan egen färg. Ångra-gren version-fore-fodelsedagsfarger.
 - Inga nya Kod.gs-steg krävs. Henrik bekräftade 2026-10-21 att Kod.gs/setupRecipes/distribution är uppdaterade. Receptlagring/server/import: docs/recipe-management-release.md. Ingen riktig hushållsdata ändrad av agenten.
 
 ## Verifiering och återställning
@@ -25,7 +25,7 @@ Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs 
 - verktyg/emu/stad-plus.js: telefon/vägg × ljust/mörkt inkl. UI3; inställningar/omstart/Avbryt/två sparvägar. ui-versioner.js godkänd. Bilder outputs/stad-plus-profil/.
 - verktyg/emu/matsedel-gester.js: torsdag–lördag, telefon/vägg × ljust/mörkt; båda låsstilarna via inställningar/omladdning, hålltryck/svep, låst bekräftelse/Avbryt, sparning efter omladdning. Alla-flikar telefon/vägg godkända på appkoden i #29. Bilder outputs/matsedel-gester/.
 - verktyg/emu/vader-dygn.js: ljust/mörkt på vägg, dygnsgräns inkl. första timmen, scroll/väderlänk; alla-flikar telefon godkända på appkoden i #30. Bilder outputs/vader-dygn/. Testerna använder låtsasdata.
-- Ångra-grenar: version-fore-fodelsedagar-20261024 (ht-v178), version-fore-vader-dygn-20261024 (ht-v177), version-fore-matsedel-gester-20261024 (ht-v176), version-fore-stad-plus-20261023 (ht-v175).
+- Ångra-grenar: version-fore-fodelsedagsfarger (ht-v179), version-fore-fodelsedagar-20261024 (ht-v178), version-fore-vader-dygn-20261024 (ht-v177), version-fore-matsedel-gester-20261024 (ht-v176), version-fore-stad-plus-20261023 (ht-v175).
 
 ## Kräver verklig hårdvara
 
