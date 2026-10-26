@@ -1848,6 +1848,34 @@ html.ny .tp-k{display:flex;flex-wrap:wrap;gap:4px 14px;padding:10px 16px 0;font-
 html.ny .tp-k span{display:inline-flex;align-items:center;gap:6px}
 html.ny .tp-k .tp-b{position:static;width:16px;height:10px;min-width:0;border-radius:3px}
 .cook .tp{margin-top:18px}
+/* Stapeln är timerns knapp; numret går till steget */
+html.ny .tp-r .no{padding:0;border:0;cursor:pointer}
+html.ny .tp-r .tp-t{width:100%;padding:0;border:0;background:none;color:inherit;font:inherit;cursor:pointer;text-align:left}
+html.ny .tp-b.pau .tp-f{opacity:.65}
+html.ny .tp-b.egen{background:color-mix(in srgb,var(--accent) 22%,var(--surface))}
+html.ny .tp-r.egen .no svg{width:14px;height:14px}
+html.ny .tp-sum .meta{margin-left:auto}
+html.ny .tp-egen{flex:none;align-self:center;width:32px;height:32px;margin:-4px -4px -4px 0;border:0;border-radius:50%;display:grid;place-items:center;background:var(--fill);color:var(--ink-2);cursor:pointer}
+html.ny .tp-egen svg{width:18px;height:18px}
+html.ny .steps>li.active{background:var(--fill)}
+html.ny .ingx.hit{background:var(--fill)}
+html.ny .steps>li.active .pill{background:var(--surface)}
+html.ny .tp-b.run em{color:var(--accent);text-shadow:none;background:var(--surface);border-radius:6px;margin-left:4px;padding:2px 6px}
+/* Egen timer: vred med streck runt om, Start i mitten */
+.tm-w{display:flex;flex-direction:column;align-items:center;gap:18px;padding:8px 0 22px}
+.tm-dial{position:relative;width:min(280px,72vw);aspect-ratio:1;touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab}
+.tm-dial svg{display:block;width:100%;height:100%}
+.tm-bg{fill:color-mix(in srgb,var(--accent) 14%,var(--surface))}
+.tm-tk line{stroke:color-mix(in srgb,var(--accent) 50%,transparent);stroke-width:2.5;stroke-linecap:round}
+.tm-tr{fill:none;stroke:color-mix(in srgb,var(--accent) 10%,var(--surface));stroke-width:14}
+.tm-ar{fill:none;stroke:var(--accent);stroke-width:14;stroke-linecap:round}
+.tm-kn{fill:#fff;stroke:var(--accent);stroke-width:3;filter:drop-shadow(0 1px 2px rgba(0,0,0,.25))}
+.tm-go{position:absolute;inset:27%;border:0;border-radius:50%;background:var(--accent);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;font:inherit}
+.tm-go b{font-size:24px;font-weight:700;font-variant-numeric:tabular-nums}.tm-go span{font-size:14px;opacity:.9}
+.tm-ctl{display:flex;align-items:center;gap:20px}
+.tm-ctl button{width:52px;height:52px;border:0;border-radius:50%;display:grid;place-items:center;background:var(--fill);color:var(--ink);cursor:pointer}
+.tm-ctl button svg{width:22px;height:22px}
+@media (min-width:900px){.tm-dial{width:360px}.tm-go b{font-size:32px}.tm-go span{font-size:17px}.tm-ctl button{width:64px;height:64px}html.ny .tp-egen{width:40px;height:40px}html.ny .tp-egen svg{width:22px;height:22px}}
 /* Ingredienser i matlagningsläget: stegets överst, en diskret linje, sedan resten */
 html.ny .ingx.top{color:var(--accent)}
 html.ny .ing-sep{height:0;margin:2px 16px;border-top:1.5px solid color-mix(in srgb,var(--accent) 30%,var(--line))}

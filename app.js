@@ -56,7 +56,8 @@ const I={
  trash:SV+'<path d="M4.5 6.5h15M9.5 6.5V4.5h5v2M6.5 6.5l1 13h9l1-13"/></svg>',
  play:'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg>',
  cake:SV+'<path d="M4 21h16M5 21v-7.5a1.5 1.5 0 0 1 1.5-1.5h11a1.5 1.5 0 0 1 1.5 1.5V21"/><path d="M5 16c1.2 1 2.3 1 3.5 0s2.3-1 3.5 0 2.3 1 3.5 0 2.3-1 3.5 0"/><path d="M12 12V8.5"/><path d="M12 3.5c1 1.2 1.3 2.2.6 2.9a.9.9 0 0 1-1.2 0c-.7-.7-.4-1.7.6-2.9z"/></svg>',
- clock:SV+'<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg>'
+ clock:SV+'<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg>',
+ pause:SV+'<path d="M9 6v12M15 6v12"/></svg>'
 };
 // Översikt ligger i mitten av flikraden
 const I_EKO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10h18M16.5 14.5h1.5"/></svg>';
@@ -1259,13 +1260,29 @@ const middag=()=>{const v=Number(lsGet('middag'));return v>=600&&v<=1380?v:1080}
 // Raden har bara stegets nummer, samma som i instruktionen. En startad timer fyller sin stapel medan tiden går
 function tpHtml(r,ST,o){const{R,tot}=tidsplan(ST),T=Math.max(tot,1),st=o.start,step=T<=30?5:T<=75?10:T<=150?15:30,pc=m=>(m/T*100).toFixed(2)+'%';
  let ax='';for(let m=Math.ceil(st/step)*step-st;m<=T+.01;m+=step)ax+='<span style="left:'+pc(m)+'">'+tpKl(st+m)+'</span>';
- const rows=R.map((x,i)=>{const tm=S.timers.find(t=>t.rid===r.id&&t.si===i),ms=tm?tm.end-Date.now():0,run=tm&&!tm.ring&&ms>0;
-  const fill=run?'<i class="tp-f" style="animation-duration:'+(tm.dur/1000).toFixed(1)+'s;animation-delay:-'+((tm.dur-ms)/1000).toFixed(1)+'s"></i>':'';
-  const txt=run?'<em data-end="'+tm.end+'">'+I.clock+tpKvar(ms)+'</em>':tm?'<em>Klart</em>':x.d/T>=.14?'<em>'+(x.est?'ca ':'')+x.d+' min</em>':'';
-  return'<button type="button" class="tp-r'+(i===o.cur?' on':'')+(o.now!=null&&x.b<=o.now&&i!==o.cur?' gj':'')+'" data-act="'+(o.cook?'cookTo':'pickStep')+'" data-id="'+esc(r.id)+'" data-i="'+i+'" aria-label="Steg '+(i+1)+', '+x.d+' min"><span class="no">'+(i+1)+'</span><span class="tp-t"><i class="tp-b'+(x.pas?' pas':'')+(x.est?' est':'')+(run?' run':tm?' klar':'')+'" style="left:'+pc(x.a)+';width:'+pc(x.d)+'">'+fill+txt+'</i></span></button>'}).join('');
+ // Stapeln är timern: tryck startar, tryck igen pausar och fortsätter, en färdig timer tas bort med ett tryck
+ const bar=(tm,cls,sty,lab)=>{const ms=tm?tmKvar(tm):0,run=tm&&!tm.ring&&ms>0,pau=run&&tm.p!=null;
+  const fill=run?'<i class="tp-f" style="animation-duration:'+(tm.dur/1000).toFixed(1)+'s;animation-delay:-'+((tm.dur-ms)/1000).toFixed(1)+'s'+(pau?';animation-play-state:paused':'')+'"></i>':'';
+  const txt=pau?'<em>'+I.pause+tpKvar(ms)+'</em>':run?'<em data-end="'+tm.end+'">'+I.clock+tpKvar(ms)+'</em>':tm?'<em>Klart</em>':lab;
+  return'<i class="tp-b'+cls+(pau?' run pau':run?' run':tm?' klar':'')+'" style="'+sty+'">'+fill+txt+'</i>'};
+ const rows=R.map((x,i)=>{const tm=S.timers.find(t=>t.rid===r.id&&t.si===i),cur=i===o.cur;
+  return'<div class="tp-r'+(cur?' on':'')+(o.now!=null&&x.b<=o.now&&!cur?' gj':'')+'"><button type="button" class="no" data-act="'+(o.cook?'cookTo':'pickStep')+'" data-id="'+esc(r.id)+'" data-i="'+i+'" aria-label="Gå till steg '+(i+1)+'">'+(i+1)+'</button>'+
+   '<button type="button" class="tp-t" data-act="tpTimer" data-id="'+esc(r.id)+'" data-i="'+i+'" data-min="'+x.d+'" aria-label="Timer för steg '+(i+1)+', '+x.d+' min">'+bar(tm,(x.pas?' pas':'')+(x.est?' est':''),'left:'+pc(x.a)+';width:'+pc(x.d),x.d/T>=.14?'<em>'+(x.est?'ca ':'')+x.d+' min</em>':'')+'</button></div>'}).join('')+
+  S.timers.filter(t=>t.rid===r.id&&t.egen).map(t=>'<div class="tp-r egen"><button type="button" class="no" data-act="timerStop" data-id="'+t.k+'" aria-label="Ta bort egen timer">'+I.x+'</button><button type="button" class="tp-t" data-act="tpTimer" data-k="'+t.k+'" aria-label="Egen timer '+Math.round(t.dur/60000)+' min">'+bar(t,' egen','left:0;width:100%','')+'</button></div>').join('');
  const now=o.now!=null&&o.now>=0&&o.now<=T?'<i class="tp-now" style="left:'+pc(o.now)+'"></i>':'';
- return'<div class="group tp'+(o.cook?' tp-cook':'')+'"><div class="tp-sum"><span><b>'+(o.cook?'Klart ca ':'Börja ')+tpKl(o.cook?st+T:st)+'</b>'+(o.cook?'':' · klart '+tpKl(st+T))+'</span><span class="meta">ca '+T+' min</span></div><div class="tp-g">'+rows+'<div class="tp-ax"><span class="tp-t">'+ax+'</span></div><div class="tp-ov"><span class="tp-t">'+now+'</span></div></div>'+
+ return'<div class="group tp'+(o.cook?' tp-cook':'')+'" data-rid="'+esc(r.id)+'"><div class="tp-sum"><span><b>'+(o.cook?'Klart ca ':'Börja ')+tpKl(o.cook?st+T:st)+'</b>'+(o.cook?'':' · klart '+tpKl(st+T))+'</span><span class="meta">ca '+T+' min</span><button type="button" class="tp-egen" data-act="egenTimer" data-id="'+esc(r.id)+'" aria-label="Egen timer">'+I.clock+'</button></div><div class="tp-g">'+rows+'<div class="tp-ax"><span class="tp-t">'+ax+'</span></div><div class="tp-ov"><span class="tp-t">'+now+'</span></div></div>'+
   '<div class="tp-k"><span><i class="tp-b"></i>Du lagar</span><span><i class="tp-b pas"></i>Sköter sig själv</span><span><i class="tp-b est"></i>Uppskattad tid</span></div></div>'}
+const tmKvar=t=>t.p!=null?t.p:t.end-Date.now();
+// Egen timer: ett lager med ett vred att snurra på, eller − och +
+function tmrSvg(m){const a=(m%60||(m?60:0))/60,ang=a*2*Math.PI,R=78,c=2*Math.PI*R,x=100+R*Math.sin(ang),y=100-R*Math.cos(ang);let t='';
+ for(let i=0;i<60;i++){const v=i*Math.PI/30,l=i%5?6:12,r1=97,r2=r1-l;t+='<line x1="'+(100+r1*Math.sin(v)).toFixed(1)+'" y1="'+(100-r1*Math.cos(v)).toFixed(1)+'" x2="'+(100+r2*Math.sin(v)).toFixed(1)+'" y2="'+(100-r2*Math.cos(v)).toFixed(1)+'"/>'}
+ return'<svg viewBox="0 0 200 200" aria-hidden="true"><circle class="tm-bg" cx="100" cy="100" r="99"/><g class="tm-tk">'+t+'</g><circle class="tm-tr" cx="100" cy="100" r="'+R+'"/><circle class="tm-ar" cx="100" cy="100" r="'+R+'" stroke-dasharray="'+(c*a).toFixed(1)+' '+c.toFixed(1)+'" transform="rotate(-90 100 100)"/><circle class="tm-kn" cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="11"/></svg>'}
+const tmrTxt=m=>m>=60?Math.floor(m/60)+' h '+pad(m%60):m+' min';
+function tmrSheet(enter){const m=S.tmr.min;
+ const body='<div class="tm-w"><div class="tm-dial" role="slider" aria-label="Tid" aria-valuemin="1" aria-valuemax="180" aria-valuenow="'+m+'">'+tmrSvg(m)+'<button type="button" class="tm-go" data-act="tmrStart"><b>'+tmrTxt(m)+'</b><span>Start</span></button></div>'+
+  '<div class="tm-ctl"><button type="button" data-act="tmrStep" data-d="-1" aria-label="En minut mindre">'+I.minus+'</button><span class="meta">Snurra eller tryck</span><button type="button" data-act="tmrStep" data-d="1" aria-label="En minut mer">'+I.plus+'</button></div></div>';
+ return sheetHtml('tmr','Egen timer','<span class="tb" aria-hidden="true"></span>',body,enter)}
+function tmrPaint(){const d=document.querySelector('.tm-dial');if(!d)return;const m=S.tmr.min;d.querySelector('svg').outerHTML=tmrSvg(m);d.querySelector('.tm-go b').textContent=tmrTxt(m);d.setAttribute('aria-valuenow',m)}
 const tpKvar=ms=>{const s=Math.max(0,Math.ceil(ms/1000));return Math.floor(s/60)+':'+pad(s%60)};
 // Två rader under ett steg: vad Henrik gör och vad den vegetariska gör
 function kvLanes(x,val){if(!x.k&&!x.v)return'';const one=(cls,who,id,t)=>t?'<div class="kv-l '+cls+'"><div class="kv-h"><span class="av" aria-hidden="true">'+pinit(who)+'</span>'+esc(personLabel(who))+' · '+protById(id).ic+' '+esc(protById(id).namn)+'</div><div class="kv-t">'+esc(t)+'</div></div>':'';
@@ -1912,7 +1929,7 @@ function recipeDetail(r){
  if(NY){const md=middag(),{tot}=tidsplan(ST);h+='<div class="sh with-ctl"><span>Tidsplan</span><span class="stepper"><button data-act="middag" data-d="-15" aria-label="Tidigare middag">−</button><span>Middag <b>'+tpKl(md)+'</b></span><button data-act="middag" data-d="15" aria-label="Senare middag">+</button></span></div>'+tpHtml(r,ST,{start:md-tot,cur:act})}
  h+=sh('Gör så här','<span style="text-transform:none">Tryck på ett steg för att markera det</span>');
  h+='<div class="group"><ol class="steps">'+ST.map((s,i)=>{const hs=i===act?actHits:stepIngredients(rr,{t:stegText(s)}),on=i===act;
-  const timerBtn=s.timer?'<button class="pill" data-act="timer" data-min="'+s.timer+'" data-label="Steg '+(i+1)+'" data-id="'+esc(r.id)+'" data-i="'+i+'">'+I.clock+s.timer+' min</button>':'';
+  const timerBtn=s.timer&&!NY?'<button class="pill" data-act="timer" data-min="'+s.timer+'" data-label="Steg '+(i+1)+'" data-id="'+esc(r.id)+'" data-i="'+i+'">'+I.clock+s.timer+' min</button>':'';
   return'<li class="'+(on?'active':'')+'" data-act="pickStep" data-id="'+esc(r.id)+'" data-i="'+i+'"><span class="no">'+(i+1)+'</span><div class="txt">'+(s.t?esc(s.t):'')+(pv?kvLanes(s,pv):'')+
   (on?(hs.length&&!NY?'<div class="now"><div class="fn">Det här steget</div>'+hs.map(it=>ingRow(it,f)).join('')+'</div>':'')+
     ((timerBtn||i<ST.length-1)?'<div class="pills">'+timerBtn+(i<ST.length-1?'<button class="pill" data-act="pickStep" data-id="'+esc(r.id)+'" data-i="'+(i+1)+'">Nästa steg</button>':'')+'</div>':''):
@@ -2344,7 +2361,7 @@ function overlayKeepScroll(){const o=document.getElementById('overlay'),k=o.data
  const nb=o.querySelector('.sheet-body');if(y&&k&&o.dataset.k===k&&nb&&nb!==b)nb.scrollTop=y}
 function renderOverlay(){
  const o=document.getElementById('overlay');
- const k=S.cook?'cook':S.sheet==='settings'?'settings':S.sheet==='farg'?'farg':S.sheet==='vagg'?'vagg':S.sheet==='ljuskal'?'ljuskal':S.sheet==='rate'?'rate':S.sheet==='income'?'income':S.sheet==='cost'?'cost':S.sheet==='ov'?'ov':S.sheet==='prefs'?'prefs':S.sheet==='swap'?'swap':S.sheet==='prot'?'prot':S.sheet==='wish'?'wish':S.sheet==='shopMore'?'shopMore':S.sheet==='dess'?'dess':S.sheet==='slot'?'slot':S.sheet==='delLas'?'delLas':S.sheet==='dish'?'dish':S.rcpSheet?'rcpSheet':S.sheet==='cleanAdd'?'cleanAdd':S.sheet==='fodAdd'?'fodAdd':S.sheet==='taskEdit'?'taskEdit':S.sheet==='evEdit'?'evEdit':S.shopAdd?'shop':S.taskAdd?'task':'';
+ const k=S.cook?'cook':S.sheet==='settings'?'settings':S.sheet==='farg'?'farg':S.sheet==='vagg'?'vagg':S.sheet==='ljuskal'?'ljuskal':S.sheet==='rate'?'rate':S.sheet==='income'?'income':S.sheet==='cost'?'cost':S.sheet==='ov'?'ov':S.sheet==='prefs'?'prefs':S.sheet==='swap'?'swap':S.sheet==='prot'?'prot':S.sheet==='wish'?'wish':S.sheet==='shopMore'?'shopMore':S.sheet==='dess'?'dess':S.sheet==='slot'?'slot':S.sheet==='delLas'?'delLas':S.sheet==='dish'?'dish':S.sheet==='tmr'?'tmr':S.rcpSheet?'rcpSheet':S.sheet==='cleanAdd'?'cleanAdd':S.sheet==='fodAdd'?'fodAdd':S.sheet==='taskEdit'?'taskEdit':S.sheet==='evEdit'?'evEdit':S.shopAdd?'shop':S.taskAdd?'task':'';
  const prev=o.dataset.k||'';
  // Rita inte om ett öppet blad medan någon skriver i det
  if(k&&k!=='cook'&&k===prev&&busyTyping()&&o.contains(document.activeElement))return;
@@ -2358,8 +2375,9 @@ function renderOverlay(){
    tp=tpHtml(r,ST,{start,cur:i,now:nm-start,cook:1});klar=' · klart ca '+tpKl(start+Math.max(tot,1))}
   o.innerHTML='<div class="cook" role="dialog" aria-modal="true" aria-label="Matlagningsläge"><div class="cook-top"><span></span><div class="fn">Steg '+(i+1)+' av '+n+klar+'</div><button class="tb strong" data-act="cookClose">Klar</button></div><div class="cook-name">'+esc(r.title)+'</div>'+
   '<div class="progress" aria-hidden="true">'+ST.map((_,k)=>'<i class="'+(k<=i?'on':'')+(grew&&k===i?' just':'')+'"></i>').join('')+'</div>'+
-  '<div class="cook-body'+dir+'"><div class="col">'+(s.t?'<p class="cook-text">'+esc(s.t)+'</p>':'')+(pv?kvLanes(s,pv):'')+(s.timer?'<div class="block"><button class="pill" data-act="timer" data-min="'+s.timer+'" data-label="Steg '+(i+1)+'" data-id="'+esc(r.id)+'" data-i="'+i+'">'+I.clock+'Starta '+s.timer+' min</button></div>':'')+now+(NY?tp:'')+'</div><div class="col">'+(NY?sh('Ingredienser')+ingSorted(rr,f,hits,stegText(s)):sh('Alla ingredienser')+ingList(rr,f,hits))+'</div></div>'+
-  '<div class="cook-nav"><button class="btn-tint" data-act="cookStep" data-d="-1"'+(i===0?' disabled':'')+'>Förra</button>'+(i<n-1?'<button class="btn-fill" data-act="cookStep" data-d="1">Nästa</button>':'<button class="btn-fill" data-act="cookDone" data-id="'+esc(r.id)+'">Klar – betygsätt</button>')+'</div></div>';
+  '<div class="cook-body'+dir+'"><div class="col">'+(s.t?'<p class="cook-text">'+esc(s.t)+'</p>':'')+(pv?kvLanes(s,pv):'')+(s.timer&&!NY?'<div class="block"><button class="pill" data-act="timer" data-min="'+s.timer+'" data-label="Steg '+(i+1)+'" data-id="'+esc(r.id)+'" data-i="'+i+'">'+I.clock+'Starta '+s.timer+' min</button></div>':'')+now+(NY?tp:'')+'</div><div class="col">'+(NY?sh('Ingredienser')+ingSorted(rr,f,hits,stegText(s)):sh('Alla ingredienser')+ingList(rr,f,hits))+'</div></div>'+
+  '<div class="cook-nav"><button class="btn-tint" data-act="cookStep" data-d="-1"'+(i===0?' disabled':'')+'>Förra</button>'+(i<n-1?'<button class="btn-fill" data-act="cookStep" data-d="1">Nästa</button>':'<button class="btn-fill" data-act="cookDone" data-id="'+esc(r.id)+'">Klar – betygsätt</button>')+'</div></div>'+
+  (S.sheet==='tmr'?tmrSheet(A.tmrIn?'':' enter'):'');A.tmrIn=S.sheet==='tmr';
   return}
  if(k==='settings'){const st=settings(),topic=D().ntfyTopic||'';
   const body=settingsGroups([
@@ -2482,6 +2500,7 @@ function renderOverlay(){
    '<button type="button" class="ov-later" data-act="ovLater">Gör det senare</button>'+
    '<div class="ti-foot fn">Utgiften visas som '+(was?'ändrad':'saknad')+' tills du bockar av den.</div></div>';
   o.innerHTML=sheetHtml('ov','Stående överföring','<span class="tb" aria-hidden="true"></span>',body,enter);return}
+ if(k==='tmr'){o.innerHTML=tmrSheet(enter);return}
  if(k==='dish'){const ds=S.dm==='d',m=ds?null:D().menu[Number(S.dm)],r=ds?weekDessert():m&&m.recipe&&recipeById(m.recipe);if(ds?!r:!m){closeSheets();o.dataset.k='';o.innerHTML='';return}
   const rid=ds?r.id:m.recipe,lst=!!(rid&&weekLocks(weekTarget().vs).has(rid)),tit=ds?r.title:m.title,n=ds?dessPort(r):dishPort(m,r),pa=ds?'dessPortStep':'portStep',pid=ds?'':S.dm;
   const meta=[ds?'Efterrätt':'',lst?'Låst':'',r&&r.min?r.min+' min':'',r&&r.kr?kr(r.kr)+'/port':''].filter(Boolean).join('<span class="dot" aria-hidden="true">·</span>');
@@ -3744,7 +3763,15 @@ const ACT={
   S.recipe=null;render();toast(onMenu?'Receptet föreslås inte igen. Det står kvar på veckans meny, tryck Byt där för att byta ut det.':'Receptet är borttaget och föreslås inte igen')},
  cookClose(){S.cook=null;A.cookStep=null;wake();render()},
  timer(id,el){unlockAudio();const m=Number(el.dataset.min);S.timers.push({k:Math.random().toString(36).slice(2),label:el.dataset.label||'Timer',end:Date.now()+m*60000,ring:false,rid:id||'',si:el.dataset.i==null?-1:Number(el.dataset.i),dur:m*60000});tick();if(NY&&id)render();toast('Timer: '+m+' min')},
- timerStop(id){S.timers=S.timers.filter(t=>t.k!==id);tick()},
+ timerStop(id){S.timers=S.timers.filter(t=>t.k!==id);tick();if(NY)render()},
+ tpTimer(id,el){unlockAudio();const k=el.dataset.k,i=Number(el.dataset.i),t=k?S.timers.find(x=>x.k===k):S.timers.find(x=>x.rid===id&&x.si===i);
+  if(!t){const m=Number(el.dataset.min)||0;if(!m)return;S.timers.push({k:Math.random().toString(36).slice(2),label:'Steg '+(i+1),end:Date.now()+m*60000,ring:false,rid:id,si:i,dur:m*60000})}
+  else if(t.ring||tmKvar(t)<=0)S.timers=S.timers.filter(x=>x!==t);
+  else if(t.p!=null){t.end=Date.now()+t.p;delete t.p}else t.p=t.end-Date.now();
+  tick();render()},
+ egenTimer(id){S.tmr={rid:id,min:Number(lsGet('tmrMin'))||10};S.sheet='tmr';render()},
+ tmrStep(id,el){S.tmr.min=Math.max(1,Math.min(180,S.tmr.min+Number(el.dataset.d)));tmrPaint()},
+ tmrStart(){unlockAudio();const m=S.tmr.min;lsSet('tmrMin',m);S.timers.push({k:Math.random().toString(36).slice(2),label:'Egen timer',end:Date.now()+m*60000,ring:false,rid:S.tmr.rid,si:-1,egen:1,dur:m*60000});S.sheet=null;tick();render();toast('Timer: '+tmrTxt(m))},
  shopFilter(id){S.shopFilter=id;render()},
  shopAdd(){S.shopAdd=!S.shopAdd;render();if(S.shopAdd)setTimeout(()=>document.getElementById('shop-name')?.focus(),30)},
  shopDel(id){const x=D().shop.find(y=>y.id===id);if(x)delStart([x],x.name+' togs bort')},
@@ -3834,6 +3861,12 @@ const ACT={
 // Knappar med data-hold bekräftas genom att hållas in 1 s. Släpper man eller scrollar avbryts det
 (()=>{let h=null,fired=0;const T=1000;
  const stop=()=>{if(!h)return;clearTimeout(h.t);h.el.classList.remove('holding');h=null};
+ // Vredet i Egen timer: varje varv är en timme
+ document.addEventListener('pointerdown',e=>{const d=e.target.closest('.tm-dial');if(!d||e.button>0||e.target.closest('.tm-go'))return;e.preventDefault();
+  const mv=ev=>{const b=d.getBoundingClientRect(),deg=(Math.atan2(ev.clientX-b.left-b.width/2,b.top+b.height/2-ev.clientY)*180/Math.PI+360)%360,n=Math.round(deg/6)%60,o=S.tmr.min%60;let h=Math.floor(S.tmr.min/60);
+   if(o>45&&n<15)h++;else if(o<15&&n>45)h--;S.tmr.min=Math.max(1,Math.min(180,h*60+n));tmrPaint()};
+  const up=()=>{removeEventListener('pointermove',mv);removeEventListener('pointerup',up);removeEventListener('pointercancel',up)};
+  addEventListener('pointermove',mv);addEventListener('pointerup',up);addEventListener('pointercancel',up);mv(e)});
  document.addEventListener('pointerdown',e=>{const el=e.target.closest('[data-hold]');if(!el||el.disabled||e.button>0)return;stop();
   el.classList.add('holding');h={el,x:e.clientX,y:e.clientY,t:setTimeout(()=>{const a=el.dataset.hold;stop();fired=Date.now();try{navigator.vibrate&&navigator.vibrate(15)}catch(x){}ACT[a]&&ACT[a](el.dataset.id)},T)}});
  document.addEventListener('pointermove',e=>{if(h&&Math.hypot(e.clientX-h.x,e.clientY-h.y)>12)stop()});
@@ -4182,7 +4215,9 @@ function tick(){
  const ni=document.querySelector('.night-in');if(ni){const h=String(new Date().getHours());if(ni.dataset.h!==h){ni.dataset.h=h;ni.style.transform=nightPos()}}
  document.querySelectorAll('.tp-b em[data-end]').forEach(x=>{const ms=Number(x.dataset.end)-Date.now();x.lastChild.textContent=ms>0?tpKvar(ms):'Klart'});
  const box=document.getElementById('timers');
- box.innerHTML=S.timers.map(t=>{const ms=t.end-Date.now();if(ms<=0&&!t.ring){t.ring=true;beep();try{navigator.vibrate&&navigator.vibrate([300,150,300])}catch(e){}}const s=Math.max(0,Math.ceil(ms/1000));
+ box.innerHTML=S.timers.map(t=>{const ms=tmKvar(t);if(ms<=0&&!t.ring){t.ring=true;beep();try{navigator.vibrate&&navigator.vibrate([300,150,300])}catch(e){}}const s=Math.max(0,Math.ceil(ms/1000));
+  // Timern syns bara i tidsplanen när den är på skärmen; annars här i hörnet
+  const vis=NY&&t.rid&&document.querySelector('.tp[data-rid="'+CSS.escape(t.rid)+'"]');if(vis&&t.ring&&!t.rang){t.rang=1;setTimeout(render)}if(vis)return'';
   return'<div class="timer'+(t.ring?' ring':'')+'"><span>'+esc(t.label)+'</span><span class="num">'+(t.ring?'Klart!':Math.floor(s/60)+':'+pad(s%60))+'</span><button data-act="timerStop" data-id="'+t.k+'" aria-label="Stäng timer">'+I.x+'</button></div>'}).join('');
  if(S.timers.some(t=>t.ring)&&Date.now()%5000<1000)beep()}
 setInterval(tick,1000);
