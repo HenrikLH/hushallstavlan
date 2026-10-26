@@ -430,7 +430,7 @@ let camN=0;setInterval(()=>{if(KAL)return;if(CAM.src==='als'&&!ALS||++camN%60===
 
 /* Ändra ordning: håll fingret på en ruta på Översikt tills rutorna vickar och dra sedan, som på mobilens hemskärm.
    De andra rutorna glider undan medan man drar. Klockan räknas inte (där sitter kioskens stäng-gest). */
-(function(){let lp=0,x=0,y=0,eat=false,G=null,pid='',mouse=false;const stop=()=>{clearTimeout(lp);lp=0};
+(function(){let lp=0,x=0,y=0,eat=false,G=null,pid='',mouse=false,LPB=null,LPW=0;const stop=()=>{clearTimeout(lp);lp=0;clearTimeout(LPW);if(LPB){hlOff(LPB);LPB=null}};
  const rects=()=>{const m={};document.querySelectorAll('[data-box]').forEach(b=>{const r=b.getBoundingClientRect();m[b.dataset.box]={l:r.left,t:r.top+scrollY,w:r.width,h:r.height}});return m};
  // rita om och låt rutorna glida från sina gamla platser till de nya
  const redraw=()=>{const old=rects();doRender();const now=rects();
@@ -461,7 +461,8 @@ let camN=0;setInterval(()=>{if(KAL)return;if(CAM.src==='als'&&!ALS||++camN%60===
  document.addEventListener('pointerdown',e=>{if(e.button>0||S.view!=='oversikt'||nightOn()||G)return;const b=e.target.closest('[data-box]');if(!b||e.target.closest('#clock,.arr-x,.arr-s'))return;
   stop();x=e.clientX;y=e.clientY;const id=b.dataset.box,was=S.arrange;pid=id;mouse=e.pointerType!=='touch';
   // i ändra-läget räcker en kort stund, annars en längre så att vanliga tryck och scroll fungerar som förut
-  lp=setTimeout(()=>{lp=0;if(!was){S.arrange=true;doRender()}start(id,x,y)},was?180:600)});
+  if(!was){LPB=b;LPW=setTimeout(()=>{if(lp)hlOn(b,510,1.02)},90)}
+  lp=setTimeout(()=>{lp=0;LPB=null;if(!was){S.arrange=true;doRender()}start(id,x,y)},was?180:600)});
  // med mus (och väggskärmens pekskärm) börjar dragningen direkt när man rör sig i ändra-läget
  addEventListener('pointermove',e=>{if(G){move(e.clientX,e.clientY);return}if(!lp||Math.hypot(e.clientX-x,e.clientY-y)<=(S.arrange&&mouse?4:9))return;stop();if(S.arrange&&mouse){start(pid,x,y);if(G)move(e.clientX,e.clientY)}});
  addEventListener('pointerup',()=>{stop();if(G)end()});addEventListener('pointercancel',()=>{stop();if(G)end()});
@@ -470,8 +471,8 @@ let camN=0;setInterval(()=>{if(KAL)return;if(CAM.src==='als'&&!ALS||++camN%60===
  document.addEventListener('contextmenu',e=>{if(e.target.closest('[data-box]')&&S.view==='oversikt')e.preventDefault()})})();
 
 /* Lämna kioskläget utan tangentbord: håll fingret still på klockan i tre sekunder så stängs tavlan */
-(function(){let t=0,x=0,y=0;const stop=()=>{clearTimeout(t);t=0};
- document.addEventListener('pointerdown',e=>{if(e.button>0||!e.target.closest('#clock'))return;stop();x=e.clientX;y=e.clientY;
+(function(){let t=0,x=0,y=0,el=null;const stop=()=>{clearTimeout(t);t=0;if(el){hlOff(el);el=null}};
+ document.addEventListener('pointerdown',e=>{if(e.button>0||!e.target.closest('#clock'))return;stop();x=e.clientX;y=e.clientY;el=e.target.closest('#clock');hlOn(el,3000,1.04);
   t=setTimeout(()=>{t=0;toast('Stänger tavlan …');setTimeout(()=>{try{window.close()}catch(err){}setTimeout(()=>toast('Tavlan gick inte att stänga härifrån'),500)},700)},3000)});
  addEventListener('pointermove',e=>{if(t&&Math.hypot(e.clientX-x,e.clientY-y)>12)stop()});
  addEventListener('pointerup',stop);addEventListener('pointercancel',stop);
@@ -3676,43 +3677,31 @@ const ACT={
  ['pointerup','pointercancel','scroll'].forEach(k=>document.addEventListener(k,stop,true));
  document.addEventListener('click',e=>{const el=e.target.closest('[data-hold]');if(el&&Date.now()-fired>800)toast('Håll in knappen för att '+({shopEmptyYes:'tömma listan',weekDelYes:'bekräfta',shopImportYes:'uppdatera varorna'}[el.dataset.hold]||'bekräfta'))});
  document.addEventListener('contextmenu',e=>{if(e.target.closest('[data-hold]'))e.preventDefault()})})();
-/* Håll in en rad för att ändra (data-hold-lift = ACT): raden lyfts sakta upp med en mjuk skugga och bladet öppnas när den nått fram.
-   Släpper eller flyttar man fingret glider den tillbaka. Tiden står i CSS:en (.hl-on) och T här */
+/* Håll in = lyft: det man håller i växer sakta (4 % på 0,8 s) med en mjuk skugga och åtgärden körs när det nått fram.
+   Släpper eller flyttar man fingret glider det tillbaka. hlOn/hlOff används av alla håll-in-gester med lyft (ändra, lås, ordna rutor, klockan) */
+function hlOn(el,t,sc){if(!el)return;el.classList.remove('hl-ut');el.style.transition='';el.style.setProperty('--hl-t',(t||800)+'ms');if(sc)el.style.setProperty('--hl-s',sc);el.classList.add('hl-on')}
+function hlOff(el){if(!el||!el.classList.contains('hl-on'))return;el.classList.add('hl-ut');el.classList.remove('hl-on');setTimeout(()=>el.classList.remove('hl-ut'),300)}
+// Håll in en rad för att ändra (data-hold-lift = ACT, data-id)
 (()=>{const T=800,WAIT=90;let h=null,fired=0;
- const stop=()=>{if(!h)return;clearTimeout(h.w);clearTimeout(h.t);h.el.classList.remove('hl-on');h=null};
+ const stop=()=>{if(!h)return;clearTimeout(h.w);clearTimeout(h.t);hlOff(h.el);h=null};
  document.addEventListener('pointerdown',e=>{if(e.button>0)return;const el=e.target.closest('[data-hold-lift]');if(!el||e.target.closest('.dr-act')||el.classList.contains('open'))return;stop();
-  const x={el,x:e.clientX,y:e.clientY};h=x;x.w=setTimeout(()=>{if(h!==x)return;el.style.transition='';el.classList.add('hl-on');x.t=setTimeout(()=>{if(h!==x)return;fired=Date.now();try{navigator.vibrate&&navigator.vibrate(10)}catch(z){}
-   const a=el.dataset.holdLift,id=el.dataset.id;h=null;ACT[a]&&ACT[a](id);setTimeout(()=>el.classList.remove('hl-on'),300)},T)},WAIT)});
+  const x={el,x:e.clientX,y:e.clientY};h=x;x.w=setTimeout(()=>{if(h!==x)return;hlOn(el,T);x.t=setTimeout(()=>{if(h!==x)return;fired=Date.now();try{navigator.vibrate&&navigator.vibrate(10)}catch(z){}
+   const a=el.dataset.holdLift,id=el.dataset.id;h=null;ACT[a]&&ACT[a](id);setTimeout(()=>hlOff(el),300)},T)},WAIT)});
  document.addEventListener('pointermove',e=>{if(h&&Math.hypot(e.clientX-h.x,e.clientY-h.y)>10)stop()},{passive:true});
  ['pointerup','pointercancel'].forEach(k=>document.addEventListener(k,stop,true));document.addEventListener('scroll',stop,{capture:true,passive:true});
  document.addEventListener('click',e=>{if(Date.now()-fired<700&&e.target.closest('[data-hold-lift]')){e.stopPropagation();e.preventDefault()}},true);
  document.addEventListener('contextmenu',e=>{if(e.target.closest('[data-hold-lift]'))e.preventDefault()})})();
-/* Håll in en rätt på veckosedeln för att låsa den: ett streck i accentfärgen ritas runt rätten (eller bilden) på 1 s.
-   Släpper man tidigt går strecket tillbaka. En låst rätt låses upp på samma sätt, då backar strecket. Rör man fingret avbryts det */
-(()=>{const T=1000,WAIT=120;let h=null,fired=0;
- const rr=(w,h,r,i)=>{const a=i,b=w-i,c=i,d=h-i,m=w/2;return'M'+m+' '+c+'H'+(b-r)+'A'+r+' '+r+' 0 0 1 '+b+' '+(c+r)+'V'+(d-r)+'A'+r+' '+r+' 0 0 1 '+(b-r)+' '+d+'H'+(a+r)+'A'+r+' '+r+' 0 0 1 '+a+' '+(d-r)+'V'+(c+r)+'A'+r+' '+r+' 0 0 1 '+(a+r)+' '+c+'Z'};
- const end=back=>{if(!h)return;const x=h;h=null;clearTimeout(x.w);cancelAnimationFrame(x.raf);
-  if(!x.p){return}
-  // Har strecket hunnit synas räknas det inte som ett tryck, så receptet öppnas inte när man släpper
-  fired=Date.now();
-  if(!back){x.p.remove();x.k.classList.remove('lk-anim');return}
-  // Strecket glider tillbaka till där det började
-  const to=x.lst?1:0;let last=performance.now();const f=t=>{const dt=Math.max(0,t-last);last=t;x.v=x.v<to?Math.min(to,x.v+dt/250):Math.max(to,x.v-dt/250);x.p.style.strokeDasharray=x.v+' 2';x.p.style.strokeOpacity=x.v<.002?0:1;
-   if(x.v!==to)requestAnimationFrame(f);else{x.p.parentNode.remove();x.k.classList.remove('lk-anim')}};requestAnimationFrame(f)};
- const start=x=>{const k=x.k,w=k.offsetWidth,ht=k.offsetHeight,rad=k.classList.contains('lk-rad');
-  const NS='http://www.w3.org/2000/svg',svg=document.createElementNS(NS,'svg'),p=document.createElementNS(NS,'path');svg.setAttribute('class','lk-svg');svg.setAttribute('aria-hidden','true');
-  p.setAttribute('d',rr(w,ht,rad?12:13,rad?2:-1.5));p.setAttribute('pathLength','1');svg.appendChild(p);k.appendChild(svg);k.classList.add('lk-anim');
-  x.p=p;x.v=x.lst?1:0;p.style.strokeDasharray=x.v+' 2';p.style.strokeOpacity=x.v<.002?0:1;let last=performance.now();
-  const f=t=>{if(h!==x)return;const dt=Math.max(0,Math.min(50,t-last));last=t;x.v=Math.max(0,Math.min(1,x.v+(x.lst?-1:1)*dt/T));
-   if(x.lst?x.v<=0:x.v>=1){p.style.strokeDasharray=x.v+' 2';fired=Date.now();try{navigator.vibrate&&navigator.vibrate(15)}catch(e){}
-    if(x.lst)k.classList.remove('lk-on');else k.classList.add('lk-on');end(false);if(x.row.dataset.lockAct)ACT[x.row.dataset.lockAct](x.id);else weekLock(x.id);return}
-   p.style.strokeDasharray=x.v+' 2';p.style.strokeOpacity=x.v<.002?0:1;x.raf=requestAnimationFrame(f)};x.raf=requestAnimationFrame(f)};
+/* Håll in en rätt på veckosedeln (och efterrätten, Veckoförslag) för att låsa eller låsa upp den: samma lyft som ovan.
+   När den nått fram växlar låset och ringen/hänglåset visar läget. Har lyftet hunnit synas öppnas inte receptet när man släpper */
+(()=>{const T=800,WAIT=90;let h=null,fired=0;
+ const end=()=>{if(!h)return;const x=h;h=null;clearTimeout(x.w);clearTimeout(x.t);if(x.up){fired=Date.now();hlOff(x.row)}};
  document.addEventListener('pointerdown',e=>{if(e.button>0)return;const row=e.target.closest('[data-hold-lock]');if(!row||e.target.closest('.pl-step,.dr-byt,.dr-act,.dr-actl,.dess-x,.dr-x'))return;
-  if(row.classList.contains('open')||row.classList.contains('openl'))return;end(true);
-  const k=row.querySelector('[data-lk]')||row;h={row,k,id:row.dataset.holdLock,lst:k.classList.contains('lk-on'),x:e.clientX,y:e.clientY};const x=h;x.w=setTimeout(()=>{if(h===x)start(x)},WAIT)});
- document.addEventListener('pointermove',e=>{if(h&&Math.hypot(e.clientX-h.x,e.clientY-h.y)>10)end(true)},{passive:true});
- ['pointerup','pointercancel'].forEach(k=>document.addEventListener(k,()=>end(true),true));document.addEventListener('scroll',()=>end(true),{capture:true,passive:true});
- // Efter en låsning ska fingret som släpps inte öppna receptet
+  if(row.classList.contains('open')||row.classList.contains('openl'))return;end();
+  const k=row.querySelector('[data-lk]')||row,x={row,k,id:row.dataset.holdLock,x:e.clientX,y:e.clientY};h=x;
+  x.w=setTimeout(()=>{if(h!==x)return;x.up=1;hlOn(row,T);x.t=setTimeout(()=>{if(h!==x)return;h=null;fired=Date.now();try{navigator.vibrate&&navigator.vibrate(15)}catch(z){}
+   k.classList.toggle('lk-on');setTimeout(()=>hlOff(row),250);if(row.dataset.lockAct)ACT[row.dataset.lockAct](x.id);else weekLock(x.id)},T)},WAIT)});
+ document.addEventListener('pointermove',e=>{if(h&&Math.hypot(e.clientX-h.x,e.clientY-h.y)>10)end()},{passive:true});
+ ['pointerup','pointercancel'].forEach(k=>document.addEventListener(k,end,true));document.addEventListener('scroll',end,{capture:true,passive:true});
  document.addEventListener('click',e=>{if(Date.now()-fired<700&&e.target.closest('[data-hold-lock]')){e.stopPropagation();e.preventDefault()}},true);
  document.addEventListener('contextmenu',e=>{if(e.target.closest('[data-hold-lock]'))e.preventDefault()})})();
 document.addEventListener('click',e=>{const el=e.target.closest('[data-act]');if(!el)return;const a=el.dataset.act;if(!ACT[a])return;

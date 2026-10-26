@@ -496,9 +496,6 @@ button.fig-box:active{opacity:1;transform:scale(.96)}
 .lk-tw>.lk-bd{top:-14px}
 .lk-bd svg{width:12px;height:12px;stroke-width:2.6}
 .lk-on>.lk-ring{opacity:1}.lk-on>.lk-bd{transform:scale(1)}
-.lk-anim>.lk-ring{opacity:0}
-.lk-svg{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:2}
-.lk-svg path{fill:none;stroke:var(--accent);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
 .chip.lk{display:inline-flex;align-items:center;gap:3px;color:var(--orange,#FF9500)!important}.chip.lk svg{width:12px;height:12px}
 html.ny .chip.lk::before{display:none}
 .mk-c .dess-b{flex:1}
@@ -1268,14 +1265,15 @@ body.wall::before{content:"";position:fixed;inset:-20%;z-index:-1;pointer-events
 .bs-dots i[style]{background:var(--bd);opacity:.9}
 .bbd-l>div[style] .num{color:var(--bd-ink);font-weight:600}
 .cell.bd[data-hold-lift]{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
-/* Håll in för att ändra: raden lyfts sakta upp (data-hold-lift). Tillbaka går snabbare än upp */
-[data-hold-lift]{transition:transform .25s ease-out,box-shadow .25s ease-out,border-radius .25s}
-[data-hold-lift].hl-on{transform:scale(1.04);border-radius:14px;box-shadow:0 10px 28px rgba(0,0,0,.16),0 2px 6px rgba(0,0,0,.08);z-index:3;transition:transform .8s cubic-bezier(.3,.1,.3,1),box-shadow .8s ease-in,border-radius .3s}
-.group:has(.hl-on),.dr-wrap:has(>.hl-on){clip-path:none;overflow:visible;z-index:3}
-[data-hold-lift].hl-on{background:var(--surface);border-radius:16px}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) [data-hold-lift].hl-on{background:color-mix(in srgb,var(--surface) 88%,#fff);box-shadow:0 0 0 .5px rgba(255,255,255,.1),0 14px 34px rgba(0,0,0,.6)}}
-:root[data-theme="dark"] [data-hold-lift].hl-on{background:color-mix(in srgb,var(--surface) 88%,#fff);box-shadow:0 0 0 .5px rgba(255,255,255,.1),0 14px 34px rgba(0,0,0,.6)}
-@media (prefers-reduced-motion:reduce){[data-hold-lift].hl-on{transform:none}}
+/* Håll in = lyft (hlOn/hlOff i app.js): det man håller i växer sakta med en mjuk skugga; --hl-t är tiden, --hl-s storleken. Tillbaka går snabbare */
+.hl-on{transform:scale(var(--hl-s,1.04));box-shadow:0 10px 28px rgba(0,0,0,.16),0 2px 6px rgba(0,0,0,.08);position:relative;z-index:3;transition:transform var(--hl-t,.8s) cubic-bezier(.3,.1,.3,1),box-shadow var(--hl-t,.8s) ease-in,border-radius .3s,background-color .3s}
+.hl-ut{transition:transform .25s ease-out,box-shadow .25s ease-out,border-radius .25s,background-color .25s}
+.group:has(.hl-on),.g-one:has(.hl-on),.dr-wrap:has(>.hl-on){clip-path:none;overflow:visible;z-index:3}
+.cell.hl-on{background:var(--surface);border-radius:16px}
+#clock.hl-on{box-shadow:none}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .hl-on{box-shadow:0 0 0 .5px rgba(255,255,255,.1),0 14px 34px rgba(0,0,0,.6)}:root:not([data-theme="light"]) .cell.hl-on{background:color-mix(in srgb,var(--surface) 88%,#fff)}}
+:root[data-theme="dark"] .hl-on{box-shadow:0 0 0 .5px rgba(255,255,255,.1),0 14px 34px rgba(0,0,0,.6)}:root[data-theme="dark"] .cell.hl-on{background:color-mix(in srgb,var(--surface) 88%,#fff)}
+@media (prefers-reduced-motion:reduce){.hl-on{transform:none}}
 .bd-when{font-size:15px;color:var(--ink-2);white-space:nowrap;margin-left:auto}
 .bd-when.soon{color:var(--accent);font-weight:600}
 .bdw{gap:8px}
@@ -1986,7 +1984,7 @@ html.ny.seg-kapsel .create-options{border-radius:22px}
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=172"></script>
+<script src="app.js?v=173"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
