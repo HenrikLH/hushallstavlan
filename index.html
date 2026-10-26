@@ -418,9 +418,14 @@ body.wall .clock{display:block}
 .gs .fig-box{margin:0;position:relative;z-index:1}
 .gs>.bd{position:absolute;right:-10px;bottom:0;width:230px;height:190px;pointer-events:none;overflow:visible}
 .bd-leaves>g{animation:bdFall 7s linear infinite;opacity:0}
-.bd-leaves path{transform-box:fill-box;transform-origin:center;animation:bdSpin 1.6s ease-in-out infinite alternate}
-@keyframes bdFall{0%{transform:translate(0,0);opacity:0}8%{opacity:1}25%{transform:translate(calc(var(--dx)*.2 + 5px),calc(var(--dy)*.25))}50%{transform:translate(calc(var(--dx)*.5 - 4px),calc(var(--dy)*.5))}75%{transform:translate(calc(var(--dx)*.75 + 4px),calc(var(--dy)*.75))}92%{opacity:1}100%{transform:translate(var(--dx),var(--dy));opacity:0}}
-@keyframes bdSpin{from{transform:rotate(-35deg) scaleY(1)}to{transform:rotate(40deg) scaleY(.55)}}
+.bd-leaves .sw{animation:bdSway 2s ease-in-out infinite alternate}
+.bd-leaves path{transform-box:fill-box;transform-origin:center}
+.bd-leaves .fl{animation:bdFlut 2s ease-in-out infinite alternate}
+.bd-leaves .tu{animation:bdTum 1.6s linear infinite}
+@keyframes bdFall{0%{transform:translate(0,0);opacity:0}8%{opacity:1}90%{opacity:1}100%{transform:translate(var(--dx),var(--dy));opacity:0}}
+@keyframes bdSway{from{transform:translateX(calc(var(--a)*-1))}to{transform:translateX(var(--a))}}
+@keyframes bdFlut{from{transform:rotate(var(--r0)) scaleY(1)}to{transform:rotate(var(--r1)) scaleY(var(--sy))}}
+@keyframes bdTum{0%{transform:rotate(0) scaleX(1)}50%{transform:rotate(180deg) scaleX(-.35)}100%{transform:rotate(360deg) scaleX(1)}}
 @media (prefers-reduced-motion:reduce){.bd-leaves{display:none}}
 .fig-box.grass{height:124px}
 .arc{position:absolute;pointer-events:none;color:var(--ink-2)}
@@ -751,7 +756,29 @@ html.ny .chip.lk::before{display:none}
 .wx2-cond{display:flex;align-items:center;justify-content:flex-end;gap:6px;font-size:17px;line-height:22px}
 .wx2-cond span{font-size:26px;line-height:1}
 .wx2 .wx-hl{font-size:15px;line-height:20px;color:var(--ink-2);margin-top:2px}
-.wx2>.arc.w{right:8px;left:20%;top:104px;height:104px;color:var(--ink-2)}
+.wx2>.arc.w{right:8px;left:20%;top:100px;height:110px;color:var(--ink-2)}
+/* vädervyns himmel: stjärnor och moln i tre höjder (skyFx) */
+.wx2>.skyfx{position:absolute;left:0;right:0;top:0;height:240px;pointer-events:none;overflow:hidden;color:var(--ink-2);-webkit-mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent);mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent)}
+.skyfx .st,.skyfx .sk{color:#FFFFFF}
+.skyfx .st{position:absolute;border-radius:50%;background:currentColor;opacity:var(--o);box-shadow:0 0 0 .6px rgba(110,122,150,.45);animation:stTw 3s ease-in-out infinite}
+.skyfx .st.b{box-shadow:0 0 0 .6px rgba(110,122,150,.45),0 0 5px 1px currentColor}
+@keyframes stTw{50%{opacity:calc(var(--o)*.2)}}
+.skyfx .stjb{position:absolute;left:39%;top:5%;width:96px;height:106px;overflow:visible}
+.stjb line{stroke:currentColor;stroke-width:1.2;stroke-opacity:.45;stroke-linecap:round}
+.stjb circle{fill:#FFFFFF;stroke:rgba(110,122,150,.45);stroke-width:.8;animation:stTw 4s ease-in-out infinite;--o:1}
+.stjb text{fill:currentColor;font-size:11px;text-anchor:middle;opacity:.7}
+.skyfx .sk{position:absolute;left:40%;top:6%;width:70px;height:1.5px;border-radius:1px;background:linear-gradient(90deg,transparent,currentColor);opacity:0;animation:stSk 19s linear infinite}
+.skyfx .sk.d2{left:62%;top:20%;animation-duration:31s;animation-delay:-11s}
+@keyframes stSk{0%{transform:translate(0,0) rotate(24deg);opacity:0}1%{opacity:.9}5%{transform:translate(110px,50px) rotate(24deg);opacity:0}100%{opacity:0}}
+.skyfx .cl{position:absolute;left:0;width:100%;animation:clMove 100s linear infinite}
+.skyfx .cl.rev{animation-direction:reverse}
+.skyfx .cl>i{position:absolute;right:100%;top:0;display:block;line-height:0;animation:clBob 8s ease-in-out infinite alternate}
+.skyfx .cl.hi>i{animation-name:clShim}.skyfx .cl.lo>i{animation-name:clRoll}.skyfx .cl.fog>i{opacity:.55}
+@keyframes clMove{from{transform:translateX(0)}to{transform:translateX(calc(100% + var(--w)))}}
+@keyframes clShim{from{opacity:.4;transform:scaleX(.96)}to{opacity:.8;transform:scaleX(1.04)}}
+@keyframes clBob{from{transform:translateY(-2.5px) scale(1)}to{transform:translateY(2.5px) scale(1.04,.96)}}
+@keyframes clRoll{from{transform:translateY(0) scaleX(1)}to{transform:translateY(3px) scaleX(1.07)}}
+@media (prefers-reduced-motion:reduce){.skyfx .st,.skyfx .cl,.skyfx .cl>i{animation:none}.skyfx .sk{display:none}}
 .wx2-gs{width:210px;margin:18px -4px 0 auto;padding:0}
 .wx2-gs .fig-box.grass{width:210px;height:186px}
 .wx2-gs>.bd{right:-15px;width:345px;height:285px}
@@ -2097,7 +2124,7 @@ html.ny.seg-kapsel .create-options{border-radius:22px}
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=173"></script>
+<script src="app.js?v=175"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
