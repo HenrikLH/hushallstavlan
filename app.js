@@ -2110,9 +2110,63 @@ function calWidget(){const t=today(),wk=[],N=wallBoardOn()?7:28;for(let i=0;i<N;
  return'<section class="widget w2 calw"><button class="wh" data-act="calOpen" data-id="'+sel+'" style="width:100%">'+I.cal+(NY?'<span>Schema'+(N>7?' <span class="wk-mo">'+esc(MON[parse(t).getMonth()])+'</span>':'')+'</span><span class="r lnk">Kalender</span>':'<span>Kalender</span><span class="r">'+esc(cap(MON[parse(sel).getMonth()]))+'</span>')+'</button>'+strip+
   // schemadelen öppnar kalendern på vald dag, att göra-delen öppnar uppgiftslistan
   '<div class="wk-day"><div id="cal-rows" class="wk-link" data-d="'+sel+'" data-act="calOpen" data-id="'+sel+'" role="link" tabindex="0" aria-label="Schema, öppna kalendern">'+calDayRows(sel)+'</div>'+todo+'</div></section>'}
+/* Kalendern under Uppgifter: Dag, Vecka och Månad (UI 2.0). Dag och vecka visar händelser på en tidsaxel
+   med personens färg, och kvällens middag med när man behöver börja laga (från receptets tidsplan). */
+S.calVy=['dag','vecka','manad'].includes(lsGet('calVy'))?lsGet('calVy'):'manad';
+const evMin=v=>{const m=/^(\d{1,2})[.:](\d{2})/.exec(v||'');return m?Number(m[1])*60+Number(m[2]):null};
+const evSlut=v=>{const m=/[–-]\s*(\d{1,2})[.:](\d{2})/.exec(v||'');return m?Number(m[1])*60+Number(m[2]):null};
+const calBred=()=>S.wall||window.innerWidth>=900;
+// Allt som har en tid den dagen: händelser, laga och middag. Heldag och uppgifter läggs separat
+function calItems(k){const d=D(),out=[];
+ d.events.filter(e=>e.date===k&&!isBdEv(e)).forEach(e=>{const a=evMin(e.time);if(a==null)return;const w=evPerson(e);out.push({a,b:Math.max(a+25,evSlut(e.time)||a+60),t:e.title,s:evWho(e)?personLabel(w)||'':'',c:w&&people().includes(w)?pcls(w):'o',act:'evEdit',id:d.events.indexOf(e)})});
+ const m=d.menu.find(x=>x.date===k&&x.who!=='Borta'&&x.title&&!/^storkok/i.test(x.title)),md=middag();
+ if(m){const r=m.recipe&&recipeById(m.recipe),tot=r?tidsplan(kvSteps(r,protNu(r))).tot:0;
+  if(tot)out.push({a:md-tot,b:md,t:'Laga',s:'börja '+tpKl(md-tot),c:'m lg',act:'recipe',id:m.recipe});
+  out.push({a:md,b:md+45,t:/^macka$/i.test(m.title)?'Macka':m.title,s:'Middag '+tpKl(md),c:'m',act:r?'recipe':'',id:m.recipe||''})}
+ out.sort((x,y)=>x.a-y.a||y.b-x.b);
+ // bredvid varandra när tiderna krockar
+ let grp=[],end=-1;const fl=()=>{const n=Math.max(...grp.map(x=>x.l))+1;grp.forEach(x=>x.n=n);grp=[]};
+ out.forEach(x=>{if(x.a>=end&&grp.length)fl();const used=new Set(grp.filter(y=>y.b>x.a).map(y=>y.l));let l=0;while(used.has(l))l++;x.l=l;grp.push(x);end=Math.max(end,x.b)});if(grp.length)fl();
+ return out}
+function calHeldag(k){const d=D();return d.events.filter(e=>e.date===k&&(isBdEv(e)||evMin(e.time)==null)).map(e=>'<button type="button" class="cv-hd'+(isBdEv(e)?' bd':'')+'"'+(isBdEv(e)?'':' data-act="evEdit" data-id="'+d.events.indexOf(e)+'"')+'>'+(isBdEv(e)?I.cake:'')+esc(e.title)+'</button>').join('')+
+ d.tasks.filter(x=>x.due===k&&!x.done).map(x=>'<button type="button" class="cv-hd task" data-act="taskEdit" data-id="'+esc(x.id)+'"><span class="cv-ck" aria-hidden="true"></span>'+esc(x.title)+'</button>').join('')}
+const calBlock=(x,px,lo)=>'<button type="button" class="cv-ev '+x.c+'"'+(x.act?' data-act="'+x.act+'" data-id="'+esc(x.id)+'"':'')+' style="top:'+((x.a-lo)/60*px)+'px;height:'+Math.max(20,(x.b-x.a)/60*px-3)+'px;left:calc('+(x.l/x.n*100)+'% + 2px);width:calc('+(100/x.n)+'% - 4px)"><b>'+esc(x.t)+'</b>'+(x.s&&(x.b-x.a)>=40?'<span>'+esc(x.s)+'</span>':'')+'</button>';
+function calSpann(list){let lo=7*60,hi=22*60;list.forEach(x=>{lo=Math.min(lo,x.a);hi=Math.max(hi,x.b)});return[Math.floor(lo/60)*60,Math.ceil(hi/60)*60]}
+function calNav(lab,d){const t=today();return'<div class="cal-head"><button class="ib" data-act="calStep" data-d="-1" aria-label="Föregående">'+I.back+'</button><div class="hl">'+lab+'</div><button class="ib flip" data-act="calStep" data-d="1" aria-label="Nästa">'+I.back+'</button>'+(d!==t?'<button class="tb" data-act="calToday">Idag</button>':'')+'</div>'}
+const calSeg=()=>'<div class="cv-seg">'+segc('Kalendervy','calVy',[['dag','Dag'],['vecka','Vecka'],['manad','Månad']],S.calVy)+'</div>';
+const veckoStart=k=>{const d=parse(k);return addDays(k,-((d.getDay()+6)%7))};
+function calDag(){const t=today(),sel=S.calDay||t,ws=veckoStart(sel),px=calBred()?64:52,L=calItems(sel),[lo,hi]=calSpann(L),n=new Date(),nm=n.getHours()*60+n.getMinutes();
+ let h=calNav(esc(cap(dayHead(sel))),sel)+'<div class="group cv-strip">';
+ for(let i=0;i<7;i++){const k=addDays(ws,i),dt=parse(k),dots=calDots(k);h+='<button type="button" class="cv-d'+(k===t?' today':'')+(k===sel?' sel':'')+'" data-act="calDay" data-id="'+k+'" aria-label="'+esc(dateLong(k))+'"><span class="w">'+cap(DAYS3[dt.getDay()])+'</span><span class="n num">'+dt.getDate()+'</span><span class="dots">'+dots.map(c=>'<i class="'+c+'"></i>').join('')+'</span></button>'}
+ h+='</div>';const hd=calHeldag(sel);if(hd)h+='<div class="cv-hds">'+hd+'</div>';
+ let g='';for(let m=lo;m<=hi;m+=60)g+='<div class="cv-hr" style="top:'+((m-lo)/60*px)+'px"><span class="num">'+pad(m/60)+'</span></div>';
+ g+='<div class="cv-col">'+L.map(x=>calBlock(x,px,lo)).join('')+'</div>';
+ if(sel===t&&nm>=lo&&nm<=hi)g+='<i class="cv-now" style="top:'+((nm-lo)/60*px)+'px"></i>';
+ h+='<div class="group cv-grid" style="height:'+((hi-lo)/60*px+16)+'px">'+g+'</div>';
+ if(!L.length&&!hd)h+='<div class="foot">Inget inplanerat den här dagen.</div>';
+ return h+'<div class="foot">Händelserna kommer från Google Kalender. Laga och middag kommer från veckosedeln och receptets tidsplan. Tryck på något för att ändra eller öppna det.</div>'}
+function calVecka(){const t=today(),sel=S.calDay||t,ws=veckoStart(sel),we=addDays(ws,6),a=parse(ws),b=parse(we),d=D();
+ let h=calNav('Vecka '+isoWeek(a)+' <span class="cv-sub">'+a.getDate()+(a.getMonth()===b.getMonth()?'':' '+MON[a.getMonth()].slice(0,3))+'–'+b.getDate()+' '+MON[b.getMonth()].slice(0,3)+'</span>',ws===veckoStart(t)?t:sel);
+ const dagar=[];for(let i=0;i<7;i++)dagar.push(addDays(ws,i));
+ if(calBred()){const all=dagar.map(calItems),[lo,hi]=calSpann(all.flat()),px=56,n=new Date(),nm=n.getHours()*60+n.getMinutes();
+  h+='<div class="group cv-wk"><div class="cv-wh"><span></span>'+dagar.map(k=>{const dt=parse(k);return'<button type="button" class="cv-wd'+(k===t?' today':'')+'" data-act="calDayVy" data-id="'+k+'">'+cap(DAYS3[dt.getDay()])+'<b class="num">'+dt.getDate()+'</b></button>'}).join('')+'</div>';
+  const hds=dagar.map(calHeldag);if(hds.some(Boolean))h+='<div class="cv-wh cv-whd"><span></span>'+hds.map(x=>'<div>'+x+'</div>').join('')+'</div>';
+  let tm='';for(let m=lo;m<=hi;m+=60)tm+='<span class="num" style="top:'+((m-lo)/60*px)+'px">'+pad(m/60)+'</span>';
+  h+='<div class="cv-wb" style="height:'+((hi-lo)/60*px+12)+'px"><div class="cv-tm">'+tm+'</div>'+dagar.map((k,i)=>{let hr='';for(let m=lo;m<=hi;m+=60)hr+='<i class="cv-l" style="top:'+((m-lo)/60*px)+'px"></i>';
+   return'<div class="cv-wc'+(k===t?' today':'')+'">'+hr+all[i].map(x=>calBlock(x,px,lo)).join('')+(k===t&&nm>=lo&&nm<=hi?'<i class="cv-now" style="top:'+((nm-lo)/60*px)+'px"></i>':'')+'</div>'}).join('')+'</div></div>';
+  return h}
+ // telefon: veckan som en lista med dagarna som band
+ let body='';dagar.forEach(k=>{const L=calItems(k).filter(x=>x.t!=='Laga'),hd=d.events.filter(e=>e.date===k&&(isBdEv(e)||evMin(e.time)==null)),ts=d.tasks.filter(x=>x.due===k&&!x.done);
+  body+='<button type="button" class="gh cv-band'+(k===t?' today':'')+'" data-act="calDayVy" data-id="'+k+'"><span>'+esc(cap(dayHead(k)))+(k===t?' · idag':'')+'</span>'+chevron+'</button>';
+  if(!L.length&&!hd.length&&!ts.length){body+='<div class="cell cv-tom">Inget inplanerat</div>';return}
+  body+=hd.map(e=>'<div class="cell cv-ag"><span class="t">Heldag</span><span class="grow"><span class="title">'+(isBdEv(e)?I.cake:'')+esc(e.title)+'</span></span></div>').join('');
+  body+=L.map(x=>{const lg=calItems(k).find(y=>y.t==='Laga');return'<div class="cell cv-ag"'+(x.act?' data-act="'+x.act+'" data-id="'+esc(x.id)+'" role="button" tabindex="0"':'')+'><span class="t num">'+tpKl(x.a)+'</span><span class="cv-dot '+x.c+'" aria-hidden="true"></span><span class="grow"><span class="title">'+esc(x.t)+'</span>'+(x.c==='m'&&lg?'<span class="meta">Börja laga '+tpKl(lg.a)+'</span>':x.s?'<span class="meta">'+esc(x.s)+'</span>':'')+'</span></div>'}).join('');
+  body+=ts.map(x=>'<div class="cell cv-ag" data-act="taskEdit" data-id="'+esc(x.id)+'" role="button" tabindex="0"><span class="t">Att göra</span><span class="cv-ck" aria-hidden="true"></span><span class="grow"><span class="title">'+esc(x.title)+'</span></span></div>').join('')});
+ return h+'<div class="g-one">'+group(body)+'</div><div class="foot">Tryck på en dag för att se den timme för timme.</div>'}
 function calView(){const t=today(),sel=S.calDay||t,m=S.calMonth||ymKey(sel),[y,mo]=m.split('-').map(Number);
+ if(NY&&S.calVy==='dag')return calSeg()+calDag();if(NY&&S.calVy==='vecka')return calSeg()+calVecka();
  const first=new Date(y,mo-1,1),start=new Date(first);start.setDate(1-((first.getDay()+6)%7));
- let h='<div class="cal-head"><button class="ib" data-act="calMonth" data-d="-1" aria-label="Förra månaden">'+I.back+'</button><div class="hl">'+esc(cap(MON[mo-1]))+(y!==new Date().getFullYear()?' '+y:'')+'</div>'+
+ let h=(NY?calSeg():'')+'<div class="cal-head"><button class="ib" data-act="calMonth" data-d="-1" aria-label="Förra månaden">'+I.back+'</button><div class="hl">'+esc(cap(MON[mo-1]))+(y!==new Date().getFullYear()?' '+y:'')+'</div>'+
   '<button class="ib flip" data-act="calMonth" data-d="1" aria-label="Nästa månad">'+I.back+'</button>'+(sel!==t||m!==ymKey(t)?'<button class="tb" data-act="calToday">Idag</button>':'')+'</div>';
  h+='<div class="group cal"><div class="cal-wd" aria-hidden="true">'+['M','T','O','T','F','L','S'].map(x=>'<span>'+x+'</span>').join('')+'</div><div class="cal-grid" role="grid">';
  for(let i=0;i<42;i++){const d=new Date(start);d.setDate(start.getDate()+i);const k=ymd(d),inM=d.getMonth()===mo-1;if(i===35&&!inM)break;
@@ -3682,6 +3736,9 @@ const ACT={
  ovDay(id){S.ovDay=id;render()},
  calOpen(id){S.taskTab='kalender';lsSet('taskTab','kalender');S.calDay=id||today();S.calMonth=ymKey(S.calDay);ACT.nav('uppgifter')},
  calMonth(id,el){const[y,m]=(S.calMonth||ymKey(S.calDay||today())).split('-').map(Number),d=new Date(y,m-1+Number(el.dataset.d),1);S.calMonth=d.getFullYear()+'-'+pad(d.getMonth()+1);render()},
+ calVy(id){S.calVy=['dag','vecka','manad'].includes(id)?id:'manad';lsSet('calVy',S.calVy);render()},
+ calDayVy(id){S.calDay=id;S.calMonth=ymKey(id);S.calVy='dag';lsSet('calVy','dag');render()},
+ calStep(id,el){const k=addDays(S.calDay||today(),Number(el.dataset.d)*(S.calVy==='vecka'?7:1));S.calDay=k;S.calMonth=ymKey(k);render()},
  calToday(){S.calDay=today();S.calMonth=ymKey(S.calDay);render()},
  calAddTask(id){S.taskDue=id;S.taskAdd=true;render();setTimeout(()=>document.getElementById('task-title')?.focus(),30)},
  taskEdit(id){const x=D().tasks.find(t=>t.id===id);if(!x)return;S.edit=Object.assign({},x);S.confirm=null;S.sheet='taskEdit';render()},
