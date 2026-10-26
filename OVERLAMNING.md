@@ -12,6 +12,13 @@ Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs 
 
 - Nytt 2026-10-25: `node verktyg/karta.js` (kodkarta) och `node verktyg/version.js` (merge + versionshöjning); regler i AGENTS.md avsnitt 9.
 
+## Pågår: levande himmel i vädervyn (Claude)
+
+- Mål: större sol/måne, fler stjärnor, moln i tre höjder med egna rörelser, löv som faller olika (Henriks önskan 2026-10-26).
+- Gren `claude/project-thread-sn2s0w`, utkast-PR. `skyFx(W)` i app.js (bara vädervyn 'Bild med hundar'), CSS `.skyfx`; löven i `backdropSvg` gäller även översikt/vägg.
+- Nästa steg: Henriks ok på förhandsbilder/film (/mnt/project-files/himmel/), sedan version.js, ångra-gren, main. Ev. samma himmel på översikten/väggen om han vill.
+- Test: verktyg/emu/vader-himmel.js (WXSYM/WXT/WXPR styr vädret i emulatorn); alla-flikar telefon/vägg utan fel.
+
 ## Beteende som ska bevaras
 
 - Plusplacering per enhet (ht.addPlace): Flytande / Vid profilen / Vid raden. Receptplus öppnar Nytt recept/Importera. Städ: Vid profilen flyttar pluset till huvudet och döljer endast övre Ny syssla-raden; övriga två behåller raden, rumsfält kvar. [PR #27](https://github.com/HenrikLH/hushallstavlan/pull/27), [#28](https://github.com/HenrikLH/hushallstavlan/pull/28).

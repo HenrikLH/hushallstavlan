@@ -2886,9 +2886,12 @@ function backdropSvg(sc){const id='bd'+(++FIG_N),ss=grassSeason(today()),snow=sn
  if(T.bloom)t+=[[TX-18,TY-66],[TX+6,TY-82],[TX+16,TY-64],[TX-6,TY-58],[TX-12,TY-84],[TX+22,TY-78],[TX-22,TY-56],[TX+2,TY-70]].slice(0,Math.round(8*T.bloom)).map(([x,y])=>'<circle cx="'+x+'" cy="'+y+'" r="1.9" fill="#FFFFFF"/><circle cx="'+x+'" cy="'+y+'" r=".75" fill="#F2B6C6"/>').join('');
  if(T.fruit)t+=[[TX-16,TY-62],[TX+12,TY-70],[TX+2,TY-84],[TX-6,TY-72],[TX+18,TY-60]].slice(0,Math.round(5*T.fruit)).map(([x,y])=>'<circle cx="'+x+'" cy="'+y+'" r="2" fill="#D94A3A"/><circle cx="'+(x-.6)+'" cy="'+(y-.7)+'" r=".6" fill="#FFB3A6"/>').join('');
  // fallande löv: fler ju mer det är höst, varje löv singlar ned i egen takt och vajar åt sidan
- if(T.fall&&!snow&&!sc.thunder){const n=Math.round(T.fall*7),src=[[TX+18,TY-60],[TX-22,TY-64],[TX+4,TY-80],[TX-10,TY-56],[TX+24,TY-74],[TX-16,TY-82],[TX+10,TY-52]];
-  t+='<g class="bd-leaves">'+src.slice(0,n).map(([x,y],i)=>{const c=[L1,L2,T.c2||L1][i%3],dur=5+rnd(i+11)*4,dl=rnd(i+23)*dur,dx=-10-rnd(i+31)*26*(i%2?1:-.5),dy=TY+4-y+rnd(i+3)*6;
-   return'<g style="--dx:'+f(dx)+'px;--dy:'+f(dy)+'px;animation-duration:'+f(dur)+'s;animation-delay:-'+f(dl)+'s"><path d="M'+x+' '+y+' q3.2 -2.4 6.4 0 q-3.2 2.4 -6.4 0Z" fill="'+c+'"/></g>'}).join('')+'</g>'}
+ if(T.fall&&!snow&&!sc.thunder){const n=Math.round(T.fall*9),src=[[TX+18,TY-60],[TX-22,TY-64],[TX+4,TY-80],[TX-10,TY-56],[TX+24,TY-74],[TX-16,TY-82],[TX+10,TY-52],[TX-4,TY-70],[TX+28,TY-66]],wd=(sc.dir||1)*(3+(sc.wl||0)*11);
+  // tre lager per löv: fallet (med vinden), pendlingen i sidled och vridningen, alla i egen takt
+  t+='<g class="bd-leaves">'+src.slice(0,n).map(([x,y],i)=>{const r=k=>rnd(i*13+k+61),c=[L1,L2,T.c2||L1][i%3],dur=6+r(1)*7,dl=r(2)*dur,dx=wd*(.5+r(3))+(r(4)-.5)*24,dy=TY+4-y+r(5)*6;
+   const sw=1.1+r(6)*1.7,sd=r(7)*sw,a=2+r(8)*7,tu=r(9)<.35,td=tu?1+r(10)*1.4:sw,r0=-(15+r(11)*40),r1=15+r(12)*45;
+   return'<g style="--dx:'+f(dx)+'px;--dy:'+f(dy)+'px;animation-duration:'+f(dur)+'s;animation-delay:-'+f(dl)+'s"><g class="sw" style="--a:'+f(a)+'px;animation-duration:'+f(sw)+'s;animation-delay:-'+f(sd)+'s">'+
+    '<path class="'+(tu?'tu':'fl')+'" style="--r0:'+f(r0)+'deg;--r1:'+f(r1)+'deg;--sy:'+(.4+r(13)*.5).toFixed(2)+';animation-duration:'+f(td)+'s;animation-delay:-'+f(tu?r(14)*td:sd)+'s'+(tu&&r(15)<.5?';animation-direction:reverse':'')+'" d="M'+x+' '+y+' q3.2 -2.4 6.4 0 q-3.2 2.4 -6.4 0Z" fill="'+c+'"/></g></g>'}).join('')+'</g>'}
  if(snow>=1&&!bare&&den>=.5)t+='<path d="M'+(TX-26)+' '+(TY-78)+' Q'+(TX-10)+' '+(TY-108)+' '+(TX+16)+' '+(TY-94)+' Q'+(TX+30)+' '+(TY-86)+' '+(TX+28)+' '+(TY-80)+' Q'+(TX+6)+' '+(TY-92)+' '+(TX-26)+' '+(TY-78)+'Z" fill="#FFFFFF" opacity=".92"/>';
  // trädets skugga på kullen och fallna löv på marken
  t='<ellipse cx="'+(TX+6)+'" cy="'+(TY+1)+'" rx="'+f(10+8*den)+'" ry="2.6" fill="'+shadeHex(near,.75)+'" opacity=".7"/>'+t;
@@ -2925,7 +2928,7 @@ function figSvg(sc,o){o=o||{};const id='fg'+(++FIG_N),ph=sc.phase,dark=sc.dark,w
  // 2. molnen: antalet följer himlen, tonen följer nederbörden och ljuset
  const sky=wet||snow||sc.thunder?(/^(clear|fair)$/.test(sc.sky)?'partly':sc.sky):sc.sky;
  let base=sc.thunder?'#4C5672':wet?['#A3AFC2','#7E8BA3','#5F6B84'][lv-1]:snow?['#CBD6E3','#B9C6D7','#A2B1C6'][lv-1]:{fair:'#EEF3F8',partly:'#DCE4EE',cloudy:'#C3CFDE',fog:'#DCE4EE'}[sky];
- if(o.patch&&!(wet||snow||sc.thunder))base=null;   // på gräsplätten bara moln när det regnar eller snöar
+ if(o.patch&&!(wet||snow||sc.thunder)||o.nocl)base=null;   // på gräsplätten bara moln när det regnar eller snöar
  if(base){base=dark?mixHex(base,'#2A3350',.5):warmL?mixHex(base,'#F2B48A',.22):base;
   const L={fair:[[4,12,.55]],partly:[[4,12,.6],[122,28,.45,'d2']],cloudy:[[120,0,.85],[2,6,.7,'d2']],fog:[[124,4,.75],[2,16,.55,'d2']]}[sky].slice();
   if(sky==='cloudy'&&((wet||snow)&&lv>=2||sc.thunder))L.push([58,-9,.62,'d3']);
@@ -3010,10 +3013,44 @@ function arcHtml(W,v){const P=WX_POS(),sc=wxScene(W),now=new Date(),k=SKY(now,P.
  // banan tonar in och ut i ändarna
  let s='<svg viewBox="0 0 100 100" preserveAspectRatio="none"><defs>'+fade('t','currentColor')+fade('d',day?'#F5B940':'#9AA8D6')+'</defs><path class="trk" stroke="url(#'+gid+'t)" d="M0 100 A50 '+ry+' 0 0 1 100 100"/>'+
   '<path class="done" stroke="url(#'+gid+'d)" d="M0 100 A50 '+ry+' 0 0 1 '+x.toFixed(2)+' '+y.toFixed(2)+'"/></svg>';
- if(!day&&!covered)s+=[[18,40],[34,14],[62,8],[80,30],[50,46],[90,60]].slice(0,sc.sky==='partly'?3:6).map(([a,b],i)=>'<i class="arc-st tw'+(i%3?' d'+(i%3+1):'')+'" style="left:'+a+'%;top:'+b+'%"></i>').join('');
- const z=v==='w'?48:34;
+ if(!day&&!covered&&v!=='w')s+=[[18,40],[34,14],[62,8],[80,30],[50,46],[90,60]].slice(0,sc.sky==='partly'?3:6).map(([a,b],i)=>'<i class="arc-st tw'+(i%3?' d'+(i%3+1):'')+'" style="left:'+a+'%;top:'+b+'%"></i>').join('');
+ const z=v==='w'?72:34;
  s+='<div class="sky-b '+(day?'sky-sun':'sky-moon')+'" style="left:'+x.toFixed(1)+'%;top:'+y.toFixed(1)+'%;opacity:'+(covered?.4:1)+'">'+(day?sunSvg(k.sun.alt<8,z*1.5):moonSvg(k.moon.frac,k.moon.waxing,z))+'</div>';
  return'<div class="arc '+v+'" aria-hidden="true">'+s+'</div>'}
+/* Vädervyns himmel: stjärnor och moln i tre höjder. Höga slöjmoln glider långsamt och skimrar, stackmoln i mitten guppar och andas,
+   låga regnmoln går fortast och rullar. Varje moln har egen form, fart och takt; alla driver med vinden. */
+function skyFx(W){const sc=wxScene(W),wet=/^(drizzle|rain|sleet)$/.test(sc.type),snow=sc.type==='snow',lv=sc.lv,warmL=sc.phase==='dawn'||sc.phase==='golden';
+ const rnd=k=>{const x=Math.sin(k*311.7+17.3)*43758.5453;return x-Math.floor(x)},f=v=>v.toFixed(1);
+ const covered=sc.sky==='cloudy'||sc.sky==='fog'||(wet||snow)&&lv>=2||sc.thunder;
+ let s='';
+ if(sc.dark&&!covered){const n=sc.sky==='partly'?16:sc.phase==='dusk'?14:46;let k=0,i=0;
+  while(i<n&&k<400){k++;const x=3+rnd(k)*94,y=4+rnd(k+500)*72;if(x<46&&y<44)continue;   // inte bakom temperaturen
+   const b=i<3,r=b?3:1.3+rnd(k+900)*1.5,o=b?.95:.35+rnd(k+1300)*.55,d=2+rnd(k+1700)*5;
+   s+='<i class="st'+(b?' b':'')+'" style="left:'+f(x)+'%;top:'+f(y)+'%;width:'+f(r)+'px;height:'+f(r)+'px;--o:'+o.toFixed(2)+';animation-duration:'+f(d)+'s;animation-delay:-'+f(rnd(k+2100)*d)+'s"></i>';i++}
+  if(sc.sky!=='partly'&&sc.phase==='night')s+='<i class="sk"></i><i class="sk d2"></i>'}
+ // molnens ton följer nederbörden och ljuset, som molnen i bilden
+ const sky=wet||snow||sc.thunder?(/^(clear|fair)$/.test(sc.sky)?'partly':sc.sky):sc.sky;
+ let base=sc.thunder?'#4C5672':wet?['#A3AFC2','#7E8BA3','#5F6B84'][lv-1]:snow?['#CBD6E3','#B9C6D7','#A2B1C6'][lv-1]:{clear:'',fair:'#E4EAF2',partly:'#D6DFEA',cloudy:'#C3CFDE',fog:'#DCE4EE'}[sky];
+ if(!base)return s?'<div class="skyfx" aria-hidden="true">'+s+'</div>':'';
+ const tone=c=>sc.dark?mixHex(c,'#2A3350',.5):warmL?mixHex(c,'#F2B48A',.22):c,lite=tone(mixHex(base,'#FFFFFF',.35)),mid=tone(base),dark=tone(wet||snow||sc.thunder?shadeHex(base,.82):mixHex(base,'#9AA8BC',.35));
+ const N={fair:[1,1,0],partly:[2,3,0],cloudy:[2,4,2],fog:[0,1,3]}[sky].slice();
+ if(wet||snow||sc.thunder)N[2]+=lv+(sc.thunder?1:0);
+ const sp=1/(.75+sc.wl*.35),rev=sc.dir<0?' rev':'';
+ // former: höga är tunna slöjor, mellersta runda stackmoln, låga breda och mörka i underkanten
+ const shape=(t,k,c,w)=>{const P=[];let vb,h;
+  if(t==='hi'){vb='0 0 120 18';h=w*.15;for(let j=0;j<3;j++)P.push('<ellipse cx="'+f(30+j*28+rnd(k+j)*10)+'" cy="'+f(7+rnd(k+j+5)*5)+'" rx="'+f(22+rnd(k+j+9)*16)+'" ry="'+f(1.6+rnd(k+j+13)*1.8)+'" fill="'+c+'"/>')}
+  else{const lo=t==='lo';vb=lo?'0 0 140 46':'0 0 100 52';h=w*(lo?46/140:.52);const W0=lo?140:100,B=lo?34:40,np=lo?5+Math.round(rnd(k)*2):3+Math.round(rnd(k)*2);
+   P.push('<ellipse cx="'+W0/2+'" cy="'+B+'" rx="'+f(W0*.46)+'" ry="'+(lo?11:9)+'" fill="'+c+'"/>');
+   for(let j=0;j<np;j++){const r=(lo?9:10)+rnd(k+j*3)*(lo?8:11),x=W0*.16+(j+.5)/np*W0*.68+(rnd(k+j*3+1)-.5)*8;P.push('<circle cx="'+f(x)+'" cy="'+f(B-r*.55)+'" r="'+f(r)+'" fill="'+c+'"/>')}
+   P.push('<ellipse cx="'+W0/2+'" cy="'+(B+(lo?6:5))+'" rx="'+f(W0*.4)+'" ry="'+(lo?5:3.5)+'" fill="'+shadow(c)+'" opacity="'+(lo?.6:.4)+'"/>')}
+  return{svg:'<svg viewBox="'+vb+'" width="'+f(w)+'" height="'+f(h)+'">'+P.join('')+'</svg>',h}};
+ const band={hi:[28,42],mid:[42,60],lo:[58,72]},dur={hi:220,mid:100,lo:52};
+ let k=0;
+ [['hi',N[0],lite],['mid',N[1],mid],['lo',N[2],dark]].forEach(([t,n,c])=>{for(let j=0;j<n;j++){k+=7;
+  const w=t==='hi'?110+rnd(k)*60:t==='mid'?62+rnd(k)*42:sky==='fog'?190+rnd(k)*60:110+rnd(k)*50,top=band[t][0]+rnd(k+1)*(band[t][1]-band[t][0]),D=dur[t]*sp*(.8+rnd(k+2)*.45);
+   const{svg}=shape(t,k,j%2&&t!=='hi'?shadeHex(c,.95):c,w),bob=t==='hi'?12+rnd(k+3)*8:t==='mid'?7+rnd(k+3)*5:3.5+rnd(k+3)*2.5;
+   s+='<div class="cl '+t+(sky==='fog'&&t==='lo'?' fog':'')+rev+'" style="top:'+f(top)+'%;--w:'+f(w)+'px;animation-duration:'+f(D)+'s;animation-delay:-'+f((j+rnd(k+4)*.7)/n*D)+'s"><i style="animation-duration:'+f(bob)+'s;animation-delay:-'+f(rnd(k+5)*bob)+'s">'+svg+'</i></div>'}});
+ return'<div class="skyfx" aria-hidden="true">'+s+'</div>'}
 // b (vald): bågen i högra delen av rutan bakom temperaturen; a = bågen tätt över hundarna
 let BAKGRUND=lsGet('bakgrund')!=='0';
 const GRASS_V=lsGet('grass')==='a'?'a':'b',grassOn=()=>NY||!wallBoardOn();
@@ -3138,7 +3175,7 @@ V.vader=function(){const W=wxModel(),P=WX_POS();
  if(NY&&WXVY==='kurva')h+=wxHeroC(W,P,ic,tx,d0,F,sun);
  else if(NY)h+='<section class="wx2"><div class="wx2-top"><div><div class="wx-place">'+esc(P.name)+'</div><div class="wx-big num" id="lt">'+deg(W.now.T)+'</div></div>'+
   '<div class="wx2-r"><div class="wx2-cond"><span aria-hidden="true">'+ic+'</span>'+esc(tx)+'</div><div class="wx-hl num">H:'+deg(d0.max)+'  L:'+deg(d0.min)+'</div></div></div>'+
-  arcHtml(W,'w')+'<div class="gs wx2-gs">'+(BAKGRUND?backdropSvg(wxScene(W)):'')+'<button class="fig-box grass" data-act="wxVar" aria-label="Visa andra hundar">'+figSvg(wxScene(W),{bare:1,patch:1})+'</button></div>'+
+  arcHtml(W,'w')+skyFx(W)+'<div class="gs wx2-gs">'+(BAKGRUND?backdropSvg(wxScene(W)):'')+'<button class="fig-box grass" data-act="wxVar" aria-label="Visa andra hundar">'+figSvg(wxScene(W),{bare:1,patch:1,nocl:1})+'</button></div>'+
   '<div class="wx2-bar"><div><b>'+esc(capS(F.when))+'</b><span>'+esc(F.tip)+'</span></div><div><b>Vind</b><span>'+esc(windText(W.now))+'</span></div></div></section>';
  else h+=wxSceneHtml(W,{h:330,g:100,inner:'<div class="sc-head"><div class="wx-place">'+esc(P.name)+'</div><div class="wx-big num" id="lt">'+deg(W.now.T)+'</div><div><div class="wx-cond">'+esc(tx)+'</div><div class="wx-hl num">H:'+deg(d0.max)+'  L:'+deg(d0.min)+'</div></div></div>'+
   '<div class="sc-bar"><div><b>'+esc(capS(F.when))+'</b><span>'+esc(F.tip)+'</span></div><div><b>Vind</b><span>'+esc(windText(W.now))+'</span></div></div>'});

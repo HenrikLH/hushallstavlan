@@ -6,7 +6,7 @@ const APP=process.env.APP||path.join(__dirname,'../..');
 const OUT=process.env.OUT||path.join(__dirname,'shots');fs.mkdirSync(OUT,{recursive:true});
 const gas=require('./gas.js');
 function wx(){const ts=[];const t0=Date.UTC(2026,9,18,0);for(let h=0;h<216;h++){const t=new Date(t0+h*3600e3);const hr=(h+2)%24;
- ts.push({time:t.toISOString().replace('.000',''),data:{instant:{details:{air_temperature:7,wind_speed:3.4,wind_from_direction:230,relative_humidity:78,air_pressure_at_sea_level:1012}},next_1_hours:{summary:{symbol_code:'cloudy'},details:{precipitation_amount:0}},next_6_hours:{summary:{symbol_code:'cloudy'},details:{precipitation_amount:0}}}})}
+ ts.push({time:t.toISOString().replace('.000',''),data:{instant:{details:{air_temperature:+(process.env.WXT||7),wind_speed:3.4,wind_from_direction:230,relative_humidity:78,air_pressure_at_sea_level:1012}},next_1_hours:{summary:{symbol_code:process.env.WXSYM||'cloudy'},details:{precipitation_amount:+(process.env.WXPR||0)}},next_6_hours:{summary:{symbol_code:process.env.WXSYM||'cloudy'},details:{precipitation_amount:0}}}})}
  return JSON.stringify({properties:{timeseries:ts}})}
 const WX=wx();
 const srv=http.createServer((q,r)=>{let p=decodeURIComponent(q.url.split('?')[0]);if(p==='/')p='/index.html';const f=path.join(APP,p);
@@ -17,7 +17,7 @@ let PORT;
  const exe=process.env.CHROMIUM||(fs.existsSync('/opt/pw-browsers/chromium')?'/opt/pw-browsers/chromium':undefined);
  const b=await chromium.launch(exe?{executablePath:exe}:{});
  const theme=process.env.THEME||'light';
- const ctx=await b.newContext({viewport:(([w,hh])=>({width:+w,height:+hh}))((process.env.VP||'390x844').split('x')),deviceScaleFactor:process.env.VP?1:2,timezoneId:'Europe/Stockholm',locale:'sv-SE',colorScheme:theme,reducedMotion:process.env.REDUCED==='1'?'reduce':'no-preference',hasTouch:true,isMobile:!process.env.VP});
+ const ctx=await b.newContext({viewport:(([w,hh])=>({width:+w,height:+hh}))((process.env.VP||'390x844').split('x')),deviceScaleFactor:process.env.VP?1:2,timezoneId:'Europe/Stockholm',locale:'sv-SE',colorScheme:theme,reducedMotion:process.env.REDUCED==='1'?'reduce':'no-preference',hasTouch:true,isMobile:!process.env.VP,...(process.env.VIDEO?{recordVideo:{dir:process.env.VIDEO,size:{width:780,height:1688}}}:{})});
  const NOW=process.env.NOW||'2026-10-18T16:50:00+02:00';
  await ctx.addInitScript(([NOW,ls])=>{const now=new Date(NOW).getTime(),D0=Date,off=now-D0.now();
    class FD extends D0{constructor(...a){super(...(a.length?a:[D0.now()+off]))}static now(){return D0.now()+off}};window.Date=FD;
@@ -50,4 +50,4 @@ let PORT;
  try{await scen(pg,h)}catch(e){console.log('SCENARIO FAIL',e.message);await h.shot('fel');console.log('STATE',await pg.evaluate(()=>window.__d?window.__d('JSON.stringify({view:S.view,taskTab:S.taskTab,sheet:S.sheet,focus:document.activeElement&&document.activeElement.outerHTML})'):''));process.exitCode=1}
  if(log.length)process.exitCode=1;
  console.log('TOASTS',JSON.stringify(await pg.evaluate(()=>window.__toasts)));
- await b.close();srv.close()})();
+ await ctx.close();await b.close();srv.close()})();
