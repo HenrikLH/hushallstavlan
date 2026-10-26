@@ -763,6 +763,10 @@ html.ny .chip.lk::before{display:none}
 .skyfx .st{position:absolute;border-radius:50%;background:currentColor;opacity:var(--o);box-shadow:0 0 0 .6px rgba(110,122,150,.45);animation:stTw 3s ease-in-out infinite}
 .skyfx .st.b{box-shadow:0 0 0 .6px rgba(110,122,150,.45),0 0 5px 1px currentColor}
 @keyframes stTw{50%{opacity:calc(var(--o)*.2)}}
+.skyfx .stjb{position:absolute;left:39%;top:5%;width:96px;height:106px;overflow:visible}
+.stjb line{stroke:currentColor;stroke-width:1.2;stroke-opacity:.45;stroke-linecap:round}
+.stjb circle{fill:#FFFFFF;stroke:rgba(110,122,150,.45);stroke-width:.8;animation:stTw 4s ease-in-out infinite;--o:1}
+.stjb text{fill:currentColor;font-size:11px;text-anchor:middle;opacity:.7}
 .skyfx .sk{position:absolute;left:40%;top:6%;width:70px;height:1.5px;border-radius:1px;background:linear-gradient(90deg,transparent,currentColor);opacity:0;animation:stSk 19s linear infinite}
 .skyfx .sk.d2{left:62%;top:20%;animation-duration:31s;animation-delay:-11s}
 @keyframes stSk{0%{transform:translate(0,0) rotate(24deg);opacity:0}1%{opacity:.9}5%{transform:translate(110px,50px) rotate(24deg);opacity:0}100%{opacity:0}}
@@ -2007,7 +2011,7 @@ html.ny.seg-kapsel .create-options{border-radius:22px}
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=174"></script>
+<script src="app.js?v=175"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>

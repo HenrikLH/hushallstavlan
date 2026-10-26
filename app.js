@@ -3017,6 +3017,22 @@ function arcHtml(W,v){const P=WX_POS(),sc=wxScene(W),now=new Date(),k=SKY(now,P.
  const z=v==='w'?72:34;
  s+='<div class="sky-b '+(day?'sky-sun':'sky-moon')+'" style="left:'+x.toFixed(1)+'%;top:'+y.toFixed(1)+'%;opacity:'+(covered?.4:1)+'">'+(day?sunSvg(k.sun.alt<8,z*1.5):moonSvg(k.moon.frac,k.moon.waxing,z))+'</div>';
  return'<div class="arc '+v+'" aria-hidden="true">'+s+'</div>'}
+// månadens stjärnbild: den som syns bra på kvällshimlen från Sverige den månaden. Punkter i en ruta 0–100, linjer mellan punkternas index
+const STJB=[['Orion',[[22,10],[72,16],[40,50],[50,47],[60,44],[32,92],[78,86]],[[0,1],[0,2],[1,4],[2,3],[3,4],[2,5],[4,6]]],
+ ['Tvillingarna',[[30,4],[56,10],[22,50],[50,50],[12,96],[46,96]],[[0,2],[2,4],[1,3],[3,5],[2,3]]],
+ ['Lejonet',[[18,84],[14,58],[24,36],[42,26],[52,40],[58,62],[96,64],[66,40]],[[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,4]]],
+ ['Karlavagnen',[[0,22],[22,14],[38,26],[54,36],[58,64],[90,74],[96,42]],[[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,3]]],
+ ['Björnvaktaren',[[46,96],[30,60],[38,24],[54,2],[68,22],[64,58]],[[0,1],[1,2],[2,3],[3,4],[4,5],[5,0],[1,5]]],
+ ['Lyran',[[50,4],[40,36],[62,32],[36,78],[58,74]],[[0,1],[0,2],[1,2],[1,3],[2,4],[3,4]]],
+ ['Sommartriangeln',[[12,12],[80,2],[52,96]],[[0,1],[1,2],[2,0]]],
+ ['Svanen',[[50,2],[50,40],[50,98],[8,26],[92,52]],[[0,1],[1,2],[3,1],[1,4]]],
+ ['Pegasus',[[18,30],[74,24],[80,74],[22,80],[98,96]],[[0,1],[1,2],[2,3],[3,0],[2,4]]],
+ ['Kassiopeja',[[0,34],[25,64],[48,38],[72,66],[100,22]],[[0,1],[1,2],[2,3],[3,4]]],
+ ['Plejaderna',[[24,42],[38,30],[48,46],[60,34],[52,62],[68,56],[38,64]],[]],
+ ['Oxen',[[30,48],[52,60],[66,46],[4,12],[100,18],[86,86]],[[3,0],[0,1],[1,2],[2,4]]]];
+function starSign(m){const[n,P,L]=STJB[m],f=v=>v.toFixed(0);
+ return'<svg class="stjb" viewBox="-6 -6 112 124" aria-label="Månadens stjärnbild: '+n+'">'+L.map(([a,b])=>'<line x1="'+P[a][0]+'" y1="'+P[a][1]+'" x2="'+P[b][0]+'" y2="'+P[b][1]+'"/>').join('')+
+  P.map(([x,y],i)=>'<circle cx="'+x+'" cy="'+y+'" r="'+(i%3?2.6:3.4)+'" style="animation-delay:-'+f(i*.7)+'s"/>').join('')+'<text x="50" y="'+(Math.max(...P.map(p=>p[1]))+16)+'">'+n+'</text></svg>'}
 /* Vädervyns himmel: stjärnor och moln i tre höjder. Höga slöjmoln glider långsamt och skimrar, stackmoln i mitten guppar och andas,
    låga regnmoln går fortast och rullar. Varje moln har egen form, fart och takt; alla driver med vinden. */
 function skyFx(W){const sc=wxScene(W),wet=/^(drizzle|rain|sleet)$/.test(sc.type),snow=sc.type==='snow',lv=sc.lv,warmL=sc.phase==='dawn'||sc.phase==='golden';
@@ -3027,7 +3043,8 @@ function skyFx(W){const sc=wxScene(W),wet=/^(drizzle|rain|sleet)$/.test(sc.type)
   while(i<n&&k<400){k++;const x=3+rnd(k)*94,y=4+rnd(k+500)*72;if(x<46&&y<44)continue;   // inte bakom temperaturen
    const b=i<3,r=b?3:1.3+rnd(k+900)*1.5,o=b?.95:.35+rnd(k+1300)*.55,d=2+rnd(k+1700)*5;
    s+='<i class="st'+(b?' b':'')+'" style="left:'+f(x)+'%;top:'+f(y)+'%;width:'+f(r)+'px;height:'+f(r)+'px;--o:'+o.toFixed(2)+';animation-duration:'+f(d)+'s;animation-delay:-'+f(rnd(k+2100)*d)+'s"></i>';i++}
-  if(sc.sky!=='partly'&&sc.phase==='night')s+='<i class="sk"></i><i class="sk d2"></i>'}
+  if(sc.sky!=='partly'&&sc.phase==='night')s+='<i class="sk"></i><i class="sk d2"></i>'
+  s+=starSign(new Date().getMonth())}
  // molnens ton följer nederbörden och ljuset, som molnen i bilden
  const sky=wet||snow||sc.thunder?(/^(clear|fair)$/.test(sc.sky)?'partly':sc.sky):sc.sky;
  let base=sc.thunder?'#4C5672':wet?['#A3AFC2','#7E8BA3','#5F6B84'][lv-1]:snow?['#CBD6E3','#B9C6D7','#A2B1C6'][lv-1]:{clear:'',fair:'#E4EAF2',partly:'#D6DFEA',cloudy:'#C3CFDE',fog:'#DCE4EE'}[sky];
