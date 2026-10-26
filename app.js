@@ -667,7 +667,7 @@ function doRender(){applyPersonColors();applyAccent();
  m.innerHTML=banner+page;addLayout(m);
  {const w=m.querySelector('.wk-sw');if(w&&S.wkX){w.scrollLeft=S.wkX;wkMonth(w)}}
  {const w=m.querySelector('.wxC-sc');if(w)w.scrollLeft=S.wxX!=null?S.wxX:WXC_NP*WXC_SW}
- placeSky();fitBoard();
+ placeSky();skyFit();fitBoard();
  watchTitle();plPin();wsPin();vvFix();
  A.after(m);
 }
@@ -3151,20 +3151,28 @@ const STJB=[['Orion',[[22,10],[72,16],[40,50],[50,47],[60,44],[32,92],[78,86]],[
  ['Plejaderna',[[24,42],[38,30],[48,46],[60,34],[52,62],[68,56],[38,64]],[]],
  ['Oxen',[[30,48],[52,60],[66,46],[4,12],[100,18],[86,86]],[[3,0],[0,1],[1,2],[2,4]]]];
 function starSign(m){const[n,P,L]=STJB[m],f=v=>v.toFixed(0);
- return'<svg class="stjb" viewBox="-6 -6 112 124" aria-label="Månadens stjärnbild: '+n+'">'+L.map(([a,b])=>'<line x1="'+P[a][0]+'" y1="'+P[a][1]+'" x2="'+P[b][0]+'" y2="'+P[b][1]+'"/>').join('')+
-  P.map(([x,y],i)=>'<circle cx="'+x+'" cy="'+y+'" r="'+(i%3?2.6:3.4)+'" style="animation-delay:-'+f(i*.7)+'s"/>').join('')+'<text x="50" y="'+(Math.max(...P.map(p=>p[1]))+16)+'">'+n+'</text></svg>'}
+ return'<svg class="stjb" viewBox="-6 -6 112 112" aria-label="Månadens stjärnbild: '+n+'">'+L.map(([a,b])=>'<line x1="'+P[a][0]+'" y1="'+P[a][1]+'" x2="'+P[b][0]+'" y2="'+P[b][1]+'"/>').join('')+
+  P.map(([x,y],i)=>'<circle cx="'+x+'" cy="'+y+'" r="'+(i%3?2.6:3.4)+'" style="animation-delay:-'+f(i*.7)+'s"/>').join('')+'</svg>'}
 /* Vädervyns himmel: stjärnor och moln i tre höjder. Höga slöjmoln glider långsamt och skimrar, stackmoln i mitten guppar och andas,
    låga regnmoln går fortast och rullar. Varje moln har egen form, fart och takt; alla driver med vinden. */
+// polen placeras där stjärnbildens cirkel inte når månen, så att månen aldrig täcker den
+function skyFit(){const sx=document.querySelector('.wx2>.skyfx'),pole=sx&&sx.querySelector('.pole');if(!pole)return;
+ const L=sx.getBoundingClientRect(),me=document.querySelector('.wx2>.arc .sky-b'),mr=me&&me.getBoundingClientRect(),M=mr&&{x:mr.left+mr.width/2-L.left,y:mr.top+mr.height/2-L.top};
+ const H=34,MR=22;let best=null;
+ for(const rc of[62,54,46])for(let y=95;y<=140;y+=5)for(let x=rc+H+8;x<=L.width-rc-H-8;x+=6){const d=M?Math.hypot(x-M.x,y-M.y):999,ok=d>rc+H+MR?2e4:d<rc-H-MR?1e4:0;
+  const sc=(ok||d)+rc*20-Math.abs(x-L.width*.55)*.3-Math.abs(y-112);if(!best||sc>best.sc)best={sc,x,y,rc}}
+ if(!best)return;pole.style.left=best.x+'px';pole.style.top=best.y+'px';pole.style.setProperty('--rc',best.rc+'px')}
 function skyFx(W){const sc=wxScene(W),wet=/^(drizzle|rain|sleet)$/.test(sc.type),snow=sc.type==='snow',lv=sc.lv,warmL=sc.phase==='dawn'||sc.phase==='golden';
  const rnd=k=>{const x=Math.sin(k*311.7+17.3)*43758.5453;return x-Math.floor(x)},f=v=>v.toFixed(1);
  const covered=sc.sky==='cloudy'||sc.sky==='fog'||(wet||snow)&&lv>=2||sc.thunder;
  let s='';
- if(sc.dark&&!covered){const n=sc.sky==='partly'?16:sc.phase==='dusk'?14:46;let k=0,i=0;
-  while(i<n&&k<400){k++;const x=3+rnd(k)*94,y=4+rnd(k+500)*72;if(x<46&&y<44)continue;   // inte bakom temperaturen
-   const b=i<3,r=b?3:1.3+rnd(k+900)*1.5,o=b?.95:.35+rnd(k+1300)*.55,d=2+rnd(k+1700)*5;
-   s+='<i class="st'+(b?' b':'')+'" style="left:'+f(x)+'%;top:'+f(y)+'%;width:'+f(r)+'px;height:'+f(r)+'px;--o:'+o.toFixed(2)+';animation-duration:'+f(d)+'s;animation-delay:-'+f(rnd(k+2100)*d)+'s"></i>';i++}
-  if(sc.sky!=='partly'&&sc.phase==='night')s+='<i class="sk"></i><i class="sk d2"></i>'
-  s+=starSign(new Date().getMonth())}
+ // stjärnhimlen vrider sig långsamt runt en pol (en varv på tio minuter); skyFit() flyttar polen så att månadens stjärnbild aldrig hamnar under månen
+ if(sc.dark&&!covered){const R=420,n=Math.round((sc.sky==='partly'?16:sc.phase==='dusk'?14:46)*8.5),P=600,m=new Date().getMonth();let st='';
+  for(let k=1;k<=n;k++){const a=rnd(k)*Math.PI*2,r=R*Math.sqrt(rnd(k+5000)),b=k<=24,z=b?3:1.3+rnd(k+900)*1.5,o=b?.95:.35+rnd(k+1300)*.55,tw=b||k%3===0,d=2+rnd(k+1700)*5;
+   st+='<i class="st'+(b?' b':'')+(tw?'':' fast')+'" style="left:'+f(Math.cos(a)*r)+'px;top:'+f(Math.sin(a)*r)+'px;width:'+f(z)+'px;height:'+f(z)+'px;--o:'+o.toFixed(2)+(tw?';animation-duration:'+f(d)+'s;animation-delay:-'+f(rnd(k+2100)*d)+'s':'')+'"></i>'}
+  s+='<div class="pole"><div class="rot" style="animation-duration:'+P+'s;animation-delay:-'+f(Date.now()/1e3%P)+'s">'+st+'<div class="cst">'+starSign(m)+'</div></div></div>';
+  if(sc.sky!=='partly'&&sc.phase==='night')s+='<i class="sk"></i><i class="sk d2"></i>';
+  s+='<span class="stjn">✦ '+STJB[m][0]+'</span>'}
  // molnens ton följer nederbörden och ljuset, som molnen i bilden
  const sky=wet||snow||sc.thunder?(/^(clear|fair)$/.test(sc.sky)?'partly':sc.sky):sc.sky;
  let base=sc.thunder?'#4C5672':wet?['#A3AFC2','#7E8BA3','#5F6B84'][lv-1]:snow?['#CBD6E3','#B9C6D7','#A2B1C6'][lv-1]:{clear:'',fair:'#E4EAF2',partly:'#D6DFEA',cloudy:'#C3CFDE',fog:'#DCE4EE'}[sky];
