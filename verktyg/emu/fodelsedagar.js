@@ -54,8 +54,8 @@ module.exports=async(pg,h)=>{
  // Färg och ändring: tryck på Leah (från kalendern), välj färg och ändra födelseår
  // Barn utan egen färg är orange; ett vanligt tryck öppnar inget, håll in visar strecket och öppnar bladet
  assert.ok((await pg.locator('.cell.bd:has-text("Leah")').getAttribute('style')||'').includes('--bd:'),'Barn ska få färg');
- await click('.cell.bd[data-lock-act="fodEdit"]:has-text("Leah")');assert.equal(await pg.locator('form[data-form="fodAdd"]').count(),0,'Tryck ska inte öppna');
- {const r=pg.locator('.cell.bd[data-lock-act="fodEdit"]:has-text("Leah")').first(),b=await r.boundingBox();await pg.mouse.move(b.x+b.width/2,b.y+b.height/2);await pg.mouse.down();await pg.waitForTimeout(700);await h.shot('fod-4b-hall-in');await pg.waitForTimeout(800);await pg.mouse.up();await h.idle(500)}
+ await click('.cell.bd[data-hold-lift="fodEdit"]:has-text("Leah")');assert.equal(await pg.locator('form[data-form="fodAdd"]').count(),0,'Tryck ska inte öppna');
+ {const r=pg.locator('.cell.bd[data-hold-lift="fodEdit"]:has-text("Leah")').first(),b=await r.boundingBox();await pg.mouse.move(b.x+b.width/2,b.y+b.height/2);await pg.mouse.down();await pg.waitForTimeout(250);await h.shot('fod-4b-hall-in');await pg.waitForTimeout(900);await pg.mouse.up();await h.idle(500)}
  assert.equal(await pg.locator('form[data-form="fodAdd"] h2').innerText(),'Ändra födelsedag');
  await pg.locator('form[data-form="fodAdd"] input[name="col"][value="teal"]').evaluate(x=>x.closest('label').scrollIntoView({inline:'center'}));
  await pg.locator('form[data-form="fodAdd"] input[name="col"][value="teal"] + span').click();
@@ -67,7 +67,7 @@ module.exports=async(pg,h)=>{
  assert.ok((await pg.locator('.cell.bd:has-text("Leah")').innerText()).includes('född 2015'));
  assert.ok(await pg.locator('.cell.bd[style]:has-text("Leah")').count(),'Färgen ska synas');
  // Bara färg på Testkusin, sedan årshjulet
- await pg.locator('.cell.bd:has-text("Testkusin")').evaluate(e=>e.scrollIntoView({block:'center'}));await h.idle(300);await h.hold('.cell.bd[data-lock-act="fodEdit"]:has-text("Testkusin")');
+ await pg.locator('.cell.bd:has-text("Testkusin")').evaluate(e=>e.scrollIntoView({block:'center'}));await h.idle(300);await h.hold('.cell.bd[data-hold-lift="fodEdit"]:has-text("Testkusin")');
  await pg.locator('form[data-form="fodAdd"] input[name="col"][value="orange"]').evaluate(x=>x.closest('label').scrollIntoView({inline:'center'}));
  await pg.locator('form[data-form="fodAdd"] input[name="col"][value="orange"] + span').click();
  await click('form[data-form="fodAdd"] .tb.strong');await h.waitFlush();
@@ -75,7 +75,7 @@ module.exports=async(pg,h)=>{
  await click('[data-act="fodMode"][data-id="hjul"]');await h.shot('fod-7-hjul');
  await click('[data-act="fodMode"][data-id="manad"]');await h.shot('fod-8-manader');
  // Ta bort från bladet
- await click('[data-act="fodMode"][data-id="lista"]');await pg.locator('.cell.bd:has-text("Testkusin")').evaluate(e=>e.scrollIntoView({block:'center'}));await h.idle(300);await h.hold('.cell.bd[data-lock-act="fodEdit"]:has-text("Testkusin")');await click('[data-act="fodDelSheet"]');
+ await click('[data-act="fodMode"][data-id="lista"]');await pg.locator('.cell.bd:has-text("Testkusin")').evaluate(e=>e.scrollIntoView({block:'center'}));await h.idle(300);await h.hold('.cell.bd[data-hold-lift="fodEdit"]:has-text("Testkusin")');await click('[data-act="fodDelSheet"]');
  assert.ok(!(await main()).includes('Testkusin'));await click('#undo .ud-b');assert.ok((await main()).includes('Testkusin'));
  await click('#nav [data-act="nav"][data-id="oversikt"]');await h.shot('fod-9-oversikt');
 };

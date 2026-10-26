@@ -3284,7 +3284,7 @@ function bdays(){const t=today(),ty=Number(t.slice(0,4)),seen=new Set(),E=fodEgn
 const bdWhen=b=>b.days===0?'idag':b.days===1?'imorgon':b.days<7?'på '+DAYS[parse(b.next).getDay()]:b.days<45?'om '+b.days+' dagar':'om '+Math.round(b.days/30.4)+' mån';
 const bdTurns=b=>b.age!=null?'fyller '+b.age:'fyller år';
 const bdNext=L=>L.slice().sort((a,b)=>a.days-b.days);
-function bdRow(b,o){o=o||{};return'<div class="dr-wrap cs"><button class="dr-act del" data-act="fodDel" data-full="fodDel" data-id="'+esc(b.key)+'" aria-label="Ta bort '+esc(b.name)+'">'+I.trash+'<span>Ta bort</span></button><div class="cell dr-slide lk-rad bd'+(b.days===0?' today':'')+(b.passed&&o.dim?' past':'')+'" data-hold-lock="'+esc(b.key)+'" data-lock-act="fodEdit" data-lst="0"'+bdSt(b)+'><span class="bd-date num"><b>'+b.dd+'</b><small>'+MON3[b.mo]+'</small></span>'+
+function bdRow(b,o){o=o||{};return'<div class="dr-wrap cs"><button class="dr-act del" data-act="fodDel" data-full="fodDel" data-id="'+esc(b.key)+'" aria-label="Ta bort '+esc(b.name)+'">'+I.trash+'<span>Ta bort</span></button><div class="cell dr-slide bd'+(b.days===0?' today':'')+(b.passed&&o.dim?' past':'')+'" data-hold-lift="fodEdit" data-id="'+esc(b.key)+'"'+bdSt(b)+'><span class="bd-date num"><b>'+b.dd+'</b><small>'+MON3[b.mo]+'</small></span>'+
  '<div class="grow"><div>'+esc(b.name)+'</div><div class="sub">'+esc(cap(bdTurns(b)))+(b.yr?' · född '+b.yr:'')+'</div></div><span class="bd-when'+(b.days<14?' soon':'')+'">'+esc(bdWhen(b))+'</span></div></div>'}
 function bdWidget(){const L=bdNext(bdays()).slice(0,3);if(!L.length)return'';
  return widget('fod','w2',I.cake,'Födelsedagar','',
@@ -3676,6 +3676,17 @@ const ACT={
  ['pointerup','pointercancel','scroll'].forEach(k=>document.addEventListener(k,stop,true));
  document.addEventListener('click',e=>{const el=e.target.closest('[data-hold]');if(el&&Date.now()-fired>800)toast('Håll in knappen för att '+({shopEmptyYes:'tömma listan',weekDelYes:'bekräfta',shopImportYes:'uppdatera varorna'}[el.dataset.hold]||'bekräfta'))});
  document.addEventListener('contextmenu',e=>{if(e.target.closest('[data-hold]'))e.preventDefault()})})();
+/* Håll in en rad för att ändra (data-hold-lift = ACT): raden lyfts sakta upp med en mjuk skugga och bladet öppnas när den nått fram.
+   Släpper eller flyttar man fingret glider den tillbaka. Tiden står i CSS:en (.hl-on) och T här */
+(()=>{const T=800,WAIT=90;let h=null,fired=0;
+ const stop=()=>{if(!h)return;clearTimeout(h.w);clearTimeout(h.t);h.el.classList.remove('hl-on');h=null};
+ document.addEventListener('pointerdown',e=>{if(e.button>0)return;const el=e.target.closest('[data-hold-lift]');if(!el||e.target.closest('.dr-act')||el.classList.contains('open'))return;stop();
+  const x={el,x:e.clientX,y:e.clientY};h=x;x.w=setTimeout(()=>{if(h!==x)return;el.style.transition='';el.classList.add('hl-on');x.t=setTimeout(()=>{if(h!==x)return;fired=Date.now();try{navigator.vibrate&&navigator.vibrate(10)}catch(z){}
+   const a=el.dataset.holdLift,id=el.dataset.id;h=null;ACT[a]&&ACT[a](id);setTimeout(()=>el.classList.remove('hl-on'),300)},T)},WAIT)});
+ document.addEventListener('pointermove',e=>{if(h&&Math.hypot(e.clientX-h.x,e.clientY-h.y)>10)stop()},{passive:true});
+ ['pointerup','pointercancel'].forEach(k=>document.addEventListener(k,stop,true));document.addEventListener('scroll',stop,{capture:true,passive:true});
+ document.addEventListener('click',e=>{if(Date.now()-fired<700&&e.target.closest('[data-hold-lift]')){e.stopPropagation();e.preventDefault()}},true);
+ document.addEventListener('contextmenu',e=>{if(e.target.closest('[data-hold-lift]'))e.preventDefault()})})();
 /* Håll in en rätt på veckosedeln för att låsa den: ett streck i accentfärgen ritas runt rätten (eller bilden) på 1 s.
    Släpper man tidigt går strecket tillbaka. En låst rätt låses upp på samma sätt, då backar strecket. Rör man fingret avbryts det */
 (()=>{const T=1000,WAIT=120;let h=null,fired=0;
