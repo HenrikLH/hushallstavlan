@@ -12,13 +12,6 @@ Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs 
 
 - Nytt 2026-10-25: `node verktyg/karta.js` (kodkarta) och `node verktyg/version.js` (merge + versionshöjning); regler i AGENTS.md avsnitt 9.
 
-## Pågår: levande himmel i vädervyn (Claude)
-
-- Mål: större sol/måne, fler stjärnor, moln i tre höjder med egna rörelser, löv som faller olika (Henriks önskan 2026-10-26).
-- Gren `claude/project-thread-sn2s0w`, utkast-PR. `skyFx(W)` i app.js (bara vädervyn 'Bild med hundar'), CSS `.skyfx`; löven i `backdropSvg` gäller även översikt/vägg.
-- Nästa steg: Henriks ok på förhandsbilder/film (/mnt/project-files/himmel/), sedan version.js, ångra-gren, main. Ev. samma himmel på översikten/väggen om han vill.
-- Test: verktyg/emu/vader-himmel.js (WXSYM/WXT/WXPR styr vädret i emulatorn); alla-flikar telefon/vägg utan fel.
-
 ## Beteende som ska bevaras
 
 - Plusplacering per enhet (ht.addPlace): Flytande / Vid profilen / Vid raden. Receptplus öppnar Nytt recept/Importera. Städ: Vid profilen flyttar pluset till huvudet och döljer endast övre Ny syssla-raden; övriga två behåller raden, rumsfält kvar. [PR #27](https://github.com/HenrikLH/hushallstavlan/pull/27), [#28](https://github.com/HenrikLH/hushallstavlan/pull/28).
@@ -27,6 +20,7 @@ Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs 
 - Lilla väderremsan: tunn linje före midnatt och dag + 00, ingen vald bakgrund; även när midnatt är första timmen. Scroll/väderlänk kvar. PR #30 ersätter stängda #20; inget väderarbete väntar längre.
 - Födelsedagar (ht-v179): plus öppnar bladet Ny födelsedag (namn, dag, månad, år) och följer plusplaceringen; svep vänster tar bort med 5 s Ångra. Egna tillägg/borttag ligger i `onskelista` som `{fod:1,add,del}` och läggs ovanpå kalendersynkens `fodelsedagar`, så synken skriver aldrig över dem. Test: verktyg/emu/fodelsedagar.js. Ångra-gren version-fore-fodelsedagar-20261024.
 - Håll in = lyft (ht-v183, Henriks val): `hlOn/hlOff` + `.hl-on` (4 % på 0,8 s med skugga). Används av `data-hold-lift` (födelsedagar), låsning `data-hold-lock` (veckosedel/efterrätt/Veckoförslag; strecket borttaget), Översiktens ordna-rutor (1,02 under 0,6 s) och väggklockans stäng-gest (3 s). `data-hold`-bekräftelseknapparna behåller fyllningen med flit. Födelsedagar: håll in öppnar Ändra födelsedag (namn/datum/år/färg, Ta bort). Egen färg i `onskelista` `col:{'namn|MM-DD':färg}`; barn under 18 med känt födelseår får `BD_BARN` (orange) utan egen färg. Ångra-gren version-fore-fodelsedagsfarger.
+- Vädervyns himmel (2026-10-26, Henriks ok): `skyFx(W)` i vädervyn 'Bild med hundar' ger vita stjärnor (blinkar i egen takt, stjärnfall) och moln i tre höjder (slöja/stackmoln/regnmoln, egen form, fart efter vinden). Sol/måne 1,5×. Löven i `backdropSvg` har egen fallbana, pendling och snurr (även översikt/vägg). Test: verktyg/emu/vader-himmel.js (WXSYM/WXT/WXPR). Ångra-gren version-fore-levande-himmel.
 - **Väntar på Henrik (dator):** klistra in Kod.gs med `CAL_DAYS = 366` (kalendern ett år framåt i stället för 31 dagar) och publicera ny version. Ingen setup behövs. Ta bort punkten när han bekräftat.
 - Henrik bekräftade 2026-10-21 att Kod.gs/setupRecipes/distribution är uppdaterade. Receptlagring/server/import: docs/recipe-management-release.md. Ingen riktig hushållsdata ändrad av agenten.
 

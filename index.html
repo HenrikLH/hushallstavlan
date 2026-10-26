@@ -759,9 +759,9 @@ html.ny .chip.lk::before{display:none}
 .wx2>.arc.w{right:8px;left:20%;top:100px;height:110px;color:var(--ink-2)}
 /* vädervyns himmel: stjärnor och moln i tre höjder (skyFx) */
 .wx2>.skyfx{position:absolute;left:0;right:0;top:0;height:240px;pointer-events:none;overflow:hidden;color:var(--ink-2);-webkit-mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent);mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent)}
-.skyfx .st,.skyfx .sk{color:color-mix(in srgb,var(--ink-2) 35%,#9DB2F0)}
-.skyfx .st{position:absolute;border-radius:50%;background:currentColor;opacity:var(--o);animation:stTw 3s ease-in-out infinite}
-.skyfx .st.b{box-shadow:0 0 5px 1px currentColor}
+.skyfx .st,.skyfx .sk{color:#FFFFFF}
+.skyfx .st{position:absolute;border-radius:50%;background:currentColor;opacity:var(--o);box-shadow:0 0 0 .6px rgba(110,122,150,.45);animation:stTw 3s ease-in-out infinite}
+.skyfx .st.b{box-shadow:0 0 0 .6px rgba(110,122,150,.45),0 0 5px 1px currentColor}
 @keyframes stTw{50%{opacity:calc(var(--o)*.2)}}
 .skyfx .sk{position:absolute;left:40%;top:6%;width:70px;height:1.5px;border-radius:1px;background:linear-gradient(90deg,transparent,currentColor);opacity:0;animation:stSk 19s linear infinite}
 .skyfx .sk.d2{left:62%;top:20%;animation-duration:31s;animation-delay:-11s}
