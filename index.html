@@ -1499,6 +1499,10 @@ body.wall:has(.board) .arr-foot{left:28px;transform:none;width:calc((100% - 60px
 .gh.red>span:first-child{color:var(--red)}
 .gh-foot{padding:6px 16px 10px;font-size:13px;line-height:18px;color:var(--gray)}
 
+/* Rutnummer (Inställningar → Utvecklare → Visa rutnummer): streckad kant och nummer i hörnet. Gäller alla UI-versioner */
+html.refs [data-ref]{outline:1.5px dashed rgba(255,45,85,.55);outline-offset:-1.5px}
+html.refs .ref-rel{position:relative}
+.refb{position:absolute!important;inset:0 0 auto auto!important;width:auto!important;height:auto!important;min-width:0;min-height:0;transform:none!important;opacity:1!important;z-index:60;display:block!important;margin:0;padding:3px 6px 3px 7px;border-radius:0 0 0 8px;background:#ff2d55;color:#fff;font:700 10px/1.25 ui-monospace,Menlo,Consolas,monospace;letter-spacing:0;text-transform:none;white-space:nowrap;cursor:copy;pointer-events:auto;-webkit-user-select:none;user-select:none}
 /* ===== Ny design ("Lugn") – gäller bara när html har klassen ny (Inställningar → Design) =====
    Regler: den vinröda färgen betyder "tryck här", rubriker är svarta, personer visas som en prick
    och namn, statusfärger klarar kontrastkravet och flikraden ligger fast i botten. */
