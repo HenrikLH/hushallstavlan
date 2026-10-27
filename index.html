@@ -447,19 +447,23 @@ body.wall .clock{display:block}
 /* sol/måne med eget moln (förslag a: ikon, b: mjukt, c: följeslagare) */
 .sky-b .sb-body{line-height:0}
 .sb-cl{position:absolute;left:50%;top:50%;transform:translate(calc(-50% + var(--ox)),calc(-50% + var(--oy)));line-height:0;display:flex;flex-direction:column;align-items:center}
-.sb-cl>svg:first-child{filter:drop-shadow(0 1.5px 2px rgba(50,60,90,.22))}
+.sb-cl>.sb-c{filter:drop-shadow(0 1.5px 2px rgba(50,60,90,.22))}
 .sb-rays{position:absolute;left:0;top:0;stroke:#FFC94A;stroke-width:2;stroke-linecap:round;animation:figSpin 40s linear infinite}
-.sm-a .sb-cl>svg:first-child{animation:sbBob 6s ease-in-out infinite alternate}
+.sm-a .sb-cl>.sb-c{animation:sbBob 6s ease-in-out infinite alternate}
 @keyframes sbBob{from{transform:translateY(-1px)}to{transform:translateY(1.5px)}}
-.sm-b .sb-cl>svg:first-child{opacity:.94;filter:blur(.5px) drop-shadow(0 2px 4px rgba(50,60,90,.18));animation:sbSlide 14s ease-in-out infinite alternate}
-@keyframes sbSlide{from{transform:translateX(calc(var(--D)*-.28))}to{transform:translateX(calc(var(--D)*.22))}}
-.sm-c .sb-cl{animation:sbPass 18s linear infinite}
-@keyframes sbPass{0%{transform:translate(calc(-50% - var(--D)*1.1),calc(-50% + var(--oy)));opacity:0}12%{opacity:1}88%{opacity:1}100%{transform:translate(calc(-50% + var(--D)*1.1),calc(-50% + var(--oy)));opacity:0}}
-.sb-rain{margin-top:-6px;overflow:visible;stroke:#7FB2E6;stroke-width:2;stroke-linecap:round;fill:#FFFFFF}
-.sb-rain line,.sb-rain circle{animation:sbDrop 1.1s linear infinite}
-.sb-rain.sn circle{stroke:#9DB4D3;stroke-width:.8;animation-duration:2.4s}
-@keyframes sbDrop{0%{transform:translateY(-4px);opacity:0}25%{opacity:1}100%{transform:translateY(14px);opacity:0}}
-.sb-bolt{fill:#FFD84A;stroke:none;animation:figBolt 4s infinite}
+.sm-c .sb-cl.pass{animation:sbPass 20s linear infinite}
+@keyframes sbPass{0%{transform:translate(calc(-50% - var(--D)*1.2),calc(-50% + var(--oy)));opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translate(calc(-50% + var(--D)*1.2),calc(-50% + var(--oy)));opacity:0}}
+.sm-c .sb-cl:not(.pass)>.sb-c{animation:sbBob 7s ease-in-out infinite alternate}
+.sb-rain{margin-top:-5px;overflow:visible;stroke:#7FB2E6;stroke-linecap:round;fill:#FFFFFF}
+.sb-rain .dr{stroke-width:2.2;animation:sbDrop 1s linear infinite}
+.sb-rain .dz{stroke-width:1.6;opacity:.8;animation:sbDrop 1.6s linear infinite}
+.sb-rain .fl{stroke:#9DB4D3;stroke-width:.8;animation:sbFlake 3s linear infinite}
+@keyframes sbDrop{0%{transform:translate(0,-4px);opacity:0}20%{opacity:1}100%{transform:translate(var(--sk,0),18px);opacity:0}}
+@keyframes sbFlake{0%{transform:translate(0,-2px);opacity:0}15%{opacity:1}35%{transform:translate(calc(var(--sk,0px)*.3 + 3px),6px)}65%{transform:translate(calc(var(--sk,0px)*.65 - 3px),12px)}100%{transform:translate(var(--sk,0px),19px);opacity:0}}
+.sb-bolt{fill:#FFD84A;stroke:none;opacity:0;animation:figBolt 5s infinite}
+.sb-cl.th>.sb-c{animation:sbFlash 5s infinite}
+@keyframes sbFlash{0%,86%,92%,100%{filter:drop-shadow(0 1.5px 2px rgba(50,60,90,.22))}88%,90%{filter:brightness(1.6) drop-shadow(0 0 6px #FFF3B0)}}
+.gs.wb>.skyfx{position:absolute;left:-150px;right:-120px;top:0;height:200px;pointer-events:none;overflow:hidden;color:var(--ink-2);-webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)}
 @media (prefers-reduced-motion:reduce){.sb-cl,.sb-cl *,.sb-rays{animation:none!important}}
 .sky-sun svg{animation:figHalo 6s ease-in-out infinite}
 .sky-moon svg{animation:figHalo 7s ease-in-out infinite;filter:drop-shadow(0 0 2px rgba(50,60,100,.75))}
@@ -799,7 +803,7 @@ html.ny .chip.lk::before{display:none}
 .skyfx .sk.d2{left:62%;top:20%;animation-duration:31s;animation-delay:-11s}
 @keyframes stSk{0%{transform:translate(0,0) rotate(24deg);opacity:0}1%{opacity:.9}5%{transform:translate(110px,50px) rotate(24deg);opacity:0}100%{opacity:0}}
 .skyfx .cls{position:absolute;inset:0}
-.skyfx .cl svg{filter:drop-shadow(0 1px 2px rgba(60,72,100,.2))}
+.skyfx .cl svg{filter:drop-shadow(0 1.5px 2px rgba(50,60,90,.22));opacity:.85}.skyfx .cl.hi svg{opacity:.6}
 .skyfx .cl{position:absolute;left:0;width:100%;animation:clMove 100s linear infinite}
 .skyfx .cl.rev{animation-direction:reverse}
 .skyfx .cl>i{position:absolute;right:100%;top:0;display:block;line-height:0;animation:clBob 8s ease-in-out infinite alternate}
