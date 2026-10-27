@@ -3172,8 +3172,9 @@ function arcHtml(W,v){const P=WX_POS(),sc=wxScene(W),now=new Date(),k=SKY(now,P.
  let s='<svg viewBox="0 0 100 100" preserveAspectRatio="none"><defs>'+fade('t','currentColor')+fade('d',day?'#F5B940':'#9AA8D6')+'</defs><path class="trk" stroke="url(#'+gid+'t)" d="M0 100 A50 '+ry+' 0 0 1 100 100"/>'+
   '<path class="done" stroke="url(#'+gid+'d)" d="M0 100 A50 '+ry+' 0 0 1 '+x.toFixed(2)+' '+y.toFixed(2)+'"/></svg>';
  if(!day&&!covered&&v!=='w'&&!(v==='b'&&heroSky()))s+=[[18,40],[34,14],[62,8],[80,30],[50,46],[90,60]].slice(0,sc.sky==='partly'?3:6).map(([a,b],i)=>'<i class="arc-st tw'+(i%3?' d'+(i%3+1):'')+'" style="left:'+a+'%;top:'+b+'%"></i>').join('');
- const z=v==='w'?72:v==='b'?50:34;
- s+='<div class="sky-b '+(day?'sky-sun':'sky-moon')+'" style="left:'+x.toFixed(1)+'%;top:'+y.toFixed(1)+'%;opacity:'+(covered?.4:1)+'">'+(day?sunSvg(k.sun.alt<8,z*1.5):moonSvg(k.moon.frac,k.moon.waxing,z))+'</div>';
+ const z=v==='w'?72:v==='b'?(SOLMOLN?62:50):34;
+ const sm=SOLMOLN&&(v==='w'||v==='b')?sunCloud(sc,day,day?z*1.5*17/48:z*20/48):'';
+ s+='<div class="sky-b '+(day?'sky-sun':'sky-moon')+(sm?' sm-'+SOLMOLN:'')+'" style="left:'+x.toFixed(1)+'%;top:'+y.toFixed(1)+'%;opacity:'+(covered&&!sm?.4:1)+'">'+(sm&&day&&SOLMOLN==='a'&&!covered?sunRays(z*1.5):'')+'<div class="sb-body" style="opacity:'+(sm&&covered?.6:1)+'">'+(day?sunSvg(k.sun.alt<8,z*1.5):moonSvg(k.moon.frac,k.moon.waxing,z))+'</div>'+sm+'</div>';
  return'<div class="arc '+v+'" aria-hidden="true">'+s+'</div>'}
 // månadens stjärnbild: den som syns bra på kvällshimlen från Sverige den månaden. Punkter i en ruta 0–100, linjer mellan punkternas index
 const STJB=[['Orion',[[22,10],[72,16],[40,50],[50,47],[60,44],[32,92],[78,86]],[[0,1],[0,2],[1,4],[2,3],[3,4],[2,5],[4,6]]],
@@ -3191,6 +3192,24 @@ const STJB=[['Orion',[[22,10],[72,16],[40,50],[50,47],[60,44],[32,92],[78,86]],[
 function starSign(m){const[n,P,L]=STJB[m],f=v=>v.toFixed(0);
  return'<svg class="stjb" viewBox="-6 -6 112 112" aria-label="Månadens stjärnbild: '+n+'">'+L.map(([a,b])=>'<line x1="'+P[a][0]+'" y1="'+P[a][1]+'" x2="'+P[b][0]+'" y2="'+P[b][1]+'"/>').join('')+
   P.map(([x,y],i)=>'<circle cx="'+x+'" cy="'+y+'" r="'+(i%3?2.6:3.4)+'" style="animation-delay:-'+f(i*.7)+'s"/>').join('')+'</svg>'}
+// solen eller månen med ett eget moln som följer med över himlen, som en vädersymbol (förslag a/b/c, ls ht.solmoln)
+let SOLMOLN=/^[abc]$/.test(lsGet('solmoln')||'')?lsGet('solmoln'):'';
+function sunCloud(sc,day,D){const wet=/^(drizzle|rain|sleet)$/.test(sc.type),snow=sc.type==='snow',lv=sc.lv,v=SOLMOLN,f=x=>x.toFixed(1);
+ const kind=sc.thunder||wet||snow?'wet':sc.sky==='cloudy'?'cloudy':sc.sky==='partly'?'partly':sc.sky==='fair'?'fair':'';if(!kind)return'';
+ let c=sc.thunder?'#5A6482':wet?['#B4BECF','#97A3B8','#7A869E'][lv-1]:snow?['#D5DEE9','#C3CEDC','#AFBBCC'][lv-1]:kind==='cloudy'?'#D3DBE6':'#FFFFFF';
+ if(!day)c=mixHex(c,'#2A3350',.45);
+ const g='sc'+(++FIG_N),lo=shadeHex(c,kind==='wet'?.86:.9);
+ // storlek och plats i förhållande till skivan (D = diameter): ju sämre väder desto mer täcker molnet
+ const W=D*({fair:1.15,partly:1.6,cloudy:2.05,wet:2.05}[kind])*(v==='c'&&kind!=='wet'&&kind!=='cloudy'?.8:1),ox=D*({fair:.55,partly:.38,cloudy:.12,wet:.18}[kind]),oy=D*({fair:.3,partly:.32,cloudy:.2,wet:.22}[kind]);
+ const svg='<svg viewBox="0 0 64 40" width="'+f(W)+'" height="'+f(W*40/64)+'"><defs><linearGradient id="'+g+'" x1="0" y1="0" x2="0" y2="1"><stop offset=".3" stop-color="'+c+'"/><stop offset="1" stop-color="'+lo+'"/></linearGradient></defs>'+
+  '<g fill="url(#'+g+')"><circle cx="20" cy="25" r="10"/><circle cx="34" cy="17" r="14"/><circle cx="48" cy="25" r="10"/><rect x="10" y="24" width="48" height="14" rx="7"/></g></svg>';
+ let r='';
+ if(kind==='wet'){const n=sc.thunder?4:lv+2,sn=snow||sc.type==='sleet';
+  r='<svg class="sb-rain'+(sn?' sn':'')+'" viewBox="0 0 64 30" width="'+f(W)+'" height="'+f(W*30/64)+'">'+Array.from({length:n},(_,i)=>{const x=16+i*(32/Math.max(1,n-1)),d=(i*.37%1).toFixed(2);
+   return sn?'<circle cx="'+f(x)+'" cy="4" r="2.2" style="animation-delay:-'+d+'s"/>':'<line x1="'+f(x)+'" y1="2" x2="'+f(x-2)+'" y2="9" style="animation-delay:-'+d+'s"/>'}).join('')+
+   (sc.thunder?'<path class="sb-bolt" d="M34 0l-6 11h5l-4 10 10-13h-5l4-8z"/>':'')+'</svg>'}
+ return'<div class="sb-cl" style="--ox:'+f(ox)+'px;--oy:'+f(oy)+'px;--D:'+f(D)+'px">'+svg+r+'</div>'}
+function sunRays(sz){return'<svg class="sb-rays" viewBox="-24 -24 48 48" width="'+sz+'" height="'+sz+'">'+Array.from({length:8},(_,i)=>'<line x1="0" y1="-11.5" x2="0" y2="-15" transform="rotate('+i*45+')"/>').join('')+'</svg>'}
 /* Vädervyns himmel: stjärnor och moln i tre höjder. Höga slöjmoln glider långsamt och skimrar, stackmoln i mitten guppar och andas,
    låga regnmoln går fortast och rullar. Varje moln har egen form, fart och takt; alla driver med vinden. */
 // polen placeras där stjärnbildens cirkel inte når månen, så att månen aldrig täcker den
@@ -3231,6 +3250,7 @@ function skyFx(W){const sc=wxScene(W),wet=/^(drizzle|rain|sleet)$/.test(sc.type)
  const tone=c=>sc.dark?mixHex(c,'#2A3350',.5):warmL?mixHex(c,'#F2B48A',.22):c,lite=tone(mixHex(base,'#FFFFFF',.35)),mid=tone(base),dark=tone(wet||snow||sc.thunder?shadeHex(base,.82):mixHex(base,'#9AA8BC',.35));
  const N={fair:[1,0,0],partly:[1,2,0],cloudy:[2,3,1],fog:[0,1,2]}[sky].slice();
  if(wet||snow||sc.thunder)N[2]+=Math.ceil(lv/2)+(sc.thunder?1:0);
+ if(SOLMOLN)N.forEach((n,i)=>N[i]=Math.max(i?0:Math.min(n,1),n-1));   // solens eget moln bär vädret, färre moln runt omkring
  const sp=1/(.75+sc.wl*.35),rev=sc.dir<0?' rev':'';
  // former: höga är tunna slöjor, mellersta runda stackmoln, låga breda och mörka i underkanten
  const shape=(t,k,c,w)=>{const P=[];let vb,h;
