@@ -3222,22 +3222,27 @@ function starSign(m){const[n,P,L]=STJB[m],f=v=>v.toFixed(0);
   P.map(([x,y],i)=>'<circle cx="'+x+'" cy="'+y+'" r="'+(i%3?2.6:3.4)+'" style="animation-delay:-'+f(i*.7)+'s"/>').join('')+'</svg>'}
 // solen eller månen med ett eget moln som följer med över himlen, som en vädersymbol (förslag a/b/c, ls ht.solmoln)
 // molnets bas: rundad och platt, på stora moln med små bulor och ett svagt streck i underkanten så att den inte ser linjerad ut
-// molnets bas: en rundad rektangel; stora moln får en mindre rundad rektangel under, lite åt höger, så att underkanten blir halvorganisk
-function cloudBase(x0,x1,y0,y1,seed,org){const f=v=>v.toFixed(1),h=y1-y0;
- if(!org)return'<rect x="'+x0+'" y="'+y0+'" width="'+(x1-x0)+'" height="'+h+'" rx="'+(h/2)+'"/>';
- const sp=x1-x0,a=x0+sp*(.36+(seed%7)*.025),w=sp*(.42+(seed%5)*.03),sh=h*.62;
- return'<rect x="'+x0+'" y="'+y0+'" width="'+sp+'" height="'+f(h-3)+'" rx="'+f((h-3)/2)+'"/><rect x="'+f(a)+'" y="'+f(y1-sh+.5)+'" width="'+f(Math.min(w,x1-a-2))+'" height="'+f(sh)+'" rx="'+f(sh/2)+'"/>'}
+// ikonmoln: runda tussar på en rak baslinje som sticker ut lite, ett kort streck under och (stora moln) ett mindre, mörkare moln bakom med en glipa runt det främre
+function iconCloud(P,x0,x1,B,c,o){const f=v=>v.toFixed(1),g='ic'+(++FIG_N),sp=x1-x0;o=o||{};
+ const front=P.map(([x,y,r])=>'<circle cx="'+f(x)+'" cy="'+f(y)+'" r="'+f(r)+'"/>').join('')+'<rect x="'+f(x0+4)+'" y="'+f(B-11)+'" width="'+f(sp-8)+'" height="9"/><rect x="'+f(x0-6)+'" y="'+f(B-4)+'" width="'+f(sp+10)+'" height="4.4" rx="2.2"/>'+
+  (o.dash?'<rect x="'+f(o.seed%2?x0+sp*.45:x0+4)+'" y="'+f(B+3)+'" width="'+f(sp*.38)+'" height="4.4" rx="2.2"/>':'');
+ let back='';
+ if(o.back){const k=.6,ox=x0+8,lift=Math.max(...P.map(p=>p[2]))*1.25,bp=P.map(([x,y,r])=>[ox+(x-x0)*k,B-(B-y)*k-lift,r*k]);
+  back='<mask id="'+g+'m" maskUnits="userSpaceOnUse" x="-60" y="-60" width="'+f(sp+160)+'" height="200"><rect x="-60" y="-60" width="'+f(sp+160)+'" height="200" fill="#fff"/><g fill="#000" stroke="#000" stroke-width="3.2" stroke-linejoin="round">'+front+'</g></mask>'+
+   '<g fill="url(#'+g+'b)" mask="url(#'+g+'m)">'+bp.map(([x,y,r])=>'<circle cx="'+f(x)+'" cy="'+f(y)+'" r="'+f(r)+'"/>').join('')+'<rect x="'+f(ox)+'" y="'+f(bp[0][1])+'" width="'+f(sp*k)+'" height="'+f(B-8-bp[0][1])+'" rx="4"/></g>'}
+ const lg=(id,a,b)=>'<linearGradient id="'+id+'" gradientUnits="userSpaceOnUse" x1="'+x0+'" y1="0" x2="'+x1+'" y2="0"><stop offset="0" stop-color="'+a+'"/><stop offset="1" stop-color="'+b+'"/></linearGradient>';
+ return'<defs>'+lg(g,mixHex(c,'#FFFFFF',.35),shadeHex(c,.86))+(o.back?lg(g+'b',shadeHex(c,.9),shadeHex(c,.78)):'')+'</defs>'+back+'<g fill="url(#'+g+')">'+front+'</g>'}
 let SOLMOLN=lsGet('solmoln')==='0'?'':/^[ac]$/.test(lsGet('solmoln')||'')?lsGet('solmoln'):'c';
 function sunCloud(sc,day,D){const wet=/^(drizzle|rain|sleet)$/.test(sc.type),snow=sc.type==='snow',sleet=sc.type==='sleet',lv=sc.lv,f=x=>x.toFixed(1);
  const kind=sc.thunder||wet||snow?'wet':sc.sky==='cloudy'?'cloudy':sc.sky==='partly'?'partly':sc.sky==='fair'?'fair':'';if(!kind)return'';
  let c=sc.thunder?'#5A6482':wet?['#B4BECF','#97A3B8','#7A869E'][lv-1]:snow?['#D5DEE9','#C3CEDC','#AFBBCC'][lv-1]:kind==='cloudy'?'#D3DBE6':'#FFFFFF';
  if(!day)c=mixHex(c,'#2A3350',.45);
- const g='sc'+(++FIG_N),lo=shadeHex(c,kind==='wet'?.86:.9),wide=kind==='cloudy'||kind==='wet',VW=wide?100:64;
+ const wide=kind==='cloudy'||kind==='wet',VW=wide?100:64;
  // molnet breder ut sig ju mulnare det är; det är lite genomskinligt så att solen alltid syns igenom
  const W=D*(kind==='fair'?1.1:kind==='partly'?1.65:kind==='cloudy'?3:2.6+lv*.2),ox=D*({fair:.55,partly:.38,cloudy:.05,wet:.1}[kind]),oy=D*({fair:.3,partly:.32,cloudy:.16,wet:.18}[kind]);
  const P=wide?[[18,26,10],[32,17,13],[50,13,15],[68,18,12],[82,26,9]]:[[20,25,10],[34,17,14],[48,25,10]];
- const svg='<svg class="sb-c" viewBox="0 -8 '+VW+' 50" width="'+f(W)+'" height="'+f(W*50/VW)+'" style="opacity:'+(kind==='wet'?.88:kind==='cloudy'?.8:.85)+'"><defs><linearGradient id="'+g+'" gradientUnits="userSpaceOnUse" x1="0" y1="2" x2="0" y2="40"><stop offset=".3" stop-color="'+c+'"/><stop offset="1" stop-color="'+lo+'"/></linearGradient></defs>'+
-  '<g fill="url(#'+g+')">'+P.map(([x,y,r])=>'<circle cx="'+x+'" cy="'+y+'" r="'+r+'"/>').join('')+cloudBase(wide?8:10,wide?92:58,24,38,7,wide)+'</g></svg>';
+ const Wv=W*(VW+12)/VW,svg='<svg class="sb-c" viewBox="-6 -10 '+(VW+12)+' 58" width="'+f(Wv)+'" height="'+f(Wv*58/(VW+12))+'" style="opacity:'+(kind==='wet'?.88:kind==='cloudy'?.8:.85)+'">'+
+  iconCloud(P,wide?8:10,wide?92:58,38,c,{back:wide,dash:1,seed:wide?0:1})+'</svg>';
  let r='';
  if(kind==='wet'){
   // nederbörden faller från molnet: duggregn tunt och långsamt, regn tätare och snabbare med styrkan, snö singlar och vajar, åska blixtrar
@@ -3245,6 +3250,8 @@ function sunCloud(sc,day,D){const wet=/^(drizzle|rain|sleet)$/.test(sc.type),sno
   for(let i=0;i<n;i++){const x=18+(i+.5)*(64/n)+((i*37)%7-3),d=f((i*.61%1)*dur),fl=snow||sleet&&i%2;
    ds.push(fl?'<circle class="fl" cx="'+f(x)+'" cy="3" r="'+(snow&&lv>=3?2.6:2.1)+'" style="animation-duration:'+f(dur*(.85+(i%3)*.15))+'s;animation-delay:-'+d+'s;--sk:'+f(sk*3)+'px"/>':
     '<line class="'+(drz?'dz':'dr')+'" x1="'+f(x)+'" y1="2" x2="'+f(x+sk)+'" y2="'+(drz?5:9+lv)+'" style="animation-duration:'+f(dur)+'s;animation-delay:-'+d+'s;--sk:'+f(sk*2)+'px"/>')}
+  // snö: samma flingor som i bilden, vita prickar med blå kant och vid mer snö några sexuddiga stjärnor som snurrar
+  if(snow&&lv>=2)[[30,.3],[64,1.9]].forEach(([x,d])=>{const p='M'+x+' 0v8M'+(x-3.5)+' 2l7 4M'+(x-3.5)+' 6l7-4';ds.push('<g class="sf" style="animation-duration:'+f(dur*1.5)+'s;animation-delay:-'+f(d*dur)+'s;--sk:'+f(sk*3)+'px"><path d="'+p+'" stroke="#9DB4D3" stroke-width="1.8"/><path d="'+p+'" stroke="#FFFFFF" stroke-width=".9"/></g>')})
   r='<svg class="sb-rain" viewBox="0 0 100 34" width="'+f(W)+'" height="'+f(W*34/100)+'">'+ds.join('')+(sc.thunder?'<path class="sb-bolt" d="M54 0l-7 12h6l-5 12 12-16h-6l5-8z"/>':'')+'</svg>'}
  return'<div class="sb-cl'+(sc.thunder?' th':'')+(wide?'':' pass')+'" style="--ox:'+f(ox)+'px;--oy:'+f(oy)+'px;--D:'+f(D)+'px">'+svg+r+'</div>'}
 function sunRays(sz){return'<svg class="sb-rays" viewBox="-24 -24 48 48" width="'+sz+'" height="'+sz+'">'+Array.from({length:8},(_,i)=>'<line x1="0" y1="-11.5" x2="0" y2="-15" transform="rotate('+i*45+')"/>').join('')+'</svg>'}
@@ -3292,11 +3299,10 @@ function skyFx(W){const sc=wxScene(W),wet=/^(drizzle|rain|sleet)$/.test(sc.type)
  const sp=1/(.75+sc.wl*.35),rev=sc.dir<0?' rev':'';
  // former: höga är tunna slöjor, mellersta runda stackmoln, låga breda och mörka i underkanten
  // samma ikonmoln som vid solen: runda tussar på en rundad bas med mjuk toning nedåt, varje moln med egen form och storlek
- const shape=(t,k,c,w)=>{const np=t==='hi'?2+Math.round(rnd(k)):t==='mid'?3+Math.round(rnd(k)*2):4+Math.round(rnd(k)*2),VW=np*16+20,B=t==='hi'?30:28,P=[],g='cg'+(++FIG_N);
-  for(let j=0;j<np;j++){const mid=1-Math.abs((j+.5)/np-.5)*2,r=(t==='hi'?6:8)+mid*(t==='hi'?5:7)+rnd(k+j*3)*4,x=12+(j+.5)*16+(rnd(k+j*3+1)-.5)*4;P.push('<circle cx="'+f(x)+'" cy="'+f(B-r*.62)+'" r="'+f(r)+'"/>')}
-  const h=w*50/VW,org=t!=='hi'&&np>=4;
-  return{svg:'<svg viewBox="0 -8 '+VW+' 50" width="'+f(w)+'" height="'+f(h)+'"><defs><linearGradient id="'+g+'" gradientUnits="userSpaceOnUse" x1="0" y1="2" x2="0" y2="38"><stop offset=".3" stop-color="'+c+'"/><stop offset="1" stop-color="'+shadeHex(c,.88)+'"/></linearGradient></defs><g fill="url(#'+g+')">'+P.join('')+
-   cloudBase(8,VW-8,B-6,B+(t==='hi'?4:8),k,org)+'</g></svg>',h}};
+ const shape=(t,k,c,w)=>{const np=t==='hi'?2+Math.round(rnd(k)):t==='mid'?3+Math.round(rnd(k)*2):4+Math.round(rnd(k)*2),VW=np*16+20,B=t==='hi'?30:28,P=[];
+  for(let j=0;j<np;j++){const mid=1-Math.abs((j+.5)/np-.5)*2,r=(t==='hi'?6:8)+mid*(t==='hi'?5:7)+rnd(k+j*3)*4,x=12+(j+.5)*16+(rnd(k+j*3+1)-.5)*4;P.push([x,B-r*.62,r])}
+  const big=t!=='hi'&&np>=4,Bb=B+(t==='hi'?4:8),w2=w*(VW+12)/VW,h=w2*58/(VW+12);
+  return{svg:'<svg viewBox="-6 -10 '+(VW+12)+' 58" width="'+f(w2)+'" height="'+f(h)+'">'+iconCloud(P,8,VW-8,Bb,c,{back:big,dash:t!=='hi',seed:k})+'</svg>',h}};
  const band={hi:[3,12],mid:[10,24],lo:[20,32]},dur={hi:220,mid:100,lo:52};
  let k=0,cs='';
  [['hi',N[0],lite],['mid',N[1],mid],['lo',N[2],dark]].forEach(([t,n,c])=>{for(let j=0;j<n;j++){k+=7;

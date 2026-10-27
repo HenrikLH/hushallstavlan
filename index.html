@@ -457,7 +457,9 @@ body.wall .clock{display:block}
 .sb-rain{margin-top:-5px;overflow:visible;stroke:#7FB2E6;stroke-linecap:round;fill:#FFFFFF}
 .sb-rain .dr{stroke-width:2.2;animation:sbDrop 1s linear infinite}
 .sb-rain .dz{stroke-width:1.6;opacity:.8;animation:sbDrop 1.6s linear infinite}
-.sb-rain .fl{stroke:#9DB4D3;stroke-width:.8;animation:sbFlake 3s linear infinite}
+.sb-rain .fl{stroke:#9DB4D3;stroke-width:.6;animation:sbFlake 3s linear infinite}
+.sb-rain .sf{animation:sbStar 4.5s linear infinite;transform-box:fill-box;transform-origin:center}
+@keyframes sbStar{0%{transform:translate(0,-2px) rotate(0);opacity:0}15%{opacity:1}100%{transform:translate(var(--sk,0px),19px) rotate(120deg);opacity:0}}
 @keyframes sbDrop{0%{transform:translate(0,-4px);opacity:0}20%{opacity:1}100%{transform:translate(var(--sk,0),18px);opacity:0}}
 @keyframes sbFlake{0%{transform:translate(0,-2px);opacity:0}15%{opacity:1}35%{transform:translate(calc(var(--sk,0px)*.3 + 3px),6px)}65%{transform:translate(calc(var(--sk,0px)*.65 - 3px),12px)}100%{transform:translate(var(--sk,0px),19px);opacity:0}}
 .sb-bolt{fill:#FFD84A;stroke:none;opacity:0;animation:figBolt 5s infinite}
