@@ -639,7 +639,8 @@ let NB={title:'',back:false},io=null;
 function watchTitle(){
  const bar=document.getElementById('navbar');if(!bar)return;
  if(io){io.disconnect();io=null}
- document.getElementById('nb-title').textContent=NB.title||'';
+ /* Henrik 2026-10-27: ingen sidrubrik vid scroll; raden finns bara kvar för tillbaka-knappen (och statusfältet) */
+ bar.classList.toggle('tom',!NB.back);
  document.getElementById('nb-left').innerHTML=NB.back?'<button class="back" data-act="recipeBack">'+I.back+'Mat</button>':'';
  const lt=document.getElementById('lt');
  const show=on=>{bar.classList.toggle('on',on);bar.setAttribute('aria-hidden',String(!on));bar.inert=!on};
