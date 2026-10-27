@@ -1,26 +1,33 @@
 const assert=require('node:assert/strict');
+// Veckan som brickor (UI 2.0): håll in bilden låser, tryck på bilden öppnar receptet, håll in namnet eller tryck på portionerna öppnar bladet
 module.exports=async(pg,h)=>{
  const read=s=>pg.evaluate(s=>window.__d(s),s),click=async s=>{await pg.locator(s).first().click();await h.idle(500)};
- await click('[data-act="nav"][data-id="mat"]');await click('[data-act="matTab"][data-id="vecka"]');
+ const tillVecka=async()=>{await click('[data-act="nav"][data-id="mat"]');await click('[data-act="matTab"][data-id="vecka"]')};
+ await tillVecka();
  assert.equal(await pg.locator('.dr-done,.cell.dr.past').count(),0);
- const id=await pg.locator('.cell.dr [data-hold-lock]').first().getAttribute('data-hold-lock'),row=()=>pg.locator('.cell.dr:has([data-hold-lock="'+id+'"])'),lockSel=()=>'.cell.dr [data-hold-lock="'+id+'"]',locked=()=>read('weekLocks(weekTarget().vs).has('+JSON.stringify(id)+')');
- const client=await pg.context().newCDPSession(pg),swipe=async dx=>{await row().evaluate(el=>el.scrollIntoView({block:'center'}));await h.idle(350);const b=await row().boundingBox(),x=b.x+b.width/2,y=b.y+b.height/2;await client.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y}]});for(let i=1;i<=10;i++)await client.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:x+dx*i/10,y}]});await client.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await h.idle(700)};
- const original=await locked();await swipe(100);assert.equal(await locked(),!original);await h.waitFlush();await pg.reload();await h.idle(1800);assert.equal(await locked(),!original);
- for(const style of ['bild','rad']){
-  await click('[data-act="settings"]');const section=pg.locator('[data-act="lasstil"][data-id="'+style+'"]').locator('xpath=ancestor::details[1]');if(await section.count()&&!await section.evaluate(x=>x.open))await section.locator('summary').click();await click('[data-act="lasstil"][data-id="'+style+'"]');await click('[data-act="sheetClose"]');await pg.reload();await h.idle(1800);assert.equal(await read('LASSTIL'),style);
-  assert.equal(await row().locator('.lk-tw').count(),style==='bild'?1:0);assert.equal(await row().evaluate(x=>x.classList.contains('lk-rad')),style==='rad');
-  const before=await locked();await row().evaluate(el=>el.scrollIntoView({block:'center'}));await h.hold(lockSel());assert.equal(await locked(),!before);assert.equal(await read('S.sheet'),null);await swipe(100);assert.equal(await locked(),before);
-  // Håll in raden (inte bilden) öppnar bladet för rätten.
-  await h.hold('.cell.dr:has([data-hold-lock="'+id+'"]) .dr-main .title');assert.equal(await read('S.sheet'),'dish');assert(await pg.locator('.sheet .dm-g').count());await click('.sheet [data-act="sheetClose"]');assert.equal(await read('S.sheet'),null);
- }
- await swipe(100);assert.equal(await locked(),original);
- // Behåll en låst vardagsrätt i översiktsbilden. Datumet i fredags-/lördagstestet ligger efter gruppens slut.
- if(!await locked())await swipe(100);await h.idle(3500);await pg.evaluate(()=>scrollTo(0,0));await h.shot('veckosedel');
- await swipe(-100);assert(await row().evaluate(x=>x.classList.contains('open')));await h.shot('svep-ta-bort');
- await click('.dr-wrap:has([data-hold-lock="'+id+'"])>.dr-act');assert.equal(await read('S.sheet'),'delLas');
- await click('[data-act="sheetClose"]');assert.equal(await row().count(),1);
- await swipe(100);assert.equal(await locked(),false);
- await swipe(-100);await click('.dr-wrap:has([data-hold-lock="'+id+'"])>.dr-act');await h.waitFlush();assert.equal(await read('D().menu.some(x=>x.recipe==='+JSON.stringify(id)+')'),false);
+ assert.equal(await pg.locator('.bt-sec').count()>=4,true);
+ for(const g of ['Vardag','Helg','Storkok'])assert(await pg.locator('.bq.e[data-act="slotPick"][data-id="'+g+'"]').count()>=1,'tom plats i '+g);
+ assert.equal(await pg.locator('.wm-ring').count(),1);
+ const id=await pg.locator('.bt-g .bq[data-hold-lock]').first().getAttribute('data-hold-lock'),sq='.bq[data-hold-lock="'+id+'"]',tile='.bt:has('+sq+')',locked=()=>read('weekLocks(weekTarget().vs).has('+JSON.stringify(id)+')');
+ const hold=async s=>{await pg.locator(s).first().evaluate(el=>el.scrollIntoView({block:'center'}));await h.hold(s)};
+ const original=await locked();
+ await hold(sq);assert.equal(await locked(),!original);assert.equal(await read('S.sheet'),null);assert.equal(await read('S.recipe'),null);
+ assert.equal(await pg.locator(sq).evaluate(x=>x.classList.contains('lk-on')),!original);
+ await h.waitFlush();await pg.reload();await h.idle(1800);assert.equal(await locked(),!original);
+ await hold(sq);assert.equal(await locked(),original);
+ // Tryck på bilden öppnar receptet
+ await click(sq);assert.equal(await read('S.recipe'),id);await pg.evaluate(()=>window.__d('S.recipe=null;render()'));await h.idle(400);
+ // Håll in namnet öppnar bladet; tryck på portionerna också
+ await hold(tile+' .bn');assert.equal(await read('S.sheet'),'dish');assert(await pg.locator('.sheet .dm-g').count());await click('.sheet [data-act="sheetClose"]');assert.equal(await read('S.sheet'),null);
+ const p0=Number((await pg.locator(tile+' .bq-p').textContent()).match(/\d+/)[0]);
+ await click(tile+' .bq-p');assert.equal(await read('S.sheet'),'dish');await click('.sheet [data-act="portStep"][data-d="1"]');await click('.sheet [data-act="sheetClose"]');
+ assert.equal(Number((await pg.locator(tile+' .bq-p').textContent()).match(/\d+/)[0]),p0+1);
+ await click(tile+' .bq-p');await click('.sheet [data-act="portStep"][data-d="-1"]');await click('.sheet [data-act="sheetClose"]');
+ // En låst rätt tas bort genom att hålla in Ta bort i bladet
+ if(!await locked())await hold(sq);assert.equal(await locked(),true);await h.idle(3000);await pg.evaluate(()=>scrollTo(0,0));await h.shot('veckosedel');
+ await click(tile+' .bq-p');assert.equal(await pg.locator('.sheet .dm-t.hold').count(),1);await h.shot('blad-last');
+ await h.hold('.sheet .dm-t.hold');await h.waitFlush();await h.idle(600);
+ assert.equal(await read('D().menu.some(x=>x.recipe==='+JSON.stringify(id)+')'),false);
  await pg.reload();await h.idle(1800);assert.equal(await read('D().menu.some(x=>x.recipe==='+JSON.stringify(id)+')'),false);
- console.log('PASS: inga automatiska Ätit/past; högersvep och håll in bilden låser/låser upp, håll in raden öppnar bladet, lås sparas efter omladdning; vänstersvep visar Ta bort, låst rätt kräver bekräftelse, Avbryt bevarar, olåst borttagning sparas efter omladdning.');
+ console.log('PASS: brickor med tom plats per grupp och budgetring; håll in bilden låser/låser upp och sparas efter omladdning; tryck på bilden öppnar receptet; håll in namnet och tryck på portionerna öppnar bladet; portioner ändras; låst rätt tas bort med håll in och borttagningen sparas.');
 };

@@ -1884,6 +1884,37 @@ html.ny .tp-b.run em{color:var(--accent);text-shadow:none;background:var(--surfa
 .tm-ctl button{width:52px;height:52px;border:0;border-radius:50%;display:grid;place-items:center;background:var(--fill);color:var(--ink);cursor:pointer}
 .tm-ctl button svg{width:22px;height:22px}
 @media (min-width:900px){.tm-dial{width:360px}.tm-go b{font-size:32px}.tm-go span{font-size:17px}.tm-ctl button{width:64px;height:64px}html.ny .tp-egen{width:40px;height:40px}html.ny .tp-egen svg{width:22px;height:22px}}
+/* Veckan som brickor (UI 2.0): rutor som fyller gruppen, portioner på bilden, en ruta per portion i bandet */
+html.ny .bt-g{display:flex;flex-wrap:wrap;gap:10px;padding:12px 12px 14px}
+html.ny .bt{flex:1 1 84px;min-width:0;display:flex;flex-direction:column;gap:6px;border-radius:14px}
+html.ny .bq-w{position:relative;display:block}
+html.ny .bq{position:relative;display:block;width:100%;height:100px;padding:0;border:0;border-radius:14px;overflow:hidden;background:var(--fill);color:inherit;cursor:pointer}
+html.ny .bq .dr-th{width:100%;height:100%;border-radius:0;font-size:42px;background:none}
+html.ny .bq-lk{position:absolute;right:6px;top:6px;width:24px;height:24px;border-radius:8px;background:var(--accent);color:#fff;display:none;place-items:center;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+html.ny .bq-lk svg{width:13px;height:13px}
+html.ny .bq.lk-on .bq-lk{display:grid}
+html.ny .bq-p{position:absolute;left:6px;bottom:6px;padding:3px 8px;border:0;border-radius:8px;background:var(--surface);color:var(--ink);font:inherit;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+html.ny .bq.e{background:none;border:1.5px dashed var(--ink-3);color:var(--ink-3);display:grid;place-items:center}
+html.ny .bq.e svg{width:26px;height:26px}
+html.ny .bn{font-size:13px;line-height:16px;font-weight:600;hyphens:auto;-webkit-hyphens:auto;overflow-wrap:anywhere;padding:0 2px}
+html.ny .bn.ac{color:var(--accent)}
+html.ny .bt-m{display:inline-flex;align-items:center;gap:4px;font-weight:700;font-variant-numeric:tabular-nums;text-transform:none;letter-spacing:0}
+html.ny .bt-m.ok{color:var(--green)}html.ny .bt-m.bad{color:var(--orange)}
+html.ny .bt-m>svg{width:14px;height:14px}
+html.ny .bt-seg{display:inline-flex;gap:2px;margin-left:6px}
+html.ny .bt-seg i{width:8px;height:12px;border-radius:2.5px;background:var(--fill);box-shadow:inset 0 0 0 1px var(--line)}
+html.ny .bt-seg i.f{background:var(--accent);box-shadow:none}html.ny .bt-m.ok .bt-seg i.f{background:var(--green)}
+/* Budgetringen i veckans sammanfattning */
+html.ny .wm-rt{gap:14px}
+html.ny .wm-ring{position:relative;flex:none;width:76px;height:76px}
+html.ny .wm-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+html.ny .wm-ring circle{fill:none;stroke:var(--fill);stroke-width:8}
+html.ny .wm-ring circle.a{stroke:var(--accent);stroke-linecap:round}
+html.ny .wm-ring.over circle.a{stroke:var(--orange)}
+html.ny .wm-top .wm-ring b{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:16px;line-height:17px;letter-spacing:0}
+html.ny .wm-ring b span{font-size:11px;font-weight:500;color:var(--ink-2)}
+html.ny .wm-top .wm-c .wm-kv{font-size:16px;line-height:20px;letter-spacing:0;color:var(--ink)}html.ny .wm-top .wm-c .wm-kv.bad{color:var(--orange)}
+@media (min-width:900px){html.ny .bt-all{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}html.ny .bt-sec+.bt-sec{border-left:.5px solid var(--line)}html.ny .bt-sec>.gh{flex-direction:column;align-items:flex-start;gap:4px}html.ny body[data-view="mat"] .wrap:has(.bt-all){max-width:1240px}html.ny .bt{flex-basis:120px}html.ny .bq{height:140px}html.ny .bq .dr-th{font-size:56px}html.ny .bn{font-size:15px;line-height:19px}html.ny .bq-p{font-size:14px}}
 /* Ingredienser i matlagningsläget: stegets överst, en diskret linje, sedan resten */
 html.ny .ingx.top{color:var(--accent)}
 html.ny .ing-sep{height:0;margin:2px 16px;border-top:1.5px solid color-mix(in srgb,var(--accent) 30%,var(--line))}
@@ -2160,7 +2191,7 @@ html.ny.seg-kapsel .create-options{border-radius:22px}
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=177"></script>
+<script src="app.js?v=178"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
