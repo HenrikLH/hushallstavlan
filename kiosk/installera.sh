@@ -40,6 +40,9 @@ else
   sudo apt-get install -y chromium
   BROWSER=chromium
 fi
+# Mints startskript för Chromium lägger till egna GPU-flaggor (--enable-native-gpu-memory-buffers, Vaapi m.fl.). Med dem
+# fastnade tavlan med en grå sida ("Shared memory region is not valid"), så tavlan startar själva programmet utan dem.
+if [ "$BROWSER" = chromium ] && [ -x /usr/lib/chromium/chromium ]; then BROWSER=/usr/lib/chromium/chromium; fi
 echo "     använder $BROWSER"
 
 echo "2/6  Automatisk inloggning för $ANV"
