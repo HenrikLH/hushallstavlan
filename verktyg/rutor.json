@@ -10,7 +10,7 @@
   "W1":"Vädertoppen","W2":"Vädertoppen med dagskurva","W3":"Kommande timmar","W4":"Dagarsprognos","W5":"Vind","W6":"Känns som","W7":"Nederbörd","W8":"Luftfuktighet","W9":"Sol","W10":"Lufttryck",
   "F1":"Årshjulet","F2":"Månadens födelsedagar under hjulet","F3":"Månader i rutnät","F4":"Nästa födelsedag (tidslinje)","F5":"Året som prickar","F6":"Tidslinjens lista",
   "I1":"Personer","I2":"Utseende","I3":"Mat och städ","I4":"Översikt och väder","I5":"Enheten","I6":"Avancerat",
-  "B1":"Inställningar","B2":"Matpreferenser","B3":"Ny vara","B4":"Ny uppgift","B5":"Ändra uppgift","B6":"Ändra händelse","B7":"Ny syssla","B8":"Ny eller ändra utgift","B9":"Inkomst","B10":"Rättens blad (och efterrättens)","B11":"Färgval","B12":"Ny eller ändra födelsedag","B13":"Kalibrera skärmljuset","B14":"Stående överföring","B15":"Välj protein","B16":"Betyg","B17":"Egen timer","B18":"Nattläge (väggskärmen)","B19":"Önska till nästa vecka"
+  "B1":"Inställningar","B2":"Matpreferenser","B3":"Ny vara","B4":"Ny uppgift","B5":"Ändra uppgift","B6":"Ändra händelse","B7":"Ny syssla","B8":"Ny eller ändra utgift","B9":"Inkomst","B10":"Rättens blad (och efterrättens)","B11":"Färgval","B12":"Ny eller ändra födelsedag","B13":"Kalibrera skärmljuset","B14":"Stående överföring","B15":"Välj protein","B16":"Betyg","B17":"Egen timer","B18":"Nattläge (väggskärmen)","B19":"Önska till nästa vecka","B20":"Uppgiftens blad (håll in)","B21":"Händelsens blad (håll in)","B22":"Sysslans blad (håll in)"
  },
  "borttagna": []
 }

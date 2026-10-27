@@ -129,6 +129,9 @@ html.sb-auto.scrolling,html.sb-auto.scrolling *{scrollbar-color:var(--line) tran
 .back{display:inline-flex;align-items:center;gap:2px;color:var(--accent);font-size:17px;min-height:44px;padding:0 8px 0 4px;margin-left:-8px}
 .back svg{width:13px;height:21px}
 .navbar .back{margin-left:0}
+.navbar.tom{height:var(--sat);margin-bottom:calc(-1 * var(--sat));border-bottom:0}
+.navbar.tom .nb{display:none}
+.navbar.tom~.wrap .pl-pin,.navbar.tom~.wrap .ws-pin{top:var(--sat)}
 
 /* ===== 4. Grupperade listor ===== */
 .sh{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;padding:0 16px 6px 32px;margin-top:22px;font-size:13px;line-height:18px;letter-spacing:-.08px;text-transform:uppercase;color:var(--ink-2);font-weight:400}
@@ -1956,6 +1959,9 @@ html.ny .dm-t.red{background:color-mix(in srgb,var(--red) 10%,var(--surface))}
 html.ny .dm-t.red :is(.dm-ic,b){color:var(--red)}
 html.ny .dm-t .sh-fill{position:absolute;inset:0;transform:scaleX(0);transform-origin:left;background:color-mix(in srgb,var(--red) 18%,transparent)}
 html.ny .dm-t.holding .sh-fill{transform:scaleX(1);transition:transform 1s linear}
+html.ny .dm-g.fyll>.dm-t:last-child:nth-child(odd){grid-column:1/-1;min-height:0}
+.cv-ev.hl-on{position:absolute}
+html.ny .dm-dag>span{display:flex;flex-direction:column;align-items:center;font-size:24px;font-weight:600;line-height:1}html.ny .dm-dag small{font-size:11px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px}
 /* Kalendern: Dag, Vecka och Månad. Block i personens färg, laga och middag i accentfärgen */
 html.ny .cv-seg .segc{margin-top:10px}
 html.ny .cv-sub{font-size:15px;font-weight:500;color:var(--ink-2)}
@@ -2210,7 +2216,7 @@ html.ny.seg-kapsel .create-options{border-radius:22px}
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=182"></script>
+<script src="app.js?v=184"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
