@@ -3305,6 +3305,8 @@ function skyFx(W){const sc=wxScene(W),wet=/^(drizzle|rain|sleet)$/.test(sc.type)
  const N={fair:[1,0,0],partly:[1,2,0],cloudy:[2,3,1],fog:[0,1,2]}[sky].slice();
  if(wet||snow||sc.thunder)N[2]+=Math.ceil(lv/2)+(sc.thunder?1:0);
  if(SOLMOLN){N.forEach((n,i)=>N[i]=Math.max(i?0:Math.min(n,1),n-1));N[2]=0}   // solens eget moln bär vädret, färre moln runt omkring
+ const tak=sky==='cloudy'||sky==='fog'||wet||snow||sc.thunder,MV=lsGet('moln');
+ if(tak&&MV==='a')N.splice(0,3,2,3,1);else if(tak&&MV==='b')N.splice(0,3,3,4,2);else if(tak&&MV==='c')N.splice(0,3,4,6,3);
  const sp=1/(.75+sc.wl*.35),rev=sc.dir<0?' rev':'';
  // former: höga är tunna slöjor, mellersta runda stackmoln, låga breda och mörka i underkanten
  // samma ikonmoln som vid solen: runda tussar på en rundad bas med mjuk toning nedåt, varje moln med egen form och storlek
