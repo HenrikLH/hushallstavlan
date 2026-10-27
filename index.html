@@ -758,7 +758,9 @@ html.ny .chip.lk::before{display:none}
 .wx2 .wx-hl{font-size:15px;line-height:20px;color:var(--ink-2);margin-top:2px}
 .wx2>.arc.w{right:8px;left:20%;top:100px;height:110px;color:var(--ink-2)}
 /* vädervyns himmel: stjärnor och moln i tre höjder (skyFx) */
-.wx2>.skyfx{position:absolute;left:0;right:0;top:0;height:240px;pointer-events:none;overflow:hidden;color:var(--ink-2);-webkit-mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent);mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent)}
+.wx2>.skyfx,.hero>.skyfx{position:absolute;left:0;right:0;top:0;height:240px;pointer-events:none;overflow:hidden;color:var(--ink-2);-webkit-mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent);mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent)}
+.hero.has-sky{position:relative;isolation:isolate}.hero.has-sky>.skyfx{position:absolute;top:64px;height:200px;z-index:-1}.hero.has-sky>.arc{z-index:-1}
+.hero>.skyfx .stjn{top:auto;bottom:8px;right:auto;left:18px}
 .skyfx .st,.skyfx .sk{color:#FFFFFF}
 .skyfx .st{position:absolute;border-radius:50%;background:currentColor;opacity:var(--o);box-shadow:0 0 0 .6px rgba(110,122,150,.45);animation:stTw 3s ease-in-out infinite}
 .skyfx .st.b{box-shadow:0 0 0 .6px rgba(110,122,150,.45),0 0 5px 1px currentColor}
@@ -2189,7 +2191,7 @@ html.ny.seg-kapsel .create-options{border-radius:22px}
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=178"></script>
+<script src="app.js?v=179"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
