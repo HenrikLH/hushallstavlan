@@ -4,14 +4,14 @@ Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs 
 
 ## Börja här
 
-- Hämta senaste main. Drift: **ht-v188 / app.js?v=178** (veckan som brickor, tidsplan, rättens blad, kalender Dag/Vecka/Månad).
+- Hämta senaste main. Drift: **ht-v190 / app.js?v=180** (brickveckan med låsknapp och budgetstapel).
 - [Pages-publicering](https://github.com/HenrikLH/hushallstavlan/actions/runs/40094688899) grön; publik sw/index och appens filinnehåll verifierade. Inga öppna PR:er eller ofärdiga implementationer vid överlämningen.
 - Nästa steg: Henriks nästa konkreta uppgift eller återkoppling från telefon/Surface. Gör inte om redan godkända rättningar.
 - Henrik vill behålla UI 2.0:s tema och gemensamma komponenter. UI 3.0 är frivilligt i utvecklarläget. Bilder före visuella ändringar på main; ”Pusha” är publiceringsgodkännande.
 - Strömningen i ChatGPT har avbrutits flera gånger. Kontrollera gren/PR/main och Pages innan en avbruten publicering återupptas. Begär inte samma godkännande igen.
 
 - **Publicerat 2026-10-26 (Claude, ht-v187, PR #34, ångra-gren version-fore-tidsplan-kalender):** UI 2.0: tidsplan i recept/matlagning (`tidsplan`/`tpHtml`; tryck på stapeln startar/pausar timern `ACT.tpTimer`, `S.timers[].rid/si/p`; hörntimern göms när tidsplanen syns; egen timer med vred `tmrSheet`, `S.sheet='tmr'`, även ovanpå matlagningsläget); stegets ingredienser överst i matlagningsläget (`ingSorted`/`stegQ`); grå markering av aktivt steg. Rättens blad (`dishMenu`, håll in raden; lås = håll in bilden). Kalender Dag/Vecka/Månad under Uppgifter (`S.calVy`, `calDag`/`calVecka`). Test: verktyg/emu/matsedel-gester.js + CI.
-- **Publicerat 2026-10-26 (Claude, ht-v188, ångra-gren version-fore-brickor):** UI 2.0-veckan som brickor (`bt`/`btBand` i `matWeek`, `grpBehov`): rutor fyller gruppen, alltid en tom plats, portioner på bilden (tryck = bladet), ruta per portion i bandet, budgetring (`wm-ring`). Håll in bilden låser, håll in namnet öppnar bladet; svep finns bara i UI 1.0. Bladet följer rätten via `S.dmK` när menyn räknas om. Test: matsedel-gester.js (omskrivet för brickor).
+- **Publicerat 2026-10-26 (Claude, ht-v188, ångra-gren version-fore-brickor):** UI 2.0-veckan som brickor (`bt`/`btBand` i `matWeek`, `grpBehov`): rutor fyller gruppen, alltid en tom plats, portioner på bilden (tryck = bladet), ruta per portion i bandet, budgetstapel (`wm-bar`, ht-v190). Håll in brickan öppnar bladet, tryck på låsknappen `.bq-lk` (färgad när låst) låser, låset går även via bladet; svep finns bara i UI 1.0. Bladet följer rätten via `S.dmK` när menyn räknas om. Test: matsedel-gester.js (omskrivet för brickor).
 - Nytt 2026-10-25: `node verktyg/karta.js` (kodkarta) och `node verktyg/version.js` (merge + versionshöjning); regler i AGENTS.md avsnitt 9.
 
 ## Beteende som ska bevaras
@@ -30,7 +30,7 @@ Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs 
 - verktyg/emu/stad-plus.js: telefon/vägg × ljust/mörkt inkl. UI3; inställningar/omstart/Avbryt/två sparvägar. ui-versioner.js godkänd. Bilder outputs/stad-plus-profil/.
 - verktyg/emu/matsedel-gester.js: torsdag–lördag, telefon/vägg × ljust/mörkt; båda låsstilarna via inställningar/omladdning, hålltryck/svep, låst bekräftelse/Avbryt, sparning efter omladdning. Alla-flikar telefon/vägg godkända på appkoden i #29. Bilder outputs/matsedel-gester/.
 - verktyg/emu/vader-dygn.js: ljust/mörkt på vägg, dygnsgräns inkl. första timmen, scroll/väderlänk; alla-flikar telefon godkända på appkoden i #30. Bilder outputs/vader-dygn/. Testerna använder låtsasdata.
-- Ångra-grenar: version-fore-brickor (ht-v187), version-fore-tidsplan-kalender (ht-v186), version-fore-lyft-overallt (ht-v182), version-fore-lyft-animation (ht-v181), version-fore-fodelsedagsfarger (ht-v179), version-fore-fodelsedagar-20261024 (ht-v178), version-fore-vader-dygn-20261024 (ht-v177), version-fore-matsedel-gester-20261024 (ht-v176), version-fore-stad-plus-20261023 (ht-v175).
+- Ångra-grenar: version-fore-lasknapp (ht-v189), version-fore-brickor (ht-v187), version-fore-tidsplan-kalender (ht-v186), version-fore-lyft-overallt (ht-v182), version-fore-lyft-animation (ht-v181), version-fore-fodelsedagsfarger (ht-v179), version-fore-fodelsedagar-20261024 (ht-v178), version-fore-vader-dygn-20261024 (ht-v177), version-fore-matsedel-gester-20261024 (ht-v176), version-fore-stad-plus-20261023 (ht-v175).
 
 ## Kräver verklig hårdvara
 
