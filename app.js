@@ -3225,8 +3225,8 @@ function starSign(m){const[n,P,L]=STJB[m],f=v=>v.toFixed(0);
 // molnets bas: en rundad rektangel; stora moln får en mindre rundad rektangel under, lite åt höger, så att underkanten blir halvorganisk
 function cloudBase(x0,x1,y0,y1,seed,org){const f=v=>v.toFixed(1),h=y1-y0;
  if(!org)return'<rect x="'+x0+'" y="'+y0+'" width="'+(x1-x0)+'" height="'+h+'" rx="'+(h/2)+'"/>';
- const sp=x1-x0,a=x0+sp*(.4+(seed%7)*.02),w=sp*(.36+(seed%5)*.025),m=h-5,sh=h*.56;
- return'<rect x="'+x0+'" y="'+y0+'" width="'+sp+'" height="'+f(m)+'" rx="'+f(m/2)+'"/><rect x="'+f(a)+'" y="'+f(y1-sh)+'" width="'+f(Math.min(w,x1-a-6))+'" height="'+f(sh)+'" rx="'+f(sh/2)+'"/>'}
+ const sp=x1-x0,a=x0+sp*(.36+(seed%7)*.025),w=sp*(.42+(seed%5)*.03),sh=h*.62;
+ return'<rect x="'+x0+'" y="'+y0+'" width="'+sp+'" height="'+f(h-3)+'" rx="'+f((h-3)/2)+'"/><rect x="'+f(a)+'" y="'+f(y1-sh+.5)+'" width="'+f(Math.min(w,x1-a-2))+'" height="'+f(sh)+'" rx="'+f(sh/2)+'"/>'}
 let SOLMOLN=lsGet('solmoln')==='0'?'':/^[ac]$/.test(lsGet('solmoln')||'')?lsGet('solmoln'):'c';
 function sunCloud(sc,day,D){const wet=/^(drizzle|rain|sleet)$/.test(sc.type),snow=sc.type==='snow',sleet=sc.type==='sleet',lv=sc.lv,f=x=>x.toFixed(1);
  const kind=sc.thunder||wet||snow?'wet':sc.sky==='cloudy'?'cloudy':sc.sky==='partly'?'partly':sc.sky==='fair'?'fair':'';if(!kind)return'';
