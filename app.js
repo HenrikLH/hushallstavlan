@@ -668,7 +668,7 @@ function doRender(){applyPersonColors();applyAccent();
  m.innerHTML=banner+page;addLayout(m);
  {const w=m.querySelector('.wk-sw');if(w&&S.wkX){w.scrollLeft=S.wkX;wkMonth(w)}}
  {const w=m.querySelector('.wxC-sc');if(w)w.scrollLeft=S.wxX!=null?S.wxX:WXC_NP*WXC_SW}
- placeSky();skyFit();fitBoard();
+ placeSky();skyFit();fitBoard();loopSync();
  watchTitle();plPin();wsPin();vvFix();
  A.after(m);
 }
@@ -3265,6 +3265,8 @@ function sunRays(sz){return'<svg class="sb-rays" viewBox="-24 -24 48 48" width="
 /* Vädervyns himmel: stjärnor och moln i tre höjder. Höga slöjmoln glider långsamt och skimrar, stackmoln i mitten guppar och andas,
    låga regnmoln går fortast och rullar. Varje moln har egen form, fart och takt; alla driver med vinden. */
 // polen placeras där stjärnbildens cirkel inte når månen, så att månen aldrig täcker den
+// när vyn ritas om (var 30:e sekund) skapas himlen på nytt; alla ändlösa animationer räknas från sidans start, så att moln, regn och löv fortsätter där de var i stället för att hoppa om
+function loopSync(){try{document.getAnimations().forEach(a=>{if(a.startTime!==0&&a.playState==='running'&&a.effect&&a.effect.getTiming().iterations===Infinity)a.startTime=0})}catch(e){}}
 function skyFit(){document.querySelectorAll('.wx2>.skyfx,.hero>.skyfx,.gs.wb>.skyfx').forEach(skyFit1)}
 // molnen tonas bort bakom temperaturen, klockan och texterna så att de alltid går att läsa
 function skyHoles(sx,L){const cl=sx.querySelector('.cls');if(!cl)return;const P=6,m=[];
@@ -3292,7 +3294,7 @@ function skyFx(W){const sc=wxScene(W),wet=/^(drizzle|rain|sleet)$/.test(sc.type)
  if(sc.dark&&!covered){const R=420,n=Math.round((sc.sky==='partly'?16:sc.phase==='dusk'?14:46)*8.5),P=600,m=new Date().getMonth();let st='';
   for(let k=1;k<=n;k++){const a=rnd(k)*Math.PI*2,r=R*Math.sqrt(rnd(k+5000)),b=k<=24,z=b?3:1.3+rnd(k+900)*1.5,o=b?.95:.35+rnd(k+1300)*.55,tw=b||k%3===0,d=2+rnd(k+1700)*5;
    st+='<i class="st'+(b?' b':'')+(tw?'':' fast')+'" style="left:'+f(Math.cos(a)*r)+'px;top:'+f(Math.sin(a)*r)+'px;width:'+f(z)+'px;height:'+f(z)+'px;--o:'+o.toFixed(2)+(tw?';animation-duration:'+f(d)+'s;animation-delay:-'+f(rnd(k+2100)*d)+'s':'')+'"></i>'}
-  s+='<div class="pole"><div class="rot" style="animation-duration:'+P+'s;animation-delay:-'+f(Date.now()/1e3%P)+'s">'+st+'<div class="cst">'+starSign(m)+'</div></div></div>';
+  s+='<div class="pole"><div class="rot" style="animation-duration:'+P+'s;animation-delay:-'+f((performance.timeOrigin||Date.now()-performance.now())/1e3%P)+'s">'+st+'<div class="cst">'+starSign(m)+'</div></div></div>';
   if(sc.sky!=='partly'&&sc.phase==='night')s+='<i class="sk"></i><i class="sk d2"></i>';
   s+='<span class="stjn">✦ '+STJB[m][0]+'</span>'}
  // molnens ton följer nederbörden och ljuset, som molnen i bilden
