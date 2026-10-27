@@ -2405,7 +2405,7 @@ function overlayKeepScroll(){const o=document.getElementById('overlay'),k=o.data
  const nb=o.querySelector('.sheet-body');if(y&&k&&o.dataset.k===k&&nb&&nb!==b)nb.scrollTop=y}
 function renderOverlay(){
  const o=document.getElementById('overlay');
- const k=S.cook?'cook':S.sheet==='settings'?'settings':S.sheet==='farg'?'farg':S.sheet==='vagg'?'vagg':S.sheet==='ljuskal'?'ljuskal':S.sheet==='rate'?'rate':S.sheet==='income'?'income':S.sheet==='cost'?'cost':S.sheet==='ov'?'ov':S.sheet==='prefs'?'prefs':S.sheet==='swap'?'swap':S.sheet==='prot'?'prot':S.sheet==='wish'?'wish':S.sheet==='shopMore'?'shopMore':S.sheet==='dess'?'dess':S.sheet==='slot'?'slot':S.sheet==='delLas'?'delLas':S.sheet==='dish'?'dish':S.sheet==='tmr'?'tmr':S.rcpSheet?'rcpSheet':S.sheet==='cleanAdd'?'cleanAdd':S.sheet==='fodAdd'?'fodAdd':S.sheet==='taskMenu'?'taskMenu':S.sheet==='evMenu'?'evMenu':S.sheet==='cleanMenu'?'cleanMenu':S.sheet==='taskEdit'?'taskEdit':S.sheet==='evEdit'?'evEdit':S.shopAdd?'shop':S.taskAdd?'task':'';
+ const k=S.cook?'cook':S.sheet==='settings'?'settings':S.sheet==='farg'?'farg':S.sheet==='vagg'?'vagg':S.sheet==='ljuskal'?'ljuskal':S.sheet==='rate'?'rate':S.sheet==='income'?'income':S.sheet==='cost'?'cost':S.sheet==='ov'?'ov':S.sheet==='prefs'?'prefs':S.sheet==='swap'?'swap':S.sheet==='prot'?'prot':S.sheet==='wish'?'wish':S.sheet==='shopMore'?'shopMore':S.sheet==='dess'?'dess':S.sheet==='slot'?'slot':S.sheet==='delLas'?'delLas':S.sheet==='dish'?'dish':S.sheet==='tmr'?'tmr':S.rcpSheet?'rcpSheet':S.sheet==='cleanAdd'?'cleanAdd':S.sheet==='fodAdd'?'fodAdd':S.sheet==='taskMenu'?'taskMenu':S.sheet==='ekoMenu'?'ekoMenu':S.sheet==='evMenu'?'evMenu':S.sheet==='cleanMenu'?'cleanMenu':S.sheet==='taskEdit'?'taskEdit':S.sheet==='evEdit'?'evEdit':S.shopAdd?'shop':S.taskAdd?'task':'';
  const prev=o.dataset.k||'';
  // Rita inte om ett öppet blad medan någon skriver i det
  if(k&&k!=='cook'&&k===prev&&busyTyping()&&o.contains(document.activeElement))return;
@@ -2605,7 +2605,7 @@ function renderOverlay(){
    '<div class="foot">En uppgift som upprepas flyttas till nästa gång när den bockas av. Utan datum börjar den i dag.</div>';
   o.innerHTML=sheetHtml('task','Ny uppgift','<button class="tb strong">Lägg till</button>',body,enter);return}
  // Håll in en uppgift, händelse eller syssla: samma sorts blad som Rätten i veckosedeln
- if(k==='taskMenu'||k==='evMenu'||k==='cleanMenu'){const now=today(),dot='<span class="dot" aria-hidden="true">·</span>',gone=()=>{closeSheets();o.dataset.k='';o.innerHTML=''};
+ if(k==='taskMenu'||k==='evMenu'||k==='cleanMenu'||k==='ekoMenu'){const now=today(),dot='<span class="dot" aria-hidden="true">·</span>',gone=()=>{closeSheets();o.dataset.k='';o.innerHTML=''};
   const t=(ic,ti,sub,at,cls)=>'<button type="button" class="dm-t'+(cls||'')+'" '+at+'><span class="dm-ic">'+ic+'</span><b>'+ti+'</b><span class="meta">'+sub+'</span></button>',go=(a,id,x)=>'data-act="sheetGo" data-a="'+a+'" data-id="'+esc(String(id))+'"'+(x||'');
   const hd=(em,tit,meta,c)=>'<div class="dm-hd"><span class="dr-th'+(c||'')+'"><span>'+em+'</span></span><div class="grow"><div class="title">'+tit+'</div>'+(meta.length?'<div class="meta">'+meta.join(dot)+'</div>':'')+'</div></div>';
   let ti='',body='';
@@ -2619,6 +2619,13 @@ function renderOverlay(){
    body=hd('<small>'+esc(MON[Number(e.date.slice(5,7))-1].slice(0,3))+'</small>'+Number(e.date.slice(8,10)),evTitle(e),[esc(e.date===now?'Idag':cap(dateShort(e.date))),esc(e.time||'Heldag'),evWho(e)||'',cal?'Google Kalender':''].filter(Boolean),' dm-dag')+
     '<div class="dm-g fyll">'+[t(I.pencil,'Ändra','Namn, dag och tid',go('evEdit',i)),t(I.clock,'Visa dagen','Timme för timme',go('calDayVy',e.date)),t(I.plus,'Ny uppgift','Samma dag',go('calAddTask',e.date)),
      t(I.trash,'Ta bort',cal?'Även i Google Kalender':'Försvinner från tavlan','data-act="evDelAsk"',' red')].join('')+'</div>'+(S.confirm==='delEv'?'<div style="height:16px"></div>'+group(evDelQ(e)):'')}
+  // Fast utgift: Ändra, stående överföring, ny utgift i samma lista och Ta bort (håll in)
+  if(k==='ekoMenu'){const L=S.em&&S.em.list,x=L&&ekoList(L).find(y=>y.id===S.em.id);if(!x)return gone();const ov=ovState(x),li=' data-list="'+esc(L)+'"';ti='Fast utgift';
+   body=hd('🧾',esc(x.name),[kr(perMonth(x))+'/mån',x.period&&x.period!=='månad'?kr(x.amount)+'/'+esc(x.period):'',x.pay?esc(x.pay):'',x.day?esc(dayTxt(x.day)):'',esc(ovFrom(L))].filter(Boolean))+
+    '<div class="dm-g fyll">'+[t(I.pencil,'Ändra','Belopp, dag och konto',go('ekoCost',x.id,li)),
+     ov==='ok'?t(I.tick,'Överföringen','Inlagd, visa detaljer',go('ovShow',x.id,li)):t(I.tick,ov==='andrad'?'Är ändrad':'Är inlagd',ov==='andrad'?'Bekräfta ändrad överföring':'Bekräfta stående överföring',go('ovDone',x.id,li)),
+     t(I.plus,'Ny utgift','I samma lista',go('ekoCost','',li)),
+     '<button type="button" class="dm-t red hold" data-hold="ekoDelHold" data-id="'+esc(x.id)+'"><i class="sh-fill"></i><span class="dm-ic">'+I.trash+'</span><b>Ta bort</b><span class="meta">Håll in för att ta bort</span></button>'].join('')+'</div>'}
   if(k==='cleanMenu'){const x=D().clean.find(y=>y.id===S.cm);if(!x)return gone();const d=doneToday(x),pl=x.plannedFor===now;ti='Syssla';
    body=hd('🧹',esc(x.title),[esc(x.room),x.lastDone?'senast '+esc(dateShort(x.lastDone)):'inte gjort än',d&&x.doneBy?'klart av '+esc(personLabel(x.doneBy)):''].filter(Boolean))+
     group(cleanSels(x).map((s,j)=>fieldCell(['Hur ofta','Tid','Vem'][j],s)).join(''))+
@@ -3458,7 +3465,7 @@ const ovState=c=>!c.ov?'saknas':(Number(c.ov.a)!==Number(c.amount)||(c.ov.p||'m�
 const ovOpen=l=>ekoList(l).filter(c=>ovState(c)!=='ok');
 const ovEvery={'månad':'Varje månad','kvartal':'Var tredje månad','år':'En gång om året'};
 function costRow(c,list,split){const pm=perMonth(c),meta=[c.pay,dayTxt(c.day),c.note].filter(Boolean).join(' · '),ov=ovState(c);
- return'<button class="cell link'+(ov?' ov-row':'')+'" data-act="ekoCost" data-id="'+esc(c.id)+'" data-list="'+esc(list)+'">'+
+ return'<button class="cell link'+(ov?' ov-row':'')+'" data-act="ekoCost" data-id="'+esc(c.id)+'" data-list="'+esc(list)+'"'+holdAt('ekoMenu')+'>'+
   // ett tryck på utropstecknet bekräftar att överföringen är inlagd
   (ov==='ok'?'<span class="ovs ok" aria-label="Stående överföring inlagd">'+I.tick+'</span>':'<span class="ovs tap '+ov+'" data-act="ovDone" data-id="'+esc(c.id)+'" data-list="'+esc(list)+'" role="button" tabindex="0" aria-label="'+(ov==='andrad'?'Bekräfta att överföringen är ändrad':'Bekräfta att stående överföring är inlagd')+'">!</span>')+
   '<div class="grow"><div class="title">'+esc(c.name)+'</div>'+
@@ -3917,6 +3924,9 @@ const ACT={
  // Håll in-bladen: tryck på en ruta stänger bladet och gör det som står
  taskMenu(id){const x=D().tasks.find(t=>t.id===id);if(!x)return;S.edit=Object.assign({},x);S.confirm=null;S.sheet='taskMenu';render()},
  evMenu(id){const e=D().events[Number(id)];if(!e)return;if(e.source==='kalender'&&!e.id){ACT.evEdit(id);return}S.edit=Object.assign({},e);S.confirm=null;S.sheet='evMenu';render()},
+ // Raden bär redan utgiftens id; listan letas upp (gemensam eller en persons egna)
+ ekoMenu(id){const list=['shared'].concat(people()).find(l=>ekoList(l).some(x=>x.id===id));if(!list)return;S.em={list,id};S.confirm=null;S.sheet='ekoMenu';render()},
+ ekoDelHold(id){const e=S.em;if(!e||e.id!==id)return;S.ekoEdit={list:e.list,id};ACT.ekoDel()},
  cleanMenu(id){if(!D().clean.some(x=>x.id===id))return;S.cm=id;S.sheet='cleanMenu';render()},
  sheetGo(id,el){const a=el.dataset.a;closeSheets();S.confirm=null;render();ACT[a]&&ACT[a](id,el)},
  taskMove(id,el){const v=addDays(today(),Number(el.dataset.d)||0);A.user=Date.now();mutate('tasks',id,{due:v});apiPost({action:'taskEdit',id,fields:{due:v}});toast(v===today()?'Flyttad till idag':'Flyttad till i morgon')},
@@ -3967,7 +3977,7 @@ const ACT={
   el.classList.add('holding');h={el,x:e.clientX,y:e.clientY,t:setTimeout(()=>{const a=el.dataset.hold;stop();fired=Date.now();try{navigator.vibrate&&navigator.vibrate(15)}catch(x){}ACT[a]&&ACT[a](el.dataset.id)},T)}});
  document.addEventListener('pointermove',e=>{if(h&&Math.hypot(e.clientX-h.x,e.clientY-h.y)>12)stop()});
  ['pointerup','pointercancel','scroll'].forEach(k=>document.addEventListener(k,stop,true));
- document.addEventListener('click',e=>{const el=e.target.closest('[data-hold]');if(el&&Date.now()-fired>800)toast('Håll in knappen för att '+({shopEmptyYes:'tömma listan',weekDelYes:'bekräfta',dishDelHold:'ta bort den låsta rätten',shopImportYes:'uppdatera varorna'}[el.dataset.hold]||'bekräfta'))});
+ document.addEventListener('click',e=>{const el=e.target.closest('[data-hold]');if(el&&Date.now()-fired>800)toast('Håll in knappen för att '+({shopEmptyYes:'tömma listan',weekDelYes:'bekräfta',dishDelHold:'ta bort den låsta rätten',ekoDelHold:'ta bort utgiften',shopImportYes:'uppdatera varorna'}[el.dataset.hold]||'bekräfta'))});
  document.addEventListener('contextmenu',e=>{if(e.target.closest('[data-hold]'))e.preventDefault()})})();
 /* Håll in = lyft: det man håller i växer sakta (4 % på 0,8 s) med en mjuk skugga och åtgärden körs när det nått fram.
    Släpper eller flyttar man fingret glider det tillbaka. hlOn/hlOff används av alla håll-in-gester med lyft (ändra, lås, ordna rutor, klockan) */
