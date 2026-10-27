@@ -3272,6 +3272,17 @@ function sunRays(sz){return'<svg class="sb-rays" viewBox="-24 -24 48 48" width="
 // polen placeras där stjärnbildens cirkel inte når månen, så att månen aldrig täcker den
 // när vyn ritas om (var 30:e sekund) skapas himlen på nytt; alla ändlösa animationer räknas från sidans start, så att moln, regn och löv fortsätter där de var i stället för att hoppa om
 function loopSync(){try{document.getAnimations().forEach(a=>{if(a.startTime!==0&&a.playState==='running'&&a.effect&&a.effect.getTiming().iterations===Infinity)a.startTime=0})}catch(e){}}
+/* Gemensam skärm (väggläge, eller datorn med ljustjänsten): de ändlösa animationerna (löv, hundar, moln, stjärnor) ritas
+   20 gånger i sekunden i stället för 60, så att datorn inte arbetar hårt dygnet runt. När tavlan vilar (nattläge, eller
+   mörkt rum och ingen har rört den på två minuter) står de still. Tiden följer samma klocka som loopSync (startTime=0),
+   så rörelserna fortsätter där de skulle ha varit. Övergångar och klockans vändning går som vanligt */
+function fpsTick(){try{const on=S.wall||CAM.src==='als',n=Date.now();
+ if(!on){if(fpsTick.l){document.getAnimations().forEach(a=>{if(a.playState==='paused')a.play()});fpsTick.l=null}return}
+ // listan hämtas en gång i sekunden (vyn ritas om och nya animationer startar); varje bild ändrar bara tiden
+ if(!fpsTick.l||n-fpsTick.at>1000){fpsTick.at=n;fpsTick.l=document.getAnimations().filter(a=>a.effect&&a.effect.getTiming().iterations===Infinity);fpsTick.l.forEach(a=>{if(a.playState==='running')a.pause()});
+  fpsTick.vila=nightOn()||CAM.dark&&n-(A.touch||0)>120000}
+ if(fpsTick.vila)return;const t=document.timeline.currentTime;fpsTick.l.forEach(a=>{a.currentTime=t})}catch(e){}}
+setInterval(fpsTick,50);
 function skyFit(){document.querySelectorAll('.wx2>.skyfx,.hero>.skyfx,.gs.wb>.skyfx').forEach(skyFit1)}
 // molnen tonas bort bakom temperaturen, klockan och texterna så att de alltid går att läsa
 function skyHoles(sx,L){const cl=sx.querySelector('.cls');if(!cl)return;const P=6,m=[];
