@@ -3221,6 +3221,14 @@ function starSign(m){const[n,P,L]=STJB[m],f=v=>v.toFixed(0);
  return'<svg class="stjb" viewBox="-6 -6 112 112" aria-label="Månadens stjärnbild: '+n+'">'+L.map(([a,b])=>'<line x1="'+P[a][0]+'" y1="'+P[a][1]+'" x2="'+P[b][0]+'" y2="'+P[b][1]+'"/>').join('')+
   P.map(([x,y],i)=>'<circle cx="'+x+'" cy="'+y+'" r="'+(i%3?2.6:3.4)+'" style="animation-delay:-'+f(i*.7)+'s"/>').join('')+'</svg>'}
 // solen eller månen med ett eget moln som följer med över himlen, som en vädersymbol (förslag a/b/c, ls ht.solmoln)
+// molnets bas: rundad och platt, på stora moln med små bulor och ett svagt streck i underkanten så att den inte ser linjerad ut
+function cloudBase(x0,x1,y0,y1,seed,org,c){const f=v=>v.toFixed(1),rn=k=>{const x=Math.sin((seed+k)*78.233+4.1)*43758.5453;return x-Math.floor(x)};
+ if(!org)return'<rect x="'+x0+'" y="'+y0+'" width="'+(x1-x0)+'" height="'+(y1-y0)+'" rx="'+((y1-y0)/2)+'"/>';
+ const n=Math.max(2,Math.round((x1-x0)/24));let b='<rect x="'+x0+'" y="'+y0+'" width="'+(x1-x0)+'" height="'+(y1-y0-3)+'" rx="'+((y1-y0-3)/2)+'"/>';
+ for(let i=0;i<n;i++){const t=(i+.5)/n,end=Math.min(t,1-t)*2,r=6+end*3+rn(i)*2.5,x=x0+9+t*(x1-x0-18)+(rn(i+20)-.5)*5;b+='<ellipse cx="'+f(x)+'" cy="'+f(y1-r*.55+rn(i+40)*1.2)+'" rx="'+f(r*1.5)+'" ry="'+f(r*.55)+'"/>'}
+ return b}
+function cloudStreak(x0,x1,y,c,seed){const a=x0+(x1-x0)*(.18+(seed%5)*.03),e=x0+(x1-x0)*(.55+(seed%3)*.05);
+ return'<path d="M'+a.toFixed(1)+' '+y+' Q'+((a+e)/2).toFixed(1)+' '+(y+1.8)+' '+e.toFixed(1)+' '+(y-.4)+'" fill="none" stroke="'+shadeHex(c,.78)+'" stroke-width="1.1" stroke-linecap="round" opacity=".35"/>'}
 let SOLMOLN=lsGet('solmoln')==='0'?'':/^[ac]$/.test(lsGet('solmoln')||'')?lsGet('solmoln'):'c';
 function sunCloud(sc,day,D){const wet=/^(drizzle|rain|sleet)$/.test(sc.type),snow=sc.type==='snow',sleet=sc.type==='sleet',lv=sc.lv,f=x=>x.toFixed(1);
  const kind=sc.thunder||wet||snow?'wet':sc.sky==='cloudy'?'cloudy':sc.sky==='partly'?'partly':sc.sky==='fair'?'fair':'';if(!kind)return'';
@@ -3230,8 +3238,8 @@ function sunCloud(sc,day,D){const wet=/^(drizzle|rain|sleet)$/.test(sc.type),sno
  // molnet breder ut sig ju mulnare det är; det är lite genomskinligt så att solen alltid syns igenom
  const W=D*(kind==='fair'?1.1:kind==='partly'?1.65:kind==='cloudy'?3:2.6+lv*.2),ox=D*({fair:.55,partly:.38,cloudy:.05,wet:.1}[kind]),oy=D*({fair:.3,partly:.32,cloudy:.16,wet:.18}[kind]);
  const P=wide?[[18,26,10],[32,17,13],[50,13,15],[68,18,12],[82,26,9]]:[[20,25,10],[34,17,14],[48,25,10]];
- const svg='<svg class="sb-c" viewBox="0 0 '+VW+' 40" width="'+f(W)+'" height="'+f(W*40/VW)+'" style="opacity:'+(kind==='wet'?.88:kind==='cloudy'?.8:.85)+'"><defs><linearGradient id="'+g+'" x1="0" y1="0" x2="0" y2="1"><stop offset=".3" stop-color="'+c+'"/><stop offset="1" stop-color="'+lo+'"/></linearGradient></defs>'+
-  '<g fill="url(#'+g+')">'+P.map(([x,y,r])=>'<circle cx="'+x+'" cy="'+y+'" r="'+r+'"/>').join('')+'<rect x="'+(wide?8:10)+'" y="24" width="'+(wide?84:48)+'" height="14" rx="7"/></g></svg>';
+ const svg='<svg class="sb-c" viewBox="0 -8 '+VW+' 50" width="'+f(W)+'" height="'+f(W*50/VW)+'" style="opacity:'+(kind==='wet'?.88:kind==='cloudy'?.8:.85)+'"><defs><linearGradient id="'+g+'" x1="0" y1="0" x2="0" y2="1"><stop offset=".3" stop-color="'+c+'"/><stop offset="1" stop-color="'+lo+'"/></linearGradient></defs>'+
+  '<g fill="url(#'+g+')">'+P.map(([x,y,r])=>'<circle cx="'+x+'" cy="'+y+'" r="'+r+'"/>').join('')+cloudBase(wide?8:10,wide?92:58,24,38,7,wide)+'</g>'+(wide?cloudStreak(8,92,33,c,7):'')+'</svg>';
  let r='';
  if(kind==='wet'){
   // nederbörden faller från molnet: duggregn tunt och långsamt, regn tätare och snabbare med styrkan, snö singlar och vajar, åska blixtrar
@@ -3288,9 +3296,9 @@ function skyFx(W){const sc=wxScene(W),wet=/^(drizzle|rain|sleet)$/.test(sc.type)
  // samma ikonmoln som vid solen: runda tussar på en rundad bas med mjuk toning nedåt, varje moln med egen form och storlek
  const shape=(t,k,c,w)=>{const np=t==='hi'?2+Math.round(rnd(k)):t==='mid'?3+Math.round(rnd(k)*2):4+Math.round(rnd(k)*2),VW=np*16+20,B=t==='hi'?30:28,P=[],g='cg'+(++FIG_N);
   for(let j=0;j<np;j++){const mid=1-Math.abs((j+.5)/np-.5)*2,r=(t==='hi'?6:8)+mid*(t==='hi'?5:7)+rnd(k+j*3)*4,x=12+(j+.5)*16+(rnd(k+j*3+1)-.5)*4;P.push('<circle cx="'+f(x)+'" cy="'+f(B-r*.62)+'" r="'+f(r)+'"/>')}
-  const h=w*40/VW;
-  return{svg:'<svg viewBox="0 0 '+VW+' 40" width="'+f(w)+'" height="'+f(h)+'"><defs><linearGradient id="'+g+'" x1="0" y1="0" x2="0" y2="1"><stop offset=".3" stop-color="'+c+'"/><stop offset="1" stop-color="'+shadeHex(c,.9)+'"/></linearGradient></defs><g fill="url(#'+g+')">'+P.join('')+
-   '<rect x="8" y="'+(B-6)+'" width="'+(VW-16)+'" height="'+(t==='hi'?10:14)+'" rx="'+(t==='hi'?5:7)+'"/></g></svg>',h}};
+  const h=w*50/VW,org=t!=='hi'&&np>=4;
+  return{svg:'<svg viewBox="0 -8 '+VW+' 50" width="'+f(w)+'" height="'+f(h)+'"><defs><linearGradient id="'+g+'" x1="0" y1="0" x2="0" y2="1"><stop offset=".3" stop-color="'+c+'"/><stop offset="1" stop-color="'+shadeHex(c,.9)+'"/></linearGradient></defs><g fill="url(#'+g+')">'+P.join('')+
+   cloudBase(8,VW-8,B-6,B+(t==='hi'?4:8),k,org)+'</g>'+(org?cloudStreak(8,VW-8,B+3,c,k):'')+'</svg>',h}};
  const band={hi:[3,12],mid:[10,24],lo:[20,32]},dur={hi:220,mid:100,lo:52};
  let k=0,cs='';
  [['hi',N[0],lite],['mid',N[1],mid],['lo',N[2],dark]].forEach(([t,n,c])=>{for(let j=0;j<n;j++){k+=7;
