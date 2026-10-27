@@ -387,8 +387,9 @@ function blQueue(body){BL.q=body;if(BL.busy||BL.t)return;const w=BL.last+BL.gap-
  blSend(body).then(ok=>{BL.busy=false;if(!ok){BL.q=null;ljFilm(BL.fb);return}if(BL.q)blQueue(BL.q)})}
 /* Puls till vakthunden i ljustjänsten (kiosk/ljussensor.py): väggtavlan säger var 20:e sekund att den just ritat en bild.
    Fastnar Chromium med en grå sida slutar pulsen och tjänsten startar om tavlan. Skickas från requestAnimationFrame,
-   så att den bara går iväg när sidan verkligen ritas. Äldre tjänst svarar 404, det gör inget */
-setInterval(()=>{if(S.wall)requestAnimationFrame(()=>{fetch('http://127.0.0.1:8777/puls',{method:'POST'}).catch(()=>{})})},20000);
+   så att den bara går iväg när sidan verkligen ritas. Skickas i väggläge och på datorer där ljustjänsten svarar (tavlan
+   kan stå på Översikt utan väggläge). Äldre tjänst svarar 404, det gör inget */
+setInterval(()=>{if(S.wall||CAM.src==='als'||BL.ok)requestAnimationFrame(()=>{fetch('http://127.0.0.1:8777/puls',{method:'POST'}).catch(()=>{})})},20000);
 function ljOut(b){// b=null: vanlig ljusstyrka
  const useBL=BL.ok!==false||Date.now()>BL.retry;
  BL.fb=b;
