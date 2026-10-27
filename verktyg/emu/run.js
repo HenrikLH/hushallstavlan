@@ -6,7 +6,7 @@ const APP=process.env.APP||path.join(__dirname,'../..');
 const OUT=process.env.OUT||path.join(__dirname,'shots');fs.mkdirSync(OUT,{recursive:true});
 const gas=require('./gas.js');
 function wx(){const ts=[];const t0=Date.UTC(2026,9,18,0);for(let h=0;h<216;h++){const t=new Date(t0+h*3600e3);const hr=(h+2)%24;
- ts.push({time:t.toISOString().replace('.000',''),data:{instant:{details:{air_temperature:+(process.env.WXT||7),wind_speed:3.4,wind_from_direction:230,relative_humidity:78,air_pressure_at_sea_level:1012}},next_1_hours:{summary:{symbol_code:process.env.WXSYM||'cloudy'},details:{precipitation_amount:+(process.env.WXPR||0)}},next_6_hours:{summary:{symbol_code:process.env.WXSYM||'cloudy'},details:{precipitation_amount:0}}}})}
+ ts.push({time:t.toISOString().replace('.000',''),data:{instant:{details:{air_temperature:+(process.env.WXT||7),wind_speed:3.4,wind_from_direction:230,relative_humidity:78,air_pressure_at_sea_level:1012,...(process.env.WXCF?{cloud_area_fraction:+process.env.WXCF}:{})}},next_1_hours:{summary:{symbol_code:process.env.WXSYM||'cloudy'},details:{precipitation_amount:+(process.env.WXPR||0)}},next_6_hours:{summary:{symbol_code:process.env.WXSYM||'cloudy'},details:{precipitation_amount:0}}}})}
  return JSON.stringify({properties:{timeseries:ts}})}
 const WX=wx();
 const srv=http.createServer((q,r)=>{let p=decodeURIComponent(q.url.split('?')[0]);if(p==='/')p='/index.html';const f=path.join(APP,p);
