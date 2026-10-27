@@ -129,6 +129,9 @@ html.sb-auto.scrolling,html.sb-auto.scrolling *{scrollbar-color:var(--line) tran
 .back{display:inline-flex;align-items:center;gap:2px;color:var(--accent);font-size:17px;min-height:44px;padding:0 8px 0 4px;margin-left:-8px}
 .back svg{width:13px;height:21px}
 .navbar .back{margin-left:0}
+.navbar.tom{height:var(--sat);margin-bottom:calc(-1 * var(--sat));border-bottom:0}
+.navbar.tom .nb{display:none}
+.navbar.tom~.wrap .pl-pin,.navbar.tom~.wrap .ws-pin{top:var(--sat)}
 
 /* ===== 4. Grupperade listor ===== */
 .sh{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;padding:0 16px 6px 32px;margin-top:22px;font-size:13px;line-height:18px;letter-spacing:-.08px;text-transform:uppercase;color:var(--ink-2);font-weight:400}
@@ -2196,7 +2199,7 @@ html.ny.seg-kapsel .create-options{border-radius:22px}
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=183"></script>
+<script src="app.js?v=184"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
