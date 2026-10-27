@@ -1943,6 +1943,9 @@ html.ny .wm-bar{display:block;height:10px;border-radius:5px;background:var(--fil
 html.ny .wm-pp{font-size:13px;color:var(--ink-2)}
 html.ny .wm-kv{font-weight:600;color:var(--ink)}html.ny .wm-kv.bad{color:var(--orange)}
 @media (min-width:900px){html.ny .bt-all{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}html.ny .bt-sec+.bt-sec{border-left:.5px solid var(--line)}html.ny .bt-sec>.gh{flex-direction:column;align-items:flex-start;gap:4px}html.ny body[data-view="mat"] .wrap:has(.bt-all){max-width:1240px}html.ny .bt{flex-basis:120px}html.ny .bq{height:140px}html.ny .bq .dr-th{font-size:56px}html.ny .bn{font-size:15px;line-height:19px}html.ny .bq-p{font-size:14px}}
+/* Håll in ska öppna menyer, inte markera text att kopiera. Textfält går fortfarande att markera i */
+html.ny body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+html.ny :is(input,textarea,select,[contenteditable]){-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
 /* Ingredienser i matlagningsläget: stegets överst, en diskret linje, sedan resten */
 html.ny .ingx.top{color:var(--accent)}
 html.ny .ing-sep{height:0;margin:2px 16px;border-top:1.5px solid color-mix(in srgb,var(--accent) 30%,var(--line))}
@@ -2222,7 +2225,7 @@ html.ny.seg-kapsel .create-options{border-radius:22px}
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=184"></script>
+<script src="app.js?v=185"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
