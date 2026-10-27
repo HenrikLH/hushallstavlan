@@ -3207,8 +3207,9 @@ function arcHtml(W,v){const P=WX_POS(),sc=wxScene(W),now=new Date(),k=SKY(now,P.
  let s='<svg viewBox="0 0 100 100" preserveAspectRatio="none"><defs>'+fade('t','currentColor')+fade('d',day?'#F5B940':'#9AA8D6')+'</defs><path class="trk" stroke="url(#'+gid+'t)" d="M0 100 A50 '+ry+' 0 0 1 100 100"/>'+
   '<path class="done" stroke="url(#'+gid+'d)" d="M0 100 A50 '+ry+' 0 0 1 '+x.toFixed(2)+' '+y.toFixed(2)+'"/></svg>';
  if(!day&&!covered&&v!=='w'&&!(v==='b'&&heroSky()))s+=[[18,40],[34,14],[62,8],[80,30],[50,46],[90,60]].slice(0,sc.sky==='partly'?3:6).map(([a,b],i)=>'<i class="arc-st tw'+(i%3?' d'+(i%3+1):'')+'" style="left:'+a+'%;top:'+b+'%"></i>').join('');
- const z=v==='w'?72:v==='b'?50:34;
- s+='<div class="sky-b '+(day?'sky-sun':'sky-moon')+'" style="left:'+x.toFixed(1)+'%;top:'+y.toFixed(1)+'%;opacity:'+(covered?.4:1)+'">'+(day?sunSvg(k.sun.alt<8,z*1.5):moonSvg(k.moon.frac,k.moon.waxing,z))+'</div>';
+ const z=v==='w'?72:v==='b'?(SOLMOLN?62:50):v==='a'&&wallBoardOn()?58:34;
+ const sm=SOLMOLN&&(v==='w'||v==='b'||v==='a'&&wallBoardOn())?sunCloud(sc,day,day?z*1.5*17/48:z*20/48):'';
+ s+='<div class="sky-b '+(day?'sky-sun':'sky-moon')+(sm?' sm-'+SOLMOLN:'')+'" style="left:'+x.toFixed(1)+'%;top:'+y.toFixed(1)+'%;opacity:'+(covered&&!sm?.4:1)+'">'+(sm&&day&&SOLMOLN==='a'&&!covered?sunRays(z*1.5):'')+'<div class="sb-body" style="opacity:'+(sm&&covered?.6:1)+'">'+(day?sunSvg(k.sun.alt<8,z*1.5):moonSvg(k.moon.frac,k.moon.waxing,z))+'</div>'+sm+'</div>';
  return'<div class="arc '+v+'" aria-hidden="true">'+s+'</div>'}
 // månadens stjärnbild: den som syns bra på kvällshimlen från Sverige den månaden. Punkter i en ruta 0–100, linjer mellan punkternas index
 const STJB=[['Orion',[[22,10],[72,16],[40,50],[50,47],[60,44],[32,92],[78,86]],[[0,1],[0,2],[1,4],[2,3],[3,4],[2,5],[4,6]]],
@@ -3226,10 +3227,45 @@ const STJB=[['Orion',[[22,10],[72,16],[40,50],[50,47],[60,44],[32,92],[78,86]],[
 function starSign(m){const[n,P,L]=STJB[m],f=v=>v.toFixed(0);
  return'<svg class="stjb" viewBox="-6 -6 112 112" aria-label="Månadens stjärnbild: '+n+'">'+L.map(([a,b])=>'<line x1="'+P[a][0]+'" y1="'+P[a][1]+'" x2="'+P[b][0]+'" y2="'+P[b][1]+'"/>').join('')+
   P.map(([x,y],i)=>'<circle cx="'+x+'" cy="'+y+'" r="'+(i%3?2.6:3.4)+'" style="animation-delay:-'+f(i*.7)+'s"/>').join('')+'</svg>'}
+// solen eller månen med ett eget moln som följer med över himlen, som en vädersymbol (förslag a/b/c, ls ht.solmoln)
+// molnets bas: rundad och platt, på stora moln med små bulor och ett svagt streck i underkanten så att den inte ser linjerad ut
+// ikonmoln: runda tussar på en rak baslinje som sticker ut lite, ett kort streck under och (stora moln) ett mindre, mörkare moln bakom med en glipa runt det främre
+function iconCloud(P,x0,x1,B,c,o){const f=v=>v.toFixed(1),g='ic'+(++FIG_N),sp=x1-x0;o=o||{};
+ const front=P.map(([x,y,r])=>'<circle cx="'+f(x)+'" cy="'+f(y)+'" r="'+f(r)+'"/>').join('')+'<rect x="'+f(x0+4)+'" y="'+f(B-11)+'" width="'+f(sp-8)+'" height="9"/><rect x="'+f(x0-6)+'" y="'+f(B-4)+'" width="'+f(sp+10)+'" height="4.4" rx="2.2"/>'+
+  (o.dash?'<rect x="'+f(o.seed%2?x0+sp*.45:x0+4)+'" y="'+f(B+3)+'" width="'+f(sp*.38)+'" height="4.4" rx="2.2"/>':'');
+ let back='';
+ if(o.back){const k=.6,ox=x0+8,lift=Math.max(...P.map(p=>p[2]))*1.25,bp=P.map(([x,y,r])=>[ox+(x-x0)*k,B-(B-y)*k-lift,r*k]);
+  back='<mask id="'+g+'m" maskUnits="userSpaceOnUse" x="-60" y="-60" width="'+f(sp+160)+'" height="200"><rect x="-60" y="-60" width="'+f(sp+160)+'" height="200" fill="#fff"/><g fill="#000" stroke="#000" stroke-width="3.2" stroke-linejoin="round">'+front+'</g></mask>'+
+   '<g fill="url(#'+g+'b)" mask="url(#'+g+'m)">'+bp.map(([x,y,r])=>'<circle cx="'+f(x)+'" cy="'+f(y)+'" r="'+f(r)+'"/>').join('')+'<rect x="'+f(ox)+'" y="'+f(bp[0][1])+'" width="'+f(sp*k)+'" height="'+f(B-8-bp[0][1])+'" rx="4"/></g>'}
+ const lg=(id,a,b)=>'<linearGradient id="'+id+'" gradientUnits="userSpaceOnUse" x1="'+x0+'" y1="0" x2="'+x1+'" y2="0"><stop offset="0" stop-color="'+a+'"/><stop offset="1" stop-color="'+b+'"/></linearGradient>';
+ return'<defs>'+lg(g,mixHex(c,'#FFFFFF',.35),shadeHex(c,.86))+(o.back?lg(g+'b',shadeHex(c,.9),shadeHex(c,.78)):'')+'</defs>'+back+'<g fill="url(#'+g+')">'+front+'</g>'}
+let SOLMOLN=lsGet('solmoln')==='0'?'':/^[ac]$/.test(lsGet('solmoln')||'')?lsGet('solmoln'):'c';
+function sunCloud(sc,day,D){const wet=/^(drizzle|rain|sleet)$/.test(sc.type),snow=sc.type==='snow',sleet=sc.type==='sleet',lv=sc.lv,f=x=>x.toFixed(1);
+ const kind=sc.thunder||wet||snow?'wet':sc.sky==='cloudy'?'cloudy':sc.sky==='partly'?'partly':sc.sky==='fair'?'fair':'';if(!kind)return'';
+ let c=sc.thunder?'#5A6482':wet?['#B4BECF','#97A3B8','#7A869E'][lv-1]:snow?['#D5DEE9','#C3CEDC','#AFBBCC'][lv-1]:kind==='cloudy'?'#D3DBE6':'#FFFFFF';
+ if(!day)c=mixHex(c,'#2A3350',.45);
+ const wide=kind==='cloudy'||kind==='wet',VW=wide?100:64;
+ // molnet breder ut sig ju mulnare det är; det är lite genomskinligt så att solen alltid syns igenom
+ const W=D*(kind==='fair'?1.1:kind==='partly'?1.65:kind==='cloudy'?3:2.6+lv*.2),ox=D*({fair:.55,partly:.38,cloudy:.05,wet:.1}[kind]),oy=D*({fair:.3,partly:.32,cloudy:.16,wet:.18}[kind]);
+ const P=wide?[[18,26,10],[32,17,13],[50,13,15],[68,18,12],[82,26,9]]:[[20,25,10],[34,17,14],[48,25,10]];
+ const Wv=W*(VW+12)/VW,svg='<svg class="sb-c" viewBox="-6 -10 '+(VW+12)+' 58" width="'+f(Wv)+'" height="'+f(Wv*58/(VW+12))+'" style="opacity:'+(kind==='wet'?.88:kind==='cloudy'?.8:.85)+'">'+
+  iconCloud(P,wide?8:10,wide?92:58,38,c,{back:wide,dash:1,seed:wide?0:1})+'</svg>';
+ let r='';
+ if(kind==='wet'){
+  // nederbörden faller från molnet: duggregn tunt och långsamt, regn tätare och snabbare med styrkan, snö singlar och vajar, åska blixtrar
+  const sk=(sc.wl||0)*sc.dir*1.6,drz=sc.type==='drizzle',n=sc.thunder?6:drz?4:snow?3+lv*2:sleet?5:3+lv*2,dur=drz?1.6:snow?3.4-lv*.4:sleet?1.5:1.15-lv*.18,ds=[];
+  for(let i=0;i<n;i++){const x=18+(i+.5)*(64/n)+((i*37)%7-3),d=f((i*.61%1)*dur),fl=snow||sleet&&i%2;
+   ds.push(fl?'<circle class="fl" cx="'+f(x)+'" cy="3" r="'+(snow&&lv>=3?2.6:2.1)+'" style="animation-duration:'+f(dur*(.85+(i%3)*.15))+'s;animation-delay:-'+d+'s;--sk:'+f(sk*3)+'px"/>':
+    '<line class="'+(drz?'dz':'dr')+'" x1="'+f(x)+'" y1="2" x2="'+f(x+sk)+'" y2="'+(drz?5:9+lv)+'" style="animation-duration:'+f(dur)+'s;animation-delay:-'+d+'s;--sk:'+f(sk*2)+'px"/>')}
+  // snö: samma flingor som i bilden, vita prickar med blå kant och vid mer snö några sexuddiga stjärnor som snurrar
+  if(snow&&lv>=2)[[30,.3],[64,1.9]].forEach(([x,d])=>{const p='M'+x+' 0v8M'+(x-3.5)+' 2l7 4M'+(x-3.5)+' 6l7-4';ds.push('<g class="sf" style="animation-duration:'+f(dur*1.5)+'s;animation-delay:-'+f(d*dur)+'s;--sk:'+f(sk*3)+'px"><path d="'+p+'" stroke="#9DB4D3" stroke-width="1.8"/><path d="'+p+'" stroke="#FFFFFF" stroke-width=".9"/></g>')})
+  r='<svg class="sb-rain" viewBox="0 0 100 34" width="'+f(W)+'" height="'+f(W*34/100)+'">'+ds.join('')+(sc.thunder?'<path class="sb-bolt" d="M54 0l-7 12h6l-5 12 12-16h-6l5-8z"/>':'')+'</svg>'}
+ return'<div class="sb-cl'+(sc.thunder?' th':'')+(wide?'':' pass')+'" style="--ox:'+f(ox)+'px;--oy:'+f(oy)+'px;--D:'+f(D)+'px">'+svg+r+'</div>'}
+function sunRays(sz){return'<svg class="sb-rays" viewBox="-24 -24 48 48" width="'+sz+'" height="'+sz+'">'+Array.from({length:8},(_,i)=>'<line x1="0" y1="-11.5" x2="0" y2="-15" transform="rotate('+i*45+')"/>').join('')+'</svg>'}
 /* Vädervyns himmel: stjärnor och moln i tre höjder. Höga slöjmoln glider långsamt och skimrar, stackmoln i mitten guppar och andas,
    låga regnmoln går fortast och rullar. Varje moln har egen form, fart och takt; alla driver med vinden. */
 // polen placeras där stjärnbildens cirkel inte når månen, så att månen aldrig täcker den
-function skyFit(){document.querySelectorAll('.wx2>.skyfx,.hero>.skyfx').forEach(skyFit1)}
+function skyFit(){document.querySelectorAll('.wx2>.skyfx,.hero>.skyfx,.gs.wb>.skyfx').forEach(skyFit1)}
 // molnen tonas bort bakom temperaturen, klockan och texterna så att de alltid går att läsa
 function skyHoles(sx,L){const cl=sx.querySelector('.cls');if(!cl)return;const P=6,m=[];
  const g=sx.parentNode;[...g.querySelectorAll(':scope>.wx2-top>div')].map(d=>[...d.children]).concat([[...g.querySelectorAll(':scope>.hero-l>*')],[...g.querySelectorAll(':scope>.hero-wx>.wx-now,:scope>.hero-wx>.fn')]]).forEach(es=>{
@@ -3266,19 +3302,18 @@ function skyFx(W){const sc=wxScene(W),wet=/^(drizzle|rain|sleet)$/.test(sc.type)
  const tone=c=>sc.dark?mixHex(c,'#2A3350',.5):warmL?mixHex(c,'#F2B48A',.22):c,lite=tone(mixHex(base,'#FFFFFF',.35)),mid=tone(base),dark=tone(wet||snow||sc.thunder?shadeHex(base,.82):mixHex(base,'#9AA8BC',.35));
  const N={fair:[1,0,0],partly:[1,2,0],cloudy:[2,3,1],fog:[0,1,2]}[sky].slice();
  if(wet||snow||sc.thunder)N[2]+=Math.ceil(lv/2)+(sc.thunder?1:0);
+ if(SOLMOLN){N.forEach((n,i)=>N[i]=Math.max(i?0:Math.min(n,1),n-1));N[2]=0}   // solens eget moln bär vädret, färre moln runt omkring
  const sp=1/(.75+sc.wl*.35),rev=sc.dir<0?' rev':'';
  // former: höga är tunna slöjor, mellersta runda stackmoln, låga breda och mörka i underkanten
- const shape=(t,k,c,w)=>{const P=[];let vb,h;
-  if(t==='hi'){vb='0 0 120 18';h=w*.15;for(let j=0;j<3;j++)P.push('<ellipse cx="'+f(30+j*28+rnd(k+j)*10)+'" cy="'+f(7+rnd(k+j+5)*5)+'" rx="'+f(22+rnd(k+j+9)*16)+'" ry="'+f(1.6+rnd(k+j+13)*1.8)+'" fill="'+c+'"/>')}
-  else{const lo=t==='lo';vb=lo?'0 0 140 46':'0 0 100 52';h=w*(lo?46/140:.52);const W0=lo?140:100,B=lo?34:40,np=lo?5+Math.round(rnd(k)*2):3+Math.round(rnd(k)*2);
-   P.push('<ellipse cx="'+W0/2+'" cy="'+B+'" rx="'+f(W0*.46)+'" ry="'+(lo?11:9)+'" fill="'+c+'"/>');
-   for(let j=0;j<np;j++){const r=(lo?9:10)+rnd(k+j*3)*(lo?8:11),x=W0*.16+(j+.5)/np*W0*.68+(rnd(k+j*3+1)-.5)*8;P.push('<circle cx="'+f(x)+'" cy="'+f(B-r*.55)+'" r="'+f(r)+'" fill="'+c+'"/>')}
-   P.push('<ellipse cx="'+W0/2+'" cy="'+(B+(lo?6:5))+'" rx="'+f(W0*.4)+'" ry="'+(lo?5:3.5)+'" fill="'+shadow(c)+'" opacity="'+(lo?.6:.4)+'"/>')}
-  return{svg:'<svg viewBox="'+vb+'" width="'+f(w)+'" height="'+f(h)+'">'+P.join('')+'</svg>',h}};
+ // samma ikonmoln som vid solen: runda tussar på en rundad bas med mjuk toning nedåt, varje moln med egen form och storlek
+ const shape=(t,k,c,w)=>{const np=t==='hi'?2+Math.round(rnd(k)):t==='mid'?3+Math.round(rnd(k)*2):4+Math.round(rnd(k)*2),VW=np*16+20,B=t==='hi'?30:28,P=[];
+  for(let j=0;j<np;j++){const mid=1-Math.abs((j+.5)/np-.5)*2,r=(t==='hi'?6:8)+mid*(t==='hi'?5:7)+rnd(k+j*3)*4,x=12+(j+.5)*16+(rnd(k+j*3+1)-.5)*4;P.push([x,B-r*.62,r])}
+  const big=t!=='hi'&&np>=4,Bb=B+(t==='hi'?4:8),w2=w*(VW+12)/VW,h=w2*58/(VW+12);
+  return{svg:'<svg viewBox="-6 -10 '+(VW+12)+' 58" width="'+f(w2)+'" height="'+f(h)+'">'+iconCloud(P,8,VW-8,Bb,c,{back:big,dash:t!=='hi',seed:k})+'</svg>',h}};
  const band={hi:[3,12],mid:[10,24],lo:[20,32]},dur={hi:220,mid:100,lo:52};
  let k=0,cs='';
  [['hi',N[0],lite],['mid',N[1],mid],['lo',N[2],dark]].forEach(([t,n,c])=>{for(let j=0;j<n;j++){k+=7;
-  const w=.72*(t==='hi'?110+rnd(k)*60:t==='mid'?62+rnd(k)*42:sky==='fog'?190+rnd(k)*60:110+rnd(k)*50),top=band[t][0]+rnd(k+1)*(band[t][1]-band[t][0]),D=dur[t]*sp*(.8+rnd(k+2)*.45);
+  const w=t==='hi'?34+rnd(k)*16:t==='mid'?46+rnd(k)*26:sky==='fog'?120+rnd(k)*40:62+rnd(k)*30,top=band[t][0]+rnd(k+1)*(band[t][1]-band[t][0]),D=dur[t]*sp*(.8+rnd(k+2)*.45);
    const{svg}=shape(t,k,j%2&&t!=='hi'?shadeHex(c,.95):c,w),bob=t==='hi'?12+rnd(k+3)*8:t==='mid'?7+rnd(k+3)*5:3.5+rnd(k+3)*2.5;
    cs+='<div class="cl '+t+(sky==='fog'&&t==='lo'?' fog':'')+rev+'" style="top:'+f(top)+'%;--w:'+f(w)+'px;animation-duration:'+f(D)+'s;animation-delay:-'+f((j+rnd(k+4)*.7)/n*D)+'s"><i style="animation-duration:'+f(bob)+'s;animation-delay:-'+f(rnd(k+5)*bob)+'s">'+svg+'</i></div>'}});
  return'<div class="skyfx" aria-hidden="true">'+s+'<div class="cls">'+cs+'</div></div>'}
@@ -3294,7 +3329,7 @@ function heroHtml(){const n=new Date(),t=today(),dy=EXT.day&&EXT.day.date===t?EX
  const sun=sunTimes(t,P.lat,P.lon);
  let wx='';
  if(W){const[ic,tx]=symInfo(W.now.s),d0=W.days[0]||{},F=wxToday(W);
-  const wb=wallBoardOn(),gs='<div class="gs '+grassV()+(wb?' wb':'')+'">'+(grassV()==='a'?arcHtml(W,'a'):'')+(BAKGRUND?backdropSvg(wxScene(W)):'')+'<div class="fig-box grass" aria-hidden="true">'+figSvg(wxScene(W),{bare:1,patch:1,nocl:grassV()==='b'&&heroSky()})+'</div></div>';
+  const wb=wallBoardOn(),gs='<div class="gs '+grassV()+(wb?' wb':'')+'">'+(grassV()==='a'?(wb&&!U3?skyFx(W):'')+arcHtml(W,'a'):'')+(BAKGRUND?backdropSvg(wxScene(W)):'')+'<div class="fig-box grass" aria-hidden="true">'+figSvg(wxScene(W),{bare:1,patch:1,nocl:grassV()==='b'&&heroSky()||wb&&!U3})+'</div></div>';
   wx='<button class="hero-wx'+(wb&&grassOn()?' wbt':'')+'" data-act="nav" data-id="vader" aria-label="Väder: '+esc(tx)+', '+deg(W.now.T)+'. Öppna vädret">'+
    '<div class="wx-now"><span class="wx-ic" aria-hidden="true">'+ic+'</span><span class="wx-t num">'+deg(W.now.T)+'</span></div>'+
    '<div class="fn">'+esc(tx)+'</div><div class="fn num">H:'+deg(d0.max)+' L:'+deg(d0.min)+'</div>'+
