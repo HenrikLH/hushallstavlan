@@ -3226,7 +3226,7 @@ function skyFx(W){const sc=wxScene(W),wet=/^(drizzle|rain|sleet)$/.test(sc.type)
   s+='<span class="stjn">✦ '+STJB[m][0]+'</span>'}
  // molnens ton följer nederbörden och ljuset, som molnen i bilden
  const sky=wet||snow||sc.thunder?(/^(clear|fair)$/.test(sc.sky)?'partly':sc.sky):sc.sky;
- let base=sc.thunder?'#4C5672':wet?['#A3AFC2','#7E8BA3','#5F6B84'][lv-1]:snow?['#CBD6E3','#B9C6D7','#A2B1C6'][lv-1]:{clear:'',fair:'#E4EAF2',partly:'#D6DFEA',cloudy:'#C3CFDE',fog:'#DCE4EE'}[sky];
+ let base=sc.thunder?'#4C5672':wet?['#A3AFC2','#7E8BA3','#5F6B84'][lv-1]:snow?['#CBD6E3','#B9C6D7','#A2B1C6'][lv-1]:{clear:'',fair:'#FFFFFF',partly:'#F7F9FC',cloudy:'#C3CFDE',fog:'#DCE4EE'}[sky];
  if(!base)return s?'<div class="skyfx" aria-hidden="true">'+s+'</div>':'';
  const tone=c=>sc.dark?mixHex(c,'#2A3350',.5):warmL?mixHex(c,'#F2B48A',.22):c,lite=tone(mixHex(base,'#FFFFFF',.35)),mid=tone(base),dark=tone(wet||snow||sc.thunder?shadeHex(base,.82):mixHex(base,'#9AA8BC',.35));
  const N={fair:[1,0,0],partly:[1,2,0],cloudy:[2,3,1],fog:[0,1,2]}[sky].slice();
