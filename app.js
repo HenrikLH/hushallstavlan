@@ -2687,12 +2687,12 @@ const OM_SYM={0:'clearsky',1:'fair',2:'partlycloudy',3:'cloudy',45:'fog',48:'fog
 async function loadWx(force){const P=WX_POS();if(!force&&EXT.yr&&Date.now()-EXT.yr.at<30*60000&&EXT.yr.lat===P.lat)return false;
  try{const r=await fetch('https://api.met.no/weatherapi/locationforecast/2.0/compact?lat='+P.lat.toFixed(4)+'&lon='+P.lon.toFixed(4));if(!r.ok)throw new Error(r.status);
   const j=await r.json();const ts=j.properties.timeseries.map(x=>{const i=x.data.instant.details,n1=x.data.next_1_hours,n6=x.data.next_6_hours,n12=x.data.next_12_hours;
-   return{t:x.time,T:i.air_temperature,w:i.wind_speed,wd:i.wind_from_direction,h:i.relative_humidity,p:i.air_pressure_at_sea_level,
+   return{t:x.time,T:i.air_temperature,w:i.wind_speed,wd:i.wind_from_direction,h:i.relative_humidity,p:i.air_pressure_at_sea_level,cf:i.cloud_area_fraction,
     s:(n1||n6||n12||{summary:{}}).summary.symbol_code||'',pr:n1?n1.details.precipitation_amount:null,pr6:n6?n6.details.precipitation_amount:null,s6:n6?n6.summary.symbol_code:''}});
   EXT.yr={at:Date.now(),src:'yr',lat:P.lat,ts};return true}
- catch(e){try{const r=await fetch('https://api.open-meteo.com/v1/forecast?latitude='+P.lat+'&longitude='+P.lon+'&hourly=temperature_2m,weather_code,precipitation,wind_speed_10m,wind_direction_10m,relative_humidity_2m,pressure_msl,is_day&timezone=UTC&forecast_days=9&wind_speed_unit=ms');
+ catch(e){try{const r=await fetch('https://api.open-meteo.com/v1/forecast?latitude='+P.lat+'&longitude='+P.lon+'&hourly=temperature_2m,weather_code,precipitation,wind_speed_10m,wind_direction_10m,relative_humidity_2m,pressure_msl,is_day,cloud_cover&timezone=UTC&forecast_days=9&wind_speed_unit=ms');
   const j=await r.json(),H=j.hourly;const ts=H.time.map((t,k)=>{const b=OM_SYM[H.weather_code[k]]||'cloudy',dn=/^(clearsky|fair|partlycloudy|.*showers)$/.test(b)?(H.is_day[k]?'_day':'_night'):'';
-   return{t:t+':00Z',T:H.temperature_2m[k],w:H.wind_speed_10m[k],wd:H.wind_direction_10m[k],h:H.relative_humidity_2m[k],p:H.pressure_msl[k],s:b+dn,pr:H.precipitation[k],pr6:null,s6:''}});
+   return{t:t+':00Z',T:H.temperature_2m[k],w:H.wind_speed_10m[k],wd:H.wind_direction_10m[k],h:H.relative_humidity_2m[k],p:H.pressure_msl[k],cf:H.cloud_cover?H.cloud_cover[k]:null,s:b+dn,pr:H.precipitation[k],pr6:null,s6:''}});
   EXT.yr={at:Date.now(),src:'om',lat:P.lat,ts};return true}catch(e2){return false}}}
 /* Senaste dygnet till dagskurvan. Yr ger bara prognos framåt, så de passerade timmarna hämtas från Open-Meteo (past_days=1),
    som bygger på väderanalysen för platsen. Hämtas om en gång i timmen. */
@@ -3307,20 +3307,21 @@ function skyFx(W){const sc=wxScene(W),wet=/^(drizzle|rain|sleet)$/.test(sc.type)
  const covered=sc.sky==='cloudy'||sc.sky==='fog'||(wet||snow)&&lv>=2||sc.thunder;
  let s='';
  // stjärnhimlen vrider sig långsamt runt en pol (en varv på tio minuter); skyFit() flyttar polen så att månadens stjärnbild aldrig hamnar under månen
- if(sc.dark&&!covered){const R=420,n=Math.round((sc.sky==='partly'?16:sc.phase==='dusk'?14:46)*8.5),P=600,m=new Date().getMonth();let st='';
+ // molntäcket (met.no cloud_area_fraction, annars uppskattat från symbolen) styr både molnen och hur mycket stjärnhimmel som syns
+ const cf=W.now.cf!=null?W.now.cf/100:{fair:.18,partly:.5,cloudy:.95}[sc.sky]||0,cov=wet||snow||sc.thunder?Math.max(cf,.85):cf;
+ if(sc.dark&&sc.sky!=='fog'){const R=420,n=Math.round((sc.phase==='dusk'?14:46)*8.5*Math.max(.15,1-cov)),P=600,m=new Date().getMonth();let st='';
   for(let k=1;k<=n;k++){const a=rnd(k)*Math.PI*2,r=R*Math.sqrt(rnd(k+5000)),b=k<=24,z=b?3:1.3+rnd(k+900)*1.5,o=b?.95:.35+rnd(k+1300)*.55,tw=b||k%3===0,d=2+rnd(k+1700)*5;
    st+='<i class="st'+(b?' b':'')+(tw?'':' fast')+'" style="left:'+f(Math.cos(a)*r)+'px;top:'+f(Math.sin(a)*r)+'px;width:'+f(z)+'px;height:'+f(z)+'px;--o:'+o.toFixed(2)+(tw?';animation-duration:'+f(d)+'s;animation-delay:-'+f(rnd(k+2100)*d)+'s':'')+'"></i>'}
-  s+='<div class="pole"><div class="rot" style="animation-duration:'+P+'s;animation-delay:-'+f((performance.timeOrigin||Date.now()-performance.now())/1e3%P)+'s">'+st+'<div class="cst">'+starSign(m)+'</div></div></div>';
-  if(sc.sky!=='partly'&&sc.phase==='night')s+='<i class="sk"></i><i class="sk d2"></i>';
-  s+='<span class="stjn">✦ '+STJB[m][0]+'</span>'}
+  s+='<div class="pole"><div class="rot" style="animation-duration:'+P+'s;animation-delay:-'+f((performance.timeOrigin||Date.now()-performance.now())/1e3%P)+'s">'+st+(cov<.9?'<div class="cst">'+starSign(m)+'</div>':'')+'</div></div>';
+  if(!covered&&sc.sky!=='partly'&&sc.phase==='night')s+='<i class="sk"></i><i class="sk d2"></i>';
+  if(cov<.9)s+='<span class="stjn">✦ '+STJB[m][0]+'</span>'}
  // molnens ton följer nederbörden och ljuset, som molnen i bilden
  const sky=wet||snow||sc.thunder?(/^(clear|fair)$/.test(sc.sky)?'partly':sc.sky):sc.sky;
  let base=sc.thunder?'#4C5672':wet?['#A3AFC2','#7E8BA3','#5F6B84'][lv-1]:snow?['#CBD6E3','#B9C6D7','#A2B1C6'][lv-1]:{clear:'',fair:'#FFFFFF',partly:'#F7F9FC',cloudy:'#C3CFDE',fog:'#DCE4EE'}[sky];
  if(!base)return s?'<div class="skyfx" aria-hidden="true">'+s+'</div>':'';
  const tone=c=>sc.dark?mixHex(c,'#2A3350',.5):warmL?mixHex(c,'#F2B48A',.22):c,lite=tone(mixHex(base,'#FFFFFF',.35)),mid=tone(base),dark=tone(wet||snow||sc.thunder?shadeHex(base,.82):mixHex(base,'#9AA8BC',.35));
- const N={fair:[1,0,0],partly:[1,2,0],cloudy:[2,3,1],fog:[0,1,2]}[sky].slice();
- if(wet||snow||sc.thunder)N[2]+=Math.ceil(lv/2)+(sc.thunder?1:0);
- if(SOLMOLN){N.forEach((n,i)=>N[i]=Math.max(i?0:Math.min(n,1),n-1));N[2]=0}   // solens eget moln bär vädret, färre moln runt omkring
+ // antalet moln följer det verkliga molntäcket (met.no cloud_area_fraction): helt mulet ger ett tätt täcke i tre lager, mindre moln ger stegvis färre, klart inga
+ const N=sky==='fog'?[0,1,2]:[4,6,3].map((m,i)=>Math.round(m*cov+(i===1?.4:0)));
  const sp=1/(.75+sc.wl*.35),rev=sc.dir<0?' rev':'';
  // former: höga är tunna slöjor, mellersta runda stackmoln, låga breda och mörka i underkanten
  // samma ikonmoln som vid solen: runda tussar på en rundad bas med mjuk toning nedåt, varje moln med egen form och storlek
