@@ -4,7 +4,7 @@ Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs 
 
 ## Börja här
 
-- Hämta senaste main. Drift: **ht-v190 / app.js?v=180** (brickveckan med låsknapp och budgetstapel).
+- Hämta senaste main. Drift: **ht-v191 / app.js?v=181** (rutnummer i utvecklarläget).
 - [Pages-publicering](https://github.com/HenrikLH/hushallstavlan/actions/runs/40094688899) grön; publik sw/index och appens filinnehåll verifierade. Inga öppna PR:er eller ofärdiga implementationer vid överlämningen.
 - Nästa steg: Henriks nästa konkreta uppgift eller återkoppling från telefon/Surface. Gör inte om redan godkända rättningar.
 - Henrik vill behålla UI 2.0:s tema och gemensamma komponenter. UI 3.0 är frivilligt i utvecklarläget. Bilder före visuella ändringar på main; ”Pusha” är publiceringsgodkännande.
@@ -12,6 +12,7 @@ Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs 
 
 - **Publicerat 2026-10-26 (Claude, ht-v187, PR #34, ångra-gren version-fore-tidsplan-kalender):** UI 2.0: tidsplan i recept/matlagning (`tidsplan`/`tpHtml`; tryck på stapeln startar/pausar timern `ACT.tpTimer`, `S.timers[].rid/si/p`; hörntimern göms när tidsplanen syns; egen timer med vred `tmrSheet`, `S.sheet='tmr'`, även ovanpå matlagningsläget); stegets ingredienser överst i matlagningsläget (`ingSorted`/`stegQ`); grå markering av aktivt steg. Rättens blad (`dishMenu`, håll in raden; lås = håll in bilden). Kalender Dag/Vecka/Månad under Uppgifter (`S.calVy`, `calDag`/`calVecka`). Test: verktyg/emu/matsedel-gester.js + CI.
 - **Publicerat 2026-10-26 (Claude, ht-v188, ångra-gren version-fore-brickor):** UI 2.0-veckan som brickor (`bt`/`btBand` i `matWeek`, `grpBehov`): rutor fyller gruppen, alltid en tom plats, portioner på bilden (tryck = bladet), ruta per portion i bandet, budgetstapel (`wm-bar`, ht-v190). Håll in brickan öppnar bladet, tryck på låsknappen `.bq-lk` (färgad när låst) låser, låset går även via bladet; svep finns bara i UI 1.0. Bladet följer rätten via `S.dmK` när menyn räknas om. Test: matsedel-gester.js (omskrivet för brickor).
+- **Publicerat 2026-10-27 (Claude, ht-v191, ångra-gren version-fore-rutnummer):** rutnummer, 118 st (`RF`/`rgroup`/`refAdd`, lista och kontroll `node verktyg/rutor.js`, namn i verktyg/rutor.json, regler i AGENTS.md). Utvecklarläge → Visa rutnummer (`ht.refs`); märket `.refb` läggs in av `refMark` (MutationObserver) och kopierar "M2 Vardagar". Delvis numrerat: UI 1.0/UI 3.0-specifika vyer och receptsidans topp saknar nummer. Test: verktyg/emu/rutnummer.js + alla-flikar telefon/vägg med brytaren på.
 - Nytt 2026-10-25: `node verktyg/karta.js` (kodkarta) och `node verktyg/version.js` (merge + versionshöjning); regler i AGENTS.md avsnitt 9.
 
 ## Beteende som ska bevaras
