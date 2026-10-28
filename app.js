@@ -673,7 +673,7 @@ function doRender(){applyPersonColors();applyAccent();
  m.innerHTML=banner+page;addLayout(m);
  {const w=m.querySelector('.wk-sw');if(w&&S.wkX){w.scrollLeft=S.wkX;wkMonth(w)}}
  {const w=m.querySelector('.wxC-sc');if(w)w.scrollLeft=S.wxX!=null?S.wxX:WXC_NP*WXC_SW}
- placeSky();skyFit();fitBoard();loopSync();
+ placeSky();skyFit();fitBoard();gpuLager();loopSync();
  watchTitle();plPin();wsPin();vvFix();
  A.after(m);
 }
@@ -3271,21 +3271,70 @@ function sunRays(sz){return'<svg class="sb-rays" viewBox="-24 -24 48 48" width="
    låga regnmoln går fortast och rullar. Varje moln har egen form, fart och takt; alla driver med vinden. */
 // polen placeras där stjärnbildens cirkel inte når månen, så att månen aldrig täcker den
 // när vyn ritas om (var 30:e sekund) skapas himlen på nytt; alla ändlösa animationer räknas från sidans start, så att moln, regn och löv fortsätter där de var i stället för att hoppa om
+/* Väderbildens rörelser går på grafikkretsen: allt som rör sig inuti en SVG (hundarna, löven, regnet, solen) räknas annars om av
+   processorn varje bild. gpuLager() lägger varje rörlig del i ett eget HTML-lager (<i>) med samma animation, och resten av bilden i
+   stilla SVG-skivor mellan dem i samma ordning. Lagren flyttas, vrids och tonas av grafikkretsen i 60 bilder/s utan att något
+   ritas om. Originalet står kvar som tom ram (storlek, tryck) och med sina gradienter/masker, som skivorna pekar på */
+const GL_RES=/^(defs|clipPath|mask|linearGradient|radialGradient|filter|pattern|marker|symbol|style|title|desc)$/;
+// variablerna som en @keyframes använder (getKeyframes() ger dem redan uträknade)
+function glVars(nm){const C=glVars.c||(glVars.c={});if(C[nm])return C[nm];let v=[];
+ const sök=rs=>{for(const r of rs){if(r.type===7&&r.name===nm)v=v.concat(r.cssText.match(/--[\w-]+/g)||[]);else if(r.cssRules)sök(r.cssRules)}};
+ [...document.styleSheets].forEach(sh=>{try{sök(sh.cssRules)}catch(e){}});return C[nm]=[...new Set(v)]}
+// bara på gemensam skärm (väggläge eller datorn med ljustjänsten) tills det är prövat i iPhone; ht.gpu=1 slår på det även här, ht.gpu=0 stänger av
+function gpuLager(){const g=lsGet('gpu');if(g==='0'||g!=='1'&&!(S.wall||CAM.src==='als')||!window.CSS||!CSS.supports('anchor-name:--a')||!CSS.supports('width:anchor-size(width)'))return;try{
+ const M=new Map();document.getAnimations().forEach(a=>{const t=a.effect&&a.effect.target;if(!(t instanceof SVGElement)||!a.animationName||a.effect.getTiming().iterations!==Infinity)return;(M.get(t)||M.set(t,[]).get(t)).push(a)});
+ const R=new Set();M.forEach((_,t)=>{let r=t;while(r.parentNode instanceof SVGElement)r=r.parentNode;if(!r.closest('clipPath,mask,defs,pattern,symbol'))R.add(r)});
+ R.forEach(r=>{try{gpuLager1(r,M)}catch(e){console.error(e)}})}catch(e){console.error(e)}}
+function gpuLager1(svg,M){const NS='http://www.w3.org/2000/svg',n=++FIG_N,cs=getComputedStyle(svg),W=parseFloat(cs.width),H=parseFloat(cs.height);if(!W||!H)return;
+ // innehåller elementet något som rör sig?
+ const rör=e=>M.has(e)||[...M.keys()].some(t=>e.contains(t));
+ // animationen flyttas till ett HTML-lager: samma namn och takt, vridpunkten i föräldrens koordinater och de variabler som nyckelbilderna använder
+ const anim=(e,i,px)=>{const c=getComputedStyle(e),st=i.style;['animationName','animationDuration','animationTimingFunction','animationDelay','animationIterationCount','animationDirection','animationFillMode'].forEach(k=>st[k]=c[k]);
+  M.get(e).forEach(a=>glVars(a.animationName).forEach(v=>st.setProperty(v,c.getPropertyValue(v))));
+  let o=c.transformOrigin.split(' ').map(parseFloat);if(!px&&c.transformBox==='fill-box'){const b=e.getBBox();o=[o[0]+b.x,o[1]+b.y]}
+  st.transformOrigin=o[0]+'px '+o[1]+'px'};
+ const tf=e=>M.has(e)&&M.get(e).some(a=>a.effect.getKeyframes().some(k=>'transform' in k));
+ const mat=e=>{const t=e.transform&&e.transform.baseVal.consolidate();return t?t.matrix:null};
+ const el=(p,c)=>{const i=document.createElement('i');i.className=c;p.appendChild(i);return i};
+ const ov=document.createElement('i');ov.className='gl';ov.setAttribute('aria-hidden','true');
+ svg.style.setProperty('anchor-name','--gl'+n);ov.style.setProperty('position-anchor','--gl'+n);
+ ['opacity','filter','zIndex','mixBlendMode','overflow'].forEach(k=>ov.style[k]=cs[k]);if(cs.overflow==='visible')ov.style.overflow='visible';
+ // själva ramen (ankrad) rör sig aldrig: ett ankrat element med animation ritas om av processorn varje bild
+ let rt=ov;if(M.has(svg)){rt=el(ov,'gl-a');anim(svg,rt,1)}else if(cs.transform!=='none'){rt=el(ov,'gl-f');rt.style.transform=cs.transform;rt.style.transformOrigin=cs.transformOrigin}
+ // viewBox → rutans bildpunkter
+ const vb=svg.viewBox&&svg.viewBox.baseVal,vp=el(rt,'gl-f');
+ if(vb&&vb.width){const pa=svg.preserveAspectRatio.baseVal,al=pa.align;let kx=W/vb.width,ky=H/vb.height,tx=0,ty=0;
+  if(al!==1){const k=pa.meetOrSlice===2?Math.max(kx,ky):Math.min(kx,ky);kx=ky=k;const ax=(al-2)%3,ay=Math.floor((al-2)/3);tx=(W-vb.width*k)*ax/2;ty=(H-vb.height*k)*ay/2}
+  vp.style.transform='matrix('+kx+',0,0,'+ky+','+(tx-vb.x*kx)+','+(ty-vb.y*ky)+')'}
+ // skivor: stilla delar ritas i SVG med samma förfäder (klasser, fyllning, filter, klipp); förfädernas förflyttning ligger i lagren ovanför
+ // det rörliga elementets egen förflyttning och tonning sköts av lagret
+ const noll=c=>{c.removeAttribute('opacity');c.style.transform='none';c.style.opacity='1'};
+ const skiva=(p,kedja)=>{const s=document.createElementNS(NS,'svg');s.setAttribute('class',svg.getAttribute('class')||'');if(svg.getAttribute('style'))s.setAttribute('style',svg.getAttribute('style'));
+  ['fill','stroke','stroke-width','stroke-linecap','stroke-linejoin','font-family','font-size','font-weight','text-anchor'].forEach(a=>{if(svg.hasAttribute(a))s.setAttribute(a,svg.getAttribute(a))});
+  let g=s;kedja.forEach(([e,utanTf])=>{const c=document.createElementNS(NS,e.tagName);[...e.attributes].forEach(a=>{if(!(utanTf&&a.name==='transform'))c.setAttribute(a.name,a.value)});
+   if(M.has(e))noll(c);g.appendChild(c);g=c});p.appendChild(s);return g};
+ const bygg=(e,p,kedja)=>{let g=null;
+  [...e.children].forEach(c=>{if(GL_RES.test(c.tagName))return;
+   if(M.has(c)){g=null;
+    // förfäder med egen förflyttning sedan förra lagret blir ett stilla lager, sedan det rörliga lagret
+    let m=new DOMMatrix();kedja.forEach(([a,utanTf])=>{if(!utanTf){const x=mat(a);if(x)m=m.multiply(x)}});const egen=!tf(c)&&mat(c);if(egen)m=m.multiply(egen);
+    const f=m.isIdentity?p:el(p,'gl-f');if(!m.isIdentity)f.style.transform=m.toString();const a=el(f,'gl-a');anim(c,a);const k2=kedja.map(([x])=>[x,1]);
+    // en grupp delas vidare; en ensam figur (linje, löv, text) blir en egen skiva
+    if(/^(g|a|svg|switch)$/.test(c.tagName))bygg(c,a,k2.concat([[c,1]]));else{const x=c.cloneNode(true);noll(x);skiva(a,k2).appendChild(x)}}
+   else if(rör(c)){g=null;bygg(c,p,kedja.concat([[c,0]]))}
+   else{if(!g)g=skiva(p,kedja);g.appendChild(c.cloneNode(true))}})};
+ bygg(svg,vp,[]);
+ // originalet behåller bara sina resurser (gradienter, masker, filter) som skivorna pekar på
+ const töm=e=>[...e.children].forEach(c=>{if(GL_RES.test(c.tagName))return;if(c.querySelector('defs,clipPath,mask,linearGradient,radialGradient,filter,pattern'))töm(c);else c.remove()});
+ töm(svg);svg.classList.add('gl-o');svg.after(ov)}
 function loopSync(){try{document.getAnimations().forEach(a=>{if(a.startTime!==0&&a.playState==='running'&&a.effect&&a.effect.getTiming().iterations===Infinity)a.startTime=0})}catch(e){}}
-/* Gemensam skärm (väggläge, eller datorn med ljustjänsten): de ändlösa animationerna (löv, hundar, moln, stjärnor) ritas
-   20 gånger i sekunden i stället för 60, så att datorn inte arbetar hårt dygnet runt. När tavlan vilar (nattläge, eller
-   mörkt rum och ingen har rört den på två minuter) står de still. Övergångar och klockans
-   vändning går som vanligt */
-function fpsTick(){try{const on=S.wall||CAM.src==='als',n=Date.now(),t=document.timeline.currentTime;
- if(!on){if(fpsTick.l){document.getAnimations().forEach(a=>{if(a.playState==='paused')a.play()});fpsTick.l=null}return}
- // listan hämtas en gång i sekunden (vyn ritas om och nya animationer startar); varje bild ändrar bara tiden
- if(!fpsTick.l||n-fpsTick.at>1000){fpsTick.at=n;fpsTick.l=document.getAnimations().filter(a=>a.effect&&a.effect.getTiming().iterations===Infinity);fpsTick.l.forEach(a=>{if(a.playState==='running')a.pause()})}
- // står stilla när tavlan vilar;
- // tiden som stått still dras av så att rörelserna fortsätter där de stannade i stället för att hoppa
- const vila=nightOn()||CAM.dark&&n-(A.touch||0)>120000;
- if(fpsTick.lt!=null&&vila)fpsTick.off=(fpsTick.off||0)+t-fpsTick.lt;fpsTick.lt=t;
- if(vila)return;const c=t-(fpsTick.off||0);fpsTick.l.forEach(a=>{a.currentTime=c})}catch(e){}}
-setInterval(fpsTick,50);
+/* Gemensam skärm (väggläge, eller datorn med ljustjänsten): när tavlan vilar (nattläge, eller mörkt rum och ingen har rört den
+   på två minuter) står de ändlösa animationerna (löv, hundar, moln, stjärnor) still. Annars går de fritt i 60 bilder/s på
+   grafikkretsen (gpuLager), så processorn behöver inte rita dem */
+function vilaTick(){try{const n=Date.now(),vila=(S.wall||CAM.src==='als')&&(nightOn()||CAM.dark&&n-(A.touch||0)>120000);
+ if(!vila&&!vilaTick.v)return;vilaTick.v=vila;
+ document.getAnimations().forEach(a=>{if(!a.effect||a.effect.getTiming().iterations!==Infinity)return;if(vila&&a.playState==='running')a.pause();else if(!vila&&a.playState==='paused')a.play()})}catch(e){}}
+setInterval(vilaTick,1000);
 function skyFit(){document.querySelectorAll('.wx2>.skyfx,.hero>.skyfx,.gs.wb>.skyfx').forEach(skyFit1)}
 // molnen tonas bort bakom temperaturen, klockan och texterna så att de alltid går att läsa
 function skyHoles(sx,L){const cl=sx.querySelector('.cls');if(!cl)return;const P=6,m=[];

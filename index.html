@@ -814,6 +814,11 @@ html.ny .chip.lk::before{display:none}
 @keyframes clShim{from{opacity:.4;transform:scaleX(.96)}to{opacity:.8;transform:scaleX(1.04)}}
 @keyframes clBob{from{transform:translateY(-2.5px) scale(1)}to{transform:translateY(2.5px) scale(1.04,.96)}}
 @keyframes clRoll{from{transform:translateY(0) scaleX(1)}to{transform:translateY(3px) scaleX(1.07)}}
+.gl{position:absolute;left:anchor(left);top:anchor(top);width:anchor-size(width);height:anchor-size(height);margin:0;pointer-events:none}
+/* gpuLager(): rörliga delar i egna lager, stilla delar i SVG-skivor utan egen storlek eller effekt (de sitter på lagret) */
+.gl i{position:absolute;left:0;top:0;width:0;height:0;display:block}
+.gl svg{position:absolute!important;left:0!important;top:0!important;width:1px!important;height:1px!important;overflow:visible!important;margin:0!important;padding:0!important;opacity:1!important;filter:none!important;transform:none!important;mask:none!important;animation:none!important}
+.gl svg *,.gl-o,.gl-o *{animation:none!important}
 @media (prefers-reduced-motion:reduce){.skyfx .st,.skyfx .cl,.skyfx .cl>i,.skyfx .rot{animation:none}.skyfx .sk{display:none}}
 .wx2-gs{width:210px;margin:18px -4px 0 auto;padding:0}
 .wx2-gs .fig-box.grass{width:210px;height:186px}
@@ -2225,7 +2230,7 @@ html.ny.seg-kapsel .create-options{border-radius:22px}
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=195"></script>
+<script src="app.js?v=196"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>

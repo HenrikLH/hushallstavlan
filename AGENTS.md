@@ -125,6 +125,7 @@ Claude och Codex ser inte varandras samtal. **Repot är gemensamt minne.** Henri
 - Instagram och vissa sidor är blockerade från molnmiljöer. Be Henrik om skärmbilder av recept.
 - Apps Script svarar långsamt (sekunder per anrop). Batcha eller visa ändringen direkt och skicka i bakgrunden.
 - Ändringar i `inspiration.json`: recept har `id`, `title`, `group`, `who`, `portions`, `min`, `kr`, `protein`, `course` (`'efterrätt'` för efterrätter), `groups` (ingredienser) och `steps`.
+- Animationer på SVG-element (även `<svg>`-roten) och på ankrade element går inte på grafikkretsen i Chromium: processorn ritar om varje bild. Animera HTML-element med bara `transform`/`opacity`; rörliga delar i väderbildens SVG lyfts av `gpuLager()`. Mät med `verktyg/emu/vader-fps.js`.
 - Väggdatorns ljussensor och skärmljus går via en lokal tjänst (`kiosk/ljussensor.py`, http://127.0.0.1:8777). Den kan inte testas i molnet.
 
 ## 9. Spara tokens (gäller alla agenter)
