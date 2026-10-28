@@ -103,7 +103,8 @@ def kiosk_pids():
     # webbläsarens huvudprocess för tavlan: chromium med --kiosk och utan --type= (renderare, GPU m.fl. har --type)
     ut = []
     for d in glob.glob('/proc/[0-9]*/cmdline'):
-        try: a = open(d, 'rb').read().split(b'\0')
+        # Chromium skriver om sin kommandorad till en enda sträng med mellanslag, så dela på både \0 och mellanslag
+        try: a = open(d, 'rb').read().replace(b'\0', b' ').split()
         except OSError: continue
         if a and b'chrom' in os.path.basename(a[0]) and b'--kiosk' in a and not any(x.startswith(b'--type=') for x in a):
             ut.append(int(d.split('/')[2]))
@@ -137,7 +138,10 @@ def vakthund():
             if pids != PULS['pids']:
                 PULS['pids'] = pids; PULS['sedan'] = time.time()
             if not pids or not vakt_aktiv():
+                if vakt_aktiv() and time.time() - PULS['senast'] > VAKT_TYST and not PULS.get('sagt'):
+                    PULS['sagt'] = 1; logg('vakt: ingen puls, men hittar inget kioskfönster att starta om')
                 continue
+            PULS['sagt'] = 0
             nu = time.time()
             if nu - max(PULS['senast'], PULS['sedan']) < VAKT_TYST:
                 continue
