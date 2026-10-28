@@ -3362,7 +3362,7 @@ function skyFit1(sx){const pole=sx.querySelector('.pole');
  if(!pole)return;
  const H=34,MR=22;let best=null;
  // stjärnbilden står högt på himlen (Henriks önskan), men aldrig under månen
- for(const rc of[40,32,24])for(let y=Math.round(Math.max(H*.8,L.height*.12));y<=L.height*.6;y+=5)for(let x=rc+H+8;x<=L.width-rc-H-8;x+=6){const d=M?Math.hypot(x-M.x,y-M.y):999,ok=d>rc+H+MR?2e4:d<rc-H-MR?1e4:0;
+ for(const rc of[40,32,24])for(let y=Math.round(rc+H+4);y<=L.height*.6;y+=5)for(let x=rc+H+8;x<=L.width-rc-H-8;x+=6){const d=M?Math.hypot(x-M.x,y-M.y):999,ok=d>rc+H+MR?2e4:d<rc-H-MR?1e4:0;
   const sc=(ok||d)+rc*20-Math.abs(x-L.width*.55)*.3-y*2;if(!best||sc>best.sc)best={sc,x,y,rc}}
  if(!best)return;pole.style.left=best.x+'px';pole.style.top=best.y+'px';pole.style.setProperty('--rc',best.rc+'px')}
 // molnens färg på himlen: tonen följer nederbörden och ljuset. Solens eget moln får samma färg som de andra
