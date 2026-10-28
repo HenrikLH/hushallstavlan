@@ -125,14 +125,14 @@ echo "6/6  Tavlan startar i helskärm vid inloggning"
 # --password-store=basic: ingen fråga om nyckelring när inloggningen sker utan lösenord
 # --touch-events=enabled: pekskärmen skickar riktiga pekhändelser
 # --overscroll-history-navigation=0: ett svep i sidled bläddrar inte bakåt i webbläsaren
-# --disable-gpu: Surfacens grafik (Intel HD 615) tappade Chromiums delade grafikminne och tavlan blev grå; ritad av
-#   processorn går den stabilt och, med appens 20 bilder/s, med lägre last än med grafikkretsen
+# Utan grafikkretsen (--disable-gpu) var tavlan stabil men seg, så den behålls. Tappar Chromium grafikminnet och
+#   tavlan blir grå startar vakthunden i ljussensor.py om den inom en minut
 cat > "$AUTOSTART" <<EOF
 [Desktop Entry]
 Type=Application
 Name=Hushållstavlan
 Comment=Startar tavlan i helskärm
-Exec=sh -c 'sleep $VANTA; $BROWSER --kiosk --disable-gpu --app=$URL --password-store=basic --touch-events=enabled --overscroll-history-navigation=0 --noerrdialogs --disable-session-crashed-bubble --disable-infobars --check-for-update-interval=31536000$KAMERA_FLAGG'
+Exec=sh -c 'sleep $VANTA; $BROWSER --kiosk --app=$URL --password-store=basic --touch-events=enabled --overscroll-history-navigation=0 --noerrdialogs --disable-session-crashed-bubble --disable-infobars --check-for-update-interval=31536000$KAMERA_FLAGG'
 X-GNOME-Autostart-enabled=true
 EOF
 # Samma start som ikon i menyn och på skrivbordet, så att tavlan kan öppnas igen med fingret
