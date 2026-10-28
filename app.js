@@ -3274,15 +3274,15 @@ function sunRays(sz){return'<svg class="sb-rays" viewBox="-24 -24 48 48" width="
 function loopSync(){try{document.getAnimations().forEach(a=>{if(a.startTime!==0&&a.playState==='running'&&a.effect&&a.effect.getTiming().iterations===Infinity)a.startTime=0})}catch(e){}}
 /* Gemensam skärm (väggläge, eller datorn med ljustjänsten): de ändlösa animationerna (löv, hundar, moln, stjärnor) ritas
    20 gånger i sekunden i stället för 60, så att datorn inte arbetar hårt dygnet runt. När tavlan vilar (nattläge, eller
-   mörkt rum och ingen har rört den på två minuter) och medan någon använder den står de still. Övergångar och klockans
+   mörkt rum och ingen har rört den på två minuter) står de still. Övergångar och klockans
    vändning går som vanligt */
 function fpsTick(){try{const on=S.wall||CAM.src==='als',n=Date.now(),t=document.timeline.currentTime;
  if(!on){if(fpsTick.l){document.getAnimations().forEach(a=>{if(a.playState==='paused')a.play()});fpsTick.l=null}return}
  // listan hämtas en gång i sekunden (vyn ritas om och nya animationer startar); varje bild ändrar bara tiden
  if(!fpsTick.l||n-fpsTick.at>1000){fpsTick.at=n;fpsTick.l=document.getAnimations().filter(a=>a.effect&&a.effect.getTiming().iterations===Infinity);fpsTick.l.forEach(a=>{if(a.playState==='running')a.pause()})}
- // står stilla när tavlan vilar och medan någon använder skärmen (45 s efter senaste tryck), så att trycken får hela datorn;
+ // står stilla när tavlan vilar;
  // tiden som stått still dras av så att rörelserna fortsätter där de stannade i stället för att hoppa
- const vila=n-(A.touch||0)<45000||nightOn()||CAM.dark&&n-(A.touch||0)>120000;
+ const vila=nightOn()||CAM.dark&&n-(A.touch||0)>120000;
  if(fpsTick.lt!=null&&vila)fpsTick.off=(fpsTick.off||0)+t-fpsTick.lt;fpsTick.lt=t;
  if(vila)return;const c=t-(fpsTick.off||0);fpsTick.l.forEach(a=>{a.currentTime=c})}catch(e){}}
 setInterval(fpsTick,50);
