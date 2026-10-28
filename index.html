@@ -447,13 +447,11 @@ body.wall .clock{display:block}
 /* sol/måne med eget moln (förslag a: ikon, b: mjukt, c: följeslagare) */
 .sky-b .sb-body{line-height:0}
 .sb-cl{position:absolute;left:50%;top:50%;transform:translate(calc(-50% + var(--ox)),calc(-50% + var(--oy)));line-height:0;display:flex;flex-direction:column;align-items:center}
-.sb-cl>.sb-c{filter:drop-shadow(0 1.5px 2px rgba(50,60,90,.22))}
+/* solens moln är stilla och ser ut som de andra molnen */
+.sb-cl>.sb-c,.sky-moon .sb-cl>.sb-c{filter:drop-shadow(0 1.5px 2px rgba(50,60,90,.22));opacity:.85;animation:none}
 .sb-rays{position:absolute;left:0;top:0;stroke:#FFC94A;stroke-width:2;stroke-linecap:round;animation:figSpin 40s linear infinite}
 .sm-a .sb-cl>.sb-c{animation:sbBob 6s ease-in-out infinite alternate}
 @keyframes sbBob{from{transform:translateY(-1px)}to{transform:translateY(1.5px)}}
-.sm-c .sb-cl.pass{animation:sbPass 20s linear infinite}
-@keyframes sbPass{0%{transform:translate(calc(-50% - var(--D)*1.2),calc(-50% + var(--oy)));opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translate(calc(-50% + var(--D)*1.2),calc(-50% + var(--oy)));opacity:0}}
-.sm-c .sb-cl:not(.pass)>.sb-c{animation:sbBob 7s ease-in-out infinite alternate}
 .sb-rain{margin-top:-5px;overflow:visible;stroke:#7FB2E6;stroke-linecap:round;fill:#FFFFFF}
 .sb-rain .dr{stroke-width:2.2;animation:sbDrop 1s linear infinite}
 .sb-rain .dz{stroke-width:1.6;opacity:.8;animation:sbDrop 1.6s linear infinite}
@@ -1459,7 +1457,7 @@ body.dragging .bwx-h{scroll-snap-type:none}
 .wxi-c{position:absolute;right:0;bottom:-.06em;font-size:calc(var(--c)*1.12em)}
 /* Översikten på telefonen: väderremsan under hundarna, lägre än på väggen */
 .ovx{grid-column:1/-1;align-self:start;margin-top:8px;min-width:0}
-.ovx .bwx-h{padding-top:4px;align-items:flex-start}
+.ovx .bwx-h{padding-top:4px;align-items:flex-start;margin-bottom:-8px}
 .ovx .bwx-h div{flex-basis:44px;gap:0;padding:2px 0}.ovx .bwx-h div.nd{flex-basis:54px}
 .ovx .bwx-h .fn{font-size:12px}.ovx .bwx-h .hi{font-size:18px;line-height:22px}.ovx .bwx-h b{font-size:14px}
 .ovx .bwx-h .pr{font-size:10px;line-height:12px;min-height:0;white-space:nowrap}
@@ -2243,7 +2241,7 @@ html.ny.seg-kapsel .create-options{border-radius:22px}
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=198"></script>
+<script src="app.js?v=199"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
