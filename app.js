@@ -4512,13 +4512,21 @@ function pillSet(no,open,anim){const tp=no.closest('.tp');if(!tp)return;const ri
  else{delete no.dataset.open;no.style.width='';tp.classList.remove('push')}}
 function trTick(){if(!PILL.k)return;const L=[...document.querySelectorAll('.tp-r.tr .no[data-k="'+PILL.k+'"]')].filter(x=>x.offsetParent);if(!L.length){PILL.k=null;return}const ut=Date.now()>=PILL.until;if(ut)PILL.k=null;
  L.forEach(no=>{if(ut)pillSet(no,false,true);else if(!no.dataset.open)pillSet(no,true,false);else if(Math.abs(pillW(no)-PILL.w)>2)pillSet(no,true,true)})}
-(()=>{let h=0,no=null,x0=0,y0=0,sup=0,men=0;
- const stop=()=>{clearTimeout(h);clearTimeout(men);if(no&&!no.dataset.open){const s=fjader(.3,.6);no.style.setProperty('--fe',s.e);no.style.setProperty('--fd',s.d+'ms')}if(no)no.classList.remove('hold');no=null};
- addEventListener('pointerdown',e=>{const b=e.target.closest&&e.target.closest('.tp-r.tr .no[data-k]');if(!b)return;sup=0;no=b;x0=e.clientX;y0=e.clientY;const k=b.dataset.k;
+// Standard (Henriks val): pillret töjer sig ut ur cirkeln mot ett motstånd och darrar, slits loss vid TRH; släpper man för tidigt dras det tillbaka in i cirkeln.
+// Reserv: ht.trAnim=glow ger skenet runt ringen i stället
+const trGlow=()=>lsGet('trAnim')==='glow';
+(()=>{let h=0,no=null,x0=0,y0=0,sup=0,men=0,raf=0,T0=0;
+ const strain=(b,t0,W,d)=>{const tp=b.closest('.tp'),f=()=>{const k=Math.min(1,(performance.now()-t0)/TRH),e=.4*(1-Math.pow(1-k,3)),wob=Math.sin((performance.now()-t0)/1000*2*Math.PI*15)*1.6*k*k,w=d+(W-d)*e+wob;
+  b.style.width=w.toFixed(1)+'px';b.style.setProperty('--pk',(e/.4).toFixed(3));b.style.transform='scaleY('+(1-.1*e).toFixed(3)+')';if(tp)tp.style.setProperty('--px',Math.max(0,w-d).toFixed(1)+'px');if(k<1)raf=requestAnimationFrame(f)};
+  b.classList.add('str');b.style.setProperty('--fd','0ms');if(tp){tp.style.setProperty('--fd','0ms');tp.classList.add('push')}raf=requestAnimationFrame(f)};
+ const stop=()=>{clearTimeout(h);clearTimeout(men);cancelAnimationFrame(raf);if(no&&!no.dataset.open){const s=fjader(.3,.6),tp=no.closest('.tp');if(trGlow()){no.style.setProperty('--fe',s.e);no.style.setProperty('--fd',s.d+'ms')}else{const r=fjader(.32,.42);[no,tp].forEach(x=>{if(x){x.style.setProperty('--fe',r.e);x.style.setProperty('--fd',r.d+'ms')}});no.style.width='';no.style.transform='';if(tp)tp.classList.remove('push')}}if(no)no.classList.remove('hold','str');no=null};
+ addEventListener('pointerdown',e=>{const b=e.target.closest&&e.target.closest('.tp-r.tr .no[data-k]');if(!b)return;sup=0;no=b;T0=Date.now();x0=e.clientX;y0=e.clientY;const k=b.dataset.k;
   if(b.dataset.open){men=setTimeout(()=>{sup=Date.now();stop();PILL.until=Date.now()+5000;ACT.tmrMenu(k)},550);return}
-  b.classList.add('hold');h=setTimeout(()=>{sup=Date.now();b.classList.remove('hold');PILL.k=k;PILL.until=Date.now()+5000;pillSet(b,true,true);try{navigator.vibrate&&navigator.vibrate(10)}catch(e){}no=null},TRH)},true);
+  if(trGlow())b.classList.add('hold');else{const d=b.querySelector('.trg').offsetWidth;strain(b,performance.now(),pillW(b),d)}
+  h=setTimeout(()=>{sup=Date.now();cancelAnimationFrame(raf);b.classList.remove('hold','str');b.style.transform='';PILL.k=k;PILL.until=Date.now()+5000;pillSet(b,true,true);try{navigator.vibrate&&navigator.vibrate(10)}catch(e){}no=null},TRH)},true);
  addEventListener('pointermove',e=>{if(no&&Math.hypot(e.clientX-x0,e.clientY-y0)>10)stop()},true);
- addEventListener('pointerup',stop,true);addEventListener('pointercancel',stop,true);
+ // Ett påbörjat håll som släpps (över 0,3 s) byter inte heller steg
+ addEventListener('pointerup',()=>{if(no&&!no.dataset.open&&Date.now()-T0>300)sup=1;stop()},true);addEventListener('pointercancel',stop,true);
  addEventListener('contextmenu',e=>{if(e.target.closest&&e.target.closest('.tp-r.tr .no'))e.preventDefault()},true);
  // Klicket efter ett håll ska inte byta steg; tryck på ett öppet piller pausar i stället
  addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.tp-r.tr .no[data-k]');if(!b)return;
