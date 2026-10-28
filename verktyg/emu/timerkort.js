@@ -30,4 +30,12 @@ module.exports=async(pg,h)=>{const c=async s=>{await pg.locator(s).first().click
  ok(await d(`(t=>t.dur===180000&&tmKvar(t)>175000)(S.timers.find(t=>t.k==='b'))`),'starta om från början');
  await hold('e');await c('[data-act="tmrDo"][data-a="x"]');
  ok(await pg.locator('.cook .td-c').count()===3,'stäng tar bort kortet');
- await c('[data-act="cookClose"]');ok(await pg.locator('.td-c').count()>=3,'korten under tidsplanen i receptet');await h.shot('recept')};
+ // Sidan står kvar vid tryck på timern (förut hoppade den till toppen)
+ const top=()=>pg.evaluate(()=>document.querySelector('.cook-body').scrollTop);
+ await pg.evaluate(()=>{const b=document.querySelector('.cook-body');b.scrollTop=b.scrollHeight});await h.idle(300);const y0=await top();
+ await c('.cook .td-c .td-rb');await c('.cook .tp-r:nth-child(4) .tp-t');const kan=await pg.evaluate(()=>{const b=document.querySelector('.cook-body');return b.scrollHeight>b.clientHeight+2});ok((y0>0||!kan)&&Math.abs(await top()-y0)<2,'kokläget står kvar vid tryck: '+y0);
+ await pg.evaluate(()=>document.querySelector('.cook .td').scrollLeft=300);await h.idle(300);const x0=await pg.evaluate(()=>document.querySelector('.cook .td').scrollLeft);
+ await c('.cook .td-c:last-child .td-rb');ok(x0>0&&Math.abs(await pg.evaluate(()=>document.querySelector('.cook .td').scrollLeft)-x0)<2,'timerraden står kvar i sidled');
+ await c('[data-act="cookClose"]');ok(await pg.locator('.td-c').count()>=3,'korten under tidsplanen i receptet');await h.shot('recept');
+ await pg.evaluate(()=>document.querySelector('#main .td').scrollIntoView({block:'center'}));await h.idle(300);const sy=await pg.evaluate(()=>scrollY);
+ await c('#main .td-c .td-rb');ok(sy>0&&Math.abs(await pg.evaluate(()=>scrollY)-sy)<2,'receptsidan står kvar vid tryck: '+sy)};
