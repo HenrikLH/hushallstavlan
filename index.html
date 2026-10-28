@@ -1927,6 +1927,23 @@ html.ny .td-t b{font-size:22px;line-height:26px;font-weight:700;font-variant-num
 html.ny .td-c.pau .td-t b{color:var(--ink-2)}
 html.ny .td-c.klar{background:var(--green,#34C759)}html.ny .td-c.klar .td-t span,html.ny .td-c.klar .td-t b{color:#fff}
 html.ny .td-rb{flex:none;width:44px;height:44px;border:0;border-radius:50%;display:grid;place-items:center;background:var(--fill);color:var(--ink);cursor:pointer}
+html.ny .trg{position:relative;display:grid;place-items:center;width:100%;height:100%}
+html.ny .trg svg{position:absolute;inset:-3px;width:calc(100% + 6px);height:calc(100% + 6px);transform:rotate(-90deg);overflow:visible}
+html.ny .trg circle{fill:none;stroke-width:3.2}html.ny .trg.klar .trg-f{display:none}
+html.ny .trg-b{stroke:color-mix(in srgb,var(--accent) 22%,transparent)}
+html.ny .trg-f{stroke:var(--accent);stroke-linecap:round}
+html.ny .trg.pau .trg-f{stroke:var(--ink-2)}
+html.ny .trg.klar .trg-b{stroke:var(--green,#34C759)}
+html.ny .trg-n{position:relative;display:inline-flex;align-items:baseline;line-height:1;font-variant-numeric:tabular-nums}
+html.ny .trg-n small{font-size:.6em;font-weight:600;margin-left:1px}
+html.ny .trg-n svg{position:static;width:13px;height:13px;transform:none}
+html.ny .tp-r.tr .no{background:var(--surface);color:var(--accent);overflow:visible}
+html.ny .tp-r.tr.on .no{background:var(--accent);color:#fff}
+html.ny .tp-r.tr .no:has(.trg.klar){background:var(--green,#34C759);color:#fff}
+html.ny .tp-r.tr .no:has(.trg.pau){color:var(--ink-2)}
+html.ny .td-rg{flex:none;width:44px;height:44px;margin-right:4px;padding:4px;border:0;border-radius:50%;background:none;cursor:pointer}html.ny .td-rg .trg{border-radius:50%;font-size:15px;font-weight:700;color:var(--accent)}html.ny .td-rg .trg.pau{color:var(--ink-2)}html.ny .td-c:has(.td-rg){padding-left:6px}
+html.ny .td-rg .trg-n svg{width:15px;height:15px}
+@media (min-width:900px){html.ny .td-rg{width:52px;height:52px}html.ny .td-rg .trg{font-size:19px}}
 html.ny .td-rb svg{width:20px;height:20px}html.ny .td-rb.pr{background:var(--accent);color:#fff}
 html.ny .td-c.klar .td-rb{background:rgba(255,255,255,.25);color:#fff}
 @media (min-width:900px){html.ny .td-c{flex:0 0 calc(33.3% - 6px);padding:8px 8px 8px 16px}html.ny .td.fler .td-c{flex-basis:calc(30% - 6px)}html.ny .td-t span{font-size:15px;line-height:19px}html.ny .td-t b{font-size:30px;line-height:34px}html.ny .td-rb{width:52px;height:52px}html.ny .td-rb svg{width:24px;height:24px}}
