@@ -3332,12 +3332,13 @@ function skyFx(W){const sc=wxScene(W),wet=/^(drizzle|rain|sleet)$/.test(sc.type)
   for(let j=0;j<np;j++){const mid=1-Math.abs((j+.5)/np-.5)*2,r=(t==='hi'?6:8)+mid*(t==='hi'?5:7)+rnd(k+j*3)*4,x=12+(j+.5)*16+(rnd(k+j*3+1)-.5)*4;P.push([x,B-r*.62,r])}
   const big=t!=='hi'&&np>=4,Bb=B+(t==='hi'?4:8),w2=w*(VW+12)/VW,h=w2*58/(VW+12);
   return{svg:'<svg viewBox="-6 -10 '+(VW+12)+' 58" width="'+f(w2)+'" height="'+f(h)+'">'+iconCloud(P,8,VW-8,Bb,c,{back:big,dash:t!=='hi',seed:k})+'</svg>',h}};
+  // molnen i samma höjd går lika fort med jämna mellanrum, så att de aldrig klumpar ihop sig och lämnar himlen tom
  const band={hi:[3,12],mid:[10,24],lo:[20,32]},dur={hi:220,mid:100,lo:52};
  let k=0,cs='';
  [['hi',N[0],lite],['mid',N[1],mid],['lo',N[2],dark]].forEach(([t,n,c])=>{for(let j=0;j<n;j++){k+=7;
-  const w=t==='hi'?34+rnd(k)*16:t==='mid'?46+rnd(k)*26:sky==='fog'?120+rnd(k)*40:62+rnd(k)*30,top=band[t][0]+rnd(k+1)*(band[t][1]-band[t][0]),D=dur[t]*sp*(.8+rnd(k+2)*.45);
+  const w=t==='hi'?34+rnd(k)*16:t==='mid'?46+rnd(k)*26:sky==='fog'?120+rnd(k)*40:62+rnd(k)*30,top=band[t][0]+rnd(k+1)*(band[t][1]-band[t][0]),D=dur[t]*sp;
    const{svg}=shape(t,k,j%2&&t!=='hi'?shadeHex(c,.95):c,w),bob=t==='hi'?12+rnd(k+3)*8:t==='mid'?7+rnd(k+3)*5:3.5+rnd(k+3)*2.5;
-   cs+='<div class="cl '+t+(sky==='fog'&&t==='lo'?' fog':'')+rev+'" style="top:'+f(top)+'%;--w:'+f(w)+'px;animation-duration:'+f(D)+'s;animation-delay:-'+f((j+rnd(k+4)*.7)/n*D)+'s"><i style="animation-duration:'+f(bob)+'s;animation-delay:-'+f(rnd(k+5)*bob)+'s">'+svg+'</i></div>'}});
+   cs+='<div class="cl '+t+(sky==='fog'&&t==='lo'?' fog':'')+rev+'" style="top:'+f(top)+'%;--w:'+f(w)+'px;animation-duration:'+f(D)+'s;animation-delay:-'+f(((j+.2+rnd(k+4)*.6)/n+(t==='mid'?.37:t==='lo'?.71:0))%1*D)+'s"><i style="animation-duration:'+f(bob)+'s;animation-delay:-'+f(rnd(k+5)*bob)+'s">'+svg+'</i></div>'}});
  return'<div class="skyfx" aria-hidden="true">'+s+'<div class="cls">'+cs+'</div></div>'}
 // översiktens ruta får vädervyns himmel (inte i UI 3.0 eller på väggtavlan)
 const heroSky=()=>!U3&&!wallBoardOn();
