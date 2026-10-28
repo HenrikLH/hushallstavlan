@@ -29,7 +29,7 @@ module.exports=async(pg,h)=>{const c=async s=>{await pg.locator(s).first().click
  // Tryck på pillret pausar
  await pg.mouse.click(x,y);await h.idle(500);ok(await d(`S.timers.find(t=>t.si===1).p!=null`),'tryck på pillret pausar');ok(await pg.locator(no(2)+'[data-open]').count()===1,'pillret står kvar efter omritning');
  await pg.mouse.click(x,y);await h.idle(500);ok(await d(`S.timers.find(t=>t.si===1).p==null`),'tryck igen fortsätter');
- await h.idle(5600);console.log(await d('JSON.stringify(PILL)+(Date.now())'));ok(!await pg.locator(no(2)+'[data-open]').count(),'ring igen efter 5 s');
+ await h.idle(10600);console.log(await d('JSON.stringify(PILL)+(Date.now())'));ok(!await pg.locator(no(2)+'[data-open]').count(),'ring igen efter 10 s');
  const tx2=await pg.evaluate(()=>document.querySelector('.cook .tp-r:nth-child(2) .tp-t').getBoundingClientRect().left);ok(Math.abs(tx2-tx0)<2,'staplarna tillbaka');
  // Håll in ett öppet piller: menyn
  await pg.mouse.move(x,y);await pg.mouse.down();await h.idle(800);await pg.mouse.up();await h.idle(300);await pg.mouse.move(x,y);await pg.mouse.down();await h.idle(800);await pg.mouse.up();await h.idle(500);

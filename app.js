@@ -4501,12 +4501,12 @@ addEventListener('online',()=>{const saved=recipeDraftRead();if(saved&&saved.edi
 /* ---------- timers, clock, wake lock ---------- */
 /* Timerpillret (Henriks val C): håll in ringen vid stegsiffran. Ringen växer och ett sken breder ut sig runt fingret medan man håller (förväntan),
    släpper man för tidigt fjädrar den tillbaka. Efter 0,45 s fjädrar den ut till ett piller med tiden och staplarna skjuts åt höger.
-   Efter 5 s blir det en ring igen. Tryck på pillret pausar/fortsätter (färdig: stänger), håll in pillret ger menyn */
+   Efter 10 s blir det en ring igen. Tryck på pillret pausar/fortsätter (färdig: stänger), håll in pillret ger menyn */
 const fjader=(()=>{const m={};return(resp,damp)=>{const k=resp+','+damp;if(m[k])return m[k];const w=2*Math.PI/resp,wd=w*Math.sqrt(1-damp*damp),f=t=>1-Math.exp(-damp*w*t)*(Math.cos(wd*t)+damp*w/wd*Math.sin(wd*t));
  let T=.05;for(;T<3;T+=.01){let ok=1;for(let u=T;u<T+.2;u+=.02)if(Math.abs(1-f(u))>.002)ok=0;if(ok)break}const p=[];for(let i=0;i<=40;i++)p.push(i<40?f(T*i/40).toFixed(3):'1');
  return m[k]={e:'linear('+p.join(',')+')',d:Math.round(T*1000)}}})();
 const TRH=450,pillW=no=>{const d=no.querySelector('.trg').offsetWidth,l=no.querySelector('.tpl'),f=l.style.flex;l.style.flex='none';const w=l.offsetWidth;l.style.flex=f;return d+w+Math.round(d*.4)};
-function pillSet(no,open,anim){const tp=no.closest('.tp');if(!tp)return;const ring=no.querySelector('.trg'),d=ring.offsetWidth,s=anim?fjader(open?.4:.34,open?.7:1):{e:'linear',d:0};
+function pillSet(no,open,anim){const tp=no.closest('.tp');if(!tp)return;const ring=no.querySelector('.trg'),d=ring.offsetWidth,s=anim?fjader(open?.5:.34,open?.28:1):{e:'linear',d:0};
  no.style.setProperty('--fe',s.e);no.style.setProperty('--fd',s.d+'ms');tp.style.setProperty('--fe',s.e);tp.style.setProperty('--fd',s.d+'ms');
  if(open){const w=pillW(no);PILL.w=w;PILL.px=w-no.offsetHeight+8;tp.querySelectorAll('.no[data-open]').forEach(x=>{if(x!==no)pillSet(x,false,false)});no.dataset.open=1;no.style.width=w+'px';tp.style.setProperty('--px',PILL.px+'px');tp.classList.add('push')}
  else{delete no.dataset.open;no.style.width='';tp.classList.remove('push')}}
@@ -4521,9 +4521,9 @@ const trGlow=()=>lsGet('trAnim')==='glow';
   b.classList.add('str');b.style.setProperty('--fd','0ms');if(tp){tp.style.setProperty('--fd','0ms');tp.classList.add('push')}raf=requestAnimationFrame(f)};
  const stop=()=>{clearTimeout(h);clearTimeout(men);cancelAnimationFrame(raf);if(no&&!no.dataset.open){const s=fjader(.3,.6),tp=no.closest('.tp');if(trGlow()){no.style.setProperty('--fe',s.e);no.style.setProperty('--fd',s.d+'ms')}else{const r=fjader(.32,.42);[no,tp].forEach(x=>{if(x){x.style.setProperty('--fe',r.e);x.style.setProperty('--fd',r.d+'ms')}});no.style.width='';no.style.transform='';if(tp)tp.classList.remove('push')}}if(no)no.classList.remove('hold','str');no=null};
  addEventListener('pointerdown',e=>{const b=e.target.closest&&e.target.closest('.tp-r.tr .no[data-k]');if(!b)return;sup=0;no=b;T0=Date.now();x0=e.clientX;y0=e.clientY;const k=b.dataset.k;
-  if(b.dataset.open){men=setTimeout(()=>{sup=Date.now();stop();PILL.until=Date.now()+5000;ACT.tmrMenu(k)},550);return}
+  if(b.dataset.open){men=setTimeout(()=>{sup=Date.now();stop();PILL.until=Date.now()+10000;ACT.tmrMenu(k)},550);return}
   if(trGlow())b.classList.add('hold');else{const d=b.querySelector('.trg').offsetWidth;strain(b,performance.now(),pillW(b),d)}
-  h=setTimeout(()=>{sup=Date.now();cancelAnimationFrame(raf);b.classList.remove('hold','str');b.style.transform='';PILL.k=k;PILL.until=Date.now()+5000;pillSet(b,true,true);try{navigator.vibrate&&navigator.vibrate(10)}catch(e){}no=null},TRH)},true);
+  h=setTimeout(()=>{sup=Date.now();cancelAnimationFrame(raf);b.classList.remove('hold','str');b.style.transform='';PILL.k=k;PILL.until=Date.now()+10000;pillSet(b,true,true);if(!trGlow()&&b.animate)b.animate([{transform:'scaleY(.9)'},{transform:'scaleY(.78)',offset:.22},{transform:'scaleY(1.1)',offset:.5},{transform:'scaleY(.96)',offset:.75},{transform:'none'}],{duration:520,easing:'ease-out'});try{navigator.vibrate&&navigator.vibrate(10)}catch(e){}no=null},TRH)},true);
  addEventListener('pointermove',e=>{if(no&&Math.hypot(e.clientX-x0,e.clientY-y0)>10)stop()},true);
  // Ett påbörjat håll som släpps (över 0,3 s) byter inte heller steg
  addEventListener('pointerup',()=>{if(no&&!no.dataset.open&&Date.now()-T0>300)sup=1;stop()},true);addEventListener('pointercancel',stop,true);
@@ -4531,7 +4531,7 @@ const trGlow=()=>lsGet('trAnim')==='glow';
  // Klicket efter ett håll ska inte byta steg; tryck på ett öppet piller pausar i stället
  addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.tp-r.tr .no[data-k]');if(!b)return;
   if(sup){sup=0;e.stopPropagation();e.preventDefault();return}
-  if(b.dataset.open){e.stopPropagation();e.preventDefault();const k=b.dataset.k,t=S.timers.find(x=>x.k===k);if(!t)return;PILL.until=Date.now()+5000;
+  if(b.dataset.open){e.stopPropagation();e.preventDefault();const k=b.dataset.k,t=S.timers.find(x=>x.k===k);if(!t)return;PILL.until=Date.now()+10000;
    if(t.ring||tmKvar(t)<=0){PILL.k=null;ACT.timerStop(k)}else ACT.tpTimer(null,{dataset:{k}})}},true)})();
 let actx=null;function unlockAudio(){try{actx=actx||new(window.AudioContext||window.webkitAudioContext)();actx.resume&&actx.resume()}catch(e){}}
 function beep(){if(!actx)return;try{for(let i=0;i<3;i++){const o=actx.createOscillator(),g=actx.createGain();o.frequency.value=880;o.connect(g);g.connect(actx.destination);const t=actx.currentTime+i*.35;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.3,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+.25);o.start(t);o.stop(t+.3)}}catch(e){}}
