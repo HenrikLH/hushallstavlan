@@ -3398,10 +3398,10 @@ function gpuLager1(svg,M){const NS='http://www.w3.org/2000/svg',n=++FIG_N,cs=get
  const töm=e=>[...e.children].forEach(c=>{if(GL_RES.test(c.tagName))return;if(c.querySelector('defs,clipPath,mask,linearGradient,radialGradient,filter,pattern'))töm(c);else c.remove()});
  töm(svg);svg.classList.add('gl-o');svg.after(ov)}
 function loopSync(){try{document.getAnimations().forEach(a=>{if(a.startTime!==0&&a.playState==='running'&&a.effect&&a.effect.getTiming().iterations===Infinity)a.startTime=0})}catch(e){}}
-/* Gemensam skärm (väggläge, eller datorn med ljustjänsten): när tavlan vilar (nattläge, eller mörkt rum och ingen har rört den
-   på två minuter) står de ändlösa animationerna (löv, hundar, moln, stjärnor) still. Annars går de fritt i 60 bilder/s på
-   grafikkretsen (gpuLager), så processorn behöver inte rita dem */
-function vilaTick(){try{const n=Date.now(),vila=(S.wall||CAM.src==='als')&&(nightOn()||CAM.dark&&n-(A.touch||0)>120000);
+/* Gemensam skärm (väggläge, eller datorn med ljustjänsten): i nattläget (skärmen släckt) står de ändlösa animationerna
+   (löv, hundar, moln, stjärnor) still. Annars, även på kvällen i mörkt rum, går de fritt i 60 bilder/s på grafikkretsen
+   (gpuLager), så processorn behöver inte rita dem */
+function vilaTick(){try{const vila=(S.wall||CAM.src==='als')&&nightOn();
  if(!vila&&!vilaTick.v)return;vilaTick.v=vila;
  document.getAnimations().forEach(a=>{if(!a.effect||a.effect.getTiming().iterations!==Infinity)return;if(vila&&a.playState==='running')a.pause();else if(!vila&&a.playState==='paused')a.play()})}catch(e){}}
 setInterval(vilaTick,1000);
