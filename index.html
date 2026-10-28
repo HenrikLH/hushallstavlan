@@ -1469,12 +1469,14 @@ body.dragging .bwx-h{scroll-snap-type:none}
 .bhero .hero-wx .wx-now{justify-content:flex-start}
 .bhero .hero-wx .fig-box{grid-column:2;grid-row:1/span 4;margin:0}
 .bhero .fig-tip{margin-top:6px}
-/* UI 2.0 på väggtavlan: vädret uppe till höger under kugghjulet, översiktens bild längst ner ovanför regnraden */
+/* UI 2.0 på väggtavlan: vädret i övre högra hörnet bredvid klockan, översiktens bild längst ner ovanför regnraden */
 .bhero .hero:has(.hero-pic){flex:1 1 auto;display:flex;flex-direction:column;position:relative;min-height:0}
 .bhero .hero:has(.hero-pic)+.bwx{flex:0 0 auto}
-.bhero .hero-wx.wbt{position:absolute;top:142px;right:22px;margin:0;display:flex;flex-direction:column;align-items:flex-end;text-align:right;gap:0}
-.bhero .hero-wx.wbt .wx-now{justify-content:flex-end}
-.bhero .hero-wx.wbt .fig-tip{margin-top:4px;text-align:right;max-width:200px}
+.bhero .hero-wx.wbt{position:absolute;top:22px;right:22px;margin:0;display:flex;flex-direction:column;align-items:flex-end;text-align:right;gap:0}
+.bhero .hero-wx.wbt .wx-now{flex-direction:column;align-items:flex-end;gap:2px}
+.bhero .hero-wx.wbt .fig-tip{margin-top:4px;text-align:right;max-width:120px}
+/* stjärnbildens namn innanför kortet (himlen sticker ut åt sidorna och tonas bort där) */
+.gs.wb>.skyfx .stjn{right:136px;top:8px}
 .hero-pic{display:block;margin:auto auto -14px;transform:translateX(34px);padding:0;background:none;border:0;color:inherit;font:inherit;cursor:pointer}
 .hero-pic .gs.wb{position:relative;width:250px;padding-top:66px;margin:0 auto}
 .gs.wb .fig-box.grass{width:250px;height:222px}
@@ -2256,7 +2258,7 @@ html.ny.seg-kapsel .create-options{border-radius:22px}
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=202"></script>
+<script src="app.js?v=203"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
