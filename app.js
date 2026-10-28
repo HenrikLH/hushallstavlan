@@ -3605,8 +3605,10 @@ const pcls=p=>'p'+(Math.max(0,people().indexOf(p))+1);
 const matBudget=m=>{const M=ekoData().matM||{},k=M[m]!=null?m:Object.keys(M).filter(x=>x<m).sort().pop();return k?{m:k,b:Number(M[k])||0}:null};
 function matSec(c,m){const mb=matBudget(m),pct=x=>(x*100).toFixed(1).replace('.',',')+' %';
  let h=sh('Matbudget',mb?'<button class="linkbtn" data-act="ekoMat">Ändra</button>':'');
- return h+rgroup('E10',!mb?'<button class="cell link" data-act="ekoMat"><span class="grow" style="color:var(--accent)">Ange matbudget</span>'+chevron+'</button>':'<div class="cell"><span class="grow">Budget för '+esc(monthName(m))+'</span><span class="val num" style="color:var(--ink)">'+nv('e-mat',mb.b,'kr')+'</span></div>'+
-  c.per.map(x=>'<div class="cell pc '+pcls(x.p)+'"><span class="grow pcn"><span class="pdot '+pcls(x.p)+'"></span>'+esc(personLabel(x.p))+' <span class="muted num">'+pct(x.share)+'</span></span><span class="val num" style="color:var(--ink)">'+nv('e-mat-'+x.p,Math.ceil(mb.b*x.share/10-1e-9)*10,'kr')+'</span></div>').join(''))+(!mb?'':
+ // Samma ruta som E2: stapel med fördelningen, var och ens del till Matkontot och totalen under
+ return h+'<div class="group"'+RF('E10')+'>'+(!mb?'<button class="cell link" data-act="ekoMat"><span class="grow" style="color:var(--accent)">Ange matbudget</span>'+chevron+'</button></div>':'<div class="cell eko-split"><div class="splitbar" role="img" aria-label="Matbudget '+c.per.map(x=>personLabel(x.p)+' '+pct(x.share)).join(', ')+'">'+c.per.map(x=>'<i class="'+pcls(x.p)+'" style="flex:'+Math.max(x.share,.0001)+'"></i>').join('')+'</div>'+
+  '<div class="splitleg">'+c.per.map(x=>'<div class="pc '+pcls(x.p)+'"><span class="fn pcn"><span class="pdot '+pcls(x.p)+'"></span>'+esc(personLabel(x.p))+'</span><b class="num">'+nv('e-mat-'+x.p,Math.ceil(mb.b*x.share/10-1e-9)*10,'kr')+'</b><span class="fn num">'+pct(x.share)+'</span></div>').join('')+'</div></div>'+
+  '<div class="cell"><span class="grow muted">Totalt</span><span class="val num" style="color:var(--ink)">'+nv('e-mat',mb.b,'kr')+'</span></div></div>'+
   '<div class="foot">Var och en för över sin del till Matkontot, fördelat efter inkomsten'+(c.src?' i '+esc(monthName(c.src)):'')+' och avrundat uppåt till 10 kr.'+(mb.m!==m?' Samma budget som '+esc(monthName(mb.m))+'.':'')+'</div>')}
 /* Stående överföring från ett låst konto till betalkontot. Gemensamma utgifter dras från kontot
    Våra fasta utgifter, egna utgifter från var och ens konto Mina fasta utgifter. När man bekräftar sparas

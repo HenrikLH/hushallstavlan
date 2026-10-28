@@ -8,7 +8,7 @@ module.exports=async(pg,h)=>{const c=async s=>{await pg.locator(s).first().click
  assert.equal(await rd('S.sheet'),'matb');
  await pg.fill('.sheet input[name="b"]','8000');await c('.sheet .tb.strong');await h.waitFlush();await h.idle(500);
  assert.equal(await rd('matBudget(thisMonth()).b'),8000);
- const t=await pg.locator('[data-ref="E10"], .group:has([data-act="ekoMat"]), .group').filter({hasText:'Budget för'}).first().innerText();
+ const t=await pg.locator('[data-ref="E10"]').innerText();
  console.log(t.replace(/\n+/g,' | '));
  assert.match(t,/4\s?540/);assert.match(t,/3\s?470/);
  await pg.locator('.foot',{hasText:'Matkontot'}).first().evaluate(el=>el.scrollIntoView({block:'center'}));await h.idle(300);
