@@ -28,19 +28,19 @@
   --tabbar:62px; --tabgap:max(calc(var(--sab) - 8px),12px); --side:260px; --navbar:44px;
   --sat:env(safe-area-inset-top,0px); --sab:env(safe-area-inset-bottom,0px);
   --sal:env(safe-area-inset-left,0px); --sar:env(safe-area-inset-right,0px);
-  --sky-star:#C9AE6A; --sky-moon:#E8D395; /* nattens stjärnor och måne: gulaktiga i ljust läge, annars syns de inte mot det vita */
+  --sky-star:#C9AE6A; --sky-moon:#E8D395; --fog:rgba(140,152,172,.45); /* nattens stjärnor och måne: gulaktiga i ljust läge, annars syns de inte mot det vita */
   color-scheme:light;
 }
 @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
   --bg:#000000; --surface:#1C1C1E; --surface-raised:#2C2C2E; --fill:rgba(118,118,128,.24);
-  --sky-star:#FFFFFF; --sky-moon:#EEF1FA; --ink:#FFFFFF; --ink-2:rgba(235,235,245,.6); --ink-3:rgba(235,235,245,.3); --line:rgba(84,84,88,.65);
+  --sky-star:#FFFFFF; --sky-moon:#EEF1FA; --fog:rgba(165,175,198,.3); --ink:#FFFFFF; --ink-2:rgba(235,235,245,.6); --ink-3:rgba(235,235,245,.3); --line:rgba(84,84,88,.65);
   --accent:#EC7088; --accent-soft:rgba(236,112,136,.22); --on-accent:#22090F;
   --red:#FF453A; --orange:#FF9F0A; --green:#30D158;
   --bar:rgba(22,22,24,.92); --glass:rgba(36,36,38,.7); --glass-line:rgba(255,255,255,.1); --pill:rgba(255,255,255,.14); --track:#3A3A3C; --seg-on:#636366;
   --veg-ink:#30D158; --gem-ink:#FF9F0A; --p1:#8C8FF2; --p1-soft:rgba(140,143,242,.22); --p1-ink:#AEB0FF; --p2:#35C2B5; --p2-soft:rgba(53,194,181,.2); --p2-ink:#62D8CC; --meat-bg:rgba(172,142,104,.24); --meat-ink:#C8A57A; color-scheme:dark }}
 :root[data-theme="dark"]{
   --bg:#000000; --surface:#1C1C1E; --surface-raised:#2C2C2E; --fill:rgba(118,118,128,.24);
-  --sky-star:#FFFFFF; --sky-moon:#EEF1FA; --ink:#FFFFFF; --ink-2:rgba(235,235,245,.6); --ink-3:rgba(235,235,245,.3); --line:rgba(84,84,88,.65);
+  --sky-star:#FFFFFF; --sky-moon:#EEF1FA; --fog:rgba(165,175,198,.3); --ink:#FFFFFF; --ink-2:rgba(235,235,245,.6); --ink-3:rgba(235,235,245,.3); --line:rgba(84,84,88,.65);
   --accent:#EC7088; --accent-soft:rgba(236,112,136,.22); --on-accent:#22090F;
   --red:#FF453A; --orange:#FF9F0A; --green:#30D158;
   --bar:rgba(22,22,24,.92); --glass:rgba(36,36,38,.7); --glass-line:rgba(255,255,255,.1); --pill:rgba(255,255,255,.14); --track:#3A3A3C; --seg-on:#636366;
@@ -809,6 +809,14 @@ html.ny .chip.lk::before{display:none}
 .skyfx .cl.rev{animation-direction:reverse}
 .skyfx .cl>i{position:absolute;right:100%;top:0;display:block;line-height:0;animation:clBob 8s ease-in-out infinite alternate}
 .skyfx .cl.hi>i{animation-name:clShim}.skyfx .cl.lo>i{animation-name:clRoll}.skyfx .cl.fog>i{opacity:.55}
+/* dimma: mjuka dimbankar som driver långsamt i stället för moln, månen/solen beslöjad, dimma över marken (b, c) och bleka träd och hundar (c) */
+.skyfx .cl.fg>i{animation:none}.skyfx .fgb{display:block;border-radius:50%;background:radial-gradient(closest-side,var(--fog),transparent)}
+.skyfx.fog~.arc .sky-b{opacity:.5;filter:blur(.8px)}.skyfx.fog.c~.arc .sky-b{opacity:.32;filter:blur(1.6px)}
+.gs>.fgm{position:absolute;right:-10px;bottom:0;width:230px;height:190px;pointer-events:none;z-index:2;overflow:visible}.wx2-gs>.fgm{right:-15px;width:345px;height:285px}.gs.wb>.fgm{right:-6px;width:360px;height:297px}
+.fgm>i{position:absolute;left:-15%;width:130%;border-radius:50%;background:radial-gradient(closest-side,var(--fog),var(--fog) 35%,transparent);animation:fgDrift 14s ease-in-out infinite alternate}
+.fgm.c::before{content:'';position:absolute;inset:8% -12% 0;border-radius:50%;background:radial-gradient(closest-side,var(--fog),transparent)}
+.gs:has(>.fgm.c)>.bd{opacity:.5}.gs:has(>.fgm.c)>.fig-box{opacity:.82}
+@keyframes fgDrift{from{transform:translateX(-6%)}to{transform:translateX(6%)}}
 @keyframes clMove{from{transform:translateX(0)}to{transform:translateX(calc(100% + var(--w)))}}
 @keyframes clShim{from{opacity:.4;transform:scaleX(.96)}to{opacity:.8;transform:scaleX(1.04)}}
 @keyframes clBob{from{transform:translateY(-2.5px) scale(1)}to{transform:translateY(2.5px) scale(1.04,.96)}}
@@ -818,7 +826,7 @@ html.ny .chip.lk::before{display:none}
 .gl i{position:absolute;left:0;top:0;width:0;height:0;display:block}
 .gl svg{position:absolute!important;left:0!important;top:0!important;width:1px!important;height:1px!important;overflow:visible!important;margin:0!important;padding:0!important;opacity:1!important;filter:none!important;transform:none!important;mask:none!important;animation:none!important}
 .gl svg *,.gl-o,.gl-o *{animation:none!important}
-@media (prefers-reduced-motion:reduce){.skyfx .st,.skyfx .cl,.skyfx .cl>i,.skyfx .rot{animation:none}.skyfx .sk{display:none}}
+@media (prefers-reduced-motion:reduce){.skyfx .st,.skyfx .cl,.skyfx .cl>i,.skyfx .rot,.fgm>i{animation:none}.skyfx .sk{display:none}}
 .wx2-gs{width:210px;margin:18px -4px 0 auto;padding:0}
 .wx2-gs .fig-box.grass{width:210px;height:186px}
 .wx2-gs>.bd{right:-15px;width:345px;height:285px}

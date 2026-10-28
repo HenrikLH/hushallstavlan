@@ -3320,7 +3320,7 @@ function skyFx(W){const sc=wxScene(W),wet=/^(drizzle|rain|sleet)$/.test(sc.type)
  if(!base)return s?'<div class="skyfx" aria-hidden="true">'+s+'</div>':'';
  const lite=tone(mixHex(base,'#FFFFFF',.35)),mid=tone(base),dark=tone(wet||snow||sc.thunder?shadeHex(base,.82):mixHex(base,'#9AA8BC',.35));
  // antalet moln följer det verkliga molntäcket (met.no cloud_area_fraction): helt mulet ger ett tätt täcke i tre lager, mindre moln ger stegvis färre, klart inga
- const N=sky==='fog'?[0,1,2]:[4,6,3].map((m,i)=>Math.round(m*cov+(i===1?.4:0)));
+ const N=sky==='fog'?[0,0,0]:[4,6,3].map((m,i)=>Math.round(m*cov+(i===1?.4:0)));
  const sp=1/(.75+sc.wl*.35),rev=sc.dir<0?' rev':'';
  // former: höga är tunna slöjor, mellersta runda stackmoln, låga breda och mörka i underkanten
  // samma ikonmoln som vid solen: runda tussar på en rundad bas med mjuk toning nedåt, varje moln med egen form och storlek
@@ -3335,7 +3335,14 @@ function skyFx(W){const sc=wxScene(W),wet=/^(drizzle|rain|sleet)$/.test(sc.type)
   const w=t==='hi'?34+rnd(k)*16:t==='mid'?46+rnd(k)*26:sky==='fog'?120+rnd(k)*40:62+rnd(k)*30,top=band[t][0]+rnd(k+1)*(band[t][1]-band[t][0]),D=dur[t]*sp;
    const{svg}=shape(t,k,j%2&&t!=='hi'?shadeHex(c,.95):c,w),bob=t==='hi'?12+rnd(k+3)*8:t==='mid'?7+rnd(k+3)*5:3.5+rnd(k+3)*2.5;
    cs+='<div class="cl '+t+(sky==='fog'&&t==='lo'?' fog':'')+rev+'" style="top:'+f(top)+'%;--w:'+f(w)+'px;animation-duration:'+f(D)+'s;animation-delay:-'+f(((j+.2+rnd(k+4)*.6)/n+(t==='mid'?.37:t==='lo'?.71:0))%1*D)+'s"><i style="animation-duration:'+f(bob)+'s;animation-delay:-'+f(rnd(k+5)*bob)+'s">'+svg+'</i></div>'}});
- return'<div class="skyfx" aria-hidden="true">'+s+'<div class="cls">'+cs+'</div></div>'}
+ // dimma: breda, mjuka dimbankar i olika höjd som driver långsamt, så att det syns att det är dimma och inte moln
+ if(sky==='fog')for(let j=0;j<6;j++){k+=7;const w=240+rnd(k)*160,hh=24+rnd(k+2)*22,D=(170+rnd(k+3)*90)*sp;
+  cs+='<div class="cl fg'+rev+'" style="top:'+f(6+j*14+rnd(k+1)*6)+'%;--w:'+f(w)+'px;animation-duration:'+f(D)+'s;animation-delay:-'+f(((j*.43+rnd(k+4)*.3)%1)*D)+'s"><i class="fgb" style="width:'+f(w)+'px;height:'+f(hh)+'px;opacity:'+(.7+rnd(k+5)*.3).toFixed(2)+'"></i></div>'}
+ return'<div class="skyfx'+(sky==='fog'?' fog '+DIMMA:'')+'" aria-hidden="true">'+s+'<div class="cls">'+cs+'</div></div>'}
+// dimma över marken: band som ligger över trädets stam och hundarnas nedre del (förslag b och c)
+const DIMMA=lsGet('dimma')||'b';
+function fogMist(W){if(DIMMA==='a'||wxScene(W).sky!=='fog')return'';const B=DIMMA==='c'?[[0,16],[12,18],[26,16],[42,14]]:[[0,14],[13,15],[28,12]];
+ return'<div class="fgm '+DIMMA+'" aria-hidden="true">'+B.map(([b,h],i)=>'<i style="bottom:'+b+'%;height:'+h+'%;animation-duration:'+(11+i*4)+'s;animation-delay:-'+(i*5)+'s'+(i%2?';animation-direction:alternate-reverse':'')+'"></i>').join('')+'</div>'}
 // översiktens ruta får vädervyns himmel (inte i UI 3.0 eller på väggtavlan)
 const heroSky=()=>!U3&&!wallBoardOn();
 // b (vald): bågen i högra delen av rutan bakom temperaturen; a = bågen tätt över hundarna
@@ -3348,7 +3355,7 @@ function heroHtml(){const n=new Date(),t=today(),dy=EXT.day&&EXT.day.date===t?EX
  const sun=sunTimes(t,P.lat,P.lon);
  let wx='';
  if(W){const[ic,tx]=symInfo(W.now.s),d0=W.days[0]||{},F=wxToday(W);
-  const wb=wallBoardOn(),gs='<div class="gs '+grassV()+(wb?' wb':'')+'">'+(grassV()==='a'?(wb&&!U3?skyFx(W):'')+arcHtml(W,'a'):'')+(BAKGRUND?backdropSvg(wxScene(W)):'')+'<div class="fig-box grass" aria-hidden="true">'+figSvg(wxScene(W),{bare:1,patch:1,nocl:grassV()==='b'&&heroSky()||wb&&!U3})+'</div></div>';
+  const wb=wallBoardOn(),gs='<div class="gs '+grassV()+(wb?' wb':'')+'">'+(grassV()==='a'?(wb&&!U3?skyFx(W):'')+arcHtml(W,'a'):'')+(BAKGRUND?backdropSvg(wxScene(W)):'')+'<div class="fig-box grass" aria-hidden="true">'+figSvg(wxScene(W),{bare:1,patch:1,nocl:grassV()==='b'&&heroSky()||wb&&!U3})+'</div>'+fogMist(W)+'</div>';
   wx='<button class="hero-wx'+(wb&&grassOn()?' wbt':'')+'" data-act="nav" data-id="vader" aria-label="Väder: '+esc(tx)+', '+deg(W.now.T)+'. Öppna vädret">'+
    '<div class="wx-now"><span class="wx-ic" aria-hidden="true">'+ic+'</span><span class="wx-t num">'+deg(W.now.T)+'</span></div>'+
    '<div class="fn">'+esc(tx)+'</div><div class="fn num">H:'+deg(d0.max)+' L:'+deg(d0.min)+'</div>'+
@@ -3466,7 +3473,7 @@ V.vader=function(){const W=wxModel(),P=WX_POS();
  if(WXVY==='kurva')h+=wxHeroC(W,P,ic,tx,d0,F,sun);
  else h+='<section class="wx2"'+RF('W1')+'><div class="wx2-top"><div><div class="wx-place">'+esc(P.name)+'</div><div class="wx-big num" id="lt">'+deg(W.now.T)+'</div></div>'+
   '<div class="wx2-r"><div class="wx2-cond"><span aria-hidden="true">'+ic+'</span>'+esc(tx)+'</div><div class="wx-hl num">H:'+deg(d0.max)+'  L:'+deg(d0.min)+'</div></div></div>'+
-  skyFx(W)+arcHtml(W,'w')+'<div class="gs wx2-gs">'+(BAKGRUND?backdropSvg(wxScene(W)):'')+'<button class="fig-box grass" data-act="wxVar" aria-label="Visa andra hundar">'+figSvg(wxScene(W),{bare:1,patch:1,nocl:1})+'</button></div>'+
+  skyFx(W)+arcHtml(W,'w')+'<div class="gs wx2-gs">'+(BAKGRUND?backdropSvg(wxScene(W)):'')+'<button class="fig-box grass" data-act="wxVar" aria-label="Visa andra hundar">'+figSvg(wxScene(W),{bare:1,patch:1,nocl:1})+'</button>'+fogMist(W)+'</div>'+
   '<div class="wx2-bar"><div><b>'+esc(capS(F.when))+'</b><span>'+esc(F.tip)+'</span></div><div><b>Vind</b><span>'+esc(windText(W.now))+'</span></div></div></section>';
  // Timmar (ingår i dagskurvan)
  if(WXVY!=='kurva')h+='<div class="group wx-card"'+RF('W3')+'><div class="wx-cap">'+I.clock+'Kommande timmar</div><div class="hours" role="list">'+W.hours.slice(0,25).map((x,k)=>{const[ii]=symInfo(x.s);
