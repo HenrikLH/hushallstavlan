@@ -3279,9 +3279,9 @@ function skyHoles(sx,L,sun){const cl=sx.querySelector('.cls');if(!cl)return;cons
  // solen och månen: molnen tonas bort där de passerar, så att de aldrig skymmer dem
  if(sun)m.push('radial-gradient(closest-side,#000 70%,transparent) '+Math.round(sun.x-sun.r)+'px '+Math.round(sun.y-sun.r)+'px/'+Math.round(sun.r*2)+'px '+Math.round(sun.r*2)+'px no-repeat');
  const g=sx.parentNode;[...g.querySelectorAll(':scope>.wx2-top>div')].map(d=>[...d.children]).concat([[...g.querySelectorAll(':scope>.hero-l>*')],[...g.querySelectorAll(':scope>.hero-wx>.wx-now,:scope>.hero-wx>.fn')]]).forEach(es=>{
-  // varje textblock blir ett hål, så att hålen inte överlappar varandra
-  let a=null;es.forEach(e=>{const r=e.getBoundingClientRect();if(!r.height||r.top>L.bottom||r.bottom<L.top)return;a=a?{l:Math.min(a.l,r.left),t:Math.min(a.t,r.top),r:Math.max(a.r,r.right),b:Math.max(a.b,r.bottom)}:{l:r.left,t:r.top,r:r.right,b:r.bottom}});
-  if(a)m.push('radial-gradient(closest-side,#000 72%,transparent) '+Math.round(a.l-L.left-P*2)+'px '+Math.round(a.t-L.top-P)+'px/'+Math.round(a.r-a.l+P*4)+'px '+Math.round(a.b-a.t+P*2)+'px no-repeat')});
+  // varje textblock blir ett hål, så att hålen inte överlappar varandra. Rader med luft emellan (klockan och Sol/Namnsdag längst ner) blir egna hål, annars blir hålet en stor tom cirkel mitt i himlen
+  let a=null;const hal=()=>{if(a)m.push('radial-gradient(closest-side,#000 72%,transparent) '+Math.round(a.l-L.left-P*2)+'px '+Math.round(a.t-L.top-P)+'px/'+Math.round(a.r-a.l+P*4)+'px '+Math.round(a.b-a.t+P*2)+'px no-repeat');a=null};
+  es.forEach(e=>{const r=e.getBoundingClientRect();if(!r.height||r.top>L.bottom||r.bottom<L.top)return;if(a&&r.top>a.b+P*2)hal();a=a?{l:Math.min(a.l,r.left),t:Math.min(a.t,r.top),r:Math.max(a.r,r.right),b:Math.max(a.b,r.bottom)}:{l:r.left,t:r.top,r:r.right,b:r.bottom}});hal()});
  if(!m.length)return;const v='linear-gradient(#000,#000),'+m.join(',');cl.style.webkitMask=v;cl.style.mask=v;cl.style.webkitMaskComposite='xor';cl.style.maskComposite='exclude'}
 function skyFit1(sx){const pole=sx.querySelector('.pole');
  const L=sx.getBoundingClientRect(),me=sx.parentNode.querySelector(':scope>.arc .sky-b'),mr=me&&me.getBoundingClientRect(),M=mr&&{x:mr.left+mr.width/2-L.left,y:mr.top+mr.height/2-L.top};
