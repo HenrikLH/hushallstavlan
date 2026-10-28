@@ -2388,7 +2388,7 @@ function pickSheet(k,enter){
  // Knappen ligger under listan, utanför det som scrollar, så inga rader syns under den
  const foot='<div class="sw-foot"><button type="button" class="btn-fill" data-act="pickGo"'+(S.psel?'':' disabled')+'>'+esc(pickBtnTxt(k,S.psel))+'</button></div>';
  return sheetHtml(k,title,'<span class="tb" aria-hidden="true"></span>',body,enter).replace(/<\/form><\/div>$/,foot+'</form></div>')}
-function sheetHtml(form,title,right,body,enter,left){return'<div class="sheet'+enter+'" data-act="sheetBg"><form class="sheet-panel"'+RF({settings:'B1',prefs:'B2',shop:'B3',task:'B4',taskEdit:'B5',evEdit:'B6',cleanQuick:'B7',cost:'B8',income:'B9',dish:'B10',farg:'B11',fodAdd:'B12',ljuskal:'B13',ov:'B14',prot:'B15',rate:'B16',tmr:'B17',vagg:'B18',wish:'B19',taskMenu:'B20',evMenu:'B21',cleanMenu:'B22'}[form])+' data-form="'+form+'" role="dialog" aria-modal="true" aria-label="'+title+'"><div class="grabber" aria-hidden="true"></div><div class="sheet-head">'+(left||'<button type="button" class="tb" data-act="sheetClose">Avbryt</button>')+'<h2>'+title+'</h2>'+right+'</div><div class="sheet-body">'+body+'</div></form></div>'}
+function sheetHtml(form,title,right,body,enter,left){return'<div class="sheet'+enter+'" data-act="sheetBg"><form class="sheet-panel"'+RF({settings:'B1',prefs:'B2',shop:'B3',task:'B4',taskEdit:'B5',evEdit:'B6',cleanQuick:'B7',cost:'B8',income:'B9',matb:'B23',dish:'B10',farg:'B11',fodAdd:'B12',ljuskal:'B13',ov:'B14',prot:'B15',rate:'B16',tmr:'B17',vagg:'B18',wish:'B19',taskMenu:'B20',evMenu:'B21',cleanMenu:'B22'}[form])+' data-form="'+form+'" role="dialog" aria-modal="true" aria-label="'+title+'"><div class="grabber" aria-hidden="true"></div><div class="sheet-head">'+(left||'<button type="button" class="tb" data-act="sheetClose">Avbryt</button>')+'<h2>'+title+'</h2>'+right+'</div><div class="sheet-body">'+body+'</div></form></div>'}
 // slider i en rad: rubrik och värde överst, reglaget under och förklaring i ändarna
 const ljVal=(id,v)=>id==='ljMork'?luxTxt(morkLux(v)):v+(id==='ljKans'?'':' %');
 const ljSlider=(label,id,v,min,max,l,r)=>'<div class="cell lj-sl"><div class="lj-h"><span>'+label+'</span><span class="meta" data-ljv="'+id+'">'+ljVal(id,v)+'</span></div><input type="range" min="'+min+'" max="'+max+'" step="1" value="'+v+'" data-input="'+id+'" aria-label="'+label+'"><div class="lj-e"><span>'+l+'</span><span>'+r+'</span></div></div>';
@@ -2429,7 +2429,7 @@ function overlayKeepScroll(){const o=document.getElementById('overlay'),k=o.data
  const nb=o.querySelector('.sheet-body');if(y&&k&&o.dataset.k===k&&nb&&nb!==b)nb.scrollTop=y}
 function renderOverlay(){
  const o=document.getElementById('overlay');
- const k=S.cook?'cook':S.sheet==='settings'?'settings':S.sheet==='farg'?'farg':S.sheet==='vagg'?'vagg':S.sheet==='ljuskal'?'ljuskal':S.sheet==='rate'?'rate':S.sheet==='income'?'income':S.sheet==='cost'?'cost':S.sheet==='ov'?'ov':S.sheet==='prefs'?'prefs':S.sheet==='swap'?'swap':S.sheet==='prot'?'prot':S.sheet==='wish'?'wish':S.sheet==='shopMore'?'shopMore':S.sheet==='dess'?'dess':S.sheet==='slot'?'slot':S.sheet==='delLas'?'delLas':S.sheet==='dish'?'dish':S.sheet==='tmr'?'tmr':S.sheet==='tmrMenu'?'tmrMenu':S.rcpSheet?'rcpSheet':S.sheet==='cleanAdd'?'cleanAdd':S.sheet==='fodAdd'?'fodAdd':S.sheet==='taskMenu'?'taskMenu':S.sheet==='ekoMenu'?'ekoMenu':S.sheet==='evMenu'?'evMenu':S.sheet==='cleanMenu'?'cleanMenu':S.sheet==='taskEdit'?'taskEdit':S.sheet==='evEdit'?'evEdit':S.shopAdd?'shop':S.taskAdd?'task':'';
+ const k=S.cook?'cook':S.sheet==='settings'?'settings':S.sheet==='farg'?'farg':S.sheet==='vagg'?'vagg':S.sheet==='ljuskal'?'ljuskal':S.sheet==='rate'?'rate':S.sheet==='income'?'income':S.sheet==='matb'?'matb':S.sheet==='cost'?'cost':S.sheet==='ov'?'ov':S.sheet==='prefs'?'prefs':S.sheet==='swap'?'swap':S.sheet==='prot'?'prot':S.sheet==='wish'?'wish':S.sheet==='shopMore'?'shopMore':S.sheet==='dess'?'dess':S.sheet==='slot'?'slot':S.sheet==='delLas'?'delLas':S.sheet==='dish'?'dish':S.sheet==='tmr'?'tmr':S.sheet==='tmrMenu'?'tmrMenu':S.rcpSheet?'rcpSheet':S.sheet==='cleanAdd'?'cleanAdd':S.sheet==='fodAdd'?'fodAdd':S.sheet==='taskMenu'?'taskMenu':S.sheet==='ekoMenu'?'ekoMenu':S.sheet==='evMenu'?'evMenu':S.sheet==='cleanMenu'?'cleanMenu':S.sheet==='taskEdit'?'taskEdit':S.sheet==='evEdit'?'evEdit':S.shopAdd?'shop':S.taskAdd?'task':'';
  const prev=o.dataset.k||'';
  // Rita inte om ett öppet blad medan någon skriver i det
  if(k&&k!=='cook'&&k===prev&&busyTyping()&&o.contains(document.activeElement))return;
@@ -2542,6 +2542,10 @@ function renderOverlay(){
    sh('Vilken matlagning ska den ersätta?')+'<div class="vpick col" role="radiogroup" aria-label="Ersätter">'+SLOTS.map(x=>'<label><input type="radio" name="slot" value="'+esc(x)+'"'+(x===sel?' checked':'')+'><span>'+esc(x)+'</span></label>').join('')+'</div>'+
    '<div class="foot">Söndagens veckoplanering lägger rätten där i stället för det den annars hade valt. Önskemålen töms varje vecka.</div>';
   o.innerHTML=sheetHtml('wish','Önska till nästa vecka','<button class="tb strong">Önska</button>',body,enter);return}
+ if(k==='matb'){const m=S.ekoMonth||thisMonth(),mb=matBudget(m);
+  const body=sh('Matbudget från '+monthName(m))+group(fieldCell('Belopp per månad','<input class="field r" name="b" inputmode="numeric" value="'+esc(mb?mb.b:'')+'" placeholder="0 kr" style="max-width:150px" aria-label="Matbudget per månad">'))+
+   '<div class="foot">Gäller '+esc(monthName(m))+' och månaderna efter tills du ändrar. Var och ens del räknas fram från inkomsterna.</div>';
+  o.innerHTML=sheetHtml('matb','Matbudget','<button class="tb strong">Spara</button>',body,enter);return}
  if(k==='income'){const m=S.ekoMonth||thisMonth(),cur=(ekoInc()[m])||ekoInc()[prevIncMonth(m)]||{};
   const body=sh('Inkomst efter skatt, '+monthName(m))+group(people().map((p,i)=>fieldCell('<span class="pdot p'+(i+1)+'"></span>'+esc(personLabel(p)),'<input class="field r" name="p'+i+'" inputmode="numeric" value="'+esc(cur[p]||'')+'" placeholder="0 kr" style="max-width:150px" aria-label="Inkomst '+esc(personLabel(p))+'">')).join(''))+
    '<div class="foot">Fördelningen av de gemensamma utgifterna räknas fram från inkomsterna.</div>';
@@ -3596,6 +3600,14 @@ function ekoCalc(m){const o=ekoData(),ps=people(),all=ekoInc();let src=m,inc=all
   const dep=up(shared*share),pdep=up(own);return{p,inc:i,share,sharedPart:shared*share,dep,own,pdep,sum:dep+pdep,left:i-dep-pdep}});
  return{m,src,own:src===m,tot,shared,per,o}}
 const pcls=p=>'p'+(Math.max(0,people().indexOf(p))+1);
+/* Matbudget: gemensam, betalas till Matkontot efter månadens inkomstfördelning. Beloppet sparas per månad
+   i ekonomi.matM {'2026-10':8000} och gäller tills en senare månad får ett eget. */
+const matBudget=m=>{const M=ekoData().matM||{},k=M[m]!=null?m:Object.keys(M).filter(x=>x<m).sort().pop();return k?{m:k,b:Number(M[k])||0}:null};
+function matSec(c,m){const mb=matBudget(m),pct=x=>(x*100).toFixed(1).replace('.',',')+' %';
+ let h=sh('Matbudget',mb?'<button class="linkbtn" data-act="ekoMat">Ändra</button>':'');
+ return h+rgroup('E10',!mb?'<button class="cell link" data-act="ekoMat"><span class="grow" style="color:var(--accent)">Ange matbudget</span>'+chevron+'</button>':'<div class="cell"><span class="grow">Budget för '+esc(monthName(m))+'</span><span class="val num" style="color:var(--ink)">'+nv('e-mat',mb.b,'kr')+'</span></div>'+
+  c.per.map(x=>'<div class="cell pc '+pcls(x.p)+'"><span class="grow pcn"><span class="pdot '+pcls(x.p)+'"></span>'+esc(personLabel(x.p))+' <span class="muted num">'+pct(x.share)+'</span></span><span class="val num" style="color:var(--ink)">'+nv('e-mat-'+x.p,Math.ceil(mb.b*x.share/10-1e-9)*10,'kr')+'</span></div>').join(''))+(!mb?'':
+  '<div class="foot">Var och en för över sin del till Matkontot, fördelat efter inkomsten'+(c.src?' i '+esc(monthName(c.src)):'')+' och avrundat uppåt till 10 kr.'+(mb.m!==m?' Samma budget som '+esc(monthName(mb.m))+'.':'')+'</div>')}
 /* Stående överföring från ett låst konto till betalkontot. Gemensamma utgifter dras från kontot
    Våra fasta utgifter, egna utgifter från var och ens konto Mina fasta utgifter. När man bekräftar sparas
    beloppet, perioden och överföringsdagen i c.ov. Ändras något av dem måste överföringen i banken ändras
@@ -3648,6 +3660,7 @@ V.ekonomi=function(){if(ekoLocked())return ekoLock();const m=S.ekoMonth||thisMon
    '<div><span><span class="sw '+pcls(x.p)+' soft"></span>Egna fasta</span><b class="num">'+nv('e-pdep-'+x.p,x.pdep,'kr')+'</b></div>'+
    '<div class="tot"><span>Summa</span><b class="num">'+nv('e-sum-'+x.p,x.sum,'kr')+'</b></div></div></div>'}).join('')+'</div>';
  h+='<div class="foot">Avrundat uppåt till '+kr(o.round||100)+' med '+(o.buffer!=null?o.buffer:2)+' % buffert, som i kalkylen.</div>';
+ h+=matSec(c,m);
  // Gemensamma utgifter
  h+='<div class="split"><div class="col">';
  h+=ekoSec('shared','Gemensamma fasta',kr(c.shared)+'/mån',rgroup('E4',(o.shared||[]).map(x=>costRow(x,'shared',c.per)).join('')+'<button class="cell link" data-act="ekoCost" data-list="shared"><span class="grow" style="color:var(--accent)">Lägg till utgift</span></button>')+ovAllOk('shared'));
@@ -3938,7 +3951,7 @@ const ACT={
  fodMode(id){S.fodMode=id;lsSet('fodMode',id);render()},
  fodMon(id){S.fodMon=Number(id);render()},
  ekoMonth(id,el){S.ekoMonth=addMonths(S.ekoMonth||thisMonth(),Number(el.dataset.d));render()},
- ekoIncome(){S.sheet='income';render()},
+ ekoIncome(){S.sheet='income';render()}, ekoMat(){S.sheet='matb';render()},
  ekoCost(id,el){S.ekoEdit={list:el.dataset.list,id:id||null};S.sheet='cost';render()},
  ovShow(id,el){S.ekoEdit=null;S.ovEdit={list:el&&el.dataset.list||'shared',id};S.sheet='ov';render()},
  ekoFold(id){S.ekoFold=Object.assign({},S.ekoFold,{[id]:!(S.ekoFold||{})[id]});render()},
@@ -4285,6 +4298,9 @@ document.addEventListener('submit',async e=>{const f=e.target.closest('[data-for
    const it=D().events.find(x=>x.date===e.date&&x.time===e.time&&x.title===e.title);if(it)Object.assign(it,{title:t,date:d.date,time});
    apiPost({action:'eventEdit',id:e.id||'',date:e.date,time:e.time||'',title:e.title,fields:{title:t,date:d.date,allDay,start,end}});S.calDay=d.date;S.calMonth=ymKey(d.date);toast('Sparat')}
   render();return}
+ if(f.dataset.form==='matb'){const m=S.ekoMonth||thisMonth(),v=Math.round(Number(String(d.b||'').replace(/\s/g,'').replace(',','.')));
+  if(!(v>=0)){toast('Skriv ett belopp');return}
+  closeSheets();A.user=Date.now();updJSON('ekonomi',{},o=>{o.matM=Object.assign({},o.matM);o.matM[m]=v;return o});toast('Matbudgeten från '+monthName(m)+' är sparad');return}
  if(f.dataset.form==='income'){const m=S.ekoMonth||thisMonth(),v={};people().forEach((p,i)=>{v[p]=Math.round(Number(String(d['p'+i]||'').replace(/\s/g,'').replace(',','.'))||0)});
   closeSheets();A.user=Date.now();updJSON('ekonomi_inkomst',{},o=>{o[m]=v;return o});toast('Inkomsten för '+monthName(m)+' är sparad');return}
  if(f.dataset.form==='cost'){const e=S.ekoEdit||{},amt=Number(String(d.amount||'').replace(/\s/g,'').replace(',','.'));if(!d.name||!isFinite(amt))return;
