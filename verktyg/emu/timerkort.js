@@ -13,10 +13,10 @@ module.exports=async(pg,h)=>{const c=async s=>{await pg.locator(s).first().click
  await c('.cook .td-c .td-rb');ok(!await pg.locator('.cook .td-c.pau').count(),'fortsätter med knappen');
  // Tre timrar till: korten går utanför bild och kan svepas fram
  await d(`const r=S.cook.id,n=Date.now();S.timers.push({k:'b',label:'Steg 3',end:n+100000,ring:false,rid:r,si:2,dur:180000},{k:'c',label:'Egen timer',end:n+600000,ring:false,rid:r,si:-1,egen:1,dur:600000},{k:'e',label:'Steg 1',end:n-1000,ring:true,rid:r,si:0,dur:60000});render()`);await h.idle(600);
- ok(await pg.locator('.cook .td.fler .td-c').count()===4,'fyra kort');
+ ok(await pg.locator('.cook .td.fler .td-c').count()===4,'fyra kort');ok(await pg.evaluate(()=>document.querySelector('.cook .tp').nextElementSibling.classList.contains('td')),'raden ligger under tidsplanen');
  ok((await pg.locator('.cook .td-c').first().getAttribute('class')).includes('klar'),'färdig timer först');
  const sw=await pg.evaluate(()=>{const t=document.querySelector('.cook .td');return t.scrollWidth>t.clientWidth+20});ok(sw,'korten går utanför bild');
- ok(await pg.evaluate(()=>[...document.querySelectorAll('.cook .td-c')].every(c=>{const b=c.querySelector('b').getBoundingClientRect(),r=c.getBoundingClientRect(),k=c.querySelector('.td-rb').getBoundingClientRect();return b.right<=r.right-4&&b.top>=k.bottom-6})),'tiden får plats och krockar inte med knappen');
+ ok(await pg.evaluate(()=>[...document.querySelectorAll('.cook .td-c')].every(c=>{const b=c.querySelector('b').getBoundingClientRect(),r=c.getBoundingClientRect(),k=c.querySelector('.td-rb').getBoundingClientRect();return b.right<=k.left-2&&r.height<80})),'tiden får plats bredvid knappen och kortet är lågt');
  await h.shot('kort');
  await pg.evaluate(()=>document.querySelector('.cook .td').scrollBy({left:400}));await h.idle(500);
  ok(await pg.evaluate(()=>document.querySelector('.cook .td').scrollLeft>0),'svep i sidled');await h.shot('kort-svept');

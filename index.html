@@ -1902,21 +1902,20 @@ html.ny .tp-r.egen .no svg{width:14px;height:14px}
 html.ny .tp-sum .meta{margin-left:auto}
 html.ny .tp-egen{flex:none;align-self:center;width:32px;height:32px;margin:-4px -4px -4px 0;border:0;border-radius:50%;display:grid;place-items:center;background:var(--fill);color:var(--ink-2);cursor:pointer}
 html.ny .tp-egen svg{width:18px;height:18px}
-/* Timerkorten: stor tid och en rund knapp; fler än två sveps fram i sidled */
-html.ny .td{display:flex;gap:10px;padding:12px 0 4px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding:0 16px;scrollbar-width:none;overscroll-behavior-x:contain}
+/* Timerkorten under tidsplanen: tid och en rund knapp på en rad; fler än två sveps fram i sidled */
+html.ny .td{display:flex;gap:8px;padding:10px 16px 4px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding:0 16px;scrollbar-width:none;overscroll-behavior-x:contain}
 html.ny .td::-webkit-scrollbar{display:none}
-html.ny .cook>.td{padding:10px 16px 4px;margin-bottom:-4px}
-html.ny .td-c{position:relative;flex:1 0 calc(50% - 5px);min-width:0;scroll-snap-align:start;padding:10px 10px 8px 14px;border-radius:16px;background:var(--surface);box-shadow:0 1px 4px rgba(0,0,0,.08)}
-html.ny .td.fler .td-c{flex-basis:calc(44% - 5px)}
-html.ny .td-t{width:100%;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:0;border:0;background:none;color:var(--ink);text-align:left;font:inherit;cursor:pointer}
-html.ny .td-t span{box-sizing:border-box;max-width:100%;min-height:44px;padding-right:50px;display:block;line-height:44px;font-size:14px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-html.ny .td-t b{font-size:30px;line-height:34px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.5px}
+html.ny .td-c{flex:1 0 calc(50% - 4px);min-width:0;scroll-snap-align:start;display:flex;align-items:center;gap:6px;padding:6px 6px 6px 12px;border-radius:14px;background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.07)}
+html.ny .td.fler .td-c{flex-basis:calc(44% - 4px)}
+html.ny .td-t{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;padding:0;border:0;background:none;color:var(--ink);text-align:left;font:inherit;cursor:pointer}
+html.ny .td-t span{max-width:100%;font-size:12px;line-height:15px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.ny .td-t b{font-size:22px;line-height:26px;font-weight:700;font-variant-numeric:tabular-nums}
 html.ny .td-c.pau .td-t b{color:var(--ink-2)}
 html.ny .td-c.klar{background:var(--green,#34C759)}html.ny .td-c.klar .td-t span,html.ny .td-c.klar .td-t b{color:#fff}
-html.ny .td-rb{position:absolute;top:10px;right:10px;width:44px;height:44px;border:0;border-radius:50%;display:grid;place-items:center;background:var(--fill);color:var(--ink);cursor:pointer}
-html.ny .td-rb svg{width:22px;height:22px}html.ny .td-rb.pr{background:var(--accent);color:#fff}
+html.ny .td-rb{flex:none;width:44px;height:44px;border:0;border-radius:50%;display:grid;place-items:center;background:var(--fill);color:var(--ink);cursor:pointer}
+html.ny .td-rb svg{width:20px;height:20px}html.ny .td-rb.pr{background:var(--accent);color:#fff}
 html.ny .td-c.klar .td-rb{background:rgba(255,255,255,.25);color:#fff}
-@media (min-width:900px){html.ny .td-c{flex:0 0 calc(33.3% - 7px);padding:14px 14px 14px 20px}html.ny .td.fler .td-c{flex-basis:calc(30% - 7px)}html.ny .td-t span{font-size:17px;min-height:56px;line-height:56px;padding-right:66px}html.ny .td-t b{font-size:44px;line-height:50px}html.ny .td-rb{top:14px;right:14px;width:56px;height:56px}html.ny .td-rb svg{width:28px;height:28px}}
+@media (min-width:900px){html.ny .td-c{flex:0 0 calc(33.3% - 6px);padding:8px 8px 8px 16px}html.ny .td.fler .td-c{flex-basis:calc(30% - 6px)}html.ny .td-t span{font-size:15px;line-height:19px}html.ny .td-t b{font-size:30px;line-height:34px}html.ny .td-rb{width:52px;height:52px}html.ny .td-rb svg{width:24px;height:24px}}
 html.ny .steps>li.active{background:var(--fill)}
 html.ny .ingx.hit{background:var(--fill)}
 html.ny .steps>li.active .pill{background:var(--surface)}
