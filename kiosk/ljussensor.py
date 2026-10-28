@@ -23,7 +23,7 @@ BL = (glob.glob('/sys/class/backlight/*') or [None])[0]
 NORMAL_FIL = os.path.expanduser('~/.config/hushallstavlan-ljus.json')
 VAKT_FIL = os.path.expanduser('~/.config/hushallstavlan-vakt.json')
 AUTOSTART = os.path.expanduser('~/.config/autostart/hushallstavlan.desktop')
-VAKT_TYST = 180
+VAKT_TYST = 60
 
 def las_lux():
     for d in glob.glob('/sys/bus/iio/devices/iio:device*'):
