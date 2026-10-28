@@ -28,18 +28,19 @@
   --tabbar:62px; --tabgap:max(calc(var(--sab) - 8px),12px); --side:260px; --navbar:44px;
   --sat:env(safe-area-inset-top,0px); --sab:env(safe-area-inset-bottom,0px);
   --sal:env(safe-area-inset-left,0px); --sar:env(safe-area-inset-right,0px);
+  --sky-star:#C9AE6A; --sky-moon:#E8D395; /* nattens stjärnor och måne: gulaktiga i ljust läge, annars syns de inte mot det vita */
   color-scheme:light;
 }
 @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
   --bg:#000000; --surface:#1C1C1E; --surface-raised:#2C2C2E; --fill:rgba(118,118,128,.24);
-  --ink:#FFFFFF; --ink-2:rgba(235,235,245,.6); --ink-3:rgba(235,235,245,.3); --line:rgba(84,84,88,.65);
+  --sky-star:#FFFFFF; --sky-moon:#EEF1FA; --ink:#FFFFFF; --ink-2:rgba(235,235,245,.6); --ink-3:rgba(235,235,245,.3); --line:rgba(84,84,88,.65);
   --accent:#EC7088; --accent-soft:rgba(236,112,136,.22); --on-accent:#22090F;
   --red:#FF453A; --orange:#FF9F0A; --green:#30D158;
   --bar:rgba(22,22,24,.92); --glass:rgba(36,36,38,.7); --glass-line:rgba(255,255,255,.1); --pill:rgba(255,255,255,.14); --track:#3A3A3C; --seg-on:#636366;
   --veg-ink:#30D158; --gem-ink:#FF9F0A; --p1:#8C8FF2; --p1-soft:rgba(140,143,242,.22); --p1-ink:#AEB0FF; --p2:#35C2B5; --p2-soft:rgba(53,194,181,.2); --p2-ink:#62D8CC; --meat-bg:rgba(172,142,104,.24); --meat-ink:#C8A57A; color-scheme:dark }}
 :root[data-theme="dark"]{
   --bg:#000000; --surface:#1C1C1E; --surface-raised:#2C2C2E; --fill:rgba(118,118,128,.24);
-  --ink:#FFFFFF; --ink-2:rgba(235,235,245,.6); --ink-3:rgba(235,235,245,.3); --line:rgba(84,84,88,.65);
+  --sky-star:#FFFFFF; --sky-moon:#EEF1FA; --ink:#FFFFFF; --ink-2:rgba(235,235,245,.6); --ink-3:rgba(235,235,245,.3); --line:rgba(84,84,88,.65);
   --accent:#EC7088; --accent-soft:rgba(236,112,136,.22); --on-accent:#22090F;
   --red:#FF453A; --orange:#FF9F0A; --green:#30D158;
   --bar:rgba(22,22,24,.92); --glass:rgba(36,36,38,.7); --glass-line:rgba(255,255,255,.1); --pill:rgba(255,255,255,.14); --track:#3A3A3C; --seg-on:#636366;
@@ -447,13 +448,11 @@ body.wall .clock{display:block}
 /* sol/måne med eget moln (förslag a: ikon, b: mjukt, c: följeslagare) */
 .sky-b .sb-body{line-height:0}
 .sb-cl{position:absolute;left:50%;top:50%;transform:translate(calc(-50% + var(--ox)),calc(-50% + var(--oy)));line-height:0;display:flex;flex-direction:column;align-items:center}
-.sb-cl>.sb-c{filter:drop-shadow(0 1.5px 2px rgba(50,60,90,.22))}
+/* solens moln är stilla och ser ut som de andra molnen */
+.sb-cl>.sb-c,.sky-moon .sb-cl>.sb-c{filter:drop-shadow(0 1.5px 2px rgba(50,60,90,.22));opacity:.85;animation:none}
 .sb-rays{position:absolute;left:0;top:0;stroke:#FFC94A;stroke-width:2;stroke-linecap:round;animation:figSpin 40s linear infinite}
 .sm-a .sb-cl>.sb-c{animation:sbBob 6s ease-in-out infinite alternate}
 @keyframes sbBob{from{transform:translateY(-1px)}to{transform:translateY(1.5px)}}
-.sm-c .sb-cl.pass{animation:sbPass 20s linear infinite}
-@keyframes sbPass{0%{transform:translate(calc(-50% - var(--D)*1.2),calc(-50% + var(--oy)));opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translate(calc(-50% + var(--D)*1.2),calc(-50% + var(--oy)));opacity:0}}
-.sm-c .sb-cl:not(.pass)>.sb-c{animation:sbBob 7s ease-in-out infinite alternate}
 .sb-rain{margin-top:-5px;overflow:visible;stroke:#7FB2E6;stroke-linecap:round;fill:#FFFFFF}
 .sb-rain .dr{stroke-width:2.2;animation:sbDrop 1s linear infinite}
 .sb-rain .dz{stroke-width:1.6;opacity:.8;animation:sbDrop 1.6s linear infinite}
@@ -787,7 +786,7 @@ html.ny .chip.lk::before{display:none}
 .wx2>.skyfx,.hero>.skyfx{position:absolute;left:0;right:0;top:0;height:240px;pointer-events:none;overflow:hidden;color:var(--ink-2);-webkit-mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent);mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent)}
 .hero.has-sky{position:relative;isolation:isolate}.hero.has-sky>.skyfx{position:absolute;top:64px;height:200px;z-index:-1}.hero.has-sky>.arc{z-index:-1}
 .hero>.skyfx .stjn{top:auto;bottom:8px;right:auto;left:18px}
-.skyfx .st,.skyfx .sk{color:#FFFFFF}
+.skyfx .st,.skyfx .sk{color:var(--sky-star)}
 .skyfx .st{position:absolute;border-radius:50%;background:currentColor;opacity:var(--o);box-shadow:0 0 0 .6px rgba(110,122,150,.45);animation:stTw 3s ease-in-out infinite}
 .skyfx .st.b{box-shadow:0 0 0 .6px rgba(110,122,150,.45),0 0 5px 1px currentColor}
 @keyframes stTw{50%{opacity:calc(var(--o)*.2)}}
@@ -799,7 +798,7 @@ html.ny .chip.lk::before{display:none}
 .skyfx .stjb{position:absolute;left:-34px;top:-34px;width:68px;height:68px;overflow:visible}
 .skyfx .stjn{position:absolute;right:16px;top:84px;z-index:3;font-size:11px;line-height:14px;letter-spacing:.2px;color:var(--ink-2);opacity:.5}
 .stjb line{stroke:currentColor;stroke-width:1.2;stroke-opacity:.45;stroke-linecap:round}
-.stjb circle{fill:#FFFFFF;stroke:rgba(110,122,150,.45);stroke-width:.8;animation:stTw 4s ease-in-out infinite;--o:1}
+.stjb circle{fill:var(--sky-star);stroke:rgba(110,122,150,.45);stroke-width:.8;animation:stTw 4s ease-in-out infinite;--o:1}
 
 .skyfx .sk{position:absolute;left:40%;top:6%;width:70px;height:1.5px;border-radius:1px;background:linear-gradient(90deg,transparent,currentColor);opacity:0;animation:stSk 19s linear infinite}
 .skyfx .sk.d2{left:62%;top:20%;animation-duration:31s;animation-delay:-11s}
@@ -846,6 +845,10 @@ html.ny .chip.lk::before{display:none}
 .wxC-k button{border:0;background:none;color:var(--ink-2);font:inherit;font-size:13px;font-weight:600;padding:3px 10px;border-radius:7px}
 .wxC-k button[aria-pressed="true"]{background:var(--surface-raised);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
 .wxC-night{fill:currentColor;opacity:.035}
+.wxC-grid{stroke:var(--line);stroke-dasharray:1 3}
+.wxC-w{position:relative}
+.wxC-y{position:absolute;right:-10px;top:10px;pointer-events:none}
+.wxC-y span{position:absolute;right:0;transform:translateY(-50%);font-size:10px;line-height:12px;color:var(--ink-2);padding:0 2px;border-radius:4px;background:var(--surface)}
 .wxC-sel{fill:currentColor;opacity:.045;transition:x .2s}
 .wxC-col{position:absolute;top:0;height:182px;padding:0;border:0;background:none;color:inherit;-webkit-tap-highlight-color:transparent}
 .wxC-col .ic-mc{display:block}
@@ -1453,15 +1456,12 @@ body.dragging .bwx-h{scroll-snap-type:none}
 .wxi{position:relative;display:inline-block;width:1.15em;height:1em;line-height:1;vertical-align:-.1em}
 .wxi-b{position:absolute;left:0;top:-.04em;font-size:.8em}
 .wxi-c{position:absolute;right:0;bottom:-.06em;font-size:calc(var(--c)*1.12em)}
-/* Översikten på telefonen: väderremsan under hundarna, eller dygnets graf */
-.ovx{grid-column:1/-1;position:relative;margin-top:10px;min-width:0}
-.ovx-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.ovx-top .bwx-r{font-size:14px;min-width:0;white-space:normal;line-height:1.25}.ovx-top .bwx-r svg{width:18px;height:18px}
-.ovx-top .wxC-k{margin:0;flex:none}
-.ovx .bwx-h{margin-top:8px}
-.ovg{position:relative;margin-top:8px;padding-top:8px;border-top:.5px solid var(--line);cursor:pointer}
-.ovg-svg{display:block;color:var(--ink);overflow:visible}
-.ovg-ic>span{position:absolute;top:110px;transform:translateX(-50%);font-size:20px;line-height:24px}
+/* Översikten på telefonen: väderremsan under hundarna, lägre än på väggen */
+.ovx{grid-column:1/-1;align-self:start;margin-top:8px;min-width:0}
+.ovx .bwx-h{padding-top:4px;align-items:flex-start;margin-bottom:-8px}
+.ovx .bwx-h div{flex-basis:44px;gap:0;padding:2px 0}.ovx .bwx-h div.nd{flex-basis:54px}
+.ovx .bwx-h .fn{font-size:12px}.ovx .bwx-h .hi{font-size:18px;line-height:22px}.ovx .bwx-h b{font-size:14px}
+.ovx .bwx-h .pr{font-size:10px;line-height:12px;min-height:0;white-space:nowrap}
 .bcol .bmeal{flex:0 0 auto}
 /* vädret bredvid hunden i stället för under, så att timmarna och dagarna får plats */
 .bhero .hero-wx{display:grid;grid-template-columns:1fr 150px;column-gap:10px;align-items:center;justify-items:start;text-align:left;margin:12px 0 0;width:auto}
@@ -2256,7 +2256,7 @@ html.ny.seg-kapsel .create-options{border-radius:22px}
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=198"></script>
+<script src="app.js?v=201"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
