@@ -2878,8 +2878,8 @@ const SKY=(()=>{const R=Math.PI/180,e=R*23.4397,toD=d=>d.valueOf()/864e5-.5+2440
   return{sun:pos(s),moon:Object.assign(pos(m),{frac:(1+Math.cos(inc))/2,waxing:ang<0})}}})();
 // en kropp på himlen: x från öster till väster, y från horisonten upp till ungefär 60 graders höjd
 const skyXY=b=>({x:Math.max(5,Math.min(95,50+b.az/90*44)),y:Math.max(10,Math.min(90,90-b.alt/60*80))});
-function moonSvg(frac,waxing,sz){const r=10,k=Math.abs(2*frac-1)*r,lit=frac<.03?'':frac>.97?'<circle r="10" fill="#EEF1FA"/>':
-  '<path d="M0 -10 A10 10 0 0 1 0 10 A'+k.toFixed(2)+' 10 0 0 '+(frac<.5?0:1)+' 0 -10Z" fill="#EEF1FA"'+(waxing?'':' transform="scale(-1 1)"')+'/>';
+function moonSvg(frac,waxing,sz){const r=10,k=Math.abs(2*frac-1)*r,lit=frac<.03?'':frac>.97?'<circle r="10" style="fill:var(--sky-moon)"/>':
+  '<path d="M0 -10 A10 10 0 0 1 0 10 A'+k.toFixed(2)+' 10 0 0 '+(frac<.5?0:1)+' 0 -10Z" style="fill:var(--sky-moon)"'+(waxing?'':' transform="scale(-1 1)"')+'/>';
  const g='mg'+(++FIG_N);
  return'<svg viewBox="-24 -24 48 48" width="'+sz+'" height="'+sz+'"><defs><radialGradient id="'+g+'"><stop offset=".4" stop-color="#DCE6FF" stop-opacity="'+(.12+frac*.3).toFixed(2)+'"/><stop offset="1" stop-color="#DCE6FF" stop-opacity="0"/></radialGradient></defs>'+
   '<circle r="24" fill="url(#'+g+')"/><circle r="10" fill="#8C99B8" opacity=".3"/>'+lit+
@@ -3361,8 +3361,9 @@ function skyFit1(sx){const pole=sx.querySelector('.pole');
  skyHoles(sx,L,M&&{x:M.x,y:M.y,r:mr.height*.42});
  if(!pole)return;
  const H=34,MR=22;let best=null;
- for(const rc of[62,54,46])for(let y=Math.round(L.height*.36);y<=L.height*.6;y+=5)for(let x=rc+H+8;x<=L.width-rc-H-8;x+=6){const d=M?Math.hypot(x-M.x,y-M.y):999,ok=d>rc+H+MR?2e4:d<rc-H-MR?1e4:0;
-  const sc=(ok||d)+rc*20-Math.abs(x-L.width*.55)*.3-Math.abs(y-L.height*.47);if(!best||sc>best.sc)best={sc,x,y,rc}}
+ // stjärnbilden står högt på himlen (Henriks önskan), men aldrig under månen
+ for(const rc of[40,32,24])for(let y=Math.round(Math.max(H*.8,L.height*.12));y<=L.height*.6;y+=5)for(let x=rc+H+8;x<=L.width-rc-H-8;x+=6){const d=M?Math.hypot(x-M.x,y-M.y):999,ok=d>rc+H+MR?2e4:d<rc-H-MR?1e4:0;
+  const sc=(ok||d)+rc*20-Math.abs(x-L.width*.55)*.3-y*2;if(!best||sc>best.sc)best={sc,x,y,rc}}
  if(!best)return;pole.style.left=best.x+'px';pole.style.top=best.y+'px';pole.style.setProperty('--rc',best.rc+'px')}
 // molnens färg på himlen: tonen följer nederbörden och ljuset. Solens eget moln får samma färg som de andra
 function skyTon(sc){const wet=/^(drizzle|rain|sleet)$/.test(sc.type),snow=sc.type==='snow',lv=sc.lv,warmL=sc.phase==='dawn'||sc.phase==='golden';
