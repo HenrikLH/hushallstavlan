@@ -1262,14 +1262,6 @@ html.ny .chip.e::before{content:"";width:8px;height:8px;border-radius:50%;flex:n
 .pb{flex:1;height:5px;border-radius:3px;background:var(--fill);overflow:hidden;max-width:140px}
 .pb i{display:block;height:100%;border-radius:3px;background:var(--accent)}
 .pbt{font-size:13px;color:var(--accent);white-space:nowrap}
-.tl{position:relative;margin:2px 0 8px}
-.tl-track{position:relative;height:22px;border-radius:6px;background:var(--fill)}
-.tl-b{position:absolute;height:9px;border-radius:3px;background:var(--ink-2);opacity:.85}
-.tl-b.o{background:var(--ink-2)}.tl-b.p1{background:var(--p1)}.tl-b.p2{background:var(--p2)}
-.tl-now{position:absolute;top:-3px;bottom:-3px;width:2px;margin-left:-1px;border-radius:1px;background:var(--accent)}
-.tl-ax{position:relative;height:16px;font-size:11px;color:var(--ink-2)}
-.tl-ax span{position:absolute;top:2px;transform:translateX(-50%)}
-.tl-ax span:first-child{transform:none}.tl-ax span:last-child{transform:translateX(-100%)}
 .ev .grow{min-width:0}
 .ev .cd{flex:none;margin-left:auto;padding-left:8px;font-size:13px;color:var(--ink-2);white-space:nowrap;align-self:baseline}
 .ev.task .t{color:var(--accent)}
@@ -1462,6 +1454,10 @@ body.dragging .bwx-h{scroll-snap-type:none}
 .ovx .bwx-h div{flex-basis:44px;gap:0;padding:2px 0}.ovx .bwx-h div.nd{flex-basis:54px}
 .ovx .bwx-h .fn{font-size:12px}.ovx .bwx-h .hi{font-size:18px;line-height:22px}.ovx .bwx-h b{font-size:14px}
 .ovx .bwx-h .pr{font-size:10px;line-height:12px;min-height:0;white-space:nowrap}
+.ovg{position:relative;padding-top:4px;border-top:.5px solid var(--line);cursor:pointer}
+.ovg-svg{display:block;color:var(--ink);overflow:visible}
+.ovg-y{font-size:10px;text-anchor:end;fill:var(--ink-2);font-variant-numeric:tabular-nums}
+.ovg-ic>span{position:absolute;top:88px;transform:translateX(-50%);font-size:18px;line-height:22px}
 .bcol .bmeal{flex:0 0 auto}
 /* vädret bredvid hunden i stället för under, så att timmarna och dagarna får plats */
 .bhero .hero-wx{display:grid;grid-template-columns:1fr 150px;column-gap:10px;align-items:center;justify-items:start;text-align:left;margin:12px 0 0;width:auto}
@@ -2258,7 +2254,7 @@ html.ny.seg-kapsel .create-options{border-radius:22px}
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=205"></script>
+<script src="app.js?v=207"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
