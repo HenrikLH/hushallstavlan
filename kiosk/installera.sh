@@ -125,6 +125,8 @@ echo "6/6  Tavlan startar i helskärm vid inloggning"
 # --password-store=basic: ingen fråga om nyckelring när inloggningen sker utan lösenord
 # --touch-events=enabled: pekskärmen skickar riktiga pekhändelser
 # --overscroll-history-navigation=0: ett svep i sidled bläddrar inte bakåt i webbläsaren
+# Utan grafikkretsen (--disable-gpu) var tavlan stabil men seg, så den behålls. Tappar Chromium grafikminnet och
+#   tavlan blir grå startar vakthunden i ljussensor.py om den inom en minut
 cat > "$AUTOSTART" <<EOF
 [Desktop Entry]
 Type=Application
