@@ -156,16 +156,24 @@ const starsTxt=n=>'★★★★★'.slice(0,Math.round(n))+'☆☆☆☆☆'.sli
    arket så att ändringar från den andra telefonen inte skrivs över. Flera snabba ändringar i samma rad
    (t.ex. bocka av flera överföringar i rad) köas, och alla ändringar som ännu inte skickats läggs på det
    hämtade värdet. Annars kunde ett andra tryck skicka en gammal rad och sudda ut det första. */
-const UPD={q:{},chain:{},n:0};
+const UPD={q:{},chain:{},n:0,wait:new Set()};
+// Ändringen läggs i utkorgen direkt (sparas i telefonen), så att den finns kvar även om appen stängs eller
+// läggs i bakgrunden innan arket hunnit svara. Raden väntar där (UPD.wait) tills det färska värdet hämtats.
 function updJSON(k,def,fn){const st=settings();st[k]=JSON.stringify(recipeChange(k,fn,parseJ(st[k],def)));render();
  (UPD.q[k]=UPD.q[k]||[]).push(fn);UPD.n++;
+ const mine=()=>OUTBOX.filter(b=>UPD.wait.has(b)&&b.k===k),ahead=()=>OUTBOX.some(b=>b.action==='setting'&&b.k===k&&!UPD.wait.has(b));
+ const w=mine()[0];if(w)w.v=st[k];else{const it={action:'setting',k,v:st[k],by:S.me};UPD.wait.add(it);OUTBOX.push(it);S.pending=OUTBOX.length}
+ saveOutbox();renderStatus();
  const run=async()=>{try{
   if(!UPD.q[k].length)return;
   let fresh=null;
-  if(!OUTBOX.some(b=>b.action==='setting'&&b.k===k)){try{const d=await apiGet();if(d.settings&&k in d.settings)fresh=d.settings[k]}catch(e){}}
+  if(!ahead()){try{const d=await Promise.race([apiGet(),new Promise((_,no)=>setTimeout(()=>no(new Error('tid')),15000))]);if(d.settings&&k in d.settings)fresh=d.settings[k]}catch(e){}}
   const fns=UPD.q[k].splice(0);let v=settings()[k];
-  if(fresh!=null&&!OUTBOX.some(b=>b.action==='setting'&&b.k===k)){let o=parseJ(fresh,def);fns.forEach(f=>{o=recipeChange(k,f,o)});v=JSON.stringify(o);S.data.settings[k]=v;render()}
-  await apiPost({action:'setting',k,v})}finally{UPD.n--}};
+  if(fresh!=null&&!ahead()){let o=parseJ(fresh,def);fns.forEach(f=>{o=recipeChange(k,f,o)});v=JSON.stringify(o);S.data.settings[k]=v;render()}
+  mine().forEach(b=>{b.v=v;UPD.wait.delete(b)});saveOutbox();
+  await flush()}finally{UPD.n--;
+   // svaret på sista ändringen visas också, så att en äldre hämtning som kommer sent inte skriver över den
+   if(!UPD.n&&!OUTBOX.length&&lastServer){setData(lastServer);render()}}};
  return UPD.chain[k]=(UPD.chain[k]||Promise.resolve()).then(run,run)}
 function bankSnap(r){const x=JSON.parse(JSON.stringify(r));x.savedAt=today();delete x.when;delete x.fav;return x}
 // Ändra ett recept som redan ligger i receptbanken
@@ -521,7 +529,7 @@ function realId(b){if(!/^tmp/.test(String(b.id||''))||!lastServer)return b.id;
 async function flush(){
  if(flushing||!OUTBOX.length||!S.key)return;flushing=true;S.sync='busy';renderStatus();
  try{
-  while(OUTBOX.length){const b=Object.assign({},OUTBOX[0]);b.id=realId(b);delete b.tmpName;
+  while(OUTBOX.length){if(UPD.wait.has(OUTBOX[0]))break;const b=Object.assign({},OUTBOX[0]);b.id=realId(b);delete b.tmpName;
    let j;
    try{const r=await fetch(CFG.api,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign(b,{key:S.key,by:b.by!=null?b.by:S.me}))});j=await r.json()}
    catch(e){S.sync='offline';S.pending=OUTBOX.length;render();return}   // inget nät: försök igen senare
@@ -2422,10 +2430,21 @@ function settingsPeople(){const d=S.prefDraft||{},L=personList().slice(0,2);retu
  '<button type="button" class="cell link" data-act="me" data-id="" aria-pressed="'+(!S.me)+'"><span class="grow">Gemensam skärm</span>'+(!S.me?'<span class="mark">'+I.tick+'</span>':'')+'</button></div><div class="foot">Välj vem som använder enheten. Pilen öppnar namn och färg. Namn och personfärg gäller alla enheter och sparas med Spara.</div>'}
 const u3RecipeMatch=r=>recipeMatch(r);
 function u3Search(){return'<form class="add-row u3-search" data-form="recipeSearch"><input class="field" name="q" value="'+esc(S.u3Query||'')+'" placeholder="Sök bland recepten" aria-label="Sök bland recepten" enterkeyhint="search"><button class="tb strong">Sök</button>'+(S.u3Query?'<button type="button" class="ib" data-act="recipeSearchClear" aria-label="Rensa sökning">'+I.x+'</button>':'')+'</form>'}
+// Fält man ändrat i ett öppet blad. En omritning (t.ex. när data kommer från arket) behåller det man skrivit
+// även när fokus inte står i ett textfält, till exempel efter ett val eller när tangentbordet stängts.
+const OVD={sig:'',n:new Set()};
+const ovSig=f=>f?f.dataset.form+'|'+(f.dataset.id||''):'';
+document.addEventListener('input',ovMark);document.addEventListener('change',ovMark);document.addEventListener('submit',()=>{OVD.sig=''},true);
+function ovMark(e){const t=e.target,f=t.closest&&t.closest('#overlay form');if(!f||!t.name||t.type==='file')return;const g=ovSig(f);if(g!==OVD.sig){OVD.sig=g;OVD.n=new Set()}OVD.n.add(t.name)}
+function ovGrab(f){if(!f||ovSig(f)!==OVD.sig)return null;const r=[];OVD.n.forEach(n=>{const el=f.elements[n];if(!el)return;
+ if(el instanceof RadioNodeList||el.type==='radio')r.push([n,'v',el.value]);else if(el.type==='checkbox')r.push([n,'c',el.checked]);else r.push([n,'v',el.value])});return r}
+function ovPut(f,r){if(!f||!r||ovSig(f)!==OVD.sig)return;r.forEach(([n,t,v])=>{const el=f.elements[n];if(!el)return;if(t==='c')el.checked=v;else if(el instanceof RadioNodeList||el.type==='radio'){const x=f.querySelector('input[name="'+n+'"][value="'+CSS.escape(v)+'"]');if(x)x.checked=true}else el.value=v})}
 function overlayKeepScroll(){const o=document.getElementById('overlay'),k=o.dataset.k||'',b=o.querySelector('.sheet-body'),y=b?b.scrollTop:0;
  if(!k)S.hj=new Set();
  if(S.sheet==='settings'&&o.dataset.k==='settings')rememberSettings();
+ const f0=o.querySelector('form'),dr=k?ovGrab(f0):null;
  renderOverlay();
+ const f1=o.querySelector('form');if(o.dataset.k!==k)OVD.sig='';else if(dr&&f1!==f0)ovPut(f1,dr);
  const nb=o.querySelector('.sheet-body');if(y&&k&&o.dataset.k===k&&nb&&nb!==b)nb.scrollTop=y}
 function renderOverlay(){
  const o=document.getElementById('overlay');
@@ -4287,7 +4306,7 @@ document.addEventListener('submit',async e=>{const f=e.target.closest('[data-for
   render();return}
  if(f.dataset.form==='income'){const m=S.ekoMonth||thisMonth(),v={};people().forEach((p,i)=>{v[p]=Math.round(Number(String(d['p'+i]||'').replace(/\s/g,'').replace(',','.'))||0)});
   closeSheets();A.user=Date.now();updJSON('ekonomi_inkomst',{},o=>{o[m]=v;return o});toast('Inkomsten för '+monthName(m)+' är sparad');return}
- if(f.dataset.form==='cost'){const e=S.ekoEdit||{},amt=Number(String(d.amount||'').replace(/\s/g,'').replace(',','.'));if(!d.name||!isFinite(amt))return;
+ if(f.dataset.form==='cost'){const e=S.ekoEdit||{},amt=Number(String(d.amount||'').replace(/\s|kr/gi,'').replace(',','.'));if(!String(d.name||'').trim()){toast('Skriv vad utgiften heter');return}if(!isFinite(amt)){toast('Skriv beloppet med siffror, t.ex. 399');return}
   const old=e.id?ekoList(e.list).find(x=>x.id===e.id):null;
   const c={id:e.id||('x'+Date.now().toString(36)),name:d.name.trim(),amount:amt,period:d.period||'månad',pay:d.pay||'',day:String(d.day||'').trim(),note:String(d.note||'').trim(),tday:String(d.tday||'').trim()};
   const to=d.owner||e.list||'shared',moved=e.id&&to!==e.list;
