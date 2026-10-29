@@ -1936,11 +1936,12 @@ html.ny .tp-sum b{font-weight:600}
 html.ny .tp-sum .meta{color:var(--ink-2);font-size:13px}
 html.ny .tp-g{position:relative;padding:0 16px}
 html.ny :is(.tp-r,.tp-ax,.tp-ov){display:grid;grid-template-columns:26px minmax(0,1fr);gap:10px;align-items:center}
-html.ny .tp-r{width:100%;min-height:36px;padding:4px 0;text-align:left;color:inherit}
+html.ny .tp-r{--h:26px;width:100%;min-height:40px;padding:4px 0;text-align:left;color:inherit}
 /* Tidsplanens hörn följer Form på knappar och rutor: staplar, stegmarkörer, piller och timerring har samma hörnradie (--tpr) */
 html.ny .tp{--tpr:7px}html.ny.seg-kapsel .tp{--tpr:999px}html.ny.seg-klassisk .tp{--tpr:3px}
 html.ny .tp-r .no{width:26px;height:26px;border-radius:var(--tpr);display:grid;place-items:center;font-size:13px;font-weight:700;background:var(--accent-soft);color:var(--accent)}
-html.ny .tp-r{position:relative}html.ny .tp-r.on::before{content:'';position:absolute;inset:0 -10px;border-radius:calc(var(--tpr) + 5px);background:var(--fill);z-index:-1}
+html.ny .tp-r{position:relative}/* Aktuellt steg: bandet omsluter stegcirkeln med samma avstånd (--hp) åt alla håll, oavsett storlek och om timerringen syns */
+html.ny .tp-r.on::before{--hp:7px;content:'';position:absolute;inset:calc(50% - var(--h)/2 - var(--hp)) calc(-1*var(--hp));border-radius:calc(var(--tpr) + var(--hp));background:var(--fill);z-index:-1}
 html.ny .tp-r.gj{opacity:.45}
 html.ny .tp-t{position:relative;display:block;height:26px}
 html.ny .tp-b{position:absolute;top:0;bottom:0;min-width:8px;border-radius:var(--tpr);background:var(--accent);display:flex;align-items:center;overflow:hidden}
@@ -2060,8 +2061,8 @@ html.ny :is(input,textarea,select,[contenteditable]){-webkit-user-select:text;us
 html.ny .ingx.top{color:var(--accent)}
 html.ny .ing-sep{height:0;margin:2px 16px;border-top:1.5px solid color-mix(in srgb,var(--accent) 30%,var(--line))}
 /* Väggen: större tidsplan som använder platsen */
-@media (min-width:900px){html.ny :is(.tp-r,.tp-ax,.tp-ov){grid-template-columns:34px minmax(0,1fr);gap:14px}html.ny .tp-r{min-height:48px}html.ny .tp-r .no{width:34px;height:34px;font-size:16px}html.ny .tp-t{height:36px}html.ny .tp{--tpr:9px}html.ny.seg-kapsel .tp{--tpr:999px}html.ny.seg-klassisk .tp{--tpr:4px}html.ny .tp-sum{font-size:19px;padding:16px 20px 10px}html.ny .tp-g{padding:0 20px}html.ny .tp-ov{left:20px;right:20px;bottom:32px}html.ny .tp-sum .meta,html.ny .tp-ax .tp-t span{font-size:14px}html.ny .tp-ax{height:30px}html.ny .tp-b em{font-size:15px}html.ny .tp-b em svg{width:16px;height:16px}html.ny .tp-k{font-size:14px;padding:12px 20px 0}
- html.ny .cook .tp-r{min-height:58px}html.ny .cook .tp-t{height:44px}html.ny .cook :is(.tp-ax,.tp-ov) .tp-t{height:100%}html.ny .cook .tp-r .no{width:40px;height:40px;font-size:18px}html.ny .cook :is(.tp-r,.tp-ax,.tp-ov){grid-template-columns:40px minmax(0,1fr)}html.ny .cook .tp-b em{font-size:17px}html.ny .cook .tp-sum{font-size:22px}html.ny .cook .tp{margin:22px 16px 0}}
+@media (min-width:900px){html.ny :is(.tp-r,.tp-ax,.tp-ov){grid-template-columns:34px minmax(0,1fr);gap:14px}html.ny .tp-r{min-height:48px;--h:34px}html.ny .tp-r .no{width:34px;height:34px;font-size:16px}html.ny .tp-t{height:36px}html.ny .tp{--tpr:9px}html.ny.seg-kapsel .tp{--tpr:999px}html.ny.seg-klassisk .tp{--tpr:4px}html.ny .tp-sum{font-size:19px;padding:16px 20px 10px}html.ny .tp-g{padding:0 20px}html.ny .tp-ov{left:20px;right:20px;bottom:32px}html.ny .tp-sum .meta,html.ny .tp-ax .tp-t span{font-size:14px}html.ny .tp-ax{height:30px}html.ny .tp-b em{font-size:15px}html.ny .tp-b em svg{width:16px;height:16px}html.ny .tp-k{font-size:14px;padding:12px 20px 0}
+ html.ny .cook .tp-r{min-height:58px;--h:40px}html.ny .cook .tp-t{height:44px}html.ny .cook :is(.tp-ax,.tp-ov) .tp-t{height:100%}html.ny .cook .tp-r .no{width:40px;height:40px;font-size:18px}html.ny .cook :is(.tp-r,.tp-ax,.tp-ov){grid-template-columns:40px minmax(0,1fr)}html.ny .cook .tp-b em{font-size:17px}html.ny .cook .tp-sum{font-size:22px}html.ny .cook .tp{margin:22px 16px 0}}
 /* Rättens blad: tre prickar på raden öppnar portioner, byt, lås, recept och ta bort */
 html.ny .dr-more svg{width:20px;height:20px}
 html.ny .dr-thw{display:flex;flex:none;border-radius:12px}
