@@ -4536,7 +4536,7 @@ addEventListener('online',()=>{const saved=recipeDraftRead();if(saved&&saved.edi
 const fjader=(()=>{const m={};return(resp,damp)=>{const k=resp+','+damp;if(m[k])return m[k];const w=2*Math.PI/resp,wd=w*Math.sqrt(1-damp*damp),f=t=>1-Math.exp(-damp*w*t)*(Math.cos(wd*t)+damp*w/wd*Math.sin(wd*t));
  let T=.05;for(;T<3;T+=.01){let ok=1;for(let u=T;u<T+.2;u+=.02)if(Math.abs(1-f(u))>.002)ok=0;if(ok)break}const p=[];for(let i=0;i<=40;i++)p.push(i<40?f(T*i/40).toFixed(3):'1');
  return m[k]={e:'linear('+p.join(',')+')',d:Math.round(T*1000)}}})();
-const TRH=450,pillW=no=>{const d=no.querySelector('.trg').offsetWidth,l=no.querySelector('.tpl'),f=l.style.flex;l.style.flex='none';const w=l.offsetWidth;l.style.flex=f;return d+w+Math.round(d*.4)};
+const TRH=450,pillW=no=>{const d=no.querySelector('.trg').offsetWidth,l=no.querySelector('.tpl'),f=l.style.flex;l.style.flex='none';const w=U4?Math.max(l.offsetWidth,l.scrollWidth):l.offsetWidth;l.style.flex=f;return d+w+Math.round(d*.4)};
 function pillSet(no,open,anim){const tp=no.closest('.tp');if(!tp)return;trWatch();const ring=no.querySelector('.trg'),d=ring.offsetWidth,s=anim?fjader(open?.5:.34,open?.28:1):{e:'linear',d:0};
  no.style.setProperty('--fe',s.e);no.style.setProperty('--fd',s.d+'ms');tp.style.setProperty('--fe',s.e);tp.style.setProperty('--fd',s.d+'ms');
  if(open){const w=pillW(no);PILL.w=w;PILL.px=w-no.offsetHeight+8;tp.querySelectorAll('.no[data-open]').forEach(x=>{if(x!==no)pillSet(x,false,false)});no.dataset.open=1;no.style.width=w+'px';tp.style.setProperty('--px',PILL.px+'px');tp.classList.add('push')}

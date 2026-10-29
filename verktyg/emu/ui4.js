@@ -20,7 +20,7 @@ module.exports=async(pg,h)=>{
  assert.equal(await read('U4'),true);assert.equal(await read('DEV'),false);assert.equal(await read('S.data.settings.matbudget'),original);
  // Riktiga färgval gäller UI4 utan att skriva över UI2:s accent.
  await click('[data-act="settings"]');await click('[data-act="farg"]');
- await click('[data-act="accMin"]');assert.equal(await read('accentPref()'),'min');
+ await pg.locator('label').filter({has:pg.locator('input[data-change="accent"][value="teal"]')}).first().click();await h.idle(500);assert.equal(await read('accentPref()'),'teal');
  assert.equal(await pg.evaluate(()=>localStorage.getItem('ht.accent')),before[0]);
  await click('[data-act="sheetClose"]');
  for(const v of ['oversikt','mat','uppgifter','stad','ekonomi']){
