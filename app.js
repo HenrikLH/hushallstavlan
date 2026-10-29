@@ -856,10 +856,11 @@ function ovGraf(W,bare){const P=WX_POS(),H=wxHours(W).slice(0,25);if(H.length<4)
  s+='<path d="'+d+' L'+f(X(n-1))+' '+base+' L'+f(X(0))+' '+base+'Z" fill="url(#'+gid+'f)" class="ovg-f"/><path d="'+d+'" pathLength="1" class="ovg-k" fill="none" stroke="url(#'+gid+')" stroke-width="3" stroke-linecap="round"/><line x1="0" x2="'+f(w)+'" y1="'+base+'" y2="'+base+'" class="wxC-base"/>';
  H.forEach((x,j)=>{if(x.pr>=.1){const bh=Math.min(14,3+x.pr*8);s+='<rect x="'+f(X(j)-dx/2+1)+'" y="'+f(base-bh)+'" width="'+f(Math.max(2,dx-2))+'" height="'+f(bh)+'" rx="1.5" class="wxC-pr"/>'}});
  // temperaturskala i 3-gradersteg vid högerkanten, som i vädervyns graf
- // skalan vid högerkanten: grafens högsta och lägsta temperatur i accentfärg, och däremellan steg om 3 grader som inte krockar med dem
- const HL=Math.round(hi)===Math.round(lo)?[hi]:[hi,lo],yl=(T,c)=>'<text x="'+f(w)+'" y="'+f(Y(T)+3.5)+'" class="ovg-y'+c+'">'+deg(T)+'</text>';
- for(let T=Math.ceil(lo/3)*3;T<=lo+sp+.01;T+=3)s=s.replace('<path d="'+d+' L','<line x1="0" x2="'+f(w-pr+4)+'" y1="'+f(Y(T))+'" y2="'+f(Y(T))+'" class="wxC-grid"/>'+(HL.some(m=>Math.abs(Y(m)-Y(T))<9)?'':yl(T,''))+'<path d="'+d+' L');
- HL.forEach(T=>{s=s.replace('<path d="'+d+' L','<line x1="0" x2="'+f(w-pr+4)+'" y1="'+f(Y(T))+'" y2="'+f(Y(T))+'" class="ovg-hl"/>'+yl(T,' hl')+'<path d="'+d+' L')});
+ // skalan vid högerkanten: grafens lägsta och högsta temperatur i accentfärg och däremellan lika stora steg (så många som får plats, minst 12 px)
+ const yl=(T,c)=>'<text x="'+f(w)+'" y="'+f(Y(T)+3.5)+'" class="ovg-y'+c+'">'+deg(T)+'</text>',gl=(T,c)=>'<line x1="0" x2="'+f(w-pr+4)+'" y1="'+f(Y(T))+'" y2="'+f(Y(T))+'" class="'+c+'"/>';
+ let ns=Math.max(1,Math.min(4,Math.floor((Y(lo)-Y(hi))/12)));while(ns>1&&new Set(Array.from({length:ns+1},(_,k)=>Math.round(lo+(hi-lo)*k/ns))).size<ns+1)ns--;
+ const sk=Math.round(hi)===Math.round(lo)?[[hi,1]]:Array.from({length:ns+1},(_,k)=>[lo+(hi-lo)*k/ns,k===0||k===ns]);
+ s=s.replace('<path d="'+d+' L',sk.map(([T,e])=>gl(T,e?'ovg-hl':'wxC-grid')+yl(T,e?' hl':'')).join('')+'<path d="'+d+' L');
  let ic='';
  H.forEach((x,j)=>{if(j%3)return;const xx=X(j),nu=!j;
   s+='<circle cx="'+f(xx)+'" cy="'+f(pts[j][1])+'" r="'+(nu?5:3)+'" fill="'+(nu?tempCol(x.T):'var(--surface)')+'" stroke="'+tempCol(x.T)+'" stroke-width="2" class="ovg-p"/>'+(bare?'':
