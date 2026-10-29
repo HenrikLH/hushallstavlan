@@ -2330,7 +2330,7 @@ html.ny.seg-kapsel .create-options{border-radius:22px}
 html.ui4.ny{--bg:#f5f4f8;--surface:#fff;--surface-raised:#fff;--ink:#242237;--ink-2:#646075;--ink-3:#777187;--line:#e7e4ee;--accent:#6650a2;--accent-soft:#eee9f8;--on-accent:#fff;--fill:#f1eef6;--track:#e9e4f1;--bar:rgba(255,255,255,.96);--pill:#eee9f8;--glass:#fff;--glass-line:#e7e4ee;--green:#247757;--red:#b83d52;--orange:#96601e;--tabbar:76px;--tabgap:max(12px,var(--sab));--at-shadow:0 3px 7px #28213b03,0 12px 30px #28213b05;--at-cover:linear-gradient(135deg,#e5f0df,#f6eddb);--at-cover2:linear-gradient(135deg,#f2ddcd,#f8efdc);--at-deep:#302440;--at-deep-ink:#fff;--at-soft:#ece7f4;--at-radius:20px}
 html.ui4.ny.u4-dark{--bg:#17151e;--surface:#24212e;--surface-raised:#302b3c;--ink:#f6f2fc;--ink-2:#c0b8d0;--ink-3:#afa5bf;--line:#433b52;--accent:#c3b0f3;--accent-soft:#3e3257;--on-accent:#241634;--fill:#332d40;--track:#4b405c;--bar:#24212ef5;--pill:#3e3257;--glass:#24212e;--glass-line:#433b52;--green:#8bcbb0;--red:#ff9daa;--orange:#f2c07e;--at-shadow:0 10px 30px #0000001c;--at-cover:linear-gradient(135deg,#3b4b39,#494330);--at-cover2:linear-gradient(135deg,#574234,#453e32);--at-deep:#c3b0f3;--at-deep-ink:#241634;--at-soft:#352c46}
 html.ui4.ny body{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:17px;line-height:1.45;letter-spacing:-.25px;background:var(--bg)}
-html.ui4 .wrap{padding-top:22px;padding-bottom:22px;max-width:830px}
+html.ui4 .wrap{padding-top:calc(var(--sat) + 22px);padding-bottom:22px;max-width:830px}
 html.ui4 .head{padding:0 22px;margin-bottom:20px}
 html.ui4 .head-row{min-height:54px;gap:14px}
 html.ui4.ny .lt{font-size:34px;line-height:1.16;letter-spacing:-1.2px;font-weight:720}
@@ -2374,7 +2374,7 @@ html.ui4 .u4-person{display:inline-flex;gap:5px;align-items:center;color:var(--i
 html.ui4 .u4-person::before{content:'';width:6px;height:6px;background:var(--p1);border-radius:50%}
 html.ui4 .u4-person.veg::before{background:var(--p2)}
 /* Navigation: unikt valt läge, tydliga mål och beständig text. */
-html.ui4.ny .nav{height:76px;bottom:var(--tabgap);left:14px;right:14px;padding:6px;border-radius:24px;background:var(--surface);border:1px solid var(--line);box-shadow:0 12px 40px #3024401a;backdrop-filter:none}
+html.ui4.ny .nav{margin:0;transform:none;width:auto;height:76px;bottom:var(--tabgap);left:calc(14px + var(--sal));right:calc(14px + var(--sar));padding:6px;border-radius:24px;background:var(--surface);border:1px solid var(--line);box-shadow:0 12px 40px #3024401a;backdrop-filter:none}
 html.ui4.ny .nav-pill{display:block;top:6px;bottom:6px;left:6px;width:calc((100% - 12px) / 5);border-radius:18px;background:var(--accent-soft);box-shadow:none}
 html.ui4.ny .nav button{font-size:11px;font-weight:650;line-height:16px;gap:5px}
 html.ui4.ny .nav button svg{width:23px;height:23px}
@@ -2407,7 +2407,12 @@ html.ui4 .wmeal .title{font-size:18px;line-height:1.4;margin-top:6px;font-weight
 html.ui4 .ny-smc{border:1px solid var(--line);box-shadow:var(--at-shadow)}
 /* Veckomaten: faktiska brickor omordnade till läsbara och innehållsrika rader. */
 html.ui4 .ws-card{margin:20px 18px 0;border-radius:22px;border:1px solid var(--line);box-shadow:var(--at-shadow);overflow:hidden}
-html.ui4 .wm-top{padding:22px}
+html.ui4 .wm-top{padding:22px;flex-wrap:wrap}
+html.ui4 .wm-bt{flex-wrap:wrap;white-space:normal}
+html.ui4 .wm-bt .grow{display:none}
+html.ui4 .wm-bt .wsum-s{margin-left:auto}
+html.ui4 .wm-c{white-space:normal}
+html.ui4 body.wall main{zoom:1}
 html.ui4 .wm-top .wm-bt>.num{font-size:34px;font-weight:700;letter-spacing:-1px}
 html.ui4 .wm-bar{height:8px;border-radius:8px;background:var(--track);margin-top:14px}
 html.ui4 .wm-bar i{border-radius:8px;background:var(--accent)}
@@ -2460,7 +2465,9 @@ html.ui4 .add-row{border:1px solid var(--line);box-shadow:var(--at-shadow);margi
 html.ui4 .add-row .field{background:none;border:0;box-shadow:none}
 html.ui4 .add-row .add-go{width:40px;height:40px;border-radius:11px}
 /* Blad och matlagning får samma yt- och typhierarki. */
-html.ui4 .sheet{border:1px solid var(--line);border-radius:28px 28px 0 0;box-shadow:0 -12px 60px #18102524;background:var(--surface)}
+html.ui4 .sheet{background:rgba(18,13,29,.4)}
+html.ui4 .sheet-panel{border:1px solid var(--line);border-radius:28px 28px 0 0;box-shadow:0 -12px 60px #18102524;background:var(--surface)}
+@media(min-width:700px){html.ui4 .sheet-panel{border-radius:28px}}
 html.ui4 .sheet .group{box-shadow:none;background:var(--fill)}
 html.ui4 .sheet .group .field{background:var(--surface)}
 html.ui4 .sheet h2,html.ui4 .sheet .t2{font-size:24px;font-weight:700;letter-spacing:-.6px}
@@ -2475,7 +2482,7 @@ html.ui4 .toast{border:1px solid var(--line);background:var(--at-deep);color:var
 @media(min-width:900px){
  html.ui4.ny{--side:220px}
  html.ui4 main{padding-left:245px;padding-right:28px;padding-bottom:30px}
- html.ui4 .wrap{padding-top:36px;max-width:930px}
+ html.ui4 .wrap{padding-top:calc(var(--sat) + 36px);max-width:930px}
  html.ui4 body[data-view=oversikt] .wrap{max-width:1240px}
  html.ui4.ny .nav{left:22px;right:auto;top:25px;bottom:25px;width:206px;height:auto;display:flex;flex-direction:column;padding:24px 12px;gap:8px;border-radius:24px;box-shadow:var(--at-shadow);justify-content:flex-start;align-items:stretch}
  html.ui4.ny .nav .brand{display:block;color:var(--ink);font-size:19px;font-weight:750;letter-spacing:-.7px;line-height:24px;padding:8px 10px 24px;margin-bottom:12px}
@@ -2519,6 +2526,33 @@ html.ui4.seg-kapsel :is(.segc,.btn-fill,.btn-tint){border-radius:999px}
 html.ui4.seg-kapsel .seg-thumb{border-radius:999px}
 html.ui4.seg-klassisk :is(.segc,.seg-thumb,.btn-fill,.btn-tint,.group,.widget){border-radius:8px}
 html.ui4 .nav.none .nav-pill{display:none}
+/* Menyradens enhetsval måste fungera även ovanpå UI4-lagret. */
+@media(max-width:899px){
+ html.ui4.ny:not(.nav-glas){--tabgap:0px;--tabbar:calc(76px + var(--sab))}
+ html.ui4.ny:not(.nav-glas) .nav{left:0;right:0;bottom:0;height:var(--tabbar);border-radius:0;padding-bottom:calc(6px + var(--sab));border-width:1px 0 0}
+ html.ui4.ny:not(.nav-glas) .nav-pill{bottom:calc(6px + var(--sab))}
+ html.ui4.ny .nav.har-me{padding-right:66px}
+ html.ui4.ny .nav.har-me .nav-me{right:8px;bottom:var(--sab)}
+ html.ui4.ny .nav.har-me .nav-pill{width:calc((100% - 74px) / 5)}
+ html.ui4.ny.nav-piller .nav{left:50%;right:auto;width:var(--pw);margin-left:calc(var(--pw) / -2)}
+ html.ui4.ny.nav-piller .nav button span{max-height:20px}
+ html.ui4.ny.nav-piller .nav.mini{height:56px;bottom:-31px;padding:2px 8px 0;align-items:flex-start}
+ html.ui4.ny.nav-piller .nav.mini button{height:22px;gap:0}
+ html.ui4.ny.nav-piller .nav.mini button span{opacity:0;max-height:0}
+ html.ui4.ny.nav-piller .nav.mini button svg{width:20px;height:20px}
+}
+@media(min-width:900px){
+ html.ui4.ny .nav,html.ui4.ny.nav-glas .nav,html.ui4.ny.nav-piller .nav{margin:0;transform:none;animation:none;pointer-events:auto;transition:none}
+ html.ui4.ny .nav-mini{display:none}
+ html.ui4.ny .nav button span{opacity:1;max-height:none;overflow:visible}
+ html.ui4.ny .nav.mini .nav-me{display:flex!important}
+ html.ui4 .bt-g{grid-template-columns:repeat(2,minmax(0,1fr))}
+ html.ui4 body.wall:has(.board) .arr-foot{left:260px;bottom:24px;transform:none;width:min(500px,calc(100% - 280px))}
+}
+@media(min-width:900px) and (max-width:1199px){html.ui4 .bt-g{grid-template-columns:minmax(0,1fr)}}
+/* Formvalet gäller även komponenter som fått egna UI4-hörn. */
+html.ui4.seg-kapsel :is(.hero,.bhero,.ws-card,.bcard,.stat,.tp){border-radius:26px}
+html.ui4.seg-klassisk :is(.hero,.bhero,.ws-card,.bcard,.stat,.tp){border-radius:8px}
 
 </style>
 </head>
@@ -2534,7 +2568,7 @@ html.ui4 .nav.none .nav-pill{display:none}
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=218"></script>
+<script src="app.js?v=219"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>

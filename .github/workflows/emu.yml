@@ -56,6 +56,7 @@ jobs:
           fi
           if [[ "$UI" == "4" ]]; then
             node verktyg/emu/run.js verktyg/emu/ui4.js
+            node verktyg/emu/run.js verktyg/emu/ui4-installningar.js
             node verktyg/emu/run.js verktyg/emu/timerring.js
             node verktyg/emu/run.js verktyg/emu/hall-in-blad.js
           else
