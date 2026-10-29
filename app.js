@@ -799,7 +799,9 @@ function wallWx(){const W=wxModel();if(!W)return'';
  const R=rainTxt(W);
  return'<div class="bwx"><div class="bwx-r'+(R.wet?' wet':'')+'">'+(R.wet?UMB:I.tick)+'<span>'+esc(R.txt)+'</span></div>'+wxStrip(W)+'</div>'}
 // ett dygn framåt, timme för timme; svep i sidled för fler timmar, tryck för att öppna vädret
-function wxStrip(W){return'<div class="bwx-h" data-act="nav" data-id="vader" role="link" aria-label="Väder timme för timme, öppna vädret">'+W.hours.slice(1,25).map(x=>{const hr=x.d.getHours(),nd=hr===0;
+// H och X (översiktens graf): timmarna från Nu med grafens x-lägen, så att remsan kan pressas ihop till var tredje timme under kurvan
+function wxStrip(W,H,X){return'<div class="bwx-h" data-act="nav" data-id="vader" role="link" aria-label="Väder timme för timme, öppna vädret">'+(H||W.hours.slice(1,25)).map((x,j)=>{const hr=x.d.getHours(),nd=hr===0;
+  if(X)return'<div class="'+(nd?'nd':'')+(j%3?'':' k3')+(j?'':' nu0')+'" style="--x:'+X[j].toFixed(1)+'px"><span class="fn num">'+(!j?'Nu':nd?capS(DAYS3[x.d.getDay()])+' 00':pad(hr))+'</span><span class="hi">'+wxIco(x)+'</span><b class="num">'+deg(x.T)+'</b>'+(x.pr>=0.1?'<span class="pr num">'+mm(x.pr)+'</span>':'<span class="pr"></span>')+'</div>';
   return'<div class="'+(nd?'nd':'')+'"><span class="fn num">'+(nd?capS(DAYS3[x.d.getDay()])+' 00':pad(hr))+'</span><span class="hi">'+wxIco(x)+'</span><b class="num">'+deg(x.T)+'</b>'+(x.pr>=0.1?'<span class="pr num">'+mm(x.pr)+'</span>':'<span class="pr"></span>')+'</div>'}).join('')+'</div>'}
 // Ikon i väderremsan: solen eller månen bakom samma moln som i vädergrafen (☁️), större ju molnigare (met.no cloud_area_fraction när den finns)
 function wxIco(x){const b=symBase(x.s),night=/_night$/.test(x.s||''),sh=/showers/.test(b)&&!/thunder/.test(b);
@@ -810,32 +812,57 @@ function wxIco(x){const b=symBase(x.s),night=/_night$/.test(x.s||''),sh=/showers
  return'<span class="wxi" style="--c:'+c.toFixed(2)+'"><span class="wxi-b">'+(night?'🌙':'☀️')+'</span><span class="wxi-c">'+(sh?(/snow|sleet/.test(b)?'🌨️':'🌧️'):'☁️')+'</span></span>'}
 // Översikten på telefonen: väderremsan timme för timme under hundarna, eller dygnets graf (Inställningar → Översikt och väder, ls ht.ovwx)
 let OVWX=lsGet('ovwx')==='graf'?'graf':'tim';
-function ovWx(W){return'<div class="ovx"'+RF('Ö11')+'>'+(OVWX==='graf'?ovGraf(W):wxStrip(W))+'</div>'}
+// Håll in remsan: den pressas ihop till var tredje timme och blir grafens klockslag, grafen växer upp ur den (ovGx). Håll in igen för att fälla ihop. Valet sparas
+let OVG_X=null;
+function ovWx(W){OVG_X=null;const g=ovGraf(W,1);if(!OVG_X)return'<div class="ovx"'+RF('Ö11')+'>'+wxStrip(W)+'</div>';
+ return'<div class="ovx'+(OVWX==='graf'?' ov-open':'')+'"'+RF('Ö11')+' data-hold-lift="ovGx"><div class="ovx-g" aria-hidden="'+(OVWX!=='graf')+'"><div>'+g+'</div></div>'+wxStrip(W,wxHours(W).slice(0,25),OVG_X)+'</div>'}
+/* Övergången mellan remsan och grafen (FLIP): mät rutorna, byt läge, låt varje timme glida från sin gamla plats till den nya.
+   Öppna: remsan pressas ihop åt vänster till var tredje timme (de andra tonar bort på vägen, högerkanten kommer sist) medan grafen
+   växer upp bakom den; sidan rullas lika mycket så att remsan står still och grafen reser sig uppåt. Kurvan ritas ut och punkterna poppar fram.
+   Stäng: grafen sjunker ner bakom remsan först, sedan bréder timmarna ut sig igen. Fjäderkurva som i iOS; inget av detta vid reducerad rörelse */
+function ovAnim(el,op){const st=el.querySelector('.bwx-h'),g=el.querySelector('.ovx-g'),gi=g&&g.firstElementChild;if(!st||!g)return;
+ const its=[...st.children],SPR='cubic-bezier(.32,.72,0,1)',calm=!el.animate||matchMedia('(prefers-reduced-motion: reduce)').matches;
+ [g,gi,...its,...g.querySelectorAll('.ovg-k,.ovg-p')].forEach(e=>e&&e.getAnimations&&e.getAnimations().forEach(a=>a.cancel()));
+ const F=its.map(c=>c.getBoundingClientRect().left),g0=g.getBoundingClientRect().height;
+ el.classList.toggle('ov-open',op);g.setAttribute('aria-hidden',String(!op));st.scrollLeft=0;
+ const g1=g.getBoundingClientRect().height;if(calm){scrollBy(0,g1-g0);return}
+ // höjden växer bildruta för bildruta och sidan följer med, så att remsan ligger kvar där fingret är
+ const D=op?640:520,ha=g.animate([{height:g0+'px'},{height:g1+'px'}],{duration:D,easing:SPR,delay:op?60:0});let last=g0;
+ const tick=()=>{const hh=g.getBoundingClientRect().height;if(hh!==last){scrollBy(0,hh-last);last=hh}if(ha.playState!=='finished'&&ha.playState!=='idle')requestAnimationFrame(tick)};requestAnimationFrame(tick);
+ const n=its.length;its.forEach((c,i)=>{const L=c.getBoundingClientRect().left,dx=F[i]-L,k=c.classList.contains('k3'),nu=c.classList.contains('nu0');
+  if(nu){if(op)c.animate([{opacity:0,transform:'scale(.6)'},{opacity:1,transform:'none'}],{duration:420,easing:SPR,delay:260,fill:'backwards'});return}
+  const dl=op?i*7:(n-i)*5+120;
+  c.animate([{transform:'translateX('+dx.toFixed(1)+'px)'},{transform:'none'}],{duration:op?600:560,easing:SPR,delay:dl,fill:'backwards'});
+  if(!k)c.animate(op?[{opacity:1},{opacity:0}]:[{opacity:0},{opacity:1}],{duration:op?240:420,easing:'ease-out',delay:dl,fill:'backwards'})});
+ if(gi)gi.animate(op?[{opacity:.15,transform:'translateY(18px)'},{opacity:1,transform:'none'}]:[{opacity:1,transform:'none'},{opacity:0,transform:'translateY(10px)'}],{duration:op?620:300,easing:op?SPR:'ease-in',delay:op?60:0,fill:op?'backwards':'forwards'});
+ if(!op)return;
+ const k=g.querySelector('.ovg-k');if(k)k.animate([{strokeDasharray:'1 1',strokeDashoffset:1},{strokeDasharray:'1 1',strokeDashoffset:0}],{duration:760,easing:'cubic-bezier(.65,0,.35,1)',delay:120,fill:'backwards'});
+ g.querySelectorAll('.ovg-p').forEach((p,j)=>p.animate([{opacity:0,transform:'scale(0)'},{opacity:1,transform:'scale(1.25)',offset:.6},{opacity:1,transform:'none'}],{duration:380,easing:'ease-out',delay:260+j*70,fill:'backwards'}))}
 // Dygnets graf: de kommande 24 timmarna i kortets bredd utan att svepa. Kurvan timme för timme; klockslag, ikon och grader var tredje timme
-function ovGraf(W){const P=WX_POS(),H=wxHours(W).slice(0,25);if(H.length<4)return wxStrip(W);
+function ovGraf(W,bare){const P=WX_POS(),H=wxHours(W).slice(0,25);if(H.length<4)return wxStrip(W);
  const mw=(document.getElementById('main')||document.querySelector('main')||document.body).clientWidth||innerWidth;
- const w=Math.max(260,Math.min(mw,700)-64),n=H.length,px=14,pr=30,dx=(w-px-pr)/(n-1),h=128,yT=18,yB=50,base=62,f=v=>v.toFixed(1);
+ const w=Math.max(260,Math.min(mw,700)-64),n=H.length,px=14,pr=30,dx=(w-px-pr)/(n-1),h=bare?66:128,yT=18,yB=50,base=62,f=v=>v.toFixed(1);
  const X=j=>px+j*dx,lo=Math.min(...H.map(x=>x.T)),hi=Math.max(...H.map(x=>x.T)),sp=Math.max(4,hi-lo),Y=T=>yB-(T-lo)/sp*(yB-yT),pts=H.map((x,j)=>[X(j),Y(x.T)]);
  let d='M'+f(pts[0][0])+' '+f(pts[0][1]);
  for(let i=0;i<n-1;i++){const p0=pts[i-1]||pts[i],p1=pts[i],p2=pts[i+1],p3=pts[i+2]||p2;
   d+=' C'+f(p1[0]+(p2[0]-p0[0])/6)+' '+f(p1[1]+(p2[1]-p0[1])/6)+' '+f(p2[0]-(p3[0]-p1[0])/6)+' '+f(p2[1]-(p3[1]-p1[1])/6)+' '+f(p2[0])+' '+f(p2[1])}
- const gid='og'+(++FIG_N),t0=H[0].d.getTime(),tX=t=>X(0)+(t-t0)/36e5*dx;
+ const gid='og'+(++FIG_N),t0=H[0].d.getTime(),tX=t=>X(0)+(t-t0)/36e5*dx;if(bare)OVG_X=H.map((x,j)=>X(j));
  let s='<svg width="'+f(w)+'" height="'+h+'" viewBox="0 0 '+f(w)+' '+h+'" class="ovg-svg"><defs><linearGradient id="'+gid+'" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="'+f(w)+'" y2="0">'+pts.map((p,j)=>'<stop offset="'+(p[0]/w).toFixed(4)+'" stop-color="'+tempCol(H[j].T)+'"/>').join('')+'</linearGradient>'+
   '<linearGradient id="'+gid+'f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="currentColor" stop-opacity=".10"/><stop offset="1" stop-color="currentColor" stop-opacity="0"/></linearGradient></defs>';
  // natten skuggad, soluppgång och solnedgång som streck
  for(let k=-1;k<2;k++){const st=sunTimes(addDays(today(),k),P.lat,P.lon),nx=sunTimes(addDays(today(),k+1),P.lat,P.lon);if(!st)continue;
   if(nx){const a=Math.max(0,tX(st[1].getTime())),b=Math.min(w-pr+4,tX(nx[0].getTime()));if(b>a)s+='<rect x="'+f(a)+'" y="0" width="'+f(b-a)+'" height="'+h+'" class="wxC-night"/>'}
   [[st[0],'↑'],[st[1],'↓']].forEach(([t,a])=>{const xx=tX(t.getTime());if(xx<20||xx>w-20)return;s+='<line x1="'+f(xx)+'" x2="'+f(xx)+'" y1="12" y2="'+base+'" class="wxC-sun"/><text x="'+f(xx)+'" y="9" class="wxC-st">'+a+' '+hhmm(t)+'</text>'})}
- s+='<path d="'+d+' L'+f(X(n-1))+' '+base+' L'+f(X(0))+' '+base+'Z" fill="url(#'+gid+'f)"/><path d="'+d+'" fill="none" stroke="url(#'+gid+')" stroke-width="3" stroke-linecap="round"/><line x1="0" x2="'+f(w)+'" y1="'+base+'" y2="'+base+'" class="wxC-base"/>';
+ s+='<path d="'+d+' L'+f(X(n-1))+' '+base+' L'+f(X(0))+' '+base+'Z" fill="url(#'+gid+'f)" class="ovg-f"/><path d="'+d+'" pathLength="1" class="ovg-k" fill="none" stroke="url(#'+gid+')" stroke-width="3" stroke-linecap="round"/><line x1="0" x2="'+f(w)+'" y1="'+base+'" y2="'+base+'" class="wxC-base"/>';
  H.forEach((x,j)=>{if(x.pr>=.1){const bh=Math.min(14,3+x.pr*8);s+='<rect x="'+f(X(j)-dx/2+1)+'" y="'+f(base-bh)+'" width="'+f(Math.max(2,dx-2))+'" height="'+f(bh)+'" rx="1.5" class="wxC-pr"/>'}});
  // temperaturskala i 3-gradersteg vid högerkanten, som i vädervyns graf
  for(let T=Math.ceil(lo/3)*3;T<=lo+sp+.01;T+=3)s=s.replace('<path d="'+d+' L','<line x1="0" x2="'+f(w-pr+4)+'" y1="'+f(Y(T))+'" y2="'+f(Y(T))+'" class="wxC-grid"/><text x="'+f(w)+'" y="'+f(Y(T)+3.5)+'" class="ovg-y">'+deg(T)+'</text><path d="'+d+' L');
  let ic='';
  H.forEach((x,j)=>{if(j%3)return;const xx=X(j),nu=!j;
-  s+='<circle cx="'+f(xx)+'" cy="'+f(pts[j][1])+'" r="'+(nu?5:3)+'" fill="'+(nu?tempCol(x.T):'var(--surface)')+'" stroke="'+tempCol(x.T)+'" stroke-width="2"/>'+
-   '<text x="'+f(xx)+'" y="78" class="wxC-h'+(nu?' nu':'')+'">'+(nu?'Nu':pad(x.d.getHours()))+'</text><text x="'+f(xx)+'" y="124" class="wxC-t">'+deg(x.T)+'</text>';
-  ic+='<span style="left:'+f(xx)+'px">'+wxIco(wxDayNight(x,P,new Date(x.d.getTime()+18e5)))+'</span>'});
- return'<div class="ovg" data-act="nav" data-id="vader" role="link" aria-label="Dygnets väder i en graf, öppna vädret">'+s+'</svg><div class="ovg-ic" aria-hidden="true">'+ic+'</div></div>'}
+  s+='<circle cx="'+f(xx)+'" cy="'+f(pts[j][1])+'" r="'+(nu?5:3)+'" fill="'+(nu?tempCol(x.T):'var(--surface)')+'" stroke="'+tempCol(x.T)+'" stroke-width="2" class="ovg-p"/>'+(bare?'':
+   '<text x="'+f(xx)+'" y="78" class="wxC-h'+(nu?' nu':'')+'">'+(nu?'Nu':pad(x.d.getHours()))+'</text><text x="'+f(xx)+'" y="124" class="wxC-t">'+deg(x.T)+'</text>');
+  if(!bare)ic+='<span style="left:'+f(xx)+'px">'+wxIco(wxDayNight(x,P,new Date(x.d.getTime()+18e5)))+'</span>'});
+ return'<div class="ovg" data-act="nav" data-id="vader" role="link" aria-label="Dygnets väder i en graf, öppna vädret">'+s+'</svg>'+(bare?'':'<div class="ovg-ic" aria-hidden="true">'+ic+'</div>')+'</div>'}
 // Paraply? Regnet under resten av dagen (efter kl. 18: i morgon dagtid), med tider och mängd
 const UMB='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 0 1 9 9H3a9 9 0 0 1 9-9z"/><path d="M12 12v7a2 2 0 0 0 4 0"/></svg>';
 function rainTxt(W){const n=new Date(),tm=n.getHours()>=18,day=tm?ymd(new Date(n.getFullYear(),n.getMonth(),n.getDate()+1)):ymd(n);
@@ -2408,7 +2435,7 @@ function renderOverlay(){
   (!U3?sh('Form på knappar och rutor')+'<div class="seg-wrap">'+segc('Form på knappar och rutor','segstil',[['standard','Kantiga'],['kapsel','Runda'],['klassisk','Raka']],SEGSTIL)+'</div><div class="foot">Gäller växlingsknappar, rutor, listor och knappar i hela appen. Kantiga har lätt rundade hörn. Runda har helt runda knappar och mjukare rutor, som i iOS 26. Raka har små hörn och streck mellan valen, som i äldre iOS. Text, höjd och färg är samma i alla tre. Gäller bara den här enheten.</div>'+
       sh('Menyraden längst ner')+'<div class="seg-wrap">'+segc('Menyraden längst ner','flikrad',[['fast','Fast'],['glas','Svävande'],['piller','Piller']],FLIKRAD)+'</div><div class="foot">Fast ligger kant i kant längst ner. Svävande är en rundad glasbubbla ovanpå innehållet, som i iOS 26, och krymper till en rund knapp när du scrollar. Piller krymper i stället till ett smalt piller med bara ikonerna, halvt nedanför skärmkanten. Gäller bara den här enheten.</div>':'')+sh('Placering av plusknappen')+'<div class="seg-wrap">'+segc('Placering av plusknappen','addPlace',[['flytande','Flytande'],['profil','Vid profilen'],['rad','Vid raden']],addPlace())+'</div><div class="foot">Gäller Recept, Inköp och Uppgifter. I Städ flyttar Vid profilen pluset till rubriken och döljer snabbfältet. Flytande visas ovanför menyraden. Vid profilen visas bredvid användaren. Vid raden låter dig lägga till direkt i listan; i kalendern öppnas formuläret. Receptpluset visar Nytt recept och Importera recept. Gäller bara den här enheten.</div>'],
    ['vardag','Mat och städ',sh('Städtid och matbudget')+group(fieldCell('Vardag, min','<input class="field r" id="set-wd" name="wd" inputmode="numeric" value="'+esc(st.stadtid_vardag||20)+'" style="max-width:110px">')+fieldCell('Helg, min','<input class="field r" id="set-we" name="we" inputmode="numeric" value="'+esc(st.stadtid_helg||40)+'" style="max-width:110px">')+fieldCell('Mat/vecka, kr','<input class="field r" id="set-budget" name="budget" inputmode="numeric" value="'+esc(st.matbudget||'')+'" style="max-width:110px">'))+sh('Låsa rätter')+'<div class="seg-wrap">'+segc('Låsa rätter','lasstil',[['rad','Runt rätten'],['bild','Runt bilden']],LASSTIL)+'</div><div class="foot">'+'Tryck på låset för att låsa en rätt. Håll in rätten för att ändra den.'+' Föreslå en ny vecka behåller låsta rätter. Gäller bara den här enheten.</div>'+(DEV?sh('Förslag i Planera med portioner')+'<div class="seg-wrap">'+segc('Förslag i Planera med portioner','flStyle',[['karusell','Stort kort'],['lista','Lista']],FL_STYLE)+'</div>':'')],
-   ['oversikt','Översikt och väder',sh('Vädervyn')+'<div class="seg-wrap">'+segc('Vädervyn','wxvy',[['kurva','Dagskurva'],['bild','Bild med hundar']],WXVY)+'</div><div class="foot">Dagskurvan visar temperaturen de närmaste 24 timmarna. Gäller bara den här enheten.</div>'+sh('Vädret under hundarna')+'<div class="seg-wrap">'+segc('Vädret under hundarna','ovwx',[['tim','Timme för timme'],['graf','Graf']],OVWX)+'</div><div class="foot">Vad som visas under bilden i Översikt. Gäller bara den här enheten.</div>'+sh('Hundar i bilden')+'<div class="seg-wrap">'+segc('Hundar i bilden','hundar',[['vaxla','Växla'],['bada','Båda'],['brun','Bruna'],['svart','Svarta']],HUNDAR)+'</div><div class="foot">Växla byter var tredje timme. Du kan också trycka på hundarna i Väder för att byta. Gäller bara den här enheten.</div>'+
+   ['oversikt','Översikt och väder',sh('Vädervyn')+'<div class="seg-wrap">'+segc('Vädervyn','wxvy',[['kurva','Dagskurva'],['bild','Bild med hundar']],WXVY)+'</div><div class="foot">Dagskurvan visar temperaturen de närmaste 24 timmarna. Gäller bara den här enheten.</div>'+sh('Vädret under hundarna')+'<div class="seg-wrap">'+segc('Vädret under hundarna','ovwx',[['tim','Timme för timme'],['graf','Med graf']],OVWX)+'</div><div class="foot">Du kan också hålla in timmarna i Översikt för att visa eller dölja grafen. Gäller bara den här enheten.</div>'+sh('Hundar i bilden')+'<div class="seg-wrap">'+segc('Hundar i bilden','hundar',[['vaxla','Växla'],['bada','Båda'],['brun','Bruna'],['svart','Svarta']],HUNDAR)+'</div><div class="foot">Växla byter var tredje timme. Du kan också trycka på hundarna i Väder för att byta. Gäller bara den här enheten.</div>'+
   sh('Översikten')+group('<button type="button" class="cell link" data-act="arrange"><span class="grow">Ändra ordning på rutorna</span>'+chevron+'</button>')+'<div class="foot">Gäller bara den här enheten. Du kan också hålla fingret på en ruta en stund.</div>'],
    ['enhet','Enheten',sh('Skärm')+group(fieldCell('Väggläge','<input type="checkbox" role="switch" class="switch" data-act="wall" aria-label="Väggläge"'+(S.wall?' checked':'')+'>')+
    (S.wall?'<button type="button" class="cell link" data-act="vagg"><span class="grow">Nattläge</span><span class="meta">'+esc((!NATT.on?'Av':NATT.sol?'Solnedgång–soluppgång':nattTid(NATT.a)+'–'+nattTid(NATT.b))+(CAM.on?' · kamera':''))+'</span>'+chevron+'</button>':'')+statusHtml())+
@@ -3788,6 +3815,7 @@ const ACT={
  segstil(id){SEGSTIL=['kapsel','klassisk'].includes(id)?id:'standard';lsSet('segstil',SEGSTIL==='standard'?null:SEGSTIL);applyStil();render()},
  vaggknapp(id){VKNAPP=['knapp','rubrik'].includes(id)?id:'meny';lsSet('vaggknapp',VKNAPP==='meny'?null:VKNAPP);render()},
  flikrad(id){FLIKRAD=['glas','piller'].includes(id)?id:'fast';lsSet('flikrad',FLIKRAD==='fast'?null:FLIKRAD);applyStil();render()},
+ ovGx(){OVWX=OVWX==='graf'?'tim':'graf';lsSet('ovwx',OVWX==='graf'?'graf':null);const el=document.querySelector('.ovx');if(!el)return render();ovAnim(el,OVWX==='graf')},
  ovwx(id){OVWX=id==='graf'?'graf':'tim';lsSet('ovwx',OVWX==='graf'?'graf':null);render()},
  wxvy(id){WXVY=id==='bild'?'bild':'kurva';lsSet('wxvy',WXVY==='bild'?'bild':null);render()},
  hundar(id){HUNDAR=['bada','brun','svart'].includes(id)?id:'vaxla';lsSet('hundar',HUNDAR==='vaxla'?null:HUNDAR);S.wxVar=null;render()},
@@ -4061,9 +4089,11 @@ const ACT={
 function hlOn(el,t,sc){if(!el)return;el.classList.remove('hl-ut');el.style.transition='';el.style.setProperty('--hl-t',(t||800)+'ms');if(sc)el.style.setProperty('--hl-s',sc);el.classList.add('hl-on')}
 function hlOff(el){if(!el||!el.classList.contains('hl-on'))return;el.classList.add('hl-ut');el.classList.remove('hl-on');setTimeout(()=>el.classList.remove('hl-ut'),300)}
 // Håll in en rad för att ändra (data-hold-lift = ACT, data-id)
-(()=>{const T=800,WAIT=90;let h=null,fired=0;
+(()=>{const T=800,WAIT=90;let h=null,fired=0,ned=0;
  const stop=()=>{if(!h)return;clearTimeout(h.w);clearTimeout(h.t);hlOff(h.el);h=null};
- document.addEventListener('pointerdown',e=>{if(e.button>0)return;const el=e.target.closest('[data-hold-lift]');if(!el||e.target.closest('.dr-act,.dr-actl,.pl-step,.dr-x,.bq-lk,[data-hold-lock]')||el.classList.contains('open')||el.classList.contains('openl'))return;stop();
+ // håller man kvar fingret länge efter att hållet nått fram räknas släppet ändå inte som ett tryck
+ document.addEventListener('pointerup',()=>{if(fired>ned)fired=Date.now()},true);
+ document.addEventListener('pointerdown',e=>{if(e.button>0)return;ned=Date.now();const el=e.target.closest('[data-hold-lift]');if(!el||e.target.closest('.dr-act,.dr-actl,.pl-step,.dr-x,.bq-lk,[data-hold-lock]')||el.classList.contains('open')||el.classList.contains('openl'))return;stop();
   const x={el,x:e.clientX,y:e.clientY};h=x;x.w=setTimeout(()=>{if(h!==x)return;hlOn(el,T);x.t=setTimeout(()=>{if(h!==x)return;fired=Date.now();try{navigator.vibrate&&navigator.vibrate(10)}catch(z){}
    const a=el.dataset.holdLift,id=el.dataset.id;h=null;ACT[a]&&ACT[a](id);setTimeout(()=>hlOff(el),300)},T)},WAIT)});
  document.addEventListener('pointermove',e=>{if(h&&Math.hypot(e.clientX-h.x,e.clientY-h.y)>10)stop()},{passive:true});

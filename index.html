@@ -1460,7 +1460,19 @@ body.dragging .bwx-h{scroll-snap-type:none}
 .ovx .bwx-h div{flex-basis:44px;gap:0;padding:2px 0}.ovx .bwx-h div.nd{flex-basis:54px}
 .ovx .bwx-h .fn{font-size:12px}.ovx .bwx-h .hi{font-size:18px;line-height:22px}.ovx .bwx-h b{font-size:14px}
 .ovx .bwx-h .pr{font-size:10px;line-height:12px;min-height:0;white-space:nowrap}
-.ovg{position:relative;padding-top:4px;border-top:.5px solid var(--line);cursor:pointer}
+.ovg{position:relative;padding-top:4px;cursor:pointer}
+/* grafen fälls ut ovanför timmarna: kortet växer nedåt med iOS fjäderkurva, grafen tonar in och glider på plats */
+.ovx-g{height:0;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end}.ovx-g>div{flex:none}
+.ovx.ov-open .ovx-g{height:auto}
+.ovx.ov-open .bwx-h{border-top-color:transparent}.ovx.ov-open .ovg{border-top:.5px solid var(--line)}
+.ovx:not(.ov-open) .bwx-h .nu0{display:none}
+.ovx.ov-open .bwx-h{display:block;position:relative;overflow:hidden;height:70px;scroll-snap-type:none;-webkit-mask-image:none;mask-image:none}
+.ovx.ov-open .bwx-h .pr{display:none}
+.ovx.ov-open .bwx-h>div{position:absolute;top:0;left:calc(var(--x) - 22px);width:44px;margin:0;padding:2px 0}
+.ovx.ov-open .bwx-h>div.nd:before{display:none}.ovx.ov-open .bwx-h>div:not(.k3){opacity:0;pointer-events:none}
+.ovx.ov-open .bwx-h .nu0 .fn{color:var(--accent);font-weight:600}
+.ovx.hl-on{border-radius:16px;background:var(--surface)}
+.ovg-p{transform-box:fill-box;transform-origin:center}
 .ovg-svg{display:block;color:var(--ink);overflow:visible}
 .ovg-y{font-size:10px;text-anchor:end;fill:var(--ink-2);font-variant-numeric:tabular-nums}
 .ovg-ic>span{position:absolute;top:88px;transform:translateX(-50%);font-size:18px;line-height:22px}
