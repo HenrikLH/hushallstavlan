@@ -856,7 +856,10 @@ function ovGraf(W,bare){const P=WX_POS(),H=wxHours(W).slice(0,25);if(H.length<4)
  s+='<path d="'+d+' L'+f(X(n-1))+' '+base+' L'+f(X(0))+' '+base+'Z" fill="url(#'+gid+'f)" class="ovg-f"/><path d="'+d+'" pathLength="1" class="ovg-k" fill="none" stroke="url(#'+gid+')" stroke-width="3" stroke-linecap="round"/><line x1="0" x2="'+f(w)+'" y1="'+base+'" y2="'+base+'" class="wxC-base"/>';
  H.forEach((x,j)=>{if(x.pr>=.1){const bh=Math.min(14,3+x.pr*8);s+='<rect x="'+f(X(j)-dx/2+1)+'" y="'+f(base-bh)+'" width="'+f(Math.max(2,dx-2))+'" height="'+f(bh)+'" rx="1.5" class="wxC-pr"/>'}});
  // temperaturskala i 3-gradersteg vid högerkanten, som i vädervyns graf
- for(let T=Math.ceil(lo/3)*3;T<=lo+sp+.01;T+=3)s=s.replace('<path d="'+d+' L','<line x1="0" x2="'+f(w-pr+4)+'" y1="'+f(Y(T))+'" y2="'+f(Y(T))+'" class="wxC-grid"/><text x="'+f(w)+'" y="'+f(Y(T)+3.5)+'" class="ovg-y">'+deg(T)+'</text><path d="'+d+' L');
+ // dagens högsta och lägsta (som H och L i rutan) i accentfärg; vanliga steg som skulle krocka med dem utelämnas
+ const d0=W.days[0],HL=d0?[...new Set([Math.round(d0.max),Math.round(d0.min)])].filter(T=>T>=lo-.5&&T<=lo+sp+.5):[];
+ for(let T=Math.ceil(lo/3)*3;T<=lo+sp+.01;T+=3)if(!HL.some(m=>Math.abs(Y(m)-Y(T))<9))s=s.replace('<path d="'+d+' L','<line x1="0" x2="'+f(w-pr+4)+'" y1="'+f(Y(T))+'" y2="'+f(Y(T))+'" class="wxC-grid"/><text x="'+f(w)+'" y="'+f(Y(T)+3.5)+'" class="ovg-y">'+deg(T)+'</text><path d="'+d+' L');
+ HL.forEach(T=>{s=s.replace('<path d="'+d+' L','<line x1="0" x2="'+f(w-pr+4)+'" y1="'+f(Y(T))+'" y2="'+f(Y(T))+'" class="ovg-hl"/><text x="'+f(w)+'" y="'+f(Y(T)+3.5)+'" class="ovg-y hl">'+deg(T)+'</text><path d="'+d+' L')});
  let ic='';
  H.forEach((x,j)=>{if(j%3)return;const xx=X(j),nu=!j;
   s+='<circle cx="'+f(xx)+'" cy="'+f(pts[j][1])+'" r="'+(nu?5:3)+'" fill="'+(nu?tempCol(x.T):'var(--surface)')+'" stroke="'+tempCol(x.T)+'" stroke-width="2" class="ovg-p"/>'+(bare?'':
