@@ -1346,7 +1346,7 @@ const tRing=(t,inner)=>{const klar=t.ring||tmKvar(t)<=0,pau=!klar&&t.p!=null;con
  return'<svg class="trs'+c+'" aria-hidden="true"><rect class="trg-b"'+r+'/><rect class="trg-f"'+r+' pathLength="100" stroke-dasharray="100" stroke-dashoffset="'+(100-trAndel(t)*100).toFixed(2)+'"'+(klar||pau?'':' data-end="'+t.end+'" data-dur="'+t.dur+'"')+'/></svg><span class="trg'+c+'"><span class="trg-n">'+(klar?I.tick:inner)+'</span></span>'};
 // Måtten på ringens rektangel följer knappen medan den töjs och fjädrar (CSS-måtten räcker i nyare webbläsare, attributen är reserv)
 const trRO=window.ResizeObserver?new ResizeObserver(es=>es.forEach(e=>trSize(e.target))):null;
-function trSize(no){const w=no.offsetWidth+6-2.8,h=no.offsetHeight+6-2.8;no.querySelectorAll('.trs rect').forEach(r=>{r.setAttribute('width',w.toFixed(1));r.setAttribute('height',h.toFixed(1));r.setAttribute('rx',(h/2).toFixed(1))})}
+function trSize(no){const w=no.offsetWidth+6-2.8,h=no.offsetHeight+6-2.8,rx=Math.min(h/2,(parseFloat(getComputedStyle(no).borderTopLeftRadius)||h)+1.6);no.querySelectorAll('.trs rect').forEach(r=>{r.setAttribute('width',w.toFixed(1));r.setAttribute('height',h.toFixed(1));r.setAttribute('rx',rx.toFixed(1))})}
 function trWatch(){if(trRO)document.querySelectorAll('.tp-r.tr .no:not([data-ro])').forEach(n=>{n.dataset.ro=1;trRO.observe(n)})}
 // Ringen med pillret gömt bredvid: håll in så fjädrar pillret ut med tiden (trHold)
 const trPill=(t,inner)=>{const ms=tmKvar(t),klar=t.ring||ms<=0,pau=!klar&&t.p!=null;return'<i class="tr-gl" aria-hidden="true"></i>'+tRing(t,inner)+'<span class="tpl"><b'+(klar||pau?'':' data-end="'+t.end+'"')+'>'+(klar?'Klart':tpKvar(ms))+'</b>'+(pau?'<small>paus</small>':'')+'</span>'};
