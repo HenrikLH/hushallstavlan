@@ -8,7 +8,7 @@ module.exports=async(pg,h)=>{
  const start=await read('U3');
  const klass=()=>pg.locator('html').evaluate(x=>x.classList.contains('ui3'));
  assert.equal(await klass(),start);
- if(!await read('DEV')){assert.equal(await pg.locator('[data-act="uiVersion"]').count(),0);await click('[data-act="dev"]')}
+ if(!await read('DEV')){assert.equal(await pg.locator('[data-act="uiVersion"][data-id="3"]').count(),0);await click('[data-act="dev"]')}
  const design=pg.locator('[data-act="uiVersion"][data-id="3"]');if(!await design.isVisible())await pg.locator('.pref-section').filter({has:design}).locator('summary').click();
  // Osparade hushållsfält och UI 2.0:s egna stilval överlever byte mellan versioner.
  const prefs=await pg.evaluate(()=>['segstil','flikrad','ovLayoutNy','wallLayoutNy'].map(k=>localStorage.getItem('ht.'+k)));
@@ -66,6 +66,6 @@ module.exports=async(pg,h)=>{
  if(start&&await pg.locator('.board').count()){const nav=await pg.locator('#nav').boundingBox();for(const el of await pg.locator('.bmeal [data-act="cook"]').all()){const b=await el.boundingBox();assert.ok(b.y+b.height<=nav.y,'Middagens knappar ska rymmas ovanför menyn')}assert.ok(await pg.locator('[data-box="fod"]').isVisible(),'Födelsedagar ska synas på tavlan')}
  await click('[data-act="settings"]');
  if(start){while(await pg.locator('.pref-section:not([open])>summary').count())await pg.locator('.pref-section:not([open])>summary').first().click();await h.shot('installningar-oppna',true)}
- if(start){await click('[data-act="dev"]');assert.equal(await klass(),false);assert.equal(await pg.locator('[data-act="uiVersion"]').count(),0);await pg.reload();await h.idle(1200);assert.equal(await klass(),false)}
+ if(start){await click('[data-act="dev"]');assert.equal(await klass(),false);assert.equal(await pg.locator('[data-act="uiVersion"][data-id="3"]').count(),0);await pg.reload();await h.idle(1200);assert.equal(await klass(),false)}
  console.log('PASS: alla vyer, UI-byte/omstart, oförändrade UI2-val, uppgift skapa/ändra/kalender/avbocka, inköp och matlagning');
 };

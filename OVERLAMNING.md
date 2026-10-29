@@ -1,13 +1,22 @@
-# Aktuell överlämning — 2026-10-27
+# Aktuell överlämning — 2026-10-29
 
 Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs relevant kod/PR vid behov.
 
+## UI 4.0 · release ht-v228
+
+- Codex, gren `codex/ui4-atelje`, [PR #42](https://github.com/HenrikLH/hushallstavlan/pull/42). Godkänd Ateljé-design implementerad som frivilligt UI 4.0; ht-v228 / app.js?v=218.
+- Välj Inställningar → Utseende → Design. UI2 förblir standard; UI3 kräver utvecklarläge. UI4 fungerar vid omstart och utan utvecklarläge.
+- CSS i index.html under html.ui4; riktiga veckorader/menyer i app.js; accent4/ovLayout4/wallLayout4 är separata enhetsval. Ingen demokod, serverändring eller ändring i hushållsdata.
+- Testad appkod `47291f2b61ce81fbea90507074f30c545471ef14`: [CI](https://github.com/HenrikLH/hushallstavlan/actions/runs/40885122189), **12/12 gröna** (UI2/3/4 × telefon/vägg × ljust/mörkt), inklusive UI4-val/omstart/utkast/preferenser, timers, redigeringsblad, recept/sparning/filter, plusplacering och matsedelsgester. UI2:s oförändrade vyer pixeljämförda mot main.
+- Visuellt granskat telefon och vägg med exempeldata. Slutlig iPhone-tangentbords-/Surface-kontroll kräver Henriks hårdvara som tidigare.
+- Henrik har godkänt publicering (”Pusha”, 2026-10-29). Ångra-gren `version-fore-ui4-20261029` pekar på `efb8cec248fef393acde26426a28a610fda36fdd`. Publicering via PR #42; nästa användarsteg är återkoppling från iPhone/Surface. Endast dokumentation har ändrats efter grön CI.
+
 ## Börja här
 
-- Hämta senaste main. Drift: **ht-v215 / app.js?v=205** (väggtavlans väder i hörnet).
-- [Pages-publicering](https://github.com/HenrikLH/hushallstavlan/actions/runs/40094688899) grön; publik sw/index och appens filinnehåll verifierade. Inga öppna PR:er eller ofärdiga implementationer vid överlämningen.
+- UI4-release: **ht-v228 / app.js?v=218**, via PR #42. UI2 förblir standard; välj UI4 i Inställningar → Utseende → Design.
+- [Publiceringar](https://github.com/HenrikLH/hushallstavlan/actions): följ Pages-bygget för PR #42:s merge. Äldre PR #32 (priser) är separat och ingår inte i UI4.
 - Nästa steg: Henriks nästa konkreta uppgift eller återkoppling från telefon/Surface. Gör inte om redan godkända rättningar.
-- Henrik vill behålla UI 2.0:s tema och gemensamma komponenter. UI 3.0 är frivilligt i utvecklarläget. Bilder före visuella ändringar på main; ”Pusha” är publiceringsgodkännande.
+- UI 2.0:s tema och beteenden ska bevaras. Henrik har godkänt Ateljé som ett separat UI 4.0; UI 3.0 finns kvar i utvecklarläget. Bilder före visuella ändringar på main; ”Pusha” är publiceringsgodkännande.
 - Strömningen i ChatGPT har avbrutits flera gånger. Kontrollera gren/PR/main och Pages innan en avbruten publicering återupptas. Begär inte samma godkännande igen.
 
 - **Publicerat 2026-10-26 (Claude, ht-v187, PR #34, ångra-gren version-fore-tidsplan-kalender):** UI 2.0: tidsplan i recept/matlagning (`tidsplan`/`tpHtml`; tryck på stapeln startar/pausar timern `ACT.tpTimer`, `S.timers[].rid/si/p`; hörntimern göms när tidsplanen syns; egen timer med vred `tmrSheet`, `S.sheet='tmr'`, även ovanpå matlagningsläget); stegets ingredienser överst i matlagningsläget (`ingSorted`/`stegQ`); grå markering av aktivt steg. Rättens blad (`dishMenu`, håll in raden; lås = håll in bilden). Kalender Dag/Vecka/Månad under Uppgifter (`S.calVy`, `calDag`/`calVecka`). Test: verktyg/emu/matsedel-gester.js + CI.
