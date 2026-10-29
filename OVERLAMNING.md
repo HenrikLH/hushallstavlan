@@ -2,6 +2,14 @@
 
 Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs relevant kod/PR vid behov.
 
+## Recept: timeout vid spara/import · ht-v230
+
+- Codex, gren `codex/recept-timeout`, appkod `644e68e`, ht-v230/app.js?v=220. Henrik rapporterade URL-import och eget recept Tacos som misslyckas med timeout. Henrik godkände publicering (”Pusha”, 2026-10-29).
+- Verifierad klientbrist: recipeRpc avbröt efter 25 s trots serverns upp till 20 s låsväntan; inga återförsök vid låsfel. Rättat till 90 s/anrop, högst 120 s och tre försök. Identisk kropp/operations-id vid tappat sparsvar, inga automatiska nätåterförsök för import utan kvittens.
+- Ingen Kod.gs-ändring/ny distribution behövs. Importens befintliga domän-/JSON-LD-gränser kvar; Henriks exakta URL och verkliga serverkörtid är inte kända. Inga riktiga hushållsdata ändras.
+- Lokalt grönt (Chromium 153): `recept-rpc.js`, `recept-server.js`, `recept-ui.js`/`recept-reliability.js` i UI4, `alla-flikar.js` telefon/vägg UI4. Nytt `recept-timeout.js` grönt UI2/telefon, UI4/telefon och UI4/vägg/mörkt: Tacos/import med 26 s svar, låsfel, tappat sparsvar utan extra version, omladdat utkast och oförändrad matsedel/inköp. RPC-testet faller med AbortError mot gamla main som väntat.
+- Publicering godkänd; ångra-gren `version-fore-recept-timeout-20261029` från `aa445e13439809f65f06448cd7c6889d336e6654`. Kontrollera PR-CI före merge och Pages efter publicering. Ingen ytterligare inklistring av Kod.gs behövs. Tidigare granskningsblockering gällde saknat godkännande och är nu hanterad med Henriks ”Pusha”.
+
 ## UI4-felgenomgång · release ht-v229
 
 - Codex, gren `codex/ui4-felgenomgang`, [PR #43](https://github.com/HenrikLH/hushallstavlan/pull/43), ht-v229 / app.js?v=219. Felsökning efter Henriks rapport; föregående UI4-release finns på main (PR #42).
