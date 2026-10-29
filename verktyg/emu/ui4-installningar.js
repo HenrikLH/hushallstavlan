@@ -18,7 +18,7 @@ module.exports=async(pg,h)=>{
    await settings();await choose('segstil',form);await choose('flikrad',nav);await close();
    await pg.evaluate(()=>scrollTo(0,0));await h.idle(200);await navCheck(label);
    await click('#nav [data-id="mat"]');await click('[data-act="matTab"][data-id="vecka"]');
-   const overflow=await pg.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);assert(overflow<=1,label+': sidledsöverströmning '+overflow);
+   const overflow=await pg.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);if(overflow>1)console.log('OVERFLOW',JSON.stringify(await pg.evaluate(()=>[...document.querySelectorAll('main *')].map(e=>({c:e.className,r:e.getBoundingClientRect().right,t:e.textContent.slice(0,50)})).filter(e=>e.r>document.documentElement.clientWidth+1).slice(0,15))));assert(overflow<=1,label+': sidledsöverströmning '+overflow);
    // Verklig scroll: Piller/Svävande ska gå att öppna igen; sidomenyn ska stanna kvar.
    await pg.evaluate(()=>scrollTo(0,Math.min(300,document.documentElement.scrollHeight-innerHeight-30)));await h.idle(650);
    if(width>=900){await navCheck(label+' scroll')}else if(nav==='glas'){
