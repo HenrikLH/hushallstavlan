@@ -1321,7 +1321,13 @@ const PILL={k:null,until:0,w:0,px:0},pillOn=t=>PILL.k===t.k&&Date.now()<PILL.unt
 const tmKvar=t=>t.p!=null?t.p:t.end-Date.now();
 // Timerring som på iPhone: bågen krymper medan tiden går (tick flyttar den varje sekund). Färdig = grå med bock
 const trAndel=t=>{const ms=tmKvar(t);return t.ring||ms<=0?0:Math.max(0,Math.min(1,ms/(t.dur||1)))};
-const tRing=(t,inner)=>{const klar=t.ring||tmKvar(t)<=0,pau=!klar&&t.p!=null;return'<span class="trg'+(klar?' klar':pau?' pau':'')+'"><svg viewBox="0 0 40 40" aria-hidden="true"><circle class="trg-b" cx="20" cy="20" r="17.5"/><circle class="trg-f" cx="20" cy="20" r="17.5" pathLength="100" stroke-dasharray="100" stroke-dashoffset="'+(100-trAndel(t)*100).toFixed(2)+'"'+(klar||pau?'':' data-end="'+t.end+'" data-dur="'+t.dur+'"')+'/></svg><span class="trg-n">'+(klar?I.tick:inner)+'</span></span>'};
+const tRing=(t,inner)=>{const klar=t.ring||tmKvar(t)<=0,pau=!klar&&t.p!=null;const c=klar?' klar':pau?' pau':'',r=' x="1.4" y="1.4" width="29.2" height="29.2" rx="14.6"';
+ // Ringen är en rundad rektangel runt hela knappen: som cirkel när den är stängd, runt pillret när det är öppet (trSize håller måtten)
+ return'<svg class="trs'+c+'" aria-hidden="true"><rect class="trg-b"'+r+'/><rect class="trg-f"'+r+' pathLength="100" stroke-dasharray="100" stroke-dashoffset="'+(100-trAndel(t)*100).toFixed(2)+'"'+(klar||pau?'':' data-end="'+t.end+'" data-dur="'+t.dur+'"')+'/></svg><span class="trg'+c+'"><span class="trg-n">'+(klar?I.tick:inner)+'</span></span>'};
+// Måtten på ringens rektangel följer knappen medan den töjs och fjädrar (CSS-måtten räcker i nyare webbläsare, attributen är reserv)
+const trRO=window.ResizeObserver?new ResizeObserver(es=>es.forEach(e=>trSize(e.target))):null;
+function trSize(no){const w=no.offsetWidth+6-2.8,h=no.offsetHeight+6-2.8;no.querySelectorAll('.trs rect').forEach(r=>{r.setAttribute('width',w.toFixed(1));r.setAttribute('height',h.toFixed(1));r.setAttribute('rx',(h/2).toFixed(1))})}
+function trWatch(){if(trRO)document.querySelectorAll('.tp-r.tr .no:not([data-ro])').forEach(n=>{n.dataset.ro=1;trRO.observe(n)})}
 // Ringen med pillret gömt bredvid: håll in så fjädrar pillret ut med tiden (trHold)
 const trPill=(t,inner)=>{const ms=tmKvar(t),klar=t.ring||ms<=0,pau=!klar&&t.p!=null;return'<i class="tr-gl" aria-hidden="true"></i>'+tRing(t,inner)+'<span class="tpl"><b'+(klar||pau?'':' data-end="'+t.end+'"')+'>'+(klar?'Klart':tpKvar(ms))+'</b>'+(pau?'<small>paus</small>':'')+'</span>'};
 // Håll in pillret: pausa, starta om, en minut till eller stäng
@@ -4506,11 +4512,11 @@ const fjader=(()=>{const m={};return(resp,damp)=>{const k=resp+','+damp;if(m[k])
  let T=.05;for(;T<3;T+=.01){let ok=1;for(let u=T;u<T+.2;u+=.02)if(Math.abs(1-f(u))>.002)ok=0;if(ok)break}const p=[];for(let i=0;i<=40;i++)p.push(i<40?f(T*i/40).toFixed(3):'1');
  return m[k]={e:'linear('+p.join(',')+')',d:Math.round(T*1000)}}})();
 const TRH=450,pillW=no=>{const d=no.querySelector('.trg').offsetWidth,l=no.querySelector('.tpl'),f=l.style.flex;l.style.flex='none';const w=l.offsetWidth;l.style.flex=f;return d+w+Math.round(d*.4)};
-function pillSet(no,open,anim){const tp=no.closest('.tp');if(!tp)return;const ring=no.querySelector('.trg'),d=ring.offsetWidth,s=anim?fjader(open?.5:.34,open?.28:1):{e:'linear',d:0};
+function pillSet(no,open,anim){const tp=no.closest('.tp');if(!tp)return;trWatch();const ring=no.querySelector('.trg'),d=ring.offsetWidth,s=anim?fjader(open?.5:.34,open?.28:1):{e:'linear',d:0};
  no.style.setProperty('--fe',s.e);no.style.setProperty('--fd',s.d+'ms');tp.style.setProperty('--fe',s.e);tp.style.setProperty('--fd',s.d+'ms');
  if(open){const w=pillW(no);PILL.w=w;PILL.px=w-no.offsetHeight+8;tp.querySelectorAll('.no[data-open]').forEach(x=>{if(x!==no)pillSet(x,false,false)});no.dataset.open=1;no.style.width=w+'px';tp.style.setProperty('--px',PILL.px+'px');tp.classList.add('push')}
  else{delete no.dataset.open;no.style.width='';tp.classList.remove('push')}}
-function trTick(){if(!PILL.k)return;const L=[...document.querySelectorAll('.tp-r.tr .no[data-k="'+PILL.k+'"]')].filter(x=>x.offsetParent);if(!L.length){PILL.k=null;return}const ut=Date.now()>=PILL.until;if(ut)PILL.k=null;
+function trTick(){trWatch();if(!PILL.k)return;const L=[...document.querySelectorAll('.tp-r.tr .no[data-k="'+PILL.k+'"]')].filter(x=>x.offsetParent);if(!L.length){PILL.k=null;return}const ut=Date.now()>=PILL.until;if(ut)PILL.k=null;
  L.forEach(no=>{if(ut)pillSet(no,false,true);else if(!no.dataset.open)pillSet(no,true,false);else if(Math.abs(pillW(no)-PILL.w)>2)pillSet(no,true,true)})}
 // Standard (Henriks val): pillret töjer sig ut ur cirkeln mot ett motstånd och darrar, slits loss vid TRH; släpper man för tidigt dras det tillbaka in i cirkeln.
 // Reserv: ht.trAnim=glow ger skenet runt ringen i stället
