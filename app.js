@@ -2367,7 +2367,7 @@ function pickSheet(k,enter){
  // Knappen ligger under listan, utanför det som scrollar, så inga rader syns under den
  const foot='<div class="sw-foot"><button type="button" class="btn-fill" data-act="pickGo"'+(S.psel?'':' disabled')+'>'+esc(pickBtnTxt(k,S.psel))+'</button></div>';
  return sheetHtml(k,title,'<span class="tb" aria-hidden="true"></span>',body,enter).replace(/<\/form><\/div>$/,foot+'</form></div>')}
-function sheetHtml(form,title,right,body,enter,left){return'<div class="sheet'+enter+'" data-act="sheetBg"><form class="sheet-panel"'+RF({settings:'B1',prefs:'B2',shop:'B3',task:'B4',taskEdit:'B5',evEdit:'B6',cleanQuick:'B7',cost:'B8',income:'B9',matb:'B23',dish:'B10',farg:'B11',fodAdd:'B12',ljuskal:'B13',ov:'B14',prot:'B15',rate:'B16',tmr:'B17',vagg:'B18',wish:'B19',taskMenu:'B20',evMenu:'B21',cleanMenu:'B22'}[form])+' data-form="'+form+'" role="dialog" aria-modal="true" aria-label="'+title+'"><div class="grabber" aria-hidden="true"></div><div class="sheet-head">'+(left||'<button type="button" class="tb" data-act="sheetClose">Avbryt</button>')+'<h2>'+title+'</h2>'+right+'</div><div class="sheet-body">'+body+'</div></form></div>'}
+function sheetHtml(form,title,right,body,enter,left){return'<div class="sheet'+enter+'" data-act="sheetBg"><form class="sheet-panel"'+RF({settings:'B1',prefs:'B2',shop:'B3',task:'B4',taskEdit:'B5',evEdit:'B6',cleanQuick:'B7',cost:'B8',income:'B9',matb:'B23',wxDay:'B24',dish:'B10',farg:'B11',fodAdd:'B12',ljuskal:'B13',ov:'B14',prot:'B15',rate:'B16',tmr:'B17',vagg:'B18',wish:'B19',taskMenu:'B20',evMenu:'B21',cleanMenu:'B22'}[form])+' data-form="'+form+'" role="dialog" aria-modal="true" aria-label="'+title+'"><div class="grabber" aria-hidden="true"></div><div class="sheet-head">'+(left||'<button type="button" class="tb" data-act="sheetClose">Avbryt</button>')+'<h2>'+title+'</h2>'+right+'</div><div class="sheet-body">'+body+'</div></form></div>'}
 // slider i en rad: rubrik och värde överst, reglaget under och förklaring i ändarna
 const ljVal=(id,v)=>id==='ljMork'?luxTxt(morkLux(v)):v+(id==='ljKans'?'':' %');
 const ljSlider=(label,id,v,min,max,l,r)=>'<div class="cell lj-sl"><div class="lj-h"><span>'+label+'</span><span class="meta" data-ljv="'+id+'">'+ljVal(id,v)+'</span></div><input type="range" min="'+min+'" max="'+max+'" step="1" value="'+v+'" data-input="'+id+'" aria-label="'+label+'"><div class="lj-e"><span>'+l+'</span><span>'+r+'</span></div></div>';
@@ -2418,7 +2418,7 @@ function overlayKeepScroll(){const o=document.getElementById('overlay'),k=o.data
  const nb=o.querySelector('.sheet-body');if(y&&k&&o.dataset.k===k&&nb&&nb!==b)nb.scrollTop=y}
 function renderOverlay(){
  const o=document.getElementById('overlay');
- const k=S.cook?'cook':S.sheet==='settings'?'settings':S.sheet==='farg'?'farg':S.sheet==='vagg'?'vagg':S.sheet==='ljuskal'?'ljuskal':S.sheet==='rate'?'rate':S.sheet==='income'?'income':S.sheet==='matb'?'matb':S.sheet==='cost'?'cost':S.sheet==='ov'?'ov':S.sheet==='prefs'?'prefs':S.sheet==='swap'?'swap':S.sheet==='prot'?'prot':S.sheet==='wish'?'wish':S.sheet==='shopMore'?'shopMore':S.sheet==='dess'?'dess':S.sheet==='slot'?'slot':S.sheet==='delLas'?'delLas':S.sheet==='dish'?'dish':S.sheet==='tmr'?'tmr':S.sheet==='tmrMenu'?'tmrMenu':S.rcpSheet?'rcpSheet':S.sheet==='cleanAdd'?'cleanAdd':S.sheet==='fodAdd'?'fodAdd':S.sheet==='taskMenu'?'taskMenu':S.sheet==='ekoMenu'?'ekoMenu':S.sheet==='evMenu'?'evMenu':S.sheet==='cleanMenu'?'cleanMenu':S.sheet==='taskEdit'?'taskEdit':S.sheet==='evEdit'?'evEdit':S.shopAdd?'shop':S.taskAdd?'task':'';
+ const k=S.cook?'cook':S.sheet==='settings'?'settings':S.sheet==='farg'?'farg':S.sheet==='vagg'?'vagg':S.sheet==='ljuskal'?'ljuskal':S.sheet==='rate'?'rate':S.sheet==='income'?'income':S.sheet==='matb'?'matb':S.sheet==='cost'?'cost':S.sheet==='ov'?'ov':S.sheet==='prefs'?'prefs':S.sheet==='swap'?'swap':S.sheet==='prot'?'prot':S.sheet==='wish'?'wish':S.sheet==='shopMore'?'shopMore':S.sheet==='dess'?'dess':S.sheet==='slot'?'slot':S.sheet==='delLas'?'delLas':S.sheet==='dish'?'dish':S.sheet==='tmr'?'tmr':S.sheet==='tmrMenu'?'tmrMenu':S.rcpSheet?'rcpSheet':S.sheet==='cleanAdd'?'cleanAdd':S.sheet==='fodAdd'?'fodAdd':S.sheet==='taskMenu'?'taskMenu':S.sheet==='ekoMenu'?'ekoMenu':S.sheet==='evMenu'?'evMenu':S.sheet==='cleanMenu'?'cleanMenu':S.sheet==='taskEdit'?'taskEdit':S.sheet==='evEdit'?'evEdit':S.sheet==='wxDay'?'wxDay':S.shopAdd?'shop':S.taskAdd?'task':'';
  const prev=o.dataset.k||'';
  // Rita inte om ett öppet blad medan någon skriver i det
  if(k&&k!=='cook'&&k===prev&&busyTyping()&&o.contains(document.activeElement))return;
@@ -2530,6 +2530,7 @@ function renderOverlay(){
    sh('Vilken matlagning ska den ersätta?')+'<div class="vpick col" role="radiogroup" aria-label="Ersätter">'+SLOTS.map(x=>'<label><input type="radio" name="slot" value="'+esc(x)+'"'+(x===sel?' checked':'')+'><span>'+esc(x)+'</span></label>').join('')+'</div>'+
    '<div class="foot">Söndagens veckoplanering lägger rätten där i stället för det den annars hade valt. Önskemålen töms varje vecka.</div>';
   o.innerHTML=sheetHtml('wish','Önska till nästa vecka','<button class="tb strong">Önska</button>',body,enter);return}
+ if(k==='wxDay'){o.innerHTML=sheetHtml('wxDay','Förhållanden','<button type="button" class="tb strong" data-act="sheetClose">Klar</button>',wxDayHtml(),enter,'<span></span>');return}
  if(k==='matb'){const m=S.ekoMonth||thisMonth(),mb=matBudget(m);
   const body=sh('Matbudget från '+monthName(m))+group(fieldCell('Belopp per månad','<input class="field r" name="b" inputmode="numeric" value="'+esc(mb?mb.b:'')+'" placeholder="0 kr" style="max-width:150px" aria-label="Matbudget per månad">'))+
    '<div class="foot">Gäller '+esc(monthName(m))+' och månaderna efter tills du ändrar. Var och ens del räknas fram från inkomsterna.</div>';
@@ -2720,8 +2721,9 @@ async function loadPast(force){const P=WX_POS();if(!force&&EXT.past&&Date.now()-
 function wxModel(){const y=EXT.yr;if(!y||!y.ts||!y.ts.length||Date.now()-y.at>12*3600000)return null;
  const now=Date.now(),hrs=y.ts.map(x=>Object.assign({},x,{d:new Date(x.t)})).filter(x=>x.d.getTime()>now-3600000);if(!hrs.length)return null;
  const cur=hrs[0],days={};
- hrs.forEach(x=>{const k=ymd(x.d);const D=days[k]=days[k]||{date:k,min:99,max:-99,pr:0,syms:[]};D.min=Math.min(D.min,x.T);D.max=Math.max(D.max,x.T);
-  D.pr+=x.pr!=null?x.pr:(x.pr6!=null&&x.d.getHours()%6===0?x.pr6:0);const hr=x.d.getHours();if(hr>=9&&hr<=18)D.syms.push(x.s6||x.s)});
+ // Yr ger var sjätte timme längre fram (00, 06, 12, 18 UTC, alltså inte jämna lokala timmar): sextimmarssumman räknas efter steget till nästa tid
+ hrs.forEach((x,i)=>{const k=ymd(x.d);const D=days[k]=days[k]||{date:k,min:99,max:-99,pr:0,syms:[]};D.min=Math.min(D.min,x.T);D.max=Math.max(D.max,x.T);
+  const n=hrs[i+1],g=n?Math.min(6,Math.max(1,Math.round((n.d-x.d)/36e5))):6;D.pr+=x.pr!=null?x.pr:(x.pr6!=null?x.pr6*g/6:0);const hr=x.d.getHours();if(hr>=9&&hr<=18)D.syms.push(x.s6||x.s)});
  const dl=Object.values(days).map(D=>Object.assign(D,{sym:D.syms[Math.floor(D.syms.length/2)]||(hrs.find(x=>ymd(x.d)===D.date)||{}).s||''})).slice(0,9);
  return{src:y.src,now:cur,hours:hrs.slice(0,25),all:hrs,days:dl}}
 const symBase=s=>String(s||'').replace(/_(day|night|polartwilight)$/,'');
@@ -3516,7 +3518,7 @@ V.vader=function(){const W=wxModel(),P=WX_POS();
  // Dagar
  const lo=Math.min(...W.days.map(x=>x.min)),hi=Math.max(...W.days.map(x=>x.max)),span=Math.max(1,hi-lo);
  h+='<div class="group wx-card"'+RF('W4')+'><div class="wx-cap">'+I.cal+W.days.length+'-dagarsprognos</div>'+W.days.map((x,k)=>{const[ii]=symInfo(x.sym),l=(x.min-lo)/span*100,r=(x.max-lo)/span*100;
-  return'<div class="day-row"><span class="dn">'+(k?capS(DAYS3[parse(x.date).getDay()]):'Idag')+'</span><span class="di" aria-hidden="true">'+ii+'</span><span class="dp num">'+(x.pr>=0.2?mm(x.pr):'')+'</span><span class="dmin num">'+deg(x.min)+'</span><span class="range" aria-hidden="true"><i style="left:'+l+'%;right:'+(100-r)+'%;background:'+tempGrad(x.min,x.max)+'"></i>'+(k===0?'<b style="left:'+((W.now.T-lo)/span*100)+'%"></b>':'')+'</span><span class="dmax num">'+deg(x.max)+'</span></div>'}).join('')+'</div>';
+  return'<button type="button" class="day-row" data-act="wxDay" data-id="'+x.date+'"><span class="dn">'+(k?capS(DAYS3[parse(x.date).getDay()]):'Idag')+'</span><span class="di" aria-hidden="true">'+ii+'</span><span class="dp num">'+(x.pr>=0.2?mm(x.pr):'')+'</span><span class="dmin num">'+deg(x.min)+'</span><span class="range" aria-hidden="true"><i style="left:'+l+'%;right:'+(100-r)+'%;background:'+tempGrad(x.min,x.max)+'"></i>'+(k===0?'<b style="left:'+((W.now.T-lo)/span*100)+'%"></b>':'')+'</span><span class="dmax num">'+deg(x.max)+'</span></button>'}).join('')+'</div>';
  // Detaljer
  const n=W.now,prToday=d0.pr,tile=(lab,val,sub)=>'<div class="wx-tile"'+RF({Vind:'W5','Känns som':'W6',Nederbörd:'W7',Luftfuktighet:'W8',Sol:'W9',Lufttryck:'W10'}[lab])+'><div class="wx-cap">'+lab+'</div><div class="tv num">'+val+'</div><div class="fn">'+sub+'</div></div>';
  h+='<div class="wx-tiles">'+
@@ -3529,6 +3531,74 @@ V.vader=function(){const W=wxModel(),P=WX_POS();
  h+='<div class="foot">Väderdata från '+(W.src==='yr'?'<a href="https://www.yr.no/" target="_blank" rel="noopener">Yr</a> och MET Norway (CC BY 4.0)':'Open-Meteo, eftersom Yr inte gick att nå')+'. Uppdaterad '+hhmm(new Date(EXT.yr.at))+'.</div>';
  return h};
 
+/* Dagens väder (tryck på en dag i W4): ett blad som Apples Väder. Dagarna överst, dagens läge, en graf över dygnet 00–24
+   (temperatur, nederbörd eller vind) och en kort sammanfattning. Yr ger timme för timme de första dygnen och sedan var sjätte timme;
+   idag ritas de passerade timmarna (Open-Meteo) svagare. */
+function wxDayPts(W,date){const t0=parse(date).getTime(),t1=parse(addDays(date,1)).getTime(),now=Date.now();
+ let H=(W.all||W.hours).filter(x=>x.d.getTime()>=t0&&x.d.getTime()<=t1);
+ if(date===today()&&EXT.past&&EXT.past.ts){const f=H.length?H[0].d.getTime():now,pa=EXT.past.ts.map(x=>Object.assign({},x,{d:new Date(x.t),past:1})).filter(x=>x.d.getTime()>=t0&&x.d.getTime()<f);H=pa.concat(H)}
+ // nederbörd per timme: en timme hos Yr, annars sextimmarssumman utslagen på steget
+ return H.map((x,i)=>{const n=H[i+1],dur=n?Math.max(1,Math.round((n.d-x.d)/36e5)):1,amt=x.pr!=null?x.pr:(x.pr6!=null?x.pr6:0);
+  return Object.assign({},x,{X:(x.d-t0)/(t1-t0)*240,dur,rate:dur>1&&x.pr==null?amt/Math.min(6,dur):amt,amt:x.pr!=null?x.pr:(x.pr6!=null&&dur>1?x.pr6*Math.min(6,dur)/6:0)})})}
+function wxDayHtml(){const W=wxModel();if(!W)return group(emptyCell('Prognosen kunde inte hämtas just nu.'));
+ const P=WX_POS(),D=W.days.find(x=>x.date===S.wxDay)||W.days[0],idag=D.date===today(),met=S.wxMet||'temp',H=wxDayPts(W,D.date);
+ const dt=parse(D.date),f=v=>v.toFixed(1),now=Date.now(),nX=idag?(now-dt)/(parse(addDays(D.date,1))-dt)*240:-1;
+ // dagarna överst, som en rad med veckodag och datum
+ let h='<div class="wd-days" role="group" aria-label="Välj dag">'+W.days.map(x=>{const d=parse(x.date),on=x.date===D.date;
+  return'<button type="button" class="wd-d'+(on?' on':'')+(x.date===today()?' td':'')+'" data-act="wxDay" data-id="'+x.date+'" aria-pressed="'+on+'" aria-label="'+capS(DAYS[d.getDay()])+' '+d.getDate()+' '+MON[d.getMonth()]+'"><span>'+DAYS3[d.getDay()][0].toUpperCase()+'</span><b class="num">'+d.getDate()+'</b></button>'}).join('')+'</div>';
+ const[ic,tx]=symInfo(idag?W.now.s:D.sym);
+ h+='<div class="wd-date">'+capS(DAYS[dt.getDay()])+' '+dt.getDate()+' '+MON[dt.getMonth()]+'</div>'+
+  '<div class="wd-top"><div class="wd-big num">'+deg(idag?W.now.T:D.max)+'</div><div class="wd-ic" aria-hidden="true">'+ic+'</div><div class="wd-hl"><b>'+esc(tx)+'</b><span class="num">H:'+deg(D.max)+'  L:'+deg(D.min)+'</span></div></div>';
+ h+='<div class="seg-wrap wd-seg">'+segc('Visa i grafen','wxMet',[['temp','Temperatur'],['pr','Nederbörd'],['vind','Vind']],met)+'</div>';
+ // grafen: x = timmar 0–24 (240 enheter), y = 0–100. Linjer ritas utan att töjas; text, prickar och ikoner ligger i HTML ovanpå.
+ const val=x=>met==='vind'?(x.w||0):x.T,vs=H.map(val);let lo,hi;
+ if(met==='temp'){lo=Math.min(...vs);hi=Math.max(...vs);const sp=Math.max(4,hi-lo);lo=Math.floor((lo-sp*.15)/2)*2;hi=Math.ceil((hi+sp*.15)/2)*2}
+ else if(met==='vind'){lo=0;hi=Math.max(6,Math.ceil(Math.max(...vs,...H.map(x=>x.w||0))/2)*2+2)}else{lo=0;hi=Math.max(1,Math.ceil(Math.max(...H.map(x=>x.rate))*2)/2)}
+ const Y=v=>92-(v-lo)/(hi-lo)*84;
+ const stp=met==='pr'?(hi<=2?.5:hi<=6?1:2):met==='vind'?(hi<=10?2:4):(hi-lo<=10?2:hi-lo<=20?4:5),ticks=[];for(let v=Math.ceil(lo/stp)*stp;v<=hi+1e-6;v+=stp)ticks.push(Math.round(v*10)/10);
+ const tl=v=>met==='temp'?deg(v):String(v).replace('.',',');
+ const gid='wd'+(++FIG_N);let s='<svg class="wd-svg" viewBox="0 0 240 100" preserveAspectRatio="none" aria-hidden="true"><defs>'+
+  '<linearGradient id="'+gid+'" gradientUnits="userSpaceOnUse" x1="0" y1="'+f(Y(hi))+'" x2="0" y2="'+f(Y(lo))+'">'+(met==='temp'?[0,.25,.5,.75,1].map(k=>'<stop offset="'+k+'" stop-color="'+tempCol(hi-(hi-lo)*k)+'"/>').join(''):'<stop offset="0" stop-color="var(--accent)"/><stop offset="1" stop-color="var(--accent)"/>')+'</linearGradient>'+
+  '<linearGradient id="'+gid+'f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="currentColor" stop-opacity=".14"/><stop offset="1" stop-color="currentColor" stop-opacity="0"/></linearGradient>'+
+  '<clipPath id="'+gid+'p"><rect x="0" y="0" width="'+f(Math.max(0,nX))+'" height="100"/></clipPath><clipPath id="'+gid+'n"><rect x="'+f(Math.max(0,nX))+'" y="0" width="240" height="100"/></clipPath></defs>';
+ // natten svagt tonad, stödlinjer var sjätte timme och för skalan
+ const st=sunTimes(D.date,P.lat,P.lon),sx=t=>(t-dt)/(parse(addDays(D.date,1))-dt)*240;
+ if(st){s+='<rect x="0" y="0" width="'+f(Math.max(0,sx(st[0])))+'" height="100" class="wd-night"/><rect x="'+f(sx(st[1]))+'" y="0" width="'+f(Math.max(0,240-sx(st[1])))+'" height="100" class="wd-night"/>'}
+ s+=[60,120,180].map(x=>'<line x1="'+x+'" x2="'+x+'" y1="0" y2="100" class="wd-vg"/>').join('')+ticks.map(v=>'<line x1="0" x2="240" y1="'+f(Y(v))+'" y2="'+f(Y(v))+'" class="wd-hg"/>').join('');
+ if(met==='pr')s+=H.map(x=>x.rate>=.05?'<rect x="'+f(x.X+.6)+'" width="'+f(Math.min(240-x.X,x.dur*10)-1.2)+'" y="'+f(Y(x.rate))+'" height="'+f(92-Y(x.rate))+'" class="wd-bar'+(x.d.getTime()<now-36e5?' was':'')+'"/>':'').join('');
+ else if(H.length>1){const pts=H.map(x=>[x.X,Y(val(x))]);let d='M'+f(pts[0][0])+' '+f(pts[0][1]);
+  for(let i=0;i<pts.length-1;i++){const p0=pts[i-1]||pts[i],p1=pts[i],p2=pts[i+1],p3=pts[i+2]||p2;
+   d+=' C'+f(p1[0]+(p2[0]-p0[0])/6)+' '+f(p1[1]+(p2[1]-p0[1])/6)+' '+f(p2[0]-(p3[0]-p1[0])/6)+' '+f(p2[1]-(p3[1]-p1[1])/6)+' '+f(p2[0])+' '+f(p2[1])}
+  const fill='<path d="'+d+' L'+f(pts[pts.length-1][0])+' 92 L'+f(pts[0][0])+' 92Z" fill="url(#'+gid+'f)" class="wd-fill"/>',ln='<path d="'+d+'" fill="none" stroke="url(#'+gid+')" stroke-width="3" stroke-linecap="round" vector-effect="non-scaling-stroke"/>';
+  s+=nX>0?'<g clip-path="url(#'+gid+'p)" class="wd-was">'+fill+ln+'</g><g clip-path="url(#'+gid+'n)">'+fill+ln+'</g>':fill+ln}
+ s+='<line x1="0" x2="240" y1="92" y2="92" class="wd-base"/>'+(nX>0?'<line x1="'+f(nX)+'" x2="'+f(nX)+'" y1="0" y2="92" class="wd-nu"/>':'')+'</svg>';
+ // ikoner överst: var tredje timme när Yr har timvärden, annars var sjätte
+ const tre=H.filter(x=>!x.past).some((x,i,a)=>a[i+1]&&a[i+1].d-x.d<=36e5)||idag,iv=tre?3:6,top=[];
+ for(let hr=0;hr<24;hr+=iv){const x=H.find(y=>y.d.getHours()===hr&&ymd(y.d)===D.date)||H.filter(y=>ymd(y.d)===D.date&&y.d.getHours()<=hr).pop();if(!x)continue;
+  const xx=wxDayNight(x,P,new Date(dt.getTime()+(hr+iv/2)*36e5));top.push('<span style="left:'+f((hr+iv/2)/24*100)+'%"'+(x.past||x.d.getTime()<now-36e5?' class="was"':'')+'>'+(met==='vind'?'<i class="wd-ar" style="transform:rotate('+((x.wd||0)+180)+'deg)">↑</i>':symInfo(xx.s)[0])+'</span>')}
+ const yl=ticks.map(v=>'<span class="num" style="top:'+f(Y(v))+'%">'+tl(v)+(v===ticks[ticks.length-1]&&met!=='temp'?(met==='pr'?' mm/h':' m/s'):'')+'</span>').join('');
+ // H och L vid dagens högsta och lägsta punkt, prick vid nu
+ let mk='';if(met==='temp'&&H.length){const D0=H.filter(x=>ymd(x.d)===D.date),a=D0.reduce((m,x)=>x.T>m.T?x:m,D0[0]),b=D0.reduce((m,x)=>x.T<m.T?x:m,D0[0]);
+  if(a)mk+='<span class="wd-mk h" style="left:'+f(a.X/2.4)+'%;top:'+f(Y(a.T))+'%">H</span>';if(b&&b!==a)mk+='<span class="wd-mk l" style="left:'+f(b.X/2.4)+'%;top:'+f(Y(b.T))+'%">L</span>'}
+ if(nX>0&&met!=='pr'){const v=met==='vind'?(W.now.w||0):W.now.T;mk+='<i class="wd-dot" style="left:'+f(nX/2.4)+'%;top:'+f(Y(v))+'%;'+(met==='temp'?'--c:'+tempCol(v):'')+'"></i>'}
+ h+='<div class="wd-chart"><div class="wd-icons" aria-hidden="true">'+top.join('')+'</div><div class="wd-plot">'+s+mk+'<div class="wd-y" aria-hidden="true">'+yl+'</div></div>'+
+  '<div class="wd-x num" aria-hidden="true">'+['00','06','12','18'].map((t,i)=>'<span style="left:'+(i*25)+'%">'+t+'</span>').join('')+'</div></div>';
+ h+=sh('Dagssammanfattning')+'<div class="wd-sum">'+esc(wxDaySum(W,D,H,idag))+'</div>';
+ // detaljer i samma rutor som vädervyn
+ const DH=H.filter(x=>ymd(x.d)===D.date),fl=DH.map(x=>feels(x.T,x.w||0)),wm=DH.reduce((m,x)=>(x.w||0)>(m.w||0)?x:m,DH[0]||W.now),hum=DH.filter(x=>x.h!=null),tile=(lab,v,sub)=>'<div class="wx-tile"><div class="wx-cap">'+lab+'</div><div class="tv num">'+v+'</div><div class="fn">'+sub+'</div></div>';
+ h+='<div class="wx-tiles wd-tiles">'+tile('Känns som',deg(Math.min(...fl.length?fl:[D.min])),'som kallast, '+deg(Math.max(...fl.length?fl:[D.max]))+' som varmast')+tile('Nederbörd',mm(D.pr),D.pr<.2?'Uppehåll':'under dygnet')+
+  tile('Vind',Math.round(wm.w||0)+' m/s','som mest, '+windDir(wm.wd))+(st?tile('Sol','<span class="sm">↑ '+hhmm(st[0])+'</span> <span class="sm">↓ '+hhmm(st[1])+'</span>','Dagens längd '+Math.floor((st[1]-st[0])/36e5)+' h '+Math.round(((st[1]-st[0])%36e5)/6e4)+' min'):'')+
+  (hum.length?tile('Luftfuktighet',Math.round(hum.reduce((a,x)=>a+x.h,0)/hum.length)+' %','i genomsnitt'):'')+'</div>';
+ return h+'<div class="foot">Väderdata från '+(W.src==='yr'?'Yr och MET Norway':'Open-Meteo')+(tre?'':'. Så här långt fram ger prognosen var sjätte timme.')+'</div>'}
+// en kort text om dagen: väderläget mitt på dagen, temperaturen, när det regnar och vinden
+function wxDaySum(W,D,H,idag){const dt=parse(D.date),DH=H.filter(x=>ymd(x.d)===D.date);if(!DH.length)return'';
+ const nar=idag?'Idag':D.date===addDays(today(),1)?'I morgon':'På '+DAYS[dt.getDay()],t=(symInfo(D.sym)[1]||'växlande väder').toLowerCase();
+ const a=DH.reduce((m,x)=>x.T>m.T?x:m,DH[0]);let s=nar+' blir det '+t+' med temperaturer mellan '+deg(D.min)+' och '+deg(D.max)+'. Varmast runt kl '+pad(a.d.getHours())+'.';
+ const R=DH.filter(x=>x.rate>=.1);
+ if(D.pr>=.2&&R.length){const f=R[0].d.getHours(),l=R[R.length-1],e=Math.min(24,l.d.getHours()+l.dur);s+=' '+(/snö/.test(t)?'Snö':'Nederbörd')+' väntas '+(e-f>=20?'under större delen av dygnet':'mellan kl '+pad(f)+' och '+pad(e%24===0&&e?24:e))+', totalt '+mm(D.pr)+'.'}
+ else s+=D.pr>0||/regn|snö|skur|byar/.test(t)?' Bara lite nederbörd, under '+mm(.2)+'.':' Det blir uppehåll.';
+ const w=DH.reduce((m,x)=>(x.w||0)>(m.w||0)?x:m,DH[0]),wm=Math.round(w.w||0);s+=' '+(wm<2?'Nästan vindstilla.':wm<6?'Svag '+windDir(w.wd)+' vind, som mest '+wm+' m/s.':wm<11?'Måttlig '+windDir(w.wd)+' vind, som mest '+wm+' m/s.':'Hård '+windDir(w.wd)+' vind, upp till '+wm+' m/s.');
+ return s}
 
 /* ---------- ekonomi ----------
    Ersätter kalkylarket Ekonomikalkyl. Utgifterna ligger i raden ekonomi och inkomsterna per månad
@@ -3818,6 +3888,8 @@ const ACT={
   const f=vis?sel:Math.round(x/cw),off=f*cw-x,fh=(f-np)*o,sh=(S.wxSel||0)*o;
   WXC_K=k;lsSet('wxsteg',k===1?'1':null);S.wxSel=Math.floor(sh/k);
   const nnp=np*o/k;S.wxX=Math.max(0,(nnp+Math.floor(fh/k))*cw-off);render()},
+ wxDay(id){S.wxDay=id;S.sheet='wxDay';render()},
+ wxMet(id){S.wxMet=['pr','vind'].includes(id)?id:null;render()},
  wxHr(id){const i=Number(id)||0,x=WXC_H[i];if(!x)return;S.wxSel=i-WXC_NP;const r=document.querySelector('.wxC-sel');if(r)r.setAttribute('x',(i*WXC_SW).toFixed(1));const inf=document.querySelector('.wxC-info');if(inf)inf.innerHTML=wxHrInfo(x,i)},
  lasstil(id){LASSTIL=id==='bild'?'bild':'rad';lsSet('lasstil',LASSTIL==='bild'?'bild':null);render()},
  addPlace(id){rememberSettings();lsSet('addPlace',['flytande','rad'].includes(id)?id:null);render()},

@@ -896,6 +896,29 @@ html.ny .chip.lk::before{display:none}
 .day-row .dn{font-weight:600}.day-row .di{font-size:22px;line-height:1;text-align:center}
 .day-row .dp{font-size:12px;color:#2E9CC0;font-weight:600}
 .day-row .dmin{color:var(--ink-2);text-align:right}.day-row .dmax{text-align:right;font-weight:600}
+button.day-row{width:100%;background:none;border:0;border-top:.5px solid var(--line);color:inherit;font:inherit;font-size:17px;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}button.day-row:active{background:var(--line)}
+/* Dagens väder (B24): bladet när man trycker på en dag, som Apples Väder */
+.wd-days{display:flex;gap:2px;justify-content:space-between;padding:4px 12px 2px}
+.wd-d{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:0;color:inherit;font:inherit;padding:2px 0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.wd-d span{font-size:12px;font-weight:600;color:var(--ink-2)}.wd-d b{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;font-size:17px;font-weight:600}
+.wd-d.td b{color:var(--accent)}.wd-d.on b{background:var(--ink);color:var(--bg)}
+.wd-date{text-align:center;font-size:15px;font-weight:600;color:var(--ink-2);padding:8px 16px 2px}
+.wd-top{display:flex;align-items:center;gap:10px;padding:4px 20px 10px}.wd-big{font-size:48px;line-height:52px;font-weight:600;letter-spacing:-1px}
+.wd-ic{font-size:34px;line-height:1}.wd-hl{display:flex;flex-direction:column;margin-left:auto;text-align:right;font-size:15px}.wd-hl span{color:var(--ink-2)}
+.wd-seg{padding:0 16px 6px}
+.wd-chart{position:relative;margin:4px 16px 0;background:var(--surface);border-radius:16px;padding:8px 48px 6px 8px}
+.wd-icons{position:relative;height:30px}.wd-icons span{position:absolute;top:2px;transform:translateX(-50%);font-size:20px;line-height:1}.wd-icons .was{opacity:.45}
+.wd-ar{display:inline-block;font-style:normal;font-weight:700;color:var(--ink-2);font-size:17px}
+.wd-plot{position:relative;height:190px}.wd-svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;color:var(--ink)}
+.wd-night{fill:currentColor;opacity:.04}.wd-vg{stroke:var(--line);stroke-width:1;vector-effect:non-scaling-stroke;stroke-dasharray:2 3}.wd-hg{stroke:var(--line);stroke-width:1;vector-effect:non-scaling-stroke}
+.wd-base{stroke:var(--ink-2);stroke-width:1;vector-effect:non-scaling-stroke;opacity:.4}.wd-nu{stroke:var(--ink-2);stroke-width:1;vector-effect:non-scaling-stroke;opacity:.6}
+.wd-was{opacity:.4}.wd-bar{fill:#5AA9F0}.wd-bar.was{opacity:.4}
+.wd-y{position:absolute;top:0;bottom:0;right:-44px;width:42px}.wd-y span{position:absolute;left:0;transform:translateY(-50%);font-size:11px;color:var(--ink-2);white-space:nowrap}
+.wd-mk{position:absolute;transform:translate(-50%,-150%);font-size:11px;font-weight:700;color:var(--ink-2)}.wd-mk.l{transform:translate(-50%,40%)}
+.wd-dot{position:absolute;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;background:var(--c,var(--accent));border:2.5px solid var(--surface);box-shadow:0 0 0 1px rgba(0,0,0,.12)}
+.wd-x{position:relative;height:20px;font-size:12px;color:var(--ink-2)}.wd-x span{position:absolute;top:4px}
+.wd-sum{margin:0 16px;padding:12px 14px;background:var(--surface);border-radius:16px;font-size:16px;line-height:22px}
+.wd-tiles{margin-bottom:6px}
 .range{position:relative;height:6px;border-radius:3px;background:var(--fill)}
 .range i{position:absolute;top:0;bottom:0;border-radius:3px;background:linear-gradient(90deg,#5AC8FA,#FFCC00 60%,#FF9500)}
 .range b{position:absolute;top:50%;width:11px;height:11px;margin:-5.5px 0 0 -5.5px;border-radius:50%;background:#fff;border:2px solid var(--surface);box-shadow:0 0 0 .5px rgba(0,0,0,.25)}

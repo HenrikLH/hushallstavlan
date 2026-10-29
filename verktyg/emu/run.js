@@ -11,6 +11,8 @@ const mix=(h,hr)=>{if(!process.env.WXMIX)return'';const b=MIX[Math.floor(h/3)%MI
 const mixPr=h=>process.env.WXMIX?(MIX[Math.floor(h/3)%MIX.length]==='lightrain'?0.4:0):null;
 function wx(){const ts=[];const t0=Date.UTC(2026,9,18,0);for(let h=0;h<216;h++){const t=new Date(t0+h*3600e3);const hr=(h+2)%24;
  ts.push({time:t.toISOString().replace('.000',''),data:{instant:{details:{air_temperature:process.env.WXMIX?Math.round(7+4*Math.sin((hr-9)/24*2*Math.PI)):+(process.env.WXT||7),wind_speed:3.4,wind_from_direction:230,relative_humidity:78,air_pressure_at_sea_level:1012,...(process.env.WXCF?{cloud_area_fraction:+process.env.WXCF}:{})}},next_1_hours:{summary:{symbol_code:mix(h,hr)||process.env.WXSYM||'cloudy'},details:{precipitation_amount:mixPr(h)??+(process.env.WXPR||0)}},next_6_hours:{summary:{symbol_code:process.env.WXSYM||'cloudy'},details:{precipitation_amount:0}}}})}
+ // WXYR=1: som riktiga Yr, timme för timme de första 60 timmarna och sedan var sjätte timme (bara next_6_hours)
+ if(process.env.WXYR){const T=ts.filter((x,h)=>h<60||h%6===0).map((x,i)=>i<60?x:{time:x.time,data:{instant:x.data.instant,next_6_hours:{summary:x.data.next_1_hours.summary,details:{precipitation_amount:x.data.next_1_hours.details.precipitation_amount*6}}}});return JSON.stringify({properties:{timeseries:T}})}
  return JSON.stringify({properties:{timeseries:ts}})}
 const WX=wx();
 const srv=http.createServer((q,r)=>{let p=decodeURIComponent(q.url.split('?')[0]);if(p==='/')p='/index.html';const f=path.join(APP,p);
