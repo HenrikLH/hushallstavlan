@@ -809,13 +809,11 @@ html.ny .chip.lk::before{display:none}
 .skyfx .cl.rev{animation-direction:reverse}
 .skyfx .cl>i{position:absolute;right:100%;top:0;display:block;line-height:0;animation:clBob 8s ease-in-out infinite alternate}
 .skyfx .cl.hi>i{animation-name:clShim}.skyfx .cl.lo>i{animation-name:clRoll}.skyfx .cl.fog>i{opacity:.55}
-/* dimma: mjuka dimbankar som driver långsamt i stället för moln, månen/solen beslöjad, dimma över marken (b, c) och bleka träd och hundar (c) */
+/* dimma: mjuka dimbankar som driver långsamt i stället för moln, månen/solen beslöjad och dimma över marken (Henriks val B) */
 .skyfx .cl.fg>i{animation:none}.skyfx .fgb{display:block;border-radius:50%;background:radial-gradient(closest-side,var(--fog),transparent)}
-.skyfx.fog~.arc .sky-b{opacity:.5;filter:blur(.8px)}.skyfx.fog.c~.arc .sky-b{opacity:.32;filter:blur(1.6px)}
+.skyfx.fog~.arc .sky-b{opacity:.5;filter:blur(.8px)}
 .gs>.fgm{position:absolute;right:-10px;bottom:0;width:230px;height:190px;pointer-events:none;z-index:2;overflow:visible}.wx2-gs>.fgm{right:-15px;width:345px;height:285px}.gs.wb>.fgm{right:-6px;width:360px;height:297px}
 .fgm>i{position:absolute;left:-15%;width:130%;border-radius:50%;background:radial-gradient(closest-side,var(--fog),var(--fog) 35%,transparent);animation:fgDrift 14s ease-in-out infinite alternate}
-.fgm.c::before{content:'';position:absolute;inset:8% -12% 0;border-radius:50%;background:radial-gradient(closest-side,var(--fog),transparent)}
-.gs:has(>.fgm.c)>.bd{opacity:.5}.gs:has(>.fgm.c)>.fig-box{opacity:.82}
 @keyframes fgDrift{from{transform:translateX(-6%)}to{transform:translateX(6%)}}
 @keyframes clMove{from{transform:translateX(0)}to{transform:translateX(calc(100% + var(--w)))}}
 @keyframes clShim{from{opacity:.4;transform:scaleX(.96)}to{opacity:.8;transform:scaleX(1.04)}}

@@ -3338,11 +3338,10 @@ function skyFx(W){const sc=wxScene(W),wet=/^(drizzle|rain|sleet)$/.test(sc.type)
  // dimma: breda, mjuka dimbankar i olika höjd som driver långsamt, så att det syns att det är dimma och inte moln
  if(sky==='fog')for(let j=0;j<6;j++){k+=7;const w=240+rnd(k)*160,hh=24+rnd(k+2)*22,D=(170+rnd(k+3)*90)*sp;
   cs+='<div class="cl fg'+rev+'" style="top:'+f(6+j*14+rnd(k+1)*6)+'%;--w:'+f(w)+'px;animation-duration:'+f(D)+'s;animation-delay:-'+f(((j*.43+rnd(k+4)*.3)%1)*D)+'s"><i class="fgb" style="width:'+f(w)+'px;height:'+f(hh)+'px;opacity:'+(.7+rnd(k+5)*.3).toFixed(2)+'"></i></div>'}
- return'<div class="skyfx'+(sky==='fog'?' fog '+DIMMA:'')+'" aria-hidden="true">'+s+'<div class="cls">'+cs+'</div></div>'}
-// dimma över marken: band som ligger över trädets stam och hundarnas nedre del (förslag b och c)
-const DIMMA=lsGet('dimma')||'b';
-function fogMist(W){if(DIMMA==='a'||wxScene(W).sky!=='fog')return'';const B=DIMMA==='c'?[[0,16],[12,18],[26,16],[42,14]]:[[0,14],[13,15],[28,12]];
- return'<div class="fgm '+DIMMA+'" aria-hidden="true">'+B.map(([b,h],i)=>'<i style="bottom:'+b+'%;height:'+h+'%;animation-duration:'+(11+i*4)+'s;animation-delay:-'+(i*5)+'s'+(i%2?';animation-direction:alternate-reverse':'')+'"></i>').join('')+'</div>'}
+ return'<div class="skyfx'+(sky==='fog'?' fog':'')+'" aria-hidden="true">'+s+'<div class="cls">'+cs+'</div></div>'}
+// dimma över marken: band som ligger över trädets stam och hundarnas nedre del (Henriks val B)
+function fogMist(W){if(wxScene(W).sky!=='fog')return'';const B=[[0,14],[13,15],[28,12]];
+ return'<div class="fgm" aria-hidden="true">'+B.map(([b,h],i)=>'<i style="bottom:'+b+'%;height:'+h+'%;animation-duration:'+(11+i*4)+'s;animation-delay:-'+(i*5)+'s'+(i%2?';animation-direction:alternate-reverse':'')+'"></i>').join('')+'</div>'}
 // översiktens ruta får vädervyns himmel (inte i UI 3.0 eller på väggtavlan)
 const heroSky=()=>!U3&&!wallBoardOn();
 // b (vald): bågen i högra delen av rutan bakom temperaturen; a = bågen tätt över hundarna
