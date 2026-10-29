@@ -1,21 +1,22 @@
-# Aktuell överlämning — 2026-10-27
+# Aktuell överlämning — 2026-10-29
 
 Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs relevant kod/PR vid behov.
 
-## Pågår nu · UI 4.0
+## Klar för granskning · UI 4.0
 
-- Mål: implementera den godkända Ateljé-designen som UI 4.0; ägare Codex, gren `codex/ui4-atelje`, PR #42.
-- Frivilligt val i Inställningar → Utseende → Design; UI2 standard, UI3 fortsatt i utvecklarläget. Inga ändringar i server eller hushållsdata.
-- UI4-CSS i index.html; riktiga veckorader/menyer i app.js; egna accent-/layoutval. Ingen kod från prototypens dataemulator ingår i appen.
-- Kontroller: syntax godkänd; första CI hittade klippt timertext (UI4 mäter nu även scrollWidth) och ett test som antog vald person på väggen; rättat; UI4-funktionstest och telefon/vägg × ljust/mörkt i PR:s CI. Teststatus uppdateras när CI är färdigt.
-- Publicering: inväntar Henrik (”Pusha”); main är fortfarande ht-v227.
+- Codex, gren `codex/ui4-atelje`, [PR #42](https://github.com/HenrikLH/hushallstavlan/pull/42). Godkänd Ateljé-design implementerad som frivilligt UI 4.0; ht-v228 / app.js?v=218.
+- Välj Inställningar → Utseende → Design. UI2 förblir standard; UI3 kräver utvecklarläge. UI4 fungerar vid omstart och utan utvecklarläge.
+- CSS i index.html under html.ui4; riktiga veckorader/menyer i app.js; accent4/ovLayout4/wallLayout4 är separata enhetsval. Ingen demokod, serverändring eller ändring i hushållsdata.
+- Testad appkod `47291f2b61ce81fbea90507074f30c545471ef14`: [CI](https://github.com/HenrikLH/hushallstavlan/actions/runs/40885122189), **12/12 gröna** (UI2/3/4 × telefon/vägg × ljust/mörkt), inklusive UI4-val/omstart/utkast/preferenser, timers, redigeringsblad, recept/sparning/filter, plusplacering och matsedelsgester. UI2:s oförändrade vyer pixeljämförda mot main.
+- Visuellt granskat telefon och vägg med exempeldata. Slutlig iPhone-tangentbords-/Surface-kontroll kräver Henriks hårdvara som tidigare.
+- Nästa steg: Henrik ”Pusha” för publicering; skapa ångra-gren från aktuell main, kontrollera nyare main/version och Pages. Dokumentationsändringen efter CI ändrar inte app-/testkoden.
 
 ## Börja här
 
-- Hämta senaste main. Drift: **ht-v215 / app.js?v=205** (väggtavlans väder i hörnet).
-- [Pages-publicering](https://github.com/HenrikLH/hushallstavlan/actions/runs/40094688899) grön; publik sw/index och appens filinnehåll verifierade. Inga öppna PR:er eller ofärdiga implementationer vid överlämningen.
+- Hämta senaste main. Senast kontrollerad kod på main: **ht-v227 / app.js?v=217**. UI4 i PR #42 är ännu inte publicerat.
+- [Pages-publicering](https://github.com/HenrikLH/hushallstavlan/actions/runs/40094688899) grön; publik sw/index och appens filinnehåll verifierade. Öppna PR:er: #42 (UI4) och äldre #32 (priser); håll dem åtskilda.
 - Nästa steg: Henriks nästa konkreta uppgift eller återkoppling från telefon/Surface. Gör inte om redan godkända rättningar.
-- Henrik vill behålla UI 2.0:s tema och gemensamma komponenter. UI 3.0 är frivilligt i utvecklarläget. Bilder före visuella ändringar på main; ”Pusha” är publiceringsgodkännande.
+- UI 2.0:s tema och beteenden ska bevaras. Henrik har godkänt Ateljé som ett separat UI 4.0; UI 3.0 finns kvar i utvecklarläget. Bilder före visuella ändringar på main; ”Pusha” är publiceringsgodkännande.
 - Strömningen i ChatGPT har avbrutits flera gånger. Kontrollera gren/PR/main och Pages innan en avbruten publicering återupptas. Begär inte samma godkännande igen.
 
 - **Publicerat 2026-10-26 (Claude, ht-v187, PR #34, ångra-gren version-fore-tidsplan-kalender):** UI 2.0: tidsplan i recept/matlagning (`tidsplan`/`tpHtml`; tryck på stapeln startar/pausar timern `ACT.tpTimer`, `S.timers[].rid/si/p`; hörntimern göms när tidsplanen syns; egen timer med vred `tmrSheet`, `S.sheet='tmr'`, även ovanpå matlagningsläget); stegets ingredienser överst i matlagningsläget (`ingSorted`/`stegQ`); grå markering av aktivt steg. Rättens blad (`dishMenu`, håll in raden; lås = håll in bilden). Kalender Dag/Vecka/Månad under Uppgifter (`S.calVy`, `calDag`/`calVecka`). Test: verktyg/emu/matsedel-gester.js + CI.
