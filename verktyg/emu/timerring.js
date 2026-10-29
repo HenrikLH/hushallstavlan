@@ -13,11 +13,11 @@ module.exports=async(pg,h)=>{const c=async s=>{await pg.locator(s).first().click
  await pg.evaluate(()=>document.querySelector('.cook .tp').scrollIntoView({block:'start'}));await h.idle(300);
  const st=await d(`S.cook.step`);const bx=await pg.locator(no(2)).boundingBox(),x=bx.x+bx.height/2,y=bx.y+bx.height/2;
  // Släpp för tidigt: dras tillbaka in i cirkeln och byter inte steg
- await pg.mouse.move(x,y);await pg.mouse.down();await pg.waitForTimeout(250);await pg.mouse.up();await h.idle(900);ok(!await pg.locator(no(2)+'[data-open]').count()&&Math.abs(await pg.locator(no(2)).evaluate(e=>e.offsetWidth)-bx.width)<1,'tillbaka till cirkeln');
- if(await d(`S.cook.step`)!==0){await c('[data-act="cookStep"][data-d="-1"]');await pg.evaluate(()=>document.querySelector('.cook .tp').scrollIntoView({block:'start'}));await h.idle(300)}
+ await pg.mouse.move(x,y);await pg.mouse.down();await pg.waitForTimeout(380);await pg.mouse.up();await h.idle(900);ok(!await pg.locator(no(2)+'[data-open]').count()&&Math.abs(await pg.locator(no(2)).evaluate(e=>e.offsetWidth)-bx.width)<1,'tillbaka till cirkeln');
  // Kort tryck byter steg som förut
- await pg.mouse.click(x,y);await h.idle(500);ok(await d(`S.cook.step`)===1,'kort tryck går till steget');
- await c('[data-act="cookStep"][data-d="-1"]');await pg.evaluate(()=>document.querySelector('.cook .tp').scrollIntoView({block:'start'}));await h.idle(300);
+ await pg.mouse.click(x,y);await h.idle(500);ok(await d(`S.timers.find(t=>t.si===1).p!=null`)&&await d(`S.cook.step`)===0,'kort tryck på ringen pausar, byter inte steg');
+ await pg.mouse.click(x,y);await h.idle(500);ok(await d(`S.timers.find(t=>t.si===1).p==null`),'kort tryck igen fortsätter');
+ await c('.cook .tp-r:nth-child(4) .no');ok(await d(`S.timers.some(t=>t.si===3)`),'tryck på stegcirkeln startar timern');await d(`S.timers=S.timers.filter(t=>t.si!==3);render()`);await h.idle(400);await pg.evaluate(()=>document.querySelector('.cook .tp').scrollIntoView({block:'start'}));await h.idle(300);
  const tx0=await pg.evaluate(()=>document.querySelector('.cook .tp-r:nth-child(2) .tp-t').getBoundingClientRect().left);
  await pg.mouse.move(x,y);await pg.mouse.down();await pg.waitForTimeout(330);const ws=await pg.locator(no(2)).evaluate(e=>e.offsetWidth);ok((await d(`trGlow()`)?await pg.locator(no(2)+'.hold').count()===1:ws>bx.width+4)&&!await pg.locator(no(2)+'[data-open]').count(),'pillret töjer sig under håll: '+bx.width+' → '+ws);
  await h.idle(300);ok(await pg.locator(no(2)+'[data-open]').count()===1,'pillret öppnas');await pg.mouse.up();await h.idle(700);
