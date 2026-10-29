@@ -2,19 +2,21 @@
 
 Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs relevant kod/PR vid behov.
 
-## Pågår · UI4-felgenomgång
+## Klar för granskning · UI4-felgenomgång
 
-- Codex, gren `codex/ui4-felgenomgang`, ht-v229 / app.js?v=219. Henrik rapporterar omfattande fel vid olika inställningar; föregående UI4-release finns på main (PR #42).
+- Codex, gren `codex/ui4-felgenomgang`, [PR #43](https://github.com/HenrikLH/hushallstavlan/pull/43), ht-v229 / app.js?v=219. Felsökning efter Henriks rapport; föregående UI4-release finns på main (PR #42).
 - Reproducerat: Piller flyttar telefonmenyn utanför skärmen; Svävande/Piller flyttar sidomenyn utanför stora skärmar (ärvd margin-left). Dialogens bakgrund låg på fel element.
 - Rättat även överlappande ordna-verktyg på väggen, för smala matrader vid 900–1199 px, saknad övre safe-area och ofullständigt formval på nya kort. UI2/UI3 lämnas oförändrade.
 - Ny regression `verktyg/emu/ui4-installningar.js`: 54 bredd/form/menyrad-kombinationer per telefon/vägg/tema, verkliga klick, träffytor, scroll/omstart, dialog och väggknappar. Befintliga funktionstester kvar.
-- Pågår: webbläsargranskning med exempeldata och CI. Inte publicerat; PR/bilder/testresultat ska färdigställas före Henriks ”Pusha”. Inga riktiga hushållsdata eller Kod.gs ändras.
+- Även rättat: veckans kostnad/status radbryts på smala skärmar; UI4 använder zoom 1 även i smalt väggläge.
+- Testad kod `58c3c41d23e190cf7929a17372239e4d45956920`: [CI 12/12 gröna](https://github.com/HenrikLH/hushallstavlan/actions/runs/40895889310), därav 216 UI4-kombinationer (320/390/899/900/1024/1368 px × form × menyrad × telefon/vägg × ljust/mörkt), plus befintliga funktionstester. Webbläsarmätningar och CI-bilder granskade; CUA hängde sig senare, fortsatt visuell kontroll gjord på CI-bilder.
+- Inte publicerat. Nästa steg: Henriks ”Pusha”, kontrollera aktuell main/version och skapa ångra-gren före merge. Inga riktiga hushållsdata eller Kod.gs ändras. iPhone-tangentbord/Surface kräver som tidigare riktig hårdvara.
 
 ## Börja här
 
 - UI4-release: **ht-v228 / app.js?v=218**, via PR #42. UI2 förblir standard; välj UI4 i Inställningar → Utseende → Design.
 - [Publiceringar](https://github.com/HenrikLH/hushallstavlan/actions): följ Pages-bygget för PR #42:s merge. Äldre PR #32 (priser) är separat och ingår inte i UI4.
-- Nästa steg: Henriks nästa konkreta uppgift eller återkoppling från telefon/Surface. Gör inte om redan godkända rättningar.
+- Aktiv rättning: PR #43 enligt avsnittet ovan; väntar på Henriks godkännande för publicering. Gör inte om redan godkända rättningar.
 - UI 2.0:s tema och beteenden ska bevaras. Henrik har godkänt Ateljé som ett separat UI 4.0; UI 3.0 finns kvar i utvecklarläget. Bilder före visuella ändringar på main; ”Pusha” är publiceringsgodkännande.
 - Strömningen i ChatGPT har avbrutits flera gånger. Kontrollera gren/PR/main och Pages innan en avbruten publicering återupptas. Begär inte samma godkännande igen.
 
