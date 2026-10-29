@@ -89,7 +89,7 @@ const personSetting=L=>L.map((x,i)=>x.n+':'+(colOk(x.c)?x.c:PCOL_DEF[i])+(x.labe
 /* Användarfärger: [namn, ljust läge, text i ljust, mörkt läge, text i mörkt] */
 const PCOL={indigo:['Indigo','#4B4FC4','#3D41A8','#8C8FF2','#AEB0FF'],bla:['Blå','#1F6FB2','#185C95','#5AAEEE','#86C4F4'],teal:['Teal','#0F8C83','#0B6E67','#35C2B5','#62D8CC'],
  gron:['Grön','#2E8540','#226B32','#4CC764','#7ADB8D'],plommon:['Plommon','#8E3B9E','#7A2F89','#C985D8','#DCA6E8'],vinrod:['Vinröd','#A3253F','#A3253F','#D9566F','#EC7088'],
- rosa:['Rosa','#C2457E','#A8346A','#F07EB0','#F7A3C8'],orange:['Orange','#C25E0A','#A34E06','#F2994A','#F7B57A'],grafit:['Grafit','#5B6472','#4A525E','#A3ACB9','#C2C9D3']};
+ lavendel:['Lavendel','#6650A2','#55418D','#BDA8EF','#D4C3FF'],rosa:['Rosa','#C2457E','#A8346A','#F07EB0','#F7A3C8'],orange:['Orange','#C25E0A','#A34E06','#F2994A','#F7B57A'],grafit:['Grafit','#5B6472','#4A525E','#A3ACB9','#C2C9D3']};
 const PCOL_DEF=['indigo','teal'];
 /* Fria färger från färgslidern i Färgval: nyckeln h<nyans 0-360>s<ton 0-6>, nyans över 360 är grått.
    Ton 0 är ljusast och 6 mörkast; 3 är mitten som väljs först. Färgerna läggs in i PCOL när de används. */
@@ -121,13 +121,14 @@ let ACCENT=lsGet('accent')||'vinrod';
 const FARG_OPEN={},FARG_X={};
 function setPcol(i,key){const L=personList().slice(0,2);while(L.length<2)L.push({n:['Henrik','Cornelia'][L.length],c:''});if(!colOk(key))return;L[i].c=key;
  const v=personSetting(L);settings().personer=v;render();apiPost({action:'setting',k:'personer',v})}   // vilka tonrader som är utfällda i Färgval (2 = fälls ut just nu)
-const accentKey=()=>{if(ACCENT==='min'){const i=people().indexOf(S.me);return i>=0?personColor(i):'vinrod'}return colOk(ACCENT)?ACCENT:'vinrod'};
+const accentPref=()=>U4?(lsGet('accent4')||'lavendel'):ACCENT;
+const accentKey=()=>{const a=accentPref();if(a==='min'){const i=people().indexOf(S.me);return i>=0?personColor(i):'vinrod'}return colOk(a)?a:'vinrod'};
 let accKey='';
-function applyAccent(){const k=accentKey();if(k===accKey)return;accKey=k;let el=document.getElementById('acc');
- if(k==='vinrod'){if(el)el.remove();return}
+function applyAccent(){const k=accentKey(),ak=k+'|'+U4;if(ak===accKey)return;accKey=ak;let el=document.getElementById('acc');
+ if(k==='vinrod'&&!U4){if(el)el.remove();return}
  if(!el){el=document.createElement('style');el.id='acc';document.head.appendChild(el)}
  const c=PCOL[k],v=dark=>{const m=dark?c[4]:c[1];return'--accent:'+m+';--accent-soft:'+rgba(m,dark?.22:.12)+';--on-accent:'+(dark?shadeHex(m,.16):'#FFFFFF')};
- el.textContent=':root{'+v(false)+'}@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){'+v(true)+'}}:root[data-theme="dark"]{'+v(true)+'}'}
+ const sel=U4?'html.ny.ui4':':root';el.textContent=sel+'{'+v(false)+'}@media (prefers-color-scheme: dark){'+sel+':not([data-theme="light"]){'+v(true)+'}}'+sel+'[data-theme="dark"]{'+v(true)+'}'}
 const recipeById=id=>recipeGet(id);
 /* Inspiration: recept från nätet i inspiration.json (följer med appen, inte kalkylarket).
    Hjärtat sparar som favorit och bokmärket som sparat recept i receptbanken. */
@@ -186,8 +187,8 @@ function addToBank(r,quiet,fav){if(!r||inBank(r.id))return false;const snap=bank
 /* ---------- flikrad ---------- */
 // Knapparna byggs en gång så att markeringen kan glida mellan flikarna i stället för att ritas om.
 function renderNav(nav){
- if(nav.dataset.ui!==String(U3)){nav.innerHTML='';nav.dataset.ui=String(U3)}
- if(!nav.querySelector('.nav-pill'))nav.innerHTML='<div class="brand" aria-hidden="true">Hemma</div><div class="nav-pill" aria-hidden="true"></div>'+VIEWS.map(([id,l,ic])=>'<button data-act="nav" data-id="'+id+'">'+ic+'<span>'+(U3&&id==='oversikt'?'Idag':l)+'</span></button>').join('')+'';
+ const ui=U4?'4':String(U3);if(nav.dataset.ui!==ui){nav.innerHTML='';nav.dataset.ui=ui}
+ if(!nav.querySelector('.nav-pill'))nav.innerHTML='<div class="brand" aria-hidden="true">'+(U4?'Hushållstavlan':'Hemma')+'</div><div class="nav-pill" aria-hidden="true"></div>'+VIEWS.map(([id,l,ic])=>'<button data-act="nav" data-id="'+id+'">'+ic+'<span>'+(U3&&id==='oversikt'?'Idag':l)+'</span></button>').join('')+'';
  const i=VIEW_IDS.indexOf(S.view);
  nav.querySelectorAll('button').forEach((b,j)=>j===i?b.setAttribute('aria-current','page'):b.removeAttribute('aria-current'));
  // Ekonomi ligger inte i flikraden på telefon; då visas ingen markering där
@@ -201,7 +202,7 @@ function renderNav(nav){
 // Dra fingret längs flikraden för att flytta markeringen, släpp för att byta flik.
 (function(){const nav=document.getElementById('nav');let st=null,skip=false;
  const at=x=>{const r=nav.getBoundingClientRect(),w=(r.width-8-(nav.classList.contains('har-me')?parseFloat(getComputedStyle(nav).paddingRight)-4:0))/VIEWS.length,dx=Math.min(Math.max(x-r.left-4-w/2,0),w*(VIEWS.length-1));return{dx,j:Math.round(dx/w)}};
- nav.addEventListener('pointerdown',e=>{if(e.button>0||nav.classList.contains('mini'))return;st={x0:e.clientX,id:e.pointerId,moved:false}});
+ nav.addEventListener('pointerdown',e=>{if(e.button>0||nav.classList.contains('mini')||U4&&matchMedia('(min-width:900px)').matches)return;st={x0:e.clientX,id:e.pointerId,moved:false}});
  nav.addEventListener('pointermove',e=>{if(!st||e.pointerId!==st.id)return;
   if(!st.moved){if(Math.abs(e.clientX-st.x0)<8)return;st.moved=true;nav.classList.add('drag');try{nav.setPointerCapture(e.pointerId)}catch(_){}}
   const p=at(e.clientX);nav.style.setProperty('--dx',p.dx+'px');nav.querySelectorAll('button').forEach((b,k)=>b.classList.toggle('over',k===p.j))});
@@ -216,7 +217,7 @@ function renderNav(nav){
 // Piller: samma kapsel krymper till ett litet piller med bara ikonerna, halvt nedanför skärmkanten (bara CSS).
 (function(){const nav=document.getElementById('nav'),mini=document.createElement('button');let y0=scrollY,acc=0;
  mini.className='nav-mini';mini.type='button';mini.setAttribute('aria-label','Visa menyn');document.body.appendChild(mini);
- const on=()=>!U3&&FLIKRAD!=='fast'&&!nav.classList.contains('none');
+ const on=()=>!U3&&!(U4&&matchMedia('(min-width:900px)').matches)&&FLIKRAD!=='fast'&&!nav.classList.contains('none');
  const set=m=>{if(nav.classList.contains('mini')===m)return;
   if(m){const b=nav.querySelector('button[aria-current] svg');mini.innerHTML=b?b.outerHTML:''}
   nav.classList.remove('ut');nav.classList.toggle('mini',m);if(!m)nav.classList.add('ut');mini.classList.toggle('on',m);};
@@ -742,13 +743,13 @@ const SV2='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-wid
 const IA={minus:SV2+'<path d="M6 12h12"/></svg>',grow:SV2+'<path d="M14 4h6v6M10 20H4v-6M20 4l-6.5 6.5M4 20l6.5-6.5"/></svg>',shrink:SV2+'<path d="M20 10h-6V4M4 14h6v6M14 10l6-6M10 14l-6 6"/></svg>'};
 let PREVIEW=null,DRAG_ID=null;// medan en ruta dras ritas tavlan med den tillfälliga ordningen
 function layout(wall,def){if(PREVIEW&&PREVIEW.wall===wall)return PREVIEW.L;
- const k=(wall?'wallLayout':'ovLayout')+(U3?'3':'Ny'),Z=SIZES[wall?'wall':'ov'];let o=null;try{o=JSON.parse(lsGet(k)||'null')}catch(e){}
+ const k=(wall?'wallLayout':'ovLayout')+(U4?'4':U3?'3':'Ny'),Z=SIZES[wall?'wall':'ov'];let o=null;try{o=JSON.parse(lsGet(k)||(U4?lsGet((wall?'wallLayout':'ovLayout')+'Ny'):null)||'null')}catch(e){}
  const known=new Set(def.flat()),hidden=(o&&Array.isArray(o.hidden)?o.hidden:[]).filter(x=>known.has(x));
  let cols=o&&Array.isArray(o.cols)&&o.cols.length===def.length?o.cols.map(c=>c.filter(x=>known.has(x))):def.map(c=>c.slice());
  const seen=new Set(cols.flat().concat(hidden));def.forEach((c,i)=>c.forEach(x=>{if(!seen.has(x))cols[i].push(x)}));// nya rutor hamnar på sin vanliga plats
  const size={};known.forEach(id=>{const v=o&&o.size&&o.size[id];size[id]=Z.can.includes(id)&&(v?v==='h':Z.half.includes(id))?'h':'f'});
  return{cols,hidden,size}}
-function saveLayout(wall,L){lsSet((wall?'wallLayout':'ovLayout')+(U3?'3':'Ny'),L?JSON.stringify({cols:L.cols,hidden:L.hidden,size:L.size}):null)}
+function saveLayout(wall,L){lsSet((wall?'wallLayout':'ovLayout')+(U4?'4':U3?'3':'Ny'),L?JSON.stringify({cols:L.cols,hidden:L.hidden,size:L.size}):null)}
 // I ändra-läget vickar rutorna och får sina knappar. Innehållet syns som vanligt men går inte att trycka på.
 function boxify(id,html,wall,L){if(!html)return'';
  const half=L.size[id]==='h';
@@ -1206,7 +1207,7 @@ function matWeek(){
  const btTom=(a,id,t)=>'<div class="bt"><span class="bq-w"><button type="button" class="bq e" data-act="'+a+'"'+(id?' data-id="'+id+'"':'')+' aria-label="'+t+'">'+I.plus+'</button></span><span class="bn ac">'+t+'</span></div>';
  const bt=(m,r,n,i,rid,lst,t)=>'<div class="bt" data-hold-lift="dishMenu" data-id="'+i+'"><span class="bq-w">'+(rid?'<button type="button" class="bq" data-act="recipe" data-id="'+esc(rid)+'" aria-label="'+esc(t)+'">':'<button type="button" class="bq" data-act="dishMenu" data-id="'+i+'" aria-label="'+esc(t)+'">')+dishThumb(r,t)+'</button>'+
   (rid?'<button type="button" class="bq-lk'+(lst?' on':'')+'" data-act="swLock" data-id="'+esc(rid)+'" aria-pressed="'+lst+'" aria-label="'+(lst?'Lås upp ':'Lås ')+esc(t)+'">'+(lst?I.lock:I.unlock)+'</button>':'')+
-  '<button type="button" class="bq-p" data-act="dishMenu" data-id="'+i+'" aria-label="'+n+' portioner, ändra">'+n+' port</button></span><span class="bn">'+esc(t)+'</span></div>';
+  '<button type="button" class="bq-p" data-act="dishMenu" data-id="'+i+'" aria-label="'+n+' portioner, ändra">'+n+' port</button></span>'+(U4?'<div class="u4-dish-info">'+(r?'<div class="chips-row">'+whoChip(m?m.who:effWho(r))+'</div>':''):'')+'<span class="bn">'+esc(t)+'</span>'+(U4?(r?'<div class="u4-dish-meta">'+[r.min?r.min+' min':'',r.kr?kr(r.kr)+'/port':''].filter(Boolean).join(' · ')+'</div>':'')+'</div><button type="button" class="u4-more" data-act="dishMenu" data-id="'+i+'" aria-label="Alternativ för '+esc(t)+'">'+I.dots+'</button>':'')+'</div>';
  const btBand=g=>{const x=G&&G[g];if(!x||x.beh<=0)return'';const ok=x.n>=x.beh,k=Math.min(x.beh,24);return'<span class="bt-m'+(ok?' ok':' bad')+'">'+(ok?I.tick:'')+x.n+' av '+x.beh+'<span class="bt-seg" aria-hidden="true">'+Array.from({length:k},(_,j)=>'<i'+(j<Math.min(x.n,k)?' class="f"':'')+'></i>').join('')+'</span></span>'};
  ['Vardag','Helg','Storkok'].concat([...new Set(ds.map(x=>x.g))].filter(g=>!['Vardag','Helg','Storkok'].includes(g))).forEach(g=>{const list=ds.filter(x=>x.g===g).sort((a,b)=>(order[(a.r||a.m).who]??3)-(order[(b.r||b.m).who]??3));
   const vs=W.vs,slut=addDays(vs,g==='Vardag'?3:6);
@@ -1660,14 +1661,14 @@ function portView(){const C=portCalc(),{P,B}=C,mon=parse(P.vecka),sun=parse(addD
 let FL_STYLE=lsGet('forslag')==='lista'?'lista':'karusell';
 // Utvecklarläge: visar menyer som inte är färdiga. Gäller bara den här enheten
 let DEV=lsGet('dev')==='1';
-// Designens versionsnummer. UI 2.0 ("Lugn") gäller för alla, UI 3.0 provas i utvecklarläget
+// UI 2.0 är standard, UI 4.0 (Ateljé) väljs per enhet och UI 3.0 provas i utvecklarläget
 const UI_VER='2.0';
 // Appens version, samma nummer som ?v= på app.js
 const APP_VER=((document.querySelector('script[src*="app.js?v="]')||{}).src||'').replace(/.*\?v=/,'')||'?';
 // UI 1.0 är borttagen: städa bort dess sparade val och rutordning
 ['ny','ovLayout','wallLayout','calStyle'].forEach(k=>lsSet(k,null));
-let U3=DEV&&lsGet('ui')==='3';
-function applyNy(){document.documentElement.classList.add('ny');document.documentElement.classList.toggle('ui3',U3)}
+let U3=DEV&&lsGet('ui')==='3',U4=lsGet('ui')==='4';
+function applyNy(){document.documentElement.classList.add('ny');document.documentElement.classList.toggle('ui3',U3);document.documentElement.classList.toggle('ui4',U4)}
 applyNy();
 // Visa rutnummer (utvecklarläget): ett märke i hörnet på varje ruta med data-ref. Tryck på märket kopierar numret och rutans rubrik
 const refsOn=()=>DEV&&lsGet('refs')==='1';let refMO=null;
@@ -2461,7 +2462,7 @@ function renderOverlay(){
  if(k==='settings'){const st=settings(),topic=D().ntfyTopic||'';
   const body=settingsGroups([
    ['personer','Personer',settingsPeople()],
-   ['utseende','Utseende',sh('Utseende')+group('<button type="button" class="cell link" data-act="farg"><span class="grow">Färgval</span><span class="meta">'+esc({system:'System',light:'Ljust',dark:'Mörkt'}[S.theme]+' · '+(ACCENT==='min'?'Min färg':PCOL[accentKey()][0]))+'</span>'+chevron+'</button>')+'<div class="foot">Ljust eller mörkt och appens accentfärg. Personernas färger finns under Personer.</div>'+
+   ['utseende','Utseende',sh('Design')+'<div class="seg-wrap">'+segc('Design','uiVersion',[['2','UI 2.0'],...(DEV?[['3','UI 3.0']]:[]),['4','UI 4.0']],U4?'4':U3?'3':'2')+'</div><div class="foot">UI 4.0 är Ateljé: tydligare text, sammanhållna listor och sidomeny på stora skärmar. Valet gäller den här enheten. Era data och funktioner är samma.</div>'+sh('Utseende')+group('<button type="button" class="cell link" data-act="farg"><span class="grow">Färgval</span><span class="meta">'+esc({system:'System',light:'Ljust',dark:'Mörkt'}[S.theme]+' · '+(accentPref()==='min'?'Min färg':PCOL[accentKey()][0]))+'</span>'+chevron+'</button>')+'<div class="foot">Ljust eller mörkt och appens accentfärg. Personernas färger finns under Personer.</div>'+
   (!U3?sh('Form på knappar och rutor')+'<div class="seg-wrap">'+segc('Form på knappar och rutor','segstil',[['standard','Kantiga'],['kapsel','Runda'],['klassisk','Raka']],SEGSTIL)+'</div><div class="foot">Gäller växlingsknappar, rutor, listor och knappar i hela appen. Kantiga har lätt rundade hörn. Runda har helt runda knappar och mjukare rutor, som i iOS 26. Raka har små hörn och streck mellan valen, som i äldre iOS. Text, höjd och färg är samma i alla tre. Gäller bara den här enheten.</div>'+
       sh('Menyraden längst ner')+'<div class="seg-wrap">'+segc('Menyraden längst ner','flikrad',[['fast','Fast'],['glas','Svävande'],['piller','Piller']],FLIKRAD)+'</div><div class="foot">Fast ligger kant i kant längst ner. Svävande är en rundad glasbubbla ovanpå innehållet, som i iOS 26, och krymper till en rund knapp när du scrollar. Piller krymper i stället till ett smalt piller med bara ikonerna, halvt nedanför skärmkanten. Gäller bara den här enheten.</div>':'')+sh('Placering av plusknappen')+'<div class="seg-wrap">'+segc('Placering av plusknappen','addPlace',[['flytande','Flytande'],['profil','Vid profilen'],['rad','Vid raden']],addPlace())+'</div><div class="foot">Gäller Recept, Inköp och Uppgifter. I Städ flyttar Vid profilen pluset till rubriken och döljer snabbfältet. Flytande visas ovanför menyraden. Vid profilen visas bredvid användaren. Vid raden låter dig lägga till direkt i listan; i kalendern öppnas formuläret. Receptpluset visar Nytt recept och Importera recept. Gäller bara den här enheten.</div>'],
    ['vardag','Mat och städ',sh('Städtid och matbudget')+group(fieldCell('Vardag, min','<input class="field r" id="set-wd" name="wd" inputmode="numeric" value="'+esc(st.stadtid_vardag||20)+'" style="max-width:110px">')+fieldCell('Helg, min','<input class="field r" id="set-we" name="we" inputmode="numeric" value="'+esc(st.stadtid_helg||40)+'" style="max-width:110px">')+fieldCell('Mat/vecka, kr','<input class="field r" id="set-budget" name="budget" inputmode="numeric" value="'+esc(st.matbudget||'')+'" style="max-width:110px">'))+sh('Låsa rätter')+'<div class="seg-wrap">'+segc('Låsa rätter','lasstil',[['rad','Runt rätten'],['bild','Runt bilden']],LASSTIL)+'</div><div class="foot">'+'Tryck på låset för att låsa en rätt. Håll in rätten för att ändra den.'+' Föreslå en ny vecka behåller låsta rätter. Gäller bara den här enheten.</div>'+(DEV?sh('Förslag i Planera med portioner')+'<div class="seg-wrap">'+segc('Förslag i Planera med portioner','flStyle',[['karusell','Stort kort'],['lista','Lista']],FL_STYLE)+'</div>':'')],
@@ -2471,8 +2472,7 @@ function renderOverlay(){
    (S.wall?'<button type="button" class="cell link" data-act="vagg"><span class="grow">Nattläge</span><span class="meta">'+esc((!NATT.on?'Av':NATT.sol?'Solnedgång–soluppgång':nattTid(NATT.a)+'–'+nattTid(NATT.b))+(CAM.on?' · kamera':''))+'</span>'+chevron+'</button>':'')+statusHtml())+
   (topic?sh('Notiser')+group('<div class="cell"><span class="grow copy">'+esc(topic)+'</span><button type="button" class="pill" data-act="copy" data-id="'+esc(topic)+'">Kopiera</button></div>')+'<div class="foot">Installera appen ntfy och prenumerera på det här ämnet. Använd servern ntfy.sh.</div>':'')+(S.wall?sh('Inställningsknappen på väggskärmen')+'<div class="seg-wrap">'+segc('Inställningsknappen på väggskärmen','vaggknapp',[['meny','I menyraden'],['knapp','Egen knapp'],['rubrik','Rubrikrad']],VKNAPP)+'</div><div class="foot">I menyraden sitter cirkeln längst till höger i menyn. Egen knapp är en rund knapp nere till höger. Rubrikrad lägger en rad överst med cirkeln till höger, som på telefonen. Gäller bara den här enheten.</div>':'')+sh('Den här enheten')+group('<button type="button" class="cell link center red" data-act="logout">Logga ut</button>')],
    ['avancerat','Avancerat',sh('Utvecklare')+group(fieldCell('Utvecklarläge','<input type="checkbox" role="switch" class="switch" data-act="dev" aria-label="Utvecklarläge"'+(DEV?' checked':'')+'>'))+'<div class="foot">Visar menyer som inte är färdiga, just nu Planera nästa vecka och Planera med portioner. Gäller bara den här enheten.</div>'+
-  (DEV?sh('Design')+'<div class="seg-wrap">'+segc('Design','uiVersion',[['2','UI 2.0'],['3','UI 3.0']],U3?'3':'2')+'</div><div class="foot">UI 3.0 provas här i utvecklarläget. UI 2.0 är standard och används när utvecklarläget stängs av. Gäller bara den här enheten; era uppgifter och listor är samma.</div>'+
-   sh('Rutnummer')+group(fieldCell('Visa rutnummer','<input type="checkbox" role="switch" class="switch" data-act="refs" aria-label="Visa rutnummer"'+(refsOn()?' checked':'')+'>'))+'<div class="foot">Varje ruta får sitt fasta nummer i hörnet, till exempel M2. Tryck på numret för att kopiera det. Gäller bara den här enheten.</div>':'')]])+'<div class="foot ver">Hushållstavlan · UI '+(U3?'3.0':UI_VER)+' · version '+esc(APP_VER)+'</div>';
+  (DEV?sh('Rutnummer')+group(fieldCell('Visa rutnummer','<input type="checkbox" role="switch" class="switch" data-act="refs" aria-label="Visa rutnummer"'+(refsOn()?' checked':'')+'>'))+'<div class="foot">Varje ruta får sitt fasta nummer i hörnet, till exempel M2. Tryck på numret för att kopiera det. Gäller bara den här enheten.</div>':'')]])+'<div class="foot ver">Hushållstavlan · UI '+(U4?'4.0':U3?'3.0':UI_VER)+' · version '+esc(APP_VER)+'</div>';
   o.innerHTML=sheetHtml('settings','Inställningar','<button class="tb strong">Spara</button>',body,enter);if(S.prefDraft){Object.entries(S.prefDraft).forEach(([k,v])=>{const f=o.querySelector('[name="'+k+'"]');if(f&&!/radio|checkbox/.test(f.type))f.value=v})}segSlide(o);restoreColorStrips(o);return}
  if(k==='ljuskal'){const K=KAL||{},nm=['full','mitten','lägsta'];let body='',right='<button type="button" class="tb strong" data-act="sheetClose">'+(K.step==='klar'||SMAK?'Klar':'Avbryt')+'</button>';
   if(SMAK){const i=SMAK.i,v=Math.round(SMAK.v[i]*100);
@@ -2518,12 +2518,12 @@ function renderOverlay(){
   o.innerHTML=sheetHtml('vagg','Nattläge','<button type="button" class="tb strong" data-act="sheetClose">Klar</button>',hjelpFold(body,'vagg'),enter,'<button type="button" class="back" data-act="settings">'+I.back+'Inställningar</button>');segSlide(o);return}
  if(k==='farg'){const mi=people().indexOf(S.me);if(enter)[FARG_OPEN,FARG_X].forEach(o=>Object.keys(o).forEach(k=>delete o[k]));
   Object.keys(FARG_OPEN).forEach(k=>{if(FARG_OPEN[k]===2)FARG_OPEN[k]=1});
-  const accName=ACCENT==='min'?'Min färg ('+PCOL[accentKey()][0].toLowerCase()+')':PCOL[accentKey()][0]+(accentKey()==='vinrod'?' (standard)':'');
+  const accName=accentPref()==='min'?'Min färg ('+PCOL[accentKey()][0].toLowerCase()+')':PCOL[accentKey()][0]+(accentKey()==='vinrod'?' (standard)':'');
   const body=sh('Ljust eller mörkt')+'<div class="seg-wrap">'+segc('Ljust eller mörkt','theme',[['system','System'],['light','Ljust'],['dark','Mörkt']],S.theme)+'</div>'+
    sh('Accentfärg')+group('<div class="cell"><span class="grow">Knappar och länkar</span><span class="meta" data-name="acc">'+esc(accName)+'</span></div>'+
-    (ACCENT==='min'?'':colorPicker('acc','accent',null,accentKey(),'Accentfärg'))+
-    (mi>=0?fieldCell('Samma som min färg','<input type="checkbox" role="switch" class="switch" data-act="accMin" aria-label="Samma som min färg"'+(ACCENT==='min'?' checked':'')+'>'):''))+
-   '<div class="foot">'+(ACCENT==='min'?'Knapparna följer din personfärg under Personer. ':'')+'Gäller bara den här enheten.</div>'+
+    (accentPref()==='min'?'':colorPicker('acc','accent',null,accentKey(),'Accentfärg'))+
+    (mi>=0?fieldCell('Samma som min färg','<input type="checkbox" role="switch" class="switch" data-act="accMin" aria-label="Samma som min färg"'+(accentPref()==='min'?' checked':'')+'>'):''))+
+   '<div class="foot">'+(accentPref()==='min'?'Knapparna följer din personfärg under Personer. ':'')+'Gäller bara den här enheten.</div>'+
    '<div class="foot">Personernas färger ändras under Personer i Inställningar.</div>';
   o.innerHTML=sheetHtml('farg','Färgval','<button type="button" class="tb strong" data-act="sheetClose">Klar</button>',hjelpFold(body,'farg'),enter,'<button type="button" class="back" data-act="settings">'+I.back+'Inställningar</button>');segSlide(o);
   // raden står kvar där den var, och första gången med vald färg i mitten
@@ -3820,10 +3820,10 @@ const themeNow=()=>wallDark()?'dark':S.theme;
 const isDark=()=>themeNow()==='dark'||themeNow()==='system'&&matchMedia('(prefers-color-scheme: dark)').matches;
 function applyTheme(fade){const root=document.documentElement;
  if(fade&&!calm()){root.classList.add('theme-fade');clearTimeout(applyTheme.t);applyTheme.t=setTimeout(()=>root.classList.remove('theme-fade'),450)}
- const th=themeNow();if(th==='system')root.removeAttribute('data-theme');else root.setAttribute('data-theme',th);root.classList.toggle('u3-dark',U3&&(th==='dark'||th==='system'&&matchMedia('(prefers-color-scheme: dark)').matches));
- document.querySelectorAll('meta[name="theme-color"]').forEach(mt=>{const dark=th==='dark'||(th==='system'&&/dark/.test(mt.media));mt.content=U3?(dark?'#181A19':'#F6F4EF'):dark?'#000000':'#F2F2F7'})}
+ const th=themeNow();if(th==='system')root.removeAttribute('data-theme');else root.setAttribute('data-theme',th);root.classList.toggle('u3-dark',U3&&isDark());root.classList.toggle('u4-dark',U4&&isDark());
+ document.querySelectorAll('meta[name="theme-color"]').forEach(mt=>{const dark=th==='dark'||(th==='system'&&/dark/.test(mt.media));mt.content=U4?(dark?'#17151E':'#F5F4F8'):U3?(dark?'#181A19':'#F6F4EF'):dark?'#000000':'#F2F2F7'})}
 autoTheme();applyTheme(false);
-matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(U3)applyTheme(false)});
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(U3||U4)applyTheme(false)});
 
 /* ---------- animationer ----------
    Vyerna ritas om helt vid varje ändring. A.before/A.after jämför före och efter
@@ -3930,8 +3930,8 @@ const ACT={
  ovwx(id){OVWX=id==='graf'?'graf':'tim';lsSet('ovwx',OVWX==='graf'?'graf':null);render()},
  wxvy(id){WXVY=id==='bild'?'bild':'kurva';lsSet('wxvy',WXVY==='bild'?'bild':null);render()},
  hundar(id){HUNDAR=['bada','brun','svart'].includes(id)?id:'vaxla';lsSet('hundar',HUNDAR==='vaxla'?null:HUNDAR);S.wxVar=null;render()},
- accMin(){ACT.accent(ACCENT==='min'?accentKey():'min')},
- accent(id){ACCENT=id==='min'||colOk(id)?id:'vinrod';lsSet('accent',ACCENT==='vinrod'?null:ACCENT);render()},
+ accMin(){ACT.accent(accentPref()==='min'?accentKey():'min')},
+ accent(id){if(U4){const k=id==='min'||colOk(id)?id:'lavendel';lsSet('accent4',k==='lavendel'?null:k)}else{ACCENT=id==='min'||colOk(id)?id:'vinrod';lsSet('accent',ACCENT==='vinrod'?null:ACCENT)}render()},
  arrange(){closeSheets();S.arrange=true;ACT.nav('oversikt')},
  arrangeDone(){S.arrange=false;render()},
  boxSize(id){boxEdit(L=>{L.size[id]=L.size[id]==='h'?'f':'h'})},
@@ -3948,7 +3948,7 @@ const ACT={
  copy(id){try{navigator.clipboard.writeText(id).then(()=>toast('Kopierat'),()=>toast('Markera och kopiera texten'))}catch(e){toast('Markera och kopiera texten')}},
  flStyle(id){FL_STYLE=id==='lista'?'lista':'karusell';lsSet('forslag',FL_STYLE==='lista'?'lista':null);render()},
  theme(id){S.theme=['light','dark'].includes(id)?id:'system';lsSet('theme',S.theme==='system'?null:S.theme);applyTheme(true);render()},
- uiVersion(id){if(!DEV)return;const f=document.querySelector('form[data-form="settings"]');if(f)S.prefDraft=Object.fromEntries(new FormData(f));U3=id==='3';lsSet('ui',U3?'3':null);S.arrange=false;applyNy();applyStil();applyTheme(true);document.querySelector('.nav-mini')?.classList.remove('on');document.getElementById('nav').classList.remove('mini','ut');render()},
+ uiVersion(id){if(!['2','4'].includes(id)&&!(DEV&&id==='3'))return;const f=document.querySelector('form[data-form="settings"]');if(f)S.prefDraft=Object.fromEntries(new FormData(f));U3=id==='3';U4=id==='4';lsSet('ui',U4?'4':U3?'3':null);S.arrange=false;applyNy();applyStil();applyTheme(true);document.querySelector('.nav-mini')?.classList.remove('on');document.getElementById('nav').classList.remove('mini','ut');render()},
  recipeSearchClear(){S.u3Query='';render()},
  dev(){DEV=!DEV;lsSet('dev',DEV?'1':null);applyRefs();if(!DEV&&U3){U3=false;lsSet('ui',null);applyStil();applyTheme(false)}applyNy();if(!DEV&&S.plan&&S.plan!=='auto')S.plan=null;render()},
  wall(){S.wall=!S.wall;lsSet('wall',S.wall?'1':'0');fitScrollbar();hideCursor();wake();autoTheme();applyTheme(true);render();camSample()},

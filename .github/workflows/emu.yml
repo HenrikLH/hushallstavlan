@@ -24,7 +24,7 @@ jobs:
       matrix:
         screen: [telefon, vagg]
         theme: [light, dark]
-        ui: [2, 3]
+        ui: [2, 3, 4]
     steps:
       - uses: actions/checkout@v6
         with:
@@ -49,12 +49,18 @@ jobs:
           UI: ${{ matrix.ui }}
           REDUCED: ${{ matrix.ui == 3 && matrix.screen == 'telefon' && matrix.theme == 'dark' && '0' || '1' }}
         run: |
-          export LS="$(node -e 'console.log(JSON.stringify({...process.env.UI==="3"?{ui:"3",dev:"1"}:{},...process.env.SCREEN==="vagg"?{wall:"1",me:""}:{}}))')"
+          export LS="$(node -e 'console.log(JSON.stringify({...process.env.UI==="3"?{ui:"3",dev:"1"}:process.env.UI==="4"?{ui:"4"}:{},...process.env.SCREEN==="vagg"?{wall:"1",me:""}:{}}))')"
           if [[ "$SCREEN" == "vagg" ]]; then export VP=1368x912; fi
           if [[ "$UI" == "2" ]]; then
             APP="$PWD/baseline" OUT="$PWD/verktyg/emu/baseline-shots" node verktyg/emu/run.js verktyg/emu/alla-flikar.js
           fi
-          node verktyg/emu/run.js verktyg/emu/ui-versioner.js
+          if [[ "$UI" == "4" ]]; then
+            node verktyg/emu/run.js verktyg/emu/ui4.js
+            node verktyg/emu/run.js verktyg/emu/timerring.js
+            node verktyg/emu/run.js verktyg/emu/hall-in-blad.js
+          else
+            node verktyg/emu/run.js verktyg/emu/ui-versioner.js
+          fi
           if [[ "$UI" == "2" ]]; then node verktyg/emu/jamfor-ui2.js; fi
           node verktyg/emu/run.js verktyg/emu/anvandarfarger.js
           node verktyg/emu/recept-server.js

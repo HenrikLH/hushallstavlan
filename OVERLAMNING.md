@@ -2,6 +2,14 @@
 
 Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs relevant kod/PR vid behov.
 
+## Pågår nu · UI 4.0
+
+- Mål: implementera den godkända Ateljé-designen som UI 4.0; ägare Codex, gren `codex/ui4-atelje`.
+- Frivilligt val i Inställningar → Utseende → Design; UI2 standard, UI3 fortsatt i utvecklarläget. Inga ändringar i server eller hushållsdata.
+- UI4-CSS i index.html; riktiga veckorader/menyer i app.js; egna accent-/layoutval. Ingen kod från prototypens dataemulator ingår i appen.
+- Kontroller: syntax godkänd; UI4-funktionstest och telefon/vägg × ljust/mörkt i PR:s CI. Teststatus uppdateras när CI är färdigt.
+- Publicering: inväntar Henrik (”Pusha”); main är fortfarande ht-v227.
+
 ## Börja här
 
 - Hämta senaste main. Drift: **ht-v215 / app.js?v=205** (väggtavlans väder i hörnet).

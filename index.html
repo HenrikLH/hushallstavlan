@@ -2324,6 +2324,195 @@ html.ny.seg-kapsel .create-options{border-radius:22px}
 @media(min-width:900px){html.ny .recipe-filters .fchips{flex-wrap:wrap;overflow:visible}html.ny .recipe-library .bank.mini{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @keyframes create-in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){html.ny .create-plus{transition:none}html.ny .create-options{animation:none}}
+
+/* ===== UI 4.0 · Ateljé (frivilligt val, gäller bara html.ui4) ===== */
+/* Ateljé: ett nytt visuellt lager över den riktiga appen. Inga funktioner döljs. */
+html.ui4.ny{--bg:#f5f4f8;--surface:#fff;--surface-raised:#fff;--ink:#242237;--ink-2:#646075;--ink-3:#777187;--line:#e7e4ee;--accent:#6650a2;--accent-soft:#eee9f8;--on-accent:#fff;--fill:#f1eef6;--track:#e9e4f1;--bar:rgba(255,255,255,.96);--pill:#eee9f8;--glass:#fff;--glass-line:#e7e4ee;--green:#247757;--red:#b83d52;--orange:#96601e;--tabbar:78px;--at-shadow:0 3px 7px #28213b03,0 12px 30px #28213b05;--at-cover:linear-gradient(135deg,#e5f0df,#f6eddb);--at-cover2:linear-gradient(135deg,#f2ddcd,#f8efdc);--at-deep:#302440;--at-deep-ink:#fff;--at-soft:#ece7f4;--at-radius:20px}
+html.ui4.ny.u4-dark{--bg:#17151e;--surface:#24212e;--surface-raised:#302b3c;--ink:#f6f2fc;--ink-2:#c0b8d0;--ink-3:#afa5bf;--line:#433b52;--accent:#c3b0f3;--accent-soft:#3e3257;--on-accent:#241634;--fill:#332d40;--track:#4b405c;--bar:#24212ef5;--pill:#3e3257;--glass:#24212e;--glass-line:#433b52;--green:#8bcbb0;--red:#ff9daa;--orange:#f2c07e;--at-shadow:0 10px 30px #0000001c;--at-cover:linear-gradient(135deg,#3b4b39,#494330);--at-cover2:linear-gradient(135deg,#574234,#453e32);--at-deep:#c3b0f3;--at-deep-ink:#241634;--at-soft:#352c46}
+html.ui4.ny body{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:17px;line-height:1.45;letter-spacing:-.25px;background:var(--bg)}
+html.ui4 .wrap{padding-top:22px;padding-bottom:22px;max-width:830px}
+html.ui4 .head{padding:0 22px;margin-bottom:20px}
+html.ui4 .head-row{min-height:54px;gap:14px}
+html.ui4.ny .lt{font-size:34px;line-height:1.16;letter-spacing:-1.2px;font-weight:720}
+html.ui4 .head::before{content:'HUSHÅLLSTAVLAN';display:block;font-size:10px;line-height:16px;font-weight:750;letter-spacing:2px;color:var(--accent);margin-bottom:9px}
+html.ui4 .head .sub{font-size:15px;line-height:1.5;margin-top:6px;color:var(--ink-2)}
+html.ui4.ny .me-av span{width:42px;height:42px;box-shadow:0 0 0 4px var(--surface);font-size:15px}
+html.ui4 .tools{gap:8px}
+html.ui4 .ib{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--at-shadow)}
+html.ui4 .ib.me-av{border:0;background:none;box-shadow:none}
+html.ui4 .sub,html.ui4 .meta{line-height:1.45}
+html.ui4 .meta{font-size:15px}
+html.ui4 .fn{font-size:14px;line-height:1.5}
+html.ui4.ny .sh{font-size:17px;line-height:24px;letter-spacing:-.3px;color:var(--ink);padding:0 22px 10px;margin-top:30px;font-weight:700}
+html.ui4 .sh .r{font-size:14px;font-weight:500;color:var(--ink-2)}
+html.ui4 .group{margin-left:18px;margin-right:18px;border:1px solid var(--line);border-radius:var(--at-radius);box-shadow:var(--at-shadow)}
+html.ui4 .cell{padding:15px 18px;min-height:66px;gap:14px}
+html.ui4 .cell .title{font-size:17px;line-height:1.4;font-weight:580}
+html.ui4 .cell+.cell::before{right:18px}
+html.ui4 .gh{padding:13px 18px;background:var(--fill);font-weight:650;color:var(--ink);font-size:15px;line-height:22px;border-bottom:1px solid var(--line)}
+html.ui4 .foot{font-size:14px;padding:10px 26px 0;line-height:1.5}
+html.ui4 .btn-fill,html.ui4 .btn-tint{min-height:48px;border-radius:14px;font-size:16px;font-weight:650;padding:12px 18px;letter-spacing:-.2px}
+html.ui4 .btn-fill{box-shadow:0 5px 12px #6650a21a}
+html.ui4 .btn-tint{box-shadow:inset 0 0 0 1px var(--line)}
+html.ui4 .tb{min-height:44px;font-size:15px;line-height:1.35}
+html.ui4.ny .segc{height:48px;padding:5px;background:var(--at-soft);border:1px solid var(--line);border-radius:15px;margin-left:18px;margin-right:18px}
+html.ui4.ny .segc button{font-size:16px;line-height:22px;color:var(--ink-2);font-weight:550;min-height:36px}
+html.ui4.ny .segc button[aria-pressed=true]{color:var(--ink);font-weight:700}
+html.ui4.ny .seg-thumb{top:5px;bottom:5px;left:5px;width:calc((100% - 10px) / var(--n,2));border-radius:10px;background:var(--surface);box-shadow:0 2px 5px #23183612}
+html.ui4 .subseg .segc{height:44px;background:transparent;border:0;margin-top:12px;box-shadow:none}
+html.ui4 .subseg .seg-thumb{background:var(--accent-soft);box-shadow:none}
+html.ui4 .subseg .segc button{font-size:14px}
+html.ui4.ny .fchips{gap:8px}
+html.ui4.ny .fchips button{font-size:14px;min-height:40px;height:auto;padding:8px 14px;border-radius:11px}
+html.ui4.ny .fchips button[aria-pressed=true]{background:var(--at-deep);color:var(--at-deep-ink)}
+html.ui4 .field{min-height:48px;border:1px solid var(--line);border-radius:12px;background:var(--surface-raised);padding:12px 14px;line-height:1.4}
+html.ui4 .check::before{border-color:var(--ink-3);border-radius:8px}
+html.ui4 .check:checked::before{border-color:var(--accent)}
+html.ui4.ny .chips-row .chip{font-size:14px;line-height:20px;font-weight:550}
+html.ui4 .chip.p1,html.ui4 .chip.p2{gap:6px}
+html.ui4 .u4-person{display:inline-flex;gap:5px;align-items:center;color:var(--ink-2);font-size:13px;font-weight:600}
+html.ui4 .u4-person::before{content:'';width:6px;height:6px;background:var(--p1);border-radius:50%}
+html.ui4 .u4-person.veg::before{background:var(--p2)}
+/* Navigation: unikt valt läge, tydliga mål och beständig text. */
+html.ui4.ny .nav{height:76px;bottom:12px;left:14px;right:14px;padding:6px;border-radius:24px;background:var(--surface);border:1px solid var(--line);box-shadow:0 12px 40px #3024401a;backdrop-filter:none}
+html.ui4.ny .nav-pill{display:block;top:6px;bottom:6px;left:6px;width:calc((100% - 12px) / 5);border-radius:18px;background:var(--accent-soft);box-shadow:none}
+html.ui4.ny .nav button{font-size:11px;font-weight:650;line-height:16px;gap:5px}
+html.ui4.ny .nav button svg{width:23px;height:23px}
+html.ui4 main{padding-bottom:110px}
+/* Översikt: samma innehåll, starkare hierarki och en gemensam kortfamilj. */
+html.ui4.ny .ov{padding:0 18px}
+html.ui4.ny .hero{padding:20px;border-radius:24px;border:1px solid var(--line);background:var(--surface);box-shadow:var(--at-shadow)}
+html.ui4 .hero .clock{font-weight:600;letter-spacing:-3px}
+html.ui4 .hero .hero-date{font-size:15px;line-height:22px}
+html.ui4 .hero-facts{border-top:1px solid var(--line);padding-top:12px;margin-top:14px!important}
+html.ui4 .hero-facts span{font-size:14px!important;line-height:21px!important}
+html.ui4 .widgets{gap:14px;margin-top:18px}
+html.ui4.ny .widget{padding:19px;border:1px solid var(--line);border-radius:22px;box-shadow:var(--at-shadow)}
+html.ui4.ny .wh{font-size:20px;line-height:28px;margin-bottom:12px;letter-spacing:-.5px}
+html.ui4.ny .wh svg{display:block;width:19px;height:19px;color:var(--accent);padding:0}
+html.ui4.ny .wh .r{font-size:14px;font-weight:600}
+html.ui4.ny .wl .cell{padding:13px 0;min-height:64px}
+html.ui4.ny .wbig{font-size:38px;line-height:1.15;font-weight:650;letter-spacing:-1.5px}
+html.ui4.ny .widget:not(.w2):not(.calw) .wh{font-size:15px;line-height:22px;color:var(--ink);margin-bottom:14px}
+html.ui4.ny .widget:not(.w2):not(.calw) .wh svg{width:17px;height:17px;color:var(--accent)}
+html.ui4 .wk-d .n{border-radius:11px}
+html.ui4 .wk-d.on .n{background:var(--at-deep);color:var(--at-deep-ink);box-shadow:0 4px 10px #30244020}
+html.ui4.ny .wk-day{padding-top:10px;margin-top:12px;border-top:1px solid var(--line)}
+html.ui4 .wmeal{border-radius:14px;padding:14px;background:var(--fill);margin-top:10px}
+html.ui4 .wmeal .title{font-size:18px;line-height:1.4;margin-top:6px;font-weight:650}
+html.ui4 .ny-smc{border:1px solid var(--line);box-shadow:var(--at-shadow)}
+/* Veckomaten: faktiska brickor omordnade till läsbara och innehållsrika rader. */
+html.ui4 .ws-card{margin:20px 18px 0;border-radius:22px;border:1px solid var(--line);box-shadow:var(--at-shadow);overflow:hidden}
+html.ui4 .wm-top{padding:22px}
+html.ui4 .wm-top .wm-bt>.num{font-size:34px;font-weight:700;letter-spacing:-1px}
+html.ui4 .wm-bar{height:8px;border-radius:8px;background:var(--track);margin-top:14px}
+html.ui4 .wm-bar i{border-radius:8px;background:var(--accent)}
+html.ui4 .wm-pp{font-size:14px;line-height:22px;margin-top:12px}
+html.ui4.ny .wk-new{min-height:48px;font-size:16px;margin:0 0 0;width:100%;padding:15px 20px;background:var(--fill);border-radius:0;border-top:1px solid var(--line)}
+html.ui4 .g-one{margin-top:20px}
+html.ui4 .bt-all{display:flex;flex-direction:column;gap:0;padding:0}
+html.ui4 .bt-sec{margin:0;background:var(--surface);border:0;border-radius:0;box-shadow:none;overflow:hidden}
+html.ui4 .bt-sec+.bt-sec{border-top:1px solid var(--line)}
+html.ui4 .bt-sec .gh{padding:16px 18px;background:var(--fill);font-size:19px;font-weight:700;border-bottom:1px solid var(--line);gap:10px}
+html.ui4 .bt-g{display:flex;flex-direction:column;gap:0;padding:0}
+html.ui4 .bt{display:grid;grid-template-columns:94px minmax(0,1fr) 44px;gap:14px;padding:17px;align-items:center;width:100%;position:relative}
+html.ui4 .bt+.bt{border-top:1px solid var(--line)}
+html.ui4 .bt .bq-w{width:94px;height:100px;grid-column:1;grid-row:1;align-self:start}
+html.ui4 .bt .bq{width:94px;height:100px;aspect-ratio:auto;border-radius:15px;border:0;background:var(--at-cover);overflow:hidden;box-shadow:inset 0 0 0 1px #30244006}
+html.ui4 .bt:nth-child(even) .bq{background:var(--at-cover2)}
+html.ui4 .bt .bq .dr-th{width:100%;height:100%;background:none;border-radius:0;font-size:44px}
+html.ui4 .bt .bq .dr-th>span{font-size:42px;filter:drop-shadow(0 5px 7px #3425181c)}
+html.ui4 .bt .bq-lk{left:6px;right:auto;top:6px;width:28px;height:28px;background:var(--surface);color:var(--ink-2);box-shadow:0 2px 8px #0000000d;border-radius:8px;z-index:2}
+html.ui4 .bt .bq-lk.on{color:var(--accent);background:var(--surface)}
+html.ui4 .bt .bq-lk svg{width:14px;height:14px}
+html.ui4 .bt .bq-p{bottom:6px;right:6px;left:auto;padding:3px 7px;min-width:0;font-size:11px;line-height:18px;border-radius:6px;background:var(--surface);color:var(--ink);box-shadow:0 2px 6px #0000000d}
+html.ui4 .bt .u4-dish-info{grid-column:2;min-width:0;align-self:center}
+html.ui4 .bt .bn{font-size:17px;font-weight:650;line-height:1.35;text-align:left;display:block;-webkit-line-clamp:unset;max-height:none;overflow:visible;margin:0;color:var(--ink);letter-spacing:-.35px}
+html.ui4 .u4-dish-meta{font-size:13px;line-height:20px;color:var(--ink-2);margin-top:7px;font-variant-numeric:tabular-nums}
+html.ui4 .u4-more{width:44px;height:44px;align-self:center;grid-column:3;color:var(--ink-2);display:grid;place-items:center;border:1px solid var(--line);border-radius:10px;background:var(--surface);font-size:22px}
+html.ui4 .bt:has(.bq.e){grid-template-columns:42px 1fr;min-height:70px;padding:14px 18px;background:var(--fill)}
+html.ui4 .bt:has(.bq.e) .bq-w{width:40px;height:40px}
+html.ui4 .bt .bq.e{width:40px;height:40px;border-radius:12px;background:var(--surface);color:var(--accent);border:1px solid var(--line)}
+html.ui4 .bt:has(.bq.e) .bn{font-size:15px;color:var(--accent);font-weight:650}
+html.ui4 .bt-m{font-size:12px;gap:4px;line-height:18px}
+html.ui4 .bt-seg{gap:2px}
+html.ui4 .bt-seg i{width:6px;height:5px;border-radius:2px}
+/* Recept och butik: alla filter och verktyg består. */
+html.ui4 .recipe-tools{padding-top:12px}
+html.ui4 .recipe-search,html.ui4 .rc-search{border:1px solid var(--line);border-radius:14px;background:var(--surface);box-shadow:var(--at-shadow)}
+html.ui4 .recipe-result{font-size:14px;margin-top:10px;margin-bottom:10px}
+html.ui4 .bank{gap:16px}
+html.ui4 .bcard{border:1px solid var(--line);border-radius:20px;box-shadow:var(--at-shadow);overflow:hidden}
+html.ui4 .bimgw{background:var(--at-cover)}
+html.ui4 .bcard:nth-child(even) .bimgw{background:var(--at-cover2)}
+html.ui4 .bimg{background:none;min-height:155px}
+html.ui4 .bimg>span{font-size:65px;filter:drop-shadow(0 5px 7px #3425181c)}
+html.ui4 .bbody{padding:17px}
+html.ui4 .btitle{font-size:19px;line-height:1.35;font-weight:700;letter-spacing:-.5px;margin-top:9px}
+html.ui4 .bwhy{margin-top:8px;font-size:14px}
+html.ui4 .bc-gl{background:var(--surface);backdrop-filter:none;color:var(--ink);border:1px solid var(--line);box-shadow:0 3px 7px #00000008}
+html.ui4 .rcp-photo{border-radius:20px;overflow:hidden;margin-left:18px;margin-right:18px}
+html.ui4 .add-row{border:1px solid var(--line);box-shadow:var(--at-shadow);margin:18px 18px 0;padding:6px 6px 6px 14px;border-radius:15px}
+html.ui4 .add-row .field{background:none;border:0;box-shadow:none}
+html.ui4 .add-row .add-go{width:40px;height:40px;border-radius:11px}
+/* Blad och matlagning får samma yt- och typhierarki. */
+html.ui4 .sheet{border:1px solid var(--line);border-radius:28px 28px 0 0;box-shadow:0 -12px 60px #18102524;background:var(--surface)}
+html.ui4 .sheet .group{box-shadow:none;background:var(--fill)}
+html.ui4 .sheet .group .field{background:var(--surface)}
+html.ui4 .sheet h2,html.ui4 .sheet .t2{font-size:24px;font-weight:700;letter-spacing:-.6px}
+html.ui4 .sheet .sh{font-size:15px;margin-top:20px;padding-bottom:8px}
+html.ui4 .pop{background:var(--surface);border-radius:22px;border:1px solid var(--line);box-shadow:var(--at-shadow)}
+html.ui4 .cook{background:var(--bg)}
+html.ui4 .cook .steps li{font-size:22px;line-height:1.5;padding-top:20px;padding-bottom:20px}
+html.ui4 .cook .steps li.active{background:var(--accent-soft);border-radius:18px}
+html.ui4 .tp{border-radius:20px;border:1px solid var(--line);background:var(--surface);padding-top:20px;padding-bottom:20px}
+html.ui4 .stat,html.ui4 .eko-sum{border:1px solid var(--line);box-shadow:var(--at-shadow);border-radius:20px}
+html.ui4 .toast{border:1px solid var(--line);background:var(--at-deep);color:var(--at-deep-ink);border-radius:15px;box-shadow:0 8px 30px #30244020;font-size:15px;padding:14px 18px}
+@media(min-width:900px){
+ html.ui4.ny{--side:220px}
+ html.ui4 main{padding-left:245px;padding-right:28px;padding-bottom:30px}
+ html.ui4 .wrap{padding-top:36px;max-width:930px}
+ html.ui4 body[data-view=oversikt] .wrap{max-width:1240px}
+ html.ui4.ny .nav{left:22px;right:auto;top:25px;bottom:25px;width:206px;height:auto;display:flex;flex-direction:column;padding:24px 12px;gap:8px;border-radius:24px;box-shadow:var(--at-shadow);justify-content:flex-start;align-items:stretch}
+ html.ui4.ny .nav .brand{display:block;color:var(--ink);font-size:19px;font-weight:750;letter-spacing:-.7px;line-height:24px;padding:8px 10px 24px;margin-bottom:12px}
+ html.ui4.ny .nav .brand::after{content:'VARDAGEN, TILLSAMMANS';display:block;letter-spacing:1.2px;font-size:8px;font-weight:700;color:var(--ink-2);margin-top:10px;line-height:15px}
+ html.ui4.ny .nav button{flex:none;flex-direction:row;justify-content:flex-start;gap:13px;height:52px;font-size:15px;line-height:20px;padding:0 14px;border-radius:13px;color:var(--ink-2)}
+ html.ui4.ny .nav button[aria-current=page]{background:var(--accent-soft);color:var(--accent)}
+ html.ui4.ny .nav-pill{display:none}
+ html.ui4 .head{padding:0 20px;margin-bottom:24px}
+ html.ui4.ny .lt{font-size:40px;letter-spacing:-1.5px}
+ html.ui4 .head::before{font-size:10px}
+ html.ui4 .ov{display:grid;grid-template-columns:1fr;padding:0 18px}
+ html.ui4 .hero{min-height:220px}
+ html.ui4 .hero-l{height:220px;min-height:0}
+ html.ui4 .hero-wx{height:220px;min-height:0}
+ html.ui4 .hero-wx .gs{height:116px;min-height:0;max-width:190px;margin-left:auto}
+ html.ui4 .hero-l{padding-right:10px}
+ html.ui4 .widgets{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+ html.ui4 .widget{min-width:0}
+ html.ui4 .bt-g{display:grid;grid-template-columns:1fr 1fr}
+ html.ui4 .bt{grid-template-columns:88px minmax(0,1fr) 44px;gap:12px;padding:18px;min-height:142px}
+ html.ui4 .bt .bq-w,html.ui4 .bt .bq{width:88px;height:100px}
+ html.ui4 .bt+.bt{border-top:0}
+ html.ui4 .bt:nth-child(even){border-left:1px solid var(--line)}
+ html.ui4 .bt:nth-child(n+3){border-top:1px solid var(--line)}
+ html.ui4 .bt:has(.bq.e){grid-column:auto;min-height:80px}
+ html.ui4 .board{gap:20px}
+ html.ui4 body.wall main{zoom:1;padding-left:242px;padding-right:18px}
+ html.ui4 .board .widget{padding:20px}
+ html.ui4 .board .cell .title{font-size:20px}
+ html.ui4 .board .meta{font-size:17px}
+ html.ui4 .board .wh{font-size:22px}
+ html.ui4 .bhero{border:1px solid var(--line);box-shadow:var(--at-shadow);border-radius:24px}
+}
+@media(max-width:380px){html.ui4 .bt{grid-template-columns:80px minmax(0,1fr) 44px;gap:10px;padding:14px}html.ui4 .bt .bq-w,html.ui4 .bt .bq{width:80px;height:94px}html.ui4 .bt .bn{font-size:16px}html.ui4 .nav button{font-size:10px}}
+@media(prefers-reduced-motion:no-preference){html.ui4 .btn-fill,html.ui4 .btn-tint,html.ui4 .ib{transition:transform .16s ease,box-shadow .16s ease}html.ui4 .btn-fill:active,html.ui4 .btn-tint:active{transform:translateY(1px) scale(.985);opacity:.95}}
+html.ui4 .u4-more svg{width:20px;height:20px}
+html.ui4.seg-kapsel :is(.segc,.btn-fill,.btn-tint){border-radius:999px}
+html.ui4.seg-kapsel .seg-thumb{border-radius:999px}
+html.ui4.seg-klassisk :is(.segc,.seg-thumb,.btn-fill,.btn-tint,.group,.widget){border-radius:8px}
+html.ui4 .nav.none .nav-pill{display:none}
+
 </style>
 </head>
 <body>
@@ -2338,7 +2527,7 @@ html.ny.seg-kapsel .create-options{border-radius:22px}
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=217"></script>
+<script src="app.js?v=218"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
