@@ -64,9 +64,11 @@ jobs:
           fi
           if [[ "$UI" == "2" ]]; then node verktyg/emu/jamfor-ui2.js; fi
           node verktyg/emu/run.js verktyg/emu/anvandarfarger.js
+          node verktyg/emu/recept-rpc.js
           node verktyg/emu/recept-server.js
           node verktyg/emu/run.js verktyg/emu/recept-ui.js
           node verktyg/emu/run.js verktyg/emu/recept-reliability.js
+          node verktyg/emu/run.js verktyg/emu/recept-timeout.js
           node verktyg/emu/run.js verktyg/emu/plus-alternativ.js
           node verktyg/emu/run.js verktyg/emu/stad-plus.js
           NOW=2026-10-24T08:58:00+02:00 node verktyg/emu/run.js verktyg/emu/matsedel-gester.js
