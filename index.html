@@ -1898,10 +1898,10 @@ html.ny .tp-b.run em{color:#fff;text-shadow:0 0 6px color-mix(in srgb,var(--acce
 html.ny .tp-b.klar{background:var(--fill);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink-2) 25%,transparent)}html.ny .tp-b.klar em{color:var(--accent)}
 @keyframes tpFyll{to{transform:scaleX(1)}}
 @media (prefers-reduced-motion:reduce){html.ny .tp-f{animation-timing-function:steps(60,end)}}
-html.ny .tp-ax{height:18px;margin-top:4px}
+html.ny .tp-ax{height:24px;margin-top:4px}
 html.ny .tp-ax .tp-t,html.ny .tp-ov .tp-t{grid-column:2;height:100%}
 html.ny .tp-ax .tp-t span{position:absolute;top:1px;transform:translateX(-50%);font-size:11px;color:var(--ink-2);font-variant-numeric:tabular-nums;white-space:nowrap}
-html.ny .tp-ov{position:absolute;top:0;bottom:22px;left:16px;right:16px;pointer-events:none}
+html.ny .tp-ov{position:absolute;top:0;bottom:28px;left:16px;right:16px;pointer-events:none}
 html.ny .tp-now{position:absolute;top:-4px;bottom:0;width:2px;margin-left:-1px;border-radius:1px;background:var(--red)}
 html.ny .tp-k{display:flex;flex-wrap:wrap;gap:4px 14px;padding:10px 16px 0;font-size:12px;color:var(--ink-2)}
 html.ny .tp-k span{display:inline-flex;align-items:center;gap:6px}
@@ -1951,7 +1951,9 @@ html.ny .steps>li.active{background:var(--fill)}
 html.ny .ingx.hit{background:var(--fill)}
 html.ny .steps>li.active .pill{background:var(--surface)}
 html.ny .tp-b.run em{color:var(--accent);text-shadow:none;background:var(--surface);border-radius:6px;margin-left:4px;padding:2px 6px}
-html.ny .tp-b.ut{overflow:visible}html.ny .tp-b.ut em{position:absolute;left:100%;margin:0 0 0 6px;padding:0;background:none;color:var(--ink-2);text-shadow:none}html.ny .tp-b.ut.vä em{left:auto;right:100%;margin:0 6px 0 0}html.ny .tp-b.ut.klar em{color:var(--accent)}
+html.ny .tp-tk{position:absolute;top:0;width:1px;height:4px;margin-left:-.5px;background:color-mix(in srgb,var(--ink-2) 45%,transparent)}html.ny .tp-tk.lb{height:6px;background:var(--ink-2)}
+html.ny .tp-ax .tp-t span{top:8px}
+html.ny .tp-gl{position:absolute;top:0;bottom:0;width:1px;margin-left:-.5px;background:color-mix(in srgb,var(--ink-2) 12%,transparent)}
 /* Egen timer: vred med streck runt om, Start i mitten */
 .tm-w{display:flex;flex-direction:column;align-items:center;gap:18px;padding:8px 0 22px}
 .tm-dial{position:relative;width:min(280px,72vw);aspect-ratio:1;touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab}
@@ -2001,7 +2003,7 @@ html.ny :is(input,textarea,select,[contenteditable]){-webkit-user-select:text;us
 html.ny .ingx.top{color:var(--accent)}
 html.ny .ing-sep{height:0;margin:2px 16px;border-top:1.5px solid color-mix(in srgb,var(--accent) 30%,var(--line))}
 /* Väggen: större tidsplan som använder platsen */
-@media (min-width:900px){html.ny :is(.tp-r,.tp-ax,.tp-ov){grid-template-columns:34px minmax(0,1fr);gap:14px}html.ny .tp-r{min-height:48px}html.ny .tp-r .no{width:34px;height:34px;font-size:16px}html.ny .tp-t{height:36px}html.ny .tp-b{border-radius:9px}html.ny .tp-sum{font-size:19px;padding:16px 20px 10px}html.ny .tp-g{padding:0 20px}html.ny .tp-ov{left:20px;right:20px;bottom:26px}html.ny .tp-sum .meta,html.ny .tp-ax .tp-t span{font-size:14px}html.ny .tp-ax{height:24px}html.ny .tp-b em{font-size:15px}html.ny .tp-b em svg{width:16px;height:16px}html.ny .tp-k{font-size:14px;padding:12px 20px 0}
+@media (min-width:900px){html.ny :is(.tp-r,.tp-ax,.tp-ov){grid-template-columns:34px minmax(0,1fr);gap:14px}html.ny .tp-r{min-height:48px}html.ny .tp-r .no{width:34px;height:34px;font-size:16px}html.ny .tp-t{height:36px}html.ny .tp-b{border-radius:9px}html.ny .tp-sum{font-size:19px;padding:16px 20px 10px}html.ny .tp-g{padding:0 20px}html.ny .tp-ov{left:20px;right:20px;bottom:32px}html.ny .tp-sum .meta,html.ny .tp-ax .tp-t span{font-size:14px}html.ny .tp-ax{height:30px}html.ny .tp-b em{font-size:15px}html.ny .tp-b em svg{width:16px;height:16px}html.ny .tp-k{font-size:14px;padding:12px 20px 0}
  html.ny .cook .tp-r{min-height:58px}html.ny .cook .tp-t{height:44px}html.ny .cook :is(.tp-ax,.tp-ov) .tp-t{height:100%}html.ny .cook .tp-r .no{width:40px;height:40px;font-size:18px}html.ny .cook :is(.tp-r,.tp-ax,.tp-ov){grid-template-columns:40px minmax(0,1fr)}html.ny .cook .tp-b em{font-size:17px}html.ny .cook .tp-sum{font-size:22px}html.ny .cook .tp{margin:22px 16px 0}}
 /* Rättens blad: tre prickar på raden öppnar portioner, byt, lås, recept och ta bort */
 html.ny .dr-more svg{width:20px;height:20px}
