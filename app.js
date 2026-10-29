@@ -1326,7 +1326,7 @@ function tpHtml(r,ST,o){const{R,tot}=tidsplan(ST),T=Math.max(tot,1),st=o.start,s
   const txt=tm&&!run?'<em>'+I.tick+'</em>':'';
   return'<i class="tp-b'+cls+(pau?' run pau':run?' run':tm?' klar':'')+'" style="'+sty+'">'+fill+txt+'</i>'};
  const rows=R.map((x,i)=>{const tm=S.timers.find(t=>t.rid===r.id&&t.si===i),cur=i===o.cur;
-  return'<div class="tp-r'+(cur?' on':'')+(tm?' tr':'')+(o.now!=null&&x.b<=o.now&&!cur?' gj':'')+'"><button type="button" class="no" data-act="'+(o.cook?'cookTo':'pickStep')+'" data-id="'+esc(r.id)+'" data-i="'+i+'" aria-label="Gå till steg '+(i+1)+'"'+(tm?' data-k="'+tm.k+'"'+pillOn(tm):'')+'>'+(tm?trPill(tm,i+1):i+1)+'</button>'+
+  return'<div class="tp-r'+(cur?' on':'')+(tm?' tr':'')+(o.now!=null&&x.b<=o.now&&!cur?' gj':'')+'"><button type="button" class="no" data-act="tpTimer" data-id="'+esc(r.id)+'" data-i="'+i+'" data-min="'+x.d+'" aria-label="Timer för steg '+(i+1)+', '+x.d+' min"'+(tm?' data-k="'+tm.k+'"'+pillOn(tm):'')+'>'+(tm?trPill(tm,i+1):i+1)+'</button>'+
    '<button type="button" class="tp-t" data-act="tpTimer" data-id="'+esc(r.id)+'" data-i="'+i+'" data-min="'+x.d+'" aria-label="Timer för steg '+(i+1)+', '+x.d+' min">'+bar(tm,(x.pas?' pas':'')+(x.est?' est':''),'left:'+pc(x.a)+';width:'+pc(x.d),'')+'</button></div>'}).join('')+
   S.timers.filter(t=>t.rid===r.id&&t.egen).map(t=>'<div class="tp-r egen tr"><button type="button" class="no" data-k="'+t.k+'"'+pillOn(t)+' aria-label="Egen timer, håll in för tiden">'+trPill(t,I.clock)+'</button><button type="button" class="tp-t" data-act="tpTimer" data-k="'+t.k+'" aria-label="Egen timer '+Math.round(t.dur/60000)+' min">'+bar(t,' egen','left:0;width:100%','')+'</button></div>').join('');
  const now=o.now!=null&&o.now>=0&&o.now<=T?'<i class="tp-now" style="left:'+pc(o.now)+'"></i>':'';
@@ -1334,6 +1334,10 @@ function tpHtml(r,ST,o){const{R,tot}=tidsplan(ST),T=Math.max(tot,1),st=o.start,s
  return'<div class="group tp'+(o.cook?' tp-cook':'')+(po?' push" style="--px:'+PILL.px+'px':'')+'" data-rid="'+esc(r.id)+'"><div class="tp-sum"><span><b>'+(o.cook?'Klart ca ':'Börja ')+tpKl(o.cook?st+T:st)+'</b>'+(o.cook?'':' · klart '+tpKl(st+T))+'</span><span class="meta">ca '+T+' min</span><button type="button" class="tp-egen" data-act="egenTimer" data-id="'+esc(r.id)+'" aria-label="Egen timer">'+I.clock+'</button></div><div class="tp-g">'+rows+'<div class="tp-ax"><span class="tp-t">'+ax+'</span></div><div class="tp-ov"><span class="tp-t">'+gl+now+'</span></div></div>'+
   '<div class="tp-k"><span><i class="tp-b"></i>Du lagar</span><span><i class="tp-b pas"></i>Sköter sig själv</span><span><i class="tp-b est"></i>Uppskattad tid</span></div></div>'}
 const PILL={k:null,until:0,w:0,px:0},pillOn=t=>PILL.k===t.k&&Date.now()<PILL.until?' data-open="1" style="width:'+PILL.w+'px"':'';
+// Kör fn och flytta tillbaka sidan (eller kokläget) så att tidsplanen står kvar där den var, även om något scrollar efter omritningen
+function tpStill(fn){const g=document.querySelector(S.cook?'.cook .tp':'#main .tp'),y=g?g.getBoundingClientRect().top:null;fn();if(y==null)return;
+ const fix=()=>{const n=document.querySelector(S.cook?'.cook .tp':'#main .tp');if(!n)return;const d=n.getBoundingClientRect().top-y;if(Math.abs(d)<1)return;const b=S.cook&&document.querySelector('.cook-body');if(b)b.scrollTop+=d;else scrollBy(0,d)};
+ fix();requestAnimationFrame(()=>{fix();setTimeout(fix,60)})}
 const tmKvar=t=>t.p!=null?t.p:t.end-Date.now();
 // Timerring som på iPhone: bågen krymper medan tiden går (tick flyttar den varje sekund). Färdig = grå med bock
 const trAndel=t=>{const ms=tmKvar(t);return t.ring||ms<=0?0:Math.max(0,Math.min(1,ms/(t.dur||1)))};
@@ -3972,7 +3976,7 @@ const ACT={
   if(!t){const m=Number(el.dataset.min)||0;if(!m)return;S.timers.push({k:Math.random().toString(36).slice(2),label:'Steg '+(i+1),end:Date.now()+m*60000,ring:false,rid:id,si:i,dur:m*60000})}
   else if(t.ring||tmKvar(t)<=0)S.timers=S.timers.filter(x=>x!==t);
   else if(t.p!=null){t.end=Date.now()+t.p;delete t.p}else t.p=t.end-Date.now();
-  tick();render()},
+  tpStill(()=>{tick();render()})},
  tmrMenu(id){S.tm=id;S.sheet='tmrMenu';render()},
  tmrDo(id,el){unlockAudio();const t=S.timers.find(x=>x.k===id),a=el.dataset.a,n=Date.now();closeSheets();
   if(t){if(a==='x')S.timers=S.timers.filter(x=>x!==t);
