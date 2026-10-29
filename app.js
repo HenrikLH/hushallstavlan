@@ -228,7 +228,8 @@ function renderNav(nav){
   // längst ner studsar sidan tillbaka en bit; den rörelsen räknas inte som att man scrollar uppåt
   const max=document.documentElement.scrollHeight-innerHeight;if(y>=max-4||yp>=max-4){acc=0;return}
   acc=(acc>0)===(d>0)?acc+d:d;if(acc>24)set(true);else if(acc<-24)set(false)},{passive:true});
- mini.addEventListener('click',()=>set(false))})();
+ mini.addEventListener('click',()=>set(false));
+ addEventListener('resize',()=>{if(U4){set(false);acc=0;y0=scrollY}})})();
 
 /* Dra för att scrolla och svep mellan flikarna på stora skärmar och i väggläge.
    På Linux kommer pekskärmens rörelser ofta fram som musrörelser, och då scrollar webbläsaren

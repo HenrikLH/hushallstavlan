@@ -2,14 +2,13 @@
 
 Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs relevant kod/PR vid behov.
 
-## UI 4.0 · release ht-v228
+## Pågår · UI4-felgenomgång
 
-- Codex, gren `codex/ui4-atelje`, [PR #42](https://github.com/HenrikLH/hushallstavlan/pull/42). Godkänd Ateljé-design implementerad som frivilligt UI 4.0; ht-v228 / app.js?v=218.
-- Välj Inställningar → Utseende → Design. UI2 förblir standard; UI3 kräver utvecklarläge. UI4 fungerar vid omstart och utan utvecklarläge.
-- CSS i index.html under html.ui4; riktiga veckorader/menyer i app.js; accent4/ovLayout4/wallLayout4 är separata enhetsval. Ingen demokod, serverändring eller ändring i hushållsdata.
-- Testad appkod `47291f2b61ce81fbea90507074f30c545471ef14`: [CI](https://github.com/HenrikLH/hushallstavlan/actions/runs/40885122189), **12/12 gröna** (UI2/3/4 × telefon/vägg × ljust/mörkt), inklusive UI4-val/omstart/utkast/preferenser, timers, redigeringsblad, recept/sparning/filter, plusplacering och matsedelsgester. UI2:s oförändrade vyer pixeljämförda mot main.
-- Visuellt granskat telefon och vägg med exempeldata. Slutlig iPhone-tangentbords-/Surface-kontroll kräver Henriks hårdvara som tidigare.
-- Henrik har godkänt publicering (”Pusha”, 2026-10-29). Ångra-gren `version-fore-ui4-20261029` pekar på `efb8cec248fef393acde26426a28a610fda36fdd`. Publicering via PR #42; nästa användarsteg är återkoppling från iPhone/Surface. Endast dokumentation har ändrats efter grön CI.
+- Codex, gren `codex/ui4-felgenomgang`, ht-v229 / app.js?v=219. Henrik rapporterar omfattande fel vid olika inställningar; föregående UI4-release finns på main (PR #42).
+- Reproducerat: Piller flyttar telefonmenyn utanför skärmen; Svävande/Piller flyttar sidomenyn utanför stora skärmar (ärvd margin-left). Dialogens bakgrund låg på fel element.
+- Rättat även överlappande ordna-verktyg på väggen, för smala matrader vid 900–1199 px, saknad övre safe-area och ofullständigt formval på nya kort. UI2/UI3 lämnas oförändrade.
+- Ny regression `verktyg/emu/ui4-installningar.js`: 54 bredd/form/menyrad-kombinationer per telefon/vägg/tema, verkliga klick, träffytor, scroll/omstart, dialog och väggknappar. Befintliga funktionstester kvar.
+- Pågår: webbläsargranskning med exempeldata och CI. Inte publicerat; PR/bilder/testresultat ska färdigställas före Henriks ”Pusha”. Inga riktiga hushållsdata eller Kod.gs ändras.
 
 ## Börja här
 
