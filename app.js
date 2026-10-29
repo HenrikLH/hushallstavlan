@@ -841,7 +841,7 @@ function ovAnim(el,op){const st=el.querySelector('.bwx-h'),g=el.querySelector('.
 // Dygnets graf: de kommande 24 timmarna i kortets bredd utan att svepa. Kurvan timme för timme; klockslag, ikon och grader var tredje timme
 function ovGraf(W,bare){const P=WX_POS(),H=wxHours(W).slice(0,25);if(H.length<4)return wxStrip(W);
  const mw=(document.getElementById('main')||document.querySelector('main')||document.body).clientWidth||innerWidth;
- const w=Math.max(260,Math.min(mw,700)-64),n=H.length,px=14,pr=30,dx=(w-px-pr)/(n-1),h=bare?66:128,yT=18,yB=50,base=62,f=v=>v.toFixed(1);
+ const w=Math.max(260,Math.min(mw,700)-64),n=H.length,px=14,pr=30,dx=(w-px-pr)/(n-1),h=bare?66:128,yT=15,yB=54,base=62,f=v=>v.toFixed(1);
  const X=j=>px+j*dx,lo=Math.min(...H.map(x=>x.T)),hi=Math.max(...H.map(x=>x.T)),sp=Math.max(4,hi-lo),Y=T=>yB-(T-lo)/sp*(yB-yT),pts=H.map((x,j)=>[X(j),Y(x.T)]);
  let d='M'+f(pts[0][0])+' '+f(pts[0][1]);
  for(let i=0;i<n-1;i++){const p0=pts[i-1]||pts[i],p1=pts[i],p2=pts[i+1],p3=pts[i+2]||p2;
@@ -856,9 +856,10 @@ function ovGraf(W,bare){const P=WX_POS(),H=wxHours(W).slice(0,25);if(H.length<4)
  s+='<path d="'+d+' L'+f(X(n-1))+' '+base+' L'+f(X(0))+' '+base+'Z" fill="url(#'+gid+'f)" class="ovg-f"/><path d="'+d+'" pathLength="1" class="ovg-k" fill="none" stroke="url(#'+gid+')" stroke-width="3" stroke-linecap="round"/><line x1="0" x2="'+f(w)+'" y1="'+base+'" y2="'+base+'" class="wxC-base"/>';
  H.forEach((x,j)=>{if(x.pr>=.1){const bh=Math.min(14,3+x.pr*8);s+='<rect x="'+f(X(j)-dx/2+1)+'" y="'+f(base-bh)+'" width="'+f(Math.max(2,dx-2))+'" height="'+f(bh)+'" rx="1.5" class="wxC-pr"/>'}});
  // temperaturskala i 3-gradersteg vid högerkanten, som i vädervyns graf
- // full skala i 3-gradersteg vid högerkanten; grafens högsta och lägsta temperatur som accentlinjer med graderna strax innanför skalan
- for(let T=Math.ceil(lo/3)*3;T<=lo+sp+.01;T+=3)s=s.replace('<path d="'+d+' L','<line x1="0" x2="'+f(w-pr+4)+'" y1="'+f(Y(T))+'" y2="'+f(Y(T))+'" class="wxC-grid"/><text x="'+f(w)+'" y="'+f(Y(T)+3.5)+'" class="ovg-y">'+deg(T)+'</text><path d="'+d+' L');
- [[hi,4],[lo,4]].forEach(([T,o],k)=>{if(k&&Math.round(hi)===Math.round(lo))return;s=s.replace('<path d="'+d+' L','<line x1="0" x2="'+f(w-pr+4)+'" y1="'+f(Y(T))+'" y2="'+f(Y(T))+'" class="ovg-hl"/><text x="'+f(w-pr+2)+'" y="'+f(Y(T)+o)+'" class="ovg-y hl">'+deg(T)+'</text><path d="'+d+' L')});
+ // skalan vid högerkanten: grafens högsta och lägsta temperatur i accentfärg, och däremellan steg om 3 grader som inte krockar med dem
+ const HL=Math.round(hi)===Math.round(lo)?[hi]:[hi,lo],yl=(T,c)=>'<text x="'+f(w)+'" y="'+f(Y(T)+3.5)+'" class="ovg-y'+c+'">'+deg(T)+'</text>';
+ for(let T=Math.ceil(lo/3)*3;T<=lo+sp+.01;T+=3)s=s.replace('<path d="'+d+' L','<line x1="0" x2="'+f(w-pr+4)+'" y1="'+f(Y(T))+'" y2="'+f(Y(T))+'" class="wxC-grid"/>'+(HL.some(m=>Math.abs(Y(m)-Y(T))<9)?'':yl(T,''))+'<path d="'+d+' L');
+ HL.forEach(T=>{s=s.replace('<path d="'+d+' L','<line x1="0" x2="'+f(w-pr+4)+'" y1="'+f(Y(T))+'" y2="'+f(Y(T))+'" class="ovg-hl"/>'+yl(T,' hl')+'<path d="'+d+' L')});
  let ic='';
  H.forEach((x,j)=>{if(j%3)return;const xx=X(j),nu=!j;
   s+='<circle cx="'+f(xx)+'" cy="'+f(pts[j][1])+'" r="'+(nu?5:3)+'" fill="'+(nu?tempCol(x.T):'var(--surface)')+'" stroke="'+tempCol(x.T)+'" stroke-width="2" class="ovg-p"/>'+(bare?'':
