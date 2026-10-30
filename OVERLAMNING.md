@@ -2,6 +2,15 @@
 
 Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs relevant kod/PR vid behov.
 
+## Vägledande animationer · Utvecklarläge · release ht-v232
+
+- Codex, gren `codex/animationer`, [PR #46](https://github.com/HenrikLH/hushallstavlan/pull/46). Henrik vill nu ha hela paketet i Utvecklarläge (2026-10-30). Henrik godkänner publicering (”Pusha”, 2026-10-30).
+- Inställningar → Avancerat → Utvecklarläge → Vägledande animationer. All ny rörelse och båda handtagen kräver DEV && MOTION. Valet ht.motion minns per enhet; systemets reducerade rörelse går före. När Utvecklarläge/valet är av återkommer ordinarie sidbyten, menyer, disclosures och väderremsans håll-in.
+- Nytt i testläget: riktade sidbyten 260 ms, menyval 240 ms, valt kalenderdatum följer med, ekonomi/disclosures fälls mjukt. Veckokostnadens handtag följer fingret. Väderhandtag ned/upp kör befintlig ovAnim efter släpp utan håll-in-zoom/scrollkompensation. Scroll låses bara under drag och återställs vid avbrott. Tryck/tangentbord och timremsans sidscroll/länk kvar.
+- Pekdrag, aktivitet/automatisk återgång på väggen, förstoring och avbruten rendering hanteras. Inga riktiga hushållsdata eller Kod.gs ändras.
+- Verifierad app-/testkod `93111c4ebfe411bdb2753a63f9198170bf798622`: [CI 12/12 gröna](https://github.com/HenrikLH/hushallstavlan/actions/runs/41024742559), UI2/UI3/UI4 × telefon/vägg × ljust/mörkt. animationer.js testar aktivering/omstart/avstängning/återställt normalläge samt mus/pekdrag, scroll-lås/avbrott, kalender, ekonomi och reducerad rörelse. Ordinarie UI2 pixeljämförs åter i hela fyra skärmbilder mot main.
+- Visuellt granskat: ny inställning och handtagens avgränsning (både brytaren och DEV av) i browser med exempeldata; telefon/vägg från föregående granskning kvar. Endast dokumentation efter testad kod. Publicering godkänd; ångra-gren `version-fore-animationer-20261030` från `ffb6ee1e944ccdc43b7836d3ebaad09c76b55ab7`. Merge via PR #46 och kontroll av lyckad Pages-distribution. Känsla i fysisk Safari/Surface kräver användarprovning.
+
 ## Rymligare kontroller · release ht-v231
 
 - Codex, gren `codex/ui2-rymliga-kontroller`, ht-v231 / app.js?v=221. Henrik godkänner uttryckligen publicering som ny inställning (2026-10-30); ska inte bli standard.

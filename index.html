@@ -1365,6 +1365,17 @@ body.wall::before{content:"";position:fixed;inset:-20%;z-index:-1;pointer-events
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
   body.wall::before{animation:none}
 }
+/* Vägledande rörelse: begränsa sidbytets rörelse till skärmen, behåll remsornas egen sidscroll. */
+html.motion-dev,html.motion-dev #main{overflow-x:clip}
+.motion-panel{display:flow-root;overflow-anchor:none}
+html.ny .motion-panel>.wm-body{display:block}
+.motion-grip{display:flex;align-items:center;justify-content:center;width:100%;min-height:44px;padding:12px;touch-action:none;cursor:ns-resize;color:var(--ink-3);background:transparent;border:0;user-select:none;-webkit-user-select:none}
+.motion-grip i{display:block;width:38px;height:4px;border-radius:99px;background:currentColor;opacity:.6;pointer-events:none}
+.motion-grip:focus-visible{outline:2px solid var(--accent);outline-offset:-4px;border-radius:8px}
+.motion-grip:active{color:var(--accent)}
+.ovx .motion-grip{margin-top:4px}
+.motion-dragging{overscroll-behavior:none;scroll-behavior:auto!important;overflow-anchor:none}
+.motion-dragging body{overscroll-behavior:none}
 /* ===== Födelsedagar ===== */
 .bd .bd-date{display:flex;flex-direction:column;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;background:var(--accent-soft);color:var(--accent);flex:none;line-height:1}
 .bd .bd-date b{font-size:19px;font-weight:700;letter-spacing:-.4px}
@@ -2591,7 +2602,7 @@ html.ny.rymlig:not(.ui3):not(.ui4) :is(.btn-fill,.btn-tint,.pill,.fchips button)
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=221"></script>
+<script src="app.js?v=222"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
