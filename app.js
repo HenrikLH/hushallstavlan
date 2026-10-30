@@ -69,7 +69,7 @@ const OLD_VIEWS={matsedel:'vecka',recept:'recept',inkop:'inkop'};
 /* ---------- state ---------- */
 const CFG=window.HT_CONFIG||{};
 const S={hj:new Set(),theme:['light','dark'].includes(lsGet('theme'))?lsGet('theme'):'system',key:lsGet('key')||'',me:lsGet('me')||'',view:lsGet('view')||'oversikt',wall:lsGet('wall')==='1',
- data:null,sync:'idle',lastSync:null,error:'',recipe:null,scale:{},cook:null,shopFilter:'alla',shopAdd:false,taskAdd:false,
+ data:null,sync:'idle',lastSync:null,error:'',recipe:null,scale:{},cook:null,shopClosed:{},shopAdd:false,taskAdd:false,
  sheet:null,confirm:null,timers:[],pending:0,step:{},matTab:['recept','bank','efter','inkop'].includes(lsGet('matTab'))?lsGet('matTab'):'vecka',taskTab:lsGet('taskTab')==='kalender'?'kalender':'lista',calDay:null,calMonth:null,ovDay:null,taskDue:'',bankFilter:'alla',rate:null,open:{}};
 try{const c=lsGet('cache');if(c)S.data=JSON.parse(c)}catch(e){}
 // Gamla vyer (Matsedel, Recept) ligger nu i fliken Mat
@@ -1881,12 +1881,7 @@ function autoSend(){const C=autoCalc(),{P}=C,pl=P.plan,vd=d=>addDays(P.vecka,d),
  S.plan=false;S.matTab='vecka';lsSet('matTab','vecka');window.scrollTo(0,0);render();toast('Veckan skickas till veckosedeln och inköpslistan')}
 // Inköpslistan visas som en flik i Mat; ger rubrikens undertext, verktyg och innehåll
 function inkopParts(){
- const d=D(),all=d.shop,f=S.shopFilter,st=settings();
- // Filtret visar butikens avdelningar som finns på listan, så man kan handla en avdelning i taget
- const kats=CATS.filter(c=>all.some(i=>shopKat(i)===c)),f2=f==='offer'&&all.some(i=>i.offer)||kats.includes(f)?f:'alla';
- const groups=[['alla','Alla']].concat(all.some(i=>i.offer)?[['offer','Erbjudanden']]:[],kats.map(c=>[c,c+' '+all.filter(i=>shopKat(i)===c&&!i.done).length]));
- const match=i=>f2==='alla'?true:f2==='offer'?!!i.offer:shopKat(i)===f2;
- const items=all.filter(match),left=all.filter(i=>!i.done),bought=all.filter(i=>i.done);
+ const d=D(),all=d.shop,st=settings(),items=all,left=all.filter(i=>!i.done),bought=all.filter(i=>i.done);
  // Hela listan och Kvar att betala gäller allt på listan. Per portion och budget gäller veckans mat, samma siffror som på veckosedeln
  const total=shopCost(all),port=veckaPortioner(),mealCost=veckaKostnad(),B=Number(st.matbudget)||0;
  let sub=left.length+' kvar · ca '+kr(shopCost(left)),tools='<button class="ib plus" data-act="shopAdd" aria-label="Ny vara">'+I.plus+'</button>',h='';
@@ -1899,10 +1894,9 @@ function inkopParts(){
  // Håll in knappen för att bekräfta: en fyllning går över knappen och åtgärden körs när den är full
  h+=U3?'<div class="sh-tools"><button type="button" class="sh-btn" data-act="shopMore">'+I.dots+'Listans åtgärder</button></div>':'<div class="sh-tools"'+RF('M8')+'><button type="button" class="sh-btn" data-hold="shopImportYes" aria-label="Håll in för att uppdatera varorna för '+esc(wk.toLowerCase())+'"><i class="sh-fill"></i><span class="sh-ic">'+I.imp+'</span><b>Uppdatera varor</b></button>'
   +'<button type="button" class="sh-btn red" data-hold="shopEmptyYes"'+(all.length?'':' disabled')+' aria-label="Håll in för att tömma listan"><i class="sh-fill"></i><span class="sh-ic">'+I.trash+'</span><b>Töm listan</b></button></div>';
- h+='<div class="fchips"'+RF('M9')+' role="group" aria-label="Filter">'+groups.map(([k,l])=>'<button data-act="shopFilter" data-id="'+esc(k)+'" aria-pressed="'+(f2===k)+'">'+l+'</button>').join('')+'</div>';
  h+='<div class="split"><div class="col">';
  if(!all.length)h+='<div style="height:22px"></div>'+group(emptyCell(U3?'Listan är tom. Lägg till en vara ovan, eller hämta veckans varor under Listans åtgärder.':'Listan är tom. Tryck på Uppdatera varor för veckans rätter, eller lägg till egna varor med plus.'));
- const delar=CATS.map(c=>{const g=items.filter(i=>shopKat(i)===c).sort((a,b)=>(a.done-b.done)||(a.order||0)-(b.order||0));return g.length?gh(c,kr(shopCost(g)))+g.map(shopRow).join(''):''}).join('');
+ const delar=CATS.map(c=>{const g=items.filter(i=>shopKat(i)===c).sort((a,b)=>(a.done-b.done)||(a.order||0)-(b.order||0));if(!g.length)return'';const open=!(S.shopClosed||{})[c],id='shop-category-'+CATS.indexOf(c),n=g.filter(i=>!i.done).length;return'<button type="button" class="gh shop-fold'+(open?' open':'')+'" data-act="shopFold" data-id="'+esc(c)+'" aria-controls="'+id+'" aria-expanded="'+open+'"><span>'+esc(c)+'</span><span class="r">'+n+' kvar · '+kr(shopCost(g))+'<span class="eko-chev" aria-hidden="true">'+I.chev+'</span></span></button><div class="motion-panel" id="'+id+'"'+(!open?' hidden inert':'')+' aria-hidden="'+!open+'">'+g.map(shopRow).join('')+'</div>'}).join('');
  if(delar)h+='<div class="g-one">'+rgroup('M10',delar)+'</div>';
  if(bought.length)h+='<div class="pills" style="padding:12px 16px 0 24px">'+(S.confirm==='clearShop'?'<span class="sub">Ta bort '+bought.length+' avbockade?</span><button class="tb red strong" data-act="clearShopYes">Ja, ta bort</button><button class="tb" data-act="confirmNo">Avbryt</button>':'<button class="tb red" data-act="clearShop">Rensa avbockade ('+bought.length+')</button>')+'</div>';
  h+='</div><div class="col">';
@@ -1947,7 +1941,7 @@ function shopImport(tyst,o){o=o||{};
  const nyck=x=>String(x.name||'').toLowerCase()+'|'+String(x.qty||'').toLowerCase(),fore=new Set(D().shop.map(nyck)),kopt=new Set(D().shop.filter(i=>i.done&&i.source!=='egen').map(nyck));
  const nya=shop.filter(x=>!fore.has(nyck(x))).length,nu=new Set(shop.map(nyck)),borta=D().shop.filter(i=>i.source!=='egen'&&!nu.has(nyck(i))).length;
  S.data.shop=egna.concat(shop.map((x,n)=>({id:tag+'-'+n,name:x.name,qty:x.qty,price:x.price,meals:x.meals,cat:katGissa(x.name),done:kopt.has(nyck(x)),source:'veckoplan'})));
- if(!tyst)S.shopFilter='alla';render();toast(o.msg||(tyst?'Inköpslistan uppdaterad':!list.length&&!dv.length?'Inga låsta rätter. Lås rätterna du vill handla till.':nya||borta?[nya?nya+' tillagda':'',borta?borta+' borttagna':''].filter(Boolean).join(', '):'Inköpslistan stämmer med veckosedeln'));
+ render();toast(o.msg||(tyst?'Inköpslistan uppdaterad':!list.length&&!dv.length?'Inga låsta rätter. Lås rätterna du vill handla till.':nya||borta?[nya?nya+' tillagda':'',borta?borta+' borttagna':''].filter(Boolean).join(', '):'Inköpslistan stämmer med veckosedeln'));
  // Recept från inspirationen eller receptbanken som saknas i kalkylarkets flik Recept skickas med
  const inSheet=new Set(D().recipes.map(r=>r.id)),recipes=o.force?[...new Set(rows.map(m=>m.recipe).filter(Boolean))].map(recipeById).filter(r=>r&&!inSheet.has(r.id)&&!isDessert(r)).slice(0,12).map(bankSnap):[];
  apiPost({action:'planSend',start:vs,end:ve,menu:rows.map(m=>({date:m.date,who:m.who,title:m.title,recipe:m.recipe||'',addon:m.addon||'',note:m.note||''})),shop,recipes,lager:lagerUt(vs,korg.rest),settings:o.settings||{}});
@@ -4181,7 +4175,7 @@ const ACT={
  egenTimer(id){S.tmr={rid:id,min:Number(lsGet('tmrMin'))||10};S.sheet='tmr';render()},
  tmrStep(id,el){S.tmr.min=Math.max(1,Math.min(180,S.tmr.min+Number(el.dataset.d)));tmrPaint()},
  tmrStart(){unlockAudio();const m=S.tmr.min;lsSet('tmrMin',m);S.timers.push({k:Math.random().toString(36).slice(2),label:'Egen timer',end:Date.now()+m*60000,ring:false,rid:S.tmr.rid,si:-1,egen:1,dur:m*60000});S.sheet=null;tick();render();toast('Timer: '+tmrTxt(m))},
- shopFilter(id){S.shopFilter=id;render()},
+ shopFold(id,el){const closed=!((S.shopClosed||{})[id]);S.shopClosed=Object.assign({},S.shopClosed,{[id]:closed});el.classList.toggle('open',!closed);el.setAttribute('aria-expanded',String(!closed));motionPanel(el.nextElementSibling,!closed)},
  shopAdd(){S.shopAdd=!S.shopAdd;render();if(S.shopAdd)setTimeout(()=>document.getElementById('shop-name')?.focus(),30)},
  shopDel(id){const x=D().shop.find(y=>y.id===id);if(x)delStart([x],x.name+' togs bort')},
  shopUndo(){if(!DEL.items)return;clearTimeout(DEL.t);const keep=new Set(DEL.items.map(x=>x.id)),now=new Set(D().shop.map(x=>x.id));
