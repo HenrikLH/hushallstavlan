@@ -2,14 +2,13 @@
 
 Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs relevant kod/PR vid behov.
 
-## Vägledande animationer · redo för Pusha ht-v232
+## Vägledande animationer · Utvecklarläge ht-v232
 
-- Codex, gren `codex/animationer`, [PR #46](https://github.com/HenrikLH/hushallstavlan/pull/46). Henrik har bett implementera hela rörelsestudien + draghandtag på Ö11. Ingen publicering till main beställd i denna tur.
-- Sidbyten med riktning 260 ms, menyval 240 ms utan översväng; separat minne per segment/rubrik. Kalenderns valda datum följer med vid Dag/Vecka/Månad. Ekonomins totalsumma står kvar ovanför animerad uppdelning; befintliga disclosures expanderar mjukt.
-- Veckokostnad har direkt följande draghandtag. Väderhandtaget ned/upp kör befintlig ovAnim efter släpp, utan håll-in-lyft eller scrollkompensation. Timremsans sidscroll och länk kvar. Scroll låses bara under drag och återställs även vid avbrott/resize/blur. Tryck och tangentbord kvar.
-- Inställningar → Utseende → Vägledande animationer, enhetsval ht.motion (på från början); systemets reducerade rörelse går före. Alla funktioner/data och manuella reglage kvar, ingen Kod.gs-ändring.
-- Verifierad app-/testkod `a43dbe7c8638d3e963bbabb775b7e004b1fe1bd7`: [CI 12/12 gröna](https://github.com/HenrikLH/hushallstavlan/actions/runs/41020605963). Nya animationer.js provar full rörelse, mus/pekdrag, scroll-lås/avbrott, väderminne, kalenderdatum, snabb omvändning, ekonomi, av/på/omstart och systemets reducerade rörelse. Alla-flikar telefon/vägg ingår. UI2:s oförändrade rubriker/menyer pixeljämförs; det nya handtaget granskas separat.
-- Visuellt granskat i browser med exempeldata: UI2/telefon/ljust och UI4/vägg/mörkt. Väggförstoring följs och handtagsaktivitet hindrar automatisk återgång under drag. Ingen riktig hushållsdata ändrad. Känsla i Safari/Surface behöver som vanligt bekräftas på hårdvaran. Endast dokumentation efter testad kod. Nästa: Henriks Pusha → ångra-gren från aktuell main, merge och Pages-kontroll.
+- Codex, gren `codex/animationer`, [PR #46](https://github.com/HenrikLH/hushallstavlan/pull/46). Henrik vill nu ha hela paketet i Utvecklarläge (2026-10-30). Main är ännu oförändrad, inväntar Pusha.
+- Inställningar → Avancerat → Utvecklarläge → Vägledande animationer. All ny rörelse och båda handtagen kräver DEV && MOTION. Valet ht.motion minns per enhet; systemets reducerade rörelse går före. När Utvecklarläge/valet är av återkommer ordinarie sidbyten, menyer, disclosures och väderremsans håll-in.
+- Nytt i testläget: riktade sidbyten 260 ms, menyval 240 ms, valt kalenderdatum följer med, ekonomi/disclosures fälls mjukt. Veckokostnadens handtag följer fingret. Väderhandtag ned/upp kör befintlig ovAnim efter släpp utan håll-in-zoom/scrollkompensation. Scroll låses bara under drag och återställs vid avbrott. Tryck/tangentbord och timremsans sidscroll/länk kvar.
+- Pekdrag, aktivitet/automatisk återgång på väggen, förstoring och avbruten rendering hanteras. Inga riktiga hushållsdata eller Kod.gs ändras.
+- Föregående appkod a43dbe7: [12/12 gröna](https://github.com/HenrikLH/hushallstavlan/actions/runs/41020605963). Ny avgränsning till Utvecklarläge kräver omtest: animationer.js testar aktivering/omstart/avstängning och återställt normalläge. UI2:s fullständiga pixeljämförelse mot main återställd. Nästa: CI och färdigställ PR.
 
 ## Rymligare kontroller · release ht-v231
 

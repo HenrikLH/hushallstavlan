@@ -4,6 +4,9 @@ module.exports=async(pg,h)=>{
  await pg.emulateMedia({reducedMotion:'no-preference'});
  const read=s=>pg.evaluate(s=>window.__d(s),s),click=async s=>{await pg.locator(s).first().click();await h.idle(320)};
  const nav=async v=>{await click('#nav [data-id="'+v+'"]');await h.idle(350)};
+ const developer=async()=>{await click('[data-act="settings"]');const section=pg.locator('[data-k="pref-avancerat"]');if(!await section.evaluate(e=>e.open))await section.locator('summary').click();await h.idle(300)};
+ if(!await read('DEV')){assert.equal(await pg.locator('[data-motion-grip]').count(),0,'Normalläget saknar nya handtag');await developer();assert.equal(await pg.locator('[data-act="motion"]').count(),0);await click('[data-act="dev"]');await click('[data-act="sheetClose"]')}
+ assert.equal(await read('motionOn()'),true);await pg.reload();await h.idle(1600);assert.equal(await read('motionOn()'),true,'Utvecklarläget fungerar från uppstart');
  const drag=async(sel,dy,cancel=false)=>{
   const el=pg.locator(sel).first();await el.scrollIntoViewIfNeeded();await h.idle(100);const b=await el.boundingBox(),x=b.x+b.width/2,y=b.y+b.height/2;
   const before=await pg.evaluate(()=>({y:scrollY,top:document.getElementById('main').getBoundingClientRect().top}));
@@ -59,13 +62,14 @@ module.exports=async(pg,h)=>{
  const fold=pg.locator('[data-act="ekoFold"]').first();assert(await fold.count());const total=await fold.textContent();
  await fold.click();await h.idle(350);assert.equal(await fold.getAttribute('aria-expanded'),'false');assert(await fold.evaluate(e=>e.nextElementSibling.hidden&&e.nextElementSibling.inert));
  await fold.click();await h.idle(350);assert.equal(await fold.getAttribute('aria-expanded'),'true');assert.equal(await fold.textContent(),total);assert(await pg.locator('[data-act="ekoCost"]').count()>0);
- await click('[data-act="settings"]');const pref=pg.locator('[data-k="pref-utseende"]');if(!await pref.evaluate(e=>e.open))await pref.locator('summary').click();await h.idle(350);
+ await click('[data-act="settings"]');const pref=pg.locator('[data-k="pref-avancerat"]');if(!await pref.evaluate(e=>e.open))await pref.locator('summary').click();await h.idle(350);
  await click('[data-act="motion"]');assert.equal(await read('MOTION'),false);
- await click('[data-act="sheetClose"]');await pg.reload();await h.idle(1800);assert.equal(await read('MOTION'),false);
+ await click('[data-act="sheetClose"]');await pg.reload();await h.idle(1800);assert.equal(await read('MOTION'),false);assert.equal(await pg.locator('[data-motion-grip]').count(),0);
  await nav('mat');assert.equal(await pg.locator('#main').evaluate(e=>e.getAnimations().filter(a=>a.playState==='running').length),0);
- await click('[data-act="settings"]');const pref2=pg.locator('[data-k="pref-utseende"]');if(!await pref2.evaluate(e=>e.open))await pref2.locator('summary').click();await h.idle(350);await click('[data-act="motion"]');await click('[data-act="sheetClose"]');assert.equal(await read('MOTION'),true);
+ await click('[data-act="settings"]');const pref2=pg.locator('[data-k="pref-avancerat"]');if(!await pref2.evaluate(e=>e.open))await pref2.locator('summary').click();await h.idle(350);await click('[data-act="motion"]');await click('[data-act="sheetClose"]');assert.equal(await read('MOTION'),true);
  await pg.emulateMedia({reducedMotion:'reduce'});await click('[data-motion-grip="budget"]');assert.equal(await read('S.wsumOpen'),true);
  assert.equal(await pg.locator('#week-budget-details').evaluate(e=>e.getAnimations().length),0);
  assert(await pg.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'Ingen horisontell sidscroll');
+ await developer();await click('[data-act="dev"]');await click('[data-act="sheetClose"]');await pg.reload();await h.idle(1600);assert.equal(await read('motionOn()'),false);assert.equal(await pg.locator('[data-motion-grip]').count(),0);await nav('oversikt');if(await pg.locator('.ovx').count())assert.equal(await pg.locator('.ovx').getAttribute('data-hold-lift'),'ovGx');
  console.log('PASS animationer: handtag, scroll-lås/avbrott, vädergraf utan lyft, minne, kalenderdatum, disclosures, ekonomi, reducerad rörelse');
 };
