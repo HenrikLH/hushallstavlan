@@ -824,8 +824,8 @@ function ovWx(W){OVG_X=null;const g=ovGraf(W,1);if(!OVG_X)return'<div class="ovx
    Stäng: grafen sjunker ner bakom remsan först, sedan bréder timmarna ut sig igen. Fjäderkurva som i iOS; inget av detta vid reducerad rörelse */
 function ovAnim(el,op,still){const st=el.querySelector('.bwx-h'),g=el.querySelector('.ovx-g'),gi=g&&g.firstElementChild;if(!st||!g)return;
  const its=[...st.children],SPR='cubic-bezier(.32,.72,0,1)',quiet=!el.animate||calm();
- [g,gi,...its,...g.querySelectorAll('.ovg-k,.ovg-p')].forEach(e=>e&&e.getAnimations&&e.getAnimations().forEach(a=>a.cancel()));
  const F=its.map(c=>c.getBoundingClientRect().left),g0=g.getBoundingClientRect().height;
+ [g,gi,...its,...g.querySelectorAll('.ovg-k,.ovg-p')].forEach(e=>e&&e.getAnimations&&e.getAnimations().forEach(a=>a.cancel()));
  el.classList.toggle('ov-open',op);g.setAttribute('aria-hidden',String(!op));st.scrollLeft=0;
  const g1=g.getBoundingClientRect().height;g.inert=!op;if(quiet){if(!still)scrollBy(0,g1-g0);return}
  // höjden växer bildruta för bildruta och sidan följer med, så att remsan ligger kvar där fingret är

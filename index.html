@@ -1367,7 +1367,7 @@ body.wall::before{content:"";position:fixed;inset:-20%;z-index:-1;pointer-events
 }
 /* Vägledande rörelse: begränsa sidbytets rörelse till skärmen, behåll remsornas egen sidscroll. */
 html,#main{overflow-x:clip}
-.motion-panel{overflow-anchor:none}
+.motion-panel{display:flow-root;overflow-anchor:none}
 html.ny .motion-panel>.wm-body{display:block}
 .motion-grip{display:flex;align-items:center;justify-content:center;width:100%;min-height:44px;padding:12px;touch-action:none;cursor:ns-resize;color:var(--ink-3);background:transparent;border:0;user-select:none;-webkit-user-select:none}
 .motion-grip i{display:block;width:38px;height:4px;border-radius:99px;background:currentColor;opacity:.6;pointer-events:none}

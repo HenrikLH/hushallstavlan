@@ -54,6 +54,7 @@ jobs:
           if [[ "$UI" == "2" ]]; then
             APP="$PWD/baseline" OUT="$PWD/verktyg/emu/baseline-shots" node verktyg/emu/run.js verktyg/emu/alla-flikar.js
           fi
+          node verktyg/emu/run.js verktyg/emu/animationer.js
           if [[ "$UI" == "4" ]]; then
             node verktyg/emu/run.js verktyg/emu/ui4.js
             node verktyg/emu/run.js verktyg/emu/ui4-installningar.js
@@ -64,7 +65,6 @@ jobs:
           fi
           if [[ "$UI" == "2" ]]; then node verktyg/emu/jamfor-ui2.js; fi
           if [[ "$UI" == "2" ]]; then node verktyg/emu/run.js verktyg/emu/ui2-rymlig.js; fi
-          node verktyg/emu/run.js verktyg/emu/animationer.js
           node verktyg/emu/run.js verktyg/emu/anvandarfarger.js
           node verktyg/emu/recept-rpc.js
           node verktyg/emu/recept-server.js
