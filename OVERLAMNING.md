@@ -2,6 +2,14 @@
 
 Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs relevant kod/PR vid behov.
 
+## Animationer · rättningar efter användarprovning ht-v233
+
+- Codex, gren `codex/animationer-direktmanipulation`. Henrik beskriver osynlig navigation/kalender, felplacerat budgethandtag, toggle-väder, för snabb expansion och inställningsblad som flyttar sig upp. Ingen ny publicering beställd.
+- Testläget DEV && MOTION kvar. Sidinnehåll flyttar 80 px/440 ms med menyer stilla; menyval 440 ms. Kalendern har gemensam datumreferens ovanför riktat växlande innehåll. Normalläget bevaras.
+- Båda handtagen sitter efter expanderande yta och följer höjden. Vädrets FLIP/kurvritning söker samma 0–1-progress som fingret; släpp väljer närmaste ändläge utan hastighetsgenväg. Avbrott återställer och sidan låses under drag.
+- Ekonomi/Städ/disclosures 480 ms med S-kurva för acceleration/inbromsning. Inställningar får fast överkant/höjd i testläget och innehållet expanderar nedåt i bladets scrollområde.
+- Nya tester mäter verkligt mellantillstånd, handtagets rörelse/progress före släpp, båda sidor om mittpunkten, synlig navigation/kalender och förankrad inställningspanel. CI-budget höjd till 12 min för utökad regression. Syntax/diff gröna; nästa: browsergranskning, CI och färdig PR inför Pusha.
+
 ## Vägledande animationer · Utvecklarläge · release ht-v232
 
 - Codex, gren `codex/animationer`, [PR #46](https://github.com/HenrikLH/hushallstavlan/pull/46). Henrik vill nu ha hela paketet i Utvecklarläge (2026-10-30). Henrik godkänner publicering (”Pusha”, 2026-10-30).

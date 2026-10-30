@@ -1198,7 +1198,7 @@ function weekSummary(ds,total,port){const rk=raeckerKort(ds),bad=/class="rk bad"
   (B?'<div class="rk-r wm-b"><span class="grow">Budget '+kr(B)+'</span><span class="rk-s'+(total>B?' bad':'')+'">'+(total>B?kr(total-B)+' över':kr(B-total)+' kvar')+'</span></div>':'')+'</div>';
  if(!motionOn())return'<div class="ws-pin" aria-hidden="true"><div class="wcard ws-mini'+op+'">'+top(0)+body+'</div></div><div'+RF('M1')+' class="wcard ws-card'+op+'">'+top(1)+body+wkNewBtn()+'</div>';
  const panel='<div class="motion-panel"'+(!S.wsumOpen?' hidden inert':'')+'>'+body+'</div>';
- return'<div class="ws-pin" aria-hidden="true"><div class="wcard ws-mini'+op+'">'+top(0)+panel+'</div></div><div'+RF('M1')+' class="wcard ws-card'+op+'">'+top(1)+motionGrip('budget','week-budget-details',!!S.wsumOpen)+panel.replace('class="motion-panel"','class="motion-panel" id="week-budget-details"')+wkNewBtn()+'</div>'}
+ return'<div class="ws-pin" aria-hidden="true"><div class="wcard ws-mini'+op+'">'+top(0)+panel+'</div></div><div'+RF('M1')+' class="wcard ws-card'+op+'">'+top(1)+panel.replace('class="motion-panel"','class="motion-panel" id="week-budget-details"')+motionGrip('budget','week-budget-details',!!S.wsumOpen)+wkNewBtn()+'</div>'}
 function matWeek(){
  const d=D(),st=settings(),W=weekTarget(),ds=W.ny?[]:weekDishes();let h=ds.length?planBtnDev():planBtnNy();
  const total=veckaKostnad(),port=veckaPortioner();
@@ -2244,7 +2244,8 @@ function calVecka(){const t=today(),sel=S.calDay||t,ws=veckoStart(sel),we=addDay
   body+=L.map(x=>{const lg=calItems(k).find(y=>y.t==='Laga');return'<div class="cell cv-ag"'+(x.act?' data-act="'+x.act+'" data-id="'+esc(x.id)+'" role="button" tabindex="0"'+(x.act==='evEdit'?holdAt('evMenu'):''):'')+'><span class="t num">'+tpKl(x.a)+'</span><span class="cv-dot '+x.c+'" aria-hidden="true"></span><span class="grow"><span class="title">'+esc(x.t)+'</span>'+(x.c==='m'&&lg?'<span class="meta">Börja laga '+tpKl(lg.a)+'</span>':x.s?'<span class="meta">'+esc(x.s)+'</span>':'')+'</span></div>'}).join('');
   body+=ts.map(x=>'<div class="cell cv-ag" data-act="taskEdit" data-id="'+esc(x.id)+'"'+holdAt('taskMenu')+' role="button" tabindex="0"><span class="t">Att göra</span><span class="cv-ck" aria-hidden="true"></span><span class="grow"><span class="title">'+esc(x.title)+'</span></span></div>').join('')});
  return h+'<div class="g-one">'+rgroup('U10',body)+'</div><div class="foot">Tryck på en dag för att se den timme för timme.</div>'}
-function calView(){const t=today(),sel=S.calDay||t,m=S.calMonth||ymKey(sel),[y,mo]=m.split('-').map(Number);
+function calView(){const html=calViewBase();if(!motionOn())return html;const menu=calSeg();return menu+'<div class="motion-date-label">'+esc(cap(dateLong(S.calDay||today())))+'</div><div class="motion-calendar">'+html.slice(menu.length)+'</div>'}
+function calViewBase(){const t=today(),sel=S.calDay||t,m=S.calMonth||ymKey(sel),[y,mo]=m.split('-').map(Number);
  if(S.calVy==='dag')return calSeg()+calDag();if(S.calVy==='vecka')return calSeg()+calVecka();
  const first=new Date(y,mo-1,1),start=new Date(first);start.setDate(1-((first.getDay()+6)%7));
  let h=calSeg()+'<div class="cal-head"><button class="ib" data-act="calMonth" data-d="-1" aria-label="Förra månaden">'+I.back+'</button><div class="hl">'+esc(cap(MON[mo-1]))+(y!==new Date().getFullYear()?' '+y:'')+'</div>'+
@@ -3892,60 +3893,73 @@ function leaveAnim(act,items,then){A.user=Date.now();const ids=new Set(items.map
  rows.forEach(r=>{r.style.height=r.offsetHeight+'px';void r.offsetHeight;r.classList.add('leaving')});setTimeout(then,300)}
 function segSlide(root){root.querySelectorAll('.segc[data-seg]').forEach(sg=>{const k=sg.dataset.seg+':'+sg.getAttribute('aria-label'),i=Number(getComputedStyle(sg).getPropertyValue('--i'))||0,old=A.segs[k];A.segs[k]=i;
  const th=sg.querySelector('.seg-thumb');if(old==null||old===i||calm()||!th||!th.animate)return;
- th.animate([{transform:'translateX('+old*100+'%)'},{transform:'translateX('+i*100+'%)'}],{duration:motionOn()?240:U3?200:380,easing:motionOn()||U3?'cubic-bezier(.2,.8,.2,1)':'cubic-bezier(.3,1.25,.5,1)'})})}
-// Vägledande rörelse: korta, avbrytbara övergångar. Reglagens värden följer fortfarande fingret direkt.
-const MOTION_EASE='cubic-bezier(.2,.8,.2,1)';
+ th.animate([{transform:'translateX('+old*100+'%)'},{transform:'translateX('+i*100+'%)'}],{duration:motionOn()?440:U3?200:380,easing:motionOn()?MOTION_EASE:U3?'cubic-bezier(.2,.8,.2,1)':'cubic-bezier(.3,1.25,.5,1)'})})}
+// Rörelse i testläget: direkt manipulation under drag, mjuk sättning först efter släpp.
+const MOTION_EASE='cubic-bezier(.65,0,.35,1)';
 let motionDrag=null,motionPageAnim=null,motionCal=null;
 function motionGrip(kind,controls,open){if(!motionOn())return'';return'<button type="button" class="motion-grip" data-motion-grip="'+kind+'" aria-controls="'+controls+'" aria-expanded="'+open+'" aria-label="'+(kind==='weather'?'Vädergraf':'Veckans detaljer')+'. '+(open?'Dra upp för att fälla ihop':'Dra ned för att visa')+' eller tryck"><i aria-hidden="true"></i></button>'}
 function motionPage(el,page,prev,dir){if(motionPageAnim)motionPageAnim.cancel();el.classList.remove('in-fade','in-right','in-left');if(calm()||!el.animate)return;
  if(!motionOn()){const[pv,pr]=prev.split('|'),cls=dir||(S.recipe&&!pr?'in-right':(!S.recipe&&pr&&pv===S.view)?'in-left':'in-fade');void el.offsetWidth;el.classList.add(cls);return}
  const p=page.split('|'),o=prev.split('|'),nav=VIEWS.map(x=>x[0]),order=p[0]==='mat'?['vecka','inkop','recept','bank','efter']:['lista','kalender'];
  const d=dir==='in-left'?-1:dir==='in-right'?1:p[0]!==o[0]?Math.sign(nav.indexOf(p[0])-nav.indexOf(o[0]))||1:p[1]!==o[1]?(p[1]?1:-1):Math.sign(order.indexOf(p[2])-order.indexOf(o[2]))||1;
- motionPageAnim=el.animate([{opacity:.25,transform:'translateX('+d*22+'px)'},{opacity:1,transform:'none'}],{duration:260,easing:MOTION_EASE})}
-// Naturlig sluthöjd, även om föregående expansion ännu pågår. Inga kvarlämnade pixelhöjder.
+ // Menyerna är referensram. Bara innehållet under dem flyttar sig, tydligare än tidigare 22 px.
+ const targets=[...el.children].filter(e=>!e.matches('.head,.segc,.subseg,.cv-seg,.ws-pin'));
+ const animations=targets.map(e=>e.animate([{opacity:.15,transform:'translateX('+d*80+'px)'},{opacity:1,transform:'none'}],{duration:440,easing:'cubic-bezier(.22,1,.36,1)'}));
+ motionPageAnim={animations,direction:d,cancel(){animations.forEach(a=>a.cancel())}}}
 const motionHeight=el=>parseFloat(getComputedStyle(el).height)||0;
 const motionScale=el=>el.offsetWidth?el.getBoundingClientRect().width/el.offsetWidth:1;
 function motionPanel(el,open){if(!el)return;const from=el.hidden?0:motionHeight(el);
  if(el._motion)el._motion.cancel();el.hidden=false;el.inert=!open;el.setAttribute('aria-hidden',String(!open));
- const to=open?el.scrollHeight:0;const finish=()=>{el.hidden=!open;el.style.removeProperty('height');el.style.removeProperty('overflow');el._motion=null;wsPin()};
+ const to=open?el.scrollHeight:0,finish=()=>{el.hidden=!open;el.style.removeProperty('height');el.style.removeProperty('overflow');el._motion=null;wsPin()};
  if(!motionOn()||calm()||!el.animate){finish();return}el.style.overflow='hidden';el.style.height=to+'px';
- const a=el._motion=el.animate([{height:from+'px',opacity:from?1:0},{height:to+'px',opacity:open?1:0}],{duration:260,easing:MOTION_EASE});a.onfinish=finish}
+ const a=el._motion=el.animate([{height:from+'px'},{height:to+'px'}],{duration:480,easing:MOTION_EASE});a.onfinish=finish}
 function motionBudget(open){S.wsumOpen=open;document.querySelectorAll('.wcard').forEach(c=>{c.classList.toggle('open',open);c.querySelector('.wm-top')?.setAttribute('aria-expanded',String(open));motionPanel(c.querySelector('.motion-panel'),open);motionGripState(c.querySelector('.motion-grip'),open)});wsPin()}
 function motionGripState(h,open){if(!h)return;h.setAttribute('aria-expanded',String(open));h.setAttribute('aria-label',(h.dataset.motionGrip==='weather'?'Vädergraf':'Veckans detaljer')+'. '+(open?'Dra upp för att fälla ihop':'Dra ned för att visa')+' eller tryck')}
-function motionWeather(open){OVWX=open?'graf':'tim';lsSet('ovwx',open?'graf':null);const el=document.querySelector('.ovx');if(!el)return render();ovAnim(el,open,motionOn());motionGripState(el.querySelector('.motion-grip'),open)}
-function motionDateEl(root,k){return [...root.querySelectorAll('[data-act="calDay"],[data-motion-date]')].find(e=>(e.dataset.id||e.dataset.motionDate)===k)}
-function motionCalBefore(k){if(!motionOn()){motionCal=null;return}const key=k||S.calDay||today(),el=motionDateEl(document.getElementById('main'),key);motionCal=el?{key,rect:el.getBoundingClientRect()}:null}
+// Samma FLIP mellan timmars lägen och samma kurvritning som ovAnim, men alla egenskaper söker samma dragprogress.
+// Ingen startfördröjning eller frikopplad toggle: 40 % drag visar 40 % av expansionen.
+function motionWxBegin(el){if(el._wxMotion){cancelAnimationFrame(el._wxMotion.raf);return el._wxMotion}
+ const st=el.querySelector('.bwx-h'),g=el.querySelector('.ovx-g'),gi=g?.firstElementChild;if(!st||!g)return null;
+ const open=OVWX==='graf',its=[...st.children],animations=[];document.documentElement.classList.add('motion-weather-active');
+ [g,gi,...its,...g.querySelectorAll('.ovg-k,.ovg-p')].forEach(e=>e?.getAnimations().forEach(a=>a.cancel()));
+ el.classList.remove('ov-open');st.scrollLeft=0;const F=its.map(c=>c.getBoundingClientRect().left),h0=motionHeight(st);
+ el.classList.add('ov-open');const gh=motionHeight(g),h1=motionHeight(st),z=motionScale(st),range=Math.max(1,gh+h1-h0);
+ const add=(e,frames)=>{if(!e||!e.animate)return;const a=e.animate(frames,{duration:1000,fill:'both',easing:'linear'});a.pause();animations.push(a)};
+ add(g,[{height:'0px'},{height:gh+'px'}]);add(st,[{height:h0+'px'},{height:h1+'px'}]);add(gi,[{opacity:0},{opacity:1}]);
+ its.forEach((c,i)=>{const nu=c.classList.contains('nu0'),k=c.classList.contains('k3'),dx=(F[i]-c.getBoundingClientRect().left)/z;
+  if(!nu)add(c,[{transform:'translateX('+dx+'px)'},{transform:'none'}]);if(nu||!k)add(c,nu?[{opacity:0},{opacity:1}]:[{opacity:1},{opacity:0}])});
+ add(g.querySelector('.ovg-k'),[{strokeDasharray:'1 1',strokeDashoffset:1},{strokeDasharray:'1 1',strokeDashoffset:0}]);
+ const model=el._wxMotion={p:open?1:0,range,raf:0,set(p){this.p=Math.max(0,Math.min(1,p));animations.forEach(a=>a.currentTime=this.p*1000);g.inert=this.p<=0;g.setAttribute('aria-hidden',String(this.p<=0))},finish(op){cancelAnimationFrame(this.raf);el.classList.toggle('ov-open',op);animations.forEach(a=>a.cancel());g.inert=!op;g.setAttribute('aria-hidden',String(!op));delete el._wxMotion;document.documentElement.classList.remove('motion-weather-active');motionGripState(el.querySelector('.motion-grip'),op)}};
+ model.set(model.p);return model}
+function motionWxSettle(el,open,instant){const m=motionWxBegin(el);if(!m)return;OVWX=open?'graf':'tim';lsSet('ovwx',open?'graf':null);motionGripState(el.querySelector('.motion-grip'),open);
+ const from=m.p,to=open?1:0;if(instant||calm()||Math.abs(to-from)<.001){m.finish(open);return}const at=performance.now(),duration=180+300*Math.abs(to-from);
+ const tick=now=>{if(!el.isConnected){m.finish(open);return}const t=Math.min(1,(now-at)/duration),ease=t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;m.set(from+(to-from)*ease);if(t<1)m.raf=requestAnimationFrame(tick);else m.finish(open)};m.raf=requestAnimationFrame(tick)}
+function motionWeather(open){const el=document.querySelector('.ovx');if(!el){OVWX=open?'graf':'tim';lsSet('ovwx',open?'graf':null);return render()}if(motionOn())motionWxSettle(el,open);else{OVWX=open?'graf':'tim';lsSet('ovwx',open?'graf':null);ovAnim(el,open,false)}}
+function motionCalBefore(k){if(!motionOn()){motionCal=null;return}motionCal={key:k||S.calDay||today(),view:S.calVy}}
 function motionMount(root){const wg=root.querySelector('.ovx-g');if(wg)wg.inert=OVWX!=='graf';
- if(motionCal){const old=motionCal;motionCal=null;if(!calm())root.querySelectorAll('.cal-head,.cv-grid,.cv-wk,.cal,.g-one').forEach(e=>e.animate([{opacity:.4},{opacity:1}],{duration:240,easing:MOTION_EASE}));const el=motionDateEl(root,old.key);if(el&&!calm()&&el.animate){const r=el.getBoundingClientRect(),z=motionScale(el),dx=(old.rect.left-r.left)/z,dy=(old.rect.top-r.top)/z;
-  // Flytta bara datumets verkliga knapp; aldrig en klickbar kopia ovanpå kalendern.
-  if(Math.abs(dy)<innerHeight&&old.rect.bottom>0&&old.rect.top<innerHeight)el.animate([{transform:'translate('+dx+'px,'+dy+'px)',background:'var(--accent-soft)'},{transform:'none',background:'var(--accent-soft)'}],{duration:280,easing:MOTION_EASE})}}
-}
-// Befintliga disclosures behåller sin rubrik, sina kontroller och sitt sparade öppna läge.
+ if(motionCal){const old=motionCal;motionCal=null;const pane=root.querySelector('.motion-calendar');if(pane&&!calm()){const order=['dag','vecka','manad'],d=Math.sign(order.indexOf(S.calVy)-order.indexOf(old.view))||1;pane.animate([{opacity:.15,transform:'translateX('+d*64+'px)'},{opacity:1,transform:'none'}],{duration:460,easing:'cubic-bezier(.22,1,.36,1)'})}}}
+// Befintliga rubriker är kvar. S-kurvan har både acceleration och inbromsning, utan toning som döljer höjdrörelsen.
 window.addEventListener('click',e=>{const summary=e.target.closest('summary');if(!summary)return;const d=summary.parentElement;if(!motionOn()||!d.matches('details[data-k]')||e.target.closest('a,button,input,select'))return;
  e.preventDefault();const open=d.dataset.motionClosing==='1'||!d.open,from=motionHeight(d);if(d._motion)d._motion.cancel();delete d.dataset.motionClosing;S.open[d.dataset.k]=open;
- d.open=open;const to=motionHeight(d);d.open=true;
- if(!open)d.dataset.motionClosing='1';
+ d.open=open;const to=motionHeight(d);d.open=true;if(!open)d.dataset.motionClosing='1';
  const finish=()=>{d.open=open;delete d.dataset.motionClosing;d.style.removeProperty('overflow');d._motion=null;S.open[d.dataset.k]=open};
- if(calm()||!d.animate){finish();return}d.style.overflow='hidden';const a=d._motion=d.animate([{height:from+'px'},{height:to+'px'}],{duration:260,easing:MOTION_EASE});a.onfinish=finish;
+ if(calm()||!d.animate){finish();return}d.style.overflow='hidden';const a=d._motion=d.animate([{height:from+'px'},{height:to+'px'}],{duration:480,easing:MOTION_EASE});a.onfinish=finish;
 },true);
-// Handtag fångas före sidans svep och håll-in. touch-action deklareras före gesten.
-function motionUnlock(){const d=motionDrag;if(!d)return null;A.touch=A.user=Date.now();motionDrag=null;Object.assign(document.body.style,d.style);document.documentElement.classList.remove('motion-dragging');scrollTo(d.x,d.y);d.h.style.removeProperty('transform');
- try{if(d.h.hasPointerCapture(d.id))d.h.releasePointerCapture(d.id)}catch(_){}if(pendingRender)setTimeout(render,300);return d}
-function motionAbort(){const d=motionUnlock();if(d&&d.kind==='budget'){d.panel.style.removeProperty('height');d.panel.style.removeProperty('overflow');d.panel.hidden=!d.open;d.panel.inert=!d.open;d.panel.setAttribute('aria-hidden',String(!d.open))}}
+function motionUnlock(){const d=motionDrag;if(!d)return null;A.touch=A.user=Date.now();motionDrag=null;Object.assign(document.body.style,d.style);document.documentElement.classList.remove('motion-dragging');scrollTo(d.x,d.y);
+ try{if(d.h.hasPointerCapture(d.id))d.h.releasePointerCapture(d.id)}catch(_){}if(pendingRender)setTimeout(render,520);return d}
+function motionAbort(){const d=motionUnlock();if(!d)return;if(d.kind==='weather')d.wx.finish(d.open);else{d.panel.style.removeProperty('height');d.panel.style.removeProperty('overflow');d.panel.hidden=!d.open;d.panel.inert=!d.open;d.panel.setAttribute('aria-hidden',String(!d.open))}}
 window.addEventListener('pointerdown',e=>{const h=e.target.closest('[data-motion-grip]');if(!h||e.button>0||!e.isPrimary)return;e.preventDefault();e.stopImmediatePropagation();motionAbort();A.touch=A.user=Date.now();
- const kind=h.dataset.motionGrip,panel=kind==='budget'?document.getElementById(h.getAttribute('aria-controls')):null,open=kind==='weather'?OVWX==='graf':!!S.wsumOpen;
- const style={position:document.body.style.position,top:document.body.style.top,left:document.body.style.left,width:document.body.style.width,overflow:document.body.style.overflow};
- let height=0,max=0,scale=1;if(panel){height=panel.hidden?0:motionHeight(panel);if(panel._motion)panel._motion.cancel();panel.hidden=false;scale=motionScale(panel);max=panel.scrollHeight;panel.style.height=height+'px';panel.style.overflow='hidden'}
- motionDrag={h,kind,panel,open,height,max,scale,id:e.pointerId,start:e.clientY,last:e.clientY,time:performance.now(),velocity:0,moved:false,x:scrollX,y:scrollY,width:document.body.getBoundingClientRect().width,style};
- h.setPointerCapture(e.pointerId);document.documentElement.classList.add('motion-dragging');Object.assign(document.body.style,{position:'fixed',top:-motionDrag.y+'px',left:-motionDrag.x+'px',width:motionDrag.width+'px',overflow:'hidden'});
+ const kind=h.dataset.motionGrip,open=kind==='weather'?OVWX==='graf':!!S.wsumOpen,style={position:document.body.style.position,top:document.body.style.top,left:document.body.style.left,width:document.body.style.width,overflow:document.body.style.overflow};
+ const x=scrollX,y=scrollY,width=document.body.getBoundingClientRect().width;document.documentElement.classList.add('motion-dragging');Object.assign(document.body.style,{position:'fixed',top:-y+'px',left:-x+'px',width:width+'px',overflow:'hidden'});
+ const panel=kind==='budget'?document.getElementById(h.getAttribute('aria-controls')):null,wx=kind==='weather'?motionWxBegin(h.closest('.ovx')):null;
+ let height=0,max=0,scale=motionScale(h);if(panel){height=panel.hidden?0:motionHeight(panel);if(panel._motion)panel._motion.cancel();panel.hidden=false;max=panel.scrollHeight;panel.style.height=height+'px';panel.style.overflow='hidden'}else if(wx){height=wx.p*wx.range;max=wx.range}
+ motionDrag={h,kind,panel,wx,open,height,max,scale,id:e.pointerId,start:e.clientY,moved:false,x,y,style};h.setPointerCapture(e.pointerId);
 },true);
-window.addEventListener('pointermove',e=>{const d=motionDrag;if(!d||d.id!==e.pointerId)return;e.preventDefault();e.stopImmediatePropagation();const now=performance.now(),dy=e.clientY-d.start;d.velocity=(e.clientY-d.last)/Math.max(1,now-d.time);d.last=e.clientY;d.time=now;if(Math.abs(dy)>6)d.moved=true;
- if(d.panel){const h=Math.max(0,Math.min(d.max,d.height+dy/d.scale));d.panel.style.height=h+'px';d.panel.inert=h<2;d.panel.setAttribute('aria-hidden',String(h<2))}
- else d.h.style.transform='translateY('+Math.max(-8,Math.min(8,dy*.15))+'px)';
+window.addEventListener('pointermove',e=>{const d=motionDrag;if(!d||d.id!==e.pointerId)return;e.preventDefault();e.stopImmediatePropagation();const dy=e.clientY-d.start;if(Math.abs(dy)>6)d.moved=true;
+ const height=Math.max(0,Math.min(d.max,d.height+dy/d.scale));if(d.panel){d.panel.style.height=height+'px';d.panel.inert=height<2;d.panel.setAttribute('aria-hidden',String(height<2))}else if(d.wx)d.wx.set(height/d.max);
 },{capture:true,passive:false});
-window.addEventListener('pointerup',e=>{const d=motionDrag;if(!d||d.id!==e.pointerId)return;e.preventDefault();e.stopImmediatePropagation();const dy=e.clientY-d.start,v=performance.now()-d.time<80?d.velocity:0;
- const open=!d.moved?!d.open:d.panel?(Math.abs(v)>.5?v>0:parseFloat(d.panel.style.height)>d.max*.5):Math.abs(dy)>=18?dy>0:d.open;
- d.h.dataset.motionSkip='1';setTimeout(()=>delete d.h.dataset.motionSkip,450);motionUnlock();if(d.kind==='weather'){if(open!==d.open)motionWeather(open)}else motionBudget(open);
+window.addEventListener('pointerup',e=>{const d=motionDrag;if(!d||d.id!==e.pointerId)return;e.preventDefault();e.stopImmediatePropagation();
+ const p=d.panel?parseFloat(d.panel.style.height)/d.max:d.wx?.p||0,open=d.moved?p>=.5:!d.open;d.h.dataset.motionSkip='1';setTimeout(()=>delete d.h.dataset.motionSkip,450);motionUnlock();
+ if(d.kind==='weather')motionWxSettle(d.h.closest('.ovx'),open);else motionBudget(open);
 },true);
 ['pointercancel','lostpointercapture'].forEach(type=>window.addEventListener(type,e=>{if(motionDrag&&e.pointerId===motionDrag.id)motionAbort()},true));
 ['resize','blur','pagehide'].forEach(type=>window.addEventListener(type,motionAbort));
