@@ -2,14 +2,14 @@
 
 Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs relevant kod/PR vid behov.
 
-## Animationer · rättningar efter användarprovning, redo för Pusha ht-v233
+## Animationer · rättningar efter användarprovning, release ht-v233
 
-- Codex, gren `codex/animationer-direktmanipulation`, [PR #47](https://github.com/HenrikLH/hushallstavlan/pull/47). Henrik beskriver osynlig navigation/kalender, felplacerat budgethandtag, toggle-väder, för snabb expansion och inställningsblad som flyttar sig upp. Ingen ny publicering beställd.
+- Codex, gren `codex/animationer-direktmanipulation`, [PR #47](https://github.com/HenrikLH/hushallstavlan/pull/47). Henrik beskriver osynlig navigation/kalender, felplacerat budgethandtag, toggle-väder, för snabb expansion och inställningsblad som flyttar sig upp. Henrik godkänner publicering (”Pusha”, 2026-10-30).
 - Testläget DEV && MOTION kvar. Sidinnehåll flyttar 80 px/440 ms med menyer stilla; menyval 440 ms. Kalendern har gemensam datumreferens ovanför riktat växlande innehåll. Normalläget bevaras.
 - Båda handtagen sitter efter expanderande yta och följer höjden. Vädrets FLIP/kurvritning söker samma 0–1-progress som fingret; släpp väljer närmaste ändläge utan hastighetsgenväg. Avbrott återställer och sidan låses under drag.
 - Ekonomi/Städ/disclosures 480 ms med S-kurva för acceleration/inbromsning. Inställningar får fast överkant/höjd i testläget och innehållet expanderar nedåt i bladets scrollområde.
 - Verifierad app-/testkod `bada44612e4180e5a7b821a237679d957f2848f3`: [CI 12/12 gröna](https://github.com/HenrikLH/hushallstavlan/actions/runs/41041726270), UI2/UI3/UI4 × telefon/vägg × ljust/mörkt. Testerna mäter handtagets position/progress före släpp, närmaste ändläge åt båda håll, faktisk synlig meny-/kalenderrörelse, expansionens S-kurva och fast inställningsöverkant. Normallägets fulla UI2-pixeljämförelse och befintliga funktionssviter gröna.
-- Browsergranskat med exempeldata: UI2/telefon (båda handtag, inställningsöverkant), UI3/vägg/mörkt (identiska datumreferenskoordinater mellan kalenderlägen). Gemensam kalenderbredd/gutter hindrar sidoförskjutning; grafen avslöjas från toppen under drag. Endast dokumentation efter testad kod. CI-budget 12 min. Ingen ny publicering godkänd: nästa Pusha → ångra-gren från aktuell main, merge och Pages-kontroll. Fysisk Safari/Surface återstår som användarprovning.
+- Browsergranskat med exempeldata: UI2/telefon (båda handtag, inställningsöverkant), UI3/vägg/mörkt (identiska datumreferenskoordinater mellan kalenderlägen). Gemensam kalenderbredd/gutter hindrar sidoförskjutning; grafen avslöjas från toppen under drag. Endast dokumentation efter testad kod. CI-budget 12 min. Publicering godkänd; ångra-gren `version-fore-animationer-rattning-20261030` från `8a7f0729d3f266dd14e0c255659f001c39d75476`. Merge via PR #47 och Pages-kontroll. Fysisk Safari/Surface återstår som användarprovning.
 
 ## Vägledande animationer · Utvecklarläge · release ht-v232
 
@@ -48,9 +48,9 @@ Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs 
 
 ## Börja här
 
-- UI4-release: **ht-v229 / app.js?v=219**, via PR #43. UI2 förblir standard; välj UI4 i Inställningar → Utseende → Design.
-- [Publiceringar](https://github.com/HenrikLH/hushallstavlan/actions): följ Pages-bygget för PR #43:s merge. Äldre PR #32 (priser) är separat och ingår inte i UI4.
-- Nästa steg: återkoppling från Henrik efter rättningarna i PR #43. Gör inte om redan godkända rättningar.
+- Aktuell release: **ht-v233 / app.js?v=223**, via PR #47 (animationsrättningar i Utvecklarläge). UI2 förblir standard; välj UI4 i Inställningar → Utseende → Design.
+- [Publiceringar](https://github.com/HenrikLH/hushallstavlan/actions): följ Pages-bygget för PR #47:s merge. Äldre PR #32 (priser) är separat och ingår inte i UI4.
+- Nästa steg: återkoppling från Henrik efter animationsrättningarna i PR #47. Gör inte om redan godkända rättningar.
 - UI 2.0:s tema och beteenden ska bevaras. Henrik har godkänt Ateljé som ett separat UI 4.0; UI 3.0 finns kvar i utvecklarläget. Bilder före visuella ändringar på main; ”Pusha” är publiceringsgodkännande.
 - Strömningen i ChatGPT har avbrutits flera gånger. Kontrollera gren/PR/main och Pages innan en avbruten publicering återupptas. Begär inte samma godkännande igen.
 
