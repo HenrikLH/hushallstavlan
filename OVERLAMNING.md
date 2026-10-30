@@ -2,15 +2,16 @@
 
 Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs relevant kod/PR vid behov.
 
-## Inköpslistan M10 · hopfällbara avdelningar · ht-v238
+## Portionsförslag, kompaktare kontroller och Ö2 · arbetsgren ht-v239
 
-- Codex, `codex/inkop-kollaps`, PR #53. Henrik godkänner implementering och publicering i beställningen; begär inte nytt godkännande.
-- Tryck på avdelningsrubriken öppnar/fäller ihop varorna. Antal kvar/summa och pil syns även stängt; separata avdelningar, gemensamt listkort. S.shopClosed lever under avbockning/omritning/navigering, ny session börjar öppet. Samma motionPanel som Ekonomi, med stöd för avstängda animationer och reducerad rörelse.
-- Gamla filtret M9 borttaget (inkl. erbjudandefilter); alla varor kvar, erbjudandemarkeringar och M11 kvar. M9 markerad borttagen i rutor.json. Inga server-/hushållsdata ändrade.
-- Ny inkop-kollaps.js i alla CI-kombinationer: filter borta, alla varor kvar, individuellt stäng/öppna, antal/summa, tangentbord, avbockning, omritning, navigering, omstart och animationer av. Testad kod `8024f4713d1da2a3042dbf185230af93b321a150`: [CI 12/12 gröna](https://github.com/HenrikLH/hushallstavlan/actions/runs/41093456825), UI2/UI3/UI4 × telefon/vägg × ljust/mörkt. Endast dokumentation efter testad kod.
-- Lokal körmiljö nere. Syntax kontrollerad med JavaScript-parser; browserprovning via CI. Versionshöjning manuellt enligt version.js: ht-v238 / app.js?v=228. Publicering godkänd; ångra-gren `version-fore-inkop-kollaps-20261030` från `83adad12e1f6c86941e072a8da3007ed889c22ae`. Merge via PR #53 och kontroll av Pages. Lokal visuell förhandsvisning saknas; funktioner och sidbredd verifierade i CI.
+- Codex, `codex/portioner-kalender-drag`, PR #54 (utkast). Ingen publicering godkänd i denna beställning. Main är ht-v238. Henrik ska välja portionsindikator A/B/C; se verktyg/portioner-forslag.html. Rekommendation A (segmenterad stapel + räknare). Texten Räcker inte är kvar tills val gjorts.
+- Förslagets logik: täckning = summan av min(har, behov) per Vardag/Helg/Storkok, normalt 8+6+10=24. Överskott i en grupp täcker inte en annan; målet ska följa ändrat behov. Ingen indikator vald/implementerad ännu.
+- Byggt: veckans handtag 24 px visuell höjd med utökad träffyta, pilen borttagen; Rymligare kontroller segment 48→42 px med 4 px padding (underflik 40 px), former bevarade.
+- Ö2: direkt drag vecka→månad i samma ruta, scroll-lås under drag, närmaste ändläge/släpp, avbrott/tangentbord/tryck/reducerad rörelse. Vald dag uppdaterar schemat, månadspilar finns och vald vecka följer vid hopfällning. T3 på väggen behåller sitt beteende. Kalenderhandtaget fungerar även med animationer av. S.ovCalOpen/ovCalMonth är sessionsval.
+- Verifierat app-/testkod `2be3a208b7e3bfcf84e3213da38f4102c61695e1`: [CI 12/12 gröna](https://github.com/HenrikLH/hushallstavlan/actions/runs/41138647841), UI2/UI3/UI4 × telefon/vägg × ljust/mörkt. Ny oversikt-manad.js + uppdaterat ui2-rymlig.js. Browsergranskat med exempeldata: UI2 telefon, faktiskt drag tillbaka till vecka, datum/månad och mörkt desktop. Endast dokumentation efter testad kod.
+- Nästa: Henrik väljer A/B/C, implementera indikator i kostnadskortet och förhandsvisa. Publicera först efter Pusha. Ny versionshöjning bara om main ändrats; ht-v239/app.js?v=229 redan höjd via version.js. Inga server-/hushållsdata ändrade.
 
-Tidigare standardaktivering av animationer är publicerad i ht-v237 / PR #52.
+Inköpslistans hopfällbara avdelningar är publicerade i ht-v238 / PR #53; animationer som standard i ht-v237 / PR #52.
 
 ## Rita graf efter full expansion · ht-v236
 
@@ -25,7 +26,7 @@ Tidigare publiceringar ht-v229–235 finns i PR #43–49 och git-historiken.
 
 - Aktuell release: **ht-v238 / app.js?v=228**, via PR #53. M10 har hopfällbara avdelningar; M9-filtret är borttaget. UI2 är standard, animationer är på som standard.
 - [Publiceringar](https://github.com/HenrikLH/hushallstavlan/actions): följ Pages-bygget för PR #53. Äldre PR #32 (priser) är separat.
-- Nästa steg: återkoppling från Henrik efter hopfällbara inköpsavdelningar. Gör inte om redan godkända rättningar.
+- Nästa steg: portionsval A/B/C i PR #54. Main är fortsatt ht-v238.
 - UI 2.0:s tema och beteenden ska bevaras. Henrik har godkänt Ateljé som ett separat UI 4.0; UI 3.0 finns kvar i utvecklarläget. Bilder före visuella ändringar på main; ”Pusha” är publiceringsgodkännande.
 - Strömningen i ChatGPT har avbrutits flera gånger. Kontrollera gren/PR/main och Pages innan en avbruten publicering återupptas. Begär inte samma godkännande igen.
 
