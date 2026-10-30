@@ -3919,17 +3919,19 @@ function motionGripState(h,open){if(!h)return;h.setAttribute('aria-expanded',Str
 // Ingen startfördröjning eller frikopplad toggle: 40 % drag visar 40 % av expansionen.
 function motionWxBegin(el){if(el._wxMotion){cancelAnimationFrame(el._wxMotion.raf);return el._wxMotion}
  const st=el.querySelector('.bwx-h'),g=el.querySelector('.ovx-g'),gi=g?.firstElementChild;if(!st||!g)return null;
- const open=OVWX==='graf',its=[...st.children],animations=[];document.documentElement.classList.add('motion-weather-active');
- [g,gi,...its,...g.querySelectorAll('.ovg-k,.ovg-p')].forEach(e=>e?.getAnimations().forEach(a=>a.cancel()));
+ const open=OVWX==='graf',its=[...st.children],animations=[],drawing=[];let drawn=open;document.documentElement.classList.add('motion-weather-active');
+ [g,gi,...its,...g.querySelectorAll('.ovg-k,.ovg-p,.ovg-f')].forEach(e=>e?.getAnimations().forEach(a=>a.cancel()));
  el.classList.remove('ov-open');st.scrollLeft=0;const F=its.map(c=>c.getBoundingClientRect().left),h0=motionHeight(st);
  el.classList.add('ov-open');const gh=motionHeight(g),h1=motionHeight(st),z=motionScale(st),range=Math.max(1,gh+h1-h0);
  const add=(e,frames)=>{if(!e||!e.animate)return;const a=e.animate(frames,{duration:1000,fill:'both',easing:'linear'});a.pause();animations.push(a)};
  add(g,[{height:'0px'},{height:gh+'px'}]);add(st,[{height:h0+'px'},{height:h1+'px'}]);add(gi,[{transform:'translateY(-'+gh+'px)',opacity:1},{transform:'translateY(0px)',opacity:1}]);
  its.forEach((c,i)=>{const nu=c.classList.contains('nu0'),k=c.classList.contains('k3'),dx=(F[i]-c.getBoundingClientRect().left)/z;
   if(!nu)add(c,[{transform:'translateX('+dx+'px)'},{transform:'none'}]);if(nu||!k)add(c,nu?[{opacity:0},{opacity:1}]:[{opacity:1},{opacity:0}])});
- add(g.querySelector('.ovg-k'),[{strokeDasharray:'1 1',strokeDashoffset:1},{strokeDasharray:'1 1',strokeDashoffset:0}]);
- const dots=[...g.querySelectorAll('.ovg-p')];dots.forEach((dot,i)=>{const at=Math.min(.98,i/Math.max(1,dots.length-1));add(dot,[{opacity:0,offset:0},{opacity:0,offset:at},{opacity:1,offset:Math.min(1,at+.02)},{opacity:1,offset:1}])});add(g.querySelector('.ovg-f'),[{opacity:0},{opacity:1}]);
- const model=el._wxMotion={p:open?1:0,range,raf:0,set(p){this.p=Math.max(0,Math.min(1,p));animations.forEach(a=>a.currentTime=this.p*1000);g.inert=this.p<=0;g.setAttribute('aria-hidden',String(this.p<=0))},finish(op){cancelAnimationFrame(this.raf);el.classList.toggle('ov-open',op);animations.forEach(a=>a.cancel());g.inert=!op;g.setAttribute('aria-hidden',String(!op));delete el._wxMotion;document.documentElement.classList.remove('motion-weather-active');motionGripState(el.querySelector('.motion-grip'),op)}};
+ // Utdraget styr bara geometrin. Kurvan börjar ritas först vid full expansion.
+ const draw=(e,frames)=>{if(open||calm()||!e)return;const a=e.animate(frames,{duration:760,fill:'both',easing:MOTION_EASE});a.pause();a.currentTime=0;drawing.push(a)};
+ draw(g.querySelector('.ovg-k'),[{strokeDasharray:'1 1',strokeDashoffset:1},{strokeDasharray:'1 1',strokeDashoffset:0}]);
+ const dots=[...g.querySelectorAll('.ovg-p')];dots.forEach((dot,i)=>{const at=Math.min(.98,i/Math.max(1,dots.length-1));draw(dot,[{opacity:0,offset:0},{opacity:0,offset:at},{opacity:1,offset:Math.min(1,at+.02)},{opacity:1,offset:1}])});draw(g.querySelector('.ovg-f'),[{opacity:0},{opacity:1}]);
+ const model=el._wxMotion={p:open?1:0,range,raf:0,set(p){this.p=Math.max(0,Math.min(1,p));animations.forEach(a=>a.currentTime=this.p*1000);if(this.p===1&&!drawn){drawn=true;drawing.forEach(a=>a.play())}g.inert=this.p<=0;g.setAttribute('aria-hidden',String(this.p<=0))},finish(op){cancelAnimationFrame(this.raf);el.classList.toggle('ov-open',op);animations.forEach(a=>a.cancel());if(!op)drawing.forEach(a=>a.cancel());g.inert=!op;g.setAttribute('aria-hidden',String(!op));delete el._wxMotion;document.documentElement.classList.remove('motion-weather-active');motionGripState(el.querySelector('.motion-grip'),op)}};
  model.set(model.p);return model}
 function motionWxSettle(el,open,instant){const m=motionWxBegin(el);if(!m)return;OVWX=open?'graf':'tim';lsSet('ovwx',open?'graf':null);motionGripState(el.querySelector('.motion-grip'),open);
  const from=m.p,to=open?1:0;if(instant||calm()||Math.abs(to-from)<.001){m.finish(open);return}const at=performance.now(),duration=180+300*Math.abs(to-from);
