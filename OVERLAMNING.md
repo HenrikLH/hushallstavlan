@@ -4,7 +4,7 @@ Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs 
 
 ## Animationer · finjustering efter provning · ht-v234
 
-- Codex, `codex/animationer-finjustering`, [PR #48](https://github.com/HenrikLH/hushallstavlan/pull/48). Ej publiceringsgodkänd. Vänta på Pusha före merge.
+- Codex, `codex/animationer-finjustering`, [PR #48](https://github.com/HenrikLH/hushallstavlan/pull/48). Henrik godkänner publicering (”Pusha”, 2026-10-30). Ångra-gren `version-fore-animationer-finjustering-20261030` från `c62a4653a6c2338737d90d829948dd67b6b88aa3`; merge via PR #48 och Pages-kontroll.
 - Väderhandtagets visuella rad 24 i stället för 44 px, mindre padding, träffyta utökad utan extra layoutluft. Grafen skalar inom synlig höjd medan kurvan ritas, så den inte klipps bort under draget. Punkter framträder i kurvans takt, fyllningen tonas in.
 - Huvudsidbyten 620 ms med acceleration/inbromsning; underflikar 440 ms. Veckodatumraden bort i testläget så Mat-menyn står still. Övriga nya animationer fortfarande DEV && MOTION.
 - Alla befintliga bladhandtag är knappar med verkligt drag även i normalläge; bladet följer fingret och landar närmast öppet/stängt. Tryck/tangentbord stänger. Avbrutet drag återgår utan att ett syntetiskt klick stänger efteråt. Samma closeSheets som Avbryt, ingen automatisk sparning. Reducerad rörelse respekteras.
@@ -56,9 +56,9 @@ Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs 
 
 ## Börja här
 
-- Aktuell release: **ht-v233 / app.js?v=223**, via PR #47 (animationsrättningar i Utvecklarläge). UI2 förblir standard; välj UI4 i Inställningar → Utseende → Design.
-- [Publiceringar](https://github.com/HenrikLH/hushallstavlan/actions): följ Pages-bygget för PR #47:s merge. Äldre PR #32 (priser) är separat och ingår inte i UI4.
-- Nästa steg: återkoppling från Henrik efter animationsrättningarna i PR #47. Gör inte om redan godkända rättningar.
+- Aktuell release: **ht-v234 / app.js?v=224**, via PR #48 (animationsfinjustering och fungerande bladhandtag). UI2 förblir standard; välj UI4 i Inställningar → Utseende → Design.
+- [Publiceringar](https://github.com/HenrikLH/hushallstavlan/actions): följ Pages-bygget för PR #48:s merge. Äldre PR #32 (priser) är separat och ingår inte i UI4.
+- Nästa steg: återkoppling från Henrik efter animationsfinjusteringen i PR #48. Gör inte om redan godkända rättningar.
 - UI 2.0:s tema och beteenden ska bevaras. Henrik har godkänt Ateljé som ett separat UI 4.0; UI 3.0 finns kvar i utvecklarläget. Bilder före visuella ändringar på main; ”Pusha” är publiceringsgodkännande.
 - Strömningen i ChatGPT har avbrutits flera gånger. Kontrollera gren/PR/main och Pages innan en avbruten publicering återupptas. Begär inte samma godkännande igen.
 
