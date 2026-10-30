@@ -1188,7 +1188,7 @@ function weekSummary(ds,total,port){const rk=raeckerKort(ds),bad=/class="rk bad"
  // Översta raden finns två gånger: i rutan och som en kopia som ligger fast under navigeringsfältet.
  // Kopian visas exakt när rutans överkant når fältet, så det ser ut som att raden glider fast. Tryck fäller ut räcker-listan
  // Med budget visar den stora rutan en stapel: hur mycket av budgeten veckans mat tar
- const st=(rub?'<span class="wsum-s'+(bad?' bad':'')+'"><span class="dotc"></span>'+(bad?'Räcker inte':'Räcker')+'</span>':'')+'<span class="wm-ch" aria-hidden="true">'+chevron+'</span>';
+ const st=(rub?'<span class="wsum-s'+(bad?' bad':'')+'"><span class="dotc"></span>'+(bad?'Räcker inte':'Räcker')+'</span>':'')+'';
  const bar=()=>{const a=Math.min(100,total/B*100),ov=total>B;return'<span class="wm-bb"><span class="wm-bt"><b class="num">'+nv('m-total',total,'kr')+'</b><span>av '+kr(B)+'</span><span class="grow"></span>'+st+'</span>'+
   '<span class="wm-bar'+(ov?' over':'')+'" role="img" aria-label="'+kr(total)+' av '+kr(B)+'"><i style="width:'+a.toFixed(1)+'%"></i></span><span class="wm-pp"><span class="wm-kv'+(ov?' bad':'')+'">'+(ov?kr(total-B)+' över':kr(B-total)+' kvar')+'</span> · '+port+' portioner'+(port?' · '+kr(total/port)+' per portion':'')+'</span></span>'};
  const op=S.wsumOpen?' open':'',top=big=>'<button type="button" class="wm-top'+(big&&B?' wm-rt':'')+'" data-act="wsumMini" aria-expanded="'+!!S.wsumOpen+'">'+(big&&B?bar():'<b class="num">'+(big?nv('m-total',total,'kr'):kr(total))+'</b><span class="wm-c">'+
@@ -2176,15 +2176,26 @@ function calDayRows(sel){const d=D(),t=today();
   const r=x.st==='next'?'<span class="cd">om '+x.inn+'</span>':'';
   return'<div class="ev'+(x.st==='past'?' past':'')+(x.st==='now'?' now':'')+'"><span class="t">'+esc(e.time||'Heldag')+'</span><span class="grow"><span class="ev-ti">'+evTitle(e)+who(e)+'</span>'+bar+'</span>'+r+'</div>'}).join('')+'</div>'}
 // Dagraden: fyra veckor framåt att svepa i på telefonen, en vecka på väggen
-function calWidget(){const t=today(),wk=[],N=wallBoardOn()?7:28;for(let i=0;i<N;i++)wk.push(addDays(t,i));
- const sel=wk.includes(S.ovDay)?S.ovDay:t;
+function calWidget(){const t=today(),wk=[],N=wallBoardOn()?7:28;let base=t;if(!wallBoardOn()&&isDate(S.ovDay)&&(S.ovDay<t||S.ovDay>addDays(t,27))){const d=parse(S.ovDay);base=addDays(S.ovDay,-((d.getDay()+6)%7))}for(let i=0;i<N;i++)wk.push(addDays(base,i));
+ const sel=wallBoardOn()?(wk.includes(S.ovDay)?S.ovDay:t):isDate(S.ovDay)?S.ovDay:t;
  let strip='<div class="wk'+(N>7?' wk-sw':'')+'" role="group" aria-label="Kommande dagar">';
  wk.forEach((k,i)=>{const dt=parse(k),dots=calDots(k);
-  strip+='<button class="wk-d'+(i===0?' today':'')+(k===sel?' sel':'')+(i%7===0?' snap':'')+'" data-act="ovDay" data-id="'+k+'" aria-pressed="'+(k===sel)+'" aria-label="'+esc(dateLong(k))+(dots.length?', '+dots.length+' saker':'')+'"><span class="wd'+(i&&dt.getDate()===1?' m':'')+'">'+(i===0?'Idag':dt.getDate()===1?cap(MON[dt.getMonth()].slice(0,3)):cap(DAYS[dt.getDay()].slice(0,3)))+'</span><span class="n num">'+dt.getDate()+'</span><span class="dots">'+dots.map(c=>'<i class="'+c+'"></i>').join('')+'</span></button>'});
+  strip+='<button class="wk-d'+(k===t?' today':'')+(k===sel?' sel':'')+(i%7===0?' snap':'')+'" data-act="ovDay" data-id="'+k+'" aria-pressed="'+(k===sel)+'" aria-label="'+esc(dateLong(k))+(dots.length?', '+dots.length+' saker':'')+'"><span class="wd'+(i&&dt.getDate()===1?' m':'')+'">'+(k===t?'Idag':dt.getDate()===1?cap(MON[dt.getMonth()].slice(0,3)):cap(DAYS[dt.getDay()].slice(0,3)))+'</span><span class="n num">'+dt.getDate()+'</span><span class="dots">'+dots.map(c=>'<i class="'+c+'"></i>').join('')+'</span></button>'});
  strip+='</div>';
+ if(!wallBoardOn())return ovCalWidget(sel,strip);
  return'<section class="widget w2 calw"><button class="wh" data-act="calOpen" data-id="'+sel+'" style="width:100%">'+I.cal+'<span>Schema'+(N>7?' <span class="wk-mo">'+esc(MON[parse(t).getMonth()])+'</span>':'')+'</span><span class="r lnk">Kalender</span></button>'+strip+
   // schemadelen öppnar kalendern på vald dag
   '<div class="wk-day"><div id="cal-rows" class="wk-link" data-d="'+sel+'" data-act="calOpen" data-id="'+sel+'" role="link" tabindex="0" aria-label="Schema, öppna kalendern">'+calDayRows(sel)+'</div></div></section>'}
+// Ö2: samma datumval och schema i båda lägena. Månaden öppnas i samma ruta.
+function ovCalWidget(sel,strip){const ym=S.ovCalMonth||sel.slice(0,7),first=ym+'-01',d=parse(first),start=addDays(first,-((d.getDay()+6)%7)),count=Math.ceil((((d.getDay()+6)%7)+new Date(d.getFullYear(),d.getMonth()+1,0).getDate())/7)*7;
+ let month='<div class="ovcal-toolbar"><button type="button" class="ib" data-act="ovMonth" data-id="-1" aria-label="Föregående månad">'+I.back+'</button><b>'+esc(cap(MON[d.getMonth()]))+' '+d.getFullYear()+'</b><button type="button" class="ib" data-act="ovMonth" data-id="1" aria-label="Nästa månad">'+I.chev+'</button></div><div class="ovcal-grid">'+['M','T','O','T','F','L','S'].map(x=>'<span class="ovcal-wd" aria-hidden="true">'+x+'</span>').join('');
+ for(let i=0;i<count;i++){const k=addDays(start,i),dt=parse(k),dots=calDots(k);month+='<button type="button" class="wk-d'+(k===today()?' today':'')+(k===sel?' sel':'')+(k.slice(0,7)!==ym?' outside':'')+'" data-act="ovDay" data-id="'+k+'" aria-pressed="'+(k===sel)+'" aria-label="'+esc(dateLong(k))+(dots.length?', '+dots.length+' saker':'')+'"><span class="n num">'+dt.getDate()+'</span><span class="dots">'+dots.map(c=>'<i class="'+c+'"></i>').join('')+'</span></button>'}
+ month+='</div>';const open=!!S.ovCalOpen;
+ return'<section class="widget w2 calw ovcal'+(open?' expanded':'')+'"><button class="wh" data-act="calOpen" data-id="'+sel+'" style="width:100%">'+I.cal+'<span>Schema <span class="wk-mo">'+esc(MON[parse(sel).getMonth()])+'</span></span><span class="r lnk">Kalender</span></button><div class="ovcal-frame" id="overview-calendar"><div class="ovcal-week"'+(open?' inert aria-hidden="true"':'')+'>'+strip+'</div><div class="ovcal-month"'+(!open?' inert aria-hidden="true"':'')+'>'+month+'</div></div>'+motionGrip('calendar','overview-calendar',open)+'<div class="wk-day"><div id="cal-rows" class="wk-link" data-d="'+sel+'" data-act="calOpen" data-id="'+sel+'" role="link" tabindex="0" aria-label="Schema, öppna kalendern">'+calDayRows(sel)+'</div></div></section>'}
+function motionCalendarBegin(el){if(el._calMotion){cancelAnimationFrame(el._calMotion.raf);return el._calMotion}const frame=el.querySelector('.ovcal-frame'),week=el.querySelector('.ovcal-week'),month=el.querySelector('.ovcal-month'),open=!!S.ovCalOpen;el.classList.remove('expanded');const h0=motionHeight(frame);el.classList.add('expanded');const h1=motionHeight(frame),animations=[];el.classList.add('cal-drag');
+ const add=(e,k)=>{const a=e.animate(k,{duration:1000,easing:'linear',fill:'both'});a.pause();animations.push(a)};add(frame,[{height:h0+'px'},{height:h1+'px'}]);add(week,[{opacity:1},{opacity:0}]);add(month,[{opacity:0,transform:'translateY(-20px)'},{opacity:1,transform:'none'}]);
+ const m=el._calMotion={p:open?1:0,range:Math.max(1,h1-h0),raf:0,set(p){this.p=Math.max(0,Math.min(1,p));animations.forEach(a=>a.currentTime=this.p*1000);week.inert=this.p>=.5;month.inert=this.p<.5},finish(op){cancelAnimationFrame(this.raf);animations.forEach(a=>a.cancel());el.classList.toggle('expanded',op);week.inert=op;month.inert=!op;week.setAttribute('aria-hidden',String(op));month.setAttribute('aria-hidden',String(!op));delete el._calMotion;el.classList.remove('cal-drag');motionGripState(el.querySelector('.motion-grip'),op)}};m.set(m.p);return m}
+function motionCalendar(open,instant){const el=document.querySelector('.ovcal');if(!el)return;const m=motionCalendarBegin(el),from=m.p,to=open?1:0;S.ovCalOpen=open;if(instant||calm()||!motionOn()){m.finish(open);return}const at=performance.now(),duration=320;const tick=now=>{const t=Math.min(1,(now-at)/duration),e=t*t*(3-2*t);m.set(from+(to-from)*e);if(t<1&&el.isConnected)m.raf=requestAnimationFrame(tick);else m.finish(open)};m.raf=requestAnimationFrame(tick)}
 /* Kalendern under Uppgifter: Dag, Vecka och Månad (UI 2.0). Dag och vecka visar händelser på en tidsaxel
    med personens färg, och kvällens middag med när man behöver börja laga (från receptets tidsplan). */
 S.calVy=['dag','vecka','manad'].includes(lsGet('calVy'))?lsGet('calVy'):'manad';
@@ -3891,7 +3902,7 @@ function segSlide(root){root.querySelectorAll('.segc[data-seg]').forEach(sg=>{co
 // Rörelse i testläget: direkt manipulation under drag, mjuk sättning först efter släpp.
 const MOTION_EASE='cubic-bezier(.65,0,.35,1)';
 let motionDrag=null,motionPageAnim=null,motionCal=null;
-function motionGrip(kind,controls,open){if(!motionOn())return'';return'<button type="button" class="motion-grip" data-motion-grip="'+kind+'" aria-controls="'+controls+'" aria-expanded="'+open+'" aria-label="'+(kind==='weather'?'Vädergraf':'Veckans detaljer')+'. '+(open?'Dra upp för att fälla ihop':'Dra ned för att visa')+' eller tryck"><i aria-hidden="true"></i></button>'}
+function motionGrip(kind,controls,open){if(!motionOn()&&kind!=='calendar')return'';return'<button type="button" class="motion-grip" data-motion-grip="'+kind+'" aria-controls="'+controls+'" aria-expanded="'+open+'" aria-label="'+(kind==='weather'?'Vädergraf':kind==='calendar'?'Kalendermånad':'Veckans detaljer')+'. '+(open?'Dra upp för att fälla ihop':'Dra ned för att visa')+' eller tryck"><i aria-hidden="true"></i></button>'}
 function motionPage(el,page,prev,dir){if(motionPageAnim)motionPageAnim.cancel();el.classList.remove('in-fade','in-right','in-left');if(calm()||!el.animate)return;
  if(!motionOn()){const[pv,pr]=prev.split('|'),cls=dir||(S.recipe&&!pr?'in-right':(!S.recipe&&pr&&pv===S.view)?'in-left':'in-fade');void el.offsetWidth;el.classList.add(cls);return}
  const p=page.split('|'),o=prev.split('|'),nav=VIEWS.map(x=>x[0]),order=p[0]==='mat'?['vecka','inkop','recept','bank','efter']:['lista','kalender'];
@@ -3908,7 +3919,7 @@ function motionPanel(el,open){if(!el)return;const from=el.hidden?0:motionHeight(
  if(!motionOn()||calm()||!el.animate){finish();return}el.style.overflow='hidden';el.style.height=to+'px';
  const a=el._motion=el.animate([{height:from+'px'},{height:to+'px'}],{duration:480,easing:MOTION_EASE});a.onfinish=finish}
 function motionBudget(open){S.wsumOpen=open;document.querySelectorAll('.wcard').forEach(c=>{c.classList.toggle('open',open);c.querySelector('.wm-top')?.setAttribute('aria-expanded',String(open));motionPanel(c.querySelector('.motion-panel'),open);motionGripState(c.querySelector('.motion-grip'),open)});wsPin()}
-function motionGripState(h,open){if(!h)return;h.setAttribute('aria-expanded',String(open));h.setAttribute('aria-label',(h.dataset.motionGrip==='weather'?'Vädergraf':'Veckans detaljer')+'. '+(open?'Dra upp för att fälla ihop':'Dra ned för att visa')+' eller tryck')}
+function motionGripState(h,open){if(!h)return;h.setAttribute('aria-expanded',String(open));h.setAttribute('aria-label',(h.dataset.motionGrip==='weather'?'Vädergraf':h.dataset.motionGrip==='calendar'?'Kalendermånad':'Veckans detaljer')+'. '+(open?'Dra upp för att fälla ihop':'Dra ned för att visa')+' eller tryck')}
 // Samma FLIP mellan timmars lägen och samma kurvritning som ovAnim, men alla egenskaper söker samma dragprogress.
 // Ingen startfördröjning eller frikopplad toggle: 40 % drag visar 40 % av expansionen.
 function motionWxBegin(el){if(el._wxMotion){cancelAnimationFrame(el._wxMotion.raf);return el._wxMotion}
@@ -3953,11 +3964,11 @@ window.addEventListener('pointerup',e=>{if(!sheetDrag||sheetDrag.id!==e.pointerI
 window.addEventListener('click',e=>{const h=e.target.closest('[data-sheet-grip]');if(!h)return;e.preventDefault();e.stopImmediatePropagation();if(!h.dataset.skip){closeSheets();render()}},true);
 function motionUnlock(){const d=motionDrag;if(!d)return null;A.touch=A.user=Date.now();motionDrag=null;Object.assign(document.body.style,d.style);document.documentElement.classList.remove('motion-dragging');scrollTo(d.x,d.y);
  try{if(d.h.hasPointerCapture(d.id))d.h.releasePointerCapture(d.id)}catch(_){}if(pendingRender)setTimeout(render,520);return d}
-function motionAbort(){const d=motionUnlock();if(!d)return;if(d.kind==='weather')d.wx.finish(d.open);else{d.panel.style.removeProperty('height');d.panel.style.removeProperty('overflow');d.panel.hidden=!d.open;d.panel.inert=!d.open;d.panel.setAttribute('aria-hidden',String(!d.open))}}
+function motionAbort(){const d=motionUnlock();if(!d)return;if(d.wx)d.wx.finish(d.open);else{d.panel.style.removeProperty('height');d.panel.style.removeProperty('overflow');d.panel.hidden=!d.open;d.panel.inert=!d.open;d.panel.setAttribute('aria-hidden',String(!d.open))}}
 window.addEventListener('pointerdown',e=>{const h=e.target.closest('[data-motion-grip]');if(!h||e.button>0||!e.isPrimary)return;e.preventDefault();e.stopImmediatePropagation();motionAbort();A.touch=A.user=Date.now();
- const kind=h.dataset.motionGrip,open=kind==='weather'?OVWX==='graf':!!S.wsumOpen,style={position:document.body.style.position,top:document.body.style.top,left:document.body.style.left,width:document.body.style.width,overflow:document.body.style.overflow};
+ const kind=h.dataset.motionGrip,open=kind==='weather'?OVWX==='graf':kind==='calendar'?!!S.ovCalOpen:!!S.wsumOpen,style={position:document.body.style.position,top:document.body.style.top,left:document.body.style.left,width:document.body.style.width,overflow:document.body.style.overflow};
  const x=scrollX,y=scrollY,width=document.body.getBoundingClientRect().width;document.documentElement.classList.add('motion-dragging');Object.assign(document.body.style,{position:'fixed',top:-y+'px',left:-x+'px',width:width+'px',overflow:'hidden'});
- const panel=kind==='budget'?document.getElementById(h.getAttribute('aria-controls')):null,wx=kind==='weather'?motionWxBegin(h.closest('.ovx')):null;
+ const panel=kind==='budget'?document.getElementById(h.getAttribute('aria-controls')):null,wx=kind==='weather'?motionWxBegin(h.closest('.ovx')):kind==='calendar'?motionCalendarBegin(h.closest('.ovcal')):null;
  let height=0,max=0,scale=motionScale(h);if(panel){height=panel.hidden?0:motionHeight(panel);if(panel._motion)panel._motion.cancel();panel.hidden=false;max=panel.scrollHeight;panel.style.height=height+'px';panel.style.overflow='hidden'}else if(wx){height=wx.p*wx.range;max=wx.range}
  motionDrag={h,kind,panel,wx,open,height,max,scale,id:e.pointerId,start:e.clientY,moved:false,x,y,style};h.setPointerCapture(e.pointerId);
 },true);
@@ -3966,12 +3977,12 @@ window.addEventListener('pointermove',e=>{const d=motionDrag;if(!d||d.id!==e.poi
 },{capture:true,passive:false});
 window.addEventListener('pointerup',e=>{const d=motionDrag;if(!d||d.id!==e.pointerId)return;e.preventDefault();e.stopImmediatePropagation();
  const p=d.panel?parseFloat(d.panel.style.height)/d.max:d.wx?.p||0,open=d.moved?p>=.5:!d.open;d.h.dataset.motionSkip='1';setTimeout(()=>delete d.h.dataset.motionSkip,450);motionUnlock();
- if(d.kind==='weather')motionWxSettle(d.h.closest('.ovx'),open);else motionBudget(open);
+ if(d.kind==='weather')motionWxSettle(d.h.closest('.ovx'),open);else if(d.kind==='calendar')motionCalendar(open);else motionBudget(open);
 },true);
 ['pointercancel','lostpointercapture'].forEach(type=>window.addEventListener(type,e=>{if(motionDrag&&e.pointerId===motionDrag.id)motionAbort()},true));
 ['resize','blur','pagehide'].forEach(type=>window.addEventListener(type,motionAbort));
-window.addEventListener('click',e=>{const h=e.target.closest('[data-motion-grip]');if(!h)return;e.preventDefault();e.stopImmediatePropagation();if(h.dataset.motionSkip)return;A.touch=A.user=Date.now();h.dataset.motionGrip==='weather'?motionWeather(OVWX!=='graf'):motionBudget(!S.wsumOpen)},true);
-window.addEventListener('keydown',e=>{const h=e.target.closest('[data-motion-grip]');if(!h||!['ArrowDown','End','ArrowUp','Home'].includes(e.key))return;e.preventDefault();A.touch=A.user=Date.now();const open=['ArrowDown','End'].includes(e.key);h.dataset.motionGrip==='weather'?motionWeather(open):motionBudget(open)},true);
+window.addEventListener('click',e=>{const h=e.target.closest('[data-motion-grip]');if(!h)return;e.preventDefault();e.stopImmediatePropagation();if(h.dataset.motionSkip)return;A.touch=A.user=Date.now();h.dataset.motionGrip==='weather'?motionWeather(OVWX!=='graf'):h.dataset.motionGrip==='calendar'?motionCalendar(!S.ovCalOpen):motionBudget(!S.wsumOpen)},true);
+window.addEventListener('keydown',e=>{const h=e.target.closest('[data-motion-grip]');if(!h||!['ArrowDown','End','ArrowUp','Home'].includes(e.key))return;e.preventDefault();A.touch=A.user=Date.now();const open=['ArrowDown','End'].includes(e.key);h.dataset.motionGrip==='weather'?motionWeather(open):h.dataset.motionGrip==='calendar'?motionCalendar(open):motionBudget(open)},true);
 
 function flipClock(c,txt){if(c.dataset.v===txt)return;const old=c.dataset.v||'';c.dataset.v=txt;
  if(!old||calm()){c.textContent=txt;return}
@@ -4217,7 +4228,8 @@ const ACT={
  taskList(){S.taskTab='lista';lsSet('taskTab','lista');ACT.nav('uppgifter')},
  taskTab(id){S.taskTab=id==='kalender'?'kalender':'lista';lsSet('taskTab',S.taskTab);render()},
  calDay(id){S.calDay=id;S.calMonth=ymKey(id);render()},
- ovDay(id){S.ovDay=id;render()},
+ ovDay(id){S.ovDay=id;if(S.ovCalOpen)S.ovCalMonth=id.slice(0,7);render()},
+ ovMonth(id){const d=parse((S.ovCalMonth||(S.ovDay||today()).slice(0,7))+'-01');d.setMonth(d.getMonth()+Number(id));S.ovCalMonth=ymd(d).slice(0,7);render()},
  calOpen(id){S.taskTab='kalender';lsSet('taskTab','kalender');S.calDay=id||today();S.calMonth=ymKey(S.calDay);ACT.nav('uppgifter')},
  calMonth(id,el){const[y,m]=(S.calMonth||ymKey(S.calDay||today())).split('-').map(Number),d=new Date(y,m-1+Number(el.dataset.d),1);S.calMonth=d.getFullYear()+'-'+pad(d.getMonth()+1);render()},
  calVy(id){motionCalBefore();S.calVy=['dag','vecka','manad'].includes(id)?id:'manad';lsSet('calVy',S.calVy);render()},

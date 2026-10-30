@@ -13,7 +13,7 @@ module.exports=async(pg,h)=>{
  for(const form of ['standard','kapsel','klassisk']){
   await settings();await click('[data-act="segstil"][data-id="'+form+'"]');await click('[data-act="sheetClose"]');await pg.reload();await h.idle(1400);
   assert.equal(await read('RYMLIG'),true);assert.equal(await read('SEGSTIL'),form);assert(await pg.locator('html').evaluate(e=>e.classList.contains('rymlig')));
-  const d=await dimensions();assert(Math.abs(parseFloat(d[0])-48)<.1,'Rymlig menyhöjd');assert(Math.abs(parseFloat(d[1])-5)<.1,'Luft runt markeringen');radii.push(d[2]);
+  const d=await dimensions();assert(Math.abs(parseFloat(d[0])-42)<.1,'Rymlig menyhöjd');assert(Math.abs(parseFloat(d[1])-4)<.1,'Luft runt markeringen');radii.push(d[2]);
   await click('[data-act="taskTab"][data-id="kalender"]');await click('[data-act="calVy"][data-id="manad"]');
   await h.shot('ui2-rymlig-'+form);
  }
