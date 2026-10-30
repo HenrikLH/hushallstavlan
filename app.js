@@ -296,7 +296,7 @@ let fitScrollbar=()=>{},hideCursor=()=>{};
 /* Väggtavlan: tillbaka till Översikt efter två minuter utan beröring, och väck nattläget vid tryck */
 (function(){const touch=()=>{const was=nightOn();A.touch=Date.now();if(was&&S.view==='oversikt')render()};
  document.addEventListener('pointerdown',touch,true);
- setInterval(()=>{if(!S.wall||motionDrag)return;const idle=Date.now()-(A.touch||0)>120000;
+ setInterval(()=>{if(!S.wall||motionDrag||sheetDrag)return;const idle=Date.now()-(A.touch||0)>120000;
   if(idle&&S.arrange){S.arrange=false;render()}
   if(idle&&(S.view!=='oversikt'||S.sheet||S.shopAdd||S.taskAdd||S.recipe||window.scrollY>0)&&!S.cook){closeSheets();S.recipe=null;ACT.nav('oversikt')}
   else if(S.view==='oversikt'&&document.body.classList.contains('is-night')!==nightOn())render();
@@ -662,7 +662,7 @@ function watchTitle(){
  if(!lt||!('IntersectionObserver' in window)){show(false);return}
  io=new IntersectionObserver(es=>{const e=es[es.length-1];show(!e.isIntersecting&&e.boundingClientRect.top<bar.offsetHeight)},{rootMargin:'-'+(bar.offsetHeight||44)+'px 0px 0px 0px',threshold:0});
  io.observe(lt)}
-function doRender(){if(motionDrag){pendingRender=true;return}applyPersonColors();applyAccent();
+function doRender(){if(motionDrag||sheetDrag){pendingRender=true;return}applyPersonColors();applyAccent();
  if(!S.key||!S.data)document.getElementById('create-dock')?.remove();
  document.body.classList.toggle('wall',S.wall);document.body.classList.toggle('is-night',S.view==='oversikt'&&nightOn());document.body.dataset.view=S.view;
  document.body.classList.toggle('cook-open',!!S.cook);
@@ -959,7 +959,7 @@ V.mat=function(){
  if(S.recipe){const r=recipeById(S.recipe);if(r)return recipeDetail(r);S.recipe=null}
  if(S.plan&&(S.plan==='auto'||DEV))return S.plan==='port'?portView():S.plan==='auto'?autoView():planView();
  const ink=S.matTab==='inkop'?inkopParts():null;
- let h=head('Mat',ink?{sub:ink.sub,tools:ink.tools}:['recept','bank','efter'].includes(S.matTab)?{}:{sub:weekSub()});
+ let h=head('Mat',ink?{sub:ink.sub,tools:ink.tools}:['recept','bank','efter'].includes(S.matTab)?{}:motionOn()?{}:{sub:weekSub()});
  {const rt=S.matTab==='recept'||S.matTab==='bank'||S.matTab==='efter';h+=segc('Visa','matTab',[['vecka','Vecka'],['inkop','Inköp'],['recept','Recept']],rt?'recept':S.matTab);
   if(rt)h+='<div class="subseg">'+segc('Recept','matTab',[['recept','Inspiration'],['bank','Mina recept'],['efter','Efterrätter']],S.matTab)+'</div>'}
  if(['recept','bank','efter'].includes(S.matTab))h+=recipeTools();
@@ -2396,7 +2396,7 @@ function pickSheet(k,enter){
  // Knappen ligger under listan, utanför det som scrollar, så inga rader syns under den
  const foot='<div class="sw-foot"><button type="button" class="btn-fill" data-act="pickGo"'+(S.psel?'':' disabled')+'>'+esc(pickBtnTxt(k,S.psel))+'</button></div>';
  return sheetHtml(k,title,'<span class="tb" aria-hidden="true"></span>',body,enter).replace(/<\/form><\/div>$/,foot+'</form></div>')}
-function sheetHtml(form,title,right,body,enter,left){return'<div class="sheet'+enter+'" data-act="sheetBg"><form class="sheet-panel"'+RF({settings:'B1',prefs:'B2',shop:'B3',task:'B4',taskEdit:'B5',evEdit:'B6',cleanQuick:'B7',cost:'B8',income:'B9',matb:'B23',wxDay:'B24',dish:'B10',farg:'B11',fodAdd:'B12',ljuskal:'B13',ov:'B14',prot:'B15',rate:'B16',tmr:'B17',vagg:'B18',wish:'B19',taskMenu:'B20',evMenu:'B21',cleanMenu:'B22'}[form])+' data-form="'+form+'" role="dialog" aria-modal="true" aria-label="'+title+'"><div class="grabber" aria-hidden="true"></div><div class="sheet-head">'+(left||'<button type="button" class="tb" data-act="sheetClose">Avbryt</button>')+'<h2>'+title+'</h2>'+right+'</div><div class="sheet-body">'+body+'</div></form></div>'}
+function sheetHtml(form,title,right,body,enter,left){return'<div class="sheet'+enter+'" data-act="sheetBg"><form class="sheet-panel"'+RF({settings:'B1',prefs:'B2',shop:'B3',task:'B4',taskEdit:'B5',evEdit:'B6',cleanQuick:'B7',cost:'B8',income:'B9',matb:'B23',wxDay:'B24',dish:'B10',farg:'B11',fodAdd:'B12',ljuskal:'B13',ov:'B14',prot:'B15',rate:'B16',tmr:'B17',vagg:'B18',wish:'B19',taskMenu:'B20',evMenu:'B21',cleanMenu:'B22'}[form])+' data-form="'+form+'" role="dialog" aria-modal="true" aria-label="'+title+'"><button type="button" class="grabber" data-sheet-grip aria-label="Dra ned för att stänga eller tryck"></button><div class="sheet-head">'+(left||'<button type="button" class="tb" data-act="sheetClose">Avbryt</button>')+'<h2>'+title+'</h2>'+right+'</div><div class="sheet-body">'+body+'</div></form></div>'}
 // slider i en rad: rubrik och värde överst, reglaget under och förklaring i ändarna
 const ljVal=(id,v)=>id==='ljMork'?luxTxt(morkLux(v)):v+(id==='ljKans'?'':' %');
 const ljSlider=(label,id,v,min,max,l,r)=>'<div class="cell lj-sl"><div class="lj-h"><span>'+label+'</span><span class="meta" data-ljv="'+id+'">'+ljVal(id,v)+'</span></div><input type="range" min="'+min+'" max="'+max+'" step="1" value="'+v+'" data-input="'+id+'" aria-label="'+label+'"><div class="lj-e"><span>'+l+'</span><span>'+r+'</span></div></div>';
@@ -3904,7 +3904,7 @@ function motionPage(el,page,prev,dir){if(motionPageAnim)motionPageAnim.cancel();
  const d=dir==='in-left'?-1:dir==='in-right'?1:p[0]!==o[0]?Math.sign(nav.indexOf(p[0])-nav.indexOf(o[0]))||1:p[1]!==o[1]?(p[1]?1:-1):Math.sign(order.indexOf(p[2])-order.indexOf(o[2]))||1;
  // Menyerna är referensram. Bara innehållet under dem flyttar sig, tydligare än tidigare 22 px.
  const targets=[...el.children].filter(e=>!e.matches('.head,.segc,.subseg,.cv-seg,.ws-pin'));
- const animations=targets.map(e=>e.animate([{opacity:.15,transform:'translateX('+d*80+'px)'},{opacity:1,transform:'none'}],{duration:440,easing:'cubic-bezier(.22,1,.36,1)'}));
+ const animations=targets.map(e=>e.animate([{opacity:.15,transform:'translateX('+d*80+'px)'},{opacity:1,transform:'none'}],{duration:p[0]!==o[0]?620:440,easing:'cubic-bezier(.4,0,.2,1)'}));
  motionPageAnim={animations,direction:d,cancel(){animations.forEach(a=>a.cancel())}}}
 const motionHeight=el=>parseFloat(getComputedStyle(el).height)||0;
 const motionScale=el=>el.offsetWidth?el.getBoundingClientRect().width/el.offsetWidth:1;
@@ -3924,7 +3924,7 @@ function motionWxBegin(el){if(el._wxMotion){cancelAnimationFrame(el._wxMotion.ra
  el.classList.remove('ov-open');st.scrollLeft=0;const F=its.map(c=>c.getBoundingClientRect().left),h0=motionHeight(st);
  el.classList.add('ov-open');const gh=motionHeight(g),h1=motionHeight(st),z=motionScale(st),range=Math.max(1,gh+h1-h0);
  const add=(e,frames)=>{if(!e||!e.animate)return;const a=e.animate(frames,{duration:1000,fill:'both',easing:'linear'});a.pause();animations.push(a)};
- add(g,[{height:'0px'},{height:gh+'px'}]);add(st,[{height:h0+'px'},{height:h1+'px'}]);add(gi,[{opacity:0},{opacity:1}]);
+ add(g,[{height:'0px'},{height:gh+'px'}]);add(st,[{height:h0+'px'},{height:h1+'px'}]);add(gi,[{transform:'scaleY(.001)',transformOrigin:'top',opacity:1},{transform:'scaleY(1)',transformOrigin:'top',opacity:1}]);
  its.forEach((c,i)=>{const nu=c.classList.contains('nu0'),k=c.classList.contains('k3'),dx=(F[i]-c.getBoundingClientRect().left)/z;
   if(!nu)add(c,[{transform:'translateX('+dx+'px)'},{transform:'none'}]);if(nu||!k)add(c,nu?[{opacity:0},{opacity:1}]:[{opacity:1},{opacity:0}])});
  add(g.querySelector('.ovg-k'),[{strokeDasharray:'1 1',strokeDashoffset:1},{strokeDasharray:'1 1',strokeDashoffset:0}]);
@@ -3944,6 +3944,16 @@ window.addEventListener('click',e=>{const summary=e.target.closest('summary');if
  const finish=()=>{d.open=open;delete d.dataset.motionClosing;d.style.removeProperty('overflow');d._motion=null;S.open[d.dataset.k]=open};
  if(calm()||!d.animate){finish();return}d.style.overflow='hidden';const a=d._motion=d.animate([{height:from+'px'},{height:to+'px'}],{duration:480,easing:MOTION_EASE});a.onfinish=finish;
 },true);
+// Bladhandtag: direkt förflyttning, närmaste ändläge och återställning vid avbruten gest.
+let sheetDrag=null;
+function sheetDragEnd(cancel){const d=sheetDrag;if(!d)return;sheetDrag=null;A.touch=A.user=Date.now();if(pendingRender)setTimeout(render,460);try{d.h.releasePointerCapture(d.id)}catch(_){}const close=!cancel&&d.dy>=d.range/2,from=d.dy;d.panel.style.removeProperty('transform');const finish=()=>{if(close){closeSheets();render()}};
+ if(calm()){finish();return}const a=d.panel.animate([{transform:'translateY('+from+'px)'},{transform:'translateY('+(close?d.range:0)+'px)'}],{duration:420,easing:MOTION_EASE,fill:'forwards'});a.onfinish=()=>{a.cancel();finish()}}
+window.addEventListener('pointerdown',e=>{const h=e.target.closest('[data-sheet-grip]');if(!h||e.button>0||!e.isPrimary)return;e.preventDefault();e.stopImmediatePropagation();A.touch=A.user=Date.now();const panel=h.closest('.sheet-panel');panel.getAnimations().forEach(a=>a.cancel());sheetDrag={h,panel,id:e.pointerId,start:e.clientY,dy:0,range:(innerHeight-panel.getBoundingClientRect().top)/motionScale(panel),scale:motionScale(panel)};h.setPointerCapture(e.pointerId)},true);
+window.addEventListener('pointermove',e=>{const d=sheetDrag;if(!d||d.id!==e.pointerId)return;e.preventDefault();e.stopImmediatePropagation();A.touch=A.user=Date.now();d.dy=Math.max(0,Math.min(d.range,(e.clientY-d.start)/d.scale));d.panel.style.transform='translateY('+d.dy+'px)'},{capture:true,passive:false});
+window.addEventListener('pointerup',e=>{if(!sheetDrag||sheetDrag.id!==e.pointerId)return;e.preventDefault();e.stopImmediatePropagation();sheetDrag.h.dataset.skip='1';const h=sheetDrag.h;setTimeout(()=>delete h.dataset.skip,450);sheetDragEnd(false)},true);
+['pointercancel','lostpointercapture'].forEach(t=>window.addEventListener(t,e=>{if(sheetDrag?.id===e.pointerId)sheetDragEnd(true)},true));
+['blur','resize','pagehide'].forEach(t=>window.addEventListener(t,()=>sheetDragEnd(true)));
+window.addEventListener('click',e=>{const h=e.target.closest('[data-sheet-grip]');if(!h)return;e.preventDefault();e.stopImmediatePropagation();if(!h.dataset.skip){closeSheets();render()}},true);
 function motionUnlock(){const d=motionDrag;if(!d)return null;A.touch=A.user=Date.now();motionDrag=null;Object.assign(document.body.style,d.style);document.documentElement.classList.remove('motion-dragging');scrollTo(d.x,d.y);
  try{if(d.h.hasPointerCapture(d.id))d.h.releasePointerCapture(d.id)}catch(_){}if(pendingRender)setTimeout(render,520);return d}
 function motionAbort(){const d=motionUnlock();if(!d)return;if(d.kind==='weather')d.wx.finish(d.open);else{d.panel.style.removeProperty('height');d.panel.style.removeProperty('overflow');d.panel.hidden=!d.open;d.panel.inert=!d.open;d.panel.setAttribute('aria-hidden',String(!d.open))}}

@@ -22,7 +22,17 @@ module.exports=async(pg,h)=>{
   assert.notEqual(await pg.evaluate(()=>document.body.style.position),'fixed');assert(Math.abs((await pg.evaluate(()=>scrollY))-before.y)<2,'Scroll återställd');
   return cancel?state.open:fraction>=.5;
  };
+ // Alla blad delar handtag: följ fingret, avbryt, återgå och stäng.
+ await click('[data-act="settings"]');await h.idle(550);
+ const sh=pg.locator('[data-sheet-grip]'),sp=pg.locator('.sheet-panel');
+ const sb=await sh.boundingBox(),origin=await sp.boundingBox(),sx=sb.x+sb.width/2,sy=sb.y+sb.height/2;
+ await pg.mouse.move(sx,sy);await pg.mouse.down();await pg.mouse.move(sx,sy+60,{steps:8});
+ assert(Math.abs((await sp.boundingBox()).y-origin.y-60)<2,'Bladet följer handtaget under drag');
+ await pg.mouse.up();await h.idle(500);assert(Math.abs((await sp.boundingBox()).y-origin.y)<2,'Kort drag återgår');
+ await pg.mouse.move(sx,sy);await pg.mouse.down();await pg.mouse.move(sx,sy+80,{steps:8});await sh.dispatchEvent('pointercancel',{pointerId:await read('sheetDrag.id')});await pg.mouse.up();await h.idle(500);assert(await sp.isVisible(),'Avbrutet drag behåller bladet');
+ await pg.mouse.move(sx,sy);await pg.mouse.down();const distance=await read('sheetDrag.range*sheetDrag.scale*.6');await pg.mouse.move(sx,sy+distance,{steps:10});await pg.mouse.up();await h.idle(550);assert.equal(await sp.count(),0,'Långt drag stänger bladet');
  await nav('mat');await click('[data-act="matTab"][data-id="vecka"]');
+ const menuY=await pg.locator('.segc[aria-label="Visa"]').evaluate(e=>e.getBoundingClientRect().top);for(const tab of ['inkop','recept','vecka']){await click('[data-act="matTab"][data-id="'+tab+'"]');assert(Math.abs((await pg.locator('.segc[aria-label="Visa"]').evaluate(e=>e.getBoundingClientRect().top))-menuY)<1,'Matmenyn står still '+tab)}
  assert.equal(await pg.locator('[data-motion-grip="budget"]').count(),1);
  await drag('[data-motion-grip="budget"]',.75);assert.equal(await read('S.wsumOpen'),true);
  await drag('[data-motion-grip="budget"]',.25);assert.equal(await read('S.wsumOpen'),false);
@@ -55,8 +65,8 @@ module.exports=async(pg,h)=>{
  }
  await pg.locator('#nav [data-id="mat"]').click();await pg.waitForTimeout(80);
  const pageMotion=await read('({count:motionPageAnim.animations.length,duration:motionPageAnim.animations[0].effect.getTiming().duration,frames:motionPageAnim.animations[0].effect.getKeyframes(),moving:motionPageAnim.animations.some(a=>getComputedStyle(a.effect.target).transform!=="none"),menuMoves:motionPageAnim.animations.some(a=>a.effect.target.matches(".head,.segc,.subseg"))})');
- assert(pageMotion.count>0&&pageMotion.moving,'Sidbytet syns i det renderade innehållet');assert.equal(pageMotion.duration,440);assert(/80px/.test(pageMotion.frames[0].transform));assert.equal(pageMotion.menuMoves,false);
- await h.idle(500);await pg.locator('[data-act="matTab"][data-id="inkop"]').click();await pg.waitForTimeout(200);
+ assert(pageMotion.count>0&&pageMotion.moving,'Sidbytet syns i det renderade innehållet');assert.equal(pageMotion.duration,620);assert(/80px/.test(pageMotion.frames[0].transform));assert.equal(pageMotion.menuMoves,false);
+ await h.idle(650);await pg.locator('[data-act="matTab"][data-id="inkop"]').click();await pg.waitForTimeout(200);
  const thumb=pg.locator('.segc[aria-label="Visa"] .seg-thumb');const mid=await thumb.evaluate(e=>({x:new DOMMatrix(getComputedStyle(e).transform).m41,width:e.getBoundingClientRect().width,opacity:getComputedStyle(e).opacity}));assert(mid.x>2&&mid.x<mid.width-2&&Number(mid.opacity)>0,'Valmarkeringen syns mellan sina ändlägen');assert(await thumb.evaluate(e=>e.getAnimations().some(a=>a.playState==='running'&&a.effect.getTiming().duration===440)),'Menyvalets förflyttning pågår och går att se');await h.idle(500);
  await nav('uppgifter');await click('[data-act="taskTab"][data-id="kalender"]');await h.idle(500);
  const date=await read('S.calDay||today()');

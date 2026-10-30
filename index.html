@@ -356,7 +356,7 @@ body.wall .clock{display:block}
 @keyframes up{from{transform:translateY(100%)}}
 @media (prefers-reduced-motion:reduce){.sheet.enter,.sheet.enter .sheet-panel{animation:none}}
 @media (min-width:700px){.sheet{align-items:center}.sheet-panel{border-radius:12px;max-height:88dvh}}
-.grabber{position:absolute;top:6px;left:50%;width:36px;height:5px;margin-left:-18px;border-radius:3px;background:var(--ink-3)}
+.grabber{position:absolute;top:0;left:50%;width:64px;height:24px;margin-left:-32px;padding:0;border:0;background:transparent;touch-action:none;cursor:ns-resize;z-index:2}.grabber:after{content:"";position:absolute;top:6px;left:14px;width:36px;height:5px;border-radius:3px;background:var(--ink-3)}.grabber:focus-visible{outline:2px solid var(--accent)}
 .sheet-head{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:14px 8px 4px;flex:none}
 .sheet-head h2{font-size:17px;font-weight:600;text-align:center;white-space:nowrap}
 .sheet-head>:first-child{justify-self:start}
@@ -1384,7 +1384,8 @@ html.ny .motion-panel>.wm-body{display:block}
 .motion-grip i{display:block;width:38px;height:4px;border-radius:99px;background:currentColor;opacity:.6;pointer-events:none}
 .motion-grip:focus-visible{outline:2px solid var(--accent);outline-offset:-4px;border-radius:8px}
 .motion-grip:active{color:var(--accent)}
-.ovx .motion-grip{margin-top:4px}
+.ovx .motion-grip{margin-top:0;min-height:24px;padding:8px 0 4px;position:relative}
+.ovx .motion-grip:before{content:"";position:absolute;inset:-10px 0;min-height:44px}
 .motion-dragging{overscroll-behavior:none;scroll-behavior:auto!important;overflow-anchor:none}
 .motion-dragging body{overscroll-behavior:none}
 /* ===== Födelsedagar ===== */
@@ -2613,7 +2614,7 @@ html.ny.rymlig:not(.ui3):not(.ui4) :is(.btn-fill,.btn-tint,.pill,.fchips button)
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=223"></script>
+<script src="app.js?v=224"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
