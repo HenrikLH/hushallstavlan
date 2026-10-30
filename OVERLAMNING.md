@@ -2,6 +2,13 @@
 
 Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs relevant kod/PR vid behov.
 
+## Rymligare kontroller · frivilligt UI2-val
+
+- Codex, gren `codex/ui2-rymliga-kontroller`, ht-v231 / app.js?v=221. Henrik godkänner uttryckligen publicering som ny inställning (2026-10-30); ska inte bli standard.
+- Inställningar → Utseende → Rymligare kontroller. Av från början, enhetsval `ht.rymlig`; klassen `rymlig` gäller bara UI2. Ny padding och kryss-/datum-/knappformer följer Kantiga/Runda/Raka enligt godkända bilder.
+- Ingen server-/dataändring. UI3/UI4 och avstängt UI2 isoleras. Ny regression testar av/på, utkast, former, omstart, flikar och UI-byte. CI/visuell granskning pågår.
+- Nästa steg: verifiera tester, spara ångra-gren från aktuell main, merge och kontrollera Pages; nytt godkännande behövs inte.
+
 ## Recept: timeout vid spara/import · ht-v230
 
 - Codex, gren `codex/recept-timeout`, appkod `644e68e`, ht-v230/app.js?v=220. Henrik rapporterade URL-import och eget recept Tacos som misslyckas med timeout. Henrik godkände publicering (”Pusha”, 2026-10-29).
