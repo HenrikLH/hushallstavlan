@@ -2,70 +2,20 @@
 
 Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs relevant kod/PR vid behov.
 
-## Vädergraf som utdrag · snabbare menyval · ht-v235
+## Rita graf efter full expansion · ht-v236
 
-- Codex, `codex/vader-utdrag-snabbare-menyer`, [PR #49](https://github.com/HenrikLH/hushallstavlan/pull/49). Henrik godkänner publicering (”Pusha”, 2026-10-30). Ångra-gren `version-fore-vader-utdrag-20261030` från `9b30f8c61c5c8cd748cd4dfa480694326a2eb9d1`; merge via PR #49 och Pages-kontroll.
-- Grafen behåller full storlek: translateY från −grafhöjd till 0 bakom .ovx-g:s overflow:hidden. Ytan växer med fingret så grafen ser ut att dras fram under hundbilden. Kurva/punkter, handtag, släpp och avbrott kvar.
-- DEV && MOTION: huvudsidbyte 460 ms, underflikar/kalender/segc 300 ms; väderbladets dagmarkör och huvudmenyns glidmarkering också 300 ms. Systemets reducerade rörelse och normalläge bevaras.
-- Ny regression mäter skala 1 och translation −(1−progress)×grafhöjd mitt i draget; testbilden tas utan att snabbspola animationen. Testad kod `b49664559d2362ec1da00e0dea3954be343ca2ea`, [CI 12/12 gröna](https://github.com/HenrikLH/hushallstavlan/actions/runs/41064464493), UI2/UI3/UI4 × telefon/vägg × ljust/mörkt. Bild mitt i draget granskad (UI3 telefon mörkt): full storlek, kurvan/punkterna dras fram från klippkanten. Endast dokumentation efter testad kod. Ingen Kod.gs/data ändrad.
+- Codex, `codex/vadergraf-efter-utdrag`, PR #50. Henrik har godkänt publicering direkt i beställningen (”pusha när det är klart”).
+- Utdragets geometri är oförändrad. Separata rit-animationer väntar på full expansion (även före släpp) och spelar därefter 760 ms. Halvöppning ritar inte kurva/punkter/fyllning. Redan öppen graf behåller ritningen vid stängningsdrag. Reducerad rörelse respekteras.
+- Regression: ritningen står still under delvis utdrag, startar när fullt utdrag nås medan fingret hålls nere och är färdig efter öppning. Testad kod `fe962e6d56161a6d1aff5ea36eb9796bdf434649`: [CI 12/12 gröna](https://github.com/HenrikLH/hushallstavlan/actions/runs/41069705952), UI2/UI3/UI4 × telefon/vägg × ljust/mörkt. Endast dokumentation efter testad kod. Ingen Kod.gs eller hushållsdata ändrad.
+- Publicering godkänd; ångra-gren `version-fore-graf-efter-utdrag-20261030` från `fe0c1c76c94322dee0fb567ffa3874f7c306d374`. Merge PR #50 och verifiera Pages/live ht-v236/app.js?v=226. Begär inte nytt publiceringsgodkännande.
 
-## Animationer · finjustering efter provning · ht-v234
-
-- Codex, `codex/animationer-finjustering`, [PR #48](https://github.com/HenrikLH/hushallstavlan/pull/48). Henrik godkänner publicering (”Pusha”, 2026-10-30). Ångra-gren `version-fore-animationer-finjustering-20261030` från `c62a4653a6c2338737d90d829948dd67b6b88aa3`; merge via PR #48 och Pages-kontroll.
-- Väderhandtagets visuella rad 24 i stället för 44 px, mindre padding, träffyta utökad utan extra layoutluft. Grafen skalar inom synlig höjd medan kurvan ritas, så den inte klipps bort under draget. Punkter framträder i kurvans takt, fyllningen tonas in.
-- Huvudsidbyten 620 ms med acceleration/inbromsning; underflikar 440 ms. Veckodatumraden bort i testläget så Mat-menyn står still. Övriga nya animationer fortfarande DEV && MOTION.
-- Alla befintliga bladhandtag är knappar med verkligt drag även i normalläge; bladet följer fingret och landar närmast öppet/stängt. Tryck/tangentbord stänger. Avbrutet drag återgår utan att ett syntetiskt klick stänger efteråt. Samma closeSheets som Avbryt, ingen automatisk sparning. Reducerad rörelse respekteras.
-- Utökad animationer.js: handtagsförflyttning, avbrott, återgång/stängning och Mat-menyns position. [CI](https://github.com/HenrikLH/hushallstavlan/actions/runs/41056278335): 12/12 gröna (UI2/UI3/UI4 × telefon/vägg × ljust/mörkt). Endast dokumentation efter testad kod. UI2 telefon granskat i lokal browser med exempeldata; UI3 mörkt under pågående drag granskat från CI. Testad kod `3806f618a895b392671730b84984fbd7c0737005`. Ingen Kod.gs eller hushållsdata ändrad.
-
-## Animationer · rättningar efter användarprovning, release ht-v233
-
-- Codex, gren `codex/animationer-direktmanipulation`, [PR #47](https://github.com/HenrikLH/hushallstavlan/pull/47). Henrik beskriver osynlig navigation/kalender, felplacerat budgethandtag, toggle-väder, för snabb expansion och inställningsblad som flyttar sig upp. Henrik godkänner publicering (”Pusha”, 2026-10-30).
-- Testläget DEV && MOTION kvar. Sidinnehåll flyttar 80 px/440 ms med menyer stilla; menyval 440 ms. Kalendern har gemensam datumreferens ovanför riktat växlande innehåll. Normalläget bevaras.
-- Båda handtagen sitter efter expanderande yta och följer höjden. Vädrets FLIP/kurvritning söker samma 0–1-progress som fingret; släpp väljer närmaste ändläge utan hastighetsgenväg. Avbrott återställer och sidan låses under drag.
-- Ekonomi/Städ/disclosures 480 ms med S-kurva för acceleration/inbromsning. Inställningar får fast överkant/höjd i testläget och innehållet expanderar nedåt i bladets scrollområde.
-- Verifierad app-/testkod `bada44612e4180e5a7b821a237679d957f2848f3`: [CI 12/12 gröna](https://github.com/HenrikLH/hushallstavlan/actions/runs/41041726270), UI2/UI3/UI4 × telefon/vägg × ljust/mörkt. Testerna mäter handtagets position/progress före släpp, närmaste ändläge åt båda håll, faktisk synlig meny-/kalenderrörelse, expansionens S-kurva och fast inställningsöverkant. Normallägets fulla UI2-pixeljämförelse och befintliga funktionssviter gröna.
-- Browsergranskat med exempeldata: UI2/telefon (båda handtag, inställningsöverkant), UI3/vägg/mörkt (identiska datumreferenskoordinater mellan kalenderlägen). Gemensam kalenderbredd/gutter hindrar sidoförskjutning; grafen avslöjas från toppen under drag. Endast dokumentation efter testad kod. CI-budget 12 min. Publicering godkänd; ångra-gren `version-fore-animationer-rattning-20261030` från `8a7f0729d3f266dd14e0c255659f001c39d75476`. Merge via PR #47 och Pages-kontroll. Fysisk Safari/Surface återstår som användarprovning.
-
-## Vägledande animationer · Utvecklarläge · release ht-v232
-
-- Codex, gren `codex/animationer`, [PR #46](https://github.com/HenrikLH/hushallstavlan/pull/46). Henrik vill nu ha hela paketet i Utvecklarläge (2026-10-30). Henrik godkänner publicering (”Pusha”, 2026-10-30).
-- Inställningar → Avancerat → Utvecklarläge → Vägledande animationer. All ny rörelse och båda handtagen kräver DEV && MOTION. Valet ht.motion minns per enhet; systemets reducerade rörelse går före. När Utvecklarläge/valet är av återkommer ordinarie sidbyten, menyer, disclosures och väderremsans håll-in.
-- Nytt i testläget: riktade sidbyten 260 ms, menyval 240 ms, valt kalenderdatum följer med, ekonomi/disclosures fälls mjukt. Veckokostnadens handtag följer fingret. Väderhandtag ned/upp kör befintlig ovAnim efter släpp utan håll-in-zoom/scrollkompensation. Scroll låses bara under drag och återställs vid avbrott. Tryck/tangentbord och timremsans sidscroll/länk kvar.
-- Pekdrag, aktivitet/automatisk återgång på väggen, förstoring och avbruten rendering hanteras. Inga riktiga hushållsdata eller Kod.gs ändras.
-- Verifierad app-/testkod `93111c4ebfe411bdb2753a63f9198170bf798622`: [CI 12/12 gröna](https://github.com/HenrikLH/hushallstavlan/actions/runs/41024742559), UI2/UI3/UI4 × telefon/vägg × ljust/mörkt. animationer.js testar aktivering/omstart/avstängning/återställt normalläge samt mus/pekdrag, scroll-lås/avbrott, kalender, ekonomi och reducerad rörelse. Ordinarie UI2 pixeljämförs åter i hela fyra skärmbilder mot main.
-- Visuellt granskat: ny inställning och handtagens avgränsning (både brytaren och DEV av) i browser med exempeldata; telefon/vägg från föregående granskning kvar. Endast dokumentation efter testad kod. Publicering godkänd; ångra-gren `version-fore-animationer-20261030` från `ffb6ee1e944ccdc43b7836d3ebaad09c76b55ab7`. Merge via PR #46 och kontroll av lyckad Pages-distribution. Känsla i fysisk Safari/Surface kräver användarprovning.
-
-## Rymligare kontroller · release ht-v231
-
-- Codex, gren `codex/ui2-rymliga-kontroller`, ht-v231 / app.js?v=221. Henrik godkänner uttryckligen publicering som ny inställning (2026-10-30); ska inte bli standard.
-- Inställningar → Utseende → Rymligare kontroller. Av från början, enhetsval `ht.rymlig`; klassen `rymlig` gäller bara UI2. Ny padding och kryss-/datum-/knappformer följer Kantiga/Runda/Raka enligt godkända bilder.
-- Ingen server-/dataändring. UI3/UI4 och avstängt UI2 isoleras. Ny regression testar av/på, utkast, former, omstart, flikar och UI-byte. Visuellt granskat och av/på/omladdning verifierat i webbläsaren.
-- Verifierat på `390ff27d4a08176de61e6fbf6801c1fb77dfbe0a`: [CI 12/12 gröna](https://github.com/HenrikLH/hushallstavlan/actions/runs/41008645459), inklusive UI2:s nya av/på-/form-/omstartstest och pixeljämförelse med valet av. Endast dokumentation ändrad efter testad kod.
-- Publicering godkänd av Henrik. Ångra-gren `version-fore-ui2-rymlig-20261030` från `6c54830c3c7f048eae27a24a148486493392f67f`; merge via PR #45 och kontroll av Pages. Ingen Kod.gs-distribution behövs.
-
-## Recept: timeout vid spara/import · ht-v230
-
-- Codex, gren `codex/recept-timeout`, appkod `644e68e`, ht-v230/app.js?v=220. Henrik rapporterade URL-import och eget recept Tacos som misslyckas med timeout. Henrik godkände publicering (”Pusha”, 2026-10-29).
-- Verifierad klientbrist: recipeRpc avbröt efter 25 s trots serverns upp till 20 s låsväntan; inga återförsök vid låsfel. Rättat till 90 s/anrop, högst 120 s och tre försök. Identisk kropp/operations-id vid tappat sparsvar, inga automatiska nätåterförsök för import utan kvittens.
-- Ingen Kod.gs-ändring/ny distribution behövs. Importens befintliga domän-/JSON-LD-gränser kvar; Henriks exakta URL och verkliga serverkörtid är inte kända. Inga riktiga hushållsdata ändras.
-- Lokalt grönt (Chromium 153): `recept-rpc.js`, `recept-server.js`, `recept-ui.js`/`recept-reliability.js` i UI4, `alla-flikar.js` telefon/vägg UI4. Nytt `recept-timeout.js` grönt UI2/telefon, UI4/telefon och UI4/vägg/mörkt: Tacos/import med 26 s svar, låsfel, tappat sparsvar utan extra version, omladdat utkast och oförändrad matsedel/inköp. RPC-testet faller med AbortError mot gamla main som väntat.
-- Publicering godkänd; ångra-gren `version-fore-recept-timeout-20261029` från `aa445e13439809f65f06448cd7c6889d336e6654`. Kontrollera PR-CI före merge och Pages efter publicering. Ingen ytterligare inklistring av Kod.gs behövs. Tidigare granskningsblockering gällde saknat godkännande och är nu hanterad med Henriks ”Pusha”.
-
-## UI4-felgenomgång · release ht-v229
-
-- Codex, gren `codex/ui4-felgenomgang`, [PR #43](https://github.com/HenrikLH/hushallstavlan/pull/43), ht-v229 / app.js?v=219. Felsökning efter Henriks rapport; föregående UI4-release finns på main (PR #42).
-- Reproducerat: Piller flyttar telefonmenyn utanför skärmen; Svävande/Piller flyttar sidomenyn utanför stora skärmar (ärvd margin-left). Dialogens bakgrund låg på fel element.
-- Rättat även överlappande ordna-verktyg på väggen, för smala matrader vid 900–1199 px, saknad övre safe-area och ofullständigt formval på nya kort. UI2/UI3 lämnas oförändrade.
-- Ny regression `verktyg/emu/ui4-installningar.js`: 54 bredd/form/menyrad-kombinationer per telefon/vägg/tema, verkliga klick, träffytor, scroll/omstart, dialog och väggknappar. Befintliga funktionstester kvar.
-- Även rättat: veckans kostnad/status radbryts på smala skärmar; UI4 använder zoom 1 även i smalt väggläge.
-- Testad kod `58c3c41d23e190cf7929a17372239e4d45956920`: [CI 12/12 gröna](https://github.com/HenrikLH/hushallstavlan/actions/runs/40895889310), därav 216 UI4-kombinationer (320/390/899/900/1024/1368 px × form × menyrad × telefon/vägg × ljust/mörkt), plus befintliga funktionstester. Webbläsarmätningar och CI-bilder granskade; CUA hängde sig senare, fortsatt visuell kontroll gjord på CI-bilder.
-- Henrik godkände publicering (”Pusha”, 2026-10-29). Ångra-gren `version-fore-ui4-felfix-20261029` från `8575eea66a645bb1bab6091d4bc850e43573a336`; release via PR #43. Kontrollera Pages efter merge. Inga riktiga hushållsdata eller Kod.gs ändras. iPhone-tangentbord/Surface kräver som tidigare riktig hårdvara.
+Tidigare publiceringar ht-v229–235 finns i PR #43–49 och git-historiken.
 
 ## Börja här
 
-- Aktuell release: **ht-v235 / app.js?v=225**, via PR #49 (väderutdrag och snabbare menyer). UI2 förblir standard; välj UI4 i Inställningar → Utseende → Design.
-- [Publiceringar](https://github.com/HenrikLH/hushallstavlan/actions): följ Pages-bygget för PR #49:s merge. Äldre PR #32 (priser) är separat och ingår inte i UI4.
-- Nästa steg: återkoppling från Henrik efter väderutdraget och snabbare menyer i PR #49. Gör inte om redan godkända rättningar.
+- Aktuell release: **ht-v236 / app.js?v=226**, via PR #50 (kurvritning efter full expansion). UI2 förblir standard; välj UI4 i Inställningar → Utseende → Design.
+- [Publiceringar](https://github.com/HenrikLH/hushallstavlan/actions): följ Pages-bygget för PR #50:s merge. Äldre PR #32 (priser) är separat och ingår inte i UI4.
+- Nästa steg: återkoppling från Henrik efter kurvritningens senare start i PR #50. Gör inte om redan godkända rättningar.
 - UI 2.0:s tema och beteenden ska bevaras. Henrik har godkänt Ateljé som ett separat UI 4.0; UI 3.0 finns kvar i utvecklarläget. Bilder före visuella ändringar på main; ”Pusha” är publiceringsgodkännande.
 - Strömningen i ChatGPT har avbrutits flera gånger. Kontrollera gren/PR/main och Pages innan en avbruten publicering återupptas. Begär inte samma godkännande igen.
 
