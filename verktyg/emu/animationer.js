@@ -12,7 +12,7 @@ module.exports=async(pg,h)=>{
   console.log('DRAG',sel,fraction,cancel);const el=pg.locator(sel).first();await el.evaluate(e=>e.scrollIntoView({block:'center',behavior:'instant'}));await h.idle(520);const b=await el.boundingBox(),x=b.x+b.width/2,y=b.y+b.height/2;
   const before=await pg.evaluate(()=>({y:scrollY,top:document.getElementById('main').getBoundingClientRect().top}));
   assert(await pg.evaluate(({x,y})=>!!document.elementFromPoint(x,y)?.closest('[data-motion-grip]'),{x,y}),'Handtaget är synligt ovanför navigationen');await pg.mouse.move(x,y);await pg.mouse.down();const state=await read('({height:motionDrag.height,max:motionDrag.max,scale:motionDrag.scale,id:motionDrag.id,open:motionDrag.open})');
-  const dy=(fraction*state.max-state.height)*state.scale;await pg.mouse.move(x,y+dy,{steps:10});
+  const dy=(fraction*state.max-state.height)*state.scale;await pg.mouse.move(x,y+dy+(fraction===1?2:0),{steps:10});
   assert.equal(await pg.evaluate(()=>document.body.style.position),'fixed','Sidan låst under drag');assert(await read('Date.now()-A.touch<2000'));
   const during=await el.boundingBox();assert(Math.abs(during.y-b.y-dy)<2.5,'Handtaget följer ytans rörliga kant och fingret');
   if(sel.includes('weather')&&fraction===1&&!state.open){await pg.waitForTimeout(80);const progress=await pg.locator('.ovg-k').evaluate(e=>parseFloat(getComputedStyle(e).strokeDashoffset));assert(progress>0&&progress<1,'Kurvan börjar ritas först när handtaget nått fullt utdrag, före släpp')}
