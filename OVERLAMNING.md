@@ -4,18 +4,18 @@ Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs 
 
 ## Rita graf efter full expansion · ht-v236
 
-- Codex, `codex/vadergraf-efter-utdrag`, PR #50. Henrik har godkänt publicering direkt i beställningen (”pusha när det är klart”).
+- Codex, `codex/vadergraf-efter-utdrag`, PR #51 (ersätter utkast #50; GitHubs GraphQL-övergång till redo gav serverfel). Henrik har godkänt publicering direkt i beställningen (”pusha när det är klart”).
 - Utdragets geometri är oförändrad. Separata rit-animationer väntar på full expansion (även före släpp) och spelar därefter 760 ms. Halvöppning ritar inte kurva/punkter/fyllning. Redan öppen graf behåller ritningen vid stängningsdrag. Reducerad rörelse respekteras.
 - Regression: ritningen står still under delvis utdrag, startar när fullt utdrag nås medan fingret hålls nere och är färdig efter öppning. Testad kod `fe962e6d56161a6d1aff5ea36eb9796bdf434649`: [CI 12/12 gröna](https://github.com/HenrikLH/hushallstavlan/actions/runs/41069705952), UI2/UI3/UI4 × telefon/vägg × ljust/mörkt. Endast dokumentation efter testad kod. Ingen Kod.gs eller hushållsdata ändrad.
-- Publicering godkänd; ångra-gren `version-fore-graf-efter-utdrag-20261030` från `fe0c1c76c94322dee0fb567ffa3874f7c306d374`. Merge PR #50 och verifiera Pages/live ht-v236/app.js?v=226. Begär inte nytt publiceringsgodkännande.
+- Publicering godkänd; ångra-gren `version-fore-graf-efter-utdrag-20261030` från `fe0c1c76c94322dee0fb567ffa3874f7c306d374`. Merge PR #51 (ersätter utkast #50; GitHubs GraphQL-övergång till redo gav serverfel) och verifiera Pages/live ht-v236/app.js?v=226. Begär inte nytt publiceringsgodkännande.
 
 Tidigare publiceringar ht-v229–235 finns i PR #43–49 och git-historiken.
 
 ## Börja här
 
-- Aktuell release: **ht-v236 / app.js?v=226**, via PR #50 (kurvritning efter full expansion). UI2 förblir standard; välj UI4 i Inställningar → Utseende → Design.
-- [Publiceringar](https://github.com/HenrikLH/hushallstavlan/actions): följ Pages-bygget för PR #50:s merge. Äldre PR #32 (priser) är separat och ingår inte i UI4.
-- Nästa steg: återkoppling från Henrik efter kurvritningens senare start i PR #50. Gör inte om redan godkända rättningar.
+- Aktuell release: **ht-v236 / app.js?v=226**, via PR #51 (ersätter utkast #50; GitHubs GraphQL-övergång till redo gav serverfel) (kurvritning efter full expansion). UI2 förblir standard; välj UI4 i Inställningar → Utseende → Design.
+- [Publiceringar](https://github.com/HenrikLH/hushallstavlan/actions): följ Pages-bygget för PR #51 (ersätter utkast #50; GitHubs GraphQL-övergång till redo gav serverfel):s merge. Äldre PR #32 (priser) är separat och ingår inte i UI4.
+- Nästa steg: återkoppling från Henrik efter kurvritningens senare start i PR #51 (ersätter utkast #50; GitHubs GraphQL-övergång till redo gav serverfel). Gör inte om redan godkända rättningar.
 - UI 2.0:s tema och beteenden ska bevaras. Henrik har godkänt Ateljé som ett separat UI 4.0; UI 3.0 finns kvar i utvecklarläget. Bilder före visuella ändringar på main; ”Pusha” är publiceringsgodkännande.
 - Strömningen i ChatGPT har avbrutits flera gånger. Kontrollera gren/PR/main och Pages innan en avbruten publicering återupptas. Begär inte samma godkännande igen.
 
