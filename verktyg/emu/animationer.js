@@ -23,6 +23,13 @@ module.exports=async(pg,h)=>{
  await pg.locator('[data-motion-grip="budget"]').press('ArrowDown');await h.idle(350);assert.equal(await read('S.wsumOpen'),true);
  await click('.ws-card .wm-top');assert.equal(await read('S.wsumOpen'),false);
  await drag('[data-motion-grip="budget"]',65,true);assert.equal(await read('S.wsumOpen'),false);
+ // Pekgest: webbläsaren får inte ta över för sidskroll (touch-action måste finnas före touchstart).
+ const touch=await pg.context().newCDPSession(pg),handle=pg.locator('[data-motion-grip="budget"]');await handle.scrollIntoViewIfNeeded();const hb=await handle.boundingBox(),tx=hb.x+hb.width/2,ty=hb.y+hb.height/2;
+ await touch.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:tx,y:ty}]});
+ await touch.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:tx,y:ty+100}]});
+ assert.equal(await pg.evaluate(()=>document.body.style.position),'fixed','Pekdrag låser sidan');
+ await touch.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await h.idle(600);assert.equal(await read('S.wsumOpen'),true,'Pekdrag öppnar');
+ await touch.detach();await click('.ws-card .wm-top');
  await h.shot('animationer-veckokostnad');
  await nav('oversikt');
  if(await pg.locator('[data-motion-grip="weather"]').count()){
