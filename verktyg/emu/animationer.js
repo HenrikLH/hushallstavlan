@@ -17,6 +17,7 @@ module.exports=async(pg,h)=>{
   const during=await el.boundingBox();assert(Math.abs(during.y-b.y-dy)<2.5,'Handtaget följer ytans rörliga kant och fingret');
   const actual=await read('motionDrag.wx?motionDrag.wx.p:parseFloat(motionDrag.panel.style.height)/motionDrag.max');assert(Math.abs(actual-fraction)<.025,'Ytan visar dragets faktiska progress före släpp');
   assert(Math.abs((await pg.locator('#main').evaluate(e=>e.getBoundingClientRect().top))-before.top)<1,'Sidan står still');
+  if(sel.includes('weather')&&fraction===.25&&!cancel)await h.shot('animationer-vader-under-drag');
   if(cancel)await el.dispatchEvent('pointercancel',{pointerId:state.id});await pg.mouse.up();await h.idle(950);
   assert.notEqual(await pg.evaluate(()=>document.body.style.position),'fixed');assert(Math.abs((await pg.evaluate(()=>scrollY))-before.y)<2,'Scroll återställd');
   return cancel?state.open:fraction>=.5;
@@ -41,7 +42,7 @@ module.exports=async(pg,h)=>{
  await nav('oversikt');
  if(await pg.locator('[data-motion-grip="weather"]').count()){
   if(await read('OVWX')==='graf')await click('[data-motion-grip="weather"]');
-  await pg.evaluate(()=>scrollTo(0,80));await drag('[data-motion-grip="weather"]',.75);
+  await pg.evaluate(()=>scrollTo(0,80));await drag('[data-motion-grip="weather"]',.25);assert.equal(await read('OVWX'),'tim','Kort drag återgår till stängt');await drag('[data-motion-grip="weather"]',.75);
   assert.equal(await read('OVWX'),'graf');assert.equal(await pg.locator('.ovx.hl-on').count(),0,'Inget håll-in-zoom');
   assert.equal(await pg.locator('.ovx').getAttribute('data-hold-lift'),null);
   await drag('[data-motion-grip="weather"]',.65);assert.equal(await read('OVWX'),'graf','Närmare öppet återgår till öppet');
