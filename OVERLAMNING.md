@@ -2,6 +2,14 @@
 
 Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs relevant kod/PR vid behov.
 
+## Animationer · finjustering efter provning · ht-v234
+
+- Codex, `codex/animationer-finjustering`, [PR #48](https://github.com/HenrikLH/hushallstavlan/pull/48). Ej publiceringsgodkänd. Vänta på Pusha före merge.
+- Väderhandtagets visuella rad 24 i stället för 44 px, mindre padding, träffyta utökad utan extra layoutluft. Grafen skalar inom synlig höjd medan kurvan ritas, så den inte klipps bort under draget. Punkter framträder i kurvans takt, fyllningen tonas in.
+- Huvudsidbyten 620 ms med acceleration/inbromsning; underflikar 440 ms. Veckodatumraden bort i testläget så Mat-menyn står still. Övriga nya animationer fortfarande DEV && MOTION.
+- Alla befintliga bladhandtag är knappar med verkligt drag även i normalläge; bladet följer fingret och landar närmast öppet/stängt. Tryck/tangentbord stänger. Avbrutet drag återgår utan att ett syntetiskt klick stänger efteråt. Samma closeSheets som Avbryt, ingen automatisk sparning. Reducerad rörelse respekteras.
+- Utökad animationer.js: handtagsförflyttning, avbrott, återgång/stängning och Mat-menyns position. [CI](https://github.com/HenrikLH/hushallstavlan/actions/runs/41056278335): 12/12 gröna (UI2/UI3/UI4 × telefon/vägg × ljust/mörkt). Endast dokumentation efter testad kod. UI2 telefon granskat i lokal browser med exempeldata; UI3 mörkt under pågående drag granskat från CI. Testad kod `3806f618a895b392671730b84984fbd7c0737005`. Ingen Kod.gs eller hushållsdata ändrad.
+
 ## Animationer · rättningar efter användarprovning, release ht-v233
 
 - Codex, gren `codex/animationer-direktmanipulation`, [PR #47](https://github.com/HenrikLH/hushallstavlan/pull/47). Henrik beskriver osynlig navigation/kalender, felplacerat budgethandtag, toggle-väder, för snabb expansion och inställningsblad som flyttar sig upp. Henrik godkänner publicering (”Pusha”, 2026-10-30).
