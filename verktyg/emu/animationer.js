@@ -12,12 +12,14 @@ module.exports=async(pg,h)=>{
   console.log('DRAG',sel,fraction,cancel);const el=pg.locator(sel).first();await el.evaluate(e=>e.scrollIntoView({block:'center',behavior:'instant'}));await h.idle(520);const b=await el.boundingBox(),x=b.x+b.width/2,y=b.y+b.height/2;
   const before=await pg.evaluate(()=>({y:scrollY,top:document.getElementById('main').getBoundingClientRect().top}));
   assert(await pg.evaluate(({x,y})=>!!document.elementFromPoint(x,y)?.closest('[data-motion-grip]'),{x,y}),'Handtaget är synligt ovanför navigationen');await pg.mouse.move(x,y);await pg.mouse.down();const state=await read('({height:motionDrag.height,max:motionDrag.max,scale:motionDrag.scale,id:motionDrag.id,open:motionDrag.open})');
-  const dy=(fraction*state.max-state.height)*state.scale;await pg.mouse.move(x,y+dy,{steps:10});
+  const dy=(fraction*state.max-state.height)*state.scale;await pg.mouse.move(x,y+dy+(fraction===1?2:0),{steps:10});
   assert.equal(await pg.evaluate(()=>document.body.style.position),'fixed','Sidan låst under drag');assert(await read('Date.now()-A.touch<2000'));
   const during=await el.boundingBox();assert(Math.abs(during.y-b.y-dy)<2.5,'Handtaget följer ytans rörliga kant och fingret');
+  if(sel.includes('weather')&&fraction===1&&!state.open){await pg.waitForTimeout(80);const progress=await pg.locator('.ovg-k').evaluate(e=>parseFloat(getComputedStyle(e).strokeDashoffset));assert(progress>0&&progress<1,'Kurvan börjar ritas först när handtaget nått fullt utdrag, före släpp')}
   const actual=await read('motionDrag.wx?motionDrag.wx.p:parseFloat(motionDrag.panel.style.height)/motionDrag.max');assert(Math.abs(actual-fraction)<.025,'Ytan visar dragets faktiska progress före släpp');
   assert(Math.abs((await pg.locator('#main').evaluate(e=>e.getBoundingClientRect().top))-before.top)<1,'Sidan står still');
-  if(sel.includes('weather')){const graph=await pg.locator('.ovx-g').evaluate(e=>{const child=e.firstElementChild,m=new DOMMatrix(getComputedStyle(child).transform);return{scale:m.m22,dy:m.m42,natural:child.offsetHeight,height:e.getBoundingClientRect().height}});assert.equal(graph.scale,1,'Grafen behåller naturlig skala');assert(Math.abs(graph.dy+(1-fraction)*graph.natural)<2,'Grafen dras ut under bildens klippkant');assert(graph.dy<0&&graph.height>0,'Delvis dold graf under drag')}
+  if(sel.includes('weather')&&!state.open&&fraction<1)assert.equal(await pg.locator('.ovg-k').evaluate(e=>parseFloat(getComputedStyle(e).strokeDashoffset)),1,'Kurvan börjar inte ritas under utdraget');
+  if(sel.includes('weather')){const graph=await pg.locator('.ovx-g').evaluate(e=>{const child=e.firstElementChild,m=new DOMMatrix(getComputedStyle(child).transform);return{scale:m.m22,dy:m.m42,natural:child.offsetHeight,height:e.getBoundingClientRect().height}});assert.equal(graph.scale,1,'Grafen behåller naturlig skala');assert(Math.abs(graph.dy+(1-fraction)*graph.natural)<2,'Grafen dras ut under bildens klippkant');assert(graph.dy<=0&&graph.height>0,'Grafen ligger vid eller ovanför klippkanten')}
   if(sel.includes('weather')&&fraction===.25&&!cancel){const reduced=process.env.REDUCED;try{process.env.REDUCED='0';await h.shot('animationer-vader-under-drag')}finally{process.env.REDUCED=reduced}}
   if(cancel)await el.dispatchEvent('pointercancel',{pointerId:state.id});await pg.mouse.up();await h.idle(950);
   assert.notEqual(await pg.evaluate(()=>document.body.style.position),'fixed');assert(Math.abs((await pg.evaluate(()=>scrollY))-before.y)<2,'Scroll återställd');
@@ -53,8 +55,10 @@ module.exports=async(pg,h)=>{
  await nav('oversikt');
  if(await pg.locator('[data-motion-grip="weather"]').count()){
   if(await read('OVWX')==='graf')await click('[data-motion-grip="weather"]');
+  await drag('[data-motion-grip="weather"]',1);await drag('[data-motion-grip="weather"]',.25);
   await pg.evaluate(()=>scrollTo(0,80));await drag('[data-motion-grip="weather"]',.25);assert.equal(await read('OVWX'),'tim','Kort drag återgår till stängt');await drag('[data-motion-grip="weather"]',.75);
   assert.equal(await read('OVWX'),'graf');assert.equal(await pg.locator('.ovx.hl-on').count(),0,'Inget håll-in-zoom');
+  await h.idle(650);assert.equal(await pg.locator('.ovg-k').evaluate(e=>parseFloat(getComputedStyle(e).strokeDashoffset)),0,'Kurvan ritas färdigt efter full expansion');
   assert.equal(await pg.locator('.ovx').getAttribute('data-hold-lift'),null);
   await drag('[data-motion-grip="weather"]',.65);assert.equal(await read('OVWX'),'graf','Närmare öppet återgår till öppet');
   await h.shot('animationer-vader-oppet');
