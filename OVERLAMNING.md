@@ -1,15 +1,15 @@
-# Aktuell överlämning — 2026-10-30
+# Aktuell överlämning — 2026-10-31
 
 Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs relevant kod/PR vid behov.
 
-## Portionsförslag, kompaktare kontroller och Ö2 · arbetsgren ht-v239
+## Portionsantal, kompaktare kontroller och Ö2 · ht-v239
 
-- Codex, `codex/portioner-kalender-drag`, PR #54 (utkast). Ingen publicering godkänd i denna beställning. Main är ht-v238. Henrik ska välja portionsindikator A/B/C; se verktyg/portioner-forslag.html. Rekommendation A (segmenterad stapel + räknare). Texten Räcker inte är kvar tills val gjorts.
-- Förslagets logik: täckning = summan av min(har, behov) per Vardag/Helg/Storkok, normalt 8+6+10=24. Överskott i en grupp täcker inte en annan; målet ska följa ändrat behov. Ingen indikator vald/implementerad ännu.
-- Byggt: veckans handtag 24 px visuell höjd med utökad träffyta, pilen borttagen; Rymligare kontroller segment 48→42 px med 4 px padding (underflik 40 px), former bevarade.
-- Ö2: direkt drag vecka→månad i samma ruta, scroll-lås under drag, närmaste ändläge/släpp, avbrott/tangentbord/tryck/reducerad rörelse. Vald dag uppdaterar schemat, månadspilar finns och vald vecka följer vid hopfällning. T3 på väggen behåller sitt beteende. Kalenderhandtaget fungerar även med animationer av. S.ovCalOpen/ovCalMonth är sessionsval.
-- Verifierat app-/testkod `2be3a208b7e3bfcf84e3213da38f4102c61695e1`: [CI 12/12 gröna](https://github.com/HenrikLH/hushallstavlan/actions/runs/41138647841), UI2/UI3/UI4 × telefon/vägg × ljust/mörkt. Ny oversikt-manad.js + uppdaterat ui2-rymlig.js. Browsergranskat med exempeldata: UI2 telefon, faktiskt drag tillbaka till vecka, datum/månad och mörkt desktop. Endast dokumentation efter testad kod.
-- Nästa: Henrik väljer A/B/C, implementera indikator i kostnadskortet och förhandsvisa. Publicera först efter Pusha. Ny versionshöjning bara om main ändrats; ht-v239/app.js?v=229 redan höjd via version.js. Inga server-/hushållsdata ändrade.
+- Codex, `codex/portioner-kalender-drag`, PR #54. Henrik valde endast portionsantalet i övre högra hörnet och godkände publicering av hela paketet (”Pusha alla ändringar”, 2026-10-31).
+- ”Räcker inte” ersatt av enbart t.ex. 21/24, utan stapel/prick/extra rad. Täckning = summan min(har, behov) per Vardag/Helg/Storkok, normalt 8+6+10=24. Överskott i en grupp täcker inte en annan; målet följer faktiskt behov. De avvisade designförslagen är borttagna ur slutändringen.
+- Veckans handtag har 24 px visuell höjd med utökad träffyta, pilen borttagen; Rymligare kontroller segment 48→42 px med 4 px padding (underflik 40 px), former bevarade.
+- Ö2: direkt drag vecka→månad i samma ruta, scroll-lås, närmaste ändläge/släpp, avbrott/tangentbord/tryck/reducerad rörelse. Vald dag uppdaterar schemat, månadspilar och vald vecka vid hopfällning. T3 på väggen bevarad. Kalenderhandtaget fungerar även med animationer av; S.ovCalOpen/ovCalMonth är sessionsval.
+- Testad kod `d1746392f4e9c8918736100cfdd761d7dc8e1ce3`: [CI 12/12 gröna](https://github.com/HenrikLH/hushallstavlan/actions/runs/41144242515), UI2/UI3/UI4 × telefon/vägg × ljust/mörkt. Browsergranskad med exempeldata i ljust/mörkt telefon; Ö2 även mörkt desktop och faktiskt drag. Endast dokumentation efter testad kod.
+- Publicering godkänd. Ångra-gren `version-fore-portioner-manad-20261031` från `337490ec8bbd5e7e3dc06c35e2a9075e89d1ce4a`. Release ht-v239/app.js?v=229 via PR #54; kontrollera Pages/live om en avbruten publicering återupptas. Inga server-/hushållsdata ändrade. Begär inte nytt godkännande.
 
 Inköpslistans hopfällbara avdelningar är publicerade i ht-v238 / PR #53; animationer som standard i ht-v237 / PR #52.
 
@@ -24,9 +24,9 @@ Tidigare publiceringar ht-v229–235 finns i PR #43–49 och git-historiken.
 
 ## Börja här
 
-- Aktuell release: **ht-v238 / app.js?v=228**, via PR #53. M10 har hopfällbara avdelningar; M9-filtret är borttaget. UI2 är standard, animationer är på som standard.
-- [Publiceringar](https://github.com/HenrikLH/hushallstavlan/actions): följ Pages-bygget för PR #53. Äldre PR #32 (priser) är separat.
-- Nästa steg: portionsval A/B/C i PR #54. Main är fortsatt ht-v238.
+- Aktuell release: **ht-v239 / app.js?v=229**, via PR #54. Portionsantal i hörnet, kompaktare kontroller och Ö2 med månadsdrag. M10:s hopfällbara avdelningar från ht-v238 kvar.
+- [Publiceringar](https://github.com/HenrikLH/hushallstavlan/actions): följ Pages-bygget för PR #54. Äldre PR #32 (priser) är separat.
+- Nästa steg: återkoppling från Henrik efter hela paketet i PR #54. Gör inte om godkända ändringar.
 - UI 2.0:s tema och beteenden ska bevaras. Henrik har godkänt Ateljé som ett separat UI 4.0; UI 3.0 finns kvar i utvecklarläget. Bilder före visuella ändringar på main; ”Pusha” är publiceringsgodkännande.
 - Strömningen i ChatGPT har avbrutits flera gånger. Kontrollera gren/PR/main och Pages innan en avbruten publicering återupptas. Begär inte samma godkännande igen.
 
