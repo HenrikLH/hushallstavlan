@@ -1188,7 +1188,9 @@ function weekSummary(ds,total,port){const rk=raeckerKort(ds),bad=/class="rk bad"
  // Översta raden finns två gånger: i rutan och som en kopia som ligger fast under navigeringsfältet.
  // Kopian visas exakt när rutans överkant når fältet, så det ser ut som att raden glider fast. Tryck fäller ut räcker-listan
  // Med budget visar den stora rutan en stapel: hur mycket av budgeten veckans mat tar
- const st=(rub?'<span class="wsum-s'+(bad?' bad':'')+'"><span class="dotc"></span>'+(bad?'Räcker inte':'Räcker')+'</span>':'')+'';
+ const G=grpBehov(ds),goal=G?Object.values(G).reduce((a,g)=>a+Math.max(0,g.beh),0):24,covered=G?Object.values(G).reduce((a,g)=>a+Math.min(Math.max(0,g.n),Math.max(0,g.beh)),0):Math.min(port,goal);
+ const st='<span class="wm-port num" aria-label="'+covered+' av '+goal+' portioner täckta">'+covered+'/'+goal+'</span>';
+
  const bar=()=>{const a=Math.min(100,total/B*100),ov=total>B;return'<span class="wm-bb"><span class="wm-bt"><b class="num">'+nv('m-total',total,'kr')+'</b><span>av '+kr(B)+'</span><span class="grow"></span>'+st+'</span>'+
   '<span class="wm-bar'+(ov?' over':'')+'" role="img" aria-label="'+kr(total)+' av '+kr(B)+'"><i style="width:'+a.toFixed(1)+'%"></i></span><span class="wm-pp"><span class="wm-kv'+(ov?' bad':'')+'">'+(ov?kr(total-B)+' över':kr(B-total)+' kvar')+'</span> · '+port+' portioner'+(port?' · '+kr(total/port)+' per portion':'')+'</span></span>'};
  const op=S.wsumOpen?' open':'',top=big=>'<button type="button" class="wm-top'+(big&&B?' wm-rt':'')+'" data-act="wsumMini" aria-expanded="'+!!S.wsumOpen+'">'+(big&&B?bar():'<b class="num">'+(big?nv('m-total',total,'kr'):kr(total))+'</b><span class="wm-c">'+

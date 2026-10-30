@@ -3,6 +3,7 @@ module.exports=async(pg,h)=>{
  await pg.emulateMedia({reducedMotion:'no-preference'});
  const read=s=>pg.evaluate(s=>window.__d(s),s),click=async s=>{await pg.locator(s).first().click();await h.idle(550)};
  await click('#nav [data-id="mat"]');await click('[data-act="matTab"][data-id="vecka"]');assert.equal(await pg.locator('.wm-ch').count(),0,'Dubbelpilen är borta');
+ const counts=await read('(()=>{const G=grpBehov(weekDishes());return{goal:Object.values(G).reduce((a,g)=>a+Math.max(0,g.beh),0),n:Object.values(G).reduce((a,g)=>a+Math.min(Math.max(0,g.n),Math.max(0,g.beh)),0)}})()');assert.equal(await pg.locator('.ws-card .wm-port').textContent(),counts.n+'/'+counts.goal);assert.equal(await pg.locator('.ws-card .wm-port i').count(),0,'Ingen portionsstapel');assert.equal(await pg.locator('.ws-card .wsum-s').count(),0,'Räcker-texten är ersatt');
  const grip=pg.locator('[data-motion-grip="budget"]');if(await grip.count())assert.equal(await grip.evaluate(e=>getComputedStyle(e).minHeight),'24px');
  await click('#nav [data-id="oversikt"]');if(await read('wallBoardOn()')){assert.equal(await pg.locator('.ovcal').count(),0);return}
  const handle=pg.locator('[data-motion-grip="calendar"]');assert.equal(await handle.count(),1);
