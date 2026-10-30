@@ -52,8 +52,9 @@ jobs:
           export LS="$(node -e 'console.log(JSON.stringify({...process.env.UI==="3"?{ui:"3",dev:"1"}:process.env.UI==="4"?{ui:"4"}:{},...process.env.SCREEN==="vagg"?{wall:"1",me:""}:{}}))')"
           if [[ "$SCREEN" == "vagg" ]]; then export VP=1368x912; fi
           if [[ "$UI" == "2" ]]; then
-            APP="$PWD/baseline" OUT="$PWD/verktyg/emu/baseline-shots" node verktyg/emu/run.js verktyg/emu/alla-flikar.js
+            LS="$(node -e 'console.log(JSON.stringify({...JSON.parse(process.env.LS),motion:"0"}))')" APP="$PWD/baseline" OUT="$PWD/verktyg/emu/baseline-shots" node verktyg/emu/run.js verktyg/emu/alla-flikar.js
           fi
+          node verktyg/emu/run.js verktyg/emu/inkop-kollaps.js
           node verktyg/emu/run.js verktyg/emu/animationer.js
           if [[ "$UI" == "4" ]]; then
             node verktyg/emu/run.js verktyg/emu/ui4.js
