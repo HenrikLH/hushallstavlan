@@ -61,7 +61,13 @@ jobs:
             node verktyg/emu/run.js verktyg/emu/timerring.js
             node verktyg/emu/run.js verktyg/emu/hall-in-blad.js
           else
-            node verktyg/emu/run.js verktyg/emu/ui-versioner.js
+            # Standardanimationer provas i animationer.js och övriga funktionssviter.
+            # Pixeljämförelsen kontrollerar det bevarade utseendet med animationer av.
+            if [[ "$UI" == "2" ]]; then
+              LS="$(node -e 'console.log(JSON.stringify({...JSON.parse(process.env.LS),motion:"0"}))')" node verktyg/emu/run.js verktyg/emu/ui-versioner.js
+            else
+              node verktyg/emu/run.js verktyg/emu/ui-versioner.js
+            fi
           fi
           if [[ "$UI" == "2" ]]; then node verktyg/emu/jamfor-ui2.js; fi
           if [[ "$UI" == "2" ]]; then node verktyg/emu/run.js verktyg/emu/ui2-rymlig.js; fi
