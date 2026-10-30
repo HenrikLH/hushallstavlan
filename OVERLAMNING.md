@@ -2,6 +2,13 @@
 
 Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs relevant kod/PR vid behov.
 
+## Animationer som standard · ht-v237
+
+- Codex, `codex/animationer-standard`, PR #52. Henrik har godkänt publicering i beställningen (”pusha när det är klart”).
+- motionOn kräver bara MOTION, inte DEV. Alla befintliga sidbyten/menyval/kalender/expansioner och handtag är aktiva som standard. Av/på för alla i Inställningar → Avancerat → Rörelse. Tidigare sparat av-val och reducerad rörelse respekteras.
+- Regression kör standardläget från uppstart, testar av/på/omladdning och att DEV av inte stänger av rörelsen. Övriga funktionssviter kör nya standardläget. UI2:s separata pixeljämförelse kör med motion=0 för att skydda det bevarade alternativet. AGENTS uppdaterad.
+- Testad kod `eed576a4e661e0625272ec292439805fe69b2c12`: [CI 12/12 gröna](https://github.com/HenrikLH/hushallstavlan/actions/runs/41082018013), UI2/UI3/UI4 × telefon/vägg × ljust/mörkt. Endast dokumentation efter testad kod. Ingen Kod.gs/hushållsdata ändrad. Ångra-gren `version-fore-animationer-standard-20261030` från `2810ee5d83b419154774ff84244c2171a1a7d3e4`. Publicering via PR #52, Pages/live ht-v237/app.js?v=227. Begär inte nytt godkännande.
+
 ## Rita graf efter full expansion · ht-v236
 
 - Codex, `codex/vadergraf-efter-utdrag`, PR #51 (ersätter utkast #50; GitHubs GraphQL-övergång till redo gav serverfel). Henrik har godkänt publicering direkt i beställningen (”pusha när det är klart”).
@@ -13,9 +20,9 @@ Tidigare publiceringar ht-v229–235 finns i PR #43–49 och git-historiken.
 
 ## Börja här
 
-- Aktuell release: **ht-v236 / app.js?v=226**, via PR #51 (ersätter utkast #50; GitHubs GraphQL-övergång till redo gav serverfel) (kurvritning efter full expansion). UI2 förblir standard; välj UI4 i Inställningar → Utseende → Design.
-- [Publiceringar](https://github.com/HenrikLH/hushallstavlan/actions): följ Pages-bygget för PR #51 (ersätter utkast #50; GitHubs GraphQL-övergång till redo gav serverfel):s merge. Äldre PR #32 (priser) är separat och ingår inte i UI4.
-- Nästa steg: återkoppling från Henrik efter kurvritningens senare start i PR #51 (ersätter utkast #50; GitHubs GraphQL-övergång till redo gav serverfel). Gör inte om redan godkända rättningar.
+- Aktuell release: **ht-v237 / app.js?v=227**, via PR #52. Animationer är på som standard utan Utvecklarläge. UI2 förblir standard; UI4 väljs i Inställningar → Utseende → Design.
+- [Publiceringar](https://github.com/HenrikLH/hushallstavlan/actions): följ Pages-bygget för PR #52. Äldre PR #32 (priser) är separat.
+- Nästa steg: återkoppling från Henrik efter standardaktiveringen. Gör inte om redan godkända rättningar.
 - UI 2.0:s tema och beteenden ska bevaras. Henrik har godkänt Ateljé som ett separat UI 4.0; UI 3.0 finns kvar i utvecklarläget. Bilder före visuella ändringar på main; ”Pusha” är publiceringsgodkännande.
 - Strömningen i ChatGPT har avbrutits flera gånger. Kontrollera gren/PR/main och Pages innan en avbruten publicering återupptas. Begär inte samma godkännande igen.
 
