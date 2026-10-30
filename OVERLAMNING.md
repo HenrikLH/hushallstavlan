@@ -2,6 +2,13 @@
 
 Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs relevant kod/PR vid behov.
 
+## Vädergraf som utdrag · snabbare menyval · ht-v235
+
+- Codex, `codex/vader-utdrag-snabbare-menyer`, [PR #49](https://github.com/HenrikLH/hushallstavlan/pull/49). Ej publiceringsgodkänd; invänta Pusha.
+- Grafen behåller full storlek: translateY från −grafhöjd till 0 bakom .ovx-g:s overflow:hidden. Ytan växer med fingret så grafen ser ut att dras fram under hundbilden. Kurva/punkter, handtag, släpp och avbrott kvar.
+- DEV && MOTION: huvudsidbyte 460 ms, underflikar/kalender/segc 300 ms; väderbladets dagmarkör och huvudmenyns glidmarkering också 300 ms. Systemets reducerade rörelse och normalläge bevaras.
+- Ny regression mäter skala 1 och translation −(1−progress)×grafhöjd mitt i draget; testbilden tas utan att snabbspola animationen. Testad kod `b49664559d2362ec1da00e0dea3954be343ca2ea`, [CI 12/12 gröna](https://github.com/HenrikLH/hushallstavlan/actions/runs/41064464493), UI2/UI3/UI4 × telefon/vägg × ljust/mörkt. Bild mitt i draget granskad (UI3 telefon mörkt): full storlek, kurvan/punkterna dras fram från klippkanten. Endast dokumentation efter testad kod. Ingen Kod.gs/data ändrad.
+
 ## Animationer · finjustering efter provning · ht-v234
 
 - Codex, `codex/animationer-finjustering`, [PR #48](https://github.com/HenrikLH/hushallstavlan/pull/48). Henrik godkänner publicering (”Pusha”, 2026-10-30). Ångra-gren `version-fore-animationer-finjustering-20261030` från `c62a4653a6c2338737d90d829948dd67b6b88aa3`; merge via PR #48 och Pages-kontroll.
