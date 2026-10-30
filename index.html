@@ -2554,6 +2554,29 @@ html.ui4 .nav.none .nav-pill{display:none}
 html.ui4.seg-kapsel :is(.hero,.bhero,.ws-card,.bcard,.stat,.tp){border-radius:26px}
 html.ui4.seg-klassisk :is(.hero,.bhero,.ws-card,.bcard,.stat,.tp){border-radius:8px}
 
+/* UI2: frivilliga rymligare kontroller, av från början. */
+html.ny.rymlig:not(.ui3):not(.ui4) .check::before{border-radius:8px}
+html.ny.rymlig:not(.ui3):not(.ui4) :is(.wk-d .n,.cal-d .n,.cv-d .n){border-radius:10px}
+html.ny.rymlig:not(.ui3):not(.ui4) .segc{height:48px;padding:5px;border-radius:15px}
+html.ny.rymlig:not(.ui3):not(.ui4) .segc button{min-height:36px;line-height:22px}
+html.ny.rymlig:not(.ui3):not(.ui4) .seg-thumb{top:5px;bottom:5px;left:5px;width:calc((100% - 10px) / var(--n,2));border-radius:10px}
+html.ny.rymlig:not(.ui3):not(.ui4) .subseg .segc{height:44px}
+html.ny.rymlig:not(.ui3):not(.ui4) .subseg .segc button{min-height:32px}
+html.ny.rymlig:not(.ui3):not(.ui4) :is(.btn-fill,.btn-tint){min-height:48px;padding:12px 18px}
+html.ny.rymlig:not(.ui3):not(.ui4) .fchips button{min-height:44px;height:auto;padding:10px 14px}
+html.ny.rymlig:not(.ui3):not(.ui4) .cell{padding-top:14px;padding-bottom:14px}
+html.ny.rymlig:not(.ui3):not(.ui4) .field{padding-top:12px;padding-bottom:12px}
+
+/* Formvalet omfattar även kryssrutor och kalenderns datumval. */
+html.ny.rymlig:not(.ui3):not(.ui4){--u2-check:8px;--u2-date:10px;--u2-menu:15px;--u2-mark:10px;--u2-button:12px}
+html.ny.rymlig.seg-kapsel:not(.ui3):not(.ui4){--u2-check:50%;--u2-date:50%;--u2-menu:999px;--u2-mark:999px;--u2-button:999px}
+html.ny.rymlig.seg-klassisk:not(.ui3):not(.ui4){--u2-check:3px;--u2-date:4px;--u2-menu:8px;--u2-mark:4px;--u2-button:6px}
+html.ny.rymlig:not(.ui3):not(.ui4) .check::before{border-radius:var(--u2-check)}
+html.ny.rymlig:not(.ui3):not(.ui4) :is(.wk-d .n,.cal-d .n,.cv-d .n){border-radius:var(--u2-date)}
+html.ny.rymlig:not(.ui3):not(.ui4) .segc{border-radius:var(--u2-menu)}
+html.ny.rymlig:not(.ui3):not(.ui4) .seg-thumb{border-radius:var(--u2-mark)}
+html.ny.rymlig:not(.ui3):not(.ui4) :is(.btn-fill,.btn-tint,.pill,.fchips button){border-radius:var(--u2-button)}
+
 </style>
 </head>
 <body>
@@ -2568,7 +2591,7 @@ html.ui4.seg-klassisk :is(.hero,.bhero,.ws-card,.bcard,.stat,.tp){border-radius:
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=220"></script>
+<script src="app.js?v=221"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>

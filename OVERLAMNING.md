@@ -1,6 +1,14 @@
-# Aktuell överlämning — 2026-10-29
+# Aktuell överlämning — 2026-10-30
 
 Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs relevant kod/PR vid behov.
+
+## Rymligare kontroller · release ht-v231
+
+- Codex, gren `codex/ui2-rymliga-kontroller`, ht-v231 / app.js?v=221. Henrik godkänner uttryckligen publicering som ny inställning (2026-10-30); ska inte bli standard.
+- Inställningar → Utseende → Rymligare kontroller. Av från början, enhetsval `ht.rymlig`; klassen `rymlig` gäller bara UI2. Ny padding och kryss-/datum-/knappformer följer Kantiga/Runda/Raka enligt godkända bilder.
+- Ingen server-/dataändring. UI3/UI4 och avstängt UI2 isoleras. Ny regression testar av/på, utkast, former, omstart, flikar och UI-byte. Visuellt granskat och av/på/omladdning verifierat i webbläsaren.
+- Verifierat på `390ff27d4a08176de61e6fbf6801c1fb77dfbe0a`: [CI 12/12 gröna](https://github.com/HenrikLH/hushallstavlan/actions/runs/41008645459), inklusive UI2:s nya av/på-/form-/omstartstest och pixeljämförelse med valet av. Endast dokumentation ändrad efter testad kod.
+- Publicering godkänd av Henrik. Ångra-gren `version-fore-ui2-rymlig-20261030` från `6c54830c3c7f048eae27a24a148486493392f67f`; merge via PR #45 och kontroll av Pages. Ingen Kod.gs-distribution behövs.
 
 ## Recept: timeout vid spara/import · ht-v230
 
