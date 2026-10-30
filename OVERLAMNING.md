@@ -2,6 +2,14 @@
 
 Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs relevant kod/PR vid behov.
 
+## Vägledande animationer · pågår ht-v232
+
+- Codex, gren `codex/animationer`. Henrik har bett implementera hela rörelsestudien + draghandtag på Ö11. Ingen publicering till main beställd i denna tur.
+- Sidbyten med riktning 260 ms, menyval 240 ms utan översväng; separat minne per segment/rubrik. Kalenderns valda datum följer med vid Dag/Vecka/Månad. Ekonomins totalsumma står kvar ovanför animerad uppdelning; befintliga disclosures expanderar mjukt.
+- Veckokostnad har direkt följande draghandtag. Väderhandtaget ned/upp kör befintlig ovAnim efter släpp, utan håll-in-lyft eller scrollkompensation. Timremsans sidscroll och länk kvar. Scroll låses bara under drag och återställs även vid avbrott/resize/blur. Tryck och tangentbord kvar.
+- Inställningar → Utseende → Vägledande animationer, enhetsval ht.motion (på från början); systemets reducerade rörelse går före. Alla funktioner/data och manuella reglage kvar, ingen Kod.gs-ändring.
+- Ny regression animationer.js i CI-matrisen; syntaxkontroll grön. Lokal Chromium-nedladdning blockerad/ogiltigt arkiv: browsertester körs i GitHub CI. Nästa: granska testresultat och bilder, rätta eventuella fel, lämna färdig PR inför Pusha.
+
 ## Rymligare kontroller · release ht-v231
 
 - Codex, gren `codex/ui2-rymliga-kontroller`, ht-v231 / app.js?v=221. Henrik godkänner uttryckligen publicering som ny inställning (2026-10-30); ska inte bli standard.
