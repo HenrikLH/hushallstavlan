@@ -9,6 +9,7 @@ module.exports=async(pg,h)=>{
   const before=await pg.evaluate(()=>({y:scrollY,top:document.getElementById('main').getBoundingClientRect().top}));
   await pg.mouse.move(x,y);await pg.mouse.down();await pg.mouse.move(x,y+dy,{steps:10});
   assert.equal(await pg.evaluate(()=>document.body.style.position),'fixed','Sidan ska vara låst under drag');
+  assert(await read('Date.now()-A.touch<2000'),'Handtaget räknas som aktivitet på väggskärmen');
   const top=await pg.locator('#main').evaluate(e=>e.getBoundingClientRect().top);assert(Math.abs(top-before.top)<1,'Sidans position står still');
   if(cancel)await el.dispatchEvent('pointercancel',{pointerId:1});else await pg.mouse.up();
   if(cancel)await pg.mouse.up();await h.idle(1000);

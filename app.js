@@ -296,7 +296,7 @@ let fitScrollbar=()=>{},hideCursor=()=>{};
 /* Väggtavlan: tillbaka till Översikt efter två minuter utan beröring, och väck nattläget vid tryck */
 (function(){const touch=()=>{const was=nightOn();A.touch=Date.now();if(was&&S.view==='oversikt')render()};
  document.addEventListener('pointerdown',touch,true);
- setInterval(()=>{if(!S.wall)return;const idle=Date.now()-(A.touch||0)>120000;
+ setInterval(()=>{if(!S.wall||motionDrag)return;const idle=Date.now()-(A.touch||0)>120000;
   if(idle&&S.arrange){S.arrange=false;render()}
   if(idle&&(S.view!=='oversikt'||S.sheet||S.shopAdd||S.taskAdd||S.recipe||window.scrollY>0)&&!S.cook){closeSheets();S.recipe=null;ACT.nav('oversikt')}
   else if(S.view==='oversikt'&&document.body.classList.contains('is-night')!==nightOn())render();
@@ -3924,10 +3924,10 @@ window.addEventListener('click',e=>{const summary=e.target.closest('summary');if
  if(calm()||!d.animate){finish();return}d.style.overflow='hidden';const a=d._motion=d.animate([{height:from+'px'},{height:to+'px'}],{duration:260,easing:MOTION_EASE});a.onfinish=finish;
 },true);
 // Handtag fångas före sidans svep och håll-in. touch-action deklareras före gesten.
-function motionUnlock(){const d=motionDrag;if(!d)return null;motionDrag=null;Object.assign(document.body.style,d.style);document.documentElement.classList.remove('motion-dragging');scrollTo(d.x,d.y);d.h.style.removeProperty('transform');
+function motionUnlock(){const d=motionDrag;if(!d)return null;A.touch=A.user=Date.now();motionDrag=null;Object.assign(document.body.style,d.style);document.documentElement.classList.remove('motion-dragging');scrollTo(d.x,d.y);d.h.style.removeProperty('transform');
  try{if(d.h.hasPointerCapture(d.id))d.h.releasePointerCapture(d.id)}catch(_){}if(pendingRender)setTimeout(render,300);return d}
 function motionAbort(){const d=motionUnlock();if(d&&d.kind==='budget'){d.panel.style.removeProperty('height');d.panel.style.removeProperty('overflow');d.panel.hidden=!d.open;d.panel.inert=!d.open;d.panel.setAttribute('aria-hidden',String(!d.open))}}
-window.addEventListener('pointerdown',e=>{const h=e.target.closest('[data-motion-grip]');if(!h||e.button>0||!e.isPrimary)return;e.preventDefault();e.stopImmediatePropagation();motionAbort();
+window.addEventListener('pointerdown',e=>{const h=e.target.closest('[data-motion-grip]');if(!h||e.button>0||!e.isPrimary)return;e.preventDefault();e.stopImmediatePropagation();motionAbort();A.touch=A.user=Date.now();
  const kind=h.dataset.motionGrip,panel=kind==='budget'?document.getElementById(h.getAttribute('aria-controls')):null,open=kind==='weather'?OVWX==='graf':!!S.wsumOpen;
  const style={position:document.body.style.position,top:document.body.style.top,left:document.body.style.left,width:document.body.style.width,overflow:document.body.style.overflow};
  let height=0,max=0,scale=1;if(panel){height=panel.hidden?0:motionHeight(panel);if(panel._motion)panel._motion.cancel();panel.hidden=false;scale=motionScale(panel);max=panel.scrollHeight;panel.style.height=height+'px';panel.style.overflow='hidden'}
@@ -3944,8 +3944,8 @@ window.addEventListener('pointerup',e=>{const d=motionDrag;if(!d||d.id!==e.point
 },true);
 ['pointercancel','lostpointercapture'].forEach(type=>window.addEventListener(type,e=>{if(motionDrag&&e.pointerId===motionDrag.id)motionAbort()},true));
 ['resize','blur','pagehide'].forEach(type=>window.addEventListener(type,motionAbort));
-window.addEventListener('click',e=>{const h=e.target.closest('[data-motion-grip]');if(!h)return;e.preventDefault();e.stopImmediatePropagation();if(h.dataset.motionSkip)return;h.dataset.motionGrip==='weather'?motionWeather(OVWX!=='graf'):motionBudget(!S.wsumOpen)},true);
-window.addEventListener('keydown',e=>{const h=e.target.closest('[data-motion-grip]');if(!h||!['ArrowDown','End','ArrowUp','Home'].includes(e.key))return;e.preventDefault();const open=['ArrowDown','End'].includes(e.key);h.dataset.motionGrip==='weather'?motionWeather(open):motionBudget(open)},true);
+window.addEventListener('click',e=>{const h=e.target.closest('[data-motion-grip]');if(!h)return;e.preventDefault();e.stopImmediatePropagation();if(h.dataset.motionSkip)return;A.touch=A.user=Date.now();h.dataset.motionGrip==='weather'?motionWeather(OVWX!=='graf'):motionBudget(!S.wsumOpen)},true);
+window.addEventListener('keydown',e=>{const h=e.target.closest('[data-motion-grip]');if(!h||!['ArrowDown','End','ArrowUp','Home'].includes(e.key))return;e.preventDefault();A.touch=A.user=Date.now();const open=['ArrowDown','End'].includes(e.key);h.dataset.motionGrip==='weather'?motionWeather(open):motionBudget(open)},true);
 
 function flipClock(c,txt){if(c.dataset.v===txt)return;const old=c.dataset.v||'';c.dataset.v=txt;
  if(!old||calm()){c.textContent=txt;return}
