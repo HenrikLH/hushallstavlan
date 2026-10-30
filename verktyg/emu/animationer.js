@@ -5,8 +5,7 @@ module.exports=async(pg,h)=>{
  const read=s=>pg.evaluate(s=>window.__d(s),s),click=async s=>{await pg.locator(s).first().click();await h.idle(320)};
  const nav=async v=>{await click('#nav [data-id="'+v+'"]');await h.idle(550)};
  const developer=async()=>{await click('[data-act="settings"]');const section=pg.locator('[data-k="pref-avancerat"]');if(!await section.evaluate(e=>e.open))await section.locator('summary').click();await h.idle(300)};
- if(!await read('DEV')){assert.equal(await pg.locator('[data-motion-grip]').count(),0,'Normalläget saknar nya handtag');await developer();assert.equal(await pg.locator('[data-act="motion"]').count(),0);await click('[data-act="dev"]');await click('[data-act="sheetClose"]')}
- assert.equal(await read('motionOn()'),true);await pg.reload();await h.idle(1600);assert.equal(await read('motionOn()'),true,'Utvecklarläget fungerar från uppstart');
+ assert.equal(await read('motionOn()'),true,'Animationer är på som standard utan krav på Utvecklarläge');await pg.reload();await h.idle(1600);assert.equal(await read('motionOn()'),true,'Standardanimationer fungerar från uppstart');
  // Kontrollera mellantillståndet medan fingret fortfarande hålls nere, inte bara slutläget.
  const drag=async(sel,fraction,cancel=false)=>{
   console.log('DRAG',sel,fraction,cancel);const el=pg.locator(sel).first();await el.evaluate(e=>e.scrollIntoView({block:'center',behavior:'instant'}));await h.idle(520);const b=await el.boundingBox(),x=b.x+b.width/2,y=b.y+b.height/2;
@@ -99,6 +98,6 @@ module.exports=async(pg,h)=>{
  await pg.emulateMedia({reducedMotion:'reduce'});await click('[data-motion-grip="budget"]');assert.equal(await read('S.wsumOpen'),true);
  assert.equal(await pg.locator('#week-budget-details').evaluate(e=>e.getAnimations().length),0);
  assert(await pg.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'Ingen horisontell sidscroll');
- await developer();await click('[data-act="dev"]');await click('[data-act="sheetClose"]');await pg.reload();await h.idle(1600);assert.equal(await read('motionOn()'),false);assert.equal(await pg.locator('[data-motion-grip]').count(),0);await nav('oversikt');if(await pg.locator('.ovx').count())assert.equal(await pg.locator('.ovx').getAttribute('data-hold-lift'),'ovGx');
+ await developer();if(!await read('DEV')){await click('[data-act="dev"]');assert.equal(await read('motionOn()'),true)}await click('[data-act="dev"]');await click('[data-act="sheetClose"]');await pg.reload();await h.idle(1600);assert.equal(await read('DEV'),false);assert.equal(await read('motionOn()'),true,'Avstängt Utvecklarläge påverkar inte animationerna');await nav('oversikt');if(await pg.locator('.ovx').count()){assert.equal(await pg.locator('.ovx').getAttribute('data-hold-lift'),null);assert.equal(await pg.locator('[data-motion-grip="weather"]').count(),1)}
  console.log('PASS animationer: handtag, scroll-lås/avbrott, vädergraf utan lyft, minne, kalenderdatum, disclosures, ekonomi, reducerad rörelse');
 };
