@@ -1368,6 +1368,7 @@ body.wall::before{content:"";position:fixed;inset:-20%;z-index:-1;pointer-events
 /* Vägledande rörelse: begränsa sidbytets rörelse till skärmen, behåll remsornas egen sidscroll. */
 html.motion-dev,html.motion-dev #main{overflow-x:clip}
 html.motion-dev{scrollbar-gutter:stable}
+html.ny.motion-dev .nav:not(.drag) .nav-pill{transition-duration:.3s,.2s}
 .motion-panel{display:flow-root;overflow-anchor:none}
 html.motion-weather-active{overflow-anchor:none}
 html.motion-dev .ovx-g{justify-content:flex-start}
@@ -2614,7 +2615,7 @@ html.ny.rymlig:not(.ui3):not(.ui4) :is(.btn-fill,.btn-tint,.pill,.fchips button)
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=224"></script>
+<script src="app.js?v=225"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
