@@ -3629,7 +3629,7 @@ function wxDayHtml(){const W=wxModel();if(!W)return group(emptyCell('Prognosen k
  return h+'<div class="foot">Väderdata från '+(W.src==='yr'?'Yr och MET Norway':'Open-Meteo')+(tre?'':'. Så här långt fram ger prognosen var sjätte timme.')+'</div></div>'}
 // den markerade dagen glider från förra dagen med en fjäder (bara transform, går på grafikkretsen)
 function wdThumb(o){const t=o.querySelector('.wd-th');if(!t||A.wdPrev==null||A.wdPrev===A.wdI||matchMedia('(prefers-reduced-motion:reduce)').matches)return;
- const s=fjader(.42,.72);t.animate([{transform:'translateX(calc('+A.wdPrev+' * 100%))'},{transform:'translateX(calc('+A.wdI+' * 100%))'}],{duration:s.d,easing:s.e});A.wdPrev=A.wdI}
+ const s=fjader(.42,.72);t.animate([{transform:'translateX(calc('+A.wdPrev+' * 100%))'},{transform:'translateX(calc('+A.wdI+' * 100%))'}],{duration:motionOn()?300:s.d,easing:s.e});A.wdPrev=A.wdI}
 // en kort text om dagen: väderläget mitt på dagen, temperaturen, när det regnar och vinden
 function wxDaySum(W,D,H,idag){const dt=parse(D.date),DH=H.filter(x=>ymd(x.d)===D.date);if(!DH.length)return'';
  const nar=idag?'Idag':D.date===addDays(today(),1)?'I morgon':'På '+DAYS[dt.getDay()],t=(symInfo(D.sym)[1]||'växlande väder').toLowerCase();
@@ -3893,7 +3893,7 @@ function leaveAnim(act,items,then){A.user=Date.now();const ids=new Set(items.map
  rows.forEach(r=>{r.style.height=r.offsetHeight+'px';void r.offsetHeight;r.classList.add('leaving')});setTimeout(then,300)}
 function segSlide(root){root.querySelectorAll('.segc[data-seg]').forEach(sg=>{const k=sg.dataset.seg+':'+sg.getAttribute('aria-label'),i=Number(getComputedStyle(sg).getPropertyValue('--i'))||0,old=A.segs[k];A.segs[k]=i;
  const th=sg.querySelector('.seg-thumb');if(old==null||old===i||calm()||!th||!th.animate)return;
- th.animate([{transform:'translateX('+old*100+'%)'},{transform:'translateX('+i*100+'%)'}],{duration:motionOn()?440:U3?200:380,easing:motionOn()?MOTION_EASE:U3?'cubic-bezier(.2,.8,.2,1)':'cubic-bezier(.3,1.25,.5,1)'})})}
+ th.animate([{transform:'translateX('+old*100+'%)'},{transform:'translateX('+i*100+'%)'}],{duration:motionOn()?300:U3?200:380,easing:motionOn()?MOTION_EASE:U3?'cubic-bezier(.2,.8,.2,1)':'cubic-bezier(.3,1.25,.5,1)'})})}
 // Rörelse i testläget: direkt manipulation under drag, mjuk sättning först efter släpp.
 const MOTION_EASE='cubic-bezier(.65,0,.35,1)';
 let motionDrag=null,motionPageAnim=null,motionCal=null;
@@ -3904,7 +3904,7 @@ function motionPage(el,page,prev,dir){if(motionPageAnim)motionPageAnim.cancel();
  const d=dir==='in-left'?-1:dir==='in-right'?1:p[0]!==o[0]?Math.sign(nav.indexOf(p[0])-nav.indexOf(o[0]))||1:p[1]!==o[1]?(p[1]?1:-1):Math.sign(order.indexOf(p[2])-order.indexOf(o[2]))||1;
  // Menyerna är referensram. Bara innehållet under dem flyttar sig, tydligare än tidigare 22 px.
  const targets=[...el.children].filter(e=>!e.matches('.head,.segc,.subseg,.cv-seg,.ws-pin'));
- const animations=targets.map(e=>e.animate([{opacity:.15,transform:'translateX('+d*80+'px)'},{opacity:1,transform:'none'}],{duration:p[0]!==o[0]?620:440,easing:'cubic-bezier(.4,0,.2,1)'}));
+ const animations=targets.map(e=>e.animate([{opacity:.15,transform:'translateX('+d*80+'px)'},{opacity:1,transform:'none'}],{duration:p[0]!==o[0]?460:300,easing:'cubic-bezier(.4,0,.2,1)'}));
  motionPageAnim={animations,direction:d,cancel(){animations.forEach(a=>a.cancel())}}}
 const motionHeight=el=>parseFloat(getComputedStyle(el).height)||0;
 const motionScale=el=>el.offsetWidth?el.getBoundingClientRect().width/el.offsetWidth:1;
@@ -3924,7 +3924,7 @@ function motionWxBegin(el){if(el._wxMotion){cancelAnimationFrame(el._wxMotion.ra
  el.classList.remove('ov-open');st.scrollLeft=0;const F=its.map(c=>c.getBoundingClientRect().left),h0=motionHeight(st);
  el.classList.add('ov-open');const gh=motionHeight(g),h1=motionHeight(st),z=motionScale(st),range=Math.max(1,gh+h1-h0);
  const add=(e,frames)=>{if(!e||!e.animate)return;const a=e.animate(frames,{duration:1000,fill:'both',easing:'linear'});a.pause();animations.push(a)};
- add(g,[{height:'0px'},{height:gh+'px'}]);add(st,[{height:h0+'px'},{height:h1+'px'}]);add(gi,[{transform:'scaleY(.001)',transformOrigin:'top',opacity:1},{transform:'scaleY(1)',transformOrigin:'top',opacity:1}]);
+ add(g,[{height:'0px'},{height:gh+'px'}]);add(st,[{height:h0+'px'},{height:h1+'px'}]);add(gi,[{transform:'translateY(-'+gh+'px)',opacity:1},{transform:'translateY(0px)',opacity:1}]);
  its.forEach((c,i)=>{const nu=c.classList.contains('nu0'),k=c.classList.contains('k3'),dx=(F[i]-c.getBoundingClientRect().left)/z;
   if(!nu)add(c,[{transform:'translateX('+dx+'px)'},{transform:'none'}]);if(nu||!k)add(c,nu?[{opacity:0},{opacity:1}]:[{opacity:1},{opacity:0}])});
  add(g.querySelector('.ovg-k'),[{strokeDasharray:'1 1',strokeDashoffset:1},{strokeDasharray:'1 1',strokeDashoffset:0}]);
@@ -3937,7 +3937,7 @@ function motionWxSettle(el,open,instant){const m=motionWxBegin(el);if(!m)return;
 function motionWeather(open){const el=document.querySelector('.ovx');if(!el){OVWX=open?'graf':'tim';lsSet('ovwx',open?'graf':null);return render()}if(motionOn())motionWxSettle(el,open);else{OVWX=open?'graf':'tim';lsSet('ovwx',open?'graf':null);ovAnim(el,open,false)}}
 function motionCalBefore(k){if(!motionOn()){motionCal=null;return}if(motionPageAnim)motionPageAnim.cancel();motionCal={key:k||S.calDay||today(),view:S.calVy}}
 function motionMount(root){const wg=root.querySelector('.ovx-g');if(wg)wg.inert=OVWX!=='graf';
- if(motionCal){const old=motionCal;motionCal=null;const pane=root.querySelector('.motion-calendar');if(pane&&!calm()){const order=['dag','vecka','manad'],d=Math.sign(order.indexOf(S.calVy)-order.indexOf(old.view))||1;pane.animate([{opacity:.15,transform:'translateX('+d*64+'px)'},{opacity:1,transform:'none'}],{duration:460,easing:'cubic-bezier(.22,1,.36,1)'})}}}
+ if(motionCal){const old=motionCal;motionCal=null;const pane=root.querySelector('.motion-calendar');if(pane&&!calm()){const order=['dag','vecka','manad'],d=Math.sign(order.indexOf(S.calVy)-order.indexOf(old.view))||1;pane.animate([{opacity:.15,transform:'translateX('+d*64+'px)'},{opacity:1,transform:'none'}],{duration:300,easing:'cubic-bezier(.22,1,.36,1)'})}}}
 // Befintliga rubriker är kvar. S-kurvan har både acceleration och inbromsning, utan toning som döljer höjdrörelsen.
 window.addEventListener('click',e=>{const summary=e.target.closest('summary');if(!summary)return;const d=summary.parentElement;if(!motionOn()||!d.matches('details[data-k]')||e.target.closest('a,button,input,select'))return;
  e.preventDefault();const open=d.dataset.motionClosing==='1'||!d.open,from=motionHeight(d);if(d._motion)d._motion.cancel();delete d.dataset.motionClosing;S.open[d.dataset.k]=open;
