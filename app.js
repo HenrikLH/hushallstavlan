@@ -3934,7 +3934,7 @@ function motionWxSettle(el,open,instant){const m=motionWxBegin(el);if(!m)return;
  const from=m.p,to=open?1:0;if(instant||calm()||Math.abs(to-from)<.001){m.finish(open);return}const at=performance.now(),duration=180+300*Math.abs(to-from);
  const tick=now=>{if(!el.isConnected){m.finish(open);return}const t=Math.min(1,(now-at)/duration),ease=t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;m.set(from+(to-from)*ease);if(t<1)m.raf=requestAnimationFrame(tick);else m.finish(open)};m.raf=requestAnimationFrame(tick)}
 function motionWeather(open){const el=document.querySelector('.ovx');if(!el){OVWX=open?'graf':'tim';lsSet('ovwx',open?'graf':null);return render()}if(motionOn())motionWxSettle(el,open);else{OVWX=open?'graf':'tim';lsSet('ovwx',open?'graf':null);ovAnim(el,open,false)}}
-function motionCalBefore(k){if(!motionOn()){motionCal=null;return}motionCal={key:k||S.calDay||today(),view:S.calVy}}
+function motionCalBefore(k){if(!motionOn()){motionCal=null;return}if(motionPageAnim)motionPageAnim.cancel();motionCal={key:k||S.calDay||today(),view:S.calVy}}
 function motionMount(root){const wg=root.querySelector('.ovx-g');if(wg)wg.inert=OVWX!=='graf';
  if(motionCal){const old=motionCal;motionCal=null;const pane=root.querySelector('.motion-calendar');if(pane&&!calm()){const order=['dag','vecka','manad'],d=Math.sign(order.indexOf(S.calVy)-order.indexOf(old.view))||1;pane.animate([{opacity:.15,transform:'translateX('+d*64+'px)'},{opacity:1,transform:'none'}],{duration:460,easing:'cubic-bezier(.22,1,.36,1)'})}}}
 // Befintliga rubriker är kvar. S-kurvan har både acceleration och inbromsning, utan toning som döljer höjdrörelsen.

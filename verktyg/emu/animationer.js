@@ -9,9 +9,9 @@ module.exports=async(pg,h)=>{
  assert.equal(await read('motionOn()'),true);await pg.reload();await h.idle(1600);assert.equal(await read('motionOn()'),true,'Utvecklarläget fungerar från uppstart');
  // Kontrollera mellantillståndet medan fingret fortfarande hålls nere, inte bara slutläget.
  const drag=async(sel,fraction,cancel=false)=>{
-  const el=pg.locator(sel).first();await el.scrollIntoViewIfNeeded();await h.idle(520);const b=await el.boundingBox(),x=b.x+b.width/2,y=b.y+b.height/2;
+  console.log('DRAG',sel,fraction,cancel);const el=pg.locator(sel).first();await el.evaluate(e=>e.scrollIntoView({block:'center',behavior:'instant'}));await h.idle(520);const b=await el.boundingBox(),x=b.x+b.width/2,y=b.y+b.height/2;
   const before=await pg.evaluate(()=>({y:scrollY,top:document.getElementById('main').getBoundingClientRect().top}));
-  await pg.mouse.move(x,y);await pg.mouse.down();const state=await read('({height:motionDrag.height,max:motionDrag.max,scale:motionDrag.scale,id:motionDrag.id,open:motionDrag.open})');
+  assert(await pg.evaluate(({x,y})=>!!document.elementFromPoint(x,y)?.closest('[data-motion-grip]'),{x,y}),'Handtaget är synligt ovanför navigationen');await pg.mouse.move(x,y);await pg.mouse.down();const state=await read('({height:motionDrag.height,max:motionDrag.max,scale:motionDrag.scale,id:motionDrag.id,open:motionDrag.open})');
   const dy=(fraction*state.max-state.height)*state.scale;await pg.mouse.move(x,y+dy,{steps:10});
   assert.equal(await pg.evaluate(()=>document.body.style.position),'fixed','Sidan låst under drag');assert(await read('Date.now()-A.touch<2000'));
   const during=await el.boundingBox();assert(Math.abs(during.y-b.y-dy)<2.5,'Handtaget följer ytans rörliga kant och fingret');
@@ -57,9 +57,9 @@ module.exports=async(pg,h)=>{
  assert(pageMotion.count>0&&pageMotion.moving,'Sidbytet syns i det renderade innehållet');assert.equal(pageMotion.duration,440);assert(/80px/.test(pageMotion.frames[0].transform));assert.equal(pageMotion.menuMoves,false);
  await h.idle(500);await pg.locator('[data-act="matTab"][data-id="inkop"]').click();await pg.waitForTimeout(80);
  const thumb=pg.locator('.segc[aria-label="Visa"] .seg-thumb');assert(await thumb.evaluate(e=>e.getAnimations().some(a=>a.playState==='running'&&a.effect.getTiming().duration===440)),'Menyvalets förflyttning pågår och går att se');await h.idle(500);
- await nav('uppgifter');await click('[data-act="taskTab"][data-id="kalender"]');
+ await nav('uppgifter');await click('[data-act="taskTab"][data-id="kalender"]');await h.idle(500);
  const date=await read('S.calDay||today()');
- for(const mode of ['dag','vecka','manad','dag']){const label=pg.locator('.motion-date-label'),before=await label.boundingBox(),text=await label.textContent();await pg.locator('[data-act="calVy"][data-id="'+mode+'"]').click();await pg.waitForTimeout(80);const after=await label.boundingBox();assert(Math.abs(before.y-after.y)<1&&Math.abs(before.x-after.x)<1,'Datumets referens står kvar');assert.equal(await label.textContent(),text);assert(await pg.locator('.motion-calendar').evaluate(e=>getComputedStyle(e).transform!=='none'),'Kalenderinnehållets övergång syns');await h.idle(500);assert.equal(await read('S.calDay||today()'),date);assert.equal(await read('S.calVy'),mode)}
+ for(const mode of ['dag','vecka','manad','dag']){const label=pg.locator('.motion-date-label'),before=await label.boundingBox(),text=await label.textContent();await pg.locator('[data-act="calVy"][data-id="'+mode+'"]').click();await pg.waitForTimeout(80);const after=await label.boundingBox();assert(Math.abs(before.y-after.y)<1&&Math.abs(before.x-after.x)<1,'Datumets referens står kvar '+JSON.stringify({before,after,mode}));assert.equal(await label.textContent(),text);assert(await pg.locator('.motion-calendar').evaluate(e=>getComputedStyle(e).transform!=='none'),'Kalenderinnehållets övergång syns');await h.idle(500);assert.equal(await read('S.calDay||today()'),date);assert.equal(await read('S.calVy'),mode)}
  await nav('stad');const detail=pg.locator('details[data-k]').first();
  if(await detail.count()){
   const key=await detail.getAttribute('data-k');await detail.locator('summary').click();await h.idle(550);const open=await detail.evaluate(e=>e.open);

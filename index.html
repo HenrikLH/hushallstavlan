@@ -1367,6 +1367,7 @@ body.wall::before{content:"";position:fixed;inset:-20%;z-index:-1;pointer-events
 }
 /* Vägledande rörelse: begränsa sidbytets rörelse till skärmen, behåll remsornas egen sidscroll. */
 html.motion-dev,html.motion-dev #main{overflow-x:clip}
+html.motion-dev{scrollbar-gutter:stable}
 .motion-panel{display:flow-root;overflow-anchor:none}
 html.motion-weather-active{overflow-anchor:none}
 html.motion-dev .sheet:has([data-form="settings"]){align-items:flex-start;padding-top:max(12px,var(--sat))}
@@ -1377,7 +1378,7 @@ html.motion-dev details[data-k]{overflow-anchor:none}
 @media(min-width:700px){html.motion-dev .sheet:has([data-form="settings"]){padding-top:6dvh}html.motion-dev [data-form="settings"].sheet-panel{height:88dvh;max-height:88dvh}}
 
 html.ny .motion-panel>.wm-body{display:block}
-.motion-grip{display:flex;align-items:center;justify-content:center;width:100%;min-height:44px;padding:12px;touch-action:none;cursor:ns-resize;color:var(--ink-3);background:transparent;border:0;user-select:none;-webkit-user-select:none}
+.motion-grip{scroll-margin-block:110px;display:flex;align-items:center;justify-content:center;width:100%;min-height:44px;padding:12px;touch-action:none;cursor:ns-resize;color:var(--ink-3);background:transparent;border:0;user-select:none;-webkit-user-select:none}
 .motion-grip i{display:block;width:38px;height:4px;border-radius:99px;background:currentColor;opacity:.6;pointer-events:none}
 .motion-grip:focus-visible{outline:2px solid var(--accent);outline-offset:-4px;border-radius:8px}
 .motion-grip:active{color:var(--accent)}
