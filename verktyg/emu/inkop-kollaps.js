@@ -4,7 +4,7 @@ module.exports=async(pg,h)=>{
  const click=async s=>{await pg.locator(s).first().click();await h.idle(550)};
  const read=s=>pg.evaluate(s=>window.__d(s),s);
  await click('#nav [data-id="mat"]');await click('[data-act="matTab"][data-id="inkop"]');
- for(const name of ['Kollapstest äpple','Kollapstest mjölk']){const input=pg.locator('[data-form="shopQuick"] [name="name"]');await input.fill(name);await input.press('Enter');await h.idle(800);await h.waitFlush()}
+ for(const name of ['Kollapstest äpple','Kollapstest mjölk']){const input=pg.locator('[data-form="shopQuick"] [name="name"]');if(await input.count()){await input.fill(name);await input.press('Enter')}else{await click('[data-act="shopAdd"]');await pg.locator('[data-form="shop"] [name="name"]').fill(name);await pg.locator('[data-form="shop"] button.tb.strong').click()}await h.idle(800);await h.waitFlush()}
  assert.equal(await pg.locator('[data-act="shopFilter"]').count(),0,'Filtermenyn är ersatt');
  const buttons=pg.locator('[data-act="shopFold"]'),n=await buttons.count();assert(n>=2);
  assert.equal(await pg.locator('.g-one input[data-act="shopToggle"]').count(),await read('D().shop.length'),'Alla varor finns i M10');
