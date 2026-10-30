@@ -4,7 +4,7 @@ Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs 
 
 ## Vädergraf som utdrag · snabbare menyval · ht-v235
 
-- Codex, `codex/vader-utdrag-snabbare-menyer`, [PR #49](https://github.com/HenrikLH/hushallstavlan/pull/49). Ej publiceringsgodkänd; invänta Pusha.
+- Codex, `codex/vader-utdrag-snabbare-menyer`, [PR #49](https://github.com/HenrikLH/hushallstavlan/pull/49). Henrik godkänner publicering (”Pusha”, 2026-10-30). Ångra-gren `version-fore-vader-utdrag-20261030` från `9b30f8c61c5c8cd748cd4dfa480694326a2eb9d1`; merge via PR #49 och Pages-kontroll.
 - Grafen behåller full storlek: translateY från −grafhöjd till 0 bakom .ovx-g:s overflow:hidden. Ytan växer med fingret så grafen ser ut att dras fram under hundbilden. Kurva/punkter, handtag, släpp och avbrott kvar.
 - DEV && MOTION: huvudsidbyte 460 ms, underflikar/kalender/segc 300 ms; väderbladets dagmarkör och huvudmenyns glidmarkering också 300 ms. Systemets reducerade rörelse och normalläge bevaras.
 - Ny regression mäter skala 1 och translation −(1−progress)×grafhöjd mitt i draget; testbilden tas utan att snabbspola animationen. Testad kod `b49664559d2362ec1da00e0dea3954be343ca2ea`, [CI 12/12 gröna](https://github.com/HenrikLH/hushallstavlan/actions/runs/41064464493), UI2/UI3/UI4 × telefon/vägg × ljust/mörkt. Bild mitt i draget granskad (UI3 telefon mörkt): full storlek, kurvan/punkterna dras fram från klippkanten. Endast dokumentation efter testad kod. Ingen Kod.gs/data ändrad.
@@ -63,9 +63,9 @@ Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs 
 
 ## Börja här
 
-- Aktuell release: **ht-v234 / app.js?v=224**, via PR #48 (animationsfinjustering och fungerande bladhandtag). UI2 förblir standard; välj UI4 i Inställningar → Utseende → Design.
-- [Publiceringar](https://github.com/HenrikLH/hushallstavlan/actions): följ Pages-bygget för PR #48:s merge. Äldre PR #32 (priser) är separat och ingår inte i UI4.
-- Nästa steg: återkoppling från Henrik efter animationsfinjusteringen i PR #48. Gör inte om redan godkända rättningar.
+- Aktuell release: **ht-v235 / app.js?v=225**, via PR #49 (väderutdrag och snabbare menyer). UI2 förblir standard; välj UI4 i Inställningar → Utseende → Design.
+- [Publiceringar](https://github.com/HenrikLH/hushallstavlan/actions): följ Pages-bygget för PR #49:s merge. Äldre PR #32 (priser) är separat och ingår inte i UI4.
+- Nästa steg: återkoppling från Henrik efter väderutdraget och snabbare menyer i PR #49. Gör inte om redan godkända rättningar.
 - UI 2.0:s tema och beteenden ska bevaras. Henrik har godkänt Ateljé som ett separat UI 4.0; UI 3.0 finns kvar i utvecklarläget. Bilder före visuella ändringar på main; ”Pusha” är publiceringsgodkännande.
 - Strömningen i ChatGPT har avbrutits flera gånger. Kontrollera gren/PR/main och Pages innan en avbruten publicering återupptas. Begär inte samma godkännande igen.
 
