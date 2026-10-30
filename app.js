@@ -3690,9 +3690,9 @@ function splitPreview(el){const v=Number(String(el.value).replace(/\s/g,'').repl
  if(out)out.innerHTML=c.per.map(x=>'<div class="pc '+pcls(x.p)+'"><span class="fn pcn"><span class="pdot '+pcls(x.p)+'"></span>'+esc(personLabel(x.p))+' '+(x.share*100).toFixed(1).replace('.',',')+' %</span><b class="num">'+kr(v*x.share)+'</b></div>').join('')}
 /* Varje lista med fasta utgifter kan fällas ihop för kortare scrollning. Utfälld från början;
    valet gäller tills appen stängs. Ihopfälld visar rubriken hur många som saknar överföring. */
-function ekoSec(l,title,sum,inner){const open=!(S.ekoFold||{})[l],n=ovOpen(l).length;
- return'<button class="sh eko-fold'+(open?' open':'')+'" data-act="ekoFold" data-id="'+esc(l)+'" aria-expanded="'+open+'"><span>'+title+'</span><span class="r">'+
-  (n?'<span'+(open?' hidden':'')+' class="ovs saknas eko-fn" aria-label="'+n+' saknar stående överföring">'+n+'</span>':'')+sum+'<span class="eko-chev">'+I.chev+'</span></span></button><div class="motion-panel"'+(!open?' hidden inert':'')+'>'+inner+'</div>'}
+function ekoSec(l,title,sum,inner){const open=!(S.ekoFold||{})[l],n=ovOpen(l).length,id='motion-eko-'+encodeURIComponent(l);
+ return'<button class="sh eko-fold'+(open?' open':'')+'" data-act="ekoFold" data-id="'+esc(l)+'" aria-controls="'+id+'" aria-expanded="'+open+'"><span>'+title+'</span><span class="r">'+
+  (n?'<span'+(open?' hidden':'')+' class="ovs saknas eko-fn" aria-label="'+n+' saknar stående överföring">'+n+'</span>':'')+sum+'<span class="eko-chev">'+I.chev+'</span></span></button><div class="motion-panel" id="'+id+'"'+(!open?' hidden inert':'')+'>'+inner+'</div>'}
 function ovAllOk(l){const n=ekoList(l).length;return n&&!ovOpen(l).length?'<div class="foot ov-allok">'+I.tick+(n===1?'Har':'Alla '+n+' har')+' en stående överföring från '+esc(ovFrom(l))+'</div>':''}
 // I väggläge och på gemensam skärm (ingen vald person) är Ekonomi låst med en kod, oavsett skärmstorlek.
 // Låset går i igen när man lämnar Ekonomi. Inga gränser för antal försök.

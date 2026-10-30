@@ -1,6 +1,7 @@
 // Verkliga gester och kontroller med emulatorns exempeldata. Ingen hushållsdata ändras.
 const assert=require('node:assert/strict');
 module.exports=async(pg,h)=>{
+ await pg.emulateMedia({reducedMotion:'no-preference'});
  const read=s=>pg.evaluate(s=>window.__d(s),s),click=async s=>{await pg.locator(s).first().click();await h.idle(320)};
  const nav=async v=>{await click('#nav [data-id="'+v+'"]');await h.idle(350)};
  const drag=async(sel,dy,cancel=false)=>{
@@ -43,7 +44,7 @@ module.exports=async(pg,h)=>{
  if(await detail.count()){
   const key=await detail.getAttribute('data-k');await detail.locator('summary').click();await h.idle(350);const open=await detail.evaluate(e=>e.open);
   await pg.reload();await h.idle(1600); // samma funktion fungerar även efter omstart
-  const d=pg.locator('details[data-k="'+key+'"]'),initial=await d.evaluate(e=>e.open);await d.locator('summary').click();await d.locator('summary').click();await h.idle(350);assert.equal(await d.evaluate(e=>e.open),initial,'Snabb omvändning avbryter expansion');
+  const d=pg.locator('details[data-k="'+key+'"]'),initial=await d.evaluate(e=>e.open);await d.locator('summary').click();await d.locator('summary').click({force:true});await h.idle(350);assert.equal(await d.evaluate(e=>e.open),initial,'Snabb omvändning avbryter expansion');
  }
  await nav('ekonomi');
  if(await pg.locator('[data-act="pin"]').count())for(const n of ['1','9','1','2'])await click('[data-act="pin"][data-id="'+n+'"]');
@@ -54,6 +55,7 @@ module.exports=async(pg,h)=>{
  await click('[data-act="motion"]');assert.equal(await read('MOTION'),false);
  await click('[data-act="sheetClose"]');await pg.reload();await h.idle(1800);assert.equal(await read('MOTION'),false);
  await nav('mat');assert.equal(await pg.locator('#main').evaluate(e=>e.getAnimations().filter(a=>a.playState==='running').length),0);
+ await click('[data-act="settings"]');const pref2=pg.locator('[data-k="pref-utseende"]');if(!await pref2.evaluate(e=>e.open))await pref2.locator('summary').click();await h.idle(350);await click('[data-act="motion"]');await click('[data-act="sheetClose"]');assert.equal(await read('MOTION'),true);
  await pg.emulateMedia({reducedMotion:'reduce'});await click('[data-motion-grip="budget"]');assert.equal(await read('S.wsumOpen'),true);
  assert.equal(await pg.locator('#week-budget-details').evaluate(e=>e.getAnimations().length),0);
  assert(await pg.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'Ingen horisontell sidscroll');
