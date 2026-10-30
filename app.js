@@ -3928,6 +3928,7 @@ function motionWxBegin(el){if(el._wxMotion){cancelAnimationFrame(el._wxMotion.ra
  its.forEach((c,i)=>{const nu=c.classList.contains('nu0'),k=c.classList.contains('k3'),dx=(F[i]-c.getBoundingClientRect().left)/z;
   if(!nu)add(c,[{transform:'translateX('+dx+'px)'},{transform:'none'}]);if(nu||!k)add(c,nu?[{opacity:0},{opacity:1}]:[{opacity:1},{opacity:0}])});
  add(g.querySelector('.ovg-k'),[{strokeDasharray:'1 1',strokeDashoffset:1},{strokeDasharray:'1 1',strokeDashoffset:0}]);
+ const dots=[...g.querySelectorAll('.ovg-p')];dots.forEach((dot,i)=>{const at=Math.min(.98,i/Math.max(1,dots.length-1));add(dot,[{opacity:0,offset:0},{opacity:0,offset:at},{opacity:1,offset:Math.min(1,at+.02)},{opacity:1,offset:1}])});add(g.querySelector('.ovg-f'),[{opacity:0},{opacity:1}]);
  const model=el._wxMotion={p:open?1:0,range,raf:0,set(p){this.p=Math.max(0,Math.min(1,p));animations.forEach(a=>a.currentTime=this.p*1000);g.inert=this.p<=0;g.setAttribute('aria-hidden',String(this.p<=0))},finish(op){cancelAnimationFrame(this.raf);el.classList.toggle('ov-open',op);animations.forEach(a=>a.cancel());g.inert=!op;g.setAttribute('aria-hidden',String(!op));delete el._wxMotion;document.documentElement.classList.remove('motion-weather-active');motionGripState(el.querySelector('.motion-grip'),op)}};
  model.set(model.p);return model}
 function motionWxSettle(el,open,instant){const m=motionWxBegin(el);if(!m)return;OVWX=open?'graf':'tim';lsSet('ovwx',open?'graf':null);motionGripState(el.querySelector('.motion-grip'),open);
