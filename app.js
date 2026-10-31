@@ -2823,10 +2823,84 @@ let WXART=WX_ART.some(([k])=>k===lsGet('wxart'))?lsGet('wxart'):'original';
 const wxArtClass=()=>WXART==='original'?'':' art-'+WXART;
 function artGrass(ss){const c=GRASS[ss];return WXART==='geo'?[mixHex(c[0],'#38B69B',.3),mixHex(c[1],'#175D70',.48)]:WXART==='soft'?[mixHex(c[0],'#B2BE93',.25),mixHex(c[1],'#738C70',.25)]:c}
 function wxArtVars(W){if(WXART==='original')return'';const sc=wxScene(W),geo=WXART==='geo',warm=/dawn|golden|dusk/.test(sc.phase),storm=sc.thunder,wet=sc.type!=='none';
- const bg=sc.dark?(geo?'#111B3B':'#202630'):warm?(geo?'#F8DECC':'#F4E8D8'):geo?'#E0F1F5':'#EDF2E9',end=sc.dark?(geo?'#26396B':'#394246'):storm?'#ACBBCD':wet?'#CDDCE5':warm?'#EBC4AF':geo?'#A6D8E1':'#D4E0D7';
- return' style="--art-bg:'+bg+';--art-end:'+end+';--art-ink:'+(sc.dark?'#F5F5FC':'#172D3E')+';--art-sub:'+(sc.dark?'#B9C8E2':'#344A59')+';--art-line:'+(sc.dark?'#536181':'#A6BDC5')+';--art-star:'+(sc.dark?'#FFFFFF':'#D9A33C')+';--art-moon:'+(sc.dark?'#F3F5FF':'#D9A33C')+'"'}
+ const bg=sc.dark?(geo?'#111B3B':'#202630'):warm?(geo?'#F8DECC':'#F4E8D8'):geo?'#E0F1F5':'#EDF2E9',end=sc.dark?(geo?'#111A38':'#394246'):storm?'#ACBBCD':wet?'#CDDCE5':warm?'#EBC4AF':geo?'#A6D8E1':'#D4E0D7';
+ return' style="--art-bg:'+bg+';--art-end:'+end+';--art-ink:'+(sc.dark?'#F5F5FC':'#172D3E')+';--art-sub:'+(sc.dark?'#B9C8E2':'#344A59')+';--art-line:'+(sc.dark?'#536181':'#A6BDC5')+';--art-stars:'+Math.max(0,1-(W.now.cf!=null?W.now.cf/100:sc.sky==='cloudy'?1:sc.sky==='partly'?.5:sc.sky==='fair'?.18:0)).toFixed(2)+';--art-star:'+(sc.dark?'#FFFFFF':'#D9A33C')+';--art-moon:'+(sc.dark?'#F3F5FF':'#D9A33C')+'"'}
+/* Geometrisk är en egen illustration: genomgående landskap och egna maskotar.
+   Bara tillståndsmodellen delas med originalet; inga gräsplättar eller originalträd återanvänds. */
+function geoBackdropSvg(sc){const id='geo'+(++FIG_N),ss=grassSeason(today()),T=treeStage(today()),snow=snowLevel(sc),white=snow>=2,frost=!snow&&sc.T<0,n=sc.dark,wet=/^(drizzle|rain|sleet)$/.test(sc.type);
+ const f=v=>v.toFixed(1),rnd=k=>{const q=Math.sin(k*61.7+8.3)*43758.5453;return q-Math.floor(q)},[g1,g2]=GRASS[ss];
+ const far=white?(n?'#617BA4':'#AACADA'):n?'#2C3974':mixHex(g2,'#86BDCC',.62),ridge=white?(n?'#839CBD':'#C1DCE8'):n?'#354581':mixHex(g2,'#60A69A',.5),wood=n?'#0C1638':mixHex(g2,'#164F63',.6),
+ water=white||frost?(n?'#8CA7CF':'#C2E0EF'):n?'#405397':'#66B9D0',middle=white?(n?'#A3BCD6':'#E1EFF5'):n?'#263563':mixHex(g2,'#286D79',.42),near=white?(n?'#C5D9E9':'#F0F7FA'):n?'#1B2549':mixHex(g1,'#3B8C79',.42),front=white?(n?'#9EBAD3':'#C4DFEA'):n?'#101A36':mixHex(g2,'#254E65',.5);
+ const spring=['#9DE76E','#61CC80','#47B994','#40A881','#C4EB75'],summer=['#45BF87','#35A580','#258B83','#25816F','#87CC6A'],golden=['#F1C94C','#E3B23E','#DBA83F','#B88C40','#F9D86B'],fall=['#FF573F','#F93F52','#EE3C67','#D93263','#FF8C40'],ramp=(a,b)=>Math.max(0,Math.min(1,(T.doy-a)/(b-a))),palette=spring.map((c,i)=>mixHex(mixHex(mixHex(c,summer[i],ramp(132,165)),golden[i],ramp(248,272)),fall[i],ramp(272,296)));
+ const leafC=(i)=>{const c=palette[i%palette.length];return T.doy>319?mixHex(c,'#9E523D',.44):c},gold='#FFCB67';
+ let s='<defs><clipPath id="'+id+'frame"><rect width="600" height="400"/></clipPath></defs><g clip-path="url(#'+id+'frame)">';
+ // Horisonter med stor luft emellan; sjön löper i perspektiv mellan skog och förgrund.
+ s+='<path d="M-25 234 C42 176 91 189 154 217 C211 242 247 190 315 199 C387 207 399 232 457 203 C503 181 560 186 625 218 V400 H-25Z" fill="'+far+'"/>'+
+  '<path d="M-25 255 C53 207 100 228 171 242 C238 256 280 214 348 226 C415 239 476 216 625 242 V400 H-25Z" fill="'+ridge+'"/>'+
+  '<path d="M248 247 C322 239 377 250 415 243 L625 249 V337 L306 304 C392 287 394 279 345 269 C307 261 279 259 248 257Z" fill="'+water+'"/>';
+ // Distansträd: oregelbundna silhuetter, inga identiska jättetrianglar i förgrunden.
+ const pine=(x,y,h,w)=>'<path d="M'+f(x-w)+' '+y+' L'+f(x-w*.5)+' '+f(y-h*.46)+' H'+f(x-w*.72)+' L'+f(x-w*.25)+' '+f(y-h*.74)+' H'+f(x-w*.42)+' L'+x+' '+f(y-h)+' L'+f(x+w*.4)+' '+f(y-h*.73)+' H'+f(x+w*.23)+' L'+f(x+w*.7)+' '+f(y-h*.43)+' H'+f(x+w*.48)+' L'+f(x+w)+' '+y+'Z"/>';
+ const forest=[[0,264,86,20],[20,269,65,12],[43,266,100,15],[66,268,58,10],[88,268,47,9],[175,257,45,8],[189,258,59,10],[207,256,42,8],[224,255,34,7],[448,258,48,9],[470,260,70,12],[494,260,83,12],[516,262,65,10],[539,261,106,17],[565,263,131,20],[590,265,91,15],[608,266,116,18]];
+ s+='<g fill="'+wood+'">'+forest.map(a=>pine(...a)).join('')+'</g>';
+ if(snow)s+='<g fill="'+(n?'#BFCEE5':'#EEF7FA')+'">'+forest.filter((_,i)=>i%2===0).map(([x,y,h,w])=>'<path d="M'+f(x-w*.3)+' '+f(y-h*.75)+' L'+x+' '+f(y-h)+' L'+f(x+w*.3)+' '+f(y-h*.75)+'Z"/>').join('')+'</g>';
+ s+='<g fill="'+gold+'">'+[[291,249,4,2],[311,247,7,2],[332,251,3,2],[372,246,6,3],[389,248,4,2],[414,249,7,2],[462,259,4,2]].map(([x,y,w,h])=>'<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx=".8"/>').join('')+'</g>'+
+  '<g fill="'+(n?'#8091C2':'#D5F1EF')+'" opacity=".6">'+[[286,263,20],[323,271,36],[392,263,22],[405,285,18],[465,274,32],[488,301,28],[347,279,14]].map(([x,y,w])=>'<rect x="'+x+'" y="'+y+'" width="'+w+'" height="2" rx="1"/>').join('')+'</g>';
+ // Kantiga strandplan och stora böjda markformer ger djup, i stället för en fristående oval.
+ s+='<path d="M-20 287 C63 248 113 266 179 278 C233 287 246 264 290 266 L351 282 L302 297 C411 309 477 273 625 282 V400 H-20Z" fill="'+middle+'"/>'+
+  '<path d="M-20 312 C51 282 107 284 176 306 C239 328 265 318 318 315 C400 310 468 311 625 287 V400 H-20Z" fill="'+near+'"/>'+
+  '<path d="M0 372 C35 344 65 344 100 352 C142 366 171 350 216 347 C250 343 285 359 311 367 C359 387 383 367 426 373 C490 391 537 360 600 369 V400 H0Z" fill="'+front+'"/>';
+ if(frost)s+='<path d="M-10 313 Q70 290 151 307 M211 329 L263 325 M349 354 Q430 341 522 345" fill="none" stroke="'+(n?'#819CC2':'#D9EFF3')+'" stroke-width="3" stroke-linecap="round"/>';
+ if(snow===1)s+='<g fill="#E9F4FC">'+['M25 306 Q72 288 107 306 Q61 314 25 306Z','M200 329 Q236 319 272 328 Q237 336 200 329Z','M450 352 Q507 334 558 344 Q523 360 450 352Z'].map(d=>'<path d="'+d+'"/>').join('')+'</g>';
+ // Stammen förgrenar sig genom hela kronan. Löv är separata, överlappande geometriska former.
+ s+='<ellipse cx="120" cy="334" rx="40" ry="5" fill="'+front+'"/><path d="M113 335 L116 181 L125 181 L130 335Z" fill="'+(n?'#303B66':'#385B64')+'"/><path d="M124 181 L130 335 H122 L119 204Z" fill="'+wood+'"/>';
+ const branches=[[120,280,65,222],[121,257,164,203],[120,232,81,166],[122,211,151,149],[120,189,108,116],[84,219,53,190],[146,218,183,185],[99,199,68,143],[135,185,170,116],[118,166,136,95],[111,150,90,92]];
+ s+='<g fill="none" stroke="'+(n?'#303B66':'#385B64')+'" stroke-linecap="round">'+branches.map(([x,y,a,b],i)=>'<path d="M'+x+' '+y+' L'+a+' '+b+'" stroke-width="'+(i<5?5:3)+'"/>').join('')+'</g>';
+ const foliage=[[70,200,23,30,-32],[155,191,25,33,30],[105,159,24,35,-18],[136,126,24,33,25],[89,109,21,31,-25],[155,90,18,28,12],[116,76,20,30,-8],[57,163,19,28,-25],[175,154,21,29,30],[83,236,21,23,-25],[132,216,23,30,15],[113,115,24,32,20],[63,117,18,26,-25],[183,209,18,24,35],[141,166,20,29,-18],[87,185,22,30,15],[157,230,18,23,30],[113,248,16,21,-18],[47,215,14,22,-30],[172,119,17,26,30],[132,92,20,29,0],[63,184,17,23,-30],[103,207,21,26,15],[164,171,17,26,-20]];
+ const density=T.d,scale=.32+.68*Math.sqrt(density),N=density<.025?0:Math.ceil(foliage.length*Math.pow(density,.55));
+ s+='<g class="geo-canopy">'+foliage.slice(0,N).map(([x,y,rx,ry,a],i)=>{const c=leafC(i),shade=shadeHex(c,.84),key=id+'l'+i,r=rx*scale*1.15,h=ry*scale*(i%3===0?1.05:.85),outline='M0 -'+f(h)+' C'+f(r*.85)+' -'+f(h)+' '+f(r*1.1)+' -'+f(h*.35)+' '+f(r)+' '+f(h*.15)+' C'+f(r*.85)+' '+f(h*.8)+' '+f(r*.4)+' '+f(h*1.08)+' 0 '+f(h)+' C-'+f(r*.9)+' '+f(h*.9)+' -'+f(r*1.12)+' '+f(h*.3)+' -'+f(r)+' -'+f(h*.15)+' C-'+f(r*.9)+' -'+f(h*.8)+' -'+f(r*.4)+' -'+f(h*1.05)+' 0 -'+f(h)+'Z';
+  return'<g transform="translate('+x+' '+y+') rotate('+a+')"><defs><clipPath id="'+key+'"><path d="'+outline+'"/></clipPath></defs><path d="'+outline+'" fill="'+c+'"/><path d="'+(i%3===0?'M-25 -40 L30 5 V40 H-5Z':i%3===1?'M0 -40 L30 -40 V40 H7Z':'M-30 0 L30 20 V40 H-30Z')+'" fill="'+shade+'" clip-path="url(#'+key+')"/></g>'}).join('')+'</g>';
+ if(density<.28&&density>.01)s+='<g fill="'+palette[0]+'">'+branches.slice(0,Math.ceil(density*30)).map(([, ,x,y])=>'<ellipse cx="'+x+'" cy="'+y+'" rx="3" ry="5"/>').join('')+'</g>';
+ if(T.bloom&&!white)s+='<g fill="#FFF4EF">'+foliage.slice(0,Math.round(9*T.bloom)).map(([x,y],i)=>'<path d="M'+x+' '+(y-4)+' l2 3 4 1 -4 2 -2 3 -1 -3 -4 -2 4 -1Z"/><circle cx="'+x+'" cy="'+y+'" r="1.2" fill="#FFA8B8"/>').join('')+'</g>';
+ if(T.fruit&&!white)s+='<g fill="#FF6952">'+foliage.slice(0,Math.round(7*T.fruit)).map(([x,y])=>'<circle cx="'+(x+7)+'" cy="'+(y+12)+'" r="4"/>').join('')+'</g>';
+ if(snow){s+='<g fill="none" stroke="'+(n?'#D8E8F6':'#F9FDFF')+'" stroke-width="'+(white?4:2)+'" stroke-linecap="round">'+branches.filter((_,i)=>i%2===0).map(([x,y,a,b])=>'<path d="M'+(x-2)+' '+(y-3)+' L'+(a-2)+' '+(b-3)+'"/>').join('')+'</g>'}
+ const leaf=(x,y,a,c,k=1)=>'<path d="M-6 0 Q0 -5 7 0 Q0 5 -6 0Z" fill="'+c+'" transform="translate('+x+' '+y+') rotate('+a+') scale('+k+')"/>';
+ if(T.ground&&!white)s+=Array.from({length:Math.round(30*T.ground)},(_,i)=>leaf(f(22+rnd(i)*550),f(313+rnd(i+40)*78),f(rnd(i+90)*120-60),leafC(i),.55+rnd(i+120)*.5)).join('');
+ if(T.fall&&!snow&&!sc.thunder){const wind=sc.dir*(5+sc.wl*12);s+='<g class="bd-leaves">'+foliage.slice(0,Math.ceil(T.fall*8)).map(([x,y],i)=>'<g style="--dx:'+f(wind+(rnd(i)-.5)*20)+'px;--dy:'+f(325-y)+'px;animation-duration:'+f(8+rnd(i+10)*6)+'s;animation-delay:-'+f(rnd(i+20)*12)+'s"><g class="sw" style="--a:5px;animation-duration:'+f(1.6+rnd(i)*2)+'s"><path class="fl" style="--r0:-25deg;--r1:35deg;--sy:.55;animation-duration:2.5s" d="M'+x+' '+y+' q5 -4 10 0 q-5 4 -10 0Z" fill="'+leafC(i)+'"/></g></g>').join('')+'</g>'}
+ // Förgrundsbuskar och stenar ramar in utsikten, med små varma strån mellan färgplanen.
+ const bush=(x,y,r,c)=>'<path d="M'+(x-r)+' '+y+' A'+r+' '+r+' 0 0 1 '+(x+r)+' '+y+'Z" fill="'+c+'"/>';
+ const shrub=n?shadeHex(leafC(3),.62):mixHex(leafC(3),g2,.2);
+ if(!white){s+=bush(8,324,32,shrub)+bush(36,337,22,leafC(3))+bush(4,370,35,front)+bush(55,395,42,shrub)+bush(23,393,28,leafC(2))+bush(592,323,29,shrub)+bush(565,327,23,leafC(3))+bush(610,387,44,shrub);}
+ const rocks=[[76,378,31,12],[190,364,19,7],[244,393,30,9],[548,382,20,8],[313,345,17,6]];
+ s+='<g fill="'+(white?(n?'#91ADC9':'#ACCBD9'):n?'#34416B':'#659291')+'">'+rocks.map(([x,y,rx,ry])=>'<path d="M'+(x-rx)+' '+y+' L'+(x-rx*.5)+' '+(y-ry)+' L'+(x+rx*.25)+' '+(y-ry*1.2)+' L'+(x+rx)+' '+y+'Z"/>').join('')+'</g>';
+ if(!white){for(const[x,y,k]of[[30,346,1],[63,359,.7],[229,374,.7],[574,348,1],[553,358,.7]]){s+='<g stroke="'+gold+'" stroke-width="1.5" stroke-linecap="round"><path d="M'+x+' '+y+' l-4 -'+(23*k)+' M'+(x+5)+' '+y+' l1 -'+(32*k)+' M'+(x+11)+' '+y+' l6 -'+(19*k)+'"/></g><g fill="'+gold+'">'+[[x-4,y-23*k],[x+6,y-32*k],[x+17,y-19*k]].map(([a,b])=>'<rect x="'+(a-1.7)+'" y="'+(b-5)+'" width="3.4" height="9" rx="1.7"/>').join('')+'</g>'}}
+ if(!white&&/early|spring|easter|summer/.test(ss)){const col=ss==='early'?'#A98AE8':ss==='easter'?'#FFDA65':'#F3FAE7';s+='<g>'+[[71,343],[205,340],[257,364],[531,350]].map(([x,y],i)=>'<path d="M'+x+' '+y+' v-10" stroke="#519773" stroke-width="1.5"/>'+[0,72,144,216,288].map(a=>'<ellipse cx="'+x+'" cy="'+(y-13)+'" rx="2.5" ry="5" fill="'+col+'" transform="rotate('+a+' '+x+' '+(y-9)+')"/>').join('')+'<circle cx="'+x+'" cy="'+(y-9)+'" r="2" fill="#FFB856"/>').join('')+'</g>'}
+ if(wet&&sc.lv>=2&&sc.T>0)s+='<g class="fx-pud">'+[[170,343],[271,363]].map(([x,y],i)=>'<ellipse cx="'+x+'" cy="'+y+'" rx="22" ry="3" fill="'+water+'"/><ellipse class="rip" cx="'+x+'" cy="'+y+'" rx="12" ry="2" fill="none" stroke="#A1D1F2" stroke-width="1" style="animation-delay:-'+i*.7+'s"/>').join('')+'</g>';
+ return'<svg class="bd art-geo geo-world" viewBox="0 0 600 400" preserveAspectRatio="none" data-season="'+ss+'" data-snow="'+snow+'" aria-hidden="true">'+s+'</g></svg>'}
+function geoDogSvg(D,o,id,pose){const F=o.fit||{},lie=pose==='lie',dark=!!D.chest,fur=dark?'#3C466C':'#E5A25D',shade=dark?'#283250':'#C37C47',muzzle=dark?'#222C47':'#34334A',coat=F.coat&&D.coat[F.coat],bed=D.band,head='M34 52 Q31 34 44 30 Q59 25 76 31 Q90 36 87 55 L84 67 Q76 78 59 77 Q41 77 35 66Z';
+ let s='<defs><clipPath id="'+id+'gh"><path d="'+head+'"/></clipPath></defs>';
+ if(lie)s+='<ellipse cx="62" cy="119" rx="53" ry="13" fill="'+shadeHex(bed,.62)+'"/><ellipse cx="62" cy="113" rx="53" ry="12" fill="'+bed+'"/><ellipse cx="62" cy="112" rx="45" ry="7" fill="'+mixHex(bed,'#111A3D',.28)+'"/>';
+ s+=lie?'<path d="M43 114 C40 99 63 85 81 89 C100 90 102 109 90 117Z" fill="'+(coat||fur)+'"/><path d="M78 93 C101 94 100 113 87 117 H68 C80 114 87 102 78 93Z" fill="'+shade+'"/>':'<path d="M33 117 C24 106 34 90 46 87 L77 87 C91 89 99 109 89 120Z" fill="'+(coat||shade)+'"/><path d="M43 92 Q60 82 78 92 L77 122 H43Z" fill="'+(coat||fur)+'"/>';
+ if(dark&&!coat)s+='<path d="M50 '+(lie?108:93)+' Q61 '+(lie?103:90)+' 71 '+(lie?108:93)+' L64 '+(lie?119:116)+' H57Z" fill="#F0ECDF"/>';
+ if(coat&&F.puffer&&!lie)s+='<path d="M37 98 Q60 103 85 98 M37 109 Q60 115 85 109" fill="none" stroke="'+shadow(coat)+'" stroke-width="1.2"/>';
+ if(F.rain&&!lie)s+='<path d="M61 90 V121" stroke="'+shadow(coat)+'" stroke-width="1.1"/>';
+ s+='<g fill="'+fur+'"><rect x="38" y="'+(lie?117:108)+'" width="18" height="'+(lie?6:15)+'" rx="5"/><rect x="64" y="'+(lie?117:108)+'" width="18" height="'+(lie?6:15)+'" rx="5"/></g>';
+ let h='<g class="ear-l"><path d="M37 42 Q25 18 33 13 Q42 12 54 33Z" fill="'+fur+'"/><path d="M38 34 L35 19 Q40 20 47 32Z" fill="'+(dark?'#54516E':'#A77564')+'"/></g><g class="ear-r"><path d="M84 43 Q97 17 87 13 Q78 12 66 34Z" fill="'+shade+'"/><path d="M83 34 L86 19 Q80 20 73 33Z" fill="'+(dark?'#45445F':'#A77564')+'"/></g>';
+ if(F.rain)h+='<path d="M28 58 Q29 25 60 25 Q93 26 94 59 L85 73 H35Z" fill="'+coat+'"/>';
+ h+='<path d="'+head+'" fill="'+fur+'"/><g clip-path="url(#'+id+'gh)"><path d="M70 25 L96 35 V80 H68 Q76 56 70 25Z" fill="'+shade+'"/></g>';
+ if(!dark)h+='<path d="M37 47 Q44 38 54 45 L52 52 H40Z M65 45 Q75 38 84 47 L80 53 H68Z" fill="'+mixHex(muzzle,fur,.25)+'"/>';
+ h+='<path d="M43 61 Q41 51 50 49 Q60 46 70 49 Q80 51 78 62 Q77 72 68 73 L60 71 L52 73 Q43 72 43 61Z" fill="'+muzzle+'"/><path d="M54 53 Q60 50 66 53 L64 58 Q60 60 56 58Z" fill="#11192D"/><path d="M47 65 Q51 69 57 67 M64 67 Q70 69 74 65" fill="none" stroke="'+(dark?'#667393':'#747081')+'" stroke-width="1.1" stroke-linecap="round"/>';
+ h+=lie?'<path d="M40 46 Q46 49 51 46 M69 46 Q75 49 81 46" fill="none" stroke="'+(dark?'#8B95B6':'#463A39')+'" stroke-width="1.8" stroke-linecap="round"/>':F.shades?'<path d="M37 42 H55 L52 49 H41Z M66 42 H84 L80 49 H69Z" fill="#15203C"/><path d="M55 44 H66" stroke="#15203C" stroke-width="2"/>':'<g class="fig-eyes" fill="#11192B"><ellipse cx="46" cy="44" rx="2.8" ry="3"/><ellipse cx="75" cy="44" rx="2.8" ry="3"/><g fill="#FBF6E8"><circle cx="45.5" cy="43" r=".9"/><circle cx="74.5" cy="43" r=".9"/></g></g>';
+ h+='<path d="M51 34 Q59 31 67 34 M54 38 Q60 36 65 38" fill="none" stroke="'+shade+'" stroke-width="1.3" stroke-linecap="round"/>';
+ if(F.beanie)h+='<path d="M38 34 Q40 20 60 20 Q80 20 83 34Z" fill="'+D.hat+'"/><rect x="36" y="32" width="49" height="5" rx="2.5" fill="'+light(D.hat)+'"/>';
+ if(F.scarf&&!lie)h+='<path d="M38 73 Q60 82 82 73 V79 Q60 87 38 79Z" fill="'+D.scarf+'"/>';
+ s+='<g transform="translate('+(lie?'-8 43':'0 18')+')"><g class="dog-head">'+h+'</g></g>';
+ if(dark&&lie)s+='<path d="M47 120 L54 115 L62 120 L65 125 H52Z" fill="#EAE9E8"/>';
+ if(F.snowy)s+='<path d="M29 101 Q40 96 48 101 M81 97 Q89 95 95 101" fill="none" stroke="#F1F8FF" stroke-width="3" stroke-linecap="round"/>';
+ if(F.breath&&!lie)s+='<g class="fig-breath" fill="#E8F0FA"><circle cx="75" cy="73" r="3"/><circle cx="82" cy="68" r="2"/></g>';
+ return'<g transform="translate(9 18.5) scale(.85)"><g class="fig-body dog'+(lie?' lie':'')+'">'+s+'</g></g>'}
+
 // Samma figVariant och klädmodell som originalet, men egna silhuetter och enklare ansikten.
-function dogArtSvg(D,o,id,pose){const F=o.fit||{},lie=pose==='lie',geo=WXART==='geo',coat=F.coat?D.coat[F.coat]:null,fur=geo?mixHex(D.fur,D.chest?'#394A78':'#F4B76E',.28):mixHex(D.fur,'#DEC2A1',.1),mask=geo?'#24304B':D.mask;
+function dogArtSvg(D,o,id,pose){if(WXART==='geo')return geoDogSvg(D,o,id,pose);const F=o.fit||{},lie=pose==='lie',geo=WXART==='geo',coat=F.coat?D.coat[F.coat]:null,fur=geo?mixHex(D.fur,D.chest?'#394A78':'#F4B76E',.28):mixHex(D.fur,'#DEC2A1',.1),mask=geo?'#24304B':D.mask;
  const head='M31 49 Q30 30 44 28 Q60 23 77 29 Q90 34 89 51 L86 63 Q80 76 60 76 Q38 76 33 63Z',shade=geo?mixHex(fur,'#263059',.38):shadow(fur),cc=coat||fur;
  let b='<defs><clipPath id="'+id+'head"><path d="'+head+'"/></clipPath></defs>';
  b+=lie?'<rect x="15" y="93" width="91" height="31" rx="15" fill="'+shade+'"/><path d="M17 109 Q14 93 34 92 H84 Q103 92 104 109Z" fill="'+cc+'"/>':'<path d="M31 112 Q31 76 47 73 Q61 67 76 74 Q91 80 90 113 Q89 124 77 124 H44 Q31 124 31 112Z" fill="'+cc+'"/><path d="M65 74 Q89 76 90 113 Q89 124 77 124 H66Z" fill="'+shadow(cc)+'"/>';
@@ -3018,7 +3092,7 @@ function snowLevel(sc){const cm=snowDepth(),falling=sc.type==='snow'&&(sc.lv>=2|
  return Math.max(falling,cm<.5?0:cm<4?1:cm<12?2:3)}
 const GRASS={winter:['#94A27A','#6F7F5B'],early:['#9AB070','#728B55'],spring:['#93CF60','#63A443'],easter:['#93CF60','#63A443'],summer:['#7CC157','#50983B'],
  autumn1:['#A6B85C','#7E9142'],autumn2:['#B5A95B','#8A8043'],autumn3:['#A09163','#776B4B']};
-function grassPatch(sc,id){const ss=grassSeason(today()),snow=snowLevel(sc),frost=!snow&&sc.T<0,wet=/^(drizzle|rain|sleet)$/.test(sc.type)||sc.thunder;
+function grassPatch(sc,id){if(WXART==='geo')return{back:'',front:''};const ss=grassSeason(today()),snow=snowLevel(sc),frost=!snow&&sc.T<0,wet=/^(drizzle|rain|sleet)$/.test(sc.type)||sc.thunder;
  let[g1,g2]=artGrass(ss);if(frost){g1=mixHex(g1,'#E2ECF5',.42);g2=mixHex(g2,'#C6D5E4',.3)}if(wet){g1=shadeHex(g1,.88);g2=shadeHex(g2,.88)}
  const rnd=k=>{const x=Math.sin(k*91.7+3.1)*43758.5453;return x-Math.floor(x)},f=v=>v.toFixed(1);
  // en mjuk oval med lite ojämn kant, som i en tecknad bild
@@ -3087,7 +3161,7 @@ function treeStage(t){const d=parse(t),y=d.getFullYear(),doy=Math.round((d-new D
 /* Bakgrunden bakom gräsplätten: en mjuk kulle och ett träd efter årstiden. Inget har en hård kant mot rutan:
    kullen tonar ut med en mask och små tuvor läcker ut runt om, precis som gräset. 1 enhet = 1 px, marken ligger
    på y=175 och plätten med hundarna står i den högra delen (x 80-220). */
-function backdropSvg(sc){const id='bd'+(++FIG_N),ss=grassSeason(today()),snow=snowLevel(sc),frost=!snow&&sc.T<0,f=v=>v.toFixed(1);
+function backdropSvg(sc){if(WXART==='geo')return geoBackdropSvg(sc);const id='bd'+(++FIG_N),ss=grassSeason(today()),snow=snowLevel(sc),frost=!snow&&sc.T<0,f=v=>v.toFixed(1);
  const rnd=k=>{const x=Math.sin(k*57.3+1.7)*43758.5453;return x-Math.floor(x)};
  let[g1,g2]=artGrass(ss);if(frost){g1=mixHex(g1,'#E2ECF5',.42);g2=mixHex(g2,'#C6D5E4',.3)}
  const blob=(cx,cy,rx,ry,j,seed)=>{const n=14,P=[];for(let i=0;i<n;i++){const a=i/n*2*Math.PI,r=1+(rnd(i+seed)-.5)*j;P.push([cx+Math.cos(a)*rx*r,cy+Math.sin(a)*ry*r])}
@@ -3107,15 +3181,6 @@ function backdropSvg(sc){const id='bd'+(++FIG_N),ss=grassSeason(today()),snow=sn
  g+='</g></g>';
  // tuvor som läcker ut från kullen
  g+=[[-2,166,4,1.6],[8,160,2.5,1.1],[20,150,2.2,1],[70,148,2.5,1],[112,152,3,1.2],[190,158,2.4,1]].map(([x,y,rx,ry])=>'<ellipse cx="'+x+'" cy="'+y+'" rx="'+rx+'" ry="'+ry+'" fill="'+near+'" opacity=".55"/>').join('');
- // Geometrisk: tydliga färgplan, en sjö och en diskret skog. Samma snö-/årstidsmodell som originalet.
- if(WXART==='geo'){const n=sc.dark,ice=snow>=2||frost,far=n?mixHex(snow>=2?'#C8DFED':g2,'#263968',.65):mixHex(snow>=2?'#C8DFED':g2,'#68BEB2',.35),water=ice?(n?'#819ABD':'#D6E9F5'):(n?'#415B9A':'#62B8CF'),nearC=n?mixHex(near,'#14234A',.68):near;
-  g='<path d="M-8 143 Q38 108 89 133 Q146 104 240 135 V183 H-8Z" fill="'+far+'"/>'+
-   '<path d="M-8 151 Q50 136 107 149 Q175 135 240 145 V180 H-8Z" fill="'+water+'"/>'+
-   '<path d="M-8 167 Q24 143 72 153 Q141 174 240 157 V190 H-8Z" fill="'+nearC+'"/>'+
-   '<g fill="'+(n?'#142343':mixHex(g2,'#1C6C7A',.45))+'">'+[[7,151,20],[20,150,28],[185,148,19],[202,146,30],[221,147,24]].map(([x,y,h])=>'<path d="M'+(x-6)+' '+y+' L'+x+' '+(y-h)+' L'+(x+7)+' '+y+'Z"/>').join('')+'</g>'+
-   '<g fill="'+(n?'#FFA95E':'#EAC47F')+'"><rect x="113" y="145" width="3" height="1" rx=".4"/><rect x="137" y="143" width="4" height="1" rx=".4"/></g>';
-  if(snow>=1)g+='<path d="M-4 167 Q30 148 74 158" fill="none" stroke="#E8F5FF" stroke-width="'+(snow>=2?9:3)+'" stroke-linecap="round"/>';
- }
  // trädet: stam och krona av runda klungor, ljus uppe till vänster och hård skugga till höger som hundarna.
  // Lövet följer året steg för steg (treeStage): knoppar, musöron, ljust försommargrönt, mörkare gröngul högsommar,
  // gulnande, brandgult och eldigt rött med fallande löv, sena bruna löv och till sist kala grenar.
@@ -3198,7 +3263,7 @@ function figSvg(sc,o){o=o||{};const id='fg'+(++FIG_N),ph=sc.phase,dark=sc.dark,w
  // 3. värmedaller i stark sol
  if(sc.T>=24&&sc.sunUp&&!covered&&!wet)s+='<g class="fx-heat" stroke="'+sunD+'" stroke-width="1.2" fill="none" stroke-linecap="round" opacity=".5">'+[[14,0],[152,.8],[34,1.6],[134,2.3]].map(([x,d])=>'<path d="M'+x+' 122 q3 -4 0 -8 t0 -8" style="animation-delay:-'+d+'s"/>').join('')+'</g>';
  // 4. marken: skugga bort från solen, snö, frost eller vattenpölar
- const flt=x=>dark?'<g filter="url(#'+id+'n)">'+x+'</g>':warmL?'<g filter="url(#'+id+'w)">'+x+'</g>':x,gp=o.patch?grassPatch(sc,id):null;
+ const flt=x=>WXART==='geo'?x:dark?'<g filter="url(#'+id+'n)">'+x+'</g>':warmL?'<g filter="url(#'+id+'w)">'+x+'</g>':x,gp=o.patch?grassPatch(sc,id):null;
  if(gp)s+=flt(gp.back);
  else if(!o.nodogs)s+='<ellipse cx="'+(sc.sunUp&&!covered?85+(.5-sc.f)*24:85)+'" cy="125" rx="62" ry="5" fill="url(#'+id+'s)"/>';
  if(gp);else if(snow&&(lv>=2||sc.T<=0))s+='<path d="M0 127 Q30 114 70 118 Q110 113 170 125 V131 H0Z" fill="url(#'+id+'d)"/><path d="M8 124 Q40 117 70 119" stroke="#fff" stroke-width="1.4" fill="none" stroke-linecap="round" opacity=".9"/>';

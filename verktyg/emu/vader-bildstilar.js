@@ -10,6 +10,7 @@ module.exports=async(pg,h)=>{
  for(const art of ['original','soft','geo']){
   await settings();await click('[data-act="wxart"][data-id="'+art+'"]');assert.equal(await read('WXART'),art);await close();await nav();
   assert.equal(await pg.locator('.wx2').count(),1);assert.equal(await pg.locator('.wx2.art-'+art).count(),art==='original'?0:1);
+  if(art==='geo'){const scene=await pg.locator('.wx2').evaluate(e=>{const card=e.getBoundingClientRect(),world=e.querySelector('.geo-world').getBoundingClientRect(),dogs=e.querySelector('.fig-box').getBoundingClientRect();return{worldWidth:world.width,cardWidth:card.width,dogsWidth:dogs.width,worldHeight:world.height}});assert(Math.abs(scene.worldWidth-scene.cardWidth)<3,'Landskapet fyller kortets bredd');assert(scene.worldHeight>=200,'Utsikten får egen höjd');assert(scene.dogsWidth<scene.cardWidth*.48,'Maskotarna lämnar plats för vädret')}
   const resources=await pg.locator('.wx2').evaluate(el=>{const ids=[...el.querySelectorAll('[id]')].filter(e=>!e.closest('.gl')).map(e=>e.id);return{duplicate:ids.filter((id,i)=>ids.indexOf(id)!==i),invalid:/NaN|undefined/.test(el.innerHTML),outside:el.getBoundingClientRect().right>innerWidth+1}});
   assert.deepEqual(resources.duplicate,[]);assert.equal(resources.invalid,false);assert.equal(resources.outside,false);
   await pg.screenshot({path:path.join(h.OUT,'bildstil-'+art+'.png'),fullPage:false});
@@ -49,9 +50,9 @@ module.exports=async(pg,h)=>{
  // Granska riktiga kort i representativa väder och årstider; endast emulatorns modell/klocka ersätts.
  await read('window.__artSaved={Date:window.Date,model:wxModel,W:wxModel(),art:WXART,snow:lsGet("snow"),variant:S.wxVar}');
  try{
-  const scenes=[['hostnatt','2026-10-31T22:00:00+01:00','cloudy',6,0,100,0],['sommar','2026-07-15T12:00:00+02:00','clearsky',26,0,0,0],['regn','2026-05-15T12:00:00+02:00','heavyrainandthunder',9,5,100,0],['sno','2026-01-15T12:00:00+01:00','heavysnow',-5,4,95,15],['dimma','2026-11-15T09:00:00+01:00','fog',2,0,100,0],['stjarnor','2026-08-15T23:00:00+02:00','clearsky',14,0,0,0]];
+  const scenes=[['hostnatt','2026-10-31T19:49:00+01:00','cloudy',6,0,100,0],['sommar','2026-07-15T12:00:00+02:00','clearsky',26,0,0,0],['regn','2026-05-15T12:00:00+02:00','heavyrainandthunder',9,5,100,0],['sno','2026-01-15T12:00:00+01:00','heavysnow',-5,4,95,15],['dimma','2026-11-15T09:00:00+01:00','fog',2,0,100,0],['stjarnor','2026-08-15T23:00:00+02:00','clearsky',14,0,0,0]];
   for(const art of ['geo','soft'])for(const [name,date,sym,T,pr,cf,cm] of scenes){
-   await read(`(()=>{const saved=window.__artSaved,now=new saved.Date('${date}').getTime();window.Date=class extends saved.Date{constructor(...a){super(...(a.length?a:[now]))}static now(){return now}};const W=saved.W,n={...W.now,s:'${sym}',T:${T},pr:${pr},cf:${cf},w:${pr?10:2}};wxModel=()=>({...W,now:n,hours:W.hours.map(x=>({...x,...n})),days:W.days.map(x=>({...x,min:${T},max:${T}}))});WXART='${art}';S.wxVar=null;lsSet('snow',JSON.stringify({at:now,cm:${cm}}));render()})()`);
+   await read(`(()=>{const saved=window.__artSaved,now=new saved.Date('${date}').getTime();window.Date=class extends saved.Date{constructor(...a){super(...(a.length?a:[now]))}static now(){return now}};const W=saved.W,n={...W.now,s:'${sym}',T:${T},pr:${pr},cf:${cf},w:${name==='hostnatt'?0:pr?10:2},wd:${name==='hostnatt'?315:230}};wxModel=()=>({...W,now:n,hours:W.hours.map(x=>({...x,...n})),days:W.days.map(x=>({...x,min:${T},max:${T}}))});WXART='${art}';S.wxVar=null;lsSet('snow',JSON.stringify({at:now,cm:${cm}}));render()})()`);
    await h.idle(120);await pg.evaluate(()=>document.getAnimations().forEach(a=>{a.pause();a.currentTime=42000}));await pg.locator('.wx2').screenshot({path:path.join(h.OUT,'bildstil-'+art+'-'+name+'.png')});
   }
  }finally{await read('(()=>{const s=window.__artSaved;window.Date=s.Date;wxModel=s.model;WXART=s.art;S.wxVar=s.variant;lsSet("snow",s.snow);delete window.__artSaved;render()})()')}
