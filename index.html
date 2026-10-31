@@ -834,6 +834,18 @@ html.ny .chip.lk::before{display:none}
 .wx2-bar>div+div{border-left:1px solid var(--line);padding:0 0 0 12px}
 .wx2-bar b{font-size:12px;letter-spacing:.3px;text-transform:uppercase;color:var(--ink-2);font-weight:600}
 .wx2-bar span{font-size:15px;line-height:20px}
+/* Extra bildstilar: geometrin för himmel, graf och draghandtag lämnas åt befintlig layout. */
+.wx2.art-geo,.wx2.art-soft{background:linear-gradient(170deg,var(--art-bg),var(--art-end));color:var(--art-ink);--ink:var(--art-ink);--ink-2:var(--art-sub);--line:var(--art-line);--sky-star:#FFF6CE;--sky-moon:#FFF4CC;--fog:rgba(193,210,230,.45)}
+.wx2.art-geo .wx-place,.wx2.art-soft .wx-place{color:var(--art-sub)}
+.wx2.art-geo .wx-hl,.wx2.art-soft .wx-hl{color:var(--art-sub)}
+.wx2.art-geo .skyfx .st,.wx2.art-soft .skyfx .st{background:#fff}
+.art-geo .sb-cl>.sb-c{filter:none}
+.art-geo .sky-b .sb-body svg>circle:first-of-type{opacity:.14}
+.fig.art-geo .dog-head,.fig.art-soft .dog-head{animation-name:artDogTilt}
+@keyframes artDogTilt{0%,65%,100%{transform:rotate(0)}73%,80%{transform:rotate(-3deg)}}
+.fig.art-geo .dog-b,.fig.art-soft .dog-b{filter:none}
+.fig.art-geo .dog.lie,.fig.art-soft .dog.lie{animation-duration:4.5s}
+.art-geo .fig-z text,.art-soft .fig-z text{font-weight:600}
 /* dagskurvan i stället för bilden */
 .wxC-sc{margin:10px -16px 0;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y;-webkit-mask-image:linear-gradient(90deg,transparent,#000 14px,#000 calc(100% - 14px),transparent);mask-image:linear-gradient(90deg,transparent,#000 14px,#000 calc(100% - 14px),transparent)}
 .wxC-sc::-webkit-scrollbar{display:none}
