@@ -3588,7 +3588,7 @@ function wxDayPts(W,date){const t0=parse(date).getTime(),t1=parse(addDays(date,1
  return H.map(x=>{const end=Math.max(+x.d,Math.min(t1,x.end)),dur=(end-x.d)/36e5;
   return Object.assign({},x,{X:(x.d-t0)/(t1-t0)*240,endX:(end-t0)/(t1-t0)*240,dur,amt:x.rate*dur})})}
 function wxDayHtml(){const W=wxModel();if(!W)return group(emptyCell('Prognosen kunde inte hämtas just nu.'));
- const P=WX_POS(),D=W.days.find(x=>x.date===S.wxDay)||W.days[0],di=W.days.indexOf(D),idag=D.date===today(),H=wxDayPts(W,D.date);
+ const P=WX_POS(),D=Object.assign({},W.days.find(x=>x.date===S.wxDay)||W.days[0]),di=W.days.findIndex(x=>x.date===D.date),idag=D.date===today(),H=wxDayPts(W,D.date);D.pr=H.reduce((s,x)=>s+x.amt,0);
  const dt=parse(D.date),t1=parse(addDays(D.date,1)),f=v=>v.toFixed(1),now=Date.now(),nX=idag?(now-dt)/(t1-dt)*240:-1,pc=x=>f(x/2.4);
  // animationer bara när bladet öppnas eller dagen byts, inte när det ritas om var 30:e sekund
  const an=A.wdDay!==D.date,dir=A.wdDay&&an?(di>A.wdI?' from-r':' from-l'):'';A.wdPrev=A.wdI;A.wdDay=D.date;A.wdI=di;
@@ -3603,11 +3603,11 @@ function wxDayHtml(){const W=wxModel();if(!W)return group(emptyCell('Prognosen k
  const vs=H.map(x=>x.T),t0=Math.min(...vs,D.min),t9=Math.max(...vs,D.max),sp=Math.max(4,t9-t0),stp=sp<=6?2:sp<=15?4:5;
  const lo=Math.floor(t0/stp)*stp,hi=Math.max(lo+stp,Math.ceil(t9/stp)*stp),Y=v=>58-(v-lo)/(hi-lo)*50,ticks=[];for(let v=lo;v<=hi+1e-6;v+=stp)ticks.push(v);
  const pm=Math.max(1,...H.map(x=>x.rate)),pH=v=>v/pm*34;
- const gid='wd'+(++FIG_N),sx=t=>(t-dt)/(t1-dt)*240,st=sunTimes(D.date,P.lat,P.lon);
+ const gid='wd'+(++FIG_N),sx=t=>(t-dt)/(t1-dt)*240,at=hr=>new Date(dt.getFullYear(),dt.getMonth(),dt.getDate(),Math.floor(hr),Math.round(hr%1*60)),st=sunTimes(D.date,P.lat,P.lon);
  // bakgrund: natten svagt tonad, stödlinjer var sjätte timme och för temperaturskalan
  let g='<svg class="wd-svg" viewBox="0 0 240 100" preserveAspectRatio="none" aria-hidden="true">';
  if(st)g+='<rect x="0" y="0" width="'+f(Math.max(0,sx(st[0])))+'" height="100" class="wd-night"/><rect x="'+f(sx(st[1]))+'" y="0" width="'+f(Math.max(0,240-sx(st[1])))+'" height="100" class="wd-night"/>';
- g+=[60,120,180].map(x=>'<line x1="'+x+'" x2="'+x+'" y1="0" y2="100" class="wd-vg"/>').join('')+ticks.map(v=>'<line x1="0" x2="240" y1="'+f(Y(v))+'" y2="'+f(Y(v))+'" class="wd-hg"/>').join('')+'<line x1="0" x2="240" y1="92" y2="92" class="wd-base"/></svg>';
+ g+=[6,12,18].map(hr=>sx(at(hr))).map(x=>'<line x1="'+x+'" x2="'+x+'" y1="0" y2="100" class="wd-vg"/>').join('')+ticks.map(v=>'<line x1="0" x2="240" y1="'+f(Y(v))+'" y2="'+f(Y(v))+'" class="wd-hg"/>').join('')+'<line x1="0" x2="240" y1="92" y2="92" class="wd-base"/></svg>';
  // nederbörden växer upp ur botten, stapel för stapel
  let bars='',bi=0,top1=null;H.forEach(x=>{if(x.rate<.05||ymd(x.d)!==D.date&&x.X>=240)return;const w=x.endX-x.X;if(w<=0)return;if(!top1||x.rate>top1.rate)top1=x;
   bars+='<i class="wd-bar'+(x.d.getTime()<now-36e5?' was':'')+'" style="left:'+pc(x.X+.6)+'%;width:'+pc(w-1.2)+'%;height:'+f(pH(x.rate))+'%;--d:'+(bi++*35)+'ms"></i>'});
@@ -3628,13 +3628,13 @@ function wxDayHtml(){const W=wxModel();if(!W)return group(emptyCell('Prognosen k
  // väderikoner överst och vindpilar nederst: var tredje timme när Yr har timvärden, annars var sjätte
  const tre=idag||H.filter(x=>!x.past).some((x,i,a)=>a[i+1]&&a[i+1].d-x.d<=36e5),iv=tre?3:6,top=[],vind=[];
  for(let hr=0;hr<24;hr+=iv){const x=H.find(y=>y.d.getHours()===hr&&ymd(y.d)===D.date)||H.filter(y=>ymd(y.d)===D.date&&y.d.getHours()<=hr).pop();if(!x)continue;
-  const xx=wxDayNight(x,P,new Date(dt.getTime()+(hr+iv/2)*36e5)),l=f((hr+iv/2)/24*100),was=x.past||x.d.getTime()<now-36e5?' class="was"':'',d=';--d:'+(hr/iv*45)+'ms';
+  const xx=wxDayNight(x,P,at(hr+iv/2)),l=pc(sx(at(hr+iv/2))),was=x.past||x.d.getTime()<now-36e5?' class="was"':'',d=';--d:'+(hr/iv*45)+'ms';
   top.push('<span style="left:'+l+'%'+d+'"'+was+'>'+symInfo(xx.s)[0]+'</span>');
   vind.push('<span style="left:'+l+'%'+d+'"'+was+'><i class="wd-ar" style="--r:'+((x.wd||0)+180)+'deg">↑</i><b class="num">'+Math.round(x.w||0)+'</b></span>')}
  const yl=ticks.map(v=>'<span class="num" style="top:'+f(Y(v))+'%">'+deg(v)+'</span>').join('');
  h+='<div class="wd-chart"><div class="wd-icons" aria-hidden="true">'+top.join('')+'</div><div class="wd-plot">'+g+'<div class="wd-bars">'+bars+'</div>'+
   '<div class="wd-rv"><div class="wd-rvi">'+c+'</div></div>'+mk+'<div class="wd-y" aria-hidden="true">'+yl+'</div></div>'+
-  '<div class="wd-x num" aria-hidden="true">'+['00','06','12','18','24'].map((t,i)=>'<span style="left:'+(i*25)+'%">'+t+'</span>').join('')+'</div>'+
+  '<div class="wd-x num" aria-hidden="true">'+['00','06','12','18','24'].map((t,i)=>'<span style="left:'+pc(sx(at(i*6)))+'%">'+t+'</span>').join('')+'</div>'+
   '<div class="wd-wind" aria-hidden="true">'+vind.join('')+'<em>m/s</em></div>'+
   '<div class="wd-leg" aria-hidden="true"><span><i class="lt"></i>Temperatur</span><span><i class="lp"></i>Nederbörd</span><span><i class="lw">↑</i>Vind</span></div></div>';
  h+=sh('Dagssammanfattning')+'<div class="wd-sum">'+esc(wxDaySum(W,D,H,idag))+'</div>';
