@@ -1,14 +1,14 @@
-# Aktuell överlämning — 2026-10-31
+# Aktuell överlämning — 2026-11-01
 
 Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs relevant kod/PR vid behov.
 
-## För granskning: sömlös väderbild · ht-v243
+## För granskning: originalets scen med geometrisk stil · ht-v243
 
-- Codex, `codex/vader-somlos`. Henrik vill få bort landskapets rektangelkant i översikten och kombinera den nya illustrationen med originalets utförande. Ingen ny publicering är godkänd ännu; visa riktiga appbilder först.
-- Originalets kortbakgrund/layout, text, sol-/månbana och animationer behålls. `heroHtml` begär ett integrerat geometriskt landskap som tonar ut åt sidorna och nedåt. Stora vädervyn tonar bara nederkanten. Hundarna är separata och förblir skarpa.
-- Toningen är luminansmasker inne i SVG:n, så även GPU-lyfta löv/regnringar följer övergången. Inga bildfiler eller väderdata ändras; samma lösning för ljust/mörkt och vägg.
-- Lokalt grönt: 1 968 väderkombinationer, giltig SVG även med integrerad bild, verkligt rastrerad alfakant (sidor 3/255; nederkant gradvis 101→50→10; mitten 250), menyval/omstart och tolv bildfiler. GPU översikt/väder: 47 animationer till 0 i SVG, 15–85 bildpunkters skillnad (gräns 150). Telefon ljust/mörkt och mörk vägg visuellt granskade.
-- Förberedd ht-v243 / app.js?v=233. Main är ht-v242, merge `55e6e5bcde4510f4b83ee3e120c917a386d12dbf` (PR #57). Tidigare release/Pages och alla tolv CI-jobb är gröna. Inga server-/hushållsdata ändras.
+- Codex, `codex/vader-somlos`, PR #58. Henrik avvisade uttoning av ett färdigt landskap: samma uppbyggnad som originalet, med det valda formspråket. Ingen ny publicering är godkänd; visa riktiga appbilder först.
+- `backdropSvg`/`grassPatch` använder originalets markkullar, markplätt, tuvor, blommor, vädereffekter, koordinater och placering. Geometrisk har ett fristående träd ur ny sexrutorsatlas (vår/sommar/höst/senhöst/kalt/snö) och de redan godkända hund-/molnatlaserna. Hela sjö-/skogslandskapet och bildkantstoningen visas inte längre. Vädervyn har originalets scenmått igen.
+- Träden förankras vid (52,160) med uppmätta stambaser. En bildruta åt gången undviker dubbla grenar vid övergångar; marklöv/snö och levande himmel följer samma modeller som förr. Tre atlaser cachas offline; gamla landskap är bara referens/kompatibilitet. Manifest och prompt: `docs/design/vader-bildlager*` och `vader-trad-prompt.json`.
+- Lokalt grönt: 1 968 kombinationer i telefon/UI4 vägg, originalets scen-/hundmått, separata mark-/trädlager och tre avkodade atlaser. GPU översikt/väder: 56 animationer till 0 i SVG, 65–121 bildpunkters skillnad (gräns 150). Hundarnas atlasgrannar klipps bort med uppmätta mellanrum. Riktiga appbilder jämförda med Original i ljust/mörkt. Manifest/offline/syntax/diff gröna.
+- Förberedd ht-v243/app.js?v=233. Main ht-v242, merge `55e6e5bcde4510f4b83ee3e120c917a386d12dbf` (PR #57). Inga server-/hushållsdata ändras.
 
 Tidigare publiceringar (PR #43–56) finns i git-historiken. PR #56 är sammanslagen; stabil solbana och B24/portionsantal finns på main.
 
