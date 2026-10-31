@@ -28,11 +28,11 @@ module.exports=async(pg,h)=>{
   dates.forEach((date,di)=>{for(const hour of [1,12]){const now=new D0(date+'T'+String(hour).padStart(2,'0')+':00:00+01:00').getTime();window.Date=class extends D0{constructor(...a){super(...(a.length?a:[now]))}static now(){return now}};
    symbols.forEach((sym,i)=>{const n={s:sym+(hour===1?'_night':'_day'),T:[-8,-1,2,9,18,28][i%6],pr:/rain|snow|sleet/.test(sym)?[.1,.8,5][i%3]:0,w:[0,5,10,18][i%4],wd:[0,90,180,270][i%4],cf:[0,18,50,89,100][i%5]},W={now:n,hours:[n,n]};lsSet('snow',JSON.stringify({at:now,cm:[0,1,6,15][di%4]}));
     WXART='original';const sc=wxScene(W),sig=JSON.stringify(sc);seasons.add(grassSeason(today()));phases.add(sc.phase);types.add(sc.type);fits.add(sc.fit.coat);levels.add(snowLevel(sc));
-    const baseSky=skyFx(W),baseArc=arcHtml(W,'w');const dom=h=>new DOMParser().parseFromString(h,'text/html'),skyCount=(h,s)=>dom(h).querySelectorAll(s).length;
+    const baseSky=skyFx(W),baseArc=arcHtml(W,'w');const skyCount=(h,s)=>(h.match({'.cl':/<div class="cl /g,'.st':/<i class="st[ "]/g,'.cst':/<div class="cst"/g,'.sk':/<i class="sk[ "]/g}[s])||[]).length,arcPos=h=>h.match(/<div class="sky-b [^"]*" style="([^"]*)"/)[1];
     for(const art of ['original','soft','geo']){WXART=art;check(JSON.stringify(wxScene(W))===sig,'Bildstilen ändrar vädermodellen');const bd=backdropSvg(sc),fig=figSvg(sc,{bare:1,patch:1,nocl:1}),sky=skyFx(W),arc=arcHtml(W,'w');count++;
      check(!/NaN|undefined/.test(bd+fig+sky+arc),'Ogiltigt tal i '+art+'/'+sym);check(bd.includes('data-season="'+grassSeason(today())+'"'),'Årstid saknas');check(bd.includes('data-snow="'+snowLevel(sc)+'"'),'Snödjup saknas');
      for(const selector of ['.cl','.st','.cst','.sk'])check(skyCount(sky,selector)===skyCount(baseSky,selector),'Himmellager skiljer sig '+selector);
-     check(dom(arc).querySelector('.sky-b').getAttribute('style')===dom(baseArc).querySelector('.sky-b').getAttribute('style'),'Sol/månbana skiljer sig');
+     check(arcPos(arc)===arcPos(baseArc),'Sol/månbana skiljer sig');
      check(fig.includes('fx-rain')===/drizzle|rain|sleet/.test(sc.type),'Regnlager '+sym);check(fig.includes('fx-snow')===/snow|sleet/.test(sc.type),'Snölager '+sym);check(fig.includes('fx-bolt')===sc.thunder,'Åsklager '+sym);
      check((fig.includes('dog lie'))===sc.sleep,'Sovläge '+sym);check((skyCount(sky,'.st')>0)===(sc.dark&&sc.sky!=='fog'),'Stjärnor/dimma '+sym);
      if(i%9===0){xml(bd);xml(fig)}
@@ -52,7 +52,7 @@ module.exports=async(pg,h)=>{
   const scenes=[['hostnatt','2026-10-31T22:00:00+01:00','cloudy',6,0,100,0],['sommar','2026-07-15T12:00:00+02:00','clearsky',26,0,0,0],['regn','2026-05-15T12:00:00+02:00','heavyrainandthunder',9,5,100,0],['sno','2026-01-15T12:00:00+01:00','heavysnow',-5,4,95,15],['dimma','2026-11-15T09:00:00+01:00','fog',2,0,100,0],['stjarnor','2026-08-15T23:00:00+02:00','clearsky',14,0,0,0]];
   for(const art of ['geo','soft'])for(const [name,date,sym,T,pr,cf,cm] of scenes){
    await read(`(()=>{const saved=window.__artSaved,now=new saved.Date('${date}').getTime();window.Date=class extends saved.Date{constructor(...a){super(...(a.length?a:[now]))}static now(){return now}};const W=saved.W,n={...W.now,s:'${sym}',T:${T},pr:${pr},cf:${cf},w:${pr?10:2}};wxModel=()=>({...W,now:n,hours:W.hours.map(x=>({...x,...n})),days:W.days.map(x=>({...x,min:${T},max:${T}}))});WXART='${art}';S.wxVar=null;lsSet('snow',JSON.stringify({at:now,cm:${cm}}));render()})()`);
-   await h.idle(120);await pg.locator('.wx2').screenshot({path:path.join(h.OUT,'bildstil-'+art+'-'+name+'.png'),animations:'disabled'});
+   await h.idle(120);await pg.evaluate(()=>document.getAnimations().forEach(a=>{a.pause();a.currentTime=42000}));await pg.locator('.wx2').screenshot({path:path.join(h.OUT,'bildstil-'+art+'-'+name+'.png')});
   }
  }finally{await read('(()=>{const s=window.__artSaved;window.Date=s.Date;wxModel=s.model;WXART=s.art;S.wxVar=s.variant;lsSet("snow",s.snow);delete window.__artSaved;render()})()')}
  await settings();await click('[data-act="wxart"][data-id="'+boot+'"]');await close();await click('#nav [data-id="oversikt"]');await pg.reload();await h.idle(1700);assert.equal(await read('WXART'),boot);assert(await pg.locator('.hero.art-'+boot).count());
