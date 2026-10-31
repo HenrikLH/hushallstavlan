@@ -36,6 +36,7 @@ module.exports=async(pg,h)=>{
      check(arcPos(arc)===arcPos(baseArc),'Sol/månbana skiljer sig');
      check(fig.includes('fx-rain')===/drizzle|rain|sleet/.test(sc.type),'Regnlager '+sym);check(fig.includes('fx-snow')===/snow|sleet/.test(sc.type),'Snölager '+sym);check(fig.includes('fx-bolt')===sc.thunder,'Åsklager '+sym);
      check((fig.includes('dog lie'))===sc.sleep,'Sovläge '+sym);check((skyCount(sky,'.st')>0)===(sc.dark&&sc.sky!=='fog'),'Stjärnor/dimma '+sym);
+     if(art==='geo'){const frame=geoDogFrame(sc.fit,sc.sky,sc.sleep),eyes=(fig.match(/class="geo-eye"/g)||[]).length;check(eyes===(frame%2===0&&frame!==2?4:0),'Bruna iris/svarta pupiller i rätt pose '+frame);check(!eyes||fig.includes('fill="#A76B37"')&&fig.includes('fill="#10121B"'),'Ögonfärg')}
      if(i%9===0){xml(bd);xml(fig)}
     }
    })
@@ -48,11 +49,11 @@ module.exports=async(pg,h)=>{
  }finally{window.Date=D0;WXART=old;HUNDAR=oldDogs;S.wxVar=oldVar;EXT.yr=oldYr;lsSet('snow',oldSnow)}})()`);
  assert.equal(report.seasons.length,8);assert.equal(report.phases.length,5);assert.equal(report.types.length,5);assert.equal(report.levels.length,4);console.log('PASS bildstilar',JSON.stringify(report));
  // Bildfilerna ska gå att avkoda, inte bara finnas som tomma SVG-element.
- const decoded=await pg.evaluate(async()=>{const names=['autumn','spring','summer','winter','snow'].flatMap(s=>[s+'-day',s+'-night']).concat('mascots-v1');return Promise.all(names.map(async name=>{const img=new Image();img.src='bilder/vader/'+name+'.webp?v=1';await img.decode();return{name,w:img.naturalWidth,h:img.naturalHeight}}))});assert.equal(decoded.length,11);for(const im of decoded)assert(im.w>=1200&&im.h>=1000,'Bildlagret är avkodat: '+im.name);
+ const decoded=await pg.evaluate(async()=>{const names=['autumn','spring','summer','winter','snow'].flatMap(s=>[s+'-day',s+'-night']).concat('mascots-v2','clouds-v1');return Promise.all(names.map(async name=>{const img=new Image();img.src='bilder/vader/'+name+'.webp?v=1';await img.decode();return{name,w:img.naturalWidth,h:img.naturalHeight}}))});assert.equal(decoded.length,12);for(const im of decoded)assert(im.w>=1200&&im.h>=1000,'Bildlagret är avkodat: '+im.name);
  // Granska riktiga kort i representativa väder och årstider; endast emulatorns modell/klocka ersätts.
  await read('window.__artSaved={Date:window.Date,model:wxModel,W:wxModel(),art:WXART,snow:lsGet("snow"),variant:S.wxVar}');
  try{
-  const scenes=[['hostnatt','2026-10-31T19:49:00+01:00','cloudy',6,0,100,0],['sommar','2026-07-15T12:00:00+02:00','clearsky',26,0,0,0],['regn','2026-05-15T12:00:00+02:00','heavyrainandthunder',9,5,100,0],['sno','2026-01-15T12:00:00+01:00','heavysnow',-5,4,95,15],['dimma','2026-11-15T09:00:00+01:00','fog',2,0,100,0],['stjarnor','2026-08-15T23:00:00+02:00','clearsky',14,0,0,0]];
+  const scenes=[['ogon','2026-07-15T12:00:00+02:00','partlycloudy',18,0,50,0],['hostnatt','2026-10-31T19:49:00+01:00','cloudy',6,0,100,0],['sommar','2026-07-15T12:00:00+02:00','clearsky',26,0,0,0],['regn','2026-05-15T12:00:00+02:00','heavyrainandthunder',9,5,100,0],['sno','2026-01-15T12:00:00+01:00','heavysnow',-5,4,95,15],['dimma','2026-11-15T09:00:00+01:00','fog',2,0,100,0],['stjarnor','2026-08-15T23:00:00+02:00','clearsky',14,0,0,0]];
   for(const art of ['geo','soft'])for(const [name,date,sym,T,pr,cf,cm] of scenes){
    await read(`(()=>{const saved=window.__artSaved,now=new saved.Date('${date}').getTime();window.Date=class extends saved.Date{constructor(...a){super(...(a.length?a:[now]))}static now(){return now}};const W=saved.W,n={...W.now,s:'${sym}',T:${T},pr:${pr},cf:${cf},w:${name==='hostnatt'?0:pr?10:2},wd:${name==='hostnatt'?315:230}};wxModel=()=>({...W,now:n,hours:W.hours.map(x=>({...x,...n})),days:W.days.map(x=>({...x,min:${T},max:${T}}))});WXART='${art}';S.wxVar=null;lsSet('snow',JSON.stringify({at:now,cm:${cm}}));render()})()`);
    await h.idle(120);await pg.evaluate(()=>document.getAnimations().forEach(a=>{a.pause();a.currentTime=42000}));await pg.locator('.wx2').screenshot({path:path.join(h.OUT,'bildstil-'+art+'-'+name+'.png')});

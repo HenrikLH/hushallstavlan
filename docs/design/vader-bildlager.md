@@ -4,14 +4,14 @@ Geometrisk använder nu riktiga rasterlager. De tidigare förenklade SVG-version
 
 ## Filer och komposition
 
-- bilder/vader/: tio transparenta landskap (1536 × 1024) och mascots-v1.webp (1254 × 1254). Totalt cirka 3,4 MB. Alla filer och kontrollsummor finns i vader-bildlager.json.
+- bilder/vader/: tio transparenta landskap (1536 × 1024) och mascots-v2.webp (1254 × 1254). Dessutom clouds-v1.webp med fyra molnformer. Totalt cirka 3,4 MB. Alla filer och kontrollsummor finns i vader-bildlager.json.
 - Varianter: vår, sommar, höst, snöfri vinter och snö, var och en för dag/natt. Motivets huvudsakliga koordinater följer samma referens; bilderna är manuellt granskade illustrationer, inte exakt pixelregistrerade fotografier.
 - geoSeasonBlend följer kalendern och treeStage:s lövtäthet. geoDayMix använder den verkliga solhöjden. Två registrerade lager övertonas vid mellanlägen. Höstbilden ligger ensam vid referensdatumet 31 oktober.
 - Snö väljs separat från årstid via snowLevel/snowDepth: ingen snö, fläckar (mask), helt täcke och djup snö med en liten förgrundsdriva. Frost och regnringar läggs ovanpå bilden.
 - Bildgenereringens halvgenomskinliga färggloria runt figurerna dämpas med SVG:s feComponentTransfer. Bildens målade innehåll ritas inte om.
 - Moln, sol, måne, stjärnor, nederbörd, dimma och fallande löv är separata dynamiska lager. Hundarna har fristående bildrutor och en mycket svag andningsrörelse. Ingen genererad text eller väderdata är inbakad i målningen.
 - Atlasens 16 rutor visar båda hundarna vakna/sovande, med lätt jacka, varm jacka/halsduk, snö-/vinterkläder, regnkläder eller solglasögon. Faktiska klippkoordinater finns i manifestet; anta inte exakt jämn y-delning. Halvorna kan visas var för sig för Bruna/Svarta och växling.
-- Service workern förladdar de elva bildfilerna för offlinebruk. Inga appberoenden är tillagda. WebP-filerna är formatoptimerade från original-PNG utan annan pixelredigering.
+- Service workern förladdar de tolv bildfilerna för offlinebruk. Inga appberoenden är tillagda. WebP-filerna är formatoptimerade från original-PNG utan annan pixelredigering.
 
 ## Genereringsverktyg och promptunderlag
 
@@ -27,6 +27,10 @@ Maskoternas grundprompt:
 
 Production animation asset sheet of the TWO French bulldog mascots in the attached reference image. Match their beautifully illustrated natural bulldog appearance, smooth detailed sculpted color planes, expressive small faces, bat ears, fawn dog with black muzzle, charcoal dog with WHITE chest/chin patch. They must look like the small cute real dogs in the reference, NOT simplified humanoid mascots, not big smiling cartoon heads. Deliver a STRICT 4-column by 4-row sheet of 16 equal SQUARE tiles, truly TRANSPARENT background. No grid lines, labels, shadows outside figures or text. Each tile has EXACTLY TWO dogs in fixed positions: fawn dog entirely in left half, charcoal dog entirely in right half. Keep each dog and any bed entirely within its half-cell with at least 8% safe padding. All tiles use the SAME scale, frontal slightly three-quarter view and ground baseline at 80% cell height. Figures occupy the lower middle area of each tile. In sleeping tiles, both dogs lie curled down with heads on front paws in oval beds, fawn in burgundy bed, charcoal in blue bed, looking exactly like the reference. In awake tiles, dogs sit compactly with short legs and proper bulldog proportions. Tile order is left to right then top to bottom: bare awake/asleep, sunglasses awake/asleep; light jacket awake/asleep, warm jacket/scarf awake/asleep; snow jacket/cap awake/asleep, mustard raincoat awake/asleep; thick winter coat/scarf/cap awake/asleep, muted sage/slate fog jackets awake/asleep. Layout must have exactly four equal columns and four equal rows. Avoid bleeding across tile boundaries. Keep dogs as reference-quality painted graphic characters with subtle shading and face wrinkles, not crude geometry. Lighting neutral soft daylight so it can be tinted by app. No environment, scenery, weather particles or Z letters.
 
+Maskotatlasen förfinades mot referensen till enklare färgplan, korta breda nosar och tydlig vit haka/bröstteckning på den mörka hunden. En separat bildredigering gav bruna iris, svarta pupiller och tunna slutna sovögon. Vakna ögon kompletteras av små SVG-lager med varmbrun iris (#A76B37), svart pupill (#10121B) och en ljusreflex, för läsbarhet i appstorlek. Positionerna följer varje bildruta; sovande hundar och solglasögon får inga öppna ögon.
+
+Molnatlasen skapades som fyra transparenta gråskalelager med breda rundade moln, rak lång bas och kort understreck. SVG färgsätter gråskalan efter befintlig dag/natt-, moln- och åskmodell. Molntäcke, antal, placering och vindrörelse använder samma väderlogik som originalet.
+
 ## Verifiering
 
-vader-bildstilar.js provar alla tidigare vädersymbolfamiljer, årstidsstadier, ljusfaser, snödjup och hundvarianter samt menyval/omstart. Alla elva filer måste dessutom avkodas i webbläsaren. Kontroller av scenbredd/maskotstorlek och GPU-pixeljämförelse kompletterar skärmbilderna. Testdata är emulerade; ingen hushållsdata ändras.
+vader-bildstilar.js provar alla tidigare vädersymbolfamiljer, årstidsstadier, ljusfaser, snödjup och hundvarianter samt menyval/omstart. Alla tolv filer måste dessutom avkodas i webbläsaren. Kontroller av scenbredd/maskotstorlek och GPU-pixeljämförelse kompletterar skärmbilderna. Testdata är emulerade; ingen hushållsdata ändras.

@@ -91,12 +91,21 @@
       "generator": "image_gen (inbyggt verktyg)"
     },
     {
-      "file": "bilder/vader/mascots-v1.webp",
+      "file": "bilder/vader/mascots-v2.webp",
       "width": 1254,
       "height": 1254,
-      "bytes": 484782,
-      "sha256": "c9e9e65d5fe23799465f980fb58907d47bbaf6be877361f1da4099885269e4a7",
-      "source": "exec-b30eb466-91e5-4db6-b1e0-9b89cce66eed.png",
+      "bytes": 405562,
+      "sha256": "fb90e2fdf0f48e2014a3280bb4fa65e83edd66abe60df49553603f007a513886",
+      "source": "exec-b870c8c3-71d5-4e77-8143-d348f39e201a.png",
+      "generator": "image_gen (inbyggt verktyg)"
+    },
+    {
+      "file": "bilder/vader/clouds-v1.webp",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 83152,
+      "sha256": "414d45746acd29d0e8f084f45199272bd01f8642cc731eba29490f76658a694e",
+      "source": "exec-8f79a57e-a101-4b7d-824b-5eb809b6c123.png",
       "generator": "image_gen (inbyggt verktyg)"
     }
   ],
@@ -106,10 +115,10 @@
     "columns": 4,
     "halfCellWidth": 156.75,
     "rowTops": [
-      76,
-      363,
-      651,
-      940
+      88,
+      374,
+      675,
+      950
     ],
     "frameHeight": 256,
     "frames": [
@@ -129,6 +138,44 @@
       "vinterkläder sovande",
       "dimma vaken",
       "dimma sovande"
+    ],
+    "file": "bilder/vader/mascots-v2.webp"
+  },
+  "clouds": {
+    "file": "bilder/vader/clouds-v1.webp",
+    "width": 1254,
+    "height": 1254,
+    "frames": [
+      [
+        62,
+        308,
+        597,
+        139
+      ],
+      [
+        767,
+        257,
+        348,
+        225
+      ],
+      [
+        38,
+        767,
+        631,
+        282
+      ],
+      [
+        713,
+        756,
+        504,
+        303
+      ]
+    ],
+    "roles": [
+      "slöja",
+      "stackmoln",
+      "mulet",
+      "åska"
     ]
   }
 }
