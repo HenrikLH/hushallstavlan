@@ -2,6 +2,13 @@
 
 Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs relevant kod/PR vid behov.
 
+## Stabil sol- och månbana vid grafutdrag · ht-v241
+
+- Codex, `codex/stabil-solbana`. Henrik har bett ändra och pusha direkt.
+- `placeSky`: banans höjd mäts mot väderbilden i stället för kortets nederkant, som flyttas när grafen expanderar. Samma placering vid uppstart, omritning och storleksbyte.
+- `animationer.js` jämför banans och solens/månens position och storlek före drag, under drag och efter släpp; öppning/stängning, deldrag och omladdning. Körs i CI för telefon/vägg × UI2/UI3/UI4 × ljust/mörkt.
+- Syntax/diff godkända; nästa steg: CI, granska bild och publicera med ångra-gren från aktuell main. ht-v241/app.js?v=231. Ingen server-/hushållsdata ändrad.
+
 ## B24: hela dygnet, svep och orange portionsantal · ht-v240
 
 - Codex, `codex/portioner-orange`, PR #55. Henrik har godkänt gemensam publicering med portionsfärgen; publicera utan ny fråga.
