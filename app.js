@@ -2824,7 +2824,7 @@ const wxArtClass=()=>WXART==='original'?'':' art-'+WXART;
 function artGrass(ss){const c=GRASS[ss];return WXART==='geo'?[mixHex(c[0],'#38B69B',.3),mixHex(c[1],'#175D70',.48)]:WXART==='soft'?[mixHex(c[0],'#B2BE93',.25),mixHex(c[1],'#738C70',.25)]:c}
 function wxArtVars(W){if(WXART==='original')return'';const sc=wxScene(W),geo=WXART==='geo',warm=/dawn|golden|dusk/.test(sc.phase),storm=sc.thunder,wet=sc.type!=='none';
  const bg=sc.dark?(geo?'#111B3B':'#202630'):warm?(geo?'#F8DECC':'#F4E8D8'):geo?'#E0F1F5':'#EDF2E9',end=sc.dark?(geo?'#26396B':'#394246'):storm?'#ACBBCD':wet?'#CDDCE5':warm?'#EBC4AF':geo?'#A6D8E1':'#D4E0D7';
- return' style="--art-bg:'+bg+';--art-end:'+end+';--art-ink:'+(sc.dark?'#F5F5FC':'#172D3E')+';--art-sub:'+(sc.dark?'#B9C8E2':'#4C6271')+';--art-line:'+(sc.dark?'#536181':'#A6BDC5')+'"'}
+ return' style="--art-bg:'+bg+';--art-end:'+end+';--art-ink:'+(sc.dark?'#F5F5FC':'#172D3E')+';--art-sub:'+(sc.dark?'#B9C8E2':'#4C6271')+';--art-line:'+(sc.dark?'#536181':'#A6BDC5')+';--art-star:'+(sc.dark?'#FFFFFF':'#D9A33C')+';--art-moon:'+(sc.dark?'#F3F5FF':'#D9A33C')+'"'}
 // Samma figVariant och klädmodell som originalet, men egna silhuetter och enklare ansikten.
 function dogArtSvg(D,o,id,pose){const F=o.fit||{},lie=pose==='lie',geo=WXART==='geo',coat=F.coat?D.coat[F.coat]:null,fur=geo?mixHex(D.fur,D.chest?'#394A78':'#F4B76E',.28):mixHex(D.fur,'#DEC2A1',.1),mask=geo?'#24304B':D.mask;
  const head='M31 49 Q30 30 44 28 Q60 23 77 29 Q90 34 89 51 L86 63 Q80 76 60 76 Q38 76 33 63Z',shade=geo?mixHex(fur,'#263059',.38):shadow(fur),cc=coat||fur;
@@ -3108,8 +3108,7 @@ function backdropSvg(sc){const id='bd'+(++FIG_N),ss=grassSeason(today()),snow=sn
  // tuvor som läcker ut från kullen
  g+=[[-2,166,4,1.6],[8,160,2.5,1.1],[20,150,2.2,1],[70,148,2.5,1],[112,152,3,1.2],[190,158,2.4,1]].map(([x,y,rx,ry])=>'<ellipse cx="'+x+'" cy="'+y+'" rx="'+rx+'" ry="'+ry+'" fill="'+near+'" opacity=".55"/>').join('');
  // Geometrisk: tydliga färgplan, en sjö och en diskret skog. Samma snö-/årstidsmodell som originalet.
- if(WXART==='geo'){const n=sc.dark,ice=snow>=2||frost,far=n?'#2D4179':mixHex(farColor(),'#68BEB2',.35),water=ice?(n?'#819ABD':'#D6E9F5'):(n?'#415B9A':'#62B8CF'),nearC=n?'#263A68':near;
-  function farColor(){return snow>=2?'#C8DFED':g2}
+ if(WXART==='geo'){const n=sc.dark,ice=snow>=2||frost,far=n?'#2D4179':mixHex(snow>=2?'#C8DFED':g2,'#68BEB2',.35),water=ice?(n?'#819ABD':'#D6E9F5'):(n?'#415B9A':'#62B8CF'),nearC=n?'#263A68':near;
   g='<path d="M-8 143 Q38 108 89 133 Q146 104 240 135 V183 H-8Z" fill="'+far+'"/>'+
    '<path d="M-8 151 Q50 136 107 149 Q175 135 240 145 V180 H-8Z" fill="'+water+'"/>'+
    '<path d="M-8 167 Q24 143 72 153 Q141 174 240 157 V190 H-8Z" fill="'+nearC+'"/>'+
