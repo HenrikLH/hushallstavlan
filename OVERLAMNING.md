@@ -2,13 +2,13 @@
 
 Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs relevant kod/PR vid behov.
 
-## Pågår: två extra väderbildstilar · ht-v242
+## För granskning: två extra väderbildstilar · ht-v242
 
 - Codex, `codex/vader-bildstilar`, PR #57. Henrik beställde Förfinad + Geometrisk (Kurzgesagt-inspirerad), med prioritet på Geometrisk. Implementering godkänd; publicering väntar på Henrik/Pusha.
 - `WX_ART`/`WXART` (`ht.wxart`) under Inställningar → Översikt och väder → Bildstil. Original fortsatt standard. Samma `wxScene`, `skyFx`, `arcHtml`, `treeStage`, `grassSeason`, `snowLevel`, hundval och klädmodell i alla stilar.
 - Egna hundsilhuetter/ansikten, geometriska moln/landskap och separata färgpaletter. Sol/månbana, grafgeometri och ordinarie funktioner bevaras. Inga serverändringar.
 - `vader-bildstilar.js` provar 41 symbolfamiljer × 8 årstider × dag/natt × 3 stilar, övriga ljusfaser, snödjup, SVG-resurser, menyval/omstart och tar exempelbilder. CI kör UI2/UI3/UI4 × telefon/vägg × ljust/mörkt.
-- Syntax/diff godkända. Första CI hittade fel i testets navigation tillbaka från Väder till Inställningar; rättat. Ny testning och visuell granskning pågår. Läs senaste CI/PR före fortsatt arbete.
+- Lokalt grönt: 1 968 scenkombinationer i UI2 telefon, UI4 mörk telefon och UI3 vägg; alla-flikar telefon/vägg; GPU-pixeljämförelse båda stilarna (64 animationer flyttade, 4–9 bildpunkters skillnad). Ljust/mörkt och sex väderexempel granskade. Syntax/diff gröna. Hela CI-matrisen körs i PR #57; kontrollera före publicering.
 - Förberedd ht-v242/app.js?v=232. Main före ändringen: `a983fe86eaa04526e8a97e03804e472bd2590fa0` (PR #56, ht-v241).
 
 Tidigare publiceringar (PR #43–56) finns i git-historiken. PR #56 är sammanslagen; stabil solbana och B24/portionsantal finns på main.

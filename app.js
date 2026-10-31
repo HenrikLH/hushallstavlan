@@ -2824,7 +2824,7 @@ const wxArtClass=()=>WXART==='original'?'':' art-'+WXART;
 function artGrass(ss){const c=GRASS[ss];return WXART==='geo'?[mixHex(c[0],'#38B69B',.3),mixHex(c[1],'#175D70',.48)]:WXART==='soft'?[mixHex(c[0],'#B2BE93',.25),mixHex(c[1],'#738C70',.25)]:c}
 function wxArtVars(W){if(WXART==='original')return'';const sc=wxScene(W),geo=WXART==='geo',warm=/dawn|golden|dusk/.test(sc.phase),storm=sc.thunder,wet=sc.type!=='none';
  const bg=sc.dark?(geo?'#111B3B':'#202630'):warm?(geo?'#F8DECC':'#F4E8D8'):geo?'#E0F1F5':'#EDF2E9',end=sc.dark?(geo?'#26396B':'#394246'):storm?'#ACBBCD':wet?'#CDDCE5':warm?'#EBC4AF':geo?'#A6D8E1':'#D4E0D7';
- return' style="--art-bg:'+bg+';--art-end:'+end+';--art-ink:'+(sc.dark?'#F5F5FC':'#172D3E')+';--art-sub:'+(sc.dark?'#B9C8E2':'#4C6271')+';--art-line:'+(sc.dark?'#536181':'#A6BDC5')+';--art-star:'+(sc.dark?'#FFFFFF':'#D9A33C')+';--art-moon:'+(sc.dark?'#F3F5FF':'#D9A33C')+'"'}
+ return' style="--art-bg:'+bg+';--art-end:'+end+';--art-ink:'+(sc.dark?'#F5F5FC':'#172D3E')+';--art-sub:'+(sc.dark?'#B9C8E2':'#344A59')+';--art-line:'+(sc.dark?'#536181':'#A6BDC5')+';--art-star:'+(sc.dark?'#FFFFFF':'#D9A33C')+';--art-moon:'+(sc.dark?'#F3F5FF':'#D9A33C')+'"'}
 // Samma figVariant och klädmodell som originalet, men egna silhuetter och enklare ansikten.
 function dogArtSvg(D,o,id,pose){const F=o.fit||{},lie=pose==='lie',geo=WXART==='geo',coat=F.coat?D.coat[F.coat]:null,fur=geo?mixHex(D.fur,D.chest?'#394A78':'#F4B76E',.28):mixHex(D.fur,'#DEC2A1',.1),mask=geo?'#24304B':D.mask;
  const head='M31 49 Q30 30 44 28 Q60 23 77 29 Q90 34 89 51 L86 63 Q80 76 60 76 Q38 76 33 63Z',shade=geo?mixHex(fur,'#263059',.38):shadow(fur),cc=coat||fur;

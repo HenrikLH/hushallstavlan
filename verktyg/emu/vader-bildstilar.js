@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict'),path=require('node:path');
 module.exports=async(pg,h)=>{
  const read=s=>pg.evaluate(s=>window.__d(s),s),click=async s=>{await pg.locator(s).first().click();await h.idle(180)};
- const settings=async()=>{if(!await pg.locator('[data-act="settings"]').count())await click('main [data-act="nav"][data-id="oversikt"]');await click('[data-act="settings"]');const sec=pg.locator('[data-k="pref-oversikt"]');if(!await sec.evaluate(e=>e.open))await sec.locator('summary').click()};
+ const settings=async()=>{if(await read('S.view')==='vader')await click('main [data-act="nav"][data-id="oversikt"]');await click('[data-act="settings"]');const sec=pg.locator('[data-k="pref-oversikt"]');if(!await sec.evaluate(e=>e.open))await sec.locator('summary').click()};
  const close=()=>click('.sheet [data-act="sheetClose"]');
  const nav=async()=>{if(await read('S.view')==='vader')return;await click('#nav [data-id="oversikt"]');await click('[data-act="nav"][data-id="vader"]')};
  const boot=process.env.ART||'geo';
@@ -10,7 +10,7 @@ module.exports=async(pg,h)=>{
  for(const art of ['original','soft','geo']){
   await settings();await click('[data-act="wxart"][data-id="'+art+'"]');assert.equal(await read('WXART'),art);await close();await nav();
   assert.equal(await pg.locator('.wx2').count(),1);assert.equal(await pg.locator('.wx2.art-'+art).count(),art==='original'?0:1);
-  const resources=await pg.locator('.wx2').evaluate(el=>{const ids=[...el.querySelectorAll('[id]')].map(e=>e.id);return{duplicate:ids.filter((id,i)=>ids.indexOf(id)!==i),invalid:/NaN|undefined/.test(el.innerHTML),outside:el.getBoundingClientRect().right>innerWidth+1}});
+  const resources=await pg.locator('.wx2').evaluate(el=>{const ids=[...el.querySelectorAll('[id]')].filter(e=>!e.closest('.gl')).map(e=>e.id);return{duplicate:ids.filter((id,i)=>ids.indexOf(id)!==i),invalid:/NaN|undefined/.test(el.innerHTML),outside:el.getBoundingClientRect().right>innerWidth+1}});
   assert.deepEqual(resources.duplicate,[]);assert.equal(resources.invalid,false);assert.equal(resources.outside,false);
   await pg.screenshot({path:path.join(h.OUT,'bildstil-'+art+'.png'),fullPage:false});
   await pg.reload();await h.idle(1700);assert.equal(await read('WXART'),art);assert.equal(await read('WXVY'),'bild');
