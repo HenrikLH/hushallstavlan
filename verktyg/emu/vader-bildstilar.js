@@ -36,7 +36,7 @@ module.exports=async(pg,h)=>{
      check(arcPos(arc)===arcPos(baseArc),'Sol/månbana skiljer sig');
      check(fig.includes('fx-rain')===/drizzle|rain|sleet/.test(sc.type),'Regnlager '+sym);check(fig.includes('fx-snow')===/snow|sleet/.test(sc.type),'Snölager '+sym);check(fig.includes('fx-bolt')===sc.thunder,'Åsklager '+sym);
      check((fig.includes('dog lie'))===sc.sleep,'Sovläge '+sym);check((skyCount(sky,'.st')>0)===(sc.dark&&sc.sky!=='fog'),'Stjärnor/dimma '+sym);
-     if(i%9===0){xml(bd);xml(fig)}
+     if(i%9===0){xml(bd);xml(fig);if(art==='geo')xml(backdropSvg(sc,true))}
     }
    })
   }});
@@ -49,6 +49,13 @@ module.exports=async(pg,h)=>{
  assert.equal(report.seasons.length,8);assert.equal(report.phases.length,5);assert.equal(report.types.length,5);assert.equal(report.levels.length,4);console.log('PASS bildstilar',JSON.stringify(report));
  // Bildfilerna ska gå att avkoda, inte bara finnas som tomma SVG-element.
  const decoded=await pg.evaluate(async()=>{const names=['autumn','spring','summer','winter','snow'].flatMap(s=>[s+'-day',s+'-night']).concat('mascots-v2','clouds-v1');return Promise.all(names.map(async name=>{const img=new Image();img.src='bilder/vader/'+name+'.webp?v=1';await img.decode();return{name,w:img.naturalWidth,h:img.naturalHeight}}))});assert.equal(decoded.length,12);for(const im of decoded)assert(im.w>=1200&&im.h>=1000,'Bildlagret är avkodat: '+im.name);
+ // Rastrera det riktiga SVG-lagret: bildens kant ska bli transparent, inte bara byta färg.
+ const seam=await read('(()=>{const a=WXART;try{WXART="geo";return backdropSvg(wxScene(wxModel()),true)}finally{WXART=a}})()');
+ const alpha=await pg.evaluate(async html=>{const el=document.createElement('div');el.innerHTML=html;const svg=el.firstElementChild;svg.setAttribute('xmlns','http://www.w3.org/2000/svg');svg.setAttribute('width','600');svg.setAttribute('height','400');
+  await Promise.all([...svg.querySelectorAll('image')].map(async e=>{const blob=await(await fetch(e.getAttribute('href'))).blob();const data=await new Promise(resolve=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.readAsDataURL(blob)});e.setAttribute('href',data)}));
+  const img=new Image();img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(new XMLSerializer().serializeToString(svg));await img.decode();const c=document.createElement('canvas');c.width=600;c.height=400;const ctx=c.getContext('2d');ctx.drawImage(img,0,0);const data=ctx.getImageData(0,0,600,400).data,a=(x,y)=>data[(y*600+x)*4+3];
+  return{left:Math.max(...Array.from({length:100},(_,i)=>a(1,300+i))),right:Math.max(...Array.from({length:100},(_,i)=>a(598,300+i))),bottom:[a(300,350),a(300,375),a(300,395)],solid:Math.max(...Array.from({length:100},(_,i)=>a(300,200+i)))}} ,seam);
+ assert(alpha.left<20&&alpha.right<20,'Inga täckande sidkanter i översiktens bild');assert(alpha.bottom[0]>alpha.bottom[1]&&alpha.bottom[1]>alpha.bottom[2]&&alpha.bottom[2]<20,'Marken tonas gradvis ut');assert(alpha.solid>220,'Illustrationens mitt behåller sin färg');console.log('PASS bildkant',JSON.stringify(alpha));
  // Granska riktiga kort i representativa väder och årstider; endast emulatorns modell/klocka ersätts.
  await read('window.__artSaved={Date:window.Date,model:wxModel,W:wxModel(),art:WXART,snow:lsGet("snow"),variant:S.wxVar}');
  try{

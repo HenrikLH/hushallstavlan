@@ -2,14 +2,13 @@
 
 Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs relevant kod/PR vid behov.
 
-## Publicerat: väderstilar · ht-v242
+## För granskning: sömlös väderbild · ht-v243
 
-- Codex, PR #57, `codex/vader-bildstilar`. Henrik godkände publicering 2026-10-31. Två nya enhetsval under Inställningar → Översikt och väder → Bildstil: Förfinad och Geometrisk. Original är standard; `ht.wxart` sparar valet.
-- Geometrisk: tio transparenta årstids-/ljuslager, hundatlas och molnatlas, cirka 2,0 MB offline. Den godkända höstnatten är stilreferens; nio andra landskap följer samma geometriska färgplan. Vår/sommar har formgivna blommor, knoppar och blad. Hundarnas pålagda runda irisringar är borttagna. Referens/manifest/prompter: `docs/design/vader-bildlager*` och `vader-botanik-prompter.json`.
-- Vädermodellen är gemensam: kalender/lövtäthet, solhöjd/sol-/månbana, stjärnor/molntäcke, nederbörd/åska/dimma, snöminne/frost/fläckar/djup snö och fallande löv. Inga server- eller hushållsdata ändrade.
-- Testad app-/bildkod: `dd08ee7691787e85af7604bf16f73d53075a6903`. 1 968 kombinationer i telefon/UI4 vägg, tolv avkodade bilder, menyval/omstart och alla flikar telefon/vägg gröna. Rörelsekontroll bekräftar faktiskt ändrad transform/opacitet för moln/regn/snö/blixt/dimma/stjärnor/löv/hundandning. GPU: 47 animationer till 0 i SVG, 40–66 bildpunkters skillnad (gräns 150).
-- CI grönt i alla tolv jobb: https://github.com/HenrikLH/hushallstavlan/actions/runs/41248696505 (UI2/UI3/UI4 × telefon/vägg × ljust/mörkt). Dokumentation efter denna testade appkod ändrar ingen app-/testfil. Manifest/offline/kontrollsummor/syntax/diff gröna.
-- Release ht-v242 / app.js?v=232 via PR #57. Återställningsgren `version-fore-vader-bildstilar` från ht-v241 (`a983fe86eaa04526e8a97e03804e472bd2590fa0`).
+- Codex, `codex/vader-somlos`. Henrik vill få bort landskapets rektangelkant i översikten och kombinera den nya illustrationen med originalets utförande. Ingen ny publicering är godkänd ännu; visa riktiga appbilder först.
+- Originalets kortbakgrund/layout, text, sol-/månbana och animationer behålls. `heroHtml` begär ett integrerat geometriskt landskap som tonar ut åt sidorna och nedåt. Stora vädervyn tonar bara nederkanten. Hundarna är separata och förblir skarpa.
+- Toningen är luminansmasker inne i SVG:n, så även GPU-lyfta löv/regnringar följer övergången. Inga bildfiler eller väderdata ändras; samma lösning för ljust/mörkt och vägg.
+- Lokalt grönt: 1 968 väderkombinationer, giltig SVG även med integrerad bild, verkligt rastrerad alfakant (sidor 3/255; nederkant gradvis 101→50→10; mitten 250), menyval/omstart och tolv bildfiler. GPU översikt/väder: 47 animationer till 0 i SVG, 15–85 bildpunkters skillnad (gräns 150). Telefon ljust/mörkt och mörk vägg visuellt granskade.
+- Förberedd ht-v243 / app.js?v=233. Main är ht-v242, merge `55e6e5bcde4510f4b83ee3e120c917a386d12dbf` (PR #57). Tidigare release/Pages och alla tolv CI-jobb är gröna. Inga server-/hushållsdata ändras.
 
 Tidigare publiceringar (PR #43–56) finns i git-historiken. PR #56 är sammanslagen; stabil solbana och B24/portionsantal finns på main.
 

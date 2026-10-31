@@ -2834,9 +2834,12 @@ function geoSeasonBlend(t){const T=treeStage(t),K=[[1,'winter'],[70,'winter'],[1
 function geoDayMix(){const P=WX_POS(),alt=SKY(new Date(),P.lat,P.lon).sun.alt;return Math.max(0,Math.min(1,(alt+6)/12))}
 // Bildgenereringens mjuka alfagloria tas bort vid komposition, utan att rita om bildens färgplan.
 const geoAlpha=id=>'<filter id="'+id+'" color-interpolation-filters="sRGB"><feComponentTransfer><feFuncA type="linear" slope="5" intercept="-4"/></feComponentTransfer></filter>';
-function geoBackdropSvg(sc){const id='geo'+(++FIG_N),ss=grassSeason(today()),T=treeStage(today()),snow=snowLevel(sc),day=geoDayMix(),f=v=>v.toFixed(3),base=geoSeasonBlend(today()),wet=/^(drizzle|rain|sleet)$/.test(sc.type);
+function geoBackdropSvg(sc,compact=false){const id='geo'+(++FIG_N),ss=grassSeason(today()),T=treeStage(today()),snow=snowLevel(sc),day=geoDayMix(),f=v=>v.toFixed(3),base=geoSeasonBlend(today()),wet=/^(drizzle|rain|sleet)$/.test(sc.type);
  const patches=[[90,332,55,9],[255,363,40,7],[428,351,63,9],[532,380,46,8],[138,385,36,5]];
  let defs=geoAlpha(id+'a')+'<mask id="'+id+'patch" maskUnits="userSpaceOnUse" x="0" y="0" width="600" height="400"><rect width="600" height="400" fill="#000"/>'+patches.map(([x,y,rx,ry])=>'<ellipse cx="'+x+'" cy="'+y+'" rx="'+rx+'" ry="'+ry+'" fill="#fff"/>').join('')+'</mask>';
+ // Toningen ligger inne i SVG:n så att även GPU-lyfta löv följer samma kant som landskapet.
+ defs+='<linearGradient id="'+id+'edgeY" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="400"><stop offset="0" stop-color="#fff"/><stop offset="'+(compact?'.70':'.82')+'" stop-color="#fff"/><stop offset="1" stop-color="#000"/></linearGradient><mask id="'+id+'seamY" maskUnits="userSpaceOnUse" x="0" y="0" width="600" height="400"><rect width="600" height="400" fill="url(#'+id+'edgeY)"/></mask>';
+ if(compact)defs+='<linearGradient id="'+id+'edgeX"><stop offset="0" stop-color="#000"/><stop offset=".16" stop-color="#fff"/><stop offset=".84" stop-color="#fff"/><stop offset="1" stop-color="#000"/></linearGradient><mask id="'+id+'seamX" maskUnits="userSpaceOnUse" x="0" y="0" width="600" height="400"><rect width="600" height="400" fill="url(#'+id+'edgeX)"/></mask>';
  const img=(season,w,mode,light,mask)=>w*light>.001?'<g class="geo-paint" opacity="'+f(w*light)+'" style="mix-blend-mode:plus-lighter"><image href="'+geoAsset(season+'-'+mode)+'" width="600" height="400" preserveAspectRatio="none" filter="url(#'+id+'a)"'+(mask?' mask="url(#'+id+'patch)"':'')+'/></g>':'';
  const paint=(season,w,mask)=>img(season,w,'night',1-day,mask)+img(season,w,'day',day,mask);
  let s='<g class="geo-paints" style="isolation:isolate">'+(snow>=2?paint('snow',1):base.map(([season,w])=>paint(season,w)).join(''))+'</g>';
@@ -2844,7 +2847,8 @@ function geoBackdropSvg(sc){const id='geo'+(++FIG_N),ss=grassSeason(today()),T=t
  if(!snow&&sc.T<0)s+='<g fill="'+(sc.dark?'#C1D9F1':'#E4F1F7')+'" opacity=".3">'+patches.map(([x,y,rx])=>'<path d="M'+(x-rx)+' '+y+' Q'+x+' '+(y-3)+' '+(x+rx)+' '+y+' Q'+x+' '+(y+3)+' '+(x-rx)+' '+y+'Z"/>').join('')+'</g>';
  if(T.fall&&!snow&&!sc.thunder){const L=[[180,180],[100,160],[230,120],[140,220],[200,90],[240,200]],wind=sc.dir*(5+sc.wl*12);s+='<g class="bd-leaves">'+L.slice(0,Math.ceil(T.fall*6)).map(([x,y],i)=>'<g style="--dx:'+(wind+i*3)+'px;--dy:'+(345-y)+'px;animation-duration:'+(9+i)+'s;animation-delay:-'+(i*2)+'s"><g class="sw" style="--a:6px;animation-duration:'+(1.7+i*.2)+'s"><path class="fl" style="--r0:-25deg;--r1:35deg;--sy:.55;animation-duration:2.5s" d="M'+x+' '+y+' q5 -4 10 0 q-5 4 -10 0Z" fill="'+['#FF6845','#FFB34C','#D74762'][i%3]+'"/></g></g>').join('')+'</g>'}
  if(wet&&sc.lv>=2&&sc.T>0)s+='<g class="fx-pud">'+[[170,343],[271,363]].map(([x,y],i)=>'<ellipse cx="'+x+'" cy="'+y+'" rx="22" ry="3" fill="#85BAD9" opacity=".35"/><ellipse class="rip" cx="'+x+'" cy="'+y+'" rx="12" ry="2" fill="none" stroke="#A1D1F2" stroke-width="1" style="animation-delay:-'+i*.7+'s"/>').join('')+'</g>';
- return'<svg class="bd art-geo geo-world" viewBox="0 0 600 400" preserveAspectRatio="none" data-season="'+ss+'" data-snow="'+snow+'" data-day="'+f(day)+'" aria-hidden="true"><defs>'+defs+'</defs>'+s+'</svg>'}
+ s='<g class="geo-seam" mask="url(#'+id+'seamY)">'+(compact?'<g mask="url(#'+id+'seamX)">'+s+'</g>':s)+'</g>';
+ return'<svg class="bd art-geo geo-world" viewBox="0 0 600 400" preserveAspectRatio="none" data-season="'+ss+'" data-snow="'+snow+'" data-day="'+f(day)+'" data-integrated="'+(compact?'1':'0')+'" aria-hidden="true"><defs>'+defs+'</defs>'+s+'</svg>'}
 function geoDogFrame(F,sky,lie){const start=F.rain?10:F.coat==='snow'?8:F.coat==='freezing'?12:F.coat==='cold'?6:sky==='fog'?14:F.coat==='mild'?4:F.shades?2:0;return start+(lie?1:0)}
 function geoDogSvg(D,o,id,pose){const F=o.fit||{},lie=pose==='lie',frame=geoDogFrame(F,o.sky,lie),row=Math.floor(frame/4),col=frame%4,dog=D.chest?1:0,x=col*313.5+dog*156.75,y=[88,374,675,950][row];
  const defs=geoAlpha(id+'alpha')+'<clipPath id="'+id+'crop"><rect width="156.75" height="256"/></clipPath>'+(o.night?'<filter id="'+id+'night" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values=".84 .03 .03 0 0  .01 .85 .04 0 0  .03 .03 .9 0 .01  0 0 0 1 0"/></filter>':'');
@@ -3115,7 +3119,7 @@ function treeStage(t){const d=parse(t),y=d.getFullYear(),doy=Math.round((d-new D
 /* Bakgrunden bakom gräsplätten: en mjuk kulle och ett träd efter årstiden. Inget har en hård kant mot rutan:
    kullen tonar ut med en mask och små tuvor läcker ut runt om, precis som gräset. 1 enhet = 1 px, marken ligger
    på y=175 och plätten med hundarna står i den högra delen (x 80-220). */
-function backdropSvg(sc){if(WXART==='geo')return geoBackdropSvg(sc);const id='bd'+(++FIG_N),ss=grassSeason(today()),snow=snowLevel(sc),frost=!snow&&sc.T<0,f=v=>v.toFixed(1);
+function backdropSvg(sc,compact=false){if(WXART==='geo')return geoBackdropSvg(sc,compact);const id='bd'+(++FIG_N),ss=grassSeason(today()),snow=snowLevel(sc),frost=!snow&&sc.T<0,f=v=>v.toFixed(1);
  const rnd=k=>{const x=Math.sin(k*57.3+1.7)*43758.5453;return x-Math.floor(x)};
  let[g1,g2]=artGrass(ss);if(frost){g1=mixHex(g1,'#E2ECF5',.42);g2=mixHex(g2,'#C6D5E4',.3)}
  const blob=(cx,cy,rx,ry,j,seed)=>{const n=14,P=[];for(let i=0;i<n;i++){const a=i/n*2*Math.PI,r=1+(rnd(i+seed)-.5)*j;P.push([cx+Math.cos(a)*rx*r,cy+Math.sin(a)*ry*r])}
@@ -3500,7 +3504,7 @@ function heroHtml(){const n=new Date(),t=today(),dy=EXT.day&&EXT.day.date===t?EX
  const sun=sunTimes(t,P.lat,P.lon);
  let wx='';
  if(W){const[ic,tx]=symInfo(W.now.s),d0=W.days[0]||{},F=wxToday(W);
-  const wb=wallBoardOn(),gs='<div class="gs '+grassV()+(wb?' wb':'')+'">'+(grassV()==='a'?(wb&&!U3?skyFx(W):'')+arcHtml(W,'a'):'')+(BAKGRUND?backdropSvg(wxScene(W)):'')+'<div class="fig-box grass" aria-hidden="true">'+figSvg(wxScene(W),{bare:1,patch:1,nocl:grassV()==='b'&&heroSky()||wb&&!U3})+'</div>'+fogMist(W)+'</div>';
+  const wb=wallBoardOn(),gs='<div class="gs '+grassV()+(wb?' wb':'')+'">'+(grassV()==='a'?(wb&&!U3?skyFx(W):'')+arcHtml(W,'a'):'')+(BAKGRUND?backdropSvg(wxScene(W),true):'')+'<div class="fig-box grass" aria-hidden="true">'+figSvg(wxScene(W),{bare:1,patch:1,nocl:grassV()==='b'&&heroSky()||wb&&!U3})+'</div>'+fogMist(W)+'</div>';
   wx='<button class="hero-wx'+(wb&&grassOn()?' wbt':'')+'" data-act="nav" data-id="vader" aria-label="Väder: '+esc(tx)+', '+deg(W.now.T)+'. Öppna vädret">'+
    '<div class="wx-now"><span class="wx-ic" aria-hidden="true">'+ic+'</span><span class="wx-t num">'+deg(W.now.T)+'</span></div>'+
    '<div class="fn">'+esc(tx)+'</div><div class="fn num">H:'+deg(d0.max)+' L:'+deg(d0.min)+'</div>'+
