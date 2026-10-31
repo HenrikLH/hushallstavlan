@@ -2,20 +2,20 @@
 
 Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs relevant kod/PR vid behov.
 
-## För granskning: enhetlig geometrisk väderstil · ht-v242
+## Publicerat: väderstilar · ht-v242
 
-- Codex, `codex/vader-bildstilar`, PR #57. Henrik godkände sista höstnattbildens stil men avvisade de målade årstiderna och de pålagda runda irisarna (”uggla”). Använd `bilder/vader/autumn-night.webp` som auktoritativ stilgrund; den är oförändrad.
-- Nio övriga landskap omgjorda direkt från samma höstnattsreferens: stora cirkelformade lövmassor, enkla färgplan, triangelskog/kantiga stenar. Vår/sommar/höst/snöfri vinter/snö × dag/natt, tolv WebP-filer totalt cirka 2,0 MB. Vår/sommar dag/natt har därefter förfinats med formgivna körsbärsblommor, påskliljor/prästkragar, knoppar, bladnerver och ormbunkar; Henrik vill ha detaljer i samma grafiska stil, inte bara cirklar. Inga målade småbladstexturer. Manifest/promptset: `docs/design/vader-bildlager.md`, `.json` och `vader-botanik-prompter.json`.
-- De separata runda SVG-ögonen är borttagna. Hundarna använder atlasens egna små mörkbruna ögon/svarta pupiller och slutna sovögon. Den accepterade sovande nattbilden och molnen behålls.
-- Kalender/lövtäthet/solhöjd, snöminne/frost/snöfläckar/djup snö, sol/måne/moln/stjärnor/nederbörd/dimma/löv och GPU-animationer är samma modell. Original är fortsatt standard, Förfinad oförändrad. Tre val under Inställningar → Översikt och väder → Bildstil (`ht.wxart`).
-- Verifiering för denna revision: 1 968 scenkombinationer i både telefon/UI4 mörk vägg, tolv avkodade filer, menyval/omstart och faktiska årstidsvyer gröna. GPU-test: 47 animationer till 0 i SVG, 40–66 bildpunkters skillnad (gräns 150). Manifest/kontrollsummor/offline och syntax/diff gröna. Inga server-/hushållsdata ändrade.
-- Main är ht-v241 (`a983fe86eaa04526e8a97e03804e472bd2590fa0`). Förberedd ht-v242/app.js?v=232. Inte publicerat; inväntar Henrik/Pusha. Läs aktuell CI i PR #57 inför publicering.
+- Codex, PR #57, `codex/vader-bildstilar`. Henrik godkände publicering 2026-10-31. Två nya enhetsval under Inställningar → Översikt och väder → Bildstil: Förfinad och Geometrisk. Original är standard; `ht.wxart` sparar valet.
+- Geometrisk: tio transparenta årstids-/ljuslager, hundatlas och molnatlas, cirka 2,0 MB offline. Den godkända höstnatten är stilreferens; nio andra landskap följer samma geometriska färgplan. Vår/sommar har formgivna blommor, knoppar och blad. Hundarnas pålagda runda irisringar är borttagna. Referens/manifest/prompter: `docs/design/vader-bildlager*` och `vader-botanik-prompter.json`.
+- Vädermodellen är gemensam: kalender/lövtäthet, solhöjd/sol-/månbana, stjärnor/molntäcke, nederbörd/åska/dimma, snöminne/frost/fläckar/djup snö och fallande löv. Inga server- eller hushållsdata ändrade.
+- Testad app-/bildkod: `dd08ee7691787e85af7604bf16f73d53075a6903`. 1 968 kombinationer i telefon/UI4 vägg, tolv avkodade bilder, menyval/omstart och alla flikar telefon/vägg gröna. Rörelsekontroll bekräftar faktiskt ändrad transform/opacitet för moln/regn/snö/blixt/dimma/stjärnor/löv/hundandning. GPU: 47 animationer till 0 i SVG, 40–66 bildpunkters skillnad (gräns 150).
+- CI grönt i alla tolv jobb: https://github.com/HenrikLH/hushallstavlan/actions/runs/41248696505 (UI2/UI3/UI4 × telefon/vägg × ljust/mörkt). Dokumentation efter denna testade appkod ändrar ingen app-/testfil. Manifest/offline/kontrollsummor/syntax/diff gröna.
+- Release ht-v242 / app.js?v=232 via PR #57. Återställningsgren `version-fore-vader-bildstilar` från ht-v241 (`a983fe86eaa04526e8a97e03804e472bd2590fa0`).
 
 Tidigare publiceringar (PR #43–56) finns i git-historiken. PR #56 är sammanslagen; stabil solbana och B24/portionsantal finns på main.
 
 ## Börja här
 
-- Aktuell release efter PR #56: **ht-v241 / app.js?v=231**. Stabil sol- och månbana vid grafutdrag. Tidigare PR #55: B24:s dygnskurva och dagsvep, orange portionsantal vid brist. Tidigare ht-v239 via PR #54: Portionsantal i hörnet, kompaktare kontroller och Ö2 med månadsdrag. M10:s hopfällbara avdelningar från ht-v238 kvar.
+- Aktuell release efter PR #57: **ht-v242 / app.js?v=232**. Två extra väderbildstilar (Förfinad/Geometrisk). Tidigare PR #56: Stabil sol- och månbana vid grafutdrag. Tidigare PR #55: B24:s dygnskurva och dagsvep, orange portionsantal vid brist. Tidigare ht-v239 via PR #54: Portionsantal i hörnet, kompaktare kontroller och Ö2 med månadsdrag. M10:s hopfällbara avdelningar från ht-v238 kvar.
 - [Publiceringar](https://github.com/HenrikLH/hushallstavlan/actions): följ Pages-bygget för PR #55. Äldre PR #32 (priser) är separat.
 - Nästa steg: återkoppling från Henrik efter B24-paketet i PR #55. Gör inte om godkända ändringar.
 - UI 2.0:s tema och beteenden ska bevaras. Henrik har godkänt Ateljé som ett separat UI 4.0; UI 3.0 finns kvar i utvecklarläget. Bilder före visuella ändringar på main; ”Pusha” är publiceringsgodkännande.
