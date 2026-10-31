@@ -1,0 +1,181 @@
+{
+  "assets": [
+    {
+      "file": "bilder/vader/autumn-night.webp",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 180484,
+      "sha256": "976f02085a8830552a00baab6c4b388678cd8a11e1ac55f0b777cb64bf63d0e7",
+      "source": "exec-792b1da2-d30d-42d1-b554-5d8da3972973.png",
+      "generator": "image_gen (inbyggt verktyg)"
+    },
+    {
+      "file": "bilder/vader/autumn-day.webp",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 157522,
+      "sha256": "39e780370ea50f8aa39ea27a447da01c23711f1d1311fca584295bab286f6105",
+      "source": "exec-05fffd57-b77c-4634-92ac-be599debf5c1.png",
+      "generator": "image_gen (inbyggt verktyg)"
+    },
+    {
+      "file": "bilder/vader/spring-day.webp",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 190014,
+      "sha256": "165acbde3874f790d49a757cef52c242e920b115634d39ac2478bac48af87158",
+      "source": "exec-388b52f2-afd6-4750-ab5d-a8450a673908.png",
+      "generator": "image_gen (inbyggt verktyg)"
+    },
+    {
+      "file": "bilder/vader/summer-day.webp",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 179570,
+      "sha256": "bdcdae6ef7f6182e23bc7effe929e650f7c10e23877003396a33bcb6f4b8b3c0",
+      "source": "exec-59ec6ef4-b657-4470-851a-2a862ef8ce3b.png",
+      "generator": "image_gen (inbyggt verktyg)"
+    },
+    {
+      "file": "bilder/vader/winter-day.webp",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 107684,
+      "sha256": "72573f380ba0db3d82db50fe72812c5039cfc6cd766d0da99c860dfc5f75ae8b",
+      "source": "exec-8c0985cc-71be-4b00-a701-e7b0ab4bd0f8.png",
+      "generator": "image_gen (inbyggt verktyg)"
+    },
+    {
+      "file": "bilder/vader/snow-day.webp",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 153728,
+      "sha256": "2475e18cbfc8e62d6aeb1c9200a5f2e6859ff87873564514df890979e5de58bf",
+      "source": "exec-d0d6bad2-66b4-42bf-8983-de9deb3fe8d6.png",
+      "generator": "image_gen (inbyggt verktyg)"
+    },
+    {
+      "file": "bilder/vader/spring-night.webp",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 160644,
+      "sha256": "db535d37a3749b982e740a26180ad3e540f80816b9f5d4b4ff4279831d1c3b81",
+      "source": "exec-3c8d4737-5608-4bca-b554-4a613ac1a365.png",
+      "generator": "image_gen (inbyggt verktyg)"
+    },
+    {
+      "file": "bilder/vader/summer-night.webp",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 136412,
+      "sha256": "4d5ee875dd8e0bc50aa13953ee9d15ad986b117115541e86c237d60218d3feee",
+      "source": "exec-690ceac2-4554-4e30-a3f5-599a2ae399b6.png",
+      "generator": "image_gen (inbyggt verktyg)"
+    },
+    {
+      "file": "bilder/vader/winter-night.webp",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 96246,
+      "sha256": "35d8826877a5c117269fbe333c95a266b6a3f8ce6f7ef739c9ff6e3d4f511385",
+      "source": "exec-398d3f8f-6ab7-4f31-8f78-a1102b08138d.png",
+      "generator": "image_gen (inbyggt verktyg)"
+    },
+    {
+      "file": "bilder/vader/snow-night.webp",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 149952,
+      "sha256": "77589be3da353dff1e5e639dccabde7de5a473926cfe6dd5bf3db186c5f9a7a8",
+      "source": "exec-7791c961-a6a6-494e-aa57-d612d303238b.png",
+      "generator": "image_gen (inbyggt verktyg)"
+    },
+    {
+      "file": "bilder/vader/mascots-v2.webp",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 405562,
+      "sha256": "fb90e2fdf0f48e2014a3280bb4fa65e83edd66abe60df49553603f007a513886",
+      "source": "exec-b870c8c3-71d5-4e77-8143-d348f39e201a.png",
+      "generator": "image_gen (inbyggt verktyg)"
+    },
+    {
+      "file": "bilder/vader/clouds-v1.webp",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 83152,
+      "sha256": "414d45746acd29d0e8f084f45199272bd01f8642cc731eba29490f76658a694e",
+      "source": "exec-8f79a57e-a101-4b7d-824b-5eb809b6c123.png",
+      "generator": "image_gen (inbyggt verktyg)"
+    }
+  ],
+  "sprite": {
+    "width": 1254,
+    "height": 1254,
+    "columns": 4,
+    "halfCellWidth": 156.75,
+    "rowTops": [
+      88,
+      374,
+      675,
+      950
+    ],
+    "frameHeight": 256,
+    "frames": [
+      "utan kläder vaken",
+      "utan kläder sovande",
+      "solglasögon",
+      "sovande",
+      "lätt jacka vaken",
+      "lätt jacka sovande",
+      "varm jacka/halsduk vaken",
+      "varm jacka/halsduk sovande",
+      "snökläder vaken",
+      "snökläder sovande",
+      "regnkläder vaken",
+      "regnkläder sovande",
+      "vinterkläder vaken",
+      "vinterkläder sovande",
+      "dimma vaken",
+      "dimma sovande"
+    ],
+    "file": "bilder/vader/mascots-v2.webp"
+  },
+  "clouds": {
+    "file": "bilder/vader/clouds-v1.webp",
+    "width": 1254,
+    "height": 1254,
+    "frames": [
+      [
+        62,
+        308,
+        597,
+        139
+      ],
+      [
+        767,
+        257,
+        348,
+        225
+      ],
+      [
+        38,
+        767,
+        631,
+        282
+      ],
+      [
+        713,
+        756,
+        504,
+        303
+      ]
+    ],
+    "roles": [
+      "slöja",
+      "stackmoln",
+      "mulet",
+      "åska"
+    ]
+  }
+}

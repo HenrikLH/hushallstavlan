@@ -58,6 +58,12 @@ jobs:
           WXYR=1 WXMIX=1 NOW=2026-10-18T09:20:00+02:00 node verktyg/emu/run.js verktyg/emu/vader-dag.js
           node verktyg/emu/run.js verktyg/emu/inkop-kollaps.js
           node verktyg/emu/run.js verktyg/emu/animationer.js
+          LS="$(node -e 'console.log(JSON.stringify({...JSON.parse(process.env.LS),wxvy:"bild",wxart:"geo"}))')" node verktyg/emu/run.js verktyg/emu/vader-bildstilar.js
+          if [[ "$UI" == "2" && "$SCREEN" == "vagg" ]]; then
+            for art in geo soft; do
+              LS="$(ART="$art" node -e 'console.log(JSON.stringify({...JSON.parse(process.env.LS),wxvy:"bild",wxart:process.env.ART,gpu:"0"}))')" REDUCED=0 VY=vader WXSYM=rain node verktyg/emu/run.js verktyg/emu/vader-gpu.js
+            done
+          fi
           if [[ "$UI" == "4" ]]; then
             node verktyg/emu/run.js verktyg/emu/ui4.js
             node verktyg/emu/run.js verktyg/emu/ui4-installningar.js

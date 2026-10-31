@@ -16,7 +16,7 @@ function wx(){const ts=[];const t0=Date.UTC(2026,9,18,0);for(let h=0;h<216;h++){
  return JSON.stringify({properties:{timeseries:ts}})}
 const WX=wx();
 const srv=http.createServer((q,r)=>{let p=decodeURIComponent(q.url.split('?')[0]);if(p==='/')p='/index.html';const f=path.join(APP,p);
- fs.readFile(f,(e,b)=>{if(e){r.writeHead(404);return r.end()}if(p==='/app.js')b=Buffer.from(String(b).replace(/\}\)\(\);\s*$/,'window.__d=s=>eval(s);})();'));const ext=path.extname(f);r.writeHead(200,{'Content-Type':{'.html':'text/html','.js':'text/javascript','.json':'application/json','.css':'text/css','.png':'image/png','.jpg':'image/jpeg','.svg':'image/svg+xml','.webmanifest':'application/json'}[ext]||'application/octet-stream'});r.end(b)})});
+ fs.readFile(f,(e,b)=>{if(e){r.writeHead(404);return r.end()}if(p==='/app.js')b=Buffer.from(String(b).replace(/\}\)\(\);\s*$/,'window.__d=s=>eval(s);})();'));const ext=path.extname(f);r.writeHead(200,{'Content-Type':{'.html':'text/html','.js':'text/javascript','.json':'application/json','.css':'text/css','.webp':'image/webp','.png':'image/png','.jpg':'image/jpeg','.svg':'image/svg+xml','.webmanifest':'application/json'}[ext]||'application/octet-stream'});r.end(b)})});
 let PORT;
 (async()=>{await new Promise(r=>srv.listen(0,()=>{PORT=srv.address().port;r()}));
  const scen=require(path.resolve(process.argv[2]));

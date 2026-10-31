@@ -2,45 +2,20 @@
 
 Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs relevant kod/PR vid behov.
 
-## Stabil sol- och månbana vid grafutdrag · ht-v241
+## Publicerat: väderstilar · ht-v242
 
-- Codex, `codex/stabil-solbana`, PR #56. Henrik har bett ändra och pusha direkt; publicering godkänd.
-- `placeSky`: banans höjd mäts mot väderbilden i stället för kortets nederkant, som flyttas när grafen expanderar. Samma placering vid uppstart, omritning och storleksbyte.
-- `animationer.js` jämför banans och solens/månens position och storlek före drag, under drag och efter släpp; öppning/stängning, deldrag och omladdning. Körs i CI för telefon/vägg × UI2/UI3/UI4 × ljust/mörkt.
-- Testad appkod `41f71f87dd1399eef716dbef292772cb199b4b9b`: [CI 12/12 gröna](https://github.com/HenrikLH/hushallstavlan/actions/runs/41223164982), syntax/diff godkända. Telefonbilder under drag och fullt öppet granskade. Därefter endast dokumentation.
-- ht-v241/app.js?v=231. Ångra-gren `version-fore-stabil-solbana-20261031` från `e57da1cadeeba1866ab4bf7ba03aa3d5977e50c7`. Vid avbrott: kontrollera merge PR #56 och Pages. Ingen server-/hushållsdata ändrad.
+- Codex, PR #57, `codex/vader-bildstilar`. Henrik godkände publicering 2026-10-31. Två nya enhetsval under Inställningar → Översikt och väder → Bildstil: Förfinad och Geometrisk. Original är standard; `ht.wxart` sparar valet.
+- Geometrisk: tio transparenta årstids-/ljuslager, hundatlas och molnatlas, cirka 2,0 MB offline. Den godkända höstnatten är stilreferens; nio andra landskap följer samma geometriska färgplan. Vår/sommar har formgivna blommor, knoppar och blad. Hundarnas pålagda runda irisringar är borttagna. Referens/manifest/prompter: `docs/design/vader-bildlager*` och `vader-botanik-prompter.json`.
+- Vädermodellen är gemensam: kalender/lövtäthet, solhöjd/sol-/månbana, stjärnor/molntäcke, nederbörd/åska/dimma, snöminne/frost/fläckar/djup snö och fallande löv. Inga server- eller hushållsdata ändrade.
+- Testad app-/bildkod: `dd08ee7691787e85af7604bf16f73d53075a6903`. 1 968 kombinationer i telefon/UI4 vägg, tolv avkodade bilder, menyval/omstart och alla flikar telefon/vägg gröna. Rörelsekontroll bekräftar faktiskt ändrad transform/opacitet för moln/regn/snö/blixt/dimma/stjärnor/löv/hundandning. GPU: 47 animationer till 0 i SVG, 40–66 bildpunkters skillnad (gräns 150).
+- CI grönt i alla tolv jobb: https://github.com/HenrikLH/hushallstavlan/actions/runs/41248696505 (UI2/UI3/UI4 × telefon/vägg × ljust/mörkt). Dokumentation efter denna testade appkod ändrar ingen app-/testfil. Manifest/offline/kontrollsummor/syntax/diff gröna.
+- Release ht-v242 / app.js?v=232 via PR #57. Återställningsgren `version-fore-vader-bildstilar` från ht-v241 (`a983fe86eaa04526e8a97e03804e472bd2590fa0`).
 
-## B24: hela dygnet, svep och orange portionsantal · ht-v240
-
-- Codex, `codex/portioner-orange`, PR #55. Henrik har godkänt gemensam publicering med portionsfärgen; publicera utan ny fråga.
-- `wxDayPts` interpolerar lokal midnatt från omgivande Yr-punkter, klipper regnintervall vid dygnsgränsen och hanterar 23/25-timmarsdygn. Tidsaxel 00–24; sista deldygnet visar verklig sluttid utan påhittad prognos.
-- Svep vänster/höger i `.wd-body` byter dag; korta/lodräta/avbrutna gester och daggränser bevaras. Dagknapparna kvar. Portionsantal t.ex. 21/24 orange endast vid brist, fullt antal vanlig textfärg.
-- Testad appkod `954c4709705c0771f5bbf68cb5792df22ed89667`: [CI 12/12 gröna](https://github.com/HenrikLH/hushallstavlan/actions/runs/41192069418), UI2/UI3/UI4 × telefon/vägg × ljust/mörkt inklusive riktiga pekgester. Syntax/diff grön, telefonbilder granskade. Därefter endast dokumentation.
-- Release ht-v240/app.js?v=230. Ångra-gren `version-fore-b24-svep-20261031` från main `1f1b8afbfeb96c020bb3520d3ec0c8516ebf02c2`. Vid avbrott: kontrollera merge PR #55 och Pages före återupptagning. Inga server-/hushållsdata ändrade.
-
-## Portionsantal, kompaktare kontroller och Ö2 · ht-v239
-
-- Codex, `codex/portioner-kalender-drag`, PR #54. Henrik valde endast portionsantalet i övre högra hörnet och godkände publicering av hela paketet (”Pusha alla ändringar”, 2026-10-31).
-- ”Räcker inte” ersatt av enbart t.ex. 21/24, utan stapel/prick/extra rad. Täckning = summan min(har, behov) per Vardag/Helg/Storkok, normalt 8+6+10=24. Överskott i en grupp täcker inte en annan; målet följer faktiskt behov. De avvisade designförslagen är borttagna ur slutändringen.
-- Veckans handtag har 24 px visuell höjd med utökad träffyta, pilen borttagen; Rymligare kontroller segment 48→42 px med 4 px padding (underflik 40 px), former bevarade.
-- Ö2: direkt drag vecka→månad i samma ruta, scroll-lås, närmaste ändläge/släpp, avbrott/tangentbord/tryck/reducerad rörelse. Vald dag uppdaterar schemat, månadspilar och vald vecka vid hopfällning. T3 på väggen bevarad. Kalenderhandtaget fungerar även med animationer av; S.ovCalOpen/ovCalMonth är sessionsval.
-- Testad kod `d1746392f4e9c8918736100cfdd761d7dc8e1ce3`: [CI 12/12 gröna](https://github.com/HenrikLH/hushallstavlan/actions/runs/41144242515), UI2/UI3/UI4 × telefon/vägg × ljust/mörkt. Browsergranskad med exempeldata i ljust/mörkt telefon; Ö2 även mörkt desktop och faktiskt drag. Endast dokumentation efter testad kod.
-- Publicering godkänd. Ångra-gren `version-fore-portioner-manad-20261031` från `337490ec8bbd5e7e3dc06c35e2a9075e89d1ce4a`. Release ht-v239/app.js?v=229 via PR #54; kontrollera Pages/live om en avbruten publicering återupptas. Inga server-/hushållsdata ändrade. Begär inte nytt godkännande.
-
-Inköpslistans hopfällbara avdelningar är publicerade i ht-v238 / PR #53; animationer som standard i ht-v237 / PR #52.
-
-## Rita graf efter full expansion · ht-v236
-
-- Codex, `codex/vadergraf-efter-utdrag`, PR #51 (ersätter utkast #50; GitHubs GraphQL-övergång till redo gav serverfel). Henrik har godkänt publicering direkt i beställningen (”pusha när det är klart”).
-- Utdragets geometri är oförändrad. Separata rit-animationer väntar på full expansion (även före släpp) och spelar därefter 760 ms. Halvöppning ritar inte kurva/punkter/fyllning. Redan öppen graf behåller ritningen vid stängningsdrag. Reducerad rörelse respekteras.
-- Regression: ritningen står still under delvis utdrag, startar när fullt utdrag nås medan fingret hålls nere och är färdig efter öppning. Testad kod `fe962e6d56161a6d1aff5ea36eb9796bdf434649`: [CI 12/12 gröna](https://github.com/HenrikLH/hushallstavlan/actions/runs/41069705952), UI2/UI3/UI4 × telefon/vägg × ljust/mörkt. Endast dokumentation efter testad kod. Ingen Kod.gs eller hushållsdata ändrad.
-- Publicering godkänd; ångra-gren `version-fore-graf-efter-utdrag-20261030` från `fe0c1c76c94322dee0fb567ffa3874f7c306d374`. Merge PR #51 (ersätter utkast #50; GitHubs GraphQL-övergång till redo gav serverfel) och verifiera Pages/live ht-v236/app.js?v=226. Begär inte nytt publiceringsgodkännande.
-
-Tidigare publiceringar ht-v229–235 finns i PR #43–49 och git-historiken.
+Tidigare publiceringar (PR #43–56) finns i git-historiken. PR #56 är sammanslagen; stabil solbana och B24/portionsantal finns på main.
 
 ## Börja här
 
-- Aktuell release efter PR #56: **ht-v241 / app.js?v=231**. Stabil sol- och månbana vid grafutdrag. Tidigare PR #55: B24:s dygnskurva och dagsvep, orange portionsantal vid brist. Tidigare ht-v239 via PR #54: Portionsantal i hörnet, kompaktare kontroller och Ö2 med månadsdrag. M10:s hopfällbara avdelningar från ht-v238 kvar.
+- Aktuell release efter PR #57: **ht-v242 / app.js?v=232**. Två extra väderbildstilar (Förfinad/Geometrisk). Tidigare PR #56: Stabil sol- och månbana vid grafutdrag. Tidigare PR #55: B24:s dygnskurva och dagsvep, orange portionsantal vid brist. Tidigare ht-v239 via PR #54: Portionsantal i hörnet, kompaktare kontroller och Ö2 med månadsdrag. M10:s hopfällbara avdelningar från ht-v238 kvar.
 - [Publiceringar](https://github.com/HenrikLH/hushallstavlan/actions): följ Pages-bygget för PR #55. Äldre PR #32 (priser) är separat.
 - Nästa steg: återkoppling från Henrik efter B24-paketet i PR #55. Gör inte om godkända ändringar.
 - UI 2.0:s tema och beteenden ska bevaras. Henrik har godkänt Ateljé som ett separat UI 4.0; UI 3.0 finns kvar i utvecklarläget. Bilder före visuella ändringar på main; ”Pusha” är publiceringsgodkännande.

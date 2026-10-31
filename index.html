@@ -834,6 +834,31 @@ html.ny .chip.lk::before{display:none}
 .wx2-bar>div+div{border-left:1px solid var(--line);padding:0 0 0 12px}
 .wx2-bar b{font-size:12px;letter-spacing:.3px;text-transform:uppercase;color:var(--ink-2);font-weight:600}
 .wx2-bar span{font-size:15px;line-height:20px}
+/* Extra bildstilar: geometrin för himmel, graf och draghandtag lämnas åt befintlig layout. */
+.wx2.art-geo,.wx2.art-soft{background:linear-gradient(170deg,var(--art-bg),var(--art-end));color:var(--art-ink);--ink:var(--art-ink);--ink-2:var(--art-sub);--line:var(--art-line);--sky-star:var(--art-star);--sky-moon:var(--art-moon);--fog:rgba(193,210,230,.45)}
+.wx2.art-geo .wx-place,.wx2.art-soft .wx-place{color:var(--art-sub)}
+.wx2.art-geo .wx-hl,.wx2.art-soft .wx-hl{color:var(--art-sub)}
+.wx2.art-geo .skyfx .st,.wx2.art-soft .skyfx .st{background:#fff}
+.art-geo .sb-cl>.sb-c{filter:none}
+.art-geo .sky-b .sb-body svg>circle:first-of-type{opacity:.14}
+.fig.art-geo .dog-head,.fig.art-soft .dog-head{animation-name:artDogTilt}
+@keyframes artDogTilt{0%,65%,100%{transform:rotate(0)}73%,80%{transform:rotate(-3deg)}}
+.fig.art-geo .dog-b,.fig.art-soft .dog-b{filter:none}
+.fig.art-geo .dog.lie,.fig.art-soft .dog.lie{animation-duration:4.5s}
+.art-geo .fig-z text,.art-soft .fig-z text{font-weight:600}
+/* Geometrisk: sammanhängande utsikt som i referensen, med små maskotar i förgrunden. */
+.wx2.art-geo{width:calc(100% - 32px);max-width:680px;margin-left:auto;margin-right:auto}
+.wx2.art-geo .wx2-gs{width:calc(100% + 32px);height:auto;min-height:200px;aspect-ratio:3/2;margin:0 -16px;padding:0;position:relative}
+.wx2.art-geo .wx2-gs>.bd{inset:0;width:100%;height:100%}
+.wx2.art-geo .wx2-gs>.fig-box.grass{position:absolute;right:16px;bottom:5px;width:42%;max-width:150px;height:auto;aspect-ratio:17/15;margin:0}
+.wx2.art-geo .wx2-gs>.fgm{inset:0;width:100%;height:100%}
+.wx2.art-geo .wx2-bar{margin-top:0;padding-top:10px}
+.wx2.art-geo .skyfx .pole{opacity:var(--art-stars,1)}
+.art-geo .dog.lie .dog-head{animation-name:geoSleep}
+@keyframes geoSleep{50%{transform:translateY(.45px)}}
+/* Rastermaskotens bädd står kvar medan överkroppen andas mycket svagt. */
+.fig.art-geo .dog[data-raster]{animation-name:geoBreathe;animation-duration:4.8s;transform-origin:60px 124px}
+@keyframes geoBreathe{50%{transform:scaleY(1.008)}}
 /* dagskurvan i stället för bilden */
 .wxC-sc{margin:10px -16px 0;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y;-webkit-mask-image:linear-gradient(90deg,transparent,#000 14px,#000 calc(100% - 14px),transparent);mask-image:linear-gradient(90deg,transparent,#000 14px,#000 calc(100% - 14px),transparent)}
 .wxC-sc::-webkit-scrollbar{display:none}
@@ -2625,7 +2650,7 @@ html.ny.rymlig:not(.ui3):not(.ui4) :is(.btn-fill,.btn-tint,.pill,.fchips button)
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=231"></script>
+<script src="app.js?v=232"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
