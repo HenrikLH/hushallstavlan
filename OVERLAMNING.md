@@ -2,6 +2,14 @@
 
 Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs relevant kod/PR vid behov.
 
+## B24: hela dygnet, svep och orange portionsantal · ht-v240
+
+- Codex, `codex/portioner-orange`, PR #55. Henrik har godkänt gemensam publicering med portionsfärgen; publicera utan ny fråga.
+- `wxDayPts` interpolerar lokal midnatt från omgivande Yr-punkter, klipper regnintervall vid dygnsgränsen och hanterar 23/25-timmarsdygn. Tidsaxel 00–24; sista deldygnet visar verklig sluttid utan påhittad prognos.
+- Svep vänster/höger i `.wd-body` byter dag; korta/lodräta/avbrutna gester och daggränser bevaras. Dagknapparna kvar. Portionsantal t.ex. 21/24 orange endast vid brist, fullt antal vanlig textfärg.
+- Testad appkod `954c4709705c0771f5bbf68cb5792df22ed89667`: [CI 12/12 gröna](https://github.com/HenrikLH/hushallstavlan/actions/runs/41192069418), UI2/UI3/UI4 × telefon/vägg × ljust/mörkt inklusive riktiga pekgester. Syntax/diff grön, telefonbilder granskade. Därefter endast dokumentation.
+- Release ht-v240/app.js?v=230. Ångra-gren `version-fore-b24-svep-20261031` från main `1f1b8afbfeb96c020bb3520d3ec0c8516ebf02c2`. Vid avbrott: kontrollera merge PR #55 och Pages före återupptagning. Inga server-/hushållsdata ändrade.
+
 ## Portionsantal, kompaktare kontroller och Ö2 · ht-v239
 
 - Codex, `codex/portioner-kalender-drag`, PR #54. Henrik valde endast portionsantalet i övre högra hörnet och godkände publicering av hela paketet (”Pusha alla ändringar”, 2026-10-31).
@@ -24,9 +32,9 @@ Tidigare publiceringar ht-v229–235 finns i PR #43–49 och git-historiken.
 
 ## Börja här
 
-- Aktuell release: **ht-v239 / app.js?v=229**, via PR #54. Portionsantal i hörnet, kompaktare kontroller och Ö2 med månadsdrag. M10:s hopfällbara avdelningar från ht-v238 kvar.
-- [Publiceringar](https://github.com/HenrikLH/hushallstavlan/actions): följ Pages-bygget för PR #54. Äldre PR #32 (priser) är separat.
-- Nästa steg: återkoppling från Henrik efter hela paketet i PR #54. Gör inte om godkända ändringar.
+- Aktuell release efter PR #55: **ht-v240 / app.js?v=230**. B24:s dygnskurva och dagsvep, orange portionsantal vid brist. Tidigare ht-v239 via PR #54: Portionsantal i hörnet, kompaktare kontroller och Ö2 med månadsdrag. M10:s hopfällbara avdelningar från ht-v238 kvar.
+- [Publiceringar](https://github.com/HenrikLH/hushallstavlan/actions): följ Pages-bygget för PR #55. Äldre PR #32 (priser) är separat.
+- Nästa steg: återkoppling från Henrik efter B24-paketet i PR #55. Gör inte om godkända ändringar.
 - UI 2.0:s tema och beteenden ska bevaras. Henrik har godkänt Ateljé som ett separat UI 4.0; UI 3.0 finns kvar i utvecklarläget. Bilder före visuella ändringar på main; ”Pusha” är publiceringsgodkännande.
 - Strömningen i ChatGPT har avbrutits flera gånger. Kontrollera gren/PR/main och Pages innan en avbruten publicering återupptas. Begär inte samma godkännande igen.
 
