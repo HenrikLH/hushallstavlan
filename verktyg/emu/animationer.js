@@ -7,8 +7,11 @@ module.exports=async(pg,h)=>{
  const developer=async()=>{await click('[data-act="settings"]');const section=pg.locator('[data-k="pref-avancerat"]');if(!await section.evaluate(e=>e.open))await section.locator('summary').click();await h.idle(300)};
  assert.equal(await read('motionOn()'),true,'Animationer är på som standard utan krav på Utvecklarläge');await pg.reload();await h.idle(1600);assert.equal(await read('motionOn()'),true,'Standardanimationer fungerar från uppstart');
  // Kontrollera mellantillståndet medan fingret fortfarande hålls nere, inte bara slutläget.
+ const sky=()=>pg.locator('.hero>.arc.b').evaluateAll(es=>es.filter(e=>getComputedStyle(e).display!=='none').map(e=>{const h=e.closest('.hero').getBoundingClientRect();return[e,e.querySelector('.sky-b')].flatMap(n=>{const r=n.getBoundingClientRect();return[r.x-h.x,r.y-h.y,r.width,r.height]})}));
+ const sameSky=async before=>{const after=await sky();assert.equal(after.length,before.length);before.forEach((r,i)=>r.forEach((v,j)=>assert(Math.abs(v-after[i][j])<1,'Sol/måne och bana står kvar när vädergrafen ändrar höjd')))};
  const drag=async(sel,fraction,cancel=false)=>{
   console.log('DRAG',sel,fraction,cancel);const el=pg.locator(sel).first();await el.evaluate(e=>e.scrollIntoView({block:'center',behavior:'instant'}));await h.idle(520);const b=await el.boundingBox(),x=b.x+b.width/2,y=b.y+b.height/2;
+  const skyBefore=sel.includes('weather')?await sky():null;
   const before=await pg.evaluate(()=>({y:scrollY,top:document.getElementById('main').getBoundingClientRect().top}));
   assert(await pg.evaluate(({x,y})=>!!document.elementFromPoint(x,y)?.closest('[data-motion-grip]'),{x,y}),'Handtaget är synligt ovanför navigationen');await pg.mouse.move(x,y);await pg.mouse.down();const state=await read('({height:motionDrag.height,max:motionDrag.max,scale:motionDrag.scale,id:motionDrag.id,open:motionDrag.open})');
   const dy=(fraction*state.max-state.height)*state.scale;await pg.mouse.move(x,y+dy+(fraction===1?2:0),{steps:10});
@@ -20,8 +23,10 @@ module.exports=async(pg,h)=>{
   if(sel.includes('weather')&&!state.open&&fraction<1)assert.equal(await pg.locator('.ovg-k').evaluate(e=>parseFloat(getComputedStyle(e).strokeDashoffset)),1,'Kurvan börjar inte ritas under utdraget');
   if(sel.includes('weather')){const graph=await pg.locator('.ovx-g').evaluate(e=>{const child=e.firstElementChild,m=new DOMMatrix(getComputedStyle(child).transform);return{scale:m.m22,dy:m.m42,natural:child.offsetHeight,height:e.getBoundingClientRect().height}});assert.equal(graph.scale,1,'Grafen behåller naturlig skala');assert(Math.abs(graph.dy+(1-fraction)*graph.natural)<2,'Grafen dras ut under bildens klippkant');assert(graph.dy<=0&&graph.height>0,'Grafen ligger vid eller ovanför klippkanten')}
   if(sel.includes('weather')&&fraction===.25&&!cancel){const reduced=process.env.REDUCED;try{process.env.REDUCED='0';await h.shot('animationer-vader-under-drag')}finally{process.env.REDUCED=reduced}}
+  if(skyBefore)await sameSky(skyBefore);
   if(cancel)await el.dispatchEvent('pointercancel',{pointerId:state.id});await pg.mouse.up();await h.idle(950);
   assert.notEqual(await pg.evaluate(()=>document.body.style.position),'fixed');assert(Math.abs((await pg.evaluate(()=>scrollY))-before.y)<2,'Scroll återställd');
+  if(skyBefore)await sameSky(skyBefore);
   return cancel?state.open:fraction>=.5;
  };
  // Alla blad delar handtag: följ fingret, avbryt, återgå och stäng.
