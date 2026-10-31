@@ -4,10 +4,11 @@ Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs 
 
 ## Stabil sol- och månbana vid grafutdrag · ht-v241
 
-- Codex, `codex/stabil-solbana`. Henrik har bett ändra och pusha direkt.
+- Codex, `codex/stabil-solbana`, PR #56. Henrik har bett ändra och pusha direkt; publicering godkänd.
 - `placeSky`: banans höjd mäts mot väderbilden i stället för kortets nederkant, som flyttas när grafen expanderar. Samma placering vid uppstart, omritning och storleksbyte.
 - `animationer.js` jämför banans och solens/månens position och storlek före drag, under drag och efter släpp; öppning/stängning, deldrag och omladdning. Körs i CI för telefon/vägg × UI2/UI3/UI4 × ljust/mörkt.
-- Syntax/diff godkända; nästa steg: CI, granska bild och publicera med ångra-gren från aktuell main. ht-v241/app.js?v=231. Ingen server-/hushållsdata ändrad.
+- Testad appkod `41f71f87dd1399eef716dbef292772cb199b4b9b`: [CI 12/12 gröna](https://github.com/HenrikLH/hushallstavlan/actions/runs/41223164982), syntax/diff godkända. Telefonbilder under drag och fullt öppet granskade. Därefter endast dokumentation.
+- ht-v241/app.js?v=231. Ångra-gren `version-fore-stabil-solbana-20261031` från `e57da1cadeeba1866ab4bf7ba03aa3d5977e50c7`. Vid avbrott: kontrollera merge PR #56 och Pages. Ingen server-/hushållsdata ändrad.
 
 ## B24: hela dygnet, svep och orange portionsantal · ht-v240
 
@@ -39,7 +40,7 @@ Tidigare publiceringar ht-v229–235 finns i PR #43–49 och git-historiken.
 
 ## Börja här
 
-- Aktuell release efter PR #55: **ht-v240 / app.js?v=230**. B24:s dygnskurva och dagsvep, orange portionsantal vid brist. Tidigare ht-v239 via PR #54: Portionsantal i hörnet, kompaktare kontroller och Ö2 med månadsdrag. M10:s hopfällbara avdelningar från ht-v238 kvar.
+- Aktuell release efter PR #56: **ht-v241 / app.js?v=231**. Stabil sol- och månbana vid grafutdrag. Tidigare PR #55: B24:s dygnskurva och dagsvep, orange portionsantal vid brist. Tidigare ht-v239 via PR #54: Portionsantal i hörnet, kompaktare kontroller och Ö2 med månadsdrag. M10:s hopfällbara avdelningar från ht-v238 kvar.
 - [Publiceringar](https://github.com/HenrikLH/hushallstavlan/actions): följ Pages-bygget för PR #55. Äldre PR #32 (priser) är separat.
 - Nästa steg: återkoppling från Henrik efter B24-paketet i PR #55. Gör inte om godkända ändringar.
 - UI 2.0:s tema och beteenden ska bevaras. Henrik har godkänt Ateljé som ett separat UI 4.0; UI 3.0 finns kvar i utvecklarläget. Bilder före visuella ändringar på main; ”Pusha” är publiceringsgodkännande.
