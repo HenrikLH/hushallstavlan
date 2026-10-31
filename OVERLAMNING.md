@@ -2,15 +2,14 @@
 
 Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs relevant kod/PR vid behov.
 
-## För granskning: riktiga bildlager för Geometrisk · ht-v242
+## För granskning: enhetlig geometrisk väderstil · ht-v242
 
-- Codex, `codex/vader-bildstilar`, PR #57. Henrik avvisade båda SVG-försöken och bad välja bästa vägen till den visade bilden. Geometrisk använder nu genererade bildlager direkt, inte nya handritade approximationer. Referens: `docs/design/vader-geometrisk-referens.jpeg`.
-- `bilder/vader/`: tio transparenta landskap (vår/sommar/höst/snöfri vinter/snö × dag/natt) en maskotatlas med 16 kläd-/sovlägen och fyra matchande molnformer. WebP cirka 3,4 MB, förladdas av service workern. Promptunderlag/manifest/klippkoordinater: `docs/design/vader-bildlager.md` och `.json`.
-- `geoBackdropSvg` komponerar rasterlagren med kalender/lövtäthet och faktisk solhöjd. Snöminne/frost/fläckar/djup snö styrs separat. Moln, sol/måne, stjärnor, regn/snö/åska/dimma och fallande löv är fortsatt dynamiska lager. `geoDogSvg` väljer verkliga bildrutor; andning sker i eget GPU-lager.
-- Hundarna är omgjorda med enklare färgplan mot bildreferensen, bruna iris/svarta pupiller/ljusreflex i alla vakna klädlägen, slutna sovögon och tydlig vit haka/bröstteckning. Ögonen har små separata SVG-detaljer för läsbarhet i appstorlek. Molnen är rasterlager färgsatta av samma dag/natt-/vädermodell.
-- Original är fortsatt standard, Förfinad oförändrad. Alla tre finns under Inställningar → Översikt och väder → Bildstil (`ht.wxart`). Geometrisk har responsiv 3:2-scen och max 680 px kortbredd.
-- Lokalt grönt: 1 968 scenkombinationer i telefon och UI4 mörk vägg, alla tolv filer avkodade, menyval/omstart och alla-flikar telefon/vägg. GPU: 47 animationer till 0 i SVG, 9–24 bildpunkters skillnad. Faktiska höstnatt/vakna ögon/sommar/regn/snö-bilder granskade. Syntax/diff, manifest/kontrollsummor och offline-lista gröna.
-- Main är ht-v241 (`a983fe86eaa04526e8a97e03804e472bd2590fa0`). Förberedd release ht-v242/app.js?v=232, ännu inte publicerad. Läs senaste CI i PR #57 inför publicering; inväntar Henrik/Pusha. Inga server- eller hushållsdata ändrade.
+- Codex, `codex/vader-bildstilar`, PR #57. Henrik godkände sista höstnattbildens stil men avvisade de målade årstiderna och de pålagda runda irisarna (”uggla”). Använd `bilder/vader/autumn-night.webp` som auktoritativ stilgrund; den är oförändrad.
+- Nio övriga landskap omgjorda direkt från samma höstnattsreferens: stora cirkelformade lövmassor, enkla färgplan, triangelskog/kantiga stenar. Vår/sommar/höst/snöfri vinter/snö × dag/natt, tolv WebP-filer totalt cirka 2,0 MB. Vår/sommar dag/natt har därefter förfinats med formgivna körsbärsblommor, påskliljor/prästkragar, knoppar, bladnerver och ormbunkar; Henrik vill ha detaljer i samma grafiska stil, inte bara cirklar. Inga målade småbladstexturer. Manifest/promptset: `docs/design/vader-bildlager.md`, `.json` och `vader-botanik-prompter.json`.
+- De separata runda SVG-ögonen är borttagna. Hundarna använder atlasens egna små mörkbruna ögon/svarta pupiller och slutna sovögon. Den accepterade sovande nattbilden och molnen behålls.
+- Kalender/lövtäthet/solhöjd, snöminne/frost/snöfläckar/djup snö, sol/måne/moln/stjärnor/nederbörd/dimma/löv och GPU-animationer är samma modell. Original är fortsatt standard, Förfinad oförändrad. Tre val under Inställningar → Översikt och väder → Bildstil (`ht.wxart`).
+- Verifiering för denna revision: 1 968 scenkombinationer i både telefon/UI4 mörk vägg, tolv avkodade filer, menyval/omstart och faktiska årstidsvyer gröna. GPU-test: 47 animationer till 0 i SVG, 40–66 bildpunkters skillnad (gräns 150). Manifest/kontrollsummor/offline och syntax/diff gröna. Inga server-/hushållsdata ändrade.
+- Main är ht-v241 (`a983fe86eaa04526e8a97e03804e472bd2590fa0`). Förberedd ht-v242/app.js?v=232. Inte publicerat; inväntar Henrik/Pusha. Läs aktuell CI i PR #57 inför publicering.
 
 Tidigare publiceringar (PR #43–56) finns i git-historiken. PR #56 är sammanslagen; stabil solbana och B24/portionsantal finns på main.
 
