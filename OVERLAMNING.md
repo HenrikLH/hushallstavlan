@@ -2,6 +2,13 @@
 
 Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs relevant kod/PR vid behov.
 
+## Orange portionsantal vid brist · ht-v240
+
+- Codex, `codex/portioner-orange`. Ny färgjustering efter publicerad ht-v239. Ej publicerad; lämnas för Pusha.
+- wm-port får bad endast när covered < goal; färg var(--orange) i samtliga UI-versioner/teman. Full täckning behåller vanlig textfärg. Inga mått eller beräkningar ändrade.
+- Riktad kontroll av faktiska weekSummary: 21/24 brist, 24/24 fullt, överskott på vardagar men saknad helg. Alla tre godkända. Syntax/diffkontroll grön. Browsergranskning i UI2 telefon ljust/mörkt: räknaren 21/24 matchar --orange (#9A5800 / rgb(242,176,69)). Liten färgändring, inget nytt fullständigt röktest behövs enligt AGENTS.
+- Version höjd via version.js till ht-v240/app.js?v=230. Main ht-v239. Nästa Pusha: ångra-gren från aktuell main, merge och verifiera Pages/live. Ingen server-/hushållsdata ändrad.
+
 ## Portionsantal, kompaktare kontroller och Ö2 · ht-v239
 
 - Codex, `codex/portioner-kalender-drag`, PR #54. Henrik valde endast portionsantalet i övre högra hörnet och godkände publicering av hela paketet (”Pusha alla ändringar”, 2026-10-31).

@@ -1189,7 +1189,7 @@ function weekSummary(ds,total,port){const rk=raeckerKort(ds),bad=/class="rk bad"
  // Kopian visas exakt när rutans överkant når fältet, så det ser ut som att raden glider fast. Tryck fäller ut räcker-listan
  // Med budget visar den stora rutan en stapel: hur mycket av budgeten veckans mat tar
  const G=grpBehov(ds),goal=G?Object.values(G).reduce((a,g)=>a+Math.max(0,g.beh),0):24,covered=G?Object.values(G).reduce((a,g)=>a+Math.min(Math.max(0,g.n),Math.max(0,g.beh)),0):Math.min(port,goal);
- const st='<span class="wm-port num" aria-label="'+covered+' av '+goal+' portioner täckta">'+covered+'/'+goal+'</span>';
+ const st='<span class="wm-port num'+(covered<goal?' bad':'')+'" aria-label="'+covered+' av '+goal+' portioner täckta">'+covered+'/'+goal+'</span>';
 
  const bar=()=>{const a=Math.min(100,total/B*100),ov=total>B;return'<span class="wm-bb"><span class="wm-bt"><b class="num">'+nv('m-total',total,'kr')+'</b><span>av '+kr(B)+'</span><span class="grow"></span>'+st+'</span>'+
   '<span class="wm-bar'+(ov?' over':'')+'" role="img" aria-label="'+kr(total)+' av '+kr(B)+'"><i style="width:'+a.toFixed(1)+'%"></i></span><span class="wm-pp"><span class="wm-kv'+(ov?' bad':'')+'">'+(ov?kr(total-B)+' över':kr(B-total)+' kvar')+'</span> · '+port+' portioner'+(port?' · '+kr(total/port)+' per portion':'')+'</span></span>'};
