@@ -1,0 +1,134 @@
+{
+  "assets": [
+    {
+      "file": "bilder/vader/autumn-night.webp",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 180484,
+      "sha256": "976f02085a8830552a00baab6c4b388678cd8a11e1ac55f0b777cb64bf63d0e7",
+      "source": "exec-792b1da2-d30d-42d1-b554-5d8da3972973.png",
+      "generator": "image_gen (inbyggt verktyg)"
+    },
+    {
+      "file": "bilder/vader/autumn-day.webp",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 262114,
+      "sha256": "50d1cf64ea7e5820ba4efa9e3b8507291362e0ee85ebc552847ff4cad31dc88b",
+      "source": "exec-a0a0754c-fed6-4551-82b3-ee468dccdeaa.png",
+      "generator": "image_gen (inbyggt verktyg)"
+    },
+    {
+      "file": "bilder/vader/spring-day.webp",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 352610,
+      "sha256": "b5650f6aa84ca80836169dc06e5e5e141118425d865769d78e7f1a24eb9fadc0",
+      "source": "exec-187c8ae1-c0ce-48c1-8748-551132c2564a.png",
+      "generator": "image_gen (inbyggt verktyg)"
+    },
+    {
+      "file": "bilder/vader/summer-day.webp",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 337140,
+      "sha256": "2c813e231057161be591603a932000a42a1903516ed4b3ca3c47d6af00a5085f",
+      "source": "exec-45f366b1-3334-49e7-8357-ca3a49b718cd.png",
+      "generator": "image_gen (inbyggt verktyg)"
+    },
+    {
+      "file": "bilder/vader/winter-day.webp",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 300840,
+      "sha256": "7b87f3d45e0397cb457df204f30490d3edcb0bc7159e3f1397d511dffbbbf499",
+      "source": "exec-d5ff7414-0414-4141-8af2-3a4842d29b23.png",
+      "generator": "image_gen (inbyggt verktyg)"
+    },
+    {
+      "file": "bilder/vader/snow-day.webp",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 400050,
+      "sha256": "1440afa8412b069a73025cf226c7005f168cbc544eb40669702ebd68ba0b5360",
+      "source": "exec-350d0f6a-b05e-43b1-8271-0ceb52ab756c.png",
+      "generator": "image_gen (inbyggt verktyg)"
+    },
+    {
+      "file": "bilder/vader/spring-night.webp",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 284542,
+      "sha256": "4dfbdd7d5a6e46d9a632caebcf912f253e971b6bd24c425fb838d39c186e5a57",
+      "source": "exec-68fd97fe-e4ae-4394-bf84-42c2c3fc94da.png",
+      "generator": "image_gen (inbyggt verktyg)"
+    },
+    {
+      "file": "bilder/vader/summer-night.webp",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 273878,
+      "sha256": "401f3bdabe194d4055f9e187b3a58e076598c2213aa0d20eb3b783a4517c1bb1",
+      "source": "exec-f056021d-2bf1-480e-85b6-6f67bc6e0e41.png",
+      "generator": "image_gen (inbyggt verktyg)"
+    },
+    {
+      "file": "bilder/vader/winter-night.webp",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 252094,
+      "sha256": "541e0d03883ac70c38df89652b87cfdf0474f0f1ef3627f869f1ced09fc5000e",
+      "source": "exec-23c33355-53f6-42c5-a429-2dbeac4184b4.png",
+      "generator": "image_gen (inbyggt verktyg)"
+    },
+    {
+      "file": "bilder/vader/snow-night.webp",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 339134,
+      "sha256": "9b977a26ceea847b22c455b124f49bd2980f9f98bf53abd74c6437d51704f123",
+      "source": "exec-1fc3b697-2968-4ec2-aa9b-ea1402ba9cb1.png",
+      "generator": "image_gen (inbyggt verktyg)"
+    },
+    {
+      "file": "bilder/vader/mascots-v1.webp",
+      "width": 1254,
+      "height": 1254,
+      "bytes": 484782,
+      "sha256": "c9e9e65d5fe23799465f980fb58907d47bbaf6be877361f1da4099885269e4a7",
+      "source": "exec-b30eb466-91e5-4db6-b1e0-9b89cce66eed.png",
+      "generator": "image_gen (inbyggt verktyg)"
+    }
+  ],
+  "sprite": {
+    "width": 1254,
+    "height": 1254,
+    "columns": 4,
+    "halfCellWidth": 156.75,
+    "rowTops": [
+      76,
+      363,
+      651,
+      940
+    ],
+    "frameHeight": 256,
+    "frames": [
+      "utan kläder vaken",
+      "utan kläder sovande",
+      "solglasögon",
+      "sovande",
+      "lätt jacka vaken",
+      "lätt jacka sovande",
+      "varm jacka/halsduk vaken",
+      "varm jacka/halsduk sovande",
+      "snökläder vaken",
+      "snökläder sovande",
+      "regnkläder vaken",
+      "regnkläder sovande",
+      "vinterkläder vaken",
+      "vinterkläder sovande",
+      "dimma vaken",
+      "dimma sovande"
+    ]
+  }
+}

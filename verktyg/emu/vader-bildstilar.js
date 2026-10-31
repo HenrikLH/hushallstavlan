@@ -47,6 +47,8 @@ module.exports=async(pg,h)=>{
   return{count,symbols:symbols.length,seasons:[...seasons],phases:[...phases],types:[...types],fits:[...fits],levels:[...levels]};
  }finally{window.Date=D0;WXART=old;HUNDAR=oldDogs;S.wxVar=oldVar;EXT.yr=oldYr;lsSet('snow',oldSnow)}})()`);
  assert.equal(report.seasons.length,8);assert.equal(report.phases.length,5);assert.equal(report.types.length,5);assert.equal(report.levels.length,4);console.log('PASS bildstilar',JSON.stringify(report));
+ // Bildfilerna ska gå att avkoda, inte bara finnas som tomma SVG-element.
+ const decoded=await pg.evaluate(async()=>{const names=['autumn','spring','summer','winter','snow'].flatMap(s=>[s+'-day',s+'-night']).concat('mascots-v1');return Promise.all(names.map(async name=>{const img=new Image();img.src='bilder/vader/'+name+'.webp?v=1';await img.decode();return{name,w:img.naturalWidth,h:img.naturalHeight}}))});assert.equal(decoded.length,11);for(const im of decoded)assert(im.w>=1200&&im.h>=1000,'Bildlagret är avkodat: '+im.name);
  // Granska riktiga kort i representativa väder och årstider; endast emulatorns modell/klocka ersätts.
  await read('window.__artSaved={Date:window.Date,model:wxModel,W:wxModel(),art:WXART,snow:lsGet("snow"),variant:S.wxVar}');
  try{

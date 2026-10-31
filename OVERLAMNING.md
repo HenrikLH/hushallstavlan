@@ -2,15 +2,14 @@
 
 Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs relevant kod/PR vid behov.
 
-## För granskning: omritad Geometrisk · ht-v242
+## För granskning: riktiga bildlager för Geometrisk · ht-v242
 
-- Codex, `codex/vader-bildstilar`, PR #57. Henrik avvisade första implementationen som för lik originalet. Jämför mot hans valda skiss i `docs/design/vader-geometrisk-referens.jpeg`; visa faktiska appbilder. Inte publicerat; inväntar Henrik/Pusha.
-- Tre enhetsval under Inställningar → Översikt och väder → Bildstil (`ht.wxart`): Original, Förfinad, Geometrisk. Original är standard. Förfinad berörs inte av omritningen.
-- Geometrisk har nu egna `geoBackdropSvg`/`geoDogSvg`: helt landskap med sjö/skog, flerskiktad förgrund, egen krona och kompakta bulldoggar i bäddar. Ingen originalplätt/originalträd. Responsiv scen 3:2; väderkortet max 680 px så att motivet inte sträcks på stora skärmar.
-- Befintlig vädermodell, molnmängd, sol/månbana, månfas, stjärnor, kläder/sömn, gradvisa årstider, blomning/frukt/löv, frost och fyra snödjup kvar. Geometrisk tonar stjärnlagret med verkligt molntäcke; originalet är oförändrat. Inga serverändringar eller appberoenden.
-- Lokalt grönt: 1 968 scenkombinationer i telefon och UI4 mörk vägg; alla-flikar telefon/vägg; GPU-test Geometrisk (61 animationer till 0 SVG-animationer, 40–43 bildpunkters skillnad). Faktiska natt/sommar/vinter-bilder granskade. Syntax/diff gröna.
-- CI:s GPU-test använde Pillow som saknas på runnern; bildjämförelsen använder nu redan installerade pngjs i Node. Nya scenprovet kontrollerar landskapets bredd och maskoternas storlek. Kontrollera senaste CI i PR #57 före publicering.
-- Förberedd ht-v242/app.js?v=232. Main före ändringen: `a983fe86eaa04526e8a97e03804e472bd2590fa0` (PR #56, ht-v241). Ingen publicering har skett.
+- Codex, `codex/vader-bildstilar`, PR #57. Henrik avvisade båda SVG-försöken och bad välja bästa vägen till den visade bilden. Geometrisk använder nu genererade bildlager direkt, inte nya handritade approximationer. Referens: `docs/design/vader-geometrisk-referens.jpeg`.
+- `bilder/vader/`: tio transparenta landskap (vår/sommar/höst/snöfri vinter/snö × dag/natt) och en maskotatlas med 16 kläd-/sovlägen. WebP cirka 3,4 MB, förladdas av service workern. Promptunderlag/manifest/klippkoordinater: `docs/design/vader-bildlager.md` och `.json`.
+- `geoBackdropSvg` komponerar rasterlagren med kalender/lövtäthet och faktisk solhöjd. Snöminne/frost/fläckar/djup snö styrs separat. Moln, sol/måne, stjärnor, regn/snö/åska/dimma och fallande löv är fortsatt dynamiska lager. `geoDogSvg` väljer verkliga bildrutor; andning sker i eget GPU-lager.
+- Original är fortsatt standard, Förfinad oförändrad. Alla tre finns under Inställningar → Översikt och väder → Bildstil (`ht.wxart`). Geometrisk har responsiv 3:2-scen och max 680 px kortbredd.
+- Lokalt grönt: 1 968 scenkombinationer i telefon och UI4 mörk vägg, alla elva filer avkodade, menyval/omstart och alla-flikar telefon/vägg. GPU: 47 animationer till 0 i SVG, 8–22 bildpunkters skillnad. Faktiska höstnatt/sommar/snö-bilder granskade. Syntax/diff, manifest/kontrollsummor och offline-lista gröna.
+- Main är ht-v241 (`a983fe86eaa04526e8a97e03804e472bd2590fa0`). Förberedd release ht-v242/app.js?v=232, ännu inte publicerad. Läs senaste CI i PR #57 inför publicering; inväntar Henrik/Pusha. Inga server- eller hushållsdata ändrade.
 
 Tidigare publiceringar (PR #43–56) finns i git-historiken. PR #56 är sammanslagen; stabil solbana och B24/portionsantal finns på main.
 

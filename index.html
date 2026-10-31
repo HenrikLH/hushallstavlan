@@ -856,6 +856,9 @@ html.ny .chip.lk::before{display:none}
 .wx2.art-geo .skyfx .pole{opacity:var(--art-stars,1)}
 .art-geo .dog.lie .dog-head{animation-name:geoSleep}
 @keyframes geoSleep{50%{transform:translateY(.45px)}}
+/* Rastermaskotens bädd står kvar medan överkroppen andas mycket svagt. */
+.fig.art-geo .dog[data-raster]{animation-name:geoBreathe;animation-duration:4.8s;transform-origin:60px 124px}
+@keyframes geoBreathe{50%{transform:scaleY(1.008)}}
 /* dagskurvan i stället för bilden */
 .wxC-sc{margin:10px -16px 0;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y;-webkit-mask-image:linear-gradient(90deg,transparent,#000 14px,#000 calc(100% - 14px),transparent);mask-image:linear-gradient(90deg,transparent,#000 14px,#000 calc(100% - 14px),transparent)}
 .wxC-sc::-webkit-scrollbar{display:none}
