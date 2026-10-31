@@ -243,17 +243,20 @@ function renderNav(nav){
  const ax=(el,a)=>{const cs=getComputedStyle(el),o=a==='x'?cs.overflowX:cs.overflowY;return/(auto|scroll)/.test(o)&&(a==='x'?el.scrollWidth>el.clientWidth+1:el.scrollHeight>el.clientHeight+1)};
  const scroller=(el,a)=>{for(;el&&el!==document.body&&el!==document.documentElement;el=el.parentElement)if(ax(el,a))return el;return null};
  document.addEventListener('pointerdown',e=>{cancelAnimationFrame(glide);
-  if(!on()||e.button>0||!S.data||e.target.closest('input,select,textarea,[contenteditable],.nav,.dr-slide,.car')||(S.arrange&&e.target.closest('[data-box]')))return;
+  if((!on()&&!e.target.closest('.wd-body'))||e.button>0||!S.data||e.target.closest('input,select,textarea,[contenteditable],.nav,.dr-slide,.car')||(S.arrange&&e.target.closest('[data-box]')))return;
+  if(e.target.closest('.wd-body')&&(!e.isPrimary||e.clientX<24||e.clientX>innerWidth-24)){st=null;return;}
   st={id:e.pointerId,x0:e.clientX,y0:e.clientY,x:e.clientX,y:e.clientY,t:performance.now(),v:0,mouse:e.pointerType!=='touch',a:null,el:null,tg:e.target}});
  addEventListener('pointermove',e=>{if(!st||e.pointerId!==st.id)return;const dx=e.clientX-st.x0,dy=e.clientY-st.y0;
   if(!st.a){if(Math.hypot(dx,dy)<10)return;st.a=Math.abs(dx)>Math.abs(dy)?'x':'y';st.el=scroller(st.tg,st.a);if(st.mouse)document.body.classList.add('dragging')}
   const now=performance.now(),d=st.a==='y'?e.clientY-st.y:e.clientX-st.x,dt=Math.max(8,now-st.t);
   st.v=.7*(d/dt)+.3*st.v;st.x=e.clientX;st.y=e.clientY;st.t=now;
+  if(st.a==='x'&&st.tg.closest('.wd-body')&&e.cancelable)e.preventDefault();
   if(!st.mouse)return;
   if(st.a==='y')(st.el||document.scrollingElement).scrollTop-=d;else if(st.el)st.el.scrollLeft-=d});
  const end=(e,ok)=>{if(!st||e.pointerId!==st.id)return;const s=st;st=null;document.body.classList.remove('dragging');if(!s.a||!ok)return;
   skip=true;setTimeout(()=>skip=false,80);
   const dx=e.clientX-s.x0,dy=e.clientY-s.y0;
+  if(s.a==='x'&&s.tg.closest('.wd-body')&&S.sheet==='wxDay'){if(Math.abs(dx)>70&&Math.abs(dx)>1.5*Math.abs(dy)){const W=wxModel(),i=W?W.days.findIndex(x=>x.date===S.wxDay):-1,j=i+(dx<0?1:-1);if(i>=0&&j>=0&&j<W.days.length)ACT.wxDay(W.days[j].date)}return}
   // svep i sidled där inget scrollar i sidled: byt flik
   // (i Mat och Uppgifter byts först undermenyn, vid sista undermenyn fortsätter svepet till nästa flik)
   if(s.a==='x'&&!s.el&&Math.abs(dx)>80&&Math.abs(dx)>1.5*Math.abs(dy)&&inMain(s.tg)&&!document.querySelector('#overlay .sheet')){
@@ -3571,12 +3574,19 @@ V.vader=function(){const W=wxModel(),P=WX_POS();
 /* Dagens väder (tryck på en dag i W4): ett blad som Apples Väder. Dagarna överst, dagens läge, en graf över dygnet 00–24
    (temperatur, nederbörd eller vind) och en kort sammanfattning. Yr ger timme för timme de första dygnen och sedan var sjätte timme;
    idag ritas de passerade timmarna (Open-Meteo) svagare. */
-function wxDayPts(W,date){const t0=parse(date).getTime(),t1=parse(addDays(date,1)).getTime(),now=Date.now();
- let H=(W.all||W.hours).filter(x=>x.d.getTime()>=t0&&x.d.getTime()<=t1);
- if(date===today()&&EXT.past&&EXT.past.ts){const f=H.length?H[0].d.getTime():now,pa=EXT.past.ts.map(x=>Object.assign({},x,{d:new Date(x.t),past:1})).filter(x=>x.d.getTime()>=t0&&x.d.getTime()<f);H=pa.concat(H)}
- // nederbörd per timme: en timme hos Yr, annars sextimmarssumman utslagen på steget
- return H.map((x,i)=>{const n=H[i+1],dur=n?Math.max(1,Math.round((n.d-x.d)/36e5)):1,amt=x.pr!=null?x.pr:(x.pr6!=null?x.pr6:0);
-  return Object.assign({},x,{X:(x.d-t0)/(t1-t0)*240,dur,rate:dur>1&&x.pr==null?amt/Math.min(6,dur):amt,amt:x.pr!=null?x.pr:(x.pr6!=null&&dur>1?x.pr6*Math.min(6,dur)/6:0)})})}
+function wxDayPts(W,date){const t0=parse(date).getTime(),t1=parse(addDays(date,1)).getTime();
+ let H=(W.all||W.hours).slice();
+ if(date===today()&&EXT.past&&EXT.past.ts){const f=H.length?+H[0].d:Date.now();H=EXT.past.ts.map(x=>Object.assign({},x,{d:new Date(x.t),past:1})).filter(x=>+x.d<f).concat(H)}
+ H.sort((a,b)=>a.d-b.d);
+ // Behåll punkterna utanför dygnet tills midnatt interpolerats. Yr:s UTC-steg ligger inte vid lokal midnatt.
+ H=H.map((x,i)=>{const n=H[i+1],period=x.pr!=null?1:6,end=Math.min(+x.d+period*36e5,n?+n.d:Infinity);
+  return Object.assign({},x,{end,rate:x.pr!=null?x.pr:(x.pr6||0)/6})});
+ const edge=t=>{const i=H.findIndex(x=>+x.d>=t);if(i<=0||+H[i].d===t)return null;const a=H[i-1],b=H[i],k=(t-a.d)/(b.d-a.d),x=Object.assign({},a,{d:new Date(t),t:new Date(t).toISOString()});
+  ['T','w','h'].forEach(v=>{if(a[v]!=null&&b[v]!=null)x[v]=a[v]+(b[v]-a[v])*k});
+  if(a.wd!=null&&b.wd!=null)x.wd=(a.wd+((b.wd-a.wd+540)%360-180)*k+360)%360;return x};
+ const first=edge(t0),last=edge(t1);H=H.filter(x=>+x.d>=t0&&+x.d<=t1);if(first)H.unshift(first);if(last)H.push(last);
+ return H.map(x=>{const end=Math.max(+x.d,Math.min(t1,x.end)),dur=(end-x.d)/36e5;
+  return Object.assign({},x,{X:(x.d-t0)/(t1-t0)*240,endX:(end-t0)/(t1-t0)*240,dur,amt:x.rate*dur})})}
 function wxDayHtml(){const W=wxModel();if(!W)return group(emptyCell('Prognosen kunde inte hämtas just nu.'));
  const P=WX_POS(),D=W.days.find(x=>x.date===S.wxDay)||W.days[0],di=W.days.indexOf(D),idag=D.date===today(),H=wxDayPts(W,D.date);
  const dt=parse(D.date),t1=parse(addDays(D.date,1)),f=v=>v.toFixed(1),now=Date.now(),nX=idag?(now-dt)/(t1-dt)*240:-1,pc=x=>f(x/2.4);
@@ -3599,9 +3609,9 @@ function wxDayHtml(){const W=wxModel();if(!W)return group(emptyCell('Prognosen k
  if(st)g+='<rect x="0" y="0" width="'+f(Math.max(0,sx(st[0])))+'" height="100" class="wd-night"/><rect x="'+f(sx(st[1]))+'" y="0" width="'+f(Math.max(0,240-sx(st[1])))+'" height="100" class="wd-night"/>';
  g+=[60,120,180].map(x=>'<line x1="'+x+'" x2="'+x+'" y1="0" y2="100" class="wd-vg"/>').join('')+ticks.map(v=>'<line x1="0" x2="240" y1="'+f(Y(v))+'" y2="'+f(Y(v))+'" class="wd-hg"/>').join('')+'<line x1="0" x2="240" y1="92" y2="92" class="wd-base"/></svg>';
  // nederbörden växer upp ur botten, stapel för stapel
- let bars='',bi=0,top1=null;H.forEach(x=>{if(x.rate<.05||ymd(x.d)!==D.date&&x.X>=240)return;const w=Math.min(240-x.X,x.dur*10);if(!top1||x.rate>top1.rate)top1=x;
+ let bars='',bi=0,top1=null;H.forEach(x=>{if(x.rate<.05||ymd(x.d)!==D.date&&x.X>=240)return;const w=x.endX-x.X;if(w<=0)return;if(!top1||x.rate>top1.rate)top1=x;
   bars+='<i class="wd-bar'+(x.d.getTime()<now-36e5?' was':'')+'" style="left:'+pc(x.X+.6)+'%;width:'+pc(w-1.2)+'%;height:'+f(pH(x.rate))+'%;--d:'+(bi++*35)+'ms"></i>'});
- if(top1)bars+='<span class="wd-pl num" style="left:'+pc(top1.X+Math.min(240-top1.X,top1.dur*10)/2)+'%;bottom:'+f(8+pH(top1.rate))+'%">'+String(Math.round(top1.rate*10)/10).replace('.',',')+' mm'+(top1.dur>1&&top1.pr==null?'/h':'')+'</span>';
+ if(top1)bars+='<span class="wd-pl num" style="left:'+pc(top1.X+(top1.endX-top1.X)/2)+'%;bottom:'+f(8+pH(top1.rate))+'%">'+String(Math.round(top1.rate*10)/10).replace('.',',')+' mm'+(top1.dur>1&&top1.pr==null?'/h':'')+'</span>';
  // temperaturkurvan, färgad efter temperaturen; det som har varit svagare. Den ritas fram från vänster.
  let c='';if(H.length>1){const pts=H.map(x=>[x.X,Y(x.T)]);let d='M'+f(pts[0][0])+' '+f(pts[0][1]);
   for(let i=0;i<pts.length-1;i++){const p0=pts[i-1]||pts[i],p1=pts[i],p2=pts[i+1],p3=pts[i+2]||p2;
@@ -3624,7 +3634,7 @@ function wxDayHtml(){const W=wxModel();if(!W)return group(emptyCell('Prognosen k
  const yl=ticks.map(v=>'<span class="num" style="top:'+f(Y(v))+'%">'+deg(v)+'</span>').join('');
  h+='<div class="wd-chart"><div class="wd-icons" aria-hidden="true">'+top.join('')+'</div><div class="wd-plot">'+g+'<div class="wd-bars">'+bars+'</div>'+
   '<div class="wd-rv"><div class="wd-rvi">'+c+'</div></div>'+mk+'<div class="wd-y" aria-hidden="true">'+yl+'</div></div>'+
-  '<div class="wd-x num" aria-hidden="true">'+['00','06','12','18'].map((t,i)=>'<span style="left:'+(i*25)+'%">'+t+'</span>').join('')+'</div>'+
+  '<div class="wd-x num" aria-hidden="true">'+['00','06','12','18','24'].map((t,i)=>'<span style="left:'+(i*25)+'%">'+t+'</span>').join('')+'</div>'+
   '<div class="wd-wind" aria-hidden="true">'+vind.join('')+'<em>m/s</em></div>'+
   '<div class="wd-leg" aria-hidden="true"><span><i class="lt"></i>Temperatur</span><span><i class="lp"></i>Nederbörd</span><span><i class="lw">↑</i>Vind</span></div></div>';
  h+=sh('Dagssammanfattning')+'<div class="wd-sum">'+esc(wxDaySum(W,D,H,idag))+'</div>';
@@ -3633,7 +3643,7 @@ function wxDayHtml(){const W=wxModel();if(!W)return group(emptyCell('Prognosen k
  h+='<div class="wx-tiles wd-tiles">'+tile('Känns som',deg(Math.min(...fl.length?fl:[D.min])),'som kallast, '+deg(Math.max(...fl.length?fl:[D.max]))+' som varmast')+tile('Nederbörd',mm(D.pr),D.pr<.2?'Uppehåll':'under dygnet')+
   tile('Vind',Math.round(wm.w||0)+' m/s','som mest, '+windDir(wm.wd))+(st?tile('Sol','<span class="sm">↑ '+hhmm(st[0])+'</span> <span class="sm">↓ '+hhmm(st[1])+'</span>','Dagens längd '+Math.floor((st[1]-st[0])/36e5)+' h '+Math.round(((st[1]-st[0])%36e5)/6e4)+' min'):'')+
   (hum.length?tile('Luftfuktighet',Math.round(hum.reduce((a,x)=>a+x.h,0)/hum.length)+' %','i genomsnitt'):'')+'</div>';
- return h+'<div class="foot">Väderdata från '+(W.src==='yr'?'Yr och MET Norway':'Open-Meteo')+(tre?'':'. Så här långt fram ger prognosen var sjätte timme.')+'</div></div>'}
+ return h+'<div class="foot">Väderdata från '+(W.src==='yr'?'Yr och MET Norway':'Open-Meteo')+(tre?'':'. Så här långt fram ger prognosen var sjätte timme.')+(H.length&&H[H.length-1].X<239.9?' Temperaturprognosen slutar kl '+hhmm(H[H.length-1].d)+'.':'')+'</div></div>'}
 // den markerade dagen glider från förra dagen med en fjäder (bara transform, går på grafikkretsen)
 function wdThumb(o){const t=o.querySelector('.wd-th');if(!t||A.wdPrev==null||A.wdPrev===A.wdI||matchMedia('(prefers-reduced-motion:reduce)').matches)return;
  const s=fjader(.42,.72);t.animate([{transform:'translateX(calc('+A.wdPrev+' * 100%))'},{transform:'translateX(calc('+A.wdI+' * 100%))'}],{duration:motionOn()?300:s.d,easing:s.e});A.wdPrev=A.wdI}

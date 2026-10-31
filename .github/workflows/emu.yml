@@ -55,6 +55,7 @@ jobs:
             LS="$(node -e 'console.log(JSON.stringify({...JSON.parse(process.env.LS),motion:"0"}))')" APP="$PWD/baseline" OUT="$PWD/verktyg/emu/baseline-shots" node verktyg/emu/run.js verktyg/emu/alla-flikar.js
           fi
           node verktyg/emu/run.js verktyg/emu/oversikt-manad.js
+          WXYR=1 WXMIX=1 NOW=2026-10-18T09:20:00+02:00 node verktyg/emu/run.js verktyg/emu/vader-dag.js
           node verktyg/emu/run.js verktyg/emu/inkop-kollaps.js
           node verktyg/emu/run.js verktyg/emu/animationer.js
           if [[ "$UI" == "4" ]]; then
