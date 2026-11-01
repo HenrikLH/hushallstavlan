@@ -212,7 +212,8 @@
     "columns": 3,
     "cell": 512,
     "scale": 0.22,
-    "scaleY": 0.275,
+    "trunkExtension": 24,
+    "trunkSourceSpan": 60,
     "anchors": [
       [
         293.5,
