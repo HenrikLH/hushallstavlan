@@ -4,8 +4,8 @@ Henrik avvisade först förenklade SVG-illustrationer, sedan hela målade landsk
 
 ## Aktuell komposition
 
-- `backdropSvg`: originalets koordinatsystem 230 × 190, små markkullar, tuvor, skugga, årstidsdetaljer och fallande löv. Geometrisk lägger in ett fristående träd vid samma baspunkt (52, 160).
-- `grassPatch`: originalets separata markplätt under hundarna, med grässtrån, blommor, löv, frost, vattenpölar, snöfläckar och djup snö. Geometrisk använder sammanhängande färgfält i fyra toner och kortare, bredare tvåtonade gräsblad som passar trädet. Inga bilder tonas ut längs en rektangelkant.
+- `backdropSvg`: originalets koordinatsystem 230 × 190, bredare markkullar med uttoning, fristående små marköar, tuvor, skugga, årstidsdetaljer och fallande löv. Geometrisk lägger in ett fristående träd vid samma baspunkt (52, 160).
+- `grassPatch`: originalets separata markplätt under hundarna, med grässtrån, blommor, löv, frost, vattenpölar, snöfläckar och djup snö. Geometrisk använder sammanhängande färgfält i fyra toner, geometriska bladklungor med tydliga skuggsidor, fristående ovala marköar och en svag uttonande färgbädd. Färgerna går från ljusgrönt till turkosa skuggor och följer årstiden. Inga bilder tonas ut längs en rektangelkant.
 - `figSvg`: samma hundplacering, poser och väderkläder; maskotatlasens fristående hundar med diskret andning. Figuren ligger ovanpå marken. Hundarnas ögon är atlasens egna små mörkbruna ögon med svarta pupiller; inga pålagda irisringar.
 - Sol-/månbana, molntäcke/vind, stjärnor, regn/snö/åska/dimma och kalender-/snömodellen är gemensamma med Original. Vädervyn använder också originalets scenmått och placering, inte en fullbred landskapsruta.
 
