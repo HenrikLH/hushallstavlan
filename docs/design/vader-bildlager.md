@@ -5,7 +5,7 @@ Henrik avvisade först förenklade SVG-illustrationer, sedan hela målade landsk
 ## Aktuell komposition
 
 - `backdropSvg`: originalets koordinatsystem 230 × 190, små markkullar, tuvor, skugga, årstidsdetaljer och fallande löv. Geometrisk lägger in ett fristående träd vid samma baspunkt (52, 160).
-- `grassPatch`: originalets separata markplätt under hundarna, med grässtrån, blommor, löv, frost, vattenpölar, snöfläckar och djup snö. Den använder stilens färgpalett. Inga bilder tonas ut längs en rektangelkant.
+- `grassPatch`: originalets separata markplätt under hundarna, med grässtrån, blommor, löv, frost, vattenpölar, snöfläckar och djup snö. Geometrisk använder sammanhängande färgfält i fyra toner och kortare, bredare tvåtonade gräsblad som passar trädet. Inga bilder tonas ut längs en rektangelkant.
 - `figSvg`: samma hundplacering, poser och väderkläder; maskotatlasens fristående hundar med diskret andning. Figuren ligger ovanpå marken. Hundarnas ögon är atlasens egna små mörkbruna ögon med svarta pupiller; inga pålagda irisringar.
 - Sol-/månbana, molntäcke/vind, stjärnor, regn/snö/åska/dimma och kalender-/snömodellen är gemensamma med Original. Vädervyn använder också originalets scenmått och placering, inte en fullbred landskapsruta.
 
@@ -19,7 +19,7 @@ Tre WebP-atlaser, sammanlagt cirka 736 kB, förladdas offline. Fullständiga sto
 
 Hundatlasens mellanrum klipps med uppmätta konturer per bildruta, så att öron och kläder från grannhunden inte följer med. Bildpixlarna ändras inte; klippgeometrin finns i manifestets `sprite.seams` och `GEO_DOG_SEAMS`.
 
-Trädets faktiska stambaser registrerades i manifestet; anta inte att bildgeneratorn följt identiska pixelkoordinater. Varje ruta placeras i originalets trädkoordinater med samma skala. Ett träd visas åt gången för att undvika dubbla grenar/ghosting mellan olika teckningar. Kalenderns årstidsvikter och lövtäthet väljer bildruta; fallande löv, marklöv och snö styrs separat. Snö kan därför visas oberoende av månad. Dags-/nattljus följer originalets färgfilter; hundarna har eget ljusfilter.
+Trädets faktiska stambaser registrerades i manifestet; anta inte att bildgeneratorn följt identiska pixelkoordinater. Varje ruta placeras i originalets trädkoordinater med skala 0,22 i sidled och 0,253 på höjden: trädet är 15 procent högre medan stambasen ligger kvar. Ett träd visas åt gången för att undvika dubbla grenar/ghosting mellan olika teckningar. Kalenderns årstidsvikter och lövtäthet väljer bildruta; fallande löv, marklöv och snö styrs separat. Snö kan därför visas oberoende av månad. Dags-/nattljus följer originalets färgfilter; hundarna har eget ljusfilter.
 
 De tio tidigare landskapsfilerna finns kvar som arbetsreferenser och för kompatibilitet med äldre laddad appkod. De listas under `historicalLandscapes` i manifestet, visas inte och förladdas inte längre av aktuell service worker. Tidigare landskapsprompter i `vader-botanik-prompter.json` hör till dessa referenser.
 

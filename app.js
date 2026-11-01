@@ -2836,11 +2836,11 @@ const geoAlpha=id=>'<filter id="'+id+'" color-interpolation-filters="sRGB"><feCo
 // Fristående träd placeras i originalets koordinater; mark, tuvor och hundar är egna lager.
 function geoTreeSvg(sc,id,T,near){const snow=snowLevel(sc),base=geoSeasonBlend(today()),late=Math.max(0,Math.min(1,(.85-T.d)/.65)),frames=[];
  base.forEach(([season,w])=>{if(season==='autumn'){frames.push([2,w*(1-late)],[3,w*late])}else frames.push([season==='winter'?(snow?5:4):season==='spring'?0:1,w])});
- const anchors=[[293.5,499],[266.5,499],[267,499],[294.5,466],[267,466],[267,466]],k=.22;
+ const anchors=[[293.5,499],[266.5,499],[267,499],[294.5,466],[267,466],[267,466]],k=.22,ky=.253;
  let t='<defs>'+geoAlpha(id+'ta')+'<clipPath id="'+id+'tc"><rect width="512" height="512"/></clipPath></defs><ellipse cx="58" cy="161" rx="'+(10+8*T.d).toFixed(1)+'" ry="2.6" fill="'+shadeHex(near,.75)+'" opacity=".7"/>';
  const frame=frames.reduce((best,item)=>item[1]>best[1]?item:best,frames[0])[0];
- t+=[[frame,1]].map(([frame,w])=>{const [ax,ay]=anchors[frame];return'<g class="geo-tree" data-frame="'+frame+'" opacity="'+w.toFixed(3)+'" transform="translate('+(52-ax*k).toFixed(2)+' '+(160-ay*k).toFixed(2)+') scale('+k+')"><g clip-path="url(#'+id+'tc)"><image href="'+geoAsset('trees-v1')+'" x="'+(-(frame%3)*512)+'" y="'+(-Math.floor(frame/3)*512)+'" width="1536" height="1024" filter="url(#'+id+'ta)"/></g></g>'}).join('');
- if(snow&&T.d>.2)t+='<path d="M23 79 Q38 61 60 69 Q76 68 86 81 Q65 72 47 77 Q31 74 23 79Z" fill="#F3F7FF" opacity=".9"/>';
+ t+=[[frame,1]].map(([frame,w])=>{const [ax,ay]=anchors[frame];return'<g class="geo-tree" data-frame="'+frame+'" opacity="'+w.toFixed(3)+'" transform="translate('+(52-ax*k).toFixed(2)+' '+(160-ay*ky).toFixed(2)+') scale('+k+' '+ky+')"><g clip-path="url(#'+id+'tc)"><image href="'+geoAsset('trees-v1')+'" x="'+(-(frame%3)*512)+'" y="'+(-Math.floor(frame/3)*512)+'" width="1536" height="1024" filter="url(#'+id+'ta)"/></g></g>'}).join('');
+ if(snow&&T.d>.2)t+='<path transform="translate(0 -24) scale(1 1.15)" d="M23 79 Q38 61 60 69 Q76 68 86 81 Q65 72 47 77 Q31 74 23 79Z" fill="#F3F7FF" opacity=".9"/>';
  if(T.ground&&snow<2)t+=[[32,164],[66,167],[83,163],[47,170],[20,168],[74,171],[56,164],[37,172]].slice(0,Math.round(8*T.ground)).map(([x,y],i)=>'<path d="M'+x+' '+y+' q3 -2 6 0 q-3 2 -6 0Z" fill="'+['#F65A49','#E6A445','#B94C56'][i%3]+'"/>').join('');
  return t}
 // Atlasens mellanrum klipps per bildruta så att grannhundens öra/kläder inte följer med.
@@ -3065,9 +3065,10 @@ function grassPatch(sc,id){const ss=grassSeason(today()),snow=snowLevel(sc),fros
   BUB.map(([x,y,r])=>'<ellipse cx="'+f(x)+'" cy="'+f(y+dy)+'" rx="'+f(r+grow)+'" ry="'+f(r*.62+grow*.4)+'"/>').join('')+'</g>';
  // gräset har ingen hård kant: en ojämn yta med ljusare och mörkare fläckar, strån som sticker upp och små tuvor som läcker ut runt om
  const lite=mixHex(g1,'#FFFFFF',.2),dk=shadeHex(g1,.84);
- const blade=(x,y,h,lean,c)=>'<path d="M'+f(x-1.1)+' '+y+' Q'+f(x+lean*.4)+' '+f(y-h*.6)+' '+f(x+lean)+' '+f(y-h)+' Q'+f(x+lean*.4+.6)+' '+f(y-h*.5)+' '+f(x+1.1)+' '+y+'Z" fill="'+c+'"/>';
- const clump=(x,y,n,h,k)=>{let r='';for(let i=0;i<n;i++){const o=(i-(n-1)/2)*2.2,hh=h*(.6+rnd(k+i)*.55);r+=blade(x+o,y,hh,o*.9+(rnd(k+i+9)-.5)*3,i%2?(frost?'#E6EEF5':g2):(frost?'#D3E0EA':lite))}return r};
+ const blade=(x,y,h,lean,c)=>WXART==='geo'?'<path d="M'+f(x-1.3)+' '+y+' Q'+f(x-2+lean*.3)+' '+f(y-h*.55)+' '+f(x+lean)+' '+f(y-h)+' Q'+f(x+lean+2)+' '+f(y-h*.4)+' '+f(x+1.3)+' '+y+'Z" fill="'+c+'"/><path d="M'+f(x)+' '+y+' L'+f(x+lean)+' '+f(y-h)+' Q'+f(x+lean+2)+' '+f(y-h*.4)+' '+f(x+1.3)+' '+y+'Z" fill="'+shadeHex(c,.8)+'"/>':'<path d="M'+f(x-1.1)+' '+y+' Q'+f(x+lean*.4)+' '+f(y-h*.6)+' '+f(x+lean)+' '+f(y-h)+' Q'+f(x+lean*.4+.6)+' '+f(y-h*.5)+' '+f(x+1.1)+' '+y+'Z" fill="'+c+'"/>';
+ const clump=(x,y,n,h,k)=>{let r='';for(let i=0;i<n;i++){const o=(i-(n-1)/2)*(WXART==='geo'?2.7:2.2),hh=h*(WXART==='geo'?.52+rnd(k+i)*.4:.6+rnd(k+i)*.55);r+=blade(x+o,y,hh,o*.9+(rnd(k+i+9)-.5)*3,i%2?(frost?'#E6EEF5':g2):(frost?'#D3E0EA':lite))}return r};
  if(snow>=2){b+=lobes(deep?1.2:2.4,deep?2:.3,'#A9BBD3');b+=lobes(deep?-2.5:0,deep?2:0,'url(#'+id+'gs)')}
+ else if(WXART==='geo'){b+='<g class="geo-meadow"><path d="M7 130 Q18 120 43 121 Q63 115 88 121 Q120 115 148 122 Q164 124 164 131 Q147 140 117 140 Q83 146 50 140 Q17 141 7 130Z" fill="'+g1+'"/><path d="M9 131 Q34 125 57 129 Q85 133 110 127 Q143 122 163 131 Q143 141 116 139 Q83 145 50 139 Q23 141 9 131Z" fill="'+dk+'"/><path d="M16 127 Q41 121 60 125 Q48 130 28 131Z M111 124 Q135 119 151 126 Q130 131 111 124Z" fill="'+lite+'"/><path d="M38 137 Q75 132 99 137 Q85 141 62 141Z" fill="'+g2+'"/></g>'}
  else{b+='<path d="'+blob(85,129.5,79,14,.22,3)+'" fill="'+g1+'"/>';
   b+=[[0,131,6,2.4],[166,133,7,2.6],[28,144,9,2],[134,144.5,11,2.1],[156,141.5,5,1.6],[-6,125,3,1.2],[175,127,3.5,1.3],[64,146.5,6,1.5],[104,146,3.5,1.1],[86,148.5,2.5,.9]].map(([x,y,rx,ry])=>'<ellipse cx="'+x+'" cy="'+y+'" rx="'+rx+'" ry="'+ry+'" fill="'+g1+'"/>').join('');
   b+='<g opacity=".7">'+[[38,123,22,3.6,lite],[128,123.5,20,3.4,lite],[70,136,28,3.8,dk],[124,136.5,18,3,dk],[22,132,11,2.6,dk],[100,140,14,2.2,lite]].map(([x,y,rx,ry,c],i)=>'<path d="'+blob(x,y,rx,ry,.4,30+i)+'" fill="'+c+'"/>').join('')+'</g>'}
