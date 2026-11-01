@@ -2832,12 +2832,12 @@ function geoSeasonBlend(t){const T=treeStage(t),K=[[1,'winter'],[70,'winter'],[1
  let i=1;while(i<K.length-1&&K[i][0]<T.doy)i++;const A=K[i-1],B=K[i];if(A[1]===B[1])return[[A[1],1]];let k=Math.max(0,Math.min(1,(T.doy-A[0])/(B[0]-A[0])));
  if(A[1]==='winter'&&B[1]==='spring')k=Math.min(k,T.d*1.6);return[[A[1],1-k],[B[1],k]].filter(([,w])=>w>.001)}
 // Bildgenereringens mjuka alfagloria tas bort vid komposition, utan att rita om bildens färgplan.
-const geoAlpha=id=>'<filter id="'+id+'" color-interpolation-filters="sRGB"><feComponentTransfer><feFuncA type="linear" slope="5" intercept="-4"/></feComponentTransfer></filter>';
+const geoAlpha=(id,edge=5)=>'<filter id="'+id+'" color-interpolation-filters="sRGB"><feComponentTransfer><feFuncA type="linear" slope="'+edge+'" intercept="'+(1-edge)+'"/></feComponentTransfer></filter>';
 // Fristående träd placeras i originalets koordinater; mark, tuvor och hundar är egna lager.
 function geoTreeSvg(sc,id,T,near){const snow=snowLevel(sc),base=geoSeasonBlend(today()),late=Math.max(0,Math.min(1,(.85-T.d)/.65)),frames=[];
  base.forEach(([season,w])=>{if(season==='autumn'){frames.push([2,w*(1-late)],[3,w*late])}else frames.push([season==='winter'?(snow?5:4):season==='spring'?0:1,w])});
  const anchors=[[293.5,499],[266.5,499],[267,499],[294.5,466],[267,466],[267,466]],k=.18,lift=20,span=60,tx=28,ty=151;
- let t='<defs>'+geoAlpha(id+'ta')+'</defs><ellipse cx="33" cy="152" rx="'+(10+8*T.d).toFixed(1)+'" ry="2.6" fill="'+shadeHex(near,.75)+'" opacity=".7"/>';
+ let t='<defs>'+geoAlpha(id+'ta',3)+'</defs><ellipse cx="33" cy="152" rx="'+(10+8*T.d).toFixed(1)+'" ry="2.6" fill="'+shadeHex(near,.75)+'" opacity=".7"/>';
  const frame=frames.reduce((best,item)=>item[1]>best[1]?item:best,frames[0])[0],[ax,ay]=anchors[frame],cut=ay-span,ky=k+lift/span;
  // Kronan flyttas upp med oförändrade proportioner; bara de nedersta raka stampixlarna förlängs.
  const img='<image href="'+geoAsset('trees-v1')+'" x="'+(-(frame%3)*512)+'" y="'+(-Math.floor(frame/3)*512)+'" width="1536" height="1024" filter="url(#'+id+'ta)"/>';

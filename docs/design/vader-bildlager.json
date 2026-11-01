@@ -211,9 +211,9 @@
     "file": "bilder/vader/trees-v1.webp",
     "columns": 3,
     "cell": 512,
-    "scale": 0.22,
-    "sceneBase": [40, 160],
-    "trunkExtension": 24,
+    "scale": 0.18,
+    "sceneBase": [28, 151],
+    "trunkExtension": 20,
     "trunkSourceSpan": 60,
     "anchors": [
       [
