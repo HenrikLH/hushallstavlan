@@ -11,10 +11,10 @@ Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs 
 
 ## Väntar på Henrik: Geometrisk utan lagg · ht-v246
 
-- Claude, gren `claude/project-thread-8oongl` (PR mot main), väntar på ”Pusha”. Orsak: SVG-filtren (alfakant, molnfärg, natt) på bildarken `trees-v1`/`mascots-v2`/`clouds-v1` filtrerade hela arket (filterregion = bildens bbox, klippning räknas inte) vid varje omritning; telefonen ritar om SVG:n varje bildruta.
-- Åtgärd: `geoReg` ger filtren `userSpaceOnUse`-region runt den synliga rutan (träd, hund, moln, nattfilter, bakgrundens `n` i Geometrisk). Inget utseende ändrat (pixeljämförelse = bara animationsfas).
-- Mätning `verktyg/emu/bildstil-ritning.js` (60 omritningar): dag 1197→~420 ms, natt/regn 1298→~590 ms; Original 626. Alla flikar telefon/vägg + vader-bildstilar gröna med wxart=geo.
-- Kvar om iPhone fortfarande laggar: baka in alfakanten i webp-arken (tar bort alfafiltren helt) eller pröva `gpuLager` på telefon.
+- Claude, gren `claude/project-thread-8oongl`, PR #62, väntar på ”Pusha”. Orsak: SVG-filter (alfakant, molnfärg, natt) på bildarken räknades över hela arket (filterregion = bildens bbox, klippning räknas inte) vid varje omritning; telefonen ritar om SVG:n varje bildruta.
+- Åtgärd: alfakanten bortskuren i förväg i nya ark `trees-v2`/`mascots-v3`/`clouds-v2` (v1/v2 kvar som källor, se docs/design/vader-bildlager.md); kvarvarande natt-/molnfärgsfilter får `geoReg`-region runt synlig ruta. Utseendet oförändrat för ögat.
+- Mätning `verktyg/emu/bildstil-ritning.js` (60 omritningar): dag 1197→~390 ms, natt/regn 1298→~580 ms; Original 626. vader-gpu geo 53–66 bildpunkter (main 131–156, gräns 150). Alla flikar telefon/vägg, vader-bildstilar gröna.
+- Om iPhone fortfarande laggar: pröva `gpuLager` på telefon.
 
 ## Börja här
 

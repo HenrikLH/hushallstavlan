@@ -2831,18 +2831,17 @@ const geoAsset=name=>'bilder/vader/'+name+'.webp?v=1';
 function geoSeasonBlend(t){const T=treeStage(t),K=[[1,'winter'],[70,'winter'],[120,'spring'],[170,'summer'],[245,'summer'],[282,'autumn'],[309,'autumn'],[335,'winter'],[366,'winter']];
  let i=1;while(i<K.length-1&&K[i][0]<T.doy)i++;const A=K[i-1],B=K[i];if(A[1]===B[1])return[[A[1],1]];let k=Math.max(0,Math.min(1,(T.doy-A[0])/(B[0]-A[0])));
  if(A[1]==='winter'&&B[1]==='spring')k=Math.min(k,T.d*1.6);return[[A[1],1-k],[B[1],k]].filter(([,w])=>w>.001)}
-// Bildgenereringens mjuka alfagloria tas bort vid komposition, utan att rita om bildens färgplan.
-// Filterytan begränsas till den synliga rutan (r=[x,y,b,h]); annars filtreras hela bildarket vid varje omritning och allt laggar.
+// Bildgenereringens mjuka alfagloria är bortskuren direkt i arken (träd ×3, hundar/moln ×5 på alfakanalen); förut gjorde SVG-filter det vid varje omritning, vilket laggade.
+// Kvarvarande filter (natt, molnfärg) begränsas till den synliga rutan (r=[x,y,b,h]); annars räknas hela bildarket.
 const geoReg=r=>r?' filterUnits="userSpaceOnUse" x="'+r[0]+'" y="'+r[1]+'" width="'+r[2]+'" height="'+r[3]+'"':'';
-const geoAlpha=(id,edge=5,r)=>'<filter id="'+id+'"'+geoReg(r)+' color-interpolation-filters="sRGB"><feComponentTransfer><feFuncA type="linear" slope="'+edge+'" intercept="'+(1-edge)+'"/></feComponentTransfer></filter>';
 // Fristående träd placeras i originalets koordinater; mark, tuvor och hundar är egna lager.
 function geoTreeSvg(sc,id,T,near){const snow=snowLevel(sc),base=geoSeasonBlend(today()),late=Math.max(0,Math.min(1,(.85-T.d)/.65)),frames=[];
  base.forEach(([season,w])=>{if(season==='autumn'){frames.push([2,w*(1-late)],[3,w*late])}else frames.push([season==='winter'?(snow?5:4):season==='spring'?0:1,w])});
  const anchors=[[293.5,499],[266.5,499],[267,499],[294.5,466],[267,466],[267,466]],k=.18,lift=20,span=60,tx=28,ty=151;
- let t='<defs>'+geoAlpha(id+'ta',3,[-1,-1,514,514])+'</defs><ellipse cx="33" cy="152" rx="'+(10+8*T.d).toFixed(1)+'" ry="2.6" fill="'+shadeHex(near,.75)+'" opacity=".7"/>';
+ let t='<ellipse cx="33" cy="152" rx="'+(10+8*T.d).toFixed(1)+'" ry="2.6" fill="'+shadeHex(near,.75)+'" opacity=".7"/>';
  const frame=frames.reduce((best,item)=>item[1]>best[1]?item:best,frames[0])[0],[ax,ay]=anchors[frame],cut=ay-span,ky=k+lift/span;
  // Kronan flyttas upp med oförändrade proportioner; bara de nedersta raka stampixlarna förlängs.
- const img='<image href="'+geoAsset('trees-v1')+'" x="'+(-(frame%3)*512)+'" y="'+(-Math.floor(frame/3)*512)+'" width="1536" height="1024" filter="url(#'+id+'ta)"/>';
+ const img='<image href="'+geoAsset('trees-v2')+'" x="'+(-(frame%3)*512)+'" y="'+(-Math.floor(frame/3)*512)+'" width="1536" height="1024"/>';
  t+='<g class="geo-tree" data-frame="'+frame+'"><defs><clipPath id="'+id+'tc"><rect width="512" height="'+(cut+.5)+'"/></clipPath><clipPath id="'+id+'ts"><rect y="'+(cut-.5)+'" width="512" height="'+(512-cut+.5)+'"/></clipPath></defs><g class="geo-trunk" transform="translate('+(tx-ax*k).toFixed(2)+' '+(ty-ay*ky).toFixed(2)+') scale('+k+' '+ky+')"><g clip-path="url(#'+id+'ts)">'+img+'</g></g><g class="geo-crown" transform="translate('+(tx-ax*k).toFixed(2)+' '+(ty-ay*k-lift).toFixed(2)+') scale('+k+')"><g clip-path="url(#'+id+'tc)">'+img+'</g></g></g>';
  if(snow&&T.d>.2)t+='<path transform="translate(-24 -29)" d="M23 79 Q38 61 60 69 Q76 68 86 81 Q65 72 47 77 Q31 74 23 79Z" fill="#F3F7FF" opacity=".9"/>';
  if(T.ground&&snow<2)t+=[[32,164],[66,167],[83,163],[47,170],[20,168],[74,171],[56,164],[37,172]].slice(0,Math.round(8*T.ground)).map(([x,y],i)=>'<path d="M'+(x-24)+' '+(y-9)+' q3 -2 6 0 q-3 2 -6 0Z" fill="'+['#F65A49','#E6A445','#B94C56'][i%3]+'"/>').join('');
@@ -2852,8 +2851,8 @@ const GEO_DOG_SEAMS=[[[155.5,0],[155.5,3],[157.5,4],[157.5,44],[159.5,45],[159.5
 function geoDogFrame(F,sky,lie){const start=F.rain?10:F.coat==='snow'?8:F.coat==='freezing'?12:F.coat==='cold'?6:sky==='fog'?14:F.coat==='mild'?4:F.shades?2:0;return start+(lie?1:0)}
 function geoDogSvg(D,o,id,pose){const F=o.fit||{},lie=pose==='lie',frame=geoDogFrame(F,o.sky,lie),row=Math.floor(frame/4),col=frame%4,dog=D.chest?1:0,x=col*313.5+dog*156.75,y=[88,374,675,950][row];
  const edge=dog?309.5:4,seam=GEO_DOG_SEAMS[frame],P=dog?[[edge,0],[edge,256],...seam.slice().reverse()]:[[edge,0],...seam,[edge,256]],Q=P.map(([a,b])=>[a-dog*156.75,b]),crop='M'+Q.map(q=>q.join(' ')).join('L')+'Z',qx=Q.map(q=>q[0]),R=[Math.floor(Math.min(...qx))-1,-1,Math.ceil(Math.max(...qx)-Math.min(...qx))+3,258];
- const defs=geoAlpha(id+'alpha',5,R)+'<clipPath id="'+id+'crop"><path d="'+crop+'"/></clipPath>'+(o.night?'<filter id="'+id+'night"'+geoReg(R)+' color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values=".84 .03 .03 0 0  .01 .85 .04 0 0  .03 .03 .9 0 .01  0 0 0 1 0"/></filter>':'');
- let h='<defs>'+defs+'</defs><g transform="translate(14.08 -25) scale(.5859375)"'+(o.night?' filter="url(#'+id+'night)"':'')+'><g clip-path="url(#'+id+'crop)"><image class="geo-sprite" data-frame="'+frame+'" href="'+geoAsset('mascots-v2')+'" x="'+(-x)+'" y="'+(-y)+'" width="1254" height="1254" filter="url(#'+id+'alpha)"/></g></g>';
+ const defs='<clipPath id="'+id+'crop"><path d="'+crop+'"/></clipPath>'+(o.night?'<filter id="'+id+'night"'+geoReg(R)+' color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values=".84 .03 .03 0 0  .01 .85 .04 0 0  .03 .03 .9 0 .01  0 0 0 1 0"/></filter>':'');
+ let h='<defs>'+defs+'</defs><g transform="translate(14.08 -25) scale(.5859375)"'+(o.night?' filter="url(#'+id+'night)"':'')+'><g clip-path="url(#'+id+'crop)"><image class="geo-sprite" data-frame="'+frame+'" href="'+geoAsset('mascots-v3')+'" x="'+(-x)+'" y="'+(-y)+'" width="1254" height="1254"/></g></g>';
  if(F.breath&&!lie)h+='<g class="fig-breath" fill="#E8F0FA"><circle cx="75" cy="68" r="3"/><circle cx="82" cy="63" r="2"/></g>';
  if(F.snowy)h+='<path d="M37 93 Q44 90 49 93 M73 92 Q79 90 85 93" fill="none" stroke="#F2F7FF" stroke-width="1.5" stroke-linecap="round"/>';
  return(lie?'':'<g transform="translate(15 30.85) scale(.75)">')+'<g class="fig-body dog'+(lie?' lie':'')+'" data-raster="1">'+h+'</g>'+(lie?'':'</g>')}
@@ -3335,7 +3334,7 @@ function starSign(m){const[n,P,L]=STJB[m],f=v=>v.toFixed(0);
 // ikonmoln: runda tussar på en rak baslinje som sticker ut lite, ett kort streck under och (stora moln) ett mindre, mörkare moln bakom med en glipa runt det främre
 // Molnens målade silhuetter färgsätts här så att samma lager följer dag/natt och nederbörd.
 function geoCloudSvg(P,x0,x1,B,c,o,id){const variant=o.storm?3:P.length<=2?0:o.back||P.length>=4?2:1,[sx,sy,sw,sh]=[[62,308,597,139],[767,257,348,225],[38,767,631,282],[713,756,504,303]][variant],W=x1-x0+12,H=Math.min(42,W*sh/sw),f=v=>v.toFixed(4),rgb=[1,3,5].map(i=>parseInt(c.slice(i,i+2),16)/255),matrix=rgb.map(v=>f(v)+' 0 0 0 0').join(' ')+' 0 0 0 1 0';
- return'<defs><clipPath id="'+id+'clip"><rect width="'+sw+'" height="'+sh+'"/></clipPath><filter id="'+id+'tint"'+geoReg([-1,-1,sw+2,sh+2])+' color-interpolation-filters="sRGB"><feComponentTransfer><feFuncA type="linear" slope="5" intercept="-4"/></feComponentTransfer><feColorMatrix type="matrix" values="'+matrix+'"/></filter></defs><g transform="translate('+f(x0-6)+' '+f(B-H+5)+') scale('+f(W/sw)+' '+f(H/sh)+')"><g clip-path="url(#'+id+'clip)"><image class="geo-cloud" data-shape="'+variant+'" href="'+geoAsset('clouds-v1')+'" x="'+(-sx)+'" y="'+(-sy)+'" width="1254" height="1254" filter="url(#'+id+'tint)"/></g></g>'}
+ return'<defs><clipPath id="'+id+'clip"><rect width="'+sw+'" height="'+sh+'"/></clipPath><filter id="'+id+'tint"'+geoReg([-1,-1,sw+2,sh+2])+' color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="'+matrix+'"/></filter></defs><g transform="translate('+f(x0-6)+' '+f(B-H+5)+') scale('+f(W/sw)+' '+f(H/sh)+')"><g clip-path="url(#'+id+'clip)"><image class="geo-cloud" data-shape="'+variant+'" href="'+geoAsset('clouds-v2')+'" x="'+(-sx)+'" y="'+(-sy)+'" width="1254" height="1254" filter="url(#'+id+'tint)"/></g></g>'}
 function iconCloud(P,x0,x1,B,c,o){const f=v=>v.toFixed(1),g='ic'+(++FIG_N),sp=x1-x0;o=o||{};
  if(WXART==='geo')return geoCloudSvg(P,x0,x1,B,c,o,g);
  const front=P.map(([x,y,r])=>'<circle cx="'+f(x)+'" cy="'+f(y)+'" r="'+f(r)+'"/>').join('')+'<rect x="'+f(x0+4)+'" y="'+f(B-11)+'" width="'+f(sp-8)+'" height="9"/><rect x="'+f(x0-6)+'" y="'+f(B-4)+'" width="'+f(sp+10)+'" height="4.4" rx="2.2"/>'+

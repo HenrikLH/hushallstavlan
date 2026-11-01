@@ -16,6 +16,7 @@ Tre WebP-atlaser, sammanlagt cirka 736 kB, förladdas offline. Fullständiga sto
 - `bilder/vader/trees-v1.webp`: 1536 × 1024, sex 512 × 512-rutor: vårblom, sommar, höst, senhöst, kal vinter, snögrenar. Bildverktyget fick samma stilreferenser och strikt frilagda träd utan mark eller bakgrund. Prompt: `vader-trad-prompt.json`.
 - `bilder/vader/mascots-v2.webp`: två franska bulldoggar i 16 väder-/sovlägen. Ursprungliga bruna iris, svarta pupiller och slutna sovögon används direkt.
 - `bilder/vader/clouds-v1.webp`: fyra molnformer med rundade ovandelar, rak bas och kort understreck. Gråskalan färgsätts av befintlig dag/natt- och vädermodell.
+- Appen använder `trees-v2`/`mascots-v3`/`clouds-v2`: samma ark med alfakanten bortskuren i förväg (träd: 3a−2, hundar/moln: 5a−4) så att inga alfafilter behöver köras vid varje omritning. v1/v2-filerna ovan är källorna.
 
 Hundatlasens mellanrum klipps med uppmätta konturer per bildruta, så att öron och kläder från grannhunden inte följer med. Bildpixlarna ändras inte; klippgeometrin finns i manifestets `sprite.seams` och `GEO_DOG_SEAMS`.
 
