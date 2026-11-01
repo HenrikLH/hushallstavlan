@@ -2836,11 +2836,11 @@ const geoAlpha=id=>'<filter id="'+id+'" color-interpolation-filters="sRGB"><feCo
 // Fristående träd placeras i originalets koordinater; mark, tuvor och hundar är egna lager.
 function geoTreeSvg(sc,id,T,near){const snow=snowLevel(sc),base=geoSeasonBlend(today()),late=Math.max(0,Math.min(1,(.85-T.d)/.65)),frames=[];
  base.forEach(([season,w])=>{if(season==='autumn'){frames.push([2,w*(1-late)],[3,w*late])}else frames.push([season==='winter'?(snow?5:4):season==='spring'?0:1,w])});
- const anchors=[[293.5,499],[266.5,499],[267,499],[294.5,466],[267,466],[267,466]],k=.22,ky=.253;
+ const anchors=[[293.5,499],[266.5,499],[267,499],[294.5,466],[267,466],[267,466]],k=.22,ky=.275;
  let t='<defs>'+geoAlpha(id+'ta')+'<clipPath id="'+id+'tc"><rect width="512" height="512"/></clipPath></defs><ellipse cx="58" cy="161" rx="'+(10+8*T.d).toFixed(1)+'" ry="2.6" fill="'+shadeHex(near,.75)+'" opacity=".7"/>';
  const frame=frames.reduce((best,item)=>item[1]>best[1]?item:best,frames[0])[0];
  t+=[[frame,1]].map(([frame,w])=>{const [ax,ay]=anchors[frame];return'<g class="geo-tree" data-frame="'+frame+'" opacity="'+w.toFixed(3)+'" transform="translate('+(52-ax*k).toFixed(2)+' '+(160-ay*ky).toFixed(2)+') scale('+k+' '+ky+')"><g clip-path="url(#'+id+'tc)"><image href="'+geoAsset('trees-v1')+'" x="'+(-(frame%3)*512)+'" y="'+(-Math.floor(frame/3)*512)+'" width="1536" height="1024" filter="url(#'+id+'ta)"/></g></g>'}).join('');
- if(snow&&T.d>.2)t+='<path transform="translate(0 -24) scale(1 1.15)" d="M23 79 Q38 61 60 69 Q76 68 86 81 Q65 72 47 77 Q31 74 23 79Z" fill="#F3F7FF" opacity=".9"/>';
+ if(snow&&T.d>.2)t+='<path transform="translate(0 -40) scale(1 1.25)" d="M23 79 Q38 61 60 69 Q76 68 86 81 Q65 72 47 77 Q31 74 23 79Z" fill="#F3F7FF" opacity=".9"/>';
  if(T.ground&&snow<2)t+=[[32,164],[66,167],[83,163],[47,170],[20,168],[74,171],[56,164],[37,172]].slice(0,Math.round(8*T.ground)).map(([x,y],i)=>'<path d="M'+x+' '+y+' q3 -2 6 0 q-3 2 -6 0Z" fill="'+['#F65A49','#E6A445','#B94C56'][i%3]+'"/>').join('');
  return t}
 // Atlasens mellanrum klipps per bildruta så att grannhundens öra/kläder inte följer med.
