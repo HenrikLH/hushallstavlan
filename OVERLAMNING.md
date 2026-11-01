@@ -15,6 +15,7 @@ Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs 
 - Åtgärd: alfakanten bortskuren i förväg i nya ark `trees-v2`/`mascots-v3`/`clouds-v2` (v1/v2 kvar som källor, se docs/design/vader-bildlager.md); kvarvarande natt-/molnfärgsfilter får `geoReg`-region runt synlig ruta. Utseendet oförändrat för ögat.
 - Mätning `verktyg/emu/bildstil-ritning.js` (60 omritningar): dag 1197→~390 ms, natt/regn 1298→~580 ms; Original 626. vader-gpu geo 53–66 bildpunkter (main 131–156, gräns 150). Alla flikar telefon/vägg, vader-bildstilar gröna.
 - Om iPhone fortfarande laggar: pröva `gpuLager` på telefon.
+- Samma gren, väntar på Henriks val (han vill samla fler godkända ändringar före push): ovala ögon A/B/C (`verktyg/hundogon.py` gör nytt hundark; ej inlagt i appen än), jämnare gräs (mjuka tonfläckar i `geoGroundSvg`), träd med vektorkrona (`geoCrownSvg`: knoppar/blom/äpplen/löv som gulnar och faller per dag, snö på grenar efter snödjup) och snöfläckar efter cm. Förhandsbilder `verktyg/emu/vader-arstider.js` (SCENER=json), bilder i /mnt/project-files/geo-forslag/.
 
 ## Börja här
 
