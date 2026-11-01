@@ -1,21 +1,21 @@
-# Aktuell överlämning — 2026-10-31
+# Aktuell överlämning — 2026-11-01
 
 Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs relevant kod/PR vid behov.
 
-## Publicerat: väderstilar · ht-v242
+## Release: originalets scen med geometrisk stil · ht-v243
 
-- Codex, PR #57, `codex/vader-bildstilar`. Henrik godkände publicering 2026-10-31. Två nya enhetsval under Inställningar → Översikt och väder → Bildstil: Förfinad och Geometrisk. Original är standard; `ht.wxart` sparar valet.
-- Geometrisk: tio transparenta årstids-/ljuslager, hundatlas och molnatlas, cirka 2,0 MB offline. Den godkända höstnatten är stilreferens; nio andra landskap följer samma geometriska färgplan. Vår/sommar har formgivna blommor, knoppar och blad. Hundarnas pålagda runda irisringar är borttagna. Referens/manifest/prompter: `docs/design/vader-bildlager*` och `vader-botanik-prompter.json`.
-- Vädermodellen är gemensam: kalender/lövtäthet, solhöjd/sol-/månbana, stjärnor/molntäcke, nederbörd/åska/dimma, snöminne/frost/fläckar/djup snö och fallande löv. Inga server- eller hushållsdata ändrade.
-- Testad app-/bildkod: `dd08ee7691787e85af7604bf16f73d53075a6903`. 1 968 kombinationer i telefon/UI4 vägg, tolv avkodade bilder, menyval/omstart och alla flikar telefon/vägg gröna. Rörelsekontroll bekräftar faktiskt ändrad transform/opacitet för moln/regn/snö/blixt/dimma/stjärnor/löv/hundandning. GPU: 47 animationer till 0 i SVG, 40–66 bildpunkters skillnad (gräns 150).
-- CI grönt i alla tolv jobb: https://github.com/HenrikLH/hushallstavlan/actions/runs/41248696505 (UI2/UI3/UI4 × telefon/vägg × ljust/mörkt). Dokumentation efter denna testade appkod ändrar ingen app-/testfil. Manifest/offline/kontrollsummor/syntax/diff gröna.
-- Release ht-v242 / app.js?v=232 via PR #57. Återställningsgren `version-fore-vader-bildstilar` från ht-v241 (`a983fe86eaa04526e8a97e03804e472bd2590fa0`).
+- Codex, `codex/vader-somlos`, PR #58. Henrik avvisade uttoning av ett färdigt landskap: samma uppbyggnad som originalet, med det valda formspråket. Henrik bad därefter om högre träd, nytt gräs och alla hundkombinationer; Henrik godkände publiceringen 2026-11-01 med ”Pusha”.
+- `backdropSvg`/`grassPatch` använder originalets markkullar, markplätt, tuvor, blommor, vädereffekter, koordinater och placering. Geometrisk har ett fristående träd ur ny sexrutorsatlas (vår/sommar/höst/senhöst/kalt/snö) och de redan godkända hund-/molnatlaserna. Hela sjö-/skogslandskapet och bildkantstoningen visas inte längre. Vädervyn har originalets scenmått igen.
+- Henrik förtydligade att bara den fria stammen ska bli längre: kronan har återställd likformig skala 0,22 och flyttas 24 scenenheter upp; endast nedersta raka stamdelen (60 atlaspixlar) förlängs till basen (52,160). Geometrisk gräsplätt har fyra sammanhängande färgfält och kortare, bredare tvåtonade blad; årstidsblommor, marklöv, frost, pölar och snö är kvar. En bildruta åt gången undviker dubbla grenar vid övergångar; marklöv/snö och levande himmel följer samma modeller som förr. Tre atlaser cachas offline; gamla landskap är bara referens/kompatibilitet. Manifest och prompt: `docs/design/vader-bildlager*` och `vader-trad-prompt.json`.
+- Lokalt grönt: 1 968 kombinationer i telefon/UI4 vägg, originalets scen-/hundmått, separata mark-/trädlager och tre avkodade atlaser. GPU översikt/väder: 56 animationer till 0 i SVG, 65–121 bildpunkters skillnad (gräns 150). Hundarnas atlasgrannar klipps bort med uppmätta mellanrum. Riktiga appbilder jämförda med Original i ljust/mörkt. Manifest/offline/syntax/diff gröna.
+- Tillägg 2026-11-01: `vader-trad-gras.js` visar 8 hundplaceringar/sovlägen och alla 16 kläd-/sovlägen med riktiga komponenter. Telefon/ljust och UI4/vägg/mörkt gröna; `vader-bildstilar.js` 1 968 kombinationer och menyval/omstart gröna. `vader-tolv-manader.js` visar januari–december med snö, klar natt, snöblandat regn, vårregn, sol, åska, dimma och frost. Väderkortet har 20 px extra plats över scenen för det högre trädet. Tolv vyer utan fel och visuellt granskade. Lokalt röktest för alla flikar telefon/vägg grönt på appkod `082a2d5ed4a6671e14dd797288741eb84dc5e164`; GPU: 56 SVG-animationer till 0, 59–93 bildpunkters skillnad (gräns 150).
+- Release ht-v243/app.js?v=233 via PR #58. Återställningsgren `version-fore-vader-stam-20261101` från main `55e6e5bcde4510f4b83ee3e120c917a386d12dbf`. Bred CI: https://github.com/HenrikLH/hushallstavlan/actions/runs/41288152875 (pågår vid överlämningen; lokala obligatoriska kontroller gröna). Inga server-/hushållsdata ändrade.
 
 Tidigare publiceringar (PR #43–56) finns i git-historiken. PR #56 är sammanslagen; stabil solbana och B24/portionsantal finns på main.
 
 ## Börja här
 
-- Aktuell release efter PR #57: **ht-v242 / app.js?v=232**. Två extra väderbildstilar (Förfinad/Geometrisk). Tidigare PR #56: Stabil sol- och månbana vid grafutdrag. Tidigare PR #55: B24:s dygnskurva och dagsvep, orange portionsantal vid brist. Tidigare ht-v239 via PR #54: Portionsantal i hörnet, kompaktare kontroller och Ö2 med månadsdrag. M10:s hopfällbara avdelningar från ht-v238 kvar.
+- Aktuell release efter PR #58: **ht-v243 / app.js?v=233**. Geometrisk använder fristående träd med längre stam och nytt gräs, utan landskapsrektangel. Två extra väderbildstilar (Förfinad/Geometrisk). Tidigare PR #56: Stabil sol- och månbana vid grafutdrag. Tidigare PR #55: B24:s dygnskurva och dagsvep, orange portionsantal vid brist. Tidigare ht-v239 via PR #54: Portionsantal i hörnet, kompaktare kontroller och Ö2 med månadsdrag. M10:s hopfällbara avdelningar från ht-v238 kvar.
 - [Publiceringar](https://github.com/HenrikLH/hushallstavlan/actions): följ Pages-bygget för PR #55. Äldre PR #32 (priser) är separat.
 - Nästa steg: återkoppling från Henrik efter B24-paketet i PR #55. Gör inte om godkända ändringar.
 - UI 2.0:s tema och beteenden ska bevaras. Henrik har godkänt Ateljé som ett separat UI 4.0; UI 3.0 finns kvar i utvecklarläget. Bilder före visuella ändringar på main; ”Pusha” är publiceringsgodkännande.

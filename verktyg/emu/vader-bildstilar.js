@@ -5,12 +5,14 @@ module.exports=async(pg,h)=>{
  const settings=async()=>{if(await read('S.view')==='vader')await click('main [data-act="nav"][data-id="oversikt"]');await click('[data-act="settings"]');const sec=pg.locator('[data-k="pref-oversikt"]');if(!await sec.evaluate(e=>e.open))await sec.locator('summary').click()};
  const close=()=>click('.sheet [data-act="sheetClose"]');
  const nav=async()=>{if(await read('S.view')==='vader')return;await click('#nav [data-id="oversikt"]');await click('[data-act="nav"][data-id="vader"]')};
- const boot=process.env.ART||'geo';
+ const boot=process.env.ART||'geo';let originalGeometry;
  await settings();assert.equal(await pg.locator('[data-act="wxart"]').count(),3);await click('[data-act="wxvy"][data-id="bild"]');await click('[data-act="hundar"][data-id="bada"]');await close();
  for(const art of ['original','soft','geo']){
   await settings();await click('[data-act="wxart"][data-id="'+art+'"]');assert.equal(await read('WXART'),art);await close();await nav();
   assert.equal(await pg.locator('.wx2').count(),1);assert.equal(await pg.locator('.wx2.art-'+art).count(),art==='original'?0:1);
-  if(art==='geo'){const scene=await pg.locator('.wx2').evaluate(e=>{const card=e.getBoundingClientRect(),world=e.querySelector('.geo-world').getBoundingClientRect(),dogs=e.querySelector('.fig-box').getBoundingClientRect();return{worldWidth:world.width,cardWidth:card.width,dogsWidth:dogs.width,worldHeight:world.height}});assert(Math.abs(scene.worldWidth-scene.cardWidth)<3,'Landskapet fyller kortets bredd');assert(scene.worldHeight>=200,'Utsikten får egen höjd');assert(scene.dogsWidth<scene.cardWidth*.48,'Maskotarna lämnar plats för vädret')}
+  const geometry=await pg.locator('.wx2').evaluate(e=>{const world=e.querySelector('.wx2-gs>.bd').getBoundingClientRect(),dogs=e.querySelector('.fig-box').getBoundingClientRect();return[world.width,world.height,dogs.width,dogs.height]});
+  if(art==='original')originalGeometry=geometry;
+  if(art==='geo'){geometry.forEach((v,i)=>assert(Math.abs(v-originalGeometry[i])<1,'Samma scen-/hundmått som originalet'));assert(await pg.locator('.wx2 .geo-tree image').count()>0,'Fristående träd ritat');assert(await pg.locator('.wx2 .geo-ground path').count()>0,'Mark ritad som egna former')}
   const resources=await pg.locator('.wx2').evaluate(el=>{const ids=[...el.querySelectorAll('[id]')].filter(e=>!e.closest('.gl')).map(e=>e.id);return{duplicate:ids.filter((id,i)=>ids.indexOf(id)!==i),invalid:/NaN|undefined/.test(el.innerHTML),outside:el.getBoundingClientRect().right>innerWidth+1}});
   assert.deepEqual(resources.duplicate,[]);assert.equal(resources.invalid,false);assert.equal(resources.outside,false);
   await pg.screenshot({path:path.join(h.OUT,'bildstil-'+art+'.png'),fullPage:false});
@@ -36,6 +38,7 @@ module.exports=async(pg,h)=>{
      check(arcPos(arc)===arcPos(baseArc),'Sol/månbana skiljer sig');
      check(fig.includes('fx-rain')===/drizzle|rain|sleet/.test(sc.type),'Regnlager '+sym);check(fig.includes('fx-snow')===/snow|sleet/.test(sc.type),'Snölager '+sym);check(fig.includes('fx-bolt')===sc.thunder,'Åsklager '+sym);
      check((fig.includes('dog lie'))===sc.sleep,'Sovläge '+sym);check((skyCount(sky,'.st')>0)===(sc.dark&&sc.sky!=='fog'),'Stjärnor/dimma '+sym);
+     if(art==='geo'){check(bd.includes('geo-tree')&&bd.includes('trees-v1'),'Fristående träd');check(!/(autumn|spring|summer|winter|snow)-(day|night)\.webp/.test(bd),'Inget färdigt landskap');check(fig.includes('geo-ground'),'Separat markplätt')}
      if(i%9===0){xml(bd);xml(fig)}
     }
    })
@@ -48,7 +51,7 @@ module.exports=async(pg,h)=>{
  }finally{window.Date=D0;WXART=old;HUNDAR=oldDogs;S.wxVar=oldVar;EXT.yr=oldYr;lsSet('snow',oldSnow)}})()`);
  assert.equal(report.seasons.length,8);assert.equal(report.phases.length,5);assert.equal(report.types.length,5);assert.equal(report.levels.length,4);console.log('PASS bildstilar',JSON.stringify(report));
  // Bildfilerna ska gå att avkoda, inte bara finnas som tomma SVG-element.
- const decoded=await pg.evaluate(async()=>{const names=['autumn','spring','summer','winter','snow'].flatMap(s=>[s+'-day',s+'-night']).concat('mascots-v2','clouds-v1');return Promise.all(names.map(async name=>{const img=new Image();img.src='bilder/vader/'+name+'.webp?v=1';await img.decode();return{name,w:img.naturalWidth,h:img.naturalHeight}}))});assert.equal(decoded.length,12);for(const im of decoded)assert(im.w>=1200&&im.h>=1000,'Bildlagret är avkodat: '+im.name);
+ const decoded=await pg.evaluate(async()=>{const names=['trees-v1','mascots-v2','clouds-v1'];return Promise.all(names.map(async name=>{const img=new Image();img.src='bilder/vader/'+name+'.webp?v=1';await img.decode();return{name,w:img.naturalWidth,h:img.naturalHeight}}))});assert.equal(decoded.length,3);for(const im of decoded)assert(im.w>=1200&&im.h>=1000,'Bildlagret är avkodat: '+im.name);
  // Granska riktiga kort i representativa väder och årstider; endast emulatorns modell/klocka ersätts.
  await read('window.__artSaved={Date:window.Date,model:wxModel,W:wxModel(),art:WXART,snow:lsGet("snow"),variant:S.wxVar}');
  try{
