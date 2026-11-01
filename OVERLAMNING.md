@@ -9,17 +9,17 @@ Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs 
 - Lokalt grönt: alla flikar telefon/vägg, 1 968 kombinationer och menyval/omstart, tolv månadsvyer. Sommar/snö visuellt granskade. GPU i regn: 56 animationer till 0 i SVG, 113–148 olika bildpunkter (gräns 150). Översiktens rundeltest, överrinning och väderlänk på vägg gröna. Ingen server-/hushållsdata ändrad.
 - ht-v245/app.js?v=235. Återställningsgren `version-fore-grasrundlar-20261101` från main `bc3b4dbf29b12fc1ecbeb87e9662a55f81c74ae2` (ht-v244). Design/manifest i `docs/design/vader-bildlager*`.
 
-## Väntar på Henrik: Geometrisk utan lagg · ht-v246
+## Release: Geometrisk utan lagg, årstidsträd och romb-ögon · ht-v247
 
-- Claude, gren `claude/project-thread-8oongl`, PR #62, väntar på ”Pusha”. Orsak: SVG-filter (alfakant, molnfärg, natt) på bildarken räknades över hela arket (filterregion = bildens bbox, klippning räknas inte) vid varje omritning; telefonen ritar om SVG:n varje bildruta.
-- Åtgärd: alfakanten bortskuren i förväg i nya ark `trees-v2`/`mascots-v3`/`clouds-v2` (v1/v2 kvar som källor, se docs/design/vader-bildlager.md); kvarvarande natt-/molnfärgsfilter får `geoReg`-region runt synlig ruta. Utseendet oförändrat för ögat.
-- Mätning `verktyg/emu/bildstil-ritning.js` (60 omritningar): dag 1197→~390 ms, natt/regn 1298→~580 ms; Original 626. vader-gpu geo 53–66 bildpunkter (main 131–156, gräns 150). Alla flikar telefon/vägg, vader-bildstilar gröna.
-- Om iPhone fortfarande laggar: pröva `gpuLager` på telefon.
-- Samma gren, omgång 3 (Henrik: vektorkronan tappade stilen, gräset blev för jämnt, ovala ögon dåliga): trädet är nu originalkronan vektoriserad (`verktyg/geo-krona.py` → `GEO_KRONA`), färgas om per dag via `GEO_LEAF` och glesas ut med cirkel-clipPath; gräset tillbaka nära förra, bara mjukare kanter. Ögon: halvt rombformade A/B/C (`verktyg/hundogon.py ... FORM`), väntar på val, ej inlagt (gör då `mascots-v4`). Bilder 5–8 i /mnt/project-files/geo-forslag/. Röktester gröna lokalt (alla flikar tel/vägg, bildstilar, tolv månader med `wxvy:bild`, vader-gpu ≤17).
+- Claude, PR #62 (`claude/project-thread-8oongl`), Henrik: ”Jag väljer B. Pusha alla ändringar” 2026-11-01. Återställningsgren `version-fore-geometrisk-20261101` från main `fcedbcc` (ht-v245).
+- Lagg: SVG-filter på hela bildarken räknades om varje bildruta. Nu färdigskurna ark `trees-v2`/`mascots-v4`/`clouds-v2` och `geoReg`-regioner. Undvik nya SVG-filter i geo.
+- Trädet: originalkronan vektoriserad (`verktyg/geo-krona.py` → `GEO_KRONA`), färg per dag via `GEO_LEAF`, glesning med cirkel-clipPath, knopp/blom/äpple, snö på grenar efter snödjup. Henrik vill behålla stilen med tydliga cirklar och starka färger.
+- Gräset nära ht-v245, bara mjukare kanter. Hundögon B (halvt romb): `verktyg/hundogon.py mascots-v3 mascots-v4 1.12 0.92 0 1.35`.
+- Lokalt grönt: alla flikar tel/vägg, vader-bildstilar, tolv månader (`wxvy:bild`), vader-gpu geo ≤17 bildpunkter.
 
 ## Börja här
 
-- Aktuell release: **ht-v245 / app.js?v=235**. Gräsmark av rundlar; trädet längre vänster/bakåt och 10 % större översiktsbild från ht-v244 bevarade. Geometrisk använder fristående träd med längre stam och nytt gräs, utan landskapsrektangel. Två extra väderbildstilar (Förfinad/Geometrisk). Tidigare PR #56: Stabil sol- och månbana vid grafutdrag. Tidigare PR #55: B24:s dygnskurva och dagsvep, orange portionsantal vid brist. Tidigare ht-v239 via PR #54: Portionsantal i hörnet, kompaktare kontroller och Ö2 med månadsdrag. M10:s hopfällbara avdelningar från ht-v238 kvar.
+- Aktuell release: **ht-v247 / app.js?v=237** (Geometrisk utan lagg, ovan). Gräsmark av rundlar; trädet längre vänster/bakåt och 10 % större översiktsbild från ht-v244 bevarade. Geometrisk använder fristående träd med längre stam och nytt gräs, utan landskapsrektangel. Två extra väderbildstilar (Förfinad/Geometrisk). Tidigare PR #56: Stabil sol- och månbana vid grafutdrag. Tidigare PR #55: B24:s dygnskurva och dagsvep, orange portionsantal vid brist. Tidigare ht-v239 via PR #54: Portionsantal i hörnet, kompaktare kontroller och Ö2 med månadsdrag. M10:s hopfällbara avdelningar från ht-v238 kvar.
 - [Publiceringar](https://github.com/HenrikLH/hushallstavlan/actions): följ Pages-bygget för PR #55. Äldre PR #32 (priser) är separat.
 - Nästa steg: återkoppling från Henrik efter B24-paketet i PR #55. Gör inte om godkända ändringar.
 - UI 2.0:s tema och beteenden ska bevaras. Henrik har godkänt Ateljé som ett separat UI 4.0; UI 3.0 finns kvar i utvecklarläget. Bilder före visuella ändringar på main; ”Pusha” är publiceringsgodkännande.
