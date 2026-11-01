@@ -9,6 +9,13 @@ Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs 
 - Lokalt grönt: alla flikar telefon/vägg, 1 968 kombinationer och menyval/omstart, tolv månadsvyer. Sommar/snö visuellt granskade. GPU i regn: 56 animationer till 0 i SVG, 113–148 olika bildpunkter (gräns 150). Översiktens rundeltest, överrinning och väderlänk på vägg gröna. Ingen server-/hushållsdata ändrad.
 - ht-v245/app.js?v=235. Återställningsgren `version-fore-grasrundlar-20261101` från main `bc3b4dbf29b12fc1ecbeb87e9662a55f81c74ae2` (ht-v244). Design/manifest i `docs/design/vader-bildlager*`.
 
+## Väntar på Henrik: Geometrisk utan lagg · ht-v246
+
+- Claude, gren `claude/project-thread-8oongl` (PR mot main), väntar på ”Pusha”. Orsak: SVG-filtren (alfakant, molnfärg, natt) på bildarken `trees-v1`/`mascots-v2`/`clouds-v1` filtrerade hela arket (filterregion = bildens bbox, klippning räknas inte) vid varje omritning; telefonen ritar om SVG:n varje bildruta.
+- Åtgärd: `geoReg` ger filtren `userSpaceOnUse`-region runt den synliga rutan (träd, hund, moln, nattfilter, bakgrundens `n` i Geometrisk). Inget utseende ändrat (pixeljämförelse = bara animationsfas).
+- Mätning `verktyg/emu/bildstil-ritning.js` (60 omritningar): dag 1197→~420 ms, natt/regn 1298→~590 ms; Original 626. Alla flikar telefon/vägg + vader-bildstilar gröna med wxart=geo.
+- Kvar om iPhone fortfarande laggar: baka in alfakanten i webp-arken (tar bort alfafiltren helt) eller pröva `gpuLager` på telefon.
+
 ## Börja här
 
 - Aktuell release: **ht-v245 / app.js?v=235**. Gräsmark av rundlar; trädet längre vänster/bakåt och 10 % större översiktsbild från ht-v244 bevarade. Geometrisk använder fristående träd med längre stam och nytt gräs, utan landskapsrektangel. Två extra väderbildstilar (Förfinad/Geometrisk). Tidigare PR #56: Stabil sol- och månbana vid grafutdrag. Tidigare PR #55: B24:s dygnskurva och dagsvep, orange portionsantal vid brist. Tidigare ht-v239 via PR #54: Portionsantal i hörnet, kompaktare kontroller och Ö2 med månadsdrag. M10:s hopfällbara avdelningar från ht-v238 kvar.
