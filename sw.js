@@ -1,7 +1,7 @@
 // Sparar appens filer så att den startar snabbt och fungerar utan nät.
 // Hushållets data hämtas alltid från kalkylarket.
 const VERSION = 'ht-v246';
-const SHELL = ['./', './index.html', './matvaror.js?v=10', './matpoang.js?v=1', './restpoang.js?v=1', './kottveg.js?v=2', './app.js?v=236', './config.js?v=37', './manifest.webmanifest', './icons/icon-192.png?v=6', './icons/icon-192-dark.png?v=6', './icons/apple-touch-icon.png?v=6', './icons/apple-touch-icon-dark.png?v=6', './bilder/vader/mascots-v3.webp?v=1', './bilder/vader/clouds-v2.webp?v=1', './bilder/vader/trees-v2.webp?v=1'];
+const SHELL = ['./', './index.html', './matvaror.js?v=10', './matpoang.js?v=1', './restpoang.js?v=1', './kottveg.js?v=2', './app.js?v=236', './config.js?v=37', './manifest.webmanifest', './icons/icon-192.png?v=6', './icons/icon-192-dark.png?v=6', './icons/apple-touch-icon.png?v=6', './icons/apple-touch-icon-dark.png?v=6', './bilder/vader/mascots-v4.webp?v=1', './bilder/vader/clouds-v2.webp?v=1', './bilder/vader/trees-v2.webp?v=1'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
