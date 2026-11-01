@@ -1,10 +1,11 @@
 """Gör hundarnas runda ögon ovala i hundarket (bilder/vader/mascots-*.webp).
-Kör: python3 verktyg/hundogon.py IN.webp UT.webp SX SY [LUTNING_GRADER]
+Kör: python3 verktyg/hundogon.py IN.webp UT.webp SX SY [LUTNING_GRADER] [FORM]
 SX/SY skalar ögat på bredden/höjden; lutningen vrider ytterkanten uppåt (spegelvänt för vänster öga).
+FORM är superellipsens exponent: 2 = oval, 1 = romb; 1,3–1,6 ger halvt rombformade ögon med rundade hörn.
 Ögonen hittas via glansprickarna i de vakna bildrutorna; det gamla ögat fylls med pälsfärg (inpaint) innan det nya läggs på."""
 import sys,numpy as np,cv2
 from PIL import Image
-src,dst,SX,SY=sys.argv[1],sys.argv[2],float(sys.argv[3]),float(sys.argv[4]);TILT=float(sys.argv[5]) if len(sys.argv)>5 else 0
+src,dst,SX,SY=sys.argv[1],sys.argv[2],float(sys.argv[3]),float(sys.argv[4]);TILT=float(sys.argv[5]) if len(sys.argv)>5 else 0;FORM=float(sys.argv[6]) if len(sys.argv)>6 else 2
 im=np.array(Image.open(src).convert('RGBA'));Y=[88,374,675,950]
 def highlights(f,d):
     r,c=f//4,f%4;x0=int(c*313.5+d*156.75);y0=Y[r];sub=im[y0:y0+140,x0:x0+157]
@@ -22,7 +23,7 @@ for f in [0,4,6,8,10,12,14]:
             yy,xx=np.mgrid[-R:R+1,-R:R+1];rr=np.hypot(xx,yy)
             fur=np.median(rgb[(rr>14)&(rr<=17)],axis=0)
             dist=np.abs(rgb-fur).sum(axis=2)
-            m=((dist>90)&(rr<14)).astype(np.uint8)
+            m=((dist>90)&(rr<10.5)).astype(np.uint8)   # bara själva ögat, inte nosen intill
             n,lab,st,cen=cv2.connectedComponentsWithStats(m)
             if n<2: continue
             i=max(range(1,n),key=lambda i:st[i,4] if np.hypot(cen[i][0]-R,cen[i][1]-R)<8 else 0)
@@ -35,16 +36,29 @@ for f in [0,4,6,8,10,12,14]:
             # 1) fyll gamla ögat med päls
             pm=cv2.dilate(eye,np.ones((5,5),np.uint8))*255
             patch=np.ascontiguousarray(out[cy-R:cy+R+1,cx-R:cx+R+1,:3])
-            filled=cv2.inpaint(patch,pm,5,cv2.INPAINT_TELEA)
+            # fyll med pälsens färg runt ögat (inte inpaint, som drar in den svarta nosen)
+            ring=(rr>13)&(rr<=17)&(dist<60);furc=np.median(patch[ring],axis=0) if ring.sum()>8 else fur
+            pmf=cv2.GaussianBlur((pm/255).astype(np.float32),(5,5),1.2)[...,None]
+            filled=(patch*(1-pmf)+furc*pmf).astype(np.uint8)
             # 2) nytt öga: skala/vrid runt ögats mitt
             ang=TILT if k==1 else -TILT  # ytterkanten uppåt: höger öga (k=1) moturs, vänster medurs
             M=cv2.getRotationMatrix2D((ex,ey),ang,1.0)
             A=np.array([[SX,0,ex-SX*ex],[0,SY,ey-SY*ey]],np.float32)
             R3=np.vstack([M,[0,0,1]]);A3=np.vstack([A,[0,0,1]]);T=(R3@A3)[:2].astype(np.float32)
             src_rgb=im[cy-R:cy+R+1,cx-R:cx+R+1,:3]
+            if FORM<2:
+                # rund skiva → superellips: varje punkt hämtas från samma vinkel men radien skalas mot formens kant
+                r0=np.sqrt(eye.sum()/np.pi);yy2,xx2=np.mgrid[0:2*R+1,0:2*R+1].astype(np.float32);dx,dy=xx2-ex,yy2-ey;th=np.arctan2(dy,dx)
+                rs=1/((np.abs(np.cos(th))**FORM+np.abs(np.sin(th))**FORM)**(1/FORM))   # kantens radie för enhetssuperellipsen
+                k=np.sqrt(np.pi/ (4*__import__('math').gamma(1+1/FORM)**2/__import__('math').gamma(1+2/FORM)))  # samma yta som cirkeln
+                sc=1/(rs*k);mx=(ex+dx*sc).astype(np.float32);my=(ey+dy*sc).astype(np.float32)
+                src_rgb=cv2.remap(src_rgb.astype(np.uint8),mx,my,cv2.INTER_CUBIC,borderMode=cv2.BORDER_REPLICATE)
+                soft=cv2.remap(soft,mx,my,cv2.INTER_LINEAR)
             new=cv2.warpAffine(src_rgb,T,(2*R+1,2*R+1),flags=cv2.INTER_CUBIC,borderMode=cv2.BORDER_REPLICATE)
             nm=cv2.warpAffine(soft,T,(2*R+1,2*R+1),flags=cv2.INTER_LINEAR)[...,None]
             res=filled*(1-nm)+new*nm
+            keep=((rgb.max(axis=2)<110)&(rr>=10.5))[...,None]   # nosen intill ögat lämnas orörd
+            res=np.where(keep,patch,res)
             out[cy-R:cy+R+1,cx-R:cx+R+1,:3]=np.clip(res,0,255).astype(np.uint8)
 Image.fromarray(out).save(dst,'WEBP',quality=90,alpha_quality=100,method=6)
 print('klart',dst)
