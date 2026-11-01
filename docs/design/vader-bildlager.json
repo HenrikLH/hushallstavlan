@@ -212,6 +212,7 @@
     "columns": 3,
     "cell": 512,
     "scale": 0.22,
+    "sceneBase": [40, 160],
     "trunkExtension": 24,
     "trunkSourceSpan": 60,
     "anchors": [

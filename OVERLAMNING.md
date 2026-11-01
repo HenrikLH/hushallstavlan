@@ -4,9 +4,9 @@ Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs 
 
 ## För granskning: längre landskap och geometriskt gräs · ht-v244
 
-- Codex, `codex/vader-landskap-gras`, PR mot main. Henrik vill utöka landskapet med bevarad mjuk övergång till rutan, cirklar utanför marken och mer Kurzgesagt-likt gräs. Ingen publicering godkänd för detta tillägg.
-- `backdropSvg`: bredare kullar och alfamask, med fortsatt vertikal uttoning och fristående marköar. `grassPatch`/`artGrass`: utökad markplätt, uttonande färgbädd, ovala utlöpare, färre geometriska bladklungor med hårda skuggsidor och årstidspalett. Godkänd trädstam/krona och hundar bevarade; Original/Förfinad oförändrade.
-- Lokalt grönt: 12 månadsvyer, 1 968 kombinationer/menyval/omstart; GPU i regn: 56 animationer till 0 i SVG, 58–91 olika bildpunkter (gräns 150). Telefonens sommar/höst visuellt granskade. UI4 vägg/natt visuellt granskad och hundscenariot grönt.
+- Codex, `codex/vader-landskap-gras`, PR #59. Henrik vill utöka landskapet med bevarad mjuk övergång till rutan, cirklar utanför marken och mer Kurzgesagt-likt gräs. Senaste återkoppling: fler böljande marklager enligt referensen, större avstånd mellan träd och hundar samt större bild på Översikt. Ingen publicering godkänd för tillägget.
+- `backdropSvg`: fem böljande markplan och bredare alfamask, med fortsatt vertikal uttoning och fristående marköar. Trädet med skugga/löv flyttat från x=52 till x=40. Översiktens Geometrisk-bild förstorad 10 % på telefon/vägg; vädervyns scenmått bevarade. `grassPatch`/`artGrass`: utökad markplätt, uttonande färgbädd, ovala utlöpare, färre geometriska bladklungor med hårda skuggsidor och årstidspalett. Godkänd trädstam/krona och hundar bevarade; Original/Förfinad oförändrade.
+- Lokalt grönt: 12 månadsvyer, 1 968 kombinationer/menyval/omstart; GPU i regn: 56 animationer till 0 i SVG, 73–107 olika bildpunkter (gräns 150). Telefonens sommar/höst visuellt granskade; `vader-landskap.js` kontrollerar lager, överrinning och väderlänken på telefon/vägg, med riktiga översikts-/väderbilder. UI4 vägg/natt visuellt granskad och hundscenariot grönt.
 - Förberedd ht-v244/app.js?v=234. Main ht-v243 (`e2197306ceb379e8a089924f10238746a19661dd`), PR #58 publicerad. Bilder ska visas före main.
 
 ## Release: originalets scen med geometrisk stil · ht-v243

@@ -4,7 +4,7 @@ Henrik avvisade först förenklade SVG-illustrationer, sedan hela målade landsk
 
 ## Aktuell komposition
 
-- `backdropSvg`: originalets koordinatsystem 230 × 190, bredare markkullar med uttoning, fristående små marköar, tuvor, skugga, årstidsdetaljer och fallande löv. Geometrisk lägger in ett fristående träd vid samma baspunkt (52, 160).
+- `backdropSvg`: originalets koordinatsystem 230 × 190, fem böljande markplan med uttoning, fristående små marköar, tuvor, skugga, årstidsdetaljer och fallande löv. Geometrisk lägger in ett fristående träd längre åt vänster vid baspunkten (40, 160).
 - `grassPatch`: originalets separata markplätt under hundarna, med grässtrån, blommor, löv, frost, vattenpölar, snöfläckar och djup snö. Geometrisk använder sammanhängande färgfält i fyra toner, geometriska bladklungor med tydliga skuggsidor, fristående ovala marköar och en svag uttonande färgbädd. Färgerna går från ljusgrönt till turkosa skuggor och följer årstiden. Inga bilder tonas ut längs en rektangelkant.
 - `figSvg`: samma hundplacering, poser och väderkläder; maskotatlasens fristående hundar med diskret andning. Figuren ligger ovanpå marken. Hundarnas ögon är atlasens egna små mörkbruna ögon med svarta pupiller; inga pålagda irisringar.
 - Sol-/månbana, molntäcke/vind, stjärnor, regn/snö/åska/dimma och kalender-/snömodellen är gemensamma med Original. Vädervyn använder också originalets scenmått och placering, inte en fullbred landskapsruta.
@@ -19,10 +19,12 @@ Tre WebP-atlaser, sammanlagt cirka 736 kB, förladdas offline. Fullständiga sto
 
 Hundatlasens mellanrum klipps med uppmätta konturer per bildruta, så att öron och kläder från grannhunden inte följer med. Bildpixlarna ändras inte; klippgeometrin finns i manifestets `sprite.seams` och `GEO_DOG_SEAMS`.
 
-Trädets faktiska stambaser registrerades i manifestet; anta inte att bildgeneratorn följt identiska pixelkoordinater. Varje ruta placeras i originalets trädkoordinater med likformig skala 0,22 på kronan. Kronan flyttas 24 scenenheter upp utan ändrade proportioner. Endast de nedersta 60 atlaspixlarna av den raka stammen förlängs ned till den fasta stambasen (52,160). Ett träd visas åt gången för att undvika dubbla grenar/ghosting mellan olika teckningar. Kalenderns årstidsvikter och lövtäthet väljer bildruta; fallande löv, marklöv och snö styrs separat. Snö kan därför visas oberoende av månad. Dags-/nattljus följer originalets färgfilter; hundarna har eget ljusfilter.
+Trädets faktiska stambaser registrerades i manifestet; anta inte att bildgeneratorn följt identiska pixelkoordinater. Varje ruta placeras i originalets trädkoordinater med likformig skala 0,22 på kronan. Kronan flyttas 24 scenenheter upp utan ändrade proportioner. Endast de nedersta 60 atlaspixlarna av den raka stammen förlängs ned till den fasta stambasen (40,160). Ett träd visas åt gången för att undvika dubbla grenar/ghosting mellan olika teckningar. Kalenderns årstidsvikter och lövtäthet väljer bildruta; fallande löv, marklöv och snö styrs separat. Snö kan därför visas oberoende av månad. Dags-/nattljus följer originalets färgfilter; hundarna har eget ljusfilter.
 
 De tio tidigare landskapsfilerna finns kvar som arbetsreferenser och för kompatibilitet med äldre laddad appkod. De listas under `historicalLandscapes` i manifestet, visas inte och förladdas inte längre av aktuell service worker. Tidigare landskapsprompter i `vader-botanik-prompter.json` hör till dessa referenser.
 
 ## Verifiering
 
 `vader-bildstilar.js` provar 1 968 väderkombinationer, årstidsstadier, ljusfaser, snödjup och hundvarianter; verifierar originalets scen-/hundmått, separata träd-/marklager, frånvaro av målade landskap, SVG-resurser och tre avkodade atlaser. Menyval och omstart testas. GPU-pixeljämförelse kompletterar riktiga skärmbilder av översikt/vädervy i ljust/mörkt och på vägg. Endast emulerade data används.
+
+Översiktens Geometrisk-bild är 10 procent större på telefon/vägg. Trädet flyttas från x=52 till x=40 med skugga, snökant, marklöv och fallande löv. Vädervyns bildmått och trädets krona/längre stam är oförändrade.
