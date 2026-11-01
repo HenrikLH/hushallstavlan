@@ -1,11 +1,11 @@
-# Geometrisk med originalets uppbyggnad
+# Geometrisk med sammanhängande gräsmark av rundlar
 
 Henrik avvisade först förenklade SVG-illustrationer, sedan hela målade landskap och därefter uttonade bildkanter. Kravet är originalets separata komponenter och komposition, med det valda grafiska formspråket. Referensbilder beskriver stilen; sjön, skogen och det rektangulära landskapet används inte i den aktuella scenen.
 
 ## Aktuell komposition
 
-- `backdropSvg`: originalets koordinatsystem 230 × 190, fem böljande markplan med uttoning, fristående små marköar, tuvor, skugga, årstidsdetaljer och fallande löv. Geometrisk lägger in ett fristående träd längre åt vänster vid baspunkten (28, 151).
-- `grassPatch`: originalets separata markplätt under hundarna, med grässtrån, blommor, löv, frost, vattenpölar, snöfläckar och djup snö. Geometrisk använder sammanhängande färgfält i fyra toner, geometriska bladklungor med tydliga skuggsidor, fristående ovala marköar och en svag uttonande färgbädd. Färgerna går från ljusgrönt till turkosa skuggor och följer årstiden. Inga bilder tonas ut längs en rektangelkant.
+- `backdropSvg`/`geoGroundSvg`: en sammanhängande yta av tolv överlappande ellipser, som en illustrerad regnpöl med gräs. Tre nivåer av cirkulära färgfläckar, oregelbundna utlöpare, små fristående fläckar och grästuvor ger djup utan ett disigt landskapslager. Alfamasken tonar bara den oregelbundna ytterkanten (1,25 enheters kantutjämning); innerytorna behåller färgstyrkan. Paletten följer årstid, frost, väta och snödjup; snötäckt mark har inga extra grästuvor. Trädet har bas (28,151).
+- `grassPatch`: den godkända gräsplätten under hundarna med geometriska tuvor, blommor, löv, frost, pölar och snö. Den sammanhängande marken binder ihop trädet och hundarna. Ingen större mask läggs över hela bilden.
 - `figSvg`: samma hundplacering, poser och väderkläder; maskotatlasens fristående hundar med diskret andning. Figuren ligger ovanpå marken. Hundarnas ögon är atlasens egna små mörkbruna ögon med svarta pupiller; inga pålagda irisringar.
 - Sol-/månbana, molntäcke/vind, stjärnor, regn/snö/åska/dimma och kalender-/snömodellen är gemensamma med Original. Vädervyn använder också originalets scenmått och placering, inte en fullbred landskapsruta.
 

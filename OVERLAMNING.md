@@ -2,17 +2,16 @@
 
 Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs relevant kod/PR vid behov.
 
-## Release: böljande landskap och större översiktsbild · ht-v244
+## Release: gräsmark av rundlar · ht-v245
 
-- Codex, PR #59 inklusive skissen i PR #60. Henrik godkände senaste förhandsbilden med ”Pusha” 2026-11-01. Geometrisk har ett utökat, mer böljande landskap, fristående marköar och geometriska grästuvor; uttoningen till rutan bevarad.
-- Trädet står längre vänster/bakåt: likformig skala 0,18, bas (28,151), fri stam förlängd 20 scenenheter. Kronans form bevarad. Trädets alfafilter har mjukare kantutjämning för samma utseende före/efter GPU-lager. Skugga, marklöv och fallande löv följer placeringen.
-- Översiktens Geometrisk-bild är 10 % större på telefon/vägg; vädervyns scenmått bevarade. Original/Förfinad, vädermodellen, hundarna och deras val är oförändrade. Inga server-/hushållsdata ändrade.
-- Kontroller före release: alla flikar telefon/vägg; 1 968 väderkombinationer och menyval/omstart; lager/överrinning/väderlänk på vägg. GPU: 56 animationer till 0 i SVG, 114–148 olika bildpunkter (gräns 150). Testad appblob: `6015a5e410946c9d8de4d5f7c4fd4fffc9214688`.
-- ht-v244/app.js?v=234. Återställningsgren `version-fore-boljande-landskap-20261101` från main `e2197306ceb379e8a089924f10238746a19661dd` (ht-v243). Manifest och designbeskrivning i `docs/design/vader-bildlager*`.
+- Codex, `codex/vader-grasrundlar`. Henrik godkände `grasmark-rundlar-forslag.png` med ”Bra! Pusha” 2026-11-01. De stora böljande lagren ersätts i Geometrisk av en sammanhängande gräsyta av överlappande rundlar, med utlöpare och fristående små fläckar.
+- `geoGroundSvg`/`backdropSvg`: tolv markellipser, cirkulära färgplan, grästuvor och mjuk kantuttoning. Paletten följer årstid, frost, väta och snö; snötäckt mark saknar de nya tuvorna. Godkänt träd/hundar, bildmått, vädermodell och Original/Förfinad är bevarade.
+- Lokalt grönt: alla flikar telefon/vägg, 1 968 kombinationer och menyval/omstart, tolv månadsvyer. Sommar/snö visuellt granskade. GPU i regn: 56 animationer till 0 i SVG, 113–148 olika bildpunkter (gräns 150). Översiktens rundeltest, överrinning och väderlänk på vägg gröna. Ingen server-/hushållsdata ändrad.
+- ht-v245/app.js?v=235. Återställningsgren `version-fore-grasrundlar-20261101` från main `bc3b4dbf29b12fc1ecbeb87e9662a55f81c74ae2` (ht-v244). Design/manifest i `docs/design/vader-bildlager*`.
 
 ## Börja här
 
-- Aktuell release efter PR #59: **ht-v244 / app.js?v=234**. Mer böljande landskap, trädet längre vänster/bakåt och 10 % större översiktsbild. Geometrisk använder fristående träd med längre stam och nytt gräs, utan landskapsrektangel. Två extra väderbildstilar (Förfinad/Geometrisk). Tidigare PR #56: Stabil sol- och månbana vid grafutdrag. Tidigare PR #55: B24:s dygnskurva och dagsvep, orange portionsantal vid brist. Tidigare ht-v239 via PR #54: Portionsantal i hörnet, kompaktare kontroller och Ö2 med månadsdrag. M10:s hopfällbara avdelningar från ht-v238 kvar.
+- Aktuell release: **ht-v245 / app.js?v=235**. Gräsmark av rundlar; trädet längre vänster/bakåt och 10 % större översiktsbild från ht-v244 bevarade. Geometrisk använder fristående träd med längre stam och nytt gräs, utan landskapsrektangel. Två extra väderbildstilar (Förfinad/Geometrisk). Tidigare PR #56: Stabil sol- och månbana vid grafutdrag. Tidigare PR #55: B24:s dygnskurva och dagsvep, orange portionsantal vid brist. Tidigare ht-v239 via PR #54: Portionsantal i hörnet, kompaktare kontroller och Ö2 med månadsdrag. M10:s hopfällbara avdelningar från ht-v238 kvar.
 - [Publiceringar](https://github.com/HenrikLH/hushallstavlan/actions): följ Pages-bygget för PR #55. Äldre PR #32 (priser) är separat.
 - Nästa steg: återkoppling från Henrik efter B24-paketet i PR #55. Gör inte om godkända ändringar.
 - UI 2.0:s tema och beteenden ska bevaras. Henrik har godkänt Ateljé som ett separat UI 4.0; UI 3.0 finns kvar i utvecklarläget. Bilder före visuella ändringar på main; ”Pusha” är publiceringsgodkännande.

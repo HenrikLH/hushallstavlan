@@ -207,6 +207,7 @@
       "generator": "image_gen (inbyggt verktyg)"
     }
   ],
+  "ground": {"type": "overlapping-ellipses", "poolCount": 12, "edgeFeather": 1.25, "seasonal": true, "snowAndFrost": true},
   "trees": {
     "file": "bilder/vader/trees-v1.webp",
     "columns": 3,

@@ -3119,6 +3119,17 @@ function treeStage(t){const d=parse(t),y=d.getFullYear(),doy=Math.round((d-new D
 /* Bakgrunden bakom gräsplätten: en mjuk kulle och ett träd efter årstiden. Inget har en hård kant mot rutan:
    kullen tonar ut med en mask och små tuvor läcker ut runt om, precis som gräset. 1 enhet = 1 px, marken ligger
    på y=175 och plätten med hundarna står i den högra delen (x 80-220). */
+// Sammanhängande gräsmark av rundlar, med uttoning bara längs den oregelbundna ytterkanten.
+function geoGroundSvg(sc,id,ss,snow,g1,g2){const wet=/^(drizzle|rain|sleet)$/.test(sc.type)||sc.thunder,frost=!snow&&sc.T<0;
+ let C=snow>=2?['#EEF4FB','#FFFFFF','#D7E5F2','#B6CCDE']:ss==='summer'?['#8CCB70','#A7DA79','#68B66C','#489967']:[mixHex(g1,'#B7C79C',.2),mixHex(g1,'#E5EDAF',.34),mixHex(g1,g2,.45),g2];
+ if(snow<2){if(frost)C=C.map(c=>mixHex(c,'#DAE7ED',.45));else if(wet)C=C.map(c=>shadeHex(c,.92))}
+ const ellipse=([x,y,rx,ry])=>'<ellipse cx="'+x+'" cy="'+y+'" rx="'+rx+'" ry="'+ry+'"/>',pools=[[28,155,45,10],[0,162,31,8],[62,161,46,12],[96,166,37,12],[132,164,42,12],[169,173,55,12],[212,173,39,10],[235,180,26,7],[137,181,51,8],[80,179,37,7],[28,173,33,7],[-16,171,22,5]];
+ let h='<defs><filter id="'+id+'pe" x="-15%" y="-35%" width="130%" height="170%"><feGaussianBlur stdDeviation="1.25"/></filter><mask id="'+id+'pm" maskUnits="userSpaceOnUse" x="-70" y="125" width="380" height="78"><g class="geo-pool" fill="#fff" filter="url(#'+id+'pe)">'+pools.map(ellipse).join('')+'</g></mask></defs><g class="geo-landscape"><g mask="url(#'+id+'pm)"><rect x="-70" y="125" width="380" height="78" fill="'+C[0]+'"/>';
+ h+=[[C[1],[[22,153,34,6],[103,158,36,7],[200,169,34,5]]],[C[2],[[7,166,35,6],[66,169,41,8],[143,174,59,10],[214,178,38,7]]],[C[3],[[39,175,32,4],[95,181,36,5],[174,181,48,5]]]].map(([c,A])=>'<g fill="'+c+'">'+A.map(ellipse).join('')+'</g>').join('')+'</g>';
+ h+=[[-24,181,5,1.8],[-6,188,7,2.1],[20,184,3,1.2],[43,190,6,1.8],[66,186,3.5,1.1],[93,192,5,1.5],[119,190,2.5,.9],[219,190,7,1.8],[250,170,4,1.4],[250,188,3,1.2],[70,146,4,1.2],[-18,150,3,1.1]].map((A,i)=>'<g fill="'+C[i%3?0:2]+'" opacity=".8">'+ellipse(A)+'</g>').join('');
+ if(snow<2){const c=frost?'#B3CDD0':ss==='summer'?'#32876A':g2,d=frost?'#8DAFB6':ss==='summer'?'#22675C':shadeHex(g2,.75);
+ h+=[[2,165,.5],[55,168,.6],[82,179,.48],[22,178,.45],[119,162,.4],[219,181,.5]].map(([x,y,k])=>'<g class="geo-tuft" transform="translate('+x+' '+y+') scale('+k+')"><path d="M-7 0 Q-11 -4 -10 -10 Q-3 -10 -1 -2 Q-4 -9 0 -16 Q5 -12 3 -3 Q7 -10 12 -9 Q12 -3 7 0Z" fill="'+c+'"/><path d="M0 -16 Q5 -12 3 -3 Q7 -10 12 -9 Q12 -3 7 0H0Z" fill="'+d+'"/></g>').join('')}
+ return h+'</g>'}
 function backdropSvg(sc){const id='bd'+(++FIG_N),ss=grassSeason(today()),snow=snowLevel(sc),frost=!snow&&sc.T<0,f=v=>v.toFixed(1);
  const rnd=k=>{const x=Math.sin(k*57.3+1.7)*43758.5453;return x-Math.floor(x)};
  let[g1,g2]=artGrass(ss);if(frost){g1=mixHex(g1,'#E2ECF5',.42);g2=mixHex(g2,'#C6D5E4',.3)}
@@ -3131,19 +3142,13 @@ function backdropSvg(sc){const id='bd'+(++FIG_N),ss=grassSeason(today()),snow=sn
   '<mask id="'+id+'m"><rect x="'+(WXART==='geo'?-65:0)+'" width="'+(WXART==='geo'?370:230)+'" height="190" fill="url(#'+id+'f)"/></mask>'+
   '<linearGradient id="'+id+'v" x1="0" y1="0" x2="0" y2="190" gradientUnits="userSpaceOnUse"><stop offset=".89" stop-color="#fff"/><stop offset=".985" stop-color="#fff" stop-opacity="0"/></linearGradient><mask id="'+id+'b"><rect x="'+(WXART==='geo'?-65:0)+'" width="'+(WXART==='geo'?370:230)+'" height="190" fill="url(#'+id+'v)"/></mask>'+
   '<filter id="'+id+'n"><feColorMatrix type="matrix" values=".66 .04 0 0 .02  .02 .7 .04 0 .03  0 .06 .9 0 .07  0 0 0 1 0"/></filter></defs>';
- let g='<g mask="url(#'+id+'b)"><g mask="url(#'+id+'m)">';
- // Geometrisk får fem böljande djupplan inom samma mjuka alfamask.
- if(WXART==='geo')g+='<g class="geo-hills far"><path d="M-80 148 C-15 101 45 114 111 129 C175 144 223 97 300 113 V190 H-80Z" fill="'+mixHex(far,'#C4DADB',.5)+'" opacity=".35"/></g>';
- // två kullar: en avlägsen och en närmare som trädet står på
- g+='<path d="'+(WXART==='geo'?'M-80 165 C-17 119 36 122 101 145 C175 172 227 113 300 130 V190 H-80Z':'M-10 172 Q30 128 92 136 Q150 142 240 120 V190 H-10Z')+'" fill="'+far+'" opacity=".35"/>';
- if(WXART==='geo')g+='<g class="geo-hills middle"><path d="M-80 179 C-11 153 34 118 96 134 C154 148 189 171 300 136 V190 H-80Z" fill="'+mixHex(near,'#DAEAA7',.25)+'" opacity=".5"/><path d="M-30 158 C25 133 53 132 100 148 C141 162 165 157 204 146 C163 173 128 164 89 153 C48 141 17 146 -30 158Z" fill="'+mixHex(near,'#EAF5C9',.38)+'" opacity=".35"/></g>';
- g+='<path d="'+(WXART==='geo'?'M-80 189 C-20 162 36 145 103 160 C166 178 225 136 300 153 V190 H-80Z':'M-10 182 Q20 150 64 152 Q108 154 150 164 Q190 172 240 160 V190 H-10Z')+'" fill="'+near+'" opacity=".62"/>';
- if(WXART==='geo')g+='<g class="geo-hills near"><path d="M-80 196 C-15 183 54 163 122 177 C194 192 245 153 300 171 V190 H-80Z" fill="'+shadeHex(near,.84)+'" opacity=".25"/></g>';
- g+='<g opacity=".7">'+[[40,160,26,3.4,mixHex(near,'#FFFFFF',.18)],[100,166,22,3,shadeHex(near,.86)],[18,170,14,2.6,shadeHex(near,.86)]].map(([x,y,rx,ry,c],i)=>'<path d="'+blob(x,y,rx,ry,.4,i*5)+'" fill="'+c+'"/>').join('')+'</g>';
- g+='</g></g>';
+ let g;
+ if(WXART==='geo')g=geoGroundSvg(sc,id,ss,snow,g1,g2);
+ else{g='<g mask="url(#'+id+'b)"><g mask="url(#'+id+'m)"><path d="M-10 172 Q30 128 92 136 Q150 142 240 120 V190 H-10Z" fill="'+far+'" opacity=".35"/><path d="M-10 182 Q20 150 64 152 Q108 154 150 164 Q190 172 240 160 V190 H-10Z" fill="'+near+'" opacity=".62"/>';
+ g+='<g opacity=".7">'+[[40,160,26,3.4,mixHex(near,'#FFFFFF',.18)],[100,166,22,3,shadeHex(near,.86)],[18,170,14,2.6,shadeHex(near,.86)]].map(([x,y,rx,ry,c],i)=>'<path d="'+blob(x,y,rx,ry,.4,i*5)+'" fill="'+c+'"/>').join('')+'</g></g></g>'}
  // tuvor som läcker ut från kullen
  g+=[[-2,166,4,1.6],[8,160,2.5,1.1],[20,150,2.2,1],[70,148,2.5,1],[112,152,3,1.2],[190,158,2.4,1]].map(([x,y,rx,ry])=>'<ellipse cx="'+x+'" cy="'+y+'" rx="'+rx+'" ry="'+ry+'" fill="'+near+'" opacity=".55"/>').join('');
- if(WXART==='geo')g+='<g class="geo-outliers">'+[[-36,169,3,1.2],[-24,157,2,1],[-13,176,5,1.7],[4,183,3,1.2],[28,188,5,1.6],[66,182,2.5,1],[101,188,4,1.2],[145,183,3,1],[202,176,5,1.6],[223,165,3,1.2],[242,171,2,1]].map(([x,y,rx,ry],i)=>'<ellipse cx="'+x+'" cy="'+y+'" rx="'+rx+'" ry="'+ry+'" fill="'+(i%3?near:far)+'" opacity="'+(i%3?.5:.3)+'"/>').join('')+'</g>';
+
  // trädet: stam och krona av runda klungor, ljus uppe till vänster och hård skugga till höger som hundarna.
  // Lövet följer året steg för steg (treeStage): knoppar, musöron, ljust försommargrönt, mörkare gröngul högsommar,
  // gulnande, brandgult och eldigt rött med fallande löv, sena bruna löv och till sist kala grenar.
