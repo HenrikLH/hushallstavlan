@@ -2,6 +2,12 @@
 
 Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs relevant kod/PR vid behov.
 
+## En skiss för bedömning: mer böljande landskap
+
+- Codex, `codex/vader-landskap-fordjupning`, bygger på PR #59. Henrik vill ha ytterligare utökat/böljande landskap och trädet längre vänster/bakåt; uttryckligen en bild innan fler görs.
+- En enda sommarbild skapad: `landskap-fordjupning-skiss.png`. Trädets enhetliga skala 0,18, bas (28,151), längre fria stammen bevarad. Högre/bredare, mer böljande kullar inom samma uttoning. Ändringen är en skiss; vänta på Henriks bedömning före fler bilder/varianter.
+- Endast syntax/diff och den enda renderingen kontrollerade. Bred väder-/UI-verifiering återstår om skissen godkänns. Main fortfarande ht-v243; inget publiceringsgodkännande.
+
 ## För granskning: längre landskap och geometriskt gräs · ht-v244
 
 - Codex, `codex/vader-landskap-gras`, PR #59. Henrik vill utöka landskapet med bevarad mjuk övergång till rutan, cirklar utanför marken och mer Kurzgesagt-likt gräs. Senaste återkoppling: fler böljande marklager enligt referensen, större avstånd mellan träd och hundar samt större bild på Översikt. Ingen publicering godkänd för tillägget.
