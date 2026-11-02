@@ -17,6 +17,11 @@ Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs 
 - Gräset nära ht-v245, bara mjukare kanter. Hundögon B (halvt romb): `verktyg/hundogon.py mascots-v3 mascots-v4 1.12 0.92 0 1.35`.
 - Lokalt grönt: alla flikar tel/vägg, vader-bildstilar, tolv månader (`wxvy:bild`), vader-gpu geo ≤17 bildpunkter.
 
+## Väntar på Henrik: mindre sovande hundar · gren claude/project-thread-8oongl
+
+- Claude. Henrik 2026-11-02: sovande hund och bädd för stora, grannens röda bäddkant syns vid blå bädd, bäddarna klipps i kanterna. Orsak: liggrutorna i hundarket är bredare än sina celler och bäddarna nuddar varandra.
+- Åtgärd: eget ark `sleep-v1.webp` (verktyg/sovbaddar.py: delar paret efter bäddfärg med vattendelare, rundar röda bäddens skymda ände) och `geoSleepSvg` i 75 % storlek. Förhandsbild /mnt/project-files/geo-forslag/9-sovande-fore-efter.png. Väntar på ”Pusha” (då version.js, ångra-gren).
+
 ## Börja här
 
 - Aktuell release: **ht-v247 / app.js?v=237** (Geometrisk utan lagg, ovan). Gräsmark av rundlar; trädet längre vänster/bakåt och 10 % större översiktsbild från ht-v244 bevarade. Geometrisk använder fristående träd med längre stam och nytt gräs, utan landskapsrektangel. Två extra väderbildstilar (Förfinad/Geometrisk). Tidigare PR #56: Stabil sol- och månbana vid grafutdrag. Tidigare PR #55: B24:s dygnskurva och dagsvep, orange portionsantal vid brist. Tidigare ht-v239 via PR #54: Portionsantal i hörnet, kompaktare kontroller och Ö2 med månadsdrag. M10:s hopfällbara avdelningar från ht-v238 kvar.

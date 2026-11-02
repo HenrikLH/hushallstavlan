@@ -1,6 +1,6 @@
 // Geometriska väderbilden genom året och i olika väder: en bild per scen (shots/ar-NN.png) och ar.json med etiketter.
 // Kör: LS='{"wxart":"geo","wxvy":"bild","hundar":"bada"}' SCENER=scener.json node verktyg/emu/run.js verktyg/emu/vader-arstider.js
-// SCENER: JSON-lista [etikett, datum, symbol, temp, mm/h, molnprocent, snö-cm]; utan den används en lista över årets steg.
+// SCENER: JSON-lista [etikett, datum, symbol, temp, mm/h, molnprocent, snö-cm, hundvariant (t.ex. AB, A, B)]; utan den används en lista över årets steg.
 const fs=require('node:fs'),path=require('node:path');
 const STD=[['15 mars','2026-03-15T12:00:00+01:00','cloudy',4,0,80,0],['5 april','2026-04-05T12:00:00+02:00','fair',9,0,30,0],['20 april','2026-04-20T12:00:00+02:00','partlycloudy',12,0,50,0],
  ['1 maj','2026-05-01T12:00:00+02:00','clearsky',15,0,0,0],['15 maj','2026-05-15T12:00:00+02:00','fair',17,0,20,0],['15 juni','2026-06-15T12:00:00+02:00','clearsky',23,0,0,0],
@@ -12,8 +12,8 @@ module.exports=async(pg,h)=>{
  await pg.locator('#nav [data-id="oversikt"]').click();await h.idle(200);
  await pg.locator('[data-act="nav"][data-id="vader"]').first().click();await h.idle(350);
  await read('window.__yearSaved={Date:window.Date,model:wxModel,W:wxModel(),art:WXART,snow:lsGet("snow"),variant:S.wxVar}');
- try{for(let i=0;i<scenes.length;i++){const [label,date,sym,T,pr,cf,cm]=scenes[i];
-  await read(`(()=>{const saved=window.__yearSaved,now=new saved.Date('${date}').getTime();window.Date=class extends saved.Date{constructor(...a){super(...(a.length?a:[now]))}static now(){return now}};const W=saved.W,n={...W.now,s:'${sym}',T:${T},pr:${pr},cf:${cf},w:${pr?6:2},wd:230};wxModel=()=>({...W,now:n,hours:W.hours.map(x=>({...x,...n})),days:W.days.map(x=>({...x,min:${T},max:${T}}))});S.wxVar=null;lsSet('snow',JSON.stringify({at:now,cm:${cm}}));render()})()`);
+ try{for(let i=0;i<scenes.length;i++){const [label,date,sym,T,pr,cf,cm,vari]=scenes[i];
+  await read(`(()=>{const saved=window.__yearSaved,now=new saved.Date('${date}').getTime();window.Date=class extends saved.Date{constructor(...a){super(...(a.length?a:[now]))}static now(){return now}};const W=saved.W,n={...W.now,s:'${sym}',T:${T},pr:${pr},cf:${cf},w:${pr?6:2},wd:230};wxModel=()=>({...W,now:n,hours:W.hours.map(x=>({...x,...n})),days:W.days.map(x=>({...x,min:${T},max:${T}}))});S.wxVar=${JSON.stringify(vari||null)};lsSet('snow',JSON.stringify({at:now,cm:${cm}}));render()})()`);
   await h.idle(180);
   await pg.evaluate(async()=>{await Promise.all([...document.querySelectorAll('.wx2 image')].map(e=>new Promise((ok,no)=>{const im=new Image();im.onload=ok;im.onerror=no;im.src=e.getAttribute('href')})));document.getAnimations().forEach(a=>{a.pause();a.currentTime=43750})});
   if(await pg.locator('.wx2').evaluate(e=>/NaN|undefined/.test(e.innerHTML)))throw new Error('NaN i bilden: '+label);
