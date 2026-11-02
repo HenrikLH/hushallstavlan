@@ -21,7 +21,7 @@ Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs 
 
 - Claude. Henrik 2026-11-02: sovande hund/bädd för stor, grannens bäddkant syntes, bäddarna klipptes. Orsak: liggrutorna i hundarket är bredare än cellerna, och blå bädden är avhuggen i båda ändarna redan i arket (cellkanten).
 - Åtgärd: eget ark `sleep-v1.webp` från `verktyg/sovbaddar.py` (vattendelare efter bäddfärg; röda högra änden rundas efter ellips; blå bädden förlängs till röda bäddens bredd och rundning; sidorna böjs till mjuka bågar). `geoSleepSvg` i 75 % storlek; i geo får liggande par fasta platser (`one` i figSvg) så att de aldrig överlappar oavsett ordning.
-- Bilder /mnt/project-files/geo-forslag/11-*.png, 12-runda-baddar.png. Röktester gröna. Väntar på ”Pusha” (då version.js, ångra-gren).
+- Bilder /mnt/project-files/geo-forslag/11-*.png, 13-rundare-rod-badd.png. Röktester gröna. Väntar på ”Pusha” (då version.js, ångra-gren).
 
 ## Börja här
 

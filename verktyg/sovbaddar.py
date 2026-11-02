@@ -37,7 +37,7 @@ for k,f in enumerate(range(1,16,2)):
         sw=inside.copy()
         for s_ in range(1,26):sw[:-s_]=np.maximum(sw[:-s_],inside[s_:])
         inside=sw
-        for yv in (range(hw) if d==0 else []):
+        for yv in (range(max(0,np.where((keep&bc&(A>200)).any(axis=1))[0].max()-62),hw) if d==0 else []):  # bara bäddens rader, inte mössan
             row=np.where(keep[yv]&(a[yv]>0))[0]
             if not len(row):continue
             bed=np.where(keep[yv]&bc[yv]&(A[yv]>200))[0]
@@ -77,24 +77,24 @@ for k,f in enumerate(range(1,16,2)):
                     if 0<=xo+s_<ww:a[yv,xo+s_]=0
         # bäddens sidor: raka väggar blir mjuka bågar (Henrik: runda kanterna). Indraget växer i kvadrat från
         # väggens mitt mot dess över- och underkant; bara rader där bädden ligger ytterst rörs.
-        bedc=lambda c:(c[2]>c[0]+40) if d else ((c[0]>c[1]+40) or c.max()<90)
+        bedc=lambda c:(c[2]>c[0]+40) if d else ((c[0]>c[1]+60 and c[1]<90) or c.max()<90)
         for s_ in(-1,1):
             rows=[]
-            for yv in range(Bb+3,0,-1):
+            for yv in range(Bb+3,Bb-(62 if s_>0 and d==0 and f in (9,13) else 72),-1):  # bara bäddens rader (mössan i bildruta 9 och 13 når ned till höger)
                 xs_=np.where(a[yv]>128)[0]
                 if not len(xs_):continue
                 xe=xs_.min() if s_<0 else xs_.max()
                 if not bedc(img[yv,xe-s_*2,:3].astype(int)):break
                 rows.append(yv)
             if len(rows)<8:continue
-            yt,yb_=min(rows),max(rows);ym=(yt+yb_)/2;hh=(yb_-yt)/2;IM=9
+            yt,yb_=min(rows),max(rows);ym=(yt+yb_)/2;hh=(yb_-yt)/2;IM=18 if d==0 else 9  # röda bädden rundas mer (Henrik)
             xe0=np.median([ (np.where(a[yv]>128)[0].min() if s_<0 else np.where(a[yv]>128)[0].max()) for yv in rows if abs(yv-ym)<hh*.3])
             for yv in rows:
                 ins=IM*((yv-ym)/hh)**2;lim=xe0-s_*ins  # gränsen för denna rad
-                xs_=np.where(a[yv]>0)[0]
-                for xv in xs_:
-                    o=s_*(xv-lim)  # >0 utanför bågen
-                    if o>0:a[yv,xv]=int(a[yv,xv]*np.clip(1-o,0,1))
+                xs_=np.where(a[yv]>0)[0];xv=xs_.min() if s_<0 else xs_.max()
+                while 0<=xv<ww and s_*(xv-lim)>0:  # utifrån och in, bara så länge det är bädd (inte öron)
+                    if a[yv,xv]>128 and not bedc(img[yv,xv,:3].astype(int)):break
+                    a[yv,xv]=int(a[yv,xv]*np.clip(1-s_*(xv-lim),0,1));xv-=s_
         ys,xs=np.where(a>20);bx=(xs.min()+xs.max())/2;by=ys.max()
         ox=int(round(W/2-bx));oy=H-4-by
         cell=np.zeros((H,W,4),np.int32);
