@@ -17,15 +17,15 @@ Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs 
 - Gräset nära ht-v245, bara mjukare kanter. Hundögon B (halvt romb): `verktyg/hundogon.py mascots-v3 mascots-v4 1.12 0.92 0 1.35`.
 - Lokalt grönt: alla flikar tel/vägg, vader-bildstilar, tolv månader (`wxvy:bild`), vader-gpu geo ≤17 bildpunkter.
 
-## Väntar på Henrik: mindre sovande hundar · gren claude/project-thread-8oongl
+## Release: mindre sovande hundar med hela, rundade bäddar · ht-v248
 
-- Claude. Henrik 2026-11-02: sovande hund/bädd för stor, grannens bäddkant syntes, bäddarna klipptes. Orsak: liggrutorna i hundarket är bredare än cellerna, och blå bädden är avhuggen i båda ändarna redan i arket (cellkanten).
-- Åtgärd: eget ark `sleep-v1.webp` från `verktyg/sovbaddar.py` (vattendelare efter bäddfärg; röda högra änden rundas efter ellips; blå bädden förlängs till röda bäddens bredd och rundning; sidorna böjs till mjuka bågar). `geoSleepSvg` i 75 % storlek; i geo får liggande par fasta platser (`one` i figSvg) så att de aldrig överlappar oavsett ordning.
-- Bilder /mnt/project-files/geo-forslag/11-*.png, 13-rundare-rod-badd.png. Röktester gröna. Väntar på ”Pusha” (då version.js, ångra-gren).
+- Claude, gren `claude/project-thread-8oongl`, Henrik ”Pusha” 2026-11-02. Återställningsgren `version-fore-sovbaddar-20261102` från main `240bb62` (ht-v247).
+- Liggrutorna i hundarket var bredare än cellerna och blå bädden avhuggen redan i arket. Nu eget ark `sleep-v1.webp` från `verktyg/sovbaddar.py` (vattendelare efter bäddfärg, blå bädden förlängd till röda bäddens bredd, sidorna böjda till bågar; röda mer). `geoSleepSvg` i 75 % storlek; liggande par i geo har fasta platser (`one` i figSvg) så de aldrig överlappar.
+- Lokalt grönt: alla flikar tel/vägg/standard, bildstilar, tolv månader.
 
 ## Börja här
 
-- Aktuell release: **ht-v247 / app.js?v=237** (Geometrisk utan lagg, ovan). Gräsmark av rundlar; trädet längre vänster/bakåt och 10 % större översiktsbild från ht-v244 bevarade. Geometrisk använder fristående träd med längre stam och nytt gräs, utan landskapsrektangel. Två extra väderbildstilar (Förfinad/Geometrisk). Tidigare PR #56: Stabil sol- och månbana vid grafutdrag. Tidigare PR #55: B24:s dygnskurva och dagsvep, orange portionsantal vid brist. Tidigare ht-v239 via PR #54: Portionsantal i hörnet, kompaktare kontroller och Ö2 med månadsdrag. M10:s hopfällbara avdelningar från ht-v238 kvar.
+- Aktuell release: **ht-v248 / app.js?v=238** (sovande hundar ovan; Geometrisk utan lagg i ht-v247). Gräsmark av rundlar; trädet längre vänster/bakåt och 10 % större översiktsbild från ht-v244 bevarade. Geometrisk använder fristående träd med längre stam och nytt gräs, utan landskapsrektangel. Två extra väderbildstilar (Förfinad/Geometrisk). Tidigare PR #56: Stabil sol- och månbana vid grafutdrag. Tidigare PR #55: B24:s dygnskurva och dagsvep, orange portionsantal vid brist. Tidigare ht-v239 via PR #54: Portionsantal i hörnet, kompaktare kontroller och Ö2 med månadsdrag. M10:s hopfällbara avdelningar från ht-v238 kvar.
 - [Publiceringar](https://github.com/HenrikLH/hushallstavlan/actions): följ Pages-bygget för PR #55. Äldre PR #32 (priser) är separat.
 - Nästa steg: återkoppling från Henrik efter B24-paketet i PR #55. Gör inte om godkända ändringar.
 - UI 2.0:s tema och beteenden ska bevaras. Henrik har godkänt Ateljé som ett separat UI 4.0; UI 3.0 finns kvar i utvecklarläget. Bilder före visuella ändringar på main; ”Pusha” är publiceringsgodkännande.
