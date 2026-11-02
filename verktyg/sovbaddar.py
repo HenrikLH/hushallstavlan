@@ -75,6 +75,26 @@ for k,f in enumerate(range(1,16,2)):
                     for xv in range(xb-s_,xo+s_,s_):
                         if 0<=xv<ww:img[yv,xv,:3]=colr*(.8 if xv==xo else 1);a[yv,xv]=200 if xv==xo else 255
                     if 0<=xo+s_<ww:a[yv,xo+s_]=0
+        # bäddens sidor: raka väggar blir mjuka bågar (Henrik: runda kanterna). Indraget växer i kvadrat från
+        # väggens mitt mot dess över- och underkant; bara rader där bädden ligger ytterst rörs.
+        bedc=lambda c:(c[2]>c[0]+40) if d else ((c[0]>c[1]+40) or c.max()<90)
+        for s_ in(-1,1):
+            rows=[]
+            for yv in range(Bb+3,0,-1):
+                xs_=np.where(a[yv]>128)[0]
+                if not len(xs_):continue
+                xe=xs_.min() if s_<0 else xs_.max()
+                if not bedc(img[yv,xe-s_*2,:3].astype(int)):break
+                rows.append(yv)
+            if len(rows)<8:continue
+            yt,yb_=min(rows),max(rows);ym=(yt+yb_)/2;hh=(yb_-yt)/2;IM=9
+            xe0=np.median([ (np.where(a[yv]>128)[0].min() if s_<0 else np.where(a[yv]>128)[0].max()) for yv in rows if abs(yv-ym)<hh*.3])
+            for yv in rows:
+                ins=IM*((yv-ym)/hh)**2;lim=xe0-s_*ins  # gränsen för denna rad
+                xs_=np.where(a[yv]>0)[0]
+                for xv in xs_:
+                    o=s_*(xv-lim)  # >0 utanför bågen
+                    if o>0:a[yv,xv]=int(a[yv,xv]*np.clip(1-o,0,1))
         ys,xs=np.where(a>20);bx=(xs.min()+xs.max())/2;by=ys.max()
         ox=int(round(W/2-bx));oy=H-4-by
         cell=np.zeros((H,W,4),np.int32);
