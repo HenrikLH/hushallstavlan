@@ -19,8 +19,9 @@ Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs 
 
 ## Väntar på Henrik: mindre sovande hundar · gren claude/project-thread-8oongl
 
-- Claude. Henrik 2026-11-02: sovande hund och bädd för stora, grannens röda bäddkant syns vid blå bädd, bäddarna klipps i kanterna. Orsak: liggrutorna i hundarket är bredare än sina celler och bäddarna nuddar varandra.
-- Åtgärd: eget ark `sleep-v1.webp` (verktyg/sovbaddar.py: delar paret efter bäddfärg med vattendelare, rundar röda bäddens skymda ände) och `geoSleepSvg` i 75 % storlek; i geo flyttas liggande hundar 17 enheter närmare varandra (`one` i figSvg). Omgång 2 (Henrik: för långt isär, blå bäddens vänsterkant klippt): vattendelaren märker bäddfärg oavsett söm. Bild /mnt/project-files/geo-forslag/10-sovande-v2.png. Väntar på ”Pusha” (då version.js, ångra-gren).
+- Claude. Henrik 2026-11-02: sovande hund/bädd för stor, grannens bäddkant syntes, bäddarna klipptes. Orsak: liggrutorna i hundarket är bredare än cellerna, och blå bädden är avhuggen i båda ändarna redan i arket (cellkanten).
+- Åtgärd: eget ark `sleep-v1.webp` från `verktyg/sovbaddar.py` (vattendelare efter bäddfärg; röda högra änden rundas efter ellips; blå bädden förlängs till röda bäddens bredd och rundning). `geoSleepSvg` i 75 % storlek; i geo får liggande par fasta platser (`one` i figSvg) så att de aldrig överlappar oavsett ordning.
+- Bilder /mnt/project-files/geo-forslag/11-*.png. Röktester gröna. Väntar på ”Pusha” (då version.js, ångra-gren).
 
 ## Börja här
 

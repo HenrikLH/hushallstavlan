@@ -37,7 +37,7 @@ for k,f in enumerate(range(1,16,2)):
         sw=inside.copy()
         for s_ in range(1,26):sw[:-s_]=np.maximum(sw[:-s_],inside[s_:])
         inside=sw
-        for yv in range(hw):
+        for yv in (range(hw) if d==0 else []):
             row=np.where(keep[yv]&(a[yv]>0))[0]
             if not len(row):continue
             bed=np.where(keep[yv]&bc[yv]&(A[yv]>200))[0]
@@ -48,6 +48,33 @@ for k,f in enumerate(range(1,16,2)):
                 if not 0<=xv<ww:break
                 al=max(inside[yv,xv],1.0 if sg*(xb-xv)>=0 else 0);a[yv,xv]=int(255*al) if al>0 else 0
                 if al>0:img[yv,xv]=sub[yv,xb-2*sg]
+        bedm=keep&bc&(A>200);BY,BX=np.where(bedm);Bb=BY.max()
+        if d==0:  # röda bäddens vänstra ände är hel: spara dess rundning (indrag per rad från botten) och bredd
+            prof={};lx=None
+            for yv in range(Bb+3,0,-1):
+                xs_=np.where(a[yv]>128)[0]
+                if not len(xs_):continue
+                x0_=xs_.min();c_=img[yv,x0_+1,:3]
+                if not((c_[0]>c_[1]+40) or c_.max()<90):break  # ovanför bädden (päls, filt)
+                prof[Bb-yv]=x0_
+            lx=min(prof.values());prof={r:x-lx for r,x in prof.items()};Wr=np.where(a[Bb-6]>128)[0].max()-lx
+        else:  # blå bädden är avhuggen i båda ändarna redan i hundarket: förläng den till den röda bäddens bredd och rundning
+            cx=(BX.min()+BX.max())/2
+            rd=(sub[...,0]>sub[...,2]+20)&(sub[...,0]>sub[...,1]+20)&(np.arange(ww)[None,:]<BX.min()+8);a[rd]=0  # röda kantprickar från grannen
+            for r,ins in prof.items():
+                yv=Bb-r
+                if not 0<=yv<hw:continue
+                bed=np.where(bedm[yv])[0]
+                if not len(bed):continue
+                for s_,xb in((-1,bed.min()),(1,bed.max())):
+                    xo=int(round(cx+s_*(Wr/2-ins)))  # nya ytterkanten
+                    if s_*(xo-xb)<=0:continue
+                    out_=np.where(keep[yv]&(a[yv]>120))[0];xr_=out_.min() if s_<0 else out_.max()
+                    if abs(xr_-xb)>4:continue  # öra eller mössa ytterst: rör inte
+                    colr=sub[yv,xb-3*s_,:3]
+                    for xv in range(xb-s_,xo+s_,s_):
+                        if 0<=xv<ww:img[yv,xv,:3]=colr*(.8 if xv==xo else 1);a[yv,xv]=200 if xv==xo else 255
+                    if 0<=xo+s_<ww:a[yv,xo+s_]=0
         ys,xs=np.where(a>20);bx=(xs.min()+xs.max())/2;by=ys.max()
         ox=int(round(W/2-bx));oy=H-4-by
         cell=np.zeros((H,W,4),np.int32);
