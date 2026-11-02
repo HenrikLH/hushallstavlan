@@ -16,9 +16,9 @@ for k,f in enumerate(range(1,16,2)):
     sub=im[y0:y1,x0:x1];R,G,B,A=[sub[...,q] for q in range(4)];hw,ww=A.shape
     seam=np.interp(np.arange(hw),[p[1] for p in SEAMS[f]],[p[0] for p in SEAMS[f]])+cx-x0
     side=(np.arange(ww)[None,:]>seam[:,None]).astype(int)
-    red=(R>G+60)&(R>B+25);blue=(B>R+40)&(B>G+15)
+    red=(R>G+60)&(R>B+25)&(G<90);blue=(B>R+40)&(B>G+15)
     # vattendelare från bäddarna: röd bädd/kläder = hund 0, blå = hund 1, genomskinligt = bakgrund
-    mk=np.zeros((hw,ww),np.int32);mk[red&(A>200)&(side==0)]=1;mk[blue&(A>200)&(side==1)]=2;mk[A<5]=3
+    mk=np.zeros((hw,ww),np.int32);far=np.abs(np.arange(ww)[None,:]-seam[:,None])>25;mk[far&(A>200)]=1+side[far&(A>200)];mk[red&(A>200)]=1;mk[blue&(A>200)]=2;mk[A<5]=3
     ws=cv2.watershed(np.ascontiguousarray(sub[...,:3].astype(np.uint8)),mk)
     lab=np.where(ws==1,0,np.where(ws==2,1,side))
     for d in (0,1):
@@ -26,24 +26,28 @@ for k,f in enumerate(range(1,16,2)):
         n,cc,st,_=cv2.connectedComponentsWithStats(m,connectivity=8)
         big=1+np.argmax(st[1:,4]);keep=np.isin(cc,[q for q in range(1,n) if q==big or (st[q,4]>40 and abs(np.median(np.where(cc==q)[1])-np.median(np.where(cc==big)[1]))<90)])
         a=np.where(keep,A,0);img=sub.copy()
-        if d==0:  # grannens bädd skymmer högra änden av den röda bädden: rundas efter en ellips anpassad till bäddens underkant
-            bm=(keep&red).astype(np.uint8);cs,_=cv2.findContours(bm,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE);P=max(cs,key=len)[:,0]
-            xr=P[:,0].max();yb=np.median(P[:,1]);Q=P[(P[:,1]>yb)&(P[:,0]<xr-22)]
-            (ex,ey),(ea,eb),ang=cv2.fitEllipse(Q.astype(np.float32))
-            t=np.deg2rad(ang);Yg,Xg=np.mgrid[0:hw,0:ww];u=(Xg-ex)*np.cos(t)+(Yg-ey)*np.sin(t);v=-(Xg-ex)*np.sin(t)+(Yg-ey)*np.cos(t)
-            rr=np.sqrt((u/(ea/2))**2+(v/(eb/2))**2);inside=np.clip((1-rr)*ea/2+.5,0,1)
-            sw=inside.copy()
-            for s_ in range(1,26):sw[:-s_]=np.maximum(sw[:-s_],inside[s_:])  # bädden är en låg cylinder: svep ellipsen uppåt
-            inside=sw
-            for yv in range(hw):
-                row=np.where(keep[yv]&(a[yv]>200))[0]
-                if not len(row):continue
-                x0r=row.max()
-                if not red[yv,x0r-2]:continue
-                for xv in range(x0r+1,min(ww,xr+14)):
-                    al=inside[yv,xv]
-                    if al<=0:break
-                    img[yv,xv]=sub[yv,x0r-2];a[yv,xv]=int(255*al)
+        # bäddarna skymmer varandras ändar där de möts: röda bäddens högra och blå bäddens vänstra ände rundas
+        # efter en ellips anpassad till bäddens underkant (svept uppåt, bädden är en låg cylinder)
+        bc=red if d==0 else blue;sg=1 if d==0 else -1
+        bm=(keep&bc).astype(np.uint8);cs,_=cv2.findContours(bm,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE);P=max(cs,key=len)[:,0]
+        xe=P[:,0].max() if sg>0 else P[:,0].min();yb=np.median(P[:,1]);Q=P[(P[:,1]>yb)&(sg*(xe-P[:,0])>22)]
+        (ex,ey),(ea,eb),ang=cv2.fitEllipse(Q.astype(np.float32))
+        t=np.deg2rad(ang);Yg,Xg=np.mgrid[0:hw,0:ww];u=(Xg-ex)*np.cos(t)+(Yg-ey)*np.sin(t);v=-(Xg-ex)*np.sin(t)+(Yg-ey)*np.cos(t)
+        rr=np.sqrt((u/(ea/2))**2+(v/(eb/2))**2);inside=np.clip((1-rr)*ea/2+.5,0,1)
+        sw=inside.copy()
+        for s_ in range(1,26):sw[:-s_]=np.maximum(sw[:-s_],inside[s_:])
+        inside=sw
+        for yv in range(hw):
+            row=np.where(keep[yv]&(a[yv]>0))[0]
+            if not len(row):continue
+            bed=np.where(keep[yv]&bc[yv]&(A[yv]>200))[0]
+            if not len(bed):continue
+            xb=bed.max() if sg>0 else bed.min()
+            if abs(xb-(row.max() if sg>0 else row.min()))>6:continue  # något annat än bädden (öra, mössa) är ytterst
+            for xv in range(xb+sg,xb+sg*30,sg):  # ta bort grannens kantpixlar och rita bädden vidare till ellipsen
+                if not 0<=xv<ww:break
+                al=max(inside[yv,xv],1.0 if sg*(xb-xv)>=0 else 0);a[yv,xv]=int(255*al) if al>0 else 0
+                if al>0:img[yv,xv]=sub[yv,xb-2*sg]
         ys,xs=np.where(a>20);bx=(xs.min()+xs.max())/2;by=ys.max()
         ox=int(round(W/2-bx));oy=H-4-by
         cell=np.zeros((H,W,4),np.int32);

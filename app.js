@@ -3293,6 +3293,7 @@ function figSvg(sc,o){o=o||{};const id='fg'+(++FIG_N),ph=sc.phase,dark=sc.dark,w
   if(pos==='c')tr=lie?'translate(26 4)':(isA?'translate(29 6) scale(.95)':'translate(25 0)');
   else if(lie)tr=pos==='l'?'translate(-8 '+(isA?14:8)+') scale('+(isA?.8:.85)+')':'translate('+(isA?82:76)+' '+(isA?14:8)+') scale('+(isA?.8:.85)+')';
   else tr=pos==='l'?(isA?'translate(4 6) scale(.9)':'translate(4 0)'):(isA?'translate(64 6) scale(.9)':'translate(58 0)');
+  if(lie&&WXART==='geo'&&pos!=='c')tr=tr.replace(/translate\(([-\d.]+)/,(m,x)=>'translate('+(+x+(pos==='l'?17:-17)));// geo: de mindre sovbäddarna ligger nära varandra
   // på gräsplätten flyttas varje hund ned så att tassarna (eller magen när den ligger) vilar mitt på gräset
   if(o.patch){const m=/translate\(([-\d.]+) ([-\d.]+)\)(?: scale\(([\d.]+)\))?/.exec(tr),k=m&&m[3]?+m[3]:1;if(m)tr='translate('+m[1]+' '+(132-k*123.4).toFixed(1)+')'+(m[3]?' scale('+m[3]+')':'')}
   return'<g class="dog-'+(isA?'a':'b')+'" transform="'+tr+'">'+g+'</g>'};
