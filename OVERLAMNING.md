@@ -2,7 +2,7 @@
 
 Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs relevant kod/PR vid behov.
 
-## Mindre lagg i hundbilden · ht-v254 (publicerat 2026-11-03, ångra-gren `version-fore-lagg-hundbild`)
+## Mindre lagg i hundbilden · ht-v254 (PR väntar på Henriks ”Pusha”; ångra-gren `version-fore-lagg-hundbild` skapas före sammanslagning)
 
 - Claude, gren `claude/project-thread-go9p6p`. Henrik upplevde animationerna som laggiga efter hundbilden (ht-v249–v253).
 - Orsak (mätt, `verktyg/emu/lagg.js`): på telefonen (inget `gpuLager`) målas hela SVG:n om varje bildruta när något i den rör sig. Hundarnas andning/huvudvickning låg i samma SVG som marken med ~130 grässtrån, och de fallande löven i samma SVG som träd, ~165 grästuvor och pölens oskärpefilter. Målningen hade fördubblats sedan ht-v248.
