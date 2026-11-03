@@ -2,6 +2,13 @@
 
 Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs relevant kod/PR vid behov.
 
+## Pågår: hundbilden (Geometrisk) · ht-v249, väntar på Henriks gräsval och ”Pusha”
+
+- Claude, gren `claude/project-thread-xqrsql` (PR mot main). Henriks lista 2026-11-03: naturligare gräs (3 förslag), hundar som andas/vickar huvudet i osynk, fler löv på marken när kronan glesnar, pannrynkor på ljusa hunden, telefonens text bakom bilden.
+- Byggt: `geoTuva` (varje tuva egna strån; förslag via `ht.gras` a/b/c, `GRAS`, standard a); `geoLovMark` (löv = 1 − kronans täthet, färg från när lövet föll, ruttnar bort till mitten av dec); `GEO_NACKE`/`.geo-huvud` (huvudet eget lager som vickar runt hakan), `.geo-andas` (mjukt maskad rygg i sömnen), olika takt per hund (`geo-a`/`geo-b`); `geoRynkor`/`GEO_OGON` (ej under mössa). Telefon UI2: `.hero>.hero-facts` under bilden (`lo` i heroHtml).
+- Nästa steg: när Henrik valt gräs, ta bort de två andra grenarna i `geoTuva` och `GRAS`/`ht.gras`, höj version, ångra-gren, slå ihop.
+- Test: alla-flikar telefon/vägg gröna, vader-gpu vägg dag/natt (≤58 bildpunkter), `verktyg/emu/hundbild.js`.
+
 ## Release: gräsmark av rundlar · ht-v245
 
 - Codex, `codex/vader-grasrundlar`. Henrik godkände `grasmark-rundlar-forslag.png` med ”Bra! Pusha” 2026-11-01. De stora böljande lagren ersätts i Geometrisk av en sammanhängande gräsyta av överlappande rundlar, med utlöpare och fristående små fläckar.
