@@ -2,6 +2,14 @@
 
 Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs relevant kod/PR vid behov.
 
+## Release: hundbilden (Geometrisk) · ht-v250
+
+- Claude, PR #63 (`claude/project-thread-xqrsql`). Henrik 2026-11-03: ”C är bäst … pusha så får vi se”. Ångra-gren `version-fore-hundbild-20261103`.
+- Gräs: `geoTuva` (val C, låga tuvor av egna strån, fler och mindre). Löv på marken `geoLovMark` (1 − kronans täthet). Pannrynkor `geoRynkor`/`GEO_OGON`. Sömnandning `.geo-andas` (Henrik: ok).
+- Huvudvickning `.geo-huvud`/`GEO_NACKE`: Henrik tyckte den såg konstig ut (”man såg ett flygande ett tag”); vinklarna minskade till ≈2° och lugnare. Följ upp hans omdöme på telefonen; ta bort eller ändra om han fortfarande ogillar.
+- Telefon UI2: sol/namnsdag (`.hero>.hero-facts`) under bilden, klädtipset 14 px under bilden.
+- Test: alla-flikar telefon/vägg, vader-gpu vägg dag/natt (≤40 bildpunkter), `verktyg/emu/hundbild.js`.
+
 ## Release: gräsmark av rundlar · ht-v245
 
 - Codex, `codex/vader-grasrundlar`. Henrik godkände `grasmark-rundlar-forslag.png` med ”Bra! Pusha” 2026-11-01. De stora böljande lagren ersätts i Geometrisk av en sammanhängande gräsyta av överlappande rundlar, med utlöpare och fristående små fläckar.
