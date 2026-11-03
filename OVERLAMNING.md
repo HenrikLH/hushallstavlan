@@ -15,6 +15,7 @@ Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs 
 - Gräs: `geoTuva` (val C, låga tuvor av egna strån, fler och mindre). Löv på marken `geoLovMark` (1 − kronans täthet). Pannrynkor `geoRynkor`/`GEO_OGON`. Sömnandning `.geo-andas` (Henrik: ok).
 - Huvudvickning `.geo-huvud`/`GEO_NACKE`: Henrik tyckte den såg konstig ut (”man såg ett flygande ett tag”); vinklarna minskade till ≈2° och lugnare. Följ upp hans omdöme på telefonen; ta bort eller ändra om han fortfarande ogillar.
 - Telefon UI2 (ht-v251): raden `.hero-fot` under bilden: sol/namnsdag nere till vänster (längsta sist), klädtipset nere till höger (Henriks önskan).
+- Vägg (ht-v253): Geometriska bilden var bredare än rutan (träd/mark/solbana klipptes, även före ht-v250). `.hero.art-geo .hero-pic` skalas 0,77 och centreras.
 - Test: alla-flikar telefon/vägg, vader-gpu vägg dag/natt (≤40 bildpunkter), `verktyg/emu/hundbild.js`.
 
 ## Release: gräsmark av rundlar · ht-v245
