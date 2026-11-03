@@ -3588,13 +3588,15 @@ const grassV=()=>wallBoardOn()?'a':GRASS_V;
 function heroHtml(){const n=new Date(),t=today(),dy=EXT.day&&EXT.day.date===t?EXT.day:null,hh=n.getHours(),W=wxModel(),P=WX_POS();
  const greet=hh<5?'God natt':hh<10?'God morgon':hh<17?'Hej':hh<22?'God kväll':'God natt';
  const sun=sunTimes(t,P.lat,P.lon);
- let wx='';
- if(W){const[ic,tx]=symInfo(W.now.s),d0=W.days[0]||{},F=wxToday(W);
+ let wx='',tipT='';
+ // telefonen (UI2): klädtipset står i raden under bilden, längst ner till höger
+ const tipLo=!wallBoardOn()&&!U3&&!U4;
+ if(W){const[ic,tx]=symInfo(W.now.s),d0=W.days[0]||{},F=wxToday(W);tipT=(F.when==='i morgon'?'I morgon: ':'')+F.tip;
   const wb=wallBoardOn(),gs='<div class="gs '+grassV()+(wb?' wb':'')+'">'+(grassV()==='a'?(wb&&!U3?skyFx(W):'')+arcHtml(W,'a'):'')+(BAKGRUND?backdropSvg(wxScene(W)):'')+'<div class="fig-box grass" aria-hidden="true">'+figSvg(wxScene(W),{bare:1,patch:1,nocl:grassV()==='b'&&heroSky()||wb&&!U3})+'</div>'+fogMist(W)+'</div>';
   wx='<button class="hero-wx'+(wb&&grassOn()?' wbt':'')+'" data-act="nav" data-id="vader" aria-label="Väder: '+esc(tx)+', '+deg(W.now.T)+'. Öppna vädret">'+
    '<div class="wx-now"><span class="wx-ic" aria-hidden="true">'+ic+'</span><span class="wx-t num">'+deg(W.now.T)+'</span></div>'+
    '<div class="fn">'+esc(tx)+'</div><div class="fn num">H:'+deg(d0.max)+' L:'+deg(d0.min)+'</div>'+
-   (grassOn()&&!wb?gs:'')+(grassOn()?'':'<div class="fig-box" aria-hidden="true">'+figSvg(wxScene(W),{bare:1})+'</div>')+'<div class="fig-tip">'+esc((F.when==='i morgon'?'I morgon: ':'')+F.tip)+'</div></button>'+
+   (grassOn()&&!wb?gs:'')+(grassOn()?'':'<div class="fig-box" aria-hidden="true">'+figSvg(wxScene(W),{bare:1})+'</div>')+(tipLo?'':'<div class="fig-tip">'+esc(tipT)+'</div>')+'</button>'+
    // väggtavlan: vädret uppe till höger, bilden längst ner ovanför regnraden
    (grassOn()&&wb?'<button class="hero-pic" data-act="nav" data-id="vader" aria-label="Öppna vädret">'+gs+'</button>':'')}
  const ny=!wallBoardOn(),facts=ny?[]:['Vecka '+isoWeek(n)];
@@ -3603,7 +3605,7 @@ function heroHtml(){const n=new Date(),t=today(),dy=EXT.day&&EXT.day.date===t?EX
  const nd=dy&&dy.names.length?'Namnsdag: '+dy.names.join(', '):'',so=sun?'Sol '+hhmm(sun[0])+'–'+hhmm(sun[1]):'';
  (ny?[so,nd]:[nd,so]).filter(Boolean).forEach(f=>facts.push(f));
  // telefonen: bilden breder ut sig under vänsterspalten, så sol- och namnsdagsraden står under bilden i stället för bakom marken
- const lo=ny&&wx&&!U3&&!U4,fh='<div class="hero-facts">'+facts.map(f=>'<span>'+esc(f)+'</span>').join('')+'</div>';
+ const lo=ny&&wx&&!U3&&!U4,fh=lo?'<div class="hero-fot"><div class="hero-facts">'+facts.slice().sort((a,b)=>a.length-b.length).map(f=>'<span>'+esc(f)+'</span>').join('')+'</div>'+(tipT?'<button class="fig-tip" data-act="nav" data-id="vader">'+esc(tipT)+'</button>':'')+'</div>':'<div class="hero-facts">'+facts.map(f=>'<span>'+esc(f)+'</span>').join('')+'</div>';
  return'<section class="hero'+wxArtClass()+(wx?' has-wx':'')+(W&&grassOn()&&grassV()==='b'&&heroSky()?' has-sky':'')+'">'+(W?(grassOn()?(grassV()==='b'?(heroSky()?skyFx(W):'')+arcHtml(W,'b'):''):skyHtml(W)):'')+'<div class="hero-l"><div class="clock num" id="clock">'+pad(hh)+':'+pad(n.getMinutes())+'</div><div class="hero-date">'+esc(cap(dayHead(t)))+'</div>'+(ny?'<div class="hero-date">Vecka '+isoWeek(n)+'</div>':'')+
   '<div class="hero-greet">'+greet+(S.me?', '+esc(personLabel(S.me)):'')+'!</div>'+(lo?'':fh)+'</div>'+wx+(lo?fh:'')+(W&&!wallBoardOn()?ovWx(W):'')+'</section>'}
 async function loadExt(){const t=today();let changed=await loadWx();if(await loadPast())changed=true;
