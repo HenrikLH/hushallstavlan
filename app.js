@@ -3181,19 +3181,12 @@ function treeStage(t){const d=parse(t),y=d.getFullYear(),doy=Math.round((d-new D
    på y=175 och plätten med hundarna står i den högra delen (x 80-220). */
 // Sammanhängande gräsmark av rundlar, med uttoning bara längs den oregelbundna ytterkanten.
 // Grästuvor i Geometrisk: varje tuva byggs av egna strån (antal, längd, lutning och ton efter platsen), så att ingen tuva är en kopia.
-// Förslag (ht.gras, tills Henrik valt): a = platta blad i olika former, b = smala strån med vippor sommar/höst, c = låga mjuka tuvor, fler och mindre.
-const GRAS=['a','b','c'].includes(lsGet('gras'))?lsGet('gras'):'a';
+// Henriks val C (2026-11-03): låga mjuka tuvor, fler och mindre.
 function geoTuva(x,y,z,c,seed,ss){const q=k=>geoQ(seed*3.17+x*.71+y*.37+k),f=v=>v.toFixed(1),dk=shadeHex(c,.74),lt=mixHex(c,'#D5ED9A',.4);
- const blad=(bx,len,lean,w,col)=>{const tx=bx+lean,ty=-len;return'<path d="M'+f(bx-w/2)+' 0Q'+f(bx-w*.3+lean*.25)+' '+f(-len*.55)+' '+f(tx)+' '+f(ty)+'Q'+f(bx+w*.45+lean*.35)+' '+f(-len*.5)+' '+f(bx+w/2)+' 0Z" fill="'+col+'"/>'};
- let h='',n;
- if(GRAS==='b'){n=5+Math.floor(q(1)*5);const vipp=/summer|autumn1|autumn2/.test(ss||'');
-  for(let i=0;i<n;i++){const u=n>1?i/(n-1)-.5:0,len=9+q(i+2)*14,lean=u*14+(q(i+20)-.5)*8,w=1.4+q(i+40)*1.1,col=[c,dk,lt,c][Math.floor(q(i+60)*4)];h+=blad(u*7+(q(i+80)-.5)*3,len,lean,w,col);
-   if(vipp&&q(i+100)<.22){const tx=u*7+lean,ty=-len;h+='<g fill="'+mixHex(lt,'#E8D79A',.5)+'">'+[0,1,2].map(j=>'<ellipse cx="'+f(tx+lean*.04*j)+'" cy="'+f(ty-1.6-j*2.1)+'" rx="1" ry="1.6"/>').join('')+'</g>'}}}
- else if(GRAS==='c'){n=7+Math.floor(q(1)*5);
-  for(let i=0;i<n;i++){const u=n>1?i/(n-1)-.5:0,len=(5+q(i+2)*6)*(1-Math.abs(u)*.8),lean=u*18+(q(i+20)-.5)*5,w=2.6+q(i+40)*1.6;h+=blad(u*14,len,lean,w,i%2?dk:c)}
-  h='<ellipse cx="0" cy="0" rx="9" ry="1.6" fill="'+dk+'" opacity=".55"/>'+h+blad((q(90)-.5)*6,7+q(91)*4,(q(92)-.5)*6,2.4,lt)}
- else{n=3+Math.floor(q(1)*4);const sp=8+q(2)*10;
-  for(let i=0;i<n;i++){const u=n>1?i/(n-1)-.5:0,len=8+q(i+3)*10-(Math.abs(u)*4),lean=u*sp*2+(q(i+30)-.5)*6,w=3.2+q(i+50)*2.6,col=q(i+70)<.45?dk:q(i+70)>.85?lt:c;h+=blad(u*9+(q(i+90)-.5)*3,len,lean,w,col)}}
+ const blad=(bx,len,lean,w,col)=>'<path d="M'+f(bx-w/2)+' 0Q'+f(bx-w*.3+lean*.25)+' '+f(-len*.55)+' '+f(bx+lean)+' '+f(-len)+'Q'+f(bx+w*.45+lean*.35)+' '+f(-len*.5)+' '+f(bx+w/2)+' 0Z" fill="'+col+'"/>';
+ const n=7+Math.floor(q(1)*5);let h='<ellipse cx="0" cy="0" rx="9" ry="1.6" fill="'+dk+'" opacity=".55"/>';
+ for(let i=0;i<n;i++){const u=i/(n-1)-.5,len=(5+q(i+2)*6)*(1-Math.abs(u)*.8),lean=u*18+(q(i+20)-.5)*5,w=2.6+q(i+40)*1.6;h+=blad(u*14,len,lean,w,i%2?dk:c)}
+ h+=blad((q(90)-.5)*6,7+q(91)*4,(q(92)-.5)*6,2.4,lt);
  const fl=q(5)<.5?-1:1;return'<g class="geo-tuft" transform="translate('+f(x)+' '+f(y)+') scale('+(fl*z).toFixed(2)+' '+z.toFixed(2)+')">'+h+'</g>'}
 function geoGroundSvg(sc,id,ss,snow,g1,g2){const wet=/^(drizzle|rain|sleet)$/.test(sc.type)||sc.thunder,frost=!snow&&sc.T<0;
  let C=snow>=2?['#EEF4FB','#FFFFFF','#D7E5F2','#B6CCDE']:ss==='summer'?['#8CCB70','#A7DA79','#68B66C','#489967']:[mixHex(g1,'#B7C79C',.2),mixHex(g1,'#E5EDAF',.34),mixHex(g1,g2,.45),g2];
@@ -3206,7 +3199,7 @@ function geoGroundSvg(sc,id,ss,snow,g1,g2){const wet=/^(drizzle|rain|sleet)$/.te
  h+='<defs>'+T.map(soft).join('')+'</defs>'+[[[22,153,37,7],[103,158,39,8],[200,169,37,6]],[[7,166,38,7],[66,169,45,9],[143,174,64,11],[214,178,41,8]],[[39,175,35,5],[95,181,39,6],[174,181,52,6]]].map((A,k)=>'<g fill="url(#'+id+'pg'+k+')">'+A.map(ellipse).join('')+'</g>').join('')+'</g>';
  h+=[[-24,181,5,1.8],[-6,188,7,2.1],[20,184,3,1.2],[43,190,6,1.8],[66,186,3.5,1.1],[93,192,5,1.5],[119,190,2.5,.9],[219,190,7,1.8],[250,170,4,1.4],[250,188,3,1.2],[70,146,4,1.2],[-18,150,3,1.1]].map((A,i)=>'<g fill="'+C[i%3?0:2]+'" opacity=".7">'+ellipse(A)+'</g>').join('');
  if(snow<2){const c=frost?'#B3CDD0':ss==='summer'?'#32876A':g2,d=frost?'#8DAFB6':ss==='summer'?'#22675C':shadeHex(g2,.75);
- h+=[[2,165,.5],[55,168,.6],[82,179,.48],[22,178,.45],[119,162,.4],[219,181,.5]].concat(GRAS==='c'?[[-30,170,.4],[36,160,.32],[100,172,.36],[160,166,.34],[190,178,.42],[240,172,.3],[66,182,.3],[8,184,.34]]:[]).map(([x,y,k],i)=>geoTuva(x,y,k,i%3?d:c,i*11+x,ss)).join('')}
+ h+=[[2,165,.5],[55,168,.6],[82,179,.48],[22,178,.45],[119,162,.4],[219,181,.5]].concat([[-30,170,.4],[36,160,.32],[100,172,.36],[160,166,.34],[190,178,.42],[240,172,.3],[66,182,.3],[8,184,.34]]).map(([x,y,k],i)=>geoTuva(x,y,k,i%3?d:c,i*11+x,ss)).join('')}
  // lite snö: vita fläckar som blir fler och större med snödjupet (0,5–4 cm), tills marken blir helt vit
  if(snow===1){const cm=Math.max(.5,Math.min(4,snowDepth())),z=.6+cm*.12,n=Math.round(3+cm*2.2);
   h+='<g fill="#F4F8FD" opacity=".92">'+[[60,160,22,4],[150,168,26,5],[16,170,14,3],[104,176,18,3.4],[205,176,16,3],[34,156,12,2.6],[176,160,12,2.6],[84,184,14,2.6],[128,160,10,2.2],[230,183,10,2.2],[-4,180,10,2.4],[120,186,12,2]].slice(0,n).map(([x,y,rx,ry])=>ellipse([x,y,(rx*z).toFixed(1),(ry*z).toFixed(1)])).join('')+'</g>'}
