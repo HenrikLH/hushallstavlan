@@ -1882,8 +1882,10 @@ html.ny .ov>.smc{margin-top:12px}
 html.ny .hero-greet{display:none}
 html.ny body:not(:has(.board)) .hero-l{display:flex;flex-direction:column;padding-bottom:4px}
 html.ny body:not(:has(.board)) .hero-facts{margin-top:auto;padding-top:10px}
-html.ny body:not(:has(.board)) .hero>.hero-facts{grid-column:1/-1;flex-direction:row;flex-wrap:wrap;column-gap:16px;margin-top:8px;padding-top:0}
-html.ny body:not(:has(.board)) .hero.has-wx .hero-wx .gs+.fig-tip{margin-top:14px}
+/* telefonen: sol/namnsdag längst ner till vänster (längsta sist), klädtipset längst ner till höger, fritt från bilden */
+html.ny body:not(:has(.board)) .hero-fot{grid-column:1/-1;display:flex;align-items:flex-end;align-items:last baseline;justify-content:space-between;gap:12px;margin-top:14px}
+html.ny body:not(:has(.board)) .hero-fot .hero-facts{margin:0;padding:0;min-width:0}
+html.ny body:not(:has(.board)) .hero-fot .fig-tip{margin:0;max-width:44%;text-align:right;align-self:flex-end;background:none;border:0;padding:0;font:inherit;font-size:13px;line-height:16px;color:var(--ink-2)}
 html.ny .ny-smc .smc-t{flex-wrap:wrap;row-gap:10px}
 html.ny .ny-smc .smc-t .grow{flex-basis:100%}
 /* Väggen i ny design: lugn bakgrund, stora svarta rubriker i hela rutor */
@@ -2667,7 +2669,7 @@ html.ny.rymlig:not(.ui3):not(.ui4) :is(.btn-fill,.btn-tint,.pill,.fchips button)
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=240"></script>
+<script src="app.js?v=241"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
