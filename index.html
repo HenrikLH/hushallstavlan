@@ -421,6 +421,8 @@ body.wall .clock{display:block}
 .gs.a{padding-top:50px}.gs.b{padding-top:62px}
 .gs .fig-box{margin:0;position:relative;z-index:1}
 .gs>.bd{position:absolute;right:-10px;bottom:0;width:230px;height:190px;pointer-events:none;overflow:visible}
+/* de rörliga delarna (fallande löv, hundarna) i en egen SVG ovanpå den stilla bilden, så att den inte målas om varje bildruta */
+.fig.fig-lag{position:absolute;left:0;top:0}
 .bd-leaves>g{animation:bdFall 7s linear infinite;opacity:0}
 .bd-leaves .sw{animation:bdSway 2s ease-in-out infinite alternate}
 .bd-leaves path{transform-box:fill-box;transform-origin:center}
@@ -2670,7 +2672,7 @@ html.ny.rymlig:not(.ui3):not(.ui4) :is(.btn-fill,.btn-tint,.pill,.fchips button)
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=243"></script>
+<script src="app.js?v=244"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
