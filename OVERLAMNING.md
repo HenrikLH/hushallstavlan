@@ -2,6 +2,13 @@
 
 Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs relevant kod/PR vid behov.
 
+## Inköpslistan synkar mellan telefoner · ht-v252 (väntar på Henriks ”Pusha”)
+
+- Claude, gren `claude/project-thread-v8fy81` (PR, se GitHub). Ingen Kod.gs-ändring.
+- Orsak (återskapad med två enheter, `verktyg/emu/inkop-synk.js`): planSend skrev om listan utifrån den sändande telefonens gamla data, så den andras bockar och avbockade egna varor försvann. Veckovarornas id är plats i listan (`plan…-n`), så en bock från en telefon med gammal lista hamnade på fel vara.
+- Åtgärd i `flush`: arket hämtas före planSend och före första bocken på en veckovara per omgång; `planKopt` bockar av det köpta igen (samma vecka) och lägger tillbaka avbockade egna; `realId` slår upp veckovaror på namn (`it.nm`), borta = hoppas över. Följdbockarna i `shopImport` borttagna.
+- Test: inkop-synk (3 fel på main, grönt nu), alla-flikar telefon/vägg, matsedel-gester, inkop-kollaps, eko-spara.
+
 ## Release: hundbilden (Geometrisk) · ht-v250
 
 - Claude, PR #63 (`claude/project-thread-xqrsql`). Henrik 2026-11-03: ”C är bäst … pusha så får vi se”. Ångra-gren `version-fore-hundbild-20261103`.

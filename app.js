@@ -519,22 +519,34 @@ function platsVakt(a){if(platsFinns||!/^(planSend|shopDelete)$/.test(a))return;p
 function setData(d){if(d&&S.data&&d.serverTime&&S.data.serverTime&&d.serverTime<S.data.serverTime)return;if(d&&Array.isArray(d.shop)){if(d.shop.some(x=>x.name===PLATS))platsFinns=true;d.shop=d.shop.filter(x=>x.name!==PLATS)}if(d&&Array.isArray(d.menu))d.menu=d.menu.filter(m=>!(m&&!m.recipe&&/^ledig$/i.test(m.title||'')));if(d&&DEL.items&&Array.isArray(d.shop)){const ids=new Set(DEL.items.map(x=>x.id));d.shop=d.shop.filter(x=>!ids.has(x.id))}if(d&&CDEL.item&&Array.isArray(d.clean))d.clean=d.clean.filter(x=>x.id!==CDEL.item.id);S.data=d;if(window.MatVaror&&d&&d.settings)MatVaror.setPriser(parseJ(d.settings.priser,{}));S.lastSync=new Date();S.error='';try{lsSet('cache',JSON.stringify(d))}catch(e){}}
 async function apiGet(){
  const r=await fetch(CFG.api+'?key='+encodeURIComponent(S.key)+'&t='+Date.now(),{cache:'no-store'});
- const j=await r.json();if(!j.ok)throw new Error(j.error||'Okänt fel');return j.data}
+ const j=await r.json();if(!j.ok)throw new Error(j.error||'Okänt fel');lastServer=j.data;lastServerT=Date.now();return j.data}
 /* Ändringar sparas först i telefonen (utkorgen) och skickas sedan i tur och ordning.
    Utan nät ligger de kvar och skickas när nätet kommer tillbaka, så inget försvinner i butiken.
    Medan något klartr skrivs telefonens data inte över av äldre data från kalkylarket. */
 const OUTBOX=(()=>{try{const a=JSON.parse(lsGet('outbox')||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}})();
 S.pending=OUTBOX.length;
 const saveOutbox=()=>{lsSet('outbox',OUTBOX.length?JSON.stringify(OUTBOX):null);try{if(S.data)lsSet('cache',JSON.stringify(S.data))}catch(e){}};
-let flushing=false,lastServer=null;
+let flushing=false,lastServer=null,lastServerT=0;
 // En vara eller uppgift som lagts till utan nät har ett tillfälligt id; slå upp det riktiga i svaret från arket
-function realId(b){if(!/^tmp/.test(String(b.id||''))||!lastServer)return b.id;
+// Veckans varor får id efter plats i listan (plan…-3). Har en annan telefon uppdaterat varorna sedan dess pekar idt på en annan
+// vara, så idt kontrolleras mot varans namn i senaste svaret från arket. null = varan finns inte längre
+const shopNyck=x=>(String(x.name||'')+'|'+String(x.qty||'')).toLowerCase();
+const shopFlytt=b=>/^shop(Toggle|Delete)$/.test(b.action)&&/^(plan|rc-)/.test(String(b.id||''));
+function realId(b){if(b.nm&&lastServer&&/^shop(Toggle|Delete)$/.test(b.action)&&!/^tmp/.test(String(b.id||''))){const L=lastServer.shop||[],x=L.find(y=>y.id===b.id);if(x&&shopNyck(x)===b.nm)return b.id;
+  const nm=b.nm.split('|')[0],c=L.filter(y=>shopNyck(y)===b.nm),d=c.length?c:L.filter(y=>String(y.name||'').toLowerCase()===nm);const hit=d.find(y=>b.action!=='shopToggle'||!!y.done!==!!b.done)||d[0];return hit?hit.id:null}
+ if(!/^tmp/.test(String(b.id||''))||!lastServer)return b.id;
  const list=/^shop/.test(b.action)?lastServer.shop:/^task/.test(b.action)?lastServer.tasks:[],k=/^shop/.test(b.action)?'name':'title';
  const hit=list.filter(x=>x[k]===b.tmpName).pop();return hit?hit.id:b.id}
 async function flush(){
- if(flushing||!OUTBOX.length||!S.key)return;flushing=true;S.sync='busy';renderStatus();
+ if(flushing||!OUTBOX.length||!S.key)return;flushing=true;S.sync='busy';renderStatus();const start=Date.now();
  try{
-  while(OUTBOX.length){if(UPD.wait.has(OUTBOX[0]))break;const b=Object.assign({},OUTBOX[0]);b.id=realId(b);delete b.tmpName;
+  while(OUTBOX.length){if(UPD.wait.has(OUTBOX[0]))break;
+   // Före veckans varor skickas, och före första bocken på en veckovara i varje omgång, hämtas arket.
+   // Då vet telefonen vad den andra har bockat av, och vilket id varan har nu
+   const plan=OUTBOX[0].action==='planSend';let fore=null;
+   if(plan||shopFlytt(OUTBOX[0])&&lastServerT<start){try{fore=await Promise.race([apiGet(),new Promise((_,no)=>setTimeout(()=>no(new Error('tid')),20000))])}catch(e){if(!/hushållskod/i.test(e.message)){S.sync='offline';S.pending=OUTBOX.length;render();return}}}
+   const b=Object.assign({},OUTBOX[0]);b.id=realId(b);delete b.tmpName;delete b.nm;
+   if(b.id===null){OUTBOX.shift();S.pending=OUTBOX.length;saveOutbox();if(!OUTBOX.length){S.sync='idle';flushing=false;refresh(true);return}continue}
    let j;
    try{const r=await fetch(CFG.api,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign(b,{key:S.key,by:b.by!=null?b.by:S.me}))});j=await r.json()}
    catch(e){S.sync='offline';S.pending=OUTBOX.length;render();return}   // inget nät: försök igen senare
@@ -549,16 +561,26 @@ async function flush(){
     S.sync='busy';renderStatus();flushing=false;setTimeout(flush,1500*OUTBOX[0].kodForsok);return}
    OUTBOX.shift();S.pending=OUTBOX.length;saveOutbox();
    if(!j.ok){S.postErr=j.error||'fel';toast(/okänd åtgärd/i.test(j.error||'')?'Det här kräver att Kod.gs uppdateras på datorn först.':'Ändringen sparades inte: '+(j.error||'Okänt fel'));if(!OUTBOX.length){S.sync='idle';flushing=false;refresh(true);return}continue}
-   lastServer=j.data;
+   lastServer=j.data;lastServerT=Date.now();
+   if(plan&&fore&&j.data&&Array.isArray(j.data.shop))OUTBOX.unshift(...planKopt(b,fore,j.data));S.pending=OUTBOX.length;saveOutbox();
    if(!OUTBOX.length){if(!UPD.n)setData(j.data);S.sync='idle'}}
  }finally{flushing=false}
  render()}
+// Kalkylarket skriver om veckans varor som inte köpta och tar bort avbockade egna varor. Är det samma vecka bockas det som var köpt
+// i arket precis innan (även det den andra telefonen bockat av) av igen, och avbockade egna varor läggs tillbaka
+function planKopt(b,fore,efter){const st=fore.settings||{};if(st.vecka_start!==b.start)return[];
+ const L=efter.shop,kopt=new Set(fore.shop.filter(x=>x.done&&x.source!=='egen').map(shopNyck)),ut=[];
+ L.filter(x=>x.source!=='egen'&&!x.done&&kopt.has(shopNyck(x))).forEach(x=>ut.push({action:'shopToggle',id:x.id,done:true,nm:shopNyck(x),by:b.by}));
+ fore.shop.filter(x=>x.done&&x.source==='egen'&&x.name!==PLATS&&!L.some(y=>y.source==='egen'&&shopNyck(y)===shopNyck(x))).forEach((x,n)=>{const id='tmp'+Date.now()+'-k'+n;
+  ut.push({action:'shopAdd',name:x.name,qty:x.qty||'',cat:x.cat||'Övrigt',price:x.price==null?'':x.price,by:b.by},{action:'shopToggle',id,tmpName:x.name,done:true,by:b.by})});
+ return ut}
 if(OUTBOX.length)setTimeout(flush,800);
 function apiPost(body){
  if(!navigator.onLine&&body.action==='menuSwap'){toast('Kräver nät. Försök igen när du har täckning.');refresh(true);return Promise.resolve()}
  platsVakt(body.action);
  const it=Object.assign({},body,{by:S.me});
  if(/^tmp/.test(String(body.id||''))){const list=/^shop/.test(body.action)?D().shop:D().tasks,x=list.find(y=>y.id===body.id);if(x)it.tmpName=x.name||x.title}
+ else if(/^shop(Toggle|Delete)$/.test(body.action)&&!it.nm){const x=(DEL.list||[]).concat(D().shop).find(y=>y.id===body.id);if(x)it.nm=shopNyck(x)}
  OUTBOX.push(it);S.pending=OUTBOX.length;saveOutbox();renderStatus();
  return flush()}
 addEventListener('online',()=>flush());
@@ -1950,10 +1972,8 @@ function shopImport(tyst,o){o=o||{};
  // Recept från inspirationen eller receptbanken som saknas i kalkylarkets flik Recept skickas med
  const inSheet=new Set(D().recipes.map(r=>r.id)),recipes=o.force?[...new Set(rows.map(m=>m.recipe).filter(Boolean))].map(recipeById).filter(r=>r&&!inSheet.has(r.id)&&!isDessert(r)).slice(0,12).map(bankSnap):[];
  apiPost({action:'planSend',start:vs,end:ve,menu:rows.map(m=>({date:m.date,who:m.who,title:m.title,recipe:m.recipe||'',addon:m.addon||'',note:m.note||''})),shop,recipes,lager:lagerUt(vs,korg.rest),settings:o.settings||{}});
- // Kalkylarket skriver om alla veckans varor som inte köpta, så de köpta bockas av igen
- S.data.shop.forEach(i=>{if(i.done&&i.source==='veckoplan')apiPost({action:'shopToggle',id:i.id,done:true})});
- // Kalkylarket tar bort avbockade egna varor när veckans varor skickas, så de läggs tillbaka avbockade
- egna.filter(i=>i.done).forEach((i,n)=>{i.id='tmp'+Date.now()+'-k'+n;apiPost({action:'shopAdd',name:i.name,qty:i.qty||'',cat:i.cat||'Övrigt',price:i.price==null?'':i.price});apiPost({action:'shopToggle',id:i.id,done:true})})}
+ // Det som är köpt bockas av igen och avbockade egna varor läggs tillbaka i flush (planKopt), utifrån arket precis före sändningen
+}
 function shopRow(i){return'<div class="dr-wrap"><button class="dr-act del" data-act="shopDel" data-full="shopDel" data-id="'+esc(i.id)+'" aria-label="Ta bort '+esc(i.name)+'">'+I.trash+'<span>Ta bort</span></button>'+shopRowIn(i).replace('<div class="cell ck','<div class="cell dr-slide ck')+'</div>'}
 function shopRowIn(i){const chips=(i.offer?'<span class="chip offer">'+esc(i.store||'Erbjudande')+'</span>':'')+(i.meals||[]).map(m=>'<span class="chip">'+esc(m)+'</span>').join('')+(i.source==='egen'&&i.addedBy?'<span class="chip">'+esc(i.addedBy)+'</span>':'');
  return'<div class="cell ck'+(i.done?' done':'')+'"><input type="checkbox" class="check" data-act="shopToggle" data-id="'+esc(i.id)+'" aria-label="'+esc(i.name)+'"'+(i.done?' checked':'')+'><button class="grow rowbtn" data-act="shopToggle" data-id="'+esc(i.id)+'"><div class="title">'+esc(i.name)+'</div>'+((i.qty||chips)?'<div class="meta">'+(i.qty?'<span>'+esc(i.qty)+'</span>':'')+chips+'</div>':'')+'</button>'+(i.price?'<span class="val">'+kr(i.price)+'</span>':'<span class="val nopris">prisuppgift saknas</span>')+'</div>'}
