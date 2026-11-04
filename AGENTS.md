@@ -2,6 +2,8 @@
 
 Gemensam grund för Codex och Claude Code (via `CLAUDE.md`). Läs hela filen och `OVERLAMNING.md` när du tar över eller börjar en ny session. I samma session räcker det att läsa det som ändrats. Arbetsrutinen står i avsnitt 7.
 
+**Rutiner som skills:** stegen för att ta över, förhandsvisa och publicera ligger i `.claude/skills/hushallstavlan-ta-over/`, `hushallstavlan-forhandsvisa/` och `hushallstavlan-publicera/` (`SKILL.md`). Claude Code läser dem automatiskt när de behövs; Codex och andra agenter läser filen när avsnittet nedan hänvisar dit. Ändra rutinen i skill-filen, inte på två ställen.
+
 Om något här säger emot det Henrik skriver till dig gäller Henriks ord. Uppdatera då filen i samma ändring så att nästa agent vet.
 
 ---
@@ -59,21 +61,11 @@ Telefon / väggskärm (PWA)  ──GET/POST──▶  Google Apps Script-webbapp
 
 ## 4. Versioner och publicering (gör så här varje gång)
 
-Varje ändring som ska ut till användarna:
+Följ `.claude/skills/hushallstavlan-publicera/SKILL.md` steg för steg. Det viktigaste:
 
-1. Jobba på en egen gren, aldrig direkt på `main`.
-2–3. Kör `node verktyg/version.js`. Det hämtar och slår ihop `origin/main`, löser krockar som bara gäller versionsnummer och höjer allt nedan ett steg över main. Stannar det på en riktig krock: lös den, `git add`, kör `node verktyg/version.js --utan-merge`. Skriptet gör detta (för hand om det inte går):
-   - `git fetch origin main && git merge origin/main` precis före höjningen (andra agenter pushar ofta).
-   - Versionen alltid **ett steg över det som nu finns på main**:
-     - `sw.js`: `const VERSION = 'ht-vNNN'`
-     - `index.html` **och** `sw.js` (listan `SHELL`): `app.js?v=NNN`. Höj den även om bara CSS i `index.html` ändrats, annars laddar väggskärmen inte om.
-     - Har du ändrat `matvaror.js`, `kottveg.js`, `matpoang.js`, `restpoang.js` eller `config.js`: höj deras `?v=` på samma två ställen.
-4. Skriv versionen i commit-meddelandet, till exempel `Inköp: håll in för att tömma (ht-v170)`.
-5. Skapa ångra-grenen `version-fore-<namn>` från nuvarande `main`, slå ihop, pusha.
-6. Kontrollera att GitHub Actions-jobbet "pages build and deployment" faktiskt körde och blev grönt. Det har hänt att en push aldrig byggdes.
-7. Uppdatera aktuell status i `OVERLAMNING.md` och ta bort lösta punkter (se avsnitt 7). Dokumentation/testverktyg kräver ingen appversionshöjning.
-
-Krockar i `sw.js`/`index.html` vid sammanslagning: ta det högsta numret från båda sidor och lägg på ett.
+- Jobba på egen gren, aldrig direkt på `main`. Kör `node verktyg/version.js` precis före publicering (merge av `origin/main` + versionshöjning ett steg över main: `ht-vNNN` i `sw.js`, `app.js?v=` i `index.html` och `sw.js`, även vid bara CSS-ändring).
+- Ångra-gren `version-fore-<namn>` från `main` före sammanslagning, versionen i commit-meddelandet, kontrollera att "pages build and deployment" blev grönt, uppdatera `OVERLAMNING.md`.
+- Krockar i `sw.js`/`index.html`: högsta numret från båda sidor plus ett. Dokumentation/testverktyg kräver ingen appversionshöjning.
 
 ## 5. Apps Script (Kod.gs)
 
@@ -96,7 +88,7 @@ Playwright installeras med `npm install --no-save playwright && npx playwright i
 
 Om Chromium inte kan installeras lokalt: använd `.github/workflows/emu.yml` i PR:en. Den installerar webbläsaren och kör telefon/vägg × ljust/mörkt; bilder sparas i sju dagar. Kontrollera jobbresultaten. Rena dokumentations-PR:er hoppar över röktestet.
 
-Skärmbilder hamnar i `verktyg/emu/shots/` (ignoreras av git). Röktestet klickar på riktiga knappar och skriptet avslutas med kod 1 om sidan kraschar, en knapp saknas eller scenariot kastar fel (`SCENARIO FAIL`). Egna scenarier är en modul `async (pg, h) => {}`; se `lib.js` och `alla-flikar.js`. Miljövariabler: `NOW` (låtsasdatum), `THEME` (`light`/`dark`), `LS` (localStorage som JSON utan `ht.`-prefix), `SLOW` (ms fördröjning per anrop), `CHROMIUM` (sökväg till webbläsare), `VP` (fönsterstorlek, till exempel `1368x912`; utan den används telefon 390×844). Väder från api.met.no fejkas; `data.js` är en ögonblicksbild av arket från 2026-10-18.
+Röktestet klickar på riktiga knappar och avslutas med kod 1 om sidan kraschar, en knapp saknas eller scenariot kastar fel (`SCENARIO FAIL`). Egna scenarier, miljövariabler (`NOW`, `THEME`, `LS`, `SLOW`, `CHROMIUM`, `VP`, väder) och skärmbilder: se `.claude/skills/hushallstavlan-forhandsvisa/SKILL.md`. Väder från api.met.no fejkas; `data.js` är en ögonblicksbild av arket från 2026-10-18.
 
 Före publicering av appändringar (lokalt eller i CI):
 
@@ -134,9 +126,9 @@ Claude och Codex ser inte varandras samtal. **Repot är gemensamt minne.** Henri
 
 Kvaliteten ska vara densamma; det är läsandet som ska bli mindre.
 
-- **Läs aldrig hela `app.js`, `index.html` eller `Kod.gs`.** Börja med `node verktyg/karta.js` (avsnitt med radintervall) eller `node verktyg/karta.js <namn>` (var en funktion, `V.x` eller `ACT.x` definieras; `-r` visar även var den används). Läs sedan bara det intervallet med offset/limit, och grep efter klassnamn i CSS:en.
+- **Läs aldrig hela `app.js`, `index.html` eller `Kod.gs`.** Använd `node verktyg/karta.js [namn] [-r]` och `node verktyg/rutor.js <ruta>` och läs bara det intervallet (se `.claude/skills/hushallstavlan-ta-over/SKILL.md`).
 - Läs inte samma intervall igen i samma session om filen inte ändrats. Kör `git diff`/`git log -p -- <fil>` för att se vad andra ändrat i stället för att läsa om.
-- **Skärmbilder:** låt scenariot kontrollera med text (finns elementet, rätt text, ingen PAGEERROR). Titta själv bara på de bilder som behövs för att bedöma utseendet. Visa Henrik 1–2 bilder per visuell ändring (telefon, och vägg om den berörs; mörkt läge bara om ändringen påverkar färger) och fler först när han ber om det. Alternativ A/B/C: en bild per alternativ.
+- **Skärmbilder:** låt scenariot kontrollera med text och titta bara på de bilder som behövs. Visa Henrik 1–2 bilder per visuell ändring, en per alternativ vid A/B/C (se skill `hushallstavlan-forhandsvisa`).
 - Små rättningar (en rad, en färg, en text) kräver inget fullt röktest i båda lägen om den berörda vyn testas; ange vad som testades.
 - En uppgift per tråd/session. Avsluta när den är publicerad och starta en ny för nästa sak, så att gammalt sammanhang inte följer med.
 
