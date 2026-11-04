@@ -2,6 +2,13 @@
 
 Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs relevant kod/PR vid behov.
 
+## Mindre lagg i hundbilden · ht-v254 (PR #65, publicerat 2026-11-04 efter Henriks ”Pusha”, ångra-gren `version-fore-lagg-hundbild`)
+
+- Claude, gren `claude/project-thread-go9p6p`. Henrik upplevde animationerna som laggiga efter hundbilden (ht-v249–v253).
+- Orsak (mätt, `verktyg/emu/lagg.js`): på telefonen (inget `gpuLager`) målas hela SVG:n om varje bildruta när något i den rör sig. Hundarnas andning/huvudvickning låg i samma SVG som marken med ~130 grässtrån, och de fallande löven i samma SVG som träd, ~165 grästuvor och pölens oskärpefilter. Målningen hade fördubblats sedan ht-v248.
+- Åtgärd: `figSvg` (gräsplätt) delar sig vid marken: stilla mark i första SVG:n, hundar/nederbörd i `svg.fig.fig-lag` ovanpå (absolut i `.fig-box`). `backdropSvg` lägger de fallande löven i en egen `svg.bd.bd-lag` ovanpå. Id/defs ligger kvar i första SVG:n (refereras över SVG-gränsen). Undvik att lägga nya rörliga delar i de stilla SVG:erna.
+- Resultat: målning 40 → 20 ms/s (CPU×1), 200 → 130 ms/s (CPU×6), lägre än före ht-v249. Bilden pixellik (bara kantutjämning). Test: alla-flikar tel/vägg, vader-bildstilar, vader-gpu vägg dag/natt (samma som main), hundbild.js. Henrik bör känna efter på iPhone.
+
 ## Inköpslistan synkar mellan telefoner · ht-v252 (publicerat 2026-11-03, ångra-gren `version-fore-inkop-synk`)
 
 - Claude, PR #64. Henrik: ”Pusha” 2026-11-03. Ingen Kod.gs-ändring. Följ upp om Henrik ser fler synkfel.

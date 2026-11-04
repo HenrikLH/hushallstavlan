@@ -3284,8 +3284,10 @@ function backdropSvg(sc){const id='bd'+(++FIG_N),ss=grassSeason(today()),snow=sn
  if(T.ground&&snow<2){const G=[[TX-20,TY+4],[TX+14,TY+6],[TX+30,TY+3],[TX-6,TY+8],[TX-30,TY+7],[TX+22,TY+9],[TX+4,TY+3],[TX-14,TY+10],[TX+38,TY+7],[TX-38,TY+3]],gc=T.gc||[L1,L2];
   t+=G.slice(0,Math.round(10*T.ground)).map(([x,y],i)=>'<path d="M'+x+' '+y+' q2 -1.4 4 0 q-2 1.4 -4 0Z" fill="'+gc[i%2]+'" transform="rotate('+Math.round(rnd(i+50)*80-40)+' '+(x+2)+' '+y+')"/>').join('')}
  if(geo)t=geoTreeSvg(sc,id,T,near)+leaves;
- g+='<g opacity=".92">'+t+'</g>';
- return'<svg class="bd'+wxArtClass()+(geo?' geo-components':'')+'" data-season="'+ss+'" data-snow="'+snow+'" viewBox="0 0 230 190" aria-hidden="true">'+s+(sc.dark?'<g filter="url(#'+id+'n)">'+g+'</g>':g)+'</svg>'}
+ // de fallande löven ritas i en egen SVG ovanpå: annars målas träd, gräs och mark om varje bildruta medan löven faller (lagg i telefonen)
+ if(leaves)t=t.replace(leaves,'');
+ g+='<g opacity=".92">'+t+'</g>';const nt=x=>sc.dark?'<g filter="url(#'+id+'n)">'+x+'</g>':x,hd='<svg class="bd'+wxArtClass()+(geo?' geo-components':'')+'" data-season="'+ss+'" data-snow="'+snow+'" viewBox="0 0 230 190" aria-hidden="true"';
+ return hd+'>'+s+nt(g)+'</svg>'+(leaves?hd.replace('class="bd','class="bd bd-lag')+'>'+nt('<g opacity=".92">'+leaves+'</g>')+'</svg>':'')}
 function figSvg(sc,o){o=o||{};const id='fg'+(++FIG_N),ph=sc.phase,dark=sc.dark,warmL=ph==='dawn'||ph==='golden';
  const wet=/^(drizzle|rain|sleet)$/.test(sc.type),snow=sc.type==='snow',sleet=sc.type==='sleet',lv=sc.lv;
  const sunC=warmL?'#FFB877':'#FFE7A3',sunD=warmL?'#FF9F5A':'#FFD666';
@@ -3329,6 +3331,8 @@ function figSvg(sc,o){o=o||{};const id='fg'+(++FIG_N),ph=sc.phase,dark=sc.dark,w
  const terrain=x=>dark?'<g filter="url(#'+id+'n)">'+x+'</g>':warmL?'<g filter="url(#'+id+'w)">'+x+'</g>':x,flt=x=>WXART==='geo'?x:terrain(x),gp=o.patch?grassPatch(sc,id):null;
  if(gp)s+=(WXART==='geo'?'<g class="geo-ground">':'')+terrain(gp.back)+(WXART==='geo'?'</g>':'');
  else if(!o.nodogs)s+='<ellipse cx="'+(sc.sunUp&&!covered?85+(.5-sc.f)*24:85)+'" cy="125" rx="62" ry="5" fill="url(#'+id+'s)"/>';
+ // Marken ritas i en egen SVG under hundarna: annars målas hela gräset om varje bildruta när hundarna andas (lagg i telefonen)
+ const cut=gp&&!o.nodogs?s.length:0;
  if(gp);else if(snow&&(lv>=2||sc.T<=0))s+='<path d="M0 127 Q30 114 70 118 Q110 113 170 125 V131 H0Z" fill="url(#'+id+'d)"/><path d="M8 124 Q40 117 70 119" stroke="#fff" stroke-width="1.4" fill="none" stroke-linecap="round" opacity=".9"/>';
  else if(sc.T<0)s+='<path d="M10 126 Q85 119 160 126" stroke="#BFD6F2" stroke-width="2.2" fill="none" stroke-linecap="round" opacity=".8"/>';
  if(!gp&&(wet&&sc.type!=='drizzle'||sc.thunder)&&lv>=2&&sc.T>0)s+='<g class="fx-pud"><ellipse cx="20" cy="127" rx="15" ry="2.4" fill="#8FC4F0" opacity=".35"/><ellipse cx="152" cy="128" rx="13" ry="2.2" fill="#8FC4F0" opacity=".35"/>'+
@@ -3359,7 +3363,8 @@ function figSvg(sc,o){o=o||{};const id='fg'+(++FIG_N),ph=sc.phase,dark=sc.dark,w
   s+='<g class="fx-snow" fill="#FFFFFF" stroke="#9DB4D3" stroke-width=".6">'+fall(n,(x,k)=>'<circle cx="'+x.toFixed(1)+'" cy="'+(6+rnd(k+30)*12).toFixed(1)+'" r="'+(sleet?1.3+rnd(k)*.8:1.4+rnd(k+3)*1.5).toFixed(1)+'" style="--dx:'+dx+'px;animation-duration:'+dur.toFixed(2)+'s;animation-delay:-'+(rnd(k+17)*dur).toFixed(2)+'s"/>')+'</g>';
   if(snow&&lv>=2)s+='<g class="fx-flakes" stroke="#FFFFFF" stroke-width="1.1" stroke-linecap="round">'+[[40,.4],[128,2.1],[86,3.2]].map(([x,d])=>'<g style="--dx:'+dx+'px;animation-delay:-'+d+'s"><path d="M'+x+' 6v10M'+(x-4.3)+' 8.5l8.6 5M'+(x-4.3)+' 13.5l8.6-5" stroke="#9DB4D3" stroke-width="2.4"/><path d="M'+x+' 6v10M'+(x-4.3)+' 8.5l8.6 5M'+(x-4.3)+' 13.5l8.6-5"/></g>').join('')+'</g>'}
  // 7. vinden visas som text i vädervyn i stället för som animation; den lutar bara regnet och snön
- return'<svg class="fig'+wxArtClass()+' k-'+sc.tc+' w'+sc.wl+(sc.sleep?' zz':'')+'" viewBox="0 0 170 '+(o.patch?150:130)+'" role="img" aria-label="'+esc(o.label||sc.label)+'">'+s+'</svg>'}
+ const cls='fig'+wxArtClass()+' k-'+sc.tc+' w'+sc.wl+(sc.sleep?' zz':''),vb='viewBox="0 0 170 '+(o.patch?150:130)+'"';
+ return'<svg class="'+cls+'" '+vb+' role="img" aria-label="'+esc(o.label||sc.label)+'">'+(cut?s.slice(0,cut)+'</svg><svg class="'+cls+' fig-lag" '+vb+' aria-hidden="true">'+s.slice(cut):s)+'</svg>'}
 
 const hm=m=>pad(Math.floor(m/60))+'.'+pad(m%60);
 // nedräkning för dagens händelser: "till 16.00" när den pågår, "om 2 h 5 min" för nästa som börjar
