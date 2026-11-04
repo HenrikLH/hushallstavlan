@@ -10,7 +10,7 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 ## Pågår nu
 
-- **Skills för utvecklingen** (Claude, gren `claude/project-thread-bm22zg`): tre rutiner som skills (`hushallstavlan-ta-over`, `-forhandsvisa`, `-publicera`), AGENTS.md avsnitt 4/6/9 hänvisar dit, denna fil rensad. Bara dokumentation; väntar på Henriks ”Pusha”.
+- Inget. Senast publicerat: rutiner som skills (PR #66, bara dokumentation, ångra-gren `version-fore-skills`).
 
 ## Följ upp med Henrik
 
