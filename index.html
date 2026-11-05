@@ -2774,6 +2774,14 @@ html.ny.ui5 [data-k="pref-vardag"]>summary.sh{--ic:#FF9500;--ii:url("data:image/
 html.ny.ui5 [data-k="pref-oversikt"]>summary.sh{--ic:#32ADE6;--ii:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22white%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%224%22/%3E%3Cpath%20d%3D%22M12%202v2M12%2020v2M2%2012h2M20%2012h2M5%205l1.5%201.5M17.5%2017.5L19%2019M5%2019l1.5-1.5M17.5%206.5L19%205%22/%3E%3C/svg%3E")}
 html.ny.ui5 [data-k="pref-enhet"]>summary.sh{--ic:#34C759;--ii:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22white%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%226%22%20y%3D%222.5%22%20width%3D%2212%22%20height%3D%2219%22%20rx%3D%223%22/%3E%3Cpath%20d%3D%22M10.5%2018.5h3%22/%3E%3C/svg%3E")}
 html.ny.ui5 [data-k="pref-avancerat"]>summary.sh{--ic:#8E8E93;--ii:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22white%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%223%22/%3E%3Cpath%20d%3D%22M12%202.5v3M12%2018.5v3M2.5%2012h3M18.5%2012h3M5.3%205.3l2.1%202.1M16.6%2016.6l2.1%202.1M5.3%2018.7l2.1-2.1M16.6%207.4l2.1-2.1%22/%3E%3C/svg%3E")}
+/* UI 5.0: undersidor glider in från höger utan vågrät rullning; dra ned för att uppdatera */
+html.ny.ui5,html.ny.ui5 body{overflow-x:clip;overscroll-behavior-x:none}
+.u5-ptr{display:none}
+html.ny.ui5 .u5-ptr{display:grid;place-items:center;position:fixed;z-index:30;left:50%;top:calc(var(--sat) + 4px);width:36px;height:36px;margin-left:-18px;border-radius:50%;background:var(--surface);box-shadow:0 2px 10px rgba(0,0,0,.12);opacity:0;pointer-events:none;transition:opacity .2s}
+html.ny.ui5 .u5-ptr i{width:18px;height:18px;border-radius:50%;border:2.2px solid var(--ink-3);border-top-color:var(--ink-2)}
+html.ny.ui5 .u5-ptr.klar i{border-top-color:var(--accent)}
+html.ny.ui5 .u5-ptr.snurrar i{animation:u5spin .8s linear infinite}
+@keyframes u5spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>

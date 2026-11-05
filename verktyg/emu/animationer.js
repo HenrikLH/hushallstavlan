@@ -74,7 +74,9 @@ module.exports=async(pg,h)=>{
  }
  await pg.locator('#nav [data-id="mat"]').click();await pg.waitForTimeout(80);
  const pageMotion=await read('({count:motionPageAnim.animations.length,duration:motionPageAnim.animations[0].effect.getTiming().duration,frames:motionPageAnim.animations[0].effect.getKeyframes(),moving:motionPageAnim.animations.some(a=>getComputedStyle(a.effect.target).transform!=="none"),menuMoves:motionPageAnim.animations.some(a=>a.effect.target.matches(".head,.segc,.subseg"))})');
- assert(pageMotion.count>0&&pageMotion.moving,'Sidbytet syns i det renderade innehållet');assert.equal(pageMotion.duration,460);assert(/80px/.test(pageMotion.frames[0].transform));assert.equal(pageMotion.menuMoves,false);
+ // UI 5.0 tonar flikbyten som iOS i stället för att skjuta innehållet i sidled
+ if(await read('U5')){assert(pageMotion.count>0,'Flikbytet tonas in');assert.equal(pageMotion.duration,180);assert.equal(+pageMotion.frames[0].opacity,.25)}
+ else{assert(pageMotion.count>0&&pageMotion.moving,'Sidbytet syns i det renderade innehållet');assert.equal(pageMotion.duration,460);assert(/80px/.test(pageMotion.frames[0].transform));assert.equal(pageMotion.menuMoves,false)}
  await h.idle(650);await pg.locator('[data-act="matTab"][data-id="inkop"]').click();await pg.waitForTimeout(200);
  const thumb=pg.locator('.segc[aria-label="Visa"] .seg-thumb');const mid=await thumb.evaluate(e=>({x:new DOMMatrix(getComputedStyle(e).transform).m41,width:e.getBoundingClientRect().width,opacity:getComputedStyle(e).opacity}));assert(mid.x>2&&mid.x<mid.width-2&&Number(mid.opacity)>0,'Valmarkeringen syns mellan sina ändlägen');assert(await thumb.evaluate(e=>e.getAnimations().some(a=>a.playState==='running'&&a.effect.getTiming().duration===300)),'Menyvalets förflyttning pågår och går att se');await h.idle(500);
  await nav('uppgifter');await click('[data-act="taskTab"][data-id="kalender"]');await h.idle(500);

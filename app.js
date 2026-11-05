@@ -4139,6 +4139,10 @@ const MOTION_EASE='cubic-bezier(.65,0,.35,1)';
 let motionDrag=null,motionPageAnim=null,motionCal=null;
 function motionGrip(kind,controls,open){if(!motionOn()&&kind!=='calendar')return'';return'<button type="button" class="motion-grip" data-motion-grip="'+kind+'" aria-controls="'+controls+'" aria-expanded="'+open+'" aria-label="'+(kind==='weather'?'Vädergraf':kind==='calendar'?'Kalendermånad':'Veckans detaljer')+'. '+(open?'Dra upp för att fälla ihop':'Dra ned för att visa')+' eller tryck"><i aria-hidden="true"></i></button>'}
 function motionPage(el,page,prev,dir){if(motionPageAnim)motionPageAnim.cancel();el.classList.remove('in-fade','in-right','in-left');if(calm()||!el.animate)return;
+ // UI 5.0 som iOS: undersidor skjuts in från höger och tillbaka åt vänster, flikbyten tonas bara
+ if(U5&&motionOn()){if(edgeBack){edgeBack=false;return}const p=page.split('|'),o=prev.split('|'),sub=x=>!!x[1]||x[0]==='vader'||x[0]==='fod',push=sub(p)&&!sub(o)?1:sub(o)&&!sub(p)?-1:0;
+  const a=push>0?el.animate([{transform:'translateX(100%)',boxShadow:'-8px 0 24px rgba(0,0,0,.12)'},{transform:'none',boxShadow:'none'}],{duration:440,easing:'cubic-bezier(.32,.72,0,1)'}):push<0?el.animate([{transform:'translateX(-28%)',opacity:.55},{transform:'none',opacity:1}],{duration:400,easing:'cubic-bezier(.32,.72,0,1)'}):el.animate([{opacity:.25},{opacity:1}],{duration:180,easing:'ease-out'});
+  motionPageAnim={animations:[a],direction:push,cancel(){a.cancel()}};return}
  if(!motionOn()){const[pv,pr]=prev.split('|'),cls=dir||(S.recipe&&!pr?'in-right':(!S.recipe&&pr&&pv===S.view)?'in-left':'in-fade');void el.offsetWidth;el.classList.add(cls);return}
  const p=page.split('|'),o=prev.split('|'),nav=VIEWS.map(x=>x[0]),order=p[0]==='mat'?['vecka','inkop','recept','bank','efter']:['lista','kalender'];
  const d=dir==='in-left'?-1:dir==='in-right'?1:p[0]!==o[0]?Math.sign(nav.indexOf(p[0])-nav.indexOf(o[0]))||1:p[1]!==o[1]?(p[1]?1:-1):Math.sign(order.indexOf(p[2])-order.indexOf(o[2]))||1;
@@ -4146,6 +4150,25 @@ function motionPage(el,page,prev,dir){if(motionPageAnim)motionPageAnim.cancel();
  const targets=[...el.children].filter(e=>!e.matches('.head,.segc,.subseg,.cv-seg,.ws-pin'));
  const animations=targets.map(e=>e.animate([{opacity:.15,transform:'translateX('+d*80+'px)'},{opacity:1,transform:'none'}],{duration:p[0]!==o[0]?460:300,easing:'cubic-bezier(.4,0,.2,1)'}));
  motionPageAnim={animations,direction:d,cancel(){animations.forEach(a=>a.cancel())}}}
+// UI 5.0: svep från vänsterkanten går tillbaka från en undersida och dra ned överst uppdaterar, som i iOS
+var edgeBack=false;
+(function(){let g=null,pr=null;const main=()=>document.getElementById('main'),backBtn=()=>document.querySelector('#main .back,#navbar .back');
+ const ok=()=>U5&&S.data&&!S.sheet&&!S.cook&&!S.arrange&&!wallBoardOn()&&!document.querySelector('#overlay .sheet');
+ let spin=null;const spinner=()=>{if(!spin){spin=document.createElement('div');spin.className='u5-ptr';spin.setAttribute('aria-hidden','true');spin.innerHTML='<i></i>';document.body.appendChild(spin)}return spin};
+ document.addEventListener('touchstart',e=>{g=pr=null;if(!ok()||e.touches.length>1)return;const t=e.touches[0];
+  if(t.clientX<=24&&backBtn())g={x0:t.clientX,y0:t.clientY,x:t.clientX,t:performance.now(),v:0,m:main(),on:false};
+  else if(scrollY<=0&&!e.target.closest('input,textarea,select,.dr-slide,.car,[data-motion-grip]'))pr={y0:t.clientY,x0:t.clientX,d:0,on:false}},{passive:true});
+ document.addEventListener('touchmove',e=>{const t=e.touches[0];
+  if(g&&g.m){const dx=t.clientX-g.x0,dy=t.clientY-g.y0;if(e.cancelable&&Math.abs(dx)>=Math.abs(dy))e.preventDefault();
+   if(!g.on){if(Math.abs(dy)>10&&Math.abs(dy)>Math.abs(dx)){g=null;return}if(dx<8)return;g.on=true;g.m.style.transition='none';g.m.style.boxShadow='-8px 0 24px rgba(0,0,0,.12)'}
+   const now=performance.now();g.v=(t.clientX-g.x)/Math.max(8,now-g.t);g.x=t.clientX;g.t=now;g.m.style.transform='translateX('+Math.max(0,dx)+'px)';if(e.cancelable)e.preventDefault();return}
+  if(pr){const dy=t.clientY-pr.y0;if(!pr.on){if(Math.abs(t.clientX-pr.x0)>Math.abs(dy)||dy<0||scrollY>0){pr=null;return}if(dy<12)return;pr.on=true}
+   pr.d=Math.min(110,(dy-12)*.5);const sp=spinner(),k=Math.min(1,pr.d/60);sp.style.opacity=k;sp.style.transform='translateY('+pr.d+'px) rotate('+pr.d*4+'deg)';sp.classList.toggle('klar',pr.d>=60)}},{passive:false});
+ const end=()=>{if(g){const s=g;g=null;if(s.on&&s.m){const dx=s.x-s.x0,W=innerWidth,go=dx>W*.35||(s.v>.45&&dx>30);
+   s.m.style.transition='transform .3s cubic-bezier(.32,.72,0,1)';s.m.style.transform=go?'translateX('+W+'px)':'';
+   setTimeout(()=>{s.m.style.transition='';s.m.style.boxShadow='';if(go){edgeBack=true;const b=backBtn();if(b)b.click();else edgeBack=false}s.m.style.transform=''},300)}}
+  if(pr){const p=pr;pr=null;if(!p.on||!spin)return;if(p.d>=60){spin.classList.add('snurrar');spin.style.transform='translateY(48px)';Promise.resolve(refresh(false)).finally(()=>{spin.classList.remove('snurrar','klar');spin.style.opacity=0;spin.style.transform=''})}else{spin.style.opacity=0;spin.style.transform=''}}};
+ document.addEventListener('touchend',end);document.addEventListener('touchcancel',end)})();
 const motionHeight=el=>parseFloat(getComputedStyle(el).height)||0;
 const motionScale=el=>el.offsetWidth?el.getBoundingClientRect().width/el.offsetWidth:1;
 function motionPanel(el,open){if(!el)return;const from=el.hidden?0:motionHeight(el);
