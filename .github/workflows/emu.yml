@@ -24,7 +24,7 @@ jobs:
       matrix:
         screen: [telefon, vagg]
         theme: [light, dark]
-        ui: [2, 3, 4]
+        ui: [2, 3, 4, 5]
     steps:
       - uses: actions/checkout@v6
         with:
@@ -49,7 +49,7 @@ jobs:
           UI: ${{ matrix.ui }}
           REDUCED: ${{ matrix.ui == 3 && matrix.screen == 'telefon' && matrix.theme == 'dark' && '0' || '1' }}
         run: |
-          export LS="$(node -e 'console.log(JSON.stringify({...process.env.UI==="3"?{ui:"3",dev:"1"}:process.env.UI==="4"?{ui:"4"}:{},...process.env.SCREEN==="vagg"?{wall:"1",me:""}:{}}))')"
+          export LS="$(node -e 'console.log(JSON.stringify({...process.env.UI==="3"?{ui:"3",dev:"1"}:process.env.UI==="4"?{ui:"4"}:process.env.UI==="5"?{ui:"5"}:{},...process.env.SCREEN==="vagg"?{wall:"1",me:""}:{}}))')"
           if [[ "$SCREEN" == "vagg" ]]; then export VP=1368x912; fi
           if [[ "$UI" == "2" ]]; then
             LS="$(node -e 'console.log(JSON.stringify({...JSON.parse(process.env.LS),motion:"0"}))')" APP="$PWD/baseline" OUT="$PWD/verktyg/emu/baseline-shots" node verktyg/emu/run.js verktyg/emu/alla-flikar.js
@@ -64,6 +64,7 @@ jobs:
               LS="$(ART="$art" node -e 'console.log(JSON.stringify({...JSON.parse(process.env.LS),wxvy:"bild",wxart:process.env.ART,gpu:"0"}))')" REDUCED=0 VY=vader WXSYM=rain node verktyg/emu/run.js verktyg/emu/vader-gpu.js
             done
           fi
+          if [[ "$UI" == "5" && "$SCREEN" == "telefon" ]]; then LS='{}' node verktyg/emu/run.js verktyg/emu/ui5.js; fi
           if [[ "$UI" == "4" ]]; then
             node verktyg/emu/run.js verktyg/emu/ui4.js
             node verktyg/emu/run.js verktyg/emu/ui4-installningar.js
