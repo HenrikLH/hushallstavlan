@@ -4,15 +4,17 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 ## Börja här
 
-- Aktuell release: **ht-v255** (hundbilden i telefonens Översikt flyttad 42 px åt vänster, `.hero.art-geo .hero-wx:not(.wbt) .gs{left:-42px}`, så att marken ryms i kortet). Ångra-gren `version-fore-hundbild-vanster`. Röktest telefon+vägg grönt.
+- Aktuell release: **ht-v256** (Städvyn: Rutnät och Ring). Ångra-gren `version-fore-stadvy`.
 - Inga pågående uppgifter utöver punkterna nedan. Gör inte om godkända ändringar.
 - Strömningen i ChatGPT har avbrutits flera gånger: kontrollera gren/PR/main och Pages innan en avbruten publicering återupptas.
 
 ## Pågår nu
 
-- Mindre klottrig Städ-vy: förslag A rutnät, B Apple-stil (rekommenderad), C lugn lista. Ägare Claude, gren `claude/project-thread-tnn6n3`. Bara förhandsbilder (`verktyg/emu/stad-forslag.js`, `P=A|B|C`, data i `stad-data.js`); ingen appkod ändrad. Nästa: Henrik väljer, sedan bygg i `V.stad` (app.js) under `html.ny`.
+- Inget. Senast publicerat: Städvyn kan väljas som Lista (standard), Rutnät eller Ring under Inställningar → Mat och städ (`ht.stadVy`, `stadRutnat`/`stadRing` i app.js, CSS `.sx-*`). Test: `NOW=<idag> node verktyg/emu/run.js verktyg/emu/stad-vyer.js` (emulerade servern sätter lastDone med riktigt datum).
 
 ## Följ upp med Henrik
+
+- Städvyn (ht-v256): vilken av Rutnät/Ring vill han ha kvar? Förslag C (lugn lista) byggdes inte. Rutnätets rutor bockas av med tryck, håll in ger bladet.
 
 - Hundbilden (ht-v249–v254): känns animationerna mjuka på iPhone? Huvudvickningen minskades till ≈2° (`.geo-huvud`/`GEO_NACKE`); ta bort eller ändra om han fortfarande ogillar den. Undvik nya rörliga delar i de stilla SVG:erna (`svg.fig-lag`/`svg.bd-lag` är de rörliga) och nya SVG-filter i Geometrisk.
 - Inköpssynk mellan telefoner (ht-v252, test `verktyg/emu/inkop-synk.js`): följ upp om fler synkfel syns.
