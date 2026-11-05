@@ -2715,6 +2715,8 @@ html.ny.ui5.nav-glas .nav-mini{background:var(--glass);border:.5px solid var(--g
 html.ny.ui5 .nav button{font-size:10px;line-height:12px;font-weight:600;gap:1px;color:var(--ink)}
 html.ny.ui5 .nav button[aria-current="page"]{color:var(--accent)}
 @media (min-width:900px){html.ny.ui5 .nav button{font-size:11px;line-height:13px}}
+/* Väderkortet: molnen glesnar bakom datum och vecka så att texten går att läsa, som i Apples väderapp */
+html.ny.ui5 body:not(.wall) .hero.has-sky>.skyfx{-webkit-mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent),linear-gradient(90deg,transparent 0 44%,#000 62%),linear-gradient(180deg,transparent 0 46px,#000 92px);mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent),linear-gradient(90deg,transparent 0 44%,#000 62%),linear-gradient(180deg,transparent 0 46px,#000 92px);-webkit-mask-composite:source-in,source-over;mask-composite:intersect,add}
 /* Väggtavlan läses på avstånd och styrs med fingret: större glasmeny */
 html.ny.ui5.nav-glas body.wall{--tabbar:76px}
 html.ny.ui5.nav-glas body.wall .nav{width:min(880px,calc(100% - 40px))}
