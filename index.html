@@ -2715,6 +2715,11 @@ html.ny.ui5.nav-glas .nav-mini{background:var(--glass);border:.5px solid var(--g
 html.ny.ui5 .nav button{font-size:10px;line-height:12px;font-weight:600;gap:1px;color:var(--ink)}
 html.ny.ui5 .nav button[aria-current="page"]{color:var(--accent)}
 @media (min-width:900px){html.ny.ui5 .nav button{font-size:11px;line-height:13px}}
+/* Väggtavlan läses på avstånd och styrs med fingret: större glasmeny */
+html.ny.ui5.nav-glas body.wall{--tabbar:76px}
+html.ny.ui5.nav-glas body.wall .nav{width:min(880px,calc(100% - 40px))}
+html.ny.ui5 body.wall .nav button{font-size:14px;line-height:17px;gap:3px}
+html.ny.ui5 body.wall .nav button svg{width:30px;height:30px}
 /* Rubrikraden i glas, stor rubrik enligt Apples textskala */
 html.ny.ui5 .navbar{background:var(--bar);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px)}
 html.ny.ui5 .lt{font-size:34px;line-height:41px;font-weight:700;letter-spacing:.4px}
