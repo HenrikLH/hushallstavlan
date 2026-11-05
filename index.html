@@ -2797,6 +2797,23 @@ html.ny.ui5 .pref-body>.sh{padding-top:22px}
 html.ny.ui5 .person-list>.person-row:last-of-type{border-bottom:0}
 @keyframes u5in{from{transform:translateX(40%);opacity:0}to{transform:none;opacity:1}}
 @media (prefers-reduced-motion:reduce){html.ny.ui5 .pref-section[open]>.pref-body{animation:none}}
+/* UI 5.0 vy för vy */
+/* Sökfält som i iOS: grå kapsel med förstoringsglaset till vänster */
+html.ny.ui5 .rc-search-row .add-row{flex-direction:row-reverse;background:var(--fill);min-height:44px;padding:0 14px 0 6px;gap:2px}
+html.ny.ui5 .rc-search-row .add-row .add-go{color:var(--ink-2);width:30px;height:40px}
+html.ny.ui5 .rc-search-row .add-row .add-go svg{width:18px;height:18px}
+html.ny.ui5 .rc-search-row .field{height:42px}
+html.ny.ui5 .rc-search-row .field::placeholder{color:var(--ink-2)}
+/* Filterkapslar: grå fyllning utan kant */
+html.ny.ui5 .fchips button{background:var(--fill);box-shadow:none;color:var(--ink);font-weight:500}
+html.ny.ui5 .fchips button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+/* Låsknapp på veckans rätter: rund glasknapp, låst = vinröd symbol */
+html.ny.ui5 .bq-lk{border-radius:50%;background:var(--glass);border:.5px solid var(--glass-line);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);box-shadow:0 1px 6px rgba(0,0,0,.12);color:var(--ink-2)}
+html.ny.ui5 .bq-lk.on{background:var(--glass);color:var(--accent)}
+html.ny.ui5 .bq-lk.on svg{stroke-width:2.4}
+html.ny.ui5 .bq-p{border-radius:999px;padding:3px 9px}
+/* Tomma lägen: centrerad grå text som Apples "Inget innehåll" */
+html.ny.ui5 .cell.empty{justify-content:center;text-align:center;color:var(--ink-2);min-height:88px;padding:20px 28px;font-size:15px;line-height:20px}
 </style>
 </head>
 <body>
