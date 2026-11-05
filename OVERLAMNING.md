@@ -10,7 +10,7 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 ## Pågår nu
 
-- **Apple-känsla i hela appen** (Claude, gren `claude/project-thread-petrxp`): genomgång och plan i 5 steg klar och visad för Henrik (Claude Doc "Apple-känsla: genomgång och plan", bilder `/mnt/project-files/apple/`). Prototyp-CSS `verktyg/emu/apple-forslag.css` läggs på under `html.ui5` av `verktyg/emu/apple-forslag.js` (inget i appen ändrat än). Nästa: steg 1 = designvalet Apple (`ht.ui=5`, `U5`, CSS bara under `html.ui5`) efter Henriks ok. Öppna val: eget val först (rek.), behåll vinröd (rek.), rubriker ovanför kortet i stället för band (rek.).
+- **UI 5.0 (Apple)** (Claude, gren `claude/project-thread-petrxp`, utkast-PR): Henrik valde alla rekommendationer: eget val UI 5.0 (`ht.ui=5`, `U5`, CSS bara under `html.ny.ui5` sist i `<style>`), vinröd behålls, rubriker ovanför korten. Plan i 5 steg i Claude Doc "Apple-känsla: genomgång och plan". Steg 1 (grund: färger, glasmeny tvingad via `nav-glas`, kort, listor, segment, knappar, blad, inställningar med symboler) byggd, väntar på Henriks ok/Pusha. Test: `verktyg/emu/ui5.js`, alla-flikar med `LS={"ui":"5"}` telefon/vägg/mörkt. Nästa: steg 2 navigering (glid in från höger, svep tillbaka, blad med halv höjd, iOS-brytare, svep på rader, dra ned för att uppdatera).
 - Inget. Senast publicerat: Städvyn kan väljas som Lista (standard), Rutnät eller Ring under Inställningar → Mat och städ (`ht.stadVy`, `stadRutnat`/`stadRing` i app.js, CSS `.sx-*`). Test: `NOW=<idag> node verktyg/emu/run.js verktyg/emu/stad-vyer.js` (emulerade servern sätter lastDone med riktigt datum).
 
 ## Följ upp med Henrik

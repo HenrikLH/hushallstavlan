@@ -1,4 +1,4 @@
-// Förhandsbilder av Apple-riktningen: CSS=verktyg/emu/apple-forslag.css läggs på under html.ui5. Utan CSS: nuvarande UI 2.0.
+// Bilder av UI 5.0 (Apple): kör med LS={"ui":"5","stadVy":"ring"} och P=prefix. CSS=<fil> lägger extra prov-CSS under html.ui5.
 require('./stad-data');const fs=require('fs');
 module.exports=async(pg,h)=>{const P=process.env.P||'';
  const css=process.env.CSS?fs.readFileSync(process.env.CSS,'utf8'):'';
