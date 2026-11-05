@@ -4,16 +4,18 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 ## Börja här
 
-- Aktuell release: **ht-v256** (Städvyn: Rutnät och Ring). Ångra-gren `version-fore-stadvy`.
+- Aktuell release: **ht-v257** (UI 5.0 Apple som frivilligt val). Ångra-gren `version-fore-ui5`.
 - Inga pågående uppgifter utöver punkterna nedan. Gör inte om godkända ändringar.
 - Strömningen i ChatGPT har avbrutits flera gånger: kontrollera gren/PR/main och Pages innan en avbruten publicering återupptas.
 
 ## Pågår nu
 
-- **UI 5.0 (Apple)** (Claude, gren `claude/project-thread-petrxp`, utkast-PR): Henrik valde alla rekommendationer: eget val UI 5.0 (`ht.ui=5`, `U5`, CSS bara under `html.ny.ui5` sist i `<style>`), vinröd behålls, rubriker ovanför korten. Plan i 5 steg i Claude Doc "Apple-känsla: genomgång och plan". Steg 1 (grund: färger, glasmeny tvingad via `nav-glas`, kort, listor, segment, knappar, blad, inställningar med symboler) byggd, väntar på Henriks ok/Pusha. Test: `verktyg/emu/ui5.js`, alla-flikar med `LS={"ui":"5"}` telefon/vägg/mörkt. Steg 2 (del 1) byggd: undersidor (recept, Väder, Födelsedagar) glider in från höger, flikbyten tonas, svep från vänsterkanten = tillbaka, dra ned överst = uppdatera (`motionPage` U5-gren, modul före `motionHeight`, test `verktyg/emu/ui5-navigering.js`). Ekonomi i UI 5.0: Lägg till vid Inkomst-rubriken i stället för röda knappen (Henriks önskan). Glasmenyn krymper inte vid scroll i UI 5.0 (gömde knappar på väggen). Steg 3 byggd: i UI 5.0 öppnas en del i Inställningar som egen sida (en i taget via toggle-lyssnare, CSS `:has`), rubriken blir "‹ Inställningar" + stor titel; Avbryt/Spara behålls eftersom namn/färg sparas med Spara. Steg 4 (första omgången, bara CSS i blocket "UI 5.0 vy för vy"): sökfält som iOS, grå filterkapslar, runda glaslås på veckans rätter, centrerade tomma lägen. Inköp i UI 5.0: Henrik underkände textknappen Åtgärder; nu rund ⋯-knapp i rubriken (`u5More`) med iOS-meny, Töm listan bekräftas i `shopMore`-bladet. Uppgifter i UI 5.0: svep vänster = Ta bort (`taskSwDel`, upprepade frågar en gång/alla). Steg 5 (del 1): väggtavlans glasmeny större i UI 5.0 (76 px, 14 px text, `body.wall`); mörkt läge genomgånget i telefon och vägg. Kvar: Henriks test, sedan steg 5 (gör UI 5.0 till standard efter Henriks ok).
+- Inget pågående. **UI 5.0 (Apple)** publicerad i ht-v257 som val (Inställningar → Utseende → Design; `ht.ui=5`, `U5`, CSS bara under `html.ny.ui5` sist i `<style>`). Plan/beslut: Claude Doc "Apple-känsla: genomgång och plan". Tester: `verktyg/emu/ui5.js`, `ui5-navigering.js` (svep tillbaka, dra ned, svep på uppgift), alla-flikar med `LS={"ui":"5"}`. UI 2.0 är fortfarande standard.
 - Inget. Senast publicerat: Städvyn kan väljas som Lista (standard), Rutnät eller Ring under Inställningar → Mat och städ (`ht.stadVy`, `stadRutnat`/`stadRing` i app.js, CSS `.sx-*`). Test: `NOW=<idag> node verktyg/emu/run.js verktyg/emu/stad-vyer.js` (emulerade servern sätter lastDone med riktigt datum).
 
 ## Följ upp med Henrik
+
+- UI 5.0 (ht-v257): Henrik testar i telefonen. Göra UI 5.0 till standard först när han säger till (steg 5 i planen). Henrik underkände tidigare textknappen "Åtgärder" i Inköp (nu ⋯-meny i rubriken).
 
 - Städvyn (ht-v256): vilken av Rutnät/Ring vill han ha kvar? Förslag C (lugn lista) byggdes inte. Rutnätets rutor bockas av med tryck, håll in ger bladet.
 
