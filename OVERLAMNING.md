@@ -4,7 +4,7 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 ## Börja här
 
-- Aktuell release: **ht-v254** (PR #65, mindre lagg i hundbilden). Ångra-gren `version-fore-lagg-hundbild`.
+- Aktuell release: **ht-v255** (hundbilden i telefonens Översikt flyttad 42 px åt vänster, `.hero.art-geo .hero-wx:not(.wbt) .gs{left:-42px}`, så att marken ryms i kortet). Ångra-gren `version-fore-hundbild-vanster`. Röktest telefon+vägg grönt.
 - Inga pågående uppgifter utöver punkterna nedan. Gör inte om godkända ändringar.
 - Strömningen i ChatGPT har avbrutits flera gånger: kontrollera gren/PR/main och Pages innan en avbruten publicering återupptas.
 
