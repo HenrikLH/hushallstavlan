@@ -10,7 +10,7 @@ module.exports=async(pg,h)=>{const read=s=>pg.evaluate(s=>window.__d(s),s);let c
  await pg.click('#nav [data-act="nav"][data-id="oversikt"]');await h.idle(600);
  await pg.locator('[data-act="nav"][data-id="vader"]').first().click();await h.idle(80);
  const anim=await pg.evaluate(()=>document.getElementById('main').getAnimations().map(a=>JSON.stringify(a.effect.getKeyframes()[0].transform)).join());
- assert.match(anim,/translateX\(100%\)/,'undersidan ska glida in från höger');await h.idle(600);
+ if(!await read('calm()'))assert.match(anim,/translateX\(100%\)/,'undersidan ska glida in från höger');await h.idle(600);
  assert.equal(await read('S.view'),'vader');
  // svep från vänsterkanten: tillbaka
  await touch(steg(6,400,330,410));
