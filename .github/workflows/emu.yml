@@ -64,12 +64,14 @@ jobs:
               LS="$(ART="$art" node -e 'console.log(JSON.stringify({...JSON.parse(process.env.LS),wxvy:"bild",wxart:process.env.ART,gpu:"0"}))')" REDUCED=0 VY=vader WXSYM=rain node verktyg/emu/run.js verktyg/emu/vader-gpu.js
             done
           fi
-          if [[ "$UI" == "5" && "$SCREEN" == "telefon" ]]; then LS='{}' node verktyg/emu/run.js verktyg/emu/ui5.js; fi
           if [[ "$UI" == "4" ]]; then
             node verktyg/emu/run.js verktyg/emu/ui4.js
             node verktyg/emu/run.js verktyg/emu/ui4-installningar.js
             node verktyg/emu/run.js verktyg/emu/timerring.js
             node verktyg/emu/run.js verktyg/emu/hall-in-blad.js
+          elif [[ "$UI" == "5" ]]; then
+            # UI 5.0 döljer Form/Menyraden/Rymligare, som installningar.js prövar; ui5.js prövar valet i stället
+            LS='{}' node verktyg/emu/run.js verktyg/emu/ui5.js
           else
             # Standardanimationer provas i animationer.js och övriga funktionssviter.
             # Pixeljämförelsen kontrollerar det bevarade utseendet med animationer av.
