@@ -23,5 +23,12 @@ module.exports=async(pg,h)=>{const read=s=>pg.evaluate(s=>window.__d(s),s);let c
  let gets=0;pg.on('request',r=>{if(r.url().includes('script.google.com')&&r.method()==='GET')gets++});
  await pg.evaluate(()=>scrollTo(0,0));await touch(steg(195,200,195,420,16));await h.idle(800);
  assert(gets>0,'dra ned ska hämta på nytt');
+ // svep vänster på en uppgift visar Ta bort, som i Påminnelser
+ await pg.click('#nav [data-act="nav"][data-id="uppgifter"]');await h.idle(500);
+ await pg.evaluate(()=>window.__d("D().tasks.length||(S.data.tasks.push({id:'t-svep',title:'Vattna blommorna',due:today(),done:false}),render())"));await h.idle(500);
+ const rad=pg.locator('#main .dr-wrap .dr-slide').first();
+ if(await rad.count()){const b=await rad.boundingBox(),y=b.y+b.height/2;await touch(steg(b.x+b.width-30,y,b.x+b.width-150,y+2,8));
+  assert(await pg.locator('#main .dr-slide.open,#main .dr-slide.openl').count(),'svep ska visa Ta bort');await h.shot('ui5-uppgift-svep');const n=await read('D().tasks.length');await pg.locator('#main .dr-act.del').first().click();await h.idle(500);if(!await read('S.sheet'))assert.equal(await read('D().tasks.length'),n-1,'Ta bort ska ta bort uppgiften');else await pg.locator('[data-act="sheetClose"]').first().click()}
+ else console.log('(inga uppgifter att svepa)');
  await h.shot('ui5-navigering');console.log('PASS UI5 NAVIGERING');
 };

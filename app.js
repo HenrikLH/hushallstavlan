@@ -2319,7 +2319,7 @@ const evDelQ=e=>{const rec=String(e.flags||'').includes('r'),cal=e.source==='kal
  '<div class="cell"><span class="grow">Ta bort händelsen'+(cal?' ur Google Kalender':'')+'?</span><button type="button" class="tb red strong" data-act="evDel" data-id="all">Ja, ta bort</button><button type="button" class="tb" data-act="confirmNo">Avbryt</button></div>'};
 function taskRow(x){const t=today(),late=isDate(x.due)&&x.due<t&&!x.done;
  const meta=(x.due?'<span'+(late?' class="red"':'')+'>'+esc(x.due===t?'Idag':dateShort(x.due))+'</span>':'')+(repName(x.repeat)?'<span class="chip">↻ '+esc(repName(x.repeat))+'</span>':'')+(x.who?personChip(x.who):'')+(x.note?'<span>'+esc(x.note)+'</span>':'');
- return'<div class="cell ck'+(x.done?' done':'')+'"'+(S.view==='uppgifter'?holdAt('taskMenu',x.id):'')+'><input type="checkbox" class="check" data-act="taskToggle" data-id="'+esc(x.id)+'" aria-label="'+esc(x.title)+'"'+(x.done?' checked':'')+'><div class="grow'+(S.view==='uppgifter'?' edit" data-act="taskEdit" data-id="'+esc(x.id)+'" role="button" tabindex="0" aria-label="Ändra '+esc(x.title)+'"':'"')+'><div class="title">'+esc(x.title)+'</div>'+(meta?'<div class="meta">'+meta+'</div>':'')+'</div></div>'}
+ const sw=U5&&S.view==='uppgifter'&&!wallBoardOn();return(sw?'<div class="dr-wrap cs">'+swDel('taskSwDel',x.id,x.title):'')+'<div class="cell '+(sw?'dr-slide ':'')+'ck'+(x.done?' done':'')+'"'+(S.view==='uppgifter'?holdAt('taskMenu',x.id):'')+'><input type="checkbox" class="check" data-act="taskToggle" data-id="'+esc(x.id)+'" aria-label="'+esc(x.title)+'"'+(x.done?' checked':'')+'><div class="grow'+(S.view==='uppgifter'?' edit" data-act="taskEdit" data-id="'+esc(x.id)+'" role="button" tabindex="0" aria-label="Ändra '+esc(x.title)+'"':'"')+'><div class="title">'+esc(x.title)+'</div>'+(meta?'<div class="meta">'+meta+'</div>':'')+'</div></div>'+(sw?'</div>':'')}
 
 /* Reglage för dagens ork: tre fasta lägen */
 const ORK=[{min:10,name:'Lite ork'},{min:20,name:'Normal ork'},{min:40,name:'Mycket ork'}];
@@ -4500,6 +4500,7 @@ const ACT={
  calToday(){S.calDay=today();S.calMonth=ymKey(S.calDay);render()},
  calAddTask(id){S.taskDue=id;S.taskAdd=true;render();setTimeout(()=>document.getElementById('task-title')?.focus(),30)},
  taskEdit(id){const x=D().tasks.find(t=>t.id===id);if(!x)return;S.edit=Object.assign({},x);S.confirm=null;S.sheet='taskEdit';render()},
+ taskSwDel(id){const x=D().tasks.find(t=>t.id===id);if(!x)return;S.edit=Object.assign({},x);if(repName(x.repeat)){S.sheet='taskMenu';S.confirm='delTask';render()}else ACT.taskDel('all')},
  taskDelAsk(){S.confirm='delTask';render()},
  // Håll in-bladen: tryck på en ruta stänger bladet och gör det som står
  taskMenu(id){const x=D().tasks.find(t=>t.id===id);if(!x)return;S.edit=Object.assign({},x);S.confirm=null;S.sheet='taskMenu';render()},
