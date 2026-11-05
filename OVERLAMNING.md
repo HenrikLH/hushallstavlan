@@ -10,7 +10,7 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 ## Pågår nu
 
-- Hundbilden i telefonens Översikt stack ut till höger (Geometrisk). Förslag: `.gs{left:-34px}` i `index.html` (bara `.hero.art-geo .hero-wx:not(.wbt)`). Ägare Claude, gren `claude/project-thread-m4ow62`. Väntar på Henriks ok ("Pusha"), sedan `node verktyg/version.js` och publicera.
+- Hundbilden i telefonens Översikt stack ut till höger (Geometrisk). Förslag: `.gs{left:-42px}` i `index.html` (bara `.hero.art-geo .hero-wx:not(.wbt)`). Ägare Claude, gren `claude/project-thread-m4ow62`. Väntar på Henriks ok ("Pusha"), sedan `node verktyg/version.js` och publicera.
 - Tidigare: Senast publicerat: rutiner som skills (PR #66, bara dokumentation, ångra-gren `version-fore-skills`).
 
 ## Följ upp med Henrik
