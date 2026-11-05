@@ -10,7 +10,7 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 ## Pågår nu
 
-- Inget. Senast publicerat: rutiner som skills (PR #66, bara dokumentation, ångra-gren `version-fore-skills`).
+- Mindre klottrig Städ-vy: förslag A rutnät, B Apple-stil (rekommenderad), C lugn lista. Ägare Claude, gren `claude/project-thread-tnn6n3`. Bara förhandsbilder (`verktyg/emu/stad-forslag.js`, `P=A|B|C`, data i `stad-data.js`); ingen appkod ändrad. Nästa: Henrik väljer, sedan bygg i `V.stad` (app.js) under `html.ny`.
 
 ## Följ upp med Henrik
 
