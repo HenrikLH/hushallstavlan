@@ -705,7 +705,7 @@ function doRender(){if(motionDrag||sheetDrag){pendingRender=true;return}applyPer
  A.before(m);
  // Om en vy kraschar visas ett fel i stället, så att resten av appen (svep, menyn) fortsätter att fungera
  let page;try{page=(V[S.view]||V.oversikt)()}catch(e){console.error(e);page='<div class="banner">Något gick fel när sidan skulle visas: '+esc(e.message)+'</div>'}
- m.innerHTML=banner+page;addLayout(m);
+ m.innerHTML=banner+page;addLayout(m);if(U5)u5More(m);
  {const w=m.querySelector('.wk-sw');if(w&&S.wkX){w.scrollLeft=S.wkX;wkMonth(w)}}
  {const w=m.querySelector('.wxC-sc');if(w)w.scrollLeft=S.wxX!=null?S.wxX:WXC_NP*WXC_SW}
  placeSky();skyFit();fitBoard();gpuLager();loopSync();
@@ -747,6 +747,8 @@ const V={};
 function addPlace(){return ['flytande','rad'].includes(lsGet('addPlace'))?lsGet('addPlace'):'profil'}
 function addContext(){if(S.recipe||S.cook||S.view==='mat'&&(RC.screen||S.plan))return null;if(S.view==='mat'&&['recept','bank','efter'].includes(S.matTab))return{recipe:true,label:'Lägg till recept'};if(S.view==='mat'&&S.matTab==='inkop')return{act:'shopAdd',form:'shopQuick',label:'Ny vara'};if(S.view==='uppgifter')return{act:'taskAdd',form:S.taskTab==='lista'?'taskQuick':'',label:'Ny uppgift'};if(S.view==='stad'&&addPlace()==='profil')return{act:'cleanAdd',form:'cleanQuick',label:'Ny syssla'};if(S.view==='fod')return{act:'fodAdd',form:'',label:'Ny födelsedag'};return null}
 function addControl(c,mode){return '<div class="create-control create-'+mode+'">'+(c.recipe?'<details class="create-menu"><summary class="create-plus" aria-label="Lägg till recept"><span class="create-open">'+I.plus+'</span><span class="create-close">'+I.x+'</span></summary><div class="create-options" aria-label="Lägg till recept"><button type="button" data-rc="new"><span class="sh-ic">'+I.plus+'</span>Nytt recept</button><button type="button" data-rc="import"><span class="sh-ic">'+I.imp+'</span>Importera recept</button></div></details>':'<button type="button" class="create-plus" data-act="'+c.act+'" aria-label="'+c.label+'">'+I.plus+'</button>')+'</div>'}
+function u5More(m){if(S.view!=='mat'||S.matTab!=='inkop'||S.plan||S.recipe||S.cook)return;const t=m.querySelector('.head .tools');if(!t)return;const vs=settings().vecka_start,wk=isDate(vs)?'vecka '+isoWeek(parse(vs)):'veckan',n=D().shop.length,it=(act,txt,ic,cl)=>'<button type="button" role="menuitem"'+(cl?' class="'+cl+'"':'')+' data-act="'+act+'"><span>'+txt+'</span>'+ic+'</button>';
+ t.insertAdjacentHTML('afterbegin','<details class="create-menu u5-menu"'+RF('M8')+'><summary class="u5-dots" aria-label="Listans åtgärder">'+I.dots+'</summary><div class="create-options" role="menu" aria-label="Inköpslistan">'+it('shopMoreImp','Uppdatera varor för '+esc(wk),I.imp)+(n?it('shopMoreAsk','Töm listan',I.trash,'red'):'')+'</div></details>')}
 function addLayout(m){document.getElementById('create-dock')?.remove();const c=addContext(),mode=addPlace();m.classList.toggle('has-create-float',!!c&&mode==='flytande');m.classList.toggle('recipe-library',!!c?.recipe);if(!c)return;
  m.querySelectorAll('.head .plus').forEach(x=>x.remove());const quick=c.form&&m.querySelector('form[data-form="'+c.form+'"]');
  if(mode==='rad'&&quick){quick.classList.add('create-row');quick.querySelector('.add-go').classList.add('create-plus');return}
@@ -1919,7 +1921,7 @@ function inkopParts(){
    '<form class="add-row"'+RF('M7')+' data-form="shopQuick"><input class="field" name="name" placeholder="Lägg till vara" aria-label="Lägg till vara" autocomplete="off" enterkeyhint="done"><button type="button" class="add-go" data-act="quickGo" data-alt="shopAdd" aria-label="Lägg till">'+I.plus+'</button></form>';
  // Två knappar under siffrorna: hämta veckans varor och töm listan. Frågan visas i samma kort innan något händer
  // Håll in knappen för att bekräfta: en fyllning går över knappen och åtgärden körs när den är full
- h+=U5?'<div class="sh-tools u5-more"'+RF('M8')+'><button type="button" class="sh-btn" data-act="shopMore" aria-label="Listans åtgärder">'+I.dots+'<b>Åtgärder</b></button></div>':U3?'<div class="sh-tools"><button type="button" class="sh-btn" data-act="shopMore">'+I.dots+'Listans åtgärder</button></div>':'<div class="sh-tools"'+RF('M8')+'><button type="button" class="sh-btn" data-hold="shopImportYes" aria-label="Håll in för att uppdatera varorna för '+esc(wk.toLowerCase())+'"><i class="sh-fill"></i><span class="sh-ic">'+I.imp+'</span><b>Uppdatera varor</b></button>'
+ h+=U5?'':U3?'<div class="sh-tools"><button type="button" class="sh-btn" data-act="shopMore">'+I.dots+'Listans åtgärder</button></div>':'<div class="sh-tools"'+RF('M8')+'><button type="button" class="sh-btn" data-hold="shopImportYes" aria-label="Håll in för att uppdatera varorna för '+esc(wk.toLowerCase())+'"><i class="sh-fill"></i><span class="sh-ic">'+I.imp+'</span><b>Uppdatera varor</b></button>'
   +'<button type="button" class="sh-btn red" data-hold="shopEmptyYes"'+(all.length?'':' disabled')+' aria-label="Håll in för att tömma listan"><i class="sh-fill"></i><span class="sh-ic">'+I.trash+'</span><b>Töm listan</b></button></div>';
  h+='<div class="split"><div class="col">';
  if(!all.length)h+='<div style="height:22px"></div>'+group(emptyCell(U3?'Listan är tom. Lägg till en vara ovan, eller hämta veckans varor under Listans åtgärder.':'Listan är tom. Tryck på Uppdatera varor för veckans rätter, eller lägg till egna varor med plus.'));
@@ -4475,7 +4477,7 @@ const ACT={
  dessSet(id){closeSheets();setWeekDessert(id);toast('Efterrätten ligger på veckosedeln')},
  dessClear(){setWeekDessert('');toast('Efterrätten är borttagen')},
  dessShop(id){dessertTillInkop(id)},
- shopMoreAsk(){S.shopMoreC=true;render()},
+ shopMoreAsk(){S.sheet='shopMore';S.shopMoreC=true;document.querySelectorAll('.create-menu[open]').forEach(x=>x.open=false);render()},
  shopMoreImp(){closeSheets();render();shopImport()},
  shopMoreEmpty(){closeSheets();S.shopMoreC=false;ACT.shopEmptyYes()},
  shopImportYes(){S.confirm=null;shopImport()},

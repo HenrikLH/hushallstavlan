@@ -2815,9 +2815,23 @@ html.ny.ui5 .bq-p{border-radius:999px;padding:3px 9px}
 /* Tomma lägen: centrerad grå text som Apples "Inget innehåll" */
 html.ny.ui5 .cell.empty{justify-content:center;text-align:center;color:var(--ink-2);min-height:88px;padding:20px 28px;font-size:15px;line-height:20px}
 /* Inköp: listans åtgärder i en ⋯-meny (iOS-åtgärdsblad) i stället för två knappar */
-html.ny.ui5 .sh-tools.u5-more{display:flex;justify-content:flex-end;margin:6px 16px 0}
-html.ny.ui5 .u5-more .sh-btn{height:36px;padding:0 14px;gap:6px;border-radius:999px;background:var(--fill);color:var(--accent);box-shadow:none}
-html.ny.ui5 .u5-more .sh-btn svg{width:18px;height:18px}
+html.ny.ui5 .head .tools:has(.u5-menu){position:relative}
+html.ny.ui5 .u5-menu{position:static}
+html.ny.ui5 .u5-dots{list-style:none;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;cursor:pointer;background:var(--glass);border:.5px solid var(--glass-line);box-shadow:0 2px 12px rgba(0,0,0,.08);color:var(--ink);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}
+html.ny.ui5 .u5-dots::-webkit-details-marker{display:none}
+html.ny.ui5 .u5-dots svg{width:22px;height:22px}
+html.ny.ui5 .u5-menu[open] .u5-dots{background:var(--fill)}
+html.ny.ui5 .create-options{width:300px;max-width:calc(100vw - 32px);padding:0;border-radius:14px;border:.5px solid var(--glass-line);background:var(--menu,rgba(250,250,252,.94));-webkit-backdrop-filter:blur(30px) saturate(1.8);backdrop-filter:blur(30px) saturate(1.8);box-shadow:0 12px 40px rgba(0,0,0,.18);overflow:hidden;transform-origin:top right;animation:u5-menu .22s cubic-bezier(.32,.72,0,1)}
+html.ny.ui5 .u5-menu .create-options{right:0;top:calc(100% + 8px)}
+html.ny.ui5[data-theme="dark"] .create-options{--menu:rgba(44,44,46,.94)}
+@media (prefers-color-scheme:dark){html.ny.ui5:not([data-theme="light"]) .create-options{--menu:rgba(44,44,46,.94)}}
+@keyframes u5-menu{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
+html.ny.ui5 .create-options button{min-height:44px;padding:11px 16px;border-radius:0;justify-content:space-between;gap:16px;font-size:17px;font-weight:400;line-height:22px;letter-spacing:-.41px;color:var(--ink)}
+html.ny.ui5 .create-options button+button{border-top:.5px solid var(--line)}
+html.ny.ui5 .create-options button:active{background:var(--fill)}
+html.ny.ui5 .create-options button.red{color:#FF3B30}
+html.ny.ui5 .create-options .sh-ic{order:2;width:auto;height:auto;background:none;color:inherit;border-radius:0}
+html.ny.ui5 .create-options svg{width:20px;height:20px;flex:none}
 </style>
 </head>
 <body>
