@@ -4591,6 +4591,9 @@ document.addEventListener('click',e=>{const el=e.target.closest('[data-act]');if
  ACT[a](el.dataset.id,el,e)});
 // Kom ihåg vilka hopfällbara sektioner som är öppna mellan renderingar
 document.addEventListener('toggle',e=>{const d=e.target;if(d&&d.dataset&&d.dataset.k&&!d.dataset.motionClosing)S.open[d.dataset.k]=d.open},true);
+// UI 5.0: Inställningarnas delar öppnas som egna sidor, en i taget, som i iPhones Inställningar
+document.addEventListener('toggle',e=>{const d=e.target;if(!U5||!d.classList||!d.classList.contains('pref-section'))return;const f=d.closest('form');if(!f)return;
+ if(d.open){f.querySelectorAll('.pref-section[open]').forEach(x=>{if(x!==d){x.open=false;S.open[x.dataset.k]=false}});const b=f.querySelector('.sheet-body');if(b)b.scrollTop=0}},true);
 document.addEventListener('change',e=>{if(e.target.id==='ee-allday'){const t=document.getElementById('ee-times');if(t)t.hidden=e.target.checked}});
 /* Svep på veckosedelns rader, som i iPhones listor: dra åt vänster så visas Byt bakom raden,
    dra åt höger så visas Ta bort. Drar man hela vägen (över halva raden) byter eller tar man bort direkt. Bara en rad är öppen åt gången */
