@@ -72,6 +72,7 @@ jobs:
           elif [[ "$UI" == "5" ]]; then
             # UI 5.0 döljer Form/Menyraden/Rymligare, som installningar.js prövar; ui5.js prövar valet i stället
             LS='{}' node verktyg/emu/run.js verktyg/emu/ui5.js
+            if [[ "$SCREEN" == "telefon" ]]; then node verktyg/emu/run.js verktyg/emu/ui5-navigering.js; fi
           else
             # Standardanimationer provas i animationer.js och övriga funktionssviter.
             # Pixeljämförelsen kontrollerar det bevarade utseendet med animationer av.
