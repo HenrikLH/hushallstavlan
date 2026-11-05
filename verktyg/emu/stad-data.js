@@ -1,6 +1,6 @@
 // Realistiska sysslor för förhandsbilder av Städ (NOW 2026-10-18)
 const gas=require('./gas');const R=gas.book.sheets['Städ'].rows;
-const d=n=>{const x=new Date('2026-10-18T12:00:00');x.setDate(x.getDate()-n);return x.toISOString().slice(0,10)};
+const d=n=>{const x=new Date(process.env.NOW||'2026-10-18T12:00:00');x.setDate(x.getDate()-n);return x.toISOString().slice(0,10)};
 [['k1','Kök','Diska och töm diskmaskinen',1,10,d(0),'Henrik'],['k2','Kök','Torka av bänkar och spis',1,5,d(1)],['h1','Hundar','Diska hundskålarna, nytt vatten',1,3,d(1)],['a1','Alla rum','Plocka undan 5 minuter',1,5,d(0),'Cornelia'],
  ['k3','Kök','Torka av kylskåpet',7,10,d(9)],['k4','Kök','Byt disktrasa och handdukar',3,2,d(4)],['k5','Kök','Rengör mikron',14,5,d(20)],['k6','Kök','Frosta av frysen',90,45,d(85)],
  ['v1','Vardagsrum','Dammsug vardagsrummet',7,10,d(8)],['v2','Vardagsrum','Damma hyllor och tv-bänk',14,10,d(12)],['v3','Vardagsrum','Tvätta soffkuddarnas överdrag',90,20,d(95)],
