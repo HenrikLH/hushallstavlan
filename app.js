@@ -545,11 +545,17 @@ async function flush(){
    // Då vet telefonen vad den andra har bockat av, och vilket id varan har nu
    const plan=OUTBOX[0].action==='planSend';let fore=null;
    if(plan||shopFlytt(OUTBOX[0])&&lastServerT<start){try{fore=await Promise.race([apiGet(),new Promise((_,no)=>setTimeout(()=>no(new Error('tid')),20000))])}catch(e){if(!/hushållskod/i.test(e.message)){S.sync='offline';S.pending=OUTBOX.length;render();return}}}
-   const b=Object.assign({},OUTBOX[0]);b.id=realId(b);delete b.tmpName;delete b.nm;
+   // Varje ändring får ett eget id (rid) så att Kod.gs kan hoppa över en ändring som redan är sparad
+   if(!OUTBOX[0].rid){OUTBOX[0].rid=Date.now().toString(36)+Math.random().toString(36).slice(2,8);saveOutbox()}
+   // Kom svaret aldrig fram (appen stängdes, nätet föll) kan tillägget ändå ha sparats i arket. Kontrollera innan det skickas igen,
+   // annars blir det dubbletter. Behövs med äldre Kod.gs som inte känner till rid
+   if(OUTBOX[0].osaker&&/^(task|shop|clean)Add$/.test(OUTBOX[0].action)){let nu;try{nu=await apiGet()}catch(e){S.sync='offline';S.pending=OUTBOX.length;render();return}
+    if(redanSparad(OUTBOX[0],nu)){OUTBOX.shift();S.pending=OUTBOX.length;saveOutbox();if(!OUTBOX.length){S.sync='idle';flushing=false;refresh(true);return}continue}}
+   const b=Object.assign({},OUTBOX[0]);b.id=realId(b);delete b.tmpName;delete b.nm;delete b.n0;delete b.osaker;
    if(b.id===null){OUTBOX.shift();S.pending=OUTBOX.length;saveOutbox();if(!OUTBOX.length){S.sync='idle';flushing=false;refresh(true);return}continue}
    let j;
    try{const r=await fetch(CFG.api,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign(b,{key:S.key,by:b.by!=null?b.by:S.me}))});j=await r.json()}
-   catch(e){S.sync='offline';S.pending=OUTBOX.length;render();return}   // inget nät: försök igen senare
+   catch(e){OUTBOX[0].osaker=1;saveOutbox();S.sync='offline';S.pending=OUTBOX.length;render();return}   // inget nät eller inget svar: försök igen senare
    // Kalkylarket tar en ändring i taget. Är det upptaget (låst av en annan ändring eller kalendersynken) har inget sparats,
    // så ändringen ligger kvar i utkorgen och skickas igen om en stund i stället för att visa ett fel
    if(!j.ok&&/lock|lås/i.test(j.error||'')&&(OUTBOX[0].forsok=(OUTBOX[0].forsok||0)+1)<=20){saveOutbox();S.sync='busy';renderStatus();flushing=false;setTimeout(flush,4000+2000*Math.min(OUTBOX[0].forsok,10));return}
@@ -575,12 +581,16 @@ function planKopt(b,fore,efter){const st=fore.settings||{};if(st.vecka_start!==b
   ut.push({action:'shopAdd',name:x.name,qty:x.qty||'',cat:x.cat||'Övrigt',price:x.price==null?'':x.price,by:b.by},{action:'shopToggle',id,tmpName:x.name,done:true,by:b.by})});
  return ut}
 if(OUTBOX.length)setTimeout(flush,800);
+// n0 = hur många med samma namn som fanns när tillägget gjordes. Fler i arket nu betyder att det redan kom fram
+function redanSparad(b,d){if(b.action==='cleanAdd')return !!b.id&&(d.clean||[]).some(x=>x.id===b.id);if(b.n0==null)return false;
+ const k=b.action==='taskAdd'?'title':'name',v=String(b[k]||'');return((b.action==='taskAdd'?d.tasks:d.shop)||[]).filter(x=>String(x[k]||'')===v).length>b.n0}
 function apiPost(body){
  if(!navigator.onLine&&body.action==='menuSwap'){toast('Kräver nät. Försök igen när du har täckning.');refresh(true);return Promise.resolve()}
  platsVakt(body.action);
  const it=Object.assign({},body,{by:S.me});
  if(/^tmp/.test(String(body.id||''))){const list=/^shop/.test(body.action)?D().shop:D().tasks,x=list.find(y=>y.id===body.id);if(x)it.tmpName=x.name||x.title}
  else if(/^shop(Toggle|Delete)$/.test(body.action)&&!it.nm){const x=(DEL.list||[]).concat(D().shop).find(y=>y.id===body.id);if(x)it.nm=shopNyck(x)}
+ if(/^(task|shop)Add$/.test(body.action)){const k=body.action==='taskAdd'?'title':'name';it.n0=(body.action==='taskAdd'?D().tasks:D().shop).filter(x=>x[k]===body[k]&&!/^tmp/.test(String(x.id||''))).length}
  OUTBOX.push(it);S.pending=OUTBOX.length;saveOutbox();renderStatus();
  return flush()}
 addEventListener('online',()=>flush());

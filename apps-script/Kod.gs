@@ -234,6 +234,10 @@ function doPost(e) {
     recipeRecover_();
     const by = String(b.by || '');
     if (/^recipe(Save|Archive|PlanApply|Import)$/.test(String(b.action || ''))) return recipeAction_(b, by);
+    // Appen skickar om en ändring om svaret aldrig kom fram. Varje ändring har ett eget id (rid);
+    // har det redan sparats hoppar vi över ändringen så att inget läggs till två gånger
+    const rid = /^[a-z0-9]{6,30}$/.test(String(b.rid || '')) ? 'rid:' + b.rid : '', cache = CacheService.getScriptCache();
+    if (rid && cache.get(rid)) return json_({ ok: true, data: allData_() });
     switch (b.action) {
       case 'shopToggle': setCells_('shop', findRow_('shop', b.id), { done: !!b.done }); break;
       case 'shopAdd': {
@@ -308,6 +312,7 @@ function doPost(e) {
       default: throw new Error('Okänd åtgärd.');
     }
     SpreadsheetApp.flush();
+    if (rid) cache.put(rid, '1', 21600);
     return json_({ ok: true, data: allData_() });
   } catch (err) {
     return json_({ ok: false, error: String(err.message || err) });

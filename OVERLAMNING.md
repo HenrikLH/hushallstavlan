@@ -10,7 +10,8 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 ## Pågår nu
 
-- Inget. Senast publicerat: Städvyn kan väljas som Lista (standard), Rutnät eller Ring under Inställningar → Mat och städ (`ht.stadVy`, `stadRutnat`/`stadRing` i app.js, CSS `.sx-*`). Test: `NOW=<idag> node verktyg/emu/run.js verktyg/emu/stad-vyer.js` (emulerade servern sätter lastDone med riktigt datum).
+- Dubbletter i Uppgifter/Inköp (Claude, gren `claude/project-thread-75i4zt`, PR väntar på "Pusha"): tillägg skickades om när svaret aldrig kom fram, arket hade tre rader av samma uppgift. Appen kontrollerar nu arket innan ett osäkert tillägg skickas igen (`redanSparad`, `osaker`, `n0` i flush/apiPost) och skickar `rid`; nya Kod.gs hoppar över redan sparad `rid` (CacheService, 6 h). Test: `verktyg/emu/uppgift-dubblett.js` (även `NOCACHE=1` = gammal Kod.gs). Versionshöjning görs vid publicering.
+- Tidigare: Senast publicerat: Städvyn kan väljas som Lista (standard), Rutnät eller Ring under Inställningar → Mat och städ (`ht.stadVy`, `stadRutnat`/`stadRing` i app.js, CSS `.sx-*`). Test: `NOW=<idag> node verktyg/emu/run.js verktyg/emu/stad-vyer.js` (emulerade servern sätter lastDone med riktigt datum).
 
 ## Följ upp med Henrik
 
@@ -28,7 +29,8 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 ## Väntar på Henrik (Kod.gs)
 
-- Inget. Henrik bekräftade 2026-10-21 att Kod.gs/setupRecipes/distribution är uppdaterade. Namn/rum på sysslor kan inte ändras utan ny Kod.gs (`cleanSet` tillåter bara freq/min/who/plannedFor/snoozeUntil).
+- `rid`-skydd mot dubbletter i doPost (när PR:en om dubbletter är ihopslagen). Appen klarar sig utan.
+- Tidigare: Henrik bekräftade 2026-10-21 att Kod.gs/setupRecipes/distribution är uppdaterade. Namn/rum på sysslor kan inte ändras utan ny Kod.gs (`cleanSet` tillåter bara freq/min/who/plannedFor/snoozeUntil).
 
 ## Beslut som ska bevaras (inte självklara i koden)
 
