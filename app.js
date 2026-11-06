@@ -341,8 +341,8 @@ addEventListener('resize',()=>navLins.stor());
   if(U5){if(Date.now()-u5BackAt<800)return;const p=dx+u5Fart.proj(u5Fart.v(g.a),.99);if(Math.abs(dx)>30&&Math.abs(dx)>1.5*Math.abs(dy)&&Math.abs(p)>innerWidth*.4&&Math.sign(p)===Math.sign(dx)&&!document.querySelector('#overlay .sheet'))subSwipe(dx);return}
   if(Math.abs(dx)>70&&Math.abs(dx)>1.8*Math.abs(dy)&&performance.now()-g.t0<800&&!document.querySelector('#overlay .sheet'))subSwipe(dx)},{passive:true})})();
 
-/* Undermenyerna i Mat och Uppgifter i samma ordning som segmentreglaget. Svep åt vänster = nästa. */
-const SUBS={mat:['matTab',['vecka','inkop','recept','bank','efter']],uppgifter:['taskTab',['lista','stad']],stad:['taskTab',['lista','stad']]};
+/* Undermenyerna i Mat, Uppgifter och Födelsedagar i samma ordning som segmentreglaget. Svep åt vänster = nästa. */
+const SUBS={mat:['matTab',['vecka','inkop','recept','bank','efter']],uppgifter:['taskTab',['lista','stad']],stad:['taskTab',['lista','stad']],fod:['fodMode',['hjul','manad','lista']]};
 // Kalender-fliken: svep byter månad, vecka eller dag som i iPhones Kalender (vänster = framåt)
 function calSwipe(dx){if(S.view!=='kalender'||S.sheet||S.cook)return false;const d=dx<0?1:-1;A.user=Date.now();
  if(S.calVy==='manad')ACT.calMonth(null,{dataset:{d}});else ACT.calStep(null,{dataset:{d}});
@@ -1290,10 +1290,10 @@ const dmKnapp=(id,lab)=>'<button class="dr-x dr-more" data-act="dishMenu" data-i
 function mealCell(m,rows,flex){rows=rows||[m];const r=m.recipe&&recipeById(m.recipe),days=[...new Set(rows.map(y=>y.date).filter(isDate))].sort();
  const g=m.recipe&&ratingOf(m.recipe),meta=[flex?(flex.port?'':flex.txt):days.map(d=>cap(DAYS3[parse(d).getDay()])).join(', '),r&&portKr(r)?portTxt(r)+'/port':'',g?'<span class="dr-st">★ '+starNum(matLage(m.recipe).s)+'</span>':''].filter(Boolean).join('<span class="dot" aria-hidden="true">·</span>');
  const pa=protFromAddon(m.addon);
- const lst=!!(m.recipe&&weekLocks(weekTarget().vs).has(m.recipe));
- const hl=!!(m.who!=='Borta'&&m.recipe),lkm='<span class="lk-ring" aria-hidden="true"></span><span class="lk-bd" aria-hidden="true">'+I.lock+'</span>',th=dishThumb(r,m.title);
+ const lk=lasId(m),lst=!!(lk&&weekLocks(weekTarget().vs).has(lk));
+ const hl=!!(m.who!=='Borta'&&lk),lkm='<span class="lk-ring" aria-hidden="true"></span><span class="lk-bd" aria-hidden="true">'+I.lock+'</span>',th=dishThumb(r,m.title);
  // UI 2.0: håll in bilden låser eller låser upp, håll in raden öppnar rättens blad
- const hb=hl?' data-hold-lock="'+esc(m.recipe)+'" data-lst="'+(lst?1:0)+'"':'';
+ const hb=hl?' data-hold-lock="'+esc(lk)+'" data-lst="'+(lst?1:0)+'"':'';
  const inner=(hl&&LASSTIL==='bild'?'<span class="lk-tw'+(lst?' lk-on':'')+'" data-lk'+hb+'>'+th+lkm+'</span>':hb?'<span class="dr-thw"'+hb+'>'+th+'</span>':th)+'<span class="grow"><span class="chips-row">'+whoChip(pa?'Kött/Veg':m.who)+'</span><span class="title">'+esc(m.title)+'</span><span class="meta">'+meta+'</span>'+(pa?protPills(pa):m.addon?'<span class="dr-sub">+ Kött: '+esc(m.addon)+'</span>':'')+(noteUtanPort(m.note)?'<span class="dr-sub">'+esc(noteUtanPort(m.note))+'</span>':'')+'</span>';
  // Portionerna med plus och minus under rätten. Ändringen sparas och inköpslistan räknas om
  const P=flex&&flex.port,pr=P?'<div class="dr-port"><span class="grow"><b>'+P.n+(P.n===1?' portion':' portioner')+'</b>'+'</span><span class="pl-step" role="group" aria-label="Portioner"><button type="button" data-act="portStep" data-id="'+D().menu.indexOf(m)+'" data-d="-1" aria-label="Färre portioner"'+(P.n<=1?' disabled':'')+'>'+I.minus+'</button><span class="num" aria-live="polite">'+P.n+'</span><button type="button" data-act="portStep" data-id="'+D().menu.indexOf(m)+'" data-d="1" aria-label="Fler portioner"'+(P.n>=20?' disabled':'')+'>'+I.plus+'</button></span></div>':'';
@@ -1304,7 +1304,7 @@ function mealCell(m,rows,flex){rows=rows||[m];const r=m.recipe&&recipeById(m.rec
  // Håll in rätten för att låsa den (eller låsa upp). data-hold-lock bär receptet
  const row='<div class="cell dr'+(can?' dr-slide':'')+(rad?' lk-rad'+(lst?' lk-on':''):'')+'"'+(rad?' data-lk':'')+(can?' data-hold-lift="dishMenu" data-id="'+i+'"':'')+'>'+(rad?lkm:'')+(r?'<button class="dr-main" data-act="recipe" data-id="'+esc(m.recipe)+'">'+inner+'</button>':'<div class="dr-main">'+inner+'</div>')+end+pr+'</div>';
  // Svep åt vänster tar bort (hela vägen direkt), svep åt höger låser eller låser upp
- return can?'<div class="dr-wrap">'+swDel('weekDel',i,m.title)+(hl?swLas(m.recipe,lst):'')+row+'</div>':row}
+ return can?'<div class="dr-wrap">'+swDel('weekDel',i,m.title)+(hl?swLas(lk,lst):'')+row+'</div>':row}
 /* Hushållets matpreferenser: rader i Inställningar som veckoplaneringen läser när den gör menyn */
 const PREFS=[['pref_henrik','Kött','k','Henriks mat, t.ex. proteinrik och kalorisnål'],['pref_veg','Vegetariskt','v','Den vegetariska maten, t.ex. kost och GI'],['pref_ekonomi','Ekonomi','','Budget, butiker och svinn'],['pref_ovrigt','Övrigt','','Sådant ni inte gillar, allergier, önskemål']];
 function prefsBlock(){const st=settings(),rows=PREFS.filter(([k])=>String(st[k]||'').trim());
@@ -1393,9 +1393,11 @@ const dagNr=(W,date)=>Math.round((Date.parse(date)-Date.parse(W.vs))/864e5);
 function tommaPlatser(W,ds,g){const rows=weekRows(W);
  if(g==='Storkok'){const sk=ds.filter(x=>x.g==='Storkok'&&x.r),n=sk.filter(x=>x.m).reduce((a,x)=>a+dishPort(x.m,x.r),0)+sk.filter(x=>!x.m).reduce((a,x)=>a+(Number(x.r.portions)||5),0);return Math.max(1,Math.min(Math.ceil((10-n)/5),2-sk.length))}// alltid en tom plats för ett extra storkok
  const kv=g==='Vardag'?4:3,inG=y=>{const d=dagNr(W,y.date);return g==='Vardag'?d<=3:d>=4};
- const tack=rows.filter(y=>inG(y)&&(y.who==='Borta'||/^macka$/i.test(y.title))).length+ds.filter(x=>x.g===g&&x.m&&!isDessert(x.r)).reduce((a,x)=>a+Math.max(1,Math.floor(dishPort(x.m,x.r)/2)),0);
+ const tack=rows.filter(y=>inG(y)&&y.who==='Borta').length+rows.filter(y=>inG(y)&&/^macka$/i.test(y.title)).reduce((a,y)=>a+Math.max(1,Math.floor(dishPort(y,null)/2)),0)+ds.filter(x=>x.g===g&&x.m&&!isDessert(x.r)).reduce((a,x)=>a+Math.max(1,Math.floor(dishPort(x.m,x.r)/2)),0);
  return Math.max(1,kv-tack)}// alltid minst en tom plats för en extra rätt
 // Låsta rätter: {las:1, v: veckans start, ids:[recept]} i önskelistan, så att båda ser samma lås
+// Låsnyckel: receptet, eller macka:<datum> för en macka (mackan har inget recept)
+const lasId=m=>m?m.recipe||(/^macka$/i.test(m.title||'')?'macka:'+m.date:''):'';
 function weekLocks(vs){const o=parseJ(settings().onskelista,[]).find(x=>x&&x.las&&x.v===vs);const set=new Set((o&&o.ids||[]).map(recipeRoot));set.has=id=>Set.prototype.has.call(set,recipeRoot(id));set.add=id=>Set.prototype.add.call(set,recipeRoot(id));set.delete=id=>Set.prototype.delete.call(set,recipeRoot(id));return set}
 function setWeekLocks(vs,ids){A.user=Date.now();updJSON('onskelista',[],a=>a.filter(x=>x&&!x.las).concat(ids.length?[{las:1,v:vs,ids}]:[]))}
 // Skicka veckan som den ser ut i telefonen. Tom vecka får en rad Ledig, eftersom kalkylarket vill ha minst en rad
@@ -1421,7 +1423,7 @@ function slotFill(g,id){const W=weekTarget(),rows=weekRows(W),r=id&&id!=='macka'
 function weekDel(i){const W=weekTarget(),m=D().menu[Number(i)];if(!m)return;
  const bort=m.recipe?y=>y.recipe===m.recipe||(!y.recipe&&y.title==='Rester: '+m.title):y=>y===m;
  D().menu=D().menu.filter(y=>!(isDate(y.date)&&y.date>=W.vs&&y.date<=W.ve&&bort(y)));
- if(m.recipe&&weekLocks(W.vs).has(m.recipe))setWeekLocks(W.vs,[...weekLocks(W.vs)].filter(x=>x!==m.recipe));
+ const lk=lasId(m);if(lk&&weekLocks(W.vs).has(lk))setWeekLocks(W.vs,[...weekLocks(W.vs)].filter(x=>x!==lk));
  closeSheets();render();weekSend(W,m.recipe?m.title+' är borttagen':'Mackan är borttagen')}
 function weekLock(id){const W=weekTarget(),L=weekLocks(W.vs),on=!L.has(id);if(on)L.add(id);else L.delete(id);setWeekLocks(W.vs,[...L]);toast(on?'Låst. Föreslå en ny vecka behåller rätten':'Upplåst')}
 // Föreslå en ny vecka för samma vecka som veckosedeln: utgå från det som redan ligger där.
@@ -1434,7 +1436,7 @@ function autoFranVecka(P){const st=settings();if(st.vecka_start!==P.vecka)return
   else if(/^rester:/i.test(m.title)){if(pl.dag[d].t==='tom')pl.dag[d]={t:'rest'}}else if(/^macka$/i.test(m.title)&&pl.dag[d].t==='tom')pl.dag[d]={t:'macka'}});
  // Högst två storkok: ett var (kött och vegetariskt) går före ett gemensamt
  if(pl.st.some(x=>x.key!=='sg'))pl.st=pl.st.filter(x=>x.key!=='sg');else if(pl.st.length)pl.mode='gem';
- pl.dag.forEach((x,d)=>{if(x.t==='tom'){pl.dag[d]={t:'macka'};return}tmp['d'+d]=1;if(x.t==='ratt'&&las.has(x.id))las2['d'+d]=1});
+ pl.dag.forEach((x,d)=>{if(x.t==='tom'){pl.dag[d]={t:'macka'};return}tmp['d'+d]=1;if(x.t==='ratt'&&las.has(x.id)||x.t==='macka'&&las.has('macka:'+addDays(P.vecka,d)))las2['d'+d]=1});
  pl.st.forEach(x=>{tmp[x.key]=1;if(las.has(x.id))las2[x.key]=1});
  pl.vecka=P.vecka;P.plan=pl;P.lock=tmp;PLANP=P;const X=autoCtx(P);X.behall=1;P.plan=autoGen(X,P.gen);P.plan.vecka=P.vecka;P.lock=las2;autoSync(P);PLANP=null;planSave(P)}
 // Planera nästa vecka och Planera med portioner syns bara i utvecklarläget
@@ -1484,8 +1486,8 @@ function matWeek(){
  const G=grpBehov(ds);
  // UI 2.0: veckan som brickor. Håll in öppnar rättens blad, låset låser med ett tryck. Rätterna fyller gruppen, det finns alltid en tom plats och bandet visar en ruta per portion
  const btTom=(a,id,t)=>'<div class="bt"><span class="bq-w"><button type="button" class="bq e" data-act="'+a+'"'+(id?' data-id="'+id+'"':'')+' aria-label="'+t+'">'+I.plus+'</button></span><span class="bn ac">'+t+'</span></div>';
- const bt=(m,r,n,i,rid,lst,t)=>'<div class="bt" data-hold-lift="dishMenu" data-id="'+i+'"><span class="bq-w">'+(rid?'<button type="button" class="bq" data-act="recipe" data-id="'+esc(rid)+'" aria-label="'+esc(t)+'">':'<button type="button" class="bq" data-act="dishMenu" data-id="'+i+'" aria-label="'+esc(t)+'">')+dishThumb(r,t)+'</button>'+
-  (rid?'<button type="button" class="bq-lk'+(lst?' on':'')+'" data-act="swLock" data-id="'+esc(rid)+'" aria-pressed="'+lst+'" aria-label="'+(lst?'Lås upp ':'Lås ')+esc(t)+'">'+(lst?I.lock:I.unlock)+'</button>':'')+
+ const bt=(m,r,n,i,rid,lst,t,lk)=>'<div class="bt" data-hold-lift="dishMenu" data-id="'+i+'"><span class="bq-w">'+(rid?'<button type="button" class="bq" data-act="recipe" data-id="'+esc(rid)+'" aria-label="'+esc(t)+'">':'<button type="button" class="bq" data-act="dishMenu" data-id="'+i+'" aria-label="'+esc(t)+'">')+dishThumb(r,t)+'</button>'+
+  ((lk=lk||rid)?'<button type="button" class="bq-lk'+(lst?' on':'')+'" data-act="swLock" data-id="'+esc(lk)+'" aria-pressed="'+lst+'" aria-label="'+(lst?'Lås upp ':'Lås ')+esc(t)+'">'+(lst?I.lock:I.unlock)+'</button>':'')+
   '<button type="button" class="bq-p" data-act="dishMenu" data-id="'+i+'" aria-label="'+n+' portioner, ändra">'+n+' port</button></span>'+(U4?'<div class="u4-dish-info">'+(r?'<div class="chips-row">'+whoChip(m?m.who:effWho(r))+'</div>':''):'')+'<span class="bn">'+esc(t)+'</span>'+(U4?(r?'<div class="u4-dish-meta">'+[r.min?r.min+' min':'',portKr(r)?portTxt(r)+'/port':''].filter(Boolean).join(' · ')+'</div>':'')+'</div><button type="button" class="u4-more" data-act="dishMenu" data-id="'+i+'" aria-label="Alternativ för '+esc(t)+'">'+I.dots+'</button>':'')+'</div>';
  const btBand=g=>{const x=G&&G[g];if(!x||x.beh<=0)return'';const ok=x.n>=x.beh,k=Math.min(x.beh,24);return'<span class="bt-m'+(ok?' ok':' bad')+'">'+(ok?I.tick:'')+x.n+' av '+x.beh+'<span class="bt-seg" aria-hidden="true">'+Array.from({length:k},(_,j)=>'<i'+(j<Math.min(x.n,k)?' class="f"':'')+'></i>').join('')+'</span></span>'};
  ['Vardag','Helg','Storkok'].concat([...new Set(ds.map(x=>x.g))].filter(g=>!['Vardag','Helg','Storkok'].includes(g))).forEach(g=>{const list=ds.filter(x=>x.g===g).sort((a,b)=>(order[(a.r||a.m).who]??3)-(order[(b.r||b.m).who]??3));
@@ -1496,7 +1498,7 @@ function matWeek(){
   const mack=g==='Storkok'?[]:rows.filter(y=>/^macka$/i.test(y.title)&&((dagNr(W,y.date)<=3)===(g==='Vardag'))),nTom=['Vardag','Helg','Storkok'].includes(g)?tommaPlatser(W,ds,g):0;
   const hu=['Vardag','Helg','Storkok'].includes(g);if(!hu&&!list.length)return;
    const t=list.map(x=>{const m=x.m;if(!m)return'';const i=d.menu.indexOf(m),rid=m.who!=='Borta'&&m.recipe;return bt(m,x.r,dishPort(m,x.r),i,rid,!!(rid&&weekLocks(vs).has(rid)),m.title)}).join('')+
-    mack.map(y=>bt(y,null,2,d.menu.indexOf(y),'',false,'Macka')).join('')+(hu?Array.from({length:Math.max(1,nTom)},()=>btTom('slotPick',g,g==='Storkok'?'Lägg till storkok':'Lägg till')).join(''):'');
+    mack.map(y=>bt(y,null,dishPort(y,null),d.menu.indexOf(y),'',weekLocks(vs).has(lasId(y)),'Macka',lasId(y))).join('')+(hu?Array.from({length:Math.max(1,nTom)},()=>btTom('slotPick',g,g==='Storkok'?'Lägg till storkok':'Lägg till')).join(''):'');
    vd+='<div class="bt-sec"'+RF({Vardag:'M2',Helg:'M3',Storkok:'M4'}[g])+'>'+gh(esc(namn),btBand(g)||'<span class="num">'+list.length+' '+(list.length===1?'rätt':'rätter')+'</span>')+'<div class="bt-g">'+t+'</div></div>';
   });
  const dr=weekDessert();
@@ -2946,8 +2948,8 @@ function renderOverlay(){
  // Bladet följer rätten, inte platsen i listan: inköpslistan kan räkna om och flytta raderna
  if(k==='dish'&&S.dm!=='d'&&S.dmK){const j=D().menu.findIndex(x=>dmKey(x)===S.dmK);if(j>=0)S.dm=String(j)}
  if(k==='dish'){const ds=S.dm==='d',m=ds?null:D().menu[Number(S.dm)],r=ds?weekDessert():m&&m.recipe&&recipeById(m.recipe);if(ds?!r:!m){closeSheets();o.dataset.k='';o.innerHTML='';return}
-  const rid=ds?r.id:m.recipe,lst=!!(rid&&weekLocks(weekTarget().vs).has(rid)),tit=ds?r.title:m.title,n=ds?dessPort(r):dishPort(m,r),pa=ds?'dessPortStep':'portStep',pid=ds?'':S.dm;
-  const meta=[ds?'Efterrätt':'',lst?'Låst':'',r&&r.min?r.min+' min':'',r&&r.kr?kr(r.kr)+'/port':''].filter(Boolean).join('<span class="dot" aria-hidden="true">·</span>');
+  const rid=ds?r.id:lasId(m),lst=!!(rid&&weekLocks(weekTarget().vs).has(rid)),tit=ds?r.title:m.title,n=ds?dessPort(r):dishPort(m,r),pa=ds?'dessPortStep':'portStep',pid=ds?'':S.dm;
+  const meta=[ds?'Efterrätt':'',lst?'Låst':'',r&&r.min?r.min+' min':'',r&&portKr(r)?portTxt(r)+'/port':''].filter(Boolean).join('<span class="dot" aria-hidden="true">·</span>');
   const t=(ic,ti,sub,at,cls)=>'<button type="button" class="dm-t'+(cls||'')+'" '+at+'>'+(cls===' red hold'?'<i class="sh-fill"></i>':'')+'<span class="dm-ic">'+ic+'</span><b>'+ti+'</b><span class="meta">'+sub+'</span></button>',go=(a,id)=>'data-act="dishGo" data-a="'+a+'" data-id="'+esc(id)+'"';
   const tiles=[t(I.swap,'Byt rätt',ds?'Välj en annan efterrätt':'Förslag i samma pris',ds?go('dessPick',''):go('swap',S.dm)),
    rid?t(lst?I.unlock:I.lock,lst?'Lås upp':'Lås',lst?'Kan bytas vid ny vecka':'Behålls vid ny vecka',go('swLock',rid)):'',
@@ -2992,7 +2994,7 @@ function renderOverlay(){
    fieldCell('Födelseår',menuSel('name="ar" aria-label="Födelseår"',yrs)))+
    sh('Färg')+group('<div class="cell strip-cell"><div class="pcols pstrip" role="radiogroup" aria-label="Färg" data-strip="fodcol">'+dot('','var(--ink-2)','var(--ink-2)','Ingen egen färg (barn blir orange)',';background:transparent;border:2px dashed var(--c)')+farbList().map(c=>dot(c,PCOL[c][1],PCOL[c][3],PCOL[c][0])).join('')+'</div></div>')+
    '<div class="foot">Färgen syns på datumet, i årshjulet och på väggtavlan. Utan egen färg blir barn under 18 orange, om födelseåret är ifyllt.</div>'+
-   (e?'<div style="height:22px"></div>'+group('<button type="button" class="cell link center red" data-act="fodDelSheet" data-id="'+esc(e.key)+'">Ta bort födelsedagen</button>'):'');
+   (e?'<div style="height:22px"></div>'+group('<button type="button" class="cell link center red hold" data-hold="fodDelHold" data-id="'+esc(e.key)+'"><i class="sh-fill"></i><span>Ta bort födelsedagen</span></button>')+'<div class="foot">Håll in för att ta bort.</div>':'');
   o.innerHTML=sheetHtml('fodAdd',e?'Ändra födelsedag':'Ny födelsedag','<button class="tb strong">'+(e?'Spara':'Lägg till')+'</button>',body,enter);restoreColorStrips(o);return}
  if(k==='task'){
   const body=(S.view==='kalender'?'<div class="cv-typ">'+segc('Typ','evNewTyp',[['ev','Händelse'],['task','Uppgift']],'task')+'</div>':'<div style="height:16px"></div>')+group('<div class="cell"><input class="field" id="task-title" name="title" placeholder="Vad behöver göras?" required autocomplete="off" aria-label="Uppgift"></div>'+
@@ -4306,8 +4308,8 @@ function bdays(){const t=today(),ty=Number(t.slice(0,4)),seen=new Set(),E=fodEgn
 const bdWhen=b=>b.days===0?'idag':b.days===1?'imorgon':b.days<7?'på '+DAYS[parse(b.next).getDay()]:b.days<45?'om '+b.days+' dagar':'om '+Math.round(b.days/30.4)+' mån';
 const bdTurns=b=>b.age!=null?'fyller '+b.age:'fyller år';
 const bdNext=L=>L.slice().sort((a,b)=>a.days-b.days);
-function bdRow(b,o){o=o||{};return'<div class="dr-wrap cs"><button class="dr-act del" data-act="fodDel" data-full="fodDel" data-id="'+esc(b.key)+'" aria-label="Ta bort '+esc(b.name)+'">'+I.trash+'<span>Ta bort</span></button><div class="cell dr-slide bd'+(b.days===0?' today':'')+(b.passed&&o.dim?' past':'')+'" data-hold-lift="fodEdit" data-id="'+esc(b.key)+'"'+bdSt(b)+'><span class="bd-date num"><b>'+b.dd+'</b><small>'+MON3[b.mo]+'</small></span>'+
- '<div class="grow"><div>'+esc(b.name)+'</div><div class="sub">'+esc(cap(bdTurns(b)))+(b.yr?' · född '+b.yr:'')+'</div></div><span class="bd-when'+(b.days<14?' soon':'')+'">'+esc(bdWhen(b))+'</span></div></div>'}
+function bdRow(b,o){o=o||{};return'<div class="cell bd'+(b.days===0?' today':'')+(b.passed&&o.dim?' past':'')+'" data-hold-lift="fodEdit" data-id="'+esc(b.key)+'"'+bdSt(b)+'><span class="bd-date num"><b>'+b.dd+'</b><small>'+MON3[b.mo]+'</small></span>'+
+ '<div class="grow"><div>'+esc(b.name)+'</div><div class="sub">'+esc(cap(bdTurns(b)))+(b.yr?' · född '+b.yr:'')+'</div></div><span class="bd-when'+(b.days<14?' soon':'')+'">'+esc(bdWhen(b))+'</span></div>'}
 function bdWidget(){const L=bdNext(bdays()).slice(0,3);if(!L.length)return'';
  return widget('fod','w2',I.cake,'Födelsedagar','',
   '<div class="wl">'+L.map(b=>'<div class="cell bdw"><span class="grow">'+esc(b.name)+' <span class="muted">'+esc(bdTurns(b))+'</span></span><span class="bd-when'+(b.days<14?' soon':'')+'">'+esc(bdWhen(b))+'</span></div>').join('')+'</div>')}
@@ -4340,7 +4342,7 @@ V.fod=function(){const L=bdays(),t=parse(today()),mode=S.fodMode||'hjul';
  if(mode==='hjul'){const sel=S.fodMon!=null?S.fodMon:t.getMonth(),ML=L.filter(b=>b.mo===sel);
   h+='<div class="bd-wrap"'+RF('F1')+'>'+bdWheel(L,sel)+'<div class="bd-center"><div class="eyebrow">'+(first.days===0?'Idag':'Nästa')+'</div><div class="bd-cn">'+esc(same.map(b=>b.name).join(' & '))+'</div><div class="sub">'+esc(cap(same.length===1?bdTurns(first):'fyller år')+(first.days?' '+bdWhen(first):''))+'</div></div></div>';
   h+=sh(cap(MON[sel]),ML.length?ML.length+(ML.length===1?' födelsedag':' födelsedagar'):'')+rgroup('F2',ML.length?ML.map(b=>bdRow(b)).join(''):emptyCell('Ingen fyller år i '+MON[sel]+'.'));
-  h+='<div class="foot">Tryck på en månad i hjulet för att se vilka som fyller år då. Håll in ett namn för att ändra, svep vänster för att ta bort.</div>'}
+  h+='<div class="foot">Tryck på en månad i hjulet för att se vilka som fyller år då. Håll in ett namn för att ändra eller ta bort. Svep i sidled för att byta visning.</div>'}
  else if(mode==='manad'){h+='<div class="bd-grid"'+RF('F3')+'>';
   for(let m=0;m<12;m++){const ML=L.filter(b=>b.mo===m),cur=m===t.getMonth();
    h+='<section class="bd-mon'+(cur?' now':'')+(!ML.length?' empty':'')+'"><div class="bd-mh"><span>'+cap(MON[m])+'</span>'+(ML.length?'<span class="n">'+ML.length+'</span>':'')+'</div>'+
@@ -4473,6 +4475,7 @@ function u5Sida(page,prev){const p=page.split('|'),o=prev.split('|'),push=u5Sub(
  const ok=()=>U5&&S.data&&!S.sheet&&!S.cook&&!S.arrange&&!wallBoardOn()&&!document.querySelector('#overlay .sheet');
  const hsc=el=>{for(;el&&el!==document.body&&el!==document.documentElement;el=el.parentElement){const cs=getComputedStyle(el);if(/(auto|scroll)/.test(cs.overflowX)&&el.scrollWidth>el.clientWidth+1)return true}return false};
  const fri=el=>!!el.closest&&!!el.closest('main')&&!el.closest('input,textarea,select,[contenteditable],.dr-slide,.dr-wrap,.car,[data-motion-grip],.navbar')&&!hsc(el);
+ // Födelsedagar: svep inne på sidan byter visning, tillbaka går från kanten (och från Årshjul, den första visningen)
  // Raderna med svep lämnar kanten åt tillbaka-svepet
  window.u5Kant=e=>{const t=e.touches&&e.touches[0];return!!t&&t.clientX<=24&&ok()&&!!backBtn()};
  let spin=null;const spinner=()=>{if(!spin){spin=document.createElement('div');spin.className='u5-ptr';spin.setAttribute('aria-hidden','true');spin.innerHTML='<i></i>';document.body.appendChild(spin)}return spin};
@@ -4490,7 +4493,7 @@ function u5Sida(page,prev){const p=page.split('|'),o=prev.split('|'),push=u5Sub(
   if(fj){const s=fj;fj=null;const x=new DOMMatrix(getComputedStyle(s.m).transform).m41;s.anims.forEach(a=>a.cancel());s.anims=null;
    if(!ok()){stada(s);g=null;return}g=Object.assign(s,{x0:t.clientX-x,y0:t.clientY,x,on:true,a:[]});u5Fart.add(g.a,x);satt(g,x);return}
   g=null;if(!ok())return;
-  if(backBtn()&&(t.clientX<=24||fri(e.target)))g={x0:t.clientX,y0:t.clientY,kant:t.clientX<=24,on:false,a:[]};
+  if(backBtn()&&(t.clientX<=24||fri(e.target)&&!(S.view==='fod'&&S.fodMode!=='hjul')))g={x0:t.clientX,y0:t.clientY,kant:t.clientX<=24,on:false,a:[]};
   if(scrollY<=0&&!e.target.closest('input,textarea,select,.dr-slide,.car,[data-motion-grip],.ovcal:not(.expanded) .ovcal-week'))pr={y0:t.clientY,x0:t.clientX,d:0,on:false}},{passive:true});
  document.addEventListener('touchmove',e=>{const t=e.touches[0];
   if(g){const dx=t.clientX-g.x0,dy=t.clientY-g.y0;
@@ -4823,7 +4826,7 @@ const ACT={
  slotPick(g){S.slotG=g;S.psel=null;if(S.carIdx)delete S.carIdx["pk"+g];S.sheet='slot';render()},
  slotSet(id){slotFill(S.slotG||'Vardag',id)},
  // En låst rätt tas bort först efter att man hållit in Bekräfta i en ruta, som Töm listan i Inköp
- weekDel(id){const m=D().menu[Number(id)];swpCloseAll();if(m&&m.recipe&&weekLocks(weekTarget().vs).has(m.recipe)){S.delAsk=Number(id);S.sheet='delLas';render();return}weekDel(id)},
+ weekDel(id){const m=D().menu[Number(id)];swpCloseAll();if(m&&lasId(m)&&weekLocks(weekTarget().vs).has(lasId(m))){S.delAsk=Number(id);S.sheet='delLas';render();return}weekDel(id)},
  dishMenu(id){swpCloseAll();S.dm=id;const m=id==='d'?null:D().menu[Number(id)];S.dmK=m?dmKey(m):'';S.sheet='dish';render()},
  dishGo(id,el){const a=el.dataset.a;if(a==='swLock'){ACT.swLock(id);render();return}closeSheets();ACT[a](id,el);render()},
  dishDelHold(id){closeSheets();if(id==='d')ACT.dessClear();else ACT.weekDelYes(id);render()},
@@ -4897,8 +4900,7 @@ const ACT={
   if(!D().clean.some(x=>x.id===t.id))D().clean.splice(Math.max(0,Math.min(i,D().clean.length)),0,t);undoHide();render()},
  fodAdd(){S.fodEdit=null;S.sheet='fodAdd';render();setTimeout(()=>document.getElementById('fod-name')?.focus(),30)},
  fodEdit(k){if(!bdays().some(b=>b.key===k))return;S.fodEdit=k;S.sheet='fodAdd';render()},
- fodDelSheet(k){closeSheets();const b=bdays().find(x=>x.key===k);if(b)fdelStart(b)},
- fodDel(k){const b=bdays().find(x=>x.key===k);if(b)fdelStart(b)},
+ fodDelHold(k){closeSheets();const b=bdays().find(x=>x.key===k);if(b)fdelStart(b)},
  fodUndo(){if(!FDEL.k)return;clearTimeout(FDEL.t);FDEL.k=null;undoHide();render()},
  cleanAdd(){S.sheet='cleanAdd';render();setTimeout(()=>document.getElementById('clean-title')?.focus(),30)},
  cleanFocus(_,el){el?.closest('form')?.querySelector('.field')?.focus()},
@@ -4922,7 +4924,7 @@ const ACT={
   el.classList.add('holding');h={el,x:e.clientX,y:e.clientY,t:setTimeout(()=>{const a=el.dataset.hold;stop();fired=Date.now();try{navigator.vibrate&&navigator.vibrate(15)}catch(x){}ACT[a]&&ACT[a](el.dataset.id)},T)}});
  document.addEventListener('pointermove',e=>{if(h&&Math.hypot(e.clientX-h.x,e.clientY-h.y)>12)stop()});
  ['pointerup','pointercancel','scroll'].forEach(k=>document.addEventListener(k,stop,true));
- document.addEventListener('click',e=>{const el=e.target.closest('[data-hold]');if(el&&Date.now()-fired>800)toast('Håll in knappen för att '+({shopEmptyYes:'tömma listan',weekDelYes:'bekräfta',dishDelHold:'ta bort rätten',ekoDelHold:'ta bort utgiften',shopImportYes:'uppdatera varorna'}[el.dataset.hold]||'bekräfta'))});
+ document.addEventListener('click',e=>{const el=e.target.closest('[data-hold]');if(el&&Date.now()-fired>800)toast('Håll in knappen för att '+({shopEmptyYes:'tömma listan',weekDelYes:'bekräfta',dishDelHold:'ta bort rätten',ekoDelHold:'ta bort utgiften',fodDelHold:'ta bort födelsedagen',shopImportYes:'uppdatera varorna'}[el.dataset.hold]||'bekräfta'))});
  document.addEventListener('contextmenu',e=>{if(e.target.closest('[data-hold]'))e.preventDefault()})})();
 /* Håll in = lyft: det man håller i växer sakta (4 % på 0,8 s) med en mjuk skugga och åtgärden körs när det nått fram.
    Släpper eller flyttar man fingret glider det tillbaka. hlOn/hlOff används av alla håll-in-gester med lyft (ändra, lås, ordna rutor, klockan) */

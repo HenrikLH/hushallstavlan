@@ -540,6 +540,7 @@ html.ny .chip.lk::before{display:none}
 .sh-ic{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent)}.sh-ic svg{width:16px;height:16px}
 .sh-btn.red .sh-ic{background:color-mix(in srgb,var(--red) 14%,transparent);color:var(--red)}
 .sh-fill{position:absolute;inset:0;background:var(--accent-soft);transform:scaleX(0);transform-origin:left;transition:transform .2s ease-out}
+.cell.link.hold{position:relative;overflow:hidden;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}.cell.link.hold>span{position:relative}.cell.link.hold .sh-fill{background:color-mix(in srgb,var(--red) 16%,transparent)}.cell.link.hold.holding .sh-fill{transform:scaleX(1);transition:transform 1s linear}
 .sh-btn.red .sh-fill{background:color-mix(in srgb,var(--red) 16%,transparent)}
 .sh-btn.holding .sh-fill{transform:scaleX(1);transition:transform 1s linear}
 .sh-btn.holding{transform:scale(.98);transition:transform .15s}
@@ -2955,7 +2956,7 @@ html.ui4.seg-klassisk :is(.wsum,.sh-btn,.mswitch,.create-options,.add-row){borde
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=270"></script>
+<script src="app.js?v=272"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
