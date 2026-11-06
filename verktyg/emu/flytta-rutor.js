@@ -13,7 +13,7 @@ module.exports=async(pg,h)=>{
  const dra=async(a,b,steg=14)=>{const A=await pg.$('[data-box="'+a+'"]');await A.evaluate(e=>scrollTo(0,e.getBoundingClientRect().top+scrollY-120));await h.idle(300);
   const ra=await A.boundingBox();const x=ra.x+ra.width/2,y=ra.y+Math.min(40,ra.height/2);
   await touch('touchStart',x,y);await pg.waitForTimeout(900);console.log('  arrange efter håll: '+await pg.evaluate(()=>document.querySelector('.arranging')?'ja':'nej')+', lyft: '+await pg.evaluate(()=>!!document.querySelector('.lift-root')));
-  const rb=await (await pg.$('[data-box="'+b+'"]')).boundingBox();const vh=pg.viewportSize().height,tx=rb.x+rb.width/2,ty=Math.min(rb.y+rb.height*.8,vh-200);
+  const rb=await (await pg.$('[data-box="'+b+'"]')).boundingBox();const vh=pg.viewportSize().height,tx=rb.x+rb.width*.75,ty=Math.min(rb.y+rb.height*.8,vh-200);
   for(let i=1;i<=steg;i++){await touch('touchMove',x+(tx-x)*i/steg,y+(ty-y)*i/steg);await pg.waitForTimeout(40)}
   console.log('  kopian: '+await pg.evaluate(()=>{const r=document.querySelector('.lift-root .lift');return r?JSON.stringify(r.getBoundingClientRect()):'saknas'}));if(!await pg.$('.lift-root'))fel('ingen kopia följer fingret');
   await h.shot((wall?'vagg':'tel')+'-drar-'+a);
