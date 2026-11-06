@@ -60,6 +60,9 @@
     'crème fraiche och gräddfil': ['crème fraiche', /^(crème|creme|gräddfil)/i, /chili|örter|vitlök|paprika|lök|tomat|ost|smaksatt/i],
     'matlagningsgrädde': ['matlagningsgrädde', /^(matlagningsgrädde|matgrädde)/i, /vego|havre|soja/i],
     'riven ost': ['riven ost', /riven/i, /pizza|vego|vegansk/i],
+    'parmesan': ['parmesan', /^(parmesan|parmigiano|grana padano|pecorino)/i, /vego|vegansk|smak|chips|kex/i],
+    'mozzarella': ['mozzarella', /^mozzarella/i, /riven|pizza|vego|vegansk|stick|panerad|tomat/i],
+    'ricotta': ['ricotta', /^ricotta/i, /vego|vegansk/i],
     'fetaost': ['fetaost', /^(fetaost|feta |salladsost)/i, /oliver|krydd|röra|soltork|fryst/i],
     'halloumi': ['halloumi', /^(halloumi|grillost)/i, /fries|panerad|krydd|fryst/i],
     'kycklingfilé': ['kycklingfilé', /^(kycklingfilé|kycklingbröst|kyckling bröstfilé)/i, /panerad|marinerad|tikka|grillad|skivad|kokt|rökt|krydd|teriyaki|bbq/i],
@@ -113,7 +116,9 @@
     'digestivekex': ['digestivekex', /^digestive/i, /choklad/i],
     'selleri': ['selleri', /selleri/i, /rot|salt|fryst|frö/i],
     'butternutpumpa': ['butternut', /butternut/i, /fryst/i],
-    'rabarber': ['rabarber', /^rabarber/i, /fryst|sylt|kompott|saft|glas/i]
+    'rabarber': ['rabarber', /^rabarber/i, /fryst|sylt|kompott|saft|glas|marmelad|vanilj|vin|dryck|paj/i],
+    'sockerärtor': ['sockerärtor', /^(sockerärt|sugar ?snap)/i, /fryst|wok/i],
+    'rostad paprika': ['grillad paprika', /^(grillad|rostad)e? paprik/i, /pulver|krydd|chips|röra|pesto|kräm/i]
   };
   const ord = k => new RegExp('^' + k.split(/\s+/)[0].slice(0, 5).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
   const lagg = (k, s) => [s[0], s[1] || ord(k), s[2] ? new RegExp('(?:' + s[2].source + ')|(?:' + ALLTID.source + ')', 'i') : ALLTID];

@@ -922,6 +922,18 @@ function prisSynk() {
     };
     let svar = fraga(true);
     if (svar.some(function (r) { return r.getResponseCode() !== 200; })) svar = fraga(false);
+    /* Willys svarar ibland 503 (överbelastat) för alla sökningar på en gång. Försök igen en i taget efter en paus,
+       högst tre gånger, i stället för att hela dagens hämtning misslyckas */
+    [3000, 10000, 30000].forEach(function (paus) {
+      const fel = svar.map(function (r, j) { return r.getResponseCode() !== 200 ? j : -1; }).filter(function (j) { return j >= 0; });
+      if (!fel.length) return;
+      Utilities.sleep(paus);
+      fel.forEach(function (j) {
+        const v = del[j];
+        svar[j] = UrlFetchApp.fetch(WILLYS + '/search?q=' + encodeURIComponent(v.q) + '&size=30&storeId=' + WILLYS_BUTIK, { headers: hdr, muteHttpExceptions: true });
+        if (svar[j].getResponseCode() !== 200) Utilities.sleep(1000);
+      });
+    });
     svar.forEach(function (r, j) {
       const v = del[j];
       if (r.getResponseCode() !== 200) { v.fel = 'HTTP ' + r.getResponseCode(); return; }
@@ -931,6 +943,8 @@ function prisSynk() {
       if (!v.kampanjExempel) { const p = res.find(function (x) { return x.potentialPromotions && x.potentialPromotions.length; }); if (p) v.kampanjExempel = p.potentialPromotions[0]; }
       res = res.filter(function (x) { const n = String(x.name || ''); return v.med.test(n) && !(v.utan && v.utan.test(n)); });
       v.pris = willysPris_(res, v.pkt, v.okand);
+      // Fel träff (marmelad i stället för rabarber): priset per gram är långt från det väntade. Behåll då förra priset
+      if (v.pris && MV.rimligFor && !MV.rimligFor(v.k, { kr: v.pris.kr, pkt: v.pris.pkt, fp: 1, st: v.pris.st, los: v.pris.los })) { v.fel = 'orimligt pris: ' + v.pris.namn; v.pris = null; }
     });
   }
   const priser = {}, saknas = [], kampanjer = [];
@@ -938,7 +952,7 @@ function prisSynk() {
   lista.forEach(function (v) {
     if (v.kampanjExempel && !kampanjExempel) kampanjExempel = v.kampanjExempel;
     if (!v.pris) { saknas.push(v.k + (v.fel ? ' (' + v.fel + ')' : '')); return; }
-    const p = v.pris, o = { kr: Math.round(p.kr * 100) / 100, pkt: Math.round(p.pkt), vara: p.namn, fp: 1 };
+    const p = v.pris, o = { kr: Math.round(p.kr * 100) / 100, pkt: Math.round(p.pkt), vara: p.namn, fp: 1, d: Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd') };
     if (p.st) o.st = 1;
     if (p.los) o.los = 1;
     if (p.kampanj) { o.kampanj = 1; kampanjer.push(v.k); }
@@ -950,12 +964,16 @@ function prisSynk() {
   lock.waitLock(60000);
   try {
     // Behåll gamla priser för varor som inte hittades den här gången
-    const forr = readSettings_().priser;
+    const inst = readSettings_(), forr = inst.priser;
     let gamla = {}; try { gamla = JSON.parse(forr || '{}'); } catch (e) { }
+    /* senastOk: senaste körningen då Willys gav priser. Appen visar det datumet och varnar när det är över en vecka gammalt,
+       så att gamla priser inte ser färska ut när hämtningen misslyckats */
+    let forrLogg = {}; try { forrLogg = JSON.parse(inst.prislogg || '{}'); } catch (e) { }
+    logg.senastOk = logg.medPris > 0 ? logg.tid : (forrLogg.senastOk || (forrLogg.medPris > 0 ? forrLogg.tid : ''));
     // (bara om den gamla produkten fortfarande passar sökningen, så att felaktiga träffar försvinner)
     lista.forEach(function (v) {
       const o = gamla[v.k], n = o && String(o.vara || '').split(',')[0];
-      if (!v.pris && o && n && v.med.test(n) && !(v.utan && v.utan.test(n))) priser[v.k] = o;
+      if (!v.pris && o && n && v.med.test(n) && !(v.utan && v.utan.test(n)) && (!MV.rimligFor || MV.rimligFor(v.k, o))) priser[v.k] = o;
     });
     writeSetting_('priser', JSON.stringify(priser));
     writeSetting_('prislogg', JSON.stringify(logg));

@@ -16,22 +16,26 @@
     ['palsternacka', /palsternack/, 500, 25, 60, 150, 1],
     ['rotselleri', /rotselleri/, 1, 25, 0, 800, 1],
     ['paprika', /^(?!.*(pulver|rökt|chipotle|rostad|grillad))(?:.*paprik)/, 1, 15, 0, 180, 0],
+    // Rostad eller grillad paprika köps i burk (ca 290 g)
+    ['rostad paprika', /(rostad|grillad)e? paprik/, 290, 30, 100, 0, 1],
     ['zucchini', /zucchini/, 1, 15, 0, 350, 0],
     ['aubergine', /aubergine/, 1, 18, 0, 300, 0],
     ['gurka', /gurka/, 1, 15, 0, 350, 0],
     ['tomat', /^(?!.*(krossade|puré|körsbär))(?:.*tomat)/, 500, 30, 0, 100, 0],
     ['körsbärstomater', /körsbärstomat/, 250, 25, 0, 15, 0],
+    ['sockerärtor', /sockerärt|sugar ?snaps?/, 150, 22, 0, 0, 0],
     ['broccoli', /^(?!.*fryst)(?:.*broccoli)/, 1, 25, 0, 400, 0],
     ['blomkål', /blomkål/, 1, 30, 0, 800, 0],
     ['vitkål', /vitkål|rödkål/, 1, 25, 0, 1500, 1],
     ['grönkål', /grönkål/, 200, 25, 0, 1, 0],
-    ['champinjoner', /champinjon|shiitake/, 250, 25, 0, 20, 0],
+    ['champinjoner', /champinjon|shiitake|^svamp/, 250, 25, 0, 20, 0],
     ['avokado', /avokado/, 1, 12, 0, 200, 0],
     ['sallad', /sallad(?!slök)|ruccola|isberg/, 1, 20, 0, 300, 0],
     ['fryst spenat', /fryst.*spenat|spenat.*fryst/, 450, 20, 30, 0, 1],
     ['spenat', /spenat|pak choi/, 65, 20, 30, 0, 0],
     ['citron', /citron/, 1, 6, 0, 120, 1],
     ['lime', /^lime/, 1, 5, 0, 70, 1],
+    ['granatäpple', /granatäpple/, 1, 20, 0, 300, 0],
     ['äpple', /äpple(?!cider)|äpplen|päron/, 1, 5, 0, 180, 1],
     ['banan', /banan/, 1, 4, 0, 180, 0],
     ['färska örter', /^(persilja|koriander|dill|basilika|mynta)/, 1, 20, 0, 30, 0],
@@ -52,12 +56,16 @@
     ['havregryn', /havregryn/, 1500, 25, 40, 0, 1],
     ['yoghurt', /yoghurt/, 1000, 35, 100, 0, 0],
     ['kvarg', /kvarg/, 500, 25, 100, 0, 0],
-    ['keso', /kesella|keso|ricotta/, 500, 30, 100, 0, 0],
+    ['keso', /kesella|keso|cottage/, 500, 30, 100, 0, 0],
+    ['ricotta', /ricotta/, 250, 30, 100, 0, 0],
     ['färskost', /färskost|philadelphia|mascarpone/, 200, 22, 100, 0, 0],
     ['mjölk', /^(?!.*kokos).*mjölk/, 1000, 15, 100, 0, 0],
     ['crème fraiche och gräddfil', /crème|gräddfil/, 200, 15, 100, 0, 0],
     ['matlagningsgrädde', /grädde/, 250, 15, 100, 0, 0],
-    ['riven ost', /riven (lagrad )?ost|parmesan|mozzarella/, 300, 40, 40, 0, 1],
+    // Parmesan och mozzarella är dyrare respektive annan ost än riven hushållsost, därför egna varor
+    ['parmesan', /parmesan|grana padano|pecorino|västerbotten/, 150, 45, 40, 0, 1],
+    ['mozzarella', /mozzarella|burrata/, 125, 18, 0, 125, 0],
+    ['riven ost', /riven (lagrad )?ost|^ost$|hårdost|cheddar|gouda/, 300, 40, 40, 0, 1],
     ['fetaost', /feta/, 150, 25, 50, 0, 0],
     ['halloumi', /halloumi|paneer/, 200, 35, 0, 0, 0],
     ['ägg', /^ägg(?!.*nudl)/, 12, 45, 0, 1, 1],
@@ -79,6 +87,10 @@
     ['nötter och frön', /valnöt|cashew|mandl|hasselnöt|pumpafrö|chiafrö/, 200, 35, 60, 0, 1],
     ['oliver', /oliver/, 200, 25, 0, 4, 1],
     ['rödbetor', /rödbet/, 500, 20, 0, 0, 1],
+    ['rabarber', /rabarber/, 500, 40, 0, 0, 0],
+    ['selleri', /^(blad|stjälk)?selleri/, 400, 20, 0, 0, 0],
+    ['butternutpumpa', /butternut|pumpa(?!frö)/, 1000, 25, 0, 0, 0],
+    ['digestivekex', /digestive/, 400, 15, 0, 0, 1],
   ];
   // Skafferi: köps sällan och räknas inte i veckans kostnad
   /* Skafferivaror räknas inte i veckans kostnad, men får ett pris när de ändå står på inköpslistan (till exempel till en efterrätt).
@@ -87,7 +99,7 @@
     ['jordnötssmör', /jordnötssmör/, 350, 35, 100, 0],
     ['smör', /smör(?!gås)|margarin|bregott/, 500, 55, 95, 0],
     ['vaniljsocker', /vaniljsocker|vaniljpulver/, 100, 22, 50, 0],
-    ['socker', /socker|farin/, 1000, 16, 85, 0],
+    ['socker', /^(strö|rör|bruns|flor|pärl)?socker(?!ärt)|farin/, 1000, 16, 85, 0],
     ['majsstärkelse', /majsstärkelse|maizena|potatismjöl/, 400, 25, 60, 0],
     ['mandelmjöl', /mandelmjöl/, 200, 45, 40, 0],
     ['vetemjöl', /mjöl(?!k)/, 2000, 22, 60, 0],
@@ -106,6 +118,7 @@
     ['kakao', /kakao/, 250, 40, 40, 0],
     ['sesam', /sesam|tahini/, 200, 30, 60, 0],
     ['majonnäs', /majonnäs/, 400, 30, 100, 0],
+    ['ketchup', /ketchup/, 1000, 30, 100, 0],
     ['dadlar', /dadlar/, 250, 30, 0, 8],
     ['kokos', /kokos(flingor|olja)/, 200, 30, 40, 0],
     ['lingon', /lingon/, 400, 35, 100, 0],
@@ -113,7 +126,7 @@
     ['jalapeño', /jalapeño/, 200, 25, 0, 10],
     ['kryddor', /./, 50, 25, 40, 0],
   ];
-  const SKAFFERI = /salt|peppar|olja|smör|margarin|bregott|vinäger|soja|buljong|tomatpuré|vatten|vitt vin|mjöl(?!k)|jäst|senap|kryddor|krydda|spiskummin|kummin|oregano|kanel|timjan|paprikapulver|rökt paprika|chipotle|gurkmeja|garam|curry|chili|mejram|ingefära|vitlök|honung|sesam|kakao|vanilj|miso|sriracha|tahini|majsstärkelse|jalapeño|saffran|kardemumma|muskot|nejlika|lagerblad|kryddpeppar|lingon|kokos(flingor|olja)|dadlar|jordnötssmör|majonnäs|socker|sirap/;
+  const SKAFFERI = /salt|peppar|olja|smör|margarin|bregott|vinäger|soja|buljong|tomatpuré|^((ljummet|kallt|varmt|kokande) )?vatten$|vitt vin|mjöl(?!k)|jäst|senap|kryddor|krydda|spiskummin|kummin|oregano|kanel|timjan|paprikapulver|rökt paprika|chipotle|gurkmeja|garam|curry|chili|mejram|ingefära|vitlök|honung|sesam|kakao|vanilj|miso|sriracha|tahini|majsstärkelse|jalapeño|saffran|kardemumma|muskot|nejlika|lagerblad|kryddpeppar|lingon|kokos(flingor|olja)|dadlar|jordnötssmör|majonnäs|ketchup|socker(?!ärt)|sirap/;
 
   const norm = n => String(n || '').toLowerCase().trim();
   // Namnet utan tillägg: "kikärtor (380 g)" och "färskost, rumstempererad" blir kikärtor och färskost
@@ -141,6 +154,21 @@
     if (/^ca/.test(vol) && g < 300) return { kr, pkt, st, los: true };
     return { kr: per * g, pkt: g, st };
   }
+  /* Skydd mot fel träff i butiken (marmelad i stället för rabarber, kattmat i stället för färs): ett hämtat pris per gram eller
+     styck som är under en fjärdedel eller över tre gånger standardpriset används inte. Standardpriset används då i stället */
+  function rimlig(f, kr, pkt, st) {
+    if (!(f.kr > 0 && f.pkt > 0)) return false;
+    if (!!f.st !== !!st) return true;
+    const r = (f.kr / f.pkt) / (kr / pkt);
+    return r >= 0.25 && r <= 3;
+  }
+  // För Kod.gs: är priset rimligt för basvaran k? (okänd vara: inget att jämföra med)
+  function rimligFor(k, x) {
+    const v = V.find(a => a[0] === k) || SK.find(a => a[0] === k && a[0] !== 'kryddor');
+    if (!v) return true;
+    const st = v[2] <= 12;
+    return rimlig(forpack(x, v[2], st), v[3], v[2], st);
+  }
   function vara(n) {
     n = rent(n);
     if (!n || SKAFFERI.test(n)) return null;
@@ -151,9 +179,8 @@
       // Okänd vara: 20 kr används bara när veckan räknas, inköpslistan visar "prisuppgift saknas"
       return { k: n, pkt: 1, kr: 20, st: true, mal: 1, gdl: 100, gst: 1, hall: 0, okand: true };
     }
-    const [k, , pkt, kr, gdl, gst, hall] = v, x = P[k], st = pkt <= 12;
-    if (!x) return { k, pkt, kr, st, mal: pkt, gdl, gst, hall: !!hall };
-    const f = forpack(x, pkt, st);
+    const [k, , pkt, kr, gdl, gst, hall] = v, x = P[k], st = pkt <= 12, f = x && forpack(x, pkt, st);
+    if (!f || !rimlig(f, kr, pkt, st)) return { k, pkt, kr, st, mal: pkt, gdl, gst, hall: !!hall };
     return { k, pkt: f.pkt, kr: f.kr, st: f.st, los: f.los, mal: pkt, gdl, gst, hall: !!hall };
   }
   // Skafferivara med pris, för när den ändå ska köpas. Kod.gs hämtar Willyspris för dem också (nyckel = namnet i SK)
@@ -162,7 +189,8 @@
     // Vatten och is kostar inget
     if (!n || !SKAFFERI.test(n) || /vatten|^is(bitar)?$/.test(n)) return null;
     const s = SK.find(([, re]) => re.test(n)), k = s[0] === 'kryddor' ? n : s[0], x = P[k], st = s[2] <= 12;
-    const f = x ? forpack(x, s[2], st) : { kr: s[3], pkt: s[2], st };
+    let f = x && forpack(x, s[2], st);
+    if (!f || !rimlig(f, s[3], s[2], st)) f = { kr: s[3], pkt: s[2], st };
     return { k, pkt: f.pkt, kr: f.kr, st: f.st, los: f.los, mal: s[2], gdl: s[4] || 100, gst: s[5] || 1, hall: true, skafferi: true };
   }
   // Mängd i varans egen enhet: gram, eller styck när förpackningen räknas i styck (pkt i små tal)
@@ -249,6 +277,6 @@
     Object.values(b).forEach(x => { if (x.v.okand) saknas++; else kr += x.m * x.v.kr / x.v.pkt; });
     return { kr, saknas };
   }
-  root.MatVaror = { V, SK, setPriser, vara, skafferi, mangd, behov, korg, tillagg, forp, anvant, rent };
+  root.MatVaror = { V, SK, setPriser, vara, skafferi, mangd, behov, korg, tillagg, forp, anvant, rent, rimligFor };
 })(typeof window !== 'undefined' ? window : globalThis);
 if (typeof module !== 'undefined') module.exports = globalThis.MatVaror;

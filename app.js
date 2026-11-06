@@ -758,18 +758,25 @@ function shopKr(i){const p=Number(i&&i.price);if(p>0)return p;if(!i||!i.name||!w
   const n=!m?1:/^förp|^paket/i.test(m[2]||'')?Number(m[1].replace(',','.')):Math.max(1,Math.ceil(MV.mangd({q:Number(m[1].replace(',','.')),u:m[2]||''},v)/v.pkt-1e-9));kr=Math.round(n*v.kr)}
  SKR.set(key,kr);return kr}
 /* Pris per portion: det rätten använder (mängd × pris per gram eller styck), inklusive skafferivaror som olja och smör.
-   Ingredienser utan pris räknas inte. Saknas priser helt används receptets egen uppskattning */
-var PKR=new WeakMap();
-function portKr(r){if(!r)return 0;if(PKR.has(r))return PKR.get(r);let kr=0;
- if(window.MatVaror)(r.groups||[]).forEach(g=>(g.items||[]).forEach(it=>{if(it.q==null)return;const v=MV.vara(it.n)||MV.skafferi(it.n);if(v&&!v.okand)kr+=MV.mangd(it,v)*v.kr/v.pkt}));
- const x=kr>0?kr/(Number(r.portions)||2):Number(r.kr)||0;PKR.set(r,x);return x}
+   Ingredienser utan mängd räknas med en standardmängd. Ingredienser utan pris räknas inte, men gör priset ofullständigt: under 90 % känd kostnad (okänd vara ≈ 20 kr)
+   visas "minst X kr" i stället för ett för lågt pris (portTxt). Saknas priser helt används receptets egen uppskattning */
+var PKR=new WeakMap(),PKF=new WeakMap();
+function portKr(r){if(!r)return 0;if(PKR.has(r))return PKR.get(r);let kr=0,sakn=0;
+ if(window.MatVaror)(r.groups||[]).forEach(g=>(g.items||[]).forEach(it=>{const v=MV.vara(it.n)||MV.skafferi(it.n);if(!v)return;if(v.okand){sakn++;return}if(it.q==null&&v.skafferi)return;kr+=MV.mangd(it,v)*v.kr/v.pkt}));
+ const x=kr>0?kr/(Number(r.portions)||2):Number(r.kr)||0;PKR.set(r,x);PKF.set(r,!(kr>0)||kr/(kr+20*sakn)>=.9);return x}
+const portHel=r=>(portKr(r),PKF.get(r)!==false);
+// "24 kr" eller "minst 24 kr" (c = stor bokstav och "Ca" när priset är fullständigt)
+function portTxt(r,c){const x=kr(portKr(r));return portHel(r)?(c?'Ca '+x:x):(c?'Minst ':'minst ')+x}
 const isBase=i=>(i.meals||[]).length>0&&(i.meals||[]).every(m=>m==='Bas');
 /* Veckosedelns siffror räknas på veckan som skickats: varorna som planen lade i inköpslistan (även de som redan är köpta)
    och portionerna som ska ätas, alltså två per middag och storkokets portioner. Mackor räknas inte */
 function veckaKostnad(){const vs=settings().vecka_start,tag=isDate(vs)?'plan'+vs.replace(/-/g,''):'',sh=D().shop.filter(i=>!isBase(i));
  const plan=tag?sh.filter(i=>String(i.id).indexOf(tag)===0):[];return shopCost(plan.length?plan:sh.filter(i=>i.source!=='egen'))}
 // Det veckans rätter använder i kronor (inte hela förpackningar), för pris per portion
-function veckaAnvant(){let s=0;weekDishes().forEach(x=>{if(!x.m||!x.r||isDessert(x.r))return;const pa=protFromAddon(x.m.addon),rr=pa?protRecipe(x.r,{r:x.r.id,k:pa.k,v:pa.v}):x.r;s+=portKr(rr)*dishPort(x.m,x.r)});return s}
+function veckaAnvant(){let s=0;VHEL=true;weekDishes().forEach(x=>{if(!x.m||!x.r||isDessert(x.r))return;const pa=protFromAddon(x.m.addon),rr=pa?protRecipe(x.r,{r:x.r.id,k:pa.k,v:pa.v}):x.r;s+=portKr(rr)*dishPort(x.m,x.r);if(!portHel(rr))VHEL=false});return s}
+var VHEL=true;
+// Veckans pris per portion; "minst" när någon rätt har varor utan pris
+function veckaPortTxt(total,port){const a=veckaAnvant();return(a&&!VHEL?'minst ':'')+kr((a||total)/port)}
 function veckaPortioner(){let n=0;weekDishes().forEach(x=>{if(!x.m||x.r&&x.r.course==='efterrätt')return;n+=dishPort(x.m,x.r)});return n||planPortions()}
 // Portioner för en rätt på veckosedeln: talet i noten ("Lagas 4 portioner", "(10 portioner)"), annars 5 för storkok och 2 för middag
 function dishPort(m,r){const x=/(\d+)\s*portion(er)?\b/.exec(m&&m.note||'');return x?Number(x[1]):r&&isStorkok(r)?5:2}
@@ -980,9 +987,9 @@ const XW={
   const ms=nd.meals,r0=ms[0].recipe&&recipeById(ms[0].recipe),img=r0&&(r0.img||imgOf(r0.id));
   const go=m=>{const r=m.recipe&&recipeById(m.recipe);return r?' data-act="recipe" data-id="'+esc(r.id)+'"':''};
   if(z==='s')return'<div class="xphoto full"'+go(ms[0])+'>'+(img?'<img src="'+esc(img)+'" alt="" loading="lazy" onerror="this.remove()">':'<span class="xfood">'+foodIcon(ms[0].title,r0)+'</span>')+'<div class="xov"><div class="xs b">'+(isT?'IKVÄLL':esc(dateShort(nd.date)).toUpperCase())+'</div><div class="t clamp2">'+esc(ms[0].title)+'</div>'+(ms.length>1?'<div class="xs">+'+(ms.length-1)+' till</div>':'')+'</div></div>';
-  if(z==='m')return xh('mat',I.fork,lbl,ms.length>1?ms.length+' rätter':'')+'<div class="xrows">'+ms.slice(0,3).map(m=>{const r=m.recipe&&recipeById(m.recipe);return'<div class="xr"'+go(m)+'>'+xmealDot(m.who)+'<span class="grow one t">'+esc(m.title)+'</span>'+(r&&portKr(r)?'<span class="xs mu">'+kr(portKr(r))+'</span>':'')+'</div>'}).join('')+'</div>';
+  if(z==='m')return xh('mat',I.fork,lbl,ms.length>1?ms.length+' rätter':'')+'<div class="xrows">'+ms.slice(0,3).map(m=>{const r=m.recipe&&recipeById(m.recipe);return'<div class="xr"'+go(m)+'>'+xmealDot(m.who)+'<span class="grow one t">'+esc(m.title)+'</span>'+(r&&portKr(r)?'<span class="xs mu">'+portTxt(r)+'</span>':'')+'</div>'}).join('')+'</div>';
   const nx=planDays().find(x=>x.date>nd.date&&x.meals.length),ck=r0&&r0.steps&&r0.steps.length;
-  return(img?'<div class="xphoto band"'+go(ms[0])+'><img src="'+esc(img)+'" alt="" loading="lazy" onerror="this.remove()"></div>':'')+xh('mat',I.fork,lbl)+'<div class="xrows">'+ms.slice(0,3).map(m=>{const r=m.recipe&&recipeById(m.recipe);return'<div class="xr top"'+go(m)+'><span class="grow">'+whoChip(m.who)+'<span class="t one">'+esc(m.title)+'</span>'+(m.addon?'<span class="xs mu one">+ Kött: '+esc(m.addon)+'</span>':'')+'</span>'+(r&&portKr(r)?'<span class="xs mu">'+kr(portKr(r))+'/port</span>':'')+'</div>'}).join('')+'</div><div class="sp"></div><div class="xfoot">'+(nx?'<span class="xs mu grow one">'+esc(cap(dateShort(nx.date)))+': '+esc(nx.meals[0].title)+'</span>':'<span class="grow"></span>')+(ck&&isT?'<button class="btn-fill xbtn" data-act="cook" data-id="'+esc(r0.id)+'">'+I.play+'Börja laga</button>':'')+'</div>'},
+  return(img?'<div class="xphoto band"'+go(ms[0])+'><img src="'+esc(img)+'" alt="" loading="lazy" onerror="this.remove()"></div>':'')+xh('mat',I.fork,lbl)+'<div class="xrows">'+ms.slice(0,3).map(m=>{const r=m.recipe&&recipeById(m.recipe);return'<div class="xr top"'+go(m)+'><span class="grow">'+whoChip(m.who)+'<span class="t one">'+esc(m.title)+'</span>'+(m.addon?'<span class="xs mu one">+ Kött: '+esc(m.addon)+'</span>':'')+'</span>'+(r&&portKr(r)?'<span class="xs mu">'+portTxt(r)+'/port</span>':'')+'</div>'}).join('')+'</div><div class="sp"></div><div class="xfoot">'+(nx?'<span class="xs mu grow one">'+esc(cap(dateShort(nx.date)))+': '+esc(nx.meals[0].title)+'</span>':'<span class="grow"></span>')+(ck&&isT?'<button class="btn-fill xbtn" data-act="cook" data-id="'+esc(r0.id)+'">'+I.play+'Börja laga</button>':'')+'</div>'},
  stad(z,X){const r=xring(X.doneN,X.totN,z!=='s'),kv=X.cp.minLeft+' min kvar';
   if(!X.d.clean.length)return xh('stad',I.sparkles,'Städ')+xempty('Inga rutiner tillagda än.');
   if(z==='s')return xh('stad',I.sparkles,'Städ')+'<div class="xc">'+r+'</div><div class="xs mu xmid">'+(X.clean.length?kv:'Allt är gjort idag')+'</div>';
@@ -1212,8 +1219,8 @@ V.oversikt=function(){
  return h+'<div class="widgets'+(S.arrange?' arranging':'')+'">'+boxRow(L.cols[0].filter(id=>H[id]),false,H,L)+'</div>'+(S.arrange?'<p class="arr-intro">Håll kvar och dra en ruta dit du vill ha den. Dra i hörnknappen för att göra den halv eller hel. − döljer rutan. Gäller bara den här enheten.</p>':smileyCard())+'</div>'+arrangeFoot(L,false)};
 // utan egen ordning ligger födelsedagarna näst sist
 const OV_DEF=()=>U3?[['mat','upg','kal','inkop','stad','fod','hem','imorgon']]:[['kal','upg','mat','stad','inkop','fod','hem','imorgon']];
-function wMeals(d){if(U3)return(d.meals||[]).map(m=>{const r=m.recipe&&recipeById(m.recipe),go=r?'button':'div';return'<div class="u3-dinner"><'+go+' class="u3-meal"'+(r?' data-act="recipe" data-id="'+esc(r.id)+'"':'')+'>'+dishThumb(r,m.title)+'<span class="grow"><span class="chips-row">'+whoChip(m.who)+'</span><span class="hl">'+esc(m.title)+'</span>'+(m.addon?'<span class="meta">'+esc(m.addon)+'</span>':'')+(r&&r.min?'<span class="meta">'+r.min+' min'+(portKr(r)?' · '+kr(portKr(r))+'/port':'')+'</span>':'')+'</span></'+go+'>'+(r&&r.steps&&r.steps.length?'<button class="btn-fill" data-act="cook" data-id="'+esc(r.id)+'">'+I.play+'Börja laga</button>':'')+'</div>'}).join('');return(d.meals||[]).map(m=>{const r=m.recipe&&recipeById(m.recipe);const tag=r?'button':'div';
- return'<'+tag+' class="wmeal"'+(r?' data-act="recipe" data-id="'+esc(m.recipe)+'"':'')+'><div class="top">'+whoChip(m.who)+(r&&portKr(r)?'<span class="val">'+kr(portKr(r))+'/port</span>':'')+'</div><div class="hl title">'+esc(m.title)+'</div>'+(m.addon?'<div class="sub">+ Kött: '+esc(m.addon)+'</div>':'')+'</'+tag+'>'}).join('')}
+function wMeals(d){if(U3)return(d.meals||[]).map(m=>{const r=m.recipe&&recipeById(m.recipe),go=r?'button':'div';return'<div class="u3-dinner"><'+go+' class="u3-meal"'+(r?' data-act="recipe" data-id="'+esc(r.id)+'"':'')+'>'+dishThumb(r,m.title)+'<span class="grow"><span class="chips-row">'+whoChip(m.who)+'</span><span class="hl">'+esc(m.title)+'</span>'+(m.addon?'<span class="meta">'+esc(m.addon)+'</span>':'')+(r&&r.min?'<span class="meta">'+r.min+' min'+(portKr(r)?' · '+portTxt(r)+'/port':'')+'</span>':'')+'</span></'+go+'>'+(r&&r.steps&&r.steps.length?'<button class="btn-fill" data-act="cook" data-id="'+esc(r.id)+'">'+I.play+'Börja laga</button>':'')+'</div>'}).join('');return(d.meals||[]).map(m=>{const r=m.recipe&&recipeById(m.recipe);const tag=r?'button':'div';
+ return'<'+tag+' class="wmeal"'+(r?' data-act="recipe" data-id="'+esc(m.recipe)+'"':'')+'><div class="top">'+whoChip(m.who)+(r&&portKr(r)?'<span class="val">'+portTxt(r)+'/port</span>':'')+'</div><div class="hl title">'+esc(m.title)+'</div>'+(m.addon?'<div class="sub">+ Kött: '+esc(m.addon)+'</div>':'')+'</'+tag+'>'}).join('')}
 const healthRow=r=>'<div class="cell room"><div class="grow"><div>'+esc(r.room)+'</div><div class="cap '+healthCls(r.score)+'"><i style="width:'+Math.round(r.score*100)+'%"></i></div></div><span class="hw '+healthCls(r.score)+'">'+healthWord(r.score)+'</span></div>';
 function eventsHtml(d){if(!d||!d.events.length)return'';return'<div class="evs">'+d.events.map(e=>'<div class="ev"><span class="t">'+esc(e.time||'Heldag')+'</span><span>'+esc(e.title)+evWho(e)+'</span></div>').join('')+'</div>'}
 
@@ -1240,7 +1247,7 @@ const fchips=(act,fs,f)=>'<div class="fchips" role="group" aria-label="Filter">'
 // Stort kort med bild, hjärta och bokmärke. Används i receptbanken och bland inspirationen
 function rCard(r,o){o=o||{};const g=ratingOf(r.id),wished=o.wish&&o.wish.has(r.id),img=r.img||imgOf(r.id);
  return'<article class="bcard '+kind(r)+'"><div class="bimgw"><button class="bimg" data-act="recipe" data-id="'+esc(r.id)+'" aria-label="Öppna '+esc(r.title)+'">'+(img?'<img src="'+esc(img)+'" alt="" loading="lazy">':'<span aria-hidden="true">'+foodIcon(r.title,r)+'</span>')+'</button>'+bookBtn(r,'bc-gl')+favBtn(r,'bc-gl')+'</div>'+
- '<div class="bbody"><div class="chips-row">'+(isDessert(r)?'<span class="chip e">Efterrätt</span>':whoChip(effWho(r)))+(o.wish?freqChip(r.id):'')+(r.min?'<span class="chip num">'+r.min+' min</span>':'')+(portKr(r)?'<span class="chip num">Ca '+kr(portKr(r))+'/port</span>':'')+'</div>'+
+ '<div class="bbody"><div class="chips-row">'+(isDessert(r)?'<span class="chip e">Efterrätt</span>':whoChip(effWho(r)))+(o.wish?freqChip(r.id):'')+(r.min?'<span class="chip num">'+r.min+' min</span>':'')+(portKr(r)?'<span class="chip num">Ca '+portTxt(r)+'/port</span>':'')+'</div>'+
  '<button class="btitle" data-act="recipe" data-id="'+esc(r.id)+'">'+esc(r.title)+'</button>'+
  (o.wish?(g?'<div class="bstars"><span class="st" aria-label="'+g.avg.toFixed(1)+' av 5">'+starsTxt(g.avg)+'</span>'+g.people.map(([p,e])=>'<span class="fn">'+esc(personLabel(p))+': '+esc(VERD[e.v]||'')+'</span>').join('')+'</div>':'<div class="fn">Inget betyg än</div>'):(r.why?'<div class="fn bwhy">'+esc(r.why)+'</div>':''))+
  recipePrice(r).html+(r.src?'<a class="fn bsrc" href="'+esc(r.src)+'" target="_blank" rel="noopener">Från '+esc(r.srcName||new URL(r.src).hostname.replace(/^www\./,''))+'</a>':'')+
@@ -1281,7 +1288,7 @@ const swDel=(act,id,lab)=>'<button class="dr-act del" data-act="'+act+'" data-fu
 const dmKnapp=(id,lab)=>'<button class="dr-x dr-more" data-act="dishMenu" data-id="'+esc(id)+'" aria-label="Ändra '+esc(lab)+'">'+I.dots+'</button>';
 /* En rätt på veckosedeln: bild, namn, dagar, pris och betyg. Krysset tar bort, svep åt vänster tar bort och svep åt höger låser */
 function mealCell(m,rows,flex){rows=rows||[m];const r=m.recipe&&recipeById(m.recipe),days=[...new Set(rows.map(y=>y.date).filter(isDate))].sort();
- const g=m.recipe&&ratingOf(m.recipe),meta=[flex?(flex.port?'':flex.txt):days.map(d=>cap(DAYS3[parse(d).getDay()])).join(', '),r&&portKr(r)?kr(portKr(r))+'/port':'',g?'<span class="dr-st">★ '+starNum(matLage(m.recipe).s)+'</span>':''].filter(Boolean).join('<span class="dot" aria-hidden="true">·</span>');
+ const g=m.recipe&&ratingOf(m.recipe),meta=[flex?(flex.port?'':flex.txt):days.map(d=>cap(DAYS3[parse(d).getDay()])).join(', '),r&&portKr(r)?portTxt(r)+'/port':'',g?'<span class="dr-st">★ '+starNum(matLage(m.recipe).s)+'</span>':''].filter(Boolean).join('<span class="dot" aria-hidden="true">·</span>');
  const pa=protFromAddon(m.addon);
  const lst=!!(m.recipe&&weekLocks(weekTarget().vs).has(m.recipe));
  const hl=!!(m.who!=='Borta'&&m.recipe),lkm='<span class="lk-ring" aria-hidden="true"></span><span class="lk-bd" aria-hidden="true">'+I.lock+'</span>',th=dishThumb(r,m.title);
@@ -1459,9 +1466,9 @@ function weekSummary(ds,total,port){const rk=raeckerKort(ds),bad=/class="rk bad"
  const st='<span class="wm-port num'+(covered<goal?' bad':'')+'" aria-label="'+covered+' av '+goal+' portioner täckta">'+covered+'/'+goal+'</span>';
 
  const bar=()=>{const a=Math.min(100,total/B*100),ov=total>B;return'<span class="wm-bb"><span class="wm-bt"><b class="num">'+nv('m-total',total,'kr')+'</b><span>av '+kr(B)+'</span><span class="grow"></span>'+st+'</span>'+
-  '<span class="wm-bar'+(ov?' over':'')+'" role="img" aria-label="'+kr(total)+' av '+kr(B)+'"><i style="width:'+a.toFixed(1)+'%"></i></span><span class="wm-pp"><span class="wm-kv'+(ov?' bad':'')+'">'+(ov?kr(total-B)+' över':kr(B-total)+' kvar')+'</span> · '+port+' portioner'+(port?' · '+kr((veckaAnvant()||total)/port)+' per portion':'')+'</span></span>'};
+  '<span class="wm-bar'+(ov?' over':'')+'" role="img" aria-label="'+kr(total)+' av '+kr(B)+'"><i style="width:'+a.toFixed(1)+'%"></i></span><span class="wm-pp"><span class="wm-kv'+(ov?' bad':'')+'">'+(ov?kr(total-B)+' över':kr(B-total)+' kvar')+'</span> · '+port+' portioner'+(port?' · '+veckaPortTxt(total,port)+' per portion':'')+'</span></span>'};
  const op=S.wsumOpen?' open':'',top=big=>'<button type="button" class="wm-top'+(big&&B?' wm-rt':'')+'" data-act="wsumMini" aria-expanded="'+!!S.wsumOpen+'">'+(big&&B?bar():'<b class="num">'+(big?nv('m-total',total,'kr'):kr(total))+'</b><span class="wm-c">'+
-  '<span>'+port+' portioner</span><span>'+(port?kr((veckaAnvant()||total)/port)+' per portion':'')+'</span></span><span class="grow"></span>')+
+  '<span>'+port+' portioner</span><span>'+(port?veckaPortTxt(total,port)+' per portion':'')+'</span></span><span class="grow"></span>')+
   (big&&B?'':st)+'</button>';
  const body='<div class="wm-body">'+(rub?'<div class="wm-h'+(bad?' bad':'')+'">'+esc(rub)+'</div>'+rk.replace(/<div class="rk-h">[^<]*<\/div>/,''):'')+
   (B?'<div class="rk-r wm-b"><span class="grow">Budget '+kr(B)+'</span><span class="rk-s'+(total>B?' bad':'')+'">'+(total>B?kr(total-B)+' över':kr(B-total)+' kvar')+'</span></div>':'')+'</div>';
@@ -1479,7 +1486,7 @@ function matWeek(){
  const btTom=(a,id,t)=>'<div class="bt"><span class="bq-w"><button type="button" class="bq e" data-act="'+a+'"'+(id?' data-id="'+id+'"':'')+' aria-label="'+t+'">'+I.plus+'</button></span><span class="bn ac">'+t+'</span></div>';
  const bt=(m,r,n,i,rid,lst,t)=>'<div class="bt" data-hold-lift="dishMenu" data-id="'+i+'"><span class="bq-w">'+(rid?'<button type="button" class="bq" data-act="recipe" data-id="'+esc(rid)+'" aria-label="'+esc(t)+'">':'<button type="button" class="bq" data-act="dishMenu" data-id="'+i+'" aria-label="'+esc(t)+'">')+dishThumb(r,t)+'</button>'+
   (rid?'<button type="button" class="bq-lk'+(lst?' on':'')+'" data-act="swLock" data-id="'+esc(rid)+'" aria-pressed="'+lst+'" aria-label="'+(lst?'Lås upp ':'Lås ')+esc(t)+'">'+(lst?I.lock:I.unlock)+'</button>':'')+
-  '<button type="button" class="bq-p" data-act="dishMenu" data-id="'+i+'" aria-label="'+n+' portioner, ändra">'+n+' port</button></span>'+(U4?'<div class="u4-dish-info">'+(r?'<div class="chips-row">'+whoChip(m?m.who:effWho(r))+'</div>':''):'')+'<span class="bn">'+esc(t)+'</span>'+(U4?(r?'<div class="u4-dish-meta">'+[r.min?r.min+' min':'',portKr(r)?kr(portKr(r))+'/port':''].filter(Boolean).join(' · ')+'</div>':'')+'</div><button type="button" class="u4-more" data-act="dishMenu" data-id="'+i+'" aria-label="Alternativ för '+esc(t)+'">'+I.dots+'</button>':'')+'</div>';
+  '<button type="button" class="bq-p" data-act="dishMenu" data-id="'+i+'" aria-label="'+n+' portioner, ändra">'+n+' port</button></span>'+(U4?'<div class="u4-dish-info">'+(r?'<div class="chips-row">'+whoChip(m?m.who:effWho(r))+'</div>':''):'')+'<span class="bn">'+esc(t)+'</span>'+(U4?(r?'<div class="u4-dish-meta">'+[r.min?r.min+' min':'',portKr(r)?portTxt(r)+'/port':''].filter(Boolean).join(' · ')+'</div>':'')+'</div><button type="button" class="u4-more" data-act="dishMenu" data-id="'+i+'" aria-label="Alternativ för '+esc(t)+'">'+I.dots+'</button>':'')+'</div>';
  const btBand=g=>{const x=G&&G[g];if(!x||x.beh<=0)return'';const ok=x.n>=x.beh,k=Math.min(x.beh,24);return'<span class="bt-m'+(ok?' ok':' bad')+'">'+(ok?I.tick:'')+x.n+' av '+x.beh+'<span class="bt-seg" aria-hidden="true">'+Array.from({length:k},(_,j)=>'<i'+(j<Math.min(x.n,k)?' class="f"':'')+'></i>').join('')+'</span></span>'};
  ['Vardag','Helg','Storkok'].concat([...new Set(ds.map(x=>x.g))].filter(g=>!['Vardag','Helg','Storkok'].includes(g))).forEach(g=>{const list=ds.filter(x=>x.g===g).sort((a,b)=>(order[(a.r||a.m).who]??3)-(order[(b.r||b.m).who]??3));
   const vs=W.vs,slut=addDays(vs,g==='Vardag'?3:6);
@@ -2149,6 +2156,8 @@ function autoSend(){const C=autoCalc(),{P}=C,pl=P.plan,vd=d=>addDays(P.vecka,d),
  if(wishes().some(w=>used.has(w.id)))updJSON('onskelista',[],a=>a.filter(w=>!used.has(w.id)));
  S.plan=false;S.matTab='vecka';lsSet('matTab','vecka');window.scrollTo(0,0);render();toast('Veckan skickas till veckosedeln och inköpslistan')}
 // Inköpslistan visas som en flik i Mat; ger rubrikens undertext, verktyg och innehåll
+// Varning i Inköp när Willyspriserna inte har kunnat hämtas på över en vecka
+function prisVarning(){const st=settings();if(!st.priser||st.priser==='{}')return'';const a=prisAlder();return a.gammal?'<div class="wsum-m pris-gammal">Priserna är '+(a.datum?'från '+esc(a.datum.slice(0,10)):'utan datum')+' och kan ha ändrats</div>':''}
 function inkopParts(){
  const d=D(),all=d.shop,st=settings(),items=all,left=all.filter(i=>!i.done),bought=all.filter(i=>i.done);
  // Hela listan och Kvar att betala gäller allt på listan. Per portion och budget gäller veckans mat, samma siffror som på veckosedeln
@@ -2156,7 +2165,7 @@ function inkopParts(){
  let sub=left.length+' kvar · ca '+kr(shopCost(left)),tools='<button class="ib plus" data-act="shopAdd" aria-label="Ny vara">'+I.plus+'</button>',h='';
  const vs=st.vecka_start,wk=isDate(vs)?'Vecka '+isoWeek(parse(vs)):'veckan';
  sub='';
-  h+='<div class="wsum"'+RF('M6')+'><div class="wsum-n"><b class="num">'+left.length+'</b><span>'+(left.length===1?'vara kvar':'varor kvar')+' · ca '+kr(shopCost(left))+'</span></div>'+
+  h+='<div class="wsum"'+RF('M6')+'><div class="wsum-n"><b class="num">'+left.length+'</b><span>'+(left.length===1?'vara kvar':'varor kvar')+' · ca '+kr(shopCost(left))+'</span></div>'+prisVarning()+
    (B?'<div class="wsum-m">Veckans mat '+kr(mealCost)+' av '+kr(B)+(mealCost>B?' · '+kr(mealCost-B)+' över':' · '+kr(B-mealCost)+' kvar')+'</div><div class="thin '+(mealCost>B?'bad':mealCost>B*.9?'warn':'')+'"><i style="width:'+Math.min(100,Math.round(mealCost/B*100))+'%"></i></div>':'')+'</div>'+
    '<form class="add-row"'+RF('M7')+' data-form="shopQuick"><input class="field" name="name" placeholder="Lägg till vara" aria-label="Lägg till vara" autocomplete="off" enterkeyhint="done"><button type="button" class="add-go" data-act="quickGo" data-alt="shopAdd" aria-label="Lägg till">'+I.plus+'</button></form>';
  // Två knappar under siffrorna: hämta veckans varor och töm listan. Frågan visas i samma kort innan något händer
@@ -2271,7 +2280,7 @@ function recipeDetail(r){
  h+='<div class="chips-row">'+(isDessert(r)?'<span class="chip e">Efterrätt</span>':whoChip(effWho(r)))+(r.freezes?'<span class="chip v">Går att frysa</span>':'')+'</div><h1 class="t1" id="lt">'+esc(r.title)+'</h1>'+rcpActions(r)+'<div class="block"><button class="btn-tint" data-rc="edit" data-id="'+esc(r.id)+'">'+I.pencil+'Redigera recept</button></div>'+recipePrice(r).html+'</div>';
  const cookBtn='<div class="block"><button class="btn-fill" style="width:100%" data-act="cook" data-id="'+esc(r.id)+'">'+I.play+'Börja laga</button></div>';
  h+=cookBtn;
- const facts=[['Tid',r.min?'<span class="num">'+r.min+'</span> min':'Ej angiven']];if(portKr(r))facts.push(['Per portion',kr(portKr(r))]);if(r.protein){const pr=String(r.protein).replace(/\s*\/\s*port(ion)?\.?$/i,''),ph=pr.match(/^henriks?\s+(?:del\s+)?(?:ca\s+)?(.+)$/i);facts.push(['Protein',esc(ph?ph[1]:pr)])}
+ const facts=[['Tid',r.min?'<span class="num">'+r.min+'</span> min':'Ej angiven']];if(portKr(r))facts.push(['Per portion',portTxt(r)]);if(r.protein){const pr=String(r.protein).replace(/\s*\/\s*port(ion)?\.?$/i,''),ph=pr.match(/^henriks?\s+(?:del\s+)?(?:ca\s+)?(.+)$/i);facts.push(['Protein',esc(ph?ph[1]:pr)])}
  const kc=kcalOf(r.id);if(kc)facts.push(['Kalorier','<span class="num">'+kc.n+'</span> kcal']);
  h+='<div class="group"'+RF('M19')+' style="margin-top:16px"><div class="rcp-facts'+(facts.length>3?' f4':'')+'" style="grid-template-columns:repeat('+facts.length+',minmax(0,1fr))">'+facts.map(([l,v])=>'<div><div class="fn">'+l+'</div><div class="v">'+v+'</div></div>').join('')+'</div></div>';
  if(r.why)h+='<div class="group"'+RF('M24')+' style="margin-top:12px"><div class="note">'+esc(r.why)+'</div></div>';
@@ -5166,9 +5175,13 @@ function recipeEdit(id,resume){const existing=recipeDraftRead();if(!resume&&exis
 function recipeTools(){return recipeLibraryTools()}
 function recipePrice(r){const lines=(r.groups||[]).flatMap(g=>g.items||[]),prices=parseJ(settings().priser,{});let known=0,missing=0,estimated=0,unquantified=0;const dates=[];
  lines.forEach(it=>{const v=window.MatVaror&&(MatVaror.vara(it.n)||MatVaror.skafferi(it.n));if(!v)return;if(it.q==null){unquantified++;return}if(v.okand){missing++;return}known+=MatVaror.mangd(it,v)*v.kr/v.pkt;if(!prices[v.k])estimated++;});
- const partial=missing+unquantified,amount=known/(Number(r.portions)||1),label=partial?'Känd delkostnad: '+kr(amount)+'/portion':known?'Ca '+kr(amount)+'/portion':r.kr?'Ca '+kr(r.kr)+'/portion · äldre uppskattning':'Prisuppgift saknas';
+ const partial=missing+unquantified,amount=known/(Number(r.portions)||1),label=partial?'Minst '+kr(amount)+'/portion':known?'Ca '+kr(amount)+'/portion':r.kr?'Ca '+kr(r.kr)+'/portion · äldre uppskattning':'Prisuppgift saknas';
  return{amount,known,label,missing,unquantified,estimated,partial,html:'<div class="rc-price"><span>'+esc(label)+'</span>'+((missing||unquantified)?'<small>'+[missing?'Pris saknas för '+missing+' ingrediens'+(missing===1?'':'er'):'',unquantified?unquantified+' mängd'+(unquantified===1?'':'er')+' behöver granskas':''].filter(Boolean).join(' · ')+'</small>':'')+'<small>'+esc(estimated?'Uppskattade baspriser ingår.':'Beräknat från tillgängliga priser; inte ett garanterat butikspris.')+'</small>'+recipePriceSource(prices)+'</div>'}}
-function recipePriceSource(prices){if(!Object.keys(prices).length)return'';const log=parseJ(settings().prislogg,{});return'<small>'+esc('Butikspriser: '+(log.tid||'datum saknas')+(log.butik?' · '+log.butik:''))+'</small>'}
+function recipePriceSource(prices){if(!Object.keys(prices).length)return'';const log=parseJ(settings().prislogg,{}),a=prisAlder();return'<small'+(a.gammal?' class="bad"':'')+'>'+esc('Butikspriser: '+(a.datum||'datum saknas')+(log.butik?' · '+log.butik:'')+(a.gammal?' · kan vara inaktuella':''))+'</small>'}
+/* När priserna senast hämtades. Ny Kod.gs skriver senastOk (senaste körning där Willys svarade); äldre loggar har bara tid och medPris.
+   En körning där inget hittades (Willys svarade med fel) räknas inte. gammal = äldre än 7 dagar */
+function prisAlder(){const log=parseJ(settings().prislogg,{}),t=log.senastOk||(log.medPris>0?log.tid:'')||'',d=isDate(String(t).slice(0,10))?parse(String(t).slice(0,10)):null;
+ return{datum:t?String(t).slice(0,16):'',gammal:!d||(Date.now()-d.getTime())>7*864e5}}
 function recipeComparable(r){return JSON.stringify([r.title,Number(r.portions)||0,Number(r.min)||0,(r.groups||[]).map(g=>[g.title||'',(g.items||[]).map(i=>[i.q==null?null:Number(i.q),i.u||'',i.n])]),(r.steps||[]).map(s=>[s.t||'',s.timer||0,s.k||'',s.v||''])])}
 function recipeField(label,name,value,type){return'<label class="cell rc-field"><span>'+label+'</span><input class="field" data-rf="'+name+'" value="'+esc(value==null?'':value)+'"'+(type?' type="'+type+'"':'')+'></label>'}
 function recipeSelect(label,name,val,choices){if(val&&!choices.some(x=>x[0]===val))choices=choices.concat([[val,val]]);return'<label class="cell rc-field"><span>'+label+'</span><select class="field" data-rf="'+name+'">'+choices.map(([k,v])=>'<option value="'+esc(k)+'"'+(val===k?' selected':'')+'>'+esc(v)+'</option>').join('')+'</select></label>'}
