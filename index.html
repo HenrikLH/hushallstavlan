@@ -22,7 +22,7 @@
   --ink:#000000; --ink-2:rgba(60,60,67,.6); --ink-3:rgba(60,60,67,.3); --line:rgba(60,60,67,.29);
   --accent:#A3253F; --accent-soft:rgba(163,37,63,.12); --on-accent:#FFFFFF;
   --red:#FF3B30; --orange:#FF9500; --green:#34C759; --gray:#8E8E93;
-  --bar:rgba(249,249,249,.94); --glass:rgba(255,255,255,.7); --glass-line:rgba(0,0,0,.08); --pill:rgba(118,118,128,.16); --track:#E5E5EA; --seg-on:#FFFFFF;
+  --bar:rgba(249,249,249,.94); --glass:rgba(255,255,255,.7); --glass-line:rgba(0,0,0,.08); --pill:rgba(118,118,128,.16);--lins:rgba(255,255,255,.72); --track:#E5E5EA; --seg-on:#FFFFFF;
   --veg-bg:rgba(52,199,89,.15); --veg-ink:#248A3D; --p1:#4B4FC4; --p1-soft:rgba(75,79,196,.13); --p1-ink:#3D41A8; --p2:#0F8C83; --p2-soft:rgba(15,140,131,.14); --p2-ink:#0B6E67; --meat-bg:rgba(162,132,94,.18); --meat-ink:#7A5C38; --gem-bg:rgba(255,149,0,.15); --gem-ink:#C93400;
   --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Helvetica Neue","Segoe UI",system-ui,sans-serif;
   --tabbar:62px; --tabgap:max(calc(var(--sab) - 8px),12px); --side:260px; --navbar:44px;
@@ -36,14 +36,14 @@
   --sky-star:#FFFFFF; --sky-moon:#EEF1FA; --fog:rgba(165,175,198,.3); --ink:#FFFFFF; --ink-2:rgba(235,235,245,.6); --ink-3:rgba(235,235,245,.3); --line:rgba(84,84,88,.65);
   --accent:#EC7088; --accent-soft:rgba(236,112,136,.22); --on-accent:#22090F;
   --red:#FF453A; --orange:#FF9F0A; --green:#30D158;
-  --bar:rgba(22,22,24,.92); --glass:rgba(36,36,38,.7); --glass-line:rgba(255,255,255,.1); --pill:rgba(255,255,255,.14); --track:#3A3A3C; --seg-on:#636366;
+  --bar:rgba(22,22,24,.92); --glass:rgba(36,36,38,.7); --glass-line:rgba(255,255,255,.1); --pill:rgba(255,255,255,.14);--lins:rgba(255,255,255,.2); --track:#3A3A3C; --seg-on:#636366;
   --veg-ink:#30D158; --gem-ink:#FF9F0A; --p1:#8C8FF2; --p1-soft:rgba(140,143,242,.22); --p1-ink:#AEB0FF; --p2:#35C2B5; --p2-soft:rgba(53,194,181,.2); --p2-ink:#62D8CC; --meat-bg:rgba(172,142,104,.24); --meat-ink:#C8A57A; color-scheme:dark }}
 :root[data-theme="dark"]{
   --bg:#000000; --surface:#1C1C1E; --surface-raised:#2C2C2E; --fill:rgba(118,118,128,.24);
   --sky-star:#FFFFFF; --sky-moon:#EEF1FA; --fog:rgba(165,175,198,.3); --ink:#FFFFFF; --ink-2:rgba(235,235,245,.6); --ink-3:rgba(235,235,245,.3); --line:rgba(84,84,88,.65);
   --accent:#EC7088; --accent-soft:rgba(236,112,136,.22); --on-accent:#22090F;
   --red:#FF453A; --orange:#FF9F0A; --green:#30D158;
-  --bar:rgba(22,22,24,.92); --glass:rgba(36,36,38,.7); --glass-line:rgba(255,255,255,.1); --pill:rgba(255,255,255,.14); --track:#3A3A3C; --seg-on:#636366;
+  --bar:rgba(22,22,24,.92); --glass:rgba(36,36,38,.7); --glass-line:rgba(255,255,255,.1); --pill:rgba(255,255,255,.14);--lins:rgba(255,255,255,.2); --track:#3A3A3C; --seg-on:#636366;
   --veg-ink:#30D158; --gem-ink:#FF9F0A; --p1:#8C8FF2; --p1-soft:rgba(140,143,242,.22); --p1-ink:#AEB0FF; --p2:#35C2B5; --p2-soft:rgba(53,194,181,.2); --p2-ink:#62D8CC; --meat-bg:rgba(172,142,104,.24); --meat-ink:#C8A57A; color-scheme:dark }
 
 /* ===== 2. Bas och typografi ===== */
@@ -1436,7 +1436,7 @@ html.ny .motion-panel>.wm-body{display:block}
 .motion-grip:focus-visible{outline:2px solid var(--accent);outline-offset:-4px;border-radius:8px}
 .motion-grip:active{color:var(--accent)}
 .wcard>.motion-grip{min-height:0;padding:0 0 12px;margin-top:-6px;position:relative}.wcard>.motion-grip:before{content:"";position:absolute;inset:-10px 0}
-.ovcal-frame{position:relative;overflow:hidden}.ovcal-month{position:absolute;inset:0 auto auto 0;width:100%;visibility:hidden}.ovcal.expanded .ovcal-month{position:relative;visibility:visible}.ovcal.expanded .ovcal-week{position:absolute;inset:0 auto auto 0;width:100%;visibility:hidden}.ovcal .motion-grip{min-height:0;padding:6px 0 2px;margin-top:0}
+.ovcal-frame{position:relative;overflow:hidden}.ovcal-month{position:absolute;inset:0 auto auto 0;width:100%;visibility:hidden}.ovcal.expanded .ovcal-month{position:relative;visibility:visible}.ovcal.expanded .ovcal-week{position:absolute;inset:0 auto auto 0;width:100%;visibility:hidden}.ovcal .motion-grip{min-height:0;padding:6px 0 2px;margin-top:0}.ovcal:not(.expanded) .ovcal-week .wk-sw{touch-action:pan-x}
 .ovcal.cal-drag .ovcal-week,.ovcal.cal-drag .ovcal-month{visibility:visible}
 .ovcal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px}.ovcal-wd{text-align:center;font-size:12px;color:var(--ink-2)}.ovcal-grid .wk-d{min-height:48px;padding:3px 0;gap:2px}.ovcal-grid .outside{opacity:.4}.ovcal-toolbar{display:flex;justify-content:space-between;align-items:center;min-height:40px}.ovcal-toolbar .ib{width:40px;height:40px}
 .ovcal:has(.ovcal-frame[style]){overflow-anchor:none}
@@ -2766,18 +2766,24 @@ html.ny .sx-ringar div{text-align:center;font-size:12px;color:var(--ink-2);overf
 html.ny.ui5{
  --bg:#F2F2F7;--surface:#FFFFFF;--surface-raised:#FFFFFF;--fill:rgba(118,118,128,.12);
  --ink:#000;--ink-2:rgba(60,60,67,.6);--ink-3:rgba(60,60,67,.3);--line:rgba(60,60,67,.29);
- --red:#FF3B30;--orange:#C93400;--green:#248A3D;--gray:#8E8E93;--track:#E5E5EA;--pill:rgba(118,118,128,.16);
+ --red:#FF3B30;--orange:#C93400;--green:#248A3D;--gray:#8E8E93;--track:#E5E5EA;--pill:rgba(118,118,128,.16);--lins:rgba(255,255,255,.72);
  --bar:rgba(249,249,249,.8);--glass:rgba(255,255,255,.62);--glass-line:rgba(255,255,255,.75);--seg-on:#FFFFFF;
  --veg-ink:#248A3D;--gem-ink:#C93400;--meat-ink:#7A5C38;--r5:26px;
  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display",Inter,"Helvetica Neue","Segoe UI",system-ui,sans-serif;
 }
-@media (prefers-color-scheme: dark){ html.ny.ui5:not([data-theme="light"]){--bg:#000;--surface:#1C1C1E;--surface-raised:#2C2C2E;--fill:rgba(118,118,128,.24);--ink:#fff;--ink-2:rgba(235,235,245,.6);--ink-3:rgba(235,235,245,.3);--line:rgba(84,84,88,.65);--red:#FF453A;--orange:#FF9F0A;--green:#30D158;--gray:#8E8E93;--track:#3A3A3C;--pill:rgba(255,255,255,.14);--bar:rgba(22,22,24,.78);--glass:rgba(44,44,46,.62);--glass-line:rgba(255,255,255,.12);--seg-on:#636366;--veg-ink:#30D158;--gem-ink:#FF9F0A;--meat-ink:#C8A57A}}
-html.ny.ui5[data-theme="dark"]{--bg:#000;--surface:#1C1C1E;--surface-raised:#2C2C2E;--fill:rgba(118,118,128,.24);--ink:#fff;--ink-2:rgba(235,235,245,.6);--ink-3:rgba(235,235,245,.3);--line:rgba(84,84,88,.65);--red:#FF453A;--orange:#FF9F0A;--green:#30D158;--gray:#8E8E93;--track:#3A3A3C;--pill:rgba(255,255,255,.14);--bar:rgba(22,22,24,.78);--glass:rgba(44,44,46,.62);--glass-line:rgba(255,255,255,.12);--seg-on:#636366;--veg-ink:#30D158;--gem-ink:#FF9F0A;--meat-ink:#C8A57A}
+@media (prefers-color-scheme: dark){ html.ny.ui5:not([data-theme="light"]){--bg:#000;--surface:#1C1C1E;--surface-raised:#2C2C2E;--fill:rgba(118,118,128,.24);--ink:#fff;--ink-2:rgba(235,235,245,.6);--ink-3:rgba(235,235,245,.3);--line:rgba(84,84,88,.65);--red:#FF453A;--orange:#FF9F0A;--green:#30D158;--gray:#8E8E93;--track:#3A3A3C;--pill:rgba(255,255,255,.14);--lins:rgba(255,255,255,.2);--bar:rgba(22,22,24,.78);--glass:rgba(44,44,46,.62);--glass-line:rgba(255,255,255,.12);--seg-on:#636366;--veg-ink:#30D158;--gem-ink:#FF9F0A;--meat-ink:#C8A57A}}
+html.ny.ui5[data-theme="dark"]{--bg:#000;--surface:#1C1C1E;--surface-raised:#2C2C2E;--fill:rgba(118,118,128,.24);--ink:#fff;--ink-2:rgba(235,235,245,.6);--ink-3:rgba(235,235,245,.3);--line:rgba(84,84,88,.65);--red:#FF453A;--orange:#FF9F0A;--green:#30D158;--gray:#8E8E93;--track:#3A3A3C;--pill:rgba(255,255,255,.14);--lins:rgba(255,255,255,.2);--bar:rgba(22,22,24,.78);--glass:rgba(44,44,46,.62);--glass-line:rgba(255,255,255,.12);--seg-on:#636366;--veg-ink:#30D158;--gem-ink:#FF9F0A;--meat-ink:#C8A57A}
 html.ny.ui5 body{letter-spacing:-.43px;font-family:var(--font)}
 /* Svävande glasmeny (Liquid Glass) */
 html.ny.ui5.nav-glas{--tabbar:62px;--tabgap:max(calc(var(--sab) - 10px),14px)}
 html.ny.ui5.nav-glas .nav{border-radius:999px;background:var(--glass);-webkit-backdrop-filter:saturate(180%) blur(22px);backdrop-filter:saturate(180%) blur(22px);border:.5px solid var(--glass-line);box-shadow:0 8px 32px rgba(0,0,0,.12),inset 0 1px 0 rgba(255,255,255,.5)}
 html.ny.ui5.nav-glas .nav-pill{border-radius:999px;background:var(--pill)}
+/* Linsen i flikraden: läget sätts av fjädrar i app.js (navLins). Trycker man lyfts den som klart glas och ikonen under växer. */
+html.ny.ui5 .nav.fj .nav-pill{transition:background-color .22s,box-shadow .22s;will-change:transform}
+html.ny.ui5 .nav.fj.lyft .nav-pill{background:var(--lins);box-shadow:0 6px 18px rgba(0,0,0,.16),0 1px 3px rgba(0,0,0,.1),inset 0 0 0 .5px rgba(255,255,255,.6),inset 0 1px 1px rgba(255,255,255,.7)}
+html.ny.ui5 .nav.fj button svg{transition:transform .38s cubic-bezier(.3,1.5,.5,1)}
+html.ny.ui5 .nav.fj.drag button.over svg{transform:scale(1.16)}
+html.ny.ui5 .nav.fj.drag button.over{color:var(--accent)}html.ny.ui5 .nav.fj.drag button[aria-current]:not(.over){color:var(--ink)}
 html.ny.ui5.nav-glas .nav-mini{background:var(--glass);border:.5px solid var(--glass-line);-webkit-backdrop-filter:saturate(180%) blur(22px);backdrop-filter:saturate(180%) blur(22px)}
 html.ny.ui5 .nav button{font-size:10px;line-height:12px;font-weight:600;gap:1px;color:var(--ink)}
 html.ny.ui5 .nav button[aria-current="page"]{color:var(--accent)}
@@ -2925,7 +2931,7 @@ html.ny.ui5 .create-options svg{width:20px;height:20px;flex:none}
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=261"></script>
+<script src="app.js?v=263"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
