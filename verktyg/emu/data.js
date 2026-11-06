@@ -35,6 +35,8 @@ const settings=[
 ['fodelsedagar','[]'],['kcal',JSON.stringify({'storkok-kyckling':760,'storkok-dal':720,'flask-ugn':550,shakshuka:600,linssoppa:500,'kyckling-purjo':740,blomkal:620,grekisk:730,blabar:300,purjosoppa:500})],
 // Willyspriser i formatet före fp (urval från arket 2026-10-24)
 ['priser',JSON.stringify(require('./fixtures/priser.json'))],
+// Produktförslag som Kod.gs skriver (Varor och priser)
+['prisforslag',JSON.stringify(require('./fixtures/prisforslag.json'))],
 ['lager',JSON.stringify({'gula ärtor':413,'fläsk':413,'gul lök':640,'krossade tomater':263,bulgur:280,'gröna linser':470,ris:855,pasta:37,spenat:102,'riven ost':163,'kycklingfilé':537,morot:760,palsternacka:200,'rödlök':300,'fryst spenat':235,'frysta grönsaker':200,nudlar:50,'räkor':200})]];
 const menu=[
 ['2026-10-17','Borta','Middag hos Matilda','','','Ingen matlagning hemma.'],
