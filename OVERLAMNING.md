@@ -4,18 +4,18 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 ## Börja här
 
-- Aktuell release: **ht-v257** (UI 5.0 Apple som frivilligt val). Ångra-gren `version-fore-ui5`.
+- Aktuell release: **ht-v258** (UI 5.0: svepgester som i iOS). Ångra-gren `version-fore-svepgester`; före det ht-v257 (UI 5.0 som val, `version-fore-ui5`).
 - Inga pågående uppgifter utöver punkterna nedan. Gör inte om godkända ändringar.
 - Strömningen i ChatGPT har avbrutits flera gånger: kontrollera gren/PR/main och Pages innan en avbruten publicering återupptas.
 
 ## Pågår nu
 
-- **Apple-lika svepgester (UI 5.0)** – Claude, gren `claude/project-thread-5ks21x`, förslag väntar på Henriks ok. Tillbaka-svep från kanten eller var som helst på en undersida, sidan under syns med parallax, beslut efter projicerad fart (UIKit-formeln, `u5Fart`), fjäder med fingrets fart (`u5Fjader`), fångas om man rör igen. Scrollen återställs vid tillbaka. Dra ned har iOS-gummiband + knack i iPhone (`u5Tick`). Undermenysvep och blad i UI 5.0 avgörs också av fart. Bara `U5`; UI 2.0 oförändrad. Test: `LS='{"ui":"5"}' node verktyg/emu/run.js verktyg/emu/ui5-gester.js`. Nästa: Henrik provar i iPhone (känslan går inte att mäta i Chromium).
 - Inget pågående. **UI 5.0 (Apple)** publicerad i ht-v257 som val (Inställningar → Utseende → Design; `ht.ui=5`, `U5`, CSS bara under `html.ny.ui5` sist i `<style>`). Plan/beslut: Claude Doc "Apple-känsla: genomgång och plan". Tester: `verktyg/emu/ui5.js`, `ui5-navigering.js` (svep tillbaka, dra ned, svep på uppgift), alla-flikar med `LS={"ui":"5"}`. UI 2.0 är fortfarande standard.
 - Inget. Senast publicerat: Städvyn kan väljas som Lista (standard), Rutnät eller Ring under Inställningar → Mat och städ (`ht.stadVy`, `stadRutnat`/`stadRing` i app.js, CSS `.sx-*`). Test: `NOW=<idag> node verktyg/emu/run.js verktyg/emu/stad-vyer.js` (emulerade servern sätter lastDone med riktigt datum).
 
 ## Följ upp med Henrik
 
+- Svepgester i UI 5.0 (ht-v258, PR #69): känns svep tillbaka rätt i iPhone? Justera i så fall `u5Fart.proj` (r=0,997), gränsen W/2 eller fjäderns 0,42 s. Test `LS='{"ui":"5"}' node verktyg/emu/run.js verktyg/emu/ui5-gester.js`.
 - UI 5.0 (ht-v257): Henrik testar i telefonen. Göra UI 5.0 till standard först när han säger till (steg 5 i planen). Henrik underkände tidigare textknappen "Åtgärder" i Inköp (nu ⋯-meny i rubriken).
 
 - Städvyn (ht-v256): vilken av Rutnät/Ring vill han ha kvar? Förslag C (lugn lista) byggdes inte. Rutnätets rutor bockas av med tryck, håll in ger bladet.
