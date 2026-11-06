@@ -487,7 +487,12 @@ let camN=0;setInterval(()=>{if(KAL)return;if(CAM.src==='als'&&!ALS||++camN%60===
  // med mus (och väggskärmens pekskärm) börjar dragningen direkt när man rör sig i ändra-läget
  addEventListener('pointermove',e=>{if(G){move(e.clientX,e.clientY);return}if(!lp||Math.hypot(e.clientX-x,e.clientY-y)<=(S.arrange&&mouse?4:9))return;stop();if(S.arrange&&mouse){start(pid,x,y);if(G)move(e.clientX,e.clientY)}});
  addEventListener('pointerup',()=>{stop();if(G)end()});addEventListener('pointercancel',()=>{stop();if(G)end()});
- document.addEventListener('touchmove',e=>{if(G)e.preventDefault()},{passive:false});
+ // Rutan under fingret ritas om när dragningen börjar. Touchhändelserna går då fortfarande till den gamla, lösryckta noden
+ // och når aldrig document, så sidan rullade och webbläsaren avbröt dragningen (pointercancel). Lyssna därför på själva noden.
+ const tm=e=>{if(G&&e.cancelable)e.preventDefault()};
+ document.addEventListener('touchstart',e=>{if(S.view!=='oversikt'||!e.target.closest||!e.target.closest('[data-box]'))return;const t=e.target;t.addEventListener('touchmove',tm,{passive:false});
+  const off=()=>{t.removeEventListener('touchmove',tm);t.removeEventListener('touchend',off);t.removeEventListener('touchcancel',off)};t.addEventListener('touchend',off);t.addEventListener('touchcancel',off)},{passive:true});
+ document.addEventListener('touchmove',tm,{passive:false});
  document.addEventListener('click',e=>{if(eat){eat=false;e.stopPropagation();e.preventDefault()}},true);
  document.addEventListener('contextmenu',e=>{if(e.target.closest('[data-box]')&&S.view==='oversikt')e.preventDefault()})})();
 
@@ -974,7 +979,7 @@ V.oversikt=function(){
  H.imorgon=tm?widget('mat','w2',I.cal,'Imorgon',esc(dateShort(tm.date)),(eventsHtml(tm)||'<div class="wempty">Inga händelser.</div>')+(tm.meals.length?wMeals(tm):'')):'';
  H.fod=bdWidget();
  const L=layout(false,OV_DEF());
- return h+(S.arrange?'<p class="arr-intro">Håll kvar och dra en ruta dit du vill ha den. − döljer rutan och hörnknappen gör den halv eller hel. Gäller bara den här enheten.</p>':'')+'<div class="widgets'+(S.arrange?' arranging':'')+'">'+boxRow(L.cols[0].filter(id=>H[id]),false,H,L)+'</div>'+(!S.arrange?smileyCard():'')+'</div>'+arrangeFoot(L,false)};
+ return h+'<div class="widgets'+(S.arrange?' arranging':'')+'">'+boxRow(L.cols[0].filter(id=>H[id]),false,H,L)+'</div>'+(S.arrange?'<p class="arr-intro">Håll kvar och dra en ruta dit du vill ha den. − döljer rutan och hörnknappen gör den halv eller hel. Gäller bara den här enheten.</p>':smileyCard())+'</div>'+arrangeFoot(L,false)};
 // utan egen ordning ligger födelsedagarna näst sist
 const OV_DEF=()=>U3?[['mat','upg','kal','inkop','stad','fod','hem','imorgon']]:[['kal','upg','mat','stad','inkop','fod','hem','imorgon']];
 function wMeals(d){if(U3)return(d.meals||[]).map(m=>{const r=m.recipe&&recipeById(m.recipe),go=r?'button':'div';return'<div class="u3-dinner"><'+go+' class="u3-meal"'+(r?' data-act="recipe" data-id="'+esc(r.id)+'"':'')+'>'+dishThumb(r,m.title)+'<span class="grow"><span class="chips-row">'+whoChip(m.who)+'</span><span class="hl">'+esc(m.title)+'</span>'+(m.addon?'<span class="meta">'+esc(m.addon)+'</span>':'')+(r&&r.min?'<span class="meta">'+r.min+' min'+(r.kr?' · '+kr(r.kr)+'/port':'')+'</span>':'')+'</span></'+go+'>'+(r&&r.steps&&r.steps.length?'<button class="btn-fill" data-act="cook" data-id="'+esc(r.id)+'">'+I.play+'Börja laga</button>':'')+'</div>'}).join('');return(d.meals||[]).map(m=>{const r=m.recipe&&recipeById(m.recipe);const tag=r?'button':'div';

@@ -1651,7 +1651,7 @@ body.dragging .bwx-h{scroll-snap-type:none}
 .bcol .btasks{flex:1 1 0;min-height:0;overflow:hidden}
 .bcol .btasks .cell{min-height:44px}
 /* ===== Ändra ordning på rutorna ===== */
-.ov .widget{-webkit-touch-callout:none}
+.ov .widget{-webkit-touch-callout:none}.ov [data-box]{-webkit-user-select:none;user-select:none}
 .arranging{-webkit-user-select:none;user-select:none}
 .arranging .widget.arr{cursor:grab;position:relative;overflow:visible;animation:wig .3s ease-in-out infinite alternate}
 .arranging .widget.arr:nth-child(2n){animation-delay:-.15s;animation-duration:.34s}
@@ -1673,7 +1673,7 @@ body.wall .arranging .widget.arr{animation-name:wigs}
 .arr-hid{flex:1;min-width:0;display:flex;align-items:center;gap:6px;overflow-x:auto;scrollbar-width:none;font-size:14px}
 .arr-hid .pill{height:32px;padding:0 10px}.arr-hid .pill svg{width:14px;height:14px}
 .arr-foot .btn-fill{height:40px;padding:0 20px;border-radius:20px;font-weight:600;font-size:16px}
-.widgets.arranging{padding-bottom:90px}
+.widgets.arranging{padding-bottom:8px}.widgets.arranging+.arr-intro{margin-bottom:110px}
 .arr-intro{margin:12px 16px 4px;color:var(--ink-2);font-size:15px;line-height:20px}
 body.wall .board.arranging .bcol[data-col]{overflow:visible;min-width:0}
 body.wall:has(.board) .arr-foot{left:28px;transform:none;width:calc((100% - 60px) * .345 - 16px);bottom:calc(var(--tabbar) + var(--tabgap) + 22px)}
