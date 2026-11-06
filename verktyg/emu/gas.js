@@ -31,12 +31,13 @@ function makeBook(init){
  return {sheets,getSheetByName:n=>sheets[n]?api(sheets[n]):null,insertSheet:n=>{if(sheets[n])throw new Error('Fliken finns redan');sheets[n]={name:n,rows:[],maxRows:50,frozen:1};return api(sheets[n])}}}
 const book=makeBook(require('./data.js'));
 const props={HUSHALLSKOD:'x',NTFY_TOPIC:''};
-let lockHeld=false;
+let lockHeld=false;const cache={};
 const pad=n=>String(n).padStart(2,'0');
 const ctx={
  console,JSON,Math,Date,String,Number,Object,Array,Error,RegExp,isFinite,isNaN,parseInt,parseFloat,
  SpreadsheetApp:{getActive:()=>book,flush(){}},
  LockService:{getScriptLock:()=>({waitLock(){if(process.env.LOCKFAIL&&Math.random()<+process.env.LOCKFAIL)throw new Error('Lock timeout: another process was holding the lock for too long.');lockHeld=true},releaseLock(){lockHeld=false}})},
+ CacheService:{getScriptCache:()=>({get:k=>cache[k]||null,put:(k,v)=>{if(!process.env.NOCACHE)cache[k]=String(v)}})},
  ContentService:{MimeType:{JSON:'json'},createTextOutput:t=>({t,setMimeType(){return this}})},
  PropertiesService:{getScriptProperties:()=>({getProperty:k=>props[k]||null,setProperty:(k,v)=>{props[k]=v}})},
  Utilities:{getUuid:()=>require('crypto').randomUUID(),formatDate:(d,tz,f)=>{

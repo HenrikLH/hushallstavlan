@@ -149,7 +149,7 @@ const isFav=id=>bankRaw().some(x=>recipeRoot(x.id)===recipeRoot(id)&&x.fav);
 function kcalOf(id){const v=parseJ(settings().kcal,{})[recipeRoot(id)];if(v==null||v==='')return null;const n=Number(Array.isArray(v)?v[0]:v);return n>0?{n:Math.round(n)}:null}
 const ratings=()=>recipeAliases(parseJ(settings().betyg,{}));
 // Veckans efterrätt och låsta rätter ligger också i önskelistan (som {efter:1,...} och {las:1,...}) men är inga önskemål
-const wishes=()=>recipeWishes(parseJ(settings().onskelista,[])).filter(x=>x&&!x.efter&&!x.las&&!x.fod);
+const wishes=()=>recipeWishes(parseJ(settings().onskelista,[])).filter(x=>x&&!x.efter&&!x.las&&!x.fod&&!x.bort);
 function ratingOf(id){const x=ratings()[id];if(!x||!x.p)return null;const ps=Object.entries(x.p).filter(([,e])=>e&&e.s);if(!ps.length)return null;
  return{avg:ps.reduce((a,[,e])=>a+Number(e.s),0)/ps.length,people:ps,never:ps.some(([,e])=>e.v==='aldrig')}}
 const VERD={igen:'Laga igen',okej:'Okej',aldrig:'Aldrig mer'};
@@ -515,6 +515,14 @@ function cdelCommit(){if(!CDEL.item)return;clearTimeout(CDEL.t);const id=CDEL.it
 function cdelStart(t){delCommit();cdelCommit();fdelCommit();CDEL.list=D().clean.slice();CDEL.item=t;S.data.clean=D().clean.filter(x=>x.id!==t.id);render();
  const u=document.getElementById('undo');u.querySelector('.ud-t').textContent=t.title+' togs bort';u.querySelector('.ud-b').dataset.act='cleanDelUndo';u.hidden=false;CDEL.t=setTimeout(cdelCommit,5000)}
 function undoHide(){const u=document.getElementById('undo');if(u)u.hidden=true}
+// Borttagna uppgifter sparas för hela hushållet i 30 dagar i onskelista som {bort:1,l:[{k,title,due,who,repeat,at,by}]} (ingen ny Kod.gs) och kan återställas under Klara, eller direkt med Ångra
+function tBort(){const o=parseJ(settings().onskelista,[]).find(x=>x&&x.bort),gr=addDays(today(),-30);return o&&Array.isArray(o.l)?o.l.filter(x=>x&&x.k&&x.title&&x.at>=gr):[]}
+function tBortSet(fn){A.user=Date.now();updJSON('onskelista',[],a=>{const gr=addDays(today(),-30),o=a.find(x=>x&&x.bort),l=fn((o&&Array.isArray(o.l)?o.l:[]).filter(x=>x&&x.k&&x.at>=gr)).slice(0,30);return a.filter(x=>!(x&&x.bort)).concat(l.length?[{bort:1,l}]:[])})}
+function tBortSpara(x){const k='b'+Date.now().toString(36);tBortSet(l=>[{k,title:String(x.title).slice(0,200),due:x.due||'',who:x.who||'',repeat:x.repeat||'',at:today(),by:S.me||''}].concat(l));return k}
+function tBortVisa(x,k){delCommit();cdelCommit();fdelCommit();const u=document.getElementById('undo'),b=u.querySelector('.ud-b');u.querySelector('.ud-t').textContent=x.title+' togs bort';b.dataset.act='taskBortUndo';b.dataset.id=k;u.hidden=false;
+ clearTimeout(tBortVisa.t);tBortVisa.t=setTimeout(()=>{if(b.dataset.act==='taskBortUndo')undoHide()},5000)}
+function tBortAter(k){const x=tBort().find(y=>y.k===k);if(!x)return;undoHide();tBortSet(l=>l.filter(y=>y.k!==k));
+ D().tasks.push({id:'tmp'+Date.now(),done:false,title:x.title,due:x.due,who:x.who,note:'',source:'egen',repeat:x.repeat});apiPost({action:'taskAdd',title:x.title,due:x.due,who:x.who,repeat:x.repeat});render();toast(x.title+' är tillbaka')}
 addEventListener('visibilitychange',()=>{if(document.hidden){delCommit();cdelCommit();fdelCommit()}});
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>t.hidden=true,2800)}
 // Kalkylarket vägrar ta bort sista raden under rubriken. En dold egen rad i Inköp gör att fliken aldrig töms helt.
@@ -549,11 +557,17 @@ async function flush(){
    // Då vet telefonen vad den andra har bockat av, och vilket id varan har nu
    const plan=OUTBOX[0].action==='planSend';let fore=null;
    if(plan||shopFlytt(OUTBOX[0])&&lastServerT<start){try{fore=await Promise.race([apiGet(),new Promise((_,no)=>setTimeout(()=>no(new Error('tid')),20000))])}catch(e){if(!/hushållskod/i.test(e.message)){S.sync='offline';S.pending=OUTBOX.length;render();return}}}
-   const b=Object.assign({},OUTBOX[0]);b.id=realId(b);delete b.tmpName;delete b.nm;
+   // Varje ändring får ett eget id (rid) så att Kod.gs kan hoppa över en ändring som redan är sparad
+   if(!OUTBOX[0].rid){OUTBOX[0].rid=Date.now().toString(36)+Math.random().toString(36).slice(2,8);saveOutbox()}
+   // Kom svaret aldrig fram (appen stängdes, nätet föll) kan tillägget ändå ha sparats i arket. Kontrollera innan det skickas igen,
+   // annars blir det dubbletter. Behövs med äldre Kod.gs som inte känner till rid
+   if(OUTBOX[0].osaker&&/^(task|shop|clean)Add$/.test(OUTBOX[0].action)){let nu;try{nu=await apiGet()}catch(e){S.sync='offline';S.pending=OUTBOX.length;render();return}
+    if(redanSparad(OUTBOX[0],nu)){OUTBOX.shift();S.pending=OUTBOX.length;saveOutbox();if(!OUTBOX.length){S.sync='idle';flushing=false;refresh(true);return}continue}}
+   const b=Object.assign({},OUTBOX[0]);b.id=realId(b);delete b.tmpName;delete b.nm;delete b.n0;delete b.osaker;
    if(b.id===null){OUTBOX.shift();S.pending=OUTBOX.length;saveOutbox();if(!OUTBOX.length){S.sync='idle';flushing=false;refresh(true);return}continue}
    let j;
    try{const r=await fetch(CFG.api,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign(b,{key:S.key,by:b.by!=null?b.by:S.me}))});j=await r.json()}
-   catch(e){S.sync='offline';S.pending=OUTBOX.length;render();return}   // inget nät: försök igen senare
+   catch(e){OUTBOX[0].osaker=1;saveOutbox();S.sync='offline';S.pending=OUTBOX.length;render();return}   // inget nät eller inget svar: försök igen senare
    // Kalkylarket tar en ändring i taget. Är det upptaget (låst av en annan ändring eller kalendersynken) har inget sparats,
    // så ändringen ligger kvar i utkorgen och skickas igen om en stund i stället för att visa ett fel
    if(!j.ok&&/lock|lås/i.test(j.error||'')&&(OUTBOX[0].forsok=(OUTBOX[0].forsok||0)+1)<=20){saveOutbox();S.sync='busy';renderStatus();flushing=false;setTimeout(flush,4000+2000*Math.min(OUTBOX[0].forsok,10));return}
@@ -579,12 +593,16 @@ function planKopt(b,fore,efter){const st=fore.settings||{};if(st.vecka_start!==b
   ut.push({action:'shopAdd',name:x.name,qty:x.qty||'',cat:x.cat||'Övrigt',price:x.price==null?'':x.price,by:b.by},{action:'shopToggle',id,tmpName:x.name,done:true,by:b.by})});
  return ut}
 if(OUTBOX.length)setTimeout(flush,800);
+// n0 = hur många med samma namn som fanns när tillägget gjordes. Fler i arket nu betyder att det redan kom fram
+function redanSparad(b,d){if(b.action==='cleanAdd')return !!b.id&&(d.clean||[]).some(x=>x.id===b.id);if(b.n0==null)return false;
+ const k=b.action==='taskAdd'?'title':'name',v=String(b[k]||'');return((b.action==='taskAdd'?d.tasks:d.shop)||[]).filter(x=>String(x[k]||'')===v).length>b.n0}
 function apiPost(body){
  if(!navigator.onLine&&body.action==='menuSwap'){toast('Kräver nät. Försök igen när du har täckning.');refresh(true);return Promise.resolve()}
  platsVakt(body.action);
  const it=Object.assign({},body,{by:S.me});
  if(/^tmp/.test(String(body.id||''))){const list=/^shop/.test(body.action)?D().shop:D().tasks,x=list.find(y=>y.id===body.id);if(x)it.tmpName=x.name||x.title}
  else if(/^shop(Toggle|Delete)$/.test(body.action)&&!it.nm){const x=(DEL.list||[]).concat(D().shop).find(y=>y.id===body.id);if(x)it.nm=shopNyck(x)}
+ if(/^(task|shop)Add$/.test(body.action)){const k=body.action==='taskAdd'?'title':'name';it.n0=(body.action==='taskAdd'?D().tasks:D().shop).filter(x=>x[k]===body[k]&&!/^tmp/.test(String(x.id||''))).length}
  OUTBOX.push(it);S.pending=OUTBOX.length;saveOutbox();renderStatus();
  return flush()}
 addEventListener('online',()=>flush());
@@ -2184,6 +2202,7 @@ V.uppgifter=function(){
  h+='</div><div class="col">';
  if(done.length)h+='<details data-k="done"'+(S.open.done||S.confirm==='clearTasks'?' open':'')+'><summary class="sh"><span>Klara ('+done.length+')</span></summary>'+rgroup('U3',done.map(taskRow).join(''))+
   '<div class="pills" style="padding:12px 16px 0 24px">'+(S.confirm==='clearTasks'?'<span class="sub">Ta bort alla klara?</span><button class="tb red strong" data-act="clearTasksYes">Ja, ta bort</button><button class="tb" data-act="confirmNo">Avbryt</button>':'<button class="tb red" data-act="clearTasks">Rensa klara</button>')+'</div></details>';
+ const bl=tBort(),ig=addDays(t,-1);if(bl.length)h+='<details data-k="bort"'+(S.open.bort?' open':'')+'><summary class="sh"><span>Nyligen borttagna ('+bl.length+')</span></summary>'+rgroup('U12',bl.map(x=>'<div class="cell tbort"><div class="grow"><div class="title">'+esc(x.title)+'</div><div class="meta"><span>Borttagen '+esc((x.at===t?'idag':x.at===ig?'i går':dateShort(x.at))+(x.by?' av '+personLabel(x.by):''))+'</span>'+(repName(x.repeat)?'<span class="chip">↻ '+esc(repName(x.repeat))+'</span>':'')+(x.who?personChip(x.who):'')+'</div></div><button type="button" class="tb" data-act="taskBortUndo" data-id="'+esc(x.k)+'">Återställ</button></div>').join(''))+'<p class="sub" style="padding:8px 24px 0">Sparas i 30 dagar.</p></details>';
  return h+'</div></div>'};
 /* Kalender: månadsöversikt med kalenderhändelser (fliken Händelser) och uppgifter,
    och under den allt som händer den valda dagen */
@@ -4568,7 +4587,8 @@ const ACT={
  taskMove(id,el){const v=addDays(today(),Number(el.dataset.d)||0);A.user=Date.now();mutate('tasks',id,{due:v});apiPost({action:'taskEdit',id,fields:{due:v}});toast(v===today()?'Flyttad till idag':'Flyttad till i morgon')},
  taskDel(id){const x=S.edit&&D().tasks.find(t=>t.id===S.edit.id);closeSheets();S.confirm=null;if(!x){render();return}A.user=Date.now();
   if(id==='once'&&repName(x.repeat)){const nd=nextDue(x.due,x.repeat,today());mutate('tasks',x.id,{due:nd});apiPost({action:'taskToggle',id:x.id,done:true});toast('Hoppar över den här gången. Nästa gång '+(nd===addDays(today(),1)?'i morgon':dateShort(nd)));return}
-  apiPost({action:'taskDelete',id:x.id});S.data.tasks=D().tasks.filter(t=>t!==x);render();toast('Uppgiften är borttagen')},
+  apiPost({action:'taskDelete',id:x.id});S.data.tasks=D().tasks.filter(t=>t!==x);const k=x.done?'':tBortSpara(x);render();if(k)tBortVisa(x,k);else toast('Uppgiften är borttagen')},
+ taskBortUndo(id){tBortAter(id)},
  evEdit(id){const e=D().events[Number(id)];if(!e)return;S.edit=Object.assign({},e);S.confirm=null;S.sheet='evEdit';render()},
  evDelAsk(){S.confirm='delEv';render()},
  evDel(id){const e=S.edit;closeSheets();S.confirm=null;if(!e){render();return}A.user=Date.now();const all=id==='all';
@@ -4841,7 +4861,7 @@ function recipeLibrary(saved){const store=D().recipeStore,heads=store&&store.hea
  const source=bankRaw().concat(saved?[]:D().recipes);heads.forEach(h=>{const r=recipeGet(h.id);if(r)source.unshift(r)});
  source.forEach(r=>{const root=recipeRoot(r.id),h=recipeHead(root);if(seen.has(root)||h&&h.archived)return;seen.add(root);const v=recipeLatest(r),b=bankRaw().find(x=>recipeRoot(x.id)===root);out.push(Object.assign({},v,{fav:!!(b&&b.fav),savedAt:b&&b.savedAt||v.updatedAt||''}))});return out}
 function recipeAliases(o){recipeVersions().forEach(r=>{if(r._root&&o[r._root]!=null)o[r.id]=o[r._root]});return o}
-function recipeWishes(a){return a.map(x=>{const h=x&&x.id&&!x.efter&&!x.las&&!x.fod&&recipeHead(x.id);return h?Object.assign({},x,{id:h.id}):x})}
+function recipeWishes(a){return a.map(x=>{const h=x&&x.id&&!x.efter&&!x.las&&!x.fod&&!x.bort&&recipeHead(x.id);return h?Object.assign({},x,{id:h.id}):x})}
 function recipeChange(k,fn,o){if(k==='onskelista')return fn(recipeWishes(o));if(!['betyg','frekvens','kcal','receptlogg'].includes(k))return fn(o);o=fn(recipeAliases(o));const n={};Object.keys(o).forEach(id=>{n[recipeRoot(id)]=o[id]});return n}
 function recipeAllowed(){return !!(D().recipeStore&&D().recipeStore.schema===1)}
 function recipeClone(r){return JSON.parse(JSON.stringify(r))}
