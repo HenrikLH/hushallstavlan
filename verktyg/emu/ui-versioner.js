@@ -32,7 +32,7 @@ module.exports=async(pg,h)=>{
  await pg.locator('form[data-form="taskEdit"] [name="due"]').fill('2026-10-19');
  await pg.locator('form[data-form="taskEdit"] button').filter({hasText:'Spara'}).click();await h.idle(1500);await h.waitFlush();
  assert.equal(await read('D().tasks.find(x=>x.title==="'+task+'").due'),'2026-10-19');
- await click('[data-act="taskTab"][data-id="kalender"]');
+ await click('#nav [data-act="nav"][data-id="kalender"]');
  await click('[data-act="calMonth"][data-d="1"]');assert.equal(await read('S.calMonth'),'2026-11');
  await click('[data-act="calToday"]');
  await click('.cal-grid [data-act="calDay"][data-id="2026-10-19"]');

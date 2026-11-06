@@ -20,7 +20,7 @@ module.exports=async(pg,h)=>{
  await hold(tr);await click('.sheet [data-act="taskDelAsk"]');assert.equal(await pg.locator('.sheet [data-act="taskDel"]').count(),1);
  await click('.sheet [data-act="taskDel"]');await h.waitFlush();assert.equal(await read('D().tasks.some(x=>x.id==="tu1")'),false,'Uppgiften ska tas bort');
  // Kalendern: dagens lista i månadsvyn
- await click('[data-act="taskTab"][data-id="kalender"]');
+ await click('#nav [data-act="nav"][data-id="kalender"]');
  if(await pg.locator('[data-act="calVy"][data-id="manad"]').count())await click('[data-act="calVy"][data-id="manad"]');
  const er='.cal-ev[data-hold-lift="evMenu"]:has-text("Tandläkare")';
  await hold(er);assert.equal(await read('S.sheet'),'evMenu','Håll in händelsen ska öppna bladet');
