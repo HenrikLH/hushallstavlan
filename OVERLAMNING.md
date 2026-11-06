@@ -4,7 +4,8 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 ## Börja här
 
-- Aktuell release: **ht-v261** (Uppgifter: Ångra och "Nyligen borttagna", PR #70). Ångra-gren `version-fore-aterstall-uppgift`; före det ht-v260 (sol/månbanan 42 px åt vänster, `version-fore-solbana-vanster`).
+- Aktuell release: **ht-v262** (Uppgifter: Ångra och "Nyligen borttagna", PR #70). Ångra-gren `version-fore-aterstall-uppgift` (= ht-v261).
+- ht-v261: inga dubbletter av uppgifter/varor när svaret från arket tappas (`redanSparad`/`osaker`/`n0` i flush/apiPost, `rid` till Kod.gs; test `verktyg/emu/uppgift-dubblett.js`, även `NOCACHE=1`). Ångra-gren `version-fore-dubbletter`.
 - Inga pågående uppgifter utöver punkterna nedan. Gör inte om godkända ändringar.
 - Strömningen i ChatGPT har avbrutits flera gånger: kontrollera gren/PR/main och Pages innan en avbruten publicering återupptas.
 
@@ -34,7 +35,8 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 ## Väntar på Henrik (Kod.gs)
 
-- Inget. Henrik bekräftade 2026-10-21 att Kod.gs/setupRecipes/distribution är uppdaterade. Namn/rum på sysslor kan inte ändras utan ny Kod.gs (`cleanSet` tillåter bara freq/min/who/plannedFor/snoozeUntil).
+- `rid`-skydd mot dubbletter i `doPost` (ht-v261, [Kod.gs](https://github.com/HenrikLH/hushallstavlan/blob/main/apps-script/Kod.gs)). Appen klarar sig utan; ta bort punkten när Henrik klistrat in och publicerat.
+- Tidigare: Henrik bekräftade 2026-10-21 att Kod.gs/setupRecipes/distribution är uppdaterade. Namn/rum på sysslor kan inte ändras utan ny Kod.gs (`cleanSet` tillåter bara freq/min/who/plannedFor/snoozeUntil).
 
 ## Beslut som ska bevaras (inte självklara i koden)
 
