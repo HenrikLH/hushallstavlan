@@ -148,8 +148,8 @@ html.sb-auto.scrolling,html.sb-auto.scrolling *{scrollbar-color:var(--line) tran
 .cell.ck::before,.cell.lead::before{left:52px!important}
 .dr-wrap+.dr-wrap>.cell::before{content:"";position:absolute;top:0;left:16px;right:0;border-top:.5px solid var(--line)}
 .dr-wrap+.dr-wrap>.cell.ck::before{content:"";position:absolute;top:0;right:0;border-top:.5px solid var(--line)}
-/* Städ: den röda Ta bort-ytan syns bara när raden dras, annars lyser den igenom i rundade hörn */
-.dr-wrap.cs:not(:has(>.dr-slide[style*="translate"]))>.dr-act{visibility:hidden}
+/* Ytorna bakom en svepbar rad syns bara när raden dras, annars lyser de igenom i rundade hörn */
+.dr-wrap:not(:has(>.dr-slide[style*="translate"]))>:is(.dr-act,.dr-actl){visibility:hidden}
 .grow{flex:1;min-width:0}
 .title{overflow-wrap:anywhere}
 .meta{font-size:15px;line-height:20px;letter-spacing:-.24px;color:var(--ink-2);display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px;margin-top:2px}
@@ -837,6 +837,8 @@ html.ny .chip.lk::before{display:none}
 .hero.art-geo .hero-wx .gs{width:154px;padding-top:70px}
 /* Telefonen: marken under trädet och hundarna är bredare än väderkolumnen och sticker ut till höger; flytta hela bilden åt vänster så att den ryms i kortet */
 .hero.art-geo .hero-wx:not(.wbt) .gs{left:-42px}
+/* sol- och månbanan följer med bilden åt vänster */
+.hero.art-geo>.arc.b{left:calc(24% - 42px);right:48px}
 .hero.art-geo .hero-wx .fig-box.grass{width:154px;height:136.4px}
 .hero.art-geo .hero-wx .gs>.bd{width:253px;height:209px}
 /* Geometrisk på väggen: marken, trädet och solbanan är bredare än rutan, så bilden skalas ned och centreras så att allt syns */
@@ -1414,6 +1416,8 @@ body.wall::before{content:"";position:fixed;inset:-20%;z-index:-1;pointer-events
 /* Vägledande rörelse: begränsa sidbytets rörelse till skärmen, behåll remsornas egen sidscroll. */
 html.motion-dev,html.motion-dev #main{overflow-x:clip}
 html.motion-dev{scrollbar-gutter:stable}
+/* Väggskärmen styrs med fingret: ingen rullningslist som tar plats i högerkanten och gör tavlan sned */
+html:has(>body.wall){scrollbar-width:none;scrollbar-gutter:auto}
 html.ny.motion-dev .nav:not(.drag) .nav-pill{transition-duration:.3s,.2s}
 .motion-panel{display:flow-root;overflow-anchor:none}
 html.motion-weather-active{overflow-anchor:none}
@@ -2692,6 +2696,158 @@ html.ny .sx-hero .sx-ork{margin-top:16px}html.ny .sx-hero .segc{background:var(-
 html.ny .sx-late{color:var(--orange)}
 html.ny .sx-ringar{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:12px 4px;background:var(--surface);border-radius:16px;margin:0 16px;padding:14px 6px 12px}
 html.ny .sx-ringar div{text-align:center;font-size:12px;color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}html.ny .sx-ringar svg{display:block;margin:0 auto 5px;transform:rotate(-90deg)}
+
+/* ===== UI 5.0 · Apple (frivilligt val, gäller bara html.ui5) =====
+   iOS 26 enligt Apples Human Interface Guidelines: systemfärger, Apples textskala, svävande glasmeny,
+   runda glasknappar, rundade grupperade listor och kapselformade knappar. Appens vinröda färg behålls. */
+html.ny.ui5{
+ --bg:#F2F2F7;--surface:#FFFFFF;--surface-raised:#FFFFFF;--fill:rgba(118,118,128,.12);
+ --ink:#000;--ink-2:rgba(60,60,67,.6);--ink-3:rgba(60,60,67,.3);--line:rgba(60,60,67,.29);
+ --red:#FF3B30;--orange:#C93400;--green:#248A3D;--gray:#8E8E93;--track:#E5E5EA;--pill:rgba(118,118,128,.16);
+ --bar:rgba(249,249,249,.8);--glass:rgba(255,255,255,.62);--glass-line:rgba(255,255,255,.75);--seg-on:#FFFFFF;
+ --veg-ink:#248A3D;--gem-ink:#C93400;--meat-ink:#7A5C38;--r5:26px;
+ --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display",Inter,"Helvetica Neue","Segoe UI",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){ html.ny.ui5:not([data-theme="light"]){--bg:#000;--surface:#1C1C1E;--surface-raised:#2C2C2E;--fill:rgba(118,118,128,.24);--ink:#fff;--ink-2:rgba(235,235,245,.6);--ink-3:rgba(235,235,245,.3);--line:rgba(84,84,88,.65);--red:#FF453A;--orange:#FF9F0A;--green:#30D158;--gray:#8E8E93;--track:#3A3A3C;--pill:rgba(255,255,255,.14);--bar:rgba(22,22,24,.78);--glass:rgba(44,44,46,.62);--glass-line:rgba(255,255,255,.12);--seg-on:#636366;--veg-ink:#30D158;--gem-ink:#FF9F0A;--meat-ink:#C8A57A}}
+html.ny.ui5[data-theme="dark"]{--bg:#000;--surface:#1C1C1E;--surface-raised:#2C2C2E;--fill:rgba(118,118,128,.24);--ink:#fff;--ink-2:rgba(235,235,245,.6);--ink-3:rgba(235,235,245,.3);--line:rgba(84,84,88,.65);--red:#FF453A;--orange:#FF9F0A;--green:#30D158;--gray:#8E8E93;--track:#3A3A3C;--pill:rgba(255,255,255,.14);--bar:rgba(22,22,24,.78);--glass:rgba(44,44,46,.62);--glass-line:rgba(255,255,255,.12);--seg-on:#636366;--veg-ink:#30D158;--gem-ink:#FF9F0A;--meat-ink:#C8A57A}
+html.ny.ui5 body{letter-spacing:-.43px;font-family:var(--font)}
+/* Svävande glasmeny (Liquid Glass) */
+html.ny.ui5.nav-glas{--tabbar:62px;--tabgap:max(calc(var(--sab) - 10px),14px)}
+html.ny.ui5.nav-glas .nav{border-radius:999px;background:var(--glass);-webkit-backdrop-filter:saturate(180%) blur(22px);backdrop-filter:saturate(180%) blur(22px);border:.5px solid var(--glass-line);box-shadow:0 8px 32px rgba(0,0,0,.12),inset 0 1px 0 rgba(255,255,255,.5)}
+html.ny.ui5.nav-glas .nav-pill{border-radius:999px;background:var(--pill)}
+html.ny.ui5.nav-glas .nav-mini{background:var(--glass);border:.5px solid var(--glass-line);-webkit-backdrop-filter:saturate(180%) blur(22px);backdrop-filter:saturate(180%) blur(22px)}
+html.ny.ui5 .nav button{font-size:10px;line-height:12px;font-weight:600;gap:1px;color:var(--ink)}
+html.ny.ui5 .nav button[aria-current="page"]{color:var(--accent)}
+@media (min-width:900px){html.ny.ui5 .nav button{font-size:11px;line-height:13px}}
+/* Väderkortet: molnen glesnar bakom datum och vecka så att texten går att läsa, som i Apples väderapp */
+html.ny.ui5 body:not(.wall) .hero.has-sky>.skyfx{-webkit-mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent),linear-gradient(90deg,transparent 0 44%,#000 62%),linear-gradient(180deg,transparent 0 46px,#000 92px);mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent),linear-gradient(90deg,transparent 0 44%,#000 62%),linear-gradient(180deg,transparent 0 46px,#000 92px);-webkit-mask-composite:source-in,source-over;mask-composite:intersect,add}
+/* Väggtavlan läses på avstånd och styrs med fingret: större glasmeny */
+html.ny.ui5.nav-glas body.wall{--tabbar:76px}
+html.ny.ui5.nav-glas body.wall,html.ny.ui5.nav-glas body.wall .nav{--navw:min(880px,calc(100vw - 40px))}
+html.ny.ui5 body.wall .nav button{font-size:14px;line-height:17px;gap:3px}
+html.ny.ui5 body.wall .nav button svg{width:30px;height:30px}
+/* Rubrikraden i glas, stor rubrik enligt Apples textskala */
+html.ny.ui5 .navbar{background:var(--bar);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px)}
+html.ny.ui5 .lt{font-size:34px;line-height:41px;font-weight:700;letter-spacing:.4px}
+html.ny.ui5 .head .sub{color:var(--ink-2);font-size:15px;line-height:20px;letter-spacing:-.24px}
+html.ny.ui5 .back{color:var(--accent)}
+/* Runda glasknappar i rubrikraden */
+html.ny.ui5 .create-plus,html.ny.ui5 .tools>.ib:not(.me-av){width:44px;height:44px;border-radius:50%;background:var(--glass);border:.5px solid var(--glass-line);box-shadow:0 2px 12px rgba(0,0,0,.08);color:var(--ink);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}
+html.ny.ui5 .me-av span{width:36px;height:36px}
+/* Grupperade listor: rundare kort, rubriker i små versaler ovanför kortet */
+html.ny.ui5 :is(.group,.pref-section,.add-row,.wcard,.ws-card){border-radius:var(--r5)}
+html.ny.ui5 .ov>*{border-radius:var(--r5)}
+html.ny.ui5 .sh{padding:0 20px 7px 36px;font-size:13px;line-height:18px;text-transform:uppercase;letter-spacing:-.08px;color:var(--ink-2);font-weight:400}
+html.ny.ui5 .sh .acc,html.ny.ui5 .sh a,html.ny.ui5 .sh button{text-transform:none}
+html.ny.ui5 .sh.sub2{margin-top:22px}
+html.ny.ui5 .foot{padding:7px 36px 0}
+html.ny.ui5 .cell{min-height:52px;padding-left:20px;padding-right:20px}
+html.ny.ui5 .cell+.cell::before{left:20px}
+/* Grupprubriker inne i ett kort: rubrik utan grått band, skiljelinje ovanför */
+html.ny.ui5 .gh{background:none;padding:14px 20px 6px;font-size:20px;line-height:25px;font-weight:700;letter-spacing:-.45px;color:var(--ink)}
+html.ny.ui5 .gh .r{font-size:15px;font-weight:600;letter-spacing:-.24px}
+html.ny.ui5 * + .gh{border-top:.5px solid var(--line)}
+/* Snabbrader som Påminnelser: tonad plus i stället för fylld ruta */
+html.ny.ui5 .add-row{padding:4px 6px 4px 20px;min-height:52px}
+html.ny.ui5 .add-row .add-go{background:none;color:var(--accent);width:44px;height:44px;border-radius:50%}
+html.ny.ui5 .add-row .add-go svg{width:22px;height:22px;stroke-width:2.2}
+/* Segmentreglage */
+html.ny.ui5 .segc{height:36px;border-radius:999px;padding:2px;background:var(--fill);box-shadow:none}
+html.ny.ui5 .segc button{font-size:14px;line-height:18px;font-weight:600;border-radius:999px;color:var(--ink)}
+html.ny.ui5 .seg-thumb{border-radius:999px;background:var(--seg-on);box-shadow:0 3px 8px rgba(0,0,0,.12),0 3px 1px rgba(0,0,0,.04)}
+html.ny.ui5 .pref-section .segc{background:var(--fill);box-shadow:none}
+html.ny.ui5 .pref-section .seg-thumb{background:var(--seg-on)}
+html.ny.ui5 .pref-section .segc button[aria-pressed=true]{color:var(--ink)}
+/* Knappar: kapselform och minst 44 punkters tryckyta */
+html.ny.ui5 :is(.btn-fill,.btn-tint,.sh-btn,.pill){border-radius:999px}
+html.ny.ui5 .fchips button{border-radius:999px}
+html.ny.ui5 .fchips button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+html.ny.ui5 .field{border-radius:12px}
+html.ny.ui5 .ws-card .wk-new{border-radius:0 0 var(--r5) var(--r5);height:50px}
+/* Blad som i iOS 26: rundare hörn, knappar i rubrikraden som kapslar */
+html.ny.ui5 .sheet-panel{border-radius:34px 34px 0 0;background:var(--bg)}
+@media (min-width:700px){html.ny.ui5 .sheet-panel{border-radius:34px}}
+html.ny.ui5 .sheet-head{padding:12px 16px 8px}
+html.ny.ui5 .sheet-head .tb{min-width:44px;height:44px;border-radius:22px;padding:0 16px;background:var(--surface);box-shadow:0 1px 6px rgba(0,0,0,.08);color:var(--ink);font-weight:500}
+html.ny.ui5 .sheet-head .tb.strong{background:var(--accent);color:var(--on-accent);font-weight:600}
+/* Inställningar som iOS Inställningar: en grupperad lista med färgade symboler */
+html.ny.ui5 .pref-section{margin:0 16px!important;border-radius:0;border:0!important;background:var(--surface)}
+html.ny.ui5 .pref-section:first-of-type{border-radius:var(--r5) var(--r5) 0 0}
+html.ny.ui5 .pref-section:last-of-type{border-radius:0 0 var(--r5) var(--r5);margin-bottom:8px!important}
+html.ny.ui5 .pref-section>summary.sh{position:relative;padding:0 20px 0 62px;min-height:52px;font-weight:400;font-size:17px;text-transform:none;color:var(--ink);letter-spacing:-.43px}
+html.ny.ui5 .pref-section+.pref-section>summary.sh{background:linear-gradient(var(--line),var(--line)) 62px 0/100% .5px no-repeat}
+html.ny.ui5 .pref-section>summary.sh::before{content:"";position:absolute;left:18px;top:50%;margin-top:-15px;width:30px;height:30px;border-radius:8px;background:var(--ic,#8E8E93) var(--ii,none) center/19px no-repeat}
+html.ny.ui5 .pref-section>summary.sh::after{border-color:var(--ink-3)}
+html.ny.ui5 .pref-section[open]>summary.sh{font-weight:600}
+html.ny.ui5 [data-k="pref-personer"]>summary.sh{--ic:#007AFF;--ii:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22white%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%229%22%20cy%3D%228%22%20r%3D%223.5%22/%3E%3Cpath%20d%3D%22M2.5%2020c.5-4%203.2-6%206.5-6s6%202%206.5%206%22/%3E%3Ccircle%20cx%3D%2217%22%20cy%3D%229%22%20r%3D%222.5%22/%3E%3Cpath%20d%3D%22M17%2014c2.6%200%204.2%201.8%204.5%205%22/%3E%3C/svg%3E")}
+html.ny.ui5 [data-k="pref-utseende"]>summary.sh{--ic:#5856D6;--ii:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22white%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%228%22/%3E%3Cpath%20d%3D%22M12%204a8%208%200%200%200%200%2016z%22%20fill%3D%22white%22/%3E%3C/svg%3E")}
+html.ny.ui5 [data-k="pref-vardag"]>summary.sh{--ic:#FF9500;--ii:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22white%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M7%203v8M5%203v5a2%202%200%200%200%204%200V3M7%2011v10M16%203c-2%201.5-2.5%204-2.5%207H17V3zM17%2010v11%22/%3E%3C/svg%3E")}
+html.ny.ui5 [data-k="pref-oversikt"]>summary.sh{--ic:#32ADE6;--ii:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22white%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%224%22/%3E%3Cpath%20d%3D%22M12%202v2M12%2020v2M2%2012h2M20%2012h2M5%205l1.5%201.5M17.5%2017.5L19%2019M5%2019l1.5-1.5M17.5%206.5L19%205%22/%3E%3C/svg%3E")}
+html.ny.ui5 [data-k="pref-enhet"]>summary.sh{--ic:#34C759;--ii:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22white%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%226%22%20y%3D%222.5%22%20width%3D%2212%22%20height%3D%2219%22%20rx%3D%223%22/%3E%3Cpath%20d%3D%22M10.5%2018.5h3%22/%3E%3C/svg%3E")}
+html.ny.ui5 [data-k="pref-avancerat"]>summary.sh{--ic:#8E8E93;--ii:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22white%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%223%22/%3E%3Cpath%20d%3D%22M12%202.5v3M12%2018.5v3M2.5%2012h3M18.5%2012h3M5.3%205.3l2.1%202.1M16.6%2016.6l2.1%202.1M5.3%2018.7l2.1-2.1M16.6%207.4l2.1-2.1%22/%3E%3C/svg%3E")}
+/* UI 5.0: undersidor glider in från höger utan vågrät rullning; dra ned för att uppdatera */
+html.ny.ui5,html.ny.ui5 body{overflow-x:clip;overscroll-behavior-x:none}
+.u5-ptr{display:none}
+html.ny.ui5 .u5-ptr{display:grid;place-items:center;position:fixed;z-index:30;left:50%;top:calc(var(--sat) + 4px);width:36px;height:36px;margin-left:-18px;border-radius:50%;background:var(--surface);box-shadow:0 2px 10px rgba(0,0,0,.12);opacity:0;pointer-events:none;transition:opacity .2s}
+html.ny.ui5 .u5-ptr i{width:18px;height:18px;border-radius:50%;border:2.2px solid var(--ink-3);border-top-color:var(--ink-2)}
+html.ny.ui5 .u5-ptr.klar i{border-top-color:var(--accent)}
+html.ny.ui5 .u5-ptr.snurrar i{animation:u5spin .8s linear infinite}
+/* UI 5.0: lagren bakom och framför en sida under tillbaka-svepet */
+.u5-lager,.u5-dim{display:none}
+html.ny.ui5 .u5-lager{display:block;position:fixed;inset:0;overflow:hidden;background:var(--bg);pointer-events:none;will-change:transform}
+html.ny.ui5 .u5-lager.topp{box-shadow:-1px 0 18px rgba(0,0,0,.14)}
+html.ny.ui5 .u5-dim{display:block;position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;will-change:opacity}
+@keyframes u5spin{to{transform:rotate(360deg)}}
+/* UI 5.0: en öppen del i Inställningar visas som en egen sida med tillbaka-länk och stor rubrik */
+html.ny.ui5 form[data-form="settings"]:has(.pref-section[open]) .pref-section:not([open]){display:none}
+html.ny.ui5 .pref-section[open]{background:none;border-radius:0!important;margin:0!important}
+html.ny.ui5 .pref-section[open]>summary.sh{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:4px 16px 8px;min-height:0;background:none!important;font-weight:400}
+html.ny.ui5 .pref-section[open]>summary.sh::before{position:static;margin:0;width:auto;height:auto;border-radius:0;background:none;content:"‹ Inställningar";color:var(--accent);font-size:17px;line-height:22px}
+html.ny.ui5 .pref-section[open]>summary.sh::after{display:none}
+html.ny.ui5 .pref-section[open]>summary.sh>span{font-size:28px;line-height:34px;font-weight:700;letter-spacing:.36px;color:var(--ink)}
+html.ny.ui5 .pref-section[open]>.pref-body{animation:u5in .42s cubic-bezier(.32,.72,0,1)}
+html.ny.ui5 .pref-section[open]>.pref-body{background:none;border-top:0;padding-bottom:16px}
+html.ny.ui5 .pref-body>.group,html.ny.ui5 .pref-body>.person-list{margin-left:16px;margin-right:16px;background:var(--surface);border-radius:var(--r5);overflow:hidden}
+html.ny.ui5 .pref-body>.seg-wrap{margin:0 16px}
+html.ny.ui5 .pref-body>.sh{padding-top:22px}
+html.ny.ui5 .person-list>.person-row:last-of-type{border-bottom:0}
+@keyframes u5in{from{transform:translateX(40%);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){html.ny.ui5 .pref-section[open]>.pref-body{animation:none}}
+/* UI 5.0 vy för vy */
+/* Sökfält som i iOS: grå kapsel med förstoringsglaset till vänster */
+html.ny.ui5 .rc-search-row .add-row{flex-direction:row-reverse;background:var(--fill);min-height:44px;padding:0 14px 0 6px;gap:2px}
+html.ny.ui5 .rc-search-row .add-row .add-go{color:var(--ink-2);width:30px;height:40px}
+html.ny.ui5 .rc-search-row .add-row .add-go svg{width:18px;height:18px}
+html.ny.ui5 .rc-search-row .field{height:42px}
+html.ny.ui5 .rc-search-row .field::placeholder{color:var(--ink-2)}
+/* Filterkapslar: grå fyllning utan kant */
+html.ny.ui5 .fchips button{background:var(--fill);box-shadow:none;color:var(--ink);font-weight:500}
+html.ny.ui5 .fchips button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+/* Låsknapp på veckans rätter: rund glasknapp, låst = vinröd symbol */
+html.ny.ui5 .bq-lk{border-radius:50%;background:var(--glass);border:.5px solid var(--glass-line);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);box-shadow:0 1px 6px rgba(0,0,0,.12);color:var(--ink-2)}
+html.ny.ui5 .bq-lk.on{background:var(--glass);color:var(--accent)}
+html.ny.ui5 .bq-lk.on svg{stroke-width:2.4}
+html.ny.ui5 .bq-p{border-radius:999px;padding:3px 9px}
+/* Tomma lägen: centrerad grå text som Apples "Inget innehåll" */
+html.ny.ui5 .cell.empty{justify-content:center;text-align:center;color:var(--ink-2);min-height:88px;padding:20px 28px;font-size:15px;line-height:20px}
+/* Inköp: listans åtgärder i en ⋯-meny (iOS-åtgärdsblad) i stället för två knappar */
+html.ny.ui5 .head .tools:has(.u5-menu){position:relative}
+html.ny.ui5 .u5-menu{position:static}
+html.ny.ui5 .u5-dots{list-style:none;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;cursor:pointer;background:var(--glass);border:.5px solid var(--glass-line);box-shadow:0 2px 12px rgba(0,0,0,.08);color:var(--ink);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}
+html.ny.ui5 .u5-dots::-webkit-details-marker{display:none}
+html.ny.ui5 .u5-dots svg{width:22px;height:22px}
+html.ny.ui5 .u5-menu[open] .u5-dots{background:var(--fill)}
+html.ny.ui5 .create-options{width:300px;max-width:calc(100vw - 32px);padding:0;border-radius:14px;border:.5px solid var(--glass-line);background:var(--menu,rgba(250,250,252,.94));-webkit-backdrop-filter:blur(30px) saturate(1.8);backdrop-filter:blur(30px) saturate(1.8);box-shadow:0 12px 40px rgba(0,0,0,.18);overflow:hidden;transform-origin:top right;animation:u5-menu .22s cubic-bezier(.32,.72,0,1)}
+html.ny.ui5 .u5-menu .create-options{right:0;top:calc(100% + 8px)}
+html.ny.ui5[data-theme="dark"] .create-options{--menu:rgba(44,44,46,.94)}
+@media (prefers-color-scheme:dark){html.ny.ui5:not([data-theme="light"]) .create-options{--menu:rgba(44,44,46,.94)}}
+@keyframes u5-menu{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
+html.ny.ui5 .create-options button{min-height:44px;padding:11px 16px;border-radius:0;justify-content:space-between;gap:16px;font-size:17px;font-weight:400;line-height:22px;letter-spacing:-.41px;color:var(--ink)}
+html.ny.ui5 .create-options button+button{border-top:.5px solid var(--line)}
+html.ny.ui5 .create-options button:active{background:var(--fill)}
+html.ny.ui5 .create-options button.red{color:#FF3B30}
+html.ny.ui5 .create-options .sh-ic{order:2;width:auto;height:auto;background:none;color:inherit;border-radius:0}
+html.ny.ui5 .create-options svg{width:20px;height:20px;flex:none}
 </style>
 </head>
 <body>
@@ -2706,7 +2862,7 @@ html.ny .sx-ringar div{text-align:center;font-size:12px;color:var(--ink-2);overf
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=246"></script>
+<script src="app.js?v=251"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>

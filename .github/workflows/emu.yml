@@ -18,13 +18,13 @@ jobs:
   emu:
     name: UI ${{ matrix.ui }} / ${{ matrix.screen }} / ${{ matrix.theme }}
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
         screen: [telefon, vagg]
         theme: [light, dark]
-        ui: [2, 3, 4]
+        ui: [2, 3, 4, 5]
     steps:
       - uses: actions/checkout@v6
         with:
@@ -49,7 +49,7 @@ jobs:
           UI: ${{ matrix.ui }}
           REDUCED: ${{ matrix.ui == 3 && matrix.screen == 'telefon' && matrix.theme == 'dark' && '0' || '1' }}
         run: |
-          export LS="$(node -e 'console.log(JSON.stringify({...process.env.UI==="3"?{ui:"3",dev:"1"}:process.env.UI==="4"?{ui:"4"}:{},...process.env.SCREEN==="vagg"?{wall:"1",me:""}:{}}))')"
+          export LS="$(node -e 'console.log(JSON.stringify({...process.env.UI==="3"?{ui:"3",dev:"1"}:process.env.UI==="4"?{ui:"4"}:process.env.UI==="5"?{ui:"5"}:{},...process.env.SCREEN==="vagg"?{wall:"1",me:""}:{}}))')"
           if [[ "$SCREEN" == "vagg" ]]; then export VP=1368x912; fi
           if [[ "$UI" == "2" ]]; then
             LS="$(node -e 'console.log(JSON.stringify({...JSON.parse(process.env.LS),motion:"0"}))')" APP="$PWD/baseline" OUT="$PWD/verktyg/emu/baseline-shots" node verktyg/emu/run.js verktyg/emu/alla-flikar.js
@@ -69,6 +69,10 @@ jobs:
             node verktyg/emu/run.js verktyg/emu/ui4-installningar.js
             node verktyg/emu/run.js verktyg/emu/timerring.js
             node verktyg/emu/run.js verktyg/emu/hall-in-blad.js
+          elif [[ "$UI" == "5" ]]; then
+            # UI 5.0 döljer Form/Menyraden/Rymligare, som installningar.js prövar; ui5.js prövar valet i stället
+            LS='{}' node verktyg/emu/run.js verktyg/emu/ui5.js
+            if [[ "$SCREEN" == "telefon" ]]; then node verktyg/emu/run.js verktyg/emu/ui5-navigering.js; fi
           else
             # Standardanimationer provas i animationer.js och övriga funktionssviter.
             # Pixeljämförelsen kontrollerar det bevarade utseendet med animationer av.
