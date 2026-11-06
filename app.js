@@ -195,23 +195,61 @@ function renderNav(nav){
  nav.querySelectorAll('button').forEach((b,j)=>j===i?b.setAttribute('aria-current','page'):b.removeAttribute('aria-current'));
  // Ekonomi ligger inte i flikraden på telefon; då visas ingen markering där
  nav.classList.toggle('none',i<0||i>=VIEWS.length);nav.style.setProperty('--i',Math.max(0,Math.min(i,VIEWS.length-1)));
+ navLins.till(nav,Math.max(0,Math.min(i,VIEWS.length-1)),i<0||i>=VIEWS.length);
  // väggskärmen: personens cirkel längst till höger i menyraden eller som egen knapp nere till höger, på alla sidor
  const vk=wallBoardOn()?VKNAPP:'',me=vk==='meny'?meBtn():'',el=nav.querySelector('.nav-me');
  let cm=document.getElementById('corner-me');
  if(vk==='knapp'||vk==='rubrik'){const h=meBtn();if(!cm){cm=document.createElement('div');cm.id='corner-me';document.body.appendChild(cm)}cm.className=vk==='rubrik'?'top-me':'corner-me';if(cm.dataset.h!==h){cm.innerHTML=h;cm.dataset.h=h}}else if(cm)cm.remove();
  nav.classList.toggle('har-me',!!me);
  if(!me){if(el)el.remove()}else if(!el||el.dataset.h!==me){if(el)el.remove();nav.insertAdjacentHTML('beforeend','<div class="nav-me" data-h=""><i aria-hidden="true"></i>'+me+'</div>');nav.querySelector('.nav-me').dataset.h=me}}
+// UI 5.0: markeringen i flikraden är en lins som drivs av fjädrar (som iOS). Den lyfts och växer när fingret trycker,
+// följer fingret med lite eftersläp och sträcks i rörelseriktningen efter farten, och fjädrar in i fliken vid släpp.
+// Läget räknas i flikbredder så att det klarar storleksändring. Utan U5 styr CSS som förut.
+const navLins=(()=>{const L={p:null,v:0,t:0,R:.4,D:.8,s:0,sv:0,ts:0,raf:0,last:0,nav:null,w:0,dragar:false};
+ const lugn=()=>!motionOn()||matchMedia('(prefers-reduced-motion:reduce)').matches;
+ const pill=()=>L.nav&&L.nav.querySelector('.nav-pill');
+ const rita=()=>{const pl=pill();if(!pl||L.p==null)return;if(!L.w)L.w=pl.offsetWidth;
+  const fart=Math.min(Math.abs(L.v*L.w)/2600,.28),sx=1+.18*L.s+fart,sy=1+.26*L.s-fart*.45;
+  pl.style.transform='translateX('+(L.p*L.w).toFixed(2)+'px)';pl.style.scale=sx.toFixed(4)+' '+sy.toFixed(4)};
+ const steg=now=>{let dt=Math.min(.05,(now-(L.last||now))/1000);L.last=now;
+  for(const h=1/240;dt>1e-6;dt-=h){const d=Math.min(h,dt),k=(2*Math.PI/L.R)**2,c=4*Math.PI*L.D/L.R,ks=(2*Math.PI/.34)**2,cs=4*Math.PI*.55/.34;
+   L.v+=(-k*(L.p-L.t)-c*L.v)*d;L.p+=L.v*d;L.sv+=(-ks*(L.s-L.ts)-cs*L.sv)*d;L.s+=L.sv*d}
+  const klar=!L.dragar&&Math.abs(L.p-L.t)<.002&&Math.abs(L.v)<.02&&Math.abs(L.s-L.ts)<.002&&Math.abs(L.sv)<.02;
+  if(klar){L.p=L.t;L.v=0;L.s=L.ts;L.sv=0}rita();L.raf=klar?0:requestAnimationFrame(steg)};
+ const kor=()=>{if(lugn()){L.p=L.t;L.v=0;L.s=0;L.sv=0;rita();return}if(!L.raf){L.last=0;L.raf=requestAnimationFrame(steg)}};
+ return{
+  // från renderNav: flytta till fliken i (eller rensa när UI 5.0 inte används)
+  till(nav,i,dold){L.nav=nav;const pl=pill();if(!U5){if(L.p!=null){nav.classList.remove('fj','lyft');if(pl){pl.style.transform='';pl.style.scale=''}cancelAnimationFrame(L.raf);L.raf=0;L.p=null}return}
+   nav.classList.add('fj');if(L.dragar)return;L.t=i;L.R=.42;L.D=.78;if(L.p==null||dold||(pl&&!pl.style.transform)){L.p=i;L.v=0;L.w=0;rita();return}if(L.p!==i)kor()},
+  // under draget: x i flikbredder (flytande), lyft = linsen är uppe
+  drag(nav,x,w){L.nav=nav;L.w=w;if(L.p==null)L.p=x;L.dragar=true;L.t=x;L.R=.17;L.D=.86;L.ts=1;nav.classList.add('lyft');kor()},
+  slapp(nav,j){L.dragar=false;L.t=j;L.R=.4;L.D=.7;L.ts=0;nav.classList.remove('lyft');kor()},
+  stor(){L.w=0;if(L.p!=null&&!L.raf)rita()}}})();
+addEventListener('resize',()=>navLins.stor());
 // Dra fingret längs flikraden för att flytta markeringen, släpp för att byta flik.
 (function(){const nav=document.getElementById('nav');let st=null,skip=false;
  const at=x=>{const r=nav.getBoundingClientRect(),w=(r.width-8-(nav.classList.contains('har-me')?parseFloat(getComputedStyle(nav).paddingRight)-4:0))/VIEWS.length,dx=Math.min(Math.max(x-r.left-4-w/2,0),w*(VIEWS.length-1));return{dx,j:Math.round(dx/w)}};
- nav.addEventListener('pointerdown',e=>{if(e.button>0||nav.classList.contains('mini')||U4&&matchMedia('(min-width:900px)').matches)return;st={x0:e.clientX,id:e.pointerId,moved:false}});
+ // UI 5.0: läget mäts mot linsens egen plats och bredd, i flikbredder
+ const lins=x=>{const pl=nav.querySelector('.nav-pill'),r=nav.getBoundingClientRect(),w=pl?pl.offsetWidth:r.width/VIEWS.length,l=pl?pl.offsetLeft:4;
+  return{w,f:Math.min(Math.max((x-r.left-l-w/2)/w,-.18),VIEWS.length-1+.18)}};
+ const over=j=>nav.querySelectorAll('button').forEach((b,k)=>b.classList.toggle('over',k===j));
+ nav.addEventListener('pointerdown',e=>{if(e.button>0||nav.classList.contains('mini')||U4&&matchMedia('(min-width:900px)').matches)return;st={x0:e.clientX,id:e.pointerId,moved:false,a:[],j:-1};
+  if(U5&&!nav.classList.contains('none')){const q=lins(e.clientX);u5Fart.add(st.a,q.f*q.w);navLins.drag(nav,q.f,q.w)}});
  nav.addEventListener('pointermove',e=>{if(!st||e.pointerId!==st.id)return;
+  if(U5&&!nav.classList.contains('none')){const q=lins(e.clientX);u5Fart.add(st.a,q.f*q.w);navLins.drag(nav,q.f,q.w);
+   if(!st.moved){if(Math.abs(e.clientX-st.x0)<6)return;st.moved=true;nav.classList.add('drag');try{nav.setPointerCapture(e.pointerId)}catch(_){}}
+   const j=Math.round(Math.min(Math.max(q.f,0),VIEWS.length-1));if(j!==st.j){if(st.j>=0)u5Tick();st.j=j;over(j)}return}
   if(!st.moved){if(Math.abs(e.clientX-st.x0)<8)return;st.moved=true;nav.classList.add('drag');try{nav.setPointerCapture(e.pointerId)}catch(_){}}
-  const p=at(e.clientX);nav.style.setProperty('--dx',p.dx+'px');nav.querySelectorAll('button').forEach((b,k)=>b.classList.toggle('over',k===p.j))});
- const end=(e,go)=>{if(!st||e.pointerId!==st.id)return;const moved=st.moved;st=null;if(!moved)return;
-  const p=at(e.clientX);nav.classList.remove('drag');nav.querySelectorAll('.over').forEach(b=>b.classList.remove('over'));
+  const p=at(e.clientX);nav.style.setProperty('--dx',p.dx+'px');over(p.j)});
+ const end=(e,go)=>{if(!st||e.pointerId!==st.id)return;const moved=st.moved,s=st;st=null;let j;
+  if(U5&&!nav.classList.contains('none')){const cur=Math.max(0,VIEW_IDS.indexOf(S.view==='stad'?'uppgifter':S.view));
+   // släpp: närmaste flik dit linsen var på väg (farten flyttar högst en halv flik), avbrutet = tillbaka
+   const q=lins(e.clientX),v=u5Fart.v(s.a)/q.w;j=Math.round(Math.min(Math.max(q.f+Math.max(-.5,Math.min(.5,v*60)),0),VIEWS.length-1));
+   navLins.slapp(nav,moved&&go?j:cur);if(!moved)return}
+  else{if(!moved)return;j=at(e.clientX).j}
+  nav.classList.remove('drag');nav.querySelectorAll('.over').forEach(b=>b.classList.remove('over'));
   skip=true;setTimeout(()=>skip=false,60);
-  if(go&&VIEWS[p.j][0]!==S.view)ACT.nav(VIEWS[p.j][0])};
+  if(go&&VIEWS[j][0]!==S.view)ACT.nav(VIEWS[j][0])};
  nav.addEventListener('pointerup',e=>end(e,true));nav.addEventListener('pointercancel',e=>end(e,false));
  nav.addEventListener('click',e=>{if(skip){e.stopPropagation();e.preventDefault()}},true)})();
 // Svävande menyrad på telefon: krymper till en rund knapp nere till vänster när man scrollar nedåt,
