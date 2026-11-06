@@ -502,6 +502,21 @@ let camN=0;setInterval(()=>{if(KAL)return;if(CAM.src==='als'&&!ALS||++camN%60===
  document.addEventListener('click',e=>{if(eat){eat=false;e.stopPropagation();e.preventDefault()}},true);
  document.addEventListener('contextmenu',e=>{if(e.target.closest('[data-box]')&&S.view==='oversikt')e.preventDefault()})})();
 
+/* Ändra storlek: dra i rutans hörnknapp i ändra-läget. Rutan växer eller krymper till närmaste storlek medan man drar
+   (vanliga rutor: halv/hel bredd, widgets: Liten/Mellan/Stor). Ett kort tryck på knappen fungerar som förut. */
+(function(){let R=null,eat=0;
+ const fits=(b,wall)=>{const g=b.closest('.xgrid');if(g){const cs=getComputedStyle(g),cw=parseFloat(cs.gridTemplateColumns)||0,rh=parseFloat(cs.gridTemplateRows)||parseFloat(cs.gridAutoRows)||cw,gap=parseFloat(cs.columnGap)||0,sp=wall?{s:[1,1],m:[2,1],l:[2,2]}:{s:[2,2],m:[4,2],l:[4,4]};
+   return Object.keys(sp).map(z=>({z,w:sp[z][0]*cw+(sp[z][0]-1)*gap,h:sp[z][1]*rh+(sp[z][1]-1)*gap}))}
+  const c=b.closest('.bcol')||b.parentElement,W=c?c.clientWidth:b.offsetWidth;return[{z:'h',w:W/2,h:b.offsetHeight},{z:'f',w:W,h:b.offsetHeight}]};
+ document.addEventListener('pointerdown',e=>{if(e.button>0||!S.arrange||!e.target.closest)return;const h=e.target.closest('.arr-s'),b=h&&h.closest('[data-box]');if(!b)return;
+  const wall=wallBoardOn(),id=b.dataset.box;if(!expOn()&&!SIZES[wall?'wall':'ov'].can.includes(id))return;const r=b.getBoundingClientRect();R={id,wall,x:e.clientX,y:e.clientY,w:r.width,h:r.height,o:fits(b,wall),moved:false}});
+ addEventListener('pointermove',e=>{if(!R)return;const dx=e.clientX-R.x,dy=e.clientY-R.y;if(!R.moved&&Math.hypot(dx,dy)<10)return;R.moved=true;S.xsz=null;
+  const w=R.w+dx,h=R.h+dy,best=R.o.reduce((a,o)=>Math.hypot(o.w-w,o.h-h)<Math.hypot(a.w-w,a.h-h)?o:a);
+  const L=layout(R.wall,R.wall?boardDefault():OV_DEF());if(L.size[R.id]===best.z)return;L.size[R.id]=best.z;saveLayout(R.wall,L);doRender();if(navigator.vibrate)try{navigator.vibrate(8)}catch(err){}});
+ const up=()=>{if(R&&R.moved){eat=Date.now();doRender()}R=null};addEventListener('pointerup',up);addEventListener('pointercancel',up);
+ document.addEventListener('touchmove',e=>{if(R&&R.moved&&e.cancelable)e.preventDefault()},{passive:false});
+ document.addEventListener('click',e=>{if(eat&&Date.now()-eat<400&&e.target.closest&&e.target.closest('[data-box],.arr-s')){eat=0;e.stopPropagation();e.preventDefault()}},true)})();
+
 /* Lämna kioskläget utan tangentbord: håll fingret still på klockan i tre sekunder så stängs tavlan */
 (function(){let t=0,x=0,y=0,el=null;const stop=()=>{clearTimeout(t);t=0;if(el){hlOff(el);el=null}};
  document.addEventListener('pointerdown',e=>{if(e.button>0||!e.target.closest('#clock'))return;stop();x=e.clientX;y=e.clientY;el=e.target.closest('#clock');hlOn(el,3000,1.04);
@@ -942,7 +957,7 @@ function xwGrid(wall){const X=xwData(),L=layout(wall),list=L.cols[0];
  return{html:'<div class="xgrid'+(wall?' wallg':'')+(S.arrange?' arranging':'')+'">'+list.map(id=>xwBox(id,L.size[id],wall,X)).join('')+'</div>'+xwMenu(L),L,used}}
 function ovX(){const hh=new Date().getHours(),greet=hh<5?'God natt':hh<10?'God morgon':hh<17?'Hej':hh<22?'God kväll':'God natt',g=xwGrid(false);
  return head(greet+(people().includes(S.me)?', '+personLabel(S.me):''),U3?{sub:cap(dayHead(today()))}:undefined)+'<div class="ov">'+refAdd(heroHtml(),'Ö1')+g.html+
-  (S.arrange?'<p class="arr-intro">Håll kvar och dra en ruta dit du vill ha den. Hörnknappen väljer Liten, Mellan eller Stor och − döljer rutan. Gäller bara den här enheten.</p>':smileyCard())+'</div>'+arrangeFoot(g.L,false)}
+  (S.arrange?'<p class="arr-intro">Håll kvar och dra en ruta dit du vill ha den. Dra i hörnknappen för att ändra storlek (eller tryck på den för att välja). − döljer rutan. Gäller bara den här enheten.</p>':smileyCard())+'</div>'+arrangeFoot(g.L,false)}
 function wallX(){const g=xwGrid(true),top=VKNAPP==='rubrik';
  return'<div class="board xboard'+(S.arrange?' arranging':'')+(top?' har-top':'')+'">'+(top?'<div class="wall-top"><h1 class="lt">'+(new Date().getHours()<10?'God morgon':new Date().getHours()<18?'Hej':'God kväll')+'</h1></div>':'')+
   '<div class="bcol bhero">'+refAdd(heroHtml(),'T1')+refAdd(wallWx(),'T2')+'</div>'+g.html+'</div>'+(S.arrange&&g.used>16?'<div class="xfull" role="status">Tavlan är full: '+g.used+' av 16 platser. Gör en ruta mindre eller dölj den.</div>':'')+arrangeFoot(g.L,true)}
@@ -1122,7 +1137,7 @@ V.oversikt=function(){
  H.imorgon=tm?widget('mat','w2',I.cal,'Imorgon',esc(dateShort(tm.date)),(eventsHtml(tm)||'<div class="wempty">Inga händelser.</div>')+(tm.meals.length?wMeals(tm):'')):'';
  H.fod=bdWidget();
  const L=layout(false,OV_DEF());
- return h+'<div class="widgets'+(S.arrange?' arranging':'')+'">'+boxRow(L.cols[0].filter(id=>H[id]),false,H,L)+'</div>'+(S.arrange?'<p class="arr-intro">Håll kvar och dra en ruta dit du vill ha den. − döljer rutan och hörnknappen gör den halv eller hel. Gäller bara den här enheten.</p>':smileyCard())+'</div>'+arrangeFoot(L,false)};
+ return h+'<div class="widgets'+(S.arrange?' arranging':'')+'">'+boxRow(L.cols[0].filter(id=>H[id]),false,H,L)+'</div>'+(S.arrange?'<p class="arr-intro">Håll kvar och dra en ruta dit du vill ha den. Dra i hörnknappen för att göra den halv eller hel. − döljer rutan. Gäller bara den här enheten.</p>':smileyCard())+'</div>'+arrangeFoot(L,false)};
 // utan egen ordning ligger födelsedagarna näst sist
 const OV_DEF=()=>U3?[['mat','upg','kal','inkop','stad','fod','hem','imorgon']]:[['kal','upg','mat','stad','inkop','fod','hem','imorgon']];
 function wMeals(d){if(U3)return(d.meals||[]).map(m=>{const r=m.recipe&&recipeById(m.recipe),go=r?'button':'div';return'<div class="u3-dinner"><'+go+' class="u3-meal"'+(r?' data-act="recipe" data-id="'+esc(r.id)+'"':'')+'>'+dishThumb(r,m.title)+'<span class="grow"><span class="chips-row">'+whoChip(m.who)+'</span><span class="hl">'+esc(m.title)+'</span>'+(m.addon?'<span class="meta">'+esc(m.addon)+'</span>':'')+(r&&r.min?'<span class="meta">'+r.min+' min'+(r.kr?' · '+kr(r.kr)+'/port':'')+'</span>':'')+'</span></'+go+'>'+(r&&r.steps&&r.steps.length?'<button class="btn-fill" data-act="cook" data-id="'+esc(r.id)+'">'+I.play+'Börja laga</button>':'')+'</div>'}).join('');return(d.meals||[]).map(m=>{const r=m.recipe&&recipeById(m.recipe);const tag=r?'button':'div';
