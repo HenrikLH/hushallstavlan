@@ -894,7 +894,7 @@ function arrangeFoot(L,wall){if(!S.arrange)return'';
    Som hemskärmens widgets i en mobil: varje ruta finns som Liten, Mellan och Stor och visar mer ju större den är.
    Telefonen: rutnät med fyra spalter, Liten 2×2, Mellan 4×2, Stor 4×4. Väggen: 4×4 rutor bredvid klockan, Liten 1, Mellan 2, Stor 4.
    Egen ordning sparas i ovLayoutX/wallLayoutX; första gången ärvs ordningen från vanliga layouten (halv blir Liten, hel blir Mellan). */
-const expOn=()=>lsGet('exp')!=='0';// widgets i tre storlekar är standard sedan ht-v272; 0 = vanliga rutor
+const expOn=()=>lsGet('exp')!=='0';// widgets i tre storlekar är standard sedan ht-v274; 0 = vanliga rutor
 const XW_DEF={ov:{o:['kal','mat','inkop','upg','stad','fod','hem','imorgon'],z:{kal:'m',mat:'s',inkop:'s',upg:'m',stad:'s',fod:'s',hem:'m',imorgon:'m'},hid:[]},
  wall:{o:['mat','kal','upg','inkop','stad','fod','hem','imorgon'],z:{mat:'l',kal:'l',upg:'m',inkop:'s',stad:'s',fod:'m',hem:'m',imorgon:'m'},hid:['imorgon']}};
 const XW_U={s:1,m:2,l:4},XW_NAMN={s:'Liten',m:'Mellan',l:'Stor'};
