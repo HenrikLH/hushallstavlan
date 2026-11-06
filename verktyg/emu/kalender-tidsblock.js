@@ -1,8 +1,10 @@
 // Kalender: ny händelse som tidsblock. Håll in och dra i dagvyn, tryck på tom tid, plus med Börjar/Slutar, byt till Uppgift.
-// NOW='2026-11-06T10:20:00+01:00' node verktyg/emu/run.js verktyg/emu/kalender-tidsblock.js
+// node verktyg/emu/run.js verktyg/emu/kalender-tidsblock.js (fungerar med och utan NOW)
 const assert=require('node:assert/strict');
 module.exports=async(pg,h)=>{
  const g=h.gas.ctx,C=require('vm').runInContext('CALENDARS',g),cal=g.CalendarApp.getCalendarById(C[1].id),k=await pg.evaluate(()=>window.__d('today()'));
+ // Kod.gs räknar "i dag" från datorns klocka; låt servern ha samma dag som appen (NOW) så att synken inte hoppar över händelserna
+ require('vm').runInContext('today_=function(){return '+JSON.stringify(k)+'}',g);
  const at=t=>g.Utilities.parseDate(k+' '+t,'Europe/Stockholm','yyyy-MM-dd HH:mm');
  g.CalendarApp.getCalendarById(C[0].id).createEvent('Tandläkare',at('08:00'),at('09:00'));
  cal.createEvent('Yoga',at('18:00'),at('19:15'),{description:'Vem: Cornelia'});g.kalenderSynk_();
@@ -37,7 +39,7 @@ module.exports=async(pg,h)=>{
  await click('[data-act="evNewTyp"][data-id="task"]');assert.equal(await pg.inputValue('#task-title'),'Ring','titeln följer med till Uppgift');
  await click('[data-act="evNewTyp"][data-id="ev"]');assert.equal(await pg.inputValue('#en-title'),'Ring');await click('[data-act="sheetClose"]');
  // plus: nästa hela timme; heldag döljer tiderna
- await click('[data-act="evNew"]');assert.equal(await pg.inputValue('form[data-form="evNew"] [name=start]'),'11:00');
+ await click('[data-act="evNew"]');assert.equal(await pg.inputValue('form[data-form="evNew"] [name=start]'),await pg.evaluate(()=>window.__d('tidInp(Math.min(23,new Date().getHours()+1)*60)')));
  await click('#en-allday');assert(!await pg.locator('#en-times').isVisible());await pg.fill('#en-title','Ledig');await click('form[data-form="evNew"] .tb.strong');await h.waitFlush();
  const hd=h.sheet('Händelser').find(r=>r[2]==='Ledig');assert(hd&&hd[1]===''&&hd[6].includes('a'),'heldag');
  // månadsvyn: Lägg till öppnar samma blad
