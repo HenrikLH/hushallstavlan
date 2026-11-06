@@ -287,7 +287,11 @@ function renderNav(nav){
 
 /* Undermenyerna i Mat och Uppgifter i samma ordning som segmentreglaget. Svep åt vänster = nästa. */
 const SUBS={mat:['matTab',['vecka','inkop','recept','bank','efter']],uppgifter:['taskTab',['lista','stad']],stad:['taskTab',['lista','stad']]};
-function subSwipe(dx){const sub=SUBS[S.view];if(!sub||S.recipe||S.cook||S.sheet)return false;
+// Kalender-fliken: svep byter månad, vecka eller dag som i iPhones Kalender (vänster = framåt)
+function calSwipe(dx){if(S.view!=='kalender'||S.sheet||S.cook)return false;const d=dx<0?1:-1;A.user=Date.now();
+ if(S.calVy==='manad')ACT.calMonth(null,{dataset:{d}});else ACT.calStep(null,{dataset:{d}});
+ const el=motionOn()&&document.querySelector('#main .motion-calendar');if(el)el.animate([{opacity:.2,transform:'translateX('+d*60+'px)'},{opacity:1,transform:'none'}],{duration:260,easing:'cubic-bezier(.4,0,.2,1)'});return true}
+function subSwipe(dx){if(calSwipe(dx))return true;const sub=SUBS[S.view];if(!sub||S.recipe||S.cook||S.sheet)return false;
  const[k,list]=sub,i=list.indexOf(S[k]),j=i+(dx<0?1:-1);if(i<0||j<0||j>=list.length)return false;
  A.dir=dx<0?'in-right':'in-left';A.user=Date.now();
  const sg=document.querySelector('#main .segc[data-seg="'+k+'"]');if(sg&&sg.getBoundingClientRect().top<0)window.scrollTo(0,0);
