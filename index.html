@@ -148,8 +148,8 @@ html.sb-auto.scrolling,html.sb-auto.scrolling *{scrollbar-color:var(--line) tran
 .cell.ck::before,.cell.lead::before{left:52px!important}
 .dr-wrap+.dr-wrap>.cell::before{content:"";position:absolute;top:0;left:16px;right:0;border-top:.5px solid var(--line)}
 .dr-wrap+.dr-wrap>.cell.ck::before{content:"";position:absolute;top:0;right:0;border-top:.5px solid var(--line)}
-/* Städ: den röda Ta bort-ytan syns bara när raden dras, annars lyser den igenom i rundade hörn */
-.dr-wrap.cs:not(:has(>.dr-slide[style*="translate"]))>.dr-act{visibility:hidden}
+/* Ytorna bakom en svepbar rad syns bara när raden dras, annars lyser de igenom i rundade hörn */
+.dr-wrap:not(:has(>.dr-slide[style*="translate"]))>:is(.dr-act,.dr-actl){visibility:hidden}
 .grow{flex:1;min-width:0}
 .title{overflow-wrap:anywhere}
 .meta{font-size:15px;line-height:20px;letter-spacing:-.24px;color:var(--ink-2);display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px;margin-top:2px}
@@ -837,6 +837,8 @@ html.ny .chip.lk::before{display:none}
 .hero.art-geo .hero-wx .gs{width:154px;padding-top:70px}
 /* Telefonen: marken under trädet och hundarna är bredare än väderkolumnen och sticker ut till höger; flytta hela bilden åt vänster så att den ryms i kortet */
 .hero.art-geo .hero-wx:not(.wbt) .gs{left:-42px}
+/* sol- och månbanan följer med bilden åt vänster */
+.hero.art-geo>.arc.b{left:calc(24% - 42px);right:48px}
 .hero.art-geo .hero-wx .fig-box.grass{width:154px;height:136.4px}
 .hero.art-geo .hero-wx .gs>.bd{width:253px;height:209px}
 /* Geometrisk på väggen: marken, trädet och solbanan är bredare än rutan, så bilden skalas ned och centreras så att allt syns */
@@ -1414,6 +1416,8 @@ body.wall::before{content:"";position:fixed;inset:-20%;z-index:-1;pointer-events
 /* Vägledande rörelse: begränsa sidbytets rörelse till skärmen, behåll remsornas egen sidscroll. */
 html.motion-dev,html.motion-dev #main{overflow-x:clip}
 html.motion-dev{scrollbar-gutter:stable}
+/* Väggskärmen styrs med fingret: ingen rullningslist som tar plats i högerkanten och gör tavlan sned */
+html:has(>body.wall){scrollbar-width:none;scrollbar-gutter:auto}
 html.ny.motion-dev .nav:not(.drag) .nav-pill{transition-duration:.3s,.2s}
 .motion-panel{display:flow-root;overflow-anchor:none}
 html.motion-weather-active{overflow-anchor:none}
@@ -2719,7 +2723,7 @@ html.ny.ui5 .nav button[aria-current="page"]{color:var(--accent)}
 html.ny.ui5 body:not(.wall) .hero.has-sky>.skyfx{-webkit-mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent),linear-gradient(90deg,transparent 0 44%,#000 62%),linear-gradient(180deg,transparent 0 46px,#000 92px);mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent),linear-gradient(90deg,transparent 0 44%,#000 62%),linear-gradient(180deg,transparent 0 46px,#000 92px);-webkit-mask-composite:source-in,source-over;mask-composite:intersect,add}
 /* Väggtavlan läses på avstånd och styrs med fingret: större glasmeny */
 html.ny.ui5.nav-glas body.wall{--tabbar:76px}
-html.ny.ui5.nav-glas body.wall .nav{width:min(880px,calc(100% - 40px))}
+html.ny.ui5.nav-glas body.wall,html.ny.ui5.nav-glas body.wall .nav{--navw:min(880px,calc(100vw - 40px))}
 html.ny.ui5 body.wall .nav button{font-size:14px;line-height:17px;gap:3px}
 html.ny.ui5 body.wall .nav button svg{width:30px;height:30px}
 /* Rubrikraden i glas, stor rubrik enligt Apples textskala */
@@ -2858,7 +2862,7 @@ html.ny.ui5 .create-options svg{width:20px;height:20px;flex:none}
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=248"></script>
+<script src="app.js?v=250"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
