@@ -1807,6 +1807,20 @@ html.ny.seg-klassisk :is(.widget,.hero,.bhero,.wx2,.wx-scene,.bcard){border-radi
 html.ny.seg-klassisk :is(.btn-fill,.btn-tint,.sh-btn,.add-row){border-radius:10px}
 html.ny.seg-klassisk .add-row .add-go{border-radius:8px}
 html.ny.seg-klassisk .banner{border-radius:10px}
+/* Samma hörn i alla vyer (UI 2.0): kort 16 px och knappar 12 px i Kantiga; Inköp, månadsväljaren, veckans knapp, rätternas rutor och bladen följer också Runda/Raka */
+html.ny:not(.ui3,.ui4,.ui5,.seg-kapsel,.seg-klassisk) :is(.wsum,.ws-card){border-radius:16px}
+html.ny:not(.ui3,.ui4,.ui5,.seg-kapsel,.seg-klassisk) .ws-card .wk-new{border-radius:0 0 16px 16px}
+html.ny:not(.ui3,.ui4,.ui5,.seg-kapsel,.seg-klassisk) .sh-btn{border-radius:12px}
+html.ny.seg-kapsel:not(.ui4) .mswitch{border-radius:999px}
+html.ny.seg-kapsel:not(.ui4) .ws-card .wk-new{border-radius:0 0 26px 26px}
+html.ny.seg-kapsel:not(.ui4) .bq{border-radius:20px}
+html.ny.seg-kapsel:not(.ui4) .create-options button{border-radius:16px}
+html.ny.seg-kapsel:not(.ui4) .sheet-panel{border-radius:26px 26px 0 0}
+html.ny.seg-klassisk:not(.ui4) .mswitch{border-radius:10px}
+html.ny.seg-klassisk:not(.ui4) .ws-card .wk-new{border-radius:0 0 10px 10px}
+html.ny.seg-klassisk:not(.ui4) .bq{border-radius:8px}
+html.ny.seg-klassisk:not(.ui4) .sheet-panel{border-radius:10px 10px 0 0}
+@media(min-width:700px){html.ny.seg-kapsel:not(.ui4) .sheet-panel{border-radius:26px}html.ny.seg-klassisk:not(.ui4) .sheet-panel{border-radius:10px}}
 /* Flikraden som flytande glaskapsel med glidande markering */
 html.ny.nav-glas .nav{background:var(--glass);-webkit-backdrop-filter:saturate(180%) blur(24px);backdrop-filter:saturate(180%) blur(24px);border:.5px solid var(--glass-line);box-shadow:0 10px 30px rgba(0,0,0,.16),0 1px 3px rgba(0,0,0,.08)}
 html.ny.nav-glas .nav-pill{display:block}
@@ -2918,6 +2932,14 @@ html.ny.ui5 .create-options button:active{background:var(--fill)}
 html.ny.ui5 .create-options button.red{color:#FF3B30}
 html.ny.ui5 .create-options .sh-ic{order:2;width:auto;height:auto;background:none;color:inherit;border-radius:0}
 html.ny.ui5 .create-options svg{width:20px;height:20px;flex:none}
+/* UI 5.0: samma hörn överallt; Inköps summering, widgets, receptkorten och månadsväljaren följer kortens radie */
+html.ny.ui5 :is(.wsum,.widget,.bcard,.hero,.bhero){border-radius:var(--r5)}
+html.ny.ui5 .mswitch{border-radius:999px}
+html.ny.ui5 .bq{border-radius:20px}
+/* UI 4.0 följer också Runda/Raka i widgets, Inköp och månadsväljaren */
+html.ui4.seg-kapsel .widget{border-radius:26px}
+html.ui4.seg-kapsel .mswitch{border-radius:999px}
+html.ui4.seg-klassisk :is(.wsum,.sh-btn,.mswitch,.create-options,.add-row){border-radius:8px}
 </style>
 </head>
 <body>
@@ -2932,7 +2954,7 @@ html.ny.ui5 .create-options svg{width:20px;height:20px;flex:none}
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=268"></script>
+<script src="app.js?v=269"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
