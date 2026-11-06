@@ -13,6 +13,7 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 ## Pågår nu
 
+- **Tidsblock i kalendern** (förslag, Claude, gren `claude/project-thread-vqr93v`): Kalenderns plus och Lägg till öppnar bladet Ny händelse (Händelse|Uppgift, Datum, Heldag, Börjar, Slutar, Vem; `evNyOpen`, `evNew`, `evNewTyp`). Dagvyn och breda veckovyn: tryck på tom tid = block vid halvtimmen, håll in 0,4 s och dra = välj start/slut i kvartar (`calNyAttr`, `.cv-ny`). Ny Kod.gs-åtgärd `eventAdd` lägger händelsen i Familj-kalendern med "Vem: X" i beskrivningen (läses i `calRows_`). Test `NOW='2026-11-06T10:20:00+01:00' node verktyg/emu/run.js verktyg/emu/kalender-tidsblock.js` (gas.js har nu låtsaskalendrar). Nästa: Henriks ok på bilderna, sedan publicera + Kod.gs-inklistring.
 - **Flytta rutor + widgets** publicerat ht-v267 (ångra-gren `version-fore-widgets`, main före: 6423eb1). Widgets i S/M/L bakom Inställningar → Avancerat → Experimentellt (utvecklarläge, `ht.exp=1`, `expOn()`, `XW`/`layoutX`/`ovX`/`wallX`). Ändra-läget är ett utkast (`ARR0`): Klar sparar och minns förra i `<nyckel>Prev` (Ångra, Föregående, Inställningar → Gå tillbaka). Tester `flytta-rutor.js`, `widgets.js`. Nästa: Henrik provar dragning på iPhone; CI-felen i `oversikt-manad.js`/`ui-versioner.js` fanns redan på main.
 - Inget pågående. Senast publicerat (ht-v261): borttagen öppen uppgift ger Ångra i 5 s och hamnar i "Nyligen borttagna" (ruta U12) under Klara i 30 dagar, synkat mellan enheter via `onskelista` `{bort:1,l:[{k,title,due,who,repeat,at,by}]}` (ingen Kod.gs; `wishes()`/`recipeWishes` hoppar över den). Återställ = `taskAdd`. Klara uppgifter sparas inte. Test `verktyg/emu/uppgift-aterstall.js`.
 
@@ -38,6 +39,7 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 ## Väntar på Henrik (Kod.gs)
 
+- `eventAdd` (tidsblock i kalendern, se Pågår nu). Utan ny Kod.gs visar appen "kräver att Kod.gs uppdateras" och händelsen försvinner vid nästa hämtning.
 - `rid`-skydd mot dubbletter i `doPost` (ht-v261, [Kod.gs](https://github.com/HenrikLH/hushallstavlan/blob/main/apps-script/Kod.gs)). Appen klarar sig utan; ta bort punkten när Henrik klistrat in och publicerat.
 - Tidigare: Henrik bekräftade 2026-10-21 att Kod.gs/setupRecipes/distribution är uppdaterade. Namn/rum på sysslor kan inte ändras utan ny Kod.gs (`cleanSet` tillåter bara freq/min/who/plannedFor/snoozeUntil).
 

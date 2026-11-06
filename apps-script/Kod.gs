@@ -273,6 +273,7 @@ function doPost(e) {
         break;
       }
       case 'taskDelete': delRow_(sheet_('tasks'), findRow_('tasks', b.id)); break;
+      case 'eventAdd': eventAdd_(b); break;
       case 'eventEdit': eventEdit_(b, false); break;
       case 'eventDelete': eventEdit_(b, true); break;
       case 'cleanDone': {
@@ -569,6 +570,8 @@ function calRows_() {
       const flags = (ev.isAllDayEvent() ? 'a' : '') + (rec ? 'r' : '');
       let who = c.who;
       if (!who) { try { who = CREATORS[String(ev.getCreators()[0] || '').toLowerCase()] || ''; } catch (e) { } }
+      // Händelser som lagts till från appen bär vem de gäller i beskrivningen ("Vem: Cornelia")
+      if (!c.who) { try { const m = String(ev.getDescription() || '').match(/^Vem: (.+)$/m); if (m) who = m[1].trim(); } catch (e) { } }
       const add = function (date, time) {
         if (date < td || date >= fmt(to, 'yyyy-MM-dd')) return;
         const title = calTitle_(ev.getTitle(), ev, date);
@@ -676,6 +679,25 @@ function eventEdit_(b, del) {
       if (end < start) end = new Date(end.getTime() + 864e5);
       if (ev.isAllDayEvent() || start.getTime() !== ev.getStartTime().getTime() || end.getTime() !== ev.getEndTime().getTime()) ev.setTime(start, end);
     }
+  }
+  kalenderSynk_();
+}
+
+/* Ny händelse från appen: läggs i den gemensamma kalendern (Familj) så att den syns i båda telefonerna.
+   b.allDay eller ingen starttid ger en heldagshändelse, annars b.start–b.end (utan slut: en timme). */
+function eventAdd_(b) {
+  const title = String(b.title || '').trim().slice(0, 200), date = String(b.date || '');
+  if (!title || !/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error('Händelsen behöver titel och datum.');
+  const cal = cal_(CALENDARS[1].id) || cal_(CALENDARS[0].id);
+  if (!cal) throw new Error('Hittade inte kalendern.');
+  const who = String(b.who || '').trim().slice(0, 40), opt = who ? { description: 'Vem: ' + who } : {};
+  if (b.allDay || !hm_(b.start)) cal.createAllDayEvent(title, day_(date), opt);
+  else {
+    const at = function (t) { return Utilities.parseDate(date + ' ' + t, TZ, 'yyyy-MM-dd HH:mm'); };
+    const start = at(hm_(b.start));
+    let end = hm_(b.end) ? at(hm_(b.end)) : new Date(start.getTime() + 3600000);
+    if (end <= start) end = new Date(end.getTime() + 864e5);
+    cal.createEvent(title, start, end, opt);
   }
   kalenderSynk_();
 }

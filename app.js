@@ -248,7 +248,7 @@ function renderNav(nav){
   if((!on()&&!e.target.closest('.wd-body'))||e.button>0||!S.data||e.target.closest('input,select,textarea,[contenteditable],.nav,.dr-slide,.car')||(S.arrange&&e.target.closest('[data-box]')))return;
   if(e.target.closest('.wd-body')&&(!e.isPrimary||e.clientX<24||e.clientX>innerWidth-24)){st=null;return;}
   st={id:e.pointerId,x0:e.clientX,y0:e.clientY,x:e.clientX,y:e.clientY,t:performance.now(),v:0,mouse:e.pointerType!=='touch',a:null,el:null,tg:e.target}});
- addEventListener('pointermove',e=>{if(!st||e.pointerId!==st.id)return;const dx=e.clientX-st.x0,dy=e.clientY-st.y0;
+ addEventListener('pointermove',e=>{if(!st||e.pointerId!==st.id)return;if(document.documentElement.classList.contains('cv-drar')){st=null;document.body.classList.remove('dragging');return}const dx=e.clientX-st.x0,dy=e.clientY-st.y0;
   if(!st.a){if(Math.hypot(dx,dy)<10)return;st.a=Math.abs(dx)>Math.abs(dy)?'x':'y';st.el=scroller(st.tg,st.a);if(st.mouse)document.body.classList.add('dragging')}
   const now=performance.now(),d=st.a==='y'?e.clientY-st.y:e.clientX-st.x,dt=Math.max(8,now-st.t);
   st.v=.7*(d/dt)+.3*st.v;st.x=e.clientX;st.y=e.clientY;st.t=now;
@@ -772,7 +772,7 @@ const dayHead=s=>{const d=parse(s);return DAYS[d.getDay()]+' '+d.getDate()+' '+M
 const V={};
 /* En gemensam skapa-knapp, med sidans egna åtgärder. Valet sparas bara på enheten. */
 function addPlace(){return ['flytande','rad'].includes(lsGet('addPlace'))?lsGet('addPlace'):'profil'}
-function addContext(){if(S.recipe||S.cook||S.view==='mat'&&(RC.screen||S.plan))return null;if(S.view==='mat'&&['recept','bank','efter'].includes(S.matTab))return{recipe:true,label:'Lägg till recept'};if(S.view==='mat'&&S.matTab==='inkop')return{act:'shopAdd',form:'shopQuick',label:'Ny vara'};if(S.view==='uppgifter')return{act:'taskAdd',form:'taskQuick',label:'Ny uppgift'};if(S.view==='kalender')return{act:'taskAdd',form:'',label:'Ny uppgift'};if(S.view==='stad'&&addPlace()==='profil')return{act:'cleanAdd',form:'cleanQuick',label:'Ny syssla'};if(S.view==='fod')return{act:'fodAdd',form:'',label:'Ny födelsedag'};return null}
+function addContext(){if(S.recipe||S.cook||S.view==='mat'&&(RC.screen||S.plan))return null;if(S.view==='mat'&&['recept','bank','efter'].includes(S.matTab))return{recipe:true,label:'Lägg till recept'};if(S.view==='mat'&&S.matTab==='inkop')return{act:'shopAdd',form:'shopQuick',label:'Ny vara'};if(S.view==='uppgifter')return{act:'taskAdd',form:'taskQuick',label:'Ny uppgift'};if(S.view==='kalender')return{act:'evNew',form:'',label:'Ny händelse'};if(S.view==='stad'&&addPlace()==='profil')return{act:'cleanAdd',form:'cleanQuick',label:'Ny syssla'};if(S.view==='fod')return{act:'fodAdd',form:'',label:'Ny födelsedag'};return null}
 function addControl(c,mode){return '<div class="create-control create-'+mode+'">'+(c.recipe?'<details class="create-menu"><summary class="create-plus" aria-label="Lägg till recept"><span class="create-open">'+I.plus+'</span><span class="create-close">'+I.x+'</span></summary><div class="create-options" aria-label="Lägg till recept"><button type="button" data-rc="new"><span class="sh-ic">'+I.plus+'</span>Nytt recept</button><button type="button" data-rc="import"><span class="sh-ic">'+I.imp+'</span>Importera recept</button></div></details>':'<button type="button" class="create-plus" data-act="'+c.act+'" aria-label="'+c.label+'">'+I.plus+'</button>')+'</div>'}
 function u5More(m){if(S.view!=='mat'||S.matTab!=='inkop'||S.plan||S.recipe||S.cook)return;const t=m.querySelector('.head .tools');if(!t)return;const vs=settings().vecka_start,wk=isDate(vs)?'vecka '+isoWeek(parse(vs)):'veckan',n=D().shop.length,it=(act,txt,ic,cl)=>'<button type="button" role="menuitem"'+(cl?' class="'+cl+'"':'')+' data-act="'+act+'"><span>'+txt+'</span>'+ic+'</button>';
  t.insertAdjacentHTML('afterbegin','<details class="create-menu u5-menu"'+RF('M8')+'><summary class="u5-dots" aria-label="Listans åtgärder">'+I.dots+'</summary><div class="create-options" role="menu" aria-label="Inköpslistan">'+it('shopMoreImp','Uppdatera varor för '+esc(wk),I.imp)+(n?it('shopMoreAsk','Töm listan',I.trash,'red'):'')+'</div></details>')}
@@ -2389,6 +2389,32 @@ function calItems(k){const d=D(),out=[];
  return out}
 function calHeldag(k){const d=D();return d.events.filter(e=>e.date===k&&(isBdEv(e)||evMin(e.time)==null)).map(e=>'<button type="button" class="cv-hd'+(isBdEv(e)?' bd':'')+'"'+(isBdEv(e)?'':' data-act="evEdit" data-id="'+d.events.indexOf(e)+'"'+holdAt('evMenu'))+'>'+(isBdEv(e)?I.cake:'')+esc(e.title)+'</button>').join('')+
  d.tasks.filter(x=>x.due===k&&!x.done).map(x=>'<button type="button" class="cv-hd task" data-act="taskEdit" data-id="'+esc(x.id)+'"'+holdAt('taskMenu')+'><span class="cv-ck" aria-hidden="true"></span>'+esc(x.title)+'</button>').join('')}
+const tidInp=m=>tpKl(m).replace('.',':');
+function evNyOpen(k,a,b,t){a=Math.max(0,Math.min(a,23*60));b=Math.max(a+15,Math.min(b,23*60+55));closeSheets();S.taskAdd=false;S.evNew={date:k,a,b};S.sheet='evNew';doRender();const x=document.getElementById('en-title');if(x){if(t)x.value=t;setTimeout(()=>x.focus(),30)}}
+/* Dag- och veckovyn: tryck på en tom tid för en ny händelse där, eller håll in och dra för att välja start och slut,
+   som i Apple Kalender. Blocket hakar i kvartar. Kolumnerna bär datum, första minuten och pixlar per timme (calNyAttr) */
+(()=>{let st=null,spar=0;const Q=15;
+ const min=(c,y)=>Number(c.dataset.lo)+(y-c.getBoundingClientRect().top)/Number(c.dataset.px)*60;
+ const kv=m=>Math.floor(m/Q)*Q,span=(a,c)=>c>=a?[a,Math.max(a+Q,Math.ceil(c/Q)*Q)]:[kv(c),a+Q];
+ const ghost=(a,b)=>{let g=st.c.querySelector('.cv-ny');const px=Number(st.c.dataset.px),lo=Number(st.c.dataset.lo);
+  if(!g){g=document.createElement('div');g.className='cv-ev cv-ny';st.c.appendChild(g)}
+  g.style.cssText='top:'+((a-lo)/60*px)+'px;height:'+Math.max(18,(b-a)/60*px-3)+'px;left:2px;right:2px';g.innerHTML='<b>Ny händelse</b><span>'+tpKl(a)+'–'+tpKl(b)+'</span>';st.a=a;st.b=b};
+ const stop=()=>{if(st){clearTimeout(st.t);document.documentElement.classList.remove('cv-drar')}st=null};
+ document.addEventListener('pointerdown',e=>{if(e.button>0||S.view!=='kalender'||S.wall||S.sheet)return;const g=e.target.closest&&e.target.closest('.cv-grid,.cv-wc');if(!g||e.target.closest('.cv-ev,button'))return;
+  const c=g.matches('.cv-wc')?g:g.querySelector('.cv-col');if(!c||!c.dataset.ny)return;stop();
+  st={c,id:e.pointerId,x:e.clientX,y:e.clientY,m0:kv(min(c,e.clientY)),hold:false,drag:false};
+  st.t=setTimeout(()=>{if(!st)return;st.hold=true;document.documentElement.classList.add('cv-drar');ghost(st.m0,st.m0+60);if(navigator.vibrate)try{navigator.vibrate(8)}catch(x){}},380)});
+ addEventListener('pointermove',e=>{if(!st||e.pointerId!==st.id)return;
+  if(!st.hold){if(Math.hypot(e.clientX-st.x,e.clientY-st.y)>8)stop();return}
+  if(!st.drag&&Math.abs(e.clientY-st.y)<6)return;st.drag=true;const[a,b]=span(st.m0,min(st.c,e.clientY));ghost(Math.max(0,a),Math.min(b,24*60-5))});
+ addEventListener('pointerup',e=>{if(!st||e.pointerId!==st.id)return;const s=st;stop();if(!s.c.isConnected)return;
+  // Klicket som följer får inte träffa bladets bakgrund (som stänger bladet)
+  const k=s.c.dataset.ny,m=Math.floor(min(s.c,s.y)/30)*30,[a,b]=s.hold?[s.a,s.b]:[m,m+60];spar=Date.now()+600;setTimeout(()=>evNyOpen(k,a,b))});
+ document.addEventListener('click',e=>{if(Date.now()<spar&&e.target.closest&&e.target.closest('.sheet')&&!e.target.closest('.sheet-panel')){e.stopPropagation();e.preventDefault()}},true);
+ addEventListener('pointercancel',e=>{if(st&&e.pointerId===st.id){if(st.hold)st.c.querySelector('.cv-ny')?.remove();stop()}});
+ // Medan blocket dras ska sidan inte scrolla
+ document.addEventListener('touchmove',e=>{if(st&&st.hold)e.preventDefault()},{passive:false})})();
+const calNyAttr=(k,lo,px)=>S.wall?'':' data-ny="'+k+'" data-lo="'+lo+'" data-px="'+px+'"';
 const calBlock=(x,px,lo)=>'<button type="button" class="cv-ev '+x.c+'"'+(x.act?' data-act="'+x.act+'" data-id="'+esc(x.id)+'"'+(x.act==='evEdit'?holdAt('evMenu'):''):'')+' style="top:'+((x.a-lo)/60*px)+'px;height:'+Math.max(20,(x.b-x.a)/60*px-3)+'px;left:calc('+(x.l/x.n*100)+'% + 2px);width:calc('+(100/x.n)+'% - 4px)"><b>'+esc(x.t)+'</b>'+(x.s&&(x.b-x.a)>=40?'<span>'+esc(x.s)+'</span>':'')+'</button>';
 function calSpann(list){let lo=7*60,hi=22*60;list.forEach(x=>{lo=Math.min(lo,x.a);hi=Math.max(hi,x.b)});return[Math.floor(lo/60)*60,Math.ceil(hi/60)*60]}
 function calNav(lab,d){const t=today();return'<div class="cal-head"><button class="ib" data-act="calStep" data-d="-1" aria-label="Föregående">'+I.back+'</button><div class="hl">'+lab+'</div><button class="ib flip" data-act="calStep" data-d="1" aria-label="Nästa">'+I.back+'</button>'+(d!==t?'<button class="tb" data-act="calToday">Idag</button>':'')+'</div>'}
@@ -2399,11 +2425,11 @@ function calDag(){const t=today(),sel=S.calDay||t,ws=veckoStart(sel),px=calBred(
  for(let i=0;i<7;i++){const k=addDays(ws,i),dt=parse(k),dots=calDots(k);h+='<button type="button" class="cv-d'+(k===t?' today':'')+(k===sel?' sel':'')+'" data-act="calDay" data-id="'+k+'" aria-label="'+esc(dateLong(k))+'"><span class="w">'+cap(DAYS3[dt.getDay()])+'</span><span class="n num">'+dt.getDate()+'</span><span class="dots">'+dots.map(c=>'<i class="'+c+'"></i>').join('')+'</span></button>'}
  h+='</div>';const hd=calHeldag(sel);if(hd)h+='<div class="cv-hds">'+hd+'</div>';
  let g='';for(let m=lo;m<=hi;m+=60)g+='<div class="cv-hr" style="top:'+((m-lo)/60*px)+'px"><span class="num">'+pad(m/60)+'</span></div>';
- g+='<div class="cv-col">'+L.map(x=>calBlock(x,px,lo)).join('')+'</div>';
+ g+='<div class="cv-col"'+calNyAttr(sel,lo,px)+'>'+L.map(x=>calBlock(x,px,lo)).join('')+'</div>';
  if(sel===t&&nm>=lo&&nm<=hi)g+='<i class="cv-now" style="top:'+((nm-lo)/60*px)+'px"></i>';
  h+='<div class="group cv-grid"'+RF('U8')+' style="height:'+((hi-lo)/60*px+16)+'px">'+g+'</div>';
  if(!L.length&&!hd)h+='<div class="foot">Inget inplanerat den här dagen.</div>';
- return h+'<div class="foot">Händelserna kommer från Google Kalender. Laga och middag kommer från veckosedeln och receptets tidsplan. Tryck på något för att ändra eller öppna det.</div>'}
+ return h+'<div class="foot">Händelserna kommer från Google Kalender. Laga och middag kommer från veckosedeln och receptets tidsplan. Tryck på något för att ändra eller öppna det.'+(S.wall?'':' Tryck på en tom tid för en ny händelse, eller håll in och dra för att välja start och slut.')+'</div>'}
 function calVecka(){const t=today(),sel=S.calDay||t,ws=veckoStart(sel),we=addDays(ws,6),a=parse(ws),b=parse(we),d=D();
  let h=calNav('Vecka '+isoWeek(a)+' <span class="cv-sub">'+a.getDate()+(a.getMonth()===b.getMonth()?'':' '+MON[a.getMonth()].slice(0,3))+'–'+b.getDate()+' '+MON[b.getMonth()].slice(0,3)+'</span>',ws===veckoStart(t)?t:sel);
  const dagar=[];for(let i=0;i<7;i++)dagar.push(addDays(ws,i));
@@ -2412,7 +2438,7 @@ function calVecka(){const t=today(),sel=S.calDay||t,ws=veckoStart(sel),we=addDay
   const hds=dagar.map(calHeldag);if(hds.some(Boolean))h+='<div class="cv-wh cv-whd"><span></span>'+hds.map(x=>'<div>'+x+'</div>').join('')+'</div>';
   let tm='';for(let m=lo;m<=hi;m+=60)tm+='<span class="num" style="top:'+((m-lo)/60*px)+'px">'+pad(m/60)+'</span>';
   h+='<div class="cv-wb" style="height:'+((hi-lo)/60*px+12)+'px"><div class="cv-tm">'+tm+'</div>'+dagar.map((k,i)=>{let hr='';for(let m=lo;m<=hi;m+=60)hr+='<i class="cv-l" style="top:'+((m-lo)/60*px)+'px"></i>';
-   return'<div class="cv-wc'+(k===t?' today':'')+'">'+hr+all[i].map(x=>calBlock(x,px,lo)).join('')+(k===t&&nm>=lo&&nm<=hi?'<i class="cv-now" style="top:'+((nm-lo)/60*px)+'px"></i>':'')+'</div>'}).join('')+'</div></div>';
+   return'<div class="cv-wc'+(k===t?' today':'')+'"'+calNyAttr(k,lo,px)+'>'+hr+all[i].map(x=>calBlock(x,px,lo)).join('')+(k===t&&nm>=lo&&nm<=hi?'<i class="cv-now" style="top:'+((nm-lo)/60*px)+'px"></i>':'')+'</div>'}).join('')+'</div></div>';
   return h}
  // telefon: veckan som en lista med dagarna som band
  let body='';dagar.forEach(k=>{const L=calItems(k).filter(x=>x.t!=='Laga'),hd=d.events.filter(e=>e.date===k&&(isBdEv(e)||evMin(e.time)==null)),ts=d.tasks.filter(x=>x.due===k&&!x.done);
@@ -2437,10 +2463,10 @@ function calViewBase(){const t=today(),sel=S.calDay||t,m=S.calMonth||ymKey(sel),
  // dagens innehåll: händelser i tidsordning och uppgifter
  const d=D(),evs=d.events.filter(e=>e.date===sel).sort((a,b)=>String(a.time||'').localeCompare(String(b.time||''))),late=sel===t?d.tasks.filter(x=>!x.done&&isDate(x.due)&&x.due<t):[],
   ts=d.tasks.filter(x=>x.due===sel),meals=d.menu.filter(x=>x.date===sel);
- h+=sh(esc(cap(dayHead(sel)))+(sel===t?' <span class="acc">· Idag</span>':''),'<button class="linkbtn" data-act="calAddTask" data-id="'+sel+'">'+'Ny uppgift</button>');
+ h+=sh(esc(cap(dayHead(sel)))+(sel===t?' <span class="acc">· Idag</span>':''),'<button class="linkbtn" data-act="evNew" data-id="'+sel+'">Lägg till</button>');
  const evRow=e=>{const w=evPerson(e);return'<div class="cell cal-ev edit" data-act="evEdit" data-id="'+d.events.indexOf(e)+'"'+holdAt('evMenu')+' role="button" tabindex="0"><span class="bar '+(w&&people().includes(w)?pcls(w):'o')+'"></span><span class="t num">'+esc(e.time||'Heldag')+'</span><span class="grow"><span class="title">'+evTitle(e)+'</span>'+(evWho(e)?'<span class="meta">'+evWho(e)+'</span>':'')+'</span></div>'};
  const body=evs.map(evRow).join('')+late.concat(ts).map(taskRow).join('');
- h+=rgroup('U5',body||emptyCell('Inget inplanerat. Tryck på Ny uppgift för att lägga till något.'));
+ h+=rgroup('U5',body||emptyCell('Inget inplanerat. Tryck på Lägg till för en händelse eller uppgift.'));
  if(meals.length)h+=sh('Mat')+rgroup('U6',meals.map(m=>mealCell(m)).join(''));
  // de närmaste dagarna i listform
  const next=[];for(let i=1;i<=6;i++){const k=addDays(sel,i),n=d.events.filter(e=>e.date===k).length+d.tasks.filter(x=>x.due===k&&!x.done).length;if(n)next.push([k,n])}
@@ -2477,7 +2503,7 @@ function tomorrowDefault(){const wd=parse(addDays(today(),1)).getDay(),st=settin
 const menuSel=(attrs,opts)=>'<span class="menu"><select '+attrs+'>'+opts+'</select></span>';
 const attSeg=v=>segc('Visa','taskTab',[['lista','Uppgifter'],['stad','Städ']],v);
 V.kalender=function(){
- return head('Kalender',{tools:'<button class="ib plus" data-act="taskAdd" aria-label="Ny uppgift">'+I.plus+'</button>'})+calView()};
+ return head('Kalender',{tools:'<button class="ib plus" data-act="evNew" aria-label="Ny händelse">'+I.plus+'</button>'})+calView()};
 V.stad=function(){
  const cp=cleanPlan(),all=D().clean,vy=all.length?stadVy():'lista',nu=vy==='lista'?null:stadIdag(cp);
  let h=head('Att göra',{sub:vy==='ring'?cap(dateLong(today())):vy==='rutnat'?nu.minLeft+' min kvar idag':'Lite varje dag, så slipper ni storstäda'});
@@ -2664,7 +2690,7 @@ function overlayKeepScroll(){const o=document.getElementById('overlay'),k=o.data
  const nb=o.querySelector('.sheet-body');if(y&&k&&o.dataset.k===k&&nb&&nb!==b)nb.scrollTop=y}
 function renderOverlay(){
  const o=document.getElementById('overlay');
- const k=S.cook?'cook':S.sheet==='settings'?'settings':S.sheet==='farg'?'farg':S.sheet==='vagg'?'vagg':S.sheet==='ljuskal'?'ljuskal':S.sheet==='rate'?'rate':S.sheet==='income'?'income':S.sheet==='matb'?'matb':S.sheet==='cost'?'cost':S.sheet==='ov'?'ov':S.sheet==='prefs'?'prefs':S.sheet==='swap'?'swap':S.sheet==='prot'?'prot':S.sheet==='wish'?'wish':S.sheet==='shopMore'?'shopMore':S.sheet==='dess'?'dess':S.sheet==='slot'?'slot':S.sheet==='delLas'?'delLas':S.sheet==='dish'?'dish':S.sheet==='tmr'?'tmr':S.sheet==='tmrMenu'?'tmrMenu':S.rcpSheet?'rcpSheet':S.sheet==='cleanAdd'?'cleanAdd':S.sheet==='fodAdd'?'fodAdd':S.sheet==='taskMenu'?'taskMenu':S.sheet==='ekoMenu'?'ekoMenu':S.sheet==='evMenu'?'evMenu':S.sheet==='cleanMenu'?'cleanMenu':S.sheet==='taskEdit'?'taskEdit':S.sheet==='evEdit'?'evEdit':S.sheet==='wxDay'?'wxDay':S.shopAdd?'shop':S.taskAdd?'task':'';
+ const k=S.cook?'cook':S.sheet==='settings'?'settings':S.sheet==='farg'?'farg':S.sheet==='vagg'?'vagg':S.sheet==='ljuskal'?'ljuskal':S.sheet==='rate'?'rate':S.sheet==='income'?'income':S.sheet==='matb'?'matb':S.sheet==='cost'?'cost':S.sheet==='ov'?'ov':S.sheet==='prefs'?'prefs':S.sheet==='swap'?'swap':S.sheet==='prot'?'prot':S.sheet==='wish'?'wish':S.sheet==='shopMore'?'shopMore':S.sheet==='dess'?'dess':S.sheet==='slot'?'slot':S.sheet==='delLas'?'delLas':S.sheet==='dish'?'dish':S.sheet==='tmr'?'tmr':S.sheet==='tmrMenu'?'tmrMenu':S.rcpSheet?'rcpSheet':S.sheet==='cleanAdd'?'cleanAdd':S.sheet==='fodAdd'?'fodAdd':S.sheet==='taskMenu'?'taskMenu':S.sheet==='ekoMenu'?'ekoMenu':S.sheet==='evMenu'?'evMenu':S.sheet==='cleanMenu'?'cleanMenu':S.sheet==='taskEdit'?'taskEdit':S.sheet==='evEdit'?'evEdit':S.sheet==='evNew'?'evNew':S.sheet==='wxDay'?'wxDay':S.shopAdd?'shop':S.taskAdd?'task':'';
  const prev=o.dataset.k||'';
  // Rita inte om ett öppet blad medan någon skriver i det
  if(k&&k!=='cook'&&k===prev&&busyTyping()&&o.contains(document.activeElement))return;
@@ -2865,7 +2891,7 @@ function renderOverlay(){
    (e?'<div style="height:22px"></div>'+group('<button type="button" class="cell link center red" data-act="fodDelSheet" data-id="'+esc(e.key)+'">Ta bort födelsedagen</button>'):'');
   o.innerHTML=sheetHtml('fodAdd',e?'Ändra födelsedag':'Ny födelsedag','<button class="tb strong">'+(e?'Spara':'Lägg till')+'</button>',body,enter);restoreColorStrips(o);return}
  if(k==='task'){
-  const body='<div style="height:16px"></div>'+group('<div class="cell"><input class="field" id="task-title" name="title" placeholder="Vad behöver göras?" required autocomplete="off" aria-label="Uppgift"></div>'+
+  const body=(S.view==='kalender'?'<div class="cv-typ">'+segc('Typ','evNewTyp',[['ev','Händelse'],['task','Uppgift']],'task')+'</div>':'<div style="height:16px"></div>')+group('<div class="cell"><input class="field" id="task-title" name="title" placeholder="Vad behöver göras?" required autocomplete="off" aria-label="Uppgift"></div>'+
    fieldCell('Datum','<input class="field r" id="task-due" name="due" type="date" value="'+esc(S.taskDue||'')+'" style="max-width:170px">')+
    fieldCell('Vem',menuSel('id="task-who" name="who"','<option value="">Vem som helst</option>'+people().map(p=>'<option value="'+esc(p)+'">'+esc(personLabel(p))+'</option>').join('')+'<option>Båda</option>'))+
    fieldCell('Upprepa',menuSel('id="task-rep" name="repeat"',REPEATS.map(([k,l])=>'<option value="'+k+'">'+l+'</option>').join(''))))+
@@ -2911,6 +2937,14 @@ function renderOverlay(){
    (rp?'<div class="foot">Ändringen gäller alla gånger uppgiften kommer tillbaka.</div>':'')+
    '<div style="height:22px"></div>'+group(del);
   o.innerHTML=sheetHtml('taskEdit','Ändra uppgift','<button class="tb strong">Spara</button>',body,enter);return}
+ if(k==='evNew'){const n=S.evNew||{},me=people().includes(S.me)?S.me:'Båda';
+  const body='<div class="cv-typ">'+segc('Typ','evNewTyp',[['ev','Händelse'],['task','Uppgift']],'ev')+'</div>'+group('<div class="cell"><input class="field" id="en-title" name="title" placeholder="Vad händer?" required autocomplete="off" aria-label="Titel" enterkeyhint="done"></div>')+
+   '<div style="height:16px"></div>'+group(fieldCell('Datum','<input class="field r" name="date" type="date" value="'+esc(n.date||'')+'" required style="max-width:170px">')+
+   fieldCell('Heldag','<input type="checkbox" class="switch" id="en-allday" name="allDay"'+(n.allDay?' checked':'')+'>')+
+   '<div id="en-times"'+(n.allDay?' hidden':'')+'>'+fieldCell('Börjar','<input class="field r" name="start" type="time" step="300" value="'+tidInp(n.a)+'" style="max-width:130px">')+fieldCell('Slutar','<input class="field r" name="end" type="time" step="300" value="'+tidInp(n.b)+'" style="max-width:130px">')+'</div>')+
+   '<div style="height:16px"></div>'+group(fieldCell('Vem',menuSel('name="who"',people().concat(['Båda']).map(p=>'<option value="'+esc(p)+'"'+(p===me?' selected':'')+'>'+esc(p==='Båda'?'Båda':personLabel(p))+'</option>').join(''))))+
+   '<div class="foot">Sparas i den gemensamma Google-kalendern, så att den syns i era telefoner också.</div>';
+  o.innerHTML=sheetHtml('evNew','Ny händelse','<button class="tb strong">Lägg till</button>',body,enter);return}
  if(k==='evEdit'){const e=S.edit||{},fl=String(e.flags||''),allDay=fl?fl.includes('a'):!e.time,rec=fl.includes('r');
   // Kalenderhändelser kan ändras när Kod.gs skriver id:n (kolumn F i Händelser). Helgdagar och kontakternas födelsedagar har inget id.
   const cal=e.source==='kalender',locked=cal&&!e.id,old=cal&&!('id' in e);
@@ -4455,7 +4489,7 @@ function confetti(){if(calm()||U3)return;const cv=document.createElement('canvas
 
 /* ---------- local mutations (optimistic) ---------- */
 function mutate(list,id,fields){const it=D()[list].find(x=>x.id===id);if(it)Object.assign(it,fields);render()}
-function closeSheets(){S.prefDraft=null;S.fodEdit=null;A.wdDay=A.wdI=null;if(KAL||SMAK){kalStop();SMAK=null;setTimeout(autoTheme)}S.psel=null;S.protFor=null;S.edit=null;S.rcpSheet=null;S.sheet=null;S.swap=null;S.wishFor=null;S.rate=null;S.ekoEdit=null;S.ovEdit=null;S.shopAdd=false;S.taskAdd=false}
+function closeSheets(){S.prefDraft=null;S.evNew=null;S.fodEdit=null;A.wdDay=A.wdI=null;if(KAL||SMAK){kalStop();SMAK=null;setTimeout(autoTheme)}S.psel=null;S.protFor=null;S.edit=null;S.rcpSheet=null;S.sheet=null;S.swap=null;S.wishFor=null;S.rate=null;S.ekoEdit=null;S.ovEdit=null;S.shopAdd=false;S.taskAdd=false}
 
 /* ---------- actions ---------- */
 function boxEdit(fn){const wall=wallBoardOn(),L=layout(wall,wall?boardDefault():OV_DEF());fn(L);saveLayout(wall,L);render()}
@@ -4704,13 +4738,18 @@ const ACT={
  calDayVy(id){motionCalBefore(id);S.calDay=id;S.calMonth=ymKey(id);S.calVy='dag';lsSet('calVy','dag');render()},
  calStep(id,el){const k=addDays(S.calDay||today(),Number(el.dataset.d)*(S.calVy==='vecka'?7:1));S.calDay=k;S.calMonth=ymKey(k);render()},
  calToday(){S.calDay=today();S.calMonth=ymKey(S.calDay);render()},
+ // Ny händelse: tidsblock med start och slut. Plus och Lägg till ger nästa hela timme, dagvyn den tid man tryckt eller dragit över
+ evNew(id){const k=isDate(id)?id:S.calDay||today(),n=new Date(),h=Math.min(23,n.getHours()+1)*60;evNyOpen(k,h,h+60)},
+ evNewTyp(id){const f=document.querySelector('#overlay form'),t=f&&(f.querySelector('#en-title')||f.querySelector('#task-title')),v=t?t.value:'',dt=f&&(f.querySelector('[name=date]')||f.querySelector('[name=due]'));const k=dt&&isDate(dt.value)?dt.value:S.calDay||today();
+  if(id==='task'){if(S.sheet!=='evNew')return;S.evNy0=S.evNew;closeSheets();S.taskDue=k;S.taskAdd=true;doRender();const x=document.getElementById('task-title');if(x){x.value=v;x.focus()}}
+  else{if(!S.taskAdd)return;const o=S.evNy0;S.taskAdd=false;S.evNy0=null;evNyOpen(k,o?o.a:600,o?o.b:660,v)}},
  calAddTask(id){S.taskDue=id;S.taskAdd=true;render();setTimeout(()=>document.getElementById('task-title')?.focus(),30)},
  taskEdit(id){const x=D().tasks.find(t=>t.id===id);if(!x)return;S.edit=Object.assign({},x);S.confirm=null;S.sheet='taskEdit';render()},
  taskSwDel(id){const x=D().tasks.find(t=>t.id===id);if(!x)return;S.edit=Object.assign({},x);if(repName(x.repeat)){S.sheet='taskMenu';S.confirm='delTask';render()}else ACT.taskDel('all')},
  taskDelAsk(){S.confirm='delTask';render()},
  // Håll in-bladen: tryck på en ruta stänger bladet och gör det som står
  taskMenu(id){const x=D().tasks.find(t=>t.id===id);if(!x)return;S.edit=Object.assign({},x);S.confirm=null;S.sheet='taskMenu';render()},
- evMenu(id){const e=D().events[Number(id)];if(!e)return;if(e.source==='kalender'&&!e.id){ACT.evEdit(id);return}S.edit=Object.assign({},e);S.confirm=null;S.sheet='evMenu';render()},
+ evMenu(id){const e=D().events[Number(id)];if(!e)return;if(e.ny){ACT.evEdit(id);return}if(e.source==='kalender'&&!e.id){ACT.evEdit(id);return}S.edit=Object.assign({},e);S.confirm=null;S.sheet='evMenu';render()},
  // Raden bär redan utgiftens id; listan letas upp (gemensam eller en persons egna)
  ekoMenu(id){const list=['shared'].concat(people()).find(l=>ekoList(l).some(x=>x.id===id));if(!list)return;S.em={list,id};S.confirm=null;S.sheet='ekoMenu';render()},
  ekoDelHold(id){const e=S.em;if(!e||e.id!==id)return;S.ekoEdit={list:e.list,id};ACT.ekoDel()},
@@ -4721,7 +4760,7 @@ const ACT={
   if(id==='once'&&repName(x.repeat)){const nd=nextDue(x.due,x.repeat,today());mutate('tasks',x.id,{due:nd});apiPost({action:'taskToggle',id:x.id,done:true});toast('Hoppar över den här gången. Nästa gång '+(nd===addDays(today(),1)?'i morgon':dateShort(nd)));return}
   apiPost({action:'taskDelete',id:x.id});S.data.tasks=D().tasks.filter(t=>t!==x);const k=x.done?'':tBortSpara(x);render();if(k)tBortVisa(x,k);else toast('Uppgiften är borttagen')},
  taskBortUndo(id){tBortAter(id)},
- evEdit(id){const e=D().events[Number(id)];if(!e)return;S.edit=Object.assign({},e);S.confirm=null;S.sheet='evEdit';render()},
+ evEdit(id){const e=D().events[Number(id)];if(!e)return;if(e.ny){toast('Händelsen sparas just nu. Prova igen om en stund.');return}S.edit=Object.assign({},e);S.confirm=null;S.sheet='evEdit';render()},
  evDelAsk(){S.confirm='delEv';render()},
  evDel(id){const e=S.edit;closeSheets();S.confirm=null;if(!e){render();return}A.user=Date.now();const all=id==='all';
   apiPost({action:'eventDelete',id:e.id||'',date:e.date,time:e.time||'',title:e.title,all});
@@ -4804,7 +4843,11 @@ document.addEventListener('toggle',e=>{const d=e.target;if(d&&d.dataset&&d.datas
 // UI 5.0: Inställningarnas delar öppnas som egna sidor, en i taget, som i iPhones Inställningar
 document.addEventListener('toggle',e=>{const d=e.target;if(!U5||!d.classList||!d.classList.contains('pref-section'))return;const f=d.closest('form');if(!f)return;
  if(d.open){f.querySelectorAll('.pref-section[open]').forEach(x=>{if(x!==d){x.open=false;S.open[x.dataset.k]=false}});const b=f.querySelector('.sheet-body');if(b)b.scrollTop=0}},true);
-document.addEventListener('change',e=>{if(e.target.id==='ee-allday'){const t=document.getElementById('ee-times');if(t)t.hidden=e.target.checked}});
+document.addEventListener('change',e=>{const x=e.target;if(x.id==='ee-allday'||x.id==='en-allday'){const t=document.getElementById(x.id==='ee-allday'?'ee-times':'en-times');if(t)t.hidden=x.checked}});
+// Flyttas starttiden följer sluttiden med, så att blocket behåller sin längd (som i Apple Kalender)
+document.addEventListener('focusin',e=>{const x=e.target;if(x.name==='start'&&x.type==='time')x.dataset.was=x.value});
+document.addEventListener('change',e=>{const x=e.target;if(x.name!=='start'||x.type!=='time'||!x.form)return;const en=x.form.querySelector('input[name=end]'),a=evMin(x.value),w=evMin(x.dataset.was),b=evMin(en&&en.value);x.dataset.was=x.value;
+ if(!en||a==null)return;const len=w!=null&&b!=null&&b>w?b-w:60;en.value=tidInp(Math.min(a+len,23*60+55))});
 /* Svep på veckosedelns rader, som i iPhones listor: dra åt vänster så visas Byt bakom raden,
    dra åt höger så visas Ta bort. Drar man hela vägen (över halva raden) byter eller tar man bort direkt. Bara en rad är öppen åt gången */
 const SWP={el:null,x:0,y:0,base:0,dx:0,dir:'',moved:false};const SWW=84;
@@ -4919,6 +4962,12 @@ document.addEventListener('submit',async e=>{const f=e.target.closest('[data-for
   const rp=repName(d.repeat)?d.repeat:'',fields={title:t,due:d.due||(rp?today():''),who:d.who||'',repeat:rp};
   const ch=Object.keys(fields).filter(k=>String(x[k]||'')!==fields[k]),out={};ch.forEach(k=>out[k]=fields[k]);
   closeSheets();A.user=Date.now();if(ch.length){mutate('tasks',x.id,out);apiPost({action:'taskEdit',id:x.id,fields:out});toast('Sparat')}else render();return}
+ if(f.dataset.form==='evNew'){const t=String(d.title||'').trim();if(!t||!isDate(d.date))return;
+  const allDay=!!d.allDay,start=allDay?'':String(d.start||''),end=allDay?'':String(d.end||'');
+  if(!allDay&&!start){toast('Fyll i när händelsen börjar, eller välj Heldag');return}
+  const time=allDay?'':start.replace(':','.')+(end&&end!==start?'–'+end.replace(':','.'):''),who=String(d.who||'');
+  closeSheets();A.user=Date.now();D().events.push({date:d.date,time,title:t,who,source:'kalender',id:'',flags:allDay?'a':'',ny:1});
+  apiPost({action:'eventAdd',title:t,date:d.date,allDay,start,end,who});S.calDay=d.date;S.calMonth=ymKey(d.date);render();toast(t+' är tillagd');return}
  if(f.dataset.form==='evEdit'){const e=S.edit,t=String(d.title||'').trim();if(!e||!t||!isDate(d.date))return;
   const allDay=!!d.allDay,start=allDay?'':String(d.start||''),end=allDay?'':String(d.end||'');
   if(!allDay&&!start){toast('Fyll i när händelsen börjar, eller välj Heldag');return}
