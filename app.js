@@ -1403,6 +1403,8 @@ function weekLock(id){const W=weekTarget(),L=weekLocks(W.vs),on=!L.has(id);if(on
 /* Föreslå en ny vecka direkt på veckosedeln. Appen byter allt som inte är låst (kvällar borta och efterrätten ligger kvar)
    och visar förslaget på brickorna, märkt Ny. Det finns bara i telefonen tills man trycker på Spara, då skickas veckan som
    en vanlig ändring (weekSend räknar om inköpslistan). Ångra lägger tillbaka veckan. Nytt förslag undviker de senaste rätterna */
+// Experimentellt (utvecklarläget, ht.expVecka=1); annars öppnar knappen Veckoförslag som förut
+const expVecka=()=>DEV&&lsGet('expVecka')==='1';
 function wkP(vs){let P=null;try{P=JSON.parse(lsGet('veckoplan3')||'null')}catch(e){}const o=P||{};if(!P||P.vecka!==vs)P={vecka:vs,val:{},v2:'auto',seed:{},prio:o.prio,skMode:o.skMode};
  P.lock=P.lock||{};P.prio=P.prio||'balans';P.skMode=P.skMode||'auto';P.gen=P.gen||0;return P}
 const wkHalls=m=>m.who==='Borta'||!!(m.recipe&&isDessert(recipeById(m.recipe)));
@@ -1455,7 +1457,7 @@ function raeckerKort(ds){const G=grpBehov(ds);if(!G)return'';
 // Nya designen: en knapp för veckoförslaget och en sammanfattning med kostnad, portioner och om maten räcker
 // Knappen ligger längst ner i sammanfattningsrutan när veckan har rätter, annars ensam
 const planBtnDev=()=>DEV?planBtn().replace(/<button class="pl-open pt-open" data-act="autoOpen">[\s\S]*$/,''):'';
-const wkNewBtn=()=>S.wkDraft?'':'<button class="btn-tint wk-new" data-act="wkNy">'+I.swap+'Föreslå en ny vecka</button>';
+const wkNewBtn=()=>S.wkDraft?'':'<button class="btn-tint wk-new" data-act="'+(expVecka()?'wkNy':'autoOpen')+'">'+I.swap+'Föreslå en ny vecka</button>';
 const planBtnNy=()=>planBtnDev()+wkNewBtn();
 function weekSummary(ds,total,port){const rk=raeckerKort(ds),bad=/class="rk bad"/.test(rk),rub=(rk.match(/<div class="rk-h">([^<]*)<\/div>/)||[])[1]||'',B=Number(settings().matbudget)||0;
  // Översta raden finns två gånger: i rutan och som en kopia som ligger fast under navigeringsfältet.
@@ -2826,6 +2828,7 @@ function renderOverlay(){
   (topic?sh('Notiser')+group('<div class="cell"><span class="grow copy">'+esc(topic)+'</span><button type="button" class="pill" data-act="copy" data-id="'+esc(topic)+'">Kopiera</button></div>')+'<div class="foot">Installera appen ntfy och prenumerera på det här ämnet. Använd servern ntfy.sh.</div>':'')+(S.wall?sh('Inställningsknappen på väggskärmen')+'<div class="seg-wrap">'+segc('Inställningsknappen på väggskärmen','vaggknapp',[['meny','I menyraden'],['knapp','Egen knapp'],['rubrik','Rubrikrad']],VKNAPP)+'</div><div class="foot">I menyraden sitter cirkeln längst till höger i menyn. Egen knapp är en rund knapp nere till höger. Rubrikrad lägger en rad överst med cirkeln till höger, som på telefonen. Gäller bara den här enheten.</div>':'')+sh('Den här enheten')+group('<button type="button" class="cell link center red" data-act="logout">Logga ut</button>')],
    ['avancerat','Avancerat',sh('Utvecklare')+group(fieldCell('Utvecklarläge','<input type="checkbox" role="switch" class="switch" data-act="dev" aria-label="Utvecklarläge"'+(DEV?' checked':'')+'>'))+'<div class="foot">Visar menyer som inte är färdiga, just nu Planera nästa vecka och Planera med portioner. Gäller bara den här enheten.</div>'+
   (sh('Rörelse')+group(fieldCell('Vägledande animationer','<input type="checkbox" role="switch" class="switch" data-act="motion" aria-label="Vägledande animationer"'+(MOTION?' checked':'')+'>'))+'<div class="foot">Riktade sidbyten, glidande menyval och mjuk expansion. Systemets inställning för minskad rörelse går alltid före. Gäller den här enheten.</div>')+
+  (DEV?sh('Experimentellt')+group(fieldCell('Ny vecka på veckosedeln','<input type="checkbox" role="switch" class="switch" data-act="expVecka" aria-label="Ny vecka på veckosedeln"'+(expVecka()?' checked':'')+'>'))+'<div class="foot">Föreslå en ny vecka byter rätterna direkt på veckosedeln, med Ångra, Nytt och Spara. Gäller bara den här enheten.</div>':'')+
   (DEV?sh('Rutnummer')+group(fieldCell('Visa rutnummer','<input type="checkbox" role="switch" class="switch" data-act="refs" aria-label="Visa rutnummer"'+(refsOn()?' checked':'')+'>'))+'<div class="foot">Varje ruta får sitt fasta nummer i hörnet, till exempel M2. Tryck på numret för att kopiera det. Gäller bara den här enheten.</div>':'')]])+'<div class="foot ver">Hushållstavlan · UI '+(U5?'5.0':U4?'4.0':U3?'3.0':UI_VER)+' · version '+esc(APP_VER)+'</div>';
   o.innerHTML=sheetHtml('settings','Inställningar','<button class="tb strong">Spara</button>',body,enter);if(S.prefDraft){Object.entries(S.prefDraft).forEach(([k,v])=>{const f=o.querySelector('[name="'+k+'"]');if(f&&!/radio|checkbox/.test(f.type))f.value=v})}segSlide(o);restoreColorStrips(o);return}
  if(k==='ljuskal'){const K=KAL||{},nm=['full','mitten','lägsta'];let body='',right='<button type="button" class="tb strong" data-act="sheetClose">'+(K.step==='klar'||SMAK?'Klar':'Avbryt')+'</button>';
@@ -4664,6 +4667,7 @@ const ACT={
  me(id){S.me=id;lsSet('me',id);render()},
  logout(){S.key='';S.data=null;S.sheet=null;lsSet('key',null);lsSet('cache',null);render()},
  refs(){lsSet('refs',refsOn()?null:'1');applyRefs();render()},
+ expVecka(){if(S.wkDraft)wkAngra(1);lsSet('expVecka',expVecka()?null:'1');render()},
  copy(id){try{navigator.clipboard.writeText(id).then(()=>toast('Kopierat'),()=>toast('Markera och kopiera texten'))}catch(e){toast('Markera och kopiera texten')}},
  flStyle(id){FL_STYLE=id==='lista'?'lista':'karusell';lsSet('forslag',FL_STYLE==='lista'?'lista':null);render()},
  theme(id){S.theme=['light','dark'].includes(id)?id:'system';lsSet('theme',S.theme==='system'?null:S.theme);applyTheme(true);render()},

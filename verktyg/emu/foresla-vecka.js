@@ -1,7 +1,9 @@
 const assert=require('node:assert/strict');
 // Föreslå en ny vecka direkt på veckosedeln: samma vecka, låsta rätter ligger kvar, Ångra återställer, Spara skickar
+// Kräver experimentet: LS='{"dev":"1","expVecka":"1"}' (sätts i scenariot om det saknas)
 module.exports=async(pg,h)=>{
  const read=s=>pg.evaluate(s=>window.__d(s),s),click=async s=>{await pg.locator(s).first().click();await h.idle(700)};
+ if(!(await read('expVecka()'))){await pg.evaluate(()=>{localStorage.setItem('ht.dev','1');localStorage.setItem('ht.expVecka','1')});await pg.reload();await h.idle(1800)}
  await click('[data-act="nav"][data-id="mat"]');await click('[data-act="matTab"][data-id="vecka"]');
  const vs=await read('weekTarget().vs'),rader=()=>read('weekRows(weekTarget()).map(m=>m.title).sort().join("|")'),fore=await rader();
  const las=await read('[...weekLocks(weekTarget().vs)].filter(id=>!/^macka:/.test(id))');console.log('låsta',las);
