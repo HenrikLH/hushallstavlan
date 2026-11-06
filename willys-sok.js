@@ -60,7 +60,7 @@
     'crème fraiche och gräddfil': ['crème fraiche', /^(crème|creme|gräddfil)/i, /chili|örter|vitlök|paprika|lök|tomat|ost|smaksatt/i],
     'matlagningsgrädde': ['matlagningsgrädde', /^(matlagningsgrädde|matgrädde)/i, /vego|havre|soja/i],
     'riven ost': ['riven ost', /riven/i, /pizza|vego|vegansk/i],
-    'parmesan': ['parmesan', /^(parmesan|parmigiano|grana padano|pecorino)/i, /vego|vegansk|smak|chips|kex/i],
+    'parmesan': ['parmesan', /^(parmesan|parmigiano|grana padano|pecorino)/i, /vego|vegansk|smak|chips|kex|crème|creme|fraiche|grädde|sås/i],
     'mozzarella': ['mozzarella', /^mozzarella/i, /riven|pizza|vego|vegansk|stick|panerad|tomat/i],
     'ricotta': ['ricotta', /^ricotta/i, /vego|vegansk/i],
     'fetaost': ['fetaost', /^(fetaost|feta |salladsost)/i, /oliver|krydd|röra|soltork|fryst/i],
@@ -85,43 +85,52 @@
     'ägg': ['ägg', /^ägg/i, /choklad|påsk|kokta|nudlar|pasta|vita|krydd|röra|kaka|sallad/i],
     'färskost': ['färskost', /^(färskost|philadelphia|mascarpone)/i, /vitlök|örter|krydd|pepparrot|chili|lax|skinka|räk/i],
     // Skafferivaror (räknas inte i veckans kostnad men prisas när de står på inköpslistan)
-    'smör': ['smör', /^(smör|bregott|svenskt smör)/i, /gås|vitlök|krydd|örter|ost|bakelse/i],
+    'smör': ['smör', /^(smör|bregott|svenskt smör)/i, /gås|vitlök|krydd|örter|ost|bakelse|flytande|raps|olja|&/i],
     'vaniljsocker': ['vaniljsocker', /^vaniljsocker/i],
     'socker': ['strösocker', /^(strösocker|socker)/i, /fri|bit|florsocker|pärl|kanderat|vanilj/i],
     'majsstärkelse': ['majsstärkelse', /^(majsstärkelse|maizena)/i],
     'mandelmjöl': ['mandelmjöl', /^mandelmjöl/i],
     'vetemjöl': ['vetemjöl', /^vetemjöl/i, /special|fullkorn|glutenfri/i],
-    'bakpulver': ['bakpulver', /^bakpulver/i],
     'jäst': ['jäst', /^jäst/i, /söt|näring/i],
     'olja': ['rapsolja', /^(rapsolja|olivolja|matolja)/i, /spray|smak|krydd|vitlök|chili|tryffel/i],
     'vinäger': ['vinäger', /vinäger|ättika/i, /chips/i],
-    'soja': ['soja', /^(soja|kinesisk soja|japansk soja)/i, /bönor|dryck|mjölk|färs|bitar/i],
+    'soja': ['soja', /^(soja|kinesisk soja|japansk soja)/i, /bönor|dryck|mjölk|färs|bitar|tofu|marinerad/i],
     'buljong': ['buljong', /buljong|fond/i, /pulver/i],
     'tomatpuré': ['tomatpuré', /^tomatpuré/i],
     'vitt vin': ['matlagningsvin', /matlagningsvin|vin för matlagning/i],
     'senap': ['senap', /^senap/i],
     'honung': ['honung', /^honung/i],
-    'vitlök': ['vitlök', /^vitlök/i, /pressad|krydd|olja|bröd|sås|dressing/i],
+    'vitlök': ['vitlök', /^vitlök/i, /pressad|krydd|olja|bröd|baguett|sås|dressing/i],
     'ingefära': ['ingefära', /^ingefära/i, /dryck|shot|pulver|syltad|inlagd/i],
-    'kakao': ['kakao', /^kakao/i, /dryck|choklad/i],
     'sesam': ['sesamfrön', /^(sesam|tahini)/i, /olja|kex|bröd/i],
     'jordnötssmör': ['jordnötssmör', /^jordnötssmör/i],
     'majonnäs': ['majonnäs', /^majonnäs/i, /vitlök|chili|light/i],
     'dadlar': ['dadlar', /^dadlar/i],
     'kokos': ['kokosflingor', /^kokos(flingor|olja|chips)/i],
-    'lingon': ['lingon', /^lingon/i, /dryck|saft|yoghurt/i],
+    'lingon': ['lingonsylt', /^lingon/i, /dryck|saft|yoghurt|bröd|grov|kaka|kex/i],
     'miso': ['miso', /miso/i, /soppa/i],
-    'jalapeño': ['jalapeño', /jalape/i, /chips|sås|ost/i],
+    'jalapeño': ['jalapeño', /^jalape/i, /chips|sås|ost|dressing|mayo|majo|salsa|dip/i],
     // Ingredienser utan egen basvara
     'digestivekex': ['digestivekex', /^digestive/i, /choklad/i],
     'selleri': ['selleri', /selleri/i, /rot|salt|fryst|frö/i],
     'butternutpumpa': ['butternut', /butternut/i, /fryst/i],
     'rabarber': ['rabarber', /^rabarber/i, /fryst|sylt|kompott|saft|glas|marmelad|vanilj|vin|dryck|paj/i],
     'sockerärtor': ['sockerärtor', /^(sockerärt|sugar ?snap)/i, /fryst|wok/i],
-    'rostad paprika': ['grillad paprika', /^(grillad|rostad)e? paprik/i, /pulver|krydd|chips|röra|pesto|kräm/i]
+    'rostad paprika': ['grillad paprika', /^(grillad|rostad)e? paprik/i, /pulver|krydd|chips|röra|pesto|kräm/i],
+    // Kryddor: torkade, inte färska i kruka och inte bullar, glögg eller såser
+    'torkad oregano': ['oregano', /^oregano/i, /klass|kruka|färsk/i],
+    'torkad timjan': ['timjan', /^timjan/i, /klass|kruka|färsk/i],
+    'kanel': ['kanel', /^kanel(stång|stänger)?( |,|$)/i, /bulle|bullar|snäck|längd|te\b|socker/i],
+    'saffran': ['saffran', /^saffran( |,|$)/i, /glögg|bulle|bullar|skorpa|klipp|gifflar|äpple|kaka|längd/i],
+    'chipotle eller rökt paprika': ['rökt paprika', /^(rökt paprika|paprika rökt|chipotle)/i, /sås|bearnaise|majo|mayo|dressing|chips/i],
+    // Får heta pulver (fjärde värdet: slå av det allmänna undantaget)
+    'paprikapulver': ['paprikapulver', /^paprika(pulver)?( |,|$)/i, /puré|rökt|klass|fylld|chips|sås|röra/i, 1],
+    'chilipulver': ['chilipulver', /^chili(pulver)?( |,|$)/i, /sås|chips|nötter|choklad|klass|flingor|olja|majo|mayo/i, 1],
+    'bakpulver': ['bakpulver', /^bakpulver/i, /kaka|mix/i, 1],
+    'kakao': ['kakao', /^kakao/i, /dryck|choklad|nibs|smör|mjölk|boll|\bkak(a|or)\b/i, 1],
   };
   const ord = k => new RegExp('^' + k.split(/\s+/)[0].slice(0, 5).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
-  const lagg = (k, s) => [s[0], s[1] || ord(k), s[2] ? new RegExp('(?:' + s[2].source + ')|(?:' + ALLTID.source + ')', 'i') : ALLTID];
+  const lagg = (k, s) => [s[0], s[1] || ord(k), s[3] ? s[2] : s[2] ? new RegExp('(?:' + s[2].source + ')|(?:' + ALLTID.source + ')', 'i') : ALLTID];
   const ut = {};
   Object.keys(S).forEach(k => { ut[k] = lagg(k, S[k]); });
   // Varor som saknas ovan får standardsökningen (namnet, produktnamnet börjar med det) och samma undantag
