@@ -4,8 +4,8 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 ## Börja här
 
-- Aktuell release: **ht-v264**: UI 5.0 (Apple) är standard. Förra: **ht-v263**: kalendern har egen flik i menyraden (Mat, Ekonomi, Översikt, Kalender, Att göra). Uppgifter och Städ delar fliken Att göra med en växlingsknapp (vy-id `uppgifter`/`stad`, `attSeg`, `S.taskTab` = lista|stad); menyknappen minns Städ. Ångra-gren `version-fore-kalenderflik` (= ht-v262). Röktest telefon+vägg grönt.
-- Förra: ht-v262 (Uppgifter: Ångra och "Nyligen borttagna", PR #70), ångra-gren `version-fore-aterstall-uppgift`.
+- Aktuell release: **ht-v265**: jämn luft (≈12 px) runt draghandtagen i väder (Översikt), Schema och matbudget (`.ovx`/`.ovcal`/`.wcard>.motion-grip` i index.html). Ångra-gren `version-fore-handtag-luft` (= ht-v264). Röktest telefon+vägg grönt.
+- Förra: **ht-v264**: UI 5.0 (Apple) är standard. ht-v263: kalendern har egen flik; Uppgifter och Städ delar Att göra (`attSeg`, `S.taskTab` = lista|stad), ångra-gren `version-fore-kalenderflik`.
 - ht-v261: inga dubbletter av uppgifter/varor när svaret från arket tappas (`redanSparad`/`osaker`/`n0` i flush/apiPost, `rid` till Kod.gs; test `verktyg/emu/uppgift-dubblett.js`, även `NOCACHE=1`). Ångra-gren `version-fore-dubbletter`.
 - Inga pågående uppgifter utöver punkterna nedan. Gör inte om godkända ändringar.
 - Strömningen i ChatGPT har avbrutits flera gånger: kontrollera gren/PR/main och Pages innan en avbruten publicering återupptas.
