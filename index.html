@@ -835,10 +835,10 @@ html.ny .chip.lk::before{display:none}
 /* Större bild på Översikt; vädervyn behåller sina mått. */
 .hero.art-geo .hero-wx:not(.wbt){width:160px}
 .hero.art-geo .hero-wx .gs{width:154px;padding-top:70px}
-/* Telefonen: marken under trädet och hundarna är bredare än väderkolumnen och sticker ut till höger; flytta hela bilden åt vänster så att den ryms i kortet */
-.hero.art-geo .hero-wx:not(.wbt) .gs{left:-42px}
-/* sol- och månbanan följer med bilden åt vänster */
-.hero.art-geo>.arc.b{left:calc(24% - 42px);right:48px}
+/* Telefonen: marken under trädet och hundarna är bredare än väderkolumnen och sticker ut till höger; flytta hela bilden åt vänster så att den står mitt i kortet (--gx sätts i placeSky efter kortets bredd) */
+.hero.art-geo .hero-wx:not(.wbt) .gs{left:calc(-46px - var(--gx,0px))}
+/* sol- och månbanan mitt i kortet (ändarna tonas olika, därav olika avstånd) */
+.hero.art-geo>.arc.b{left:calc(53px + var(--gx,0px));right:calc(38px + var(--gx,0px))}
 .hero.art-geo .hero-wx .fig-box.grass{width:154px;height:136.4px}
 .hero.art-geo .hero-wx .gs>.bd{width:253px;height:209px}
 /* Geometrisk på väggen: marken, trädet och solbanan är bredare än rutan, så bilden skalas ned och centreras så att allt syns */
@@ -1807,6 +1807,20 @@ html.ny.seg-klassisk :is(.widget,.hero,.bhero,.wx2,.wx-scene,.bcard){border-radi
 html.ny.seg-klassisk :is(.btn-fill,.btn-tint,.sh-btn,.add-row){border-radius:10px}
 html.ny.seg-klassisk .add-row .add-go{border-radius:8px}
 html.ny.seg-klassisk .banner{border-radius:10px}
+/* Samma hörn i alla vyer (UI 2.0): kort 16 px och knappar 12 px i Kantiga; Inköp, månadsväljaren, veckans knapp, rätternas rutor och bladen följer också Runda/Raka */
+html.ny:not(.ui3,.ui4,.ui5,.seg-kapsel,.seg-klassisk) :is(.wsum,.ws-card){border-radius:16px}
+html.ny:not(.ui3,.ui4,.ui5,.seg-kapsel,.seg-klassisk) .ws-card .wk-new{border-radius:0 0 16px 16px}
+html.ny:not(.ui3,.ui4,.ui5,.seg-kapsel,.seg-klassisk) .sh-btn{border-radius:12px}
+html.ny.seg-kapsel:not(.ui4) .mswitch{border-radius:999px}
+html.ny.seg-kapsel:not(.ui4) .ws-card .wk-new{border-radius:0 0 26px 26px}
+html.ny.seg-kapsel:not(.ui4) .bq{border-radius:20px}
+html.ny.seg-kapsel:not(.ui4) .create-options button{border-radius:16px}
+html.ny.seg-kapsel:not(.ui4) .sheet-panel{border-radius:26px 26px 0 0}
+html.ny.seg-klassisk:not(.ui4) .mswitch{border-radius:10px}
+html.ny.seg-klassisk:not(.ui4) .ws-card .wk-new{border-radius:0 0 10px 10px}
+html.ny.seg-klassisk:not(.ui4) .bq{border-radius:8px}
+html.ny.seg-klassisk:not(.ui4) .sheet-panel{border-radius:10px 10px 0 0}
+@media(min-width:700px){html.ny.seg-kapsel:not(.ui4) .sheet-panel{border-radius:26px}html.ny.seg-klassisk:not(.ui4) .sheet-panel{border-radius:10px}}
 /* Flikraden som flytande glaskapsel med glidande markering */
 html.ny.nav-glas .nav{background:var(--glass);-webkit-backdrop-filter:saturate(180%) blur(24px);backdrop-filter:saturate(180%) blur(24px);border:.5px solid var(--glass-line);box-shadow:0 10px 30px rgba(0,0,0,.16),0 1px 3px rgba(0,0,0,.08)}
 html.ny.nav-glas .nav-pill{display:block}
@@ -2839,6 +2853,7 @@ html.ny.ui5 .sheet-panel{border-radius:34px 34px 0 0;background:var(--bg)}
 html.ny.ui5 .sheet-head{padding:12px 16px 8px}
 html.ny.ui5 .sheet-head .tb{min-width:44px;height:44px;border-radius:22px;padding:0 16px;background:var(--surface);box-shadow:0 1px 6px rgba(0,0,0,.08);color:var(--ink);font-weight:500}
 html.ny.ui5 .sheet-head .tb.strong{background:var(--accent);color:var(--on-accent);font-weight:600}
+html.ny.ui5 .sheet-head span.tb{visibility:hidden}
 /* Inställningar som iOS Inställningar: en grupperad lista med färgade symboler */
 html.ny.ui5 .pref-section{margin:0 16px!important;border-radius:0;border:0!important;background:var(--surface)}
 html.ny.ui5 .pref-section:first-of-type{border-radius:var(--r5) var(--r5) 0 0}
@@ -2917,6 +2932,14 @@ html.ny.ui5 .create-options button:active{background:var(--fill)}
 html.ny.ui5 .create-options button.red{color:#FF3B30}
 html.ny.ui5 .create-options .sh-ic{order:2;width:auto;height:auto;background:none;color:inherit;border-radius:0}
 html.ny.ui5 .create-options svg{width:20px;height:20px;flex:none}
+/* UI 5.0: samma hörn överallt; Inköps summering, widgets, receptkorten och månadsväljaren följer kortens radie */
+html.ny.ui5 :is(.wsum,.widget,.bcard,.hero,.bhero){border-radius:var(--r5)}
+html.ny.ui5 .mswitch{border-radius:999px}
+html.ny.ui5 .bq{border-radius:20px}
+/* UI 4.0 följer också Runda/Raka i widgets, Inköp och månadsväljaren */
+html.ui4.seg-kapsel .widget{border-radius:26px}
+html.ui4.seg-kapsel .mswitch{border-radius:999px}
+html.ui4.seg-klassisk :is(.wsum,.sh-btn,.mswitch,.create-options,.add-row){border-radius:8px}
 </style>
 </head>
 <body>
@@ -2927,11 +2950,11 @@ html.ny.ui5 .create-options svg{width:20px;height:20px;flex:none}
 <div id="toast" hidden class="toast" role="status"></div>
 <div id="undo" hidden class="toast undo" role="status"><span class="ud-t"></span><button type="button" class="ud-b" data-act="shopUndo">Ångra</button></div>
 <script src="config.js?v=37"></script>
-<script src="matvaror.js?v=11"></script>
+<script src="matvaror.js?v=12"></script>
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=265"></script>
+<script src="app.js?v=270"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
