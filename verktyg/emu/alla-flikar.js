@@ -8,9 +8,14 @@ module.exports=async(pg,h)=>{
   await h.idle(700);
   const b=await pg.evaluate(()=>{const x=[...document.querySelectorAll('.banner')].find(y=>/Något gick fel/.test(y.textContent));return x?x.textContent:''});
   if(b)fel('(banner) '+namn+': '+b);await h.shot(namn)};
- for(const v of ['oversikt','mat','uppgifter','stad','ekonomi'])await klick('[data-act="nav"][data-id="'+v+'"]','vy-'+v);
- await klick('[data-act="nav"][data-id="uppgifter"]','uppgifter');
- for(const t of ['kalender','lista'])await klick('[data-act="taskTab"][data-id="'+t+'"]','uppgifter-'+t);
+ for(const v of ['oversikt','mat','kalender','uppgifter','ekonomi'])await klick('#nav [data-act="nav"][data-id="'+v+'"]','vy-'+v);
+ await klick('#nav [data-act="nav"][data-id="uppgifter"]','uppgifter');
+ for(const t of ['stad','lista','stad'])await klick('[data-act="taskTab"][data-id="'+t+'"]','attgora-'+t);
+ // Att göra i menyraden kommer ihåg att man senast var i Städ; ett tryck till går till Uppgifter
+ await klick('#nav [data-act="nav"][data-id="oversikt"]','oversikt-igen');await klick('#nav [data-act="nav"][data-id="uppgifter"]','attgora-minns');
+ if(await pg.evaluate(()=>document.body.dataset.view)!=='stad')fel('Att göra öppnade inte Städ igen');
+ await klick('#nav [data-act="nav"][data-id="uppgifter"]','attgora-uppgifter');
+ if(await pg.evaluate(()=>document.body.dataset.view)!=='uppgifter')fel('Att göra gick inte till Uppgifter');
  await klick('[data-act="nav"][data-id="mat"]','mat');
  for(const t of ['vecka','inkop','recept','bank','efter'])await klick('[data-act="matTab"][data-id="'+t+'"]','mat-'+t);
  await klick('[data-act="matTab"][data-id="vecka"]','mat-vecka-igen');

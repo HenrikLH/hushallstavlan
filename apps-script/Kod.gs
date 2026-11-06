@@ -234,6 +234,10 @@ function doPost(e) {
     recipeRecover_();
     const by = String(b.by || '');
     if (/^recipe(Save|Archive|PlanApply|Import)$/.test(String(b.action || ''))) return recipeAction_(b, by);
+    // Appen skickar om en ändring om svaret aldrig kom fram. Varje ändring har ett eget id (rid);
+    // har det redan sparats hoppar vi över ändringen så att inget läggs till två gånger
+    const rid = /^[a-z0-9]{6,30}$/.test(String(b.rid || '')) ? 'rid:' + b.rid : '', cache = CacheService.getScriptCache();
+    if (rid && cache.get(rid)) return json_({ ok: true, data: allData_() });
     switch (b.action) {
       case 'shopToggle': setCells_('shop', findRow_('shop', b.id), { done: !!b.done }); break;
       case 'shopAdd': {
@@ -269,6 +273,7 @@ function doPost(e) {
         break;
       }
       case 'taskDelete': delRow_(sheet_('tasks'), findRow_('tasks', b.id)); break;
+      case 'eventAdd': eventAdd_(b); break;
       case 'eventEdit': eventEdit_(b, false); break;
       case 'eventDelete': eventEdit_(b, true); break;
       case 'cleanDone': {
@@ -308,6 +313,7 @@ function doPost(e) {
       default: throw new Error('Okänd åtgärd.');
     }
     SpreadsheetApp.flush();
+    if (rid) cache.put(rid, '1', 21600);
     return json_({ ok: true, data: allData_() });
   } catch (err) {
     return json_({ ok: false, error: String(err.message || err) });
@@ -520,7 +526,7 @@ const CALENDARS = [
   { id: 'family15823199462493017779@group.calendar.google.com', who: '' },
   { id: 'sv.swedish#holiday@group.v.calendar.google.com', who: 'Båda' }
 ];
-const CAL_DAYS = 31;
+const CAL_DAYS = 366;
 // Vem en händelse i en gemensam kalender gäller, efter vem som skapade den
 const CREATORS = { 'henrik.lund.hellstrand.2@gmail.com': 'Henrik', 'cornelia.bomsjo@gmail.com': 'Cornelia' };
 
@@ -564,6 +570,8 @@ function calRows_() {
       const flags = (ev.isAllDayEvent() ? 'a' : '') + (rec ? 'r' : '');
       let who = c.who;
       if (!who) { try { who = CREATORS[String(ev.getCreators()[0] || '').toLowerCase()] || ''; } catch (e) { } }
+      // Händelser som lagts till från appen bär vem de gäller i beskrivningen ("Vem: Cornelia")
+      if (!c.who) { try { const m = String(ev.getDescription() || '').match(/^Vem: (.+)$/m); if (m) who = m[1].trim(); } catch (e) { } }
       const add = function (date, time) {
         if (date < td || date >= fmt(to, 'yyyy-MM-dd')) return;
         const title = calTitle_(ev.getTitle(), ev, date);
@@ -671,6 +679,25 @@ function eventEdit_(b, del) {
       if (end < start) end = new Date(end.getTime() + 864e5);
       if (ev.isAllDayEvent() || start.getTime() !== ev.getStartTime().getTime() || end.getTime() !== ev.getEndTime().getTime()) ev.setTime(start, end);
     }
+  }
+  kalenderSynk_();
+}
+
+/* Ny händelse från appen: läggs i den gemensamma kalendern (Familj) så att den syns i båda telefonerna.
+   b.allDay eller ingen starttid ger en heldagshändelse, annars b.start–b.end (utan slut: en timme). */
+function eventAdd_(b) {
+  const title = String(b.title || '').trim().slice(0, 200), date = String(b.date || '');
+  if (!title || !/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error('Händelsen behöver titel och datum.');
+  const cal = cal_(CALENDARS[1].id) || cal_(CALENDARS[0].id);
+  if (!cal) throw new Error('Hittade inte kalendern.');
+  const who = String(b.who || '').trim().slice(0, 40), opt = who ? { description: 'Vem: ' + who } : {};
+  if (b.allDay || !hm_(b.start)) cal.createAllDayEvent(title, day_(date), opt);
+  else {
+    const at = function (t) { return Utilities.parseDate(date + ' ' + t, TZ, 'yyyy-MM-dd HH:mm'); };
+    const start = at(hm_(b.start));
+    let end = hm_(b.end) ? at(hm_(b.end)) : new Date(start.getTime() + 3600000);
+    if (end <= start) end = new Date(end.getTime() + 864e5);
+    cal.createEvent(title, start, end, opt);
   }
   kalenderSynk_();
 }

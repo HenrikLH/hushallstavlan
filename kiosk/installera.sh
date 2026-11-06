@@ -40,6 +40,9 @@ else
   sudo apt-get install -y chromium
   BROWSER=chromium
 fi
+# Mints startskript för Chromium lägger till egna GPU-flaggor (--enable-native-gpu-memory-buffers, Vaapi m.fl.). Med dem
+# fastnade tavlan med en grå sida ("Shared memory region is not valid"), så tavlan startar själva programmet utan dem.
+if [ "$BROWSER" = chromium ] && [ -x /usr/lib/chromium/chromium ]; then BROWSER=/usr/lib/chromium/chromium; fi
 echo "     använder $BROWSER"
 
 echo "2/6  Automatisk inloggning för $ANV"
@@ -122,6 +125,8 @@ echo "6/6  Tavlan startar i helskärm vid inloggning"
 # --password-store=basic: ingen fråga om nyckelring när inloggningen sker utan lösenord
 # --touch-events=enabled: pekskärmen skickar riktiga pekhändelser
 # --overscroll-history-navigation=0: ett svep i sidled bläddrar inte bakåt i webbläsaren
+# Utan grafikkretsen (--disable-gpu) var tavlan stabil men seg, så den behålls. Tappar Chromium grafikminnet och
+#   tavlan blir grå startar vakthunden i ljussensor.py om den inom en minut
 cat > "$AUTOSTART" <<EOF
 [Desktop Entry]
 Type=Application

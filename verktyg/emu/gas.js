@@ -31,19 +31,34 @@ function makeBook(init){
  return {sheets,getSheetByName:n=>sheets[n]?api(sheets[n]):null,insertSheet:n=>{if(sheets[n])throw new Error('Fliken finns redan');sheets[n]={name:n,rows:[],maxRows:50,frozen:1};return api(sheets[n])}}}
 const book=makeBook(require('./data.js'));
 const props={HUSHALLSKOD:'x',NTFY_TOPIC:''};
-let lockHeld=false;
+let lockHeld=false;const cache={};
 const pad=n=>String(n).padStart(2,'0');
+// Stockholms förskjutning den dagen (sommartid +02:00, annars +01:00)
+const stTz=s=>{const d=new Date(s.slice(0,10)+'T12:00:00Z'),h=+new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Stockholm',hour:'2-digit',hour12:false}).format(d);return h===14?'+02:00':'+01:00'};
+// Låtsaskalendrar: createEvent/createAllDayEvent/getEvents räcker för kalenderSynk_, eventAdd_ och eventEdit_
+function mockCal(){const cals={};let n=0;
+ const ev=(o)=>({_o:o,getId:()=>o.id,getTitle:()=>o.title,setTitle:t=>{o.title=t},isAllDayEvent:()=>!!o.allDay,getStartTime:()=>o.start,getEndTime:()=>o.end,
+  getAllDayStartDate:()=>o.start,getAllDayEndDate:()=>new Date(o.start.getTime()+864e5),getMyStatus:()=>'YES',getEventType:()=>'DEFAULT',isRecurringEvent:()=>false,
+  getCreators:()=>['henrik.lund.hellstrand.2@gmail.com'],getDescription:()=>o.desc||'',setTime:(a,b)=>{o.start=a;o.end=b;o.allDay=false},setAllDayDate:d=>{o.start=d;o.allDay=true},deleteEvent:()=>{o.gone=true}});
+ const cal=id=>cals[id]||(cals[id]={id,list:[],
+  createEvent(title,start,end,opt){const o={id:'e'+(++n),title,start,end,desc:(opt||{}).description};this.list.push(o);return ev(o)},
+  createAllDayEvent(title,d,opt){const o={id:'e'+(++n),title,start:d,end:new Date(d.getTime()+864e5),allDay:true,desc:(opt||{}).description};this.list.push(o);return ev(o)},
+  getEvents(a,b){return this.list.filter(o=>!o.gone&&o.start<b&&o.end>a).map(ev)},
+  getEventsForDay(d){return this.getEvents(d,new Date(d.getTime()+864e5))},
+  getEventById(id){const o=this.list.find(o=>o.id===id&&!o.gone);return o?ev(o):null}});
+ return{_cals:cals,getCalendarById:cal,GuestStatus:{NO:'NO'}}}
 const ctx={
  console,JSON,Math,Date,String,Number,Object,Array,Error,RegExp,isFinite,isNaN,parseInt,parseFloat,
  SpreadsheetApp:{getActive:()=>book,flush(){}},
  LockService:{getScriptLock:()=>({waitLock(){if(process.env.LOCKFAIL&&Math.random()<+process.env.LOCKFAIL)throw new Error('Lock timeout: another process was holding the lock for too long.');lockHeld=true},releaseLock(){lockHeld=false}})},
+ CacheService:{getScriptCache:()=>({get:k=>cache[k]||null,put:(k,v)=>{if(!process.env.NOCACHE)cache[k]=String(v)}})},
  ContentService:{MimeType:{JSON:'json'},createTextOutput:t=>({t,setMimeType(){return this}})},
  PropertiesService:{getScriptProperties:()=>({getProperty:k=>props[k]||null,setProperty:(k,v)=>{props[k]=v}})},
  Utilities:{getUuid:()=>require('crypto').randomUUID(),formatDate:(d,tz,f)=>{
    const p=new Intl.DateTimeFormat('sv-SE',{timeZone:tz==='UTC'?'UTC':'Europe/Stockholm',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).formatToParts(d).reduce((o,x)=>(o[x.type]=x.value,o),{});
    return f.replace('yyyy',p.year).replace('MM',p.month).replace('dd',p.day).replace('HH',p.hour).replace('mm',p.minute).replace('ss',p.second)},
-  parseDate:(s)=>new Date(s+'T00:00:00+02:00')},
- DriveApp:{},CalendarApp:{},UrlFetchApp:{fetch(){}},ScriptApp:{},Session:{}};
+  parseDate:(s)=>/ \d{2}:\d{2}$/.test(s)?new Date(s.replace(' ','T')+':00'+stTz(s)):new Date(s+'T00:00:00'+stTz(s))},
+ DriveApp:{},CalendarApp:mockCal(),UrlFetchApp:{fetch(){}},ScriptApp:{},Session:{getEffectiveUser:()=>({getEmail:()=>'emu'})}};
 vm.createContext(ctx);
 vm.runInContext(fs.readFileSync(process.env.KOD||require('path').join(__dirname,'../../apps-script/Kod.gs'),'utf8'),ctx);
 // checkKey_ accepts anything

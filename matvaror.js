@@ -85,7 +85,7 @@
      [namn, mönster, förpackning (g eller st), pris kr, g per dl, g per st] */
   const SK = [
     ['jordnötssmör', /jordnötssmör/, 350, 35, 100, 0],
-    ['smör', /smör(?!gås)|margarin/, 500, 55, 95, 0],
+    ['smör', /smör(?!gås)|margarin|bregott/, 500, 55, 95, 0],
     ['vaniljsocker', /vaniljsocker|vaniljpulver/, 100, 22, 50, 0],
     ['socker', /socker|farin/, 1000, 16, 85, 0],
     ['majsstärkelse', /majsstärkelse|maizena|potatismjöl/, 400, 25, 60, 0],
@@ -113,7 +113,7 @@
     ['jalapeño', /jalapeño/, 200, 25, 0, 10],
     ['kryddor', /./, 50, 25, 40, 0],
   ];
-  const SKAFFERI = /salt|peppar|olja|smör|vinäger|soja|buljong|tomatpuré|vatten|vitt vin|mjöl(?!k)|jäst|senap|kryddor|krydda|spiskummin|kummin|oregano|kanel|timjan|paprikapulver|rökt paprika|chipotle|gurkmeja|garam|curry|chili|mejram|ingefära|vitlök|honung|sesam|kakao|vanilj|miso|sriracha|tahini|majsstärkelse|jalapeño|saffran|kardemumma|muskot|nejlika|lagerblad|kryddpeppar|lingon|kokos(flingor|olja)|dadlar|jordnötssmör|majonnäs|socker|sirap/;
+  const SKAFFERI = /salt|peppar|olja|smör|margarin|bregott|vinäger|soja|buljong|tomatpuré|vatten|vitt vin|mjöl(?!k)|jäst|senap|kryddor|krydda|spiskummin|kummin|oregano|kanel|timjan|paprikapulver|rökt paprika|chipotle|gurkmeja|garam|curry|chili|mejram|ingefära|vitlök|honung|sesam|kakao|vanilj|miso|sriracha|tahini|majsstärkelse|jalapeño|saffran|kardemumma|muskot|nejlika|lagerblad|kryddpeppar|lingon|kokos(flingor|olja)|dadlar|jordnötssmör|majonnäs|socker|sirap/;
 
   const norm = n => String(n || '').toLowerCase().trim();
   // Namnet utan tillägg: "kikärtor (380 g)" och "färskost, rumstempererad" blir kikärtor och färskost

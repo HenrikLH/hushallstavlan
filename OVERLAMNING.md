@@ -1,39 +1,61 @@
-# Aktuell överlämning — 2026-10-24
+# Aktuell överlämning — 2026-11-04
 
-Claude och Codex: läs AGENTS.md och denna fil. Repot är gemensamt minne; läs relevant kod/PR vid behov.
+Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
 ## Börja här
 
-- Hämta senaste main. Drift: **ht-v178 / app.js?v=169 / matvaror.js?v=9**, appcommit 547281d, [PR #30](https://github.com/HenrikLH/hushallstavlan/pull/30).
-- [Pages-publicering](https://github.com/HenrikLH/hushallstavlan/actions/runs/40094688899) grön; publik sw/index och appens filinnehåll verifierade. Inga öppna PR:er eller ofärdiga implementationer vid överlämningen.
-- Nästa steg: Henriks nästa konkreta uppgift eller återkoppling från telefon/Surface. Gör inte om redan godkända rättningar.
-- Henrik vill behålla UI 2.0:s tema och gemensamma komponenter. UI 3.0 är frivilligt i utvecklarläget. Bilder före visuella ändringar på main; ”Pusha” är publiceringsgodkännande.
-- Strömningen i ChatGPT har avbrutits flera gånger. Kontrollera gren/PR/main och Pages innan en avbruten publicering återupptas. Begär inte samma godkännande igen.
+- Aktuell release: **ht-v273**: Schema i Översikt, dra ned i veckoraden fungerar i iPhone (`.ovcal:not(.expanded) .ovcal-week .wk-sw{touch-action:pan-x}`, drag uppåt scrollar sidan via scrollBy). Ångra-gren `version-fore-schema-iphone`. Gröna: alla-flikar telefon+vägg, kalender-dra-ned (UI5+UI2). Följ upp med Henrik i iPhone.
+- Förra: **ht-v272**: flikraden i UI 5.0 har en lins som drivs av fjädrar (`navLins` före drag-IIFE:n i app.js, CSS `.nav.fj`/`.lyft`, `--lins`): tryck lyfter, följer fingret, sträcks efter farten, knack (`u5Tick`) vid flikbyte, fjädrar in vid släpp. Ångra-gren `version-fore-flikrad-lins`, PR #73. Test `verktyg/emu/flikrad-lins.js`, alla-flikar telefon/vägg/UI2 gröna. Följ upp: känns linsen rätt i iPhone? Justera sträckning (/2600, max .28) och lyft (.18/.26).
+- Förra: **ht-v271**: Schema i Översikt får 12 px luft ovanför handtaget, och dra ned i veckoraden fäller ut månaden (touch-lyssnare efter motion-grip-hanterarna i app.js; test `verktyg/emu/kalender-dra-ned.js`). Ångra-gren `version-fore-schema-dra-ned`. Gröna: alla-flikar telefon+vägg, kalender-dra-ned (UI5+UI2). Följ upp: känns draget rätt i iPhone?
+- Förra: **ht-v270**: Kalender utan den röda datumraden under Dag/Vecka/Månad (`.motion-date-label` borttagen, var dubblett). Ångra-gren `version-fore-kalenderdatum`. Gröna: alla-flikar telefon+vägg, kalender-svep. Förra: **ht-v269** tidsblock i kalendern (se Pågår nu). Förra: **ht-v268**: svep i Kalender-fliken byter månad/vecka/dag (`calSwipe` före `subSwipe`; test `verktyg/emu/kalender-svep.js`). Ångra-gren `version-fore-kalendersvep`. Gröna: alla-flikar telefon+vägg, ui5-gester, kalender-svep (UI5+UI2).
+- Förra: **ht-v266**: plusknappen syns på Kalender-fliken (`addContext`), och emu-scenarierna går till Städ via Att göra (`#nav uppgifter` + `taskTab stad`). Ångra-gren `version-fore-kalender-plus`. Gröna: alla-flikar telefon+vägg, plus-alternativ, ui-versioner (`LS={"ui":"2"}`), stad-vyer, stad-plus, hall-in-blad.
+- Förra: **ht-v265**: jämn luft (≈12 px) runt draghandtagen i väder (Översikt), Schema och matbudget (`.ovx`/`.ovcal`/`.wcard>.motion-grip` i index.html). Ångra-gren `version-fore-handtag-luft` (= ht-v264). Röktest telefon+vägg grönt.
+- Förra: **ht-v264**: UI 5.0 (Apple) är standard. ht-v263: kalendern har egen flik; Uppgifter och Städ delar Att göra (`attSeg`, `S.taskTab` = lista|stad), ångra-gren `version-fore-kalenderflik`.
+- ht-v261: inga dubbletter av uppgifter/varor när svaret från arket tappas (`redanSparad`/`osaker`/`n0` i flush/apiPost, `rid` till Kod.gs; test `verktyg/emu/uppgift-dubblett.js`, även `NOCACHE=1`). Ångra-gren `version-fore-dubbletter`.
+- Inga pågående uppgifter utöver punkterna nedan. Gör inte om godkända ändringar.
+- Strömningen i ChatGPT har avbrutits flera gånger: kontrollera gren/PR/main och Pages innan en avbruten publicering återupptas.
 
-## Pågår: priser efter förpackning (Claude)
+## Pågår nu
 
-- Mål (Henrik 2026-10-24): inga varor utan pris. Inköp = hela förpackningar som köps, pris/portion = använd mängd.
-- Gren `claude/project-thread-646pna`, PR mot main, ht-v179 / app.js?v=170 / matvaror.js?v=10. Väntar på Henriks ”Pusha” efter bilder.
-- matvaror.js: riktig förpackning ur `priser` (nytt `fp`-format eller tolkat ur produktnamnet), SK = skafferipriser, `anvant`; styckvikter (gst) för blomkål m.fl. app.js: `shopKr` (pris för rader utan pris), `portKr`/`veckaAnvant` (per portion), efterrättens rader med förpackningspris.
-- **Väntar på Henrik:** klistra in apps-script/Kod.gs (willysPris_ väljer förpackningen som är billigast för standardmängden, prisar skafferi och egna varor, skriver `fp`) och kör `startaPrisSynk`. Utan den används gamla priser, då kan stora säckar (5 kg potatis) synas.
-- Test: alla-flikar telefon/vägg/mörkt, recept-ui/-reliability/-legacy, matsedel-gester och recept-server gröna lokalt på grenen.
+- **Tidsblock i kalendern** publicerat ht-v269 (ångra-gren `version-fore-tidsblock`, PR #72): Kalenderns plus och Lägg till öppnar Ny händelse (Händelse|Uppgift, Datum, Heldag, Börjar, Slutar, Vem; `evNyOpen`, `evNew`, `evNewTyp`). Dag- och breda veckovyn: tryck på tom tid = block vid halvtimmen, håll in 0,4 s och dra = start/slut i kvartar (`calNyAttr`, `.cv-ny`). Kod.gs `eventAdd` lägger i Familj-kalendern med "Vem: X" i beskrivningen (läses i `calRows_`). Test `node verktyg/emu/run.js verktyg/emu/kalender-tidsblock.js` (med eller utan NOW) (gas.js har låtsaskalendrar). Nästa: Henrik provar dra i iPhone efter Kod.gs-inklistring.
+- **Flytta rutor + widgets** publicerat ht-v267 (ångra-gren `version-fore-widgets`, main före: 6423eb1). Widgets i S/M/L bakom Inställningar → Avancerat → Experimentellt (utvecklarläge, `ht.exp=1`, `expOn()`, `XW`/`layoutX`/`ovX`/`wallX`). Ändra-läget är ett utkast (`ARR0`): Klar sparar och minns förra i `<nyckel>Prev` (Ångra, Föregående, Inställningar → Gå tillbaka). Tester `flytta-rutor.js`, `widgets.js`. Nästa: Henrik provar dragning på iPhone; CI-felen i `oversikt-manad.js`/`ui-versioner.js` fanns redan på main.
+- **Widgets som standard + dra i hörnet för storlek** publicerat ht-v274 (ångra-gren `version-fore-widgets-standard`, main före: c59fda9). `expOn()` = `ht.exp!=="0"`, brytaren under Inställningar → Översikten. Dragning i `.arr-s` ger närmaste storlek, kort tryck öppnar menyn. Test `storlek-dra.js`, `flytta-rutor.js`, `widgets.js`. Nästa: Henrik provar i iPhone.
+- Inget pågående. Senast publicerat (ht-v261): borttagen öppen uppgift ger Ångra i 5 s och hamnar i "Nyligen borttagna" (ruta U12) under Klara i 30 dagar, synkat mellan enheter via `onskelista` `{bort:1,l:[{k,title,due,who,repeat,at,by}]}` (ingen Kod.gs; `wishes()`/`recipeWishes` hoppar över den). Återställ = `taskAdd`. Klara uppgifter sparas inte. Test `verktyg/emu/uppgift-aterstall.js`.
 
-## Beteende som ska bevaras
+- Inget pågående. **UI 5.0 (Apple) är standard** sedan ht-v264 (Henriks beslut 2026-11-06; ångra-gren `version-fore-ui5-standard`). `U5` = `ht.ui` saknas eller `5`; UI 2.0 sparas som `ht.ui=2`. CI: matris UI 2 kör med `{ui:"2"}`, UI 5 utan `ui`. Kända fel från ht-v263 (kalenderfliken): `ui-versioner.js` och `plus-alternativ.js` klickar på `taskTab` lista som inte längre finns där; behöver anpassas.
+- Inget. Senast publicerat: Städvyn kan väljas som Lista (standard), Rutnät eller Ring under Inställningar → Mat och städ (`ht.stadVy`, `stadRutnat`/`stadRing` i app.js, CSS `.sx-*`). Test: `NOW=<idag> node verktyg/emu/run.js verktyg/emu/stad-vyer.js` (emulerade servern sätter lastDone med riktigt datum).
 
-- Plusplacering per enhet (ht.addPlace): Flytande / Vid profilen / Vid raden. Receptplus öppnar Nytt recept/Importera. Städ: Vid profilen flyttar pluset till huvudet och döljer endast övre Ny syssla-raden; övriga två behåller raden, rumsfält kvar. [PR #27](https://github.com/HenrikLH/hushallstavlan/pull/27), [#28](https://github.com/HenrikLH/hushallstavlan/pull/28).
-- Recept: neutralt förstoringsglas; kombinerbara filter, återställning/resultatantal/tomlägen, separat filterminne per underflik. Arkiv är separat navigering vid Mina recept. Bevara favoriter, sparat/arkiv/återställning, import/synk och utkast. Orörda tomma utkast städas; ny efterrätt får rätt kategori.
-- Veckosedel: **ingen automatisk Ätit-status eller datumspärr**. Efter torsdag kan vardagsrätter fortfarande tas bort/låsas. Vänstersvep visar Ta bort, högersvep och hålltryck låser/låser upp. Båda låsstilarna (rätt/bild) fungerar; låst borttagning kräver bekräftelse. [PR #29](https://github.com/HenrikLH/hushallstavlan/pull/29).
-- Lilla väderremsan: tunn linje före midnatt och dag + 00, ingen vald bakgrund; även när midnatt är första timmen. Scroll/väderlänk kvar. PR #30 ersätter stängda #20; inget väderarbete väntar längre.
-- Inga nya Kod.gs-steg krävs. Henrik bekräftade 2026-10-21 att Kod.gs/setupRecipes/distribution är uppdaterade. Receptlagring/server/import: docs/recipe-management-release.md. Ingen riktig hushållsdata ändrad av agenten.
+- **Priser efter förpackning** (Claude, PR #32, gren `claude/project-thread-646pna`, ht-v275 / app.js?v=265 / matvaror.js?v=11): Inköp = hela Willysförpackningar, pris/portion = använd mängd (`portKr`, `veckaAnvant`), skafferivaror prisas (`MV.SK`/`MV.skafferi`), efterrättsrader och egna rader får pris (`shopKr`). Kod.gs `willysPris_` väljer förpackningen som är billigast för standardmängden och skriver `fp`. Väntar på Henriks ”Pusha”; därefter klistra in Kod.gs från main och kör `startaPrisSynk`. Klienten klarar gamla `priser` (läser storleken ur produktnamnet).
 
-## Verifiering och återställning
+## Följ upp med Henrik
 
-- verktyg/emu/stad-plus.js: telefon/vägg × ljust/mörkt inkl. UI3; inställningar/omstart/Avbryt/två sparvägar. ui-versioner.js godkänd. Bilder outputs/stad-plus-profil/.
-- verktyg/emu/matsedel-gester.js: torsdag–lördag, telefon/vägg × ljust/mörkt; båda låsstilarna via inställningar/omladdning, hålltryck/svep, låst bekräftelse/Avbryt, sparning efter omladdning. Alla-flikar telefon/vägg godkända på appkoden i #29. Bilder outputs/matsedel-gester/.
-- verktyg/emu/vader-dygn.js: ljust/mörkt på vägg, dygnsgräns inkl. första timmen, scroll/väderlänk; alla-flikar telefon godkända på appkoden i #30. Bilder outputs/vader-dygn/. Testerna använder låtsasdata.
-- Ångra-grenar: version-fore-vader-dygn-20261024 (ht-v177), version-fore-matsedel-gester-20261024 (ht-v176), version-fore-stad-plus-20261023 (ht-v175).
+- Kalenderflik (ht-v263): hittar ni kalendern nu, och saknas Städ som egen flik? Gamla `ht.taskTab=kalender` öppnar Kalender-fliken vid start.
+- Svepgester i UI 5.0 (ht-v258, PR #69): känns svep tillbaka rätt i iPhone? Justera i så fall `u5Fart.proj` (r=0,997), gränsen W/2 eller fjäderns 0,42 s. Test `LS='{"ui":"5"}' node verktyg/emu/run.js verktyg/emu/ui5-gester.js`.
+
+- Städvyn (ht-v256): vilken av Rutnät/Ring vill han ha kvar? Förslag C (lugn lista) byggdes inte. Rutnätets rutor bockas av med tryck, håll in ger bladet.
+
+- Hundbilden (ht-v249–v254): känns animationerna mjuka på iPhone? Huvudvickningen minskades till ≈2° (`.geo-huvud`/`GEO_NACKE`); ta bort eller ändra om han fortfarande ogillar den. Undvik nya rörliga delar i de stilla SVG:erna (`svg.fig-lag`/`svg.bd-lag` är de rörliga) och nya SVG-filter i Geometrisk.
+- Inköpssynk mellan telefoner (ht-v252, test `verktyg/emu/inkop-synk.js`): följ upp om fler synkfel syns.
+- GPU-lager (`gpuLager`, bara gemensam skärm tills iPhone prövats; `ht.gpu=1/0` tvingar): rör sig Surfacen mjukt?
+- Grå väggskärm: kiosken kör Chromium med GPU + vakthund i `kiosk/ljussensor.py`. Följ upp med `journalctl --user -u ljussensor | grep vakt` på Surfacen. Datorn kör XFCE, inte Cinnamon.
 
 ## Kräver verklig hårdvara
 
-- Henrik: bekräfta UI 3.0 med iPhone-tangentbord och på Surface.
-- Henrik: bekräfta adaptiv ljusstyrka på Surface (ht-v163–v169). Kan inte verifieras i molnet.
+- UI 3.0 med iPhone-tangentbord och på Surface.
+- Adaptiv ljusstyrka på Surface (ht-v163–v169).
+
+## Väntar på Henrik (Kod.gs)
+
+- Henrik klistrade in Kod.gs från main 2026-11-06 20:06 (med `eventAdd` och `rid`-skyddet). Prisdelen (PR #32) finns inte där än: efter publicering behövs en ny inklistring + `startaPrisSynk`.
+- Namn/rum på sysslor kan inte ändras utan ny Kod.gs (`cleanSet` tillåter bara freq/min/who/plannedFor/snoozeUntil).
+
+## Beslut som ska bevaras (inte självklara i koden)
+
+- UI 2.0 är standard och ska bevaras; Ateljé är frivilligt UI 4.0, UI 3.0 finns kvar i utvecklarläget.
+- Veckosedel: ingen automatisk Ätit-status eller datumspärr; låst borttagning kräver håll in.
+- Håll in = lyft (`hlOn/hlOff`); `data-hold`-bekräftelseknappar behåller fyllningen med flit.
+- Väderhimlen: vita stjärnor i mörkt läge (gula i ljust), inga stjärnor vid dimma, molnform B+C (Henrik avvisade bubblig och trappstegsformad underkant), molnmängd efter `cloud_area_fraction`.
+- Trädet i Geometrisk: tydliga cirklar och starka färger.
+- Timerpillret: ingen tid i staplarna (Henriks val).
+- Födelsedagar: egna tillägg/färger i `onskelista` (`{fod:1,add,del}`, `col`) läggs ovanpå kalendersynken.
+- `installningar.js` faller även på main (gammalt fel, inte orsakat av senare ändringar).

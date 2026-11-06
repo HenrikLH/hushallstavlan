@@ -8,7 +8,7 @@ module.exports=async(pg,h)=>{
   if(mode==='flytande'){await pg.locator('[data-act="addPlace"]').first().scrollIntoViewIfNeeded();await h.shot('installningar')}
   await click('[data-act="sheetClose"]');await nav('mat');await click('[data-act="matTab"][data-id="recept"]');await click('[data-act="matTab"][data-id="bank"]');await h.shot(mode+'-recept');await click('.create-menu>summary');await h.shot(mode+'-meny');await pg.keyboard.press('Escape');
   await nav('uppgifter');await click('[data-act="taskTab"][data-id="lista"]');await h.shot(mode+'-uppgifter');
-  if(mode==='rad'){await click('[data-act="taskTab"][data-id="kalender"]');await h.shot('rad-kalender');await nav('mat');await click('[data-act="matTab"][data-id="inkop"]');await h.shot('rad-inkop')}
+  if(mode==='rad'){await click('#nav [data-act="nav"][data-id="kalender"]');await h.shot('rad-kalender');await nav('mat');await click('[data-act="matTab"][data-id="inkop"]');await h.shot('rad-inkop')}
  }
  console.log('PASS: jämförbara skärmbilder, inga skrivningar av hushållsdata.');
 };

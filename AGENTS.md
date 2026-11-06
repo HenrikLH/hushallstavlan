@@ -2,6 +2,8 @@
 
 Gemensam grund för Codex och Claude Code (via `CLAUDE.md`). Läs hela filen och `OVERLAMNING.md` när du tar över eller börjar en ny session. I samma session räcker det att läsa det som ändrats. Arbetsrutinen står i avsnitt 7.
 
+**Rutiner som skills:** stegen för att ta över, förhandsvisa och publicera ligger i `.claude/skills/hushallstavlan-ta-over/`, `hushallstavlan-forhandsvisa/` och `hushallstavlan-publicera/` (`SKILL.md`). Claude Code läser dem automatiskt när de behövs; Codex och andra agenter läser filen när avsnittet nedan hänvisar dit. Ändra rutinen i skill-filen, inte på två ställen.
+
 Om något här säger emot det Henrik skriver till dig gäller Henriks ord. Uppdatera då filen i samma ändring så att nästa agent vet.
 
 ---
@@ -41,35 +43,30 @@ Telefon / väggskärm (PWA)  ──GET/POST──▶  Google Apps Script-webbapp
 ```
 
 - **Ingen byggprocess.** Statiska filer i repots rot publiceras med **GitHub Pages från `main`** på https://henriklh.github.io/hushallstavlan/. Allt som hamnar på `main` är i drift inom någon minut.
-- `index.html` (≈140 kB): all HTML-stomme och **all CSS** i en `<style>`. Ny design ("UI 2.0", standard) är CSS under `html.ny`. Gamla UI 1.0 finns bara i utvecklarläget och ska inte gå sönder, UI 3.0 utvecklas som separat frivilligt val; UI 2.0 ska behålla sitt utseende och beteende tills Henrik säger annat.
-- `app.js` (≈470 kB): hela appen i en fil. Kompakt stil med långa rader och korta namn. **Skriv i samma stil och formatera aldrig om filen** (ingen Prettier/ESLint --fix): omformatering ger enorma diffar och krockar med andra agenters arbete.
+- `index.html` (≈140 kB): all HTML-stomme och **all CSS** i en `<style>`. Grunddesignen ("UI 2.0") är CSS under `html.ny`. UI 1.0 är borttagen (ht-v219): basen utan `html.ny` finns kvar som grund men visas aldrig ensam; klassen `ny` sätts alltid. UI 5.0 (Apple) är **standard** sedan ht-v264; UI 2.0 och UI 4.0 (Ateljé) är frivilliga val under Inställningar → Utseende → Design; UI 3.0 finns kvar i utvecklarläget. UI4-CSS ligger bara under `html.ui4`; UI2/UI3 ska inte ändra utseende.
+- `app.js` (≈530 kB, läs aldrig hela; se `node verktyg/karta.js`): hela appen i en fil. Kompakt stil med långa rader och korta namn. **Skriv i samma stil och formatera aldrig om filen** (ingen Prettier/ESLint --fix): omformatering ger enorma diffar och krockar med andra agenters arbete.
   - `S` = tillstånd, `A` = appens objekt, `V` = vyer (`V.mat`, `V.oversikt` …), `ACT` = alla handlingar. Klick hanteras via `data-act="namn"` och `data-id`, `data-hold` för håll-in-knappar (1 s). Vyer returnerar HTML-strängar; `render()`/`doRender()` ritar om.
   - `apiGet()` hämtar allt, `setData()` tar emot det. `apiPost(body)` lägger ändringen i **utkorgen** `OUTBOX` (sparas i localStorage `ht.outbox`), `flush()` skickar en i taget och försöker igen vid nätfel och låsfel. Appen visar ändringen direkt (optimistiskt).
   - Inställningar **per enhet** ligger i localStorage med prefix `ht.` (`lsGet`/`lsSet`). Inställningar för **hela hushållet** ligger i kalkylarkets flik Inställningar.
   - Personer: `personer` lagras som `stabilNyckel:färg[:URL-kodatVisningsnamn]` per person. `people()` ger stabila nycklar för data/API; `personLabel()` ger namnet som ska visas. Byt aldrig datanyckel vid namnbyte: uppgifter, kalender, betyg och ekonomi ska behålla ägare. Äldre `namn:färg` fungerar oförändrat. Inställningarnas Personer samlar användarval, namn och färg; ändringar av namn/färg sparas med Spara. Kategorierna byggs uttryckligen i `settingsGroups`, inte från rubrikmatchning.
-  - `U3` = UI 3.0, frivilligt val under Inställningar → Utvecklarläge → Design (`ht.ui=3`, kräver `ht.dev=1`), annars UI 2.0. UI 3.0 ärver basen under `html.ny`, men alla dess CSS-ändringar ska ligga under `html.ui3` och beteendeändringar skyddas med `U3`. UI 2.0:s utseende, funktioner och sparade preferenser ska bevaras. Rutornas ordning sparas separat i `ovLayout3`/`wallLayout3`.
-  - `NY` = UI 2.0-basen på, `DEV` = utvecklarläge (brytare längst ner i Inställningar), `wallBoardOn()` = väggtavla.
+  - `U3` = UI 3.0, frivilligt val under Inställningar → Utseende → Design när Utvecklarläge är på (`ht.ui=3`, kräver `ht.dev=1`), annars UI 2.0. UI 3.0 ärver basen under `html.ny`, men alla dess CSS-ändringar ska ligga under `html.ui3` och beteendeändringar skyddas med `U3`. UI 2.0:s utseende, funktioner och sparade preferenser ska bevaras. Rutornas ordning sparas separat i `ovLayout3`/`wallLayout3`.
+  - `U5` = UI 5.0 (Apple), standard: sant när `ht.ui` saknas eller är `5`. Val av UI 2.0 sparas som `ht.ui=2`. All dess CSS ligger under `html.ny.ui5` sist i `<style>`, beteende skyddas med `U5`; UI 2.0 ska fortsatt se ut som förut när det är valt.
+  - `U4` = UI 4.0 (`ht.ui=4`), oberoende av utvecklarläget. `accent4`, `ovLayout4` och `wallLayout4` är dess egna enhetsval; första layouten ärver UI2:s ordning utan att skriva över den. Rättens synliga meny använder befintlig `dishMenu`. UI4 har inga demodata, extra nätanrop eller Apps Script-ändringar.
+  - **Rutnummer:** varje ruta har ett fast nummer, bokstav för delen + löpnummer (`M2` = Vardagar). Henrik refererar till rutor så; hitta koden med `node verktyg/rutor.js M2`. Ny ruta: ta nästa lediga (`node verktyg/rutor.js M`), sätt `RF('M28')`, `rgroup('M28',…)` eller `refAdd(html,'M28')` och skriv namnet i `verktyg/rutor.json`. Borttagen ruta: flytta numret till `borttagna`, återanvänd aldrig. Syns i Utvecklarläge → Visa rutnummer (`ht.refs`).
+  - Vägledande animationer är på som standard i alla UI-versioner oberoende av Utvecklarläge (`MOTION`, `ht.motion`, av bara vid värdet `0`). Brytaren finns för alla under Inställningar → Avancerat → Rörelse. Systemets reducerade rörelse går före. Bevara sparat av-val och draghandtagens funktion.
+  - `DEV` = utvecklarläge (brytare längst ner i Inställningar), `wallBoardOn()` = väggtavla.
   - En skärm som alltid står på laddar om sig själv när `app.js?v=` i `index.html` har ändrats (kollas var tionde minut, bara när ingen gör något).
 - Andra filer: `matvaror.js` (basvaror, förpackningar, priser, kategorier), `matpoang.js`, `restpoang.js` (poäng för veckoförslag och rester), `kottveg.js` (rätter med kött- och vegvariant), `willys-sok.js`, `inspiration.json` (≈100 inspirationsrecept), `sw.js` (service worker), `config.js` (Apps Script-adressen), `bilder/`, `icons/`, `widget.html`/`widget.txt` (hemskärmswidget), `kiosk/` (installationsskript och ljussensortjänst för väggdatorn).
 - **Apps Script** (`apps-script/Kod.gs`): `doGet` ger all data (`settings, shop, tasks, clean, menu, events, offers, recipes`), `doPost` tar `{action, key, by, …}`. Flikar och kolumner står i `TABS` och `COLS` högst upp. Hushållskoden (`key`) kontrolleras i `checkKey_`.
-- **Inställningar som appen får skriva** måste stå i `SETTING_KEYS_WRITABLE` (eller vara `receptbank_N`). En ny nyckel ger annars felet "Inställningen kan inte ändras från appen" tills Henrik klistrat in ny `Kod.gs`. Återanvänd hellre en befintlig nyckel (till exempel lagras efterrätt och lås i `onskelista`).
+- **Inställningar som appen får skriva** måste stå i `SETTING_KEYS_WRITABLE` (eller vara `receptbank_N`). En ny nyckel ger annars felet "Inställningen kan inte ändras från appen" tills Henrik klistrat in ny `Kod.gs`. Återanvänd hellre en befintlig nyckel (till exempel lagras efterrätt, lås och egna födelsedagar `{fod:1,add,del}` i `onskelista`).
 
 ## 4. Versioner och publicering (gör så här varje gång)
 
-Varje ändring som ska ut till användarna:
+Följ `.claude/skills/hushallstavlan-publicera/SKILL.md` steg för steg. Det viktigaste:
 
-1. Jobba på en egen gren, aldrig direkt på `main`.
-2. Precis innan du höjer versionen: `git fetch origin main && git merge origin/main` (andra agenter pushar ofta, ibland flera gånger i timmen).
-3. Höj versionen, alltid **ett steg över det som nu finns på main**:
-   - `sw.js`: `const VERSION = 'ht-vNNN'`
-   - `index.html` **och** `sw.js` (listan `SHELL`): `app.js?v=NNN`. Höj den även om bara CSS i `index.html` ändrats, annars laddar väggskärmen inte om.
-   - Har du ändrat `matvaror.js`, `kottveg.js`, `matpoang.js`, `restpoang.js` eller `config.js`: höj deras `?v=` på samma två ställen.
-4. Skriv versionen i commit-meddelandet, till exempel `Inköp: håll in för att tömma (ht-v170)`.
-5. Skapa ångra-grenen `version-fore-<namn>` från nuvarande `main`, slå ihop, pusha.
-6. Kontrollera att GitHub Actions-jobbet "pages build and deployment" faktiskt körde och blev grönt. Det har hänt att en push aldrig byggdes.
-7. Uppdatera aktuell status i `OVERLAMNING.md` och ta bort lösta punkter (se avsnitt 7). Dokumentation/testverktyg kräver ingen appversionshöjning.
-
-Krockar i `sw.js`/`index.html` vid sammanslagning: ta det högsta numret från båda sidor och lägg på ett.
+- Jobba på egen gren, aldrig direkt på `main`. Kör `node verktyg/version.js` precis före publicering (merge av `origin/main` + versionshöjning ett steg över main: `ht-vNNN` i `sw.js`, `app.js?v=` i `index.html` och `sw.js`, även vid bara CSS-ändring).
+- Ångra-gren `version-fore-<namn>` från `main` före sammanslagning, versionen i commit-meddelandet, kontrollera att "pages build and deployment" blev grönt, uppdatera `OVERLAMNING.md`.
+- Krockar i `sw.js`/`index.html`: högsta numret från båda sidor plus ett. Dokumentation/testverktyg kräver ingen appversionshöjning.
 
 ## 5. Apps Script (Kod.gs)
 
@@ -92,14 +89,14 @@ Playwright installeras med `npm install --no-save playwright && npx playwright i
 
 Om Chromium inte kan installeras lokalt: använd `.github/workflows/emu.yml` i PR:en. Den installerar webbläsaren och kör telefon/vägg × ljust/mörkt; bilder sparas i sju dagar. Kontrollera jobbresultaten. Rena dokumentations-PR:er hoppar över röktestet.
 
-Skärmbilder hamnar i `verktyg/emu/shots/` (ignoreras av git). Röktestet klickar på riktiga knappar och skriptet avslutas med kod 1 om sidan kraschar, en knapp saknas eller scenariot kastar fel (`SCENARIO FAIL`). Egna scenarier är en modul `async (pg, h) => {}`; se `lib.js` och `alla-flikar.js`. Miljövariabler: `NOW` (låtsasdatum), `THEME` (`light`/`dark`), `LS` (localStorage som JSON utan `ht.`-prefix), `SLOW` (ms fördröjning per anrop), `CHROMIUM` (sökväg till webbläsare), `VP` (fönsterstorlek, till exempel `1368x912`; utan den används telefon 390×844). Väder från api.met.no fejkas; `data.js` är en ögonblicksbild av arket från 2026-10-18.
+Röktestet klickar på riktiga knappar och avslutas med kod 1 om sidan kraschar, en knapp saknas eller scenariot kastar fel (`SCENARIO FAIL`). Egna scenarier, miljövariabler (`NOW`, `THEME`, `LS`, `SLOW`, `CHROMIUM`, `VP`, väder) och skärmbilder: se `.claude/skills/hushallstavlan-forhandsvisa/SKILL.md`. Väder från api.met.no fejkas; `data.js` är en ögonblicksbild av arket från 2026-10-18.
 
 Före publicering av appändringar (lokalt eller i CI):
 
 - Kör `alla-flikar.js` i både telefon- och väggläge utan PAGEERROR.
 - **Öppna varje flik genom att klicka**, inte genom att sätta localStorage. Appen minns senaste fliken, så en krasch i en flik kan låsa hela Mat-delen.
 - Testa uppstart med de berörda inställningarna **redan påslagna** i localStorage, inte bara när de slås på efter laddning (en sådan bugg gav grå väggskärm).
-- Ta skärmbilder i ljust och mörkt läge för visuella ändringar.
+- Kontrollera visuella ändringar i ljust och mörkt läge (skärmbilder; se avsnitt 9 om hur många som visas).
 - Återanvänd godkända resultat för samma app- och testkod; ange testad commit/CI-länk. Kör om när relevant kod, testmiljö eller testfall ändrats, eller ett fel är olöst. Rena dokumentationsändringar behöver bara diff- och innehållskontroll.
 
 ## 7. Samarbete mellan agenter
@@ -123,9 +120,20 @@ Claude och Codex ser inte varandras samtal. **Repot är gemensamt minne.** Henri
 - Instagram och vissa sidor är blockerade från molnmiljöer. Be Henrik om skärmbilder av recept.
 - Apps Script svarar långsamt (sekunder per anrop). Batcha eller visa ändringen direkt och skicka i bakgrunden.
 - Ändringar i `inspiration.json`: recept har `id`, `title`, `group`, `who`, `portions`, `min`, `kr`, `protein`, `course` (`'efterrätt'` för efterrätter), `groups` (ingredienser) och `steps`.
+- Animationer på SVG-element (även `<svg>`-roten) och på ankrade element går inte på grafikkretsen i Chromium: processorn ritar om varje bild. Animera HTML-element med bara `transform`/`opacity`; rörliga delar i väderbildens SVG lyfts av `gpuLager()`. Mät med `verktyg/emu/vader-fps.js`.
 - Väggdatorns ljussensor och skärmljus går via en lokal tjänst (`kiosk/ljussensor.py`, http://127.0.0.1:8777). Den kan inte testas i molnet.
 
-## 9. Vad du inte ska göra
+## 9. Spara tokens (gäller alla agenter)
+
+Kvaliteten ska vara densamma; det är läsandet som ska bli mindre.
+
+- **Läs aldrig hela `app.js`, `index.html` eller `Kod.gs`.** Använd `node verktyg/karta.js [namn] [-r]` och `node verktyg/rutor.js <ruta>` och läs bara det intervallet (se `.claude/skills/hushallstavlan-ta-over/SKILL.md`).
+- Läs inte samma intervall igen i samma session om filen inte ändrats. Kör `git diff`/`git log -p -- <fil>` för att se vad andra ändrat i stället för att läsa om.
+- **Skärmbilder:** låt scenariot kontrollera med text och titta bara på de bilder som behövs. Visa Henrik 1–2 bilder per visuell ändring, en per alternativ vid A/B/C (se skill `hushallstavlan-forhandsvisa`).
+- Små rättningar (en rad, en färg, en text) kräver inget fullt röktest i båda lägen om den berörda vyn testas; ange vad som testades.
+- En uppgift per tråd/session. Avsluta när den är publicerad och starta en ny för nästa sak, så att gammalt sammanhang inte följer med.
+
+## 10. Vad du inte ska göra
 
 - Pusha inte direkt till `main` utan ångra-gren och versionshöjning.
 - Ändra inte i Henriks Google-kalkylark, kalender eller e-post utan att han bett om det.

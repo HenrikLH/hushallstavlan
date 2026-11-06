@@ -23,7 +23,7 @@
     'aubergine': ['aubergine', /^aubergine/i, /fryst|grillad|kräm/i],
     'gurka': ['gurka', /^gurka/i, /syltad|inlagd|smörgås|salt|ättik|pickl/i],
     'tomat': ['tomater', /^tomat(er)? (runda|klass|kvist|eko)|^kvisttomat|^plommontomat/i, /krossad|puré|passerad|soltork|körsbär|cocktail|burk|ketchup|sås/i],
-    'körsbärstomater': ['körsbärstomater', /(^(körsbärs|cocktail|mini|snack)\s*-?\s*tomat|^tomat(er)? (körsbär|cocktail|mini)).*klass/i, /burk|krossad|soltork|sås|juice|i tomat/i],
+    'körsbärstomater': ['körsbärstomater', /^(körsbärs|cocktail|mini|snack)\s*-?\s*tomat|^tomat(er)? (körsbär|cocktail|mini)/i, /burk|krossad|soltork|sås|juice|i tomat|mutti|cirio|eldorado|konserv|passata/i],
     'broccoli': ['broccoli', /^broccoli/i, /fryst/i],
     'blomkål': ['blomkål', /^blomkål/i, /fryst|ris|gratäng/i],
     'vitkål': ['vitkål', /^vitkål/i, /strimlad|riven|inlagd|sallad/i],

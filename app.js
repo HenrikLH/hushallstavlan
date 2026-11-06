@@ -56,26 +56,29 @@ const I={
  trash:SV+'<path d="M4.5 6.5h15M9.5 6.5V4.5h5v2M6.5 6.5l1 13h9l1-13"/></svg>',
  play:'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg>',
  cake:SV+'<path d="M4 21h16M5 21v-7.5a1.5 1.5 0 0 1 1.5-1.5h11a1.5 1.5 0 0 1 1.5 1.5V21"/><path d="M5 16c1.2 1 2.3 1 3.5 0s2.3-1 3.5 0 2.3 1 3.5 0 2.3-1 3.5 0"/><path d="M12 12V8.5"/><path d="M12 3.5c1 1.2 1.3 2.2.6 2.9a.9.9 0 0 1-1.2 0c-.7-.7-.4-1.7.6-2.9z"/></svg>',
- clock:SV+'<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg>'
+ clock:SV+'<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg>',
+ pause:SV+'<path d="M9 6v12M15 6v12"/></svg>'
 };
 // Översikt ligger i mitten av flikraden
 const I_EKO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10h18M16.5 14.5h1.5"/></svg>';
 // Inköp ligger under Mat; Ekonomi har fått dess plats i flikraden
-const VIEWS=[['mat','Mat',I.fork],['ekonomi','Ekonomi',I_EKO],['oversikt','Översikt',I.home],['uppgifter','Uppgifter',I.list],['stad','Städ',I.sparkles]];
-const VIEW_IDS=VIEWS.map(v=>v[0]).concat(['vader','fod']);
+// Kalendern har en egen flik. Uppgifter och Städ delar fliken Att göra (Städ har vy-id stad men markerar Att göra)
+const VIEWS=[['mat','Mat',I.fork],['ekonomi','Ekonomi',I_EKO],['oversikt','Översikt',I.home],['kalender','Kalender',I.cal],['uppgifter','Att göra',I.list]];
+const VIEW_IDS=VIEWS.map(v=>v[0]).concat(['vader','fod','stad']);
 const OLD_VIEWS={matsedel:'vecka',recept:'recept',inkop:'inkop'};
 
 /* ---------- state ---------- */
 const CFG=window.HT_CONFIG||{};
 const S={hj:new Set(),theme:['light','dark'].includes(lsGet('theme'))?lsGet('theme'):'system',key:lsGet('key')||'',me:lsGet('me')||'',view:lsGet('view')||'oversikt',wall:lsGet('wall')==='1',
- data:null,sync:'idle',lastSync:null,error:'',recipe:null,scale:{},cook:null,shopFilter:'alla',shopAdd:false,taskAdd:false,
- sheet:null,confirm:null,timers:[],pending:0,step:{},matTab:['recept','bank','efter','inkop'].includes(lsGet('matTab'))?lsGet('matTab'):'vecka',taskTab:lsGet('taskTab')==='kalender'?'kalender':'lista',calDay:null,calMonth:null,ovDay:null,taskDue:'',bankFilter:'alla',rate:null,open:{}};
+ data:null,sync:'idle',lastSync:null,error:'',recipe:null,scale:{},cook:null,shopClosed:{},shopAdd:false,taskAdd:false,
+ sheet:null,confirm:null,timers:[],pending:0,step:{},matTab:['recept','bank','efter','inkop'].includes(lsGet('matTab'))?lsGet('matTab'):'vecka',taskTab:lsGet('taskTab')==='stad'?'stad':'lista',calDay:null,calMonth:null,ovDay:null,taskDue:'',bankFilter:'alla',rate:null,open:{}};
 try{const c=lsGet('cache');if(c)S.data=JSON.parse(c)}catch(e){}
 // Gamla vyer (Matsedel, Recept) ligger nu i fliken Mat
 function normView(id){if(OLD_VIEWS[id]){S.matTab=OLD_VIEWS[id];lsSet('matTab',S.matTab);return'mat'}return id}
 S.view=normView(S.view);
 S.fodMode=['hjul','manad','lista'].includes(lsGet('fodMode'))?lsGet('fodMode'):'hjul';
 const h0=location.hash.slice(1);if(VIEW_IDS.includes(h0)||OLD_VIEWS[h0])S.view=normView(h0);
+if(S.view==='uppgifter'&&lsGet('taskTab')==='kalender'){S.view='kalender';lsSet('taskTab','lista')}
 if(!VIEW_IDS.includes(S.view))S.view='oversikt';
 
 const D=()=>S.data||{settings:{},shop:[],tasks:[],clean:[],menu:[],events:[],offers:[],recipes:[]};
@@ -88,7 +91,7 @@ const personSetting=L=>L.map((x,i)=>x.n+':'+(colOk(x.c)?x.c:PCOL_DEF[i])+(x.labe
 /* Användarfärger: [namn, ljust läge, text i ljust, mörkt läge, text i mörkt] */
 const PCOL={indigo:['Indigo','#4B4FC4','#3D41A8','#8C8FF2','#AEB0FF'],bla:['Blå','#1F6FB2','#185C95','#5AAEEE','#86C4F4'],teal:['Teal','#0F8C83','#0B6E67','#35C2B5','#62D8CC'],
  gron:['Grön','#2E8540','#226B32','#4CC764','#7ADB8D'],plommon:['Plommon','#8E3B9E','#7A2F89','#C985D8','#DCA6E8'],vinrod:['Vinröd','#A3253F','#A3253F','#D9566F','#EC7088'],
- rosa:['Rosa','#C2457E','#A8346A','#F07EB0','#F7A3C8'],orange:['Orange','#C25E0A','#A34E06','#F2994A','#F7B57A'],grafit:['Grafit','#5B6472','#4A525E','#A3ACB9','#C2C9D3']};
+ lavendel:['Lavendel','#6650A2','#55418D','#BDA8EF','#D4C3FF'],rosa:['Rosa','#C2457E','#A8346A','#F07EB0','#F7A3C8'],orange:['Orange','#C25E0A','#A34E06','#F2994A','#F7B57A'],grafit:['Grafit','#5B6472','#4A525E','#A3ACB9','#C2C9D3']};
 const PCOL_DEF=['indigo','teal'];
 /* Fria färger från färgslidern i Färgval: nyckeln h<nyans 0-360>s<ton 0-6>, nyans över 360 är grått.
    Ton 0 är ljusast och 6 mörkast; 3 är mitten som väljs först. Färgerna läggs in i PCOL när de används. */
@@ -120,13 +123,14 @@ let ACCENT=lsGet('accent')||'vinrod';
 const FARG_OPEN={},FARG_X={};
 function setPcol(i,key){const L=personList().slice(0,2);while(L.length<2)L.push({n:['Henrik','Cornelia'][L.length],c:''});if(!colOk(key))return;L[i].c=key;
  const v=personSetting(L);settings().personer=v;render();apiPost({action:'setting',k:'personer',v})}   // vilka tonrader som är utfällda i Färgval (2 = fälls ut just nu)
-const accentKey=()=>{if(ACCENT==='min'){const i=people().indexOf(S.me);return i>=0?personColor(i):'vinrod'}return colOk(ACCENT)?ACCENT:'vinrod'};
+const accentPref=()=>U4?(lsGet('accent4')||'lavendel'):ACCENT;
+const accentKey=()=>{const a=accentPref();if(a==='min'){const i=people().indexOf(S.me);return i>=0?personColor(i):'vinrod'}return colOk(a)?a:'vinrod'};
 let accKey='';
-function applyAccent(){const k=accentKey();if(k===accKey)return;accKey=k;let el=document.getElementById('acc');
- if(k==='vinrod'){if(el)el.remove();return}
+function applyAccent(){const k=accentKey(),ak=k+'|'+U4;if(ak===accKey)return;accKey=ak;let el=document.getElementById('acc');
+ if(k==='vinrod'&&!U4){if(el)el.remove();return}
  if(!el){el=document.createElement('style');el.id='acc';document.head.appendChild(el)}
  const c=PCOL[k],v=dark=>{const m=dark?c[4]:c[1];return'--accent:'+m+';--accent-soft:'+rgba(m,dark?.22:.12)+';--on-accent:'+(dark?shadeHex(m,.16):'#FFFFFF')};
- el.textContent=':root{'+v(false)+'}@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){'+v(true)+'}}:root[data-theme="dark"]{'+v(true)+'}'}
+ const sel=U4?'html.ny.ui4':':root';el.textContent=sel+'{'+v(false)+'}@media (prefers-color-scheme: dark){'+sel+':not([data-theme="light"]){'+v(true)+'}}'+sel+'[data-theme="dark"]{'+v(true)+'}'}
 const recipeById=id=>recipeGet(id);
 /* Inspiration: recept från nätet i inspiration.json (följer med appen, inte kalkylarket).
    Hjärtat sparar som favorit och bokmärket som sparat recept i receptbanken. */
@@ -145,7 +149,7 @@ const isFav=id=>bankRaw().some(x=>recipeRoot(x.id)===recipeRoot(id)&&x.fav);
 function kcalOf(id){const v=parseJ(settings().kcal,{})[recipeRoot(id)];if(v==null||v==='')return null;const n=Number(Array.isArray(v)?v[0]:v);return n>0?{n:Math.round(n)}:null}
 const ratings=()=>recipeAliases(parseJ(settings().betyg,{}));
 // Veckans efterrätt och låsta rätter ligger också i önskelistan (som {efter:1,...} och {las:1,...}) men är inga önskemål
-const wishes=()=>recipeWishes(parseJ(settings().onskelista,[])).filter(x=>x&&!x.efter&&!x.las);
+const wishes=()=>recipeWishes(parseJ(settings().onskelista,[])).filter(x=>x&&!x.efter&&!x.las&&!x.fod&&!x.bort);
 function ratingOf(id){const x=ratings()[id];if(!x||!x.p)return null;const ps=Object.entries(x.p).filter(([,e])=>e&&e.s);if(!ps.length)return null;
  return{avg:ps.reduce((a,[,e])=>a+Number(e.s),0)/ps.length,people:ps,never:ps.some(([,e])=>e.v==='aldrig')}}
 const VERD={igen:'Laga igen',okej:'Okej',aldrig:'Aldrig mer'};
@@ -155,16 +159,24 @@ const starsTxt=n=>'★★★★★'.slice(0,Math.round(n))+'☆☆☆☆☆'.sli
    arket så att ändringar från den andra telefonen inte skrivs över. Flera snabba ändringar i samma rad
    (t.ex. bocka av flera överföringar i rad) köas, och alla ändringar som ännu inte skickats läggs på det
    hämtade värdet. Annars kunde ett andra tryck skicka en gammal rad och sudda ut det första. */
-const UPD={q:{},chain:{},n:0};
+const UPD={q:{},chain:{},n:0,wait:new Set()};
+// Ändringen läggs i utkorgen direkt (sparas i telefonen), så att den finns kvar även om appen stängs eller
+// läggs i bakgrunden innan arket hunnit svara. Raden väntar där (UPD.wait) tills det färska värdet hämtats.
 function updJSON(k,def,fn){const st=settings();st[k]=JSON.stringify(recipeChange(k,fn,parseJ(st[k],def)));render();
  (UPD.q[k]=UPD.q[k]||[]).push(fn);UPD.n++;
+ const mine=()=>OUTBOX.filter(b=>UPD.wait.has(b)&&b.k===k),ahead=()=>OUTBOX.some(b=>b.action==='setting'&&b.k===k&&!UPD.wait.has(b));
+ const w=mine()[0];if(w)w.v=st[k];else{const it={action:'setting',k,v:st[k],by:S.me};UPD.wait.add(it);OUTBOX.push(it);S.pending=OUTBOX.length}
+ saveOutbox();renderStatus();
  const run=async()=>{try{
   if(!UPD.q[k].length)return;
   let fresh=null;
-  if(!OUTBOX.some(b=>b.action==='setting'&&b.k===k)){try{const d=await apiGet();if(d.settings&&k in d.settings)fresh=d.settings[k]}catch(e){}}
+  if(!ahead()){try{const d=await Promise.race([apiGet(),new Promise((_,no)=>setTimeout(()=>no(new Error('tid')),15000))]);if(d.settings&&k in d.settings)fresh=d.settings[k]}catch(e){}}
   const fns=UPD.q[k].splice(0);let v=settings()[k];
-  if(fresh!=null&&!OUTBOX.some(b=>b.action==='setting'&&b.k===k)){let o=parseJ(fresh,def);fns.forEach(f=>{o=recipeChange(k,f,o)});v=JSON.stringify(o);S.data.settings[k]=v;render()}
-  await apiPost({action:'setting',k,v})}finally{UPD.n--}};
+  if(fresh!=null&&!ahead()){let o=parseJ(fresh,def);fns.forEach(f=>{o=recipeChange(k,f,o)});v=JSON.stringify(o);S.data.settings[k]=v;render()}
+  mine().forEach(b=>{b.v=v;UPD.wait.delete(b)});saveOutbox();
+  await flush()}finally{UPD.n--;
+   // svaret på sista ändringen visas också, så att en äldre hämtning som kommer sent inte skriver över den
+   if(!UPD.n&&!OUTBOX.length&&lastServer){setData(lastServer);render()}}};
  return UPD.chain[k]=(UPD.chain[k]||Promise.resolve()).then(run,run)}
 function bankSnap(r){const x=JSON.parse(JSON.stringify(r));x.savedAt=today();delete x.when;delete x.fav;return x}
 // Ändra ett recept som redan ligger i receptbanken
@@ -177,29 +189,67 @@ function addToBank(r,quiet,fav){if(!r||inBank(r.id))return false;const snap=bank
 /* ---------- flikrad ---------- */
 // Knapparna byggs en gång så att markeringen kan glida mellan flikarna i stället för att ritas om.
 function renderNav(nav){
- if(nav.dataset.ui!==String(U3)){nav.innerHTML='';nav.dataset.ui=String(U3)}
- if(!nav.querySelector('.nav-pill'))nav.innerHTML='<div class="brand" aria-hidden="true">Hemma</div><div class="nav-pill" aria-hidden="true"></div>'+VIEWS.map(([id,l,ic])=>'<button data-act="nav" data-id="'+id+'">'+ic+'<span>'+(U3&&id==='oversikt'?'Idag':l)+'</span></button>').join('')+'';
- const i=VIEW_IDS.indexOf(S.view);
+ const ui=U4?'4':String(U3);if(nav.dataset.ui!==ui){nav.innerHTML='';nav.dataset.ui=ui}
+ if(!nav.querySelector('.nav-pill'))nav.innerHTML='<div class="brand" aria-hidden="true">'+(U4?'Hushållstavlan':'Hemma')+'</div><div class="nav-pill" aria-hidden="true"></div>'+VIEWS.map(([id,l,ic])=>'<button data-act="nav" data-id="'+id+'">'+ic+'<span>'+(U3&&id==='oversikt'?'Idag':l)+'</span></button>').join('')+'';
+ const i=VIEW_IDS.indexOf(S.view==='stad'?'uppgifter':S.view);
  nav.querySelectorAll('button').forEach((b,j)=>j===i?b.setAttribute('aria-current','page'):b.removeAttribute('aria-current'));
  // Ekonomi ligger inte i flikraden på telefon; då visas ingen markering där
  nav.classList.toggle('none',i<0||i>=VIEWS.length);nav.style.setProperty('--i',Math.max(0,Math.min(i,VIEWS.length-1)));
+ navLins.till(nav,Math.max(0,Math.min(i,VIEWS.length-1)),i<0||i>=VIEWS.length);
  // väggskärmen: personens cirkel längst till höger i menyraden eller som egen knapp nere till höger, på alla sidor
- const vk=NY&&wallBoardOn()?VKNAPP:'',me=vk==='meny'?meBtn():'',el=nav.querySelector('.nav-me');
+ const vk=wallBoardOn()?VKNAPP:'',me=vk==='meny'?meBtn():'',el=nav.querySelector('.nav-me');
  let cm=document.getElementById('corner-me');
  if(vk==='knapp'||vk==='rubrik'){const h=meBtn();if(!cm){cm=document.createElement('div');cm.id='corner-me';document.body.appendChild(cm)}cm.className=vk==='rubrik'?'top-me':'corner-me';if(cm.dataset.h!==h){cm.innerHTML=h;cm.dataset.h=h}}else if(cm)cm.remove();
  nav.classList.toggle('har-me',!!me);
  if(!me){if(el)el.remove()}else if(!el||el.dataset.h!==me){if(el)el.remove();nav.insertAdjacentHTML('beforeend','<div class="nav-me" data-h=""><i aria-hidden="true"></i>'+me+'</div>');nav.querySelector('.nav-me').dataset.h=me}}
+// UI 5.0: markeringen i flikraden är en lins som drivs av fjädrar (som iOS). Den lyfts och växer när fingret trycker,
+// följer fingret med lite eftersläp och sträcks i rörelseriktningen efter farten, och fjädrar in i fliken vid släpp.
+// Läget räknas i flikbredder så att det klarar storleksändring. Utan U5 styr CSS som förut.
+const navLins=(()=>{const L={p:null,v:0,t:0,R:.4,D:.8,s:0,sv:0,ts:0,raf:0,last:0,nav:null,w:0,dragar:false};
+ const lugn=()=>!motionOn()||matchMedia('(prefers-reduced-motion:reduce)').matches;
+ const pill=()=>L.nav&&L.nav.querySelector('.nav-pill');
+ const rita=()=>{const pl=pill();if(!pl||L.p==null)return;if(!L.w)L.w=pl.offsetWidth;
+  const fart=Math.min(Math.abs(L.v*L.w)/2600,.28),sx=1+.18*L.s+fart,sy=1+.26*L.s-fart*.45;
+  pl.style.transform='translateX('+(L.p*L.w).toFixed(2)+'px)';pl.style.scale=sx.toFixed(4)+' '+sy.toFixed(4)};
+ const steg=now=>{let dt=Math.min(.05,(now-(L.last||now))/1000);L.last=now;
+  for(const h=1/240;dt>1e-6;dt-=h){const d=Math.min(h,dt),k=(2*Math.PI/L.R)**2,c=4*Math.PI*L.D/L.R,ks=(2*Math.PI/.34)**2,cs=4*Math.PI*.55/.34;
+   L.v+=(-k*(L.p-L.t)-c*L.v)*d;L.p+=L.v*d;L.sv+=(-ks*(L.s-L.ts)-cs*L.sv)*d;L.s+=L.sv*d}
+  const klar=!L.dragar&&Math.abs(L.p-L.t)<.002&&Math.abs(L.v)<.02&&Math.abs(L.s-L.ts)<.002&&Math.abs(L.sv)<.02;
+  if(klar){L.p=L.t;L.v=0;L.s=L.ts;L.sv=0}rita();L.raf=klar?0:requestAnimationFrame(steg)};
+ const kor=()=>{if(lugn()){L.p=L.t;L.v=0;L.s=0;L.sv=0;rita();return}if(!L.raf){L.last=0;L.raf=requestAnimationFrame(steg)}};
+ return{
+  // från renderNav: flytta till fliken i (eller rensa när UI 5.0 inte används)
+  till(nav,i,dold){L.nav=nav;const pl=pill();if(!U5){if(L.p!=null){nav.classList.remove('fj','lyft');if(pl){pl.style.transform='';pl.style.scale=''}cancelAnimationFrame(L.raf);L.raf=0;L.p=null}return}
+   nav.classList.add('fj');if(L.dragar)return;L.t=i;L.R=.42;L.D=.78;if(L.p==null||dold||(pl&&!pl.style.transform)){L.p=i;L.v=0;L.w=0;rita();return}if(L.p!==i)kor()},
+  // under draget: x i flikbredder (flytande), lyft = linsen är uppe
+  drag(nav,x,w){L.nav=nav;L.w=w;if(L.p==null)L.p=x;L.dragar=true;L.t=x;L.R=.17;L.D=.86;L.ts=1;nav.classList.add('lyft');kor()},
+  slapp(nav,j){L.dragar=false;L.t=j;L.R=.4;L.D=.7;L.ts=0;nav.classList.remove('lyft');kor()},
+  stor(){L.w=0;if(L.p!=null&&!L.raf)rita()}}})();
+addEventListener('resize',()=>navLins.stor());
 // Dra fingret längs flikraden för att flytta markeringen, släpp för att byta flik.
 (function(){const nav=document.getElementById('nav');let st=null,skip=false;
  const at=x=>{const r=nav.getBoundingClientRect(),w=(r.width-8-(nav.classList.contains('har-me')?parseFloat(getComputedStyle(nav).paddingRight)-4:0))/VIEWS.length,dx=Math.min(Math.max(x-r.left-4-w/2,0),w*(VIEWS.length-1));return{dx,j:Math.round(dx/w)}};
- nav.addEventListener('pointerdown',e=>{if(e.button>0||nav.classList.contains('mini'))return;st={x0:e.clientX,id:e.pointerId,moved:false}});
+ // UI 5.0: läget mäts mot linsens egen plats och bredd, i flikbredder
+ const lins=x=>{const pl=nav.querySelector('.nav-pill'),r=nav.getBoundingClientRect(),w=pl?pl.offsetWidth:r.width/VIEWS.length,l=pl?pl.offsetLeft:4;
+  return{w,f:Math.min(Math.max((x-r.left-l-w/2)/w,-.18),VIEWS.length-1+.18)}};
+ const over=j=>nav.querySelectorAll('button').forEach((b,k)=>b.classList.toggle('over',k===j));
+ nav.addEventListener('pointerdown',e=>{if(e.button>0||nav.classList.contains('mini')||U4&&matchMedia('(min-width:900px)').matches)return;st={x0:e.clientX,id:e.pointerId,moved:false,a:[],j:-1};
+  if(U5&&!nav.classList.contains('none')){const q=lins(e.clientX);u5Fart.add(st.a,q.f*q.w);navLins.drag(nav,q.f,q.w)}});
  nav.addEventListener('pointermove',e=>{if(!st||e.pointerId!==st.id)return;
+  if(U5&&!nav.classList.contains('none')){const q=lins(e.clientX);u5Fart.add(st.a,q.f*q.w);navLins.drag(nav,q.f,q.w);
+   if(!st.moved){if(Math.abs(e.clientX-st.x0)<6)return;st.moved=true;nav.classList.add('drag');try{nav.setPointerCapture(e.pointerId)}catch(_){}}
+   const j=Math.round(Math.min(Math.max(q.f,0),VIEWS.length-1));if(j!==st.j){if(st.j>=0)u5Tick();st.j=j;over(j)}return}
   if(!st.moved){if(Math.abs(e.clientX-st.x0)<8)return;st.moved=true;nav.classList.add('drag');try{nav.setPointerCapture(e.pointerId)}catch(_){}}
-  const p=at(e.clientX);nav.style.setProperty('--dx',p.dx+'px');nav.querySelectorAll('button').forEach((b,k)=>b.classList.toggle('over',k===p.j))});
- const end=(e,go)=>{if(!st||e.pointerId!==st.id)return;const moved=st.moved;st=null;if(!moved)return;
-  const p=at(e.clientX);nav.classList.remove('drag');nav.querySelectorAll('.over').forEach(b=>b.classList.remove('over'));
+  const p=at(e.clientX);nav.style.setProperty('--dx',p.dx+'px');over(p.j)});
+ const end=(e,go)=>{if(!st||e.pointerId!==st.id)return;const moved=st.moved,s=st;st=null;let j;
+  if(U5&&!nav.classList.contains('none')){const cur=Math.max(0,VIEW_IDS.indexOf(S.view==='stad'?'uppgifter':S.view));
+   // släpp: närmaste flik dit linsen var på väg (farten flyttar högst en halv flik), avbrutet = tillbaka
+   const q=lins(e.clientX),v=u5Fart.v(s.a)/q.w;j=Math.round(Math.min(Math.max(q.f+Math.max(-.5,Math.min(.5,v*60)),0),VIEWS.length-1));
+   navLins.slapp(nav,moved&&go?j:cur);if(!moved)return}
+  else{if(!moved)return;j=at(e.clientX).j}
+  nav.classList.remove('drag');nav.querySelectorAll('.over').forEach(b=>b.classList.remove('over'));
   skip=true;setTimeout(()=>skip=false,60);
-  if(go&&VIEWS[p.j][0]!==S.view)ACT.nav(VIEWS[p.j][0])};
+  if(go&&VIEWS[j][0]!==S.view)ACT.nav(VIEWS[j][0])};
  nav.addEventListener('pointerup',e=>end(e,true));nav.addEventListener('pointercancel',e=>end(e,false));
  nav.addEventListener('click',e=>{if(skip){e.stopPropagation();e.preventDefault()}},true)})();
 // Svävande menyrad på telefon: krymper till en rund knapp nere till vänster när man scrollar nedåt,
@@ -207,7 +257,7 @@ function renderNav(nav){
 // Piller: samma kapsel krymper till ett litet piller med bara ikonerna, halvt nedanför skärmkanten (bara CSS).
 (function(){const nav=document.getElementById('nav'),mini=document.createElement('button');let y0=scrollY,acc=0;
  mini.className='nav-mini';mini.type='button';mini.setAttribute('aria-label','Visa menyn');document.body.appendChild(mini);
- const on=()=>NY&&!U3&&FLIKRAD!=='fast'&&!nav.classList.contains('none');
+ const on=()=>!U3&&!(U4&&matchMedia('(min-width:900px)').matches)&&!U5&&FLIKRAD!=='fast'&&!nav.classList.contains('none');
  const set=m=>{if(nav.classList.contains('mini')===m)return;
   if(m){const b=nav.querySelector('button[aria-current] svg');mini.innerHTML=b?b.outerHTML:''}
   nav.classList.remove('ut');nav.classList.toggle('mini',m);if(!m)nav.classList.add('ut');mini.classList.toggle('on',m);};
@@ -218,7 +268,8 @@ function renderNav(nav){
   // längst ner studsar sidan tillbaka en bit; den rörelsen räknas inte som att man scrollar uppåt
   const max=document.documentElement.scrollHeight-innerHeight;if(y>=max-4||yp>=max-4){acc=0;return}
   acc=(acc>0)===(d>0)?acc+d:d;if(acc>24)set(true);else if(acc<-24)set(false)},{passive:true});
- mini.addEventListener('click',()=>set(false))})();
+ mini.addEventListener('click',()=>set(false));
+ addEventListener('resize',()=>{if(U4){set(false);acc=0;y0=scrollY}})})();
 
 /* Dra för att scrolla och svep mellan flikarna på stora skärmar och i väggläge.
    På Linux kommer pekskärmens rörelser ofta fram som musrörelser, och då scrollar webbläsaren
@@ -232,22 +283,25 @@ function renderNav(nav){
  const ax=(el,a)=>{const cs=getComputedStyle(el),o=a==='x'?cs.overflowX:cs.overflowY;return/(auto|scroll)/.test(o)&&(a==='x'?el.scrollWidth>el.clientWidth+1:el.scrollHeight>el.clientHeight+1)};
  const scroller=(el,a)=>{for(;el&&el!==document.body&&el!==document.documentElement;el=el.parentElement)if(ax(el,a))return el;return null};
  document.addEventListener('pointerdown',e=>{cancelAnimationFrame(glide);
-  if(!on()||e.button>0||!S.data||e.target.closest('input,select,textarea,[contenteditable],.nav,.dr-slide,.car')||(S.arrange&&e.target.closest('[data-box]')))return;
+  if((!on()&&!e.target.closest('.wd-body'))||e.button>0||!S.data||e.target.closest('input,select,textarea,[contenteditable],.nav,.dr-slide,.car')||(S.arrange&&e.target.closest('[data-box]')))return;
+  if(e.target.closest('.wd-body')&&(!e.isPrimary||e.clientX<24||e.clientX>innerWidth-24)){st=null;return;}
   st={id:e.pointerId,x0:e.clientX,y0:e.clientY,x:e.clientX,y:e.clientY,t:performance.now(),v:0,mouse:e.pointerType!=='touch',a:null,el:null,tg:e.target}});
- addEventListener('pointermove',e=>{if(!st||e.pointerId!==st.id)return;const dx=e.clientX-st.x0,dy=e.clientY-st.y0;
+ addEventListener('pointermove',e=>{if(!st||e.pointerId!==st.id)return;if(document.documentElement.classList.contains('cv-drar')){st=null;document.body.classList.remove('dragging');return}const dx=e.clientX-st.x0,dy=e.clientY-st.y0;
   if(!st.a){if(Math.hypot(dx,dy)<10)return;st.a=Math.abs(dx)>Math.abs(dy)?'x':'y';st.el=scroller(st.tg,st.a);if(st.mouse)document.body.classList.add('dragging')}
   const now=performance.now(),d=st.a==='y'?e.clientY-st.y:e.clientX-st.x,dt=Math.max(8,now-st.t);
   st.v=.7*(d/dt)+.3*st.v;st.x=e.clientX;st.y=e.clientY;st.t=now;
+  if(st.a==='x'&&st.tg.closest('.wd-body')&&e.cancelable)e.preventDefault();
   if(!st.mouse)return;
   if(st.a==='y')(st.el||document.scrollingElement).scrollTop-=d;else if(st.el)st.el.scrollLeft-=d});
  const end=(e,ok)=>{if(!st||e.pointerId!==st.id)return;const s=st;st=null;document.body.classList.remove('dragging');if(!s.a||!ok)return;
   skip=true;setTimeout(()=>skip=false,80);
   const dx=e.clientX-s.x0,dy=e.clientY-s.y0;
+  if(s.a==='x'&&s.tg.closest('.wd-body')&&S.sheet==='wxDay'){if(Math.abs(dx)>70&&Math.abs(dx)>1.5*Math.abs(dy)){const W=wxModel(),i=W?W.days.findIndex(x=>x.date===S.wxDay):-1,j=i+(dx<0?1:-1);if(i>=0&&j>=0&&j<W.days.length)ACT.wxDay(W.days[j].date)}return}
   // svep i sidled där inget scrollar i sidled: byt flik
   // (i Mat och Uppgifter byts först undermenyn, vid sista undermenyn fortsätter svepet till nästa flik)
   if(s.a==='x'&&!s.el&&Math.abs(dx)>80&&Math.abs(dx)>1.5*Math.abs(dy)&&inMain(s.tg)&&!document.querySelector('#overlay .sheet')){
    if(subSwipe(dx))return;
-   const i=VIEWS.findIndex(v=>v[0]===S.view),j=i<0?2:i+(dx<0?1:-1);if(j>=0&&j<VIEWS.length)ACT.nav(VIEWS[j][0]);return}
+   const i=VIEWS.findIndex(v=>v[0]===(S.view==='stad'?'uppgifter':S.view)),j=i<0?2:i+(dx<0?1:-1);if(j>=0&&j<VIEWS.length)ACT.nav(VIEWS[j][0]);return}
   if(!s.mouse||performance.now()-s.t>80)return;
   // fortsätt glida och bromsa in mjukt
   const el=s.a==='y'?(s.el||document.scrollingElement):s.el;if(!el)return;let v=s.v,last=performance.now();
@@ -261,15 +315,21 @@ function renderNav(nav){
  let t=null;
  document.addEventListener('touchstart',e=>{t=null;if(on()||e.touches.length!==1||!S.data)return;const p=e.touches[0];
   if(p.clientX<24||p.clientX>innerWidth-24||!inMain(e.target)||e.target.closest('input,select,textarea,[contenteditable],.dr-slide,.car')||scroller(e.target,'x'))return;
-  t={x0:p.clientX,y0:p.clientY,x:p.clientX,y:p.clientY,t0:performance.now()}},{passive:true});
- document.addEventListener('touchmove',e=>{if(!t)return;if(e.touches.length!==1){t=null;return}t.x=e.touches[0].clientX;t.y=e.touches[0].clientY},{passive:true});
+  t={x0:p.clientX,y0:p.clientY,x:p.clientX,y:p.clientY,t0:performance.now(),a:[]}},{passive:true});
+ document.addEventListener('touchmove',e=>{if(!t)return;if(e.touches.length!==1){t=null;return}t.x=e.touches[0].clientX;t.y=e.touches[0].clientY;if(U5)u5Fart.add(t.a,t.x)},{passive:true});
  document.addEventListener('touchcancel',()=>{t=null},{passive:true});
  document.addEventListener('touchend',()=>{if(!t)return;const g=t;t=null;const dx=g.x-g.x0,dy=g.y-g.y0;
+  // UI 5.0: tillbaka-svepet har redan tagit gesten. Annars avgör vart rörelsen skulle glida, inte bara hur långt och hur fort
+  if(U5){if(Date.now()-u5BackAt<800)return;const p=dx+u5Fart.proj(u5Fart.v(g.a),.99);if(Math.abs(dx)>30&&Math.abs(dx)>1.5*Math.abs(dy)&&Math.abs(p)>innerWidth*.4&&Math.sign(p)===Math.sign(dx)&&!document.querySelector('#overlay .sheet'))subSwipe(dx);return}
   if(Math.abs(dx)>70&&Math.abs(dx)>1.8*Math.abs(dy)&&performance.now()-g.t0<800&&!document.querySelector('#overlay .sheet'))subSwipe(dx)},{passive:true})})();
 
 /* Undermenyerna i Mat och Uppgifter i samma ordning som segmentreglaget. Svep åt vänster = nästa. */
-const SUBS={mat:['matTab',['vecka','inkop','recept','bank','efter']],uppgifter:['taskTab',['lista','kalender']]};
-function subSwipe(dx){const sub=SUBS[S.view];if(!sub||S.recipe||S.cook||S.sheet)return false;
+const SUBS={mat:['matTab',['vecka','inkop','recept','bank','efter']],uppgifter:['taskTab',['lista','stad']],stad:['taskTab',['lista','stad']]};
+// Kalender-fliken: svep byter månad, vecka eller dag som i iPhones Kalender (vänster = framåt)
+function calSwipe(dx){if(S.view!=='kalender'||S.sheet||S.cook)return false;const d=dx<0?1:-1;A.user=Date.now();
+ if(S.calVy==='manad')ACT.calMonth(null,{dataset:{d}});else ACT.calStep(null,{dataset:{d}});
+ const el=motionOn()&&document.querySelector('#main .motion-calendar');if(el)el.animate([{opacity:.2,transform:'translateX('+d*60+'px)'},{opacity:1,transform:'none'}],{duration:260,easing:'cubic-bezier(.4,0,.2,1)'});return true}
+function subSwipe(dx){if(calSwipe(dx))return true;const sub=SUBS[S.view];if(!sub||S.recipe||S.cook||S.sheet)return false;
  const[k,list]=sub,i=list.indexOf(S[k]),j=i+(dx<0?1:-1);if(i<0||j<0||j>=list.length)return false;
  A.dir=dx<0?'in-right':'in-left';A.user=Date.now();
  const sg=document.querySelector('#main .segc[data-seg="'+k+'"]');if(sg&&sg.getBoundingClientRect().top<0)window.scrollTo(0,0);
@@ -285,8 +345,8 @@ let fitScrollbar=()=>{},hideCursor=()=>{};
 /* Väggtavlan: tillbaka till Översikt efter två minuter utan beröring, och väck nattläget vid tryck */
 (function(){const touch=()=>{const was=nightOn();A.touch=Date.now();if(was&&S.view==='oversikt')render()};
  document.addEventListener('pointerdown',touch,true);
- setInterval(()=>{if(!S.wall)return;const idle=Date.now()-(A.touch||0)>120000;
-  if(idle&&S.arrange){S.arrange=false;render()}
+ setInterval(()=>{if(!S.wall||motionDrag||sheetDrag)return;const idle=Date.now()-(A.touch||0)>120000;
+  if(idle&&S.arrange){arrCancel();render()}
   if(idle&&(S.view!=='oversikt'||S.sheet||S.shopAdd||S.taskAdd||S.recipe||window.scrollY>0)&&!S.cook){closeSheets();S.recipe=null;ACT.nav('oversikt')}
   else if(S.view==='oversikt'&&document.body.classList.contains('is-night')!==nightOn())render();
   autoTheme()},20000)})();
@@ -384,6 +444,11 @@ function blQueue(body){BL.q=body;if(BL.busy||BL.t)return;const w=BL.last+BL.gap-
  if(w>0){BL.t=setTimeout(()=>{BL.t=0;if(BL.q)blQueue(BL.q)},w);return}
  BL.busy=true;BL.q=null;BL.last=Date.now();
  blSend(body).then(ok=>{BL.busy=false;if(!ok){BL.q=null;ljFilm(BL.fb);return}if(BL.q)blQueue(BL.q)})}
+/* Puls till vakthunden i ljustjänsten (kiosk/ljussensor.py): väggtavlan säger var 20:e sekund att den just ritat en bild.
+   Fastnar Chromium med en grå sida slutar pulsen och tjänsten startar om tavlan. Skickas från requestAnimationFrame,
+   så att den bara går iväg när sidan verkligen ritas. Skickas i väggläge och på datorer där ljustjänsten svarar (tavlan
+   kan stå på Översikt utan väggläge). Äldre tjänst svarar 404, det gör inget */
+setInterval(()=>{if(S.wall||CAM.src==='als'||BL.ok)requestAnimationFrame(()=>{fetch('http://127.0.0.1:8777/puls',{method:'POST'}).catch(()=>{})})},20000);
 function ljOut(b){// b=null: vanlig ljusstyrka
  const useBL=BL.ok!==false||Date.now()>BL.retry;
  BL.fb=b;
@@ -430,7 +495,7 @@ let camN=0;setInterval(()=>{if(KAL)return;if(CAM.src==='als'&&!ALS||++camN%60===
 
 /* Ändra ordning: håll fingret på en ruta på Översikt tills rutorna vickar och dra sedan, som på mobilens hemskärm.
    De andra rutorna glider undan medan man drar. Klockan räknas inte (där sitter kioskens stäng-gest). */
-(function(){let lp=0,x=0,y=0,eat=false,G=null,pid='',mouse=false;const stop=()=>{clearTimeout(lp);lp=0};
+(function(){let lp=0,x=0,y=0,eat=false,G=null,pid='',mouse=false,LPB=null,LPW=0;const stop=()=>{clearTimeout(lp);lp=0;clearTimeout(LPW);if(LPB){hlOff(LPB);LPB=null}};
  const rects=()=>{const m={};document.querySelectorAll('[data-box]').forEach(b=>{const r=b.getBoundingClientRect();m[b.dataset.box]={l:r.left,t:r.top+scrollY,w:r.width,h:r.height}});return m};
  // rita om och låt rutorna glida från sina gamla platser till de nya
  const redraw=()=>{const old=rects();doRender();const now=rects();
@@ -445,33 +510,54 @@ let camN=0;setInterval(()=>{if(KAL)return;if(CAM.src==='als'&&!ALS||++camN%60===
  function place(){const{root,z}=G.lf;root.style.transform='translate('+(G.px-G.dx)/z+'px,'+(G.py-G.dy)/z+'px)'}
  function start(id,px,py){const b=document.querySelector('[data-box="'+id+'"]');if(!b)return;const r=b.getBoundingClientRect(),wall=wallBoardOn();
   const L=JSON.parse(JSON.stringify(layout(wall,wall?boardDefault():OV_DEF())));
-  G={id,wall,L,px,py,dx:px-r.left,dy:py-r.top,lf:lift(b)};place();PREVIEW={wall,L};DRAG_ID=id;G.rects=redraw();eat=true;
+  G={id,wall,L,px,py,dx:px-r.left,dy:py-r.top,lf:lift(b),gw:(b.closest('.xgrid')||{}).clientWidth||0};place();PREVIEW={wall,L};DRAG_ID=id;G.rects=redraw();eat=true;
   try{navigator.vibrate&&navigator.vibrate(10)}catch(err){}}
  function move(px,py){G.px=px;G.py=py;place();const X=px,Y=py+scrollY,R=G.rects,L=G.L;
   if(!G.wall){if(py<90)scrollBy(0,-12);else if(py>innerHeight-160)scrollBy(0,12)}
   const inR=r=>r&&X>=r.l&&X<=r.l+r.w&&Y>=r.t&&Y<=r.t+r.h;if(inR(R[G.id]))return;
   const col=L.cols.find(c=>c.includes(G.id));let to=null;
-  for(const k in R){if(k===G.id||!inR(R[k]))continue;const r=R[k],tc=L.cols.find(c=>c.includes(k)),side=L.size[k]==='h'&&(G.wall||L.size[G.id]==='h'),after=side?X>r.l+r.w/2:Y>r.t+r.h/2;
+  for(const k in R){if(k===G.id||!inR(R[k]))continue;const r=R[k],tc=L.cols.find(c=>c.includes(k)),side=G.gw?r.w<G.gw*.7:L.size[k]==='h'&&(G.wall||L.size[G.id]==='h'),after=side?X>r.l+r.w/2:Y>r.t+r.h/2;
    const c2=tc.filter(x=>x!==G.id);to={c:tc,i:c2.indexOf(k)+(after?1:0)};break}
   if(!to&&G.wall){document.querySelectorAll('.bcol[data-col]').forEach(cl=>{const r=cl.getBoundingClientRect();if(px>=r.left&&px<=r.right&&py>=r.top&&py<=r.bottom){const tc=L.cols[Number(cl.dataset.col)];{const last=tc.filter(x=>x!==G.id).map(x=>R[x]).filter(Boolean).pop();if(!last||Y>last.t+last.h)to={c:tc,i:tc.filter(x=>x!==G.id).length}}}})}
   if(!to)return;const before=JSON.stringify(L.cols);col.splice(col.indexOf(G.id),1);to.c.splice(to.i,0,G.id);if(JSON.stringify(L.cols)!==before)G.rects=redraw()}
  function end(){const g=G;G=null;PREVIEW=null;DRAG_ID=null;saveLayout(g.wall,g.L);const ph=document.querySelector('[data-box="'+g.id+'"]'),{root,z}=g.lf;
   const done=()=>{root.remove();doRender()};if(!ph||calm())return done();const r=ph.getBoundingClientRect();
   root.style.transition='transform .18s ease';root.style.transform='translate('+r.left/z+'px,'+r.top/z+'px)';setTimeout(done,190);setTimeout(()=>eat=false,250)}
- document.addEventListener('pointerdown',e=>{if(e.button>0||S.view!=='oversikt'||nightOn()||G)return;const b=e.target.closest('[data-box]');if(!b||e.target.closest('#clock,.arr-x,.arr-s'))return;
+ document.addEventListener('pointerdown',e=>{if(e.button>0||S.view!=='oversikt'||nightOn()||G)return;const b=e.target.closest('[data-box]');if(!b||e.target.closest('#clock,.arr-x,.arr-s,.xsz'))return;
   stop();x=e.clientX;y=e.clientY;const id=b.dataset.box,was=S.arrange;pid=id;mouse=e.pointerType!=='touch';
   // i ändra-läget räcker en kort stund, annars en längre så att vanliga tryck och scroll fungerar som förut
-  lp=setTimeout(()=>{lp=0;if(!was){S.arrange=true;doRender()}start(id,x,y)},was?180:600)});
+  if(!was){LPB=b;LPW=setTimeout(()=>{if(lp)hlOn(b,510,1.02)},90)}
+  lp=setTimeout(()=>{lp=0;LPB=null;if(!was){arrOn();doRender()}start(id,x,y)},was?180:600)});
  // med mus (och väggskärmens pekskärm) börjar dragningen direkt när man rör sig i ändra-läget
  addEventListener('pointermove',e=>{if(G){move(e.clientX,e.clientY);return}if(!lp||Math.hypot(e.clientX-x,e.clientY-y)<=(S.arrange&&mouse?4:9))return;stop();if(S.arrange&&mouse){start(pid,x,y);if(G)move(e.clientX,e.clientY)}});
  addEventListener('pointerup',()=>{stop();if(G)end()});addEventListener('pointercancel',()=>{stop();if(G)end()});
- document.addEventListener('touchmove',e=>{if(G)e.preventDefault()},{passive:false});
+ // Rutan under fingret ritas om när dragningen börjar. Touchhändelserna går då fortfarande till den gamla, lösryckta noden
+ // och når aldrig document, så sidan rullade och webbläsaren avbröt dragningen (pointercancel). Lyssna därför på själva noden.
+ const tm=e=>{if(G&&e.cancelable)e.preventDefault()};
+ document.addEventListener('touchstart',e=>{if(S.view!=='oversikt'||!e.target.closest||!e.target.closest('[data-box]'))return;const t=e.target;t.addEventListener('touchmove',tm,{passive:false});
+  const off=()=>{t.removeEventListener('touchmove',tm);t.removeEventListener('touchend',off);t.removeEventListener('touchcancel',off)};t.addEventListener('touchend',off);t.addEventListener('touchcancel',off)},{passive:true});
+ document.addEventListener('touchmove',tm,{passive:false});
  document.addEventListener('click',e=>{if(eat){eat=false;e.stopPropagation();e.preventDefault()}},true);
  document.addEventListener('contextmenu',e=>{if(e.target.closest('[data-box]')&&S.view==='oversikt')e.preventDefault()})})();
 
+/* Ändra storlek: dra i rutans hörnknapp i ändra-läget. Rutan växer eller krymper till närmaste storlek medan man drar
+   (vanliga rutor: halv/hel bredd, widgets: Liten/Mellan/Stor). Ett kort tryck på knappen fungerar som förut. */
+(function(){let R=null,eat=0;
+ const fits=(b,wall)=>{const g=b.closest('.xgrid');if(g){const cs=getComputedStyle(g),cw=parseFloat(cs.gridTemplateColumns)||0,rh=parseFloat(cs.gridTemplateRows)||parseFloat(cs.gridAutoRows)||cw,gap=parseFloat(cs.columnGap)||0,sp=wall?{s:[1,1],m:[2,1],l:[2,2]}:{s:[2,2],m:[4,2],l:[4,4]};
+   return Object.keys(sp).map(z=>({z,w:sp[z][0]*cw+(sp[z][0]-1)*gap,h:sp[z][1]*rh+(sp[z][1]-1)*gap}))}
+  const c=b.closest('.bcol')||b.parentElement,W=c?c.clientWidth:b.offsetWidth;return[{z:'h',w:W/2,h:b.offsetHeight},{z:'f',w:W,h:b.offsetHeight}]};
+ document.addEventListener('pointerdown',e=>{if(e.button>0||!S.arrange||!e.target.closest)return;const h=e.target.closest('.arr-s'),b=h&&h.closest('[data-box]');if(!b)return;
+  const wall=wallBoardOn(),id=b.dataset.box;if(!expOn()&&!SIZES[wall?'wall':'ov'].can.includes(id))return;const r=b.getBoundingClientRect();R={id,wall,x:e.clientX,y:e.clientY,w:r.width,h:r.height,o:fits(b,wall),moved:false}});
+ addEventListener('pointermove',e=>{if(!R)return;const dx=e.clientX-R.x,dy=e.clientY-R.y;if(!R.moved&&Math.hypot(dx,dy)<10)return;R.moved=true;S.xsz=null;
+  const w=R.w+dx,h=R.h+dy,best=R.o.reduce((a,o)=>Math.hypot(o.w-w,o.h-h)<Math.hypot(a.w-w,a.h-h)?o:a);
+  const L=layout(R.wall,R.wall?boardDefault():OV_DEF());if(L.size[R.id]===best.z)return;L.size[R.id]=best.z;saveLayout(R.wall,L);doRender();if(navigator.vibrate)try{navigator.vibrate(8)}catch(err){}});
+ const up=()=>{if(R&&R.moved){eat=Date.now();doRender()}R=null};addEventListener('pointerup',up);addEventListener('pointercancel',up);
+ document.addEventListener('touchmove',e=>{if(R&&R.moved&&e.cancelable)e.preventDefault()},{passive:false});
+ document.addEventListener('click',e=>{if(eat&&Date.now()-eat<400&&e.target.closest&&e.target.closest('[data-box],.arr-s')){eat=0;e.stopPropagation();e.preventDefault()}},true)})();
+
 /* Lämna kioskläget utan tangentbord: håll fingret still på klockan i tre sekunder så stängs tavlan */
-(function(){let t=0,x=0,y=0;const stop=()=>{clearTimeout(t);t=0};
- document.addEventListener('pointerdown',e=>{if(e.button>0||!e.target.closest('#clock'))return;stop();x=e.clientX;y=e.clientY;
+(function(){let t=0,x=0,y=0,el=null;const stop=()=>{clearTimeout(t);t=0;if(el){hlOff(el);el=null}};
+ document.addEventListener('pointerdown',e=>{if(e.button>0||!e.target.closest('#clock'))return;stop();x=e.clientX;y=e.clientY;el=e.target.closest('#clock');hlOn(el,3000,1.04);
   t=setTimeout(()=>{t=0;toast('Stänger tavlan …');setTimeout(()=>{try{window.close()}catch(err){}setTimeout(()=>toast('Tavlan gick inte att stänga härifrån'),500)},700)},3000)});
  addEventListener('pointermove',e=>{if(t&&Math.hypot(e.clientX-x,e.clientY-y)>12)stop()});
  addEventListener('pointerup',stop);addEventListener('pointercancel',stop);
@@ -483,15 +569,23 @@ let camN=0;setInterval(()=>{if(KAL)return;if(CAM.src==='als'&&!ALS||++camN%60===
 const DEL={items:null,list:null,t:0};
 function delCommit(keep){if(!DEL.items)return;clearTimeout(DEL.t);const ids=DEL.items.filter(x=>!keep||keep(x)).map(x=>x.id);DEL.items=null;DEL.list=null;undoHide();ids.forEach(id=>apiPost({action:'shopDelete',id}))}
 // Tar bort varorna direkt i appen och visar Ångra i 5 sekunder
-function delStart(items,msg){delCommit();cdelCommit();if(!items.length)return;const ids=new Set(items.map(x=>x.id));DEL.list=D().shop.slice();DEL.items=items;S.data.shop=D().shop.filter(x=>!ids.has(x.id));render();
+function delStart(items,msg){delCommit();cdelCommit();fdelCommit();if(!items.length)return;const ids=new Set(items.map(x=>x.id));DEL.list=D().shop.slice();DEL.items=items;S.data.shop=D().shop.filter(x=>!ids.has(x.id));render();
  const u=document.getElementById('undo');u.querySelector('.ud-t').textContent=msg;u.querySelector('.ud-b').dataset.act='shopUndo';u.hidden=false;DEL.t=setTimeout(delCommit,5000)}
 // Samma sak för sysslor i Städ
 const CDEL={item:null,list:null,t:0};
 function cdelCommit(){if(!CDEL.item)return;clearTimeout(CDEL.t);const id=CDEL.item.id;CDEL.item=null;CDEL.list=null;undoHide();apiPost({action:'cleanDelete',id})}
-function cdelStart(t){delCommit();cdelCommit();CDEL.list=D().clean.slice();CDEL.item=t;S.data.clean=D().clean.filter(x=>x.id!==t.id);render();
+function cdelStart(t){delCommit();cdelCommit();fdelCommit();CDEL.list=D().clean.slice();CDEL.item=t;S.data.clean=D().clean.filter(x=>x.id!==t.id);render();
  const u=document.getElementById('undo');u.querySelector('.ud-t').textContent=t.title+' togs bort';u.querySelector('.ud-b').dataset.act='cleanDelUndo';u.hidden=false;CDEL.t=setTimeout(cdelCommit,5000)}
 function undoHide(){const u=document.getElementById('undo');if(u)u.hidden=true}
-addEventListener('visibilitychange',()=>{if(document.hidden){delCommit();cdelCommit()}});
+// Borttagna uppgifter sparas för hela hushållet i 30 dagar i onskelista som {bort:1,l:[{k,title,due,who,repeat,at,by}]} (ingen ny Kod.gs) och kan återställas under Klara, eller direkt med Ångra
+function tBort(){const o=parseJ(settings().onskelista,[]).find(x=>x&&x.bort),gr=addDays(today(),-30);return o&&Array.isArray(o.l)?o.l.filter(x=>x&&x.k&&x.title&&x.at>=gr):[]}
+function tBortSet(fn){A.user=Date.now();updJSON('onskelista',[],a=>{const gr=addDays(today(),-30),o=a.find(x=>x&&x.bort),l=fn((o&&Array.isArray(o.l)?o.l:[]).filter(x=>x&&x.k&&x.at>=gr)).slice(0,30);return a.filter(x=>!(x&&x.bort)).concat(l.length?[{bort:1,l}]:[])})}
+function tBortSpara(x){const k='b'+Date.now().toString(36);tBortSet(l=>[{k,title:String(x.title).slice(0,200),due:x.due||'',who:x.who||'',repeat:x.repeat||'',at:today(),by:S.me||''}].concat(l));return k}
+function tBortVisa(x,k){delCommit();cdelCommit();fdelCommit();const u=document.getElementById('undo'),b=u.querySelector('.ud-b');u.querySelector('.ud-t').textContent=x.title+' togs bort';b.dataset.act='taskBortUndo';b.dataset.id=k;u.hidden=false;
+ clearTimeout(tBortVisa.t);tBortVisa.t=setTimeout(()=>{if(b.dataset.act==='taskBortUndo')undoHide()},5000)}
+function tBortAter(k){const x=tBort().find(y=>y.k===k);if(!x)return;undoHide();tBortSet(l=>l.filter(y=>y.k!==k));
+ D().tasks.push({id:'tmp'+Date.now(),done:false,title:x.title,due:x.due,who:x.who,note:'',source:'egen',repeat:x.repeat});apiPost({action:'taskAdd',title:x.title,due:x.due,who:x.who,repeat:x.repeat});render();toast(x.title+' är tillbaka')}
+addEventListener('visibilitychange',()=>{if(document.hidden){delCommit();cdelCommit();fdelCommit()}});
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>t.hidden=true,2800)}
 // Kalkylarket vägrar ta bort sista raden under rubriken. En dold egen rad i Inköp gör att fliken aldrig töms helt.
 const PLATS='(rad för appen, ta inte bort)';let platsFinns=false;
@@ -499,25 +593,43 @@ function platsVakt(a){if(platsFinns||!/^(planSend|shopDelete)$/.test(a))return;p
 function setData(d){if(d&&S.data&&d.serverTime&&S.data.serverTime&&d.serverTime<S.data.serverTime)return;if(d&&Array.isArray(d.shop)){if(d.shop.some(x=>x.name===PLATS))platsFinns=true;d.shop=d.shop.filter(x=>x.name!==PLATS)}if(d&&Array.isArray(d.menu))d.menu=d.menu.filter(m=>!(m&&!m.recipe&&/^ledig$/i.test(m.title||'')));if(d&&DEL.items&&Array.isArray(d.shop)){const ids=new Set(DEL.items.map(x=>x.id));d.shop=d.shop.filter(x=>!ids.has(x.id))}if(d&&CDEL.item&&Array.isArray(d.clean))d.clean=d.clean.filter(x=>x.id!==CDEL.item.id);S.data=d;if(window.MatVaror&&d&&d.settings)MatVaror.setPriser(parseJ(d.settings.priser,{}));SKR=new Map();PKR=new WeakMap();S.lastSync=new Date();S.error='';try{lsSet('cache',JSON.stringify(d))}catch(e){}}
 async function apiGet(){
  const r=await fetch(CFG.api+'?key='+encodeURIComponent(S.key)+'&t='+Date.now(),{cache:'no-store'});
- const j=await r.json();if(!j.ok)throw new Error(j.error||'Okänt fel');return j.data}
+ const j=await r.json();if(!j.ok)throw new Error(j.error||'Okänt fel');lastServer=j.data;lastServerT=Date.now();return j.data}
 /* Ändringar sparas först i telefonen (utkorgen) och skickas sedan i tur och ordning.
    Utan nät ligger de kvar och skickas när nätet kommer tillbaka, så inget försvinner i butiken.
    Medan något klartr skrivs telefonens data inte över av äldre data från kalkylarket. */
 const OUTBOX=(()=>{try{const a=JSON.parse(lsGet('outbox')||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}})();
 S.pending=OUTBOX.length;
 const saveOutbox=()=>{lsSet('outbox',OUTBOX.length?JSON.stringify(OUTBOX):null);try{if(S.data)lsSet('cache',JSON.stringify(S.data))}catch(e){}};
-let flushing=false,lastServer=null;
+let flushing=false,lastServer=null,lastServerT=0;
 // En vara eller uppgift som lagts till utan nät har ett tillfälligt id; slå upp det riktiga i svaret från arket
-function realId(b){if(!/^tmp/.test(String(b.id||''))||!lastServer)return b.id;
+// Veckans varor får id efter plats i listan (plan…-3). Har en annan telefon uppdaterat varorna sedan dess pekar idt på en annan
+// vara, så idt kontrolleras mot varans namn i senaste svaret från arket. null = varan finns inte längre
+const shopNyck=x=>(String(x.name||'')+'|'+String(x.qty||'')).toLowerCase();
+const shopFlytt=b=>/^shop(Toggle|Delete)$/.test(b.action)&&/^(plan|rc-)/.test(String(b.id||''));
+function realId(b){if(b.nm&&lastServer&&/^shop(Toggle|Delete)$/.test(b.action)&&!/^tmp/.test(String(b.id||''))){const L=lastServer.shop||[],x=L.find(y=>y.id===b.id);if(x&&shopNyck(x)===b.nm)return b.id;
+  const nm=b.nm.split('|')[0],c=L.filter(y=>shopNyck(y)===b.nm),d=c.length?c:L.filter(y=>String(y.name||'').toLowerCase()===nm);const hit=d.find(y=>b.action!=='shopToggle'||!!y.done!==!!b.done)||d[0];return hit?hit.id:null}
+ if(!/^tmp/.test(String(b.id||''))||!lastServer)return b.id;
  const list=/^shop/.test(b.action)?lastServer.shop:/^task/.test(b.action)?lastServer.tasks:[],k=/^shop/.test(b.action)?'name':'title';
  const hit=list.filter(x=>x[k]===b.tmpName).pop();return hit?hit.id:b.id}
 async function flush(){
- if(flushing||!OUTBOX.length||!S.key)return;flushing=true;S.sync='busy';renderStatus();
+ if(flushing||!OUTBOX.length||!S.key)return;flushing=true;S.sync='busy';renderStatus();const start=Date.now();
  try{
-  while(OUTBOX.length){const b=Object.assign({},OUTBOX[0]);b.id=realId(b);delete b.tmpName;
+  while(OUTBOX.length){if(UPD.wait.has(OUTBOX[0]))break;
+   // Före veckans varor skickas, och före första bocken på en veckovara i varje omgång, hämtas arket.
+   // Då vet telefonen vad den andra har bockat av, och vilket id varan har nu
+   const plan=OUTBOX[0].action==='planSend';let fore=null;
+   if(plan||shopFlytt(OUTBOX[0])&&lastServerT<start){try{fore=await Promise.race([apiGet(),new Promise((_,no)=>setTimeout(()=>no(new Error('tid')),20000))])}catch(e){if(!/hushållskod/i.test(e.message)){S.sync='offline';S.pending=OUTBOX.length;render();return}}}
+   // Varje ändring får ett eget id (rid) så att Kod.gs kan hoppa över en ändring som redan är sparad
+   if(!OUTBOX[0].rid){OUTBOX[0].rid=Date.now().toString(36)+Math.random().toString(36).slice(2,8);saveOutbox()}
+   // Kom svaret aldrig fram (appen stängdes, nätet föll) kan tillägget ändå ha sparats i arket. Kontrollera innan det skickas igen,
+   // annars blir det dubbletter. Behövs med äldre Kod.gs som inte känner till rid
+   if(OUTBOX[0].osaker&&/^(task|shop|clean)Add$/.test(OUTBOX[0].action)){let nu;try{nu=await apiGet()}catch(e){S.sync='offline';S.pending=OUTBOX.length;render();return}
+    if(redanSparad(OUTBOX[0],nu)){OUTBOX.shift();S.pending=OUTBOX.length;saveOutbox();if(!OUTBOX.length){S.sync='idle';flushing=false;refresh(true);return}continue}}
+   const b=Object.assign({},OUTBOX[0]);b.id=realId(b);delete b.tmpName;delete b.nm;delete b.n0;delete b.osaker;
+   if(b.id===null){OUTBOX.shift();S.pending=OUTBOX.length;saveOutbox();if(!OUTBOX.length){S.sync='idle';flushing=false;refresh(true);return}continue}
    let j;
    try{const r=await fetch(CFG.api,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign(b,{key:S.key,by:b.by!=null?b.by:S.me}))});j=await r.json()}
-   catch(e){S.sync='offline';S.pending=OUTBOX.length;render();return}   // inget nät: försök igen senare
+   catch(e){OUTBOX[0].osaker=1;saveOutbox();S.sync='offline';S.pending=OUTBOX.length;render();return}   // inget nät eller inget svar: försök igen senare
    // Kalkylarket tar en ändring i taget. Är det upptaget (låst av en annan ändring eller kalendersynken) har inget sparats,
    // så ändringen ligger kvar i utkorgen och skickas igen om en stund i stället för att visa ett fel
    if(!j.ok&&/lock|lås/i.test(j.error||'')&&(OUTBOX[0].forsok=(OUTBOX[0].forsok||0)+1)<=20){saveOutbox();S.sync='busy';renderStatus();flushing=false;setTimeout(flush,4000+2000*Math.min(OUTBOX[0].forsok,10));return}
@@ -529,16 +641,30 @@ async function flush(){
     S.sync='busy';renderStatus();flushing=false;setTimeout(flush,1500*OUTBOX[0].kodForsok);return}
    OUTBOX.shift();S.pending=OUTBOX.length;saveOutbox();
    if(!j.ok){S.postErr=j.error||'fel';toast(/okänd åtgärd/i.test(j.error||'')?'Det här kräver att Kod.gs uppdateras på datorn först.':'Ändringen sparades inte: '+(j.error||'Okänt fel'));if(!OUTBOX.length){S.sync='idle';flushing=false;refresh(true);return}continue}
-   lastServer=j.data;
+   lastServer=j.data;lastServerT=Date.now();
+   if(plan&&fore&&j.data&&Array.isArray(j.data.shop))OUTBOX.unshift(...planKopt(b,fore,j.data));S.pending=OUTBOX.length;saveOutbox();
    if(!OUTBOX.length){if(!UPD.n)setData(j.data);S.sync='idle'}}
  }finally{flushing=false}
  render()}
+// Kalkylarket skriver om veckans varor som inte köpta och tar bort avbockade egna varor. Är det samma vecka bockas det som var köpt
+// i arket precis innan (även det den andra telefonen bockat av) av igen, och avbockade egna varor läggs tillbaka
+function planKopt(b,fore,efter){const st=fore.settings||{};if(st.vecka_start!==b.start)return[];
+ const L=efter.shop,kopt=new Set(fore.shop.filter(x=>x.done&&x.source!=='egen').map(shopNyck)),ut=[];
+ L.filter(x=>x.source!=='egen'&&!x.done&&kopt.has(shopNyck(x))).forEach(x=>ut.push({action:'shopToggle',id:x.id,done:true,nm:shopNyck(x),by:b.by}));
+ fore.shop.filter(x=>x.done&&x.source==='egen'&&x.name!==PLATS&&!L.some(y=>y.source==='egen'&&shopNyck(y)===shopNyck(x))).forEach((x,n)=>{const id='tmp'+Date.now()+'-k'+n;
+  ut.push({action:'shopAdd',name:x.name,qty:x.qty||'',cat:x.cat||'Övrigt',price:x.price==null?'':x.price,by:b.by},{action:'shopToggle',id,tmpName:x.name,done:true,by:b.by})});
+ return ut}
 if(OUTBOX.length)setTimeout(flush,800);
+// n0 = hur många med samma namn som fanns när tillägget gjordes. Fler i arket nu betyder att det redan kom fram
+function redanSparad(b,d){if(b.action==='cleanAdd')return !!b.id&&(d.clean||[]).some(x=>x.id===b.id);if(b.n0==null)return false;
+ const k=b.action==='taskAdd'?'title':'name',v=String(b[k]||'');return((b.action==='taskAdd'?d.tasks:d.shop)||[]).filter(x=>String(x[k]||'')===v).length>b.n0}
 function apiPost(body){
  if(!navigator.onLine&&body.action==='menuSwap'){toast('Kräver nät. Försök igen när du har täckning.');refresh(true);return Promise.resolve()}
  platsVakt(body.action);
  const it=Object.assign({},body,{by:S.me});
  if(/^tmp/.test(String(body.id||''))){const list=/^shop/.test(body.action)?D().shop:D().tasks,x=list.find(y=>y.id===body.id);if(x)it.tmpName=x.name||x.title}
+ else if(/^shop(Toggle|Delete)$/.test(body.action)&&!it.nm){const x=(DEL.list||[]).concat(D().shop).find(y=>y.id===body.id);if(x)it.nm=shopNyck(x)}
+ if(/^(task|shop)Add$/.test(body.action)){const k=body.action==='taskAdd'?'title':'name';it.n0=(body.action==='taskAdd'?D().tasks:D().shop).filter(x=>x[k]===body[k]&&!/^tmp/.test(String(x.id||''))).length}
  OUTBOX.push(it);S.pending=OUTBOX.length;saveOutbox();renderStatus();
  return flush()}
 addEventListener('online',()=>flush());
@@ -603,7 +729,7 @@ function evParts(e){const t=String(e.title||'').trim(),ps=people(),is=s=>ps.find
 const evTitle=e=>esc(evParts(e).title);
 function evWho(e){const w=evParts(e).name||evPerson(e);return w?' '+personChip(w):''}
 // Namnchip i personens egen färg (--p1/--p2), grå för den som inte finns bland personerna
-const personChip=w=>'<span class="chip'+(people().includes(w)?' '+pcls(w):NY?' o':'')+'">'+esc(personLabel(w))+'</span>';
+const personChip=w=>'<span class="chip'+(people().includes(w)?' '+pcls(w):' o')+'">'+esc(personLabel(w))+'</span>';
 const shopCost=items=>items.reduce((s,i)=>s+shopKr(i),0);
 /* Pris på inköpslistan: det som står i kalkylarket, annars förpackningens pris från matvarorna (egna varor och äldre rader utan pris).
    Antalet förpackningar räknas ur mängden ("2 st", "500 g"), utan mängd en förpackning. Okända varor får inget pris */
@@ -653,14 +779,15 @@ let NB={title:'',back:false},io=null;
 function watchTitle(){
  const bar=document.getElementById('navbar');if(!bar)return;
  if(io){io.disconnect();io=null}
- document.getElementById('nb-title').textContent=NB.title||'';
+ /* Henrik 2026-10-27: ingen sidrubrik vid scroll; raden finns bara kvar för tillbaka-knappen (och statusfältet) */
+ bar.classList.toggle('tom',!NB.back);
  document.getElementById('nb-left').innerHTML=NB.back?'<button class="back" data-act="recipeBack">'+I.back+'Mat</button>':'';
  const lt=document.getElementById('lt');
  const show=on=>{bar.classList.toggle('on',on);bar.setAttribute('aria-hidden',String(!on));bar.inert=!on};
  if(!lt||!('IntersectionObserver' in window)){show(false);return}
  io=new IntersectionObserver(es=>{const e=es[es.length-1];show(!e.isIntersecting&&e.boundingClientRect.top<bar.offsetHeight)},{rootMargin:'-'+(bar.offsetHeight||44)+'px 0px 0px 0px',threshold:0});
  io.observe(lt)}
-function doRender(){applyPersonColors();applyAccent();
+function doRender(){if(motionDrag||sheetDrag){pendingRender=true;return}applyPersonColors();applyAccent();
  if(!S.key||!S.data)document.getElementById('create-dock')?.remove();
  document.body.classList.toggle('wall',S.wall);document.body.classList.toggle('is-night',S.view==='oversikt'&&nightOn());document.body.dataset.view=S.view;
  document.body.classList.toggle('cook-open',!!S.cook);
@@ -678,10 +805,10 @@ function doRender(){applyPersonColors();applyAccent();
  A.before(m);
  // Om en vy kraschar visas ett fel i stället, så att resten av appen (svep, menyn) fortsätter att fungera
  let page;try{page=(V[S.view]||V.oversikt)()}catch(e){console.error(e);page='<div class="banner">Något gick fel när sidan skulle visas: '+esc(e.message)+'</div>'}
- m.innerHTML=banner+page;addLayout(m);
+ m.innerHTML=banner+page;addLayout(m);if(U5)u5More(m);
  {const w=m.querySelector('.wk-sw');if(w&&S.wkX){w.scrollLeft=S.wkX;wkMonth(w)}}
  {const w=m.querySelector('.wxC-sc');if(w)w.scrollLeft=S.wxX!=null?S.wxX:WXC_NP*WXC_SW}
- placeSky();fitBoard();
+ placeSky();skyFit();fitBoard();gpuLager();loopSync();
  watchTitle();plPin();wsPin();vvFix();
  A.after(m);
 }
@@ -694,14 +821,16 @@ function setupHtml(){return'<form class="setup" data-form="setup"><h1 class="lt"
  '<div class="block"><button class="btn-fill" style="width:100%">Öppna tavlan</button></div>'+(S.error?'<div class="banner">'+esc(S.error)+'</div>':'')+'</form>'}
 
 /* Byggstenar */
-const gearBtn='<button class="ib" data-act="settings" aria-label="Inställningar">'+I.gear+'</button>';
 // Ny design: initialen i personens färg öppnar Inställningar, så att man ser vem enheten är inställd på
 // Gemensam skärm visar ett G i stället för kugghjulet
 const meBtn=()=>people().includes(S.me)?'<button class="ib me-av '+pcls(S.me)+'" data-act="settings" aria-label="Inställningar, '+esc(personLabel(S.me))+'"><span>'+esc(personLabel(S.me).slice(0,1).toUpperCase())+'</span></button>':'<button class="ib me-av pg" data-act="settings" aria-label="Inställningar, gemensam skärm"><span>G</span></button>';
 function head(title,o){o=o||{};NB.title=title;
- return'<header class="head">'+(o.eyebrow?'<div class="eyebrow">'+o.eyebrow+'</div>':'')+'<div class="head-row"><h1 class="lt" id="lt">'+esc(title)+'</h1><div class="tools">'+(o.tools||'')+(!NY?gearBtn:wallBoardOn()?'':meBtn())+'</div></div>'+(o.sub?'<div class="sub">'+o.sub+'</div>':'')+'</header>'}
+ return'<header class="head">'+(o.eyebrow?'<div class="eyebrow">'+o.eyebrow+'</div>':'')+'<div class="head-row"><h1 class="lt" id="lt">'+esc(title)+'</h1><div class="tools">'+(o.tools||'')+(wallBoardOn()?'':meBtn())+'</div></div>'+(o.sub?'<div class="sub">'+o.sub+'</div>':'')+'</header>'}
 const sh=(l,r,cls)=>'<div class="sh'+(cls?' '+cls:'')+'"><span>'+l+'</span>'+(r!=null&&r!==''?'<span class="r">'+r+'</span>':'')+'</div>';
 const group=inner=>'<div class="group">'+inner+'</div>';
+/* Rutnummer: varje ruta har ett fast nummer, bokstav för delen + löpnummer (M2 = Vardagar på veckosedeln). Syns med Inställningar → Utvecklare → Visa rutnummer.
+   Lista, kontroll och nästa lediga nummer: node verktyg/rutor.js. Ett borttaget nummer används aldrig igen. */
+const RF=n=>n?' data-ref="'+n+'"':'',rgroup=(n,inner)=>'<div class="group"'+RF(n)+'>'+inner+'</div>',refAdd=(h,n)=>n&&h?h.replace(/^(\s*<[a-z]+)/i,'$1'+RF(n)):h;
 // Rubrik inuti en lista: listan är en enda yta där kategorierna skiljs åt av en rubrik med streck under
 const gh=(l,r,cls)=>'<div class="gh'+(cls?' '+cls:'')+'"><span>'+l+'</span>'+(r!=null&&r!==''?'<span class="r">'+r+'</span>':'')+'</div>';
 // Segmentreglage; markeringen är ett eget element så att den kan glida mellan valen
@@ -709,21 +838,23 @@ function segc(label,act,opts,cur){const i=Math.max(0,opts.findIndex(o=>o[0]===cu
  return'<div class="segc" role="group" aria-label="'+esc(label)+'" data-seg="'+esc(act)+'" style="--n:'+opts.length+';--i:'+i+'"><i class="seg-thumb" aria-hidden="true"></i>'+opts.map(([k,l])=>'<button type="button" data-act="'+act+'" data-id="'+k+'" aria-pressed="'+(cur===k)+'">'+l+'</button>').join('')+'</div>'}
 const emptyCell=t=>'<div class="cell empty">'+t+'</div>';
 const chevron='<span class="chev">'+I.chev+'</span>';
-function weekSub(){const st=settings(),W=weekTarget();if(W.ny)return'Vecka '+isoWeek(parse(W.vs))+' · inte planerad än';if(NY){const a=parse(W.vs),b=parse(W.ve),m=x=>MON[x.getMonth()];return'Vecka '+isoWeek(a)+' · '+a.getDate()+(m(a)===m(b)?'':' '+m(a))+'–'+b.getDate()+' '+m(b)}
+function weekSub(){const st=settings(),W=weekTarget();if(W.ny)return'Vecka '+isoWeek(parse(W.vs))+' · inte planerad än';{const a=parse(W.vs),b=parse(W.ve),m=x=>MON[x.getMonth()];return'Vecka '+isoWeek(a)+' · '+a.getDate()+(m(a)===m(b)?'':' '+m(a))+'–'+b.getDate()+' '+m(b)}
  return esc(st.vecka_rubrik||'')+(isDate(st.uppdaterad)?' · uppdaterad '+esc(dateShort(st.uppdaterad)):'')}
 const dayHead=s=>{const d=parse(s);return DAYS[d.getDay()]+' '+d.getDate()+' '+MON[d.getMonth()]};
 
 const V={};
 /* En gemensam skapa-knapp, med sidans egna åtgärder. Valet sparas bara på enheten. */
 function addPlace(){return ['flytande','rad'].includes(lsGet('addPlace'))?lsGet('addPlace'):'profil'}
-function addContext(){if(!NY||S.recipe||S.cook||S.view==='mat'&&(RC.screen||S.plan))return null;if(S.view==='mat'&&['recept','bank','efter'].includes(S.matTab))return{recipe:true,label:'Lägg till recept'};if(S.view==='mat'&&S.matTab==='inkop')return{act:'shopAdd',form:'shopQuick',label:'Ny vara'};if(S.view==='uppgifter')return{act:'taskAdd',form:S.taskTab==='lista'?'taskQuick':'',label:'Ny uppgift'};if(S.view==='stad'&&addPlace()==='profil')return{act:'cleanAdd',form:'cleanQuick',label:'Ny syssla'};return null}
+function addContext(){if(S.recipe||S.cook||S.view==='mat'&&(RC.screen||S.plan))return null;if(S.view==='mat'&&['recept','bank','efter'].includes(S.matTab))return{recipe:true,label:'Lägg till recept'};if(S.view==='mat'&&S.matTab==='inkop')return{act:'shopAdd',form:'shopQuick',label:'Ny vara'};if(S.view==='uppgifter')return{act:'taskAdd',form:'taskQuick',label:'Ny uppgift'};if(S.view==='kalender')return{act:'evNew',form:'',label:'Ny händelse'};if(S.view==='stad'&&addPlace()==='profil')return{act:'cleanAdd',form:'cleanQuick',label:'Ny syssla'};if(S.view==='fod')return{act:'fodAdd',form:'',label:'Ny födelsedag'};return null}
 function addControl(c,mode){return '<div class="create-control create-'+mode+'">'+(c.recipe?'<details class="create-menu"><summary class="create-plus" aria-label="Lägg till recept"><span class="create-open">'+I.plus+'</span><span class="create-close">'+I.x+'</span></summary><div class="create-options" aria-label="Lägg till recept"><button type="button" data-rc="new"><span class="sh-ic">'+I.plus+'</span>Nytt recept</button><button type="button" data-rc="import"><span class="sh-ic">'+I.imp+'</span>Importera recept</button></div></details>':'<button type="button" class="create-plus" data-act="'+c.act+'" aria-label="'+c.label+'">'+I.plus+'</button>')+'</div>'}
+function u5More(m){if(S.view!=='mat'||S.matTab!=='inkop'||S.plan||S.recipe||S.cook)return;const t=m.querySelector('.head .tools');if(!t)return;const vs=settings().vecka_start,wk=isDate(vs)?'vecka '+isoWeek(parse(vs)):'veckan',n=D().shop.length,it=(act,txt,ic,cl)=>'<button type="button" role="menuitem"'+(cl?' class="'+cl+'"':'')+' data-act="'+act+'"><span>'+txt+'</span>'+ic+'</button>';
+ t.insertAdjacentHTML('afterbegin','<details class="create-menu u5-menu"'+RF('M8')+'><summary class="u5-dots" aria-label="Listans åtgärder">'+I.dots+'</summary><div class="create-options" role="menu" aria-label="Inköpslistan">'+it('shopMoreImp','Uppdatera varor för '+esc(wk),I.imp)+(n?it('shopMoreAsk','Töm listan',I.trash,'red'):'')+'</div></details>')}
 function addLayout(m){document.getElementById('create-dock')?.remove();const c=addContext(),mode=addPlace();m.classList.toggle('has-create-float',!!c&&mode==='flytande');m.classList.toggle('recipe-library',!!c?.recipe);if(!c)return;
  m.querySelectorAll('.head .plus').forEach(x=>x.remove());const quick=c.form&&m.querySelector('form[data-form="'+c.form+'"]');
  if(mode==='rad'&&quick){quick.classList.add('create-row');quick.querySelector('.add-go').classList.add('create-plus');return}
  if(quick)quick.remove();const html=addControl(c,mode);
  if(mode==='profil')m.querySelector('.head .tools')?.insertAdjacentHTML('afterbegin',html);
- else if(mode==='rad'){const search=m.querySelector('.rc-search-row');if(search)search.insertAdjacentHTML('beforeend',html);else m.querySelector('.segc')?.insertAdjacentHTML('afterend','<div class="create-row-action">'+html+'<span>'+c.label+'</span></div>')}
+ else if(mode==='rad'){const search=m.querySelector('.rc-search-row');if(search)search.insertAdjacentHTML('beforeend',html);else(m.querySelector('.segc')||m.querySelector('.head'))?.insertAdjacentHTML('afterend','<div class="create-row-action">'+html+'<span>'+c.label+'</span></div>')}
  else document.body.insertAdjacentHTML('beforeend','<div id="create-dock">'+html+'</div>');
 }
 document.addEventListener('click',e=>{document.querySelectorAll('.create-menu[open]').forEach(x=>{if(!x.contains(e.target))x.open=false})});
@@ -737,21 +868,21 @@ const BOX={kal:'Kalender',mat:'Middag',stad:'Städ',inkop:'Inköp',upg:'Uppgifte
 // vilka rutor som får vara halv bredd, och vilka som är det från början
 const SIZES={ov:{can:['mat','stad','inkop','upg','hem','fod','imorgon'],half:['stad','inkop']},wall:{can:['mat','inkop','fod'],half:['inkop','fod']}};
 const SV2='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
-const IA={minus:SV2+'<path d="M6 12h12"/></svg>',grow:SV2+'<path d="M14 4h6v6M10 20H4v-6M20 4l-6.5 6.5M4 20l6.5-6.5"/></svg>',shrink:SV2+'<path d="M20 10h-6V4M4 14h6v6M14 10l6-6M10 14l-6 6"/></svg>'};
+const IA={minus:SV2+'<path d="M6 12h12"/></svg>',grow:SV2+'<path d="M14 4h6v6M10 20H4v-6M20 4l-6.5 6.5M4 20l6.5-6.5"/></svg>',shrink:SV2+'<path d="M20 10h-6V4M4 14h6v6M14 10l6-6M10 14l-6 6"/></svg>',undo:SV2+'<path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>'};
 let PREVIEW=null,DRAG_ID=null;// medan en ruta dras ritas tavlan med den tillfälliga ordningen
-function layout(wall,def){if(PREVIEW&&PREVIEW.wall===wall)return PREVIEW.L;
- const k=(wall?'wallLayout':'ovLayout')+(U3?'3':NY?'Ny':''),Z=SIZES[wall?'wall':'ov'];let o=null;try{o=JSON.parse(lsGet(k)||'null')}catch(e){}
+function layout(wall,def){if(PREVIEW&&PREVIEW.wall===wall)return PREVIEW.L;if(expOn())return layoutX(wall);
+ const k=(wall?'wallLayout':'ovLayout')+(U4?'4':U3?'3':'Ny'),Z=SIZES[wall?'wall':'ov'];let o=null;try{o=JSON.parse(lsGet(k)||(U4?lsGet((wall?'wallLayout':'ovLayout')+'Ny'):null)||'null')}catch(e){}
  const known=new Set(def.flat()),hidden=(o&&Array.isArray(o.hidden)?o.hidden:[]).filter(x=>known.has(x));
  let cols=o&&Array.isArray(o.cols)&&o.cols.length===def.length?o.cols.map(c=>c.filter(x=>known.has(x))):def.map(c=>c.slice());
  const seen=new Set(cols.flat().concat(hidden));def.forEach((c,i)=>c.forEach(x=>{if(!seen.has(x))cols[i].push(x)}));// nya rutor hamnar på sin vanliga plats
  const size={};known.forEach(id=>{const v=o&&o.size&&o.size[id];size[id]=Z.can.includes(id)&&(v?v==='h':Z.half.includes(id))?'h':'f'});
  return{cols,hidden,size}}
-function saveLayout(wall,L){lsSet((wall?'wallLayout':'ovLayout')+(U3?'3':NY?'Ny':''),L?JSON.stringify({cols:L.cols,hidden:L.hidden,size:L.size}):null)}
+function saveLayout(wall,L){lsSet((wall?'wallLayout':'ovLayout')+(expOn()?'X':U4?'4':U3?'3':'Ny'),L?JSON.stringify({cols:L.cols,hidden:L.hidden,size:L.size}):null)}
 // I ändra-läget vickar rutorna och får sina knappar. Innehållet syns som vanligt men går inte att trycka på.
 function boxify(id,html,wall,L){if(!html)return'';
  const half=L.size[id]==='h';
  if(!wall)html=html.replace(/class="widget( w2)?/,'class="widget'+(half?'':' w2'));
- html=html.replace('<section ','<section data-box="'+id+'" ');if(!S.arrange)return html;
+ html=html.replace('<section ','<section data-box="'+id+'"'+RF((wall?{kal:'T3',mat:'T4',inkop:'T5',fod:'T6',stad:'T7',upg:'T8'}:{kal:'Ö2',upg:'Ö3',mat:'Ö4',stad:'Ö5',inkop:'Ö6',hem:'Ö7',imorgon:'Ö8',fod:'Ö9'})[id])+' ');if(!S.arrange)return html;
  html=html.replace(/(<section[^>]*?) data-act="nav"/,'$1').replace(/(<section[^>]*?class="widget)/,'$1 arr'+(DRAG_ID===id?' ph':''));
  const can=SIZES[wall?'wall':'ov'].can.includes(id);
  const btn='<button type="button" class="arr-x" data-act="boxHide" data-id="'+id+'" aria-label="Dölj '+BOX[id]+'">'+IA.minus+'</button>'+
@@ -763,10 +894,127 @@ function boxRow(list,wall,html,L){let out='',i=0;const n=list.length,H=id=>L.siz
   if(wall&&H(a)){const two=b&&H(b);out+='<div class="wpair"'+(two&&!(a==='inkop'&&b==='fod')?' style="grid-template-columns:1fr 1fr"':'')+'>'+boxify(a,html[a],wall,L)+(two?boxify(b,html[b],wall,L):'<div></div>')+'</div>';i+=two?2:1;continue}
   out+=boxify(a,html[a],wall,L);i++}
  return out}
+// Ändra-läget är ett utkast: ändringarna syns direkt men sparas först med Klar. Avbryt (eller att lämna Översikt) lägger tillbaka den gamla ordningen.
+let ARR0=null;
+const layoutKey=wall=>(wall?'wallLayout':'ovLayout')+(expOn()?'X':U4?'4':U3?'3':'Ny');
+function arrOn(){if(S.arrange)return;const k=layoutKey(wallBoardOn());ARR0={k,v:lsGet(k)};S.arrange=true}
+const arrChanged=()=>!!ARR0&&lsGet(ARR0.k)!==ARR0.v;
+// Föregående layout: varje Klar minns layouten från före ändringen, så att man kan gå tillbaka efter att ha provat den nya
+const prevGet=k=>{try{const o=JSON.parse(lsGet(k+'Prev')||'null');return o&&'v'in o?o:null}catch(e){return null}};
+function arrCancel(){if(ARR0)lsSet(ARR0.k,ARR0.v);ARR0=null;S.arrange=false;S.xsz=null}
 function arrangeFoot(L,wall){if(!S.arrange)return'';
- const hid=L.hidden.map(id=>'<button type="button" class="pill" data-act="boxShow" data-id="'+id+'">'+I.plus+BOX[id]+'</button>').join('');
- return'<div class="arr-foot" role="toolbar" aria-label="Ändra ordning"><div class="arr-hid">'+(hid?'<span class="muted">Dolda:</span>'+hid:'<span class="muted">Inga dolda rutor</span>')+'</div>'+
-  '<button type="button" class="tb" data-act="boxReset">Återställ</button><button type="button" class="btn-fill" data-act="arrangeDone">Klar</button></div>'}
+ const hid=L.hidden.map(id=>'<button type="button" class="pill" data-act="boxShow" data-id="'+id+'">'+I.plus+BOX[id]+'</button>').join(''),ch=arrChanged(),pv=ARR0&&prevGet(ARR0.k);
+ return'<div class="arr-foot" role="toolbar" aria-label="Ändra ordning"><div class="arr-hid">'+(pv?'<button type="button" class="pill" data-act="boxPrev">'+IA.undo+'Föregående</button>':'')+'<button type="button" class="pill" data-act="boxReset">Från början</button>'+(hid?'<span class="muted">Dolda:</span>'+hid:'')+'</div>'+
+  '<div class="arr-btns"><button type="button" class="tb" data-act="arrangeCancel">Avbryt</button><span class="arr-st muted">'+(ch?'Inte sparat än':'Inga ändringar')+'</span><button type="button" class="btn-fill" data-act="arrangeDone">Klar</button></div></div>'}
+/* ---------- Widgets i tre storlekar (Experimentellt, bara i utvecklarläget) ----------
+   Som hemskärmens widgets i en mobil: varje ruta finns som Liten, Mellan och Stor och visar mer ju större den är.
+   Telefonen: rutnät med fyra spalter, Liten 2×2, Mellan 4×2, Stor 4×4. Väggen: 4×4 rutor bredvid klockan, Liten 1, Mellan 2, Stor 4.
+   Egen ordning sparas i ovLayoutX/wallLayoutX; första gången ärvs ordningen från vanliga layouten (halv blir Liten, hel blir Mellan). */
+const expOn=()=>lsGet('exp')!=='0';// widgets i tre storlekar är standard sedan ht-v274; 0 = vanliga rutor
+const XW_DEF={ov:{o:['kal','mat','inkop','upg','stad','fod','hem','imorgon'],z:{kal:'m',mat:'s',inkop:'s',upg:'m',stad:'s',fod:'s',hem:'m',imorgon:'m'},hid:[]},
+ wall:{o:['mat','kal','upg','inkop','stad','fod','hem','imorgon'],z:{mat:'l',kal:'l',upg:'m',inkop:'s',stad:'s',fod:'m',hem:'m',imorgon:'m'},hid:['imorgon']}};
+const XW_U={s:1,m:2,l:4},XW_NAMN={s:'Liten',m:'Mellan',l:'Stor'};
+function layoutX(wall){const Z=XW_DEF[wall?'wall':'ov'],k=(wall?'wallLayout':'ovLayout')+'X',known=new Set(Z.o);let o=null;try{o=JSON.parse(lsGet(k)||'null')}catch(e){}
+ if(!o&&!wall){// ärv ordningen från den vanliga layouten
+  let g=null;try{g=JSON.parse(lsGet('ovLayout'+(U4?'4':U3?'3':'Ny'))||'null')}catch(e){}
+  if(g&&Array.isArray(g.cols)){o={cols:[g.cols.flat()],hidden:g.hidden||[],size:{}};Object.entries(g.size||{}).forEach(([id,v])=>{o.size[id]=id==='kal'?'m':v==='h'?'s':'m'})}}
+ const hidden=(o&&Array.isArray(o.hidden)?o.hidden:Z.hid).filter(x=>known.has(x));
+ const list=(o&&Array.isArray(o.cols)?o.cols.flat():Z.o).filter((x,i,a)=>known.has(x)&&!hidden.includes(x)&&a.indexOf(x)===i);
+ Z.o.forEach(x=>{if(!list.includes(x)&&!hidden.includes(x))list.push(x)});
+ const size={};Z.o.forEach(id=>{const v=o&&o.size&&o.size[id];size[id]=XW_U[v]?v:Z.z[id]});
+ return{cols:[list],hidden,size}}
+// små byggstenar
+const xh=(id,ic,txt,r,act)=>'<button class="wh" data-act="'+(act||'nav')+'" data-id="'+id+'">'+ic+'<span>'+txt+'</span>'+(r?'<span class="r">'+r+'</span>':'')+'</button>';
+const xdot=w=>'<span class="xdot'+(people().includes(w)?' '+pcls(w):'')+'"></span>';
+const evW=e=>evParts(e).name||evPerson(e)||'';
+const evT=e=>String(e.time||'').split(/\s*[–-]\s*/)[0];
+const xev=e=>'<div class="xr"><span class="xt num">'+esc(evT(e)||'Heldag')+'</span><span class="grow one">'+esc(e.title)+'</span>'+(evW(e)?xdot(evW(e)):'')+'</div>';
+const xmealDot=w=>'<span class="xdot '+(w==='Henrik'?'k':w==='Vegetariskt'?'v':w==='Gemensam'?'g':'')+'"></span>';
+const xring=(a,b,big)=>'<div class="xring'+(big?' big':'')+'" style="--p:'+(b?a/b:0)+'"><b class="num">'+a+'<small>/'+b+'</small></b></div>';
+const xbar=(sc,w)=>'<i class="xbar '+healthCls(sc)+'"'+(w?' style="margin-top:'+w+'px"':'')+'><b style="width:'+Math.round(sc*100)+'%"></b></i>';
+const xck=(act,id,t)=>'<input type="checkbox" class="check" data-act="'+act+'" data-id="'+esc(id)+'" aria-label="'+esc(t)+'">';
+const xempty=t=>'<div class="xe">'+t+'</div>';
+// allt innehåll räknas ut en gång per ritning
+function xwData(){const t=today(),d=D(),now=new Date(),hm=pad(now.getHours())+':'+pad(now.getMinutes()),days=planDays(),tm=addDays(t,1),cp=cleanPlan();
+ const evs=date=>d.events.filter(e=>e.date===date).sort((a,b)=>String(a.time||'').localeCompare(String(b.time||'')));
+ const evT0=evs(t),coming=evT0.filter(e=>!evT(e)||evT(e).replace('.',':')>=hm);
+ const td=dayOf(t),nextDay=(td&&td.meals.length)?td:days.find(x=>x.date>t&&x.meals.length);
+ const open=d.tasks.filter(x=>!x.done).sort((a,b)=>(a.due||'9').localeCompare(b.due||'9'));
+ const ovs=!people().includes(S.me)?[]:[['shared',ovOpen('shared')],[S.me,ovOpen(S.me)]].flatMap(([l,a])=>a.map(c=>({l,c})));
+ const clean=[...cp.routines.filter(x=>!doneToday(x)),...cp.todo],doneN=cp.routines.filter(doneToday).length+cp.doneRot.length,totN=cp.routines.length+cp.doneRot.length+cp.todo.length;
+ const W=wxModel(),wtm=W&&W.days.find(x=>x.date===tm);
+ return{t,tm,hm,d,evs,evT0,coming,nextDay,open,ovs,clean,doneN,totN,cp,left:d.shop.filter(i=>!i.done),shopAll:d.shop.filter(i=>i.name&&i.name!==PLATS),rooms:roomHealth().sort((a,b)=>a.score-b.score),bd:bdNext(bdays()),wtm}}
+const XW={
+ kal(z,X){const head='<span class="xwd">'+(DAYS[parse(X.t).getDay()]).toUpperCase()+'</span>',n=X.coming[0],more=X.coming.length-1;
+  if(z==='s')return'<div class="xg" data-act="calOpen" data-id="'+X.t+'">'+head+'<div class="xbig num">'+parse(X.t).getDate()+'</div><div class="sp"></div>'+(n?'<div class="xs mu num">'+esc(evT(n)||'Heldag')+'</div><div class="t one">'+esc(n.title)+'</div><div class="xs mu">'+(more>0?'+'+more+' till idag':'&nbsp;')+'</div>':'<div class="xs mu">Inget mer idag</div>')+'</div>';
+  if(z==='m')return'<div class="xmrow" data-act="calOpen" data-id="'+X.t+'"><div class="xdate">'+head+'<div class="xbig num">'+parse(X.t).getDate()+'</div><div class="xs mu">Vecka '+isoWeek(parse(X.t))+'</div></div><div class="grow xrows">'+(X.coming.length?X.coming.slice(0,4).map(xev).join(''):xempty('Inget mer i kalendern idag.'))+'</div></div>';
+  let wk='<div class="xwk">';for(let i=0;i<7;i++){const dt=addDays(X.t,i),n2=X.evs(dt).length;wk+='<button class="'+(i?'':'on')+'" data-act="calOpen" data-id="'+dt+'"><span>'+(i?cap(DAYS3[parse(dt).getDay()]):'Idag')+'</span><b class="num">'+parse(dt).getDate()+'</b><i>'+'<em></em>'.repeat(Math.min(3,n2))+'</i></button>'}wk+='</div>';
+  const nT=Math.min(4,X.evT0.length),tmE=X.evs(X.tm).slice(0,Math.max(0,Math.min(2,4-nT)));
+  return xh(X.t,I.cal,'Schema','Kalender','calOpen')+wk+'<div class="xsub">Idag</div><div class="xrows">'+(X.evT0.length?X.evT0.slice(0,4).map(xev).join(''):xempty('Inget i kalendern idag.'))+'</div>'+(tmE.length?'<div class="xsub">Imorgon</div><div class="xrows">'+tmE.map(xev).join('')+'</div>':'')},
+ upg(z,X){const n=X.open.length,late=X.open.filter(x=>isDate(x.due)&&x.due<=X.t).length,all=n?'Alla '+n:'';
+  const row=x=>{const lt=isDate(x.due)&&x.due<=X.t;return'<div class="xr">'+xck('taskToggle',x.id,x.title)+'<span class="grow one">'+esc(x.title)+'</span>'+(x.due?'<span class="xchip'+(lt?' red':'')+'">'+esc(x.due===X.t?'Idag':isDate(x.due)&&x.due<X.t?'Sen':dateShort(x.due))+'</span>':'')+'</div>'};
+  const ovr=X.ovs.map(o=>'<div class="xr" data-act="ovGo" data-id="'+esc(o.l+'|'+o.c.id)+'"><span class="xwarn">!</span><span class="grow"><span class="one">'+(ovState(o.c)==='andrad'?'Uppdatera':'Lägg in')+' stående överföring</span><span class="xs mu one">'+esc(o.c.name)+'</span></span></div>').join('');
+  if(z==='s')return xh('uppgifter',I.list,'Att göra')+'<div class="xbig num">'+n+'</div><div class="sp"></div>'+(n?'<div class="t one">'+esc(X.open[0].title)+'</div>'+(late?'<div class="xs red b">'+late+' idag eller sen'+(late>1?'a':'')+'</div>':'<div class="xs mu">&nbsp;</div>'):'<div class="xs mu">Inget att göra</div>');
+  const L=X.open.slice(0,z==='m'?3:7);
+  return xh('uppgifter',I.list,'Att göra',all)+((L.length||ovr)?'<div class="xrows">'+(z==='l'?ovr:'')+L.map(row).join('')+'</div>':xempty('Inget att göra just nu.'))},
+ mat(z,X){const nd=X.nextDay,isT=nd&&nd.date===X.t,lbl=!nd||isT?'Middag ikväll':'Middag '+dateShort(nd.date);
+  if(!nd)return xh('mat',I.fork,'Middag')+xempty('Ingen matsedel inlagd än.');
+  const ms=nd.meals,r0=ms[0].recipe&&recipeById(ms[0].recipe),img=r0&&(r0.img||imgOf(r0.id));
+  const go=m=>{const r=m.recipe&&recipeById(m.recipe);return r?' data-act="recipe" data-id="'+esc(r.id)+'"':''};
+  if(z==='s')return'<div class="xphoto full"'+go(ms[0])+'>'+(img?'<img src="'+esc(img)+'" alt="" loading="lazy" onerror="this.remove()">':'<span class="xfood">'+foodIcon(ms[0].title,r0)+'</span>')+'<div class="xov"><div class="xs b">'+(isT?'IKVÄLL':esc(dateShort(nd.date)).toUpperCase())+'</div><div class="t clamp2">'+esc(ms[0].title)+'</div>'+(ms.length>1?'<div class="xs">+'+(ms.length-1)+' till</div>':'')+'</div></div>';
+  if(z==='m')return xh('mat',I.fork,lbl,ms.length>1?ms.length+' rätter':'')+'<div class="xrows">'+ms.slice(0,3).map(m=>{const r=m.recipe&&recipeById(m.recipe);return'<div class="xr"'+go(m)+'>'+xmealDot(m.who)+'<span class="grow one t">'+esc(m.title)+'</span>'+(r&&portKr(r)?'<span class="xs mu">'+kr(portKr(r))+'</span>':'')+'</div>'}).join('')+'</div>';
+  const nx=planDays().find(x=>x.date>nd.date&&x.meals.length),ck=r0&&r0.steps&&r0.steps.length;
+  return(img?'<div class="xphoto band"'+go(ms[0])+'><img src="'+esc(img)+'" alt="" loading="lazy" onerror="this.remove()"></div>':'')+xh('mat',I.fork,lbl)+'<div class="xrows">'+ms.slice(0,3).map(m=>{const r=m.recipe&&recipeById(m.recipe);return'<div class="xr top"'+go(m)+'><span class="grow">'+whoChip(m.who)+'<span class="t one">'+esc(m.title)+'</span>'+(m.addon?'<span class="xs mu one">+ Kött: '+esc(m.addon)+'</span>':'')+'</span>'+(r&&portKr(r)?'<span class="xs mu">'+kr(portKr(r))+'/port</span>':'')+'</div>'}).join('')+'</div><div class="sp"></div><div class="xfoot">'+(nx?'<span class="xs mu grow one">'+esc(cap(dateShort(nx.date)))+': '+esc(nx.meals[0].title)+'</span>':'<span class="grow"></span>')+(ck&&isT?'<button class="btn-fill xbtn" data-act="cook" data-id="'+esc(r0.id)+'">'+I.play+'Börja laga</button>':'')+'</div>'},
+ stad(z,X){const r=xring(X.doneN,X.totN,z!=='s'),kv=X.cp.minLeft+' min kvar';
+  if(!X.d.clean.length)return xh('stad',I.sparkles,'Städ')+xempty('Inga rutiner tillagda än.');
+  if(z==='s')return xh('stad',I.sparkles,'Städ')+'<div class="xc">'+r+'</div><div class="xs mu xmid">'+(X.clean.length?kv:'Allt är gjort idag')+'</div>';
+  const row=x=>'<div class="xr">'+xck('cleanToggle',x.id,x.title)+'<span class="grow one">'+esc(x.title)+'</span>'+(z==='l'?'<span class="xs mu num">'+x.min+' min</span>':'')+'</div>';
+  const L=X.clean.slice(0,z==='m'?3:6),done='<div class="xok">'+I.tick+'Allt är gjort idag</div>';
+  if(z==='m')return xh('stad',I.sparkles,'Städ idag',X.clean.length?kv:'')+'<div class="xmrow">'+r+'<div class="grow xrows">'+(L.length?L.map(row).join(''):done)+'</div></div>';
+  return xh('stad',I.sparkles,'Städ idag',X.clean.length?kv:'')+'<div class="xmrow c">'+r+'<div class="grow xs mu">'+X.doneN+' av '+X.totN+' klara'+(X.rooms[0]?'<br>Mest att göra: '+esc(X.rooms[0].room):'')+'</div></div><div class="xrows">'+(L.length?L.map(row).join(''):done)+'</div>'},
+ inkop(z,X){const n=X.left.length,cost='ca '+kr(shopCost(X.left)),tot=X.shopAll.length,inK=tot-n;
+  const row=i=>'<div class="xr">'+xck('shopToggle',i.id,i.name)+'<span class="grow one">'+esc(i.name)+'</span></div>';
+  if(z==='s')return xh('inkop',I.basket,'Inköp','')+'<div class="xbig num">'+n+'</div><div class="xs mu">kvar · '+cost+'</div><div class="sp"></div>'+(tot?'<i class="xbar acc"><b style="width:'+Math.round(inK/tot*100)+'%"></b></i><div class="xs mu" style="margin-top:4px">'+inK+' av '+tot+' i korgen</div>':'');
+  if(!n)return xh('inkop',I.basket,'Inköp','')+xempty('Listan är tom.');
+  if(z==='m')return xh('inkop',I.basket,'Inköp',n+' kvar · '+cost)+'<div class="xrows two">'+X.left.slice(0,6).map(row).join('')+'</div>';
+  const g={};X.left.forEach(i=>{(g[i.cat||'Övrigt']=g[i.cat||'Övrigt']||[]).push(i)});let c=0,h='';
+  for(const k of Object.keys(g)){const L=g[k].slice(0,6-c);if(!L.length)break;c+=L.length;h+='<div class="xsub">'+esc(k)+'</div><div class="xrows">'+L.map(row).join('')+'</div>'}
+  return xh('inkop',I.basket,'Inköp',n+' kvar · '+cost)+h},
+ hem(z,X){const R=X.rooms;if(!R.length)return xh('stad',I.home,'Hemmet')+xempty('Städschemat är tomt.');
+  if(z==='s')return xh('stad',I.home,'Hemmet')+'<div class="xmidt one">'+esc(R[0].room)+'</div><div class="xs b hw '+healthCls(R[0].score)+'">'+healthWord(R[0].score)+'</div><div class="sp"></div>'+R.slice(0,3).map(r=>xbar(r.score,5)).join('');
+  if(z==='m')return xh('stad',I.home,'Hemmet')+'<div class="xgrid2">'+R.slice(0,4).map(r=>'<div><div class="xs b one">'+esc(r.room)+'</div>'+xbar(r.score,4)+'<div class="xs mu">'+healthWord(r.score)+'</div></div>').join('')+'</div>';
+  return xh('stad',I.home,'Hemmet')+'<div class="xrows">'+R.slice(0,7).map(r=>'<div class="xr"><span class="grow"><span class="xs b">'+esc(r.room)+'</span>'+xbar(r.score,4)+'</span><span class="xs mu xw90">'+healthWord(r.score)+'</span></div>').join('')+'</div>'},
+ imorgon(z,X){const E=X.evs(X.tm),day=dayOf(X.tm),ms=day?day.meals:[],f=X.wtm,wd=cap(DAYS[parse(X.tm).getDay()]);
+  const wx=f?'<span class="xwx">'+symInfo(f.sym)[0]+'</span><span class="xmidt num">'+deg(f.max)+'</span>':'';
+  if(z==='s')return xh(X.tm,I.cal,'Imorgon','','calOpen')+'<div class="xwxrow">'+wx+'</div><div class="sp"></div>'+(E[0]?'<div class="xs mu num">'+esc(evT(E[0])||'Heldag')+'</div><div class="t one">'+esc(E[0].title)+'</div>':ms[0]?'<div class="xs mu">Middag</div><div class="t one">'+esc(ms[0].title)+'</div>':'<div class="xs mu">'+wd+' · inget inplanerat</div>');
+  const rows=E.slice(0,z==='m'?2:4).map(xev).join('')+(ms[0]?'<div class="xr"><span class="xt acc">Mat</span><span class="grow one">'+esc(ms[0].title)+'</span></div>':'');
+  const hd=xh(X.tm,I.cal,'Imorgon',wd+' '+parse(X.tm).getDate()+' '+MON3[parse(X.tm).getMonth()],'calOpen');
+  if(z==='m')return hd+'<div class="xmrow">'+(f?'<div class="xwxcol">'+symInfo(f.sym)[0]+'<div class="xmidt num">'+deg(f.max)+'</div><div class="xs mu num">'+deg(f.min)+'</div></div>':'')+'<div class="grow xrows">'+(rows||xempty('Inget inplanerat.'))+'</div></div>';
+  const tk=X.open.filter(x=>x.due===X.tm).slice(0,2);
+  return hd+(f?'<div class="xwxband">'+symInfo(f.sym)[0]+'<span class="num"><b>'+deg(f.max)+'</b> / '+deg(f.min)+'</span><span class="xs mu grow">'+esc(symInfo(f.sym)[1]||'')+'</span></div>':'')+'<div class="xrows">'+(rows||xempty('Inget inplanerat.'))+tk.map(x=>'<div class="xr">'+xck('taskToggle',x.id,x.title)+'<span class="grow one">'+esc(x.title)+'</span></div>').join('')+'</div>'},
+ fod(z,X){const B=X.bd;if(!B.length)return'';const av=(b,c)=>'<span class="xav'+(c?' '+c:'')+'"'+bdSt(b)+'>'+esc(b.name.charAt(0).toUpperCase())+'</span>';
+  const row=b=>'<div class="xr"'+bdSt(b)+'>'+av(b)+'<span class="grow one"><b class="t">'+esc(b.name)+'</b> <span class="xs mu">'+(b.age!=null?b.age+' år':'')+'</span></span><span class="xs mu'+(b.days<14?' soon':'')+'">'+esc(bdWhen(b))+'</span></div>';
+  if(z==='s')return xh('fod',I.cake,'Födelsedag')+av(B[0],'big')+'<div class="sp"></div><div class="t one xmidt2">'+esc(B[0].name)+'</div><div class="xs mu">'+esc(bdTurns(B[0]))+' · '+esc(bdWhen(B[0]))+'</div>';
+  if(z==='m')return xh('fod',I.cake,'Födelsedagar')+'<div class="xrows">'+B.slice(0,3).map(row).join('')+'</div>';
+  return xh('fod',I.cake,'Födelsedagar','Alla')+'<div class="xbd1"'+bdSt(B[0])+'>'+av(B[0],'big')+'<div class="grow"><div class="t">'+esc(B[0].name)+' '+esc(bdTurns(B[0]))+'</div><div class="xs mu">'+esc(cap(DAYS[parse(B[0].next).getDay()]))+' '+B[0].dd+' '+MON3[B[0].mo]+' · '+esc(bdWhen(B[0]))+'</div></div></div><div class="xrows">'+B.slice(1,6).map(row).join('')+'</div>'}};
+const XW_NAV={kal:'kalender',upg:'uppgifter',mat:'mat',stad:'stad',inkop:'inkop',hem:'stad',imorgon:'kalender',fod:'fod'};
+const XW_REF={ov:{kal:'Ö2',upg:'Ö3',mat:'Ö4',stad:'Ö5',inkop:'Ö6',hem:'Ö7',imorgon:'Ö8',fod:'Ö9'},wall:{kal:'T3',mat:'T4',inkop:'T5',fod:'T6',stad:'T7',upg:'T8',hem:'T10',imorgon:'T11'}};
+function xwBox(id,z,wall,X){const body=XW[id](z,X);if(!body)return'';const arr=S.arrange;
+ let h='<section data-box="'+id+'"'+RF(XW_REF[wall?'wall':'ov'][id])+' class="widget xw xw-'+z+(id==='mat'&&z==='s'?' xw-photo':'')+(arr?' arr'+(DRAG_ID===id?' ph':''):'')+'"'+(arr?'':' data-act="nav" data-id="'+XW_NAV[id]+'"')+'>';
+ if(arr){h+='<button type="button" class="arr-x" data-act="boxHide" data-id="'+id+'" aria-label="Dölj '+BOX[id]+'">'+IA.minus+'</button><button type="button" class="arr-s" data-act="boxSize" data-id="'+id+'" aria-label="Storlek för '+BOX[id]+'">'+IA.grow+'</button>';
+}
+ return h+'<div class="xin">'+body+'</div></section>'}
+const xwMenu=L=>{const id=S.xsz;if(!S.arrange||!id||!L.size[id]||L.hidden.includes(id))return'';const z=L.size[id];
+ return'<div class="xsz" role="menu" aria-label="Storlek för '+BOX[id]+'"><span class="xsz-n">Storlek för '+BOX[id]+'</span>'+['s','m','l'].map(k=>'<button type="button" role="menuitemradio" aria-checked="'+(k===z)+'" class="'+(k===z?'on':'')+'" data-act="boxSz" data-id="'+id+':'+k+'"><i class="xi-'+k+'">'+'<b></b>'.repeat(k==='s'?4:k==='m'?8:16)+'</i>'+XW_NAMN[k]+'</button>').join('')+'</div>'};
+function xwGrid(wall){const X=xwData(),L=layout(wall),list=L.cols[0];
+ const used=list.reduce((s,id)=>s+(XW[id](L.size[id],X)?XW_U[L.size[id]]:0),0);
+ return{html:'<div class="xgrid'+(wall?' wallg':'')+(S.arrange?' arranging':'')+'">'+list.map(id=>xwBox(id,L.size[id],wall,X)).join('')+'</div>'+xwMenu(L),L,used}}
+function ovX(){const hh=new Date().getHours(),greet=hh<5?'God natt':hh<10?'God morgon':hh<17?'Hej':hh<22?'God kväll':'God natt',g=xwGrid(false);
+ return head(greet+(people().includes(S.me)?', '+personLabel(S.me):''),U3?{sub:cap(dayHead(today()))}:undefined)+'<div class="ov">'+refAdd(heroHtml(),'Ö1')+g.html+
+  (S.arrange?'<p class="arr-intro">Håll kvar och dra en ruta dit du vill ha den. Dra i hörnknappen för att ändra storlek (eller tryck på den för att välja). − döljer rutan. Gäller bara den här enheten.</p>':smileyCard())+'</div>'+arrangeFoot(g.L,false)}
+function wallX(){const g=xwGrid(true),top=VKNAPP==='rubrik';
+ return'<div class="board xboard'+(S.arrange?' arranging':'')+(top?' har-top':'')+'">'+(top?'<div class="wall-top"><h1 class="lt">'+(new Date().getHours()<10?'God morgon':new Date().getHours()<18?'Hej':'God kväll')+'</h1></div>':'')+
+  '<div class="bcol bhero">'+refAdd(heroHtml(),'T1')+refAdd(wallWx(),'T2')+'</div>'+g.html+'</div>'+(S.arrange&&g.used>16?'<div class="xfull" role="status">Tavlan är full: '+g.used+' av 16 platser. Gör en ruta mindre eller dölj den.</div>':'')+arrangeFoot(g.L,true)}
 /* ---------- väggtavlan ----------
    På väggskärmen (väggläge, bred skärm) blir Översikt en tavla i tre kolumner som alltid får plats
    utan att scrolla: tid och väder | kalender och middag | städ, inköp och födelsedagar.
@@ -788,19 +1036,83 @@ const nightPos=d=>{d=d||new Date();const doy=Math.floor((d-new Date(d.getFullYea
 function wallNight(){const n=new Date(),t=today(),tm=addDays(t,1),W=wxModel();
  const first=D().events.filter(e=>e.date===tm).sort((a,b)=>String(a.time||'').localeCompare(String(b.time||'')))[0];
  const f=W&&W.days.find(x=>x.date===tm);
- return'<div class="night" data-act="wakeBoard"><div class="night-in" style="transform:'+nightPos(n)+'" data-h="'+n.getHours()+'"><div class="clock num" id="clock">'+pad(n.getHours())+':'+pad(n.getMinutes())+'</div>'+
+ return'<div class="night"'+RF('T9')+' data-act="wakeBoard"><div class="night-in" style="transform:'+nightPos(n)+'" data-h="'+n.getHours()+'"><div class="clock num" id="clock">'+pad(n.getHours())+':'+pad(n.getMinutes())+'</div>'+
   '<div class="night-l">I morgon '+esc(dayHead(tm))+'</div>'+
   (first?'<div class="night-l">'+esc(first.time?String(first.time).split(/\s*[–-]\s*/)[0]+' ':'')+esc(first.title)+'</div>':'')+
   (f?'<div class="night-l">'+symInfo(f.sym)[0]+' '+deg(f.min)+' till '+deg(f.max)+'</div>':'')+'</div></div>'}
 // Mer väder under hundarna på väggen: kommande timmar och tre dagar framåt
 function wallWx(){const W=wxModel();if(!W)return'';
- // ett dygn framåt, timme för timme; svep i sidled för fler timmar, tryck för att öppna vädret
- const hrs=W.hours.slice(1,25);
  const R=rainTxt(W);
- let h='<div class="bwx"><div class="bwx-r'+(R.wet?' wet':'')+'">'+(R.wet?UMB:I.tick)+'<span>'+esc(R.txt)+'</span></div>';
- h+='<div class="bwx-h" data-act="nav" data-id="vader" role="link" aria-label="Väder timme för timme, öppna vädret">'+hrs.map(x=>{const[ic]=symInfo(x.s),hr=x.d.getHours(),nd=hr===0;
-  return'<div class="'+(nd?'nd':'')+'"><span class="fn num">'+(nd?capS(DAYS3[x.d.getDay()])+' 00':pad(hr))+'</span><span class="hi">'+ic+'</span><b class="num">'+deg(x.T)+'</b>'+(x.pr>=0.1?'<span class="pr num">'+mm(x.pr)+'</span>':'<span class="pr"></span>')+'</div>'}).join('')+'</div></div>';
- return h}
+ return'<div class="bwx"><div class="bwx-r'+(R.wet?' wet':'')+'">'+(R.wet?UMB:I.tick)+'<span>'+esc(R.txt)+'</span></div>'+wxStrip(W)+'</div>'}
+// ett dygn framåt, timme för timme; svep i sidled för fler timmar, tryck för att öppna vädret
+// H och X (översiktens graf): timmarna från Nu med grafens x-lägen, så att remsan kan pressas ihop till var tredje timme under kurvan
+function wxStrip(W,H,X){return'<div class="bwx-h" data-act="nav" data-id="vader" role="link" aria-label="Väder timme för timme, öppna vädret">'+(H||W.hours.slice(1,25)).map((x,j)=>{const hr=x.d.getHours(),nd=hr===0;
+  if(X)return'<div class="'+(nd?'nd':'')+(j%3?'':' k3')+(j?'':' nu0')+'" style="--x:'+X[j].toFixed(1)+'px"><span class="fn num">'+(!j?'Nu':nd?capS(DAYS3[x.d.getDay()])+' 00':pad(hr))+'</span><span class="hi">'+wxIco(x)+'</span><b class="num">'+deg(x.T)+'</b>'+(x.pr>=0.1?'<span class="pr num">'+mm(x.pr)+'</span>':'<span class="pr"></span>')+'</div>';
+  return'<div class="'+(nd?'nd':'')+'"><span class="fn num">'+(nd?capS(DAYS3[x.d.getDay()])+' 00':pad(hr))+'</span><span class="hi">'+wxIco(x)+'</span><b class="num">'+deg(x.T)+'</b>'+(x.pr>=0.1?'<span class="pr num">'+mm(x.pr)+'</span>':'<span class="pr"></span>')+'</div>'}).join('')+'</div>'}
+// Ikon i väderremsan: solen eller månen bakom samma moln som i vädergrafen (☁️), större ju molnigare (met.no cloud_area_fraction när den finns)
+function wxIco(x){const b=symBase(x.s),night=/_night$/.test(x.s||''),sh=/showers/.test(b)&&!/thunder/.test(b);
+ // regn utan skurar: bara molnet, ingen sol bakom (telefonens emoji för lätt regn har alltid en sol)
+ if(/rain|sleet/.test(b)&&!sh&&!/thunder/.test(b))return/sleet/.test(b)?'🌨️':'🌧️';
+ if(!/^(fair|partlycloudy)$/.test(b)&&!sh)return symInfo(x.s)[0];
+ const cf=Math.max(typeof x.cf==='number'?x.cf:{fair:25,partlycloudy:60}[b]||0,sh?70:b==='partlycloudy'?40:10),c=.34+.6*Math.min(cf,100)/100;
+ return'<span class="wxi" style="--c:'+c.toFixed(2)+'"><span class="wxi-b">'+(night?'🌙':'☀️')+'</span><span class="wxi-c">'+(sh?(/snow|sleet/.test(b)?'🌨️':'🌧️'):'☁️')+'</span></span>'}
+// Översikten på telefonen: väderremsan timme för timme under hundarna, eller dygnets graf (Inställningar → Översikt och väder, ls ht.ovwx)
+let OVWX=lsGet('ovwx')==='graf'?'graf':'tim';
+// Draghandtaget öppnar grafen nedåt och fäller ihop uppåt, utan håll-in-lyft. Valet sparas per enhet.
+let OVG_X=null;
+function ovWx(W){OVG_X=null;const g=ovGraf(W,1);if(!OVG_X)return'<div class="ovx"'+RF('Ö11')+'>'+wxStrip(W)+'</div>';
+ return'<div class="ovx'+(OVWX==='graf'?' ov-open':'')+'"'+RF('Ö11')+(motionOn()?'':' data-hold-lift="ovGx"')+'><div class="ovx-g" id="ov-weather-graph" aria-hidden="'+(OVWX!=='graf')+'"><div>'+g+'</div></div>'+wxStrip(W,wxHours(W).slice(0,25),OVG_X)+motionGrip('weather','ov-weather-graph',OVWX==='graf')+'</div>'}
+/* Övergången mellan remsan och grafen (FLIP): mät rutorna, byt läge, låt varje timme glida från sin gamla plats till den nya.
+   Öppna: remsan pressas ihop åt vänster till var tredje timme (de andra tonar bort på vägen, högerkanten kommer sist) medan grafen
+   växer upp bakom den; sidan rullas lika mycket så att remsan står still och grafen reser sig uppåt. Kurvan ritas ut och punkterna poppar fram.
+   Stäng: grafen sjunker ner bakom remsan först, sedan bréder timmarna ut sig igen. Fjäderkurva som i iOS; inget av detta vid reducerad rörelse */
+function ovAnim(el,op,still){const st=el.querySelector('.bwx-h'),g=el.querySelector('.ovx-g'),gi=g&&g.firstElementChild;if(!st||!g)return;
+ const its=[...st.children],SPR='cubic-bezier(.32,.72,0,1)',quiet=!el.animate||calm();
+ const F=its.map(c=>c.getBoundingClientRect().left),g0=g.getBoundingClientRect().height;
+ [g,gi,...its,...g.querySelectorAll('.ovg-k,.ovg-p')].forEach(e=>e&&e.getAnimations&&e.getAnimations().forEach(a=>a.cancel()));
+ el.classList.toggle('ov-open',op);g.setAttribute('aria-hidden',String(!op));st.scrollLeft=0;
+ const g1=g.getBoundingClientRect().height;g.inert=!op;if(quiet){if(!still)scrollBy(0,g1-g0);return}
+ // höjden växer bildruta för bildruta och sidan följer med, så att remsan ligger kvar där fingret är
+ const D=op?640:520,ha=g.animate([{height:g0+'px'},{height:g1+'px'}],{duration:D,easing:SPR,delay:op?60:0});let last=g0;
+ const tick=()=>{const hh=g.getBoundingClientRect().height;if(hh!==last){if(!still)scrollBy(0,hh-last);last=hh}if(ha.playState!=='finished'&&ha.playState!=='idle')requestAnimationFrame(tick)};requestAnimationFrame(tick);
+ const n=its.length;its.forEach((c,i)=>{const L=c.getBoundingClientRect().left,dx=F[i]-L,k=c.classList.contains('k3'),nu=c.classList.contains('nu0');
+  if(nu){if(op)c.animate([{opacity:0,transform:'scale(.6)'},{opacity:1,transform:'none'}],{duration:420,easing:SPR,delay:260,fill:'backwards'});return}
+  const dl=op?i*7:(n-i)*5+120;
+  c.animate([{transform:'translateX('+dx.toFixed(1)+'px)'},{transform:'none'}],{duration:op?600:560,easing:SPR,delay:dl,fill:'backwards'});
+  if(!k)c.animate(op?[{opacity:1},{opacity:0}]:[{opacity:0},{opacity:1}],{duration:op?240:420,easing:'ease-out',delay:dl,fill:'backwards'})});
+ if(gi)gi.animate(op?[{opacity:.15,transform:'translateY(18px)'},{opacity:1,transform:'none'}]:[{opacity:1,transform:'none'},{opacity:0,transform:'translateY(10px)'}],{duration:op?620:300,easing:op?SPR:'ease-in',delay:op?60:0,fill:op?'backwards':'forwards'});
+ if(!op)return;
+ const k=g.querySelector('.ovg-k');if(k)k.animate([{strokeDasharray:'1 1',strokeDashoffset:1},{strokeDasharray:'1 1',strokeDashoffset:0}],{duration:760,easing:'cubic-bezier(.65,0,.35,1)',delay:120,fill:'backwards'});
+ g.querySelectorAll('.ovg-p').forEach((p,j)=>p.animate([{opacity:0,transform:'scale(0)'},{opacity:1,transform:'scale(1.25)',offset:.6},{opacity:1,transform:'none'}],{duration:380,easing:'ease-out',delay:260+j*70,fill:'backwards'}))}
+// Dygnets graf: de kommande 24 timmarna i kortets bredd utan att svepa. Kurvan timme för timme; klockslag, ikon och grader var tredje timme
+function ovGraf(W,bare){const P=WX_POS(),H=wxHours(W).slice(0,25);if(H.length<4)return wxStrip(W);
+ const mw=(document.getElementById('main')||document.querySelector('main')||document.body).clientWidth||innerWidth;
+ const w=Math.max(260,Math.min(mw,700)-64),n=H.length,px=14,pr=30,dx=(w-px-pr)/(n-1),h=bare?66:128,yT=15,yB=54,base=62,f=v=>v.toFixed(1);
+ const X=j=>px+j*dx,lo=Math.min(...H.map(x=>x.T)),hi=Math.max(...H.map(x=>x.T)),sp=Math.max(4,hi-lo),Y=T=>yB-(T-lo)/sp*(yB-yT),pts=H.map((x,j)=>[X(j),Y(x.T)]);
+ let d='M'+f(pts[0][0])+' '+f(pts[0][1]);
+ for(let i=0;i<n-1;i++){const p0=pts[i-1]||pts[i],p1=pts[i],p2=pts[i+1],p3=pts[i+2]||p2;
+  d+=' C'+f(p1[0]+(p2[0]-p0[0])/6)+' '+f(p1[1]+(p2[1]-p0[1])/6)+' '+f(p2[0]-(p3[0]-p1[0])/6)+' '+f(p2[1]-(p3[1]-p1[1])/6)+' '+f(p2[0])+' '+f(p2[1])}
+ const gid='og'+(++FIG_N),t0=H[0].d.getTime(),tX=t=>X(0)+(t-t0)/36e5*dx;if(bare)OVG_X=H.map((x,j)=>X(j));
+ let s='<svg width="'+f(w)+'" height="'+h+'" viewBox="0 0 '+f(w)+' '+h+'" class="ovg-svg"><defs><linearGradient id="'+gid+'" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="'+f(w)+'" y2="0">'+pts.map((p,j)=>'<stop offset="'+(p[0]/w).toFixed(4)+'" stop-color="'+tempCol(H[j].T)+'"/>').join('')+'</linearGradient>'+
+  '<linearGradient id="'+gid+'f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="currentColor" stop-opacity=".10"/><stop offset="1" stop-color="currentColor" stop-opacity="0"/></linearGradient></defs>';
+ // natten skuggad, soluppgång och solnedgång som streck
+ for(let k=-1;k<2;k++){const st=sunTimes(addDays(today(),k),P.lat,P.lon),nx=sunTimes(addDays(today(),k+1),P.lat,P.lon);if(!st)continue;
+  if(nx){const a=Math.max(0,tX(st[1].getTime())),b=Math.min(w-pr+4,tX(nx[0].getTime()));if(b>a)s+='<rect x="'+f(a)+'" y="0" width="'+f(b-a)+'" height="'+h+'" class="wxC-night"/>'}
+  [[st[0],'↑'],[st[1],'↓']].forEach(([t,a])=>{const xx=tX(t.getTime());if(xx<20||xx>w-20)return;s+='<line x1="'+f(xx)+'" x2="'+f(xx)+'" y1="12" y2="'+base+'" class="wxC-sun"/><text x="'+f(xx)+'" y="9" class="wxC-st">'+a+' '+hhmm(t)+'</text>'})}
+ s+='<path d="'+d+' L'+f(X(n-1))+' '+base+' L'+f(X(0))+' '+base+'Z" fill="url(#'+gid+'f)" class="ovg-f"/><path d="'+d+'" pathLength="1" class="ovg-k" fill="none" stroke="url(#'+gid+')" stroke-width="3" stroke-linecap="round"/><line x1="0" x2="'+f(w)+'" y1="'+base+'" y2="'+base+'" class="wxC-base"/>';
+ H.forEach((x,j)=>{if(x.pr>=.1){const bh=Math.min(14,3+x.pr*8);s+='<rect x="'+f(X(j)-dx/2+1)+'" y="'+f(base-bh)+'" width="'+f(Math.max(2,dx-2))+'" height="'+f(bh)+'" rx="1.5" class="wxC-pr"/>'}});
+ // temperaturskala i 3-gradersteg vid högerkanten, som i vädervyns graf
+ // skalan vid högerkanten: grafens lägsta och högsta temperatur i accentfärg och däremellan lika stora steg (så många som får plats, minst 12 px)
+ const yl=(T,c)=>'<text x="'+f(w)+'" y="'+f(Y(T)+3.5)+'" class="ovg-y'+c+'">'+deg(T)+'</text>',gl=(T,c)=>'<line x1="0" x2="'+f(w-pr+4)+'" y1="'+f(Y(T))+'" y2="'+f(Y(T))+'" class="'+c+'"/>';
+ let ns=Math.max(1,Math.min(4,Math.floor((Y(lo)-Y(hi))/12)));while(ns>1&&new Set(Array.from({length:ns+1},(_,k)=>Math.round(lo+(hi-lo)*k/ns))).size<ns+1)ns--;
+ const sk=Math.round(hi)===Math.round(lo)?[[hi,1]]:Array.from({length:ns+1},(_,k)=>[lo+(hi-lo)*k/ns,k===0||k===ns]);
+ s=s.replace('<path d="'+d+' L',sk.map(([T,e])=>gl(T,e?'ovg-hl':'wxC-grid')+yl(T,e?' hl':'')).join('')+'<path d="'+d+' L');
+ let ic='';
+ H.forEach((x,j)=>{if(j%3)return;const xx=X(j),nu=!j;
+  s+='<circle cx="'+f(xx)+'" cy="'+f(pts[j][1])+'" r="'+(nu?5:3)+'" fill="'+(nu?tempCol(x.T):'var(--surface)')+'" stroke="'+tempCol(x.T)+'" stroke-width="2" class="ovg-p"/>'+(bare?'':
+   '<text x="'+f(xx)+'" y="78" class="wxC-h'+(nu?' nu':'')+'">'+(nu?'Nu':pad(x.d.getHours()))+'</text><text x="'+f(xx)+'" y="124" class="wxC-t">'+deg(x.T)+'</text>');
+  if(!bare)ic+='<span style="left:'+f(xx)+'px">'+wxIco(wxDayNight(x,P,new Date(x.d.getTime()+18e5)))+'</span>'});
+ return'<div class="ovg" data-act="nav" data-id="vader" role="link" aria-label="Dygnets väder i en graf, öppna vädret">'+s+'</svg>'+(bare?'':'<div class="ovg-ic" aria-hidden="true">'+ic+'</div>')+'</div>'}
 // Paraply? Regnet under resten av dagen (efter kl. 18: i morgon dagtid), med tider och mängd
 const UMB='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 0 1 9 9H3a9 9 0 0 1 9-9z"/><path d="M12 12v7a2 2 0 0 0 4 0"/></svg>';
 function rainTxt(W){const n=new Date(),tm=n.getHours()>=18,day=tm?ymd(new Date(n.getFullYear(),n.getMonth(),n.getDate()+1)):ymd(n);
@@ -818,10 +1130,11 @@ function wallBd(){const L=bdays();if(!L.length)return'';const t=parse(today()),m
  if(!mon.length){const nx=bdNext(L)[0];mm2=nx.mo;mon=L.filter(b=>b.mo===mm2).sort((a,b)=>a.dd-b.dd)}
  const more=mon.length>4?mon.length-3:0,show=more?mon.slice(0,3):mon;
  return widget('fod','bbd',I.cake,'Födelsedagar',esc(cap(MON[mm2])),'<div class="bbd-in"><div class="bbd-w">'+bdWheel(L,mm2)+'</div><div class="bbd-l">'+
-  show.map(b=>'<div class="'+(b.days===0?'today':b.passed?'past':'')+'"><span class="num">'+b.dd+'</span><span class="grow">'+esc(b.name)+'</span><span class="fn num">'+(b.age!=null?b.age:"")+'</span></div>').join('')+
+  show.map(b=>'<div class="'+(b.days===0?'today':b.passed?'past':'')+'"'+bdSt(b)+'><span class="num">'+b.dd+'</span><span class="grow">'+esc(b.name)+'</span><span class="fn num">'+(b.age!=null?b.age:"")+'</span></div>').join('')+
   (more?'<div class="fn">och '+more+' till</div>':'')+'</div></div>')}
 function wallBoard(){
  if(nightOn())return wallNight();
+ if(expOn())return wallX();
  const t=today(),d=D(),cp=cleanPlan(),td=dayOf(t),tm=dayOf(addDays(t,1)),days=planDays();
  const nextDay=(td&&td.meals.length)?td:days.find(x=>x.date>t&&x.meals.length),isT=nextDay&&nextDay.date===t;
  const left=d.shop.filter(i=>!i.done);
@@ -840,14 +1153,15 @@ function wallBoard(){
  H.upg=widget('uppgifter','btasks',I.list,'Uppgifter',d.tasks.filter(x=>!x.done).length+' kvar',tasks.length?'<div class="wl">'+tasks.map(taskRow).join('')+'</div>':'<div class="wempty">Inget att göra.</div>');
  if(U3&&!d.clean.length)H.stad=widget('stad','bclean',I.sparkles,'Städ idag','','<div class="u3-empty"><p>Inga rutiner tillagda än.</p><button class="btn-tint" data-act="nav" data-id="stad">'+I.plus+'Lägg till rutin</button></div>');
  const L=layout(true,boardDefault());
- let h='<div class="board'+(S.arrange?' arranging':'')+(NY&&VKNAPP==='rubrik'?' har-top':'')+'">'+(!NY?'<div class="board-gear">'+gearBtn+'</div>':VKNAPP==='rubrik'?'<div class="wall-top"><h1 class="lt">'+(new Date().getHours()<10?'God morgon':new Date().getHours()<18?'Hej':'God kväll')+'</h1></div>':'');
- h+='<div class="bcol bhero">'+heroHtml()+wallWx()+'</div>';
+ let h='<div class="board'+(S.arrange?' arranging':'')+(VKNAPP==='rubrik'?' har-top':'')+'">'+(VKNAPP==='rubrik'?'<div class="wall-top"><h1 class="lt">'+(new Date().getHours()<10?'God morgon':new Date().getHours()<18?'Hej':'God kväll')+'</h1></div>':'');
+ h+='<div class="bcol bhero">'+refAdd(heroHtml(),'T1')+refAdd(wallWx(),'T2')+'</div>';
  L.cols.forEach((c,ci)=>{h+='<div class="bcol" data-col="'+ci+'">'+boxRow(c.filter(id=>H[id]),true,H,L)+'</div>'});
  return h+'</div>'+arrangeFoot(L,true)}
 const WALL_DEF=[['kal','mat','inkop','fod'],['stad','upg']];
 const boardDefault=()=>U3?[['kal','mat'],['upg','inkop','fod','stad']]:WALL_DEF;
 V.oversikt=function(){
  if(wallBoardOn())return wallBoard();
+ if(expOn())return ovX();
  const t=today(),now=new Date(),days=planDays();
  const td=dayOf(t),tm=dayOf(addDays(t,1));
  const nextDay=(td&&td.meals.length)?td:days.find(d=>d.date>t&&d.meals.length);
@@ -856,8 +1170,8 @@ V.oversikt=function(){
  const tasksNow=d.tasks.filter(x=>!x.done&&isDate(x.due)&&x.due<=t).sort((a,b)=>a.due.localeCompare(b.due));
  const tasksSoon=d.tasks.filter(x=>!x.done&&!(isDate(x.due)&&x.due<=t)).sort((a,b)=>(a.due||'9').localeCompare(b.due||'9')).slice(0,4);
  const hh=now.getHours(),greet=hh<5?'God natt':hh<10?'God morgon':hh<17?'Hej':hh<22?'God kväll':'God natt';
- let h=NY?head(greet+(people().includes(S.me)?', '+personLabel(S.me):''),U3?{sub:cap(dayHead(t))}:undefined):head('Översikt');
- h+='<div class="ov">'+heroHtml()+(S.arrange||NY?'':smileyCard());
+ let h=head(greet+(people().includes(S.me)?', '+personLabel(S.me):''),U3?{sub:cap(dayHead(t))}:undefined);
+ h+='<div class="ov">'+refAdd(heroHtml(),'Ö1');
  const H={kal:calWidget()};
  const isT=nextDay&&nextDay.date===t;
  H.mat=widget('mat','w2',I.fork,(isT||!nextDay)?'Middag ikväll':'Nästa middag',nextDay&&!isT?esc(dateShort(nextDay.date)):'',
@@ -867,20 +1181,19 @@ V.oversikt=function(){
  if(U3&&!d.clean.length)H.stad=widget('stad','',I.sparkles,'Städ','','<div class="u3-empty"><p>Inga rutiner tillagda än.</p><button class="btn-tint" data-act="nav" data-id="stad">Lägg till rutin</button></div>');
  H.inkop=widget('inkop','',I.basket,'Inköp','','<div class="wbig">'+nv('w-shop',left.length)+'</div><div class="sub">kvar · ca '+nv('w-shopkr',shopCost(left),'kr')+'</div>');
  const tl=tasksNow.concat(tasksSoon).slice(0,5);
- if(NY){// Ny design: Att göra med bockar och de stående överföringar som saknas, i stället för två listor
+ {// Att göra med bockar och de stående överföringar som saknas
   const ovs=!people().includes(S.me)?[]:[['shared',ovOpen('shared')],[S.me,ovOpen(S.me)]].flatMap(([l,a])=>a.map(c=>({l,c})));
   const ovRows=ovs.map(x=>'<div class="cell ck ov-cell" data-act="ovGo" data-id="'+esc(x.l+'|'+x.c.id)+'" role="link" tabindex="0"><span class="ovs tap saknas" data-act="ovDone" data-id="'+esc(x.c.id)+'" data-list="'+esc(x.l)+'" role="button" tabindex="0" aria-label="Bekräfta att den är inlagd">!</span><div class="grow"><div class="title">'+(ovState(x.c)==='andrad'?'Uppdatera':'Lägg in')+' stående överföring</div><div class="meta"><span>'+esc(x.c.name)+'</span></div></div>'+chevron+'</div>').join('');
   const all=d.tasks.filter(x=>!x.done).length;
   H.upg=widget('uppgifter','w2',I.list,'Att göra',all?'Alla '+all:'',(ovRows||tl.length)?'<div class="wl">'+ovRows+tl.map(taskRow).join('')+'</div>':'<div class="wempty">Inget att göra just nu.</div>')}
- else H.upg=widget('uppgifter','w2',I.list,'Uppgifter',tasksNow.length?tasksNow.length+' idag':'',tl.length?'<div class="wl">'+tl.map(taskRow).join('')+'</div>':'<div class="wempty">Inget att göra just nu.</div>');
  const rh=roomHealth();
  H.hem=widget('stad','w2',I.home,'Hemmet','',rh.length?'<div class="wl">'+rh.map(healthRow).join('')+'</div>':'<div class="wempty">Städschemat är tomt.</div>');
  H.imorgon=tm?widget('mat','w2',I.cal,'Imorgon',esc(dateShort(tm.date)),(eventsHtml(tm)||'<div class="wempty">Inga händelser.</div>')+(tm.meals.length?wMeals(tm):'')):'';
  H.fod=bdWidget();
  const L=layout(false,OV_DEF());
- return h+(S.arrange?'<p class="arr-intro">Håll kvar och dra en ruta dit du vill ha den. − döljer rutan och hörnknappen gör den halv eller hel. Gäller bara den här enheten.</p>':'')+'<div class="widgets'+(S.arrange?' arranging':'')+'">'+boxRow(L.cols[0].filter(id=>H[id]),false,H,L)+'</div>'+(NY&&!S.arrange?smileyCard():'')+'</div>'+arrangeFoot(L,false)};
+ return h+'<div class="widgets'+(S.arrange?' arranging':'')+'">'+boxRow(L.cols[0].filter(id=>H[id]),false,H,L)+'</div>'+(S.arrange?'<p class="arr-intro">Håll kvar och dra en ruta dit du vill ha den. Dra i hörnknappen för att göra den halv eller hel. − döljer rutan. Gäller bara den här enheten.</p>':smileyCard())+'</div>'+arrangeFoot(L,false)};
 // utan egen ordning ligger födelsedagarna näst sist
-const OV_DEF=()=>U3?[['mat','upg','kal','inkop','stad','fod','hem','imorgon']]:NY?[['kal','upg','mat','stad','inkop','fod','hem','imorgon']]:[dayOf(addDays(today(),1))?['kal','mat','stad','inkop','upg','hem','fod','imorgon']:['kal','mat','stad','inkop','upg','fod','hem','imorgon']];
+const OV_DEF=()=>U3?[['mat','upg','kal','inkop','stad','fod','hem','imorgon']]:[['kal','upg','mat','stad','inkop','fod','hem','imorgon']];
 function wMeals(d){if(U3)return(d.meals||[]).map(m=>{const r=m.recipe&&recipeById(m.recipe),go=r?'button':'div';return'<div class="u3-dinner"><'+go+' class="u3-meal"'+(r?' data-act="recipe" data-id="'+esc(r.id)+'"':'')+'>'+dishThumb(r,m.title)+'<span class="grow"><span class="chips-row">'+whoChip(m.who)+'</span><span class="hl">'+esc(m.title)+'</span>'+(m.addon?'<span class="meta">'+esc(m.addon)+'</span>':'')+(r&&r.min?'<span class="meta">'+r.min+' min'+(portKr(r)?' · '+kr(portKr(r))+'/port':'')+'</span>':'')+'</span></'+go+'>'+(r&&r.steps&&r.steps.length?'<button class="btn-fill" data-act="cook" data-id="'+esc(r.id)+'">'+I.play+'Börja laga</button>':'')+'</div>'}).join('');return(d.meals||[]).map(m=>{const r=m.recipe&&recipeById(m.recipe);const tag=r?'button':'div';
  return'<'+tag+' class="wmeal"'+(r?' data-act="recipe" data-id="'+esc(m.recipe)+'"':'')+'><div class="top">'+whoChip(m.who)+(r&&portKr(r)?'<span class="val">'+kr(portKr(r))+'/port</span>':'')+'</div><div class="hl title">'+esc(m.title)+'</div>'+(m.addon?'<div class="sub">+ Kött: '+esc(m.addon)+'</div>':'')+'</'+tag+'>'}).join('')}
 const healthRow=r=>'<div class="cell room"><div class="grow"><div>'+esc(r.room)+'</div><div class="cap '+healthCls(r.score)+'"><i style="width:'+Math.round(r.score*100)+'%"></i></div></div><span class="hw '+healthCls(r.score)+'">'+healthWord(r.score)+'</span></div>';
@@ -892,22 +1205,19 @@ V.mat=function(){
  if(S.recipe){const r=recipeById(S.recipe);if(r)return recipeDetail(r);S.recipe=null}
  if(S.plan&&(S.plan==='auto'||DEV))return S.plan==='port'?portView():S.plan==='auto'?autoView():planView();
  const ink=S.matTab==='inkop'?inkopParts():null;
- let h=head('Mat',ink?{sub:ink.sub,tools:ink.tools}:NY&&['recept','bank','efter'].includes(S.matTab)?{}:{sub:weekSub()});
- if(NY){const rt=S.matTab==='recept'||S.matTab==='bank'||S.matTab==='efter';h+=segc('Visa','matTab',[['vecka','Vecka'],['inkop','Inköp'],['recept','Recept']],rt?'recept':S.matTab);
+ let h=head('Mat',ink?{sub:ink.sub,tools:ink.tools}:['recept','bank','efter'].includes(S.matTab)?{}:motionOn()?{}:{sub:weekSub()});
+ {const rt=S.matTab==='recept'||S.matTab==='bank'||S.matTab==='efter';h+=segc('Visa','matTab',[['vecka','Vecka'],['inkop','Inköp'],['recept','Recept']],rt?'recept':S.matTab);
   if(rt)h+='<div class="subseg">'+segc('Recept','matTab',[['recept','Inspiration'],['bank','Mina recept'],['efter','Efterrätter']],S.matTab)+'</div>'}
- else h+=segc('Visa','matTab',[['vecka','Vecka'],['inkop','Inköp'],['recept','Recept'],['bank','Receptbank'],['efter','Efterrätter']],S.matTab);
  if(['recept','bank','efter'].includes(S.matTab))h+=recipeTools();
- return h+(ink?ink.body:NY&&['recept','bank','efter'].includes(S.matTab)?recipeResults():S.matTab==='recept'?matRecipes():S.matTab==='bank'?matBank():S.matTab==='efter'?matDessert():matWeek())};
+ return h+(ink?ink.body:['recept','bank','efter'].includes(S.matTab)?recipeResults():matWeek())};
 /* Receptbanken: stora kort att bläddra i när man inte vet vad man vill äta */
 const FOOD=[[/soppa/i,'🍲'],[/chili/i,'🌶️'],[/rödbet|falafel|bönbiff|linsbiff|grönsaksbiff/i,'🧆'],[/dal|curry/i,'🍛'],[/gryta/i,'🥘'],[/kyckling/i,'🍗'],[/lax|fisk|torsk|sej/i,'🐟'],[/pasta|lasagne|spagetti/i,'🍝'],[/sallad|bulgur/i,'🥗'],[/shakshuka|ägg|omelett/i,'🍳'],[/blåbär|bär|efterrätt|kaka/i,'🫐'],[/pizza/i,'🍕'],[/taco|tortilla/i,'🌮'],[/burgare/i,'🍔'],[/fläsk|kött|biff/i,'🥩'],[/blomkål|grönsak|aubergine/i,'🥦']];
 const SOTT=[[/päron/i,'🍐'],[/äpple/i,'🍎'],[/glass/i,'🍨'],[/choklad/i,'🍫'],[/paj/i,'🥧'],[/bollar/i,'🍪'],[/kompott|rabarber|hallon|jordgubb/i,'🍓'],[/blåbär/i,'🫐'],[/parfait|yoghurt|kvarg|pudding/i,'🍮']];
 const foodIcon=(t,r)=>(r&&isDessert(r)?SOTT.find(([re])=>re.test(t||''))||[0,'🍰']:FOOD.find(([re])=>re.test(t||''))||[0,'🍽️'])[1];
 const isDessert=r=>!!r&&r.course==='efterrätt';
 const kind=r=>{if(isDessert(r))return'e';const w=effWho(r);return w==='Kött/Veg'?'kv':w==='Henrik'?'k':w==='Vegetariskt'?'v':w==='Gemensam'?'g':''};
-// Filtren för receptbanken och inspirationen
-// Efterrätter har en egen flik och visas inte bland inspirationen eller i Mina recept
+// Filtren för recepten
 const RFILT=[['alla','Alla'],['k','Kött'],['v','Vegetariskt'],['kv','Kött/Veg'],['g','Gemensam'],['snabbt','Snabbt'],['storkok','Storkok']];
-function rfOk(f,r,w){return f==='efter'?isDessert(r):isDessert(r)?false:f==='alla'||(f==='snabbt'?r.min&&r.min<=30:f==='storkok'?/storkok/i.test((r.group||'')+r.title):f==='efter'?r.course==='efterrätt':f==='onskat'?w.has(r.id):kind(r)===f)}
 const fchips=(act,fs,f)=>'<div class="fchips" role="group" aria-label="Filter">'+fs.map(([k,l])=>'<button data-act="'+act+'" data-id="'+k+'" aria-pressed="'+(f===k)+'">'+l+'</button>').join('')+'</div>';
 // Stort kort med bild, hjärta och bokmärke. Används i receptbanken och bland inspirationen
 function rCard(r,o){o=o||{};const g=ratingOf(r.id),wished=o.wish&&o.wish.has(r.id),img=r.img||imgOf(r.id);
@@ -917,27 +1227,6 @@ function rCard(r,o){o=o||{};const g=ratingOf(r.id),wished=o.wish&&o.wish.has(r.i
  (o.wish?(g?'<div class="bstars"><span class="st" aria-label="'+g.avg.toFixed(1)+' av 5">'+starsTxt(g.avg)+'</span>'+g.people.map(([p,e])=>'<span class="fn">'+esc(personLabel(p))+': '+esc(VERD[e.v]||'')+'</span>').join('')+'</div>':'<div class="fn">Inget betyg än</div>'):(r.why?'<div class="fn bwhy">'+esc(r.why)+'</div>':''))+
  recipePrice(r).html+(r.src?'<a class="fn bsrc" href="'+esc(r.src)+'" target="_blank" rel="noopener">Från '+esc(r.srcName||new URL(r.src).hostname.replace(/^www\./,''))+'</a>':'')+
  (o.wish&&!isDessert(r)?veckoKnapp(r,'pill')+(paVeckan(r.id)?I.tick+'På veckosedeln':'Till veckosedeln')+'</button>':'')+'</div></article>'}
-/* Receptbanken: favoriter (hjärta) och sparade recept (bokmärke) */
-function matBank(){
- const f=S.bankFilter||'alla',w=new Set(wishes().map(x=>x.id));
- const all=bankList().map(r=>({r,g:ratingOf(r.id)})).sort((a,b)=>((b.g?b.g.avg:0)-(a.g?a.g.avg:0))||String(b.r.savedAt||'').localeCompare(String(a.r.savedAt||'')));
- let h=fchips('bankFilter',RFILT,f);
- if(!all.length)return h+'<div style="height:16px"></div>'+group(emptyCell('Receptbanken är tom än. Tryck på hjärtat eller bokmärket på ett recept, till exempel under Recept, så hamnar det här.'));
- const list=all.filter(({r})=>rfOk(f,r,w)&&u3RecipeMatch(r)).map(x=>x.r),fav=list.filter(r=>r.fav),saved=list.filter(r=>!r.fav);
- h+=sh(I.heartOn.replace('<svg','<svg class="shic fav"')+'Favoriter','<span class="num">'+fav.length+'</span>');
- h+=fav.length?'<div class="bank">'+fav.map(r=>rCard(r,{wish:w})).join('')+'</div>':group(emptyCell(U3&&S.u3Query?'Inga favoriter matchar sökningen.':f==='alla'?'Inga favoriter än. Tryck på hjärtat på ett recept ni gillar extra mycket.':'Inga favoriter matchar filtret.'));
- h+=sh(I.bookmarkOn.replace('<svg','<svg class="shic"')+'Sparade recept','<span class="num">'+saved.length+'</span>');
- h+=saved.length?'<div class="bank">'+saved.map(r=>rCard(r,{wish:w})).join('')+'</div>':group(emptyCell(U3&&S.u3Query?'Inga sparade recept matchar sökningen.':f==='alla'?'Inga sparade recept än. Tryck på bokmärket på ett recept för att spara det.':'Inga sparade recept matchar filtret.'));
- return h+'<div class="foot">Veckoplaneringen väljer bland favoriterna och de sparade recepten. Favoriter kommer tillbaka oftare.</div>'}
-/* Efterrätter: en egen kategori. De föreslås aldrig av veckoplaneringen eller Byt, men finns här när man vill laga något sött */
-function matDessert(){
- const seen=new Set(),all=recipeCandidates().filter(r=>{if(!isDessert(r)||seen.has(r.id)||!u3RecipeMatch(r))return false;seen.add(r.id);return true});
- const mine=all.filter(r=>inBank(r.id)).sort((a,b)=>(b.fav?1:0)-(a.fav?1:0)||((ratingOf(b.id)||{avg:0}).avg-(ratingOf(a.id)||{avg:0}).avg)),fler=all.filter(r=>!inBank(r.id));
- let h=sh(I.heartOn.replace('<svg','<svg class="shic fav"')+'Mina efterrätter','<span class="num">'+mine.length+'</span>');
- h+=mine.length?'<div class="bank">'+mine.map(r=>rCard(r)).join('')+'</div>':group(emptyCell(U3&&S.u3Query?'Inga sparade efterrätter matchar sökningen.':'Inga sparade efterrätter än. Tryck på hjärtat eller bokmärket på en efterrätt nedan.'));
- if(!INSPO.list&&INSPO.busy)return h+group(emptyCell('Hämtar recept…'));
- if(fler.length)h+=sh('Att prova','<span class="num">'+fler.length+'</span>')+'<div class="bank mini">'+fler.map(r=>rCard(r)).join('')+'</div>';
- return h+'<div class="foot">Efterrätter föreslås aldrig när veckan planeras.</div>'}
 /* Efterrätt på veckosedeln: en valfri plats per vecka. Sparas som {efter:1, v: veckans start, id} i önskelistan,
    eftersom appen bara får skriva vissa inställningar och då behövs ingen ändring i Kod.gs.
    Den följer med när man hämtar varor men räknas inte in i portionerna */
@@ -970,25 +1259,27 @@ const lkStart=()=>LASSTIL==='bild'?'':LKM;
 // Svep på en rätt: åt vänster visas Ta bort (eller Nästa i Veckoförslag), åt höger låser eller låser upp man direkt
 const swLas=(id,on,act)=>'<button class="dr-actl lk-sw" data-act="'+(act||'swLock')+'" data-id="'+esc(id)+'" aria-label="'+(on?'Lås upp':'Lås')+'">'+(on?I.unlock||I.lock:I.lock)+'<span>'+(on?'Lås upp':'Lås')+'</span></button>';
 const swDel=(act,id,lab)=>'<button class="dr-act del" data-act="'+act+'" data-full="'+act+'" data-id="'+esc(id)+'" aria-label="Ta bort '+esc(lab)+'">'+I.trash+'<span>Ta bort</span></button>';
-const xKnapp=(act,id,lab)=>'<button class="dr-x" data-act="'+act+'" data-id="'+esc(id)+'" aria-label="Ta bort '+esc(lab)+'">'+I.x+'</button>';
+// UI 2.0: tre prickar öppnar rättens blad med portioner, byt, lås, recept och ta bort
+const dmKnapp=(id,lab)=>'<button class="dr-x dr-more" data-act="dishMenu" data-id="'+esc(id)+'" aria-label="Ändra '+esc(lab)+'">'+I.dots+'</button>';
 /* En rätt på veckosedeln: bild, namn, dagar, pris och betyg. Krysset tar bort, svep åt vänster tar bort och svep åt höger låser */
 function mealCell(m,rows,flex){rows=rows||[m];const r=m.recipe&&recipeById(m.recipe),days=[...new Set(rows.map(y=>y.date).filter(isDate))].sort();
  const g=m.recipe&&ratingOf(m.recipe),meta=[flex?(flex.port?'':flex.txt):days.map(d=>cap(DAYS3[parse(d).getDay()])).join(', '),r&&portKr(r)?kr(portKr(r))+'/port':'',g?'<span class="dr-st">★ '+starNum(matLage(m.recipe).s)+'</span>':''].filter(Boolean).join('<span class="dot" aria-hidden="true">·</span>');
  const pa=protFromAddon(m.addon);
  const lst=!!(m.recipe&&weekLocks(weekTarget().vs).has(m.recipe));
  const hl=!!(m.who!=='Borta'&&m.recipe),lkm='<span class="lk-ring" aria-hidden="true"></span><span class="lk-bd" aria-hidden="true">'+I.lock+'</span>',th=dishThumb(r,m.title);
- const inner=(hl&&LASSTIL==='bild'?'<span class="lk-tw'+(lst?' lk-on':'')+'" data-lk>'+th+lkm+'</span>':th)+'<span class="grow"><span class="chips-row">'+whoChip(pa?'Kött/Veg':m.who)+'</span><span class="title">'+esc(m.title)+'</span><span class="meta">'+meta+'</span>'+(pa?protPills(pa):m.addon?'<span class="dr-sub">+ Kött: '+esc(m.addon)+'</span>':'')+(noteUtanPort(m.note)?'<span class="dr-sub">'+esc(noteUtanPort(m.note))+'</span>':'')+'</span>';
+ // UI 2.0: håll in bilden låser eller låser upp, håll in raden öppnar rättens blad
+ const hb=hl?' data-hold-lock="'+esc(m.recipe)+'" data-lst="'+(lst?1:0)+'"':'';
+ const inner=(hl&&LASSTIL==='bild'?'<span class="lk-tw'+(lst?' lk-on':'')+'" data-lk'+hb+'>'+th+lkm+'</span>':hb?'<span class="dr-thw"'+hb+'>'+th+'</span>':th)+'<span class="grow"><span class="chips-row">'+whoChip(pa?'Kött/Veg':m.who)+'</span><span class="title">'+esc(m.title)+'</span><span class="meta">'+meta+'</span>'+(pa?protPills(pa):m.addon?'<span class="dr-sub">+ Kött: '+esc(m.addon)+'</span>':'')+(noteUtanPort(m.note)?'<span class="dr-sub">'+esc(noteUtanPort(m.note))+'</span>':'')+'</span>';
  // Portionerna med plus och minus under rätten. Ändringen sparas och inköpslistan räknas om
- const P=flex&&flex.port,pr=P?'<div class="dr-port"><span class="grow"><b>'+P.n+(P.n===1?' portion':' portioner')+'</b>'+(P.txt&&!NY?'<span class="meta">'+cap(P.txt)+'</span>':'')+'</span><span class="pl-step" role="group" aria-label="Portioner"><button type="button" data-act="portStep" data-id="'+D().menu.indexOf(m)+'" data-d="-1" aria-label="Färre portioner"'+(P.n<=1?' disabled':'')+'>'+I.minus+'</button><span class="num" aria-live="polite">'+P.n+'</span><button type="button" data-act="portStep" data-id="'+D().menu.indexOf(m)+'" data-d="1" aria-label="Fler portioner"'+(P.n>=20?' disabled':'')+'>'+I.plus+'</button></span></div>':'';
+ const P=flex&&flex.port,pr=P?'<div class="dr-port"><span class="grow"><b>'+P.n+(P.n===1?' portion':' portioner')+'</b>'+'</span><span class="pl-step" role="group" aria-label="Portioner"><button type="button" data-act="portStep" data-id="'+D().menu.indexOf(m)+'" data-d="-1" aria-label="Färre portioner"'+(P.n<=1?' disabled':'')+'>'+I.minus+'</button><span class="num" aria-live="polite">'+P.n+'</span><button type="button" data-act="portStep" data-id="'+D().menu.indexOf(m)+'" data-d="1" aria-label="Fler portioner"'+(P.n>=20?' disabled':'')+'>'+I.plus+'</button></span></div>':'';
  // Ett passerat datum säger inte att maten är uppäten. Veckans rätter ska alltid gå att ändra.
  const can=m.who!=='Borta',i=D().menu.indexOf(m);
- const end=can?xKnapp('weekDel',i,m.title):'';
+ const end=can?dmKnapp(i,m.title):'';
  const rad=hl&&LASSTIL!=='bild';
  // Håll in rätten för att låsa den (eller låsa upp). data-hold-lock bär receptet
- const row='<div class="cell dr'+(can?' dr-slide':'')+(rad?' lk-rad'+(lst?' lk-on':''):'')+'"'+(rad?' data-lk':'')+(hl?' data-hold-lock="'+esc(m.recipe)+'" data-lst="'+(lst?1:0)+'"':'')+'>'+(rad?lkm:'')+(r?'<button class="dr-main" data-act="recipe" data-id="'+esc(m.recipe)+'">'+inner+'</button>':'<div class="dr-main">'+inner+'</div>')+end+pr+'</div>';
+ const row='<div class="cell dr'+(can?' dr-slide':'')+(rad?' lk-rad'+(lst?' lk-on':''):'')+'"'+(rad?' data-lk':'')+(can?' data-hold-lift="dishMenu" data-id="'+i+'"':'')+'>'+(rad?lkm:'')+(r?'<button class="dr-main" data-act="recipe" data-id="'+esc(m.recipe)+'">'+inner+'</button>':'<div class="dr-main">'+inner+'</div>')+end+pr+'</div>';
  // Svep åt vänster tar bort (hela vägen direkt), svep åt höger låser eller låser upp
  return can?'<div class="dr-wrap">'+swDel('weekDel',i,m.title)+(hl?swLas(m.recipe,lst):'')+row+'</div>':row}
-function recipeCell(r,meta){return'<button class="cell link" data-act="recipe" data-id="'+esc(r.id)+'"><div class="grow"><div class="title">'+esc(r.title)+'</div><div class="meta">'+meta+'</div></div>'+whoChip(r.who)+chevron+'</button>'}
 /* Hushållets matpreferenser: rader i Inställningar som veckoplaneringen läser när den gör menyn */
 const PREFS=[['pref_henrik','Kött','k','Henriks mat, t.ex. proteinrik och kalorisnål'],['pref_veg','Vegetariskt','v','Den vegetariska maten, t.ex. kost och GI'],['pref_ekonomi','Ekonomi','','Budget, butiker och svinn'],['pref_ovrigt','Övrigt','','Sådant ni inte gillar, allergier, önskemål']];
 function prefsBlock(){const st=settings(),rows=PREFS.filter(([k])=>String(st[k]||'').trim());
@@ -1063,7 +1354,6 @@ function weekDishes(){const d=D(),st=settings(),seen=new Set(),out=[];
   out.push({key,rows:[m],m,r,g:r&&isStorkok(r)?'Storkok':dow>=1&&dow<=4?'Vardag':dow>=0?'Helg':r&&r.group?r.group:(m.who==='Gemensam'?'Helg':'Vardag')})});
  return out}
 // Veckosedeln binder inte rätterna till en dag: vardagsrätterna lagas valfri kväll mån–tor, helgrätterna fre–sön
-function dishCell(x){const{m,r}=x;if(m)return mealCell(m,x.rows,x.flex);return recipeCell(r,r.portions+' portioner'+(portKr(r)?' · '+kr(portKr(r))+'/port':''))}
 /* ---------- Platser på veckosedeln ----------
    Vardagar har fyra kvällar, helgen tre och lunchlådorna tio luncher (två storkok à 5). Det som inte täcks av en rätt,
    en macka eller en kväll borta visas som en tom plats. Man fyller en plats med en rätt eller en macka, tar bort en rätt
@@ -1126,10 +1416,14 @@ function autoFranVecka(P){const st=settings();if(st.vecka_start!==P.vecka)return
 const planBtn=()=>(DEV?'<button class="pl-open" data-act="planOpen"><span class="pl-ic" aria-hidden="true">🗓️</span><span class="grow"><span class="title">Planera nästa vecka</span><span class="meta">Välj rätter inom budgeten '+kr(planBudget())+'</span></span>'+chevron+'</button>'+'<button class="pl-open pt-open" data-act="portOpen"><span class="pl-ic" aria-hidden="true">🍽️</span><span class="grow"><span class="title">Planera med portioner <span class="chip g">Ny</span></span><span class="meta">Mat alla kvällar, rester och mackor läggs in automatiskt</span></span>'+chevron+'</button>':'')+'<button class="pl-open pt-open" data-act="autoOpen"><span class="pl-ic" aria-hidden="true">✨</span><span class="grow"><span class="title">Veckoförslag <span class="chip g">Ny</span></span><span class="meta">Appen föreslår hela veckan, du byter det du vill</span></span>'+chevron+'</button>';
 /* Räcker maten veckan? Middag för två varje kväll (mån–tor och fre–sön) och lunchlåda för två mån–fre.
    Mackkvällar och kvällar borta räknas som täckta. Helgluncher planeras inte */
-function raeckerKort(ds){const st=settings(),vs=st.vecka_start;if(!isDate(vs))return'';const d=D(),ve=addDays(vs,6);
+// Portioner per grupp: hur många som finns och hur många som behövs (mackkvällar och kvällar borta är täckta)
+const dmKey=m=>[m.date,m.title,m.recipe].join('|');
+function grpBehov(ds){const vs=settings().vecka_start;if(!isDate(vs))return null;const d=D(),ve=addDays(vs,6);
  const kv=g=>{let n=0;d.menu.forEach(y=>{if(!isDate(y.date)||y.date<vs||y.date>ve)return;const w=parse(y.date).getDay(),vd=w>=1&&w<=4;if(vd!==(g==='Vardag'))return;if(y.who==='Borta'||/^macka$/i.test(y.title))n++});return n};
  const har=g=>ds.filter(x=>x.g===g&&x.m&&!(x.r&&x.r.course==='efterrätt')).reduce((a,x)=>a+dishPort(x.m,x.r),0);
- const rader=[['Vardag','Middag mån–tor',8-2*kv('Vardag')],['Helg','Middag fre–sön',6-2*kv('Helg')],['Storkok','Lunchlådor mån–fre',10]].map(([g,l,beh])=>{const n=har(g),diff=n-beh;
+ return{Vardag:{n:har('Vardag'),beh:8-2*kv('Vardag')},Helg:{n:har('Helg'),beh:6-2*kv('Helg')},Storkok:{n:har('Storkok'),beh:10}}}
+function raeckerKort(ds){const G=grpBehov(ds);if(!G)return'';
+ const rader=[['Vardag','Middag mån–tor'],['Helg','Middag fre–sön'],['Storkok','Lunchlådor mån–fre']].map(([g,l])=>{const n=G[g].n,beh=G[g].beh,diff=n-beh;
   return{l,n,beh,diff,txt:diff<0?'Saknas '+(-diff):diff>0?diff+' över':'Räcker'}});
  const kvSaknas=rader.slice(0,2).reduce((a,r)=>a+(r.diff<0?Math.ceil(-r.diff/2):0),0),lSaknas=Math.max(0,-rader[2].diff);
  const brist=kvSaknas||lSaknas,rub=!brist?'Maten räcker hela veckan':'Maten räcker inte: '+[kvSaknas?kvSaknas+(kvSaknas===1?' kväll':' kvällar')+' utan middag':'',lSaknas?lSaknas+(lSaknas===1?' lunchlåda':' lunchlådor')+' för lite':''].filter(Boolean).join(' och ');
@@ -1142,39 +1436,49 @@ const planBtnNy=()=>planBtnDev()+wkNewBtn();
 function weekSummary(ds,total,port){const rk=raeckerKort(ds),bad=/class="rk bad"/.test(rk),rub=(rk.match(/<div class="rk-h">([^<]*)<\/div>/)||[])[1]||'',B=Number(settings().matbudget)||0;
  // Översta raden finns två gånger: i rutan och som en kopia som ligger fast under navigeringsfältet.
  // Kopian visas exakt när rutans överkant når fältet, så det ser ut som att raden glider fast. Tryck fäller ut räcker-listan
- const op=S.wsumOpen?' open':'',top=big=>'<button type="button" class="wm-top" data-act="wsumMini" aria-expanded="'+!!S.wsumOpen+'"><b class="num">'+(big?nv('m-total',total,'kr'):kr(total))+'</b>'+
-  '<span class="wm-c"><span>'+port+' portioner</span><span>'+(port?kr((veckaAnvant()||total)/port)+' per portion':'')+'</span></span><span class="grow"></span>'+
-  (rub?'<span class="wsum-s'+(bad?' bad':'')+'"><span class="dotc"></span>'+(bad?'Räcker inte':'Räcker')+'</span>':'')+'<span class="wm-ch" aria-hidden="true">'+chevron+'</span></button>';
+ // Med budget visar den stora rutan en stapel: hur mycket av budgeten veckans mat tar
+ const G=grpBehov(ds),goal=G?Object.values(G).reduce((a,g)=>a+Math.max(0,g.beh),0):24,covered=G?Object.values(G).reduce((a,g)=>a+Math.min(Math.max(0,g.n),Math.max(0,g.beh)),0):Math.min(port,goal);
+ const st='<span class="wm-port num'+(covered<goal?' bad':'')+'" aria-label="'+covered+' av '+goal+' portioner täckta">'+covered+'/'+goal+'</span>';
+
+ const bar=()=>{const a=Math.min(100,total/B*100),ov=total>B;return'<span class="wm-bb"><span class="wm-bt"><b class="num">'+nv('m-total',total,'kr')+'</b><span>av '+kr(B)+'</span><span class="grow"></span>'+st+'</span>'+
+  '<span class="wm-bar'+(ov?' over':'')+'" role="img" aria-label="'+kr(total)+' av '+kr(B)+'"><i style="width:'+a.toFixed(1)+'%"></i></span><span class="wm-pp"><span class="wm-kv'+(ov?' bad':'')+'">'+(ov?kr(total-B)+' över':kr(B-total)+' kvar')+'</span> · '+port+' portioner'+(port?' · '+kr((veckaAnvant()||total)/port)+' per portion':'')+'</span></span>'};
+ const op=S.wsumOpen?' open':'',top=big=>'<button type="button" class="wm-top'+(big&&B?' wm-rt':'')+'" data-act="wsumMini" aria-expanded="'+!!S.wsumOpen+'">'+(big&&B?bar():'<b class="num">'+(big?nv('m-total',total,'kr'):kr(total))+'</b><span class="wm-c">'+
+  '<span>'+port+' portioner</span><span>'+(port?kr((veckaAnvant()||total)/port)+' per portion':'')+'</span></span><span class="grow"></span>')+
+  (big&&B?'':st)+'</button>';
  const body='<div class="wm-body">'+(rub?'<div class="wm-h'+(bad?' bad':'')+'">'+esc(rub)+'</div>'+rk.replace(/<div class="rk-h">[^<]*<\/div>/,''):'')+
   (B?'<div class="rk-r wm-b"><span class="grow">Budget '+kr(B)+'</span><span class="rk-s'+(total>B?' bad':'')+'">'+(total>B?kr(total-B)+' över':kr(B-total)+' kvar')+'</span></div>':'')+'</div>';
- return'<div class="ws-pin" aria-hidden="true"><div class="wcard ws-mini'+op+'">'+top(0)+body+'</div></div><div class="wcard ws-card'+op+'">'+top(1)+body+wkNewBtn()+'</div>'}
+ if(!motionOn())return'<div class="ws-pin" aria-hidden="true"><div class="wcard ws-mini'+op+'">'+top(0)+body+'</div></div><div'+RF('M1')+' class="wcard ws-card'+op+'">'+top(1)+body+wkNewBtn()+'</div>';
+ const panel='<div class="motion-panel"'+(!S.wsumOpen?' hidden inert':'')+'>'+body+'</div>';
+ return'<div class="ws-pin" aria-hidden="true"><div class="wcard ws-mini'+op+'">'+top(0)+panel+'</div></div><div'+RF('M1')+' class="wcard ws-card'+op+'">'+top(1)+panel.replace('class="motion-panel"','class="motion-panel" id="week-budget-details"')+motionGrip('budget','week-budget-details',!!S.wsumOpen)+wkNewBtn()+'</div>'}
 function matWeek(){
- const d=D(),st=settings(),W=weekTarget(),ds=W.ny?[]:weekDishes();let h=NY?(ds.length?planBtnDev():planBtnNy()):planBtn();
+ const d=D(),st=settings(),W=weekTarget(),ds=W.ny?[]:weekDishes();let h=ds.length?planBtnDev():planBtnNy();
  const total=veckaKostnad(),port=veckaPortioner();
- if(ds.length){if(NY)h+=weekSummary(ds,total,port);else h+='<div class="stats"><div class="stat"><span class="fn">Maten kostar ca</span><b>'+nv('m-total',total,'kr')+'</b></div><div class="stat"><span class="fn">Portioner</span><b>'+nv('m-port',port)+'</b></div><div class="stat"><span class="fn">Per portion</span><b>'+(port?nv('m-per',(veckaAnvant()||total)/port,'kr'):'–')+'</b></div></div>'+raeckerKort(ds)}
+ if(ds.length)h+=weekSummary(ds,total,port);
  else h+='<div class="wk-tom"><b>'+(W.ny?'Vecka '+isoWeek(parse(W.vs))+' är inte planerad än':'Veckan är tom')+'</b><span>Fyll platserna själv eller tryck på Föreslå en ny vecka.</span></div>';
  const order={Henrik:0,Vegetariskt:1,Gemensam:2},rows=weekRows(W);let vd='';
- const tom=g=>'<button class="cell dess-empty" data-act="slotPick" data-id="'+g+'"><span class="dess-plus" aria-hidden="true">'+I.plus+'</span><span class="grow"><span class="title">'+(g==='Storkok'?'Lägg till ett storkok':'Lägg till en rätt')+'</span><span class="meta">'+(g==='Storkok'?'Lunchlådor till nästa vecka':'Eller en macka')+'</span></span></button>';
+ const G=grpBehov(ds);
+ // UI 2.0: veckan som brickor. Håll in öppnar rättens blad, låset låser med ett tryck. Rätterna fyller gruppen, det finns alltid en tom plats och bandet visar en ruta per portion
+ const btTom=(a,id,t)=>'<div class="bt"><span class="bq-w"><button type="button" class="bq e" data-act="'+a+'"'+(id?' data-id="'+id+'"':'')+' aria-label="'+t+'">'+I.plus+'</button></span><span class="bn ac">'+t+'</span></div>';
+ const bt=(m,r,n,i,rid,lst,t)=>'<div class="bt" data-hold-lift="dishMenu" data-id="'+i+'"><span class="bq-w">'+(rid?'<button type="button" class="bq" data-act="recipe" data-id="'+esc(rid)+'" aria-label="'+esc(t)+'">':'<button type="button" class="bq" data-act="dishMenu" data-id="'+i+'" aria-label="'+esc(t)+'">')+dishThumb(r,t)+'</button>'+
+  (rid?'<button type="button" class="bq-lk'+(lst?' on':'')+'" data-act="swLock" data-id="'+esc(rid)+'" aria-pressed="'+lst+'" aria-label="'+(lst?'Lås upp ':'Lås ')+esc(t)+'">'+(lst?I.lock:I.unlock)+'</button>':'')+
+  '<button type="button" class="bq-p" data-act="dishMenu" data-id="'+i+'" aria-label="'+n+' portioner, ändra">'+n+' port</button></span>'+(U4?'<div class="u4-dish-info">'+(r?'<div class="chips-row">'+whoChip(m?m.who:effWho(r))+'</div>':''):'')+'<span class="bn">'+esc(t)+'</span>'+(U4?(r?'<div class="u4-dish-meta">'+[r.min?r.min+' min':'',portKr(r)?kr(portKr(r))+'/port':''].filter(Boolean).join(' · ')+'</div>':'')+'</div><button type="button" class="u4-more" data-act="dishMenu" data-id="'+i+'" aria-label="Alternativ för '+esc(t)+'">'+I.dots+'</button>':'')+'</div>';
+ const btBand=g=>{const x=G&&G[g];if(!x||x.beh<=0)return'';const ok=x.n>=x.beh,k=Math.min(x.beh,24);return'<span class="bt-m'+(ok?' ok':' bad')+'">'+(ok?I.tick:'')+x.n+' av '+x.beh+'<span class="bt-seg" aria-hidden="true">'+Array.from({length:k},(_,j)=>'<i'+(j<Math.min(x.n,k)?' class="f"':'')+'></i>').join('')+'</span></span>'};
  ['Vardag','Helg','Storkok'].concat([...new Set(ds.map(x=>x.g))].filter(g=>!['Vardag','Helg','Storkok'].includes(g))).forEach(g=>{const list=ds.filter(x=>x.g===g).sort((a,b)=>(order[(a.r||a.m).who]??3)-(order[(b.r||b.m).who]??3));
   const vs=W.vs,slut=addDays(vs,g==='Vardag'?3:6);
   list.forEach(x=>{if(!x.m)return;const n=dishPort(x.m,x.r);if(x.r&&x.r.course==='efterrätt'){x.flex={slut,txt:''};return}
    const kv=Math.floor(n/2);x.flex={slut,txt:'',port:{n,txt:g==='Storkok'?n+(n===1?' lunch':' luncher'):kv<1?'räcker inte en kväll':kv===1?'räcker 1 kväll':'räcker '+kv+' kvällar'}}});
   const namn=g==='Storkok'?'Lunchlådor':g==='Vardag'?'Vardagar':g,sub=g==='Storkok'?'Görs i helgen':g==='Vardag'?'Mån–tor, valfri kväll':g==='Helg'?'Fre–sön':'';
   const mack=g==='Storkok'?[]:rows.filter(y=>/^macka$/i.test(y.title)&&((dagNr(W,y.date)<=3)===(g==='Vardag'))),nTom=['Vardag','Helg','Storkok'].includes(g)?tommaPlatser(W,ds,g):0;
-  if(!list.length&&!mack.length&&!nTom)return;
-  vd+=gh(esc(namn),(sub?esc(sub)+' · ':'')+'<span class="num">'+(list.length?list.length+' '+(list.length===1?'rätt':'rätter'):nTom?nTom+' '+(nTom===1?'tom plats':'tomma platser'):'')+'</span>')+list.map(dishCell).join('');
-  vd+=mack.map(y=>'<div class="dr-wrap">'+swDel('weekDel',d.menu.indexOf(y),'mackan')+'<div class="cell dr dr-slide"><span class="dr-main"><span class="dr-th" aria-hidden="true"><span>🥪</span></span><span class="grow"><span class="title">Macka</span><span class="meta">'+esc(kr(MP.CFG.mackaKr))+' för två</span></span></span>'+xKnapp('weekDel',d.menu.indexOf(y),'mackan')+'</div></div>').join('');
-  for(let i=0;i<nTom;i++)vd+=tom(g);
+  const hu=['Vardag','Helg','Storkok'].includes(g);if(!hu&&!list.length)return;
+   const t=list.map(x=>{const m=x.m;if(!m)return'';const i=d.menu.indexOf(m),rid=m.who!=='Borta'&&m.recipe;return bt(m,x.r,dishPort(m,x.r),i,rid,!!(rid&&weekLocks(vs).has(rid)),m.title)}).join('')+
+    mack.map(y=>bt(y,null,2,d.menu.indexOf(y),'',false,'Macka')).join('')+(hu?Array.from({length:Math.max(1,nTom)},()=>btTom('slotPick',g,g==='Storkok'?'Lägg till storkok':'Lägg till')).join(''):'');
+   vd+='<div class="bt-sec"'+RF({Vardag:'M2',Helg:'M3',Storkok:'M4'}[g])+'>'+gh(esc(namn),btBand(g)||'<span class="num">'+list.length+' '+(list.length===1?'rätt':'rätter')+'</span>')+'<div class="bt-g">'+t+'</div></div>';
   });
  const dr=weekDessert();
  // Efterrätten låses som rätterna (håll in). Bara en låst efterrätt kommer med när man uppdaterar varorna
  const dl=dr&&weekLocks(st.vecka_start).has(dr.id);
- const dn=dr&&dessPort(dr),dpr=dr?'<div class="dr-port"><span class="grow"><b>'+dn+(dn===1?' portion':' portioner')+'</b></span><span class="pl-step" role="group" aria-label="Portioner"><button type="button" data-act="dessPortStep" data-d="-1" aria-label="Färre portioner"'+(dn<=1?' disabled':'')+'>'+I.minus+'</button><span class="num" aria-live="polite">'+dn+'</span><button type="button" data-act="dessPortStep" data-d="1" aria-label="Fler portioner"'+(dn>=20?' disabled':'')+'>'+I.plus+'</button></span></div>':'';
- vd+=gh('Efterrätt','Valfri')+(dr?'<div class="dr-wrap">'+swDel('dessClear',dr.id,dr.title)+swLas(dr.id,dl)+'<div class="cell dr dr-slide'+lkRad(dl)+'"'+lkIn()+' data-hold-lock="'+esc(dr.id)+'" data-lst="'+(dl?1:0)+'">'+lkStart()+
-  '<button class="dr-main" data-act="recipe" data-id="'+esc(dr.id)+'">'+lkBild(dishThumb(dr,dr.title),dl)+'<span class="grow"><span class="chips-row"><span class="chip">Efterrätt</span></span><span class="title">'+esc(dr.title)+'</span><span class="meta">'+[portKr(dr)?kr(portKr(dr))+'/port':'',dr.min?dr.min+' min':''].filter(Boolean).join('<span class="dot" aria-hidden="true">·</span>')+'</span></span></button>'+
-  xKnapp('dessClear',dr.id,dr.title)+dpr+'</div></div>':
-  '<button class="cell dess-empty" data-act="dessPick"><span class="dess-plus" aria-hidden="true">'+I.plus+'</span><span class="grow"><span class="title">Lägg till en efterrätt</span><span class="meta">Lås den för att få med varorna</span></span></button>');
- h+='<div class="g-one">'+group(vd)+'</div>';
+ const dn=dr&&dessPort(dr);
+ vd+='<div class="bt-sec"'+RF('M5')+'>'+gh('Efterrätt',dr?'<span class="num">'+dn+(dn===1?' portion':' portioner')+'</span>':'Valfri')+'<div class="bt-g">'+(dr?bt(null,dr,dn,'d',dr.id,dl,dr.title):btTom('dessPick','','Lägg till efterrätt'))+'</div></div>';h+='<div class="g-one">'+group('<div class="bt-all">'+vd+'</div>')+'</div>';
  return h}
 /* ---------- Valfritt protein (kategorin Kött/Veg) ----------
    Rätter med ett tydligt huvudprotein lagas som en grundrätt där var och en väljer sitt eget protein.
@@ -1259,6 +1563,69 @@ function kvSteps(r,val){if(!val)return r.steps;const info=protRaw(r,true),own=pr
  let done=false;return r.steps.map(x=>{if(done||!PORD[own.id].test(x.t))return x;done=true;
   return{t:x.t,timer:x.timer,k:own.veg||val.k!==own.id?protGen(val.k)+' Laga det i en egen panna.':'',v:!own.veg||val.v!==own.id?protGen(val.v)+' Laga det i en egen panna.':''}})}
 const stegText=x=>[x.t,x.k,x.v].filter(Boolean).join(' ');
+/* Tidsplan: stegen på en tidslinje. Steg med timer som sköter sig själva (koka, ugn, rosta, vila) låter nästa steg börja under tiden.
+   Steg utan timer får en uppskattad tid efter textens längd. "De sista minuterna" läggs i slutet av steget före och sista steget börjar när allt är klart. */
+const PASSIV=/\b(kok|sjud|puttra|rosta|ugn|bak|grädda|gratinera|låt|vila|marinera|jäs|svalna|tina|blötlägg|kyl)/i,AKTIV=/\b(stek|fräs|bryn|vispa|rör hela)/i;
+function tidsplan(ST){const R=[];let cur=0,end=0;
+ ST.forEach((s,i)=>{const t=stegText(s),tm=Number(s.timer)||0,d=tm||Math.max(2,Math.min(8,Math.round(t.split(/\s+/).length/6))),pas=!!tm&&PASSIV.test(t)&&!AKTIV.test(t),p=R[i-1];let a=cur;
+  if(p&&/sista minut/i.test(t))a=Math.max(p.a,p.b-d);else if(p&&/\b(samtidigt|under tiden|medan)\b/i.test(t))a=p.a;else{if(i&&i===ST.length-1)a=Math.max(cur,end);cur=a+(pas?Math.min(3,d):d)}
+  R.push({a,b:a+d,d,pas,est:!tm,lab:(t.split(/[.!]\s/)[0]||'').replace(/\.$/,'')});end=Math.max(end,a+d)});
+ return{R,tot:end}}
+const tpKl=m=>{m=Math.round(m);m=(m%1440+1440)%1440;return String(Math.floor(m/60)).padStart(2,'0')+'.'+String(m%60).padStart(2,'0')};
+const middag=()=>{const v=Number(lsGet('middag'));return v>=600&&v<=1380?v:1080};
+// start = klockslag i minuter för första steget, cur = steget man är på, now = minuter sedan start (bara i matlagningsläget).
+// Raden har bara stegets nummer, samma som i instruktionen. En startad timer fyller sin stapel medan tiden går
+function tpHtml(r,ST,o){const{R,tot}=tidsplan(ST),T=Math.max(tot,1),st=o.start,step=T<=35?5:T<=75?10:T<=150?15:30,pc=m=>(m/T*100).toFixed(2)+'%';
+ // Axeln i 5-minuterssteg (Henrik): streck och stödlinje var 5:e minut, klockslag så tätt det får plats
+ let ax='',gl='';for(let m=Math.ceil(st/5)*5-st;m<=T+.01;m+=5){const k=st+m,lb=k%step===0;ax+='<i class="tp-tk'+(lb?' lb':'')+'" style="left:'+pc(m)+'"></i>'+(lb?'<span style="left:'+pc(m)+'">'+tpKl(k)+'</span>':'');gl+='<i class="tp-gl" style="left:'+pc(m)+'"></i>'}
+ // Stapeln är timern: tryck startar, tryck igen pausar och fortsätter, en färdig timer tas bort med ett tryck. Tiden står i ringen och pillret (trPill)
+ const bar=(tm,cls,sty,lab)=>{const ms=tm?tmKvar(tm):0,run=tm&&!tm.ring&&ms>0,pau=run&&tm.p!=null;
+  const fill=run?'<i class="tp-f" style="animation-duration:'+(tm.dur/1000).toFixed(1)+'s;animation-delay:-'+((tm.dur-ms)/1000).toFixed(1)+'s'+(pau?';animation-play-state:paused':'')+'"></i>':'';
+  // Ingen tid i staplarna (Henrik): tiden läses på axeln, färdig stapel får en bock
+  const txt=tm&&!run?'<em>'+I.tick+'</em>':'';
+  return'<i class="tp-b'+cls+(pau?' run pau':run?' run':tm?' klar':'')+'" style="'+sty+'">'+fill+txt+'</i>'};
+ const rows=R.map((x,i)=>{const tm=S.timers.find(t=>t.rid===r.id&&t.si===i),cur=i===o.cur;
+  return'<div class="tp-r'+(cur?' on':'')+(tm?' tr':'')+(o.now!=null&&x.b<=o.now&&!cur?' gj':'')+'"><button type="button" class="no" data-act="tpTimer" data-id="'+esc(r.id)+'" data-i="'+i+'" data-min="'+x.d+'" aria-label="Timer för steg '+(i+1)+', '+x.d+' min"'+(tm?' data-k="'+tm.k+'"'+pillOn(tm):'')+'>'+(tm?trPill(tm,i+1):i+1)+'</button>'+
+   '<button type="button" class="tp-t" data-act="tpTimer" data-id="'+esc(r.id)+'" data-i="'+i+'" data-min="'+x.d+'" aria-label="Timer för steg '+(i+1)+', '+x.d+' min">'+bar(tm,(x.pas?' pas':'')+(x.est?' est':''),'left:'+pc(x.a)+';width:'+pc(x.d),'')+'</button></div>'}).join('')+
+  S.timers.filter(t=>t.rid===r.id&&t.egen).map(t=>'<div class="tp-r egen tr"><button type="button" class="no" data-k="'+t.k+'"'+pillOn(t)+' aria-label="Egen timer, håll in för tiden">'+trPill(t,I.clock)+'</button><button type="button" class="tp-t" data-act="tpTimer" data-k="'+t.k+'" aria-label="Egen timer '+Math.round(t.dur/60000)+' min">'+bar(t,' egen','left:0;width:100%','')+'</button></div>').join('');
+ const now=o.now!=null&&o.now>=0&&o.now<=T?'<i class="tp-now" style="left:'+pc(o.now)+'"></i>':'';
+ const po=PILL.k&&Date.now()<PILL.until&&S.timers.some(t=>t.k===PILL.k&&t.rid===r.id);
+ return'<div class="group tp'+(o.cook?' tp-cook':'')+(po?' push" style="--px:'+PILL.px+'px':'')+'" data-rid="'+esc(r.id)+'"><div class="tp-sum"><span><b>'+(o.cook?'Klart ca ':'Börja ')+tpKl(o.cook?st+T:st)+'</b>'+(o.cook?'':' · klart '+tpKl(st+T))+'</span><span class="meta">ca '+T+' min</span><button type="button" class="tp-egen" data-act="egenTimer" data-id="'+esc(r.id)+'" aria-label="Egen timer">'+I.clock+'</button></div><div class="tp-g">'+rows+'<div class="tp-ax"><span class="tp-t">'+ax+'</span></div><div class="tp-ov"><span class="tp-t">'+gl+now+'</span></div></div>'+
+  '<div class="tp-k"><span><i class="tp-b"></i>Du lagar</span><span><i class="tp-b pas"></i>Sköter sig själv</span><span><i class="tp-b est"></i>Uppskattad tid</span></div></div>'}
+const PILL={k:null,until:0,w:0,px:0},pillOn=t=>PILL.k===t.k&&Date.now()<PILL.until?' data-open="1" style="width:'+PILL.w+'px"':'';
+// Kör fn och flytta tillbaka sidan (eller kokläget) så att tidsplanen står kvar där den var, även om något scrollar efter omritningen
+function tpStill(fn){const g=document.querySelector(S.cook?'.cook .tp':'#main .tp'),y=g?g.getBoundingClientRect().top:null;fn();if(y==null)return;
+ const fix=()=>{const n=document.querySelector(S.cook?'.cook .tp':'#main .tp');if(!n)return;const d=n.getBoundingClientRect().top-y;if(Math.abs(d)<1)return;const b=S.cook&&document.querySelector('.cook-body');if(b)b.scrollTop+=d;else scrollBy(0,d)};
+ fix();requestAnimationFrame(()=>{fix();setTimeout(fix,60)})}
+const tmKvar=t=>t.p!=null?t.p:t.end-Date.now();
+// Timerring som på iPhone: bågen krymper medan tiden går (tick flyttar den varje sekund). Färdig = grå med bock
+const trAndel=t=>{const ms=tmKvar(t);return t.ring||ms<=0?0:Math.max(0,Math.min(1,ms/(t.dur||1)))};
+const tRing=(t,inner)=>{const klar=t.ring||tmKvar(t)<=0,pau=!klar&&t.p!=null;const c=klar?' klar':pau?' pau':'',r=' x="1.4" y="1.4" width="29.2" height="29.2" rx="14.6"';
+ // Ringen är en rundad rektangel runt hela knappen: som cirkel när den är stängd, runt pillret när det är öppet (trSize håller måtten)
+ return'<svg class="trs'+c+'" aria-hidden="true"><rect class="trg-b"'+r+'/><rect class="trg-f"'+r+' pathLength="100" stroke-dasharray="100" stroke-dashoffset="'+(100-trAndel(t)*100).toFixed(2)+'"'+(klar||pau?'':' data-end="'+t.end+'" data-dur="'+t.dur+'"')+'/></svg><span class="trg'+c+'"><span class="trg-n">'+(klar?I.tick:inner)+'</span></span>'};
+// Måtten på ringens rektangel följer knappen medan den töjs och fjädrar (CSS-måtten räcker i nyare webbläsare, attributen är reserv)
+const trRO=window.ResizeObserver?new ResizeObserver(es=>es.forEach(e=>trSize(e.target))):null;
+function trSize(no){const w=no.offsetWidth+6-2.8,h=no.offsetHeight+6-2.8,rx=Math.min(h/2,(parseFloat(getComputedStyle(no).borderTopLeftRadius)||h)+1.6);no.querySelectorAll('.trs rect').forEach(r=>{r.setAttribute('width',w.toFixed(1));r.setAttribute('height',h.toFixed(1));r.setAttribute('rx',rx.toFixed(1))})}
+function trWatch(){if(trRO)document.querySelectorAll('.tp-r.tr .no:not([data-ro])').forEach(n=>{n.dataset.ro=1;trRO.observe(n)})}
+// Ringen med pillret gömt bredvid: håll in så fjädrar pillret ut med tiden (trHold)
+const trPill=(t,inner)=>{const ms=tmKvar(t),klar=t.ring||ms<=0,pau=!klar&&t.p!=null;return'<i class="tr-gl" aria-hidden="true"></i>'+tRing(t,inner)+'<span class="tpl"><b'+(klar||pau?'':' data-end="'+t.end+'"')+'>'+(klar?'Klart':tpKvar(ms))+'</b>'+(pau?'<small>paus</small>':'')+'</span>'};
+// Håll in pillret: pausa, starta om, en minut till eller stäng
+function tmMenu(enter){const t=S.timers.find(x=>x.k===S.tm);if(!t)return'';const ms=tmKvar(t),klar=t.ring||ms<=0,pau=!klar&&t.p!=null,r=t.rid&&!(S.cook&&S.cook.id===t.rid)?recipeById(t.rid):null;
+ const c=(ic,ti,sub,a,cls)=>'<button type="button" class="dm-t'+(cls||'')+'" data-act="tmrDo" data-a="'+a+'" data-id="'+t.k+'"><span class="dm-ic">'+ic+'</span><b>'+ti+'</b><span class="meta">'+sub+'</span></button>';
+ const body='<div class="dm-hd"><span class="dr-th"><span>⏱️</span></span><div class="grow"><div class="title">'+esc(t.label)+'</div><div class="meta">'+[klar?'Klart':(pau?'Pausad, ':'')+tpKvar(ms)+' kvar',r?esc(r.title):''].filter(Boolean).join('<span class="dot" aria-hidden="true">·</span>')+'</div></div></div>'+
+  '<div class="dm-g fyll">'+[klar?'':c(pau?I.play:I.pause,pau?'Fortsätt':'Pausa',pau?'Räkna ner igen':'Stanna tiden','p'),c(I.repeat,'Starta om','Från '+tmrTxt(Math.round((t.d0||t.dur)/60000)),'r'),c(I.plus,'1 min till',klar?'Räkna ner en minut':'Lägg till en minut','m'),c(I.x,'Stäng','Ta bort timern','x',' red')].join('')+'</div>';
+ return sheetHtml('tmrMenu','Timer','<button type="button" class="tb strong" data-act="sheetClose">Klar</button>',body,enter,'<span class="tb" aria-hidden="true"></span>')}
+// Egen timer: ett lager med ett vred att snurra på, eller − och +
+function tmrSvg(m){const a=(m%60||(m?60:0))/60,ang=a*2*Math.PI,R=78,c=2*Math.PI*R,x=100+R*Math.sin(ang),y=100-R*Math.cos(ang);let t='';
+ for(let i=0;i<60;i++){const v=i*Math.PI/30,l=i%5?6:12,r1=97,r2=r1-l;t+='<line x1="'+(100+r1*Math.sin(v)).toFixed(1)+'" y1="'+(100-r1*Math.cos(v)).toFixed(1)+'" x2="'+(100+r2*Math.sin(v)).toFixed(1)+'" y2="'+(100-r2*Math.cos(v)).toFixed(1)+'"/>'}
+ return'<svg viewBox="0 0 200 200" aria-hidden="true"><circle class="tm-bg" cx="100" cy="100" r="99"/><g class="tm-tk">'+t+'</g><circle class="tm-tr" cx="100" cy="100" r="'+R+'"/><circle class="tm-ar" cx="100" cy="100" r="'+R+'" stroke-dasharray="'+(c*a).toFixed(1)+' '+c.toFixed(1)+'" transform="rotate(-90 100 100)"/><circle class="tm-kn" cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="11"/></svg>'}
+const tmrTxt=m=>m>=60?Math.floor(m/60)+' h '+pad(m%60):m+' min';
+function tmrSheet(enter){const m=S.tmr.min;
+ const body='<div class="tm-w"><div class="tm-dial" role="slider" aria-label="Tid" aria-valuemin="1" aria-valuemax="180" aria-valuenow="'+m+'">'+tmrSvg(m)+'<button type="button" class="tm-go" data-act="tmrStart"><b>'+tmrTxt(m)+'</b><span>Start</span></button></div>'+
+  '<div class="tm-ctl"><button type="button" data-act="tmrStep" data-d="-1" aria-label="En minut mindre">'+I.minus+'</button><span class="meta">Snurra eller tryck</span><button type="button" data-act="tmrStep" data-d="1" aria-label="En minut mer">'+I.plus+'</button></div></div>';
+ return sheetHtml('tmr','Egen timer','<span class="tb" aria-hidden="true"></span>',body,enter)}
+function tmrPaint(){const d=document.querySelector('.tm-dial');if(!d)return;const m=S.tmr.min;d.querySelector('svg').outerHTML=tmrSvg(m);d.querySelector('.tm-go b').textContent=tmrTxt(m);d.setAttribute('aria-valuenow',m)}
+const tpKvar=ms=>{const s=Math.max(0,Math.ceil(ms/1000));return Math.floor(s/60)+':'+pad(s%60)};
 // Två rader under ett steg: vad Henrik gör och vad den vegetariska gör
 function kvLanes(x,val){if(!x.k&&!x.v)return'';const one=(cls,who,id,t)=>t?'<div class="kv-l '+cls+'"><div class="kv-h"><span class="av" aria-hidden="true">'+pinit(who)+'</span>'+esc(personLabel(who))+' · '+protById(id).ic+' '+esc(protById(id).namn)+'</div><div class="kv-t">'+esc(t)+'</div></div>':'';
  return'<div class="kv">'+one('p1',val.kn||kottPerson(),val.k,x.k)+one('p2',val.vn||vegPerson(),val.v,x.v)+'</div>'}
@@ -1548,20 +1915,35 @@ function portView(){const C=portCalc(),{P,B}=C,mon=parse(P.vecka),sun=parse(addD
 let FL_STYLE=lsGet('forslag')==='lista'?'lista':'karusell';
 // Utvecklarläge: visar menyer som inte är färdiga. Gäller bara den här enheten
 let DEV=lsGet('dev')==='1';
-// Designens versionsnummer. UI 2.0 ("Lugn") gäller för alla. UI 1.0, den gamla designen, går bara att välja i utvecklarläget
+// UI 5.0 (Apple) är standard. UI 2.0 (sparas som '2') och UI 4.0 (Ateljé) väljs per enhet och UI 3.0 provas i utvecklarläget
 const UI_VER='2.0';
 // Appens version, samma nummer som ?v= på app.js
 const APP_VER=((document.querySelector('script[src*="app.js?v="]')||{}).src||'').replace(/.*\?v=/,'')||'?';
-const nyNu=()=>!(DEV&&lsGet('ny')==='0');
-let NY=nyNu();
-let U3=DEV&&lsGet('ui')==='3';if(U3)NY=true;
-function applyNy(){document.documentElement.classList.toggle('ny',NY);document.documentElement.classList.toggle('ui3',U3)}
+// UI 1.0 är borttagen: städa bort dess sparade val och rutordning
+['ny','ovLayout','wallLayout','calStyle'].forEach(k=>lsSet(k,null));
+let U3=DEV&&lsGet('ui')==='3',U4=lsGet('ui')==='4',U5=!['2','3','4'].includes(lsGet('ui'));
+function applyNy(){document.documentElement.classList.add('ny');document.documentElement.classList.toggle('ui3',U3);document.documentElement.classList.toggle('ui4',U4);document.documentElement.classList.toggle('ui5',U5)}
 applyNy();
+// Visa rutnummer (utvecklarläget): ett märke i hörnet på varje ruta med data-ref. Tryck på märket kopierar numret och rutans rubrik
+const refsOn=()=>DEV&&lsGet('refs')==='1';let refMO=null;
+function applyRefs(){document.documentElement.classList.toggle('refs',refsOn());refMark()}
+function refMark(){if(!document.documentElement.classList.contains('refs')){if(refMO){refMO.disconnect();refMO=null}document.querySelectorAll('.refb').forEach(b=>b.remove());document.querySelectorAll('.ref-rel').forEach(e=>e.classList.remove('ref-rel'));return}
+ document.querySelectorAll('[data-ref]').forEach(e=>{if(e.querySelector(':scope>.refb'))return;if(getComputedStyle(e).position==='static')e.classList.add('ref-rel');
+  const b=document.createElement('span');b.className='refb';b.setAttribute('role','button');b.setAttribute('aria-label','Kopiera rutnummer '+e.dataset.ref);b.textContent=e.dataset.ref;e.appendChild(b)});
+ if(!refMO){let q=0;refMO=new MutationObserver(()=>{if(!q)q=requestAnimationFrame(()=>{q=0;refMark()})});refMO.observe(document.body,{childList:true,subtree:true})}}
+function refLabel(e){const h=e.querySelector('h1,h2,h3,.wh>span,summary>span,.gh>span,.sh>span,.wx-cap,.bd-mh>span,.title');let t=(h||e).textContent.replace(/\s+/g,' ').trim();if(h&&!t)t=e.textContent.replace(/\s+/g,' ').trim();return t.slice(0,40)}
+['pointerdown','mousedown','touchstart'].forEach(t=>window.addEventListener(t,e=>{if(e.target.closest&&e.target.closest('.refb'))e.stopPropagation()},{capture:true,passive:true}));
+window.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.refb');if(!b)return;e.preventDefault();e.stopPropagation();
+ const el=b.parentElement,t=b.textContent+' '+refLabel(el).replace(b.textContent,'').trim();ACT.copy(t.trim())},true);
+applyRefs();
 // menyväljarens och flikradens utseende i UI 2.0, valt per enhet i Inställningar
 // Var inställningsknappen sitter på väggskärmen: i menyraden, egen knapp nere till höger eller rubrikrad överst
 let VKNAPP=['knapp','rubrik'].includes(lsGet('vaggknapp'))?lsGet('vaggknapp'):'meny';
 let SEGSTIL=['kapsel','klassisk'].includes(lsGet('segstil'))?lsGet('segstil'):'standard',FLIKRAD=['glas','piller'].includes(lsGet('flikrad'))?lsGet('flikrad'):'fast';
-function applyStil(){const c=document.documentElement.classList;c.toggle('seg-kapsel',!U3&&SEGSTIL==='kapsel');c.toggle('seg-klassisk',!U3&&SEGSTIL==='klassisk');c.toggle('nav-glas',!U3&&FLIKRAD!=='fast');c.toggle('nav-piller',!U3&&FLIKRAD==='piller')}
+let MOTION=lsGet('motion')!=='0';
+function motionOn(){return MOTION}
+let RYMLIG=lsGet('rymlig')==='1';
+function applyStil(){const c=document.documentElement.classList;c.toggle('motion-dev',motionOn());c.toggle('rymlig',RYMLIG&&!U3&&!U4&&!U5);c.toggle('seg-kapsel',!U3&&!U5&&SEGSTIL==='kapsel');c.toggle('seg-klassisk',!U3&&!U5&&SEGSTIL==='klassisk');c.toggle('nav-glas',!U3&&(U5||FLIKRAD!=='fast'));c.toggle('nav-piller',!U3&&!U5&&FLIKRAD==='piller')}
 applyStil();
 function portKarusell(alla,p,C){const n=alla.length,i0=Math.min(Math.max(1,(S.carIdx||{})[p.id]||1),n);
  const nx=C.dag.find(y=>y.p.dag>p.dag&&y.t!=='ratt'&&y.t!=='rest');
@@ -1573,8 +1955,10 @@ function portKarusell(alla,p,C){const n=alla.length,i0=Math.min(Math.max(1,(S.ca
    '<div class="car-b"><span class="chips-row">'+tag+'</span><div class="car-t">'+esc(r.title)+'</div><div class="car-m"><span>'+stars+'</span> · <span class="num">Handla för '+kr(Math.round(x.t.kassa))+'</span></div>'+
    '<div class="car-p">'+esc(port)+'</div>'+(om?'<div class="car-o">'+esc(om)+'</div>':'')+(r.why?'<div class="car-w">'+esc(r.why)+'</div>':'')+
    '<button class="btn-fill car-v" data-act="planPick" data-id="'+esc(r.id)+'" data-k="'+p.id+'" data-n="'+x.n+'"'+(klon?' tabindex="-1"':'')+'>Välj</button></div></div>'};
- const sl=n>1?[kortet(alla[n-1],1)].concat(alla.map(x=>kortet(x)),[kortet(alla[0],1)]):alla.map(x=>kortet(x));
- return'<div class="car'+(n>1?' loop':'')+'" data-car="'+p.id+'" data-n="'+n+'" data-i="'+(n>1?i0:0)+'" aria-roledescription="karusell"><div class="car-tr" style="--i:'+(n>1?i0:0)+'">'+sl.join('')+'</div></div>'+
+ return carHtml(p.id,alla,kortet,i0)}
+// Karusellen runt korten: klonerna i ändarna gör att den loopar, prickarna visar var man är. Används även i bladet Lägg till en rätt
+function carHtml(key,alla,kortet,i0){const n=alla.length,sl=n>1?[kortet(alla[n-1],1)].concat(alla.map(x=>kortet(x)),[kortet(alla[0],1)]):alla.map(x=>kortet(x));
+ return'<div class="car'+(n>1?' loop':'')+'" data-car="'+key+'" data-n="'+n+'" data-i="'+(n>1?i0:0)+'" aria-roledescription="karusell"><div class="car-tr" style="--i:'+(n>1?i0:0)+'">'+sl.join('')+'</div></div>'+
   (n>1?'<div class="car-dots" aria-hidden="true">'+alla.map((x,i)=>'<i'+(i+1===i0?' class="on"':'')+'></i>').join('')+'</div>':'')}
 // Svep i karusellen. Klonerna i ändarna gör att den loopar: efter sista kortet kommer det första igen
 (function(){let g=null;
@@ -1746,46 +2130,30 @@ function autoSend(){const C=autoCalc(),{P}=C,pl=P.plan,vd=d=>addDays(P.vecka,d),
  apiPost({action:'planSend',start:P.vecka,end:sun,menu,shop,recipes,lager:lagerUt(P.vecka,C.E.korg.rest),settings:settingsOut});
  if(wishes().some(w=>used.has(w.id)))updJSON('onskelista',[],a=>a.filter(w=>!used.has(w.id)));
  S.plan=false;S.matTab='vecka';lsSet('matTab','vecka');window.scrollTo(0,0);render();toast('Veckan skickas till veckosedeln och inköpslistan')}
-/* Recept: inspiration från nätet att spara i receptbanken */
-function matRecipes(){
- const all=inspoList().map(recipeLatest).filter(r=>!recipeArchived(r.id)),f=S.inspoFilter||'alla';let h=fchips('inspoFilter',RFILT,f);
- if(!INSPO.list)return h+'<div style="height:16px"></div>'+group(emptyCell(INSPO.busy?'Hämtar recept…':'Recepten kunde inte hämtas. Försök igen när du har nät.'));
- const list=all.filter(r=>rfOk(f,r,new Set())&&u3RecipeMatch(r));
- h+='<p class="inspo-intro">'+all.filter(r=>!isDessert(r)).length+' recept att inspireras av. '+I.heartOn.replace('<svg','<svg class="ic fav"')+' gör ett recept till favorit och '+I.bookmarkOn.replace('<svg','<svg class="ic"')+' sparar det i receptbanken, så kan veckoplaneringen välja det.</p>';
- return h+(list.length?'<div class="bank mini">'+list.map(r=>rCard(r)).join('')+'</div>':group(emptyCell('Inga recept matchar filtret.')))}
-
 // Inköpslistan visas som en flik i Mat; ger rubrikens undertext, verktyg och innehåll
 function inkopParts(){
- const d=D(),all=d.shop,f=S.shopFilter,st=settings();
- // Filtret visar butikens avdelningar som finns på listan, så man kan handla en avdelning i taget
- const kats=CATS.filter(c=>all.some(i=>shopKat(i)===c)),f2=f==='offer'&&all.some(i=>i.offer)||kats.includes(f)?f:'alla';
- const groups=[['alla','Alla']].concat(all.some(i=>i.offer)?[['offer','Erbjudanden']]:[],kats.map(c=>[c,c+' '+all.filter(i=>shopKat(i)===c&&!i.done).length]));
- const match=i=>f2==='alla'?true:f2==='offer'?!!i.offer:shopKat(i)===f2;
- const items=all.filter(match),left=all.filter(i=>!i.done),bought=all.filter(i=>i.done);
+ const d=D(),all=d.shop,st=settings(),items=all,left=all.filter(i=>!i.done),bought=all.filter(i=>i.done);
  // Hela listan och Kvar att betala gäller allt på listan. Per portion och budget gäller veckans mat, samma siffror som på veckosedeln
  const total=shopCost(all),port=veckaPortioner(),mealCost=veckaKostnad(),B=Number(st.matbudget)||0;
  let sub=left.length+' kvar · ca '+kr(shopCost(left)),tools='<button class="ib plus" data-act="shopAdd" aria-label="Ny vara">'+I.plus+'</button>',h='';
  const vs=st.vecka_start,wk=isDate(vs)?'Vecka '+isoWeek(parse(vs)):'veckan';
- if(NY){sub='';
-  h+='<div class="wsum"><div class="wsum-n"><b class="num">'+left.length+'</b><span>'+(left.length===1?'vara kvar':'varor kvar')+' · ca '+kr(shopCost(left))+'</span></div>'+
+ sub='';
+  h+='<div class="wsum"'+RF('M6')+'><div class="wsum-n"><b class="num">'+left.length+'</b><span>'+(left.length===1?'vara kvar':'varor kvar')+' · ca '+kr(shopCost(left))+'</span></div>'+
    (B?'<div class="wsum-m">Veckans mat '+kr(mealCost)+' av '+kr(B)+(mealCost>B?' · '+kr(mealCost-B)+' över':' · '+kr(B-mealCost)+' kvar')+'</div><div class="thin '+(mealCost>B?'bad':mealCost>B*.9?'warn':'')+'"><i style="width:'+Math.min(100,Math.round(mealCost/B*100))+'%"></i></div>':'')+'</div>'+
-   '<form class="add-row" data-form="shopQuick"><input class="field" name="name" placeholder="Lägg till vara" aria-label="Lägg till vara" autocomplete="off" enterkeyhint="done"><button type="button" class="add-go" data-act="quickGo" data-alt="shopAdd" aria-label="Lägg till">'+I.plus+'</button></form>'}
- else{h+='<div class="stats'+(B?' s4':'')+'"><div class="stat"><span class="fn">Hela listan</span><b>'+nv('s-total',total,'kr')+'</b></div><div class="stat"><span class="fn">Kvar att betala</span><b>'+nv('s-left',shopCost(left),'kr')+'</b></div><div class="stat"><span class="fn">Mat per portion</span><b>'+(port?kr((veckaAnvant()||mealCost)/port):'–')+'</b><span class="fn">'+port+' portioner</span></div>'+
-  (B?'<div class="stat"><span class="fn">Matbudget '+kr(B)+'</span><b>'+(mealCost>B?'+'+kr(mealCost-B):kr(B-mealCost)+' kvar')+'</b><div class="thin '+(mealCost>B?'bad':mealCost>B*.9?'warn':'')+'"><i style="width:'+Math.min(100,Math.round(mealCost/B*100))+'%"></i></div></div>':'')+'</div>'}
+   '<form class="add-row"'+RF('M7')+' data-form="shopQuick"><input class="field" name="name" placeholder="Lägg till vara" aria-label="Lägg till vara" autocomplete="off" enterkeyhint="done"><button type="button" class="add-go" data-act="quickGo" data-alt="shopAdd" aria-label="Lägg till">'+I.plus+'</button></form>';
  // Två knappar under siffrorna: hämta veckans varor och töm listan. Frågan visas i samma kort innan något händer
  // Håll in knappen för att bekräfta: en fyllning går över knappen och åtgärden körs när den är full
- h+=U3?'<div class="sh-tools"><button type="button" class="sh-btn" data-act="shopMore">'+I.dots+'Listans åtgärder</button></div>':'<div class="sh-tools"><button type="button" class="sh-btn" data-hold="shopImportYes" aria-label="Håll in för att uppdatera varorna för '+esc(wk.toLowerCase())+'"><i class="sh-fill"></i><span class="sh-ic">'+I.imp+'</span><b>Uppdatera varor</b></button>'
+ h+=U5?'':U3?'<div class="sh-tools"><button type="button" class="sh-btn" data-act="shopMore">'+I.dots+'Listans åtgärder</button></div>':'<div class="sh-tools"'+RF('M8')+'><button type="button" class="sh-btn" data-hold="shopImportYes" aria-label="Håll in för att uppdatera varorna för '+esc(wk.toLowerCase())+'"><i class="sh-fill"></i><span class="sh-ic">'+I.imp+'</span><b>Uppdatera varor</b></button>'
   +'<button type="button" class="sh-btn red" data-hold="shopEmptyYes"'+(all.length?'':' disabled')+' aria-label="Håll in för att tömma listan"><i class="sh-fill"></i><span class="sh-ic">'+I.trash+'</span><b>Töm listan</b></button></div>';
- h+='<div class="fchips" role="group" aria-label="Filter">'+groups.map(([k,l])=>'<button data-act="shopFilter" data-id="'+esc(k)+'" aria-pressed="'+(f2===k)+'">'+l+'</button>').join('')+'</div>';
  h+='<div class="split"><div class="col">';
  if(!all.length)h+='<div style="height:22px"></div>'+group(emptyCell(U3?'Listan är tom. Lägg till en vara ovan, eller hämta veckans varor under Listans åtgärder.':'Listan är tom. Tryck på Uppdatera varor för veckans rätter, eller lägg till egna varor med plus.'));
- const delar=CATS.map(c=>{const g=items.filter(i=>shopKat(i)===c).sort((a,b)=>(a.done-b.done)||(a.order||0)-(b.order||0));return g.length?gh(c,kr(shopCost(g)))+g.map(shopRow).join(''):''}).join('');
- if(delar)h+='<div class="g-one">'+group(delar)+'</div>';
+ const delar=CATS.map(c=>{const g=items.filter(i=>shopKat(i)===c).sort((a,b)=>(a.done-b.done)||(a.order||0)-(b.order||0));if(!g.length)return'';const open=!(S.shopClosed||{})[c],id='shop-category-'+CATS.indexOf(c),n=g.filter(i=>!i.done).length;return'<button type="button" class="gh shop-fold'+(open?' open':'')+'" data-act="shopFold" data-id="'+esc(c)+'" aria-controls="'+id+'" aria-expanded="'+open+'"><span>'+esc(c)+'</span><span class="r">'+n+' kvar · '+kr(shopCost(g))+'<span class="eko-chev" aria-hidden="true">'+I.chev+'</span></span></button><div class="motion-panel" id="'+id+'"'+(!open?' hidden inert':'')+' aria-hidden="'+!open+'">'+g.map(shopRow).join('')+'</div>'}).join('');
+ if(delar)h+='<div class="g-one">'+rgroup('M10',delar)+'</div>';
  if(bought.length)h+='<div class="pills" style="padding:12px 16px 0 24px">'+(S.confirm==='clearShop'?'<span class="sub">Ta bort '+bought.length+' avbockade?</span><button class="tb red strong" data-act="clearShopYes">Ja, ta bort</button><button class="tb" data-act="confirmNo">Avbryt</button>':'<button class="tb red" data-act="clearShop">Rensa avbockade ('+bought.length+')</button>')+'</div>';
  h+='</div><div class="col">';
 
  const offers=all.filter(i=>i.offer);
- if(offers.length)h+=sh('Erbjudanden på listan')+group(offers.map(i=>'<div class="cell"><div class="grow"><div class="title">'+esc(i.name)+'</div><div class="meta">'+esc(i.offer)+'</div></div></div>').join(''))+'<div class="foot">Priserna är uppskattade. Kolla hyllkanten i butiken.</div>';
+ if(offers.length)h+=sh('Erbjudanden på listan')+rgroup('M11',offers.map(i=>'<div class="cell"><div class="grow"><div class="title">'+esc(i.name)+'</div><div class="meta">'+esc(i.offer)+'</div></div></div>').join(''))+'<div class="foot">Priserna är uppskattade. Kolla hyllkanten i butiken.</div>';
  return{sub,tools,body:h+'</div></div>'}}
 /* Hämta från veckosedeln: räknar fram varorna till veckans rätter (middagar 2 eller 4 portioner, storkok 5 eller 10)
    och skickar veckan på nytt med planSend, som byter ut förra planens varor och låter egna varor ligga kvar */
@@ -1824,14 +2192,12 @@ function shopImport(tyst,o){o=o||{};
  const nyck=x=>String(x.name||'').toLowerCase()+'|'+String(x.qty||'').toLowerCase(),fore=new Set(D().shop.map(nyck)),kopt=new Set(D().shop.filter(i=>i.done&&i.source!=='egen').map(nyck));
  const nya=shop.filter(x=>!fore.has(nyck(x))).length,nu=new Set(shop.map(nyck)),borta=D().shop.filter(i=>i.source!=='egen'&&!nu.has(nyck(i))).length;
  S.data.shop=egna.concat(shop.map((x,n)=>({id:tag+'-'+n,name:x.name,qty:x.qty,price:x.price,meals:x.meals,cat:katGissa(x.name),done:kopt.has(nyck(x)),source:'veckoplan'})));
- if(!tyst)S.shopFilter='alla';render();toast(o.msg||(tyst?'Inköpslistan uppdaterad':!list.length&&!dv.length?'Inga låsta rätter. Lås rätterna du vill handla till.':nya||borta?[nya?nya+' tillagda':'',borta?borta+' borttagna':''].filter(Boolean).join(', '):'Inköpslistan stämmer med veckosedeln'));
+ render();toast(o.msg||(tyst?'Inköpslistan uppdaterad':!list.length&&!dv.length?'Inga låsta rätter. Lås rätterna du vill handla till.':nya||borta?[nya?nya+' tillagda':'',borta?borta+' borttagna':''].filter(Boolean).join(', '):'Inköpslistan stämmer med veckosedeln'));
  // Recept från inspirationen eller receptbanken som saknas i kalkylarkets flik Recept skickas med
  const inSheet=new Set(D().recipes.map(r=>r.id)),recipes=o.force?[...new Set(rows.map(m=>m.recipe).filter(Boolean))].map(recipeById).filter(r=>r&&!inSheet.has(r.id)&&!isDessert(r)).slice(0,12).map(bankSnap):[];
  apiPost({action:'planSend',start:vs,end:ve,menu:rows.map(m=>({date:m.date,who:m.who,title:m.title,recipe:m.recipe||'',addon:m.addon||'',note:m.note||''})),shop,recipes,lager:lagerUt(vs,korg.rest),settings:o.settings||{}});
- // Kalkylarket skriver om alla veckans varor som inte köpta, så de köpta bockas av igen
- S.data.shop.forEach(i=>{if(i.done&&i.source==='veckoplan')apiPost({action:'shopToggle',id:i.id,done:true})});
- // Kalkylarket tar bort avbockade egna varor när veckans varor skickas, så de läggs tillbaka avbockade
- egna.filter(i=>i.done).forEach((i,n)=>{i.id='tmp'+Date.now()+'-k'+n;apiPost({action:'shopAdd',name:i.name,qty:i.qty||'',cat:i.cat||'Övrigt',price:i.price==null?'':i.price});apiPost({action:'shopToggle',id:i.id,done:true})})}
+ // Det som är köpt bockas av igen och avbockade egna varor läggs tillbaka i flush (planKopt), utifrån arket precis före sändningen
+}
 function shopRow(i){return'<div class="dr-wrap"><button class="dr-act del" data-act="shopDel" data-full="shopDel" data-id="'+esc(i.id)+'" aria-label="Ta bort '+esc(i.name)+'">'+I.trash+'<span>Ta bort</span></button>'+shopRowIn(i).replace('<div class="cell ck','<div class="cell dr-slide ck')+'</div>'}
 function shopRowIn(i){const chips=(i.offer?'<span class="chip offer">'+esc(i.store||'Erbjudande')+'</span>':'')+(i.meals||[]).map(m=>'<span class="chip">'+esc(m)+'</span>').join('')+(i.source==='egen'&&i.addedBy?'<span class="chip">'+esc(i.addedBy)+'</span>':'');
  return'<div class="cell ck'+(i.done?' done':'')+'"><input type="checkbox" class="check" data-act="shopToggle" data-id="'+esc(i.id)+'" aria-label="'+esc(i.name)+'"'+(i.done?' checked':'')+'><button class="grow rowbtn" data-act="shopToggle" data-id="'+esc(i.id)+'"><div class="title">'+esc(i.name)+'</div>'+((i.qty||chips)?'<div class="meta">'+(i.qty?'<span>'+esc(i.qty)+'</span>':'')+chips+'</div>':'')+'</button>'+(i.price?'<span class="val">'+kr(i.price)+'</span>':'<span class="val nopris">prisuppgift saknas</span>')+'</div>'}
@@ -1839,6 +2205,11 @@ function shopRowIn(i){const chips=(i.offer?'<span class="chip offer">'+esc(i.sto
 function scaled(r){const p=S.scale[r.id]||r.portions;return{p,f:p/r.portions}}
 const qtyText=(it,f)=>it.q!=null?fmtQ(it.q*f)+' '+(it.u||''):[it.raw||'',it.u||''].filter(Boolean).join(' ');
 const ingRow=(it,f,hit)=>'<div class="ingx'+(hit?' hit':'')+'"><span class="q">'+esc(qtyText(it,f))+'</span><span class="n">'+esc(it.n)+'</span></div>';
+// Matlagningsläget: stegets ingredienser överst med mängden för steget, en tunn linje, sedan resten
+function stegQ(t,it,f){const m=String(t).toLowerCase().match(/(hälften av|halva|resten av|lite av)\s+[a-zåäöé]+/g)||[];
+ for(const x of m){if(!ingInStep(x.split(/\s+/).pop(),it.n))continue;return/^(hälften|halva)/.test(x)?(it.q!=null?qtyText(it,f/2):'hälften'):/^resten/.test(x)?'resten':'lite'}return qtyText(it,f)}
+function ingSorted(r,f,hits,t){const all=[];(r.groups||[]).forEach(g=>g.items.forEach(it=>all.push(it)));const rest=all.filter(it=>!hits.includes(it));
+ return group(hits.map(it=>'<div class="ingx top"><span class="q">'+esc(stegQ(t,it,f))+'</span><span class="n">'+esc(it.n)+'</span></div>').join('')+(hits.length&&rest.length?'<div class="ing-sep" aria-hidden="true"></div>':'')+rest.map(it=>ingRow(it,f)).join(''))}
 function ingList(r,f,hits){return(r.groups||[]).map(g=>(g.title?'<div class="sh sub2">'+esc(g.title)+'</div>':'')+group(g.items.map(it=>ingRow(it,f,hits&&hits.includes(it))).join(''))).join('')}
 
 /* Vilka ingredienser nämns i ett steg? Jämför ordstammar åt båda hållen,
@@ -1881,30 +2252,29 @@ function recipeDetail(r){
  h+=rcpPhoto(r);
  h+='<div class="chips-row">'+(isDessert(r)?'<span class="chip e">Efterrätt</span>':whoChip(effWho(r)))+(r.freezes?'<span class="chip v">Går att frysa</span>':'')+'</div><h1 class="t1" id="lt">'+esc(r.title)+'</h1>'+rcpActions(r)+'<div class="block"><button class="btn-tint" data-rc="edit" data-id="'+esc(r.id)+'">'+I.pencil+'Redigera recept</button></div>'+recipePrice(r).html+'</div>';
  const cookBtn='<div class="block"><button class="btn-fill" style="width:100%" data-act="cook" data-id="'+esc(r.id)+'">'+I.play+'Börja laga</button></div>';
- if(NY)h+=cookBtn;
+ h+=cookBtn;
  const facts=[['Tid',r.min?'<span class="num">'+r.min+'</span> min':'Ej angiven']];if(portKr(r))facts.push(['Per portion',kr(portKr(r))]);if(r.protein){const pr=String(r.protein).replace(/\s*\/\s*port(ion)?\.?$/i,''),ph=pr.match(/^henriks?\s+(?:del\s+)?(?:ca\s+)?(.+)$/i);facts.push(['Protein',esc(ph?ph[1]:pr)])}
  const kc=kcalOf(r.id);if(kc)facts.push(['Kalorier','<span class="num">'+kc.n+'</span> kcal']);
- h+='<div class="group" style="margin-top:16px"><div class="rcp-facts'+(facts.length>3?' f4':'')+'" style="grid-template-columns:repeat('+facts.length+',minmax(0,1fr))">'+facts.map(([l,v])=>'<div><div class="fn">'+l+'</div><div class="v">'+v+'</div></div>').join('')+'</div></div>';
- if(r.why)h+='<div class="group" style="margin-top:12px"><div class="note">'+esc(r.why)+'</div></div>';
+ h+='<div class="group"'+RF('M19')+' style="margin-top:16px"><div class="rcp-facts'+(facts.length>3?' f4':'')+'" style="grid-template-columns:repeat('+facts.length+',minmax(0,1fr))">'+facts.map(([l,v])=>'<div><div class="fn">'+l+'</div><div class="v">'+v+'</div></div>').join('')+'</div></div>';
+ if(r.why)h+='<div class="group"'+RF('M24')+' style="margin-top:12px"><div class="note">'+esc(r.why)+'</div></div>';
  const praw=protRaw(r);if(praw){const on=!protOff(r.id),orig=protById(praw.id),mm=D().menu.find(m=>m.recipe===r.id&&protFromAddon(m.addon)),pa=mm&&protFromAddon(mm.addon);
-  h+=sh('Valfritt protein')+group(on&&pa?[[pa.kn,pa.k,'p1'],[pa.vn,pa.v,'p2']].map(([n,id,c])=>{const x=protById(id);return'<div class="cell pt-row"><span class="pt-ri" aria-hidden="true">'+x.ic+'</span><div class="grow"><div class="title"><span class="chip '+c+'">'+esc(personLabel(n))+'</span> '+esc(x.namn)+'</div><div class="meta">'+esc(x.g+' g per portion. '+x.tips)+'</div></div></div>'}).join('')
+  h+=sh('Valfritt protein')+rgroup('M23',on&&pa?[[pa.kn,pa.k,'p1'],[pa.vn,pa.v,'p2']].map(([n,id,c])=>{const x=protById(id);return'<div class="cell pt-row"><span class="pt-ri" aria-hidden="true">'+x.ic+'</span><div class="grow"><div class="title"><span class="chip '+c+'">'+esc(personLabel(n))+'</span> '+esc(x.namn)+'</div><div class="meta">'+esc(x.g+' g per portion. '+x.tips)+'</div></div></div>'}).join('')
    :'<div class="cell"><div class="grow"><div class="meta" style="color:var(--ink)">'+(on?'Receptet har '+esc(orig.namn.toLowerCase())+'. När veckan planeras väljer var och en sitt protein, och resten av rätten lagas en gång.':'Avstängt. Rätten lagas med '+esc(orig.namn.toLowerCase())+' som i receptet.')+'</div></div></div>')+
    '<div class="foot"><button class="linkbtn" data-act="protToggle" data-id="'+esc(r.id)+'">'+(on?'Stäng av för den här rätten':'Slå på valfritt protein')+'</button></div>'}
  if(r.src)h+='<div class="foot"><a href="'+esc(r.src)+'" target="_blank" rel="noopener" style="color:var(--accent)">Inspiration från '+esc(r.srcName||'nätet')+'</a></div>';
- if(!NY)h+=cookBtn;
  h+='<div class="recipe"><div class="col">';
  h+='<div class="sh with-ctl"><span>Ingredienser</span><span class="stepper"><button data-act="scale" data-id="'+esc(r.id)+'" data-d="-1" aria-label="Färre portioner">−</button><span><b>'+p+'</b> port</span><button data-act="scale" data-id="'+esc(r.id)+'" data-d="1" aria-label="Fler portioner">+</button></span></div>';
- h+=ingList(rr,f,actHits)+'<div class="foot">Markerat: det som behövs i steg '+(act+1)+'.</div>';
+ h+=refAdd(ingList(rr,f,actHits),'M20')+'<div class="foot">Markerat: det som behövs i steg '+(act+1)+'.</div>';
  h+='</div><div class="col">';
+ {const md=middag(),{tot}=tidsplan(ST);h+='<div class="sh with-ctl"><span>Tidsplan</span><span class="stepper"><button data-act="middag" data-d="-15" aria-label="Tidigare middag">−</button><span>Middag <b>'+tpKl(md)+'</b></span><button data-act="middag" data-d="15" aria-label="Senare middag">+</button></span></div>'+refAdd(tpHtml(r,ST,{start:md-tot,cur:act}),'M21')}
  h+=sh('Gör så här','<span style="text-transform:none">Tryck på ett steg för att markera det</span>');
- h+='<div class="group"><ol class="steps">'+ST.map((s,i)=>{const hs=i===act?actHits:stepIngredients(rr,{t:stegText(s)}),on=i===act;
-  const timerBtn=s.timer?'<button class="pill" data-act="timer" data-min="'+s.timer+'" data-label="Steg '+(i+1)+'">'+I.clock+s.timer+' min</button>':'';
+ h+='<div class="group"'+RF('M22')+'><ol class="steps">'+ST.map((s,i)=>{const hs=i===act?actHits:stepIngredients(rr,{t:stegText(s)}),on=i===act;
   return'<li class="'+(on?'active':'')+'" data-act="pickStep" data-id="'+esc(r.id)+'" data-i="'+i+'"><span class="no">'+(i+1)+'</span><div class="txt">'+(s.t?esc(s.t):'')+(pv?kvLanes(s,pv):'')+
-  (on?(hs.length?'<div class="now"><div class="fn">Det här steget</div>'+hs.map(it=>ingRow(it,f)).join('')+'</div>':'')+
-    ((timerBtn||i<ST.length-1)?'<div class="pills">'+timerBtn+(i<ST.length-1?'<button class="pill" data-act="pickStep" data-id="'+esc(r.id)+'" data-i="'+(i+1)+'">Nästa steg</button>':'')+'</div>':''):
-   (hs.length?'<div class="uses">'+hs.map(it=>'<span>'+esc((qtyText(it,f)+' '+it.n).trim())+'</span>').join('')+'</div>':'')+(timerBtn?'<div class="pills">'+timerBtn+'</div>':''))+'</div></li>'}).join('')+'</ol></div>';
- if(r.tips)h+='<div class="group" style="margin-top:12px"><div class="note">'+esc(r.tips)+'</div></div>';
- h+=rateBlock(r);
+  (on?
+    (i<ST.length-1?'<div class="pills"><button class="pill" data-act="pickStep" data-id="'+esc(r.id)+'" data-i="'+(i+1)+'">Nästa steg</button></div>':''):
+   (hs.length?'<div class="uses">'+hs.map(it=>'<span>'+esc((qtyText(it,f)+' '+it.n).trim())+'</span>').join('')+'</div>':''))+'</div></li>'}).join('')+'</ol></div>';
+ if(r.tips)h+='<div class="group"'+RF('M25')+' style="margin-top:12px"><div class="note">'+esc(r.tips)+'</div></div>';
+ h+=refAdd(rateBlock(r),'M26');
  h+='</div></div>';
  return h}
 /* Tidigast igen: hur snart en rätt får föreslås igen. Räknas av matpoang.js från baslinjen och stjärnorna.
@@ -1939,16 +2309,10 @@ function smileyAsk(){const t=today(),y=addDays(t,-1),late=new Date().getHours()>
   if(!(m.date===y||(late&&m.date===t)))return false;const k=m.recipe+'|'+m.date;if(seen.has(k))return false;seen.add(k);
   return!(all[m.recipe]||[]).some(x=>x[0]===m.date)}).slice(0,3)}
 function smileyCard(){const L=smileyAsk();if(!L.length)return'';const t=today(),allT=L.every(m=>m.date===t);
- if(NY)return'<section class="smc ny-smc"><h2 class="smc-q">'+(allT?'Hur var maten ikväll?':'Hur var maten igår?')+'</h2>'+
+ return'<section class="smc ny-smc"><h2 class="smc-q">'+(allT?'Hur var maten ikväll?':'Hur var maten igår?')+'</h2>'+
   L.map(m=>{const r=recipeById(m.recipe),a='data-id="'+esc(m.recipe)+'" data-date="'+esc(m.date)+'"';return'<div class="smc-r"><div class="smc-t"><div class="grow"><div class="title">'+esc(r.title)+'</div><div class="meta"><span>Tryck på en min så sparas den</span></div></div>'+
    SMIL.map(([v,e,n])=>'<button type="button" class="smc-f" data-act="smileyQuick" data-v="'+v+'" '+a+' aria-label="'+esc(r.title)+': '+esc(n)+'">'+e+'</button>').join('')+'</div>'+
-   '<button type="button" class="tb smc-skip" data-act="smileySkip" '+a+'>Vi lagade den inte</button></div>'}).join('')+'</section>';
- return'<section class="smc"><div class="smc-h">'+I.fork+'<span>'+(allT?'Hur var maten ikväll?':'Hur var maten igår?')+'</span></div>'+
-  L.map(m=>{const r=recipeById(m.recipe);return'<form class="smc-r" data-form="smiley" data-id="'+esc(m.recipe)+'" data-date="'+esc(m.date)+'">'+
-   '<div class="smc-t"><div class="grow"><div class="chips-row">'+whoChip(m.who)+'</div><div class="title">'+esc(r.title)+'</div></div><span class="smc-face" aria-hidden="true">😐</span></div>'+
-   '<input class="smc-sl" type="range" name="v" min="-1" max="1" step="1" value="0" aria-label="Hur god var '+esc(r.title)+'? Ledsen, neutral eller glad">'+
-   '<div class="smc-lb" aria-hidden="true">'+SMIL.map(([,e])=>'<span>'+e+'</span>').join('')+'</div>'+
-   '<div class="smc-b"><button type="button" class="tb" data-act="smileySkip" data-id="'+esc(m.recipe)+'" data-date="'+esc(m.date)+'">Lagade inte</button><button class="btn-fill">Spara</button></div></form>'}).join('')+'</section>'}
+   '<button type="button" class="tb smc-skip" data-act="smileySkip" '+a+'>Vi lagade den inte</button></div>'}).join('')+'</section>'}
 function saveSmiley(id,date,v){const who=S.me||'';
  const r=recipeById(id);updJSON('betyg',{},o=>{const x=o[id]=o[id]||{p:{}};if(!x.t&&r)x.t=r.title;x.sm=(x.sm||[]).filter(y=>y[0]!==date).concat([[date,v,who,today()]]).slice(-10);return o})}
 function rateBlock(r){const g=ratingOf(r.id);if(!g)return'';
@@ -2029,16 +2393,16 @@ async function uploadPhoto(id,file){const r=recipeById(id);if(!r||!file)return;i
 V.uppgifter=function(){
  const t=today(),d=D(),open=d.tasks.filter(x=>!x.done),done=d.tasks.filter(x=>x.done);
  const g=[['Försenade',open.filter(x=>isDate(x.due)&&x.due<t)],['Idag',open.filter(x=>x.due===t)],['Kommande',open.filter(x=>isDate(x.due)&&x.due>t).sort((a,b)=>a.due.localeCompare(b.due))],['Utan datum',open.filter(x=>!isDate(x.due))]];
- let h=head('Uppgifter',{sub:open.length+' att göra',tools:'<button class="ib plus" data-act="taskAdd" aria-label="Ny uppgift">'+I.plus+'</button>'});
- h+=segc('Visa','taskTab',[['lista','Lista'],['kalender','Kalender']],S.taskTab);
- if(S.taskTab==='kalender')return h+calView();
- if(NY)h+='<form class="add-row" data-form="taskQuick"><input class="field" name="title" placeholder="Ny uppgift" aria-label="Ny uppgift" autocomplete="off" enterkeyhint="done"><button type="button" class="add-go" data-act="quickGo" data-alt="taskAdd" aria-label="Lägg till">'+I.plus+'</button></form>';
+ const plus='<button class="ib plus" data-act="taskAdd" aria-label="Ny uppgift">'+I.plus+'</button>';
+ let h=head('Att göra',{sub:open.length?open.length+' uppgifter kvar':'Inget kvar att göra',tools:plus})+attSeg('lista');
+ h+='<form class="add-row"'+RF('U1')+' data-form="taskQuick"><input class="field" name="title" placeholder="Ny uppgift" aria-label="Ny uppgift" autocomplete="off" enterkeyhint="done"><button type="button" class="add-go" data-act="quickGo" data-alt="taskAdd" aria-label="Lägg till">'+I.plus+'</button></form>';
  h+='<div class="split"><div class="col">';
- const td=g.filter(([,xs])=>xs.length).map(([l,xs])=>gh(l,xs.length,l==='Försenade'?'red':'')+xs.map(taskRow).join('')).join('');if(td)h+='<div class="g-one">'+group(td)+'</div>';
- if(!open.length)h+='<div style="height:22px"></div>'+group(emptyCell('Inget att göra just nu.'));
+ const td=g.filter(([,xs])=>xs.length).map(([l,xs])=>gh(l,xs.length,l==='Försenade'?'red':'')+xs.map(taskRow).join('')).join('');if(td)h+='<div class="g-one">'+rgroup('U2',td)+'</div>';
+ if(!open.length)h+='<div style="height:22px"></div>'+rgroup('U11',emptyCell('Inget att göra just nu.'));
  h+='</div><div class="col">';
- if(done.length)h+='<details data-k="done"'+(S.open.done||S.confirm==='clearTasks'?' open':'')+'><summary class="sh"><span>Klara ('+done.length+')</span></summary>'+group(done.map(taskRow).join(''))+
+ if(done.length)h+='<details data-k="done"'+(S.open.done||S.confirm==='clearTasks'?' open':'')+'><summary class="sh"><span>Klara ('+done.length+')</span></summary>'+rgroup('U3',done.map(taskRow).join(''))+
   '<div class="pills" style="padding:12px 16px 0 24px">'+(S.confirm==='clearTasks'?'<span class="sub">Ta bort alla klara?</span><button class="tb red strong" data-act="clearTasksYes">Ja, ta bort</button><button class="tb" data-act="confirmNo">Avbryt</button>':'<button class="tb red" data-act="clearTasks">Rensa klara</button>')+'</div></details>';
+ const bl=tBort(),ig=addDays(t,-1);if(bl.length)h+='<details data-k="bort"'+(S.open.bort?' open':'')+'><summary class="sh"><span>Nyligen borttagna ('+bl.length+')</span></summary>'+rgroup('U12',bl.map(x=>'<div class="cell tbort"><div class="grow"><div class="title">'+esc(x.title)+'</div><div class="meta"><span>Borttagen '+esc((x.at===t?'idag':x.at===ig?'i går':dateShort(x.at))+(x.by?' av '+personLabel(x.by):''))+'</span>'+(repName(x.repeat)?'<span class="chip">↻ '+esc(repName(x.repeat))+'</span>':'')+(x.who?personChip(x.who):'')+'</div></div><button type="button" class="tb" data-act="taskBortUndo" data-id="'+esc(x.k)+'">Återställ</button></div>').join(''))+'<p class="sub" style="padding:8px 24px 0">Sparas i 30 dagar.</p></details>';
  return h+'</div></div>'};
 /* Kalender: månadsöversikt med kalenderhändelser (fliken Händelser) och uppgifter,
    och under den allt som händer den valda dagen */
@@ -2047,7 +2411,6 @@ function calDots(date){const d=D(),evs=d.events.filter(e=>e.date===date),ts=d.ta
  evs.filter(e=>!isBdEv(e)).forEach(e=>{const w=evPerson(e);out.push(w&&people().includes(w)?'e '+pcls(w):'e o')});
  ts.forEach(()=>out.push('t'));return out.slice(0,4)}
 // Översiktens kalenderruta: veckoremsa där man väljer dag, och den dagens händelser med start- och sluttid
-let CAL_STYLE=['1','2','3'].includes(lsGet('calStyle'))?lsGet('calStyle'):'2';
 // Födelsedagar i kalendern ("Leah fyller 12 år") visas som en påminnelse överst i stället för som en heldagsrad
 const isBdEv=e=>!e.time&&/ fyller( \d+)? år$/.test(String(e.title||''));
 function calDayRows(sel){const d=D(),t=today();
@@ -2056,51 +2419,119 @@ function calDayRows(sel){const d=D(),t=today();
  const rem=bds.map(e=>'<div class="bd-remind">'+I.cake+'<span>'+esc(e.title)+(sel===t?' idag':'')+'</span></div>').join('');
  if(!evs.length)return rem+(bds.length?'':'<div class="wempty">Inget i kalendern '+(sel===t?'idag':'den här dagen')+'.</div>');
  const head=rem+'<div class="wk-sub">Schema</div>',who=e=>evWho(e);
- if(CAL_STYLE==='1'){
-  // förslag 1: tiden till vänster, bara det som inte redan står där till höger
-  return head+'<div class="evs">'+evs.map(e=>{const x=st.get(e)||{};
-   const r=x.st==='now'?'<span class="cd now">'+x.left+' kvar</span>':x.st==='next'?'<span class="cd">om '+x.inn+'</span>':'';
-   return'<div class="ev'+(x.st==='past'?' past':'')+'"><span class="t">'+esc(e.time||'Heldag')+'</span><span class="grow">'+evTitle(e)+who(e)+'</span>'+r+'</div>'}).join('')+'</div>'}
- if(CAL_STYLE==='2'){
-  // förslag 2: det som pågår får en tunn förloppsstapel under titeln
-  return head+'<div class="evs">'+evs.map(e=>{const x=st.get(e)||{};
-   const bar=x.st==='now'?'<div class="ev-pb"><span class="pb"><i style="width:'+Math.round(x.p*100)+'%"></i></span><span class="pbt num">'+x.left+' kvar</span></div>':'';
-   const r=x.st==='next'?'<span class="cd">om '+x.inn+'</span>':'';
-   return'<div class="ev'+(x.st==='past'?' past':'')+(x.st==='now'?' now':'')+'"><span class="t">'+esc(e.time||'Heldag')+'</span><span class="grow"><span class="ev-ti">'+evTitle(e)+who(e)+'</span>'+bar+'</span>'+r+'</div>'}).join('')+'</div>'}
- // förslag 3: dagens tidsaxel med block och en nu-linje, listan under visar bara starttid
- const timed=evs.filter(e=>st.has(e)||/^\d/.test(e.time||'')),allday=evs.filter(e=>!/^\d/.test(e.time||''));
- const at=v=>{const m=/^(\d{1,2})[.:](\d{2})/.exec(v||'');return m?Number(m[1])*60+Number(m[2]):null},en=v=>{const m=/[–-]\s*(\d{1,2})[.:](\d{2})/.exec(v||'');return m?Number(m[1])*60+Number(m[2]):null};
- let lo=Math.min(7*60,...timed.map(e=>at(e.time))),hi=Math.max(21*60,...timed.map(e=>en(e.time)||at(e.time)+30));lo=Math.floor(lo/60)*60;hi=Math.ceil(hi/60)*60;
- const X=m=>((m-lo)/(hi-lo)*100).toFixed(2),n=new Date(),nm=n.getHours()*60+n.getMinutes();
- let ax='<div class="tl"><div class="tl-track">'+timed.map((e,i)=>{const s0=at(e.time),e0=en(e.time)||s0+30,w=evPerson(e);
-  return'<i class="tl-b '+(w&&people().includes(w)?pcls(w):'o')+'" style="left:'+X(s0)+'%;width:'+(X(e0)-X(s0))+'%;top:'+(i%2?11:2)+'px"></i>'}).join('')+
-  (sel===t&&nm>=lo&&nm<=hi?'<b class="tl-now" style="left:'+X(nm)+'%"></b>':'')+'</div><div class="tl-ax num">';
- for(let h=lo;h<=hi;h+=180)ax+='<span style="left:'+X(h)+'%">'+pad(h/60)+'</span>';ax+='</div></div>';
- return head+ax+'<div class="evs">'+allday.concat(timed).map(e=>{const x=st.get(e)||{};
-  const r=x.st==='now'?'<span class="cd now">'+x.left+' kvar</span>':x.st==='next'?'<span class="cd">om '+x.inn+'</span>':'';
-  return'<div class="ev'+(x.st==='past'?' past':'')+'"><span class="t short">'+esc(e.time?String(e.time).split(/\s*[–-]\s*/)[0]:'Heldag')+'</span><span class="grow">'+evTitle(e)+who(e)+'</span>'+r+'</div>'}).join('')+'</div>'}
+ // det som pågår får en tunn förloppsstapel under titeln
+ return head+'<div class="evs">'+evs.map(e=>{const x=st.get(e)||{};
+  const bar=x.st==='now'?'<div class="ev-pb"><span class="pb"><i style="width:'+Math.round(x.p*100)+'%"></i></span><span class="pbt num">'+x.left+' kvar</span></div>':'';
+  const r=x.st==='next'?'<span class="cd">om '+x.inn+'</span>':'';
+  return'<div class="ev'+(x.st==='past'?' past':'')+(x.st==='now'?' now':'')+'"><span class="t">'+esc(e.time||'Heldag')+'</span><span class="grow"><span class="ev-ti">'+evTitle(e)+who(e)+'</span>'+bar+'</span>'+r+'</div>'}).join('')+'</div>'}
 // Dagraden: fyra veckor framåt att svepa i på telefonen, en vecka på väggen
-function calWidget(){const t=today(),wk=[],N=wallBoardOn()?7:28;for(let i=0;i<N;i++)wk.push(addDays(t,i));
- const sel=wk.includes(S.ovDay)?S.ovDay:t;
+function calWidget(){const t=today(),wk=[],N=wallBoardOn()?7:28;let base=t;if(!wallBoardOn()&&isDate(S.ovDay)&&(S.ovDay<t||S.ovDay>addDays(t,27))){const d=parse(S.ovDay);base=addDays(S.ovDay,-((d.getDay()+6)%7))}for(let i=0;i<N;i++)wk.push(addDays(base,i));
+ const sel=wallBoardOn()?(wk.includes(S.ovDay)?S.ovDay:t):isDate(S.ovDay)?S.ovDay:t;
  let strip='<div class="wk'+(N>7?' wk-sw':'')+'" role="group" aria-label="Kommande dagar">';
  wk.forEach((k,i)=>{const dt=parse(k),dots=calDots(k);
-  strip+='<button class="wk-d'+(i===0?' today':'')+(k===sel?' sel':'')+(i%7===0?' snap':'')+'" data-act="ovDay" data-id="'+k+'" aria-pressed="'+(k===sel)+'" aria-label="'+esc(dateLong(k))+(dots.length?', '+dots.length+' saker':'')+'"><span class="wd'+(i&&dt.getDate()===1?' m':'')+'">'+(i===0?'Idag':dt.getDate()===1?cap(MON[dt.getMonth()].slice(0,3)):cap(DAYS[dt.getDay()].slice(0,3)))+'</span><span class="n num">'+dt.getDate()+'</span><span class="dots">'+dots.map(c=>'<i class="'+c+'"></i>').join('')+'</span></button>'});
+  strip+='<button class="wk-d'+(k===t?' today':'')+(k===sel?' sel':'')+(i%7===0?' snap':'')+'" data-act="ovDay" data-id="'+k+'" aria-pressed="'+(k===sel)+'" aria-label="'+esc(dateLong(k))+(dots.length?', '+dots.length+' saker':'')+'"><span class="wd'+(i&&dt.getDate()===1?' m':'')+'">'+(k===t?'Idag':dt.getDate()===1?cap(MON[dt.getMonth()].slice(0,3)):cap(DAYS[dt.getDay()].slice(0,3)))+'</span><span class="n num">'+dt.getDate()+'</span><span class="dots">'+dots.map(c=>'<i class="'+c+'"></i>').join('')+'</span></button>'});
  strip+='</div>';
- // under ett streck: dagens att göra-uppgifter med egen rubrik
- const ts=D().tasks.filter(x=>x.due===sel&&!x.done);
- // saknade stående överföringar visas bara för den det gäller och aldrig på väggen
- const ovs=S.wall||wallBoardOn()||!people().includes(S.me)?[]:[['shared',ovOpen('shared')],[S.me,ovOpen(S.me)]].flatMap(([l,a])=>a.map(c=>({l,c})));
- const todo=(ts.length||ovs.length)&&!wallBoardOn()&&!NY?'<div class="wk-todo wk-link" data-act="taskList" role="link" tabindex="0" aria-label="Att göra, öppna Uppgifter"><div class="wk-sub">Att göra</div><div class="evs">'+
-  ovs.map(x=>'<div class="ev task ov-task" data-act="ovGo" data-id="'+esc(x.l+'|'+x.c.id)+'" role="link" tabindex="0"><span class="ovs tap saknas" data-act="ovDone" data-id="'+esc(x.c.id)+'" data-list="'+esc(x.l)+'" role="button" tabindex="0" aria-label="Bekräfta att den är inlagd">!</span><span>'+(ovState(x.c)==='andrad'?'Uppdatera':'Lägg in')+' stående överföring: '+esc(x.c.name)+'</span></div>').join('')+
-  ts.map(x=>'<div class="ev task"><span>'+esc(x.title)+evWho(x)+'</span></div>').join('')+'</div></div>':'';
- return'<section class="widget w2 calw"><button class="wh" data-act="calOpen" data-id="'+sel+'" style="width:100%">'+I.cal+(NY?'<span>Schema'+(N>7?' <span class="wk-mo">'+esc(MON[parse(t).getMonth()])+'</span>':'')+'</span><span class="r lnk">Kalender</span>':'<span>Kalender</span><span class="r">'+esc(cap(MON[parse(sel).getMonth()]))+'</span>')+'</button>'+strip+
-  // schemadelen öppnar kalendern på vald dag, att göra-delen öppnar uppgiftslistan
-  '<div class="wk-day"><div id="cal-rows" class="wk-link" data-d="'+sel+'" data-act="calOpen" data-id="'+sel+'" role="link" tabindex="0" aria-label="Schema, öppna kalendern">'+calDayRows(sel)+'</div>'+todo+'</div></section>'}
-function calView(){const t=today(),sel=S.calDay||t,m=S.calMonth||ymKey(sel),[y,mo]=m.split('-').map(Number);
+ if(!wallBoardOn())return ovCalWidget(sel,strip);
+ return'<section class="widget w2 calw"><button class="wh" data-act="calOpen" data-id="'+sel+'" style="width:100%">'+I.cal+'<span>Schema'+(N>7?' <span class="wk-mo">'+esc(MON[parse(t).getMonth()])+'</span>':'')+'</span><span class="r lnk">Kalender</span></button>'+strip+
+  // schemadelen öppnar kalendern på vald dag
+  '<div class="wk-day"><div id="cal-rows" class="wk-link" data-d="'+sel+'" data-act="calOpen" data-id="'+sel+'" role="link" tabindex="0" aria-label="Schema, öppna kalendern">'+calDayRows(sel)+'</div></div></section>'}
+// Ö2: samma datumval och schema i båda lägena. Månaden öppnas i samma ruta.
+function ovCalWidget(sel,strip){const ym=S.ovCalMonth||sel.slice(0,7),first=ym+'-01',d=parse(first),start=addDays(first,-((d.getDay()+6)%7)),count=Math.ceil((((d.getDay()+6)%7)+new Date(d.getFullYear(),d.getMonth()+1,0).getDate())/7)*7;
+ let month='<div class="ovcal-toolbar"><button type="button" class="ib" data-act="ovMonth" data-id="-1" aria-label="Föregående månad">'+I.back+'</button><b>'+esc(cap(MON[d.getMonth()]))+' '+d.getFullYear()+'</b><button type="button" class="ib" data-act="ovMonth" data-id="1" aria-label="Nästa månad">'+I.chev+'</button></div><div class="ovcal-grid">'+['M','T','O','T','F','L','S'].map(x=>'<span class="ovcal-wd" aria-hidden="true">'+x+'</span>').join('');
+ for(let i=0;i<count;i++){const k=addDays(start,i),dt=parse(k),dots=calDots(k);month+='<button type="button" class="wk-d'+(k===today()?' today':'')+(k===sel?' sel':'')+(k.slice(0,7)!==ym?' outside':'')+'" data-act="ovDay" data-id="'+k+'" aria-pressed="'+(k===sel)+'" aria-label="'+esc(dateLong(k))+(dots.length?', '+dots.length+' saker':'')+'"><span class="n num">'+dt.getDate()+'</span><span class="dots">'+dots.map(c=>'<i class="'+c+'"></i>').join('')+'</span></button>'}
+ month+='</div>';const open=!!S.ovCalOpen;
+ return'<section class="widget w2 calw ovcal'+(open?' expanded':'')+'"><button class="wh" data-act="calOpen" data-id="'+sel+'" style="width:100%">'+I.cal+'<span>Schema <span class="wk-mo">'+esc(MON[parse(sel).getMonth()])+'</span></span><span class="r lnk">Kalender</span></button><div class="ovcal-frame" id="overview-calendar"><div class="ovcal-week"'+(open?' inert aria-hidden="true"':'')+'>'+strip+'</div><div class="ovcal-month"'+(!open?' inert aria-hidden="true"':'')+'>'+month+'</div></div>'+motionGrip('calendar','overview-calendar',open)+'<div class="wk-day"><div id="cal-rows" class="wk-link" data-d="'+sel+'" data-act="calOpen" data-id="'+sel+'" role="link" tabindex="0" aria-label="Schema, öppna kalendern">'+calDayRows(sel)+'</div></div></section>'}
+function motionCalendarBegin(el){if(el._calMotion){cancelAnimationFrame(el._calMotion.raf);return el._calMotion}const frame=el.querySelector('.ovcal-frame'),week=el.querySelector('.ovcal-week'),month=el.querySelector('.ovcal-month'),open=!!S.ovCalOpen;if(open){const strip=week.querySelector('.wk'),buttons=[...strip.children],i=buttons.findIndex(b=>b.getAttribute('aria-pressed')==='true');if(i>=0)strip.scrollLeft=buttons[Math.floor(i/7)*7].offsetLeft-buttons[0].offsetLeft}el.classList.remove('expanded');const h0=motionHeight(frame);el.classList.add('expanded');const h1=motionHeight(frame),animations=[];el.classList.add('cal-drag');
+ const add=(e,k)=>{const a=e.animate(k,{duration:1000,easing:'linear',fill:'both'});a.pause();animations.push(a)};add(frame,[{height:h0+'px'},{height:h1+'px'}]);add(week,[{opacity:1},{opacity:0}]);add(month,[{opacity:0,transform:'translateY(-20px)'},{opacity:1,transform:'none'}]);
+ const m=el._calMotion={p:open?1:0,range:Math.max(1,h1-h0),raf:0,set(p){this.p=Math.max(0,Math.min(1,p));animations.forEach(a=>a.currentTime=this.p*1000);week.inert=this.p>=.5;month.inert=this.p<.5},finish(op){cancelAnimationFrame(this.raf);animations.forEach(a=>a.cancel());el.classList.toggle('expanded',op);week.inert=op;month.inert=!op;week.setAttribute('aria-hidden',String(op));month.setAttribute('aria-hidden',String(!op));delete el._calMotion;el.classList.remove('cal-drag');motionGripState(el.querySelector('.motion-grip'),op)}};m.set(m.p);return m}
+function motionCalendar(open,instant){const el=document.querySelector('.ovcal');if(!el)return;const m=motionCalendarBegin(el),from=m.p,to=open?1:0;S.ovCalOpen=open;if(instant||calm()||!motionOn()){m.finish(open);return}const at=performance.now(),duration=320;const tick=now=>{const t=Math.min(1,(now-at)/duration),e=t*t*(3-2*t);m.set(from+(to-from)*e);if(t<1&&el.isConnected)m.raf=requestAnimationFrame(tick);else m.finish(open)};m.raf=requestAnimationFrame(tick)}
+/* Kalendern under Uppgifter: Dag, Vecka och Månad (UI 2.0). Dag och vecka visar händelser på en tidsaxel
+   med personens färg, och kvällens middag med när man behöver börja laga (från receptets tidsplan). */
+S.calVy=['dag','vecka','manad'].includes(lsGet('calVy'))?lsGet('calVy'):'manad';
+const evMin=v=>{const m=/^(\d{1,2})[.:](\d{2})/.exec(v||'');return m?Number(m[1])*60+Number(m[2]):null};
+const evSlut=v=>{const m=/[–-]\s*(\d{1,2})[.:](\d{2})/.exec(v||'');return m?Number(m[1])*60+Number(m[2]):null};
+const calBred=()=>S.wall||window.innerWidth>=900;
+// Allt som har en tid den dagen: händelser, laga och middag. Heldag och uppgifter läggs separat
+function calItems(k){const d=D(),out=[];
+ d.events.filter(e=>e.date===k&&!isBdEv(e)).forEach(e=>{const a=evMin(e.time);if(a==null)return;const w=evPerson(e);out.push({a,b:Math.max(a+25,evSlut(e.time)||a+60),t:e.title,s:evWho(e)?personLabel(w)||'':'',c:w&&people().includes(w)?pcls(w):'o',act:'evEdit',id:d.events.indexOf(e)})});
+ const m=d.menu.find(x=>x.date===k&&x.who!=='Borta'&&x.title&&!/^storkok/i.test(x.title)),md=middag();
+ if(m){const r=m.recipe&&recipeById(m.recipe),tot=r?tidsplan(kvSteps(r,protNu(r))).tot:0;
+  if(tot)out.push({a:md-tot,b:md,t:'Laga',s:'börja '+tpKl(md-tot),c:'m lg',act:'recipe',id:m.recipe});
+  out.push({a:md,b:md+45,t:/^macka$/i.test(m.title)?'Macka':m.title,s:'Middag '+tpKl(md),c:'m',act:r?'recipe':'',id:m.recipe||''})}
+ out.sort((x,y)=>x.a-y.a||y.b-x.b);
+ // bredvid varandra när tiderna krockar
+ let grp=[],end=-1;const fl=()=>{const n=Math.max(...grp.map(x=>x.l))+1;grp.forEach(x=>x.n=n);grp=[]};
+ out.forEach(x=>{if(x.a>=end&&grp.length)fl();const used=new Set(grp.filter(y=>y.b>x.a).map(y=>y.l));let l=0;while(used.has(l))l++;x.l=l;grp.push(x);end=Math.max(end,x.b)});if(grp.length)fl();
+ return out}
+function calHeldag(k){const d=D();return d.events.filter(e=>e.date===k&&(isBdEv(e)||evMin(e.time)==null)).map(e=>'<button type="button" class="cv-hd'+(isBdEv(e)?' bd':'')+'"'+(isBdEv(e)?'':' data-act="evEdit" data-id="'+d.events.indexOf(e)+'"'+holdAt('evMenu'))+'>'+(isBdEv(e)?I.cake:'')+esc(e.title)+'</button>').join('')+
+ d.tasks.filter(x=>x.due===k&&!x.done).map(x=>'<button type="button" class="cv-hd task" data-act="taskEdit" data-id="'+esc(x.id)+'"'+holdAt('taskMenu')+'><span class="cv-ck" aria-hidden="true"></span>'+esc(x.title)+'</button>').join('')}
+const tidInp=m=>tpKl(m).replace('.',':');
+function evNyOpen(k,a,b,t){a=Math.max(0,Math.min(a,23*60));b=Math.max(a+15,Math.min(b,23*60+55));closeSheets();S.taskAdd=false;S.evNew={date:k,a,b};S.sheet='evNew';doRender();const x=document.getElementById('en-title');if(x){if(t)x.value=t;setTimeout(()=>x.focus(),30)}}
+/* Dag- och veckovyn: tryck på en tom tid för en ny händelse där, eller håll in och dra för att välja start och slut,
+   som i Apple Kalender. Blocket hakar i kvartar. Kolumnerna bär datum, första minuten och pixlar per timme (calNyAttr) */
+(()=>{let st=null,spar=0,rull=0;const Q=15;addEventListener('scroll',()=>{rull=Date.now()},{passive:true,capture:true});
+ const min=(c,y)=>Number(c.dataset.lo)+(y-c.getBoundingClientRect().top)/Number(c.dataset.px)*60;
+ const kv=m=>Math.floor(m/Q)*Q,span=(a,c)=>c>=a?[a,Math.max(a+Q,Math.ceil(c/Q)*Q)]:[kv(c),a+Q];
+ const ghost=(a,b)=>{let g=st.c.querySelector('.cv-ny');const px=Number(st.c.dataset.px),lo=Number(st.c.dataset.lo);
+  if(!g){g=document.createElement('div');g.className='cv-ev cv-ny';st.c.appendChild(g)}
+  g.style.cssText='top:'+((a-lo)/60*px)+'px;height:'+Math.max(18,(b-a)/60*px-3)+'px;left:2px;right:2px';g.innerHTML='<b>Ny händelse</b><span>'+tpKl(a)+'–'+tpKl(b)+'</span>';st.a=a;st.b=b};
+ const stop=()=>{if(st){clearTimeout(st.t);document.documentElement.classList.remove('cv-drar')}st=null};
+ document.addEventListener('pointerdown',e=>{if(e.button>0||S.view!=='kalender'||S.wall||S.sheet)return;const g=e.target.closest&&e.target.closest('.cv-grid,.cv-wc');if(!g||e.target.closest('.cv-ev,button'))return;
+  const c=g.matches('.cv-wc')?g:g.querySelector('.cv-col');if(!c||!c.dataset.ny)return;stop();if(Date.now()-rull<250&&e.pointerType!=='mouse')return;
+  st={c,id:e.pointerId,x:e.clientX,y:e.clientY,m0:kv(min(c,e.clientY)),hold:false,drag:false};
+  st.t=setTimeout(()=>{if(!st)return;st.hold=true;document.documentElement.classList.add('cv-drar');ghost(st.m0,st.m0+60);if(navigator.vibrate)try{navigator.vibrate(8)}catch(x){}},380)});
+ addEventListener('pointermove',e=>{if(!st||e.pointerId!==st.id)return;
+  if(!st.hold){if(Math.hypot(e.clientX-st.x,e.clientY-st.y)>8)stop();return}
+  if(!st.drag&&Math.abs(e.clientY-st.y)<6)return;st.drag=true;const[a,b]=span(st.m0,min(st.c,e.clientY));ghost(Math.max(0,a),Math.min(b,24*60-5))});
+ addEventListener('pointerup',e=>{if(!st||e.pointerId!==st.id)return;const s=st;stop();if(!s.c.isConnected)return;
+  // Klicket som följer får inte träffa bladets bakgrund (som stänger bladet)
+  const k=s.c.dataset.ny,m=Math.floor(min(s.c,s.y)/30)*30,[a,b]=s.hold?[s.a,s.b]:[m,m+60];spar=Date.now()+600;setTimeout(()=>evNyOpen(k,a,b))});
+ document.addEventListener('click',e=>{if(Date.now()<spar&&e.target.closest&&e.target.closest('.sheet')&&!e.target.closest('.sheet-panel')){e.stopPropagation();e.preventDefault()}},true);
+ addEventListener('pointercancel',e=>{if(st&&e.pointerId===st.id){if(st.hold)st.c.querySelector('.cv-ny')?.remove();stop()}});
+ // Medan blocket dras ska sidan inte scrolla
+ document.addEventListener('touchmove',e=>{if(st&&st.hold)e.preventDefault()},{passive:false});
+ document.addEventListener('contextmenu',e=>{if(st||e.target.closest&&e.target.closest('.cv-grid,.cv-wc'))e.preventDefault()})})();
+const calNyAttr=(k,lo,px)=>S.wall?'':' data-ny="'+k+'" data-lo="'+lo+'" data-px="'+px+'"';
+const calBlock=(x,px,lo)=>'<button type="button" class="cv-ev '+x.c+'"'+(x.act?' data-act="'+x.act+'" data-id="'+esc(x.id)+'"'+(x.act==='evEdit'?holdAt('evMenu'):''):'')+' style="top:'+((x.a-lo)/60*px)+'px;height:'+Math.max(20,(x.b-x.a)/60*px-3)+'px;left:calc('+(x.l/x.n*100)+'% + 2px);width:calc('+(100/x.n)+'% - 4px)"><b>'+esc(x.t)+'</b>'+(x.s&&(x.b-x.a)>=40?'<span>'+esc(x.s)+'</span>':'')+'</button>';
+function calSpann(list){let lo=7*60,hi=22*60;list.forEach(x=>{lo=Math.min(lo,x.a);hi=Math.max(hi,x.b)});return[Math.floor(lo/60)*60,Math.ceil(hi/60)*60]}
+function calNav(lab,d){const t=today();return'<div class="cal-head"><button class="ib" data-act="calStep" data-d="-1" aria-label="Föregående">'+I.back+'</button><div class="hl">'+lab+'</div><button class="ib flip" data-act="calStep" data-d="1" aria-label="Nästa">'+I.back+'</button>'+(d!==t?'<button class="tb" data-act="calToday">Idag</button>':'')+'</div>'}
+const calSeg=()=>'<div class="cv-seg">'+segc('Kalendervy','calVy',[['dag','Dag'],['vecka','Vecka'],['manad','Månad']],S.calVy)+'</div>';
+const veckoStart=k=>{const d=parse(k);return addDays(k,-((d.getDay()+6)%7))};
+function calDag(){const t=today(),sel=S.calDay||t,ws=veckoStart(sel),px=calBred()?64:52,L=calItems(sel),[lo,hi]=calSpann(L),n=new Date(),nm=n.getHours()*60+n.getMinutes();
+ let h=calNav(esc(cap(dayHead(sel))),sel)+'<div class="group cv-strip">';
+ for(let i=0;i<7;i++){const k=addDays(ws,i),dt=parse(k),dots=calDots(k);h+='<button type="button" class="cv-d'+(k===t?' today':'')+(k===sel?' sel':'')+'" data-act="calDay" data-id="'+k+'" aria-label="'+esc(dateLong(k))+'"><span class="w">'+cap(DAYS3[dt.getDay()])+'</span><span class="n num">'+dt.getDate()+'</span><span class="dots">'+dots.map(c=>'<i class="'+c+'"></i>').join('')+'</span></button>'}
+ h+='</div>';const hd=calHeldag(sel);if(hd)h+='<div class="cv-hds">'+hd+'</div>';
+ let g='';for(let m=lo;m<=hi;m+=60)g+='<div class="cv-hr" style="top:'+((m-lo)/60*px)+'px"><span class="num">'+pad(m/60)+'</span></div>';
+ g+='<div class="cv-col"'+calNyAttr(sel,lo,px)+'>'+L.map(x=>calBlock(x,px,lo)).join('')+'</div>';
+ if(sel===t&&nm>=lo&&nm<=hi)g+='<i class="cv-now" style="top:'+((nm-lo)/60*px)+'px"></i>';
+ h+='<div class="group cv-grid"'+RF('U8')+' style="height:'+((hi-lo)/60*px+16)+'px">'+g+'</div>';
+ if(!L.length&&!hd)h+='<div class="foot">Inget inplanerat den här dagen.</div>';
+ return h+'<div class="foot">Händelserna kommer från Google Kalender. Laga och middag kommer från veckosedeln och receptets tidsplan. Tryck på något för att ändra eller öppna det.'+(S.wall?'':' Tryck på en tom tid för en ny händelse, eller håll in och dra för att välja start och slut.')+'</div>'}
+function calVecka(){const t=today(),sel=S.calDay||t,ws=veckoStart(sel),we=addDays(ws,6),a=parse(ws),b=parse(we),d=D();
+ let h=calNav('Vecka '+isoWeek(a)+' <span class="cv-sub">'+a.getDate()+(a.getMonth()===b.getMonth()?'':' '+MON[a.getMonth()].slice(0,3))+'–'+b.getDate()+' '+MON[b.getMonth()].slice(0,3)+'</span>',ws===veckoStart(t)?t:sel);
+ const dagar=[];for(let i=0;i<7;i++)dagar.push(addDays(ws,i));
+ if(calBred()){const all=dagar.map(calItems),[lo,hi]=calSpann(all.flat()),px=56,n=new Date(),nm=n.getHours()*60+n.getMinutes();
+  h+='<div class="group cv-wk"'+RF('U9')+'><div class="cv-wh"><span></span>'+dagar.map(k=>{const dt=parse(k);return'<button type="button" class="cv-wd'+(k===t?' today':'')+'" data-motion-date="'+k+'" data-act="calDayVy" data-id="'+k+'">'+cap(DAYS3[dt.getDay()])+'<b class="num">'+dt.getDate()+'</b></button>'}).join('')+'</div>';
+  const hds=dagar.map(calHeldag);if(hds.some(Boolean))h+='<div class="cv-wh cv-whd"><span></span>'+hds.map(x=>'<div>'+x+'</div>').join('')+'</div>';
+  let tm='';for(let m=lo;m<=hi;m+=60)tm+='<span class="num" style="top:'+((m-lo)/60*px)+'px">'+pad(m/60)+'</span>';
+  h+='<div class="cv-wb" style="height:'+((hi-lo)/60*px+12)+'px"><div class="cv-tm">'+tm+'</div>'+dagar.map((k,i)=>{let hr='';for(let m=lo;m<=hi;m+=60)hr+='<i class="cv-l" style="top:'+((m-lo)/60*px)+'px"></i>';
+   return'<div class="cv-wc'+(k===t?' today':'')+'"'+calNyAttr(k,lo,px)+'>'+hr+all[i].map(x=>calBlock(x,px,lo)).join('')+(k===t&&nm>=lo&&nm<=hi?'<i class="cv-now" style="top:'+((nm-lo)/60*px)+'px"></i>':'')+'</div>'}).join('')+'</div></div>';
+  return h}
+ // telefon: veckan som en lista med dagarna som band
+ let body='';dagar.forEach(k=>{const L=calItems(k).filter(x=>x.t!=='Laga'),hd=d.events.filter(e=>e.date===k&&(isBdEv(e)||evMin(e.time)==null)),ts=d.tasks.filter(x=>x.due===k&&!x.done);
+  body+='<button type="button" class="gh cv-band'+(k===t?' today':'')+'" data-motion-date="'+k+'" data-act="calDayVy" data-id="'+k+'"><span>'+esc(cap(dayHead(k)))+(k===t?' · idag':'')+'</span>'+chevron+'</button>';
+  if(!L.length&&!hd.length&&!ts.length){body+='<div class="cell cv-tom">Inget inplanerat</div>';return}
+  body+=hd.map(e=>'<div class="cell cv-ag"'+(isBdEv(e)?'':holdAt('evMenu',d.events.indexOf(e)))+'><span class="t">Heldag</span><span class="grow"><span class="title">'+(isBdEv(e)?I.cake:'')+esc(e.title)+'</span></span></div>').join('');
+  body+=L.map(x=>{const lg=calItems(k).find(y=>y.t==='Laga');return'<div class="cell cv-ag"'+(x.act?' data-act="'+x.act+'" data-id="'+esc(x.id)+'" role="button" tabindex="0"'+(x.act==='evEdit'?holdAt('evMenu'):''):'')+'><span class="t num">'+tpKl(x.a)+'</span><span class="cv-dot '+x.c+'" aria-hidden="true"></span><span class="grow"><span class="title">'+esc(x.t)+'</span>'+(x.c==='m'&&lg?'<span class="meta">Börja laga '+tpKl(lg.a)+'</span>':x.s?'<span class="meta">'+esc(x.s)+'</span>':'')+'</span></div>'}).join('');
+  body+=ts.map(x=>'<div class="cell cv-ag" data-act="taskEdit" data-id="'+esc(x.id)+'"'+holdAt('taskMenu')+' role="button" tabindex="0"><span class="t">Att göra</span><span class="cv-ck" aria-hidden="true"></span><span class="grow"><span class="title">'+esc(x.title)+'</span></span></div>').join('')});
+ return h+'<div class="g-one">'+rgroup('U10',body)+'</div><div class="foot">Tryck på en dag för att se den timme för timme.</div>'}
+function calView(){const html=calViewBase();if(!motionOn())return html;const menu=calSeg();return menu+'<div class="motion-calendar">'+html.slice(menu.length)+'</div>'}
+function calViewBase(){const t=today(),sel=S.calDay||t,m=S.calMonth||ymKey(sel),[y,mo]=m.split('-').map(Number);
+ if(S.calVy==='dag')return calSeg()+calDag();if(S.calVy==='vecka')return calSeg()+calVecka();
  const first=new Date(y,mo-1,1),start=new Date(first);start.setDate(1-((first.getDay()+6)%7));
- let h='<div class="cal-head"><button class="ib" data-act="calMonth" data-d="-1" aria-label="Förra månaden">'+I.back+'</button><div class="hl">'+esc(cap(MON[mo-1]))+(y!==new Date().getFullYear()?' '+y:'')+'</div>'+
+ let h=calSeg()+'<div class="cal-head"><button class="ib" data-act="calMonth" data-d="-1" aria-label="Förra månaden">'+I.back+'</button><div class="hl">'+esc(cap(MON[mo-1]))+(y!==new Date().getFullYear()?' '+y:'')+'</div>'+
   '<button class="ib flip" data-act="calMonth" data-d="1" aria-label="Nästa månad">'+I.back+'</button>'+(sel!==t||m!==ymKey(t)?'<button class="tb" data-act="calToday">Idag</button>':'')+'</div>';
- h+='<div class="group cal"><div class="cal-wd" aria-hidden="true">'+['M','T','O','T','F','L','S'].map(x=>'<span>'+x+'</span>').join('')+'</div><div class="cal-grid" role="grid">';
+ h+='<div class="group cal"'+RF('U4')+'><div class="cal-wd" aria-hidden="true">'+['M','T','O','T','F','L','S'].map(x=>'<span>'+x+'</span>').join('')+'</div><div class="cal-grid" role="grid">';
  for(let i=0;i<42;i++){const d=new Date(start);d.setDate(start.getDate()+i);const k=ymd(d),inM=d.getMonth()===mo-1;if(i===35&&!inM)break;
   const dots=calDots(k),wd=(d.getDay()+6)%7;
   h+='<button class="cal-d'+(inM?'':' out')+(k===t?' today':'')+(k===sel?' sel':'')+(wd>4?' we':'')+'" data-act="calDay" data-id="'+k+'" aria-label="'+esc(dateLong(k))+(dots.length?', '+dots.length+' saker':'')+'"'+(k===sel?' aria-current="date"':'')+'>'+
@@ -2109,15 +2540,15 @@ function calView(){const t=today(),sel=S.calDay||t,m=S.calMonth||ymKey(sel),[y,m
  // dagens innehåll: händelser i tidsordning och uppgifter
  const d=D(),evs=d.events.filter(e=>e.date===sel).sort((a,b)=>String(a.time||'').localeCompare(String(b.time||''))),late=sel===t?d.tasks.filter(x=>!x.done&&isDate(x.due)&&x.due<t):[],
   ts=d.tasks.filter(x=>x.due===sel),meals=d.menu.filter(x=>x.date===sel);
- h+=sh(esc(cap(dayHead(sel)))+(sel===t?' <span class="acc">· Idag</span>':''),'<button class="linkbtn" data-act="calAddTask" data-id="'+sel+'">'+'Ny uppgift</button>');
- const evRow=e=>{const w=evPerson(e);return'<div class="cell cal-ev edit" data-act="evEdit" data-id="'+d.events.indexOf(e)+'" role="button" tabindex="0"><span class="bar '+(w&&people().includes(w)?pcls(w):'o')+'"></span><span class="t num">'+esc(e.time||'Heldag')+'</span><span class="grow"><span class="title">'+evTitle(e)+'</span>'+(evWho(e)?'<span class="meta">'+evWho(e)+'</span>':'')+'</span></div>'};
+ h+=sh(esc(cap(dayHead(sel)))+(sel===t?' <span class="acc">· Idag</span>':''),'<button class="linkbtn" data-act="evNew" data-id="'+sel+'">Lägg till</button>');
+ const evRow=e=>{const w=evPerson(e);return'<div class="cell cal-ev edit" data-act="evEdit" data-id="'+d.events.indexOf(e)+'"'+holdAt('evMenu')+' role="button" tabindex="0"><span class="bar '+(w&&people().includes(w)?pcls(w):'o')+'"></span><span class="t num">'+esc(e.time||'Heldag')+'</span><span class="grow"><span class="title">'+evTitle(e)+'</span>'+(evWho(e)?'<span class="meta">'+evWho(e)+'</span>':'')+'</span></div>'};
  const body=evs.map(evRow).join('')+late.concat(ts).map(taskRow).join('');
- h+=group(body||emptyCell('Inget inplanerat. Tryck på Ny uppgift för att lägga till något.'));
- if(meals.length)h+=sh('Mat')+group(meals.map(m=>mealCell(m)).join(''));
+ h+=rgroup('U5',body||emptyCell('Inget inplanerat. Tryck på Lägg till för en händelse eller uppgift.'));
+ if(meals.length)h+=sh('Mat')+rgroup('U6',meals.map(m=>mealCell(m)).join(''));
  // de närmaste dagarna i listform
  const next=[];for(let i=1;i<=6;i++){const k=addDays(sel,i),n=d.events.filter(e=>e.date===k).length+d.tasks.filter(x=>x.due===k&&!x.done).length;if(n)next.push([k,n])}
- if(next.length)h+=sh('Kommande dagar')+group(next.map(([k,n])=>'<button class="cell link" data-act="calDay" data-id="'+k+'"><span class="grow">'+esc(cap(dayHead(k)))+'</span><span class="val num">'+n+(n===1?' sak':' saker')+'</span>'+chevron+'</button>').join(''));
- h+='<div class="foot">Händelserna kommer från Google Kalender och uppdateras var 15:e minut. Tryck på en händelse eller uppgift för att ändra eller ta bort den.</div>';
+ if(next.length)h+=sh('Kommande dagar')+rgroup('U7',next.map(([k,n])=>'<button class="cell link" data-act="calDay" data-id="'+k+'"><span class="grow">'+esc(cap(dayHead(k)))+'</span><span class="val num">'+n+(n===1?' sak':' saker')+'</span>'+chevron+'</button>').join(''));
+ h+='<div class="foot">Händelserna kommer från Google Kalender och uppdateras var 15:e minut. Tryck på en händelse eller uppgift för att ändra den, håll in för fler val.</div>';
  return h}
 /* Återkommande uppgifter: kolumnen Upprepa i Uppgifter. När en sådan bockas av flyttas datumet fram
    till nästa gång (samma uträkning som nextDue_ i Kod.gs) och uppgiften ligger kvar. */
@@ -2129,56 +2560,95 @@ function nextDue(due,rep,t){let d=isDate(due)?due:t;const anchor=Number(d.slice(
   if(n)d=addDays(d,n);
   else{const[y0,m0]=d.split('-').map(Number),y=rep==='ar'?y0+1:y0+(m0===12?1:0),m=rep==='ar'?m0:m0%12+1,last=new Date(y,m,0).getDate();d=y+'-'+pad(m)+'-'+pad(Math.min(anchor,last))}}
  return d}
+// Håll in en rad i Uppgifter, Kalender eller Städ för fler val (blad som Rätten i veckosedeln)
+const holdAt=(a,id)=>' data-hold-lift="'+a+'"'+(id!=null?' data-id="'+esc(String(id))+'"':'');
+const taskDelQ=rp=>rp?'<div class="cell"><span class="grow">Uppgiften upprepas '+esc(rp.toLowerCase())+'. Vad vill du ta bort?</span></div><button type="button" class="cell link center red" data-act="taskDel" data-id="once">Bara den här gången</button><button type="button" class="cell link center red" data-act="taskDel" data-id="all">Alla gånger</button><button type="button" class="cell link center" data-act="confirmNo">Avbryt</button>':
+ '<div class="cell"><span class="grow">Ta bort uppgiften?</span><button type="button" class="tb red strong" data-act="taskDel" data-id="all">Ja, ta bort</button><button type="button" class="tb" data-act="confirmNo">Avbryt</button></div>';
+const evDelQ=e=>{const rec=String(e.flags||'').includes('r'),cal=e.source==='kalender';return rec?'<div class="cell"><span class="grow">Händelsen upprepas. Vad vill du ta bort?</span></div><button type="button" class="cell link center red" data-act="evDel" data-id="once">Bara den här gången</button><button type="button" class="cell link center red" data-act="evDel" data-id="all">Alla gånger</button><button type="button" class="cell link center" data-act="confirmNo">Avbryt</button>':
+ '<div class="cell"><span class="grow">Ta bort händelsen'+(cal?' ur Google Kalender':'')+'?</span><button type="button" class="tb red strong" data-act="evDel" data-id="all">Ja, ta bort</button><button type="button" class="tb" data-act="confirmNo">Avbryt</button></div>'};
 function taskRow(x){const t=today(),late=isDate(x.due)&&x.due<t&&!x.done;
  const meta=(x.due?'<span'+(late?' class="red"':'')+'>'+esc(x.due===t?'Idag':dateShort(x.due))+'</span>':'')+(repName(x.repeat)?'<span class="chip">↻ '+esc(repName(x.repeat))+'</span>':'')+(x.who?personChip(x.who):'')+(x.note?'<span>'+esc(x.note)+'</span>':'');
- return'<div class="cell ck'+(x.done?' done':'')+'"><input type="checkbox" class="check" data-act="taskToggle" data-id="'+esc(x.id)+'" aria-label="'+esc(x.title)+'"'+(x.done?' checked':'')+'><div class="grow'+(S.view==='uppgifter'?' edit" data-act="taskEdit" data-id="'+esc(x.id)+'" role="button" tabindex="0" aria-label="Ändra '+esc(x.title)+'"':'"')+'><div class="title">'+esc(x.title)+'</div>'+(meta?'<div class="meta">'+meta+'</div>':'')+'</div></div>'}
+ const sw=U5&&S.view==='uppgifter'&&!wallBoardOn();return(sw?'<div class="dr-wrap cs">'+swDel('taskSwDel',x.id,x.title):'')+'<div class="cell '+(sw?'dr-slide ':'')+'ck'+(x.done?' done':'')+'"'+(S.view==='uppgifter'?holdAt('taskMenu',x.id):'')+'><input type="checkbox" class="check" data-act="taskToggle" data-id="'+esc(x.id)+'" aria-label="'+esc(x.title)+'"'+(x.done?' checked':'')+'><div class="grow'+(S.view==='uppgifter'?' edit" data-act="taskEdit" data-id="'+esc(x.id)+'" role="button" tabindex="0" aria-label="Ändra '+esc(x.title)+'"':'"')+'><div class="title">'+esc(x.title)+'</div>'+(meta?'<div class="meta">'+meta+'</div>':'')+'</div></div>'+(sw?'</div>':'')}
 
 /* Reglage för dagens ork: tre fasta lägen */
 const ORK=[{min:10,name:'Lite ork'},{min:20,name:'Normal ork'},{min:40,name:'Mycket ork'}];
 const orkIndex=B=>{let best=0;ORK.forEach((o,i)=>{if(Math.abs(o.min-B)<Math.abs(ORK[best].min-B))best=i});return best};
 function orkSlider(B){const i=orkIndex(B),o=ORK[i];
- // Nya designen: tre knappar i ett segment i stället för reglaget
- if(NY)return sh('Hur mycket ork har ni idag?','<span class="num">'+o.min+' min</span>')+'<div class="ork-seg">'+segc('Dagens ork','orkPick',ORK.map((x,k)=>[String(k),x.name.replace(' ork','')]),String(i))+'</div><div class="foot">Gäller bara idag. I morgon börjar det om på '+tomorrowDefault()+' min.</div>';
- return sh('Dagens ork')+'<div class="group ork"><div class="cell ork-head"><span id="ork-now">'+o.name+'</span><span class="val" id="ork-min">'+o.min+' min</span></div><div class="ork-body">'+
- '<div class="ork-track" style="--pos:'+(i*50)+'%"><input type="range" id="ork" min="0" max="2" step="1" value="'+i+'" data-change="ork" aria-label="Tid för städning idag" aria-valuetext="'+o.name+', '+o.min+' minuter"></div>'+
- '<div class="ork-labels" aria-hidden="true">'+ORK.map((x,k)=>'<button type="button" tabindex="-1" data-act="orkPick" data-id="'+k+'" class="'+(k===i?'on':'')+'"><b>'+x.name+'</b><span>'+x.min+' min</span></button>').join('')+'</div></div></div>'+
- '<div class="foot">Gäller bara idag. I morgon börjar det om på '+tomorrowDefault()+' min.</div>'}
+ // tre knappar i ett segment
+ return sh('Hur mycket ork har ni idag?','<span class="num">'+o.min+' min</span>')+'<div class="ork-seg"'+RF('S2')+'>'+segc('Dagens ork','orkPick',ORK.map((x,k)=>[String(k),x.name.replace(' ork','')]),String(i))+'</div><div class="foot">Gäller bara idag. I morgon börjar det om på '+tomorrowDefault()+' min.</div>'}
 function tomorrowDefault(){const wd=parse(addDays(today(),1)).getDay(),st=settings();return(wd===0||wd===6)?Number(st.stadtid_helg||40):Number(st.stadtid_vardag||20)}
-function orkPreview(el){const i=Number(el.value),o=ORK[i];el.parentNode.style.setProperty('--pos',(i*50)+'%');el.setAttribute('aria-valuetext',o.name+', '+o.min+' minuter');
- const n=document.getElementById('ork-now');if(n)n.textContent=o.name;
- const m=document.getElementById('ork-min');if(m)m.textContent=o.min+' min';
- document.querySelectorAll('.ork-labels button').forEach((b,k)=>b.classList.toggle('on',k===i))}
 const menuSel=(attrs,opts)=>'<span class="menu"><select '+attrs+'>'+opts+'</select></span>';
+const attSeg=v=>segc('Visa','taskTab',[['lista','Uppgifter'],['stad','Städ']],v);
+V.kalender=function(){
+ return head('Kalender',{tools:'<button class="ib plus" data-act="evNew" aria-label="Ny händelse">'+I.plus+'</button>'})+calView()};
 V.stad=function(){
- const cp=cleanPlan(),all=D().clean;
- let h=head('Städ',{sub:'Lite varje dag, så slipper ni storstäda'});
- h+='<form class="add-row" data-form="cleanQuick" data-room=""><input class="field" name="title" placeholder="Ny syssla" aria-label="Ny syssla" autocomplete="off" enterkeyhint="done"><button type="button" class="add-go" data-act="quickGo" data-alt="cleanFocus" aria-label="Lägg till">'+I.plus+'</button></form>';
- if(!all.length)return h+'<div style="height:22px"></div>'+group(emptyCell('Städschemat är tomt. Lägg till sysslor under rummen nedan.'))+cleanAll(all,true);
+ const cp=cleanPlan(),all=D().clean,vy=all.length?stadVy():'lista',nu=vy==='lista'?null:stadIdag(cp);
+ let h=head('Att göra',{sub:vy==='ring'?cap(dateLong(today())):vy==='rutnat'?nu.minLeft+' min kvar idag':'Lite varje dag, så slipper ni storstäda'});
+ h+=attSeg('stad');
+ h+='<form class="add-row"'+RF('S1')+' data-form="cleanQuick" data-room=""><input class="field" name="title" placeholder="Ny syssla" aria-label="Ny syssla" autocomplete="off" enterkeyhint="done"><button type="button" class="add-go" data-act="quickGo" data-alt="cleanFocus" aria-label="Lägg till">'+I.plus+'</button></form>';
+ if(!all.length)return h+'<div style="height:22px"></div>'+rgroup('S11',emptyCell('Städschemat är tomt. Lägg till sysslor under rummen nedan.'))+cleanAll(all,true);
+ if(vy!=='lista')return h+(vy==='rutnat'?stadRutnat(cp,all,nu):stadRing(cp,all,nu));
  h+=orkSlider(cp.B);
  h+='<div class="split"><div class="col">';
  const rLeft=cp.routines.filter(t=>!doneToday(t)).length;
- h+=sh('Dagliga rutiner',(cp.routines.length-rLeft)+' av '+cp.routines.length)+group(cp.routines.map(x=>cleanRow(x)).join(''));
+ h+=sh('Dagliga rutiner',(cp.routines.length-rLeft)+' av '+cp.routines.length)+rgroup('S3',cp.routines.map(x=>cleanRow(x)).join(''));
  h+=sh('Dagens pass · '+cp.todo.reduce((s,t)=>s+t.min,0)+' min');
- h+=group((cp.todo.length||cp.doneRot.length)?[...cp.todo,...cp.doneRot].map(t=>cleanRow(t,true)).join(''):emptyCell('Inget mer behöver göras idag.'));
- if(cp.later.length)h+='<details data-k="later"'+(S.open.later?' open':'')+'><summary class="sh"><span>Har ni mer tid? ('+cp.later.length+')</span></summary>'+group(cp.later.map(t=>cleanRow(t,false,true)).join(''))+'</details>';
- else if(cp.soon.length)h+='<details data-k="soon"'+(S.open.soon?' open':'')+'><summary class="sh"><span>Vill ni ligga före?</span></summary>'+group(cp.soon.map(t=>cleanRow(t,false,true)).join(''))+'</details>';
+ h+=rgroup('S4',(cp.todo.length||cp.doneRot.length)?[...cp.todo,...cp.doneRot].map(t=>cleanRow(t,true)).join(''):emptyCell('Inget mer behöver göras idag.'));
+ if(cp.later.length)h+='<details data-k="later"'+(S.open.later?' open':'')+'><summary class="sh"><span>Har ni mer tid? ('+cp.later.length+')</span></summary>'+rgroup('S5',cp.later.map(t=>cleanRow(t,false,true)).join(''))+'</details>';
+ else if(cp.soon.length)h+='<details data-k="soon"'+(S.open.soon?' open':'')+'><summary class="sh"><span>Vill ni ligga före?</span></summary>'+rgroup('S6',cp.soon.map(t=>cleanRow(t,false,true)).join(''))+'</details>';
  h+='</div><div class="col">';
- h+=sh('Hemmet just nu')+group(roomHealth().map(healthRow).join(''));
+ h+=sh('Hemmet just nu')+rgroup('S7',roomHealth().map(healthRow).join(''));
  const bigDue=cp.big.filter(t=>ratio(t)>=.85),plannedLater=all.filter(t=>t.plannedFor&&t.plannedFor>today());
- h+=sh('Storstäd som närmar sig')+group(bigDue.length?bigDue.map(bigRow).join(''):emptyCell('Inget storstäd behövs just nu.'))+'<div class="foot">Planera in dem en lördag så kommer de med i det dagens pass.</div>';
- if(plannedLater.length)h+=sh('Inplanerat')+group(plannedLater.map(t=>'<div class="cell"><div class="grow"><div class="title">'+esc(t.title)+'</div><div class="meta">'+esc(dateShort(t.plannedFor))+' · '+t.min+' min</div></div><button class="pill" data-act="unplan" data-id="'+esc(t.id)+'">Ångra</button></div>').join(''));
+ h+=sh('Storstäd som närmar sig')+rgroup('S8',bigDue.length?bigDue.map(bigRow).join(''):emptyCell('Inget storstäd behövs just nu.'))+'<div class="foot">Planera in dem en lördag så kommer de med i det dagens pass.</div>';
+ if(plannedLater.length)h+=sh('Inplanerat')+rgroup('S9',plannedLater.map(t=>'<div class="cell"><div class="grow"><div class="title">'+esc(t.title)+'</div><div class="meta">'+esc(dateShort(t.plannedFor))+' · '+t.min+' min</div></div><button class="pill" data-act="unplan" data-id="'+esc(t.id)+'">Ångra</button></div>').join(''));
  h+=cleanAll(all);
  h+=sh('Så fungerar schemat')+'<div class="foot">Varje syssla har ett intervall. Appen väljer de mest försenade sysslorna och fyller dagens pass upp till den tid ni har. Hinner ni inte kommer de först i kön i morgon.</div>';
  return h+'</div></div>'};
+// Städvyn kan visas som Lista (standard), Rutnät eller Ring. Val per enhet (ht.stadVy)
+function stadVy(){const v=lsGet('stadVy');return v==='rutnat'||v==='ring'?v:'lista'}
+// Dagens sysslor i en lista: dagliga rutiner och dagens pass, klara sist
+function stadIdag(cp){const all=[...cp.routines,...cp.todo,...cp.doneRot],left=all.filter(t=>!doneToday(t)),done=all.filter(doneToday);
+ return{all,left,done,list:[...left,...done],minAll:all.reduce((s,t)=>s+t.min,0),minLeft:left.reduce((s,t)=>s+t.min,0)}}
+const sxSv=p=>'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+p+'</svg>';
+const RUM_IKON={'Kök':sxSv('<path d="M5 11h14v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2z"/><path d="M3 11h18M9 7c0-1 1-1 1-2M14 7c0-1 1-1 1-2"/>'),'Vardagsrum':sxSv('<path d="M4 11V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3"/><path d="M3 12a1.5 1.5 0 0 1 3 0v2h12v-2a1.5 1.5 0 0 1 3 0v5H3z"/><path d="M5 17v2M19 17v2"/>'),'Sovrum':sxSv('<path d="M3 18V7M3 14h18v4M21 18v-4a3 3 0 0 0-3-3h-7v3"/><circle cx="7" cy="11" r="1.6"/>'),'Hall':sxSv('<path d="M6 21V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v17M4 21h16"/><circle cx="14.5" cy="12" r=".8" fill="currentColor"/>'),'Toalett':sxSv('<path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/>'),'Hundar':sxSv('<circle cx="7" cy="10" r="1.6"/><circle cx="10.5" cy="6.5" r="1.6"/><circle cx="14.5" cy="6.5" r="1.6"/><circle cx="18" cy="10" r="1.6"/><path d="M12 12c-3 0-5 3.5-5 5.5S9 20 12 19s5 .5 5-1.5-2-5.5-5-5.5z"/>'),'Alla rum':sxSv('<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/>')};
+const healthCol=s=>s>=.85?'var(--green)':s>=.6?'var(--orange)':'var(--red)';
+const sxLate=t=>t.freq>1&&!doneToday(t)&&ratio(t)>=2;
+const sxOrk=B=>'<div class="ork-seg sx-ork"'+RF('S2')+'>'+segc('Dagens ork','orkPick',ORK.map((x,k)=>[String(k),x.name.replace(' ork','')]),String(orkIndex(B)))+'</div>';
+// Resten av Städ som rader som fälls ut: mer tid, storstäd och inplanerat. Alla sysslor ligger kvar som förut
+function sxMer(cp,all){const big=cp.big.filter(t=>ratio(t)>=.85),pl=all.filter(t=>t.plannedFor&&t.plannedFor>today());
+ const rad=(k,t,n,inner,ref)=>'<details class="sx-d" data-k="'+k+'"'+(S.open[k]?' open':'')+'><summary class="sx-row"'+RF(ref)+'><span class="g">'+t+'</span><span class="v">'+n+I.chev+'</span></summary>'+group(inner)+'</details>';
+ let h='';
+ if(cp.later.length)h+=rad('later','Har ni mer tid?',cp.later.length,cp.later.map(t=>cleanRow(t,false,true)).join(''),'S5');
+ else if(cp.soon.length)h+=rad('soon','Vill ni ligga före?',cp.soon.length,cp.soon.map(t=>cleanRow(t,false,true)).join(''),'S6');
+ h+=rad('sxBig','Storstäd som närmar sig',big.length,big.length?big.map(bigRow).join(''):emptyCell('Inget storstäd behövs just nu.'),'S8');
+ if(pl.length)h+=rad('sxPlan','Inplanerat',pl.length,pl.map(t=>'<div class="cell"><div class="grow"><div class="title">'+esc(t.title)+'</div><div class="meta">'+esc(dateShort(t.plannedFor))+' · '+t.min+' min</div></div><button class="pill" data-act="unplan" data-id="'+esc(t.id)+'">Ångra</button></div>').join(''),'S9');
+ return'<div class="sx-mer">'+h+'</div>'+cleanAll(all)}
+// Rutnät: varje syssla idag är en ruta, tryck för att bocka av. Rummen som små rutor under
+function stadRutnat(cp,all,nu){const pct=nu.all.length?Math.round(100*nu.done.length/nu.all.length):0;
+ let h='<div class="sx-sum"><div class="sx-bar"><i style="width:'+pct+'%"></i></div><span class="num">'+nu.done.length+' av '+nu.all.length+'</span></div>'+sxOrk(cp.B);
+ h+='<div class="sx-lab">Idag</div>'+(nu.list.length?'<div class="sx-grid"'+RF('S4')+'>'+nu.list.map(t=>{const d=doneToday(t);
+  return'<button type="button" class="sx-t'+(d?' on':'')+'" data-act="cleanToggle" data-id="'+esc(t.id)+'"'+holdAt('cleanMenu',t.id).replace(/ data-id="[^"]*"/,'')+' aria-pressed="'+d+'"><span class="sx-top"><span class="sx-ic">'+(RUM_IKON[t.room]||RUM_IKON['Alla rum'])+'</span><span class="sx-ck">'+I.tick+'</span></span><span class="t">'+esc(t.title)+'</span><span class="m">'+(sxLate(t)?'<i class="sx-dot" style="background:var(--red)"></i>':'')+t.min+' min'+(t.freq<=1?' · varje dag':d&&t.doneBy?' · '+esc(personLabel(t.doneBy)):'')+'</span></button>'}).join('')+'</div>':rgroup('S4',emptyCell('Inget mer behöver göras idag.')));
+ h+='<div class="sx-lab">Rummen</div><div class="sx-rum"'+RF('S7')+'>'+roomHealth().map(r=>'<div class="sx-r"><span class="sx-ic">'+(RUM_IKON[r.room]||'')+'</span><span class="t">'+esc(r.room)+'</span><span class="m"><i class="sx-dot" style="background:'+healthCol(r.score)+'"></i>'+healthWord(r.score)+'</span></div>').join('')+'</div>';
+ return h+'<div class="sx-lab">Mer</div>'+sxMer(cp,all)}
+// Ring: minuter kvar som en ring, dagens sysslor i en lista utan knappar, rummen som små ringar
+function stadRing(cp,all,nu){const R=36,C=2*Math.PI*R,p=nu.minAll?(nu.minAll-nu.minLeft)/nu.minAll:0;
+ let h='<div class="sx-hero"><div class="sx-hr"><svg width="84" height="84" viewBox="0 0 84 84" aria-hidden="true"><circle cx="42" cy="42" r="'+R+'" fill="none" stroke="var(--fill)" stroke-width="10"/>'+(p>0?'<circle cx="42" cy="42" r="'+R+'" fill="none" stroke="var(--accent)" stroke-width="10" stroke-linecap="round" stroke-dasharray="'+(C*p).toFixed(1)+' '+C.toFixed(1)+'"/>':'')+'</svg><div><div class="sx-big num">'+nu.minLeft+'<small>min kvar</small></div><div class="sx-s">'+nu.done.length+' av '+nu.all.length+' klart idag</div></div></div>'+sxOrk(cp.B)+'</div>';
+ h+='<div class="sx-lab">Idag</div>'+rgroup('S4',nu.list.length?nu.list.map(t=>{const d=doneToday(t);
+  return cleanSw(t,'<div class="cell ck'+(d?' done':'')+'"'+holdAt('cleanMenu',t.id)+'><input type="checkbox" class="check" data-act="cleanToggle" data-id="'+esc(t.id)+'" aria-label="'+esc(t.title)+'"'+(d?' checked':'')+'><div class="grow"><div class="title">'+esc(t.title)+'</div><div class="meta">'+[esc(t.room),t.min+' min',t.freq<=1?'↻':'',d&&t.doneBy?'klart av '+esc(personLabel(t.doneBy)):'',sxLate(t)?'<span class="sx-late">försenat</span>':''].filter(Boolean).join(' · ')+'</div></div></div>')}).join(''):emptyCell('Inget mer behöver göras idag.'))+'<div class="foot">Håll in en syssla för I morgon och fler val, svep åt vänster för att ta bort.</div>';
+ const mr=s=>{const r=13,c=2*Math.PI*r;return'<svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><circle cx="17" cy="17" r="'+r+'" fill="none" stroke="var(--fill)" stroke-width="5"/><circle cx="17" cy="17" r="'+r+'" fill="none" stroke="'+healthCol(s)+'" stroke-width="5" stroke-linecap="round" stroke-dasharray="'+(c*Math.min(1,s)).toFixed(1)+' '+c.toFixed(1)+'"/></svg>'};
+ h+='<div class="sx-lab">Hemmet</div><div class="sx-ringar"'+RF('S7')+'>'+roomHealth().map(r=>'<div aria-label="'+esc(r.room+': '+healthWord(r.score))+'">'+mr(r.score)+esc(r.room)+'</div>').join('')+'</div>';
+ return h+'<div class="sx-lab"></div>'+sxMer(cp,all)}
 // Alla sysslor rum för rum. Under varje rum finns samma lägg till-rad som i Inköp och Uppgifter
-function cleanAll(all,open){const mins=t=>[...new Set([5,10,15,20,25,30,45,60,90,120,t.min].filter(Boolean))].sort((a,b)=>a-b);
- return'<details data-k="all"'+(open||S.open.all?' open':'')+'><summary class="sh"><span>Alla sysslor och intervall</span></summary>'+ROOMS.map(room=>{const ts=all.filter(t=>t.room===room).sort((a,b)=>a.freq-b.freq);
-  return'<div class="sh sub2">'+esc(room)+'</div>'+(ts.length?group(ts.map(t=>cleanSw(t,'<div class="cell"><div class="grow"><div class="title">'+esc(t.title)+'</div><div class="meta">'+(t.lastDone?'senast '+esc(dateShort(t.lastDone)):'inte gjort än')+'</div><div class="menus">'+
-   menuSel('data-change="freq" data-id="'+esc(t.id)+'" aria-label="Intervall"',[1,2,3,4,5,7,14,30,90].map(f=>'<option value="'+f+'"'+(t.freq===f?' selected':'')+'>'+freqText(f)+'</option>').join(''))+
-   menuSel('data-change="min" data-id="'+esc(t.id)+'" aria-label="Tid"',mins(t).map(m=>'<option value="'+m+'"'+(t.min===m?' selected':'')+'>'+m+' min</option>').join(''))+
-   menuSel('data-change="who" data-id="'+esc(t.id)+'" aria-label="Vem"','<option value="">Vem som helst</option>'+people().map(p=>'<option value="'+esc(p)+'"'+(t.who===p?' selected':'')+'>'+esc(personLabel(p))+'</option>').join(''))+'</div></div></div>')).join('')):'')+
+// Intervall, tid och vem för en syssla. Används i Alla sysslor och i bladet när man håller in
+function cleanSels(t){const mins=[...new Set([5,10,15,20,25,30,45,60,90,120,t.min].filter(Boolean))].sort((a,b)=>a-b);
+ return[menuSel('data-change="freq" data-id="'+esc(t.id)+'" aria-label="Intervall"',[1,2,3,4,5,7,14,30,90].concat([1,2,3,4,5,7,14,30,90].includes(t.freq)?[]:[t.freq]).map(f=>'<option value="'+f+'"'+(t.freq===f?' selected':'')+'>'+freqText(f)+'</option>').join('')),
+  menuSel('data-change="min" data-id="'+esc(t.id)+'" aria-label="Tid"',mins.map(m=>'<option value="'+m+'"'+(t.min===m?' selected':'')+'>'+m+' min</option>').join('')),
+  menuSel('data-change="who" data-id="'+esc(t.id)+'" aria-label="Vem"','<option value="">Vem som helst</option>'+people().map(p=>'<option value="'+esc(p)+'"'+(t.who===p?' selected':'')+'>'+esc(personLabel(p))+'</option>').join(''))]}
+function cleanAll(all,open){
+ return'<details data-k="all"'+(open||S.open.all?' open':'')+'><summary class="sh"'+RF('S10')+'><span>Alla sysslor och intervall</span></summary>'+ROOMS.map(room=>{const ts=all.filter(t=>t.room===room).sort((a,b)=>a.freq-b.freq);
+  return'<div class="sh sub2">'+esc(room)+'</div>'+(ts.length?group(ts.map(t=>cleanSw(t,'<div class="cell"'+holdAt('cleanMenu',t.id)+'><div class="grow"><div class="title">'+esc(t.title)+'</div><div class="meta">'+(t.lastDone?'senast '+esc(dateShort(t.lastDone)):'inte gjort än')+'</div><div class="menus">'+cleanSels(t).join('')+'</div></div></div>')).join('')):'')+
   '<form class="add-row" data-form="cleanQuick" data-room="'+esc(room)+'"><input class="field" name="title" placeholder="Ny syssla" aria-label="Ny syssla i '+esc(room)+'" autocomplete="off" enterkeyhint="done"><button type="button" class="add-go" data-act="quickGo" data-alt="cleanFocus" aria-label="Lägg till i '+esc(room)+'">'+I.plus+'</button></form>'}).join('')+
-  '<div class="foot">Svep åt vänster på en syssla för att ta bort den. Nya sysslor görs varje vecka och tar 10 minuter tills du ändrar det.</div></details>'}
+  '<div class="foot">Svep åt vänster på en syssla för att ta bort den, håll in för fler val. Nya sysslor görs varje vecka och tar 10 minuter tills du ändrar det.</div></details>'}
 // Raden högst upp i Städ har inget rum, så rummet gissas från orden. Annars blir det Alla rum
 function rumGissa(t){t=t.toLowerCase();const R=[['Vardagsrum',/vardagsrum|soffa|(^|\s)tv($|[\s-])|bokhylla|soffbord/],['Kök',/kök|kyl|frys|spis|micro|mikro|ugn|disk|bänk|fläkt|skafferi/],['Toalett',/toa|wc|badrum|dusch|handfat|kakel|spegel|badkar/],['Hundar',/hund|koppel|matskål|tass/],['Sovrum',/sovrum|säng|lakan|täcke|kudd|garderob/],['Hall',/hall|sko|ytterkläder|dörrmatta|entré/]];
  const m=R.find(([,re])=>re.test(t));return m?m[0]:'Alla rum'}
@@ -2186,9 +2656,9 @@ function rumGissa(t){t=t.toLowerCase();const R=[['Vardagsrum',/vardagsrum|soffa|
 const cleanSw=(t,html)=>'<div class="dr-wrap cs"><button class="dr-act del" data-act="cleanDel" data-full="cleanDel" data-id="'+esc(t.id)+'" aria-label="Ta bort '+esc(t.title)+'">'+I.trash+'<span>Ta bort</span></button>'+html.replace('<div class="cell','<div class="cell dr-slide')+'</div>';
 function cleanRow(t,showWhy,offer){const d=doneToday(t),r=ratio(t);
  const why=t.freq<=1?'':(planned(t)&&!d?'inplanerat':r>=2?'mycket försenat':r>=1?'dags nu':'snart dags');
- return cleanSw(t,'<div class="cell ck'+(d?' done':'')+'"><input type="checkbox" class="check" data-act="cleanToggle" data-id="'+esc(t.id)+'" aria-label="'+esc(t.title)+'"'+(d?' checked':'')+'><div class="grow"><div class="title">'+esc(t.title)+'</div><div class="meta"><span class="chip">'+esc(t.room)+'</span><span class="num">'+t.min+' min</span>'+(t.who?personChip(t.who):'')+(showWhy&&why?'<span>'+why+'</span>':'')+(d&&t.doneBy?'<span>klart av '+esc(personLabel(t.doneBy))+'</span>':'')+(t.tip&&!d?'<span>'+esc(t.tip)+'</span>':'')+'</div></div>'+
+ return cleanSw(t,'<div class="cell ck'+(d?' done':'')+'"'+holdAt('cleanMenu',t.id)+'><input type="checkbox" class="check" data-act="cleanToggle" data-id="'+esc(t.id)+'" aria-label="'+esc(t.title)+'"'+(d?' checked':'')+'><div class="grow"><div class="title">'+esc(t.title)+'</div><div class="meta"><span class="chip">'+esc(t.room)+'</span><span class="num">'+t.min+' min</span>'+(t.who?personChip(t.who):'')+(showWhy&&why?'<span>'+why+'</span>':'')+(d&&t.doneBy?'<span>klart av '+esc(personLabel(t.doneBy))+'</span>':'')+(t.tip&&!d?'<span>'+esc(t.tip)+'</span>':'')+'</div></div>'+
  (offer?'<button class="pill" data-act="planToday" data-id="'+esc(t.id)+'">Ta idag</button>':(!d&&t.freq>1&&showWhy?'<button class="pill" data-act="snooze" data-id="'+esc(t.id)+'">I morgon</button>':''))+'</div>')}
-function bigRow(t){return cleanSw(t,'<div class="cell"><div class="grow"><div class="title">'+esc(t.title)+'</div><div class="meta"><span class="chip">'+esc(t.room)+'</span><span>'+t.min+' min</span><span>'+(t.lastDone?'senast '+esc(dateShort(t.lastDone)):'inte gjort än')+'</span></div></div><div class="pills" style="flex-wrap:nowrap"><button class="pill" data-act="planSat" data-id="'+esc(t.id)+'">Lördag</button><button class="pill" data-act="planToday" data-id="'+esc(t.id)+'">Idag</button></div></div>')}
+function bigRow(t){return cleanSw(t,'<div class="cell"'+holdAt('cleanMenu',t.id)+'><div class="grow"><div class="title">'+esc(t.title)+'</div><div class="meta"><span class="chip">'+esc(t.room)+'</span><span>'+t.min+' min</span><span>'+(t.lastDone?'senast '+esc(dateShort(t.lastDone)):'inte gjort än')+'</span></div></div><div class="pills" style="flex-wrap:nowrap"><button class="pill" data-act="planSat" data-id="'+esc(t.id)+'">Lördag</button><button class="pill" data-act="planToday" data-id="'+esc(t.id)+'">Idag</button></div></div>')}
 
 /* ---------- overlay ---------- */
 /* ---------- Välj rätt: samma blad för Lägg till en rätt, Lägg till ett storkok, Byt rätt och Välj efterrätt ----------
@@ -2200,11 +2670,20 @@ function pickRow(c,o){const r=c.r,on=S.psel===r.id,t=o.sk?utanStorkok(r.title):r
  const l2=(o.dess?[r.portions?r.portions+' portioner':'',r.min?r.min+' min':'']:[c.ago==null||c.g?'':c.ago<0?'Planerad':'Senast för '+(c.ago<14?c.ago+' dagar':Math.round(c.ago/7)+' veckor')+' sedan',handla(c),r.min?r.min+' min':'']).filter(Boolean).join(' · ');
  return'<button type="button" class="cell sw-row'+(on?' on':'')+'" data-act="pickSel" data-id="'+esc(r.id)+'" aria-pressed="'+on+'" data-q="'+esc((r.title+' '+(r.who||'')).toLowerCase())+'">'+dishThumb(r,r.title)+
   '<span class="grow"><span class="title">'+esc(t)+'</span>'+(l1?'<span class="meta sw-l1">'+l1+'</span>':'')+(l2?'<span class="meta">'+esc(l2)+'</span>':'')+'</span><span class="sw-ck" aria-hidden="true">'+I.tick+'</span></button>'}
+// Ett förslag som stort kort (som i Planera med portioner). Välj lägger till rätten direkt
+function pickKort(c,o,klon){const r=c.r,img=r.img||imgOf(r.id),t=o.sk?utanStorkok(r.title):r.title;
+ const tag=whoChip(effWho(r))+(tarVara(c)||(isFav(r.id)?'<span class="chip k">Favorit</span>':''));
+ const sen=c.ago==null?'Aldrig lagad':c.ago<0?'Planerad':'Senast för '+(c.ago<14?c.ago+' dagar':Math.round(c.ago/7)+' veckor')+' sedan';
+ const om=[r.min?r.min+' min':'',sen].filter(Boolean).join(' · ');
+ return'<div class="car-s '+kind(r)+'"'+(klon?' aria-hidden="true"':'')+'><div class="car-img">'+(img?'<img src="'+esc(img)+'" alt="" loading="lazy" onerror="this.remove()">':'')+'<span aria-hidden="true">'+foodIcon(r.title)+'</span></div>'+
+  '<div class="car-b"><span class="chips-row">'+tag+'</span><div class="car-t">'+esc(t)+'</div><div class="car-m"><span>'+(c.g?'★ '+starNum(matLage(r.id).s):'Ny')+'</span>'+(c.kop!=null?' · <span class="num">'+esc(handla(c))+'</span>':'')+'</div>'+
+  '<div class="car-o">'+esc(om)+'</div>'+(r.why?'<div class="car-w">'+esc(r.why)+'</div>':'')+
+  '<button type="button" class="btn-fill car-v" data-act="pickNow" data-id="'+esc(r.id)+'"'+(klon?' tabindex="-1"':'')+'>Välj</button></div></div>'}
 // Knappen längst ner: vad som händer med det valda
 function pickBtnTxt(k,id){if(!id)return k==='dess'?'Välj en efterrätt':k==='slot'&&S.slotG==='Storkok'?'Välj ett storkok':'Välj en rätt';
  if(id==='macka')return'Lägg till en macka';const r=recipeById(id),t=r?(isStorkok(r)?utanStorkok(r.title):r.title):'';return(k==='swap'?'Byt till ':'Lägg till ')+t}
 function pickSheet(k,enter){
- let title,ctxL,ctxT,ctxR=null,note='',macka=false,top=[],rest=[],rester=null,sk=false,dess=false,alla='Alla rätter';
+ let title,ctxL,ctxT,ctxR=null,note='',macka=false,car=null,top=[],rest=[],rester=null,sk=false,dess=false,alla='Alla rätter';
  if(k==='swap'){const sw=S.swap||{},m=sw.m||{},cur=m.recipe&&recipeById(m.recipe),skKott=isStorkok(cur)&&storkokLage(m.recipe).kott,all=swapCandidates(m),cands=all.filter(c=>!(skKott&&isStorkok(c.r)&&harKott(c.r)));
   sk=isStorkok(cur);top=cands.filter(c=>c.kind>=2).slice(0,3);rest=cands.filter(c=>!top.includes(c));rester=all.rester;
   const many=m.recipe&&D().menu.filter(x=>x.recipe===m.recipe).length>1;
@@ -2212,9 +2691,10 @@ function pickSheet(k,enter){
   if(skKott)note='Ett storkok i veckan har redan kött, så storkok med kött visas inte.'}
  else if(k==='slot'){const g=S.slotG||'Vardag';sk=g==='Storkok';
   let want=null;if(sk){const has=new Set(weekDishes().filter(x=>x.g==='Storkok'&&x.r).map(x=>x.r.who));want=has.has('Henrik')&&!has.has('Vegetariskt')?'Vegetariskt':has.has('Vegetariskt')&&!has.has('Henrik')?'Henrik':null}
-  const all=swapCandidates({who:'Gemensam',title:sk?'Storkok':''},{slot:1,sk,want,g}),kott=sk&&storkokLage().kott,cands=all.filter(c=>isStorkok(c.r)===sk&&(c.r.groups||[]).length&&!(kott&&harKott(c.r)));
-  top=cands.slice(0,3);rest=cands.slice(3);rester=all.rester;macka=!sk;
-  title=sk?'Lägg till ett storkok':'Lägg till en rätt';ctxL='Lägger till';ctxT=sk?'Lunchlådor · görs i helgen till nästa vecka':g==='Vardag'?'Vardagar · mån–tor, valfri kväll':'Helg · fre–sön';alla=sk?'Alla storkok':alla;
+  const all=swapCandidates({who:'Gemensam',title:sk?'Storkok':''},{slot:1,sk,want,g}),kott=sk&&storkokLage().kott,cands=all.filter(c=>isStorkok(c.r)===sk&&(sk||!c.r.group||c.r.group===g)&&(c.r.groups||[]).length&&!(kott&&harKott(c.r)));
+  // Bara rätter för platsens del av veckan. De bästa som kort att svepa mellan, sedan alla i poängordning
+  car=cands.slice(0,5);rest=cands;rester=all.rester;macka=!sk;
+  title=sk?'Lägg till ett storkok':'Lägg till en rätt';ctxL='Lägger till';ctxT=sk?'Lunchlådor · görs i helgen till nästa vecka':g==='Vardag'?'Vardagar · mån–tor, valfri kväll':'Helg · fre–sön';alla=sk?'Alla storkok':g==='Vardag'?'Alla vardagsrätter':'Alla helgrätter';
   if(kott)note='Ett storkok i veckan har redan kött, så bara storkok utan kött visas.'}
  else{dess=true;const seen=new Set(),all=recipeCandidates().filter(r=>{if(!isDessert(r)||seen.has(r.id))return false;seen.add(r.id);return true})
    .sort((a,b)=>(inBank(b.id)?1:0)-(inBank(a.id)?1:0)||(isFav(b.id)?1:0)-(isFav(a.id)?1:0)||((ratingOf(b.id)||{avg:0}).avg-(ratingOf(a.id)||{avg:0}).avg)||a.title.localeCompare(b.title,'sv')).map(r=>({r,g:ratingOf(r.id)}));
@@ -2222,12 +2702,13 @@ function pickSheet(k,enter){
   title='Lägg till en efterrätt';ctxL='Lägger till';ctxT='Efterrätt · räknas inte in i portionerna';alla='Alla efterrätter'}
  const o={sk,dess},n=top.length+rest.length,ctxIc=ctxR?dishThumb(ctxR,ctxT):'<span class="dr-th" aria-hidden="true"><span>'+(dess?'🍰':sk?'🥘':'🍽️')+'</span></span>';
  let body='<div class="sw-now">'+ctxIc+'<div class="grow"><div class="fn">'+esc(ctxL)+'</div><div class="title">'+esc(ctxT)+'</div></div></div>';
+ if(car&&car.length)body+='<div class="pk-car">'+sh('Bäst för veckan','<span class="fn">Svep för fler</span>')+carHtml('pk'+(S.slotG||''),car,(c,klon)=>pickKort(c,o,klon),Math.min(Math.max(1,(S.carIdx||{})['pk'+(S.slotG||'')]||1),car.length))+'</div>';
  if(n>6)body+='<div class="sw-search pk-search"><input type="search" id="sw-q" placeholder="Sök bland '+n+' '+(dess?'efterrätter':sk?'storkok':'rätter')+'" aria-label="Sök" autocomplete="off" enterkeyhint="search"></div>';
  if(macka){const on=S.psel==='macka';body+=group('<button type="button" class="cell sw-row'+(on?' on':'')+'" data-act="pickSel" data-id="macka" aria-pressed="'+on+'" data-q="macka smörgås"><span class="dr-th" aria-hidden="true"><span>🥪</span></span><span class="grow"><span class="title">Macka</span><span class="meta">'+esc(kr(MP.CFG.mackaKr))+' för två</span></span><span class="sw-ck" aria-hidden="true">'+I.tick+'</span></button>')}
  if(note)body+='<div class="foot sw-rest">'+esc(note)+'</div>';
  body+=resterRad(rester);
  if(top.length)body+=sh(dess?'Sparade':'Förslag',dess?'':'<span class="fn">Bäst för veckan först</span>')+group(top.map(c=>pickRow(c,o)).join(''));
- if(rest.length)body+=sh(alla)+group(rest.map(c=>pickRow(c,o)).join(''));
+ if(rest.length)body+=sh(alla,car?'<span class="fn">Bäst först</span>':'')+group(rest.map(c=>pickRow(c,o)).join(''));
  if(!n&&!macka)body+=group(emptyCell(dess?'Inga efterrätter än.':'Inga rätter passar.'));
  body+='<div class="foot sw-none" hidden>Inget matchar sökningen.</div>';
  if(k==='swap')body+='<div class="foot pk-info">Inköpslistan räknas om efter bytet.</div>';
@@ -2235,7 +2716,7 @@ function pickSheet(k,enter){
  // Knappen ligger under listan, utanför det som scrollar, så inga rader syns under den
  const foot='<div class="sw-foot"><button type="button" class="btn-fill" data-act="pickGo"'+(S.psel?'':' disabled')+'>'+esc(pickBtnTxt(k,S.psel))+'</button></div>';
  return sheetHtml(k,title,'<span class="tb" aria-hidden="true"></span>',body,enter).replace(/<\/form><\/div>$/,foot+'</form></div>')}
-function sheetHtml(form,title,right,body,enter,left){return'<div class="sheet'+enter+'" data-act="sheetBg"><form class="sheet-panel" data-form="'+form+'" role="dialog" aria-modal="true" aria-label="'+title+'"><div class="grabber" aria-hidden="true"></div><div class="sheet-head">'+(left||'<button type="button" class="tb" data-act="sheetClose">Avbryt</button>')+'<h2>'+title+'</h2>'+right+'</div><div class="sheet-body">'+body+'</div></form></div>'}
+function sheetHtml(form,title,right,body,enter,left){return'<div class="sheet'+enter+'" data-act="sheetBg"><form class="sheet-panel"'+RF({settings:'B1',prefs:'B2',shop:'B3',task:'B4',taskEdit:'B5',evEdit:'B6',cleanQuick:'B7',cost:'B8',income:'B9',matb:'B23',wxDay:'B24',dish:'B10',farg:'B11',fodAdd:'B12',ljuskal:'B13',ov:'B14',prot:'B15',rate:'B16',tmr:'B17',vagg:'B18',wish:'B19',taskMenu:'B20',evMenu:'B21',cleanMenu:'B22'}[form])+' data-form="'+form+'" role="dialog" aria-modal="true" aria-label="'+title+'"><button type="button" class="grabber" data-sheet-grip aria-label="Dra ned för att stänga eller tryck"></button><div class="sheet-head">'+(left||'<button type="button" class="tb" data-act="sheetClose">Avbryt</button>')+'<h2>'+title+'</h2>'+right+'</div><div class="sheet-body">'+body+'</div></form></div>'}
 // slider i en rad: rubrik och värde överst, reglaget under och förklaring i ändarna
 const ljVal=(id,v)=>id==='ljMork'?luxTxt(morkLux(v)):v+(id==='ljKans'?'':' %');
 const ljSlider=(label,id,v,min,max,l,r)=>'<div class="cell lj-sl"><div class="lj-h"><span>'+label+'</span><span class="meta" data-ljv="'+id+'">'+ljVal(id,v)+'</span></div><input type="range" min="'+min+'" max="'+max+'" step="1" value="'+v+'" data-input="'+id+'" aria-label="'+label+'"><div class="lj-e"><span>'+l+'</span><span>'+r+'</span></div></div>';
@@ -2261,22 +2742,32 @@ function colorPicker(name,chg,id,cur,lab){
 function restoreColorStrips(o){o.querySelectorAll('[data-strip]').forEach(sp=>{const x=FARG_X[sp.dataset.strip];if(x!=null){sp.scrollLeft=x;return}const c=sp.querySelector('input:checked');if(c){const l=c.parentElement;sp.scrollLeft=l.offsetLeft-(sp.clientWidth-l.offsetWidth)/2}})}
 // Sparar formulärutkast före omritning; ett val eller en synk får inte kasta det man skrivit.
 function rememberSettings(){const f=document.querySelector('form[data-form="settings"]');if(f)S.prefDraft=Object.fromEntries(new FormData(f))}
-function settingsGroups(parts){return parts.filter(x=>x[2]).map(([id,label,body])=>{body=hjelpFold(body,'settings-'+id);return NY?'<details class="pref-section" data-k="pref-'+id+'"'+(S.open['pref-'+id]?' open':'')+'><summary class="sh"><span>'+label+'</span></summary><div class="pref-body">'+body+'</div></details>':sh(label)+body}).join('')}
+function settingsGroups(parts){return parts.filter(x=>x[2]).map(([id,label,body])=>{body=hjelpFold(body,'settings-'+id);return'<details class="pref-section" data-k="pref-'+id+'"'+(S.open['pref-'+id]?' open':'')+'><summary class="sh"'+RF({personer:'I1',utseende:'I2',vardag:'I3',oversikt:'I4',enhet:'I5',avancerat:'I6'}[id])+'><span>'+label+'</span></summary><div class="pref-body">'+body+'</div></details>'}).join('')}
 function settingsPeople(){const d=S.prefDraft||{},L=personList().slice(0,2);return'<div class="group person-list">'+L.map((p,i)=>{const n=d['p'+(i+1)]??p.label,c=d['c'+(i+1)]||personColor(i),on=!!S.open['person-'+i],key='person-'+i;
  return'<div class="person-row"><button type="button" class="person-select" data-act="me" data-id="'+esc(p.n)+'" aria-pressed="'+(S.me===p.n)+'"><span class="pdot" style="background:'+PCOL[c][isDark()?3:1]+'"></span><span class="grow">'+esc(n)+'</span>'+(S.me===p.n?'<span class="mark">'+I.tick+'</span>':'')+'</button><button type="button" class="ib person-toggle" data-act="personFold" data-id="'+i+'" aria-expanded="'+on+'" aria-controls="'+key+'" aria-label="Ändra namn och färg för '+esc(n)+'">'+I.chev+'</button></div>'+
  '<input type="hidden" name="c'+(i+1)+'" value="'+esc(c)+'"><div class="person-edit" id="'+key+'"'+(on?'':' hidden')+'>'+fieldCell('Namn','<input class="field r" name="p'+(i+1)+'" value="'+esc(n)+'" maxlength="40" aria-label="Namn för person '+(i+1)+'" autocomplete="off">')+
  '<div class="cell"><span class="grow">Personfärg</span><span class="meta">'+esc(PCOL[c][0])+'</span></div>'+colorPicker('pc'+i,'personColor',i,c,'Färg för '+n)+'</div>'}).join('')+
  '<button type="button" class="cell link" data-act="me" data-id="" aria-pressed="'+(!S.me)+'"><span class="grow">Gemensam skärm</span>'+(!S.me?'<span class="mark">'+I.tick+'</span>':'')+'</button></div><div class="foot">Välj vem som använder enheten. Pilen öppnar namn och färg. Namn och personfärg gäller alla enheter och sparas med Spara.</div>'}
-const u3RecipeMatch=r=>recipeMatch(r);
 function u3Search(){return'<form class="add-row u3-search" data-form="recipeSearch"><input class="field" name="q" value="'+esc(S.u3Query||'')+'" placeholder="Sök bland recepten" aria-label="Sök bland recepten" enterkeyhint="search"><button class="tb strong">Sök</button>'+(S.u3Query?'<button type="button" class="ib" data-act="recipeSearchClear" aria-label="Rensa sökning">'+I.x+'</button>':'')+'</form>'}
+// Fält man ändrat i ett öppet blad. En omritning (t.ex. när data kommer från arket) behåller det man skrivit
+// även när fokus inte står i ett textfält, till exempel efter ett val eller när tangentbordet stängts.
+const OVD={sig:'',n:new Set()};
+const ovSig=f=>f?f.dataset.form+'|'+(f.dataset.id||''):'';
+document.addEventListener('input',ovMark);document.addEventListener('change',ovMark);document.addEventListener('submit',()=>{OVD.sig=''},true);
+function ovMark(e){const t=e.target,f=t.closest&&t.closest('#overlay form');if(!f||!t.name||t.type==='file')return;const g=ovSig(f);if(g!==OVD.sig){OVD.sig=g;OVD.n=new Set()}OVD.n.add(t.name)}
+function ovGrab(f){if(!f||ovSig(f)!==OVD.sig)return null;const r=[];OVD.n.forEach(n=>{const el=f.elements[n];if(!el)return;
+ if(el instanceof RadioNodeList||el.type==='radio')r.push([n,'v',el.value]);else if(el.type==='checkbox')r.push([n,'c',el.checked]);else r.push([n,'v',el.value])});return r}
+function ovPut(f,r){if(!f||!r||ovSig(f)!==OVD.sig)return;r.forEach(([n,t,v])=>{const el=f.elements[n];if(!el)return;if(t==='c')el.checked=v;else if(el instanceof RadioNodeList||el.type==='radio'){const x=f.querySelector('input[name="'+n+'"][value="'+CSS.escape(v)+'"]');if(x)x.checked=true}else el.value=v})}
 function overlayKeepScroll(){const o=document.getElementById('overlay'),k=o.dataset.k||'',b=o.querySelector('.sheet-body'),y=b?b.scrollTop:0;
  if(!k)S.hj=new Set();
  if(S.sheet==='settings'&&o.dataset.k==='settings')rememberSettings();
+ const f0=o.querySelector('form'),dr=k?ovGrab(f0):null;
  renderOverlay();
+ const f1=o.querySelector('form');if(o.dataset.k!==k)OVD.sig='';else if(dr&&f1!==f0)ovPut(f1,dr);
  const nb=o.querySelector('.sheet-body');if(y&&k&&o.dataset.k===k&&nb&&nb!==b)nb.scrollTop=y}
 function renderOverlay(){
  const o=document.getElementById('overlay');
- const k=S.cook?'cook':S.sheet==='settings'?'settings':S.sheet==='farg'?'farg':S.sheet==='vagg'?'vagg':S.sheet==='ljuskal'?'ljuskal':S.sheet==='rate'?'rate':S.sheet==='income'?'income':S.sheet==='cost'?'cost':S.sheet==='ov'?'ov':S.sheet==='prefs'?'prefs':S.sheet==='swap'?'swap':S.sheet==='prot'?'prot':S.sheet==='wish'?'wish':S.sheet==='shopMore'?'shopMore':S.sheet==='dess'?'dess':S.sheet==='slot'?'slot':S.sheet==='delLas'?'delLas':S.rcpSheet?'rcpSheet':S.sheet==='cleanAdd'?'cleanAdd':S.sheet==='taskEdit'?'taskEdit':S.sheet==='evEdit'?'evEdit':S.shopAdd?'shop':S.taskAdd?'task':'';
+ const k=S.cook?'cook':S.sheet==='settings'?'settings':S.sheet==='farg'?'farg':S.sheet==='vagg'?'vagg':S.sheet==='ljuskal'?'ljuskal':S.sheet==='rate'?'rate':S.sheet==='income'?'income':S.sheet==='matb'?'matb':S.sheet==='cost'?'cost':S.sheet==='ov'?'ov':S.sheet==='prefs'?'prefs':S.sheet==='swap'?'swap':S.sheet==='prot'?'prot':S.sheet==='wish'?'wish':S.sheet==='shopMore'?'shopMore':S.sheet==='dess'?'dess':S.sheet==='slot'?'slot':S.sheet==='delLas'?'delLas':S.sheet==='dish'?'dish':S.sheet==='tmr'?'tmr':S.sheet==='tmrMenu'?'tmrMenu':S.rcpSheet?'rcpSheet':S.sheet==='cleanAdd'?'cleanAdd':S.sheet==='fodAdd'?'fodAdd':S.sheet==='taskMenu'?'taskMenu':S.sheet==='ekoMenu'?'ekoMenu':S.sheet==='evMenu'?'evMenu':S.sheet==='cleanMenu'?'cleanMenu':S.sheet==='taskEdit'?'taskEdit':S.sheet==='evEdit'?'evEdit':S.sheet==='evNew'?'evNew':S.sheet==='wxDay'?'wxDay':S.shopAdd?'shop':S.taskAdd?'task':'';
  const prev=o.dataset.k||'';
  // Rita inte om ett öppet blad medan någon skriver i det
  if(k&&k!=='cook'&&k===prev&&busyTyping()&&o.contains(document.activeElement))return;
@@ -2284,26 +2775,33 @@ function renderOverlay(){
  if(S.cook){const r=recipeById(S.cook.id);if(!r){S.cook=null;o.dataset.k='';o.innerHTML='';return}
   const pv=protNu(r),rr=pv?protRecipe(r,pv):r,ST=kvSteps(r,pv),i=Math.min(S.cook.step,ST.length-1),n=ST.length,s=ST[i],{f}=scaled(r),hits=stepIngredients(rr,{t:stegText(s)});
   const dir=A.cookStep==null||A.cookStep===i?'':i>A.cookStep?' from-r':' from-l',grew=A.cookStep!=null&&i>A.cookStep;A.cookStep=i;
-  const now=hits.length?sh('Det här steget')+group(hits.map(it=>ingRow(it,f)).join('')):'';
-  o.innerHTML='<div class="cook" role="dialog" aria-modal="true" aria-label="Matlagningsläge"><div class="cook-top"><span></span><div class="fn">Steg '+(i+1)+' av '+n+'</div><button class="tb strong" data-act="cookClose">Klar</button></div><div class="cook-name">'+esc(r.title)+'</div>'+
+  // Tidsplanen utgår från när man kom till steget, så Klart ca följer hur det faktiskt går
+  let tp='',klar='';{const{R,tot}=tidsplan(ST);if(S.cook.ai!==i){S.cook.ai=i;S.cook.at=Date.now()}const nu=new Date(),nm=nu.getHours()*60+nu.getMinutes(),start=nm-R[i].a-Math.floor((Date.now()-S.cook.at)/60000);
+   tp=tpHtml(r,ST,{start,cur:i,now:nm-start,cook:1});klar=' · klart ca '+tpKl(start+Math.max(tot,1))}
+  // Behåll läget i steget och i timerraden när samma steg ritas om (tryck på en timer)
+  const ob=!dir&&o.querySelector('.cook-body'),y=ob?ob.scrollTop:0;
+  o.innerHTML='<div class="cook"'+RF('M27')+' role="dialog" aria-modal="true" aria-label="Matlagningsläge"><div class="cook-top"><span></span><div class="fn">Steg '+(i+1)+' av '+n+klar+'</div><button class="tb strong" data-act="cookClose">Klar</button></div><div class="cook-name">'+esc(r.title)+'</div>'+
   '<div class="progress" aria-hidden="true">'+ST.map((_,k)=>'<i class="'+(k<=i?'on':'')+(grew&&k===i?' just':'')+'"></i>').join('')+'</div>'+
-  '<div class="cook-body'+dir+'"><div class="col">'+(s.t?'<p class="cook-text">'+esc(s.t)+'</p>':'')+(pv?kvLanes(s,pv):'')+(s.timer?'<div class="block"><button class="pill" data-act="timer" data-min="'+s.timer+'" data-label="Steg '+(i+1)+'">'+I.clock+'Starta '+s.timer+' min</button></div>':'')+now+'</div><div class="col">'+sh('Alla ingredienser')+ingList(rr,f,hits)+'</div></div>'+
-  '<div class="cook-nav"><button class="btn-tint" data-act="cookStep" data-d="-1"'+(i===0?' disabled':'')+'>Förra</button>'+(i<n-1?'<button class="btn-fill" data-act="cookStep" data-d="1">Nästa</button>':'<button class="btn-fill" data-act="cookDone" data-id="'+esc(r.id)+'">Klar – betygsätt</button>')+'</div></div>';
+  '<div class="cook-body'+dir+'"><div class="col">'+(s.t?'<p class="cook-text">'+esc(s.t)+'</p>':'')+(pv?kvLanes(s,pv):'')+tp+'</div><div class="col">'+sh('Ingredienser')+ingSorted(rr,f,hits,stegText(s))+'</div></div>'+
+  '<div class="cook-nav"><button class="btn-tint" data-act="cookStep" data-d="-1"'+(i===0?' disabled':'')+'>Förra</button>'+(i<n-1?'<button class="btn-fill" data-act="cookStep" data-d="1">Nästa</button>':'<button class="btn-fill" data-act="cookDone" data-id="'+esc(r.id)+'">Klar – betygsätt</button>')+'</div></div>'+
+  (S.sheet==='tmr'?tmrSheet(A.cSh==='tmr'?'':' enter'):S.sheet==='tmrMenu'?tmMenu(A.cSh==='tmrMenu'?'':' enter'):'');A.cSh=S.sheet;if(y){const nb=o.querySelector('.cook-body');if(nb)nb.scrollTop=y}
   return}
  if(k==='settings'){const st=settings(),topic=D().ntfyTopic||'';
   const body=settingsGroups([
    ['personer','Personer',settingsPeople()],
-   ['utseende','Utseende',sh('Utseende')+group('<button type="button" class="cell link" data-act="farg"><span class="grow">Färgval</span><span class="meta">'+esc({system:'System',light:'Ljust',dark:'Mörkt'}[S.theme]+' · '+(ACCENT==='min'?'Min färg':PCOL[accentKey()][0]))+'</span>'+chevron+'</button>')+'<div class="foot">Ljust eller mörkt och appens accentfärg. Personernas färger finns under Personer.</div>'+
-  (NY&&!U3?sh('Form på knappar och rutor')+'<div class="seg-wrap">'+segc('Form på knappar och rutor','segstil',[['standard','Kantiga'],['kapsel','Runda'],['klassisk','Raka']],SEGSTIL)+'</div><div class="foot">Gäller växlingsknappar, rutor, listor och knappar i hela appen. Kantiga har lätt rundade hörn. Runda har helt runda knappar och mjukare rutor, som i iOS 26. Raka har små hörn och streck mellan valen, som i äldre iOS. Text, höjd och färg är samma i alla tre. Gäller bara den här enheten.</div>'+
-      sh('Menyraden längst ner')+'<div class="seg-wrap">'+segc('Menyraden längst ner','flikrad',[['fast','Fast'],['glas','Svävande'],['piller','Piller']],FLIKRAD)+'</div><div class="foot">Fast ligger kant i kant längst ner. Svävande är en rundad glasbubbla ovanpå innehållet, som i iOS 26, och krymper till en rund knapp när du scrollar. Piller krymper i stället till ett smalt piller med bara ikonerna, halvt nedanför skärmkanten. Gäller bara den här enheten.</div>':'')+(NY?sh('Placering av plusknappen')+'<div class="seg-wrap">'+segc('Placering av plusknappen','addPlace',[['flytande','Flytande'],['profil','Vid profilen'],['rad','Vid raden']],addPlace())+'</div><div class="foot">Gäller Recept, Inköp och Uppgifter. I Städ flyttar Vid profilen pluset till rubriken och döljer snabbfältet. Flytande visas ovanför menyraden. Vid profilen visas bredvid användaren. Vid raden låter dig lägga till direkt i listan; i kalendern öppnas formuläret. Receptpluset visar Nytt recept och Importera recept. Gäller bara den här enheten.</div>':'')],
-   ['vardag','Mat och städ',sh('Städtid och matbudget')+group(fieldCell('Vardag, min','<input class="field r" id="set-wd" name="wd" inputmode="numeric" value="'+esc(st.stadtid_vardag||20)+'" style="max-width:110px">')+fieldCell('Helg, min','<input class="field r" id="set-we" name="we" inputmode="numeric" value="'+esc(st.stadtid_helg||40)+'" style="max-width:110px">')+fieldCell('Mat/vecka, kr','<input class="field r" id="set-budget" name="budget" inputmode="numeric" value="'+esc(st.matbudget||'')+'" style="max-width:110px">'))+sh('Låsa rätter')+'<div class="seg-wrap">'+segc('Låsa rätter','lasstil',[['rad','Runt rätten'],['bild','Runt bilden']],LASSTIL)+'</div><div class="foot">Svep åt höger på en rätt eller håll in den i en sekund för att låsa den. Föreslå en ny vecka behåller låsta rätter. Gäller bara den här enheten.</div>'+(DEV?sh('Förslag i Planera med portioner')+'<div class="seg-wrap">'+segc('Förslag i Planera med portioner','flStyle',[['karusell','Stort kort'],['lista','Lista']],FL_STYLE)+'</div>':'')],
-   ['oversikt','Översikt och väder',sh('Vädervyn')+'<div class="seg-wrap">'+segc('Vädervyn','wxvy',[['kurva','Dagskurva'],['bild','Bild med hundar']],WXVY)+'</div><div class="foot">Dagskurvan visar temperaturen de närmaste 24 timmarna. Gäller bara den här enheten.</div>'+sh('Hundar i bilden')+'<div class="seg-wrap">'+segc('Hundar i bilden','hundar',[['vaxla','Växla'],['bada','Båda'],['brun','Bruna'],['svart','Svarta']],HUNDAR)+'</div><div class="foot">Växla byter var tredje timme. Du kan också trycka på hundarna i Väder för att byta. Gäller bara den här enheten.</div>'+
-  sh('Schemat i kalenderrutan')+'<div class="seg-wrap">'+segc('Schemat i kalenderrutan','calStyle',[['1','Tid kvar'],['2','Stapel'],['3','Tidsaxel']],CAL_STYLE)+'</div>'+sh('Översikten')+group('<button type="button" class="cell link" data-act="arrange"><span class="grow">Ändra ordning på rutorna</span>'+chevron+'</button>')+'<div class="foot">Gäller bara den här enheten. Du kan också hålla fingret på en ruta en stund.</div>'],
+   ['utseende','Utseende',sh('Design')+'<div class="seg-wrap">'+segc('Design','uiVersion',[['2','UI 2.0'],...(DEV?[['3','UI 3.0']]:[]),['4','UI 4.0'],['5','UI 5.0']],U5?'5':U4?'4':U3?'3':'2')+'</div><div class="foot">UI 4.0 är Ateljé: tydligare text, sammanhållna listor och sidomeny på stora skärmar. UI 5.0 (standard) ser ut som en app från Apple: glasmeny, Apples färger och former. Valet gäller den här enheten. Era data och funktioner är samma.</div>'+sh('Utseende')+group('<button type="button" class="cell link" data-act="farg"><span class="grow">Färgval</span><span class="meta">'+esc({system:'System',light:'Ljust',dark:'Mörkt'}[S.theme]+' · '+(accentPref()==='min'?'Min färg':PCOL[accentKey()][0]))+'</span>'+chevron+'</button>')+'<div class="foot">Ljust eller mörkt och appens accentfärg. Personernas färger finns under Personer.</div>'+
+  (!U3&&!U5?sh('Form på knappar och rutor')+'<div class="seg-wrap">'+segc('Form på knappar och rutor','segstil',[['standard','Kantiga'],['kapsel','Runda'],['klassisk','Raka']],SEGSTIL)+'</div><div class="foot">Gäller växlingsknappar, rutor, listor och knappar i hela appen. Kantiga har lätt rundade hörn. Runda har helt runda knappar och mjukare rutor, som i iOS 26. Raka har små hörn och streck mellan valen, som i äldre iOS. Text, höjd och färg är samma i alla tre. Gäller bara den här enheten.</div>'+
+      (!U4&&!U5?sh('Prova ett rymligare utseende')+group(fieldCell('Rymligare kontroller','<input type="checkbox" role="switch" class="switch" data-act="rymlig" aria-label="Rymligare kontroller"'+(RYMLIG?' checked':'')+'>'))+'<div class="foot">Mer luft runt knappar, fält och menyernas valmarkering. Kryssrutor och kalenderns datum följer Kantiga, Runda eller Raka. Av från början och kan stängas av när som helst. Gäller bara den här enheten.</div>':'')+
+      sh('Menyraden längst ner')+'<div class="seg-wrap">'+segc('Menyraden längst ner','flikrad',[['fast','Fast'],['glas','Svävande'],['piller','Piller']],FLIKRAD)+'</div><div class="foot">Fast ligger kant i kant längst ner. Svävande är en rundad glasbubbla ovanpå innehållet, som i iOS 26, och krymper till en rund knapp när du scrollar. Piller krymper i stället till ett smalt piller med bara ikonerna, halvt nedanför skärmkanten. Gäller bara den här enheten.</div>':'')+sh('Placering av plusknappen')+'<div class="seg-wrap">'+segc('Placering av plusknappen','addPlace',[['flytande','Flytande'],['profil','Vid profilen'],['rad','Vid raden']],addPlace())+'</div><div class="foot">Gäller Recept, Inköp och Uppgifter. I Städ flyttar Vid profilen pluset till rubriken och döljer snabbfältet. Flytande visas ovanför menyraden. Vid profilen visas bredvid användaren. Vid raden låter dig lägga till direkt i listan; i kalendern öppnas formuläret. Receptpluset visar Nytt recept och Importera recept. Gäller bara den här enheten.</div>'],
+   ['vardag','Mat och städ',sh('Städtid och matbudget')+group(fieldCell('Vardag, min','<input class="field r" id="set-wd" name="wd" inputmode="numeric" value="'+esc(st.stadtid_vardag||20)+'" style="max-width:110px">')+fieldCell('Helg, min','<input class="field r" id="set-we" name="we" inputmode="numeric" value="'+esc(st.stadtid_helg||40)+'" style="max-width:110px">')+fieldCell('Mat/vecka, kr','<input class="field r" id="set-budget" name="budget" inputmode="numeric" value="'+esc(st.matbudget||'')+'" style="max-width:110px">'))+sh('Låsa rätter')+'<div class="seg-wrap">'+segc('Låsa rätter','lasstil',[['rad','Runt rätten'],['bild','Runt bilden']],LASSTIL)+'</div><div class="foot">'+'Tryck på låset för att låsa en rätt. Håll in rätten för att ändra den.'+' Föreslå en ny vecka behåller låsta rätter. Gäller bara den här enheten.</div>'+sh('Städvyn')+'<div class="seg-wrap">'+segc('Städvyn','stadVy',[['lista','Lista'],['rutnat','Rutnät'],['ring','Ring']],stadVy())+'</div><div class="foot">Lista visar allt som förut. Rutnät visar dagens sysslor som rutor du trycker på. Ring visar minuterna kvar som en ring och dagens sysslor i en lugn lista. Gäller bara den här enheten.</div>'+(DEV?sh('Förslag i Planera med portioner')+'<div class="seg-wrap">'+segc('Förslag i Planera med portioner','flStyle',[['karusell','Stort kort'],['lista','Lista']],FL_STYLE)+'</div>':'')],
+   ['oversikt','Översikt och väder',sh('Vädervyn')+'<div class="seg-wrap">'+segc('Vädervyn','wxvy',[['kurva','Dagskurva'],['bild','Bild med hundar']],WXVY)+'</div><div class="foot">Dagskurvan visar temperaturen de närmaste 24 timmarna. Gäller bara den här enheten.</div>'+sh('Vädret under hundarna')+'<div class="seg-wrap">'+segc('Vädret under hundarna','ovwx',[['tim','Timme för timme'],['graf','Med graf']],OVWX)+'</div><div class="foot">'+(motionOn()?'Dra handtaget under timmarna nedåt för grafen, uppåt för att fälla ihop. Du kan också trycka på handtaget.':'Håll in timmarna i Översikt för att visa eller dölja grafen.')+' Gäller bara den här enheten.</div>'+sh('Bildstil')+'<div class="seg-wrap">'+segc('Bildstil','wxart',WX_ART,WXART)+'</div><div class="foot">Förfinad ger mjukare former. Geometrisk har tydliga färgplan, inspirerade av Kurzgesagt. Alla stilar följer samma väder, årstider och himmel. Gäller bilden i Väder och Översikt på den här enheten.</div>'+sh('Hundar i bilden')+'<div class="seg-wrap">'+segc('Hundar i bilden','hundar',[['vaxla','Växla'],['bada','Båda'],['brun','Bruna'],['svart','Svarta']],HUNDAR)+'</div><div class="foot">Växla byter var tredje timme. Du kan också trycka på hundarna i Väder för att byta. Gäller bara den här enheten.</div>'+
+  sh('Översikten')+group('<button type="button" class="cell link" data-act="arrange"><span class="grow">Ändra ordning på rutorna</span>'+chevron+'</button>'+(prevGet(layoutKey(S.wall))?'<button type="button" class="cell link" data-act="boxPrev"><span class="grow">Gå tillbaka till föregående layout</span>'+chevron+'</button>':''))+'<div class="foot">Gäller bara den här enheten. Du kan också hålla fingret på en ruta en stund.</div>'+group(fieldCell('Widgets i olika storlekar','<input type="checkbox" role="switch" class="switch" data-act="exp" aria-label="Widgets i olika storlekar"'+(expOn()?' checked':'')+'>'))+'<div class="foot">Rutorna kan vara Liten, Mellan eller Stor och visar mer ju större de är. Dra i hörnknappen i Ändra ordning. Av ger de vanliga rutorna med halv eller hel bredd.</div>'],
    ['enhet','Enheten',sh('Skärm')+group(fieldCell('Väggläge','<input type="checkbox" role="switch" class="switch" data-act="wall" aria-label="Väggläge"'+(S.wall?' checked':'')+'>')+
    (S.wall?'<button type="button" class="cell link" data-act="vagg"><span class="grow">Nattläge</span><span class="meta">'+esc((!NATT.on?'Av':NATT.sol?'Solnedgång–soluppgång':nattTid(NATT.a)+'–'+nattTid(NATT.b))+(CAM.on?' · kamera':''))+'</span>'+chevron+'</button>':'')+statusHtml())+
   (topic?sh('Notiser')+group('<div class="cell"><span class="grow copy">'+esc(topic)+'</span><button type="button" class="pill" data-act="copy" data-id="'+esc(topic)+'">Kopiera</button></div>')+'<div class="foot">Installera appen ntfy och prenumerera på det här ämnet. Använd servern ntfy.sh.</div>':'')+(S.wall?sh('Inställningsknappen på väggskärmen')+'<div class="seg-wrap">'+segc('Inställningsknappen på väggskärmen','vaggknapp',[['meny','I menyraden'],['knapp','Egen knapp'],['rubrik','Rubrikrad']],VKNAPP)+'</div><div class="foot">I menyraden sitter cirkeln längst till höger i menyn. Egen knapp är en rund knapp nere till höger. Rubrikrad lägger en rad överst med cirkeln till höger, som på telefonen. Gäller bara den här enheten.</div>':'')+sh('Den här enheten')+group('<button type="button" class="cell link center red" data-act="logout">Logga ut</button>')],
    ['avancerat','Avancerat',sh('Utvecklare')+group(fieldCell('Utvecklarläge','<input type="checkbox" role="switch" class="switch" data-act="dev" aria-label="Utvecklarläge"'+(DEV?' checked':'')+'>'))+'<div class="foot">Visar menyer som inte är färdiga, just nu Planera nästa vecka och Planera med portioner. Gäller bara den här enheten.</div>'+
-  (DEV?sh('Design')+'<div class="seg-wrap">'+segc('Design','uiVersion',[['1','UI 1.0'],['2','UI 2.0'],['3','UI 3.0']],U3?'3':NY?'2':'1')+'</div><div class="foot">UI 3.0 provas här i utvecklarläget. UI 2.0 är standard och används när utvecklarläget stängs av. Gäller bara den här enheten; era uppgifter och listor är samma.</div>':'')]])+'<div class="foot ver">Hushållstavlan · UI '+(U3?'3.0':NY?UI_VER:'1.0')+' · version '+esc(APP_VER)+'</div>';
+  (sh('Rörelse')+group(fieldCell('Vägledande animationer','<input type="checkbox" role="switch" class="switch" data-act="motion" aria-label="Vägledande animationer"'+(MOTION?' checked':'')+'>'))+'<div class="foot">Riktade sidbyten, glidande menyval och mjuk expansion. Systemets inställning för minskad rörelse går alltid före. Gäller den här enheten.</div>')+
+  (DEV?sh('Rutnummer')+group(fieldCell('Visa rutnummer','<input type="checkbox" role="switch" class="switch" data-act="refs" aria-label="Visa rutnummer"'+(refsOn()?' checked':'')+'>'))+'<div class="foot">Varje ruta får sitt fasta nummer i hörnet, till exempel M2. Tryck på numret för att kopiera det. Gäller bara den här enheten.</div>':'')]])+'<div class="foot ver">Hushållstavlan · UI '+(U5?'5.0':U4?'4.0':U3?'3.0':UI_VER)+' · version '+esc(APP_VER)+'</div>';
   o.innerHTML=sheetHtml('settings','Inställningar','<button class="tb strong">Spara</button>',body,enter);if(S.prefDraft){Object.entries(S.prefDraft).forEach(([k,v])=>{const f=o.querySelector('[name="'+k+'"]');if(f&&!/radio|checkbox/.test(f.type))f.value=v})}segSlide(o);restoreColorStrips(o);return}
  if(k==='ljuskal'){const K=KAL||{},nm=['full','mitten','lägsta'];let body='',right='<button type="button" class="tb strong" data-act="sheetClose">'+(K.step==='klar'||SMAK?'Klar':'Avbryt')+'</button>';
   if(SMAK){const i=SMAK.i,v=Math.round(SMAK.v[i]*100);
@@ -2349,12 +2847,12 @@ function renderOverlay(){
   o.innerHTML=sheetHtml('vagg','Nattläge','<button type="button" class="tb strong" data-act="sheetClose">Klar</button>',hjelpFold(body,'vagg'),enter,'<button type="button" class="back" data-act="settings">'+I.back+'Inställningar</button>');segSlide(o);return}
  if(k==='farg'){const mi=people().indexOf(S.me);if(enter)[FARG_OPEN,FARG_X].forEach(o=>Object.keys(o).forEach(k=>delete o[k]));
   Object.keys(FARG_OPEN).forEach(k=>{if(FARG_OPEN[k]===2)FARG_OPEN[k]=1});
-  const accName=ACCENT==='min'?'Min färg ('+PCOL[accentKey()][0].toLowerCase()+')':PCOL[accentKey()][0]+(accentKey()==='vinrod'?' (standard)':'');
+  const accName=accentPref()==='min'?'Min färg ('+PCOL[accentKey()][0].toLowerCase()+')':PCOL[accentKey()][0]+(accentKey()==='vinrod'?' (standard)':'');
   const body=sh('Ljust eller mörkt')+'<div class="seg-wrap">'+segc('Ljust eller mörkt','theme',[['system','System'],['light','Ljust'],['dark','Mörkt']],S.theme)+'</div>'+
    sh('Accentfärg')+group('<div class="cell"><span class="grow">Knappar och länkar</span><span class="meta" data-name="acc">'+esc(accName)+'</span></div>'+
-    (ACCENT==='min'?'':colorPicker('acc','accent',null,accentKey(),'Accentfärg'))+
-    (mi>=0?fieldCell('Samma som min färg','<input type="checkbox" role="switch" class="switch" data-act="accMin" aria-label="Samma som min färg"'+(ACCENT==='min'?' checked':'')+'>'):''))+
-   '<div class="foot">'+(ACCENT==='min'?'Knapparna följer din personfärg under Personer. ':'')+'Gäller bara den här enheten.</div>'+
+    (accentPref()==='min'?'':colorPicker('acc','accent',null,accentKey(),'Accentfärg'))+
+    (mi>=0?fieldCell('Samma som min färg','<input type="checkbox" role="switch" class="switch" data-act="accMin" aria-label="Samma som min färg"'+(accentPref()==='min'?' checked':'')+'>'):''))+
+   '<div class="foot">'+(accentPref()==='min'?'Knapparna följer din personfärg under Personer. ':'')+'Gäller bara den här enheten.</div>'+
    '<div class="foot">Personernas färger ändras under Personer i Inställningar.</div>';
   o.innerHTML=sheetHtml('farg','Färgval','<button type="button" class="tb strong" data-act="sheetClose">Klar</button>',hjelpFold(body,'farg'),enter,'<button type="button" class="back" data-act="settings">'+I.back+'Inställningar</button>');segSlide(o);
   // raden står kvar där den var, och första gången med vald färg i mitten
@@ -2382,6 +2880,11 @@ function renderOverlay(){
    sh('Vilken matlagning ska den ersätta?')+'<div class="vpick col" role="radiogroup" aria-label="Ersätter">'+SLOTS.map(x=>'<label><input type="radio" name="slot" value="'+esc(x)+'"'+(x===sel?' checked':'')+'><span>'+esc(x)+'</span></label>').join('')+'</div>'+
    '<div class="foot">Söndagens veckoplanering lägger rätten där i stället för det den annars hade valt. Önskemålen töms varje vecka.</div>';
   o.innerHTML=sheetHtml('wish','Önska till nästa vecka','<button class="tb strong">Önska</button>',body,enter);return}
+ if(k==='wxDay'){o.innerHTML=sheetHtml('wxDay','Förhållanden','<button type="button" class="tb strong" data-act="sheetClose">Klar</button>',wxDayHtml(),enter,'<span></span>');wdThumb(o);return}
+ if(k==='matb'){const m=S.ekoMonth||thisMonth(),mb=matBudget(m);
+  const body=sh('Matbudget från '+monthName(m))+group(fieldCell('Belopp per månad','<input class="field r" name="b" inputmode="numeric" value="'+esc(mb?mb.b:'')+'" placeholder="0 kr" style="max-width:150px" aria-label="Matbudget per månad">'))+
+   '<div class="foot">Gäller '+esc(monthName(m))+' och månaderna efter tills du ändrar. Var och ens del räknas fram från inkomsterna.</div>';
+  o.innerHTML=sheetHtml('matb','Matbudget','<button class="tb strong">Spara</button>',body,enter);return}
  if(k==='income'){const m=S.ekoMonth||thisMonth(),cur=(ekoInc()[m])||ekoInc()[prevIncMonth(m)]||{};
   const body=sh('Inkomst efter skatt, '+monthName(m))+group(people().map((p,i)=>fieldCell('<span class="pdot p'+(i+1)+'"></span>'+esc(personLabel(p)),'<input class="field r" name="p'+i+'" inputmode="numeric" value="'+esc(cur[p]||'')+'" placeholder="0 kr" style="max-width:150px" aria-label="Inkomst '+esc(personLabel(p))+'">')).join(''))+
    '<div class="foot">Fördelningen av de gemensamma utgifterna räknas fram från inkomsterna.</div>';
@@ -2411,6 +2914,22 @@ function renderOverlay(){
    '<button type="button" class="ov-later" data-act="ovLater">Gör det senare</button>'+
    '<div class="ti-foot fn">Utgiften visas som '+(was?'ändrad':'saknad')+' tills du bockar av den.</div></div>';
   o.innerHTML=sheetHtml('ov','Stående överföring','<span class="tb" aria-hidden="true"></span>',body,enter);return}
+ if(k==='tmr'){o.innerHTML=tmrSheet(enter);return}
+ if(k==='tmrMenu'){const h=tmMenu(enter);if(!h){closeSheets();o.dataset.k='';o.innerHTML='';return}o.innerHTML=h;return}
+ // Bladet följer rätten, inte platsen i listan: inköpslistan kan räkna om och flytta raderna
+ if(k==='dish'&&S.dm!=='d'&&S.dmK){const j=D().menu.findIndex(x=>dmKey(x)===S.dmK);if(j>=0)S.dm=String(j)}
+ if(k==='dish'){const ds=S.dm==='d',m=ds?null:D().menu[Number(S.dm)],r=ds?weekDessert():m&&m.recipe&&recipeById(m.recipe);if(ds?!r:!m){closeSheets();o.dataset.k='';o.innerHTML='';return}
+  const rid=ds?r.id:m.recipe,lst=!!(rid&&weekLocks(weekTarget().vs).has(rid)),tit=ds?r.title:m.title,n=ds?dessPort(r):dishPort(m,r),pa=ds?'dessPortStep':'portStep',pid=ds?'':S.dm;
+  const meta=[ds?'Efterrätt':'',lst?'Låst':'',r&&r.min?r.min+' min':'',r&&r.kr?kr(r.kr)+'/port':''].filter(Boolean).join('<span class="dot" aria-hidden="true">·</span>');
+  const t=(ic,ti,sub,at,cls)=>'<button type="button" class="dm-t'+(cls||'')+'" '+at+'>'+(cls===' red hold'?'<i class="sh-fill"></i>':'')+'<span class="dm-ic">'+ic+'</span><b>'+ti+'</b><span class="meta">'+sub+'</span></button>',go=(a,id)=>'data-act="dishGo" data-a="'+a+'" data-id="'+esc(id)+'"';
+  const tiles=[t(I.swap,'Byt rätt',ds?'Välj en annan efterrätt':'Förslag i samma pris',ds?go('dessPick',''):go('swap',S.dm)),
+   rid?t(lst?I.unlock:I.lock,lst?'Lås upp':'Lås',lst?'Kan bytas vid ny vecka':'Behålls vid ny vecka',go('swLock',rid)):'',
+   r?t(I.fork,'Öppna recept','Tidsplan och steg',go('recipe',r.id)):'',
+   ds?t(I.trash,'Ta bort','Ingen efterrätt i veckan',go('dessClear',r.id),' red'):lst?t(I.trash,'Ta bort','Håll in, rätten är låst','data-hold="dishDelHold" data-id="'+esc(S.dm)+'"',' red hold'):t(I.trash,'Ta bort','Lämnar en tom plats',go('weekDel',S.dm),' red')].join('');
+  const body='<div class="dm-hd">'+dishThumb(r,tit)+'<div class="grow"><div class="title">'+esc(tit)+'</div>'+(meta?'<div class="meta">'+meta+'</div>':'')+'</div></div>'+
+   group('<div class="cell"><span class="grow">Portioner</span><span class="pl-step" role="group" aria-label="Portioner"><button type="button" data-act="'+pa+'" data-id="'+pid+'" data-d="-1" aria-label="Färre portioner"'+(n<=1?' disabled':'')+'>'+I.minus+'</button><span class="num" aria-live="polite">'+n+'</span><button type="button" data-act="'+pa+'" data-id="'+pid+'" data-d="1" aria-label="Fler portioner"'+(n>=20?' disabled':'')+'>'+I.plus+'</button></span></div>')+
+   '<div class="dm-g">'+tiles+'</div>';
+  o.innerHTML=sheetHtml('dish',ds?'Efterrätt':'Rätten','<button type="button" class="tb strong" data-act="sheetClose">Klar</button>',body,enter,'<span class="tb" aria-hidden="true"></span>');return}
  if(k==='delLas'){const i=S.delAsk,m=D().menu[i];if(!m){closeSheets();o.dataset.k='';o.innerHTML='';return}
   o.innerHTML='<div class="pop-bg'+enter+'" data-act="sheetBg"><div class="pop" role="alertdialog" aria-modal="true" aria-labelledby="pop-t"><span class="pop-ic" aria-hidden="true">'+I.lock+'</span><h2 id="pop-t">Ta bort en låst rätt?</h2><p>'+esc(m.title)+' är låst. Håll in Bekräfta för att ta bort den från veckosedeln.</p>'+
    '<button type="button" class="sh-btn red pop-ok" data-hold="weekDelYes" data-id="'+i+'" aria-label="Håll in för att bekräfta"><i class="sh-fill"></i><b>Bekräfta</b></button><button type="button" class="pop-no" data-act="sheetClose">Avbryt</button></div></div>';return}
@@ -2437,18 +2956,57 @@ function renderOverlay(){
   o.innerHTML=sheetHtml('shop','Ny vara','<button class="tb strong">Lägg till</button>',body,enter);return}
  if(k==='cleanAdd'){
   o.innerHTML=sheetHtml('cleanQuick','Ny syssla','<button class="tb strong">Lägg till</button>',group('<div class="cell"><input class="field" id="clean-title" name="title" placeholder="Vad behöver göras?" aria-label="Syssla" required autocomplete="off" enterkeyhint="done"></div>')+'<div class="foot">Rummet väljs utifrån namnet. Du kan ändra sysslan efteråt.</div>',enter);return}
+ if(k==='fodAdd'){const t=parse(today()),ty=t.getFullYear(),e=S.fodEdit&&bdays().find(b=>b.key===S.fodEdit),dd=e?e.dd:t.getDate(),mo=e?e.mo:t.getMonth(),col=e?e.own:'';
+  let yrs='<option value="">Vet inte</option>';for(let y=ty;y>=ty-110;y--)yrs+='<option'+(e&&e.yr===y?' selected':'')+'>'+y+'</option>';
+  const dot=(v,c,cd,lab,x)=>'<label title="'+esc(lab)+'"><input type="radio" name="col" value="'+v+'"'+(v===col?' checked':'')+' aria-label="'+esc(lab)+'"><span style="--c:'+c+';--cd:'+cd+(x||'')+'"></span></label>';
+  const body='<div style="height:16px"></div>'+group('<div class="cell"><input class="field" id="fod-name" name="namn" placeholder="Namn" value="'+esc(e?e.name:'')+'" required autocomplete="off" enterkeyhint="done" aria-label="Namn"></div>'+
+   fieldCell('Dag',menuSel('name="dag" aria-label="Dag"',Array.from({length:31},(_,i)=>'<option'+(i+1===dd?' selected':'')+'>'+(i+1)+'</option>').join('')))+
+   fieldCell('Månad',menuSel('name="man" aria-label="Månad"',MON.map((x,i)=>'<option value="'+(i+1)+'"'+(i===mo?' selected':'')+'>'+cap(x)+'</option>').join('')))+
+   fieldCell('Födelseår',menuSel('name="ar" aria-label="Födelseår"',yrs)))+
+   sh('Färg')+group('<div class="cell strip-cell"><div class="pcols pstrip" role="radiogroup" aria-label="Färg" data-strip="fodcol">'+dot('','var(--ink-2)','var(--ink-2)','Ingen egen färg (barn blir orange)',';background:transparent;border:2px dashed var(--c)')+farbList().map(c=>dot(c,PCOL[c][1],PCOL[c][3],PCOL[c][0])).join('')+'</div></div>')+
+   '<div class="foot">Färgen syns på datumet, i årshjulet och på väggtavlan. Utan egen färg blir barn under 18 orange, om födelseåret är ifyllt.</div>'+
+   (e?'<div style="height:22px"></div>'+group('<button type="button" class="cell link center red" data-act="fodDelSheet" data-id="'+esc(e.key)+'">Ta bort födelsedagen</button>'):'');
+  o.innerHTML=sheetHtml('fodAdd',e?'Ändra födelsedag':'Ny födelsedag','<button class="tb strong">'+(e?'Spara':'Lägg till')+'</button>',body,enter);restoreColorStrips(o);return}
  if(k==='task'){
-  const body='<div style="height:16px"></div>'+group('<div class="cell"><input class="field" id="task-title" name="title" placeholder="Vad behöver göras?" required autocomplete="off" aria-label="Uppgift"></div>'+
+  const body=(S.view==='kalender'?'<div class="cv-typ">'+segc('Typ','evNewTyp',[['ev','Händelse'],['task','Uppgift']],'task')+'</div>':'<div style="height:16px"></div>')+group('<div class="cell"><input class="field" id="task-title" name="title" placeholder="Vad behöver göras?" required autocomplete="off" aria-label="Uppgift"></div>'+
    fieldCell('Datum','<input class="field r" id="task-due" name="due" type="date" value="'+esc(S.taskDue||'')+'" style="max-width:170px">')+
    fieldCell('Vem',menuSel('id="task-who" name="who"','<option value="">Vem som helst</option>'+people().map(p=>'<option value="'+esc(p)+'">'+esc(personLabel(p))+'</option>').join('')+'<option>Båda</option>'))+
    fieldCell('Upprepa',menuSel('id="task-rep" name="repeat"',REPEATS.map(([k,l])=>'<option value="'+k+'">'+l+'</option>').join(''))))+
    '<div class="foot">En uppgift som upprepas flyttas till nästa gång när den bockas av. Utan datum börjar den i dag.</div>';
   o.innerHTML=sheetHtml('task','Ny uppgift','<button class="tb strong">Lägg till</button>',body,enter);return}
+ // Håll in en uppgift, händelse eller syssla: samma sorts blad som Rätten i veckosedeln
+ if(k==='taskMenu'||k==='evMenu'||k==='cleanMenu'||k==='ekoMenu'){const now=today(),dot='<span class="dot" aria-hidden="true">·</span>',gone=()=>{closeSheets();o.dataset.k='';o.innerHTML=''};
+  const t=(ic,ti,sub,at,cls)=>'<button type="button" class="dm-t'+(cls||'')+'" '+at+'><span class="dm-ic">'+ic+'</span><b>'+ti+'</b><span class="meta">'+sub+'</span></button>',go=(a,id,x)=>'data-act="sheetGo" data-a="'+a+'" data-id="'+esc(String(id))+'"'+(x||'');
+  const hd=(em,tit,meta,c)=>'<div class="dm-hd"><span class="dr-th'+(c||'')+'"><span>'+em+'</span></span><div class="grow"><div class="title">'+tit+'</div>'+(meta.length?'<div class="meta">'+meta.join(dot)+'</div>':'')+'</div></div>';
+  let ti='',body='';
+  if(k==='taskMenu'){const x=S.edit&&D().tasks.find(y=>y.id===S.edit.id);if(!x)return gone();const rp=repName(x.repeat),late=isDate(x.due)&&x.due<now&&!x.done,tm=addDays(now,1);ti='Uppgift';
+   body=hd(x.done?'✅':'📝',esc(x.title),[x.due?(late?'<span class="red">Försenad, '+esc(dateShort(x.due))+'</span>':esc(x.due===now?'Idag':x.due===tm?'I morgon':dateShort(x.due))):'Utan datum',rp?'↻ '+esc(rp):'',x.who?esc(personLabel(x.who)):'',x.note?esc(x.note):''].filter(Boolean))+
+    '<div class="dm-g fyll">'+[t(I.tick,x.done?'Inte klar':'Klar',x.done?'Tillbaka på listan':rp?'Kommer tillbaka '+esc(rp.toLowerCase()):'Bocka av',go('taskToggle',x.id)),
+     x.done?'':!isDate(x.due)||x.due===now?t(I.calPlus,'I morgon','Flytta datumet',go('taskMove',x.id,' data-d="1"')):t(I.cal,'Idag','Flytta till idag',go('taskMove',x.id,' data-d="0"')),
+     t(I.pencil,'Ändra','Namn, datum och vem',go('taskEdit',x.id)),
+     t(I.trash,'Ta bort',rp?'En gång eller alla':'Försvinner från listan','data-act="taskDelAsk"',' red')].join('')+'</div>'+(S.confirm==='delTask'?'<div style="height:16px"></div>'+group(taskDelQ(rp)):'')}
+  if(k==='evMenu'){const e=S.edit,i=e?D().events.findIndex(y=>y.date===e.date&&y.time===e.time&&y.title===e.title):-1;if(i<0)return gone();const cal=e.source==='kalender';ti='Händelse';
+   body=hd('<small>'+esc(MON[Number(e.date.slice(5,7))-1].slice(0,3))+'</small>'+Number(e.date.slice(8,10)),evTitle(e),[esc(e.date===now?'Idag':cap(dateShort(e.date))),esc(e.time||'Heldag'),evWho(e)||'',cal?'Google Kalender':''].filter(Boolean),' dm-dag')+
+    '<div class="dm-g fyll">'+[t(I.pencil,'Ändra','Namn, dag och tid',go('evEdit',i)),t(I.clock,'Visa dagen','Timme för timme',go('calDayVy',e.date)),t(I.plus,'Ny uppgift','Samma dag',go('calAddTask',e.date)),
+     t(I.trash,'Ta bort',cal?'Även i Google Kalender':'Försvinner från tavlan','data-act="evDelAsk"',' red')].join('')+'</div>'+(S.confirm==='delEv'?'<div style="height:16px"></div>'+group(evDelQ(e)):'')}
+  // Fast utgift: Ändra, stående överföring, ny utgift i samma lista och Ta bort (håll in)
+  if(k==='ekoMenu'){const L=S.em&&S.em.list,x=L&&ekoList(L).find(y=>y.id===S.em.id);if(!x)return gone();const ov=ovState(x),li=' data-list="'+esc(L)+'"';ti='Fast utgift';
+   body=hd('🧾',esc(x.name),[kr(perMonth(x))+'/mån',x.period&&x.period!=='månad'?kr(x.amount)+'/'+esc(x.period):'',x.pay?esc(x.pay):'',x.day?esc(dayTxt(x.day)):'',esc(ovFrom(L))].filter(Boolean))+
+    '<div class="dm-g fyll">'+[t(I.pencil,'Ändra','Belopp, dag och konto',go('ekoCost',x.id,li)),
+     ov==='ok'?t(I.tick,'Överföringen','Inlagd, visa detaljer',go('ovShow',x.id,li)):t(I.tick,ov==='andrad'?'Är ändrad':'Är inlagd',ov==='andrad'?'Bekräfta ändrad överföring':'Bekräfta stående överföring',go('ovDone',x.id,li)),
+     t(I.plus,'Ny utgift','I samma lista',go('ekoCost','',li)),
+     '<button type="button" class="dm-t red hold" data-hold="ekoDelHold" data-id="'+esc(x.id)+'"><i class="sh-fill"></i><span class="dm-ic">'+I.trash+'</span><b>Ta bort</b><span class="meta">Håll in för att ta bort</span></button>'].join('')+'</div>'}
+  if(k==='cleanMenu'){const x=D().clean.find(y=>y.id===S.cm);if(!x)return gone();const d=doneToday(x),pl=x.plannedFor===now;ti='Syssla';
+   body=hd('🧹',esc(x.title),[esc(x.room),x.lastDone?'senast '+esc(dateShort(x.lastDone)):'inte gjort än',d&&x.doneBy?'klart av '+esc(personLabel(x.doneBy)):''].filter(Boolean))+
+    group(cleanSels(x).map((s,j)=>fieldCell(['Hur ofta','Tid','Vem'][j],s)).join(''))+
+    '<div class="dm-g fyll">'+[t(I.tick,d?'Inte klar':'Klar',d?'Ångra dagens bock':'Gjort idag',go('cleanToggle',x.id)),
+     pl?t(I.x,'Inte idag','Ta bort från dagens pass',go('unplan',x.id)):t(I.cal,'Idag','Med i dagens pass',go('planToday',x.id)),
+     t(I.calPlus,'Lördag','Planera in '+esc(dateShort(nextSaturday())),go('planSat',x.id)),
+     t(I.trash,'Ta bort','Du kan ångra',go('cleanDel',x.id),' red')].join('')+'</div>'}
+  o.innerHTML=sheetHtml(k,ti,'<button type="button" class="tb strong" data-act="sheetClose">Klar</button>',body,enter,'<span class="tb" aria-hidden="true"></span>');return}
  if(k==='taskEdit'){const x=S.edit||{},rp=repName(x.repeat),who=String(x.who||'');
   const ask=S.confirm==='delTask';
-  const del=!ask?'<button type="button" class="cell link center red" data-act="taskDelAsk">Ta bort uppgiften</button>':
-   rp?'<div class="cell"><span class="grow">Uppgiften upprepas '+esc(rp.toLowerCase())+'. Vad vill du ta bort?</span></div><button type="button" class="cell link center red" data-act="taskDel" data-id="once">Bara den här gången</button><button type="button" class="cell link center red" data-act="taskDel" data-id="all">Alla gånger</button><button type="button" class="cell link center" data-act="confirmNo">Avbryt</button>':
-   '<div class="cell"><span class="grow">Ta bort uppgiften?</span><button type="button" class="tb red strong" data-act="taskDel" data-id="all">Ja, ta bort</button><button type="button" class="tb" data-act="confirmNo">Avbryt</button></div>';
+  const del=!ask?'<button type="button" class="cell link center red" data-act="taskDelAsk">Ta bort uppgiften</button>':taskDelQ(rp);
   const body='<div style="height:16px"></div>'+group('<div class="cell"><input class="field" id="te-title" name="title" value="'+esc(x.title||'')+'" required autocomplete="off" aria-label="Uppgift"></div>'+
    fieldCell('Datum','<input class="field r" id="te-due" name="due" type="date" value="'+esc(isDate(x.due)?x.due:'')+'" style="max-width:170px">')+
    fieldCell('Vem',menuSel('id="te-who" name="who"','<option value="">Vem som helst</option>'+people().concat(['Båda']).concat(who&&!people().includes(who)&&who!=='Båda'?[who]:[]).map(p=>'<option value="'+esc(p)+'"'+(p===who?' selected':'')+'>'+esc(personLabel(p))+'</option>').join('')))+
@@ -2456,6 +3014,14 @@ function renderOverlay(){
    (rp?'<div class="foot">Ändringen gäller alla gånger uppgiften kommer tillbaka.</div>':'')+
    '<div style="height:22px"></div>'+group(del);
   o.innerHTML=sheetHtml('taskEdit','Ändra uppgift','<button class="tb strong">Spara</button>',body,enter);return}
+ if(k==='evNew'){const n=S.evNew||{},me=people().includes(S.me)?S.me:'Båda';
+  const body='<div class="cv-typ">'+segc('Typ','evNewTyp',[['ev','Händelse'],['task','Uppgift']],'ev')+'</div>'+group('<div class="cell"><input class="field" id="en-title" name="title" placeholder="Vad händer?" required autocomplete="off" aria-label="Titel" enterkeyhint="done"></div>')+
+   '<div style="height:16px"></div>'+group(fieldCell('Datum','<input class="field r" name="date" type="date" value="'+esc(n.date||'')+'" required style="max-width:170px">')+
+   fieldCell('Heldag','<input type="checkbox" class="switch" id="en-allday" name="allDay"'+(n.allDay?' checked':'')+'>')+
+   '<div id="en-times"'+(n.allDay?' hidden':'')+'>'+fieldCell('Börjar','<input class="field r" name="start" type="time" value="'+tidInp(n.a)+'" style="max-width:130px">')+fieldCell('Slutar','<input class="field r" name="end" type="time" value="'+tidInp(n.b)+'" style="max-width:130px">')+'</div>')+
+   '<div style="height:16px"></div>'+group(fieldCell('Vem',menuSel('name="who"',people().concat(['Båda']).map(p=>'<option value="'+esc(p)+'"'+(p===me?' selected':'')+'>'+esc(p==='Båda'?'Båda':personLabel(p))+'</option>').join(''))))+
+   '<div class="foot">Sparas i den gemensamma Google-kalendern, så att den syns i era telefoner också.</div>';
+  o.innerHTML=sheetHtml('evNew','Ny händelse','<button class="tb strong">Lägg till</button>',body,enter);return}
  if(k==='evEdit'){const e=S.edit||{},fl=String(e.flags||''),allDay=fl?fl.includes('a'):!e.time,rec=fl.includes('r');
   // Kalenderhändelser kan ändras när Kod.gs skriver id:n (kolumn F i Händelser). Helgdagar och kontakternas födelsedagar har inget id.
   const cal=e.source==='kalender',locked=cal&&!e.id,old=cal&&!('id' in e);
@@ -2464,9 +3030,7 @@ function renderOverlay(){
     '<div class="foot">'+(old?'Kalenderhändelser går att ändra och ta bort här när Kod.gs har uppdaterats på datorn.':'Helgdagar och födelsedagar från kontakterna går inte att ändra här. Ändra dem i Google Kalender eller Kontakter.')+'</div>';
    o.innerHTML=sheetHtml('evEdit','Händelse','',body,enter);return}
   const ask=S.confirm==='delEv';
-  const del=!ask?'<button type="button" class="cell link center red" data-act="evDelAsk">Ta bort händelsen</button>':
-   rec?'<div class="cell"><span class="grow">Händelsen upprepas. Vad vill du ta bort?</span></div><button type="button" class="cell link center red" data-act="evDel" data-id="once">Bara den här gången</button><button type="button" class="cell link center red" data-act="evDel" data-id="all">Alla gånger</button><button type="button" class="cell link center" data-act="confirmNo">Avbryt</button>':
-   '<div class="cell"><span class="grow">Ta bort händelsen'+(cal?' ur Google Kalender':'')+'?</span><button type="button" class="tb red strong" data-act="evDel" data-id="all">Ja, ta bort</button><button type="button" class="tb" data-act="confirmNo">Avbryt</button></div>';
+  const del=!ask?'<button type="button" class="cell link center red" data-act="evDelAsk">Ta bort händelsen</button>':evDelQ(e);
   const body='<div style="height:16px"></div>'+group('<div class="cell"><input class="field" id="ee-title" name="title" value="'+esc(e.title||'')+'" required autocomplete="off" aria-label="Titel"></div>'+
    fieldCell('Datum','<input class="field r" id="ee-date" name="date" type="date" value="'+esc(e.date||'')+'" required style="max-width:170px">')+
    fieldCell('Heldag','<input type="checkbox" class="switch" id="ee-allday" name="allDay"'+(allDay?' checked':'')+'>')+
@@ -2496,12 +3060,12 @@ const OM_SYM={0:'clearsky',1:'fair',2:'partlycloudy',3:'cloudy',45:'fog',48:'fog
 async function loadWx(force){const P=WX_POS();if(!force&&EXT.yr&&Date.now()-EXT.yr.at<30*60000&&EXT.yr.lat===P.lat)return false;
  try{const r=await fetch('https://api.met.no/weatherapi/locationforecast/2.0/compact?lat='+P.lat.toFixed(4)+'&lon='+P.lon.toFixed(4));if(!r.ok)throw new Error(r.status);
   const j=await r.json();const ts=j.properties.timeseries.map(x=>{const i=x.data.instant.details,n1=x.data.next_1_hours,n6=x.data.next_6_hours,n12=x.data.next_12_hours;
-   return{t:x.time,T:i.air_temperature,w:i.wind_speed,wd:i.wind_from_direction,h:i.relative_humidity,p:i.air_pressure_at_sea_level,
+   return{t:x.time,T:i.air_temperature,w:i.wind_speed,wd:i.wind_from_direction,h:i.relative_humidity,p:i.air_pressure_at_sea_level,cf:i.cloud_area_fraction,
     s:(n1||n6||n12||{summary:{}}).summary.symbol_code||'',pr:n1?n1.details.precipitation_amount:null,pr6:n6?n6.details.precipitation_amount:null,s6:n6?n6.summary.symbol_code:''}});
   EXT.yr={at:Date.now(),src:'yr',lat:P.lat,ts};return true}
- catch(e){try{const r=await fetch('https://api.open-meteo.com/v1/forecast?latitude='+P.lat+'&longitude='+P.lon+'&hourly=temperature_2m,weather_code,precipitation,wind_speed_10m,wind_direction_10m,relative_humidity_2m,pressure_msl,is_day&timezone=UTC&forecast_days=9&wind_speed_unit=ms');
+ catch(e){try{const r=await fetch('https://api.open-meteo.com/v1/forecast?latitude='+P.lat+'&longitude='+P.lon+'&hourly=temperature_2m,weather_code,precipitation,wind_speed_10m,wind_direction_10m,relative_humidity_2m,pressure_msl,is_day,cloud_cover&timezone=UTC&forecast_days=9&wind_speed_unit=ms');
   const j=await r.json(),H=j.hourly;const ts=H.time.map((t,k)=>{const b=OM_SYM[H.weather_code[k]]||'cloudy',dn=/^(clearsky|fair|partlycloudy|.*showers)$/.test(b)?(H.is_day[k]?'_day':'_night'):'';
-   return{t:t+':00Z',T:H.temperature_2m[k],w:H.wind_speed_10m[k],wd:H.wind_direction_10m[k],h:H.relative_humidity_2m[k],p:H.pressure_msl[k],s:b+dn,pr:H.precipitation[k],pr6:null,s6:''}});
+   return{t:t+':00Z',T:H.temperature_2m[k],w:H.wind_speed_10m[k],wd:H.wind_direction_10m[k],h:H.relative_humidity_2m[k],p:H.pressure_msl[k],cf:H.cloud_cover?H.cloud_cover[k]:null,s:b+dn,pr:H.precipitation[k],pr6:null,s6:''}});
   EXT.yr={at:Date.now(),src:'om',lat:P.lat,ts};return true}catch(e2){return false}}}
 /* Senaste dygnet till dagskurvan. Yr ger bara prognos framåt, så de passerade timmarna hämtas från Open-Meteo (past_days=1),
    som bygger på väderanalysen för platsen. Hämtas om en gång i timmen. */
@@ -2515,8 +3079,9 @@ async function loadPast(force){const P=WX_POS();if(!force&&EXT.past&&Date.now()-
 function wxModel(){const y=EXT.yr;if(!y||!y.ts||!y.ts.length||Date.now()-y.at>12*3600000)return null;
  const now=Date.now(),hrs=y.ts.map(x=>Object.assign({},x,{d:new Date(x.t)})).filter(x=>x.d.getTime()>now-3600000);if(!hrs.length)return null;
  const cur=hrs[0],days={};
- hrs.forEach(x=>{const k=ymd(x.d);const D=days[k]=days[k]||{date:k,min:99,max:-99,pr:0,syms:[]};D.min=Math.min(D.min,x.T);D.max=Math.max(D.max,x.T);
-  D.pr+=x.pr!=null?x.pr:(x.pr6!=null&&x.d.getHours()%6===0?x.pr6:0);const hr=x.d.getHours();if(hr>=9&&hr<=18)D.syms.push(x.s6||x.s)});
+ // Yr ger var sjätte timme längre fram (00, 06, 12, 18 UTC, alltså inte jämna lokala timmar): sextimmarssumman räknas efter steget till nästa tid
+ hrs.forEach((x,i)=>{const k=ymd(x.d);const D=days[k]=days[k]||{date:k,min:99,max:-99,pr:0,syms:[]};D.min=Math.min(D.min,x.T);D.max=Math.max(D.max,x.T);
+  const n=hrs[i+1],g=n?Math.min(6,Math.max(1,Math.round((n.d-x.d)/36e5))):6;D.pr+=x.pr!=null?x.pr:(x.pr6!=null?x.pr6*g/6:0);const hr=x.d.getHours();if(hr>=9&&hr<=18)D.syms.push(x.s6||x.s)});
  const dl=Object.values(days).map(D=>Object.assign(D,{sym:D.syms[Math.floor(D.syms.length/2)]||(hrs.find(x=>ymd(x.d)===D.date)||{}).s||''})).slice(0,9);
  return{src:y.src,now:cur,hours:hrs.slice(0,25),all:hrs,days:dl}}
 const symBase=s=>String(s||'').replace(/_(day|night|polartwilight)$/,'');
@@ -2570,6 +3135,131 @@ function isNight(){const P=WX_POS(),s=sunTimes(today(),P.lat,P.lon),n=new Date()
    mjuk högdager uppe till vänster och lysande ljuskällor med koncentriska sken.
    Ingen bakgrundsruta: vädret svävar fritt runt hundarna. */
 let FIG_N=0;
+// Bildstilen ändrar teckningen, aldrig vädermodellen, årstiderna eller himlens placering.
+const WX_ART=[['original','Original'],['soft','Förfinad'],['geo','Geometrisk']];
+let WXART=WX_ART.some(([k])=>k===lsGet('wxart'))?lsGet('wxart'):'original';
+const wxArtClass=()=>WXART==='original'?'':' art-'+WXART;
+function artGrass(ss){const c=GRASS[ss];return WXART==='geo'?({winter:['#89AD99','#3D7472'],early:['#9ACB79','#387E70'],spring:['#A6D95A','#347D6E'],easter:['#A6D95A','#347D6E'],summer:['#7CCF64','#267E70'],autumn1:['#BBCB5D','#5D8B64'],autumn2:['#C6B35E','#697B54'],autumn3:['#AFA278','#657568']}[ss]):WXART==='soft'?[mixHex(c[0],'#B2BE93',.25),mixHex(c[1],'#738C70',.25)]:c}
+function wxArtVars(W){if(WXART==='original')return'';const sc=wxScene(W),geo=WXART==='geo',warm=/dawn|golden|dusk/.test(sc.phase),storm=sc.thunder,wet=sc.type!=='none';
+ const bg=sc.dark?(geo?'#111B3B':'#202630'):warm?(geo?'#F8DECC':'#F4E8D8'):geo?'#E0F1F5':'#EDF2E9',end=sc.dark?(geo?'#111A38':'#394246'):storm?'#ACBBCD':wet?'#CDDCE5':warm?'#EBC4AF':geo?'#A6D8E1':'#D4E0D7';
+ return' style="--art-bg:'+bg+';--art-end:'+end+';--art-ink:'+(sc.dark?'#F5F5FC':'#172D3E')+';--art-sub:'+(sc.dark?'#B9C8E2':'#344A59')+';--art-line:'+(sc.dark?'#536181':'#A6BDC5')+';--art-stars:'+Math.max(0,1-(W.now.cf!=null?W.now.cf/100:sc.sky==='cloudy'?1:sc.sky==='partly'?.5:sc.sky==='fair'?.18:0)).toFixed(2)+';--art-star:'+(sc.dark?'#FFFFFF':'#D9A33C')+';--art-moon:'+(sc.dark?'#F3F5FF':'#D9A33C')+'"'}
+/* Riktiga bildlager från den valda illustrationen. Himlen/nederbörden är fortfarande fristående.
+   Dag/natt och årstider blandas mellan registrerade motiv; hundarnas atlas är ett separat lager. */
+const geoAsset=name=>'bilder/vader/'+name+'.webp?v=1';
+function geoSeasonBlend(t){const T=treeStage(t),K=[[1,'winter'],[70,'winter'],[120,'spring'],[170,'summer'],[245,'summer'],[282,'autumn'],[309,'autumn'],[335,'winter'],[366,'winter']];
+ let i=1;while(i<K.length-1&&K[i][0]<T.doy)i++;const A=K[i-1],B=K[i];if(A[1]===B[1])return[[A[1],1]];let k=Math.max(0,Math.min(1,(T.doy-A[0])/(B[0]-A[0])));
+ if(A[1]==='winter'&&B[1]==='spring')k=Math.min(k,T.d*1.6);return[[A[1],1-k],[B[1],k]].filter(([,w])=>w>.001)}
+// Bildgenereringens mjuka alfagloria är bortskuren direkt i arken (träd ×3, hundar/moln ×5 på alfakanalen); förut gjorde SVG-filter det vid varje omritning, vilket laggade.
+// Kvarvarande filter (natt, molnfärg) begränsas till den synliga rutan (r=[x,y,b,h]); annars räknas hela bildarket.
+const geoReg=r=>r?' filterUnits="userSpaceOnUse" x="'+r[0]+'" y="'+r[1]+'" width="'+r[2]+'" height="'+r[3]+'"':'';
+// Geometriskt träd: kala grenar ur bildarket (ruta 4, snögrenar ruta 5 tonas in efter snömängden) och en krona av platta rundlar
+// som följer treeStage dag för dag: knoppar som växer ut, blom, äpplen, löv som gulnar och faller ett och ett i egen takt.
+// Koordinaterna för kronan är bildrutans (512 × 512, stambas 267,466).
+const GEO_TIPS=[[242,66],[322,88],[176,130],[212,136],[384,148],[410,168],[440,178],[118,192],[142,188],[180,214],[346,222],[122,256],[418,260],[356,334]];
+// Sommarträdets krona ur bildarket som ytor per färgton [ton, mitt x, mitt y, yta, bana] (verktyg/geo-krona.py). Samma krona färgas om och
+// tunnas ut dag för dag, så att stilen med tydliga rundlar och starka färger är densamma hela året. Ton 0–3 mörk→ljus, 4–5 blad framför grenarna.
+const GEO_KRONA=[[0,272,208,110848,"M300 9L291 7L273 7L265 9L250 17L236 32L229 27L213 23L212 24L212 33L215 44L218 49L217 50L202 51L189 55L173 65L162 78L153 100L140 91L128 88L123 88L122 89L122 95L124 104L129 114L135 120L134 121L116 120L107 122L93 128L86 133L75 146L71 154L68 165L69 183L75 197L74 198L69 197L57 198L47 202L47 205L50 210L60 220L68 224L77 224L78 225L78 227L75 230L72 236L69 246L70 266L75 277L84 287L96 294L101 295L104 298L102 304L101 314L110 314L118 312L121 310L125 317L139 330L150 335L162 337L164 339L164 345L168 355L178 365L185 368L179 374L174 387L174 394L173 395L174 399L189 397L197 393L204 386L207 380L208 366L210 364L224 377L232 381L244 384L246 379L247 360L243 353L239 349L240 347L288 347L290 349L290 363L291 364L291 371L293 373L299 371L325 347L337 347L338 349L317 375L318 378L328 380L340 380L341 379L347 379L365 372L367 376L375 384L383 388L391 390L398 390L399 386L398 385L397 372L395 367L389 359L400 347L405 337L406 332L408 330L416 329L422 326L430 318L436 305L441 311L450 317L461 320L470 320L469 305L464 295L460 290L449 284L462 278L474 265L479 252L479 234L474 222L462 210L467 198L467 191L468 190L466 176L462 167L454 158L445 152L425 146L433 140L439 130L440 120L441 119L441 111L436 110L423 114L418 117L411 124L410 123L409 105L406 97L399 87L394 82L382 75L362 71L368 55L369 47L368 46L354 47L350 49L347 49L336 56L331 38L322 24L315 17ZM91 212L92 211L95 214L93 215ZM406 141L408 147L406 149L402 150L401 148ZM150 128L153 127L155 129L153 130Z"],[1,285,168,61864,"M213 23L212 24L212 33L215 44L218 49L217 50L202 51L189 55L173 65L162 78L153 100L140 91L128 88L123 88L122 89L122 95L126 109L129 114L135 120L134 121L116 120L107 122L93 128L86 133L75 146L71 154L68 165L69 183L75 197L74 198L63 197L62 198L57 198L52 202L48 201L47 202L48 207L56 217L68 224L81 225L86 223L93 218L93 215L91 213L92 211L98 217L103 234L106 237L110 238L121 238L122 239L143 238L148 233L151 232L162 242L166 243L169 249L175 255L177 255L178 226L182 223L184 218L186 217L188 219L189 244L190 248L192 250L191 255L191 264L192 265L191 270L192 272L194 272L196 276L201 280L209 293L213 297L215 297L219 300L230 300L235 298L237 296L237 294L249 283L249 281L254 278L255 273L252 270L254 269L254 267L251 264L254 261L254 256L256 250L256 232L257 231L256 227L257 223L252 216L248 216L246 214L246 208L243 204L239 204L235 200L235 195L233 193L212 192L193 197L188 201L187 200L188 196L188 179L185 170L179 162L179 159L176 156L168 153L164 149L157 138L157 132L150 128L151 127L156 128L161 116L173 106L180 104L192 104L204 108L215 119L214 122L210 120L205 120L203 126L203 139L202 140L204 151L207 155L210 155L218 160L228 162L233 156L241 155L253 149L263 139L264 125L265 124L266 92L269 89L274 89L276 91L278 117L280 117L283 114L285 116L290 116L291 117L289 122L279 136L279 147L282 153L293 164L305 171L320 175L334 175L335 176L326 183L319 196L320 211L329 224L341 230L355 231L359 229L362 229L368 225L375 217L378 211L377 191L373 185L365 178L355 174L347 174L346 173L354 169L365 170L374 167L378 167L388 163L392 167L396 176L396 192L395 195L401 194L403 198L406 199L420 195L427 189L432 193L428 197L410 206L408 206L406 208L395 212L357 251L353 257L325 286L330 292L338 297L346 300L368 301L372 299L374 301L374 310L376 314L373 318L356 333L352 335L343 344L335 354L335 356L346 361L360 361L362 364L363 371L366 373L367 376L375 384L383 388L391 390L398 390L399 386L398 385L397 372L395 367L389 359L400 347L405 337L407 330L398 330L387 325L379 317L375 308L375 296L377 290L380 285L387 278L399 273L411 273L421 277L429 283L435 296L435 305L441 311L448 316L456 319L470 320L469 305L464 295L460 290L449 284L462 278L474 265L479 252L479 234L474 222L462 210L467 198L467 191L468 190L466 176L462 167L454 158L445 152L425 146L433 140L439 130L440 120L441 119L441 111L436 110L423 114L418 117L411 124L410 123L409 105L406 97L399 87L394 82L382 75L362 71L368 55L369 47L368 46L354 47L350 49L347 49L336 56L331 38L322 24L315 17L300 9L291 7L273 7L265 9L250 17L236 32L229 27ZM204 277L207 274L208 275L221 274L227 277L234 284L236 294L233 297L226 299L215 296L209 290L204 280ZM361 253L361 251L368 244L373 241L376 241L377 239L379 240L385 239L386 241L393 242L401 247L400 251L386 262L382 263L372 262L367 259ZM157 192L158 193L166 192L171 194L181 202L182 205L181 208L183 209L181 218L178 221L172 221L171 222L166 221L160 216L160 212L155 206L155 194ZM371 187L372 191L375 193L376 196L376 206L377 207L375 211L375 214L372 219L364 226L361 226L354 229L349 229L348 226L339 228L337 226L337 222L340 215L359 197L362 196L368 188ZM430 163L431 164L431 178L427 187L422 192L415 196L405 197L402 193L402 188L401 187L402 181L405 175L411 169L418 165ZM406 141L408 147L406 149L402 150L401 148ZM209 125L223 131L231 142L230 144L231 151L227 158L225 159L217 157L209 150L205 140L205 134L207 132L207 127ZM338 85L341 86L341 89L344 93L346 101L344 118L341 121L339 120L337 110L333 104L333 101L336 94L336 87ZM302 83L307 87L308 98L305 101L305 104L299 112L292 115L288 114L283 108L282 102L285 98L286 94L292 88L300 85Z"],[1,293,210,874,"M282 189L281 194L282 195L283 227L285 229L293 229L300 226L303 226L305 223L307 215L307 209L304 201L294 191L290 189Z"],[1,257,195,59,"M254 191L253 192L254 196L257 199L260 199L260 192L259 191Z"],[1,303,266,1377,"M321 245L315 242L307 241L285 262L286 295L273 309L275 309L293 290L323 264L325 257L325 249Z"],[1,151,277,2171,"M154 248L146 248L134 256L134 258L129 267L129 276L125 279L115 282L105 292L104 299L107 297L107 295L111 288L123 281L124 282L128 282L130 280L132 280L133 282L135 280L137 281L136 288L134 290L134 294L129 301L129 303L117 312L126 309L132 303L137 293L144 297L151 299L162 299L173 295L183 286L183 282Z"],[1,193,338,2668,"M208 314L195 310L185 311L177 314L167 324L163 335L164 345L168 355L178 365L183 367L187 367L189 365L192 365L199 362L207 362L208 365L209 365L217 356L220 350L222 341L221 331L215 320Z"],[2,304,87,17381,"M153 101L154 121L157 121L159 116L165 109L178 102L193 102L200 105L204 105L204 95L206 87L210 79L221 68L235 62L246 61L251 62L262 72L269 84L269 87L271 89L274 89L276 91L277 95L279 94L280 86L282 81L293 69L302 65L315 65L318 66L328 73L328 82L335 87L334 97L329 107L324 112L312 118L299 118L297 116L306 108L309 101L308 81L305 80L290 86L282 95L281 110L285 116L291 116L292 118L280 135L279 140L280 141L280 148L282 151L296 165L303 169L320 174L335 174L336 173L342 173L349 170L349 168L343 164L335 154L332 141L334 132L337 127L343 121L350 117L358 115L369 116L378 121L385 129L388 137L388 149L384 157L377 164L377 166L382 165L391 160L400 151L406 141L408 147L424 146L431 142L436 136L439 130L440 120L441 119L441 111L436 110L421 115L411 124L410 123L409 105L406 97L399 87L394 82L382 75L362 71L368 55L369 50L368 46L361 46L347 49L336 56L331 38L322 24L315 17L300 9L291 7L273 7L260 11L250 17L235 32L235 34L231 41L229 50L207 50L189 55L177 62L167 71L162 78L158 86ZM338 85L341 86L341 89L344 93L346 101L344 118L341 121L339 120L337 110L333 104L333 101L336 94L336 87ZM302 83L307 87L308 98L305 101L305 104L299 112L292 115L288 114L283 108L282 102L285 98L286 94L292 88L300 85Z"],[2,135,187,13066,"M47 202L47 205L53 214L60 220L68 224L82 224L89 220L92 217L91 212L92 211L99 216L103 232L106 235L114 237L140 237L144 236L151 231L158 237L169 238L176 240L178 237L178 226L182 222L184 217L186 216L188 218L188 225L189 226L189 241L191 243L201 243L210 240L218 235L226 226L232 211L233 196L226 193L214 193L195 198L185 205L184 202L187 195L187 180L185 173L179 163L174 158L166 154L161 148L156 139L155 132L148 125L140 121L116 120L101 124L93 128L86 133L75 146L71 154L68 165L69 183L75 197L74 198L69 197L57 198L52 202L50 201ZM157 192L158 193L166 192L171 194L181 202L182 205L181 208L183 209L181 218L178 221L172 221L171 222L166 221L160 216L160 212L155 206L155 194Z"],[2,219,142,344,"M207 122L205 124L204 129L204 145L207 152L213 157L219 160L228 161L233 153L232 138L221 127L210 122ZM209 125L223 131L231 142L230 144L231 151L227 158L225 159L217 157L209 150L205 140L205 134L207 132L207 127Z"],[2,421,175,182,"M431 161L420 163L413 166L404 174L401 180L401 184L402 184L402 181L405 175L411 169L418 165L426 163L431 164L431 178L427 187L416 196L424 192L430 185L433 172L432 162Z"],[2,344,196,1605,"M322 191L321 195L321 210L325 218L332 225L337 227L337 222L340 215L359 197L362 196L365 191L370 187L372 188L372 191L375 193L376 206L377 207L375 211L375 214L372 219L374 218L378 207L377 194L374 188L366 180L361 177L356 176L339 176L336 177L330 181Z"],[2,404,194,28,"M401 188L401 193L403 197L408 198L408 197L405 197L403 195L402 188Z"],[2,456,247,2636,"M455 207L442 207L433 212L433 215L442 225L447 238L447 252L441 267L428 280L418 274L412 273L412 274L415 274L417 276L421 277L429 283L435 296L435 304L436 304L436 295L433 287L434 286L448 285L450 283L462 278L474 265L479 252L479 234L474 222L461 209Z"],[2,346,228,34,"M340 227L341 229L350 230L348 228L348 226Z"],[2,380,250,370,"M357 254L360 258L371 264L386 264L394 260L404 249L404 246L390 238L376 237L367 241L357 252ZM361 253L361 251L368 244L373 241L376 241L377 239L379 240L385 239L386 241L393 242L401 247L400 251L386 262L382 263L372 262L367 259Z"],[2,151,277,2008,"M155 249L148 249L141 252L133 260L130 266L130 275L127 279L116 282L107 290L104 296L104 299L107 297L107 295L111 288L123 281L124 282L128 282L130 280L132 280L133 282L135 280L137 281L136 288L134 290L134 294L129 301L129 303L117 312L125 309L131 303L134 298L135 293L137 291L142 295L147 297L161 298L166 297L174 293L182 286L182 281Z"],[2,214,274,29,"M208 275L220 274L220 273L210 273Z"],[2,232,285,68,"M222 274L222 275L227 277L234 284L236 294L232 298L235 297L237 295L237 290L234 282L228 276Z"],[2,383,286,99,"M398 273L395 273L386 277L378 285L374 294L374 305L375 305L375 296L380 285L387 278L398 274Z"],[2,212,292,64,"M204 281L205 286L208 291L214 297L218 299L222 299L221 297L215 296L209 290L205 281Z"],[2,383,322,101,"M375 309L377 314L377 321L379 324L397 330L397 329L392 328L387 325L379 317L377 311Z"],[2,193,339,2537,"M176 316L170 321L165 331L164 345L168 355L178 365L183 367L187 367L189 365L192 365L199 362L207 362L208 365L209 365L209 363L218 352L220 346L220 332L216 322L211 317L200 312L186 312Z"],[2,381,370,1045,"M364 350L361 353L361 357L363 360L363 365L367 376L375 384L383 388L391 390L398 390L399 386L398 385L397 372L395 367L389 359L385 356L373 351Z"],[3,284,43,5456,"M291 7L273 7L260 11L250 17L236 32L230 48L230 51L232 53L242 56L255 64L265 75L269 82L270 87L276 90L276 93L278 93L280 84L283 78L295 67L304 64L312 64L320 66L328 71L331 64L335 59L335 52L331 38L322 24L315 17L300 9Z"],[3,380,107,3396,"M359 72L351 80L339 84L344 93L346 101L346 109L343 120L354 115L363 114L373 117L382 124L388 134L389 146L386 155L378 164L378 165L381 165L395 156L401 149L407 139L410 130L409 105L406 97L399 87L388 78L376 73Z"],[3,295,100,238,"M306 81L301 82L290 87L283 94L281 101L282 111L285 116L297 115L305 108L308 99L305 101L305 104L299 112L292 115L288 114L283 108L282 102L285 98L286 94L292 88L300 85L302 83L307 87L307 90L308 90L308 86Z"],[3,106,156,4369,"M148 126L140 122L129 121L128 120L111 121L101 124L93 128L86 133L77 143L69 160L68 178L71 189L76 199L84 204L88 210L95 213L98 213L98 200L102 185L109 173L121 161L136 153L145 152L146 150L147 151L156 151L157 152L162 152L163 151L156 140L155 132Z"],[3,218,142,289,"M207 122L205 126L205 132L204 133L204 141L207 151L215 158L227 161L231 156L233 149L233 145L230 136L223 129ZM209 125L223 131L231 142L230 144L231 151L227 158L225 159L217 157L209 150L205 140L205 134L207 132L207 127Z"],[3,167,194,62,"M156 191L158 193L166 192L173 195L176 199L179 200L175 195L162 190L157 190Z"],[3,175,216,159,"M185 216L185 209L182 202L181 202L182 205L181 208L183 209L181 218L178 221L170 222L164 220L160 216L160 212L156 208L159 216L164 221L171 224L181 223Z"],[3,380,250,283,"M358 254L362 258L371 263L382 264L395 258L403 249L403 246L397 242L387 238L375 238L369 240L358 251ZM361 253L361 251L368 244L373 241L376 241L377 239L379 240L385 239L386 241L393 242L401 247L400 251L386 262L382 263L372 262L367 259Z"],[3,118,286,112,"M136 279L122 280L115 283L109 288L104 296L104 299L107 297L107 295L112 287L123 281L128 282L130 280L132 280L134 282Z"],[3,212,292,49,"M205 283L207 289L213 296L217 298L221 298L221 297L215 296L209 290L206 283Z"],[3,129,302,77,"M136 289L134 290L134 294L129 301L129 303L117 312L124 309L130 304L135 295Z"],[4,297,86,30,"M303 83L291 88L290 90L303 84Z"],[4,308,93,32,"M306 86L307 91L306 100L308 99L308 90L307 86Z"],[4,341,103,351,"M337 85L336 86L335 97L333 100L333 105L337 111L339 121L342 121L344 119L346 110L346 100L344 92L341 88L341 85Z"],[4,417,180,804,"M431 163L425 163L417 165L410 169L405 174L401 184L402 194L404 198L416 196L423 192L427 188L431 179Z"],[4,360,211,1051,"M372 187L367 188L361 196L358 197L340 214L337 221L337 227L338 228L347 226L348 229L355 229L362 226L365 226L372 220L375 215L375 212L377 208L376 195L375 192L372 190Z"],[4,161,209,102,"M155 193L155 207L160 213L160 217L163 220L172 222L172 221L167 220L161 214L156 204L156 197L158 194L158 191Z"],[4,173,197,70,"M160 191L160 193L166 193L172 196L182 206L181 201L178 198L176 198L174 195L167 192Z"],[4,379,262,42,"M369 260L369 261L374 263L383 263L388 261L387 260L382 262L374 262Z"],[4,221,286,622,"M204 276L204 281L209 291L214 296L220 297L222 299L232 298L236 295L235 285L228 277L222 274L212 274L211 275L206 274ZM231 289L234 292L232 295L230 295L228 293Z"],[4,405,301,2861,"M386 278L378 287L375 295L375 309L379 318L386 325L397 330L412 330L422 326L430 318L435 307L435 295L429 282L422 277L412 273L398 273Z"],[4,135,283,46,"M129 280L129 281L134 282L135 287L134 290L135 290L137 285L137 280Z"],[4,197,364,55,"M208 362L198 362L191 365L188 365L185 368L198 363L206 363L207 364L209 364Z"],[5,296,100,582,"M305 84L301 84L296 86L286 93L285 97L283 99L283 108L287 114L296 114L304 106L307 99L307 90Z"],[5,218,142,649,"M208 125L206 132L206 143L208 149L215 156L226 159L229 156L230 153L230 140L229 138L220 129L218 129L211 125Z"],[5,170,207,605,"M158 193L156 196L156 205L161 215L166 220L175 222L179 221L181 219L182 215L182 208L180 202L173 196L167 193Z"],[5,381,251,693,"M361 254L370 261L383 262L389 260L396 255L401 250L401 247L393 242L390 242L386 240L376 240L367 244L361 250Z"],[5,119,297,758,"M133 281L121 282L111 288L107 294L107 296L103 300L102 314L110 314L112 312L117 312L129 303L133 296L133 293L135 289Z"],[5,232,292,43,"M232 288L228 292L229 295L234 294L234 291Z"],[5,192,380,913,"M207 363L197 363L188 366L179 374L174 387L174 397L175 398L189 397L197 393L204 386L207 380L207 375L208 374L208 364Z"]];
+// Färger per ton och nyckeldag: vår (ruta 0), sommar (ruta 1), gulnande, höst (ruta 2), sen höst (ruta 3) och bruna sista löv.
+const GEO_LEAF=[[100,['#2FA755','#5CBF45','#7DCF33','#B8EA4E','#A6E05A','#D6F27A']],[165,['#0A8968','#31AE4C','#6CCB35','#CCF346','#9DE138','#D5EF1B']],
+ [238,['#0F8562','#3AA84A','#86C83A','#D4EE48','#B6DA3A','#E2E62A']],[268,['#B88A22','#DDA82A','#F0C532','#FADF55','#F7B92E','#FBE36A']],
+ [288,['#C61E42','#F02B39','#FC4838','#FC642A','#FD8A16','#FC642A']],[304,['#B21D42','#EA2C3C','#FB4632','#FB6927','#FC8311','#FB6927']],[322,['#7E3A34','#A44C32','#BC6436','#CF7E40','#D98E44','#C97A3A']]];
+function geoLeafCol(doy,tone){let i=1;while(i<GEO_LEAF.length-1&&GEO_LEAF[i][0]<doy)i++;const A=GEO_LEAF[i-1],B=GEO_LEAF[i],k=Math.max(0,Math.min(1,(doy-A[0])/(B[0]-A[0])));return mixHex(A[1][tone],B[1][tone],k)}
+const geoQ=k=>{const x=Math.sin(k*127.1+311.7)*43758.5453;return x-Math.floor(x)};
+function geoCrownSvg(T,sc,id){const doy=T.doy,f=v=>v.toFixed(1),d=T.d,autumn=doy>240;let back='',front='';
+ GEO_KRONA.forEach(([tone,cx,cy,area,path],i)=>{const off=(geoQ(i*7+cx*.01)-.5)*(autumn?24:12);
+  const el='<path fill-rule="evenodd" d="'+path+'" fill="'+geoLeafCol(doy+off,tone)+'"/>';if(tone>=4)front+=el;else back+=el});
+ // lövtäthet: kronan visas genom rundlar som växer fram på våren och krymper bort på hösten, ytterst först, så att kanten alltid är rund
+ if(d<.995){let c='';for(let gy=0;gy<8;gy++)for(let gx=0;gx<9;gx++){const k=gy*9+gx,x=95+gx*46+(gy%2)*23+(geoQ(k)-.5)*18,y=10+gy*48+(geoQ(k+80)-.5)*18,dist=Math.min(1,Math.hypot((x-272)/200,(y-185)/175));
+   if(dist>=1)continue;const lim=.8*(.6*geoQ(k+160)+.4*dist),g=Math.max(0,Math.min(1,(d-lim)/.2));if(g>0)c+='<circle cx="'+f(x)+'" cy="'+f(y)+'" r="'+f(44*g)+'"/>'}
+  const clip='<clipPath id="'+id+'kc">'+(c||'<circle r="0"/>')+'</clipPath>';back='<defs>'+clip+'</defs><g clip-path="url(#'+id+'kc)">'+back+'</g>';front='<g clip-path="url(#'+id+'kc)">'+front+'</g>'}
+ // platser för blom och äpplen, jämnt spridda i kronan
+ const P=[];for(let i=0;P.length<26&&i<200;i++){const a=geoQ(i+500)*Math.PI*2,u=Math.sqrt(geoQ(i+700)),x=272+Math.cos(a)*150*u,y=180+Math.sin(a)*112*u;if(!P.some(p=>Math.hypot(p[0]-x,p[1]-y)<42))P.push([x,y,30,geoQ(i+900),geoQ(i+1100)])}
+ // knoppar vid grenspetsarna innan löven slagit ut
+ if(doy>82&&doy<150&&d<.6){const b=Math.max(0,Math.min(1,(doy-82)/18))*(1-Math.max(0,(d-.3)/.3));
+  front+=GEO_TIPS.map(([x,y],i)=>'<circle cx="'+x+'" cy="'+y+'" r="'+f(5+6*b)+'" fill="'+(i%3?'#B9E36A':'#D6F08A')+'"/>').join('')}
+ // blom: vita och rosa blommor med gul mitt, rosa knoppar i början och slutet
+ if(T.bloom>0){const n=Math.round(T.bloom*22);P.slice(0,26).forEach(([x,y,R,q,w],i)=>{if(i>=n)return;const cx=x+(w-.5)*R*.9,cy=y-(q-.4)*R*.9,z=.6+.4*T.bloom,bud=(i+doy)%5===0;
+  front+=bud?'<circle cx="'+f(cx)+'" cy="'+f(cy)+'" r="'+f(7*z)+'" fill="#F49AB6"/>':'<g transform="translate('+f(cx)+' '+f(cy)+') scale('+f(z)+') rotate('+Math.round(w*72)+')">'+[0,72,144,216,288].map(a=>'<circle cx="0" cy="-9" r="8" transform="rotate('+a+')" fill="'+(i%3?'#FDE8EE':'#F9C6D6')+'"/>').join('')+'<circle r="4.5" fill="#F6B73C"/></g>'})}
+ // äpplen på sensommaren
+ if(T.fruit>0){const n=Math.round(T.fruit*9);P.slice(2,20).forEach(([x,y,R,q,w],i)=>{if(i>=n||i%2)return;const z=.6+.4*T.fruit;
+  front+='<circle cx="'+f(x+(w-.5)*R)+'" cy="'+f(y+R*.3)+'" r="'+f(11*z)+'" fill="#E2453C"/><circle cx="'+f(x+(w-.5)*R-3*z)+'" cy="'+f(y+R*.3-3.5*z)+'" r="'+f(3.4*z)+'" fill="#FF8A6E"/>'})}
+ // natt: kronan i samma blå nattljus som resten av bilden (färgerna blandas, inget filter)
+ if(sc.dark){const n=x=>x.replace(/fill="(#[0-9A-Fa-f]{6})"/g,(m,c)=>'fill="'+mixHex(c,'#26306A',.55)+'"');back=n(back);front=n(front)}
+ return{back,front}}
+// Fristående träd placeras i originalets koordinater; mark, tuvor och hundar är egna lager.
+function geoTreeSvg(sc,id,T,near){const snow=snowLevel(sc),k=.18,lift=20,span=60,tx=28,ty=151,ax=267,ay=466,cut=ay-span,ky=k+lift/span;
+ // snö på grenarna: lika mycket som snön ute (snöminnet i cm), mer medan det snöar, inget i töväder
+ const cm=snowDepth(),fall=sc.type==='snow'?(sc.lv>=3?1:sc.lv>=2?.75:.45):sc.type==='sleet'&&sc.T<=.5?.25:0,sb=Math.max(fall,sc.T>1.5?0:Math.min(1,cm/8));
+ let t='<ellipse cx="33" cy="152" rx="'+(10+8*T.d).toFixed(1)+'" ry="2.6" fill="'+shadeHex(near,.75)+'" opacity=".7"/>';
+ const img=fr=>'<image href="'+geoAsset('trees-v2')+'" x="'+(-(fr%3)*512)+'" y="'+(-Math.floor(fr/3)*512)+'" width="1536" height="1024"/>';
+ const C=geoCrownSvg(T,sc,id),pos='translate('+(tx-ax*k).toFixed(2)+' '+(ty-ay*k-lift).toFixed(2)+') scale('+k+')';
+ const branches=fr=>'<g clip-path="url(#'+id+'tc)">'+img(fr)+'</g>';
+ t+='<g class="geo-tree" data-frame="4" data-snow="'+sb.toFixed(2)+'"><defs><clipPath id="'+id+'tc"><rect width="512" height="'+(cut+.5)+'"/></clipPath><clipPath id="'+id+'ts"><rect y="'+(cut-.5)+'" width="512" height="'+(512-cut+.5)+'"/></clipPath></defs>'+
+  '<g class="geo-trunk" transform="translate('+(tx-ax*k).toFixed(2)+' '+(ty-ay*ky).toFixed(2)+') scale('+k+' '+ky+')"><g clip-path="url(#'+id+'ts)">'+img(4)+'</g></g>'+
+  '<g class="geo-crown" transform="'+pos+'">'+C.back+branches(4)+(sb>.02?'<g opacity="'+sb.toFixed(2)+'">'+branches(5)+'</g>':'')+C.front+'</g></g>';
+ if(snow&&T.d>.2)t+='<path transform="translate(-24 -29)" d="M23 79 Q38 61 60 69 Q76 68 86 81 Q65 72 47 77 Q31 74 23 79Z" fill="#F3F7FF" opacity=".9"/>';
+ t+=geoLovMark(T,snow);
+ return t}
+// Löv på marken: lika många som kronan har tappat (1 − täthet), samlade kring stammen och utdragna åt sidan.
+// Varje löv har färgen kronan hade när det föll och brunnar sedan; efter lövfällningen ruttnar de bort till mitten av december.
+function geoLovMark(T,snow){const doy=T.doy;if(snow>=2||doy<250||doy>352)return'';const N=72,lost=doy>=332?1:1-T.d,rot=doy>332?Math.min(1,(doy-332)/20):0,n=Math.round(N*lost*(1-rot*.85));if(n<1)return'';
+ const dAt=a=>{let i=1;while(i<TREE_K.length-1&&TREE_K[i][0]<a)i++;const A=TREE_K[i-1],B=TREE_K[i];return A[1]+(B[1]-A[1])*Math.max(0,Math.min(1,(a-A[0])/((B[0]-A[0])||1)))},fell=i=>{let a=250;while(a<332&&1-dAt(a)<(i+.5)/N)a+=2;return a},f=v=>v.toFixed(1);let h='';
+ for(let i=0;i<n;i++){const q=k=>geoQ(i*7.31+k),r=Math.pow(q(1),1.6),side=q(2)<.62?1:-1,x=28+side*(6+r*(side>0?96:46))+(q(3)-.5)*10,y=153+r*16+(q(4)-.5)*10+(q(5)<.3?-3:0);
+  const fd=fell(i),c=mixHex(geoLeafCol(fd,Math.floor(q(6)*6)),'#8B5A3C',Math.min(.7,Math.max(0,(doy-fd)/45))),z=.75+q(7)*.6,a=Math.round(q(8)*70-35);
+  h+='<path transform="translate('+f(x)+' '+f(y)+') rotate('+a+') scale('+f(z)+' '+f(z*.62)+')" d="M-4 0Q-1 -3.4 4 0Q-1 3.4 -4 0Z" fill="'+c+'"'+(rot?' opacity="'+f(1-rot*.6)+'"':'')+'/>'}
+ return'<g class="geo-lov">'+h+'</g>'}
+// Atlasens mellanrum klipps per bildruta så att grannhundens öra/kläder inte följer med.
+const GEO_DOG_SEAMS=[[[155.5,0],[155.5,3],[157.5,4],[157.5,44],[159.5,45],[159.5,47],[161.5,49],[161.5,50],[162.5,51],[162.5,53],[163.5,54],[163.5,56],[164.5,57],[164.5,61],[165.5,62],[165.5,64],[163.5,65],[163.5,84],[165.5,85],[165.5,87],[164.5,88],[162.5,89],[162.5,94],[164.5,95],[164.5,97],[163.5,98],[163.5,102],[162.5,103],[162.5,106],[161.5,107],[161.5,112],[160.5,113],[160.5,114],[159.5,115],[159.5,135],[157.5,136],[157.5,205],[156.5,206],[156.5,207],[155.5,208],[155.5,212],[157.5,213],[157.5,224],[158.5,225],[158.5,228],[159.5,229],[159.5,230],[160.5,231],[160.5,232],[158.5,233],[157.5,234],[157.5,255],[157.5,256]],[[157.5,0],[157.5,122],[158.5,123],[158.5,124],[160.5,125],[160.5,127],[162.5,128],[162.5,129],[164.5,130],[164.5,137],[163.5,138],[163.5,140],[164.5,141],[166.5,142],[166.5,160],[164.5,161],[163.5,162],[163.5,166],[164.5,167],[166.5,168],[166.5,170],[164.5,171],[164.5,172],[162.5,173],[161.5,174],[161.5,175],[162.5,176],[162.5,177],[164.5,178],[164.5,179],[166.5,180],[165.5,181],[165.5,182],[166.5,183],[164.5,184],[164.5,185],[163.5,186],[164.5,187],[164.5,191],[162.5,192],[162.5,196],[158.5,198],[158.5,232],[164.5,235],[163.5,236],[164.5,237],[164.5,240],[162.5,241],[162.5,242],[161.5,243],[162.5,244],[164.5,245],[158.5,248],[157.5,249],[157.5,255],[157.5,256]],[[157.5,0],[157.5,56],[159.5,57],[159.5,69],[157.5,70],[157.5,79],[159.5,80],[160.5,81],[166.5,84],[166.5,101],[165.5,102],[167.5,103],[167.5,106],[168.5,107],[168.5,108],[166.5,109],[165.5,110],[159.5,113],[158.5,114],[158.5,121],[157.5,122],[157.5,197],[154.5,200],[154.5,201],[153.5,202],[153.5,203],[154.5,204],[154.5,205],[153.5,206],[153.5,207],[152.5,208],[152.5,211],[151.5,212],[151.5,222],[152.5,223],[152.5,226],[153.5,227],[153.5,228],[151.5,229],[152.5,230],[152.5,231],[153.5,232],[153.5,233],[154.5,234],[154.5,235],[156.5,236],[156.5,242],[158.5,244],[156.5,246],[156.5,255],[156.5,256]],[[157.5,0],[157.5,22],[156.5,23],[156.5,92],[157.5,93],[157.5,133],[159.5,134],[159.5,138],[161.5,139],[161.5,144],[159.5,145],[159.5,161],[161.5,162],[161.5,168],[160.5,169],[160.5,178],[161.5,179],[161.5,180],[157.5,182],[157.5,183],[156.5,184],[157.5,185],[157.5,186],[159.5,187],[159.5,193],[158.5,194],[158.5,216],[159.5,217],[159.5,236],[161.5,237],[159.5,238],[159.5,240],[157.5,241],[157.5,242],[156.5,243],[157.5,244],[157.5,255],[157.5,256]],[[157.5,0],[157.5,32],[158.5,33],[158.5,34],[159.5,35],[159.5,42],[160.5,43],[160.5,44],[161.5,45],[159.5,46],[159.5,48],[160.5,49],[160.5,53],[161.5,54],[161.5,79],[163.5,80],[163.5,82],[162.5,83],[160.5,84],[160.5,88],[162.5,89],[162.5,90],[163.5,91],[161.5,92],[161.5,94],[160.5,95],[160.5,98],[159.5,99],[159.5,105],[157.5,107],[157.5,169],[159.5,170],[159.5,171],[160.5,172],[160.5,173],[161.5,174],[161.5,176],[162.5,177],[161.5,178],[163.5,179],[162.5,180],[162.5,181],[160.5,182],[161.5,183],[161.5,185],[162.5,186],[164.5,187],[164.5,188],[162.5,190],[162.5,191],[160.5,192],[160.5,193],[159.5,194],[159.5,195],[158.5,196],[158.5,197],[155.5,200],[155.5,201],[152.5,204],[154.5,206],[153.5,207],[153.5,208],[155.5,209],[155.5,210],[154.5,211],[154.5,215],[153.5,216],[153.5,224],[154.5,225],[154.5,228],[155.5,229],[155.5,230],[156.5,231],[156.5,232],[157.5,233],[157.5,234],[156.5,235],[156.5,255],[156.5,256]],[[157.5,0],[157.5,125],[158.5,126],[162.5,128],[162.5,132],[166.5,134],[166.5,142],[164.5,143],[164.5,157],[166.5,158],[166.5,166],[164.5,167],[163.5,168],[163.5,171],[164.5,172],[164.5,185],[166.5,186],[164.5,187],[164.5,191],[166.5,192],[166.5,193],[168.5,194],[168.5,195],[158.5,200],[158.5,234],[164.5,237],[164.5,239],[166.5,240],[164.5,241],[164.5,243],[162.5,244],[161.5,245],[161.5,247],[162.5,248],[160.5,249],[160.5,255],[160.5,256]],[[157.5,0],[157.5,42],[158.5,43],[158.5,46],[159.5,47],[159.5,58],[161.5,60],[161.5,62],[162.5,63],[162.5,64],[161.5,65],[161.5,70],[159.5,72],[159.5,73],[158.5,74],[156.5,75],[156.5,77],[158.5,78],[158.5,79],[159.5,80],[158.5,81],[158.5,82],[157.5,83],[155.5,84],[155.5,85],[157.5,86],[157.5,87],[159.5,88],[157.5,90],[157.5,95],[156.5,96],[156.5,158],[155.5,159],[153.5,160],[154.5,161],[154.5,162],[152.5,163],[152.5,164],[153.5,165],[153.5,167],[154.5,168],[154.5,170],[155.5,171],[155.5,172],[156.5,173],[158.5,174],[159.5,175],[159.5,176],[157.5,177],[157.5,179],[158.5,180],[158.5,183],[159.5,184],[159.5,187],[157.5,188],[158.5,189],[158.5,190],[157.5,191],[157.5,192],[156.5,193],[156.5,195],[157.5,196],[157.5,197],[156.5,198],[156.5,199],[154.5,201],[154.5,202],[153.5,203],[153.5,204],[152.5,205],[152.5,207],[151.5,208],[151.5,210],[150.5,211],[150.5,224],[151.5,225],[151.5,227],[152.5,228],[152.5,229],[153.5,230],[153.5,231],[154.5,232],[154.5,233],[156.5,235],[156.5,241],[157.5,242],[157.5,243],[158.5,244],[157.5,245],[157.5,255],[157.5,256]],[[157.5,0],[157.5,128],[161.5,130],[161.5,143],[159.5,144],[159.5,160],[163.5,162],[163.5,163],[161.5,164],[161.5,166],[159.5,167],[158.5,168],[158.5,172],[159.5,173],[159.5,181],[161.5,182],[161.5,183],[160.5,184],[160.5,187],[161.5,188],[161.5,194],[165.5,196],[159.5,199],[158.5,200],[158.5,234],[159.5,235],[158.5,236],[159.5,237],[159.5,238],[161.5,239],[159.5,240],[159.5,241],[157.5,242],[156.5,243],[154.5,244],[156.5,245],[157.5,246],[157.5,249],[159.5,250],[159.5,255],[159.5,256]],[[158.5,0],[158.5,17],[160.5,18],[160.5,19],[162.5,20],[163.5,21],[165.5,22],[165.5,23],[169.5,27],[169.5,28],[170.5,29],[170.5,30],[171.5,31],[171.5,32],[169.5,33],[169.5,34],[171.5,35],[172.5,36],[170.5,37],[170.5,50],[172.5,51],[172.5,56],[171.5,57],[171.5,61],[170.5,62],[170.5,65],[169.5,66],[169.5,68],[168.5,69],[168.5,71],[167.5,72],[167.5,74],[166.5,75],[166.5,76],[165.5,77],[165.5,78],[164.5,79],[164.5,80],[162.5,81],[162.5,82],[160.5,83],[160.5,92],[162.5,93],[162.5,95],[161.5,96],[161.5,101],[160.5,102],[160.5,115],[161.5,116],[161.5,121],[162.5,122],[162.5,123],[163.5,124],[163.5,126],[165.5,128],[164.5,129],[164.5,131],[162.5,132],[162.5,134],[163.5,135],[165.5,136],[165.5,138],[167.5,139],[167.5,147],[166.5,148],[166.5,149],[168.5,150],[168.5,153],[169.5,154],[169.5,155],[163.5,158],[163.5,159],[161.5,160],[161.5,161],[155.5,164],[155.5,166],[156.5,167],[156.5,169],[160.5,171],[161.5,172],[163.5,173],[163.5,174],[162.5,175],[162.5,176],[158.5,178],[158.5,181],[159.5,182],[158.5,183],[158.5,185],[157.5,186],[157.5,189],[158.5,190],[157.5,191],[157.5,192],[156.5,193],[156.5,194],[155.5,195],[155.5,196],[154.5,197],[154.5,198],[153.5,199],[153.5,201],[152.5,202],[152.5,204],[151.5,205],[151.5,210],[150.5,211],[150.5,213],[151.5,214],[151.5,219],[152.5,220],[152.5,222],[153.5,223],[153.5,224],[154.5,225],[154.5,226],[155.5,227],[155.5,228],[157.5,230],[157.5,233],[156.5,234],[156.5,235],[157.5,236],[157.5,237],[158.5,238],[157.5,239],[157.5,240],[156.5,241],[156.5,255],[156.5,256]],[[157.5,0],[157.5,126],[158.5,127],[168.5,132],[168.5,133],[170.5,134],[170.5,137],[172.5,138],[172.5,140],[170.5,141],[170.5,162],[172.5,163],[172.5,166],[168.5,168],[168.5,170],[170.5,171],[170.5,177],[166.5,179],[166.5,181],[165.5,182],[165.5,183],[166.5,184],[164.5,185],[164.5,191],[162.5,192],[162.5,193],[158.5,195],[158.5,231],[166.5,235],[166.5,240],[162.5,242],[162.5,243],[158.5,245],[157.5,246],[158.5,247],[158.5,255],[158.5,256]],[[158.5,0],[158.5,15],[159.5,16],[161.5,17],[161.5,20],[163.5,21],[163.5,22],[165.5,23],[165.5,24],[166.5,25],[166.5,26],[167.5,27],[167.5,28],[168.5,29],[168.5,30],[169.5,31],[169.5,34],[170.5,35],[170.5,36],[168.5,37],[168.5,41],[170.5,42],[169.5,43],[169.5,57],[171.5,58],[171.5,59],[170.5,60],[168.5,61],[168.5,66],[170.5,67],[170.5,70],[169.5,71],[169.5,72],[170.5,73],[170.5,74],[169.5,75],[169.5,76],[168.5,77],[168.5,79],[167.5,80],[167.5,82],[166.5,83],[166.5,84],[164.5,86],[164.5,87],[163.5,88],[163.5,89],[161.5,90],[161.5,105],[163.5,107],[163.5,109],[164.5,110],[164.5,111],[165.5,112],[165.5,115],[166.5,116],[166.5,117],[167.5,118],[166.5,119],[164.5,120],[164.5,122],[166.5,123],[165.5,124],[165.5,125],[163.5,126],[163.5,129],[162.5,130],[162.5,134],[161.5,135],[161.5,138],[160.5,139],[160.5,143],[159.5,144],[157.5,145],[156.5,146],[160.5,148],[160.5,149],[165.5,154],[169.5,156],[169.5,157],[168.5,158],[168.5,159],[167.5,160],[167.5,162],[166.5,163],[166.5,164],[165.5,165],[165.5,167],[164.5,168],[164.5,169],[163.5,170],[163.5,172],[162.5,173],[162.5,175],[160.5,176],[160.5,183],[158.5,185],[158.5,186],[157.5,187],[157.5,188],[156.5,189],[156.5,190],[155.5,191],[155.5,192],[153.5,194],[157.5,196],[156.5,197],[156.5,198],[155.5,199],[155.5,200],[154.5,201],[154.5,202],[153.5,203],[153.5,204],[152.5,205],[152.5,207],[151.5,208],[151.5,220],[152.5,221],[152.5,223],[153.5,224],[153.5,225],[154.5,226],[154.5,227],[155.5,228],[155.5,229],[158.5,232],[158.5,234],[157.5,235],[157.5,238],[156.5,239],[156.5,241],[157.5,242],[157.5,255],[157.5,256]],[[156.5,0],[156.5,86],[152.5,88],[152.5,104],[156.5,106],[157.5,107],[157.5,130],[159.5,131],[159.5,133],[161.5,134],[161.5,141],[160.5,142],[160.5,148],[161.5,149],[163.5,150],[163.5,159],[161.5,160],[160.5,161],[160.5,169],[161.5,170],[161.5,174],[159.5,175],[158.5,176],[158.5,179],[159.5,180],[157.5,181],[156.5,182],[157.5,183],[159.5,184],[159.5,185],[158.5,186],[159.5,187],[159.5,192],[158.5,193],[158.5,233],[159.5,234],[159.5,235],[161.5,236],[160.5,237],[160.5,240],[161.5,241],[163.5,242],[161.5,243],[161.5,244],[159.5,245],[158.5,246],[158.5,255],[158.5,256]],[[157.5,0],[157.5,29],[165.5,33],[167.5,35],[171.5,37],[171.5,39],[172.5,40],[170.5,41],[170.5,44],[171.5,45],[171.5,61],[175.5,63],[175.5,66],[174.5,67],[174.5,76],[172.5,77],[171.5,78],[169.5,79],[169.5,82],[167.5,83],[167.5,85],[164.5,88],[164.5,98],[163.5,99],[163.5,116],[162.5,117],[162.5,125],[163.5,126],[163.5,127],[165.5,129],[165.5,130],[167.5,132],[167.5,133],[165.5,134],[166.5,135],[166.5,136],[167.5,137],[169.5,138],[170.5,139],[170.5,141],[172.5,142],[172.5,144],[171.5,145],[169.5,146],[171.5,147],[171.5,152],[172.5,153],[172.5,157],[171.5,158],[171.5,159],[170.5,160],[170.5,161],[169.5,162],[167.5,163],[166.5,164],[166.5,165],[165.5,166],[165.5,167],[164.5,168],[164.5,170],[165.5,171],[165.5,172],[163.5,173],[163.5,179],[164.5,180],[164.5,183],[165.5,184],[165.5,185],[157.5,189],[157.5,194],[155.5,195],[155.5,198],[154.5,199],[155.5,200],[155.5,201],[154.5,202],[156.5,203],[154.5,204],[154.5,206],[153.5,207],[153.5,220],[154.5,221],[154.5,223],[155.5,224],[155.5,226],[156.5,227],[155.5,228],[155.5,229],[156.5,230],[156.5,255],[156.5,256]],[[157.5,0],[157.5,125],[158.5,126],[166.5,130],[166.5,131],[168.5,132],[168.5,133],[170.5,134],[170.5,136],[169.5,137],[169.5,138],[170.5,139],[172.5,140],[172.5,146],[170.5,147],[170.5,153],[172.5,154],[172.5,161],[168.5,163],[168.5,166],[170.5,167],[170.5,173],[172.5,174],[170.5,175],[170.5,176],[164.5,179],[163.5,180],[163.5,183],[164.5,184],[164.5,187],[163.5,188],[164.5,189],[160.5,191],[160.5,192],[158.5,193],[158.5,230],[166.5,234],[166.5,235],[165.5,236],[166.5,237],[165.5,238],[165.5,240],[166.5,241],[164.5,242],[164.5,244],[160.5,246],[159.5,247],[159.5,255],[159.5,256]],[[156.5,0],[156.5,45],[155.5,46],[155.5,48],[153.5,49],[153.5,52],[151.5,53],[151.5,74],[155.5,76],[155.5,95],[156.5,96],[156.5,135],[157.5,136],[157.5,147],[158.5,148],[160.5,149],[160.5,150],[159.5,151],[159.5,153],[158.5,154],[158.5,156],[157.5,157],[157.5,158],[156.5,159],[156.5,163],[157.5,164],[157.5,165],[156.5,166],[156.5,167],[155.5,168],[155.5,170],[154.5,171],[154.5,172],[153.5,173],[153.5,174],[151.5,175],[151.5,182],[153.5,183],[152.5,184],[153.5,185],[153.5,186],[151.5,187],[151.5,188],[149.5,189],[151.5,190],[151.5,192],[152.5,193],[152.5,194],[150.5,196],[150.5,197],[145.5,202],[147.5,203],[147.5,204],[146.5,205],[146.5,207],[145.5,208],[145.5,212],[144.5,213],[144.5,219],[145.5,220],[145.5,224],[146.5,225],[146.5,227],[148.5,229],[148.5,230],[150.5,232],[148.5,233],[150.5,235],[149.5,236],[151.5,237],[151.5,241],[153.5,243],[155.5,244],[153.5,245],[154.5,246],[156.5,247],[157.5,248],[157.5,255],[157.5,256]],[[157.5,0],[157.5,71],[156.5,72],[156.5,75],[157.5,76],[157.5,127],[161.5,129],[161.5,144],[159.5,145],[159.5,163],[161.5,164],[161.5,168],[159.5,169],[158.5,170],[158.5,174],[159.5,175],[159.5,177],[158.5,178],[158.5,180],[159.5,181],[159.5,182],[161.5,183],[160.5,184],[160.5,185],[161.5,186],[160.5,187],[160.5,191],[161.5,192],[157.5,194],[156.5,195],[157.5,196],[157.5,234],[161.5,236],[159.5,237],[159.5,240],[158.5,241],[159.5,242],[159.5,255],[159.5,256]]];
+// Per klädsel (bildruta/2): halslinje och vridpunktens x för [ljus, mörk] hund i rutans koordinater (mascots-v4).
+const GEO_NACKE=[[[165,90],[151,76]],[[163,88],[151,78]],[[155,86],[148,76]],[[152,82],[148,78]],[[146,86],[136,78]],[[150,88],[140,78]],[[142,86],[138,80]],[[150,82],[142,72]]];
+// Lätta pannrynkor på den ljusa hunden i en mörkare fawnton: ögonens [vänster x, höger x, y] per klädsel; mössa = bara en kort rynka, glasögon = högre upp.
+const GEO_OGON=[[72,129,120],[71,126,111],[71,127,108],[64,121,106],[72,129,94,1],[75,130,103],[73,129,101,1],[62,118,106]];
+function geoRynkor(i,lie){const c='#D58A45',st=(d,w)=>'<path d="'+d+'" fill="none" stroke="'+c+'" stroke-width="'+w+'" stroke-linecap="round" opacity=".85"/>';
+ if(lie){if(i===4||i===6)return'';const x=140,y=146;return'<g class="geo-rynkor">'+st('M'+(x-6)+' '+y+'Q'+x+' '+(y-2.6)+' '+(x+6)+' '+y,2.2)+st('M'+(x-8)+' '+(y-5.5)+'Q'+x+' '+(y-8.6)+' '+(x+8)+' '+(y-5.5),2.2)+'</g>'}
+ const [l,r,ey,hat]=GEO_OGON[i],x=(l+r)/2;if(hat)return'<g class="geo-rynkor">'+st('M'+(x-8)+' '+(ey-11)+'Q'+x+' '+(ey-14)+' '+(x+8)+' '+(ey-11),2.6)+'</g>';
+ return'<g class="geo-rynkor">'+st('M'+(x-9)+' '+(ey-14)+'Q'+x+' '+(ey-18)+' '+(x+9)+' '+(ey-14),2.8)+st('M'+(x-13)+' '+(ey-21)+'Q'+x+' '+(ey-26)+' '+(x+13)+' '+(ey-21),2.8)+st('M'+(x-7)+' '+(ey-28)+'Q'+x+' '+(ey-31)+' '+(x+7)+' '+(ey-28),2.4)+'</g>'}
+function geoDogFrame(F,sky,lie){const start=F.rain?10:F.coat==='snow'?8:F.coat==='freezing'?12:F.coat==='cold'?6:sky==='fog'?14:F.coat==='mild'?4:F.shades?2:0;return start+(lie?1:0)}
+function geoSleepSvg(D,o,id,frame){const dog=D.chest?1:0,k=(frame-1)/2,s=.44,cx=58,R=[-1,-1,222,212],tr='translate('+(cx-110*s).toFixed(2)+' '+(123.4-206*s).toFixed(2)+') scale('+s+')';
+ // andning: en kopia av ryggen (mjukt maskad, utan bäddens framkant) lyfts och sjunker från bäddens botten
+ const img='<image class="geo-sprite" data-frame="'+frame+'" href="'+geoAsset('sleep-v1')+'" x="'+(-dog*220)+'" y="'+(-k*210)+'" width="440" height="1680"/>',am='<radialGradient id="'+id+'ag" cx="125" cy="128" r="80" gradientUnits="userSpaceOnUse" gradientTransform="translate(125 128) scale(1 .62) translate(-125 -128)"><stop offset=".72" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient><mask id="'+id+'am" maskUnits="userSpaceOnUse" x="0" y="0" width="220" height="210"><rect width="220" height="210" fill="url(#'+id+'ag)"/></mask>';
+ // eget ark med en hel bädd per ruta (verktyg/sovbaddar.py), mindre än förr och utan grannens bäddkant
+ return'<g class="fig-body dog lie geo-'+(dog?'b':'a')+'" data-raster="1">'+(o.night?'<defs><filter id="'+id+'night"'+geoReg(R)+' color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values=".84 .03 .03 0 0  .01 .85 .04 0 0  .03 .03 .9 0 .01  0 0 0 1 0"/></filter><clipPath id="'+id+'crop"><rect width="220" height="210"/></clipPath>'+am+'</defs>':'<defs><clipPath id="'+id+'crop"><rect width="220" height="210"/></clipPath>'+am+'</defs>')+'<g transform="'+tr+'"'+(o.night?' filter="url(#'+id+'night)"':'')+'><g clip-path="url(#'+id+'crop)">'+img+'<g class="geo-andas" style="transform-origin:125px 172px"><g mask="url(#'+id+'am)">'+img+(dog?'':geoRynkor(k,1))+'</g></g></g></g></g>'}
+function geoDogSvg(D,o,id,pose){const F=o.fit||{},lie=pose==='lie',frame=geoDogFrame(F,o.sky,lie);if(lie)return geoSleepSvg(D,o,id,frame);const row=Math.floor(frame/4),col=frame%4,dog=D.chest?1:0,x=col*313.5+dog*156.75,y=[88,374,675,950][row];
+ const edge=dog?309.5:4,seam=GEO_DOG_SEAMS[frame],P=dog?[[edge,0],[edge,256],...seam.slice().reverse()]:[[edge,0],...seam,[edge,256]],Q=P.map(([a,b])=>[a-dog*156.75,b]),crop='M'+Q.map(q=>q.join(' ')).join('L')+'Z',qx=Q.map(q=>q[0]),R=[Math.floor(Math.min(...qx))-1,-1,Math.ceil(Math.max(...qx)-Math.min(...qx))+3,258];
+ const defs='<clipPath id="'+id+'crop"><path d="'+crop+'"/></clipPath>'+(o.night?'<filter id="'+id+'night"'+geoReg(R)+' color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values=".84 .03 .03 0 0  .01 .85 .04 0 0  .03 .03 .9 0 .01  0 0 0 1 0"/></filter>':'');
+ const fi=frame/2|0,[nk,px]=GEO_NACKE[fi][dog],img='<image class="geo-sprite" data-frame="'+frame+'" href="'+geoAsset('mascots-v4')+'" x="'+(-x)+'" y="'+(-y)+'" width="1254" height="1254"/>';
+ // huvudet är ett eget lager ovanför halsen som vickar runt hakan; kroppen under ligger kvar
+ let h='<defs>'+defs+'<clipPath id="'+id+'kr"><rect x="-20" y="'+nk+'" width="200" height="300"/></clipPath><clipPath id="'+id+'hu"><rect x="-20" y="-60" width="200" height="'+(nk+70)+'"/></clipPath></defs><g transform="translate(14.08 -25) scale(.5859375)"'+(o.night?' filter="url(#'+id+'night)"':'')+'><g clip-path="url(#'+id+'crop)"><g clip-path="url(#'+id+'kr)">'+img+'</g><g class="geo-huvud" style="transform-origin:'+px+'px '+nk+'px"><g clip-path="url(#'+id+'hu)">'+img+(dog?'':geoRynkor(fi))+'</g></g></g></g>';
+ if(F.breath&&!lie)h+='<g class="fig-breath" fill="#E8F0FA"><circle cx="75" cy="68" r="3"/><circle cx="82" cy="63" r="2"/></g>';
+ if(F.snowy)h+='<path d="M37 93 Q44 90 49 93 M73 92 Q79 90 85 93" fill="none" stroke="#F2F7FF" stroke-width="1.5" stroke-linecap="round"/>';
+ return(lie?'':'<g transform="translate(15 30.85) scale(.75)">')+'<g class="fig-body dog geo-'+(dog?'b':'a')+(lie?' lie':'')+'" data-raster="1">'+h+'</g>'+(lie?'':'</g>')}
+
+// Samma figVariant och klädmodell som originalet, men egna silhuetter och enklare ansikten.
+function dogArtSvg(D,o,id,pose){if(WXART==='geo')return geoDogSvg(D,o,id,pose);const F=o.fit||{},lie=pose==='lie',geo=WXART==='geo',coat=F.coat?D.coat[F.coat]:null,fur=geo?mixHex(D.fur,D.chest?'#394A78':'#F4B76E',.28):mixHex(D.fur,'#DEC2A1',.1),mask=geo?'#24304B':D.mask;
+ const head='M31 49 Q30 30 44 28 Q60 23 77 29 Q90 34 89 51 L86 63 Q80 76 60 76 Q38 76 33 63Z',shade=geo?mixHex(fur,'#263059',.38):shadow(fur),cc=coat||fur;
+ let b='<defs><clipPath id="'+id+'head"><path d="'+head+'"/></clipPath></defs>';
+ b+=lie?'<rect x="15" y="93" width="91" height="31" rx="15" fill="'+shade+'"/><path d="M17 109 Q14 93 34 92 H84 Q103 92 104 109Z" fill="'+cc+'"/>':'<path d="M31 112 Q31 76 47 73 Q61 67 76 74 Q91 80 90 113 Q89 124 77 124 H44 Q31 124 31 112Z" fill="'+cc+'"/><path d="M65 74 Q89 76 90 113 Q89 124 77 124 H66Z" fill="'+shadow(cc)+'"/>';
+ if(D.chest&&!coat)b+='<path d="M49 '+(lie?103:78)+' Q61 '+(lie?99:74)+' 71 '+(lie?103:78)+' L65 '+(lie?119:106)+' H57Z" fill="'+D.chest+'"/>';
+ if(coat&&F.puffer)b+='<path d="M35 91 Q61 99 86 91 M34 104 Q61 112 87 104" fill="none" stroke="'+shadow(coat)+'" stroke-width="1.2"/>';
+ if(coat&&F.rain)b+='<path d="M61 78 V114" stroke="'+shadow(coat)+'" stroke-width="1.1"/>';
+ b+='<g fill="'+fur+'"><rect x="'+(lie?36:43)+'" y="'+(lie?116:103)+'" width="16" height="'+(lie?8:21)+'" rx="5"/><rect x="65" y="'+(lie?116:103)+'" width="16" height="'+(lie?8:21)+'" rx="5"/></g>';
+ if(F.rain&&!lie)b+='<g fill="#28394D"><rect x="42" y="116" width="18" height="8" rx="3"/><rect x="64" y="116" width="18" height="8" rx="3"/></g>';
+ if(F.snowy)b+='<path d="M22 98 Q32 89 44 95 M78 94 Q91 90 99 99" fill="none" stroke="#F7FCFF" stroke-width="4" stroke-linecap="round"/>';
+ let h='<g class="ear-l"><path d="M34 45 Q23 17 32 11 Q40 8 54 32Z" fill="'+fur+'"/><path d="M36 36 Q29 18 34 16 L46 31Z" fill="'+D.ear+'"/></g><g class="ear-r"><path d="M86 45 Q97 17 88 11 Q80 8 66 32Z" fill="'+shade+'"/><path d="M84 36 Q91 18 86 16 L74 31Z" fill="'+D.ear+'"/></g>';
+ if(F.rain)h+='<path d="M27 57 Q26 22 60 22 Q95 22 94 57 L87 72 H33Z" fill="'+coat+'"/>';
+ h+='<path d="'+head+'" fill="'+fur+'"/><g clip-path="url(#'+id+'head)"><path d="M68 24 L92 27 V80 H71 L65 54Z" fill="'+shade+'"/></g>';
+ if(!geo)h+='<path d="M39 38 Q49 30 61 32" fill="none" stroke="'+light(fur)+'" stroke-width="2" stroke-linecap="round"/>';
+ // En sammanhängande nos med två kinder, utan de stora mörka ögonfläckarna i originalet.
+ h+='<path d="M42 58 Q41 49 51 48 Q60 45 69 48 Q80 49 79 58 Q80 68 70 69 Q60 74 50 69 Q41 68 42 58Z" fill="'+mask+'"/><path d="M55 52 Q61 49 66 52 L63 57 H58Z" fill="#101729"/><path d="M60 57 V61 M54 62 Q60 66 66 62" fill="none" stroke="'+(D.chest?'#7283A3':'#B5A08E')+'" stroke-width="1" stroke-linecap="round"/>';
+ h+=lie?'<path d="M40 44 Q46 48 51 44 M70 44 Q76 48 81 44" fill="none" stroke="'+(D.chest?'#9DAAC5':'#513B36')+'" stroke-width="2" stroke-linecap="round"/>':F.shades?'<path d="M37 41 H54 L52 48 H41Z M67 41 H84 L80 48 H69Z" fill="#19253D"/><path d="M54 43 H67" stroke="#19253D" stroke-width="2"/>':'<g class="fig-eyes" fill="#11192A"><circle cx="46" cy="43" r="2.6"/><circle cx="76" cy="43" r="2.6"/><g fill="#F9FCFF"><circle cx="45.3" cy="42.2" r=".8"/><circle cx="75.3" cy="42.2" r=".8"/></g></g>';
+ if(F.beanie)h+='<path d="M36 35 Q36 17 60 17 Q84 17 84 35Z" fill="'+D.hat+'"/><rect x="34" y="32" width="52" height="6" rx="3" fill="'+light(D.hat)+'"/>'+(F.snowy?'<path d="M42 23 Q60 13 78 23" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"/>':'');
+ const neck=F.scarf?D.scarf:F.band?D.band:'#30405B';
+ h+='<path d="M39 72 Q60 82 82 72 V78 Q60 88 39 78Z" fill="'+neck+'"/>'+(F.scarf?'<path d="M67 78 L82 75 L78 92 L67 89Z" fill="'+shadow(neck)+'"/>':'');
+ b+='<g transform="translate(0 '+(lie?36:0)+')"><g class="dog-head">'+h+'</g></g>';
+ if(F.breath&&!lie)b+='<g class="fig-breath" fill="#E8F0FA"><circle cx="75" cy="60" r="3"/><circle cx="82" cy="55" r="2"/></g>';
+ if(lie)b+='<g class="fig-z" fill="#9EAFE6" font-size="12" font-family="system-ui"><text x="91" y="70">z</text></g>';
+ return'<g transform="translate(19.2 39.5) scale(.68)"><g class="fig-body dog'+(lie?' lie':'')+'">'+b+'</g></g>'}
+
 const mixHex=(a,b,t)=>{const p=h=>[1,3,5].map(i=>parseInt(h.substr(i,2),16)),A=p(a),B=p(b);return'#'+A.map((v,i)=>Math.round(v+(B[i]-v)*t).toString(16).padStart(2,'0')).join('')};
 const shadeHex=(h,f)=>mixHex(h,'#000000',1-f);
 const shadow=c=>mixHex(mixHex(c,'#2A2350',.38),'#000000',.18);   // kall, lite lila skugga
@@ -2579,7 +3269,7 @@ const DOGS=[
   coat:{mild:'#3F7FA6',cold:'#B4475D',freezing:'#2D4F7C',snow:'#2D4F7C',rain:'#E8B931',storm:'#E8B931',fog:'#6F7E8E'},band:'#B4475D',scarf:'#D9894A',hat:'#B4475D'},
  {fur:'#2C2A33',mask:'#1D1B22',ear:'#3A3742',chest:'#EDE7E0',eye:'#0B0A0E',
   coat:{mild:'#C9694F',cold:'#3F7FA6',freezing:'#B4475D',snow:'#B4475D',rain:'#E8B931',storm:'#E8B931',fog:'#4F7E6C'},band:'#3F7FA6',scarf:'#6FA393',hat:'#2D4F7C'}];
-function dogSvg(D,o,id,pose){
+function dogSvg(D,o,id,pose){if(WXART!=='original')return dogArtSvg(D,o,id,pose);
  const F=o.fit||{},night=!!o.night,coat=F.coat?D.coat[F.coat]:null,lie=pose==='lie';
  const shades=!!F.shades,beanie=!!F.beanie,scarf=!!F.scarf,puffer=!!F.puffer,rainc=!!F.rain,sleepy=lie,snowy=!!F.snowy;
  const C=(c,sh)=>sh?shadow(c):c;
@@ -2680,8 +3370,8 @@ const SKY=(()=>{const R=Math.PI/180,e=R*23.4397,toD=d=>d.valueOf()/864e5-.5+2440
   return{sun:pos(s),moon:Object.assign(pos(m),{frac:(1+Math.cos(inc))/2,waxing:ang<0})}}})();
 // en kropp på himlen: x från öster till väster, y från horisonten upp till ungefär 60 graders höjd
 const skyXY=b=>({x:Math.max(5,Math.min(95,50+b.az/90*44)),y:Math.max(10,Math.min(90,90-b.alt/60*80))});
-function moonSvg(frac,waxing,sz){const r=10,k=Math.abs(2*frac-1)*r,lit=frac<.03?'':frac>.97?'<circle r="10" fill="#EEF1FA"/>':
-  '<path d="M0 -10 A10 10 0 0 1 0 10 A'+k.toFixed(2)+' 10 0 0 '+(frac<.5?0:1)+' 0 -10Z" fill="#EEF1FA"'+(waxing?'':' transform="scale(-1 1)"')+'/>';
+function moonSvg(frac,waxing,sz){const r=10,k=Math.abs(2*frac-1)*r,lit=frac<.03?'':frac>.97?'<circle r="10" style="fill:var(--sky-moon)"/>':
+  '<path d="M0 -10 A10 10 0 0 1 0 10 A'+k.toFixed(2)+' 10 0 0 '+(frac<.5?0:1)+' 0 -10Z" style="fill:var(--sky-moon)"'+(waxing?'':' transform="scale(-1 1)"')+'/>';
  const g='mg'+(++FIG_N);
  return'<svg viewBox="-24 -24 48 48" width="'+sz+'" height="'+sz+'"><defs><radialGradient id="'+g+'"><stop offset=".4" stop-color="#DCE6FF" stop-opacity="'+(.12+frac*.3).toFixed(2)+'"/><stop offset="1" stop-color="#DCE6FF" stop-opacity="0"/></radialGradient></defs>'+
   '<circle r="24" fill="url(#'+g+')"/><circle r="10" fill="#8C99B8" opacity=".3"/>'+lit+
@@ -2717,45 +3407,6 @@ function nightFrac(now,P){const d=ymd(now),a=sunTimes(d,P.lat,P.lon);if(!a)retur
  let set,rise;if(now>=a[1]){set=a[1];const b=sunTimes(addDays(d,1),P.lat,P.lon);rise=b?b[0]:new Date(set.getTime()+12*36e5)}
  else{rise=a[0];const b=sunTimes(addDays(d,-1),P.lat,P.lon);set=b?b[1]:new Date(rise.getTime()-12*36e5)}
  return Math.max(0,Math.min(1,(now-set)/(rise-set)))}
-function wxSceneHtml(W,o){o=o||{};const P=WX_POS(),sc=wxScene(W),now=new Date(),k=SKY(now,P.lat,P.lon),pk=skyPeak(P.lat,P.lon),ph=sc.phase,mo=now.getMonth();
- const wet=/^(drizzle|rain|sleet)$/.test(sc.type),snow=sc.type==='snow',heavy=(wet||snow)&&sc.lv>=2||sc.thunder;
- const covered=sc.sky==='cloudy'||sc.sky==='fog'||heavy,grey=covered||wet||snow;
- // himlen: två toner uppifrån och ned efter klockslag, gråare när det är mulet
- let sky={night:['#0E1530','#26345E'],dusk:['#2B3768','#C9806E'],dawn:['#5B7DB8','#F4BC93'],golden:['#6E9BD6','#FFCB8E'],day:['#5FA8EC','#BFE3FF']}[ph];
- if(grey)sky=sky.map((c,i)=>mixHex(c,ph==='night'?'#2A2E3A':sc.thunder?'#4E586C':['#8C9BB0','#C9D3DF'][i],sc.sky==='fog'?.75:heavy?.7:.5));
- if(sc.sky==='fog'&&!sc.dark)sky=['#C3CAD3','#E2E6EA'];
- // marken: gräs efter årstid, snö när det har snöat eller är minusgrader med snöfall
- const snowy=snow&&(sc.lv>=2||sc.T<=0),frost=sc.T<0&&!snowy;
- let g1=snowy?'#F2F6FB':frost?'#B7C9B0':mo>=5&&mo<=7?'#7DB45A':mo>=8&&mo<=10?'#8FA650':'#7FA36A',g2=snowy?'#D3DFEC':frost?'#94AD90':shadeHex(g1,.8);
- if(wet&&!snowy){g1=shadeHex(g1,.88);g2=shadeHex(g2,.88)}
- const tone=c=>sc.dark?mixHex(c,'#1A2240',ph==='night'?.62:.45):ph==='dawn'||ph==='golden'?mixHex(c,'#F2A86E',.14):c;
- const hill=c=>tone(mixHex(c,sky[1],.45));
- const id='sc'+(++FIG_N),HT=o.h||210,H=HT-(o.g||60);   // horisonten i bildens koordinater (360 x HT)
- let s='<defs><linearGradient id="'+id+'k" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+sky[0]+'"/><stop offset="1" stop-color="'+sky[1]+'"/></linearGradient>'+
-  '<linearGradient id="'+id+'g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+tone(g1)+'"/><stop offset="1" stop-color="'+tone(g2)+'"/></linearGradient></defs>'+
-  '<rect width="360" height="'+HT+'" fill="url(#'+id+'k)"/>';
- // stjärnor när det är mörkt och klart
- if(sc.dark&&!covered)s+='<g class="fx-stars" fill="#E6ECFF">'+[[24,22],[70,48],[112,16],[150,40],[196,12],[236,34],[282,20],[330,44],[48,84],[178,70],[300,76],[350,14]].slice(0,sc.sky==='partly'?5:12)
-  .map(([x,y],i)=>'<circle class="tw'+(i%3?' d'+(i%3+1):'')+'" cx="'+x+'" cy="'+Math.round(y*H/150)+'" r="'+(i%4?.9:1.3)+'"/>').join('')+'</g>';
- // solen och månen går längs samma bana som i översikten (arcHtml), ovanför hundarna
- // kullar och träd i fjärran, sedan gräset hundarna står på
- s+='<path d="M0 '+(H-6)+' Q60 '+(H-34)+' 130 '+(H-12)+' T260 '+(H-20)+' T360 '+(H-10)+' V'+HT+' H0Z" fill="'+hill(g2)+'"/>';
- const leaf=snowy?'#E9EEF5':mo>=8&&mo<=10?['#D9894A','#C9694F','#E0A24A']:mo<=2||mo===11?null:['#5E9440','#6FA34C','#4F8A3C'];
- const tree=(x,y,sz,i)=>{const t='<rect x="'+(x-1.6*sz)+'" y="'+(y-10*sz)+'" width="'+(3.2*sz)+'" height="'+(10*sz)+'" rx="'+sz+'" fill="'+tone(shadeHex('#6B4A35',.9))+'"/>';
-  const c=Array.isArray(leaf)?leaf[i%3]:leaf;
-  return t+(c?'<circle cx="'+x+'" cy="'+(y-14*sz)+'" r="'+(9*sz)+'" fill="'+tone(c)+'"/><circle cx="'+(x+3*sz)+'" cy="'+(y-12*sz)+'" r="'+(6.5*sz)+'" fill="'+tone(shadow(c))+'" opacity=".45"/>':
-   '<path d="M'+x+' '+(y-10*sz)+' l-5 -8 M'+x+' '+(y-12*sz)+' l5 -7 M'+x+' '+(y-9*sz)+' l7 -3" stroke="'+tone('#6B4A35')+'" stroke-width="'+(1.4*sz)+'" stroke-linecap="round"/>')};
- s+=tree(244,H-14,1.1,0)+tree(276,H-17,.85,1)+tree(318,H-11,1.25,2)+tree(36,H-2,.8,1);
- if(sc.sky==='fog')s+='<rect y="'+(H-46)+'" width="360" height="64" fill="'+(sc.dark?'#8A93A8':'#FFFFFF')+'" opacity=".45"/>';   // dimman lägger sig över kullarna
- s+='<path d="M0 '+(H+12)+' Q90 '+(H-2)+' 190 '+(H+8)+' T360 '+(H+4)+' V'+HT+' H0Z" fill="url(#'+id+'g)"/>';
- // grästuvor längs kanten
- if(!snowy)s+='<g fill="none" stroke="'+tone(shadeHex(g1,.72))+'" stroke-width="1.4" stroke-linecap="round">'+[14,58,104,150,206,248,296,338].map((x,i)=>{const y=H+10-Math.sin(x/58)*4;
-  return'<path d="M'+x+' '+y+' l-2 -6 M'+(x+3)+' '+y+' l0 -8 M'+(x+6)+' '+y+' l2 -5"/>'}).join('')+'</g>';
- // vädret över hela miljön (moln och nederbörd) och hundarna till vänster
- const fx=figSvg(sc,{bare:1,nodogs:1,seed:3});
- return'<div class="wx-scene'+(o.cls?' '+o.cls:'')+(sc.sky==='fog'&&!sc.dark?' sc-light':'')+'" style="color:'+(sc.dark?'#E6ECFF':'#3A4458')+'"><svg class="sc-bg" viewBox="0 0 360 '+HT+'" preserveAspectRatio="xMidYMax slice" aria-hidden="true">'+s+'</svg>'+
-  arcHtml(W,'w')+'<div class="sc-fx" aria-hidden="true">'+fx+'</div>'+
-  '<button class="fig-box sc-dogs" data-act="wxVar" aria-label="'+esc(sc.label)+'. Visa en annan bild av hundarna">'+figSvg(sc,{bare:1})+'</button>'+(o.inner||'')+'</div>'}
 /* Gräsplätten hundarna står på i översikten. Ingen annan bakgrund: årstiden och vädret syns i gräset,
    med påskliljor runt påsk, löv på hösten och snö som ligger kvar tills det töar. */
 function easterDay(y){const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,
@@ -2777,7 +3428,7 @@ function snowLevel(sc){const cm=snowDepth(),falling=sc.type==='snow'&&(sc.lv>=2|
 const GRASS={winter:['#94A27A','#6F7F5B'],early:['#9AB070','#728B55'],spring:['#93CF60','#63A443'],easter:['#93CF60','#63A443'],summer:['#7CC157','#50983B'],
  autumn1:['#A6B85C','#7E9142'],autumn2:['#B5A95B','#8A8043'],autumn3:['#A09163','#776B4B']};
 function grassPatch(sc,id){const ss=grassSeason(today()),snow=snowLevel(sc),frost=!snow&&sc.T<0,wet=/^(drizzle|rain|sleet)$/.test(sc.type)||sc.thunder;
- let[g1,g2]=GRASS[ss];if(frost){g1=mixHex(g1,'#E2ECF5',.42);g2=mixHex(g2,'#C6D5E4',.3)}if(wet){g1=shadeHex(g1,.88);g2=shadeHex(g2,.88)}
+ let[g1,g2]=artGrass(ss);if(frost){g1=mixHex(g1,'#E2ECF5',.42);g2=mixHex(g2,'#C6D5E4',.3)}if(wet){g1=shadeHex(g1,.88);g2=shadeHex(g2,.88)}
  const rnd=k=>{const x=Math.sin(k*91.7+3.1)*43758.5453;return x-Math.floor(x)},f=v=>v.toFixed(1);
  // en mjuk oval med lite ojämn kant, som i en tecknad bild
  const blob=(cx,cy,rx,ry,j,seed)=>{const n=16,P=[];for(let i=0;i<n;i++){const a=i/n*2*Math.PI,r=1+(rnd(i+seed)-.5)*j;P.push([cx+Math.cos(a)*rx*r,cy+Math.sin(a)*ry*r])}
@@ -2795,17 +3446,18 @@ function grassPatch(sc,id){const ss=grassSeason(today()),snow=snowLevel(sc),fros
  // gräset har ingen hård kant: en ojämn yta med ljusare och mörkare fläckar, strån som sticker upp och små tuvor som läcker ut runt om
  const lite=mixHex(g1,'#FFFFFF',.2),dk=shadeHex(g1,.84);
  const blade=(x,y,h,lean,c)=>'<path d="M'+f(x-1.1)+' '+y+' Q'+f(x+lean*.4)+' '+f(y-h*.6)+' '+f(x+lean)+' '+f(y-h)+' Q'+f(x+lean*.4+.6)+' '+f(y-h*.5)+' '+f(x+1.1)+' '+y+'Z" fill="'+c+'"/>';
- const clump=(x,y,n,h,k)=>{let r='';for(let i=0;i<n;i++){const o=(i-(n-1)/2)*2.2,hh=h*(.6+rnd(k+i)*.55);r+=blade(x+o,y,hh,o*.9+(rnd(k+i+9)-.5)*3,i%2?(frost?'#E6EEF5':g2):(frost?'#D3E0EA':lite))}return r};
+ const clump=(x,y,n,h,k)=>{if(WXART==='geo'){const z=.52+h*.025,c=frost?'#DAE9E5':k%3?g2:mixHex(g1,'#D6F28E',.28);return geoTuva(x,y,z,c,k,ss)}let r='';for(let i=0;i<n;i++){const o=(i-(n-1)/2)*2.2,hh=h*(.6+rnd(k+i)*.55);r+=blade(x+o,y,hh,o*.9+(rnd(k+i+9)-.5)*3,i%2?(frost?'#E6EEF5':g2):(frost?'#D3E0EA':lite))}return r};
  if(snow>=2){b+=lobes(deep?1.2:2.4,deep?2:.3,'#A9BBD3');b+=lobes(deep?-2.5:0,deep?2:0,'url(#'+id+'gs)')}
+ else if(WXART==='geo'){b+='<g class="geo-meadow"><defs><radialGradient id="'+id+'mf"><stop offset="0" stop-color="'+g1+'" stop-opacity=".55"/><stop offset=".62" stop-color="'+g1+'" stop-opacity=".25"/><stop offset="1" stop-color="'+g1+'" stop-opacity="0"/></radialGradient></defs><ellipse cx="79" cy="131" rx="113" ry="25" fill="url(#'+id+'mf)"/><path d="M-9 131 Q11 118 39 122 Q70 114 98 121 Q135 115 164 123 Q179 126 180 132 Q160 143 119 141 Q84 148 46 141 Q11 143 -9 131Z" fill="'+g1+'"/><path d="M-9 131 Q29 126 58 131 Q84 136 116 128 Q151 121 180 132 Q155 143 118 141 Q83 148 46 141 Q12 144 -9 131Z" fill="'+mixHex(g1,dk,.75)+'"/><path d="M2 126 Q34 119 61 125 Q41 132 15 132Z M115 124 Q145 119 169 127 Q143 133 115 124Z" fill="'+mixHex(lite,g1,.25)+'"/><path d="M35 139 Q72 132 110 138 Q93 145 64 144Z" fill="'+mixHex(g2,g1,.25)+'"/>'+[[-21,132,4,1.7],[-10,143,6,2],[16,148,8,2.3],[49,152,4,1.5],[91,154,6,1.8],[130,151,8,2],[159,147,5,1.7],[186,137,4,1.5],[183,123,2,1],[-17,122,2.5,1.1]].map(([x,y,rx,ry],i)=>'<ellipse class="geo-islet" cx="'+x+'" cy="'+y+'" rx="'+rx+'" ry="'+ry+'" fill="'+(i%3?g1:g2)+'" opacity="'+(i%3?.6:.4)+'"/>').join('')+'</g>'}
  else{b+='<path d="'+blob(85,129.5,79,14,.22,3)+'" fill="'+g1+'"/>';
   b+=[[0,131,6,2.4],[166,133,7,2.6],[28,144,9,2],[134,144.5,11,2.1],[156,141.5,5,1.6],[-6,125,3,1.2],[175,127,3.5,1.3],[64,146.5,6,1.5],[104,146,3.5,1.1],[86,148.5,2.5,.9]].map(([x,y,rx,ry])=>'<ellipse cx="'+x+'" cy="'+y+'" rx="'+rx+'" ry="'+ry+'" fill="'+g1+'"/>').join('');
   b+='<g opacity=".7">'+[[38,123,22,3.6,lite],[128,123.5,20,3.4,lite],[70,136,28,3.8,dk],[124,136.5,18,3,dk],[22,132,11,2.6,dk],[100,140,14,2.2,lite]].map(([x,y,rx,ry,c],i)=>'<path d="'+blob(x,y,rx,ry,.4,30+i)+'" fill="'+c+'"/>').join('')+'</g>'}
  // skuggan under hundarna, lite bort från solen
  b+='<ellipse cx="'+f(sc.sunUp?85+(.5-sc.f)*12:85)+'" cy="131.5" rx="50" ry="4.2" fill="'+(snow>=2?'#B7C6DA':shadeHex(g1,.72))+'" opacity=".85"/>';
- if(snow<2)b+=[[6,131,5,17,1],[17,123,4,13,2],[152,123,4,14,3],[164,131,5,18,4],[40,141,4,10,5],[124,142,5,12,6],[96,143,3,8,7],[66,142,4,10,8],[144,137,4,13,9],[28,135,3,11,10],[2,135,2,8,11],[170,136,2,8,12],[52,121,3,8,13],[116,121,3,8,14]].map(([x,y,n,h,k])=>clump(x,y,n,h,k*7)).join('');
+ if(snow<2)b+=(WXART==='geo'?[[1,131,3,13,1],[22,123,3,11,2],[151,124,3,12,3],[173,133,3,14,4],[32,141,3,9,5],[136,142,3,10,6],[83,145,3,8,7],[59,122,3,7,8]]:[[6,131,5,17,1],[17,123,4,13,2],[152,123,4,14,3],[164,131,5,18,4],[40,141,4,10,5],[124,142,5,12,6],[96,143,3,8,7],[66,142,4,10,8],[144,137,4,13,9],[28,135,3,11,10],[2,135,2,8,11],[170,136,2,8,12],[52,121,3,8,13],[116,121,3,8,14]]).map(([x,y,n,h,k])=>clump(x,y,n,h,k*7)).join('');
  else b+='<g fill="none" stroke-width="1.2" stroke-linecap="round">'+[[12,130],[157,127],[86,138]].map(([x,y])=>tuft(x,y,mixHex(g2,'#FFFFFF',.2))).join('')+'</g>';
  // snöfläckar på gräset
- if(snow===1)b+='<g fill="#FAFCFF" stroke="#C9D6E6" stroke-width=".5">'+[[50,123,26,5.4,7],[114,125,28,5.8,9],[84,133,20,3.2,11],[22,129,11,3.4,13],[150,123,11,3.2,15],[40,134,9,2.4,17],[130,134,10,2.4,19]].map(([x,y,rx,ry,s])=>'<path d="'+blob(x,y,rx,ry,.35,s)+'"/>').join('')+'</g>';
+ if(snow===1)b+='<g fill="#FAFCFF" stroke="#C9D6E6" stroke-width=".5">'+[[50,123,26,5.4,7],[114,125,28,5.8,9],[84,133,20,3.2,11],[22,129,11,3.4,13],[150,123,11,3.2,15],[40,134,9,2.4,17],[130,134,10,2.4,19]].slice(0,WXART==='geo'?Math.max(2,Math.min(7,Math.round(2+(snowDepth()-.5)*1.5))):7).map(([x,y,rx,ry,s])=>'<path d="'+blob(x,y,rx,ry,.35,s)+'"/>').join('')+'</g>';
  // löv på hösten (inte under snön)
  const LV={autumn1:[3,['#E0A24A','#D9894A','#C9B24A']],autumn2:[8,['#D9894A','#C9694F','#E0A24A','#B9503F']],autumn3:[5,['#A86B3E','#8E5A3A','#C07C45']]}[ss];
  if(LV&&snow<2){const L=[[24,125],[46,131],[120,133],[140,125],[64,134],[104,131],[154,127],[32,130]];
@@ -2845,32 +3497,57 @@ function treeStage(t){const d=parse(t),y=d.getFullYear(),doy=Math.round((d-new D
 /* Bakgrunden bakom gräsplätten: en mjuk kulle och ett träd efter årstiden. Inget har en hård kant mot rutan:
    kullen tonar ut med en mask och små tuvor läcker ut runt om, precis som gräset. 1 enhet = 1 px, marken ligger
    på y=175 och plätten med hundarna står i den högra delen (x 80-220). */
+// Sammanhängande gräsmark av rundlar, med uttoning bara längs den oregelbundna ytterkanten.
+// Grästuvor i Geometrisk: varje tuva byggs av egna strån (antal, längd, lutning och ton efter platsen), så att ingen tuva är en kopia.
+// Henriks val C (2026-11-03): låga mjuka tuvor, fler och mindre.
+function geoTuva(x,y,z,c,seed,ss){const q=k=>geoQ(seed*3.17+x*.71+y*.37+k),f=v=>v.toFixed(1),dk=shadeHex(c,.74),lt=mixHex(c,'#D5ED9A',.4);
+ const blad=(bx,len,lean,w,col)=>'<path d="M'+f(bx-w/2)+' 0Q'+f(bx-w*.3+lean*.25)+' '+f(-len*.55)+' '+f(bx+lean)+' '+f(-len)+'Q'+f(bx+w*.45+lean*.35)+' '+f(-len*.5)+' '+f(bx+w/2)+' 0Z" fill="'+col+'"/>';
+ const n=7+Math.floor(q(1)*5);let h='<ellipse cx="0" cy="0" rx="9" ry="1.6" fill="'+dk+'" opacity=".55"/>';
+ for(let i=0;i<n;i++){const u=i/(n-1)-.5,len=(5+q(i+2)*6)*(1-Math.abs(u)*.8),lean=u*18+(q(i+20)-.5)*5,w=2.6+q(i+40)*1.6;h+=blad(u*14,len,lean,w,i%2?dk:c)}
+ h+=blad((q(90)-.5)*6,7+q(91)*4,(q(92)-.5)*6,2.4,lt);
+ const fl=q(5)<.5?-1:1;return'<g class="geo-tuft" transform="translate('+f(x)+' '+f(y)+') scale('+(fl*z).toFixed(2)+' '+z.toFixed(2)+')">'+h+'</g>'}
+function geoGroundSvg(sc,id,ss,snow,g1,g2){const wet=/^(drizzle|rain|sleet)$/.test(sc.type)||sc.thunder,frost=!snow&&sc.T<0;
+ let C=snow>=2?['#EEF4FB','#FFFFFF','#D7E5F2','#B6CCDE']:ss==='summer'?['#8CCB70','#A7DA79','#68B66C','#489967']:[mixHex(g1,'#B7C79C',.2),mixHex(g1,'#E5EDAF',.34),mixHex(g1,g2,.45),g2];
+ if(snow<2){if(frost)C=C.map(c=>mixHex(c,'#DAE7ED',.45));else if(wet)C=C.map(c=>shadeHex(c,.92))}
+ const ellipse=([x,y,rx,ry])=>'<ellipse cx="'+x+'" cy="'+y+'" rx="'+rx+'" ry="'+ry+'"/>',pools=[[28,155,45,10],[0,162,31,8],[62,161,46,12],[96,166,37,12],[132,164,42,12],[169,173,55,12],[212,173,39,10],[235,180,26,7],[137,181,51,8],[80,179,37,7],[28,173,33,7],[-16,171,22,5]];
+ let h='<defs><filter id="'+id+'pe" x="-15%" y="-35%" width="130%" height="170%"><feGaussianBlur stdDeviation="1.25"/></filter><mask id="'+id+'pm" maskUnits="userSpaceOnUse" x="-70" y="125" width="380" height="78"><g class="geo-pool" fill="#fff" filter="url(#'+id+'pe)">'+pools.map(ellipse).join('')+'</g></mask></defs><g class="geo-landscape"><g mask="url(#'+id+'pm)"><rect x="-70" y="125" width="380" height="78" fill="'+C[0]+'"/>';
+ // tonfläckarna är tydliga rundlar men med något mjukare kant (yttersta delen av en radiell gradient, inget filter) och lite lägre kontrast
+ const soft=(c,k)=>'<radialGradient id="'+id+'pg'+k+'"><stop offset=".72" stop-color="'+c+'"/><stop offset="1" stop-color="'+c+'" stop-opacity="0"/></radialGradient>';
+ const T=[mixHex(C[1],C[0],.15),mixHex(C[2],C[0],.2),mixHex(C[3],C[0],.2)];
+ h+='<defs>'+T.map(soft).join('')+'</defs>'+[[[22,153,37,7],[103,158,39,8],[200,169,37,6]],[[7,166,38,7],[66,169,45,9],[143,174,64,11],[214,178,41,8]],[[39,175,35,5],[95,181,39,6],[174,181,52,6]]].map((A,k)=>'<g fill="url(#'+id+'pg'+k+')">'+A.map(ellipse).join('')+'</g>').join('')+'</g>';
+ h+=[[-24,181,5,1.8],[-6,188,7,2.1],[20,184,3,1.2],[43,190,6,1.8],[66,186,3.5,1.1],[93,192,5,1.5],[119,190,2.5,.9],[219,190,7,1.8],[250,170,4,1.4],[250,188,3,1.2],[70,146,4,1.2],[-18,150,3,1.1]].map((A,i)=>'<g fill="'+C[i%3?0:2]+'" opacity=".7">'+ellipse(A)+'</g>').join('');
+ if(snow<2){const c=frost?'#B3CDD0':ss==='summer'?'#32876A':g2,d=frost?'#8DAFB6':ss==='summer'?'#22675C':shadeHex(g2,.75);
+ h+=[[2,165,.5],[55,168,.6],[82,179,.48],[22,178,.45],[119,162,.4],[219,181,.5]].concat([[-30,170,.4],[36,160,.32],[100,172,.36],[160,166,.34],[190,178,.42],[240,172,.3],[66,182,.3],[8,184,.34]]).map(([x,y,k],i)=>geoTuva(x,y,k,i%3?d:c,i*11+x,ss)).join('')}
+ // lite snö: vita fläckar som blir fler och större med snödjupet (0,5–4 cm), tills marken blir helt vit
+ if(snow===1){const cm=Math.max(.5,Math.min(4,snowDepth())),z=.6+cm*.12,n=Math.round(3+cm*2.2);
+  h+='<g fill="#F4F8FD" opacity=".92">'+[[60,160,22,4],[150,168,26,5],[16,170,14,3],[104,176,18,3.4],[205,176,16,3],[34,156,12,2.6],[176,160,12,2.6],[84,184,14,2.6],[128,160,10,2.2],[230,183,10,2.2],[-4,180,10,2.4],[120,186,12,2]].slice(0,n).map(([x,y,rx,ry])=>ellipse([x,y,(rx*z).toFixed(1),(ry*z).toFixed(1)])).join('')+'</g>'}
+ return h+'</g>'}
 function backdropSvg(sc){const id='bd'+(++FIG_N),ss=grassSeason(today()),snow=snowLevel(sc),frost=!snow&&sc.T<0,f=v=>v.toFixed(1);
  const rnd=k=>{const x=Math.sin(k*57.3+1.7)*43758.5453;return x-Math.floor(x)};
- let[g1,g2]=GRASS[ss];if(frost){g1=mixHex(g1,'#E2ECF5',.42);g2=mixHex(g2,'#C6D5E4',.3)}
+ let[g1,g2]=artGrass(ss);if(frost){g1=mixHex(g1,'#E2ECF5',.42);g2=mixHex(g2,'#C6D5E4',.3)}
  const blob=(cx,cy,rx,ry,j,seed)=>{const n=14,P=[];for(let i=0;i<n;i++){const a=i/n*2*Math.PI,r=1+(rnd(i+seed)-.5)*j;P.push([cx+Math.cos(a)*rx*r,cy+Math.sin(a)*ry*r])}
   const mid=(p,q)=>[(p[0]+q[0])/2,(p[1]+q[1])/2];let d='M'+mid(P[n-1],P[0]).map(f).join(' ');
   P.forEach((p,i)=>{const m=mid(p,P[(i+1)%n]);d+=' Q'+f(p[0])+' '+f(p[1])+' '+f(m[0])+' '+f(m[1])});return d+'Z'};
  const far=snow>=2?'#DCE5EF':mixHex(g2,'#9FB0A0',.35),near=snow>=2?'#EEF3F8':g1;
  // masken: helt synlig nere vid plätten och tonar ut uppåt och åt vänster
- let s='<defs><radialGradient id="'+id+'f" cx="120" cy="164" r="125" gradientUnits="userSpaceOnUse" gradientTransform="translate(120 164) scale(1 .3) translate(-120 -164)"><stop offset=".3" stop-color="#fff"/><stop offset=".75" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>'+
-  '<mask id="'+id+'m"><rect width="230" height="190" fill="url(#'+id+'f)"/></mask>'+
-  '<linearGradient id="'+id+'v" x1="0" y1="0" x2="0" y2="190" gradientUnits="userSpaceOnUse"><stop offset=".89" stop-color="#fff"/><stop offset=".985" stop-color="#fff" stop-opacity="0"/></linearGradient><mask id="'+id+'b"><rect width="230" height="190" fill="url(#'+id+'v)"/></mask>'+
-  '<filter id="'+id+'n"><feColorMatrix type="matrix" values=".66 .04 0 0 .02  .02 .7 .04 0 .03  0 .06 .9 0 .07  0 0 0 1 0"/></filter></defs>';
- let g='<g mask="url(#'+id+'b)"><g mask="url(#'+id+'m)">';
- // två kullar: en avlägsen och en närmare som trädet står på
- g+='<path d="M-10 172 Q30 128 92 136 Q150 142 240 120 V190 H-10Z" fill="'+far+'" opacity=".35"/>';
- g+='<path d="M-10 182 Q20 150 64 152 Q108 154 150 164 Q190 172 240 160 V190 H-10Z" fill="'+near+'" opacity=".62"/>';
- g+='<g opacity=".7">'+[[40,160,26,3.4,mixHex(near,'#FFFFFF',.18)],[100,166,22,3,shadeHex(near,.86)],[18,170,14,2.6,shadeHex(near,.86)]].map(([x,y,rx,ry,c],i)=>'<path d="'+blob(x,y,rx,ry,.4,i*5)+'" fill="'+c+'"/>').join('')+'</g>';
- g+='</g></g>';
+ let s='<defs><radialGradient id="'+id+'f" cx="'+(WXART==='geo'?115:120)+'" cy="164" r="'+(WXART==='geo'?170:125)+'" gradientUnits="userSpaceOnUse" gradientTransform="translate(120 164) scale(1 '+(WXART==='geo'?.4:.3)+') translate(-120 -164)"><stop offset=".3" stop-color="#fff"/>'+(WXART==='geo'?'<stop offset=".66" stop-color="#fff" stop-opacity=".38"/><stop offset=".88" stop-color="#fff" stop-opacity=".08"/>':'<stop offset=".75" stop-color="#fff" stop-opacity=".55"/>')+'<stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>'+
+  '<mask id="'+id+'m"><rect x="'+(WXART==='geo'?-65:0)+'" width="'+(WXART==='geo'?370:230)+'" height="190" fill="url(#'+id+'f)"/></mask>'+
+  '<linearGradient id="'+id+'v" x1="0" y1="0" x2="0" y2="190" gradientUnits="userSpaceOnUse"><stop offset=".89" stop-color="#fff"/><stop offset=".985" stop-color="#fff" stop-opacity="0"/></linearGradient><mask id="'+id+'b"><rect x="'+(WXART==='geo'?-65:0)+'" width="'+(WXART==='geo'?370:230)+'" height="190" fill="url(#'+id+'v)"/></mask>'+
+  '<filter id="'+id+'n"'+(WXART==='geo'?geoReg([-70,-20,380,230]):'')+'><feColorMatrix type="matrix" values=".66 .04 0 0 .02  .02 .7 .04 0 .03  0 .06 .9 0 .07  0 0 0 1 0"/></filter></defs>';
+ let g;
+ if(WXART==='geo')g=geoGroundSvg(sc,id,ss,snow,g1,g2);
+ else{g='<g mask="url(#'+id+'b)"><g mask="url(#'+id+'m)"><path d="M-10 172 Q30 128 92 136 Q150 142 240 120 V190 H-10Z" fill="'+far+'" opacity=".35"/><path d="M-10 182 Q20 150 64 152 Q108 154 150 164 Q190 172 240 160 V190 H-10Z" fill="'+near+'" opacity=".62"/>';
+ g+='<g opacity=".7">'+[[40,160,26,3.4,mixHex(near,'#FFFFFF',.18)],[100,166,22,3,shadeHex(near,.86)],[18,170,14,2.6,shadeHex(near,.86)]].map(([x,y,rx,ry,c],i)=>'<path d="'+blob(x,y,rx,ry,.4,i*5)+'" fill="'+c+'"/>').join('')+'</g></g></g>'}
  // tuvor som läcker ut från kullen
  g+=[[-2,166,4,1.6],[8,160,2.5,1.1],[20,150,2.2,1],[70,148,2.5,1],[112,152,3,1.2],[190,158,2.4,1]].map(([x,y,rx,ry])=>'<ellipse cx="'+x+'" cy="'+y+'" rx="'+rx+'" ry="'+ry+'" fill="'+near+'" opacity=".55"/>').join('');
+
  // trädet: stam och krona av runda klungor, ljus uppe till vänster och hård skugga till höger som hundarna.
  // Lövet följer året steg för steg (treeStage): knoppar, musöron, ljust försommargrönt, mörkare gröngul högsommar,
  // gulnande, brandgult och eldigt rött med fallande löv, sena bruna löv och till sist kala grenar.
- const TX=52,TY=160,T=treeStage(today()),den=T.d,bare=den<.04;
- const bark='#6E5641',barkD='#55412F',[L1,L2]=T.c;
- let t='<path d="M'+(TX-4.5)+' '+TY+' Q'+(TX-3)+' '+(TY-26)+' '+(TX-2.6)+' '+(TY-46)+' L'+(TX+2.6)+' '+(TY-46)+' Q'+(TX+3.2)+' '+(TY-26)+' '+(TX+5.5)+' '+TY+'Z" fill="'+bark+'"/>'+
+ const TX=WXART==='geo'?28:52,TY=WXART==='geo'?151:160,T=treeStage(today()),den=T.d,bare=den<.04,geo=WXART==='geo';
+ if(geo){T.c=T.c.map(c=>mixHex(c,T.doy>256&&T.doy<332?'#FC4F52':'#25B797',.35));if(T.c2)T.c2='#FFC65C'}
+ const bark=geo?'#263C61':'#6E5641',barkD=geo?'#1B2B4E':'#55412F',[L1,L2]=T.c;
+ let leaves='',t='<path d="M'+(TX-4.5)+' '+TY+' Q'+(TX-3)+' '+(TY-26)+' '+(TX-2.6)+' '+(TY-46)+' L'+(TX+2.6)+' '+(TY-46)+' Q'+(TX+3.2)+' '+(TY-26)+' '+(TX+5.5)+' '+TY+'Z" fill="'+bark+'"/>'+
   '<path d="M'+(TX+.8)+' '+TY+' Q'+(TX+1.6)+' '+(TY-26)+' '+(TX+1.2)+' '+(TY-46)+' L'+(TX+2.6)+' '+(TY-46)+' Q'+(TX+3.2)+' '+(TY-26)+' '+(TX+5.5)+' '+TY+'Z" fill="'+barkD+'"/>';
  const br=[[TX,TY-30,TX-16,TY-52],[TX,TY-38,TX+15,TY-58],[TX-1,TY-46,TX-4,TY-70],[TX-9,TY-44,TX-22,TY-60],[TX+8,TY-50,TX+20,TY-66],[TX-3,TY-60,TX-12,TY-76],[TX-3,TY-62,TX+6,TY-80]];
  const brP=br.map(([a,b,c,d],i)=>'M'+a+' '+b+' Q'+f((a+c)/2+(i%2?3:-3))+' '+f((b+d)/2)+' '+c+' '+d);
@@ -2880,29 +3557,35 @@ function backdropSvg(sc){const id='bd'+(++FIG_N),ss=grassSeason(today()),snow=sn
  t+='<g stroke="'+bark+'" stroke-linecap="round" fill="none">'+brP.map((d,i)=>'<path d="'+d+'" stroke-width="'+(i<3?2.6:1.6)+'"/>').join('')+(tw?'<path d="'+tw+'" stroke-width="1"/>':'')+'</g>';
  // knoppar och glesa löv: små prickar vid grenspetsarna, fler ju längre lövet har kommit
  const tips=br.flatMap(([a,b,c,d],i)=>[[c,d],[(a+c)/2,(b+d)/2],[c+(i%2?4:-4),d-5],[(a+3*c)/4,(b+3*d)/4]]);
- if(!bare&&den<.62){const n=Math.round(tips.length*Math.min(1,den/.35)*1.6),r=1.2+den*4.2;
+ if(!bare&&den<(geo?.5:.62)){const n=Math.round(tips.length*Math.min(1,den/.35)*1.6),r=1.2+den*4.2;
   t+=Array.from({length:n},(_,k)=>{const[x,y]=tips[k%tips.length],j=Math.floor(k/tips.length),ox=(rnd(k+70)-.5)*(6+j*6),oy=(rnd(k+90)-.5)*(5+j*5);
    return'<circle cx="'+f(x+ox)+'" cy="'+f(y+oy)+'" r="'+f(r*(.7+rnd(k+5)*.5))+'" fill="'+(k%3?L1:L2)+'"/>'}).join('')}
  // tät krona av klungor när lövet är utslaget
  if(den>=.5){const k0=Math.min(1,(den-.5)/.4),lite=mixHex(L1,'#FFFFFF',.22);
-  const CL=[[TX-14,TY-58,15],[TX+12,TY-62,14],[TX-2,TY-76,17],[TX-20,TY-72,11],[TX+20,TY-76,11],[TX+2,TY-56,13],[TX-8,TY-90,11],[TX+10,TY-88,10]].map(([x,y,r])=>[x,y,r*(.55+.45*k0)]).slice(0,Math.max(3,Math.round(8*Math.min(1,den+.1))));
+  const CL=[[TX-14,TY-58,15],[TX+12,TY-62,14],[TX-2,TY-76,17],[TX-20,TY-72,11],[TX+20,TY-76,11],[TX+2,TY-56,13],[TX-8,TY-90,11],[TX+10,TY-88,10]].map(([x,y,r])=>[x,y,r*(.55+.45*k0)]).slice(0,Math.max(3,Math.round((geo?5:8)*Math.min(1,den+.1))));
   t+='<g>'+CL.map(([x,y,r])=>'<circle cx="'+x+'" cy="'+y+'" r="'+f(r)+'" fill="'+L1+'"/>').join('')+
    '<clipPath id="'+id+'c">'+CL.map(([x,y,r])=>'<circle cx="'+x+'" cy="'+y+'" r="'+f(r)+'"/>').join('')+'</clipPath><g clip-path="url(#'+id+'c)"><path d="M'+(TX+2)+' '+(TY-110)+' Q'+(TX-6)+' '+(TY-70)+' '+(TX+8)+' '+(TY-40)+' H'+(TX+40)+' V'+(TY-110)+'Z" fill="'+L2+'"/></g>'+
-   CL.slice(0,4).map(([x,y,r])=>'<circle cx="'+f(x-r*.35)+'" cy="'+f(y-r*.35)+'" r="'+f(r*.38)+'" fill="'+lite+'" opacity=".55"/>').join('')+'</g>'}
+   (geo?[]:CL.slice(0,4)).map(([x,y,r])=>'<circle cx="'+f(x-r*.35)+'" cy="'+f(y-r*.35)+'" r="'+f(r*.38)+'" fill="'+lite+'" opacity=".55"/>').join('')+'</g>'}
  // blom på våren och äpplen på sensommaren
  if(T.bloom)t+=[[TX-18,TY-66],[TX+6,TY-82],[TX+16,TY-64],[TX-6,TY-58],[TX-12,TY-84],[TX+22,TY-78],[TX-22,TY-56],[TX+2,TY-70]].slice(0,Math.round(8*T.bloom)).map(([x,y])=>'<circle cx="'+x+'" cy="'+y+'" r="1.9" fill="#FFFFFF"/><circle cx="'+x+'" cy="'+y+'" r=".75" fill="#F2B6C6"/>').join('');
  if(T.fruit)t+=[[TX-16,TY-62],[TX+12,TY-70],[TX+2,TY-84],[TX-6,TY-72],[TX+18,TY-60]].slice(0,Math.round(5*T.fruit)).map(([x,y])=>'<circle cx="'+x+'" cy="'+y+'" r="2" fill="#D94A3A"/><circle cx="'+(x-.6)+'" cy="'+(y-.7)+'" r=".6" fill="#FFB3A6"/>').join('');
  // fallande löv: fler ju mer det är höst, varje löv singlar ned i egen takt och vajar åt sidan
- if(T.fall&&!snow&&!sc.thunder){const n=Math.round(T.fall*7),src=[[TX+18,TY-60],[TX-22,TY-64],[TX+4,TY-80],[TX-10,TY-56],[TX+24,TY-74],[TX-16,TY-82],[TX+10,TY-52]];
-  t+='<g class="bd-leaves">'+src.slice(0,n).map(([x,y],i)=>{const c=[L1,L2,T.c2||L1][i%3],dur=5+rnd(i+11)*4,dl=rnd(i+23)*dur,dx=-10-rnd(i+31)*26*(i%2?1:-.5),dy=TY+4-y+rnd(i+3)*6;
-   return'<g style="--dx:'+f(dx)+'px;--dy:'+f(dy)+'px;animation-duration:'+f(dur)+'s;animation-delay:-'+f(dl)+'s"><path d="M'+x+' '+y+' q3.2 -2.4 6.4 0 q-3.2 2.4 -6.4 0Z" fill="'+c+'"/></g>'}).join('')+'</g>'}
+ if(T.fall&&!snow&&!sc.thunder){const n=Math.round(T.fall*9),src=[[TX+18,TY-60],[TX-22,TY-64],[TX+4,TY-80],[TX-10,TY-56],[TX+24,TY-74],[TX-16,TY-82],[TX+10,TY-52],[TX-4,TY-70],[TX+28,TY-66]],wd=(sc.dir||1)*(3+(sc.wl||0)*11);
+  // tre lager per löv: fallet (med vinden), pendlingen i sidled och vridningen, alla i egen takt
+  leaves='<g class="bd-leaves">'+src.slice(0,n).map(([x,y],i)=>{const r=k=>rnd(i*13+k+61),c=[L1,L2,T.c2||L1][i%3],dur=6+r(1)*7,dl=r(2)*dur,dx=wd*(.5+r(3))+(r(4)-.5)*24,dy=TY+4-y+r(5)*6;
+   const sw=1.1+r(6)*1.7,sd=r(7)*sw,a=2+r(8)*7,tu=r(9)<.35,td=tu?1+r(10)*1.4:sw,r0=-(15+r(11)*40),r1=15+r(12)*45;
+   return'<g style="--dx:'+f(dx)+'px;--dy:'+f(dy)+'px;animation-duration:'+f(dur)+'s;animation-delay:-'+f(dl)+'s"><g class="sw" style="--a:'+f(a)+'px;animation-duration:'+f(sw)+'s;animation-delay:-'+f(sd)+'s">'+
+    '<path class="'+(tu?'tu':'fl')+'" style="--r0:'+f(r0)+'deg;--r1:'+f(r1)+'deg;--sy:'+(.4+r(13)*.5).toFixed(2)+';animation-duration:'+f(td)+'s;animation-delay:-'+f(tu?r(14)*td:sd)+'s'+(tu&&r(15)<.5?';animation-direction:reverse':'')+'" d="M'+x+' '+y+' q3.2 -2.4 6.4 0 q-3.2 2.4 -6.4 0Z" fill="'+c+'"/></g></g>'}).join('')+'</g>';t+=leaves}
  if(snow>=1&&!bare&&den>=.5)t+='<path d="M'+(TX-26)+' '+(TY-78)+' Q'+(TX-10)+' '+(TY-108)+' '+(TX+16)+' '+(TY-94)+' Q'+(TX+30)+' '+(TY-86)+' '+(TX+28)+' '+(TY-80)+' Q'+(TX+6)+' '+(TY-92)+' '+(TX-26)+' '+(TY-78)+'Z" fill="#FFFFFF" opacity=".92"/>';
  // trädets skugga på kullen och fallna löv på marken
  t='<ellipse cx="'+(TX+6)+'" cy="'+(TY+1)+'" rx="'+f(10+8*den)+'" ry="2.6" fill="'+shadeHex(near,.75)+'" opacity=".7"/>'+t;
  if(T.ground&&snow<2){const G=[[TX-20,TY+4],[TX+14,TY+6],[TX+30,TY+3],[TX-6,TY+8],[TX-30,TY+7],[TX+22,TY+9],[TX+4,TY+3],[TX-14,TY+10],[TX+38,TY+7],[TX-38,TY+3]],gc=T.gc||[L1,L2];
   t+=G.slice(0,Math.round(10*T.ground)).map(([x,y],i)=>'<path d="M'+x+' '+y+' q2 -1.4 4 0 q-2 1.4 -4 0Z" fill="'+gc[i%2]+'" transform="rotate('+Math.round(rnd(i+50)*80-40)+' '+(x+2)+' '+y+')"/>').join('')}
- g+='<g opacity=".92">'+t+'</g>';
- return'<svg class="bd" viewBox="0 0 230 190" aria-hidden="true">'+s+(sc.dark?'<g filter="url(#'+id+'n)">'+g+'</g>':g)+'</svg>'}
+ if(geo)t=geoTreeSvg(sc,id,T,near)+leaves;
+ // de fallande löven ritas i en egen SVG ovanpå: annars målas träd, gräs och mark om varje bildruta medan löven faller (lagg i telefonen)
+ if(leaves)t=t.replace(leaves,'');
+ g+='<g opacity=".92">'+t+'</g>';const nt=x=>sc.dark?'<g filter="url(#'+id+'n)">'+x+'</g>':x,hd='<svg class="bd'+wxArtClass()+(geo?' geo-components':'')+'" data-season="'+ss+'" data-snow="'+snow+'" viewBox="0 0 230 190" aria-hidden="true"';
+ return hd+'>'+s+nt(g)+'</svg>'+(leaves?hd.replace('class="bd','class="bd bd-lag')+'>'+nt('<g opacity=".92">'+leaves+'</g>')+'</svg>':'')}
 function figSvg(sc,o){o=o||{};const id='fg'+(++FIG_N),ph=sc.phase,dark=sc.dark,warmL=ph==='dawn'||ph==='golden';
  const wet=/^(drizzle|rain|sleet)$/.test(sc.type),snow=sc.type==='snow',sleet=sc.type==='sleet',lv=sc.lv;
  const sunC=warmL?'#FFB877':'#FFE7A3',sunD=warmL?'#FF9F5A':'#FFD666';
@@ -2932,7 +3615,7 @@ function figSvg(sc,o){o=o||{};const id='fg'+(++FIG_N),ph=sc.phase,dark=sc.dark,w
  // 2. molnen: antalet följer himlen, tonen följer nederbörden och ljuset
  const sky=wet||snow||sc.thunder?(/^(clear|fair)$/.test(sc.sky)?'partly':sc.sky):sc.sky;
  let base=sc.thunder?'#4C5672':wet?['#A3AFC2','#7E8BA3','#5F6B84'][lv-1]:snow?['#CBD6E3','#B9C6D7','#A2B1C6'][lv-1]:{fair:'#EEF3F8',partly:'#DCE4EE',cloudy:'#C3CFDE',fog:'#DCE4EE'}[sky];
- if(o.patch&&!(wet||snow||sc.thunder))base=null;   // på gräsplätten bara moln när det regnar eller snöar
+ if(o.patch&&!(wet||snow||sc.thunder)||o.nocl)base=null;   // på gräsplätten bara moln när det regnar eller snöar
  if(base){base=dark?mixHex(base,'#2A3350',.5):warmL?mixHex(base,'#F2B48A',.22):base;
   const L={fair:[[4,12,.55]],partly:[[4,12,.6],[122,28,.45,'d2']],cloudy:[[120,0,.85],[2,6,.7,'d2']],fog:[[124,4,.75],[2,16,.55,'d2']]}[sky].slice();
   if(sky==='cloudy'&&((wet||snow)&&lv>=2||sc.thunder))L.push([58,-9,.62,'d3']);
@@ -2943,27 +3626,30 @@ function figSvg(sc,o){o=o||{};const id='fg'+(++FIG_N),ph=sc.phase,dark=sc.dark,w
  // 3. värmedaller i stark sol
  if(sc.T>=24&&sc.sunUp&&!covered&&!wet)s+='<g class="fx-heat" stroke="'+sunD+'" stroke-width="1.2" fill="none" stroke-linecap="round" opacity=".5">'+[[14,0],[152,.8],[34,1.6],[134,2.3]].map(([x,d])=>'<path d="M'+x+' 122 q3 -4 0 -8 t0 -8" style="animation-delay:-'+d+'s"/>').join('')+'</g>';
  // 4. marken: skugga bort från solen, snö, frost eller vattenpölar
- const flt=x=>dark?'<g filter="url(#'+id+'n)">'+x+'</g>':warmL?'<g filter="url(#'+id+'w)">'+x+'</g>':x,gp=o.patch?grassPatch(sc,id):null;
- if(gp)s+=flt(gp.back);
+ const terrain=x=>dark?'<g filter="url(#'+id+'n)">'+x+'</g>':warmL?'<g filter="url(#'+id+'w)">'+x+'</g>':x,flt=x=>WXART==='geo'?x:terrain(x),gp=o.patch?grassPatch(sc,id):null;
+ if(gp)s+=(WXART==='geo'?'<g class="geo-ground">':'')+terrain(gp.back)+(WXART==='geo'?'</g>':'');
  else if(!o.nodogs)s+='<ellipse cx="'+(sc.sunUp&&!covered?85+(.5-sc.f)*24:85)+'" cy="125" rx="62" ry="5" fill="url(#'+id+'s)"/>';
+ // Marken ritas i en egen SVG under hundarna: annars målas hela gräset om varje bildruta när hundarna andas (lagg i telefonen)
+ const cut=gp&&!o.nodogs?s.length:0;
  if(gp);else if(snow&&(lv>=2||sc.T<=0))s+='<path d="M0 127 Q30 114 70 118 Q110 113 170 125 V131 H0Z" fill="url(#'+id+'d)"/><path d="M8 124 Q40 117 70 119" stroke="#fff" stroke-width="1.4" fill="none" stroke-linecap="round" opacity=".9"/>';
  else if(sc.T<0)s+='<path d="M10 126 Q85 119 160 126" stroke="#BFD6F2" stroke-width="2.2" fill="none" stroke-linecap="round" opacity=".8"/>';
  if(!gp&&(wet&&sc.type!=='drizzle'||sc.thunder)&&lv>=2&&sc.T>0)s+='<g class="fx-pud"><ellipse cx="20" cy="127" rx="15" ry="2.4" fill="#8FC4F0" opacity=".35"/><ellipse cx="152" cy="128" rx="13" ry="2.2" fill="#8FC4F0" opacity=".35"/>'+
   [[20,127,0],[152,128,.7],[26,127,1.3]].map(([x,y,d])=>'<ellipse class="rip" cx="'+x+'" cy="'+y+'" rx="5" ry="1.2" fill="none" stroke="#8FC4F0" stroke-width=".8" style="animation-delay:-'+d+'s"/>').join('')+'</g>';
  if(sc.T<0&&!gp)s+='<g class="fx-frost" fill="#BFD6F2">'+[[16,40],[34,22],[132,46],[160,58],[10,78],[156,96],[24,104]].map(([x,y],k)=>'<path class="tw'+(k%3?' d'+(k%3+1):'')+'" d="M'+x+' '+(y-4)+' L'+(x+1)+' '+(y-1)+' L'+(x+4)+' '+y+' L'+(x+1)+' '+(y+1)+' L'+x+' '+(y+4)+' L'+(x-1)+' '+(y+1)+' L'+(x-4)+' '+y+' L'+(x-1)+' '+(y-1)+'Z"/>').join('')+'</g>';
  // 5. hundarna. Varianten listar hundarna från vänster: a/b = fawn/svart sittande, A/B = liggande och sovande
- const v=o.variant||figVariant(sc),toks=v.split(''),oo={fit:sc.fit,night:dark};
+ const v=o.variant||figVariant(sc),toks=v.split(''),oo={fit:sc.fit,night:dark,sky:sc.sky};
  const one=(t,pos)=>{const isA=t.toLowerCase()==='a',lie=t===t.toUpperCase(),g=dogSvg(DOGS[isA?0:1],oo,id+(isA?'a':'b'),lie?'lie':'sit');
   let tr;
   if(pos==='c')tr=lie?'translate(26 4)':(isA?'translate(29 6) scale(.95)':'translate(25 0)');
   else if(lie)tr=pos==='l'?'translate(-8 '+(isA?14:8)+') scale('+(isA?.8:.85)+')':'translate('+(isA?82:76)+' '+(isA?14:8)+') scale('+(isA?.8:.85)+')';
   else tr=pos==='l'?(isA?'translate(4 6) scale(.9)':'translate(4 0)'):(isA?'translate(64 6) scale(.9)':'translate(58 0)');
+  if(lie&&WXART==='geo'&&pos!=='c')tr='translate('+(pos==='l'?-1.6:69.4)+' 11.6) scale(.82)';// geo: lika stora bäddar med fast lucka, oavsett vilken hund som ligger var
   // på gräsplätten flyttas varje hund ned så att tassarna (eller magen när den ligger) vilar mitt på gräset
   if(o.patch){const m=/translate\(([-\d.]+) ([-\d.]+)\)(?: scale\(([\d.]+)\))?/.exec(tr),k=m&&m[3]?+m[3]:1;if(m)tr='translate('+m[1]+' '+(132-k*123.4).toFixed(1)+')'+(m[3]?' scale('+m[3]+')':'')}
   return'<g class="dog-'+(isA?'a':'b')+'" transform="'+tr+'">'+g+'</g>'};
  const dogs=toks.length===1?one(toks[0],'c'):one(toks[0],'l')+one(toks[1],'r');
  if(!o.nodogs)s+=flt(dogs);
- if(gp&&gp.front)s+=flt(gp.front);
+ if(gp&&gp.front)s+=terrain(gp.front);
  // 6. nederbörden: tätheten och farten följer styrkan, lutningen följer vinden
  const rnd=k=>{const x=Math.sin(k*127.1+lv*7.3+(o.seed||0))*43758.5453;return x-Math.floor(x)};
  const sl=sc.wl?sc.wl*.22*sc.dir:-.06,dx=Math.round(sl*124);
@@ -2975,7 +3661,8 @@ function figSvg(sc,o){o=o||{};const id='fg'+(++FIG_N),ph=sc.phase,dark=sc.dark,w
   s+='<g class="fx-snow" fill="#FFFFFF" stroke="#9DB4D3" stroke-width=".6">'+fall(n,(x,k)=>'<circle cx="'+x.toFixed(1)+'" cy="'+(6+rnd(k+30)*12).toFixed(1)+'" r="'+(sleet?1.3+rnd(k)*.8:1.4+rnd(k+3)*1.5).toFixed(1)+'" style="--dx:'+dx+'px;animation-duration:'+dur.toFixed(2)+'s;animation-delay:-'+(rnd(k+17)*dur).toFixed(2)+'s"/>')+'</g>';
   if(snow&&lv>=2)s+='<g class="fx-flakes" stroke="#FFFFFF" stroke-width="1.1" stroke-linecap="round">'+[[40,.4],[128,2.1],[86,3.2]].map(([x,d])=>'<g style="--dx:'+dx+'px;animation-delay:-'+d+'s"><path d="M'+x+' 6v10M'+(x-4.3)+' 8.5l8.6 5M'+(x-4.3)+' 13.5l8.6-5" stroke="#9DB4D3" stroke-width="2.4"/><path d="M'+x+' 6v10M'+(x-4.3)+' 8.5l8.6 5M'+(x-4.3)+' 13.5l8.6-5"/></g>').join('')+'</g>'}
  // 7. vinden visas som text i vädervyn i stället för som animation; den lutar bara regnet och snön
- return'<svg class="fig k-'+sc.tc+' w'+sc.wl+(sc.sleep?' zz':'')+'" viewBox="0 0 170 '+(o.patch?150:130)+'" role="img" aria-label="'+esc(o.label||sc.label)+'">'+s+'</svg>'}
+ const cls='fig'+wxArtClass()+' k-'+sc.tc+' w'+sc.wl+(sc.sleep?' zz':''),vb='viewBox="0 0 170 '+(o.patch?150:130)+'"';
+ return'<svg class="'+cls+'" '+vb+' role="img" aria-label="'+esc(o.label||sc.label)+'">'+(cut?s.slice(0,cut)+'</svg><svg class="'+cls+' fig-lag" '+vb+' aria-hidden="true">'+s.slice(cut):s)+'</svg>'}
 
 const hm=m=>pad(Math.floor(m/60))+'.'+pad(m%60);
 // nedräkning för dagens händelser: "till 16.00" när den pågår, "om 2 h 5 min" för nästa som börjar
@@ -2993,7 +3680,8 @@ const durTxt=m=>m<60?m+' min':Math.floor(m/60)+' h'+(m%60?' '+m%60+' min':'');
 // sol- och månbanans horisont: mitt i namnsdagsraden (annars faktaraden), aldrig under hundarnas fötter
 function placeSky(){const h=document.querySelector('.hero');if(!h)return;
  const arc=h.querySelector('.arc.b'),gf=h.querySelector('.fig-box.grass');
- if(arc&&gf){const hr=h.getBoundingClientRect(),fr=gf.getBoundingClientRect();const hl=[...h.querySelectorAll('.hero-wx .fn')].pop();arc.style.bottom=Math.round(hr.bottom-fr.top-34)+'px';if(hl)arc.style.top=Math.round(hl.getBoundingClientRect().bottom-hr.top+16)+'px'}
+ // Fast höjd mot väderbilden: kortets nederkant flyttas när grafen dras ut.
+ if(arc&&gf){const hr=h.getBoundingClientRect(),fr=gf.getBoundingClientRect(),z=h.offsetWidth?hr.width/h.offsetWidth:1,hl=[...h.querySelectorAll('.hero-wx .fn')].pop(),top=hl?Math.round((hl.getBoundingClientRect().bottom-hr.top)/z+16):parseFloat(getComputedStyle(arc).top);arc.style.top=top+'px';arc.style.bottom='auto';arc.style.height=Math.max(0,Math.round((fr.top-hr.top)/z+34)-top)+'px'}
  const chips=[...h.querySelectorAll('.hero-facts span')],c=chips.find(x=>/^Namnsdag/.test(x.textContent))||chips[Math.floor((chips.length-1)/2)],fig=h.querySelector('.fig-box');
  if(!c)return;const top=h.getBoundingClientRect().top,r=c.getBoundingClientRect();let y=r.top+r.height/2-top;
  if(fig){const f=fig.getBoundingClientRect();y=Math.min(y,f.bottom-top-6)}
@@ -3017,34 +3705,232 @@ function arcHtml(W,v){const P=WX_POS(),sc=wxScene(W),now=new Date(),k=SKY(now,P.
  // banan tonar in och ut i ändarna
  let s='<svg viewBox="0 0 100 100" preserveAspectRatio="none"><defs>'+fade('t','currentColor')+fade('d',day?'#F5B940':'#9AA8D6')+'</defs><path class="trk" stroke="url(#'+gid+'t)" d="M0 100 A50 '+ry+' 0 0 1 100 100"/>'+
   '<path class="done" stroke="url(#'+gid+'d)" d="M0 100 A50 '+ry+' 0 0 1 '+x.toFixed(2)+' '+y.toFixed(2)+'"/></svg>';
- if(!day&&!covered)s+=[[18,40],[34,14],[62,8],[80,30],[50,46],[90,60]].slice(0,sc.sky==='partly'?3:6).map(([a,b],i)=>'<i class="arc-st tw'+(i%3?' d'+(i%3+1):'')+'" style="left:'+a+'%;top:'+b+'%"></i>').join('');
- const z=v==='w'?48:34;
- s+='<div class="sky-b '+(day?'sky-sun':'sky-moon')+'" style="left:'+x.toFixed(1)+'%;top:'+y.toFixed(1)+'%;opacity:'+(covered?.4:1)+'">'+(day?sunSvg(k.sun.alt<8,z*1.5):moonSvg(k.moon.frac,k.moon.waxing,z))+'</div>';
+ if(!day&&!covered&&v!=='w'&&!(v==='b'&&heroSky()))s+=[[18,40],[34,14],[62,8],[80,30],[50,46],[90,60]].slice(0,sc.sky==='partly'?3:6).map(([a,b],i)=>'<i class="arc-st tw'+(i%3?' d'+(i%3+1):'')+'" style="left:'+a+'%;top:'+b+'%"></i>').join('');
+ const z=v==='w'?72:v==='b'?(SOLMOLN?62:50):v==='a'&&wallBoardOn()?58:34;
+ const sm=SOLMOLN&&(v==='w'||v==='b'||v==='a'&&wallBoardOn())?sunCloud(sc,day,day?z*1.5*17/48:z*20/48):'';
+ s+='<div class="sky-b '+(day?'sky-sun':'sky-moon')+(sm?' sm-'+SOLMOLN:'')+'" style="left:'+x.toFixed(1)+'%;top:'+y.toFixed(1)+'%;opacity:'+(covered&&!sm?.4:1)+'">'+(sm&&day&&SOLMOLN==='a'&&!covered?sunRays(z*1.5):'')+'<div class="sb-body" style="opacity:'+(sm&&covered?.6:1)+'">'+(day?sunSvg(k.sun.alt<8,z*1.5):moonSvg(k.moon.frac,k.moon.waxing,z))+'</div>'+sm+'</div>';
  return'<div class="arc '+v+'" aria-hidden="true">'+s+'</div>'}
+// månadens stjärnbild: den som syns bra på kvällshimlen från Sverige den månaden. Punkter i en ruta 0–100, linjer mellan punkternas index
+const STJB=[['Orion',[[22,10],[72,16],[40,50],[50,47],[60,44],[32,92],[78,86]],[[0,1],[0,2],[1,4],[2,3],[3,4],[2,5],[4,6]]],
+ ['Tvillingarna',[[30,4],[56,10],[22,50],[50,50],[12,96],[46,96]],[[0,2],[2,4],[1,3],[3,5],[2,3]]],
+ ['Lejonet',[[18,84],[14,58],[24,36],[42,26],[52,40],[58,62],[96,64],[66,40]],[[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,4]]],
+ ['Karlavagnen',[[0,22],[22,14],[38,26],[54,36],[58,64],[90,74],[96,42]],[[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,3]]],
+ ['Björnvaktaren',[[46,96],[30,60],[38,24],[54,2],[68,22],[64,58]],[[0,1],[1,2],[2,3],[3,4],[4,5],[5,0],[1,5]]],
+ ['Lyran',[[50,4],[40,36],[62,32],[36,78],[58,74]],[[0,1],[0,2],[1,2],[1,3],[2,4],[3,4]]],
+ ['Sommartriangeln',[[12,12],[80,2],[52,96]],[[0,1],[1,2],[2,0]]],
+ ['Svanen',[[50,2],[50,40],[50,98],[8,26],[92,52]],[[0,1],[1,2],[3,1],[1,4]]],
+ ['Pegasus',[[18,30],[74,24],[80,74],[22,80],[98,96]],[[0,1],[1,2],[2,3],[3,0],[2,4]]],
+ ['Kassiopeja',[[0,34],[25,64],[48,38],[72,66],[100,22]],[[0,1],[1,2],[2,3],[3,4]]],
+ ['Plejaderna',[[24,42],[38,30],[48,46],[60,34],[52,62],[68,56],[38,64]],[]],
+ ['Oxen',[[30,48],[52,60],[66,46],[4,12],[100,18],[86,86]],[[3,0],[0,1],[1,2],[2,4]]]];
+function starSign(m){const[n,P,L]=STJB[m],f=v=>v.toFixed(0);
+ return'<svg class="stjb" viewBox="-6 -6 112 112" aria-label="Månadens stjärnbild: '+n+'">'+L.map(([a,b])=>'<line x1="'+P[a][0]+'" y1="'+P[a][1]+'" x2="'+P[b][0]+'" y2="'+P[b][1]+'"/>').join('')+
+  P.map(([x,y],i)=>'<circle cx="'+x+'" cy="'+y+'" r="'+(i%3?2.6:3.4)+'" style="animation-delay:-'+f(i*.7)+'s"/>').join('')+'</svg>'}
+// solen eller månen med ett eget moln som följer med över himlen, som en vädersymbol (förslag a/b/c, ls ht.solmoln)
+// molnets bas: rundad och platt, på stora moln med små bulor och ett svagt streck i underkanten så att den inte ser linjerad ut
+// ikonmoln: runda tussar på en rak baslinje som sticker ut lite, ett kort streck under och (stora moln) ett mindre, mörkare moln bakom med en glipa runt det främre
+// Molnens målade silhuetter färgsätts här så att samma lager följer dag/natt och nederbörd.
+function geoCloudSvg(P,x0,x1,B,c,o,id){const variant=o.storm?3:P.length<=2?0:o.back||P.length>=4?2:1,[sx,sy,sw,sh]=[[62,308,597,139],[767,257,348,225],[38,767,631,282],[713,756,504,303]][variant],W=x1-x0+12,H=Math.min(42,W*sh/sw),f=v=>v.toFixed(4),rgb=[1,3,5].map(i=>parseInt(c.slice(i,i+2),16)/255),matrix=rgb.map(v=>f(v)+' 0 0 0 0').join(' ')+' 0 0 0 1 0';
+ return'<defs><clipPath id="'+id+'clip"><rect width="'+sw+'" height="'+sh+'"/></clipPath><filter id="'+id+'tint"'+geoReg([-1,-1,sw+2,sh+2])+' color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="'+matrix+'"/></filter></defs><g transform="translate('+f(x0-6)+' '+f(B-H+5)+') scale('+f(W/sw)+' '+f(H/sh)+')"><g clip-path="url(#'+id+'clip)"><image class="geo-cloud" data-shape="'+variant+'" href="'+geoAsset('clouds-v2')+'" x="'+(-sx)+'" y="'+(-sy)+'" width="1254" height="1254" filter="url(#'+id+'tint)"/></g></g>'}
+function iconCloud(P,x0,x1,B,c,o){const f=v=>v.toFixed(1),g='ic'+(++FIG_N),sp=x1-x0;o=o||{};
+ if(WXART==='geo')return geoCloudSvg(P,x0,x1,B,c,o,g);
+ const front=P.map(([x,y,r])=>'<circle cx="'+f(x)+'" cy="'+f(y)+'" r="'+f(r)+'"/>').join('')+'<rect x="'+f(x0+4)+'" y="'+f(B-11)+'" width="'+f(sp-8)+'" height="9"/><rect x="'+f(x0-6)+'" y="'+f(B-4)+'" width="'+f(sp+10)+'" height="4.4" rx="2.2"/>'+
+  (o.dash?'<rect x="'+f(o.seed%2?x0+sp*.45:x0+4)+'" y="'+f(B+3)+'" width="'+f(sp*.38)+'" height="4.4" rx="2.2"/>':'');
+ let back='';
+ if(o.back){const k=.6,ox=x0+8,lift=Math.max(...P.map(p=>p[2]))*1.25,bp=P.map(([x,y,r])=>[ox+(x-x0)*k,B-(B-y)*k-lift,r*k]);
+  back='<mask id="'+g+'m" maskUnits="userSpaceOnUse" x="-60" y="-60" width="'+f(sp+160)+'" height="200"><rect x="-60" y="-60" width="'+f(sp+160)+'" height="200" fill="#fff"/><g fill="#000" stroke="#000" stroke-width="3.2" stroke-linejoin="round">'+front+'</g></mask>'+
+   '<g fill="url(#'+g+'b)" mask="url(#'+g+'m)">'+bp.map(([x,y,r])=>'<circle cx="'+f(x)+'" cy="'+f(y)+'" r="'+f(r)+'"/>').join('')+'<rect x="'+f(ox)+'" y="'+f(bp[0][1])+'" width="'+f(sp*k)+'" height="'+f(B-8-bp[0][1])+'" rx="4"/></g>'}
+ const lg=(id,a,b)=>'<linearGradient id="'+id+'" gradientUnits="userSpaceOnUse" x1="'+x0+'" y1="0" x2="'+x1+'" y2="0"><stop offset="0" stop-color="'+a+'"/><stop offset="1" stop-color="'+b+'"/></linearGradient>';
+ return'<defs>'+lg(g,mixHex(c,'#FFFFFF',.35),shadeHex(c,.86))+(o.back?lg(g+'b',shadeHex(c,.9),shadeHex(c,.78)):'')+'</defs>'+back+'<g fill="url(#'+g+')">'+front+'</g>'}
+let SOLMOLN=lsGet('solmoln')==='0'?'':/^[ac]$/.test(lsGet('solmoln')||'')?lsGet('solmoln'):'c';
+function sunCloud(sc,day,D){const wet=/^(drizzle|rain|sleet)$/.test(sc.type),snow=sc.type==='snow',sleet=sc.type==='sleet',lv=sc.lv,f=x=>x.toFixed(1);
+ const kind=sc.thunder||wet||snow?'wet':sc.sky==='cloudy'?'cloudy':sc.sky==='partly'?'partly':sc.sky==='fair'?'fair':'';if(!kind)return'';
+ const T=skyTon(sc),c=T.tone(T.base||'#FFFFFF');
+ const wide=kind==='cloudy'||kind==='wet',VW=wide?100:64;
+ // molnet breder ut sig ju mulnare det är; det är lite genomskinligt så att solen alltid syns igenom
+ const W=D*(kind==='fair'?1.1:kind==='partly'?1.65:kind==='cloudy'?3:2.6+lv*.2),ox=D*({fair:.55,partly:.38,cloudy:.05,wet:.1}[kind]),oy=D*({fair:.3,partly:.32,cloudy:.16,wet:.18}[kind]);
+ const P=wide?[[18,26,10],[32,17,13],[50,13,15],[68,18,12],[82,26,9]]:[[20,25,10],[34,17,14],[48,25,10]];
+ const Wv=W*(VW+12)/VW,svg='<svg class="sb-c" viewBox="-6 -10 '+(VW+12)+' 58" width="'+f(Wv)+'" height="'+f(Wv*58/(VW+12))+'" style="opacity:'+(kind==='wet'?.88:kind==='cloudy'?.8:.85)+'">'+
+  iconCloud(P,wide?8:10,wide?92:58,38,c,{back:wide,dash:1,seed:wide?0:1,storm:sc.thunder})+'</svg>';
+ let r='';
+ if(kind==='wet'){
+  // nederbörden faller från molnet: duggregn tunt och långsamt, regn tätare och snabbare med styrkan, snö singlar och vajar, åska blixtrar
+  const sk=(sc.wl||0)*sc.dir*1.6,drz=sc.type==='drizzle',n=sc.thunder?6:drz?4:snow?3+lv*2:sleet?5:3+lv*2,dur=drz?1.6:snow?3.4-lv*.4:sleet?1.5:1.15-lv*.18,ds=[];
+  for(let i=0;i<n;i++){const x=18+(i+.5)*(64/n)+((i*37)%7-3),d=f((i*.61%1)*dur),fl=snow||sleet&&i%2;
+   ds.push(fl?'<circle class="fl" cx="'+f(x)+'" cy="3" r="'+(snow&&lv>=3?2.6:2.1)+'" style="animation-duration:'+f(dur*(.85+(i%3)*.15))+'s;animation-delay:-'+d+'s;--sk:'+f(sk*3)+'px"/>':
+    '<line class="'+(drz?'dz':'dr')+'" x1="'+f(x)+'" y1="2" x2="'+f(x+sk)+'" y2="'+(drz?5:9+lv)+'" style="animation-duration:'+f(dur)+'s;animation-delay:-'+d+'s;--sk:'+f(sk*2)+'px"/>')}
+  // snö: samma flingor som i bilden, vita prickar med blå kant och vid mer snö några sexuddiga stjärnor som snurrar
+  if(snow&&lv>=2)[[30,.3],[64,1.9]].forEach(([x,d])=>{const p='M'+x+' 0v8M'+(x-3.5)+' 2l7 4M'+(x-3.5)+' 6l7-4';ds.push('<g class="sf" style="animation-duration:'+f(dur*1.5)+'s;animation-delay:-'+f(d*dur)+'s;--sk:'+f(sk*3)+'px"><path d="'+p+'" stroke="#9DB4D3" stroke-width="1.8"/><path d="'+p+'" stroke="#FFFFFF" stroke-width=".9"/></g>')})
+  r='<svg class="sb-rain" viewBox="0 0 100 34" width="'+f(W)+'" height="'+f(W*34/100)+'">'+ds.join('')+(sc.thunder?'<path class="sb-bolt" d="M54 0l-7 12h6l-5 12 12-16h-6l5-8z"/>':'')+'</svg>'}
+ return'<div class="sb-cl'+(sc.thunder?' th':'')+'" style="--ox:'+f(ox)+'px;--oy:'+f(oy)+'px;--D:'+f(D)+'px">'+svg+r+'</div>'}
+function sunRays(sz){return'<svg class="sb-rays" viewBox="-24 -24 48 48" width="'+sz+'" height="'+sz+'">'+Array.from({length:8},(_,i)=>'<line x1="0" y1="-11.5" x2="0" y2="-15" transform="rotate('+i*45+')"/>').join('')+'</svg>'}
+/* Vädervyns himmel: stjärnor och moln i tre höjder. Höga slöjmoln glider långsamt och skimrar, stackmoln i mitten guppar och andas,
+   låga regnmoln går fortast och rullar. Varje moln har egen form, fart och takt; alla driver med vinden. */
+// polen placeras där stjärnbildens cirkel inte når månen, så att månen aldrig täcker den
+// när vyn ritas om (var 30:e sekund) skapas himlen på nytt; alla ändlösa animationer räknas från sidans start, så att moln, regn och löv fortsätter där de var i stället för att hoppa om
+/* Väderbildens rörelser går på grafikkretsen: allt som rör sig inuti en SVG (hundarna, löven, regnet, solen) räknas annars om av
+   processorn varje bild. gpuLager() lägger varje rörlig del i ett eget HTML-lager (<i>) med samma animation, och resten av bilden i
+   stilla SVG-skivor mellan dem i samma ordning. Lagren flyttas, vrids och tonas av grafikkretsen i 60 bilder/s utan att något
+   ritas om. Originalet står kvar som tom ram (storlek, tryck) och med sina gradienter/masker, som skivorna pekar på */
+const GL_RES=/^(defs|clipPath|mask|linearGradient|radialGradient|filter|pattern|marker|symbol|style|title|desc)$/;
+// variablerna som en @keyframes använder (getKeyframes() ger dem redan uträknade)
+function glVars(nm){const C=glVars.c||(glVars.c={});if(C[nm])return C[nm];let v=[];
+ const sök=rs=>{for(const r of rs){if(r.type===7&&r.name===nm)v=v.concat(r.cssText.match(/--[\w-]+/g)||[]);else if(r.cssRules)sök(r.cssRules)}};
+ [...document.styleSheets].forEach(sh=>{try{sök(sh.cssRules)}catch(e){}});return C[nm]=[...new Set(v)]}
+// bara på gemensam skärm (väggläge eller datorn med ljustjänsten) tills det är prövat i iPhone; ht.gpu=1 slår på det även här, ht.gpu=0 stänger av
+function gpuLager(){const g=lsGet('gpu');if(g==='0'||g!=='1'&&!(S.wall||CAM.src==='als')||!window.CSS||!CSS.supports('anchor-name:--a')||!CSS.supports('width:anchor-size(width)'))return;try{
+ const M=new Map();document.getAnimations().forEach(a=>{const t=a.effect&&a.effect.target;if(!(t instanceof SVGElement)||!a.animationName||a.effect.getTiming().iterations!==Infinity)return;(M.get(t)||M.set(t,[]).get(t)).push(a)});
+ const R=new Set();M.forEach((_,t)=>{let r=t;while(r.parentNode instanceof SVGElement)r=r.parentNode;if(!r.closest('clipPath,mask,defs,pattern,symbol'))R.add(r)});
+ R.forEach(r=>{try{gpuLager1(r,M)}catch(e){console.error(e)}})}catch(e){console.error(e)}}
+function gpuLager1(svg,M){const NS='http://www.w3.org/2000/svg',n=++FIG_N,cs=getComputedStyle(svg),W=parseFloat(cs.width),H=parseFloat(cs.height);if(!W||!H)return;
+ // innehåller elementet något som rör sig?
+ const rör=e=>M.has(e)||[...M.keys()].some(t=>e.contains(t));
+ // animationen flyttas till ett HTML-lager: samma namn och takt, vridpunkten i föräldrens koordinater och de variabler som nyckelbilderna använder
+ const anim=(e,i,px)=>{const c=getComputedStyle(e),st=i.style;['animationName','animationDuration','animationTimingFunction','animationDelay','animationIterationCount','animationDirection','animationFillMode'].forEach(k=>st[k]=c[k]);
+  M.get(e).forEach(a=>glVars(a.animationName).forEach(v=>st.setProperty(v,c.getPropertyValue(v))));
+  let o=c.transformOrigin.split(' ').map(parseFloat);if(!px&&c.transformBox==='fill-box'){const b=e.getBBox();o=[o[0]+b.x,o[1]+b.y]}
+  st.transformOrigin=o[0]+'px '+o[1]+'px'};
+ const tf=e=>M.has(e)&&M.get(e).some(a=>a.effect.getKeyframes().some(k=>'transform' in k));
+ const mat=e=>{const t=e.transform&&e.transform.baseVal.consolidate();return t?t.matrix:null};
+ const el=(p,c)=>{const i=document.createElement('i');i.className=c;p.appendChild(i);return i};
+ const ov=document.createElement('i');ov.className='gl';ov.setAttribute('aria-hidden','true');
+ svg.style.setProperty('anchor-name','--gl'+n);ov.style.setProperty('position-anchor','--gl'+n);
+ ['opacity','filter','zIndex','mixBlendMode','overflow'].forEach(k=>ov.style[k]=cs[k]);if(cs.overflow==='visible')ov.style.overflow='visible';
+ // själva ramen (ankrad) rör sig aldrig: ett ankrat element med animation ritas om av processorn varje bild
+ let rt=ov;if(M.has(svg)){rt=el(ov,'gl-a');anim(svg,rt,1)}else if(cs.transform!=='none'){rt=el(ov,'gl-f');rt.style.transform=cs.transform;rt.style.transformOrigin=cs.transformOrigin}
+ // viewBox → rutans bildpunkter
+ const vb=svg.viewBox&&svg.viewBox.baseVal,vp=el(rt,'gl-f');
+ if(vb&&vb.width){const pa=svg.preserveAspectRatio.baseVal,al=pa.align;let kx=W/vb.width,ky=H/vb.height,tx=0,ty=0;
+  if(al!==1){const k=pa.meetOrSlice===2?Math.max(kx,ky):Math.min(kx,ky);kx=ky=k;const ax=(al-2)%3,ay=Math.floor((al-2)/3);tx=(W-vb.width*k)*ax/2;ty=(H-vb.height*k)*ay/2}
+  vp.style.transform='matrix('+kx+',0,0,'+ky+','+(tx-vb.x*kx)+','+(ty-vb.y*ky)+')'}
+ // skivor: stilla delar ritas i SVG med samma förfäder (klasser, fyllning, filter, klipp); förfädernas förflyttning ligger i lagren ovanför
+ // det rörliga elementets egen förflyttning och tonning sköts av lagret
+ const noll=c=>{c.removeAttribute('opacity');c.style.transform='none';c.style.opacity='1'};
+ const skiva=(p,kedja)=>{const s=document.createElementNS(NS,'svg');s.setAttribute('class',svg.getAttribute('class')||'');if(svg.getAttribute('style'))s.setAttribute('style',svg.getAttribute('style'));
+  ['fill','stroke','stroke-width','stroke-linecap','stroke-linejoin','font-family','font-size','font-weight','text-anchor'].forEach(a=>{if(svg.hasAttribute(a))s.setAttribute(a,svg.getAttribute(a))});
+  let g=s;kedja.forEach(([e,utanTf])=>{const c=document.createElementNS(NS,e.tagName);[...e.attributes].forEach(a=>{if(!(utanTf&&a.name==='transform'))c.setAttribute(a.name,a.value)});
+   if(M.has(e))noll(c);g.appendChild(c);g=c});p.appendChild(s);return g};
+ const bygg=(e,p,kedja)=>{let g=null;
+  [...e.children].forEach(c=>{if(GL_RES.test(c.tagName))return;
+   if(M.has(c)){g=null;
+    // förfäder med egen förflyttning sedan förra lagret blir ett stilla lager, sedan det rörliga lagret
+    let m=new DOMMatrix();kedja.forEach(([a,utanTf])=>{if(!utanTf){const x=mat(a);if(x)m=m.multiply(x)}});const egen=!tf(c)&&mat(c);if(egen)m=m.multiply(egen);
+    const f=m.isIdentity?p:el(p,'gl-f');if(!m.isIdentity)f.style.transform=m.toString();const a=el(f,'gl-a');anim(c,a);const k2=kedja.map(([x])=>[x,1]);
+    // en grupp delas vidare; en ensam figur (linje, löv, text) blir en egen skiva
+    if(/^(g|a|svg|switch)$/.test(c.tagName))bygg(c,a,k2.concat([[c,1]]));else{const x=c.cloneNode(true);noll(x);skiva(a,k2).appendChild(x)}}
+   else if(rör(c)){g=null;bygg(c,p,kedja.concat([[c,0]]))}
+   else{if(!g)g=skiva(p,kedja);g.appendChild(c.cloneNode(true))}})};
+ bygg(svg,vp,[]);
+ // originalet behåller bara sina resurser (gradienter, masker, filter) som skivorna pekar på
+ const töm=e=>[...e.children].forEach(c=>{if(GL_RES.test(c.tagName))return;if(c.querySelector('defs,clipPath,mask,linearGradient,radialGradient,filter,pattern'))töm(c);else c.remove()});
+ töm(svg);svg.classList.add('gl-o');svg.after(ov)}
+function loopSync(){try{document.getAnimations().forEach(a=>{if(a.startTime!==0&&a.playState==='running'&&a.effect&&a.effect.getTiming().iterations===Infinity)a.startTime=0})}catch(e){}}
+/* Gemensam skärm (väggläge, eller datorn med ljustjänsten): i nattläget (skärmen släckt) står de ändlösa animationerna
+   (löv, hundar, moln, stjärnor) still. Annars, även på kvällen i mörkt rum, går de fritt i 60 bilder/s på grafikkretsen
+   (gpuLager), så processorn behöver inte rita dem */
+function vilaTick(){try{const vila=(S.wall||CAM.src==='als')&&nightOn();
+ if(!vila&&!vilaTick.v)return;vilaTick.v=vila;
+ document.getAnimations().forEach(a=>{if(!a.effect||a.effect.getTiming().iterations!==Infinity)return;if(vila&&a.playState==='running')a.pause();else if(!vila&&a.playState==='paused')a.play()})}catch(e){}}
+setInterval(vilaTick,1000);
+function skyFit(){document.querySelectorAll('.wx2>.skyfx,.hero>.skyfx,.gs.wb>.skyfx').forEach(skyFit1)}
+// molnen tonas bort bakom temperaturen, klockan och texterna så att de alltid går att läsa
+function skyHoles(sx,L,sun){const cl=sx.querySelector('.cls');if(!cl)return;const P=6,m=[];
+ // solen och månen: molnen tonas bort där de passerar, så att de aldrig skymmer dem
+ if(sun)m.push('radial-gradient(closest-side,#000 70%,transparent) '+Math.round(sun.x-sun.r)+'px '+Math.round(sun.y-sun.r)+'px/'+Math.round(sun.r*2)+'px '+Math.round(sun.r*2)+'px no-repeat');
+ const g=sx.parentNode;[...g.querySelectorAll(':scope>.wx2-top>div')].map(d=>[...d.children]).concat([[...g.querySelectorAll(':scope>.hero-l>*')],[...g.querySelectorAll(':scope>.hero-wx>.wx-now,:scope>.hero-wx>.fn')]]).forEach(es=>{
+  // varje textblock blir ett hål, så att hålen inte överlappar varandra. Rader med luft emellan (klockan och Sol/Namnsdag längst ner) blir egna hål, annars blir hålet en stor tom cirkel mitt i himlen
+  let a=null;const hal=()=>{if(a)m.push('radial-gradient(closest-side,#000 72%,transparent) '+Math.round(a.l-L.left-P*2)+'px '+Math.round(a.t-L.top-P)+'px/'+Math.round(a.r-a.l+P*4)+'px '+Math.round(a.b-a.t+P*2)+'px no-repeat');a=null};
+  es.forEach(e=>{const r=e.getBoundingClientRect();if(!r.height||r.top>L.bottom||r.bottom<L.top)return;if(a&&r.top>a.b+P*2)hal();a=a?{l:Math.min(a.l,r.left),t:Math.min(a.t,r.top),r:Math.max(a.r,r.right),b:Math.max(a.b,r.bottom)}:{l:r.left,t:r.top,r:r.right,b:r.bottom}});hal()});
+ if(!m.length)return;const v='linear-gradient(#000,#000),'+m.join(',');cl.style.webkitMask=v;cl.style.mask=v;cl.style.webkitMaskComposite='xor';cl.style.maskComposite='exclude'}
+function skyFit1(sx){const pole=sx.querySelector('.pole');
+ const L=sx.getBoundingClientRect(),me=sx.parentNode.querySelector(':scope>.arc .sky-b'),mr=me&&me.getBoundingClientRect(),M=mr&&{x:mr.left+mr.width/2-L.left,y:mr.top+mr.height/2-L.top};
+ // molnen glider i sidled, så de läggs i en höjd ovanför (eller under) solen och månen
+ // och får en egen höjd i luckan, så att de inte klumpar ihop sig på samma linje. Ryms de inte tonas de bort just där solen står (skyHoles)
+ if(M){const ex=mr.height*.36;sx.querySelectorAll('.cl').forEach((c,i)=>{const h=c.firstChild.getBoundingClientRect().height,t=c.offsetTop;
+  if(t<M.y+ex&&t+h>M.y-ex){const up=M.y-ex-h-4,dn=M.y+ex+4,lo=L.height*.5-h,r=(i*.618)%1;
+   if(up>=0&&(r<.5||dn>lo))c.style.top=Math.round(r*2%1*up)+'px';else if(dn<=lo)c.style.top=Math.round(dn+r*(lo-dn))+'px'}})}
+ skyHoles(sx,L,M&&{x:M.x,y:M.y,r:mr.height*.42});
+ if(!pole)return;
+ const H=34,MR=22;let best=null;
+ // stjärnbilden står högt på himlen (Henriks önskan), men aldrig under månen
+ for(const rc of[40,32,24])for(let y=Math.round(rc+H+4);y<=L.height*.6;y+=5)for(let x=rc+H+8;x<=L.width-rc-H-8;x+=6){const d=M?Math.hypot(x-M.x,y-M.y):999,ok=d>rc+H+MR?2e4:d<rc-H-MR?1e4:0;
+  const sc=(ok||d)+rc*20-Math.abs(x-L.width*.55)*.3-y*2;if(!best||sc>best.sc)best={sc,x,y,rc}}
+ if(!best)return;pole.style.left=best.x+'px';pole.style.top=best.y+'px';pole.style.setProperty('--rc',best.rc+'px')}
+// molnens färg på himlen: tonen följer nederbörden och ljuset. Solens eget moln får samma färg som de andra
+function skyTon(sc){const wet=/^(drizzle|rain|sleet)$/.test(sc.type),snow=sc.type==='snow',lv=sc.lv,warmL=sc.phase==='dawn'||sc.phase==='golden';
+ const sky=wet||snow||sc.thunder?(/^(clear|fair)$/.test(sc.sky)?'partly':sc.sky):sc.sky;
+ const base=sc.thunder?'#4C5672':wet?['#A3AFC2','#7E8BA3','#5F6B84'][lv-1]:snow?['#CBD6E3','#B9C6D7','#A2B1C6'][lv-1]:{clear:'',fair:'#FFFFFF',partly:'#F7F9FC',cloudy:'#C3CFDE',fog:'#DCE4EE'}[sky];
+ return{sky,base,tone:c=>sc.dark?(WXART==='geo'?shadeHex(mixHex(c,'#5362B3',.78),sc.thunder?.65:wet?.8:1):mixHex(c,'#2A3350',.5)):warmL?mixHex(c,'#F2B48A',.22):WXART==='soft'?mixHex(c,'#CAD9D7',.12):c}}
+function skyFx(W){const sc=wxScene(W),wet=/^(drizzle|rain|sleet)$/.test(sc.type),snow=sc.type==='snow',lv=sc.lv,warmL=sc.phase==='dawn'||sc.phase==='golden';
+ const rnd=k=>{const x=Math.sin(k*311.7+17.3)*43758.5453;return x-Math.floor(x)},f=v=>v.toFixed(1);
+ const covered=sc.sky==='cloudy'||sc.sky==='fog'||(wet||snow)&&lv>=2||sc.thunder;
+ let s='';
+ // stjärnhimlen vrider sig långsamt runt en pol (en varv på tio minuter); skyFit() flyttar polen så att månadens stjärnbild aldrig hamnar under månen
+ // molntäcket (met.no cloud_area_fraction, annars uppskattat från symbolen) styr både molnen och hur mycket stjärnhimmel som syns
+ const cf=W.now.cf!=null?W.now.cf/100:{fair:.18,partly:.5,cloudy:.95}[sc.sky]||0,cov=wet||snow||sc.thunder?Math.max(cf,.85):cf;
+ if(sc.dark&&sc.sky!=='fog'){const R=420,n=Math.round((sc.phase==='dusk'?14:46)*8.5*Math.max(.15,1-cov)),P=600,m=new Date().getMonth();let st='';
+  for(let k=1;k<=n;k++){const a=rnd(k)*Math.PI*2,r=R*Math.sqrt(rnd(k+5000)),b=k<=24,z=b?3:1.3+rnd(k+900)*1.5,o=b?.95:.35+rnd(k+1300)*.55,tw=b||k%3===0,d=2+rnd(k+1700)*5;
+   st+='<i class="st'+(b?' b':'')+(tw?'':' fast')+'" style="left:'+f(Math.cos(a)*r)+'px;top:'+f(Math.sin(a)*r)+'px;width:'+f(z)+'px;height:'+f(z)+'px;--o:'+o.toFixed(2)+(tw?';animation-duration:'+f(d)+'s;animation-delay:-'+f(rnd(k+2100)*d)+'s':'')+'"></i>'}
+  s+='<div class="pole"><div class="rot" style="animation-duration:'+P+'s;animation-delay:-'+f((performance.timeOrigin||Date.now()-performance.now())/1e3%P)+'s">'+st+(cov<.9?'<div class="cst">'+starSign(m)+'</div>':'')+'</div></div>';
+  if(!covered&&sc.sky!=='partly'&&sc.phase==='night')s+='<i class="sk"></i><i class="sk d2"></i>';
+  if(cov<.9)s+='<span class="stjn">✦ '+STJB[m][0]+'</span>'}
+ // molnens ton följer nederbörden och ljuset, som molnen i bilden
+ const{sky,base,tone}=skyTon(sc);
+ if(!base)return s?'<div class="skyfx" aria-hidden="true">'+s+'</div>':'';
+ const lite=tone(mixHex(base,'#FFFFFF',.35)),mid=tone(base),dark=tone(wet||snow||sc.thunder?shadeHex(base,.82):mixHex(base,'#9AA8BC',.35));
+ // antalet moln följer det verkliga molntäcket (met.no cloud_area_fraction): helt mulet ger ett tätt täcke i tre lager, mindre moln ger stegvis färre, klart inga
+ const N=sky==='fog'?[0,0,0]:[4,6,3].map((m,i)=>Math.round(m*cov+(i===1?.4:0)));
+ const sp=1/(.75+sc.wl*.35),rev=sc.dir<0?' rev':'';
+ // former: höga är tunna slöjor, mellersta runda stackmoln, låga breda och mörka i underkanten
+ // samma ikonmoln som vid solen: runda tussar på en rundad bas med mjuk toning nedåt, varje moln med egen form och storlek
+ const shape=(t,k,c,w)=>{const np=t==='hi'?2+Math.round(rnd(k)):t==='mid'?3+Math.round(rnd(k)*2):4+Math.round(rnd(k)*2),VW=np*16+20,B=t==='hi'?30:28,P=[];
+  for(let j=0;j<np;j++){const mid=1-Math.abs((j+.5)/np-.5)*2,r=(t==='hi'?6:8)+mid*(t==='hi'?5:7)+rnd(k+j*3)*4,x=12+(j+.5)*16+(rnd(k+j*3+1)-.5)*4;P.push([x,B-r*.62,r])}
+  const big=t!=='hi'&&np>=4,Bb=B+(t==='hi'?4:8),w2=w*(VW+12)/VW,h=w2*58/(VW+12);
+  return{svg:'<svg viewBox="-6 -10 '+(VW+12)+' 58" width="'+f(w2)+'" height="'+f(h)+'">'+iconCloud(P,8,VW-8,Bb,c,{back:big,dash:t!=='hi',seed:k,storm:sc.thunder&&t==='lo'})+'</svg>',h}};
+  // molnen i samma höjd går lika fort med jämna mellanrum, så att de aldrig klumpar ihop sig och lämnar himlen tom
+ const band={hi:[2,16],mid:[8,30],lo:[18,40]},dur={hi:220,mid:100,lo:52};
+ let k=0,cs='';
+ [['hi',N[0],lite],['mid',N[1],mid],['lo',N[2],dark]].forEach(([t,n,c])=>{for(let j=0;j<n;j++){k+=7;
+  const w=t==='hi'?34+rnd(k)*16:t==='mid'?46+rnd(k)*26:sky==='fog'?120+rnd(k)*40:62+rnd(k)*30,top=band[t][0]+rnd(k+1)*(band[t][1]-band[t][0]),D=dur[t]*sp;
+   const{svg}=shape(t,k,j%2&&t!=='hi'?shadeHex(c,.95):c,w),bob=t==='hi'?12+rnd(k+3)*8:t==='mid'?7+rnd(k+3)*5:3.5+rnd(k+3)*2.5;
+   cs+='<div class="cl '+t+(sky==='fog'&&t==='lo'?' fog':'')+rev+'" style="top:'+f(top)+'%;--w:'+f(w)+'px;animation-duration:'+f(D)+'s;animation-delay:-'+f(((j+.2+rnd(k+4)*.6)/n+(t==='mid'?.37:t==='lo'?.71:0))%1*D)+'s"><i style="animation-duration:'+f(bob)+'s;animation-delay:-'+f(rnd(k+5)*bob)+'s">'+svg+'</i></div>'}});
+ // dimma: breda, mjuka dimbankar i olika höjd som driver långsamt, så att det syns att det är dimma och inte moln
+ if(sky==='fog')for(let j=0;j<6;j++){k+=7;const w=240+rnd(k)*160,hh=24+rnd(k+2)*22,D=(170+rnd(k+3)*90)*sp;
+  cs+='<div class="cl fg'+rev+'" style="top:'+f(6+j*14+rnd(k+1)*6)+'%;--w:'+f(w)+'px;animation-duration:'+f(D)+'s;animation-delay:-'+f(((j*.43+rnd(k+4)*.3)%1)*D)+'s"><i class="fgb" style="width:'+f(w)+'px;height:'+f(hh)+'px;opacity:'+(.7+rnd(k+5)*.3).toFixed(2)+'"></i></div>'}
+ return'<div class="skyfx'+(sky==='fog'?' fog':'')+'" aria-hidden="true">'+s+'<div class="cls">'+cs+'</div></div>'}
+// dimma över marken: band som ligger över trädets stam och hundarnas nedre del (Henriks val B)
+function fogMist(W){if(wxScene(W).sky!=='fog')return'';const B=[[0,14],[13,15],[28,12]];
+ return'<div class="fgm" aria-hidden="true">'+B.map(([b,h],i)=>'<i style="bottom:'+b+'%;height:'+h+'%;animation-duration:'+(11+i*4)+'s;animation-delay:-'+(i*5)+'s'+(i%2?';animation-direction:alternate-reverse':'')+'"></i>').join('')+'</div>'}
+// översiktens ruta får vädervyns himmel (inte i UI 3.0 eller på väggtavlan)
+const heroSky=()=>!U3&&!wallBoardOn();
 // b (vald): bågen i högra delen av rutan bakom temperaturen; a = bågen tätt över hundarna
 let BAKGRUND=lsGet('bakgrund')!=='0';
-const GRASS_V=lsGet('grass')==='a'?'a':'b',grassOn=()=>NY||!wallBoardOn();
+const GRASS_V=lsGet('grass')==='a'?'a':'b',grassOn=()=>true;
 // på väggtavlan ligger solbanan inne i bilden (variant a), eftersom hörnet uppe till höger har klockan och kugghjulet
 const grassV=()=>wallBoardOn()?'a':GRASS_V;
 function heroHtml(){const n=new Date(),t=today(),dy=EXT.day&&EXT.day.date===t?EXT.day:null,hh=n.getHours(),W=wxModel(),P=WX_POS();
  const greet=hh<5?'God natt':hh<10?'God morgon':hh<17?'Hej':hh<22?'God kväll':'God natt';
  const sun=sunTimes(t,P.lat,P.lon);
- let wx='';
- if(W){const[ic,tx]=symInfo(W.now.s),d0=W.days[0]||{},F=wxToday(W);
-  const wb=wallBoardOn(),gs='<div class="gs '+grassV()+(wb?' wb':'')+'">'+(grassV()==='a'?arcHtml(W,'a'):'')+(BAKGRUND?backdropSvg(wxScene(W)):'')+'<div class="fig-box grass" aria-hidden="true">'+figSvg(wxScene(W),{bare:1,patch:1})+'</div></div>';
+ let wx='',tipT='';
+ // telefonen (UI2): klädtipset står i raden under bilden, längst ner till höger
+ const tipLo=!wallBoardOn()&&!U3&&!U4;
+ if(W){const[ic,tx]=symInfo(W.now.s),d0=W.days[0]||{},F=wxToday(W);tipT=(F.when==='i morgon'?'I morgon: ':'')+F.tip;
+  const wb=wallBoardOn(),gs='<div class="gs '+grassV()+(wb?' wb':'')+'">'+(grassV()==='a'?(wb&&!U3?skyFx(W):'')+arcHtml(W,'a'):'')+(BAKGRUND?backdropSvg(wxScene(W)):'')+'<div class="fig-box grass" aria-hidden="true">'+figSvg(wxScene(W),{bare:1,patch:1,nocl:grassV()==='b'&&heroSky()||wb&&!U3})+'</div>'+fogMist(W)+'</div>';
   wx='<button class="hero-wx'+(wb&&grassOn()?' wbt':'')+'" data-act="nav" data-id="vader" aria-label="Väder: '+esc(tx)+', '+deg(W.now.T)+'. Öppna vädret">'+
    '<div class="wx-now"><span class="wx-ic" aria-hidden="true">'+ic+'</span><span class="wx-t num">'+deg(W.now.T)+'</span></div>'+
    '<div class="fn">'+esc(tx)+'</div><div class="fn num">H:'+deg(d0.max)+' L:'+deg(d0.min)+'</div>'+
-   (grassOn()&&!wb?gs:'')+(grassOn()?'':'<div class="fig-box" aria-hidden="true">'+figSvg(wxScene(W),{bare:1})+'</div>')+'<div class="fig-tip">'+esc((F.when==='i morgon'?'I morgon: ':'')+F.tip)+'</div></button>'+
+   (grassOn()&&!wb?gs:'')+(grassOn()?'':'<div class="fig-box" aria-hidden="true">'+figSvg(wxScene(W),{bare:1})+'</div>')+(tipLo?'':'<div class="fig-tip">'+esc(tipT)+'</div>')+'</button>'+
    // väggtavlan: vädret uppe till höger, bilden längst ner ovanför regnraden
    (grassOn()&&wb?'<button class="hero-pic" data-act="nav" data-id="vader" aria-label="Öppna vädret">'+gs+'</button>':'')}
- const ny=NY&&!wallBoardOn(),facts=ny?[]:['Vecka '+isoWeek(n)];
+ const ny=!wallBoardOn(),facts=ny?[]:['Vecka '+isoWeek(n)];
  if(dy&&dy.holiday)facts.push(dy.holiday);else if(dy&&dy.flag)facts.push('Flaggdag: '+dy.flag);
  // I nya designen står solen före namnsdagen
  const nd=dy&&dy.names.length?'Namnsdag: '+dy.names.join(', '):'',so=sun?'Sol '+hhmm(sun[0])+'–'+hhmm(sun[1]):'';
  (ny?[so,nd]:[nd,so]).filter(Boolean).forEach(f=>facts.push(f));
- return'<section class="hero'+(wx?' has-wx':'')+'">'+(W?(grassOn()?(grassV()==='b'?arcHtml(W,'b'):''):skyHtml(W)):'')+'<div class="hero-l"><div class="clock num" id="clock">'+pad(hh)+':'+pad(n.getMinutes())+'</div><div class="hero-date">'+esc(cap(dayHead(t)))+'</div>'+(ny?'<div class="hero-date">Vecka '+isoWeek(n)+'</div>':'')+
-  '<div class="hero-greet">'+greet+(S.me?', '+esc(personLabel(S.me)):'')+'!</div><div class="hero-facts">'+facts.map(f=>'<span>'+esc(f)+'</span>').join('')+'</div></div>'+wx+'</section>'}
+ // telefonen: bilden breder ut sig under vänsterspalten, så sol- och namnsdagsraden står under bilden i stället för bakom marken
+ const lo=ny&&wx&&!U3&&!U4,fh=lo?'<div class="hero-fot"><div class="hero-facts">'+facts.slice().sort((a,b)=>a.length-b.length).map(f=>'<span>'+esc(f)+'</span>').join('')+'</div>'+(tipT?'<button class="fig-tip" data-act="nav" data-id="vader">'+esc(tipT)+'</button>':'')+'</div>':'<div class="hero-facts">'+facts.map(f=>'<span>'+esc(f)+'</span>').join('')+'</div>';
+ return'<section class="hero'+wxArtClass()+(wx?' has-wx':'')+(W&&grassOn()&&grassV()==='b'&&heroSky()?' has-sky':'')+'">'+(W?(grassOn()?(grassV()==='b'?(heroSky()?skyFx(W):'')+arcHtml(W,'b'):''):skyHtml(W)):'')+'<div class="hero-l"><div class="clock num" id="clock">'+pad(hh)+':'+pad(n.getMinutes())+'</div><div class="hero-date">'+esc(cap(dayHead(t)))+'</div>'+(ny?'<div class="hero-date">Vecka '+isoWeek(n)+'</div>':'')+
+  '<div class="hero-greet">'+greet+(S.me?', '+esc(personLabel(S.me)):'')+'!</div>'+(lo?'':fh)+'</div>'+wx+(lo?fh:'')+(W&&!wallBoardOn()?ovWx(W):'')+'</section>'}
 async function loadExt(){const t=today();let changed=await loadWx();if(await loadPast())changed=true;
  if(!EXT.day||EXT.day.date!==t){try{const[y,mo,d]=t.split('-');
   const r=await fetch('https://sholiday.faboul.se/dagar/v2.1/'+y+'/'+mo+'/'+d);const j=await r.json(),x=j.dagar&&j.dagar[0];
@@ -3123,6 +4009,9 @@ function wxHeroC(W,P,ic,tx,d0,F,sun){const K=WXC_K,F0=wxHours(W),PA=wxPast(F0[0]
  s+='<path d="'+d+' L'+f(xe)+' '+base+' L'+f(HX(0))+' '+base+'Z" fill="url(#'+gid+'f)"/><rect class="wxC-sel" x="'+f(sel*cw)+'" y="0" width="'+f(cw)+'" height="'+h+'" rx="12"/>'+
   (dPast?'<path d="'+dPast+'" fill="none" stroke="url(#'+gid+')" stroke-width="3" stroke-linecap="round" class="wxC-was"/>':'')+
   '<path d="'+dNow+'" fill="none" stroke="url(#'+gid+')" stroke-width="3" stroke-linecap="round"/><line x1="0" x2="'+f(w)+'" y1="'+base+'" y2="'+base+'" class="wxC-base"/>';
+ // temperaturskala: svaga linjer i grafen och graderna fast vid högerkanten medan grafen scrollar
+ const stp=3,ticks=[];for(let T=Math.ceil(lo/stp)*stp;T<=lo+sp+.01;T+=stp)ticks.push(T);
+ s=s.replace('<path d="'+d+' L',ticks.map(T=>'<line x1="0" x2="'+f(w)+'" y1="'+f(Y(T))+'" y2="'+f(Y(T))+'" class="wxC-grid"/>').join('')+'<path d="'+d+' L');
  // under kurvan: klockslag, ikon (i HTML), grader och nederbörd per steg
  G.forEach((x,i)=>{const xx=cw*i+cw/2,yy=Y(x.T),nu=i===np,was=i<np?' wxC-was':'';
   if(x.pr>=.1){const bh=Math.min(16,3+x.pr*12/K);s+='<rect x="'+f(xx-6)+'" y="'+f(base-bh)+'" width="12" height="'+f(bh)+'" rx="2.5" class="wxC-pr'+was+'"/>'}
@@ -3132,7 +4021,8 @@ function wxHeroC(W,P,ic,tx,d0,F,sun){const K=WXC_K,F0=wxHours(W),PA=wxPast(F0[0]
    (x.pr>=.1?'<text x="'+f(xx)+'" y="177" class="wxC-mm'+was+'">'+String(Math.round(x.pr*10)/10).replace('.',',')+'</text>':'')});
  const cols=G.map((x,i)=>'<button class="wxC-col'+(i<np?' wxC-was':'')+'" data-act="wxHr" data-id="'+i+'" style="left:'+f(i*cw)+'px;width:'+f(cw)+'px" aria-label="'+(i===np?'Nu':(i<np?'Var klockan ':'Klockan ')+pad(x.d.getHours()))+', '+deg(x.T)+'"><span>'+symInfo(x.s)[0]+'</span></button>').join('');
  const tg='<div class="wxC-k" role="group" aria-label="Steg i grafen">'+[[3,'3 h'],[1,'1 h']].map(([k,l])=>'<button data-act="wxK" data-id="'+k+'" aria-pressed="'+(K===k)+'">'+l+'</button>').join('')+'</div>';
- return'<section class="wx2 wxC">'+wxTopHtml(W,P,ic,tx,d0,1,tg)+'<div class="wxC-sc"><div class="wxC-in" style="width:'+f(w)+'px">'+s+'</svg>'+cols+'</div></div>'+
+ return'<section class="wx2 wxC"'+RF('W2')+'>'+wxTopHtml(W,P,ic,tx,d0,1,tg)+'<div class="wxC-w"><div class="wxC-sc"><div class="wxC-in" style="width:'+f(w)+'px">'+s+'</svg>'+cols+'</div></div>'+
+  '<div class="wxC-y" aria-hidden="true">'+ticks.map(T=>'<span class="num" style="top:'+f(Y(T))+'px">'+deg(T)+'</span>').join('')+'</div></div>'+
   '<div class="wxC-info" aria-live="polite">'+wxHrInfo(G[sel],sel)+'</div>'+wxBarHtml(W,F)+'</section>'}
 
 V.vader=function(){const W=wxModel(),P=WX_POS();
@@ -3142,22 +4032,20 @@ V.vader=function(){const W=wxModel(),P=WX_POS();
  const[ic,tx]=symInfo(W.now.s),d0=W.days[0],F=wxToday(W),sun=sunTimes(today(),P.lat,P.lon);
  // vädret ligger i miljöbilden: ort och temperatur uppe till vänster, väderläget uppe till höger, tips och vind i en remsa nederst
  // UI 2.0: samma bild som på Översikt i större format (träd, kulle och gräsplätt som tonar ut i rutan), råden under bilden
- if(NY&&WXVY==='kurva')h+=wxHeroC(W,P,ic,tx,d0,F,sun);
- else if(NY)h+='<section class="wx2"><div class="wx2-top"><div><div class="wx-place">'+esc(P.name)+'</div><div class="wx-big num" id="lt">'+deg(W.now.T)+'</div></div>'+
+ if(WXVY==='kurva')h+=wxHeroC(W,P,ic,tx,d0,F,sun);
+ else h+='<section class="wx2'+wxArtClass()+'"'+wxArtVars(W)+RF('W1')+'><div class="wx2-top"><div><div class="wx-place">'+esc(P.name)+'</div><div class="wx-big num" id="lt">'+deg(W.now.T)+'</div></div>'+
   '<div class="wx2-r"><div class="wx2-cond"><span aria-hidden="true">'+ic+'</span>'+esc(tx)+'</div><div class="wx-hl num">H:'+deg(d0.max)+'  L:'+deg(d0.min)+'</div></div></div>'+
-  arcHtml(W,'w')+'<div class="gs wx2-gs">'+(BAKGRUND?backdropSvg(wxScene(W)):'')+'<button class="fig-box grass" data-act="wxVar" aria-label="Visa andra hundar">'+figSvg(wxScene(W),{bare:1,patch:1})+'</button></div>'+
+  skyFx(W)+arcHtml(W,'w')+'<div class="gs wx2-gs">'+(BAKGRUND?backdropSvg(wxScene(W)):'')+'<button class="fig-box grass" data-act="wxVar" aria-label="Visa andra hundar">'+figSvg(wxScene(W),{bare:1,patch:1,nocl:1})+'</button>'+fogMist(W)+'</div>'+
   '<div class="wx2-bar"><div><b>'+esc(capS(F.when))+'</b><span>'+esc(F.tip)+'</span></div><div><b>Vind</b><span>'+esc(windText(W.now))+'</span></div></div></section>';
- else h+=wxSceneHtml(W,{h:330,g:100,inner:'<div class="sc-head"><div class="wx-place">'+esc(P.name)+'</div><div class="wx-big num" id="lt">'+deg(W.now.T)+'</div><div><div class="wx-cond">'+esc(tx)+'</div><div class="wx-hl num">H:'+deg(d0.max)+'  L:'+deg(d0.min)+'</div></div></div>'+
-  '<div class="sc-bar"><div><b>'+esc(capS(F.when))+'</b><span>'+esc(F.tip)+'</span></div><div><b>Vind</b><span>'+esc(windText(W.now))+'</span></div></div>'});
  // Timmar (ingår i dagskurvan)
- if(!(NY&&WXVY==='kurva'))h+='<div class="group wx-card"><div class="wx-cap">'+I.clock+'Kommande timmar</div><div class="hours" role="list">'+W.hours.slice(0,25).map((x,k)=>{const[ii]=symInfo(x.s);
+ if(WXVY!=='kurva')h+='<div class="group wx-card"'+RF('W3')+'><div class="wx-cap">'+I.clock+'Kommande timmar</div><div class="hours" role="list">'+W.hours.slice(0,25).map((x,k)=>{const[ii]=symInfo(x.s);
   return'<div class="hr" role="listitem"><span class="fn">'+(k?pad(x.d.getHours()):'Nu')+'</span><span class="hi" aria-hidden="true">'+ii+'</span><b class="num">'+deg(x.T)+'</b><span class="hp num">'+(x.pr>=0.1?mm(x.pr).replace(' mm',''):'')+'</span></div>'}).join('')+'</div></div>';
  // Dagar
  const lo=Math.min(...W.days.map(x=>x.min)),hi=Math.max(...W.days.map(x=>x.max)),span=Math.max(1,hi-lo);
- h+='<div class="group wx-card"><div class="wx-cap">'+I.cal+W.days.length+'-dagarsprognos</div>'+W.days.map((x,k)=>{const[ii]=symInfo(x.sym),l=(x.min-lo)/span*100,r=(x.max-lo)/span*100;
-  return'<div class="day-row"><span class="dn">'+(k?capS(DAYS3[parse(x.date).getDay()]):'Idag')+'</span><span class="di" aria-hidden="true">'+ii+'</span><span class="dp num">'+(x.pr>=0.2?mm(x.pr):'')+'</span><span class="dmin num">'+deg(x.min)+'</span><span class="range" aria-hidden="true"><i style="left:'+l+'%;right:'+(100-r)+'%;background:'+tempGrad(x.min,x.max)+'"></i>'+(k===0?'<b style="left:'+((W.now.T-lo)/span*100)+'%"></b>':'')+'</span><span class="dmax num">'+deg(x.max)+'</span></div>'}).join('')+'</div>';
+ h+='<div class="group wx-card"'+RF('W4')+'><div class="wx-cap">'+I.cal+W.days.length+'-dagarsprognos</div>'+W.days.map((x,k)=>{const[ii]=symInfo(x.sym),l=(x.min-lo)/span*100,r=(x.max-lo)/span*100;
+  return'<button type="button" class="day-row" data-act="wxDay" data-id="'+x.date+'"><span class="dn">'+(k?capS(DAYS3[parse(x.date).getDay()]):'Idag')+'</span><span class="di" aria-hidden="true">'+ii+'</span><span class="dp num">'+(x.pr>=0.2?mm(x.pr):'')+'</span><span class="dmin num">'+deg(x.min)+'</span><span class="range" aria-hidden="true"><i style="left:'+l+'%;right:'+(100-r)+'%;background:'+tempGrad(x.min,x.max)+'"></i>'+(k===0?'<b style="left:'+((W.now.T-lo)/span*100)+'%"></b>':'')+'</span><span class="dmax num">'+deg(x.max)+'</span></button>'}).join('')+'</div>';
  // Detaljer
- const n=W.now,prToday=d0.pr,tile=(lab,val,sub)=>'<div class="wx-tile"><div class="wx-cap">'+lab+'</div><div class="tv num">'+val+'</div><div class="fn">'+sub+'</div></div>';
+ const n=W.now,prToday=d0.pr,tile=(lab,val,sub)=>'<div class="wx-tile"'+RF({Vind:'W5','Känns som':'W6',Nederbörd:'W7',Luftfuktighet:'W8',Sol:'W9',Lufttryck:'W10'}[lab])+'><div class="wx-cap">'+lab+'</div><div class="tv num">'+val+'</div><div class="fn">'+sub+'</div></div>';
  h+='<div class="wx-tiles">'+
   tile('Vind',Math.round(n.w)+' m/s','<span class="wd" style="transform:rotate('+((n.wd||0)+180)+'deg)">↑</span> '+capS(windDir(n.wd))+' vind')+
   tile('Känns som',deg(feels(n.T,n.w)),feels(n.T,n.w)<n.T-1?'Vinden gör det kallare':'Ungefär som det är')+
@@ -3168,6 +4056,91 @@ V.vader=function(){const W=wxModel(),P=WX_POS();
  h+='<div class="foot">Väderdata från '+(W.src==='yr'?'<a href="https://www.yr.no/" target="_blank" rel="noopener">Yr</a> och MET Norway (CC BY 4.0)':'Open-Meteo, eftersom Yr inte gick att nå')+'. Uppdaterad '+hhmm(new Date(EXT.yr.at))+'.</div>';
  return h};
 
+/* Dagens väder (tryck på en dag i W4): ett blad som Apples Väder. Dagarna överst, dagens läge, en graf över dygnet 00–24
+   (temperatur, nederbörd eller vind) och en kort sammanfattning. Yr ger timme för timme de första dygnen och sedan var sjätte timme;
+   idag ritas de passerade timmarna (Open-Meteo) svagare. */
+function wxDayPts(W,date){const t0=parse(date).getTime(),t1=parse(addDays(date,1)).getTime();
+ let H=(W.all||W.hours).slice();
+ if(date===today()&&EXT.past&&EXT.past.ts){const f=H.length?+H[0].d:Date.now();H=EXT.past.ts.map(x=>Object.assign({},x,{d:new Date(x.t),past:1})).filter(x=>+x.d<f).concat(H)}
+ H.sort((a,b)=>a.d-b.d);
+ // Behåll punkterna utanför dygnet tills midnatt interpolerats. Yr:s UTC-steg ligger inte vid lokal midnatt.
+ H=H.map((x,i)=>{const n=H[i+1],period=x.pr!=null?1:6,end=Math.min(+x.d+period*36e5,n?+n.d:Infinity);
+  return Object.assign({},x,{end,rate:x.pr!=null?x.pr:(x.pr6||0)/6})});
+ const edge=t=>{const i=H.findIndex(x=>+x.d>=t);if(i<=0||+H[i].d===t)return null;const a=H[i-1],b=H[i],k=(t-a.d)/(b.d-a.d),x=Object.assign({},a,{d:new Date(t),t:new Date(t).toISOString()});
+  ['T','w','h'].forEach(v=>{if(a[v]!=null&&b[v]!=null)x[v]=a[v]+(b[v]-a[v])*k});
+  if(a.wd!=null&&b.wd!=null)x.wd=(a.wd+((b.wd-a.wd+540)%360-180)*k+360)%360;return x};
+ const first=edge(t0),last=edge(t1);H=H.filter(x=>+x.d>=t0&&+x.d<=t1);if(first)H.unshift(first);if(last)H.push(last);
+ return H.map(x=>{const end=Math.max(+x.d,Math.min(t1,x.end)),dur=(end-x.d)/36e5;
+  return Object.assign({},x,{X:(x.d-t0)/(t1-t0)*240,endX:(end-t0)/(t1-t0)*240,dur,amt:x.rate*dur})})}
+function wxDayHtml(){const W=wxModel();if(!W)return group(emptyCell('Prognosen kunde inte hämtas just nu.'));
+ const P=WX_POS(),D=Object.assign({},W.days.find(x=>x.date===S.wxDay)||W.days[0]),di=W.days.findIndex(x=>x.date===D.date),idag=D.date===today(),H=wxDayPts(W,D.date);D.pr=H.reduce((s,x)=>s+x.amt,0);
+ const dt=parse(D.date),t1=parse(addDays(D.date,1)),f=v=>v.toFixed(1),now=Date.now(),nX=idag?(now-dt)/(t1-dt)*240:-1,pc=x=>f(x/2.4);
+ // animationer bara när bladet öppnas eller dagen byts, inte när det ritas om var 30:e sekund
+ const an=A.wdDay!==D.date,dir=A.wdDay&&an?(di>A.wdI?' from-r':' from-l'):'';A.wdPrev=A.wdI;A.wdDay=D.date;A.wdI=di;
+ // dagarna överst; den markerade cirkeln glider till dagen man trycker på
+ let h='<div class="wd-days" role="group" aria-label="Välj dag" style="--n:'+W.days.length+';--i:'+di+'"><i class="wd-th" aria-hidden="true"></i>'+W.days.map(x=>{const d=parse(x.date),on=x.date===D.date;
+  return'<button type="button" class="wd-d'+(on?' on':'')+(x.date===today()?' td':'')+'" data-act="wxDay" data-id="'+x.date+'" aria-pressed="'+on+'" aria-label="'+capS(DAYS[d.getDay()])+' '+d.getDate()+' '+MON[d.getMonth()]+'"><span>'+DAYS3[d.getDay()][0].toUpperCase()+'</span><b class="num">'+d.getDate()+'</b></button>'}).join('')+'</div>';
+ const[ic,tx]=symInfo(idag?W.now.s:D.sym);
+ h+='<div class="wd-body'+(an?' an':'')+dir+'"><div class="wd-date">'+capS(DAYS[dt.getDay()])+' '+dt.getDate()+' '+MON[dt.getMonth()]+'</div>'+
+  '<div class="wd-top"><div class="wd-big num">'+deg(idag?W.now.T:D.max)+'</div><div class="wd-ic" aria-hidden="true">'+ic+'</div><div class="wd-hl"><b>'+esc(tx)+'</b><span class="num">H:'+deg(D.max)+'  L:'+deg(D.min)+'</span></div></div>';
+ /* En graf för allt: temperaturkurvan i övre delen, nederbörden som staplar från botten (egen skala) och vinden som pilar med m/s under klockslagen.
+    x = timmar 0–24 (240 enheter), y = 0–100. Linjer töjs inte; text, staplar, prickar och pilar ligger i HTML ovanpå. */
+ const vs=H.map(x=>x.T),t0=Math.min(...vs,D.min),t9=Math.max(...vs,D.max),sp=Math.max(4,t9-t0),stp=sp<=6?2:sp<=15?4:5;
+ const lo=Math.floor(t0/stp)*stp,hi=Math.max(lo+stp,Math.ceil(t9/stp)*stp),Y=v=>58-(v-lo)/(hi-lo)*50,ticks=[];for(let v=lo;v<=hi+1e-6;v+=stp)ticks.push(v);
+ const pm=Math.max(1,...H.map(x=>x.rate)),pH=v=>v/pm*34;
+ const gid='wd'+(++FIG_N),sx=t=>(t-dt)/(t1-dt)*240,at=hr=>new Date(dt.getFullYear(),dt.getMonth(),dt.getDate(),Math.floor(hr),Math.round(hr%1*60)),st=sunTimes(D.date,P.lat,P.lon);
+ // bakgrund: natten svagt tonad, stödlinjer var sjätte timme och för temperaturskalan
+ let g='<svg class="wd-svg" viewBox="0 0 240 100" preserveAspectRatio="none" aria-hidden="true">';
+ if(st)g+='<rect x="0" y="0" width="'+f(Math.max(0,sx(st[0])))+'" height="100" class="wd-night"/><rect x="'+f(sx(st[1]))+'" y="0" width="'+f(Math.max(0,240-sx(st[1])))+'" height="100" class="wd-night"/>';
+ g+=[6,12,18].map(hr=>sx(at(hr))).map(x=>'<line x1="'+x+'" x2="'+x+'" y1="0" y2="100" class="wd-vg"/>').join('')+ticks.map(v=>'<line x1="0" x2="240" y1="'+f(Y(v))+'" y2="'+f(Y(v))+'" class="wd-hg"/>').join('')+'<line x1="0" x2="240" y1="92" y2="92" class="wd-base"/></svg>';
+ // nederbörden växer upp ur botten, stapel för stapel
+ let bars='',bi=0,top1=null;H.forEach(x=>{if(x.rate<.05||ymd(x.d)!==D.date&&x.X>=240)return;const w=x.endX-x.X;if(w<=0)return;if(!top1||x.rate>top1.rate)top1=x;
+  bars+='<i class="wd-bar'+(x.d.getTime()<now-36e5?' was':'')+'" style="left:'+pc(x.X+.6)+'%;width:'+pc(w-1.2)+'%;height:'+f(pH(x.rate))+'%;--d:'+(bi++*35)+'ms"></i>'});
+ if(top1)bars+='<span class="wd-pl num" style="left:'+pc(top1.X+(top1.endX-top1.X)/2)+'%;bottom:'+f(8+pH(top1.rate))+'%">'+String(Math.round(top1.rate*10)/10).replace('.',',')+' mm'+(top1.dur>1&&top1.pr==null?'/h':'')+'</span>';
+ // temperaturkurvan, färgad efter temperaturen; det som har varit svagare. Den ritas fram från vänster.
+ let c='';if(H.length>1){const pts=H.map(x=>[x.X,Y(x.T)]);let d='M'+f(pts[0][0])+' '+f(pts[0][1]);
+  for(let i=0;i<pts.length-1;i++){const p0=pts[i-1]||pts[i],p1=pts[i],p2=pts[i+1],p3=pts[i+2]||p2;
+   d+=' C'+f(p1[0]+(p2[0]-p0[0])/6)+' '+f(p1[1]+(p2[1]-p0[1])/6)+' '+f(p2[0]-(p3[0]-p1[0])/6)+' '+f(p2[1]-(p3[1]-p1[1])/6)+' '+f(p2[0])+' '+f(p2[1])}
+  const fill='<path d="'+d+' L'+f(pts[pts.length-1][0])+' 92 L'+f(pts[0][0])+' 92Z" fill="url(#'+gid+'f)"/>',ln='<path d="'+d+'" fill="none" stroke="url(#'+gid+')" stroke-width="3" stroke-linecap="round" vector-effect="non-scaling-stroke"/>';
+  c='<svg class="wd-svg" viewBox="0 0 240 100" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="'+gid+'" gradientUnits="userSpaceOnUse" x1="0" y1="'+f(Y(hi))+'" x2="0" y2="'+f(Y(lo))+'">'+[0,.25,.5,.75,1].map(k=>'<stop offset="'+k+'" stop-color="'+tempCol(hi-(hi-lo)*k)+'"/>').join('')+'</linearGradient>'+
+   '<linearGradient id="'+gid+'f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="currentColor" stop-opacity=".12"/><stop offset=".9" stop-color="currentColor" stop-opacity="0"/></linearGradient>'+
+   '<clipPath id="'+gid+'p"><rect x="0" y="0" width="'+f(Math.max(0,nX))+'" height="100"/></clipPath><clipPath id="'+gid+'n"><rect x="'+f(Math.max(0,nX))+'" y="0" width="240" height="100"/></clipPath></defs>'+
+   (nX>0?'<g clip-path="url(#'+gid+'p)" class="wd-was">'+fill+ln+'</g><g clip-path="url(#'+gid+'n)">'+fill+ln+'</g>':fill+ln)+(nX>0?'<line x1="'+f(nX)+'" x2="'+f(nX)+'" y1="0" y2="92" class="wd-nu"/>':'')+'</svg>'}
+ // H och L vid dygnets högsta och lägsta punkt och en prick vid nu; de kommer när kurvan har nått dit
+ let mk='';const D0=H.filter(x=>ymd(x.d)===D.date),dl=x=>f(200+x/240*700);if(D0.length){const a=D0.reduce((m,x)=>x.T>m.T?x:m,D0[0]),b=D0.reduce((m,x)=>x.T<m.T?x:m,D0[0]);
+  mk+='<span class="wd-mk h" style="left:'+pc(a.X)+'%;top:'+f(Y(a.T))+'%;--d:'+dl(a.X)+'ms">H</span>';if(b!==a)mk+='<span class="wd-mk l" style="left:'+pc(b.X)+'%;top:'+f(Y(b.T))+'%;--d:'+dl(b.X)+'ms">L</span>'}
+ if(nX>0)mk+='<i class="wd-dot" style="left:'+pc(nX)+'%;top:'+f(Y(W.now.T))+'%;--c:'+tempCol(W.now.T)+';--d:'+dl(nX)+'ms"></i>';
+ // väderikoner överst och vindpilar nederst: var tredje timme när Yr har timvärden, annars var sjätte
+ const tre=idag||H.filter(x=>!x.past).some((x,i,a)=>a[i+1]&&a[i+1].d-x.d<=36e5),iv=tre?3:6,top=[],vind=[];
+ for(let hr=0;hr<24;hr+=iv){const x=H.find(y=>y.d.getHours()===hr&&ymd(y.d)===D.date)||H.filter(y=>ymd(y.d)===D.date&&y.d.getHours()<=hr).pop();if(!x)continue;
+  const xx=wxDayNight(x,P,at(hr+iv/2)),l=pc(sx(at(hr+iv/2))),was=x.past||x.d.getTime()<now-36e5?' class="was"':'',d=';--d:'+(hr/iv*45)+'ms';
+  top.push('<span style="left:'+l+'%'+d+'"'+was+'>'+symInfo(xx.s)[0]+'</span>');
+  vind.push('<span style="left:'+l+'%'+d+'"'+was+'><i class="wd-ar" style="--r:'+((x.wd||0)+180)+'deg">↑</i><b class="num">'+Math.round(x.w||0)+'</b></span>')}
+ const yl=ticks.map(v=>'<span class="num" style="top:'+f(Y(v))+'%">'+deg(v)+'</span>').join('');
+ h+='<div class="wd-chart"><div class="wd-icons" aria-hidden="true">'+top.join('')+'</div><div class="wd-plot">'+g+'<div class="wd-bars">'+bars+'</div>'+
+  '<div class="wd-rv"><div class="wd-rvi">'+c+'</div></div>'+mk+'<div class="wd-y" aria-hidden="true">'+yl+'</div></div>'+
+  '<div class="wd-x num" aria-hidden="true">'+['00','06','12','18','24'].map((t,i)=>'<span style="left:'+pc(sx(at(i*6)))+'%">'+t+'</span>').join('')+'</div>'+
+  '<div class="wd-wind" aria-hidden="true">'+vind.join('')+'<em>m/s</em></div>'+
+  '<div class="wd-leg" aria-hidden="true"><span><i class="lt"></i>Temperatur</span><span><i class="lp"></i>Nederbörd</span><span><i class="lw">↑</i>Vind</span></div></div>';
+ h+=sh('Dagssammanfattning')+'<div class="wd-sum">'+esc(wxDaySum(W,D,H,idag))+'</div>';
+ // detaljer i samma rutor som vädervyn
+ const DH=D0,fl=DH.map(x=>feels(x.T,x.w||0)),wm=DH.reduce((m,x)=>(x.w||0)>(m.w||0)?x:m,DH[0]||W.now),hum=DH.filter(x=>x.h!=null),tile=(lab,v,sub)=>'<div class="wx-tile"><div class="wx-cap">'+lab+'</div><div class="tv num">'+v+'</div><div class="fn">'+sub+'</div></div>';
+ h+='<div class="wx-tiles wd-tiles">'+tile('Känns som',deg(Math.min(...fl.length?fl:[D.min])),'som kallast, '+deg(Math.max(...fl.length?fl:[D.max]))+' som varmast')+tile('Nederbörd',mm(D.pr),D.pr<.2?'Uppehåll':'under dygnet')+
+  tile('Vind',Math.round(wm.w||0)+' m/s','som mest, '+windDir(wm.wd))+(st?tile('Sol','<span class="sm">↑ '+hhmm(st[0])+'</span> <span class="sm">↓ '+hhmm(st[1])+'</span>','Dagens längd '+Math.floor((st[1]-st[0])/36e5)+' h '+Math.round(((st[1]-st[0])%36e5)/6e4)+' min'):'')+
+  (hum.length?tile('Luftfuktighet',Math.round(hum.reduce((a,x)=>a+x.h,0)/hum.length)+' %','i genomsnitt'):'')+'</div>';
+ return h+'<div class="foot">Väderdata från '+(W.src==='yr'?'Yr och MET Norway':'Open-Meteo')+(tre?'':'. Så här långt fram ger prognosen var sjätte timme.')+(H.length&&H[H.length-1].X<239.9?' Temperaturprognosen slutar kl '+hhmm(H[H.length-1].d)+'.':'')+'</div></div>'}
+// den markerade dagen glider från förra dagen med en fjäder (bara transform, går på grafikkretsen)
+function wdThumb(o){const t=o.querySelector('.wd-th');if(!t||A.wdPrev==null||A.wdPrev===A.wdI||matchMedia('(prefers-reduced-motion:reduce)').matches)return;
+ const s=fjader(.42,.72);t.animate([{transform:'translateX(calc('+A.wdPrev+' * 100%))'},{transform:'translateX(calc('+A.wdI+' * 100%))'}],{duration:motionOn()?300:s.d,easing:s.e});A.wdPrev=A.wdI}
+// en kort text om dagen: väderläget mitt på dagen, temperaturen, när det regnar och vinden
+function wxDaySum(W,D,H,idag){const dt=parse(D.date),DH=H.filter(x=>ymd(x.d)===D.date);if(!DH.length)return'';
+ const nar=idag?'Idag':D.date===addDays(today(),1)?'I morgon':'På '+DAYS[dt.getDay()],t=(symInfo(D.sym)[1]||'växlande väder').toLowerCase();
+ const a=DH.reduce((m,x)=>x.T>m.T?x:m,DH[0]);let s=nar+' blir det '+t+' med temperaturer mellan '+deg(D.min)+' och '+deg(D.max)+'. Varmast runt kl '+pad(a.d.getHours())+'.';
+ const R=DH.filter(x=>x.rate>=.1);
+ if(D.pr>=.2&&R.length){const f=R[0].d.getHours(),l=R[R.length-1],e=Math.min(24,l.d.getHours()+l.dur);s+=' '+(/snö/.test(t)?'Snö':'Nederbörd')+' väntas '+(e-f>=20?'under större delen av dygnet':'mellan kl '+pad(f)+' och '+pad(e%24===0&&e?24:e))+', totalt '+mm(D.pr)+'.'}
+ else s+=D.pr>0||/regn|snö|skur|byar/.test(t)?' Bara lite nederbörd, under '+mm(.2)+'.':' Det blir uppehåll.';
+ const w=DH.reduce((m,x)=>(x.w||0)>(m.w||0)?x:m,DH[0]),wm=Math.round(w.w||0);s+=' '+(wm<2?'Nästan vindstilla.':wm<6?'Svag '+windDir(w.wd)+' vind, som mest '+wm+' m/s.':wm<11?'Måttlig '+windDir(w.wd)+' vind, som mest '+wm+' m/s.':'Hård '+windDir(w.wd)+' vind, upp till '+wm+' m/s.');
+ return s}
 
 /* ---------- ekonomi ----------
    Ersätter kalkylarket Ekonomikalkyl. Utgifterna ligger i raden ekonomi och inkomsterna per månad
@@ -3192,6 +4165,16 @@ function ekoCalc(m){const o=ekoData(),ps=people(),all=ekoInc();let src=m,inc=all
   const dep=up(shared*share),pdep=up(own);return{p,inc:i,share,sharedPart:shared*share,dep,own,pdep,sum:dep+pdep,left:i-dep-pdep}});
  return{m,src,own:src===m,tot,shared,per,o}}
 const pcls=p=>'p'+(Math.max(0,people().indexOf(p))+1);
+/* Matbudget: gemensam, betalas till Matkontot efter månadens inkomstfördelning. Beloppet sparas per månad
+   i ekonomi.matM {'2026-10':8000} och gäller tills en senare månad får ett eget. */
+const matBudget=m=>{const M=ekoData().matM||{},k=M[m]!=null?m:Object.keys(M).filter(x=>x<m).sort().pop();return k?{m:k,b:Number(M[k])||0}:null};
+function matSec(c,m){const mb=matBudget(m),pct=x=>(x*100).toFixed(1).replace('.',',')+' %';
+ let h=sh('Matbudget',mb?'<button class="linkbtn" data-act="ekoMat">Ändra</button>':'');
+ // Samma ruta som E2: stapel med fördelningen, var och ens del till Matkontot och totalen under
+ return h+'<div class="group"'+RF('E10')+'>'+(!mb?'<button class="cell link" data-act="ekoMat"><span class="grow" style="color:var(--accent)">Ange matbudget</span>'+chevron+'</button></div>':'<div class="cell eko-split"><div class="splitbar" role="img" aria-label="Matbudget '+c.per.map(x=>personLabel(x.p)+' '+pct(x.share)).join(', ')+'">'+c.per.map(x=>'<i class="'+pcls(x.p)+'" style="flex:'+Math.max(x.share,.0001)+'"></i>').join('')+'</div>'+
+  '<div class="splitleg">'+c.per.map(x=>'<div class="pc '+pcls(x.p)+'"><span class="fn pcn"><span class="pdot '+pcls(x.p)+'"></span>'+esc(personLabel(x.p))+'</span><b class="num">'+nv('e-mat-'+x.p,Math.ceil(mb.b*x.share/10-1e-9)*10,'kr')+'</b><span class="fn num">'+pct(x.share)+'</span></div>').join('')+'</div></div>'+
+  '<div class="cell"><span class="grow muted">Totalt</span><span class="val num" style="color:var(--ink)">'+nv('e-mat',mb.b,'kr')+'</span></div></div>'+
+  '<div class="foot">Var och en för över sin del till Matkontot, fördelat efter inkomsten'+(c.src?' i '+esc(monthName(c.src)):'')+' och avrundat uppåt till 10 kr.'+(mb.m!==m?' Samma budget som '+esc(monthName(mb.m))+'.':'')+'</div>')}
 /* Stående överföring från ett låst konto till betalkontot. Gemensamma utgifter dras från kontot
    Våra fasta utgifter, egna utgifter från var och ens konto Mina fasta utgifter. När man bekräftar sparas
    beloppet, perioden och överföringsdagen i c.ov. Ändras något av dem måste överföringen i banken ändras
@@ -3202,7 +4185,7 @@ const ovState=c=>!c.ov?'saknas':(Number(c.ov.a)!==Number(c.amount)||(c.ov.p||'m�
 const ovOpen=l=>ekoList(l).filter(c=>ovState(c)!=='ok');
 const ovEvery={'månad':'Varje månad','kvartal':'Var tredje månad','år':'En gång om året'};
 function costRow(c,list,split){const pm=perMonth(c),meta=[c.pay,dayTxt(c.day),c.note].filter(Boolean).join(' · '),ov=ovState(c);
- return'<button class="cell link'+(ov?' ov-row':'')+'" data-act="ekoCost" data-id="'+esc(c.id)+'" data-list="'+esc(list)+'">'+
+ return'<button class="cell link'+(ov?' ov-row':'')+'" data-act="ekoCost" data-id="'+esc(c.id)+'" data-list="'+esc(list)+'"'+holdAt('ekoMenu')+'>'+
   // ett tryck på utropstecknet bekräftar att överföringen är inlagd
   (ov==='ok'?'<span class="ovs ok" aria-label="Stående överföring inlagd">'+I.tick+'</span>':'<span class="ovs tap '+ov+'" data-act="ovDone" data-id="'+esc(c.id)+'" data-list="'+esc(list)+'" role="button" tabindex="0" aria-label="'+(ov==='andrad'?'Bekräfta att överföringen är ändrad':'Bekräfta att stående överföring är inlagd')+'">!</span>')+
   '<div class="grow"><div class="title">'+esc(c.name)+'</div>'+
@@ -3214,29 +4197,30 @@ function splitPreview(el){const v=Number(String(el.value).replace(/\s/g,'').repl
  if(out)out.innerHTML=c.per.map(x=>'<div class="pc '+pcls(x.p)+'"><span class="fn pcn"><span class="pdot '+pcls(x.p)+'"></span>'+esc(personLabel(x.p))+' '+(x.share*100).toFixed(1).replace('.',',')+' %</span><b class="num">'+kr(v*x.share)+'</b></div>').join('')}
 /* Varje lista med fasta utgifter kan fällas ihop för kortare scrollning. Utfälld från början;
    valet gäller tills appen stängs. Ihopfälld visar rubriken hur många som saknar överföring. */
-function ekoSec(l,title,sum,inner){const open=!(S.ekoFold||{})[l],n=ovOpen(l).length;
- return'<button class="sh eko-fold'+(open?' open':'')+'" data-act="ekoFold" data-id="'+esc(l)+'" aria-expanded="'+open+'"><span>'+title+'</span><span class="r">'+
-  (!open&&n?'<span class="ovs saknas eko-fn" aria-label="'+n+' saknar stående överföring">'+n+'</span>':'')+sum+'<span class="eko-chev">'+I.chev+'</span></span></button>'+(open?inner:'')}
+function ekoSec(l,title,sum,inner){const open=!(S.ekoFold||{})[l],n=ovOpen(l).length,id='motion-eko-'+encodeURIComponent(l);
+ return'<button class="sh eko-fold'+(open?' open':'')+'" data-act="ekoFold" data-id="'+esc(l)+'"'+(motionOn()?' aria-controls="'+id+'"':'')+' aria-expanded="'+open+'"><span>'+title+'</span><span class="r">'+
+  (n?'<span'+(open?' hidden':'')+' class="ovs saknas eko-fn" aria-label="'+n+' saknar stående överföring">'+n+'</span>':'')+sum+'<span class="eko-chev">'+I.chev+'</span></span></button>'+(motionOn()?'<div class="motion-panel" id="'+id+'"'+(!open?' hidden inert':'')+'>'+inner+'</div>':open?inner:'')}
 function ovAllOk(l){const n=ekoList(l).length;return n&&!ovOpen(l).length?'<div class="foot ov-allok">'+I.tick+(n===1?'Har':'Alla '+n+' har')+' en stående överföring från '+esc(ovFrom(l))+'</div>':''}
 // I väggläge och på gemensam skärm (ingen vald person) är Ekonomi låst med en kod, oavsett skärmstorlek.
 // Låset går i igen när man lämnar Ekonomi. Inga gränser för antal försök.
 const EKO_PIN='1912',ekoLocked=()=>(S.wall||!people().includes(S.me))&&!S.ekoOpen;
 function ekoLock(){const n=(S.pin||'').length;
- return'<div class="pin'+(S.pinBad?' bad':'')+'"><div class="pin-ic">'+I.lock+'</div><h2>Ekonomi är låst</h2><div class="fn">Skriv koden för att öppna</div>'+
+ return'<div'+RF('E9')+' class="pin'+(S.pinBad?' bad':'')+'"><div class="pin-ic">'+I.lock+'</div><h2>Ekonomi är låst</h2><div class="fn">Skriv koden för att öppna</div>'+
   '<div class="pin-dots" aria-label="'+n+' av 4 siffror">'+[0,1,2,3].map(i=>'<i class="'+(i<n?'on':'')+'"></i>').join('')+'</div>'+
   '<div class="pin-pad">'+['1','2','3','4','5','6','7','8','9','','0','del'].map(k=>k===''?'<span></span>':'<button class="pin-k'+(k==='del'?' del':'')+'" data-act="pin" data-id="'+k+'" aria-label="'+(k==='del'?'Radera':k)+'">'+(k==='del'?'Radera':k)+'</button>').join('')+'</div></div>'}
 V.ekonomi=function(){if(ekoLocked())return ekoLock();const m=S.ekoMonth||thisMonth(),c=ekoCalc(m),o=c.o;
  let h=head('Ekonomi',{sub:'Fasta utgifter och fördelning',tools:'<button class="ib plus" data-act="ekoCost" data-list="shared" aria-label="Ny utgift">'+I.plus+'</button>'});
- h+='<div class="mswitch"><button class="ib" data-act="ekoMonth" data-d="-1" aria-label="Förra månaden">'+I.back+'</button><div class="hl">'+esc(cap(monthName(m)))+'</div><button class="ib flip" data-act="ekoMonth" data-d="1" aria-label="Nästa månad">'+I.back+'</button></div>';
+ h+='<div class="mswitch"'+RF('E1')+'><button class="ib" data-act="ekoMonth" data-d="-1" aria-label="Förra månaden">'+I.back+'</button><div class="hl">'+esc(cap(monthName(m)))+'</div><button class="ib flip" data-act="ekoMonth" data-d="1" aria-label="Nästa månad">'+I.back+'</button></div>';
  // Inkomst och fördelning
  const pct=x=>(x*100).toFixed(1).replace('.',',')+' %';
- h+=sh('Inkomst',c.own?'<button class="linkbtn" data-act="ekoIncome">Ändra</button>':'');
- if(!c.own)h+='<div class="block" style="padding-top:0"><button class="btn-fill" style="width:100%" data-act="ekoIncome">'+I.plus+'Fyll i inkomst för '+esc(monthName(m))+'</button>'+(c.src?'<div class="foot" style="padding:8px 4px 0">Tills dess räknas med inkomsten från '+esc(monthName(c.src))+'.</div>':'')+'</div>';
- h+='<div class="group"><div class="cell eko-split"><div class="splitbar" role="img" aria-label="Fördelning '+c.per.map(x=>personLabel(x.p)+' '+pct(x.share)).join(', ')+'">'+c.per.map(x=>'<i class="'+pcls(x.p)+'" style="flex:'+Math.max(x.share,.0001)+'"></i>').join('')+'</div>'+
+ h+=sh('Inkomst',c.own?'<button class="linkbtn" data-act="ekoIncome">Ändra</button>':U5?'<button class="linkbtn" data-act="ekoIncome">Lägg till</button>':'');
+ if(!c.own&&U5&&c.src)h+='<div class="foot" style="padding:0 36px 8px">Tills inkomsten för '+esc(monthName(m))+' är ifylld räknas med '+esc(monthName(c.src))+'.</div>';
+ if(!c.own&&!U5)h+='<div class="block" style="padding-top:0"><button class="btn-fill" style="width:100%" data-act="ekoIncome">'+I.plus+'Fyll i inkomst för '+esc(monthName(m))+'</button>'+(c.src?'<div class="foot" style="padding:8px 4px 0">Tills dess räknas med inkomsten från '+esc(monthName(c.src))+'.</div>':'')+'</div>';
+ h+='<div class="group"'+RF('E2')+'><div class="cell eko-split"><div class="splitbar" role="img" aria-label="Fördelning '+c.per.map(x=>personLabel(x.p)+' '+pct(x.share)).join(', ')+'">'+c.per.map(x=>'<i class="'+pcls(x.p)+'" style="flex:'+Math.max(x.share,.0001)+'"></i>').join('')+'</div>'+
   '<div class="splitleg">'+c.per.map(x=>'<div class="pc '+pcls(x.p)+'"><span class="fn pcn"><span class="pdot '+pcls(x.p)+'"></span>'+esc(personLabel(x.p))+'</span><b class="num">'+nv('e-inc-'+x.p,x.inc,'kr')+'</b><span class="fn num">'+pct(x.share)+'</span></div>').join('')+'</div></div>'+
   '<div class="cell"><span class="grow muted">Totalt</span><span class="val num" style="color:var(--ink)">'+nv('e-inc-tot',c.tot,'kr')+'</span></div></div>';
  // Per person
- h+=sh('Att sätta in varje månad')+'<div class="eko-people">'+c.per.map(x=>{const w=v=>x.inc?Math.max(0,v/x.inc*100):0;
+ h+=sh('Att sätta in varje månad')+'<div class="eko-people"'+RF('E3')+'>'+c.per.map(x=>{const w=v=>x.inc?Math.max(0,v/x.inc*100):0;
   return'<div class="group eko-card pc '+pcls(x.p)+'"><div class="eko-name"><span class="pdot '+pcls(x.p)+'"></span>'+esc(personLabel(x.p))+'</div>'+
    '<div class="eko-left"><span class="fn">Kvar efter fasta</span><b class="num'+(x.left<0?' red':'')+'">'+nv('e-left-'+x.p,x.left,'kr')+'</b></div>'+
    '<div class="stack" aria-hidden="true"><i class="'+pcls(x.p)+'" style="width:'+w(x.dep)+'%"></i><i class="'+pcls(x.p)+' soft" style="width:'+w(x.pdep)+'%"></i></div>'+
@@ -3244,21 +4228,22 @@ V.ekonomi=function(){if(ekoLocked())return ekoLock();const m=S.ekoMonth||thisMon
    '<div><span><span class="sw '+pcls(x.p)+' soft"></span>Egna fasta</span><b class="num">'+nv('e-pdep-'+x.p,x.pdep,'kr')+'</b></div>'+
    '<div class="tot"><span>Summa</span><b class="num">'+nv('e-sum-'+x.p,x.sum,'kr')+'</b></div></div></div>'}).join('')+'</div>';
  h+='<div class="foot">Avrundat uppåt till '+kr(o.round||100)+' med '+(o.buffer!=null?o.buffer:2)+' % buffert, som i kalkylen.</div>';
+ h+=matSec(c,m);
  // Gemensamma utgifter
  h+='<div class="split"><div class="col">';
- h+=ekoSec('shared','Gemensamma fasta',kr(c.shared)+'/mån',group((o.shared||[]).map(x=>costRow(x,'shared',c.per)).join('')+'<button class="cell link" data-act="ekoCost" data-list="shared"><span class="grow" style="color:var(--accent)">Lägg till utgift</span></button>')+ovAllOk('shared'));
+ h+=ekoSec('shared','Gemensamma fasta',kr(c.shared)+'/mån',rgroup('E4',(o.shared||[]).map(x=>costRow(x,'shared',c.per)).join('')+'<button class="cell link" data-act="ekoCost" data-list="shared"><span class="grow" style="color:var(--accent)">Lägg till utgift</span></button>')+ovAllOk('shared'));
  h+='</div><div class="col">';
- people().forEach(p=>{const l=(o.personal||{})[p]||[];h+='<div class="eko-pl pc '+pcls(p)+'">'+ekoSec(p,'<span class="pdot '+pcls(p)+'"></span>'+esc(personLabel(p))+'s fasta',kr(sumMonth(l))+'/mån',group(l.map(x=>costRow(x,p)).join('')+'<button class="cell link" data-act="ekoCost" data-list="'+esc(p)+'"><span class="grow eko-add">Lägg till utgift</span></button>')+ovAllOk(p))+'</div>'});
+ people().forEach(p=>{const l=(o.personal||{})[p]||[];h+='<div'+RF('E5')+' class="eko-pl pc '+pcls(p)+'">'+ekoSec(p,'<span class="pdot '+pcls(p)+'"></span>'+esc(personLabel(p))+'s fasta',kr(sumMonth(l))+'/mån',group(l.map(x=>costRow(x,p)).join('')+'<button class="cell link" data-act="ekoCost" data-list="'+esc(p)+'"><span class="grow eko-add">Lägg till utgift</span></button>')+ovAllOk(p))+'</div>'});
  h+='</div></div>';
  // Dela en kostnad
- h+=sh('Dela en kostnad')+group('<div class="cell"><input class="field" id="split-amt" inputmode="decimal" placeholder="Belopp att dela, t.ex. 1000" aria-label="Belopp att dela"></div><div class="cell eko-calc" id="split-out" aria-live="polite"></div>');
+ h+=sh('Dela en kostnad')+rgroup('E6','<div class="cell"><input class="field" id="split-amt" inputmode="decimal" placeholder="Belopp att dela, t.ex. 1000" aria-label="Belopp att dela"></div><div class="cell eko-calc" id="split-out" aria-live="polite"></div>');
  // Historik
  const months=Object.keys(ekoInc()).filter(k=>Object.values(ekoInc()[k]||{}).some(Number)).sort().reverse().slice(0,12);
  if(months.length){const max=Math.max(...months.map(k=>people().reduce((a,p)=>a+(Number(ekoInc()[k][p])||0),0)));
-  h+=sh('Inkomst per månad')+group(months.map(k=>{const v=ekoInc()[k],t=people().reduce((a,p)=>a+(Number(v[p])||0),0);
+  h+=sh('Inkomst per månad')+rgroup('E7',months.map(k=>{const v=ekoInc()[k],t=people().reduce((a,p)=>a+(Number(v[p])||0),0);
    return'<div class="cell hist" title="'+esc(people().map(p=>personLabel(p)+' '+kr(v[p]||0)).join(', '))+'"><span class="hm">'+esc(cap(monthName(k)))+'</span><div class="hbar" aria-hidden="true">'+people().map(p=>'<i class="'+pcls(p)+'" style="width:'+((Number(v[p])||0)/max*100)+'%"></i>').join('')+'</div><span class="val num">'+kr(t)+'</span></div>'}).join(''))}
  // Inställningar
- h+=sh('Beräkning')+group(fieldCell('Buffert, %','<input class="field r" data-change="eko" data-id="buffer" inputmode="decimal" value="'+esc(o.buffer!=null?o.buffer:2)+'" style="max-width:90px">')+fieldCell('Avrunda uppåt till, kr','<input class="field r" data-change="eko" data-id="round" inputmode="numeric" value="'+esc(o.round||100)+'" style="max-width:90px">'));
+ h+=sh('Beräkning')+rgroup('E8',fieldCell('Buffert, %','<input class="field r" data-change="eko" data-id="buffer" inputmode="decimal" value="'+esc(o.buffer!=null?o.buffer:2)+'" style="max-width:90px">')+fieldCell('Avrunda uppåt till, kr','<input class="field r" data-change="eko" data-id="round" inputmode="numeric" value="'+esc(o.round||100)+'" style="max-width:90px">'));
  setTimeout(()=>{const el=document.getElementById('split-amt');if(el&&el.value)splitPreview(el);else{const out=document.getElementById('split-out');if(out)splitPreview({value:1000})}},0);
  return h};
 
@@ -3266,17 +4251,34 @@ V.ekonomi=function(){if(ekoLocked())return ekoLock();const m=S.ekoMonth||thisMon
    Listan står som JSON i fliken Inställningar (raden fodelsedagar) och skrivs av kalenderrutinen:
    [{"namn":"Leah","datum":"10-15","ar":2014}, …]. ar saknas när födelseåret inte står i kalendern. */
 const MON3=['jan','feb','mar','apr','maj','jun','jul','aug','sep','okt','nov','dec'];
-function bdays(){const t=today(),ty=Number(t.slice(0,4)),seen=new Set();
- return parseJ(settings().fodelsedagar,[]).map(x=>{const m=/^(\d{1,2})-(\d{1,2})$/.exec(String(x&&x.datum||''));if(!m||!x.namn)return null;
-  const mo=Number(m[1])-1,dd=Number(m[2]),k=x.namn+'|'+mo+'|'+dd;if(mo<0||mo>11||seen.has(k))return null;seen.add(k);
+/* Egna ändringar sparas i onskelista som {fod:1,add:[{namn,datum,ar}],del:['namn|MM-DD'],col:{'namn|MM-DD':färg}}: appen får inte skriva raden fodelsedagar,
+   och kalendersynken bygger om den varje dag. Så skriver synken aldrig över den som lagts till eller tagits bort i appen. */
+function bdKey(x){const m=/^(\d{1,2})-(\d{1,2})$/.exec(String(x&&x.datum||''));return m&&x.namn?String(x.namn).trim()+'|'+pad(m[1])+'-'+pad(m[2]):''}
+function fodEgna(){const o=parseJ(settings().onskelista,[]).find(x=>x&&x.fod);return{add:o&&Array.isArray(o.add)?o.add:[],del:o&&Array.isArray(o.del)?o.del:[],col:o&&o.col&&typeof o.col==='object'?o.col:{}}}
+function setFodEgna(fn){A.user=Date.now();updJSON('onskelista',[],a=>{const o=a.find(x=>x&&x.fod)||{},n=Object.assign({col:{}},fn({add:(o.add||[]).slice(),del:(o.del||[]).slice(),col:Object.assign({},o.col)}));
+ return a.filter(x=>!(x&&x.fod)).concat(n.add.length||n.del.length||Object.keys(n.col).length?[{fod:1,add:n.add,del:n.del,col:n.col}]:[])})}
+// Barn (fyller under 18, födelseår känt) får orange om ingen egen färg är vald
+const BD_BARN='orange';
+// Egen färg per person: style med --bd (prick), --bd-soft (bakgrund) och --bd-ink (text). Utan färg används accentfärgen
+const bdSt=b=>{if(!b.col||!colOk(b.col))return'';const c=PCOL[b.col],d=isDark(),m=d?c[3]:c[1];return' style="--bd:'+m+';--bd-soft:'+rgba(m,d?.22:.13)+';--bd-ink:'+(d?c[4]:c[2])+'"'};
+const bdFill=b=>b.col&&colOk(b.col)?' style="fill:'+PCOL[b.col][isDark()?3:1]+'"':'';
+// Ta bort med svep: raden försvinner direkt och sparas när Ångra har försvunnit, som i Inköp
+const FDEL={k:null,t:0};
+function fdelCommit(){if(!FDEL.k)return;clearTimeout(FDEL.t);const k=FDEL.k,syncad=parseJ(settings().fodelsedagar,[]).some(x=>bdKey(x)===k);FDEL.k=null;undoHide();
+ setFodEgna(e=>{delete e.col[k];return{add:e.add.filter(x=>bdKey(x)!==k),del:syncad&&!e.del.includes(k)?e.del.concat([k]):e.del,col:e.col}})}
+function fdelStart(b){delCommit();cdelCommit();fdelCommit();FDEL.k=b.key;render();
+ const u=document.getElementById('undo');u.querySelector('.ud-t').textContent=b.name+' togs bort';u.querySelector('.ud-b').dataset.act='fodUndo';u.hidden=false;FDEL.t=setTimeout(fdelCommit,5000)}
+function bdays(){const t=today(),ty=Number(t.slice(0,4)),seen=new Set(),E=fodEgna(),bort=new Set(E.del.concat(FDEL.k?[FDEL.k]:[]));
+ return E.add.concat(parseJ(settings().fodelsedagar,[])).map(x=>{const m=/^(\d{1,2})-(\d{1,2})$/.exec(String(x&&x.datum||''));if(!m||!x.namn)return null;
+  const mo=Number(m[1])-1,dd=Number(m[2]),k=x.namn+'|'+mo+'|'+dd,key=bdKey(x);if(mo<0||mo>11||seen.has(k)||bort.has(key))return null;seen.add(k);
   let y=ty;const at=yy=>ymd(new Date(yy,mo,dd));if(at(y)<t)y++;const next=at(y),yr=Number(x.ar)||null;
-  return{name:String(x.namn),mo,dd,yr,next,days:Math.round((parse(next)-parse(t))/864e5),age:yr?y-yr:null,passed:y>ty}}).filter(Boolean)
+  return{name:String(x.namn),key,own:E.col[key]||'',col:E.col[key]||(yr&&y-yr<18?BD_BARN:''),mo,dd,yr,next,days:Math.round((parse(next)-parse(t))/864e5),age:yr?y-yr:null,passed:y>ty}}).filter(Boolean)
   .sort((a,b)=>a.mo-b.mo||a.dd-b.dd||a.name.localeCompare(b.name,'sv'))}
 const bdWhen=b=>b.days===0?'idag':b.days===1?'imorgon':b.days<7?'på '+DAYS[parse(b.next).getDay()]:b.days<45?'om '+b.days+' dagar':'om '+Math.round(b.days/30.4)+' mån';
 const bdTurns=b=>b.age!=null?'fyller '+b.age:'fyller år';
 const bdNext=L=>L.slice().sort((a,b)=>a.days-b.days);
-function bdRow(b,o){o=o||{};return'<div class="cell bd'+(b.days===0?' today':'')+(b.passed&&o.dim?' past':'')+'"><span class="bd-date num"><b>'+b.dd+'</b><small>'+MON3[b.mo]+'</small></span>'+
- '<div class="grow"><div>'+esc(b.name)+'</div><div class="sub">'+esc(cap(bdTurns(b)))+(b.yr?' · född '+b.yr:'')+'</div></div><span class="bd-when'+(b.days<14?' soon':'')+'">'+esc(bdWhen(b))+'</span></div>'}
+function bdRow(b,o){o=o||{};return'<div class="dr-wrap cs"><button class="dr-act del" data-act="fodDel" data-full="fodDel" data-id="'+esc(b.key)+'" aria-label="Ta bort '+esc(b.name)+'">'+I.trash+'<span>Ta bort</span></button><div class="cell dr-slide bd'+(b.days===0?' today':'')+(b.passed&&o.dim?' past':'')+'" data-hold-lift="fodEdit" data-id="'+esc(b.key)+'"'+bdSt(b)+'><span class="bd-date num"><b>'+b.dd+'</b><small>'+MON3[b.mo]+'</small></span>'+
+ '<div class="grow"><div>'+esc(b.name)+'</div><div class="sub">'+esc(cap(bdTurns(b)))+(b.yr?' · född '+b.yr:'')+'</div></div><span class="bd-when'+(b.days<14?' soon':'')+'">'+esc(bdWhen(b))+'</span></div></div>'}
 function bdWidget(){const L=bdNext(bdays()).slice(0,3);if(!L.length)return'';
  return widget('fod','w2',I.cake,'Födelsedagar','',
   '<div class="wl">'+L.map(b=>'<div class="cell bdw"><span class="grow">'+esc(b.name)+' <span class="muted">'+esc(bdTurns(b))+'</span></span><span class="bd-when'+(b.days<14?' soon':'')+'">'+esc(bdWhen(b))+'</span></div>').join('')+'</div>')}
@@ -3295,33 +4297,33 @@ function bdWheel(L,sel){const C=180,R0=102,R1=174,t=parse(today());
  const nx=bdNext(L)[0];
  // Födelsedagar som ligger nära varandra läggs i en inre bana så att prickarna inte täcker varandra
  const lanes=[];L.forEach(b=>{const a=ang(b.mo,b.dd);let k=0;while(lanes[k]!=null&&a-lanes[k]<.09)k++;lanes[k]=a;
-  const[x,y]=pt(R1-14-k*11,a);s+='<circle class="dot'+(b===nx?' next':'')+'" cx="'+x+'" cy="'+y+'" r="'+(b===nx?6:4.5)+'"/>'});
+  const[x,y]=pt(R1-14-k*11,a);const cc=b.col&&colOk(b.col)?PCOL[b.col][isDark()?3:1]:'';s+='<circle class="dot'+(b===nx?' next':'')+'" cx="'+x+'" cy="'+y+'" r="'+(b===nx?6:4.5)+'"'+(cc?' style="'+(b===nx?'stroke':'fill')+':'+cc+'"':'')+'/>'});
  const ta=ang(t.getMonth(),t.getDate()),[hx0,hy0]=pt(R1+3,ta),[hx1,hy1]=pt(R1+13,ta);
  s+='<line class="hand" x1="'+hx0+'" y1="'+hy0+'" x2="'+hx1+'" y2="'+hy1+'"/><circle class="hand-dot" cx="'+hx1+'" cy="'+hy1+'" r="3"/>';
  return s+'</svg>'}
 
 V.fod=function(){const L=bdays(),t=parse(today()),mode=S.fodMode||'hjul';
  let h='<div class="rcp-top"><button class="back" data-act="nav" data-id="oversikt">'+I.back+'Översikt</button></div>';
- h+=head('Födelsedagar',{sub:L.length?L.length+' personer':''});
- if(!L.length)return h+group(emptyCell('Inga födelsedagar ännu. Listan fylls i när kalenderrutinen körs på söndag.'));
+ h+=head('Födelsedagar',{sub:L.length?L.length+' personer':'',tools:'<button class="ib plus" data-act="fodAdd" aria-label="Ny födelsedag">'+I.plus+'</button>'});
+ if(!L.length)return h+group(emptyCell('Inga födelsedagar ännu. Lägg till med plus, eller vänta på att listan fylls i från kalendern.'));
  h+=segc('Visning','fodMode',[['hjul','Årshjul'],['manad','Månader'],['lista','Tidslinje']],mode);
  const nx=bdNext(L),first=nx[0],same=nx.filter(b=>b.days===first.days);
  if(mode==='hjul'){const sel=S.fodMon!=null?S.fodMon:t.getMonth(),ML=L.filter(b=>b.mo===sel);
-  h+='<div class="bd-wrap">'+bdWheel(L,sel)+'<div class="bd-center"><div class="eyebrow">'+(first.days===0?'Idag':'Nästa')+'</div><div class="bd-cn">'+esc(same.map(b=>b.name).join(' & '))+'</div><div class="sub">'+esc(cap(same.length===1?bdTurns(first):'fyller år')+(first.days?' '+bdWhen(first):''))+'</div></div></div>';
-  h+=sh(cap(MON[sel]),ML.length?ML.length+(ML.length===1?' födelsedag':' födelsedagar'):'')+group(ML.length?ML.map(b=>bdRow(b)).join(''):emptyCell('Ingen fyller år i '+MON[sel]+'.'));
-  h+='<div class="foot">Tryck på en månad i hjulet för att se vilka som fyller år då.</div>'}
- else if(mode==='manad'){h+='<div class="bd-grid">';
+  h+='<div class="bd-wrap"'+RF('F1')+'>'+bdWheel(L,sel)+'<div class="bd-center"><div class="eyebrow">'+(first.days===0?'Idag':'Nästa')+'</div><div class="bd-cn">'+esc(same.map(b=>b.name).join(' & '))+'</div><div class="sub">'+esc(cap(same.length===1?bdTurns(first):'fyller år')+(first.days?' '+bdWhen(first):''))+'</div></div></div>';
+  h+=sh(cap(MON[sel]),ML.length?ML.length+(ML.length===1?' födelsedag':' födelsedagar'):'')+rgroup('F2',ML.length?ML.map(b=>bdRow(b)).join(''):emptyCell('Ingen fyller år i '+MON[sel]+'.'));
+  h+='<div class="foot">Tryck på en månad i hjulet för att se vilka som fyller år då. Håll in ett namn för att ändra, svep vänster för att ta bort.</div>'}
+ else if(mode==='manad'){h+='<div class="bd-grid"'+RF('F3')+'>';
   for(let m=0;m<12;m++){const ML=L.filter(b=>b.mo===m),cur=m===t.getMonth();
    h+='<section class="bd-mon'+(cur?' now':'')+(!ML.length?' empty':'')+'"><div class="bd-mh"><span>'+cap(MON[m])+'</span>'+(ML.length?'<span class="n">'+ML.length+'</span>':'')+'</div>'+
-    (ML.length?ML.map(b=>'<div class="bd-li'+(b.passed?' past':'')+(b===first?' next':'')+'"><span class="d num">'+b.dd+'</span><span class="nm">'+esc(b.name)+'</span>'+(b.age!=null?'<span class="a num">'+b.age+'</span>':'')+'</div>').join(''):'<div class="bd-none">–</div>')+'</section>'}
+    (ML.length?ML.map(b=>'<div class="bd-li'+(b.passed?' past':'')+(b===first?' next':'')+'"'+bdSt(b)+'><span class="d num">'+b.dd+'</span><span class="nm">'+esc(b.name)+'</span>'+(b.age!=null?'<span class="a num">'+b.age+'</span>':'')+'</div>').join(''):'<div class="bd-none">–</div>')+'</section>'}
   h+='</div><div class="foot">Siffran efter namnet är åldern personen fyller. Grått har redan varit i år.</div>'}
- else{h+='<section class="bd-hero"><div class="eyebrow">'+(first.days===0?'Idag':'Nästa födelsedag')+'</div><div class="bd-hn">'+esc(same.map(b=>b.name).join(' & '))+'</div><div class="bd-hs">'+esc(cap(same.length===1?bdTurns(first):'fyller år'))+' '+esc(bdWhen(first))+'</div><div class="sub">'+esc(dateLong(first.next))+'</div></section>';
+ else{h+='<section class="bd-hero"'+RF('F4')+'><div class="eyebrow">'+(first.days===0?'Idag':'Nästa födelsedag')+'</div><div class="bd-hn">'+esc(same.map(b=>b.name).join(' & '))+'</div><div class="bd-hs">'+esc(cap(same.length===1?bdTurns(first):'fyller år'))+' '+esc(bdWhen(first))+'</div><div class="sub">'+esc(dateLong(first.next))+'</div></section>';
   // Årsremsa: tolv månader från och med den här, en prick per födelsedag
-  h+='<div class="bd-strip">';for(let i=0;i<12;i++){const m=(t.getMonth()+i)%12,ML=L.filter(b=>b.mo===m);
-   h+='<div class="bs-col'+(i===0?' now':'')+'"><div class="bs-dots">'+ML.map(b=>'<i'+(b===first?' class="next"':'')+'></i>').join('')+'</div><span>'+MON3[m].charAt(0).toUpperCase()+'</span></div>'}
+  h+='<div class="bd-strip"'+RF('F5')+'>';for(let i=0;i<12;i++){const m=(t.getMonth()+i)%12,ML=L.filter(b=>b.mo===m);
+   h+='<div class="bs-col'+(i===0?' now':'')+'"><div class="bs-dots">'+ML.map(b=>'<i'+(b===first?' class="next"':'')+bdSt(b)+'></i>').join('')+'</div><span>'+MON3[m].charAt(0).toUpperCase()+'</span></div>'}
   h+='</div>';
-  let lastM=-1;const rows=[];nx.forEach(b=>{if(b.mo!==lastM){if(rows.length)h+=group(rows.splice(0).join(''));h+=sh(cap(MON[b.mo])+(parse(b.next).getFullYear()!==t.getFullYear()?' '+parse(b.next).getFullYear():''));lastM=b.mo}rows.push(bdRow(b))});
-  if(rows.length)h+=group(rows.join(''))}
+  let lastM=-1;const rows=[],fg=x=>rgroup('F6',x);nx.forEach(b=>{if(b.mo!==lastM){if(rows.length)h+=fg(rows.splice(0).join(''));h+=sh(cap(MON[b.mo])+(parse(b.next).getFullYear()!==t.getFullYear()?' '+parse(b.next).getFullYear():''));lastM=b.mo}rows.push(bdRow(b))});
+  if(rows.length)h+=fg(rows.join(''))}
  return h};
 
 /* ---------- utseende ---------- */
@@ -3330,10 +4332,10 @@ const themeNow=()=>wallDark()?'dark':S.theme;
 const isDark=()=>themeNow()==='dark'||themeNow()==='system'&&matchMedia('(prefers-color-scheme: dark)').matches;
 function applyTheme(fade){const root=document.documentElement;
  if(fade&&!calm()){root.classList.add('theme-fade');clearTimeout(applyTheme.t);applyTheme.t=setTimeout(()=>root.classList.remove('theme-fade'),450)}
- const th=themeNow();if(th==='system')root.removeAttribute('data-theme');else root.setAttribute('data-theme',th);root.classList.toggle('u3-dark',U3&&(th==='dark'||th==='system'&&matchMedia('(prefers-color-scheme: dark)').matches));
- document.querySelectorAll('meta[name="theme-color"]').forEach(mt=>{const dark=th==='dark'||(th==='system'&&/dark/.test(mt.media));mt.content=U3?(dark?'#181A19':'#F6F4EF'):dark?'#000000':'#F2F2F7'})}
+ const th=themeNow();if(th==='system')root.removeAttribute('data-theme');else root.setAttribute('data-theme',th);root.classList.toggle('u3-dark',U3&&isDark());root.classList.toggle('u4-dark',U4&&isDark());
+ document.querySelectorAll('meta[name="theme-color"]').forEach(mt=>{const dark=th==='dark'||(th==='system'&&/dark/.test(mt.media));mt.content=U4?(dark?'#17151E':'#F5F4F8'):U3?(dark?'#181A19':'#F6F4EF'):dark?'#000000':'#F2F2F7'})}
 autoTheme();applyTheme(false);
-matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(U3)applyTheme(false)});
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(U3||U4)applyTheme(false)});
 
 /* ---------- animationer ----------
    Vyerna ritas om helt vid varje ändring. A.before/A.after jämför före och efter
@@ -3343,14 +4345,13 @@ const calm=()=>{try{return matchMedia('(prefers-reduced-motion: reduce)').matche
 const nv=(k,v,f)=>'<span class="nv" data-n="'+k+'" data-v="'+(Math.round(Number(v)*100)/100)+'" data-f="'+(f||'n')+'">'+(f==='kr'?kr(v):Math.round(v))+'</span>';
 const rowKey=el=>el.dataset.act+':'+el.dataset.id;
 const A={page:'',keys:null,rects:null,nums:{},bars:{},segs:{},done:null,user:0,cookStep:null,widgets:null,
- before(m){this.rects=null;
+ before(m){this.rects=null;if(U5){this.old=[...m.childNodes];this.oldY=this.sy!=null?this.sy:scrollY;this.top=m.getBoundingClientRect().top+scrollY}
   if(this.flip){this.rects={};m.querySelectorAll('.cell input.check').forEach(b=>{const r=b.closest('.cell').getBoundingClientRect();if(r.height)this.rects[rowKey(b)]=r.top});this.flip=false}
   this.widgets=S.view==='oversikt'?[...m.querySelectorAll('.widget')].map(w=>w.innerHTML):null},
  after(m){const page=S.view+'|'+(S.recipe||'')+'|'+(S.view==='mat'?S.matTab:S.view==='uppgifter'?S.taskTab:''),newPage=page!==this.page,prev=this.page;this.page=page;
   const keys=new Set([...m.querySelectorAll('.cell input.check')].map(rowKey));
+  if(newPage&&prev){if(U5)u5Sida(page,prev);motionPage(m,page,prev,this.dir)}this.old=null;
   if(!calm()){
-   if(newPage&&prev){const[pv,pr]=prev.split('|');const cls=this.dir||(S.recipe&&!pr?'in-right':(!S.recipe&&pr&&pv===S.view)?'in-left':'in-fade');
-    m.classList.remove('in-fade','in-right','in-left');void m.offsetWidth;m.classList.add(cls)}
    if(!newPage){
     // Rader som flyttat sig glider till sin nya plats
     if(this.rects)m.querySelectorAll('.cell input.check').forEach(b=>{const old=this.rects[rowKey(b)];if(old==null)return;const row=b.closest('.cell'),dy=old-row.getBoundingClientRect().top;
@@ -3370,7 +4371,7 @@ const A={page:'',keys:null,rects:null,nums:{},bars:{},segs:{},done:null,user:0,c
   // Staplar fylls från förra läget, eller från noll på en ny sida
   m.querySelectorAll('.thin>i,.cap>i').forEach((el,i)=>{const k=S.view+':'+i,to=el.style.width,from=newPage?'0%':this.bars[k];this.bars[k]=to;
    if(calm()||from==null||from===to)return;el.style.transition='none';el.style.width=from;void el.offsetWidth;el.style.transition='';el.style.width=to});
-  segSlide(m);
+  motionMount(m);segSlide(m);
   this.celebrate(newPage)},
  // Konfetti när något blir helt klart genom ett tryck
  celebrate(newPage){const d=D(),t=today(),cp=cleanPlan();
@@ -3393,9 +4394,177 @@ function leaveAnim(act,items,then){A.user=Date.now();const ids=new Set(items.map
  const rows=[...document.querySelectorAll('.cell input.check[data-act="'+act+'"]')].filter(b=>ids.has(b.dataset.id)).map(b=>b.closest('.cell'));
  if(!rows.length||calm()){then();return}
  rows.forEach(r=>{r.style.height=r.offsetHeight+'px';void r.offsetHeight;r.classList.add('leaving')});setTimeout(then,300)}
-function segSlide(root){root.querySelectorAll('.segc[data-seg]').forEach(sg=>{const k=sg.dataset.seg,i=Number(getComputedStyle(sg).getPropertyValue('--i'))||0,old=A.segs[k];A.segs[k]=i;
+function segSlide(root){root.querySelectorAll('.segc[data-seg]').forEach(sg=>{const k=sg.dataset.seg+':'+sg.getAttribute('aria-label'),i=Number(getComputedStyle(sg).getPropertyValue('--i'))||0,old=A.segs[k];A.segs[k]=i;
  const th=sg.querySelector('.seg-thumb');if(old==null||old===i||calm()||!th||!th.animate)return;
- th.animate([{transform:'translateX('+old*100+'%)'},{transform:'translateX('+i*100+'%)'}],{duration:U3?200:380,easing:U3?'cubic-bezier(.2,.8,.2,1)':'cubic-bezier(.3,1.25,.5,1)'})})}
+ th.animate([{transform:'translateX('+old*100+'%)'},{transform:'translateX('+i*100+'%)'}],{duration:motionOn()?300:U3?200:380,easing:motionOn()?MOTION_EASE:U3?'cubic-bezier(.2,.8,.2,1)':'cubic-bezier(.3,1.25,.5,1)'})})}
+// Rörelse i testläget: direkt manipulation under drag, mjuk sättning först efter släpp.
+const MOTION_EASE='cubic-bezier(.65,0,.35,1)';
+let motionDrag=null,motionPageAnim=null,motionCal=null;
+function motionGrip(kind,controls,open){if(!motionOn()&&kind!=='calendar')return'';return'<button type="button" class="motion-grip" data-motion-grip="'+kind+'" aria-controls="'+controls+'" aria-expanded="'+open+'" aria-label="'+(kind==='weather'?'Vädergraf':kind==='calendar'?'Kalendermånad':'Veckans detaljer')+'. '+(open?'Dra upp för att fälla ihop':'Dra ned för att visa')+' eller tryck"><i aria-hidden="true"></i></button>'}
+function motionPage(el,page,prev,dir){if(motionPageAnim)motionPageAnim.cancel();el.classList.remove('in-fade','in-right','in-left');if(calm()||!el.animate)return;
+ // UI 5.0 som iOS: undersidor skjuts in från höger och tillbaka åt vänster, flikbyten tonas bara
+ if(U5&&motionOn()){if(edgeBack)return;const p=page.split('|'),o=prev.split('|'),push=u5Sub(p)&&!u5Sub(o)?1:u5Sub(o)&&!u5Sub(p)?-1:0;
+  const a=push>0?el.animate([{transform:'translateX(100%)',boxShadow:'-8px 0 24px rgba(0,0,0,.12)'},{transform:'none',boxShadow:'none'}],{duration:440,easing:'cubic-bezier(.32,.72,0,1)'}):push<0?u5Pop(el):el.animate([{opacity:.25},{opacity:1}],{duration:180,easing:'ease-out'});
+  motionPageAnim={animations:[a],direction:push,cancel(){a.cancel()}};return}
+ if(!motionOn()){const[pv,pr]=prev.split('|'),cls=dir||(S.recipe&&!pr?'in-right':(!S.recipe&&pr&&pv===S.view)?'in-left':'in-fade');void el.offsetWidth;el.classList.add(cls);return}
+ const p=page.split('|'),o=prev.split('|'),nav=VIEWS.map(x=>x[0]).concat('stad'),order=p[0]==='mat'?['vecka','inkop','recept','bank','efter']:['lista','kalender'];
+ const d=dir==='in-left'?-1:dir==='in-right'?1:p[0]!==o[0]?Math.sign(nav.indexOf(p[0])-nav.indexOf(o[0]))||1:p[1]!==o[1]?(p[1]?1:-1):Math.sign(order.indexOf(p[2])-order.indexOf(o[2]))||1;
+ // Menyerna är referensram. Bara innehållet under dem flyttar sig, tydligare än tidigare 22 px.
+ const targets=[...el.children].filter(e=>!e.matches('.head,.segc,.subseg,.cv-seg,.ws-pin'));
+ const animations=targets.map(e=>e.animate([{opacity:.15,transform:'translateX('+d*80+'px)'},{opacity:1,transform:'none'}],{duration:p[0]!==o[0]?460:300,easing:'cubic-bezier(.4,0,.2,1)'}));
+ motionPageAnim={animations,direction:d,cancel(){animations.forEach(a=>a.cancel())}}}
+// UI 5.0: tillbaka med svep som i iOS 26: från kanten eller var som helst på en undersida (inte på rader, karuseller eller sådant som scrollar i sidled).
+// Sidan följer fingret och sidan under syns med parallax. Vid släpp avgör farten: rörelsen projiceras som i UIKit
+// (WWDC 2018 "Designing Fluid Interfaces") och sidan fjädrar vidare med fingrets fart. Ett nytt grepp under fjädringen fångar sidan.
+var edgeBack=false,U5UNDER=null,u5BackAt=0;
+const u5Sub=x=>!!x[1]||x[0]==='vader'||x[0]==='fod';
+// Fart i px/ms över de senaste 100 ms; står fingret still innan släpp är farten noll
+const u5Fart={add(a,x){const t=performance.now();a.push([t,x]);while(a.length>2&&t-a[0][0]>100)a.shift()},
+ v(a){if(!a||a.length<2)return 0;const f=a[0],l=a[a.length-1];if(performance.now()-l[0]>60)return 0;const dt=l[0]-f[0];return dt>0?(l[1]-f[1])/dt:0},
+ proj:(v,r=.997)=>v*r/(1-r)};
+// Kritiskt dämpad fjäder (som UIKits standard) från x0 till x1 med startfarten v0 px/ms, en bild var 1/60 s
+function u5Fjader(x0,x1,v0,resp){const w=2*Math.PI/(resp||.42),d0=x0-x1,v=v0*1000,xs=[];let t=0;
+ for(;;t+=1/60){const x=x1+(d0+(v+w*d0)*t)*Math.exp(-w*t);xs.push(x);if((t>.12&&Math.abs(x-x1)<.6)||t>.9)break}
+ xs.push(x1);return{xs,ms:Math.max(16,Math.round(t*1000))}}
+// Ett lager med en tidigare sida (dess riktiga element) och en mörk hinna, utan att sidan behöver ritas om
+function u5Lager(nodes,ty,z){const d=document.createElement('div');d.className='u5-lager';d.style.zIndex=z;d.setAttribute('aria-hidden','true');d.inert=true;
+ const w=document.createElement('div');w.className='wrap';w.style.transform='translateY('+ty+'px)';(nodes||[]).forEach(n=>w.appendChild(n));d.appendChild(w);document.body.appendChild(d);return d}
+function u5Dim(z){const d=document.createElement('div');d.className='u5-dim';d.style.zIndex=z;document.body.appendChild(d);return d}
+// Tryck på Tillbaka: sidan glider ut åt höger ovanpå den förra, som glider in från vänster under en hinna
+function u5Pop(el){const W=innerWidth,old=A.old;if(!old||!old.length)return el.animate([{transform:'translateX(-30%)'},{transform:'none'}],{duration:420,easing:'cubic-bezier(.32,.72,0,1)'});
+ const lag=u5Lager(old,A.top-A.oldY,4),dim=u5Dim(3);lag.classList.add('topp');const o={duration:420,easing:'cubic-bezier(.32,.72,0,1)'};
+ const a=el.animate([{transform:'translateX('+(-.3*W)+'px)'},{transform:'none'}],o);lag.animate([{transform:'none'},{transform:'translateX('+W+'px)'}],{...o,fill:'forwards'});dim.animate([{opacity:.12},{opacity:0}],{...o,fill:'forwards'});
+ a.finished.catch(()=>{}).finally(()=>{lag.remove();dim.remove()});return a}
+// Sidbyte i UI 5.0: kom ihåg sidan under en undersida, och scrolla tillbaka dit man var när man går tillbaka
+function u5Sida(page,prev){const p=page.split('|'),o=prev.split('|'),push=u5Sub(p)&&!u5Sub(o)?1:u5Sub(o)&&!u5Sub(p)?-1:0;
+ if(push>0)U5UNDER={nodes:A.old||[],y:A.oldY,top:A.top,page:prev};
+ else if(push<0){const u=U5UNDER;U5UNDER=null;if(u&&u.page===page)scrollTo(0,u.y)}
+ else if(!u5Sub(p))U5UNDER=null}
+(function(){let g=null,pr=null,fj=null;const main=()=>document.getElementById('main'),backBtn=()=>document.querySelector('#main .back,#navbar .back');
+ const ok=()=>U5&&S.data&&!S.sheet&&!S.cook&&!S.arrange&&!wallBoardOn()&&!document.querySelector('#overlay .sheet');
+ const hsc=el=>{for(;el&&el!==document.body&&el!==document.documentElement;el=el.parentElement){const cs=getComputedStyle(el);if(/(auto|scroll)/.test(cs.overflowX)&&el.scrollWidth>el.clientWidth+1)return true}return false};
+ const fri=el=>!!el.closest&&!!el.closest('main')&&!el.closest('input,textarea,select,[contenteditable],.dr-slide,.dr-wrap,.car,[data-motion-grip],.navbar')&&!hsc(el);
+ // Raderna med svep lämnar kanten åt tillbaka-svepet
+ window.u5Kant=e=>{const t=e.touches&&e.touches[0];return!!t&&t.clientX<=24&&ok()&&!!backBtn()};
+ let spin=null;const spinner=()=>{if(!spin){spin=document.createElement('div');spin.className='u5-ptr';spin.setAttribute('aria-hidden','true');spin.innerHTML='<i></i>';document.body.appendChild(spin)}return spin};
+ const satt=(s,x)=>{const W=innerWidth,k=Math.max(0,Math.min(1,x/W));s.m.style.transform='translate3d('+Math.max(0,x)+'px,0,0)';s.lag.style.transform='translate3d('+(-.3*W*(1-k))+'px,0,0)';s.dim.style.opacity=.12*(1-k)};
+ const start=s=>{const m=s.m=main(),U=U5UNDER;Object.assign(m.style,{position:'relative',zIndex:'2',background:'var(--bg)',minHeight:'100lvh',boxShadow:'-1px 0 18px rgba(0,0,0,.14)',transition:'none',willChange:'transform'});
+  s.lag=u5Lager(U&&U.nodes,U?U.top-U.y:0,1);s.dim=u5Dim(1);s.lag.appendChild(s.dim);s.dim.style.position='absolute';u5BackAt=Date.now()};
+ const stada=s=>{(s.anims||[]).forEach(a=>a.cancel());s.lag.remove();['position','zIndex','background','minHeight','boxShadow','transition','willChange','transform'].forEach(k=>s.m.style[k]='')};
+ const klar=(s,go)=>{if(go){const b=backBtn();if(b){edgeBack=true;b.click();clearTimeout(rq);rq=0;doRender();edgeBack=false}}stada(s)};
+ const slapp=(s,avbryt)=>{const W=innerWidth,v=avbryt?0:u5Fart.v(s.a),x=s.x||0,go=!avbryt&&x+u5Fart.proj(v)>W/2,sp=u5Fjader(x,go?W:0,v),o={duration:sp.ms,easing:'linear',fill:'forwards'};
+  if(calm()){klar(s,go);return}
+  s.anims=[s.m.animate(sp.xs.map(x=>({transform:'translate3d('+Math.max(0,x)+'px,0,0)'})),o),s.lag.animate(sp.xs.map(x=>({transform:'translate3d('+(-.3*W*(1-Math.max(0,Math.min(1,x/W))))+'px,0,0)'})),o),
+   s.dim.animate(sp.xs.map(x=>({opacity:.12*(1-Math.max(0,Math.min(1,x/W)))})),o)];
+  fj=s;s.anims[0].onfinish=()=>{if(fj!==s)return;fj=null;klar(s,go)}};
+ document.addEventListener('touchstart',e=>{pr=null;if(e.touches.length>1){if(g&&g.on)slapp(g,true);g=null;return}const t=e.touches[0];
+  if(fj){const s=fj;fj=null;const x=new DOMMatrix(getComputedStyle(s.m).transform).m41;s.anims.forEach(a=>a.cancel());s.anims=null;
+   if(!ok()){stada(s);g=null;return}g=Object.assign(s,{x0:t.clientX-x,y0:t.clientY,x,on:true,a:[]});u5Fart.add(g.a,x);satt(g,x);return}
+  g=null;if(!ok())return;
+  if(backBtn()&&(t.clientX<=24||fri(e.target)))g={x0:t.clientX,y0:t.clientY,kant:t.clientX<=24,on:false,a:[]};
+  if(scrollY<=0&&!e.target.closest('input,textarea,select,.dr-slide,.car,[data-motion-grip],.ovcal:not(.expanded) .ovcal-week'))pr={y0:t.clientY,x0:t.clientX,d:0,on:false}},{passive:true});
+ document.addEventListener('touchmove',e=>{const t=e.touches[0];
+  if(g){const dx=t.clientX-g.x0,dy=t.clientY-g.y0;
+   if(!g.on){if(g.kant&&e.cancelable&&dx>=Math.abs(dy))e.preventDefault();
+    if(Math.abs(dy)>10&&Math.abs(dy)>Math.abs(dx)||dx<-10)g=null;
+    else if(dx>(g.kant?6:12)&&dx>(g.kant?1:1.6)*Math.abs(dy)){g.on=true;g.x0=t.clientX;pr=null;start(g)}}
+   if(g&&g.on){if(e.cancelable)e.preventDefault();g.x=Math.max(0,t.clientX-g.x0);u5Fart.add(g.a,g.x);satt(g,g.x);return}}
+  if(pr){const dy=t.clientY-pr.y0;if(!pr.on){if(Math.abs(t.clientX-pr.x0)>Math.abs(dy)||dy<0||scrollY>0){pr=null;return}if(dy<12)return;pr.on=true;g=null}
+   // Gummiband som i iOS: f(x)=(1-1/(x·0,55/h+1))·h
+   const H=innerHeight,x=dy-12,was=pr.d>=60;pr.d=(1-1/(x*.55/H+1))*H;const sp=spinner(),k=Math.min(1,pr.d/60);sp.style.opacity=k;sp.style.transform='translateY('+pr.d+'px) rotate('+pr.d*4+'deg)';sp.classList.toggle('klar',pr.d>=60);if(pr.d>=60&&!was)u5Tick()}},{passive:false});
+ const end=e=>{if(g){const s=g;g=null;if(s.on)slapp(s,e.type==='touchcancel')}
+  if(pr){const p=pr;pr=null;if(!p.on||!spin)return;if(p.d>=60){spin.classList.add('snurrar');spin.style.transform='translateY(48px)';Promise.resolve(refresh(false)).finally(()=>{spin.classList.remove('snurrar','klar');spin.style.opacity=0;spin.style.transform=''})}else{spin.style.opacity=0;spin.style.transform=''}}};
+ document.addEventListener('touchend',end);document.addEventListener('touchcancel',end)})();
+// Lätt knack i iPhone (iOS 18+) när dra ned passerar gränsen: en dold iOS-brytare som klickas. Inget händer på andra enheter.
+// Var man var på sidan när man tryckte, innan appen scrollar upp inför en ny sida
+addEventListener('pointerdown',()=>{if(U5)A.sy=scrollY},true);
+const u5Tick=(()=>{let l=null;return()=>{try{if(!/iP(hone|ad|od)/.test(navigator.userAgent))return;
+ if(!l){l=document.createElement('label');l.setAttribute('aria-hidden','true');l.style.cssText='position:fixed;left:-99px;top:0;width:1px;height:1px;opacity:0;pointer-events:none';l.innerHTML='<input type="checkbox" switch tabindex="-1">';l.addEventListener('click',e=>e.stopPropagation());document.body.appendChild(l)}l.click()}catch(e){}}})();
+const motionHeight=el=>parseFloat(getComputedStyle(el).height)||0;
+const motionScale=el=>el.offsetWidth?el.getBoundingClientRect().width/el.offsetWidth:1;
+function motionPanel(el,open){if(!el)return;const from=el.hidden?0:motionHeight(el);
+ if(el._motion)el._motion.cancel();el.hidden=false;el.inert=!open;el.setAttribute('aria-hidden',String(!open));
+ const to=open?el.scrollHeight:0,finish=()=>{el.hidden=!open;el.style.removeProperty('height');el.style.removeProperty('overflow');el._motion=null;wsPin()};
+ if(!motionOn()||calm()||!el.animate){finish();return}el.style.overflow='hidden';el.style.height=to+'px';
+ const a=el._motion=el.animate([{height:from+'px'},{height:to+'px'}],{duration:480,easing:MOTION_EASE});a.onfinish=finish}
+function motionBudget(open){S.wsumOpen=open;document.querySelectorAll('.wcard').forEach(c=>{c.classList.toggle('open',open);c.querySelector('.wm-top')?.setAttribute('aria-expanded',String(open));motionPanel(c.querySelector('.motion-panel'),open);motionGripState(c.querySelector('.motion-grip'),open)});wsPin()}
+function motionGripState(h,open){if(!h)return;h.setAttribute('aria-expanded',String(open));h.setAttribute('aria-label',(h.dataset.motionGrip==='weather'?'Vädergraf':h.dataset.motionGrip==='calendar'?'Kalendermånad':'Veckans detaljer')+'. '+(open?'Dra upp för att fälla ihop':'Dra ned för att visa')+' eller tryck')}
+// Samma FLIP mellan timmars lägen och samma kurvritning som ovAnim, men alla egenskaper söker samma dragprogress.
+// Ingen startfördröjning eller frikopplad toggle: 40 % drag visar 40 % av expansionen.
+function motionWxBegin(el){if(el._wxMotion){cancelAnimationFrame(el._wxMotion.raf);return el._wxMotion}
+ const st=el.querySelector('.bwx-h'),g=el.querySelector('.ovx-g'),gi=g?.firstElementChild;if(!st||!g)return null;
+ const open=OVWX==='graf',its=[...st.children],animations=[],drawing=[];let drawn=open;document.documentElement.classList.add('motion-weather-active');
+ [g,gi,...its,...g.querySelectorAll('.ovg-k,.ovg-p,.ovg-f')].forEach(e=>e?.getAnimations().forEach(a=>a.cancel()));
+ el.classList.remove('ov-open');st.scrollLeft=0;const F=its.map(c=>c.getBoundingClientRect().left),h0=motionHeight(st);
+ el.classList.add('ov-open');const gh=motionHeight(g),h1=motionHeight(st),z=motionScale(st),range=Math.max(1,gh+h1-h0);
+ const add=(e,frames)=>{if(!e||!e.animate)return;const a=e.animate(frames,{duration:1000,fill:'both',easing:'linear'});a.pause();animations.push(a)};
+ add(g,[{height:'0px'},{height:gh+'px'}]);add(st,[{height:h0+'px'},{height:h1+'px'}]);add(gi,[{transform:'translateY(-'+gh+'px)',opacity:1},{transform:'translateY(0px)',opacity:1}]);
+ its.forEach((c,i)=>{const nu=c.classList.contains('nu0'),k=c.classList.contains('k3'),dx=(F[i]-c.getBoundingClientRect().left)/z;
+  if(!nu)add(c,[{transform:'translateX('+dx+'px)'},{transform:'none'}]);if(nu||!k)add(c,nu?[{opacity:0},{opacity:1}]:[{opacity:1},{opacity:0}])});
+ // Utdraget styr bara geometrin. Kurvan börjar ritas först vid full expansion.
+ const draw=(e,frames)=>{if(open||calm()||!e)return;const a=e.animate(frames,{duration:760,fill:'both',easing:MOTION_EASE});a.pause();a.currentTime=0;drawing.push(a)};
+ draw(g.querySelector('.ovg-k'),[{strokeDasharray:'1 1',strokeDashoffset:1},{strokeDasharray:'1 1',strokeDashoffset:0}]);
+ const dots=[...g.querySelectorAll('.ovg-p')];dots.forEach((dot,i)=>{const at=Math.min(.98,i/Math.max(1,dots.length-1));draw(dot,[{opacity:0,offset:0},{opacity:0,offset:at},{opacity:1,offset:Math.min(1,at+.02)},{opacity:1,offset:1}])});draw(g.querySelector('.ovg-f'),[{opacity:0},{opacity:1}]);
+ const model=el._wxMotion={p:open?1:0,range,raf:0,set(p){this.p=Math.max(0,Math.min(1,p));animations.forEach(a=>a.currentTime=this.p*1000);if(this.p===1&&!drawn){drawn=true;drawing.forEach(a=>a.play())}g.inert=this.p<=0;g.setAttribute('aria-hidden',String(this.p<=0))},finish(op){cancelAnimationFrame(this.raf);el.classList.toggle('ov-open',op);animations.forEach(a=>a.cancel());if(!op)drawing.forEach(a=>a.cancel());else if(!drawn){drawn=true;drawing.forEach(a=>a.play())}g.inert=!op;g.setAttribute('aria-hidden',String(!op));delete el._wxMotion;document.documentElement.classList.remove('motion-weather-active');motionGripState(el.querySelector('.motion-grip'),op)}};
+ model.set(model.p);return model}
+function motionWxSettle(el,open,instant){const m=motionWxBegin(el);if(!m)return;OVWX=open?'graf':'tim';lsSet('ovwx',open?'graf':null);motionGripState(el.querySelector('.motion-grip'),open);
+ const from=m.p,to=open?1:0;if(instant||calm()||Math.abs(to-from)<.001){m.finish(open);return}const at=performance.now(),duration=180+300*Math.abs(to-from);
+ const tick=now=>{if(!el.isConnected){m.finish(open);return}const t=Math.min(1,(now-at)/duration),ease=t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;m.set(from+(to-from)*ease);if(t<1)m.raf=requestAnimationFrame(tick);else m.finish(open)};m.raf=requestAnimationFrame(tick)}
+function motionWeather(open){const el=document.querySelector('.ovx');if(!el){OVWX=open?'graf':'tim';lsSet('ovwx',open?'graf':null);return render()}if(motionOn())motionWxSettle(el,open);else{OVWX=open?'graf':'tim';lsSet('ovwx',open?'graf':null);ovAnim(el,open,false)}}
+function motionCalBefore(k){if(!motionOn()){motionCal=null;return}if(motionPageAnim)motionPageAnim.cancel();motionCal={key:k||S.calDay||today(),view:S.calVy}}
+function motionMount(root){const wg=root.querySelector('.ovx-g');if(wg)wg.inert=OVWX!=='graf';
+ if(motionCal){const old=motionCal;motionCal=null;const pane=root.querySelector('.motion-calendar');if(pane&&!calm()){const order=['dag','vecka','manad'],d=Math.sign(order.indexOf(S.calVy)-order.indexOf(old.view))||1;pane.animate([{opacity:.15,transform:'translateX('+d*64+'px)'},{opacity:1,transform:'none'}],{duration:300,easing:'cubic-bezier(.22,1,.36,1)'})}}}
+// Befintliga rubriker är kvar. S-kurvan har både acceleration och inbromsning, utan toning som döljer höjdrörelsen.
+window.addEventListener('click',e=>{const summary=e.target.closest('summary');if(!summary)return;const d=summary.parentElement;if(!motionOn()||!d.matches('details[data-k]')||e.target.closest('a,button,input,select'))return;
+ e.preventDefault();const open=d.dataset.motionClosing==='1'||!d.open,from=motionHeight(d);if(d._motion)d._motion.cancel();delete d.dataset.motionClosing;S.open[d.dataset.k]=open;
+ d.open=open;const to=motionHeight(d);d.open=true;if(!open)d.dataset.motionClosing='1';
+ const finish=()=>{d.open=open;delete d.dataset.motionClosing;d.style.removeProperty('overflow');d._motion=null;S.open[d.dataset.k]=open};
+ if(calm()||!d.animate){finish();return}d.style.overflow='hidden';const a=d._motion=d.animate([{height:from+'px'},{height:to+'px'}],{duration:480,easing:MOTION_EASE});a.onfinish=finish;
+},true);
+// Bladhandtag: direkt förflyttning, närmaste ändläge och återställning vid avbruten gest.
+let sheetDrag=null;
+function sheetDragEnd(cancel){const d=sheetDrag;if(!d)return;sheetDrag=null;d.h.dataset.skip='1';setTimeout(()=>delete d.h.dataset.skip,450);A.touch=A.user=Date.now();if(pendingRender)setTimeout(render,460);try{d.h.releasePointerCapture(d.id)}catch(_){}const close=!cancel&&(d.dy<6||(U5?d.dy+u5Fart.proj(u5Fart.v(d.a)):d.dy)>=d.range/2),from=d.dy;d.panel.style.removeProperty('transform');const finish=()=>{if(close){closeSheets();render()}};
+ if(calm()){finish();return}const a=d.panel.animate([{transform:'translateY('+from+'px)'},{transform:'translateY('+(close?d.range:0)+'px)'}],{duration:420,easing:MOTION_EASE,fill:'forwards'});a.onfinish=()=>{a.cancel();finish()}}
+window.addEventListener('pointerdown',e=>{const h=e.target.closest('[data-sheet-grip]');if(!h||e.button>0||!e.isPrimary)return;e.preventDefault();e.stopImmediatePropagation();A.touch=A.user=Date.now();const panel=h.closest('.sheet-panel');panel.getAnimations().forEach(a=>a.cancel());sheetDrag={h,panel,id:e.pointerId,start:e.clientY,dy:0,range:(innerHeight-panel.getBoundingClientRect().top)/motionScale(panel),scale:motionScale(panel),a:[]};h.setPointerCapture(e.pointerId)},true);
+window.addEventListener('pointermove',e=>{const d=sheetDrag;if(!d||d.id!==e.pointerId)return;e.preventDefault();e.stopImmediatePropagation();A.touch=A.user=Date.now();d.dy=Math.max(0,Math.min(d.range,(e.clientY-d.start)/d.scale));u5Fart.add(d.a,d.dy);d.panel.style.transform='translateY('+d.dy+'px)'},{capture:true,passive:false});
+window.addEventListener('pointerup',e=>{if(!sheetDrag||sheetDrag.id!==e.pointerId)return;e.preventDefault();e.stopImmediatePropagation();sheetDrag.h.dataset.skip='1';const h=sheetDrag.h;setTimeout(()=>delete h.dataset.skip,450);sheetDragEnd(false)},true);
+['pointercancel','lostpointercapture'].forEach(t=>window.addEventListener(t,e=>{if(sheetDrag?.id===e.pointerId)sheetDragEnd(true)},true));
+['blur','resize','pagehide'].forEach(t=>window.addEventListener(t,()=>sheetDragEnd(true)));
+window.addEventListener('click',e=>{const h=e.target.closest('[data-sheet-grip]');if(!h)return;e.preventDefault();e.stopImmediatePropagation();if(!h.dataset.skip){closeSheets();render()}},true);
+function motionUnlock(){const d=motionDrag;if(!d)return null;A.touch=A.user=Date.now();motionDrag=null;Object.assign(document.body.style,d.style);document.documentElement.classList.remove('motion-dragging');scrollTo(d.x,d.y);
+ try{if(d.h.hasPointerCapture(d.id))d.h.releasePointerCapture(d.id)}catch(_){}if(pendingRender)setTimeout(render,520);return d}
+function motionAbort(){const d=motionUnlock();if(!d)return;if(d.wx)d.wx.finish(d.open);else{d.panel.style.removeProperty('height');d.panel.style.removeProperty('overflow');d.panel.hidden=!d.open;d.panel.inert=!d.open;d.panel.setAttribute('aria-hidden',String(!d.open))}}
+window.addEventListener('pointerdown',e=>{const h=e.target.closest('[data-motion-grip]');if(!h||e.button>0||!e.isPrimary)return;e.preventDefault();e.stopImmediatePropagation();motionAbort();A.touch=A.user=Date.now();
+ const kind=h.dataset.motionGrip,open=kind==='weather'?OVWX==='graf':kind==='calendar'?!!S.ovCalOpen:!!S.wsumOpen,style={position:document.body.style.position,top:document.body.style.top,left:document.body.style.left,width:document.body.style.width,overflow:document.body.style.overflow};
+ const x=scrollX,y=scrollY,width=document.body.getBoundingClientRect().width;document.documentElement.classList.add('motion-dragging');Object.assign(document.body.style,{position:'fixed',top:-y+'px',left:-x+'px',width:width+'px',overflow:'hidden'});
+ const panel=kind==='budget'?document.getElementById(h.getAttribute('aria-controls')):null,wx=kind==='weather'?motionWxBegin(h.closest('.ovx')):kind==='calendar'?motionCalendarBegin(h.closest('.ovcal')):null;
+ let height=0,max=0,scale=motionScale(h);if(panel){height=panel.hidden?0:motionHeight(panel);if(panel._motion)panel._motion.cancel();panel.hidden=false;max=panel.scrollHeight;panel.style.height=height+'px';panel.style.overflow='hidden'}else if(wx){height=wx.p*wx.range;max=wx.range}
+ motionDrag={h,kind,panel,wx,open,height,max,scale,id:e.pointerId,start:e.clientY,moved:false,x,y,style};h.setPointerCapture(e.pointerId);
+},true);
+window.addEventListener('pointermove',e=>{const d=motionDrag;if(!d||d.id!==e.pointerId)return;e.preventDefault();e.stopImmediatePropagation();const dy=e.clientY-d.start;if(Math.abs(dy)>6)d.moved=true;
+ const height=Math.max(0,Math.min(d.max,d.height+dy/d.scale));if(d.panel){d.panel.style.height=height+'px';d.panel.inert=height<2;d.panel.setAttribute('aria-hidden',String(height<2))}else if(d.wx)d.wx.set(height/d.max);
+},{capture:true,passive:false});
+window.addEventListener('pointerup',e=>{const d=motionDrag;if(!d||d.id!==e.pointerId)return;e.preventDefault();e.stopImmediatePropagation();
+ const p=d.panel?parseFloat(d.panel.style.height)/d.max:d.wx?.p||0,open=d.moved?p>=.5:!d.open;d.h.dataset.motionSkip='1';setTimeout(()=>delete d.h.dataset.motionSkip,450);motionUnlock();
+ if(d.kind==='weather')motionWxSettle(d.h.closest('.ovx'),open);else if(d.kind==='calendar')motionCalendar(open);else motionBudget(open);
+},true);
+['pointercancel','lostpointercapture'].forEach(type=>window.addEventListener(type,e=>{if(motionDrag&&e.pointerId===motionDrag.id)motionAbort()},true));
+['resize','blur','pagehide'].forEach(type=>window.addEventListener(type,motionAbort));
+window.addEventListener('click',e=>{const h=e.target.closest('[data-motion-grip]');if(!h)return;e.preventDefault();e.stopImmediatePropagation();if(h.dataset.motionSkip)return;A.touch=A.user=Date.now();h.dataset.motionGrip==='weather'?motionWeather(OVWX!=='graf'):h.dataset.motionGrip==='calendar'?motionCalendar(!S.ovCalOpen):motionBudget(!S.wsumOpen)},true);
+window.addEventListener('keydown',e=>{const h=e.target.closest('[data-motion-grip]');if(!h||!['ArrowDown','End','ArrowUp','Home'].includes(e.key))return;e.preventDefault();A.touch=A.user=Date.now();const open=['ArrowDown','End'].includes(e.key);h.dataset.motionGrip==='weather'?motionWeather(open):h.dataset.motionGrip==='calendar'?motionCalendar(open):motionBudget(open)},true);
+// Dra ned i Schemas veckorad: månaden fälls ut precis som när man drar i handtaget. Sidled bläddrar veckor som förut.
+// Raden har touch-action:pan-x (iPhone scrollar annars sidan direkt), så drag uppåt scrollar vi sidan själva.
+(()=>{let c=null,tyst=0;
+ document.addEventListener('touchstart',e=>{c=null;const w=e.touches.length===1&&!motionDrag&&e.target.closest('.ovcal:not(.expanded) .ovcal-week');if(!w)return;const t=e.touches[0];c={el:w.closest('.ovcal'),x0:t.clientX,y0:t.clientY,ly:t.clientY,mode:null,m:null}},{passive:true});
+ document.addEventListener('touchmove',e=>{if(!c)return;const t=e.touches[0],dx=t.clientX-c.x0,dy=t.clientY-c.y0;
+  if(!c.mode){if(Math.hypot(dx,dy)<6)return;if(Math.abs(dx)>=Math.abs(dy)||!c.el.isConnected){c=null;return}c.mode=dy>0?'ned':'upp';if(c.mode==='ned'){c.m=motionCalendarBegin(c.el);c.s=motionScale(c.el)}}
+  if(e.cancelable)e.preventDefault();A.touch=A.user=Date.now();
+  if(c.mode==='upp'){scrollBy(0,c.ly-t.clientY);c.ly=t.clientY;return}
+  c.m.set(Math.max(0,dy)/c.s/c.m.range)},{passive:false});
+ const end=e=>{const d=c;c=null;if(!d||!d.mode)return;tyst=Date.now();if(d.m)motionCalendar(e.type!=='touchcancel'&&d.m.p>=.25)};
+ document.addEventListener('touchend',end);document.addEventListener('touchcancel',end);
+ window.addEventListener('click',e=>{if(Date.now()-tyst<400&&e.target.closest('.ovcal')){e.preventDefault();e.stopImmediatePropagation()}},true)})();
+
 function flipClock(c,txt){if(c.dataset.v===txt)return;const old=c.dataset.v||'';c.dataset.v=txt;
  if(!old||calm()){c.textContent=txt;return}
  c.innerHTML=[...txt].map((ch,i)=>'<span'+(ch!==old[i]?' class="fl"':'')+'>'+ch+'</span>').join('')}
@@ -3409,7 +4578,7 @@ function confetti(){if(calm()||U3)return;const cv=document.createElement('canvas
 
 /* ---------- local mutations (optimistic) ---------- */
 function mutate(list,id,fields){const it=D()[list].find(x=>x.id===id);if(it)Object.assign(it,fields);render()}
-function closeSheets(){S.prefDraft=null;if(KAL||SMAK){kalStop();SMAK=null;setTimeout(autoTheme)}S.psel=null;S.protFor=null;S.edit=null;S.rcpSheet=null;S.sheet=null;S.swap=null;S.wishFor=null;S.rate=null;S.ekoEdit=null;S.ovEdit=null;S.shopAdd=false;S.taskAdd=false}
+function closeSheets(){S.prefDraft=null;S.evNew=null;S.fodEdit=null;A.wdDay=A.wdI=null;if(KAL||SMAK){kalStop();SMAK=null;setTimeout(autoTheme)}S.psel=null;S.protFor=null;S.edit=null;S.rcpSheet=null;S.sheet=null;S.swap=null;S.wishFor=null;S.rate=null;S.ekoEdit=null;S.ovEdit=null;S.shopAdd=false;S.taskAdd=false}
 
 /* ---------- actions ---------- */
 function boxEdit(fn){const wall=wallBoardOn(),L=layout(wall,wall?boardDefault():OV_DEF());fn(L);saveLayout(wall,L);render()}
@@ -3417,7 +4586,7 @@ const ACT={
  smileyQuick(id,el){const v=Number(el.dataset.v)||0;A.user=Date.now();saveSmiley(id,el.dataset.date,v);markCooked(id,el.dataset.date);toast(v>0?'Vad bra! Rätten kommer tillbaka lite oftare':v<0?'Noterat. Rätten kommer tillbaka mer sällan':'Tack!')},
  smileySkip(id,el){A.user=Date.now();saveSmiley(id,el.dataset.date,'x');toast('Okej, den räknas inte som lagad')},
  wakeBoard(){render()},
- nav(id){if(RC.busy){toast('Vänta tills receptbegäran är klar.');return}if(RC.screen&&RC.edit&&RC.edit.dirty){RC.leaveTo=id;recipeLeave();S.view='mat';return}if(RC.screen)RC.screen=null;if(id!=='oversikt')S.arrange=false;if(normView(id)!=='ekonomi'){S.ekoOpen=false;S.pin=''}try{document.activeElement&&document.activeElement.blur()}catch(e){}id=normView(id);S.shopAdd=false;S.taskAdd=false;S.view=id;S.recipe=null;S.confirm=null;lsSet('view',id);try{history.replaceState(null,'','#'+id)}catch(e){}window.scrollTo(0,0);render()},
+ nav(id,el){if(RC.busy){toast('Vänta tills receptbegäran är klar.');return}if(RC.screen&&RC.edit&&RC.edit.dirty){RC.leaveTo=id;recipeLeave();S.view='mat';return}if(RC.screen)RC.screen=null;if(id!=='oversikt')arrCancel();if(normView(id)!=='ekonomi'){S.ekoOpen=false;S.pin=''}try{document.activeElement&&document.activeElement.blur()}catch(e){}id=normView(id);if(id==='uppgifter'&&S.taskTab==='stad'&&S.view!=='stad'&&el&&el.closest&&el.closest('#nav'))id='stad';if(id==='uppgifter'||id==='stad'){S.taskTab=id==='stad'?'stad':'lista';lsSet('taskTab',S.taskTab)}S.shopAdd=false;S.taskAdd=false;S.view=id;S.recipe=null;S.confirm=null;lsSet('view',id);try{history.replaceState(null,'','#'+id)}catch(e){}window.scrollTo(0,0);render()},
  refresh(){refresh()},
  settings(){if(S.sheet!=='farg')S.prefDraft=null;S.sheet='settings';render()},
  farg(){rememberSettings();S.sheet='farg';render()},
@@ -3429,36 +4598,50 @@ const ACT={
   const f=vis?sel:Math.round(x/cw),off=f*cw-x,fh=(f-np)*o,sh=(S.wxSel||0)*o;
   WXC_K=k;lsSet('wxsteg',k===1?'1':null);S.wxSel=Math.floor(sh/k);
   const nnp=np*o/k;S.wxX=Math.max(0,(nnp+Math.floor(fh/k))*cw-off);render()},
+ wxDay(id){S.wxDay=id;S.sheet='wxDay';render()},
  wxHr(id){const i=Number(id)||0,x=WXC_H[i];if(!x)return;S.wxSel=i-WXC_NP;const r=document.querySelector('.wxC-sel');if(r)r.setAttribute('x',(i*WXC_SW).toFixed(1));const inf=document.querySelector('.wxC-info');if(inf)inf.innerHTML=wxHrInfo(x,i)},
  lasstil(id){LASSTIL=id==='bild'?'bild':'rad';lsSet('lasstil',LASSTIL==='bild'?'bild':null);render()},
+ stadVy(id){rememberSettings();lsSet('stadVy',id==='rutnat'||id==='ring'?id:null);render()},
  addPlace(id){rememberSettings();lsSet('addPlace',['flytande','rad'].includes(id)?id:null);render()},
+ motion(){rememberSettings();motionAbort();if(motionPageAnim)motionPageAnim.cancel();MOTION=!MOTION;lsSet('motion',MOTION?null:'0');applyStil();render()},
+ rymlig(){rememberSettings();RYMLIG=!RYMLIG;lsSet('rymlig',RYMLIG?'1':null);applyStil();render()},
  segstil(id){SEGSTIL=['kapsel','klassisk'].includes(id)?id:'standard';lsSet('segstil',SEGSTIL==='standard'?null:SEGSTIL);applyStil();render()},
  vaggknapp(id){VKNAPP=['knapp','rubrik'].includes(id)?id:'meny';lsSet('vaggknapp',VKNAPP==='meny'?null:VKNAPP);render()},
  flikrad(id){FLIKRAD=['glas','piller'].includes(id)?id:'fast';lsSet('flikrad',FLIKRAD==='fast'?null:FLIKRAD);applyStil();render()},
+ ovGx(){motionWeather(OVWX!=='graf')},
+ ovwx(id){OVWX=id==='graf'?'graf':'tim';lsSet('ovwx',OVWX==='graf'?'graf':null);render()},
+ wxart(id){WXART=WX_ART.some(([k])=>k===id)?id:'original';lsSet('wxart',WXART==='original'?null:WXART);render()},
  wxvy(id){WXVY=id==='bild'?'bild':'kurva';lsSet('wxvy',WXVY==='bild'?'bild':null);render()},
  hundar(id){HUNDAR=['bada','brun','svart'].includes(id)?id:'vaxla';lsSet('hundar',HUNDAR==='vaxla'?null:HUNDAR);S.wxVar=null;render()},
- accMin(){ACT.accent(ACCENT==='min'?accentKey():'min')},
- accent(id){ACCENT=id==='min'||colOk(id)?id:'vinrod';lsSet('accent',ACCENT==='vinrod'?null:ACCENT);render()},
- arrange(){closeSheets();S.arrange=true;ACT.nav('oversikt')},
- arrangeDone(){S.arrange=false;render()},
- boxSize(id){boxEdit(L=>{L.size[id]=L.size[id]==='h'?'f':'h'})},
+ accMin(){ACT.accent(accentPref()==='min'?accentKey():'min')},
+ accent(id){if(U4){const k=id==='min'||colOk(id)?id:'lavendel';lsSet('accent4',k==='lavendel'?null:k)}else{ACCENT=id==='min'||colOk(id)?id:'vinrod';lsSet('accent',ACCENT==='vinrod'?null:ACCENT)}render()},
+ arrange(){closeSheets();arrOn();ACT.nav('oversikt')},
+ arrangeDone(){const ch=arrChanged();if(ch)lsSet(ARR0.k+'Prev',JSON.stringify({v:ARR0.v}));ARR0=null;S.arrange=false;S.xsz=null;render();
+  if(ch){const u=document.getElementById('undo');u.querySelector('.ud-t').textContent='Den nya ordningen är sparad';const b=u.querySelector('.ud-b');b.dataset.act='boxPrev';b.textContent='Ångra';u.hidden=false;clearTimeout(ACT.boxPrev.t);ACT.boxPrev.t=setTimeout(()=>{if(b.dataset.act==='boxPrev')undoHide()},6000)}},
+ // i ändra-läget läggs föregående layout in i utkastet; annars byter den plats med den sparade direkt, så att man kan växla tillbaka igen
+ boxPrev(){undoHide();const k=ARR0?ARR0.k:layoutKey(wallBoardOn()),p=prevGet(k);if(!p)return toast('Det finns ingen föregående layout');
+  if(ARR0){lsSet(k,p.v);render();return toast('Föregående layout. Tryck Klar för att spara.')}
+  const cur=lsGet(k);lsSet(k,p.v);lsSet(k+'Prev',JSON.stringify({v:cur}));closeSheets();if(S.view!=='oversikt')ACT.nav('oversikt');else render();toast('Tillbaka till föregående layout')},
+ arrangeCancel(){const ch=arrChanged();arrCancel();render();if(ch)toast('Ändringarna är ångrade')},
+ boxSize(id){if(expOn()){S.xsz=S.xsz===id?null:id;render();return}boxEdit(L=>{L.size[id]=L.size[id]==='h'?'f':'h'})},
+ boxSz(v){const[id,z]=String(v).split(':');S.xsz=null;if(XW_U[z])boxEdit(L=>{L.size[id]=z})},
+ exp(){arrCancel();lsSet('exp',expOn()?'0':null);S.xsz=null;render();toast(expOn()?'Widgets i olika storlekar är på':'Widgets i olika storlekar är av')},
  boxHide(id){boxEdit(L=>{L.cols.forEach(c=>{const i=c.indexOf(id);if(i>=0)c.splice(i,1)});L.hidden.push(id)})},
  boxShow(id){boxEdit(L=>{L.hidden=L.hidden.filter(x=>x!==id);L.cols[L.cols.length-1].push(id)})},
- boxReset(){saveLayout(wallBoardOn(),null);render();toast('Rutorna ligger som från början')},
+ boxReset(){saveLayout(wallBoardOn(),null);render();toast('Rutorna ligger som från början. Tryck Klar för att spara.')},
  prefs(){S.sheet='prefs';render()},
  sheetClose(){closeSheets();render()},
  sheetBg(id,el,e){if(e.target===el){closeSheets();render()}},
  personFold(id){S.open['person-'+id]=!S.open['person-'+id];render()},
  me(id){S.me=id;lsSet('me',id);render()},
  logout(){S.key='';S.data=null;S.sheet=null;lsSet('key',null);lsSet('cache',null);render()},
+ refs(){lsSet('refs',refsOn()?null:'1');applyRefs();render()},
  copy(id){try{navigator.clipboard.writeText(id).then(()=>toast('Kopierat'),()=>toast('Markera och kopiera texten'))}catch(e){toast('Markera och kopiera texten')}},
  flStyle(id){FL_STYLE=id==='lista'?'lista':'karusell';lsSet('forslag',FL_STYLE==='lista'?'lista':null);render()},
- calStyle(id){CAL_STYLE=['1','3'].includes(id)?id:'2';lsSet('calStyle',CAL_STYLE==='2'?null:CAL_STYLE);render()},
  theme(id){S.theme=['light','dark'].includes(id)?id:'system';lsSet('theme',S.theme==='system'?null:S.theme);applyTheme(true);render()},
- uiVersion(id){if(!DEV)return;const f=document.querySelector('form[data-form="settings"]');if(f)S.prefDraft=Object.fromEntries(new FormData(f));U3=id==='3';lsSet('ui',U3?'3':null);lsSet('ny',id==='1'?'0':null);NY=U3||nyNu();S.arrange=false;applyNy();applyStil();applyTheme(true);document.querySelector('.nav-mini')?.classList.remove('on');document.getElementById('nav').classList.remove('mini','ut');render()},
+ uiVersion(id){if(!['2','4','5'].includes(id)&&!(DEV&&id==='3'))return;const f=document.querySelector('form[data-form="settings"]');if(f)S.prefDraft=Object.fromEntries(new FormData(f));U3=id==='3';U4=id==='4';U5=id==='5';lsSet('ui',U5?null:U4?'4':U3?'3':'2');S.arrange=false;applyNy();applyStil();applyTheme(true);document.querySelector('.nav-mini')?.classList.remove('on');document.getElementById('nav').classList.remove('mini','ut');render()},
  recipeSearchClear(){S.u3Query='';render()},
- design(id){U3=false;lsSet('ui',null);NY=id==='ny';lsSet('ny',NY?null:'0');applyNy();applyStil();applyTheme(false);render()},
- dev(){DEV=!DEV;lsSet('dev',DEV?'1':null);if(!DEV&&U3){U3=false;lsSet('ui',null);applyStil();applyTheme(false)}NY=U3||nyNu();applyNy();if(!DEV&&S.plan&&S.plan!=='auto')S.plan=null;render()},
+ dev(){motionAbort();if(motionPageAnim)motionPageAnim.cancel();DEV=!DEV;lsSet('dev',DEV?'1':null);applyStil();applyRefs();if(!DEV&&U3){U3=false;U5=true;lsSet('ui',null);applyStil();applyTheme(false)}applyNy();if(!DEV&&S.plan&&S.plan!=='auto')S.plan=null;render()},
  wall(){S.wall=!S.wall;lsSet('wall',S.wall?'1':'0');fitScrollbar();hideCursor();wake();autoTheme();applyTheme(true);render();camSample()},
  vagg(){kalStop();SMAK=null;S.sheet='vagg';autoTheme();render()},
  natt(){NATT.on=!NATT.on;saveNatt();autoTheme();render()},
@@ -3509,15 +4692,17 @@ const ACT={
  planInfo(id,el){S.plInfo=S.plInfo||{};S.plInfo[id]=!S.plInfo[id];const b=el.closest('.pl-re');if(b)b.classList.toggle('open',S.plInfo[id]);el.setAttribute('aria-expanded',S.plInfo[id])},
  scale(id,el){const r=recipeById(id);const{p}=scaled(r);S.scale[id]=Math.max(1,Math.min(20,p+Number(el.dataset.d)));render()},
  cook(id){S.cook={id,step:S.step[id]||0};wake();render()},
+ middag(id,el){lsSet('middag',Math.max(600,Math.min(1380,middag()+Number(el.dataset.d))));render()},
+ cookTo(id,el){A.user=Date.now();S.cook.step=Number(el.dataset.i)||0;S.step[S.cook.id]=S.cook.step;render()},
  pickStep(id,el){S.step[id]=Number(el.dataset.i);render();setTimeout(()=>{const li=document.querySelector('.steps li.active');if(li&&li.getBoundingClientRect().top<70)li.scrollIntoView({block:'start',behavior:'smooth'})},30)},
  cookStep(id,el){A.user=Date.now();const r=recipeById(S.cook.id);S.cook.step=Math.max(0,Math.min(stegFor(r).length-1,S.cook.step+Number(el.dataset.d)));S.step[S.cook.id]=S.cook.step;render()},
  fodMode(id){S.fodMode=id;lsSet('fodMode',id);render()},
  fodMon(id){S.fodMon=Number(id);render()},
  ekoMonth(id,el){S.ekoMonth=addMonths(S.ekoMonth||thisMonth(),Number(el.dataset.d));render()},
- ekoIncome(){S.sheet='income';render()},
+ ekoIncome(){S.sheet='income';render()}, ekoMat(){S.sheet='matb';render()},
  ekoCost(id,el){S.ekoEdit={list:el.dataset.list,id:id||null};S.sheet='cost';render()},
  ovShow(id,el){S.ekoEdit=null;S.ovEdit={list:el&&el.dataset.list||'shared',id};S.sheet='ov';render()},
- ekoFold(id){S.ekoFold=Object.assign({},S.ekoFold,{[id]:!(S.ekoFold||{})[id]});render()},
+ ekoFold(id,el){if(!motionOn()){S.ekoFold=Object.assign({},S.ekoFold,{[id]:!(S.ekoFold||{})[id]});render();return}const open=!!(S.ekoFold||{})[id];S.ekoFold=Object.assign({},S.ekoFold,{[id]:!open});el.classList.toggle('open',open);el.setAttribute('aria-expanded',String(open));const n=el.querySelector('.eko-fn');if(n)n.hidden=open;motionPanel(el.nextElementSibling,open)},
  ovNext(id,el){const l=el&&el.dataset.list||'shared',c=ovOpen(l)[0];if(c)ACT.ovShow(c.id,{dataset:{list:l}})},
  ovGo(id){const[l,cid]=String(id).split('|');ACT.nav('ekonomi');if(!ekoLocked())ACT.ovShow(cid,{dataset:{list:l}})},
  pin(k){S.pinBad=false;S.pin=k==='del'?(S.pin||'').slice(0,-1):((S.pin||'')+k).slice(0,4);
@@ -3534,7 +4719,6 @@ const ACT={
  wxRefresh(){loadWx(true).then(ok=>{if(ok){lsSet('ext',JSON.stringify(EXT))}render();if(!ok)toast('Vädret kunde inte hämtas')})},
  cookDone(id){S.cook=null;A.cookStep=null;wake();markCooked(id);ACT.rate(id)},
  rate(id){S.rate={id};S.sheet='rate';render()},
- bankFilter(id){S.bankFilter=id;render()},
  bankAdd(id){addToBank(recipeById(id));render()},
  wish(id){const r=recipeById(id);if(!r||isDessert(r))return;const on=wishes().some(x=>x.id===id);
   if(on){A.user=Date.now();updJSON('onskelista',[],a=>a.filter(x=>x.id!==id));toast('Borttagen från önskelistan');return}
@@ -3551,6 +4735,7 @@ const ACT={
   document.querySelectorAll('#overlay [data-act="pickGo"]').forEach(b=>{b.disabled=!S.psel;b.textContent=pickBtnTxt(k,S.psel)})},
  pickGo(){const id=S.psel,k=document.getElementById('overlay').dataset.k;if(!id)return;S.psel=null;
   if(k==='swap'){const r=recipeById(id);if(r)doSwap(r)}else if(k==='slot')slotFill(S.slotG||'Vardag',id);else if(k==='dess')ACT.dessSet(id)},
+ pickNow(id){S.psel=id;ACT.pickGo()},
  swapTo(id){const r=recipeById(id);if(r)doSwap(r)},
  rcpByt(i){closeSheets();S.recipe=null;S.view='mat';lsSet('view','mat');S.matTab='vecka';lsSet('matTab','vecka');ACT.swap(i)},
  rcpSheet(id,el){S.rcpSheet={id,k:el.dataset.k};render()},
@@ -3566,7 +4751,6 @@ const ACT={
   if(!inBank(id)){addToBank(r,true,true);toast('Sparat som favorit');render();return}
   const on=isFav(id);bankEdit(id,x=>{if(on)delete x.fav;else x.fav=true;return x});
   toast(on?'Inte längre favorit. Receptet ligger kvar bland sparade':'Sparat som favorit');render()},
- inspoFilter(id){S.inspoFilter=id;render()},
  photoRemove(id){if(recipeHead(id)){closeSheets();recipeEdit(id);if(RC.edit){RC.edit.recipe.img='';RC.edit.dirty=true;RC.notice='Fotot tas bort när den nya receptversionen sparas.';recipeDraftStore();}render();return}S.rcpSheet=null;A.user=Date.now();BANK_ROWS().forEach(k=>{if(parseJ(settings()[k],[]).some(x=>x.id===id))updJSON(k,[],a=>a.map(x=>x.id===id?Object.assign({},x,{img:''}):x))});
   toast('Fotot är borttaget');render()},
  deleteRecipe(id){const r=recipeById(id);if(!r)return;if(recipeHead(id)){updJSON('frekvens',{},o=>{o[id]=Object.assign({},o[id],{w:0,t:r.title});return o});S.rcpSheet=null;render();toast('Receptet föreslås inte igen. Det finns kvar i receptbanken.');return}S.confirm=null;S.rcpSheet=null;A.user=Date.now();
@@ -3576,9 +4760,24 @@ const ACT={
   const onMenu=D().menu.some(m=>m.recipe===id&&m.date>=today());
   S.recipe=null;render();toast(onMenu?'Receptet föreslås inte igen. Det står kvar på veckans meny, tryck Byt där för att byta ut det.':'Receptet är borttaget och föreslås inte igen')},
  cookClose(){S.cook=null;A.cookStep=null;wake();render()},
- timer(id,el){unlockAudio();const m=Number(el.dataset.min);S.timers.push({k:Math.random().toString(36).slice(2),label:el.dataset.label||'Timer',end:Date.now()+m*60000,ring:false});tick();toast('Timer: '+m+' min')},
- timerStop(id){S.timers=S.timers.filter(t=>t.k!==id);tick()},
- shopFilter(id){S.shopFilter=id;render()},
+ timer(id,el){unlockAudio();const m=Number(el.dataset.min);S.timers.push({k:Math.random().toString(36).slice(2),label:el.dataset.label||'Timer',end:Date.now()+m*60000,ring:false,rid:id||'',si:el.dataset.i==null?-1:Number(el.dataset.i),dur:m*60000});tick();if(id)render();toast('Timer: '+m+' min')},
+ timerStop(id){S.timers=S.timers.filter(t=>t.k!==id);tick();render()},
+ tpTimer(id,el){unlockAudio();const k=el.dataset.k,i=Number(el.dataset.i),t=k?S.timers.find(x=>x.k===k):S.timers.find(x=>x.rid===id&&x.si===i);
+  if(!t){const m=Number(el.dataset.min)||0;if(!m)return;S.timers.push({k:Math.random().toString(36).slice(2),label:'Steg '+(i+1),end:Date.now()+m*60000,ring:false,rid:id,si:i,dur:m*60000})}
+  else if(t.ring||tmKvar(t)<=0)S.timers=S.timers.filter(x=>x!==t);
+  else if(t.p!=null){t.end=Date.now()+t.p;delete t.p}else t.p=t.end-Date.now();
+  tpStill(()=>{tick();render()})},
+ tmrMenu(id){S.tm=id;S.sheet='tmrMenu';render()},
+ tmrDo(id,el){unlockAudio();const t=S.timers.find(x=>x.k===id),a=el.dataset.a,n=Date.now();closeSheets();
+  if(t){if(a==='x')S.timers=S.timers.filter(x=>x!==t);
+   else if(a==='r'){t.dur=t.d0||t.dur;delete t.d0;t.end=n+t.dur;delete t.p;t.ring=false;t.rang=0}
+   else if(a==='m'){t.d0=t.d0||t.dur;if(t.ring||tmKvar(t)<=0){t.end=n+60000;t.dur=60000;delete t.p;t.ring=false;t.rang=0}else{if(t.p!=null)t.p+=60000;else t.end+=60000;t.dur+=60000}}
+   else if(a==='p'){if(t.p!=null){t.end=n+t.p;delete t.p}else t.p=t.end-n}}
+  tick();render()},
+ egenTimer(id){S.tmr={rid:id,min:Number(lsGet('tmrMin'))||10};S.sheet='tmr';render()},
+ tmrStep(id,el){S.tmr.min=Math.max(1,Math.min(180,S.tmr.min+Number(el.dataset.d)));tmrPaint()},
+ tmrStart(){unlockAudio();const m=S.tmr.min;lsSet('tmrMin',m);S.timers.push({k:Math.random().toString(36).slice(2),label:'Egen timer',end:Date.now()+m*60000,ring:false,rid:S.tmr.rid,si:-1,egen:1,dur:m*60000});S.sheet=null;tick();render();toast('Timer: '+tmrTxt(m))},
+ shopFold(id,el){const closed=!((S.shopClosed||{})[id]);S.shopClosed=Object.assign({},S.shopClosed,{[id]:closed});el.classList.toggle('open',!closed);el.setAttribute('aria-expanded',String(!closed));motionPanel(el.nextElementSibling,!closed)},
  shopAdd(){S.shopAdd=!S.shopAdd;render();if(S.shopAdd)setTimeout(()=>document.getElementById('shop-name')?.focus(),30)},
  shopDel(id){const x=D().shop.find(y=>y.id===id);if(x)delStart([x],x.name+' togs bort')},
  shopUndo(){if(!DEL.items)return;clearTimeout(DEL.t);const keep=new Set(DEL.items.map(x=>x.id)),now=new Set(D().shop.map(x=>x.id));
@@ -3589,13 +4788,16 @@ const ACT={
  portStep(id,el){const m=D().menu[Number(id)];if(!m)return;const r=m.recipe&&recipeById(m.recipe),n=Math.max(1,Math.min(20,dishPort(m,r)+Number(el.dataset.d)));
   // Skickas direkt: medan ändringen väntar i utkorgen skriver ingen uppdatering från arket över den nya portionen
   m.note=portNote(m,r,n);shopImport(true)},
- wsumMini(){S.wsumOpen=!S.wsumOpen;document.querySelectorAll('.wcard').forEach(c=>{c.classList.toggle('open',S.wsumOpen);const b=c.querySelector('.wm-top');if(b)b.setAttribute('aria-expanded',S.wsumOpen)});wsPin()},
+ wsumMini(){motionBudget(!S.wsumOpen)},
  shopMore(){S.sheet='shopMore';S.shopMoreC=false;render()},
  dessPick(){S.psel=null;S.sheet='dess';render()},
- slotPick(g){S.slotG=g;S.psel=null;S.sheet='slot';render()},
+ slotPick(g){S.slotG=g;S.psel=null;if(S.carIdx)delete S.carIdx["pk"+g];S.sheet='slot';render()},
  slotSet(id){slotFill(S.slotG||'Vardag',id)},
  // En låst rätt tas bort först efter att man hållit in Bekräfta i en ruta, som Töm listan i Inköp
  weekDel(id){const m=D().menu[Number(id)];swpCloseAll();if(m&&m.recipe&&weekLocks(weekTarget().vs).has(m.recipe)){S.delAsk=Number(id);S.sheet='delLas';render();return}weekDel(id)},
+ dishMenu(id){swpCloseAll();S.dm=id;const m=id==='d'?null:D().menu[Number(id)];S.dmK=m?dmKey(m):'';S.sheet='dish';render()},
+ dishGo(id,el){const a=el.dataset.a;if(a==='swLock'){ACT.swLock(id);render();return}closeSheets();ACT[a](id,el);render()},
+ dishDelHold(id){closeSheets();ACT.weekDelYes(id);render()},
  weekDelYes(id){S.delAsk=null;weekDel(id)},
  weekLock(id){weekLock(id);document.querySelectorAll('.dr-slide.open,.dr-slide.openl').forEach(x=>swpSet(x,0,true))},
  // Ändrade portioner på en låst efterrätt räknar om inköpslistan, som för rätterna
@@ -3604,7 +4806,7 @@ const ACT={
  dessSet(id){closeSheets();setWeekDessert(id);toast('Efterrätten ligger på veckosedeln')},
  dessClear(){setWeekDessert('');toast('Efterrätten är borttagen')},
  dessShop(id){dessertTillInkop(id)},
- shopMoreAsk(){S.shopMoreC=true;render()},
+ shopMoreAsk(){S.sheet='shopMore';S.shopMoreC=true;document.querySelectorAll('.create-menu[open]').forEach(x=>x.open=false);render()},
  shopMoreImp(){closeSheets();render();shopImport()},
  shopMoreEmpty(){closeSheets();S.shopMoreC=false;ACT.shopEmptyYes()},
  shopImportYes(){S.confirm=null;shopImport()},
@@ -3615,19 +4817,39 @@ const ACT={
  clearShopYes(){S.confirm=null;leaveAnim('shopToggle',D().shop.filter(i=>i.done),()=>{S.data.shop=D().shop.filter(i=>!i.done);render();apiPost({action:'shopClearDone'})})},
  confirmNo(){S.confirm=null;render()},
  taskList(){S.taskTab='lista';lsSet('taskTab','lista');ACT.nav('uppgifter')},
- taskTab(id){S.taskTab=id==='kalender'?'kalender':'lista';lsSet('taskTab',S.taskTab);render()},
+ taskTab(id){S.taskTab=id==='stad'?'stad':'lista';ACT.nav(S.taskTab==='stad'?'stad':'uppgifter')},
  calDay(id){S.calDay=id;S.calMonth=ymKey(id);render()},
- ovDay(id){S.ovDay=id;render()},
- calOpen(id){S.taskTab='kalender';lsSet('taskTab','kalender');S.calDay=id||today();S.calMonth=ymKey(S.calDay);ACT.nav('uppgifter')},
+ ovDay(id){S.ovDay=id;if(S.ovCalOpen)S.ovCalMonth=id.slice(0,7);render()},
+ ovMonth(id){const d=parse((S.ovCalMonth||(S.ovDay||today()).slice(0,7))+'-01');d.setMonth(d.getMonth()+Number(id));S.ovCalMonth=ymd(d).slice(0,7);render()},
+ calOpen(id){S.calDay=id||today();S.calMonth=ymKey(S.calDay);ACT.nav('kalender')},
  calMonth(id,el){const[y,m]=(S.calMonth||ymKey(S.calDay||today())).split('-').map(Number),d=new Date(y,m-1+Number(el.dataset.d),1);S.calMonth=d.getFullYear()+'-'+pad(d.getMonth()+1);render()},
+ calVy(id){motionCalBefore();S.calVy=['dag','vecka','manad'].includes(id)?id:'manad';lsSet('calVy',S.calVy);render()},
+ calDayVy(id){motionCalBefore(id);S.calDay=id;S.calMonth=ymKey(id);S.calVy='dag';lsSet('calVy','dag');render()},
+ calStep(id,el){const k=addDays(S.calDay||today(),Number(el.dataset.d)*(S.calVy==='vecka'?7:1));S.calDay=k;S.calMonth=ymKey(k);render()},
  calToday(){S.calDay=today();S.calMonth=ymKey(S.calDay);render()},
+ // Ny händelse: tidsblock med start och slut. Plus och Lägg till ger nästa hela timme, dagvyn den tid man tryckt eller dragit över
+ evNew(id){const k=isDate(id)?id:S.calDay||today(),n=new Date(),h=Math.min(23,n.getHours()+1)*60;evNyOpen(k,h,h+60)},
+ evNewTyp(id){const f=document.querySelector('#overlay form'),t=f&&(f.querySelector('#en-title')||f.querySelector('#task-title')),v=t?t.value:'',dt=f&&(f.querySelector('[name=date]')||f.querySelector('[name=due]'));const k=dt&&isDate(dt.value)?dt.value:S.calDay||today();
+  if(id==='task'){if(S.sheet!=='evNew')return;S.evNy0=S.evNew;closeSheets();S.taskDue=k;S.taskAdd=true;doRender();const x=document.getElementById('task-title');if(x){x.value=v;x.focus()}}
+  else{if(!S.taskAdd)return;const o=S.evNy0;S.taskAdd=false;S.evNy0=null;evNyOpen(k,o?o.a:600,o?o.b:660,v)}},
  calAddTask(id){S.taskDue=id;S.taskAdd=true;render();setTimeout(()=>document.getElementById('task-title')?.focus(),30)},
  taskEdit(id){const x=D().tasks.find(t=>t.id===id);if(!x)return;S.edit=Object.assign({},x);S.confirm=null;S.sheet='taskEdit';render()},
+ taskSwDel(id){const x=D().tasks.find(t=>t.id===id);if(!x)return;S.edit=Object.assign({},x);if(repName(x.repeat)){S.sheet='taskMenu';S.confirm='delTask';render()}else ACT.taskDel('all')},
  taskDelAsk(){S.confirm='delTask';render()},
+ // Håll in-bladen: tryck på en ruta stänger bladet och gör det som står
+ taskMenu(id){const x=D().tasks.find(t=>t.id===id);if(!x)return;S.edit=Object.assign({},x);S.confirm=null;S.sheet='taskMenu';render()},
+ evMenu(id){const e=D().events[Number(id)];if(!e)return;if(e.ny){ACT.evEdit(id);return}if(e.source==='kalender'&&!e.id){ACT.evEdit(id);return}S.edit=Object.assign({},e);S.confirm=null;S.sheet='evMenu';render()},
+ // Raden bär redan utgiftens id; listan letas upp (gemensam eller en persons egna)
+ ekoMenu(id){const list=['shared'].concat(people()).find(l=>ekoList(l).some(x=>x.id===id));if(!list)return;S.em={list,id};S.confirm=null;S.sheet='ekoMenu';render()},
+ ekoDelHold(id){const e=S.em;if(!e||e.id!==id)return;S.ekoEdit={list:e.list,id};ACT.ekoDel()},
+ cleanMenu(id){if(!D().clean.some(x=>x.id===id))return;S.cm=id;S.sheet='cleanMenu';render()},
+ sheetGo(id,el){const a=el.dataset.a;closeSheets();S.confirm=null;render();ACT[a]&&ACT[a](id,el)},
+ taskMove(id,el){const v=addDays(today(),Number(el.dataset.d)||0);A.user=Date.now();mutate('tasks',id,{due:v});apiPost({action:'taskEdit',id,fields:{due:v}});toast(v===today()?'Flyttad till idag':'Flyttad till i morgon')},
  taskDel(id){const x=S.edit&&D().tasks.find(t=>t.id===S.edit.id);closeSheets();S.confirm=null;if(!x){render();return}A.user=Date.now();
   if(id==='once'&&repName(x.repeat)){const nd=nextDue(x.due,x.repeat,today());mutate('tasks',x.id,{due:nd});apiPost({action:'taskToggle',id:x.id,done:true});toast('Hoppar över den här gången. Nästa gång '+(nd===addDays(today(),1)?'i morgon':dateShort(nd)));return}
-  apiPost({action:'taskDelete',id:x.id});S.data.tasks=D().tasks.filter(t=>t!==x);render();toast('Uppgiften är borttagen')},
- evEdit(id){const e=D().events[Number(id)];if(!e)return;S.edit=Object.assign({},e);S.confirm=null;S.sheet='evEdit';render()},
+  apiPost({action:'taskDelete',id:x.id});S.data.tasks=D().tasks.filter(t=>t!==x);const k=x.done?'':tBortSpara(x);render();if(k)tBortVisa(x,k);else toast('Uppgiften är borttagen')},
+ taskBortUndo(id){tBortAter(id)},
+ evEdit(id){const e=D().events[Number(id)];if(!e)return;if(e.ny){toast('Händelsen sparas just nu. Prova igen om en stund.');return}S.edit=Object.assign({},e);S.confirm=null;S.sheet='evEdit';render()},
  evDelAsk(){S.confirm='delEv';render()},
  evDel(id){const e=S.edit;closeSheets();S.confirm=null;if(!e){render();return}A.user=Date.now();const all=id==='all';
   apiPost({action:'eventDelete',id:e.id||'',date:e.date,time:e.time||'',title:e.title,all});
@@ -3644,58 +4866,77 @@ const ACT={
  cleanDel(id){const t=D().clean.find(x=>x.id===id);if(t)cdelStart(t)},
  cleanDelUndo(){if(!CDEL.item)return;clearTimeout(CDEL.t);const t=CDEL.item,i=CDEL.list.findIndex(x=>x.id===t.id);CDEL.item=null;CDEL.list=null;
   if(!D().clean.some(x=>x.id===t.id))D().clean.splice(Math.max(0,Math.min(i,D().clean.length)),0,t);undoHide();render()},
+ fodAdd(){S.fodEdit=null;S.sheet='fodAdd';render();setTimeout(()=>document.getElementById('fod-name')?.focus(),30)},
+ fodEdit(k){if(!bdays().some(b=>b.key===k))return;S.fodEdit=k;S.sheet='fodAdd';render()},
+ fodDelSheet(k){closeSheets();const b=bdays().find(x=>x.key===k);if(b)fdelStart(b)},
+ fodDel(k){const b=bdays().find(x=>x.key===k);if(b)fdelStart(b)},
+ fodUndo(){if(!FDEL.k)return;clearTimeout(FDEL.t);FDEL.k=null;undoHide();render()},
  cleanAdd(){S.sheet='cleanAdd';render();setTimeout(()=>document.getElementById('clean-title')?.focus(),30)},
  cleanFocus(_,el){el?.closest('form')?.querySelector('.field')?.focus()},
  snooze(id){const v=addDays(today(),1);mutate('clean',id,{snoozeUntil:v});apiPost({action:'cleanSet',id,fields:{snoozeUntil:v}});toast('Flyttad till i morgon')},
  planToday(id){mutate('clean',id,{plannedFor:today(),snoozeUntil:''});apiPost({action:'cleanSet',id,fields:{plannedFor:today(),snoozeUntil:''}})},
  planSat(id){const d=nextSaturday();mutate('clean',id,{plannedFor:d});apiPost({action:'cleanSet',id,fields:{plannedFor:d}});toast('Inplanerad '+dateShort(d))},
  unplan(id){mutate('clean',id,{plannedFor:''});apiPost({action:'cleanSet',id,fields:{plannedFor:''}})},
- orkPick(id){const el=document.getElementById('ork');if(el){el.value=id;orkPreview(el)}ACT.budget(String(ORK[Number(id)].min))},
+ orkPick(id){ACT.budget(String(ORK[Number(id)].min))},
  budget(id){const v=today()+'|'+id;S.data.settings.stadtid_idag=v;render();apiPost({action:'setting',k:'stadtid_idag',v})}
 };
 // Knappar med data-hold bekräftas genom att hållas in 1 s. Släpper man eller scrollar avbryts det
 (()=>{let h=null,fired=0;const T=1000;
  const stop=()=>{if(!h)return;clearTimeout(h.t);h.el.classList.remove('holding');h=null};
+ // Vredet i Egen timer: varje varv är en timme
+ document.addEventListener('pointerdown',e=>{const d=e.target.closest('.tm-dial');if(!d||e.button>0||e.target.closest('.tm-go'))return;e.preventDefault();
+  const mv=ev=>{const b=d.getBoundingClientRect(),deg=(Math.atan2(ev.clientX-b.left-b.width/2,b.top+b.height/2-ev.clientY)*180/Math.PI+360)%360,n=Math.round(deg/6)%60,o=S.tmr.min%60;let h=Math.floor(S.tmr.min/60);
+   if(o>45&&n<15)h++;else if(o<15&&n>45)h--;S.tmr.min=Math.max(1,Math.min(180,h*60+n));tmrPaint()};
+  const up=()=>{removeEventListener('pointermove',mv);removeEventListener('pointerup',up);removeEventListener('pointercancel',up)};
+  addEventListener('pointermove',mv);addEventListener('pointerup',up);addEventListener('pointercancel',up);mv(e)});
  document.addEventListener('pointerdown',e=>{const el=e.target.closest('[data-hold]');if(!el||el.disabled||e.button>0)return;stop();
   el.classList.add('holding');h={el,x:e.clientX,y:e.clientY,t:setTimeout(()=>{const a=el.dataset.hold;stop();fired=Date.now();try{navigator.vibrate&&navigator.vibrate(15)}catch(x){}ACT[a]&&ACT[a](el.dataset.id)},T)}});
  document.addEventListener('pointermove',e=>{if(h&&Math.hypot(e.clientX-h.x,e.clientY-h.y)>12)stop()});
  ['pointerup','pointercancel','scroll'].forEach(k=>document.addEventListener(k,stop,true));
- document.addEventListener('click',e=>{const el=e.target.closest('[data-hold]');if(el&&Date.now()-fired>800)toast('Håll in knappen för att '+({shopEmptyYes:'tömma listan',weekDelYes:'bekräfta',shopImportYes:'uppdatera varorna'}[el.dataset.hold]||'bekräfta'))});
+ document.addEventListener('click',e=>{const el=e.target.closest('[data-hold]');if(el&&Date.now()-fired>800)toast('Håll in knappen för att '+({shopEmptyYes:'tömma listan',weekDelYes:'bekräfta',dishDelHold:'ta bort den låsta rätten',ekoDelHold:'ta bort utgiften',shopImportYes:'uppdatera varorna'}[el.dataset.hold]||'bekräfta'))});
  document.addEventListener('contextmenu',e=>{if(e.target.closest('[data-hold]'))e.preventDefault()})})();
-/* Håll in en rätt på veckosedeln för att låsa den: ett streck i accentfärgen ritas runt rätten (eller bilden) på 1 s.
-   Släpper man tidigt går strecket tillbaka. En låst rätt låses upp på samma sätt, då backar strecket. Rör man fingret avbryts det */
-(()=>{const T=1000,WAIT=120;let h=null,fired=0;
- const rr=(w,h,r,i)=>{const a=i,b=w-i,c=i,d=h-i,m=w/2;return'M'+m+' '+c+'H'+(b-r)+'A'+r+' '+r+' 0 0 1 '+b+' '+(c+r)+'V'+(d-r)+'A'+r+' '+r+' 0 0 1 '+(b-r)+' '+d+'H'+(a+r)+'A'+r+' '+r+' 0 0 1 '+a+' '+(d-r)+'V'+(c+r)+'A'+r+' '+r+' 0 0 1 '+(a+r)+' '+c+'Z'};
- const end=back=>{if(!h)return;const x=h;h=null;clearTimeout(x.w);cancelAnimationFrame(x.raf);
-  if(!x.p){return}
-  // Har strecket hunnit synas räknas det inte som ett tryck, så receptet öppnas inte när man släpper
-  fired=Date.now();
-  if(!back){x.p.remove();x.k.classList.remove('lk-anim');return}
-  // Strecket glider tillbaka till där det började
-  const to=x.lst?1:0;let last=performance.now();const f=t=>{const dt=Math.max(0,t-last);last=t;x.v=x.v<to?Math.min(to,x.v+dt/250):Math.max(to,x.v-dt/250);x.p.style.strokeDasharray=x.v+' 2';x.p.style.strokeOpacity=x.v<.002?0:1;
-   if(x.v!==to)requestAnimationFrame(f);else{x.p.parentNode.remove();x.k.classList.remove('lk-anim')}};requestAnimationFrame(f)};
- const start=x=>{const k=x.k,w=k.offsetWidth,ht=k.offsetHeight,rad=k.classList.contains('lk-rad');
-  const NS='http://www.w3.org/2000/svg',svg=document.createElementNS(NS,'svg'),p=document.createElementNS(NS,'path');svg.setAttribute('class','lk-svg');svg.setAttribute('aria-hidden','true');
-  p.setAttribute('d',rr(w,ht,rad?12:13,rad?2:-1.5));p.setAttribute('pathLength','1');svg.appendChild(p);k.appendChild(svg);k.classList.add('lk-anim');
-  x.p=p;x.v=x.lst?1:0;p.style.strokeDasharray=x.v+' 2';p.style.strokeOpacity=x.v<.002?0:1;let last=performance.now();
-  const f=t=>{if(h!==x)return;const dt=Math.max(0,Math.min(50,t-last));last=t;x.v=Math.max(0,Math.min(1,x.v+(x.lst?-1:1)*dt/T));
-   if(x.lst?x.v<=0:x.v>=1){p.style.strokeDasharray=x.v+' 2';fired=Date.now();try{navigator.vibrate&&navigator.vibrate(15)}catch(e){}
-    if(x.lst)k.classList.remove('lk-on');else k.classList.add('lk-on');end(false);if(x.row.dataset.lockAct)ACT[x.row.dataset.lockAct](x.id);else weekLock(x.id);return}
-   p.style.strokeDasharray=x.v+' 2';p.style.strokeOpacity=x.v<.002?0:1;x.raf=requestAnimationFrame(f)};x.raf=requestAnimationFrame(f)};
+/* Håll in = lyft: det man håller i växer sakta (4 % på 0,8 s) med en mjuk skugga och åtgärden körs när det nått fram.
+   Släpper eller flyttar man fingret glider det tillbaka. hlOn/hlOff används av alla håll-in-gester med lyft (ändra, lås, ordna rutor, klockan) */
+function hlOn(el,t,sc){if(!el)return;el.classList.remove('hl-ut');el.style.transition='';el.style.setProperty('--hl-t',(t||800)+'ms');if(sc)el.style.setProperty('--hl-s',sc);el.classList.add('hl-on')}
+function hlOff(el){if(!el||!el.classList.contains('hl-on'))return;el.classList.add('hl-ut');el.classList.remove('hl-on');setTimeout(()=>el.classList.remove('hl-ut'),300)}
+// Håll in en rad för att ändra (data-hold-lift = ACT, data-id)
+(()=>{const T=800,WAIT=90;let h=null,fired=0,ned=0;
+ const stop=()=>{if(!h)return;clearTimeout(h.w);clearTimeout(h.t);hlOff(h.el);h=null};
+ // håller man kvar fingret länge efter att hållet nått fram räknas släppet ändå inte som ett tryck
+ document.addEventListener('pointerup',()=>{if(fired>ned)fired=Date.now()},true);
+ document.addEventListener('pointerdown',e=>{if(e.button>0)return;ned=Date.now();const el=e.target.closest('[data-hold-lift]');if(!el||e.target.closest('.dr-act,.dr-actl,.pl-step,.dr-x,.bq-lk,[data-hold-lock]')||el.classList.contains('open')||el.classList.contains('openl'))return;stop();
+  const x={el,x:e.clientX,y:e.clientY};h=x;x.w=setTimeout(()=>{if(h!==x)return;hlOn(el,T);x.t=setTimeout(()=>{if(h!==x)return;fired=Date.now();try{navigator.vibrate&&navigator.vibrate(10)}catch(z){}
+   const a=el.dataset.holdLift,id=el.dataset.id;h=null;ACT[a]&&ACT[a](id);setTimeout(()=>hlOff(el),300)},T)},WAIT)});
+ document.addEventListener('pointermove',e=>{if(h&&Math.hypot(e.clientX-h.x,e.clientY-h.y)>10)stop()},{passive:true});
+ ['pointerup','pointercancel'].forEach(k=>document.addEventListener(k,stop,true));document.addEventListener('scroll',stop,{capture:true,passive:true});
+ document.addEventListener('click',e=>{if(Date.now()-fired<700&&e.target.closest('[data-hold-lift]')){e.stopPropagation();e.preventDefault()}},true);
+ document.addEventListener('contextmenu',e=>{if(e.target.closest('[data-hold-lift]'))e.preventDefault()})})();
+/* Håll in en rätt på veckosedeln (och efterrätten, Veckoförslag) för att låsa eller låsa upp den: samma lyft som ovan.
+   När den nått fram växlar låset och ringen/hänglåset visar läget. Har lyftet hunnit synas öppnas inte receptet när man släpper */
+(()=>{const T=800,WAIT=90;let h=null,fired=0;
+ const end=()=>{if(!h)return;const x=h;h=null;clearTimeout(x.w);clearTimeout(x.t);if(x.up){fired=Date.now();hlOff(x.row)}};
  document.addEventListener('pointerdown',e=>{if(e.button>0)return;const row=e.target.closest('[data-hold-lock]');if(!row||e.target.closest('.pl-step,.dr-byt,.dr-act,.dr-actl,.dess-x,.dr-x'))return;
-  if(row.classList.contains('open')||row.classList.contains('openl'))return;end(true);
-  const k=row.querySelector('[data-lk]')||row;h={row,k,id:row.dataset.holdLock,lst:k.classList.contains('lk-on'),x:e.clientX,y:e.clientY};const x=h;x.w=setTimeout(()=>{if(h===x)start(x)},WAIT)});
- document.addEventListener('pointermove',e=>{if(h&&Math.hypot(e.clientX-h.x,e.clientY-h.y)>10)end(true)},{passive:true});
- ['pointerup','pointercancel'].forEach(k=>document.addEventListener(k,()=>end(true),true));document.addEventListener('scroll',()=>end(true),{capture:true,passive:true});
- // Efter en låsning ska fingret som släpps inte öppna receptet
+  if(row.classList.contains('open')||row.classList.contains('openl'))return;end();
+  const k=row.closest('[data-lk]')||row.querySelector('[data-lk]')||row,x={row,k,id:row.dataset.holdLock,x:e.clientX,y:e.clientY};h=x;
+  x.w=setTimeout(()=>{if(h!==x)return;x.up=1;hlOn(row,T,row.classList.contains('cell')?0:1.12);x.t=setTimeout(()=>{if(h!==x)return;h=null;fired=Date.now();try{navigator.vibrate&&navigator.vibrate(15)}catch(z){}
+   k.classList.toggle('lk-on');setTimeout(()=>hlOff(row),250);if(row.dataset.lockAct)ACT[row.dataset.lockAct](x.id);else weekLock(x.id)},T)},WAIT)});
+ document.addEventListener('pointermove',e=>{if(h&&Math.hypot(e.clientX-h.x,e.clientY-h.y)>10)end()},{passive:true});
+ ['pointerup','pointercancel'].forEach(k=>document.addEventListener(k,end,true));document.addEventListener('scroll',end,{capture:true,passive:true});
  document.addEventListener('click',e=>{if(Date.now()-fired<700&&e.target.closest('[data-hold-lock]')){e.stopPropagation();e.preventDefault()}},true);
  document.addEventListener('contextmenu',e=>{if(e.target.closest('[data-hold-lock]'))e.preventDefault()})})();
 document.addEventListener('click',e=>{const el=e.target.closest('[data-act]');if(!el)return;const a=el.dataset.act;if(!ACT[a])return;
  if(el.tagName==='INPUT'&&el.type==='checkbox')e.preventDefault();
  ACT[a](el.dataset.id,el,e)});
 // Kom ihåg vilka hopfällbara sektioner som är öppna mellan renderingar
-document.addEventListener('toggle',e=>{const d=e.target;if(d&&d.dataset&&d.dataset.k)S.open[d.dataset.k]=d.open},true);
-document.addEventListener('change',e=>{if(e.target.id==='ee-allday'){const t=document.getElementById('ee-times');if(t)t.hidden=e.target.checked}});
+document.addEventListener('toggle',e=>{const d=e.target;if(d&&d.dataset&&d.dataset.k&&!d.dataset.motionClosing)S.open[d.dataset.k]=d.open},true);
+// UI 5.0: Inställningarnas delar öppnas som egna sidor, en i taget, som i iPhones Inställningar
+document.addEventListener('toggle',e=>{const d=e.target;if(!U5||!d.classList||!d.classList.contains('pref-section'))return;const f=d.closest('form');if(!f)return;
+ if(d.open){f.querySelectorAll('.pref-section[open]').forEach(x=>{if(x!==d){x.open=false;S.open[x.dataset.k]=false}});const b=f.querySelector('.sheet-body');if(b)b.scrollTop=0}},true);
+document.addEventListener('change',e=>{const x=e.target;if(x.id==='ee-allday'||x.id==='en-allday'){const t=document.getElementById(x.id==='ee-allday'?'ee-times':'en-times');if(t)t.hidden=x.checked}});
+// Flyttas starttiden följer sluttiden med, så att blocket behåller sin längd (som i Apple Kalender)
+document.addEventListener('focusin',e=>{const x=e.target;if(x.name==='start'&&x.type==='time')x.dataset.was=x.value});
+document.addEventListener('change',e=>{const x=e.target;if(x.name!=='start'||x.type!=='time'||!x.form)return;const en=x.form.querySelector('input[name=end]'),a=evMin(x.value),w=evMin(x.dataset.was),b=evMin(en&&en.value);x.dataset.was=x.value;
+ if(!en||a==null)return;const len=w!=null&&b!=null&&b>w?b-w:60;en.value=tidInp(Math.min(a+len,23*60+55))});
 /* Svep på veckosedelns rader, som i iPhones listor: dra åt vänster så visas Byt bakom raden,
    dra åt höger så visas Ta bort. Drar man hela vägen (över halva raden) byter eller tar man bort direkt. Bara en rad är öppen åt gången */
 const SWP={el:null,x:0,y:0,base:0,dx:0,dir:'',moved:false};const SWW=84;
@@ -3706,7 +4947,7 @@ function swpSet(el,x,anim){const b=swpB(el),l=swpL(el),t=anim?'.25s cubic-bezier
  if(b){b.style.transition='width '+t;b.style.width=Math.max(swpW(el),-x)+'px';b.classList.toggle('full',-x>swpFull(el))}
  if(l){l.style.transition='width '+t;l.style.width=Math.max(SWW,x)+'px';l.classList.toggle('full',x>Math.max(el.offsetWidth*0.5,SWW+50))}}
 function swpCloseAll(ex){document.querySelectorAll('.dr-slide.open,.dr-slide.openl').forEach(x=>{if(x!==ex)swpSet(x,0,true)})}
-document.addEventListener('touchstart',e=>{SWP.el=null;if(e.target.closest('.dr-act'))return;const el=e.target.closest('.dr-slide');if(!el){swpCloseAll();return}const t=e.touches[0];
+document.addEventListener('touchstart',e=>{SWP.el=null;if(e.target.closest('.dr-act')||(U5&&u5Kant(e)))return;const el=e.target.closest('.dr-slide');if(!el){swpCloseAll();return}const t=e.touches[0];
  swpCloseAll(el);Object.assign(SWP,{el,x:t.clientX,y:t.clientY,base:el.classList.contains('open')?-swpW(el):el.classList.contains('openl')?SWW:0,dx:0,dir:'',moved:false})},{passive:true});
 document.addEventListener('touchmove',e=>{const el=SWP.el;if(!el)return;const t=e.touches[0],dx=t.clientX-SWP.x,dy=t.clientY-SWP.y;
  if(!SWP.dir&&Math.abs(dx)+Math.abs(dy)>8)SWP.dir=Math.abs(dx)>Math.abs(dy)?'x':'y';if(SWP.dir!=='x')return;
@@ -3754,14 +4995,12 @@ document.addEventListener('input',e=>{const id=e.target.dataset&&e.target.datase
 document.addEventListener('change',e=>{const id=e.target.dataset&&e.target.dataset.input;if(!id||id==='smak')return;const v=Number(e.target.value);
  if(id==='ljNu'&&CAM.lvl!=null){const x=ljX(CAM.lvl),d=v/100-ljTarget(CAM.lvl);if(Math.abs(d)>.02){LJ.adj.push([x,d,Date.now()]);LJ.adj=LJ.adj.slice(-20)}camJudge();autoTheme();saveLJ();render();return}
  saveLJ();camShow()});
-document.addEventListener('input',e=>{if(e.target.id==='sw-q'){const q=e.target.value.trim().toLowerCase();let n=0;document.querySelectorAll('#overlay .sw-row').forEach(b=>{const ok=!q||b.dataset.q.includes(q);b.hidden=!ok;if(ok)n++});const f=document.querySelector('#overlay .sw-none');if(f)f.hidden=n>0;return}
- if(e.target.classList.contains('smc-sl')){const f=e.target.closest('.smc-r').querySelector('.smc-face');if(f)f.textContent=SMIL[Number(e.target.value)+1][1]}
- if(e.target.id==='ork')orkPreview(e.target);if(e.target.id==='split-amt')splitPreview(e.target)});
+document.addEventListener('input',e=>{if(e.target.id==='sw-q'){const q=e.target.value.trim().toLowerCase();let n=0;document.querySelectorAll('#overlay .sw-row').forEach(b=>{const ok=!q||b.dataset.q.includes(q);b.hidden=!ok;if(ok)n++});const pc=document.querySelector('#overlay .pk-car');if(pc)pc.hidden=!!q;const f=document.querySelector('#overlay .sw-none');if(f)f.hidden=n>0;return}
+ if(e.target.id==='split-amt')splitPreview(e.target)});
 document.addEventListener('change',e=>{const el=e.target.closest('[data-change]');if(!el)return;const id=el.dataset.id;
  // färgraden: ett val fäller ut tonerna av färgen under raden
  {const sp=el.closest('[data-strip]');if(sp&&!FARG_OPEN[sp.dataset.strip]){FARG_OPEN[sp.dataset.strip]=2;FARG_X[sp.dataset.strip]=sp.scrollLeft}else if(sp)FARG_X[sp.dataset.strip]=sp.scrollLeft}
  if(el.dataset.change==='photo'){const f=el.files&&el.files[0];el.value='';if(S.rcpSheet){S.rcpSheet=null;render()}uploadPhoto(id,f);return}
- if(el.dataset.change==='ork'){el.blur();ACT.budget(String(ORK[Number(el.value)].min));return}
  if(el.dataset.change==='accent'){ACT.accent(el.value);return}
  if(el.dataset.change==='nattA'||el.dataset.change==='nattB'){// klockslaget skrivs in fritt: 22:00, 22.00, 2200 eller bara 22
  const k=el.dataset.change==='nattA'?'a':'b',v=String(el.value||'').trim(),m=/^(\d{1,2})(?:[:.,\s]?(\d{2}))?$/.exec(v);
@@ -3791,6 +5030,16 @@ document.addEventListener('submit',async e=>{const f=e.target.closest('[data-for
   D().clean.push({id,room,title:t,freq:7,min:10,lastDone:'',prevDone:'',doneBy:'',who:'',tip:'',plannedFor:'',snoozeUntil:'',order:null});const modal=S.sheet==='cleanAdd';if(modal)closeSheets();S.open.all=true;render();
   if(!modal)setTimeout(()=>{const x=document.querySelector('form[data-form="cleanQuick"][data-room="'+f.dataset.room+'"] .field');if(x)x.focus()},30);
   apiPost({action:'cleanAdd',id,room,title:t,freq:7,min:10});toast('Tillagd i '+room);return}
+ if(f.dataset.form==='fodAdd'){const namn=String(d.namn||'').trim(),dg=Number(d.dag),mn=Number(d.man),ar=Number(d.ar)||null,md=new Date(2000,mn,0).getDate();if(!namn)return;
+  if(dg>md){toast(cap(MON[mn-1])+' har bara '+md+' dagar');return}
+  const x={namn,datum:pad(mn)+'-'+pad(dg)},k=bdKey(x),col=colOk(d.col)?d.col:'',ok=S.fodEdit,old=ok&&bdays().find(b=>b.key===ok);if(ar)x.ar=ar;
+  if(k!==ok&&bdays().some(b=>b.key===k)){toast(namn+' finns redan den '+dg+' '+MON[mn-1]);return}
+  // Ändrad person från kalendern: den gamla raden döljs och en egen läggs till. Oförändrad: bara färgen sparas
+  const same=old&&k===ok&&(old.yr||null)===ar,syncad=parseJ(settings().fodelsedagar,[]).some(y=>bdKey(y)===ok);
+  closeSheets();S.fodMon=mn-1;setFodEgna(e=>{if(ok)delete e.col[ok];if(col)e.col[k]=col;
+   if(same)return e;
+   const add=e.add.filter(y=>bdKey(y)!==k&&bdKey(y)!==ok).concat([x]),del=e.del.filter(y=>y!==k).concat(ok&&ok!==k&&syncad&&!e.del.includes(ok)?[ok]:[]);return{add,del,col:e.col}});
+  toast(old?'Sparat':namn+' är tillagd');return}
  if(f.dataset.form==='taskQuick'){const t=String(d.title||'').trim();if(!t)return;
   D().tasks.push({id:'tmp'+Date.now(),done:false,title:t,due:'',who:'',note:'',source:'egen',repeat:''});render();
   setTimeout(()=>document.querySelector('.add-row .field')?.focus(),30);apiPost({action:'taskAdd',title:t,due:'',who:'',repeat:''});return}
@@ -3802,6 +5051,12 @@ document.addEventListener('submit',async e=>{const f=e.target.closest('[data-for
   const rp=repName(d.repeat)?d.repeat:'',fields={title:t,due:d.due||(rp?today():''),who:d.who||'',repeat:rp};
   const ch=Object.keys(fields).filter(k=>String(x[k]||'')!==fields[k]),out={};ch.forEach(k=>out[k]=fields[k]);
   closeSheets();A.user=Date.now();if(ch.length){mutate('tasks',x.id,out);apiPost({action:'taskEdit',id:x.id,fields:out});toast('Sparat')}else render();return}
+ if(f.dataset.form==='evNew'){const t=String(d.title||'').trim();if(!t||!isDate(d.date))return;
+  const allDay=!!d.allDay,start=allDay?'':String(d.start||''),end=allDay?'':String(d.end||'');
+  if(!allDay&&!start){toast('Fyll i när händelsen börjar, eller välj Heldag');return}
+  const time=allDay?'':start.replace(':','.')+(end&&end!==start?'–'+end.replace(':','.'):''),who=String(d.who||'');
+  closeSheets();A.user=Date.now();D().events.push({date:d.date,time,title:t,who,source:'kalender',id:'',flags:allDay?'a':'',ny:1});
+  apiPost({action:'eventAdd',title:t,date:d.date,allDay,start,end,who});S.calDay=d.date;S.calMonth=ymKey(d.date);render();toast(t+' är tillagd');return}
  if(f.dataset.form==='evEdit'){const e=S.edit,t=String(d.title||'').trim();if(!e||!t||!isDate(d.date))return;
   const allDay=!!d.allDay,start=allDay?'':String(d.start||''),end=allDay?'':String(d.end||'');
   if(!allDay&&!start){toast('Fyll i när händelsen börjar, eller välj Heldag');return}
@@ -3811,9 +5066,12 @@ document.addEventListener('submit',async e=>{const f=e.target.closest('[data-for
    const it=D().events.find(x=>x.date===e.date&&x.time===e.time&&x.title===e.title);if(it)Object.assign(it,{title:t,date:d.date,time});
    apiPost({action:'eventEdit',id:e.id||'',date:e.date,time:e.time||'',title:e.title,fields:{title:t,date:d.date,allDay,start,end}});S.calDay=d.date;S.calMonth=ymKey(d.date);toast('Sparat')}
   render();return}
+ if(f.dataset.form==='matb'){const m=S.ekoMonth||thisMonth(),v=Math.round(Number(String(d.b||'').replace(/\s/g,'').replace(',','.')));
+  if(!(v>=0)){toast('Skriv ett belopp');return}
+  closeSheets();A.user=Date.now();updJSON('ekonomi',{},o=>{o.matM=Object.assign({},o.matM);o.matM[m]=v;return o});toast('Matbudgeten från '+monthName(m)+' är sparad');return}
  if(f.dataset.form==='income'){const m=S.ekoMonth||thisMonth(),v={};people().forEach((p,i)=>{v[p]=Math.round(Number(String(d['p'+i]||'').replace(/\s/g,'').replace(',','.'))||0)});
   closeSheets();A.user=Date.now();updJSON('ekonomi_inkomst',{},o=>{o[m]=v;return o});toast('Inkomsten för '+monthName(m)+' är sparad');return}
- if(f.dataset.form==='cost'){const e=S.ekoEdit||{},amt=Number(String(d.amount||'').replace(/\s/g,'').replace(',','.'));if(!d.name||!isFinite(amt))return;
+ if(f.dataset.form==='cost'){const e=S.ekoEdit||{},amt=Number(String(d.amount||'').replace(/\s|kr/gi,'').replace(',','.'));if(!String(d.name||'').trim()){toast('Skriv vad utgiften heter');return}if(!isFinite(amt)){toast('Skriv beloppet med siffror, t.ex. 399');return}
   const old=e.id?ekoList(e.list).find(x=>x.id===e.id):null;
   const c={id:e.id||('x'+Date.now().toString(36)),name:d.name.trim(),amount:amt,period:d.period||'månad',pay:d.pay||'',day:String(d.day||'').trim(),note:String(d.note||'').trim(),tday:String(d.tday||'').trim()};
   const to=d.owner||e.list||'shared',moved=e.id&&to!==e.list;
@@ -3823,8 +5081,6 @@ document.addEventListener('submit',async e=>{const f=e.target.closest('[data-for
   if(ovState(c)!=='ok'&&(!old||moved||ovState(old)==='ok')){S.ovEdit={list:to,id:c.id};S.sheet='ov'}
   updJSON('ekonomi',{},o=>{if(moved)ekoListIn(o,e.list,l=>l.filter(x=>x.id!==c.id));ekoListIn(o,to,l=>l.some(x=>x.id===c.id)?l.map(x=>x.id===c.id?c:x):l.concat([c]));return o});
   if(S.sheet!=='ov')toast(moved?'Flyttad till '+(to==='shared'?'gemensamma':to+'s')+' utgifter':e.id?'Sparat':'Utgiften är tillagd');return}
- if(f.dataset.form==='smiley'){const id=f.dataset.id,dt=f.dataset.date,v=Number(d.v)||0;A.user=Date.now();
-  saveSmiley(id,dt,v);markCooked(id,dt);toast(v>0?'Vad bra! Rätten kommer tillbaka lite oftare':v<0?'Noterat. Rätten kommer tillbaka mer sällan':'Tack!');return}
  if(f.dataset.form==='rate'){const r=recipeById(S.rate&&S.rate.id),who=S.me||d.who;if(!r||!who||!d.s)return;
   const sN=Number(d.s),v=d.v||(sN>=4?'igen':sN===3?'okej':'aldrig'),e={s:sN,v,c:String(d.c||'').trim(),d:today()};
   closeSheets();A.user=Date.now();
@@ -3859,9 +5115,9 @@ function recipeResults(){const tab=S.matTab,seen=new Set(),source=tab==='bank'?b
  if(!INSPO.list&&INSPO.busy&&tab!=='bank')return group(emptyCell('Hämtar recept…'));
  let h='<div class="recipe-result" role="status" aria-live="polite"><span>'+list.length+' recept'+(n?' matchar':'')+'</span>'+(tab==='bank'?'<span>Favoriter först</span>':'')+'</div>';
  if(!list.length)return h+'<div class="recipe-empty">'+group(emptyCell(n?'Inga recept matchar dina val. Prova färre filter eller en annan sökning.':tab==='bank'?'Inga sparade recept än. Spara ett recept från Inspiration med bokmärket.':!INSPO.list?'Recepten kunde inte hämtas. Försök igen när du har nät.':'Inga recept att visa.'))+(n?'<button type="button" class="tb" data-rc="clear">Rensa sökning och filter</button>':'')+'</div>';
- return h+'<div class="bank mini">'+list.map(r=>rCard(r,tab==='bank'?{wish:new Set(wishes().map(x=>x.id))}:{})).join('')+'</div>'}
+ return h+'<div class="bank mini"'+RF('M13')+'>'+list.map(r=>rCard(r,tab==='bank'?{wish:new Set(wishes().map(x=>x.id))}:{})).join('')+'</div>'}
 function recipeLibraryTools(){const f=recipeFilters(),n=recipeFilterCount(),draft=recipeDraftRead(),chip=(act,label,on,id)=>'<button type="button" data-rc="'+act+'"'+(id?' data-id="'+id+'"':'')+' aria-pressed="'+!!on+'">'+label+'</button>';
- return '<div class="rc-tools recipe-tools"><div class="rc-search-row"><form class="add-row" data-rcform="search"><input class="field" name="q" value="'+esc(f.q)+'" placeholder="Sök recept eller ingrediens" aria-label="Sök recept eller ingrediens" enterkeyhint="search"><button type="submit" class="add-go rc-search" aria-label="Sök">'+I.search+'</button></form></div>'+(draft?'<button type="button" class="cell link rc-resume" data-rc="resume"><span class="grow">'+(draft.edit.pending?'Recept väntar på att sparas':'Fortsätt med ditt utkast')+'</span>'+chevron+'</button>':'')+'<section class="recipe-filters" aria-label="Filtrera recept"><div class="recipe-filter-head"><span>Filtrera'+(n?' · '+n+' aktiva':'')+'</span>'+(n?'<button type="button" class="tb" data-rc="clear">Rensa allt</button>':'')+'</div>'+(S.matTab!=='efter'?'<div class="fchips" role="group" aria-label="Mattyp">'+RFILT.slice(0,5).map(([k,l])=>chip('type',l,f.type===k,k)).join('')+'</div>':'')+'<div class="fchips" role="group" aria-label="Fler filter">'+chip('fav','Favoriter',f.fav)+chip('quick','Högst 30 min',!!f.max)+(S.matTab!=='efter'?chip('batch','Storkok',f.batch):'')+'</div>'+(S.matTab==='bank'?'<div class="recipe-archive"><button type="button" class="tb" data-rc="archived">Visa arkiverade · '+(D().recipeStore?.heads||[]).filter(x=>x.archived).length+chevron+'</button></div>':'')+'</section></div>'}
+ return '<div class="rc-tools recipe-tools"'+RF('M12')+'><div class="rc-search-row"><form class="add-row" data-rcform="search"><input class="field" name="q" value="'+esc(f.q)+'" placeholder="Sök recept eller ingrediens" aria-label="Sök recept eller ingrediens" enterkeyhint="search"><button type="submit" class="add-go rc-search" aria-label="Sök">'+I.search+'</button></form></div>'+(draft?'<button type="button" class="cell link rc-resume" data-rc="resume"><span class="grow">'+(draft.edit.pending?'Recept väntar på att sparas':'Fortsätt med ditt utkast')+'</span>'+chevron+'</button>':'')+'<section class="recipe-filters" aria-label="Filtrera recept"><div class="recipe-filter-head"><span>Filtrera'+(n?' · '+n+' aktiva':'')+'</span>'+(n?'<button type="button" class="tb" data-rc="clear">Rensa allt</button>':'')+'</div>'+(S.matTab!=='efter'?'<div class="fchips" role="group" aria-label="Mattyp">'+RFILT.slice(0,5).map(([k,l])=>chip('type',l,f.type===k,k)).join('')+'</div>':'')+'<div class="fchips" role="group" aria-label="Fler filter">'+chip('fav','Favoriter',f.fav)+chip('quick','Högst 30 min',!!f.max)+(S.matTab!=='efter'?chip('batch','Storkok',f.batch):'')+'</div>'+(S.matTab==='bank'?'<div class="recipe-archive"><button type="button" class="tb" data-rc="archived">Visa arkiverade · '+(D().recipeStore?.heads||[]).filter(x=>x.archived).length+chevron+'</button></div>':'')+'</section></div>'}
 function recipeVersions(){return D().recipeStore&&D().recipeStore.versions||[]}
 function recipeRoot(id){const v=recipeVersions().find(r=>r.id===id);return v&&v._root||id}
 function recipeHead(id){const root=recipeRoot(id);return(D().recipeStore&&D().recipeStore.heads||[]).find(h=>h.root===root)}
@@ -3875,7 +5131,7 @@ function recipeLibrary(saved){const store=D().recipeStore,heads=store&&store.hea
  const source=bankRaw().concat(saved?[]:D().recipes);heads.forEach(h=>{const r=recipeGet(h.id);if(r)source.unshift(r)});
  source.forEach(r=>{const root=recipeRoot(r.id),h=recipeHead(root);if(seen.has(root)||h&&h.archived)return;seen.add(root);const v=recipeLatest(r),b=bankRaw().find(x=>recipeRoot(x.id)===root);out.push(Object.assign({},v,{fav:!!(b&&b.fav),savedAt:b&&b.savedAt||v.updatedAt||''}))});return out}
 function recipeAliases(o){recipeVersions().forEach(r=>{if(r._root&&o[r._root]!=null)o[r.id]=o[r._root]});return o}
-function recipeWishes(a){return a.map(x=>{const h=x&&x.id&&!x.efter&&!x.las&&recipeHead(x.id);return h?Object.assign({},x,{id:h.id}):x})}
+function recipeWishes(a){return a.map(x=>{const h=x&&x.id&&!x.efter&&!x.las&&!x.fod&&!x.bort&&recipeHead(x.id);return h?Object.assign({},x,{id:h.id}):x})}
 function recipeChange(k,fn,o){if(k==='onskelista')return fn(recipeWishes(o));if(!['betyg','frekvens','kcal','receptlogg'].includes(k))return fn(o);o=fn(recipeAliases(o));const n={};Object.keys(o).forEach(id=>{n[recipeRoot(id)]=o[id]});return n}
 function recipeAllowed(){return !!(D().recipeStore&&D().recipeStore.schema===1)}
 function recipeClone(r){return JSON.parse(JSON.stringify(r))}
@@ -3887,8 +5143,7 @@ function recipeDraftClear(){try{localStorage.removeItem('ht.recipeDraft')}catch(
 function recipeEdit(id,resume){const existing=recipeDraftRead();if(!resume&&existing&&(existing.edit.dirty||existing.edit.pending)){if(id&&recipeRoot(id)===existing.edit.root){recipeEdit(null,true);return}RC.nextEdit=id||'';RC.screen='draftChoice';S.view='mat';render();return}const old=resume&&existing;if(old){RC.edit=old.edit}else{const r=id&&recipeGet(id),head=r&&recipeHead(id),base=r&&recipeSnapshot(r);RC.edit={root:r?recipeRoot(r.id):'r-'+recipeOp().slice(3),expectedRev:head?head.rev:0,base:!head?base:null,recipe:r?recipeSnapshot(recipeLatest(r)):{title:'',portions:2,min:null,group:'Vardag',who:'',course:S.matTab==='efter'?'efterrätt':'',groups:[{title:'',items:[{q:null,u:'',n:''}]}],steps:[{t:''}],src:'',img:'',tips:''},dirty:false,pending:false,request:null};}
  if(!resume&&id&&!recipeHead(id)){const a=D().recipes.find(x=>x.id===id),b=bankRaw().find(x=>x.id===id);if(a&&b&&recipeComparable(a)!==recipeComparable(b))RC.edit.legacyChoices={sheet:recipeSnapshot(a),bank:recipeSnapshot(b)};}
  RC.screen='edit';RC.error='';RC.notice='';RC.dupes=[];RC.confirmLeave=false;RC.archiveConfirm=false;S.recipe=null;S.view='mat';S.plan=false;closeSheets();recipeDraftStore();render();window.scrollTo(0,0)}
-function recipeTools(){if(NY)return recipeLibraryTools();const draft=recipeDraftRead();return'<div class="rc-tools"><form class="add-row" data-rcform="search"><input class="field" name="q" value="'+esc(RC.q)+'" placeholder="Sök recept eller ingrediens" aria-label="Sök recept eller ingrediens" enterkeyhint="search"><button type="submit" class="add-go rc-search" aria-label="Sök">'+I.search+'</button></form><div class="rc-toolbar"><button class="pill" data-rc="new">'+I.plus+'Nytt recept</button><button class="pill" data-rc="import">Importera</button><button class="pill" data-rc="archived" aria-pressed="'+RC.archived+'">Arkiverade</button></div><div class="rc-toolbar"><button class="pill" data-rc="fav" aria-pressed="'+RC.fav+'">'+(RC.fav?'✓ ':'')+'Favoriter</button><button class="pill" data-rc="quick" aria-pressed="'+!!RC.max+'">'+(RC.max?'✓ ':'')+'Högst 30 min</button>'+((RC.q||RC.fav||RC.max)?'<button class="linkbtn" data-rc="clear">Rensa</button>':'')+'</div>'+(draft?'<button class="cell link rc-resume" data-rc="resume"><span class="grow">'+(draft.edit.pending?'Recept väntar på att sparas':'Fortsätt med ditt utkast')+'</span>'+chevron+'</button>':'')+'</div>'}
-function recipeMatch(r){const q=RC.q.trim().toLocaleLowerCase('sv'),txt=[r.title,...(r.groups||[]).flatMap(g=>(g.items||[]).map(i=>i.n))].join(' ').toLocaleLowerCase('sv');return(!q||txt.includes(q))&&(!RC.fav||isFav(r.id))&&(!RC.max||r.min>0&&r.min<=RC.max)}
+function recipeTools(){return recipeLibraryTools()}
 function recipePrice(r){const lines=(r.groups||[]).flatMap(g=>g.items||[]),prices=parseJ(settings().priser,{});let known=0,missing=0,estimated=0,unquantified=0;const dates=[];
  lines.forEach(it=>{const v=window.MatVaror&&(MatVaror.vara(it.n)||MatVaror.skafferi(it.n));if(!v)return;if(it.q==null){unquantified++;return}if(v.okand){missing++;return}known+=MatVaror.mangd(it,v)*v.kr/v.pkt;if(!prices[v.k])estimated++;});
  const partial=missing+unquantified,amount=known/(Number(r.portions)||1),label=partial?'Känd delkostnad: '+kr(amount)+'/portion':known?'Ca '+kr(amount)+'/portion':r.kr?'Ca '+kr(r.kr)+'/portion · äldre uppskattning':'Prisuppgift saknas';
@@ -3930,7 +5185,14 @@ function recipeDraftCapture(el){const e=RC.edit;if(!e)return;const r=e.recipe;if
  e.dirty=true;e.request=null;e.pending=false;recipeDraftStore();const price=document.getElementById('rc-price-preview');if(price)price.innerHTML=recipePrice(r).html;const status=document.querySelector('.rc-draft-status');if(status)status.textContent=RC.error||'Utkast sparat på den här enheten';}
 function recipeSourceKey(s){const m=/^(https?):\/\/([^/?#]+)([^?#]*)(?:\?([^#]*))?/i.exec(String(s||'').trim());if(!m)return'';const q=(m[4]||'').split('&').filter(p=>p&&!/^(utm_[^=]*|fbclid|gclid)=/i.test(p)).sort().join('&');return m[1].toLowerCase()+'://'+m[2].toLowerCase().replace(/^www\./,'')+(m[3]||'/').replace(/\/$/,'')+(q?'?'+q:'')}
 function recipeDuplicates(r,root){const norm=recipeSourceKey;const title=String(r.title||'').trim().toLowerCase();if(!title)return[];const seen=new Set();return recipeLibrary(false).concat(inspoList()).filter(x=>{const id=recipeRoot(x.id);if(id===root||seen.has(id))return false;seen.add(id);const a=(r.groups||[]).flatMap(g=>g.items||[]).map(i=>i.n.toLowerCase()),b=(x.groups||[]).flatMap(g=>g.items||[]).map(i=>i.n.toLowerCase()),same=a.filter(n=>b.includes(n)).length;return title===String(x.title||'').trim().toLowerCase()||r.src&&norm(r.src)===norm(x.src)||a.length>=3&&same/Math.max(a.length,b.length)>.8&&String(x.title).toLowerCase().includes(title.split(' ')[0])}).slice(0,5)}
-async function recipeRpc(body){if(!navigator.onLine)throw new Error('Ingen anslutning. Utkastet finns kvar.');const household=S.key,controller=new AbortController(),timer=setTimeout(()=>controller.abort(),25000);try{const response=await fetch(CFG.api,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign({},body,{key:S.key,by:S.me})),signal:controller.signal});const j=await response.json();if(S.key!==household)throw new Error('Hushållet ändrades under begäran. Ditt ursprungliga utkast finns kvar.');return j}finally{clearTimeout(timer)}}
+// Apps Script kan vänta 20 s på lås före själva arbetet. Återförsök behåller samma operations-id.
+async function recipeRpc(body){if(!navigator.onLine)throw new Error('Ingen anslutning. Utkastet finns kvar.');const household=S.key,payload=JSON.stringify(Object.assign({},body,{key:household,by:S.me})),until=Date.now()+120000;
+ for(let attempt=0;attempt<3;attempt++){if(S.key!==household)throw new Error('Hushållet ändrades under begäran. Ditt ursprungliga utkast finns kvar.');const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),Math.min(90000,Math.max(1,until-Date.now())));let retry=false;
+  try{const response=await fetch(CFG.api,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:payload,signal:controller.signal});if(!response.ok)throw new Error('Servern kunde inte nås ('+response.status+').');const j=await response.json();if(S.key!==household)throw new Error('Hushållet ändrades under begäran. Ditt ursprungliga utkast finns kvar.');if(j.ok||!/lock|lås/i.test(j.error||'')||attempt===2||Date.now()>=until)return j;retry=true;}
+  catch(err){if(S.key!==household||!body.op||!navigator.onLine||attempt===2||Date.now()>=until)throw err;retry=true;}
+  finally{clearTimeout(timer)}
+  if(retry)await new Promise(resolve=>setTimeout(resolve,Math.min(1500*(attempt+1),Math.max(0,until-Date.now()))));
+ }}
 async function recipeSave(){const e=RC.edit;if(!e||RC.busy||!recipeAllowed())return;if(e.legacyChoices){RC.error='Välj först vilken äldre kopia du vill utgå från.';render();return}const r=recipeClone(e.recipe);r.kr=null;r._root=e.root;delete r.importOriginal;r.portions=Number(r.portions);if(r.min!==''&&r.min!=null&&(!isFinite(Number(r.min))||Number(r.min)<=0)){RC.error='Tiden måste vara positiv eller lämnas tom.';render();return}r.min=r.min===''||r.min==null?null:Number(r.min);
  if(!r.title.trim()||!(r.portions>0)||!r.groups.some(g=>g.items.some(i=>i.n.trim()))||!r.steps.some(s=>(s.t||'').trim()||s.k||s.v)){RC.error='Ange receptnamn, positivt portionsantal, minst en ingrediens och ett steg.';render();return}
  if(r.groups.some(g=>g.items.some(i=>!i.n.trim()))||r.steps.some(s=>!String(s.t||'').trim()&&!s.k&&!s.v)){RC.error='Fyll i eller ta bort tomma ingredienser och steg.';render();return}
@@ -3948,7 +5210,7 @@ function recipeFromSchema(candidate){const x=candidate.raw,times=s=>{const m=/^P
  function addStep(s){if(Array.isArray(s)){s.forEach(addStep);return}if(typeof s==='string'){s.split(/\n+/).filter(Boolean).forEach(t=>steps.push({t:recipePlain(t)}));return}if(s&&s.itemListElement){addStep(s.itemListElement);return}if(s&&s.text)steps.push({t:recipePlain(s.text)});}
  addStep(x.recipeInstructions);return{title:recipePlain(x.name),portions:m?Number(m[1].replace(',','.')):'',min:times(x.totalTime)||((times(x.prepTime)||0)+(times(x.cookTime)||0))||null,prepMin:times(x.prepTime),cookMin:times(x.cookTime),group:'Vardag',who:'',groups:[{title:'',items:(Array.isArray(x.recipeIngredient)?x.recipeIngredient:[x.recipeIngredient]).filter(Boolean).map(t=>recipeParseLine(recipePlain(t)))}],steps:steps.length?steps:[{t:''}],src:candidate.src,srcName:new URL(candidate.src).hostname.replace(/^www\./,''),img:'',tips:'',importYield:yieldText}}
 function recipeImportDraft(r){const existing=recipeDraftRead();if(existing&&(existing.edit.dirty||existing.edit.pending)){RC.nextImport=r;RC.screen='draftChoice';render();return}recipeEdit(null);RC.edit.recipe=r;RC.edit.dirty=true;RC.notice='Kontrollera alla uppgifter. Oklara mängder och portionsantal måste granskas; inget är sparat än.';if(!r.groups[0].items.length)r.groups[0].items=[{q:null,u:'',n:''}];recipeDraftStore();render()}
-async function recipeFetch(){if(RC.busy)return;RC.importUrl=document.getElementById('rc-url').value.trim();RC.importText=document.getElementById('rc-import-text').value;RC.candidates=[];RC.busy=true;RC.error='';render();try{const j=await recipeRpc({action:'recipeImport',url:RC.importUrl});if(!j.ok)throw new Error(j.error);RC.candidates=j.candidates.map(recipeFromSchema);if(RC.candidates.length===1)recipeImportDraft(RC.candidates[0]);}catch(e){RC.error=e.message+' Länken och texten finns kvar.';}finally{RC.busy=false;render()}}
+async function recipeFetch(){if(RC.busy)return;RC.importUrl=document.getElementById('rc-url').value.trim();RC.importText=document.getElementById('rc-import-text').value;RC.candidates=[];RC.busy=true;RC.error='';render();try{const j=await recipeRpc({action:'recipeImport',url:RC.importUrl});if(!j.ok)throw new Error(j.error);RC.candidates=j.candidates.map(recipeFromSchema);if(RC.candidates.length===1)recipeImportDraft(RC.candidates[0]);}catch(e){RC.error=(e.name==='AbortError'?'Servern tog för lång tid. Försök igen eller klistra in recepttexten.':e.message)+' Länken och texten finns kvar.';}finally{RC.busy=false;render()}}
 function recipeDigest(x){const s=JSON.stringify(x);let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return(h>>>0).toString(16)}
 function recipePlanState(){return{menu:recipeClone(D().menu),shop:recipeClone(D().shop),settings:recipeClone(settings())}}
 function recipeImpactHtml(header,error,notice){const r=recipeGet(RC.savedId);if(!r)return header('Sparat','Receptet finns i biblioteket')+notice;
@@ -3969,12 +5231,12 @@ async function recipeArchive(id,archived){const h=recipeHead(id);if(!h)return;RC
 function recipeLeave(){if(RC.edit&&RC.edit.dirty){RC.confirmLeave=true;render();return false}if(RC.edit&&!RC.edit.pending)recipeDraftClear();RC.screen=null;RC.edit=null;RC.error='';RC.notice='';RC.impact=null;return true}
 document.addEventListener('input',e=>{if(e.target.matches('[data-rf],[data-rgroup],[data-ri],[data-rstep],#rc-allow-duplicate'))recipeDraftCapture(e.target);if(e.target.id==='rc-url')RC.importUrl=e.target.value;if(e.target.id==='rc-import-text')RC.importText=e.target.value;});
 document.addEventListener('change',e=>{if(e.target.id==='rc-photo')recipeDraftPhoto(e.target.files[0]);if(e.target.matches('[data-rcmeal]')){RC.selected=[...document.querySelectorAll('[data-rcmeal]:checked')].map(x=>Number(x.dataset.rcmeal));RC.impact=null;}});
-document.addEventListener('submit',e=>{const f=e.target.closest('[data-rcform]');if(!f)return;e.preventDefault();e.stopImmediatePropagation();(NY?recipeFilters():RC).q=(new FormData(f).get('q')||'').trim();document.activeElement?.blur();render();},true);
+document.addEventListener('submit',e=>{const f=e.target.closest('[data-rcform]');if(!f)return;e.preventDefault();e.stopImmediatePropagation();recipeFilters().q=(new FormData(f).get('q')||'').trim();document.activeElement?.blur();render();},true);
 document.addEventListener('click',e=>{const el=e.target.closest('[data-rc]');if(!el)return;e.preventDefault();e.stopImmediatePropagation();if(RC.busy)return;const act=el.dataset.rc,id=el.dataset.id,i=Number(el.dataset.i),edit=RC.edit,r=edit&&edit.recipe;RC.error='';
  if(act==='new'){if(recipeDraftRead()){recipeEdit(null,true)}else recipeEdit(null);return}if(act==='resume'){RC.nextImport=null;RC.nextEdit=null;recipeEdit(null,true);return}if(act==='discardOpen'){const imported=RC.nextImport,next=RC.nextEdit;RC.nextImport=null;RC.nextEdit=null;recipeDraftClear();if(imported)recipeImportDraft(imported);else recipeEdit(next);return}if(act==='edit'){recipeEdit(id);return}
  if(act==='import'){RC.screen='import';S.view='mat';closeSheets();RC.notice='';}if(act==='fetch'){recipeFetch();return}if(act==='parse'){const text=document.getElementById('rc-import-text').value;RC.importUrl=document.getElementById('rc-url').value;RC.importText=text;if(!text.trim()){RC.error='Klistra in recepttext först.';}else{recipeImportDraft(recipeParseText(text));return}}
  if(act==='legacySheet'||act==='legacyBank'){edit.recipe=recipeClone(edit.legacyChoices[act==='legacySheet'?'sheet':'bank']);delete edit.legacyChoices;edit.dirty=true;recipeDraftStore();render();return}if(act==='candidate'){recipeImportDraft(RC.candidates[i]);return}if(act==='save'){recipeSave();return}if(act==='leave'){recipeLeave()}if(act==='keep'){recipeDraftStore();RC.edit=null;RC.screen=null;RC.confirmLeave=false;if(RC.leaveTo){const to=RC.leaveTo;RC.leaveTo=null;ACT.nav(to);}} if(act==='discard'){recipeDraftClear();RC.edit=null;RC.screen=null;RC.confirmLeave=false;if(RC.leaveTo){const to=RC.leaveTo;RC.leaveTo=null;ACT.nav(to);}} if(act==='stay')RC.confirmLeave=false;
- if(NY&&['fav','quick','batch','type','clear'].includes(act)){const f=recipeFilters();if(act==='fav')f.fav=!f.fav;if(act==='quick')f.max=f.max?0:30;if(act==='batch')f.batch=!f.batch;if(act==='type')f.type=id;if(act==='clear')RCF[S.matTab]={q:'',type:'alla',fav:false,max:0,batch:false};render();return}
+ if(['fav','quick','batch','type','clear'].includes(act)){const f=recipeFilters();if(act==='fav')f.fav=!f.fav;if(act==='quick')f.max=f.max?0:30;if(act==='batch')f.batch=!f.batch;if(act==='type')f.type=id;if(act==='clear')RCF[S.matTab]={q:'',type:'alla',fav:false,max:0,batch:false};render();return}
  if(act==='fav')RC.fav=!RC.fav;if(act==='quick')RC.max=RC.max?0:30;if(act==='clear'){RC.q='';RC.max=0;RC.fav=false}if(act==='archived')RC.screen='archived';
  if(act==='addIngredient')r.groups[i].items.push({q:null,u:'',n:''});if(act==='delIngredient'){const[g,j]=el.dataset.i.split(':');r.groups[g].items.splice(Number(j),1)}if(act==='addGroup')r.groups.push({title:'',items:[{q:null,u:'',n:''}]});if(act==='addStep')r.steps.push({t:''});if(act==='delStep')r.steps.splice(i,1);if(act==='stepUp'&&i>0)[r.steps[i-1],r.steps[i]]=[r.steps[i],r.steps[i-1]];if(act==='stepDown'&&i<r.steps.length-1)[r.steps[i+1],r.steps[i]]=[r.steps[i],r.steps[i+1]];if(act==='photoClear')r.img='';
  if(['addIngredient','delIngredient','addGroup','addStep','delStep','stepUp','stepDown','photoClear'].includes(act)){edit.dirty=true;edit.request=null;edit.pending=false;recipeDraftStore();}
@@ -3987,14 +5249,52 @@ addEventListener('beforeunload',e=>{if(RC.edit&&RC.edit.dirty){recipeDraftStore(
 addEventListener('online',()=>{const saved=recipeDraftRead();if(saved&&saved.edit.pending&&!RC.busy){if(!RC.edit)RC.edit=saved.edit;recipeSave();}});
 
 /* ---------- timers, clock, wake lock ---------- */
+/* Timerpillret (Henriks val C): håll in ringen vid stegsiffran. Ringen växer och ett sken breder ut sig runt fingret medan man håller (förväntan),
+   släpper man för tidigt fjädrar den tillbaka. Efter 0,45 s fjädrar den ut till ett piller med tiden och staplarna skjuts åt höger.
+   Efter 10 s blir det en ring igen. Tryck på pillret pausar/fortsätter (färdig: stänger), håll in pillret ger menyn */
+const fjader=(()=>{const m={};return(resp,damp)=>{const k=resp+','+damp;if(m[k])return m[k];const w=2*Math.PI/resp,wd=w*Math.sqrt(1-damp*damp),f=t=>1-Math.exp(-damp*w*t)*(Math.cos(wd*t)+damp*w/wd*Math.sin(wd*t));
+ let T=.05;for(;T<3;T+=.01){let ok=1;for(let u=T;u<T+.2;u+=.02)if(Math.abs(1-f(u))>.002)ok=0;if(ok)break}const p=[];for(let i=0;i<=40;i++)p.push(i<40?f(T*i/40).toFixed(3):'1');
+ return m[k]={e:'linear('+p.join(',')+')',d:Math.round(T*1000)}}})();
+const TRH=450,pillW=no=>{const d=no.querySelector('.trg').offsetWidth,l=no.querySelector('.tpl'),f=l.style.flex;l.style.flex='none';const w=U4?Math.max(l.offsetWidth,l.scrollWidth):l.offsetWidth;l.style.flex=f;return d+w+Math.round(d*.4)};
+function pillSet(no,open,anim){const tp=no.closest('.tp');if(!tp)return;trWatch();const ring=no.querySelector('.trg'),d=ring.offsetWidth,s=anim?fjader(open?.5:.34,open?.28:1):{e:'linear',d:0};
+ no.style.setProperty('--fe',s.e);no.style.setProperty('--fd',s.d+'ms');tp.style.setProperty('--fe',s.e);tp.style.setProperty('--fd',s.d+'ms');
+ if(open){const w=pillW(no);PILL.w=w;PILL.px=w-no.offsetHeight+8;tp.querySelectorAll('.no[data-open]').forEach(x=>{if(x!==no)pillSet(x,false,false)});no.dataset.open=1;no.style.width=w+'px';tp.style.setProperty('--px',PILL.px+'px');tp.classList.add('push')}
+ else{delete no.dataset.open;no.style.width='';tp.classList.remove('push')}}
+function trTick(){trWatch();if(!PILL.k)return;const L=[...document.querySelectorAll('.tp-r.tr .no[data-k="'+PILL.k+'"]')].filter(x=>x.offsetParent);if(!L.length){PILL.k=null;return}const ut=Date.now()>=PILL.until;if(ut)PILL.k=null;
+ L.forEach(no=>{if(ut)pillSet(no,false,true);else if(!no.dataset.open)pillSet(no,true,false);else if(Math.abs(pillW(no)-PILL.w)>2)pillSet(no,true,true)})}
+// Standard (Henriks val): pillret töjer sig ut ur cirkeln mot ett motstånd och darrar, slits loss vid TRH; släpper man för tidigt dras det tillbaka in i cirkeln.
+// Reserv: ht.trAnim=glow ger skenet runt ringen i stället
+const trGlow=()=>lsGet('trAnim')==='glow';
+(()=>{let h=0,no=null,x0=0,y0=0,sup=0,men=0,raf=0,T0=0;
+ const strain=(b,t0,W,d)=>{const tp=b.closest('.tp'),f=()=>{const k=Math.min(1,(performance.now()-t0)/TRH),e=.4*(1-Math.pow(1-k,3)),wob=Math.sin((performance.now()-t0)/1000*2*Math.PI*15)*1.6*k*k,w=d+(W-d)*e+wob;
+  b.style.width=w.toFixed(1)+'px';b.style.setProperty('--pk',(e/.4).toFixed(3));b.style.transform='scaleY('+(1-.1*e).toFixed(3)+')';if(tp)tp.style.setProperty('--px',Math.max(0,w-d).toFixed(1)+'px');if(k<1)raf=requestAnimationFrame(f)};
+  b.classList.add('str');b.style.setProperty('--fd','0ms');if(tp){tp.style.setProperty('--fd','0ms');tp.classList.add('push')}raf=requestAnimationFrame(f)};
+ const stop=()=>{clearTimeout(h);clearTimeout(men);cancelAnimationFrame(raf);if(no&&!no.dataset.open){const s=fjader(.3,.6),tp=no.closest('.tp');if(trGlow()){no.style.setProperty('--fe',s.e);no.style.setProperty('--fd',s.d+'ms')}else{const r=fjader(.32,.42);[no,tp].forEach(x=>{if(x){x.style.setProperty('--fe',r.e);x.style.setProperty('--fd',r.d+'ms')}});no.style.width='';no.style.transform='';if(tp)tp.classList.remove('push')}}if(no)no.classList.remove('hold','str');no=null};
+ addEventListener('pointerdown',e=>{const b=e.target.closest&&e.target.closest('.tp-r.tr .no[data-k]');if(!b)return;sup=0;no=b;T0=Date.now();x0=e.clientX;y0=e.clientY;const k=b.dataset.k;
+  if(b.dataset.open){men=setTimeout(()=>{sup=Date.now();stop();PILL.until=Date.now()+10000;ACT.tmrMenu(k)},550);return}
+  if(trGlow())b.classList.add('hold');else{const d=b.querySelector('.trg').offsetWidth;strain(b,performance.now(),pillW(b),d)}
+  h=setTimeout(()=>{sup=Date.now();cancelAnimationFrame(raf);b.classList.remove('hold','str');b.style.transform='';PILL.k=k;PILL.until=Date.now()+10000;pillSet(b,true,true);if(!trGlow()&&b.animate)b.animate([{transform:'scaleY(.9)'},{transform:'scaleY(.78)',offset:.22},{transform:'scaleY(1.1)',offset:.5},{transform:'scaleY(.96)',offset:.75},{transform:'none'}],{duration:520,easing:'ease-out'});try{navigator.vibrate&&navigator.vibrate(10)}catch(e){}no=null},TRH)},true);
+ addEventListener('pointermove',e=>{if(no&&Math.hypot(e.clientX-x0,e.clientY-y0)>10)stop()},true);
+ // Ett påbörjat håll som släpps (över 0,3 s) byter inte heller steg
+ addEventListener('pointerup',()=>{if(no&&!no.dataset.open&&Date.now()-T0>300)sup=1;stop()},true);addEventListener('pointercancel',stop,true);
+ addEventListener('contextmenu',e=>{if(e.target.closest&&e.target.closest('.tp-r.tr .no'))e.preventDefault()},true);
+ // Klicket efter ett håll ska inte byta steg; tryck på ett öppet piller pausar i stället
+ addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.tp-r.tr .no[data-k]');if(!b)return;
+  if(sup){sup=0;e.stopPropagation();e.preventDefault();return}
+  if(b.dataset.open){e.stopPropagation();e.preventDefault();const k=b.dataset.k,t=S.timers.find(x=>x.k===k);if(!t)return;PILL.until=Date.now()+10000;
+   if(t.ring||tmKvar(t)<=0){PILL.k=null;ACT.timerStop(k)}else ACT.tpTimer(null,{dataset:{k}})}},true)})();
 let actx=null;function unlockAudio(){try{actx=actx||new(window.AudioContext||window.webkitAudioContext)();actx.resume&&actx.resume()}catch(e){}}
 function beep(){if(!actx)return;try{for(let i=0;i<3;i++){const o=actx.createOscillator(),g=actx.createGain();o.frequency.value=880;o.connect(g);g.connect(actx.destination);const t=actx.currentTime+i*.35;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.3,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+.25);o.start(t);o.stop(t+.3)}}catch(e){}}
 function tick(){
  const c=document.getElementById('clock');if(c){const n=new Date(),txt=pad(n.getHours())+':'+pad(n.getMinutes());
   if(c.dataset.v!==txt){flipClock(c,txt);const cr=document.getElementById('cal-rows');if(cr)cr.innerHTML=calDayRows(cr.dataset.d)}}
  const ni=document.querySelector('.night-in');if(ni){const h=String(new Date().getHours());if(ni.dataset.h!==h){ni.dataset.h=h;ni.style.transform=nightPos()}}
+ document.querySelectorAll('.trg-f[data-end]').forEach(x=>{const ms=Number(x.dataset.end)-Date.now(),d=Number(x.dataset.dur)||1;x.setAttribute('stroke-dashoffset',(100-Math.max(0,Math.min(1,ms/d))*100).toFixed(2));});trTick();
+ document.querySelectorAll('.tpl b[data-end]').forEach(x=>{const ms=Number(x.dataset.end)-Date.now();x.textContent=ms>0?tpKvar(ms):'Klart!'});
  const box=document.getElementById('timers');
- box.innerHTML=S.timers.map(t=>{const ms=t.end-Date.now();if(ms<=0&&!t.ring){t.ring=true;beep();try{navigator.vibrate&&navigator.vibrate([300,150,300])}catch(e){}}const s=Math.max(0,Math.ceil(ms/1000));
+ box.innerHTML=S.timers.map(t=>{const ms=tmKvar(t);if(ms<=0&&!t.ring){t.ring=true;beep();try{navigator.vibrate&&navigator.vibrate([300,150,300])}catch(e){}}const s=Math.max(0,Math.ceil(ms/1000));
+  // Timern syns i korten när de är på skärmen (alltid i kokläget); annars här i hörnet
+  const vis=(S.cook||t.rid&&document.querySelector('.tp[data-rid="'+CSS.escape(t.rid)+'"]'));if(vis&&t.ring&&!t.rang){t.rang=1;setTimeout(render)}if(vis)return'';
   return'<div class="timer'+(t.ring?' ring':'')+'"><span>'+esc(t.label)+'</span><span class="num">'+(t.ring?'Klart!':Math.floor(s/60)+':'+pad(s%60))+'</span><button data-act="timerStop" data-id="'+t.k+'" aria-label="Stäng timer">'+I.x+'</button></div>'}).join('');
  if(S.timers.some(t=>t.ring)&&Date.now()%5000<1000)beep()}
 setInterval(tick,1000);
