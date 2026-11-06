@@ -11,14 +11,7 @@ module.exports=async(pg,h)=>{
  [['Purjolök','2 st','Frukt och grönt',18],['Citron','1 st','Frukt och grönt',6],['Babyspenat','65 g','Frukt och grönt',22],['Mellanmjölk','1,5 l','Mejeri',19],['Grekisk yoghurt','1 kg','Mejeri',39],['Vita bönor','2 frp','Skafferi',24],['Pumpafrön','1 påse','Skafferi',29]].forEach((x,i)=>h.sheet('Inköp').push([false,x[0],x[1],x[2],'',x[3],'','','ws'+i,'egen','',900+i]));
  const st=h.sheet('Inställningar').find(r=>r[0]==='fodelsedagar');st[1]=JSON.stringify([{namn:'Mamma',datum:'10-23',ar:1964},{namn:'Erik',datum:'11-02',ar:1992},{namn:'Moster Lena',datum:'11-14',ar:1968},{namn:'Alva',datum:'12-03',ar:2021},{namn:'Pappa',datum:'12-19',ar:1962}]);
  await pg.reload();await h.idle(2200);
- // brytaren: Inställningar → Avancerat (utvecklarläget på först)
- await pg.click('[data-act="settings"]');await h.idle(600);
- const open=()=>pg.evaluate(()=>{const x=document.querySelector('details[data-k="pref-avancerat"]');if(x)x.open=true});
- await open();await h.idle(300);
- if(!await pg.$('[data-act="exp"]')){const dv=await pg.$('[data-act="dev"]');if(dv){await dv.scrollIntoViewIfNeeded();await dv.click();await h.idle(500)}await open();await h.idle(300)}
- const ex=await pg.$('[data-act="exp"]');if(!ex){fel('brytaren Experimentellt saknas');await h.shot(V+'-inst-fel',true);return}
- await ex.scrollIntoViewIfNeeded();await h.shot(V+'-xw-installning');await ex.click();await h.idle(500);
- const c=await pg.$('[data-act="sheetClose"]');if(c)await c.click();await h.idle(500);
+ // widgets är standard sedan ht-v272 (brytaren under Inställningar → Översikten stänger av dem)
  await pg.click('[data-act="nav"][data-id="oversikt"]');await h.idle(1200);
  const boxes=()=>pg.evaluate(()=>[...document.querySelectorAll('.xw')].map(b=>b.dataset.box+':'+(b.className.match(/xw-(\w)/)||[])[1]+(b.querySelector('.xin')&&b.querySelector('.xin').scrollHeight>b.querySelector('.xin').clientHeight+2?'(klipps)':'')).join(' '));
  console.log('standard: '+await boxes());if(!await pg.$('.xgrid'))fel('rutnätet saknas');
