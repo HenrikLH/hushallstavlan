@@ -4,13 +4,12 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 ## Börja här
 
-- Aktuell release: **ht-v259** (väggskärmen: centrerad UI 5.0-meny via `--navw`, ingen rullningslist på `body.wall`, svepytor `.dr-act/.dr-actl` dolda tills raden dras). Ångra-gren `version-fore-vaggfel`; före det ht-v258 (svepgester, `version-fore-svepgester`), ht-v257 (UI 5.0 som val, `version-fore-ui5`).
+- Aktuell release: **ht-v260** (sol/månbanan i telefonens Översikt följer med hundbilden 42 px åt vänster, `.hero.art-geo>.arc.b`). Ångra-gren `version-fore-solbana-vanster`. Röktest telefon+vägg grönt.
 - Inga pågående uppgifter utöver punkterna nedan. Gör inte om godkända ändringar.
 - Strömningen i ChatGPT har avbrutits flera gånger: kontrollera gren/PR/main och Pages innan en avbruten publicering återupptas.
 
 ## Pågår nu
 
-- Sol/månbanan i telefonens Översikt (Geometrisk) flyttad 42 px åt vänster som bilden (`.hero.art-geo>.arc.b` i `index.html`). Ägare Claude, gren `claude/project-thread-m4ow62`. Väntar på "Pusha".
 - Inget pågående. **UI 5.0 (Apple)** publicerad i ht-v257 som val (Inställningar → Utseende → Design; `ht.ui=5`, `U5`, CSS bara under `html.ny.ui5` sist i `<style>`). Plan/beslut: Claude Doc "Apple-känsla: genomgång och plan". Tester: `verktyg/emu/ui5.js`, `ui5-navigering.js` (svep tillbaka, dra ned, svep på uppgift), alla-flikar med `LS={"ui":"5"}`. UI 2.0 är fortfarande standard.
 - Inget. Senast publicerat: Städvyn kan väljas som Lista (standard), Rutnät eller Ring under Inställningar → Mat och städ (`ht.stadVy`, `stadRutnat`/`stadRing` i app.js, CSS `.sx-*`). Test: `NOW=<idag> node verktyg/emu/run.js verktyg/emu/stad-vyer.js` (emulerade servern sätter lastDone med riktigt datum).
 
