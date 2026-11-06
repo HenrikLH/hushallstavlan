@@ -4,8 +4,8 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 ## Börja här
 
-- Aktuell release: **ht-v269**: Kalender utan den röda datumraden under Dag/Vecka/Månad (`.motion-date-label` borttagen, var dubblett). Ångra-gren `version-fore-kalenderdatum`. Gröna: alla-flikar telefon+vägg, kalender-svep.
-- Förra: **ht-v268**: svep i Kalender-fliken byter månad/vecka/dag (`calSwipe` före `subSwipe`; test `verktyg/emu/kalender-svep.js`). Ångra-gren `version-fore-kalendersvep`. Gröna: alla-flikar telefon+vägg, ui5-gester, kalender-svep (UI5+UI2).
+- Aktuell release: **ht-v270**: Kalender utan den röda datumraden under Dag/Vecka/Månad (`.motion-date-label` borttagen, var dubblett). Ångra-gren `version-fore-kalenderdatum`. Gröna: alla-flikar telefon+vägg, kalender-svep.
+- Förra: **ht-v269** tidsblock i kalendern (se Pågår nu). Förra: **ht-v268**: svep i Kalender-fliken byter månad/vecka/dag (`calSwipe` före `subSwipe`; test `verktyg/emu/kalender-svep.js`). Ångra-gren `version-fore-kalendersvep`. Gröna: alla-flikar telefon+vägg, ui5-gester, kalender-svep (UI5+UI2).
 - Förra: **ht-v266**: plusknappen syns på Kalender-fliken (`addContext`), och emu-scenarierna går till Städ via Att göra (`#nav uppgifter` + `taskTab stad`). Ångra-gren `version-fore-kalender-plus`. Gröna: alla-flikar telefon+vägg, plus-alternativ, ui-versioner (`LS={"ui":"2"}`), stad-vyer, stad-plus, hall-in-blad.
 - Förra: **ht-v265**: jämn luft (≈12 px) runt draghandtagen i väder (Översikt), Schema och matbudget (`.ovx`/`.ovcal`/`.wcard>.motion-grip` i index.html). Ångra-gren `version-fore-handtag-luft` (= ht-v264). Röktest telefon+vägg grönt.
 - Förra: **ht-v264**: UI 5.0 (Apple) är standard. ht-v263: kalendern har egen flik; Uppgifter och Städ delar Att göra (`attSeg`, `S.taskTab` = lista|stad), ångra-gren `version-fore-kalenderflik`.
@@ -15,6 +15,7 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 ## Pågår nu
 
+- **Tidsblock i kalendern** publicerat ht-v269 (ångra-gren `version-fore-tidsblock`, PR #72): Kalenderns plus och Lägg till öppnar Ny händelse (Händelse|Uppgift, Datum, Heldag, Börjar, Slutar, Vem; `evNyOpen`, `evNew`, `evNewTyp`). Dag- och breda veckovyn: tryck på tom tid = block vid halvtimmen, håll in 0,4 s och dra = start/slut i kvartar (`calNyAttr`, `.cv-ny`). Kod.gs `eventAdd` lägger i Familj-kalendern med "Vem: X" i beskrivningen (läses i `calRows_`). Test `NOW='2026-11-06T10:20:00+01:00' node verktyg/emu/run.js verktyg/emu/kalender-tidsblock.js` (gas.js har låtsaskalendrar). Nästa: Henrik provar dra i iPhone efter Kod.gs-inklistring.
 - **Flytta rutor + widgets** publicerat ht-v267 (ångra-gren `version-fore-widgets`, main före: 6423eb1). Widgets i S/M/L bakom Inställningar → Avancerat → Experimentellt (utvecklarläge, `ht.exp=1`, `expOn()`, `XW`/`layoutX`/`ovX`/`wallX`). Ändra-läget är ett utkast (`ARR0`): Klar sparar och minns förra i `<nyckel>Prev` (Ångra, Föregående, Inställningar → Gå tillbaka). Tester `flytta-rutor.js`, `widgets.js`. Nästa: Henrik provar dragning på iPhone; CI-felen i `oversikt-manad.js`/`ui-versioner.js` fanns redan på main.
 - Inget pågående. Senast publicerat (ht-v261): borttagen öppen uppgift ger Ångra i 5 s och hamnar i "Nyligen borttagna" (ruta U12) under Klara i 30 dagar, synkat mellan enheter via `onskelista` `{bort:1,l:[{k,title,due,who,repeat,at,by}]}` (ingen Kod.gs; `wishes()`/`recipeWishes` hoppar över den). Återställ = `taskAdd`. Klara uppgifter sparas inte. Test `verktyg/emu/uppgift-aterstall.js`.
 
@@ -40,6 +41,7 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 ## Väntar på Henrik (Kod.gs)
 
+- `eventAdd` (tidsblock i kalendern, se Pågår nu). Utan ny Kod.gs visar appen "kräver att Kod.gs uppdateras" och händelsen försvinner vid nästa hämtning.
 - `rid`-skydd mot dubbletter i `doPost` (ht-v261, [Kod.gs](https://github.com/HenrikLH/hushallstavlan/blob/main/apps-script/Kod.gs)). Appen klarar sig utan; ta bort punkten när Henrik klistrat in och publicerat.
 - Tidigare: Henrik bekräftade 2026-10-21 att Kod.gs/setupRecipes/distribution är uppdaterade. Namn/rum på sysslor kan inte ändras utan ny Kod.gs (`cleanSet` tillåter bara freq/min/who/plannedFor/snoozeUntil).
 
