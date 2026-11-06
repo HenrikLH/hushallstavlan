@@ -4481,12 +4481,15 @@ window.addEventListener('pointerup',e=>{const d=motionDrag;if(!d||d.id!==e.point
 window.addEventListener('click',e=>{const h=e.target.closest('[data-motion-grip]');if(!h)return;e.preventDefault();e.stopImmediatePropagation();if(h.dataset.motionSkip)return;A.touch=A.user=Date.now();h.dataset.motionGrip==='weather'?motionWeather(OVWX!=='graf'):h.dataset.motionGrip==='calendar'?motionCalendar(!S.ovCalOpen):motionBudget(!S.wsumOpen)},true);
 window.addEventListener('keydown',e=>{const h=e.target.closest('[data-motion-grip]');if(!h||!['ArrowDown','End','ArrowUp','Home'].includes(e.key))return;e.preventDefault();A.touch=A.user=Date.now();const open=['ArrowDown','End'].includes(e.key);h.dataset.motionGrip==='weather'?motionWeather(open):h.dataset.motionGrip==='calendar'?motionCalendar(open):motionBudget(open)},true);
 // Dra ned i Schemas veckorad: månaden fälls ut precis som när man drar i handtaget. Sidled bläddrar veckor som förut.
+// Raden har touch-action:pan-x (iPhone scrollar annars sidan direkt), så drag uppåt scrollar vi sidan själva.
 (()=>{let c=null,tyst=0;
- document.addEventListener('touchstart',e=>{c=null;const w=e.touches.length===1&&!motionDrag&&e.target.closest('.ovcal:not(.expanded) .ovcal-week');if(!w)return;const t=e.touches[0];c={el:w.closest('.ovcal'),x0:t.clientX,y0:t.clientY,m:null}},{passive:true});
+ document.addEventListener('touchstart',e=>{c=null;const w=e.touches.length===1&&!motionDrag&&e.target.closest('.ovcal:not(.expanded) .ovcal-week');if(!w)return;const t=e.touches[0];c={el:w.closest('.ovcal'),x0:t.clientX,y0:t.clientY,ly:t.clientY,mode:null,m:null}},{passive:true});
  document.addEventListener('touchmove',e=>{if(!c)return;const t=e.touches[0],dx=t.clientX-c.x0,dy=t.clientY-c.y0;
-  if(!c.m){if(dy<=0||Math.abs(dx)>=dy||!c.el.isConnected){c=null;return}c.m=motionCalendarBegin(c.el);c.s=motionScale(c.el)}
-  if(e.cancelable)e.preventDefault();A.touch=A.user=Date.now();c.m.set(Math.max(0,dy)/c.s/c.m.range)},{passive:false});
- const end=e=>{const d=c;c=null;if(!d||!d.m)return;tyst=Date.now();motionCalendar(e.type!=='touchcancel'&&d.m.p>=.25)};
+  if(!c.mode){if(Math.hypot(dx,dy)<6)return;if(Math.abs(dx)>=Math.abs(dy)||!c.el.isConnected){c=null;return}c.mode=dy>0?'ned':'upp';if(c.mode==='ned'){c.m=motionCalendarBegin(c.el);c.s=motionScale(c.el)}}
+  if(e.cancelable)e.preventDefault();A.touch=A.user=Date.now();
+  if(c.mode==='upp'){scrollBy(0,c.ly-t.clientY);c.ly=t.clientY;return}
+  c.m.set(Math.max(0,dy)/c.s/c.m.range)},{passive:false});
+ const end=e=>{const d=c;c=null;if(!d||!d.mode)return;tyst=Date.now();if(d.m)motionCalendar(e.type!=='touchcancel'&&d.m.p>=.25)};
  document.addEventListener('touchend',end);document.addEventListener('touchcancel',end);
  window.addEventListener('click',e=>{if(Date.now()-tyst<400&&e.target.closest('.ovcal')){e.preventDefault();e.stopImmediatePropagation()}},true)})();
 
