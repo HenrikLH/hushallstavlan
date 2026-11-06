@@ -2926,7 +2926,7 @@ function renderOverlay(){
   const tiles=[t(I.swap,'Byt rätt',ds?'Välj en annan efterrätt':'Förslag i samma pris',ds?go('dessPick',''):go('swap',S.dm)),
    rid?t(lst?I.unlock:I.lock,lst?'Lås upp':'Lås',lst?'Kan bytas vid ny vecka':'Behålls vid ny vecka',go('swLock',rid)):'',
    r?t(I.fork,'Öppna recept','Tidsplan och steg',go('recipe',r.id)):'',
-   ds?t(I.trash,'Ta bort','Ingen efterrätt i veckan',go('dessClear',r.id),' red'):lst?t(I.trash,'Ta bort','Håll in, rätten är låst','data-hold="dishDelHold" data-id="'+esc(S.dm)+'"',' red hold'):t(I.trash,'Ta bort','Lämnar en tom plats',go('weekDel',S.dm),' red')].join('');
+   t(I.trash,'Ta bort',ds?'Håll in, ingen efterrätt i veckan':lst?'Håll in, rätten är låst':'Håll in, lämnar en tom plats','data-hold="dishDelHold" data-id="'+esc(S.dm)+'"',' red hold')].join('');
   const body='<div class="dm-hd">'+dishThumb(r,tit)+'<div class="grow"><div class="title">'+esc(tit)+'</div>'+(meta?'<div class="meta">'+meta+'</div>':'')+'</div></div>'+
    group('<div class="cell"><span class="grow">Portioner</span><span class="pl-step" role="group" aria-label="Portioner"><button type="button" data-act="'+pa+'" data-id="'+pid+'" data-d="-1" aria-label="Färre portioner"'+(n<=1?' disabled':'')+'>'+I.minus+'</button><span class="num" aria-live="polite">'+n+'</span><button type="button" data-act="'+pa+'" data-id="'+pid+'" data-d="1" aria-label="Fler portioner"'+(n>=20?' disabled':'')+'>'+I.plus+'</button></span></div>')+
    '<div class="dm-g">'+tiles+'</div>';
@@ -4800,7 +4800,7 @@ const ACT={
  weekDel(id){const m=D().menu[Number(id)];swpCloseAll();if(m&&lasId(m)&&weekLocks(weekTarget().vs).has(lasId(m))){S.delAsk=Number(id);S.sheet='delLas';render();return}weekDel(id)},
  dishMenu(id){swpCloseAll();S.dm=id;const m=id==='d'?null:D().menu[Number(id)];S.dmK=m?dmKey(m):'';S.sheet='dish';render()},
  dishGo(id,el){const a=el.dataset.a;if(a==='swLock'){ACT.swLock(id);render();return}closeSheets();ACT[a](id,el);render()},
- dishDelHold(id){closeSheets();ACT.weekDelYes(id);render()},
+ dishDelHold(id){closeSheets();if(id==='d')ACT.dessClear();else ACT.weekDelYes(id);render()},
  weekDelYes(id){S.delAsk=null;weekDel(id)},
  weekLock(id){weekLock(id);document.querySelectorAll('.dr-slide.open,.dr-slide.openl').forEach(x=>swpSet(x,0,true))},
  // Ändrade portioner på en låst efterrätt räknar om inköpslistan, som för rätterna
@@ -4896,7 +4896,7 @@ const ACT={
   el.classList.add('holding');h={el,x:e.clientX,y:e.clientY,t:setTimeout(()=>{const a=el.dataset.hold;stop();fired=Date.now();try{navigator.vibrate&&navigator.vibrate(15)}catch(x){}ACT[a]&&ACT[a](el.dataset.id)},T)}});
  document.addEventListener('pointermove',e=>{if(h&&Math.hypot(e.clientX-h.x,e.clientY-h.y)>12)stop()});
  ['pointerup','pointercancel','scroll'].forEach(k=>document.addEventListener(k,stop,true));
- document.addEventListener('click',e=>{const el=e.target.closest('[data-hold]');if(el&&Date.now()-fired>800)toast('Håll in knappen för att '+({shopEmptyYes:'tömma listan',weekDelYes:'bekräfta',dishDelHold:'ta bort den låsta rätten',ekoDelHold:'ta bort utgiften',shopImportYes:'uppdatera varorna'}[el.dataset.hold]||'bekräfta'))});
+ document.addEventListener('click',e=>{const el=e.target.closest('[data-hold]');if(el&&Date.now()-fired>800)toast('Håll in knappen för att '+({shopEmptyYes:'tömma listan',weekDelYes:'bekräfta',dishDelHold:'ta bort rätten',ekoDelHold:'ta bort utgiften',shopImportYes:'uppdatera varorna'}[el.dataset.hold]||'bekräfta'))});
  document.addEventListener('contextmenu',e=>{if(e.target.closest('[data-hold]'))e.preventDefault()})})();
 /* Håll in = lyft: det man håller i växer sakta (4 % på 0,8 s) med en mjuk skugga och åtgärden körs när det nått fram.
    Släpper eller flyttar man fingret glider det tillbaka. hlOn/hlOff används av alla håll-in-gester med lyft (ändra, lås, ordna rutor, klockan) */

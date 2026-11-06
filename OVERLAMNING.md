@@ -4,7 +4,8 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 ## Börja här
 
-- Aktuell release: **ht-v276**: flikradens lins i UI 5.0 lyfts bara vid tryck och glider till ny flik som förberäknad fjäder (R .65, ≈0,4 s, Web Animation; `glid`/`fang` i `navLins`). Ångra-gren `version-fore-lins-tryck`. Gröna: flikrad-lins, alla-flikar telefon+vägg. Följ upp: lagom takt i iPhone?
+- Aktuell release: **ht-v278**: Ta bort i rättens blad (Mat → Vecka) kräver alltid håll in (`dishDelHold`, även efterrätt), tom platshållare i bladhuvuden dold i UI5 (`span.tb`). Ångra-gren `version-fore-ta-bort-hall-in`. Gröna: ta-bort-hall-in, matsedel-gester, alla-flikar telefon+vägg.
+- Förra: **ht-v276**: flikradens lins i UI 5.0 lyfts bara vid tryck och glider till ny flik som förberäknad fjäder (R .65, ≈0,4 s, Web Animation; `glid`/`fang` i `navLins`). Ångra-gren `version-fore-lins-tryck`. Gröna: flikrad-lins, alla-flikar telefon+vägg. Följ upp: lagom takt i iPhone?
 - ht-v277: hundbilden och sol/månbanan står mitt i kortet i telefonens Översikt oavsett bredd (`--gx` i `placeSky`, Geometrisk). Ångra-gren `version-fore-hundbild-mitten`. Henriks iPhone är 402 px: mät på den bredden.
 - Förra: **ht-v273**: Schema i Översikt, dra ned i veckoraden fungerar i iPhone (`.ovcal:not(.expanded) .ovcal-week .wk-sw{touch-action:pan-x}`, drag uppåt scrollar sidan via scrollBy). Ångra-gren `version-fore-schema-iphone`. Gröna: alla-flikar telefon+vägg, kalender-dra-ned (UI5+UI2). Följ upp med Henrik i iPhone.
 - Förra: **ht-v272**: flikraden i UI 5.0 har en lins som drivs av fjädrar (`navLins` före drag-IIFE:n i app.js, CSS `.nav.fj`/`.lyft`, `--lins`): tryck lyfter, följer fingret, sträcks efter farten, knack (`u5Tick`) vid flikbyte, fjädrar in vid släpp. Ångra-gren `version-fore-flikrad-lins`, PR #73. Test `verktyg/emu/flikrad-lins.js`, alla-flikar telefon/vägg/UI2 gröna. Följ upp: känns linsen rätt i iPhone? Justera sträckning (/2600, max .28) och lyft (.18/.26).
