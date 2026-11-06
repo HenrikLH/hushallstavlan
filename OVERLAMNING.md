@@ -4,7 +4,8 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 ## Börja här
 
-- Aktuell release: **ht-v268**: svep i Kalender-fliken byter månad/vecka/dag (`calSwipe` före `subSwipe`; test `verktyg/emu/kalender-svep.js`). Ångra-gren `version-fore-kalendersvep`. Gröna: alla-flikar telefon+vägg, ui5-gester, kalender-svep (UI5+UI2).
+- Aktuell release: **ht-v269**: Kalender utan den röda datumraden under Dag/Vecka/Månad (`.motion-date-label` borttagen, var dubblett). Ångra-gren `version-fore-kalenderdatum`. Gröna: alla-flikar telefon+vägg, kalender-svep.
+- Förra: **ht-v268**: svep i Kalender-fliken byter månad/vecka/dag (`calSwipe` före `subSwipe`; test `verktyg/emu/kalender-svep.js`). Ångra-gren `version-fore-kalendersvep`. Gröna: alla-flikar telefon+vägg, ui5-gester, kalender-svep (UI5+UI2).
 - Förra: **ht-v266**: plusknappen syns på Kalender-fliken (`addContext`), och emu-scenarierna går till Städ via Att göra (`#nav uppgifter` + `taskTab stad`). Ångra-gren `version-fore-kalender-plus`. Gröna: alla-flikar telefon+vägg, plus-alternativ, ui-versioner (`LS={"ui":"2"}`), stad-vyer, stad-plus, hall-in-blad.
 - Förra: **ht-v265**: jämn luft (≈12 px) runt draghandtagen i väder (Översikt), Schema och matbudget (`.ovx`/`.ovcal`/`.wcard>.motion-grip` i index.html). Ångra-gren `version-fore-handtag-luft` (= ht-v264). Röktest telefon+vägg grönt.
 - Förra: **ht-v264**: UI 5.0 (Apple) är standard. ht-v263: kalendern har egen flik; Uppgifter och Städ delar Att göra (`attSeg`, `S.taskTab` = lista|stad), ångra-gren `version-fore-kalenderflik`.
