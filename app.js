@@ -2426,7 +2426,7 @@ function calVecka(){const t=today(),sel=S.calDay||t,ws=veckoStart(sel),we=addDay
   body+=L.map(x=>{const lg=calItems(k).find(y=>y.t==='Laga');return'<div class="cell cv-ag"'+(x.act?' data-act="'+x.act+'" data-id="'+esc(x.id)+'" role="button" tabindex="0"'+(x.act==='evEdit'?holdAt('evMenu'):''):'')+'><span class="t num">'+tpKl(x.a)+'</span><span class="cv-dot '+x.c+'" aria-hidden="true"></span><span class="grow"><span class="title">'+esc(x.t)+'</span>'+(x.c==='m'&&lg?'<span class="meta">Börja laga '+tpKl(lg.a)+'</span>':x.s?'<span class="meta">'+esc(x.s)+'</span>':'')+'</span></div>'}).join('');
   body+=ts.map(x=>'<div class="cell cv-ag" data-act="taskEdit" data-id="'+esc(x.id)+'"'+holdAt('taskMenu')+' role="button" tabindex="0"><span class="t">Att göra</span><span class="cv-ck" aria-hidden="true"></span><span class="grow"><span class="title">'+esc(x.title)+'</span></span></div>').join('')});
  return h+'<div class="g-one">'+rgroup('U10',body)+'</div><div class="foot">Tryck på en dag för att se den timme för timme.</div>'}
-function calView(){const html=calViewBase();if(!motionOn())return html;const menu=calSeg();return menu+'<div class="motion-date-label">'+esc(cap(dateLong(S.calDay||today())))+'</div><div class="motion-calendar">'+html.slice(menu.length)+'</div>'}
+function calView(){const html=calViewBase();if(!motionOn())return html;const menu=calSeg();return menu+'<div class="motion-calendar">'+html.slice(menu.length)+'</div>'}
 function calViewBase(){const t=today(),sel=S.calDay||t,m=S.calMonth||ymKey(sel),[y,mo]=m.split('-').map(Number);
  if(S.calVy==='dag')return calSeg()+calDag();if(S.calVy==='vecka')return calSeg()+calVecka();
  const first=new Date(y,mo-1,1),start=new Date(first);start.setDate(1-((first.getDay()+6)%7));
