@@ -202,10 +202,11 @@ function renderNav(nav){
  if(vk==='knapp'||vk==='rubrik'){const h=meBtn();if(!cm){cm=document.createElement('div');cm.id='corner-me';document.body.appendChild(cm)}cm.className=vk==='rubrik'?'top-me':'corner-me';if(cm.dataset.h!==h){cm.innerHTML=h;cm.dataset.h=h}}else if(cm)cm.remove();
  nav.classList.toggle('har-me',!!me);
  if(!me){if(el)el.remove()}else if(!el||el.dataset.h!==me){if(el)el.remove();nav.insertAdjacentHTML('beforeend','<div class="nav-me" data-h=""><i aria-hidden="true"></i>'+me+'</div>');nav.querySelector('.nav-me').dataset.h=me}}
-// UI 5.0: markeringen i flikraden är en lins som drivs av fjädrar (som iOS). Den lyfts och växer när fingret trycker,
-// följer fingret med lite eftersläp och sträcks i rörelseriktningen efter farten, och fjädrar in i fliken vid släpp.
+// UI 5.0: markeringen i flikraden är en lins som drivs av fjädrar (som iOS). Den lyfts när fingret trycker, följer ett drag
+// med lite eftersläp och sträcks i rörelseriktningen efter farten, och fjädrar in i fliken vid släpp. Tryck på en annan flik:
+// linsen lyfts och glider dit i lugn takt som en Web Animation (går på grafikkretsen, så sidbytets omritning hackar den inte).
 // Läget räknas i flikbredder så att det klarar storleksändring. Utan U5 styr CSS som förut.
-const navLins=(()=>{const L={p:null,v:0,t:0,R:.4,D:.8,s:0,sv:0,ts:0,raf:0,last:0,nav:null,w:0,dragar:false};
+const navLins=(()=>{const L={p:null,v:0,t:0,R:.4,D:.8,s:0,sv:0,ts:0,raf:0,last:0,nav:null,w:0,dragar:false,an:null};
  const lugn=()=>!motionOn()||matchMedia('(prefers-reduced-motion:reduce)').matches;
  const pill=()=>L.nav&&L.nav.querySelector('.nav-pill');
  const rita=()=>{const pl=pill();if(!pl||L.p==null)return;if(!L.w)L.w=pl.offsetWidth;
@@ -217,12 +218,28 @@ const navLins=(()=>{const L={p:null,v:0,t:0,R:.4,D:.8,s:0,sv:0,ts:0,raf:0,last:0
   const klar=!L.dragar&&Math.abs(L.p-L.t)<.002&&Math.abs(L.v)<.02&&Math.abs(L.s-L.ts)<.002&&Math.abs(L.sv)<.02;
   if(klar){L.p=L.t;L.v=0;L.s=L.ts;L.sv=0}rita();L.raf=klar?0:requestAnimationFrame(steg)};
  const kor=()=>{if(lugn()){L.p=L.t;L.v=0;L.s=0;L.sv=0;rita();return}if(!L.raf){L.last=0;L.raf=requestAnimationFrame(steg)}};
+ // avbryt en pågående glidning där linsen just nu är, så att fingret kan ta den mitt i
+ const fang=()=>{const a=L.an;if(!a)return;L.an=null;const k=Math.min(a.f.length-1,Math.max(0,Math.round((performance.now()-a.t0)/(1000/60))));
+  L.p=a.f[k][0];L.v=a.f[k][1];L.s=a.f[k][2];L.sv=0;clearTimeout(a.ned);try{a.a.cancel()}catch(e){}rita()};
+ // glid till fliken i: samma fjädrar räknade i förväg, lyft första halvan av vägen, sträckning efter farten
+ const glid=i=>{const pl=pill();if(!pl)return;cancelAnimationFrame(L.raf);L.raf=0;if(!L.w)L.w=pl.offsetWidth;
+  const R=.65,D=.8,k=(2*Math.PI/R)**2,c=4*Math.PI*D/R,ks=(2*Math.PI/.3)**2,cs=4*Math.PI*.6/.3,p0=L.p,f=[];let p=L.p,v=L.v,sl=L.s,sv=L.sv,ned=0;
+  for(let n=0;n<90;n++){const ts=Math.abs(p-p0)<Math.abs(i-p0)*.5?1:0;if(!ts&&!ned)ned=n;
+   for(let m=0;m<4;m++){const d=1/240;v+=(-k*(p-i)-c*v)*d;p+=v*d;sv+=(-ks*(sl-ts)-cs*sv)*d;sl+=sv*d}f.push([p,v,sl]);
+   if(n>12&&Math.abs(p-i)<.002&&Math.abs(v)<.02&&Math.abs(sl)<.004&&Math.abs(sv)<.03)break}
+  const kf=f.map(([p,v,sl])=>{const fart=Math.min(Math.abs(v*L.w)/2600,.28);return{transform:'translateX('+(p*L.w).toFixed(2)+'px) scale('+(1+.18*sl+fart).toFixed(4)+','+(1+.26*sl-fart*.45).toFixed(4)+')'}});
+  L.p=i;L.v=0;L.s=0;L.sv=0;L.ts=0;pl.style.scale='';pl.style.transform='translateX('+(i*L.w).toFixed(2)+'px)';
+  L.nav.classList.add('lyft');const a=pl.animate(kf,{duration:f.length*1000/60,easing:'linear'});
+  L.an={a,f,t0:performance.now(),ned:setTimeout(()=>{if(!L.dragar)L.nav.classList.remove('lyft')},(ned||f.length)*1000/60)};
+  a.onfinish=()=>{if(L.an&&L.an.a===a){L.an=null;rita()}}};
  return{
   // från renderNav: flytta till fliken i (eller rensa när UI 5.0 inte används)
   till(nav,i,dold){L.nav=nav;const pl=pill();if(!U5){if(L.p!=null){nav.classList.remove('fj','lyft');if(pl){pl.style.transform='';pl.style.scale=''}cancelAnimationFrame(L.raf);L.raf=0;L.p=null}return}
-   nav.classList.add('fj');if(L.dragar)return;L.t=i;L.R=.42;L.D=.78;if(L.p==null||dold||(pl&&!pl.style.transform)){L.p=i;L.v=0;L.w=0;rita();return}if(L.p!==i)kor()},
+   nav.classList.add('fj');if(L.dragar)return;if(L.an&&L.an.f.length&&Math.abs(L.p-i)<1e-6)return;fang();L.t=i;L.R=.42;L.D=.78;if(L.p==null||dold||(pl&&!pl.style.transform)){L.p=i;L.v=0;L.w=0;rita();return}if(Math.abs(L.p-i)>.01&&!lugn())glid(i);else if(L.p!==i)kor()},
+  // fingret trycker: linsen lyfts där den är
+  lyft(nav){L.nav=nav;fang();if(L.p==null)return;L.ts=1;nav.classList.add('lyft');kor()},
   // under draget: x i flikbredder (flytande), lyft = linsen är uppe
-  drag(nav,x,w){L.nav=nav;L.w=w;if(L.p==null)L.p=x;L.dragar=true;L.t=x;L.R=.17;L.D=.86;L.ts=1;nav.classList.add('lyft');kor()},
+  drag(nav,x,w){L.nav=nav;L.w=w;fang();if(L.p==null)L.p=x;L.dragar=true;L.t=x;L.R=.17;L.D=.86;L.ts=1;nav.classList.add('lyft');kor()},
   slapp(nav,j){L.dragar=false;L.t=j;L.R=.4;L.D=.7;L.ts=0;nav.classList.remove('lyft');kor()},
   stor(){L.w=0;if(L.p!=null&&!L.raf)rita()}}})();
 addEventListener('resize',()=>navLins.stor());
@@ -234,10 +251,11 @@ addEventListener('resize',()=>navLins.stor());
   return{w,f:Math.min(Math.max((x-r.left-l-w/2)/w,-.18),VIEWS.length-1+.18)}};
  const over=j=>nav.querySelectorAll('button').forEach((b,k)=>b.classList.toggle('over',k===j));
  nav.addEventListener('pointerdown',e=>{if(e.button>0||nav.classList.contains('mini')||U4&&matchMedia('(min-width:900px)').matches)return;st={x0:e.clientX,id:e.pointerId,moved:false,a:[],j:-1};
-  if(U5&&!nav.classList.contains('none')){const q=lins(e.clientX);u5Fart.add(st.a,q.f*q.w);navLins.drag(nav,q.f,q.w)}});
+  if(U5&&!nav.classList.contains('none'))navLins.lyft(nav)});
  nav.addEventListener('pointermove',e=>{if(!st||e.pointerId!==st.id)return;
-  if(U5&&!nav.classList.contains('none')){const q=lins(e.clientX);u5Fart.add(st.a,q.f*q.w);navLins.drag(nav,q.f,q.w);
+  if(U5&&!nav.classList.contains('none')){const q=lins(e.clientX);u5Fart.add(st.a,q.f*q.w);
    if(!st.moved){if(Math.abs(e.clientX-st.x0)<6)return;st.moved=true;nav.classList.add('drag');try{nav.setPointerCapture(e.pointerId)}catch(_){}}
+   navLins.drag(nav,q.f,q.w);
    const j=Math.round(Math.min(Math.max(q.f,0),VIEWS.length-1));if(j!==st.j){if(st.j>=0)u5Tick();st.j=j;over(j)}return}
   if(!st.moved){if(Math.abs(e.clientX-st.x0)<8)return;st.moved=true;nav.classList.add('drag');try{nav.setPointerCapture(e.pointerId)}catch(_){}}
   const p=at(e.clientX);nav.style.setProperty('--dx',p.dx+'px');over(p.j)});
