@@ -10,6 +10,8 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 ## Pågår nu
 
+- **Återställ borttagna uppgifter** (Claude, gren `claude/project-thread-ux66an`, förslag väntar på Henriks ok/"Pusha"). Borttagen öppen uppgift ger Ångra i 5 s och hamnar i "Nyligen borttagna" (ruta U12) under Klara i 30 dagar, sparad per enhet i `ht.taskBort` (`tBort*` i app.js). Återställ = `taskAdd` med samma titel/datum/person/upprepning, ingen Kod.gs-ändring. Klara uppgifter sparas inte. Test `verktyg/emu/uppgift-aterstall.js` (OK, även `LS={"ui":"5"}`); alla-flikar telefon+vägg utan PAGEERROR. Nästa steg: version.js + publicera efter "Pusha".
+
 - Inget pågående. **UI 5.0 (Apple)** publicerad i ht-v257 som val (Inställningar → Utseende → Design; `ht.ui=5`, `U5`, CSS bara under `html.ny.ui5` sist i `<style>`). Plan/beslut: Claude Doc "Apple-känsla: genomgång och plan". Tester: `verktyg/emu/ui5.js`, `ui5-navigering.js` (svep tillbaka, dra ned, svep på uppgift), alla-flikar med `LS={"ui":"5"}`. UI 2.0 är fortfarande standard.
 - Inget. Senast publicerat: Städvyn kan väljas som Lista (standard), Rutnät eller Ring under Inställningar → Mat och städ (`ht.stadVy`, `stadRutnat`/`stadRing` i app.js, CSS `.sx-*`). Test: `NOW=<idag> node verktyg/emu/run.js verktyg/emu/stad-vyer.js` (emulerade servern sätter lastDone med riktigt datum).
 

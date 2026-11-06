@@ -513,6 +513,13 @@ function cdelCommit(){if(!CDEL.item)return;clearTimeout(CDEL.t);const id=CDEL.it
 function cdelStart(t){delCommit();cdelCommit();fdelCommit();CDEL.list=D().clean.slice();CDEL.item=t;S.data.clean=D().clean.filter(x=>x.id!==t.id);render();
  const u=document.getElementById('undo');u.querySelector('.ud-t').textContent=t.title+' togs bort';u.querySelector('.ud-b').dataset.act='cleanDelUndo';u.hidden=false;CDEL.t=setTimeout(cdelCommit,5000)}
 function undoHide(){const u=document.getElementById('undo');if(u)u.hidden=true}
+// Borttagna uppgifter sparas i den här enheten i 30 dagar (ht.taskBort) och kan återställas under Klara, eller direkt med Ångra
+function tBort(){const g=parseJ(lsGet('taskBort'),[]),gr=addDays(today(),-30);return Array.isArray(g)?g.filter(x=>x&&x.k&&x.title&&x.at>=gr):[]}
+function tBortSpara(x){const k='b'+Date.now().toString(36),l=tBort();l.unshift({k,title:x.title,due:x.due||'',who:x.who||'',repeat:x.repeat||'',at:today()});lsSet('taskBort',JSON.stringify(l.slice(0,30)));return k}
+function tBortVisa(x,k){delCommit();cdelCommit();fdelCommit();const u=document.getElementById('undo'),b=u.querySelector('.ud-b');u.querySelector('.ud-t').textContent=x.title+' togs bort';b.dataset.act='taskBortUndo';b.dataset.id=k;u.hidden=false;
+ clearTimeout(tBortVisa.t);tBortVisa.t=setTimeout(()=>{if(b.dataset.act==='taskBortUndo')undoHide()},5000)}
+function tBortAter(k){const l=tBort(),x=l.find(y=>y.k===k);if(!x)return;lsSet('taskBort',JSON.stringify(l.filter(y=>y!==x)));A.user=Date.now();undoHide();
+ D().tasks.push({id:'tmp'+Date.now(),done:false,title:x.title,due:x.due,who:x.who,note:'',source:'egen',repeat:x.repeat});apiPost({action:'taskAdd',title:x.title,due:x.due,who:x.who,repeat:x.repeat});render();toast(x.title+' är tillbaka')}
 addEventListener('visibilitychange',()=>{if(document.hidden){delCommit();cdelCommit();fdelCommit()}});
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>t.hidden=true,2800)}
 // Kalkylarket vägrar ta bort sista raden under rubriken. En dold egen rad i Inköp gör att fliken aldrig töms helt.
@@ -2183,6 +2190,7 @@ V.uppgifter=function(){
  h+='</div><div class="col">';
  if(done.length)h+='<details data-k="done"'+(S.open.done||S.confirm==='clearTasks'?' open':'')+'><summary class="sh"><span>Klara ('+done.length+')</span></summary>'+rgroup('U3',done.map(taskRow).join(''))+
   '<div class="pills" style="padding:12px 16px 0 24px">'+(S.confirm==='clearTasks'?'<span class="sub">Ta bort alla klara?</span><button class="tb red strong" data-act="clearTasksYes">Ja, ta bort</button><button class="tb" data-act="confirmNo">Avbryt</button>':'<button class="tb red" data-act="clearTasks">Rensa klara</button>')+'</div></details>';
+ const bl=tBort(),ig=addDays(t,-1);if(bl.length)h+='<details data-k="bort"'+(S.open.bort?' open':'')+'><summary class="sh"><span>Nyligen borttagna ('+bl.length+')</span></summary>'+rgroup('U12',bl.map(x=>'<div class="cell tbort"><div class="grow"><div class="title">'+esc(x.title)+'</div><div class="meta"><span>Borttagen '+esc(x.at===t?'idag':x.at===ig?'i går':dateShort(x.at))+'</span>'+(repName(x.repeat)?'<span class="chip">↻ '+esc(repName(x.repeat))+'</span>':'')+(x.who?personChip(x.who):'')+'</div></div><button type="button" class="tb" data-act="taskBortUndo" data-id="'+esc(x.k)+'">Återställ</button></div>').join(''))+'<p class="sub" style="padding:8px 24px 0">Sparas i 30 dagar på den här enheten.</p></details>';
  return h+'</div></div>'};
 /* Kalender: månadsöversikt med kalenderhändelser (fliken Händelser) och uppgifter,
    och under den allt som händer den valda dagen */
@@ -4563,7 +4571,8 @@ const ACT={
  taskMove(id,el){const v=addDays(today(),Number(el.dataset.d)||0);A.user=Date.now();mutate('tasks',id,{due:v});apiPost({action:'taskEdit',id,fields:{due:v}});toast(v===today()?'Flyttad till idag':'Flyttad till i morgon')},
  taskDel(id){const x=S.edit&&D().tasks.find(t=>t.id===S.edit.id);closeSheets();S.confirm=null;if(!x){render();return}A.user=Date.now();
   if(id==='once'&&repName(x.repeat)){const nd=nextDue(x.due,x.repeat,today());mutate('tasks',x.id,{due:nd});apiPost({action:'taskToggle',id:x.id,done:true});toast('Hoppar över den här gången. Nästa gång '+(nd===addDays(today(),1)?'i morgon':dateShort(nd)));return}
-  apiPost({action:'taskDelete',id:x.id});S.data.tasks=D().tasks.filter(t=>t!==x);render();toast('Uppgiften är borttagen')},
+  apiPost({action:'taskDelete',id:x.id});S.data.tasks=D().tasks.filter(t=>t!==x);const k=x.done?'':tBortSpara(x);render();if(k)tBortVisa(x,k);else toast('Uppgiften är borttagen')},
+ taskBortUndo(id){tBortAter(id)},
  evEdit(id){const e=D().events[Number(id)];if(!e)return;S.edit=Object.assign({},e);S.confirm=null;S.sheet='evEdit';render()},
  evDelAsk(){S.confirm='delEv';render()},
  evDel(id){const e=S.edit;closeSheets();S.confirm=null;if(!e){render();return}A.user=Date.now();const all=id==='all';
