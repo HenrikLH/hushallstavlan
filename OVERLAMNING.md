@@ -10,6 +10,7 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 ## Pågår nu
 
+- **Apple-lika svepgester (UI 5.0)** – Claude, gren `claude/project-thread-5ks21x`, förslag väntar på Henriks ok. Tillbaka-svep från kanten eller var som helst på en undersida, sidan under syns med parallax, beslut efter projicerad fart (UIKit-formeln, `u5Fart`), fjäder med fingrets fart (`u5Fjader`), fångas om man rör igen. Scrollen återställs vid tillbaka. Dra ned har iOS-gummiband + knack i iPhone (`u5Tick`). Undermenysvep och blad i UI 5.0 avgörs också av fart. Bara `U5`; UI 2.0 oförändrad. Test: `LS='{"ui":"5"}' node verktyg/emu/run.js verktyg/emu/ui5-gester.js`. Nästa: Henrik provar i iPhone (känslan går inte att mäta i Chromium).
 - Inget pågående. **UI 5.0 (Apple)** publicerad i ht-v257 som val (Inställningar → Utseende → Design; `ht.ui=5`, `U5`, CSS bara under `html.ny.ui5` sist i `<style>`). Plan/beslut: Claude Doc "Apple-känsla: genomgång och plan". Tester: `verktyg/emu/ui5.js`, `ui5-navigering.js` (svep tillbaka, dra ned, svep på uppgift), alla-flikar med `LS={"ui":"5"}`. UI 2.0 är fortfarande standard.
 - Inget. Senast publicerat: Städvyn kan väljas som Lista (standard), Rutnät eller Ring under Inställningar → Mat och städ (`ht.stadVy`, `stadRutnat`/`stadRing` i app.js, CSS `.sx-*`). Test: `NOW=<idag> node verktyg/emu/run.js verktyg/emu/stad-vyer.js` (emulerade servern sätter lastDone med riktigt datum).
 

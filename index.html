@@ -2788,6 +2788,11 @@ html.ny.ui5 .u5-ptr{display:grid;place-items:center;position:fixed;z-index:30;le
 html.ny.ui5 .u5-ptr i{width:18px;height:18px;border-radius:50%;border:2.2px solid var(--ink-3);border-top-color:var(--ink-2)}
 html.ny.ui5 .u5-ptr.klar i{border-top-color:var(--accent)}
 html.ny.ui5 .u5-ptr.snurrar i{animation:u5spin .8s linear infinite}
+/* UI 5.0: lagren bakom och framför en sida under tillbaka-svepet */
+.u5-lager,.u5-dim{display:none}
+html.ny.ui5 .u5-lager{display:block;position:fixed;inset:0;overflow:hidden;background:var(--bg);pointer-events:none;will-change:transform}
+html.ny.ui5 .u5-lager.topp{box-shadow:-1px 0 18px rgba(0,0,0,.14)}
+html.ny.ui5 .u5-dim{display:block;position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;will-change:opacity}
 @keyframes u5spin{to{transform:rotate(360deg)}}
 /* UI 5.0: en öppen del i Inställningar visas som en egen sida med tillbaka-länk och stor rubrik */
 html.ny.ui5 form[data-form="settings"]:has(.pref-section[open]) .pref-section:not([open]){display:none}
