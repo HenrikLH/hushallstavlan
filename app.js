@@ -147,7 +147,7 @@ const isFav=id=>bankRaw().some(x=>recipeRoot(x.id)===recipeRoot(id)&&x.fav);
 function kcalOf(id){const v=parseJ(settings().kcal,{})[recipeRoot(id)];if(v==null||v==='')return null;const n=Number(Array.isArray(v)?v[0]:v);return n>0?{n:Math.round(n)}:null}
 const ratings=()=>recipeAliases(parseJ(settings().betyg,{}));
 // Veckans efterrätt och låsta rätter ligger också i önskelistan (som {efter:1,...} och {las:1,...}) men är inga önskemål
-const wishes=()=>recipeWishes(parseJ(settings().onskelista,[])).filter(x=>x&&!x.efter&&!x.las&&!x.fod);
+const wishes=()=>recipeWishes(parseJ(settings().onskelista,[])).filter(x=>x&&!x.efter&&!x.las&&!x.fod&&!x.bort);
 function ratingOf(id){const x=ratings()[id];if(!x||!x.p)return null;const ps=Object.entries(x.p).filter(([,e])=>e&&e.s);if(!ps.length)return null;
  return{avg:ps.reduce((a,[,e])=>a+Number(e.s),0)/ps.length,people:ps,never:ps.some(([,e])=>e.v==='aldrig')}}
 const VERD={igen:'Laga igen',okej:'Okej',aldrig:'Aldrig mer'};
@@ -513,12 +513,13 @@ function cdelCommit(){if(!CDEL.item)return;clearTimeout(CDEL.t);const id=CDEL.it
 function cdelStart(t){delCommit();cdelCommit();fdelCommit();CDEL.list=D().clean.slice();CDEL.item=t;S.data.clean=D().clean.filter(x=>x.id!==t.id);render();
  const u=document.getElementById('undo');u.querySelector('.ud-t').textContent=t.title+' togs bort';u.querySelector('.ud-b').dataset.act='cleanDelUndo';u.hidden=false;CDEL.t=setTimeout(cdelCommit,5000)}
 function undoHide(){const u=document.getElementById('undo');if(u)u.hidden=true}
-// Borttagna uppgifter sparas i den här enheten i 30 dagar (ht.taskBort) och kan återställas under Klara, eller direkt med Ångra
-function tBort(){const g=parseJ(lsGet('taskBort'),[]),gr=addDays(today(),-30);return Array.isArray(g)?g.filter(x=>x&&x.k&&x.title&&x.at>=gr):[]}
-function tBortSpara(x){const k='b'+Date.now().toString(36),l=tBort();l.unshift({k,title:x.title,due:x.due||'',who:x.who||'',repeat:x.repeat||'',at:today()});lsSet('taskBort',JSON.stringify(l.slice(0,30)));return k}
+// Borttagna uppgifter sparas för hela hushållet i 30 dagar i onskelista som {bort:1,l:[{k,title,due,who,repeat,at,by}]} (ingen ny Kod.gs) och kan återställas under Klara, eller direkt med Ångra
+function tBort(){const o=parseJ(settings().onskelista,[]).find(x=>x&&x.bort),gr=addDays(today(),-30);return o&&Array.isArray(o.l)?o.l.filter(x=>x&&x.k&&x.title&&x.at>=gr):[]}
+function tBortSet(fn){A.user=Date.now();updJSON('onskelista',[],a=>{const gr=addDays(today(),-30),o=a.find(x=>x&&x.bort),l=fn((o&&Array.isArray(o.l)?o.l:[]).filter(x=>x&&x.k&&x.at>=gr)).slice(0,30);return a.filter(x=>!(x&&x.bort)).concat(l.length?[{bort:1,l}]:[])})}
+function tBortSpara(x){const k='b'+Date.now().toString(36);tBortSet(l=>[{k,title:String(x.title).slice(0,200),due:x.due||'',who:x.who||'',repeat:x.repeat||'',at:today(),by:S.me||''}].concat(l));return k}
 function tBortVisa(x,k){delCommit();cdelCommit();fdelCommit();const u=document.getElementById('undo'),b=u.querySelector('.ud-b');u.querySelector('.ud-t').textContent=x.title+' togs bort';b.dataset.act='taskBortUndo';b.dataset.id=k;u.hidden=false;
  clearTimeout(tBortVisa.t);tBortVisa.t=setTimeout(()=>{if(b.dataset.act==='taskBortUndo')undoHide()},5000)}
-function tBortAter(k){const l=tBort(),x=l.find(y=>y.k===k);if(!x)return;lsSet('taskBort',JSON.stringify(l.filter(y=>y!==x)));A.user=Date.now();undoHide();
+function tBortAter(k){const x=tBort().find(y=>y.k===k);if(!x)return;undoHide();tBortSet(l=>l.filter(y=>y.k!==k));
  D().tasks.push({id:'tmp'+Date.now(),done:false,title:x.title,due:x.due,who:x.who,note:'',source:'egen',repeat:x.repeat});apiPost({action:'taskAdd',title:x.title,due:x.due,who:x.who,repeat:x.repeat});render();toast(x.title+' är tillbaka')}
 addEventListener('visibilitychange',()=>{if(document.hidden){delCommit();cdelCommit();fdelCommit()}});
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>t.hidden=true,2800)}
@@ -2190,7 +2191,7 @@ V.uppgifter=function(){
  h+='</div><div class="col">';
  if(done.length)h+='<details data-k="done"'+(S.open.done||S.confirm==='clearTasks'?' open':'')+'><summary class="sh"><span>Klara ('+done.length+')</span></summary>'+rgroup('U3',done.map(taskRow).join(''))+
   '<div class="pills" style="padding:12px 16px 0 24px">'+(S.confirm==='clearTasks'?'<span class="sub">Ta bort alla klara?</span><button class="tb red strong" data-act="clearTasksYes">Ja, ta bort</button><button class="tb" data-act="confirmNo">Avbryt</button>':'<button class="tb red" data-act="clearTasks">Rensa klara</button>')+'</div></details>';
- const bl=tBort(),ig=addDays(t,-1);if(bl.length)h+='<details data-k="bort"'+(S.open.bort?' open':'')+'><summary class="sh"><span>Nyligen borttagna ('+bl.length+')</span></summary>'+rgroup('U12',bl.map(x=>'<div class="cell tbort"><div class="grow"><div class="title">'+esc(x.title)+'</div><div class="meta"><span>Borttagen '+esc(x.at===t?'idag':x.at===ig?'i går':dateShort(x.at))+'</span>'+(repName(x.repeat)?'<span class="chip">↻ '+esc(repName(x.repeat))+'</span>':'')+(x.who?personChip(x.who):'')+'</div></div><button type="button" class="tb" data-act="taskBortUndo" data-id="'+esc(x.k)+'">Återställ</button></div>').join(''))+'<p class="sub" style="padding:8px 24px 0">Sparas i 30 dagar på den här enheten.</p></details>';
+ const bl=tBort(),ig=addDays(t,-1);if(bl.length)h+='<details data-k="bort"'+(S.open.bort?' open':'')+'><summary class="sh"><span>Nyligen borttagna ('+bl.length+')</span></summary>'+rgroup('U12',bl.map(x=>'<div class="cell tbort"><div class="grow"><div class="title">'+esc(x.title)+'</div><div class="meta"><span>Borttagen '+esc((x.at===t?'idag':x.at===ig?'i går':dateShort(x.at))+(x.by?' av '+personLabel(x.by):''))+'</span>'+(repName(x.repeat)?'<span class="chip">↻ '+esc(repName(x.repeat))+'</span>':'')+(x.who?personChip(x.who):'')+'</div></div><button type="button" class="tb" data-act="taskBortUndo" data-id="'+esc(x.k)+'">Återställ</button></div>').join(''))+'<p class="sub" style="padding:8px 24px 0">Sparas i 30 dagar.</p></details>';
  return h+'</div></div>'};
 /* Kalender: månadsöversikt med kalenderhändelser (fliken Händelser) och uppgifter,
    och under den allt som händer den valda dagen */
@@ -4845,7 +4846,7 @@ function recipeLibrary(saved){const store=D().recipeStore,heads=store&&store.hea
  const source=bankRaw().concat(saved?[]:D().recipes);heads.forEach(h=>{const r=recipeGet(h.id);if(r)source.unshift(r)});
  source.forEach(r=>{const root=recipeRoot(r.id),h=recipeHead(root);if(seen.has(root)||h&&h.archived)return;seen.add(root);const v=recipeLatest(r),b=bankRaw().find(x=>recipeRoot(x.id)===root);out.push(Object.assign({},v,{fav:!!(b&&b.fav),savedAt:b&&b.savedAt||v.updatedAt||''}))});return out}
 function recipeAliases(o){recipeVersions().forEach(r=>{if(r._root&&o[r._root]!=null)o[r.id]=o[r._root]});return o}
-function recipeWishes(a){return a.map(x=>{const h=x&&x.id&&!x.efter&&!x.las&&!x.fod&&recipeHead(x.id);return h?Object.assign({},x,{id:h.id}):x})}
+function recipeWishes(a){return a.map(x=>{const h=x&&x.id&&!x.efter&&!x.las&&!x.fod&&!x.bort&&recipeHead(x.id);return h?Object.assign({},x,{id:h.id}):x})}
 function recipeChange(k,fn,o){if(k==='onskelista')return fn(recipeWishes(o));if(!['betyg','frekvens','kcal','receptlogg'].includes(k))return fn(o);o=fn(recipeAliases(o));const n={};Object.keys(o).forEach(id=>{n[recipeRoot(id)]=o[id]});return n}
 function recipeAllowed(){return !!(D().recipeStore&&D().recipeStore.schema===1)}
 function recipeClone(r){return JSON.parse(JSON.stringify(r))}
