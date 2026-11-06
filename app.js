@@ -4390,7 +4390,7 @@ function u5Sida(page,prev){const p=page.split('|'),o=prev.split('|'),push=u5Sub(
    if(!ok()){stada(s);g=null;return}g=Object.assign(s,{x0:t.clientX-x,y0:t.clientY,x,on:true,a:[]});u5Fart.add(g.a,x);satt(g,x);return}
   g=null;if(!ok())return;
   if(backBtn()&&(t.clientX<=24||fri(e.target)))g={x0:t.clientX,y0:t.clientY,kant:t.clientX<=24,on:false,a:[]};
-  if(scrollY<=0&&!e.target.closest('input,textarea,select,.dr-slide,.car,[data-motion-grip]'))pr={y0:t.clientY,x0:t.clientX,d:0,on:false}},{passive:true});
+  if(scrollY<=0&&!e.target.closest('input,textarea,select,.dr-slide,.car,[data-motion-grip],.ovcal:not(.expanded) .ovcal-week'))pr={y0:t.clientY,x0:t.clientX,d:0,on:false}},{passive:true});
  document.addEventListener('touchmove',e=>{const t=e.touches[0];
   if(g){const dx=t.clientX-g.x0,dy=t.clientY-g.y0;
    if(!g.on){if(g.kant&&e.cancelable&&dx>=Math.abs(dy))e.preventDefault();
@@ -4480,6 +4480,15 @@ window.addEventListener('pointerup',e=>{const d=motionDrag;if(!d||d.id!==e.point
 ['resize','blur','pagehide'].forEach(type=>window.addEventListener(type,motionAbort));
 window.addEventListener('click',e=>{const h=e.target.closest('[data-motion-grip]');if(!h)return;e.preventDefault();e.stopImmediatePropagation();if(h.dataset.motionSkip)return;A.touch=A.user=Date.now();h.dataset.motionGrip==='weather'?motionWeather(OVWX!=='graf'):h.dataset.motionGrip==='calendar'?motionCalendar(!S.ovCalOpen):motionBudget(!S.wsumOpen)},true);
 window.addEventListener('keydown',e=>{const h=e.target.closest('[data-motion-grip]');if(!h||!['ArrowDown','End','ArrowUp','Home'].includes(e.key))return;e.preventDefault();A.touch=A.user=Date.now();const open=['ArrowDown','End'].includes(e.key);h.dataset.motionGrip==='weather'?motionWeather(open):h.dataset.motionGrip==='calendar'?motionCalendar(open):motionBudget(open)},true);
+// Dra ned i Schemas veckorad: månaden fälls ut precis som när man drar i handtaget. Sidled bläddrar veckor som förut.
+(()=>{let c=null,tyst=0;
+ document.addEventListener('touchstart',e=>{c=null;const w=e.touches.length===1&&!motionDrag&&e.target.closest('.ovcal:not(.expanded) .ovcal-week');if(!w)return;const t=e.touches[0];c={el:w.closest('.ovcal'),x0:t.clientX,y0:t.clientY,m:null}},{passive:true});
+ document.addEventListener('touchmove',e=>{if(!c)return;const t=e.touches[0],dx=t.clientX-c.x0,dy=t.clientY-c.y0;
+  if(!c.m){if(dy<=0||Math.abs(dx)>=dy||!c.el.isConnected){c=null;return}c.m=motionCalendarBegin(c.el);c.s=motionScale(c.el)}
+  if(e.cancelable)e.preventDefault();A.touch=A.user=Date.now();c.m.set(Math.max(0,dy)/c.s/c.m.range)},{passive:false});
+ const end=e=>{const d=c;c=null;if(!d||!d.m)return;tyst=Date.now();motionCalendar(e.type!=='touchcancel'&&d.m.p>=.25)};
+ document.addEventListener('touchend',end);document.addEventListener('touchcancel',end);
+ window.addEventListener('click',e=>{if(Date.now()-tyst<400&&e.target.closest('.ovcal')){e.preventDefault();e.stopImmediatePropagation()}},true)})();
 
 function flipClock(c,txt){if(c.dataset.v===txt)return;const old=c.dataset.v||'';c.dataset.v=txt;
  if(!old||calm()){c.textContent=txt;return}
