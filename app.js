@@ -62,15 +62,17 @@ const I={
 // Översikt ligger i mitten av flikraden
 const I_EKO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10h18M16.5 14.5h1.5"/></svg>';
 // Inköp ligger under Mat; Ekonomi har fått dess plats i flikraden
-const VIEWS=[['mat','Mat',I.fork],['ekonomi','Ekonomi',I_EKO],['oversikt','Översikt',I.home],['uppgifter','Uppgifter',I.list],['stad','Städ',I.sparkles]];
-const VIEW_IDS=VIEWS.map(v=>v[0]).concat(['vader','fod']);
+// Förslag (ht.navf): a = fliken heter Kalender, b = egen kalenderflik och Uppgifter+Städ ihop, c = kalendern öppnas från Översikt
+const NAVF=['a','b','c'].includes(lsGet('navf'))?lsGet('navf'):'';
+const VIEWS=NAVF==='a'?[['mat','Mat',I.fork],['ekonomi','Ekonomi',I_EKO],['oversikt','Översikt',I.home],['uppgifter','Kalender',I.cal],['stad','Städ',I.sparkles]]:NAVF==='b'?[['mat','Mat',I.fork],['ekonomi','Ekonomi',I_EKO],['oversikt','Översikt',I.home],['kalender','Kalender',I.cal],['uppgifter','Att göra',I.list]]:[['mat','Mat',I.fork],['ekonomi','Ekonomi',I_EKO],['oversikt','Översikt',I.home],['uppgifter','Uppgifter',I.list],['stad','Städ',I.sparkles]];
+const VIEW_IDS=VIEWS.map(v=>v[0]).concat(['vader','fod'],NAVF==='b'?['stad']:NAVF==='c'?['kalender']:[]);
 const OLD_VIEWS={matsedel:'vecka',recept:'recept',inkop:'inkop'};
 
 /* ---------- state ---------- */
 const CFG=window.HT_CONFIG||{};
 const S={hj:new Set(),theme:['light','dark'].includes(lsGet('theme'))?lsGet('theme'):'system',key:lsGet('key')||'',me:lsGet('me')||'',view:lsGet('view')||'oversikt',wall:lsGet('wall')==='1',
  data:null,sync:'idle',lastSync:null,error:'',recipe:null,scale:{},cook:null,shopClosed:{},shopAdd:false,taskAdd:false,
- sheet:null,confirm:null,timers:[],pending:0,step:{},matTab:['recept','bank','efter','inkop'].includes(lsGet('matTab'))?lsGet('matTab'):'vecka',taskTab:lsGet('taskTab')==='kalender'?'kalender':'lista',calDay:null,calMonth:null,ovDay:null,taskDue:'',bankFilter:'alla',rate:null,open:{}};
+ sheet:null,confirm:null,timers:[],pending:0,step:{},matTab:['recept','bank','efter','inkop'].includes(lsGet('matTab'))?lsGet('matTab'):'vecka',taskTab:NAVF==='c'?'lista':lsGet('taskTab')==='kalender'||NAVF==='a'&&!lsGet('taskTab')?'kalender':'lista',calDay:null,calMonth:null,ovDay:null,taskDue:'',bankFilter:'alla',rate:null,open:{}};
 try{const c=lsGet('cache');if(c)S.data=JSON.parse(c)}catch(e){}
 // Gamla vyer (Matsedel, Recept) ligger nu i fliken Mat
 function normView(id){if(OLD_VIEWS[id]){S.matTab=OLD_VIEWS[id];lsSet('matTab',S.matTab);return'mat'}return id}
@@ -189,7 +191,7 @@ function addToBank(r,quiet,fav){if(!r||inBank(r.id))return false;const snap=bank
 function renderNav(nav){
  const ui=U4?'4':String(U3);if(nav.dataset.ui!==ui){nav.innerHTML='';nav.dataset.ui=ui}
  if(!nav.querySelector('.nav-pill'))nav.innerHTML='<div class="brand" aria-hidden="true">'+(U4?'Hushållstavlan':'Hemma')+'</div><div class="nav-pill" aria-hidden="true"></div>'+VIEWS.map(([id,l,ic])=>'<button data-act="nav" data-id="'+id+'">'+ic+'<span>'+(U3&&id==='oversikt'?'Idag':l)+'</span></button>').join('')+'';
- const i=VIEW_IDS.indexOf(S.view);
+ const i=VIEW_IDS.indexOf(NAVF==='b'&&S.view==='stad'?'uppgifter':NAVF==='c'&&S.view==='kalender'?'oversikt':S.view);
  nav.querySelectorAll('button').forEach((b,j)=>j===i?b.setAttribute('aria-current','page'):b.removeAttribute('aria-current'));
  // Ekonomi ligger inte i flikraden på telefon; då visas ingen markering där
  nav.classList.toggle('none',i<0||i>=VIEWS.length);nav.style.setProperty('--i',Math.max(0,Math.min(i,VIEWS.length-1)));
@@ -2173,9 +2175,12 @@ async function uploadPhoto(id,file){const r=recipeById(id);if(!r||!file)return;i
 V.uppgifter=function(){
  const t=today(),d=D(),open=d.tasks.filter(x=>!x.done),done=d.tasks.filter(x=>x.done);
  const g=[['Försenade',open.filter(x=>isDate(x.due)&&x.due<t)],['Idag',open.filter(x=>x.due===t)],['Kommande',open.filter(x=>isDate(x.due)&&x.due>t).sort((a,b)=>a.due.localeCompare(b.due))],['Utan datum',open.filter(x=>!isDate(x.due))]];
- let h=head('Uppgifter',{sub:open.length+' att göra',tools:'<button class="ib plus" data-act="taskAdd" aria-label="Ny uppgift">'+I.plus+'</button>'});
- h+=segc('Visa','taskTab',[['lista','Lista'],['kalender','Kalender']],S.taskTab);
- if(S.taskTab==='kalender')return h+calView();
+ const plus='<button class="ib plus" data-act="taskAdd" aria-label="Ny uppgift">'+I.plus+'</button>';
+ let h=head(NAVF==='a'?'Kalender':NAVF==='b'?'Att göra':'Uppgifter',{sub:NAVF==='a'&&S.taskTab==='kalender'?'':open.length+' att göra',tools:plus});
+ if(NAVF==='a')h+=segc('Visa','taskTab',[['kalender','Kalender'],['lista','Att göra']],S.taskTab);
+ else if(NAVF==='b')h+=segc('Visa','taskTab',[['lista','Uppgifter'],['stad','Städ']],'lista');
+ else if(NAVF!=='c')h+=segc('Visa','taskTab',[['lista','Lista'],['kalender','Kalender']],S.taskTab);
+ if(NAVF!=='c'&&S.taskTab==='kalender')return h+calView();
  h+='<form class="add-row"'+RF('U1')+' data-form="taskQuick"><input class="field" name="title" placeholder="Ny uppgift" aria-label="Ny uppgift" autocomplete="off" enterkeyhint="done"><button type="button" class="add-go" data-act="quickGo" data-alt="taskAdd" aria-label="Lägg till">'+I.plus+'</button></form>';
  h+='<div class="split"><div class="col">';
  const td=g.filter(([,xs])=>xs.length).map(([l,xs])=>gh(l,xs.length,l==='Försenade'?'red':'')+xs.map(taskRow).join('')).join('');if(td)h+='<div class="g-one">'+rgroup('U2',td)+'</div>';
@@ -2331,9 +2336,12 @@ function orkSlider(B){const i=orkIndex(B),o=ORK[i];
  return sh('Hur mycket ork har ni idag?','<span class="num">'+o.min+' min</span>')+'<div class="ork-seg"'+RF('S2')+'>'+segc('Dagens ork','orkPick',ORK.map((x,k)=>[String(k),x.name.replace(' ork','')]),String(i))+'</div><div class="foot">Gäller bara idag. I morgon börjar det om på '+tomorrowDefault()+' min.</div>'}
 function tomorrowDefault(){const wd=parse(addDays(today(),1)).getDay(),st=settings();return(wd===0||wd===6)?Number(st.stadtid_helg||40):Number(st.stadtid_vardag||20)}
 const menuSel=(attrs,opts)=>'<span class="menu"><select '+attrs+'>'+opts+'</select></span>';
+V.kalender=function(){const back=NAVF==='c'?'<div class="rcp-top"><button class="back" data-act="nav" data-id="oversikt">'+I.back+'Översikt</button></div>':'';
+ return back+head('Kalender',{tools:'<button class="ib plus" data-act="taskAdd" aria-label="Ny uppgift">'+I.plus+'</button>'})+calView()};
 V.stad=function(){
  const cp=cleanPlan(),all=D().clean,vy=all.length?stadVy():'lista',nu=vy==='lista'?null:stadIdag(cp);
- let h=head('Städ',{sub:vy==='ring'?cap(dateLong(today())):vy==='rutnat'?nu.minLeft+' min kvar idag':'Lite varje dag, så slipper ni storstäda'});
+ let h=head(NAVF==='b'?'Att göra':'Städ',{sub:vy==='ring'?cap(dateLong(today())):vy==='rutnat'?nu.minLeft+' min kvar idag':'Lite varje dag, så slipper ni storstäda'});
+ if(NAVF==='b')h+=segc('Visa','taskTab',[['lista','Uppgifter'],['stad','Städ']],'stad');
  h+='<form class="add-row"'+RF('S1')+' data-form="cleanQuick" data-room=""><input class="field" name="title" placeholder="Ny syssla" aria-label="Ny syssla" autocomplete="off" enterkeyhint="done"><button type="button" class="add-go" data-act="quickGo" data-alt="cleanFocus" aria-label="Lägg till">'+I.plus+'</button></form>';
  if(!all.length)return h+'<div style="height:22px"></div>'+rgroup('S11',emptyCell('Städschemat är tomt. Lägg till sysslor under rummen nedan.'))+cleanAll(all,true);
  if(vy!=='lista')return h+(vy==='rutnat'?stadRutnat(cp,all,nu):stadRing(cp,all,nu));
@@ -4538,11 +4546,11 @@ const ACT={
  clearShopYes(){S.confirm=null;leaveAnim('shopToggle',D().shop.filter(i=>i.done),()=>{S.data.shop=D().shop.filter(i=>!i.done);render();apiPost({action:'shopClearDone'})})},
  confirmNo(){S.confirm=null;render()},
  taskList(){S.taskTab='lista';lsSet('taskTab','lista');ACT.nav('uppgifter')},
- taskTab(id){S.taskTab=id==='kalender'?'kalender':'lista';lsSet('taskTab',S.taskTab);render()},
+ taskTab(id){if(NAVF==='b'){ACT.nav(id==='stad'?'stad':'uppgifter');return}S.taskTab=id==='kalender'?'kalender':'lista';lsSet('taskTab',S.taskTab);render()},
  calDay(id){S.calDay=id;S.calMonth=ymKey(id);render()},
  ovDay(id){S.ovDay=id;if(S.ovCalOpen)S.ovCalMonth=id.slice(0,7);render()},
  ovMonth(id){const d=parse((S.ovCalMonth||(S.ovDay||today()).slice(0,7))+'-01');d.setMonth(d.getMonth()+Number(id));S.ovCalMonth=ymd(d).slice(0,7);render()},
- calOpen(id){S.taskTab='kalender';lsSet('taskTab','kalender');S.calDay=id||today();S.calMonth=ymKey(S.calDay);ACT.nav('uppgifter')},
+ calOpen(id){S.calDay=id||today();S.calMonth=ymKey(S.calDay);if(NAVF==='b'||NAVF==='c'){ACT.nav('kalender');return}S.taskTab='kalender';lsSet('taskTab','kalender');ACT.nav('uppgifter')},
  calMonth(id,el){const[y,m]=(S.calMonth||ymKey(S.calDay||today())).split('-').map(Number),d=new Date(y,m-1+Number(el.dataset.d),1);S.calMonth=d.getFullYear()+'-'+pad(d.getMonth()+1);render()},
  calVy(id){motionCalBefore();S.calVy=['dag','vecka','manad'].includes(id)?id:'manad';lsSet('calVy',S.calVy);render()},
  calDayVy(id){motionCalBefore(id);S.calDay=id;S.calMonth=ymKey(id);S.calVy='dag';lsSet('calVy','dag');render()},
