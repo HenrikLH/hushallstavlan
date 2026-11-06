@@ -29,5 +29,10 @@ module.exports=async(pg,h)=>{
  const k=await pg.$('[data-act="arrangeDone"]');if(k){await k.click({force:true});await h.idle(500)}else fel('Klar saknas');
  // ladda om: sparad ordning ska finnas kvar
  await pg.reload();await h.idle(2000);{await pg.click('[data-act="nav"][data-id="oversikt"]');await h.idle(800)}
- console.log('efter omladdning: '+await ordning());
+ const sparad=await ordning();console.log('efter omladdning: '+sparad);
+ // Avbryt: flytta igen men ångra, då ska den sparade ordningen vara kvar
+ const f2=sparad.split(',');await dra(f2[0],f2[1]);const mitt=await ordning();console.log('utkast: '+mitt+' · '+await pg.evaluate(()=>(document.querySelector('.arr-st')||{}).textContent));
+ if(mitt===sparad)fel('andra flytten gick inte');const av=await pg.$('[data-act="arrangeCancel"]');if(!av)return fel('Avbryt saknas');await av.evaluate(e=>e.click());await h.idle(500);
+ const ef=await ordning();console.log('efter Avbryt: '+ef);if(ef!==sparad)fel('Avbryt lade inte tillbaka ordningen');
+ await pg.reload();await h.idle(2000);await pg.click('[data-act="nav"][data-id="oversikt"]');await h.idle(800);if(await ordning()!==sparad)fel('utkastet sparades trots Avbryt');
 };

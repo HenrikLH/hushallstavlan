@@ -302,7 +302,7 @@ let fitScrollbar=()=>{},hideCursor=()=>{};
 (function(){const touch=()=>{const was=nightOn();A.touch=Date.now();if(was&&S.view==='oversikt')render()};
  document.addEventListener('pointerdown',touch,true);
  setInterval(()=>{if(!S.wall||motionDrag||sheetDrag)return;const idle=Date.now()-(A.touch||0)>120000;
-  if(idle&&S.arrange){S.arrange=false;render()}
+  if(idle&&S.arrange){arrCancel();render()}
   if(idle&&(S.view!=='oversikt'||S.sheet||S.shopAdd||S.taskAdd||S.recipe||window.scrollY>0)&&!S.cook){closeSheets();S.recipe=null;ACT.nav('oversikt')}
   else if(S.view==='oversikt'&&document.body.classList.contains('is-night')!==nightOn())render();
   autoTheme()},20000)})();
@@ -483,7 +483,7 @@ let camN=0;setInterval(()=>{if(KAL)return;if(CAM.src==='als'&&!ALS||++camN%60===
   stop();x=e.clientX;y=e.clientY;const id=b.dataset.box,was=S.arrange;pid=id;mouse=e.pointerType!=='touch';
   // i ändra-läget räcker en kort stund, annars en längre så att vanliga tryck och scroll fungerar som förut
   if(!was){LPB=b;LPW=setTimeout(()=>{if(lp)hlOn(b,510,1.02)},90)}
-  lp=setTimeout(()=>{lp=0;LPB=null;if(!was){S.arrange=true;doRender()}start(id,x,y)},was?180:600)});
+  lp=setTimeout(()=>{lp=0;LPB=null;if(!was){arrOn();doRender()}start(id,x,y)},was?180:600)});
  // med mus (och väggskärmens pekskärm) börjar dragningen direkt när man rör sig i ändra-läget
  addEventListener('pointermove',e=>{if(G){move(e.clientX,e.clientY);return}if(!lp||Math.hypot(e.clientX-x,e.clientY-y)<=(S.arrange&&mouse?4:9))return;stop();if(S.arrange&&mouse){start(pid,x,y);if(G)move(e.clientX,e.clientY)}});
  addEventListener('pointerup',()=>{stop();if(G)end()});addEventListener('pointercancel',()=>{stop();if(G)end()});
@@ -819,10 +819,17 @@ function boxRow(list,wall,html,L){let out='',i=0;const n=list.length,H=id=>L.siz
   if(wall&&H(a)){const two=b&&H(b);out+='<div class="wpair"'+(two&&!(a==='inkop'&&b==='fod')?' style="grid-template-columns:1fr 1fr"':'')+'>'+boxify(a,html[a],wall,L)+(two?boxify(b,html[b],wall,L):'<div></div>')+'</div>';i+=two?2:1;continue}
   out+=boxify(a,html[a],wall,L);i++}
  return out}
+// Ändra-läget är ett utkast: ändringarna syns direkt men sparas först med Klar. Avbryt (eller att lämna Översikt) lägger tillbaka den gamla ordningen.
+let ARR0=null;
+const layoutKey=wall=>(wall?'wallLayout':'ovLayout')+(expOn()?'X':U4?'4':U3?'3':'Ny');
+function arrOn(){if(S.arrange)return;const k=layoutKey(wallBoardOn());ARR0={k,v:lsGet(k)};S.arrange=true}
+const arrChanged=()=>!!ARR0&&lsGet(ARR0.k)!==ARR0.v;
+function arrCancel(){if(ARR0)lsSet(ARR0.k,ARR0.v);ARR0=null;S.arrange=false;S.xsz=null}
 function arrangeFoot(L,wall){if(!S.arrange)return'';
- const hid=L.hidden.map(id=>'<button type="button" class="pill" data-act="boxShow" data-id="'+id+'">'+I.plus+BOX[id]+'</button>').join('');
- return'<div class="arr-foot" role="toolbar" aria-label="Ändra ordning"><div class="arr-hid">'+(hid?'<span class="muted">Dolda:</span>'+hid:'<span class="muted">Inga dolda rutor</span>')+'</div>'+
-  '<button type="button" class="tb" data-act="boxReset">Återställ</button><button type="button" class="btn-fill" data-act="arrangeDone">Klar</button></div>'}
+ const hid=L.hidden.map(id=>'<button type="button" class="pill" data-act="boxShow" data-id="'+id+'">'+I.plus+BOX[id]+'</button>').join(''),ch=arrChanged();
+ return'<div class="arr-foot" role="toolbar" aria-label="Ändra ordning">'+(hid?'<div class="arr-hid"><span class="muted">Dolda:</span>'+hid+'</div>':'')+
+  '<div class="arr-btns"><button type="button" class="tb" data-act="arrangeCancel">Avbryt</button><span class="arr-st muted">'+(ch?'Inte sparat än':'Inga ändringar')+'</span>'+
+  '<button type="button" class="tb" data-act="boxReset">Återställ</button><button type="button" class="btn-fill" data-act="arrangeDone">Klar</button></div></div>'}
 /* ---------- Widgets i tre storlekar (Experimentellt, bara i utvecklarläget) ----------
    Som hemskärmens widgets i en mobil: varje ruta finns som Liten, Mellan och Stor och visar mer ju större den är.
    Telefonen: rutnät med fyra spalter, Liten 2×2, Mellan 4×2, Stor 4×4. Väggen: 4×4 rutor bredvid klockan, Liten 1, Mellan 2, Stor 4.
@@ -4450,7 +4457,7 @@ const ACT={
  smileyQuick(id,el){const v=Number(el.dataset.v)||0;A.user=Date.now();saveSmiley(id,el.dataset.date,v);markCooked(id,el.dataset.date);toast(v>0?'Vad bra! Rätten kommer tillbaka lite oftare':v<0?'Noterat. Rätten kommer tillbaka mer sällan':'Tack!')},
  smileySkip(id,el){A.user=Date.now();saveSmiley(id,el.dataset.date,'x');toast('Okej, den räknas inte som lagad')},
  wakeBoard(){render()},
- nav(id){if(RC.busy){toast('Vänta tills receptbegäran är klar.');return}if(RC.screen&&RC.edit&&RC.edit.dirty){RC.leaveTo=id;recipeLeave();S.view='mat';return}if(RC.screen)RC.screen=null;if(id!=='oversikt')S.arrange=false;if(normView(id)!=='ekonomi'){S.ekoOpen=false;S.pin=''}try{document.activeElement&&document.activeElement.blur()}catch(e){}id=normView(id);S.shopAdd=false;S.taskAdd=false;S.view=id;S.recipe=null;S.confirm=null;lsSet('view',id);try{history.replaceState(null,'','#'+id)}catch(e){}window.scrollTo(0,0);render()},
+ nav(id){if(RC.busy){toast('Vänta tills receptbegäran är klar.');return}if(RC.screen&&RC.edit&&RC.edit.dirty){RC.leaveTo=id;recipeLeave();S.view='mat';return}if(RC.screen)RC.screen=null;if(id!=='oversikt')arrCancel();if(normView(id)!=='ekonomi'){S.ekoOpen=false;S.pin=''}try{document.activeElement&&document.activeElement.blur()}catch(e){}id=normView(id);S.shopAdd=false;S.taskAdd=false;S.view=id;S.recipe=null;S.confirm=null;lsSet('view',id);try{history.replaceState(null,'','#'+id)}catch(e){}window.scrollTo(0,0);render()},
  refresh(){refresh()},
  settings(){if(S.sheet!=='farg')S.prefDraft=null;S.sheet='settings';render()},
  farg(){rememberSettings();S.sheet='farg';render()},
@@ -4479,14 +4486,15 @@ const ACT={
  hundar(id){HUNDAR=['bada','brun','svart'].includes(id)?id:'vaxla';lsSet('hundar',HUNDAR==='vaxla'?null:HUNDAR);S.wxVar=null;render()},
  accMin(){ACT.accent(accentPref()==='min'?accentKey():'min')},
  accent(id){if(U4){const k=id==='min'||colOk(id)?id:'lavendel';lsSet('accent4',k==='lavendel'?null:k)}else{ACCENT=id==='min'||colOk(id)?id:'vinrod';lsSet('accent',ACCENT==='vinrod'?null:ACCENT)}render()},
- arrange(){closeSheets();S.arrange=true;ACT.nav('oversikt')},
- arrangeDone(){S.arrange=false;S.xsz=null;render()},
+ arrange(){closeSheets();arrOn();ACT.nav('oversikt')},
+ arrangeDone(){const ch=arrChanged();ARR0=null;S.arrange=false;S.xsz=null;render();if(ch)toast('Den nya ordningen är sparad')},
+ arrangeCancel(){const ch=arrChanged();arrCancel();render();if(ch)toast('Ändringarna är ångrade')},
  boxSize(id){if(expOn()){S.xsz=S.xsz===id?null:id;render();return}boxEdit(L=>{L.size[id]=L.size[id]==='h'?'f':'h'})},
  boxSz(v){const[id,z]=String(v).split(':');S.xsz=null;if(XW_U[z])boxEdit(L=>{L.size[id]=z})},
- exp(){lsSet('exp',expOn()?null:'1');S.arrange=false;S.xsz=null;render();toast(expOn()?'Widgets i olika storlekar är på':'Widgets i olika storlekar är av')},
+ exp(){arrCancel();lsSet('exp',expOn()?null:'1');S.xsz=null;render();toast(expOn()?'Widgets i olika storlekar är på':'Widgets i olika storlekar är av')},
  boxHide(id){boxEdit(L=>{L.cols.forEach(c=>{const i=c.indexOf(id);if(i>=0)c.splice(i,1)});L.hidden.push(id)})},
  boxShow(id){boxEdit(L=>{L.hidden=L.hidden.filter(x=>x!==id);L.cols[L.cols.length-1].push(id)})},
- boxReset(){saveLayout(wallBoardOn(),null);render();toast('Rutorna ligger som från början')},
+ boxReset(){saveLayout(wallBoardOn(),null);render();toast('Rutorna ligger som från början. Tryck Klar för att spara.')},
  prefs(){S.sheet='prefs';render()},
  sheetClose(){closeSheets();render()},
  sheetBg(id,el,e){if(e.target===el){closeSheets();render()}},

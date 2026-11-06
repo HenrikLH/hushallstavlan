@@ -1670,7 +1670,8 @@ body.wall .arranging .widget.arr{animation-name:wigs}
 .lift-root .lift .arr-x,.lift-root .lift .arr-s{display:none}
 .arr-foot{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--tabbar) + var(--tabgap) + 10px);z-index:60;display:flex;align-items:center;gap:8px;
  width:min(640px,calc(100% - 24px));padding:8px 8px 8px 14px;border-radius:24px;background:var(--surface-raised);border:.5px solid var(--line);box-shadow:0 10px 30px rgba(0,0,0,.18)}
-.arr-hid{flex:1;min-width:0;display:flex;align-items:center;gap:6px;overflow-x:auto;scrollbar-width:none;font-size:14px}
+.arr-foot{flex-wrap:wrap;row-gap:6px}.arr-hid{flex:1 1 100%;min-width:0;display:flex;align-items:center;gap:6px;overflow-x:auto;scrollbar-width:none;font-size:14px}
+.arr-btns{flex:1 1 100%;display:flex;align-items:center;gap:4px;min-width:0}.arr-btns .tb:first-child{margin-left:-6px}.arr-st{flex:1;min-width:0;text-align:center;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .arr-hid .pill{height:32px;padding:0 10px}.arr-hid .pill svg{width:14px;height:14px}
 .arr-foot .btn-fill{height:40px;padding:0 20px;border-radius:20px;font-weight:600;font-size:16px}
 .widgets.arranging{padding-bottom:8px}.widgets.arranging+.arr-intro{margin-bottom:110px}
