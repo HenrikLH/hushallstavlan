@@ -2393,7 +2393,7 @@ const tidInp=m=>tpKl(m).replace('.',':');
 function evNyOpen(k,a,b,t){a=Math.max(0,Math.min(a,23*60));b=Math.max(a+15,Math.min(b,23*60+55));closeSheets();S.taskAdd=false;S.evNew={date:k,a,b};S.sheet='evNew';doRender();const x=document.getElementById('en-title');if(x){if(t)x.value=t;setTimeout(()=>x.focus(),30)}}
 /* Dag- och veckovyn: tryck på en tom tid för en ny händelse där, eller håll in och dra för att välja start och slut,
    som i Apple Kalender. Blocket hakar i kvartar. Kolumnerna bär datum, första minuten och pixlar per timme (calNyAttr) */
-(()=>{let st=null,spar=0;const Q=15;
+(()=>{let st=null,spar=0,rull=0;const Q=15;addEventListener('scroll',()=>{rull=Date.now()},{passive:true,capture:true});
  const min=(c,y)=>Number(c.dataset.lo)+(y-c.getBoundingClientRect().top)/Number(c.dataset.px)*60;
  const kv=m=>Math.floor(m/Q)*Q,span=(a,c)=>c>=a?[a,Math.max(a+Q,Math.ceil(c/Q)*Q)]:[kv(c),a+Q];
  const ghost=(a,b)=>{let g=st.c.querySelector('.cv-ny');const px=Number(st.c.dataset.px),lo=Number(st.c.dataset.lo);
@@ -2401,7 +2401,7 @@ function evNyOpen(k,a,b,t){a=Math.max(0,Math.min(a,23*60));b=Math.max(a+15,Math.
   g.style.cssText='top:'+((a-lo)/60*px)+'px;height:'+Math.max(18,(b-a)/60*px-3)+'px;left:2px;right:2px';g.innerHTML='<b>Ny händelse</b><span>'+tpKl(a)+'–'+tpKl(b)+'</span>';st.a=a;st.b=b};
  const stop=()=>{if(st){clearTimeout(st.t);document.documentElement.classList.remove('cv-drar')}st=null};
  document.addEventListener('pointerdown',e=>{if(e.button>0||S.view!=='kalender'||S.wall||S.sheet)return;const g=e.target.closest&&e.target.closest('.cv-grid,.cv-wc');if(!g||e.target.closest('.cv-ev,button'))return;
-  const c=g.matches('.cv-wc')?g:g.querySelector('.cv-col');if(!c||!c.dataset.ny)return;stop();
+  const c=g.matches('.cv-wc')?g:g.querySelector('.cv-col');if(!c||!c.dataset.ny)return;stop();if(Date.now()-rull<250&&e.pointerType!=='mouse')return;
   st={c,id:e.pointerId,x:e.clientX,y:e.clientY,m0:kv(min(c,e.clientY)),hold:false,drag:false};
   st.t=setTimeout(()=>{if(!st)return;st.hold=true;document.documentElement.classList.add('cv-drar');ghost(st.m0,st.m0+60);if(navigator.vibrate)try{navigator.vibrate(8)}catch(x){}},380)});
  addEventListener('pointermove',e=>{if(!st||e.pointerId!==st.id)return;
@@ -2413,7 +2413,8 @@ function evNyOpen(k,a,b,t){a=Math.max(0,Math.min(a,23*60));b=Math.max(a+15,Math.
  document.addEventListener('click',e=>{if(Date.now()<spar&&e.target.closest&&e.target.closest('.sheet')&&!e.target.closest('.sheet-panel')){e.stopPropagation();e.preventDefault()}},true);
  addEventListener('pointercancel',e=>{if(st&&e.pointerId===st.id){if(st.hold)st.c.querySelector('.cv-ny')?.remove();stop()}});
  // Medan blocket dras ska sidan inte scrolla
- document.addEventListener('touchmove',e=>{if(st&&st.hold)e.preventDefault()},{passive:false})})();
+ document.addEventListener('touchmove',e=>{if(st&&st.hold)e.preventDefault()},{passive:false});
+ document.addEventListener('contextmenu',e=>{if(st||e.target.closest&&e.target.closest('.cv-grid,.cv-wc'))e.preventDefault()})})();
 const calNyAttr=(k,lo,px)=>S.wall?'':' data-ny="'+k+'" data-lo="'+lo+'" data-px="'+px+'"';
 const calBlock=(x,px,lo)=>'<button type="button" class="cv-ev '+x.c+'"'+(x.act?' data-act="'+x.act+'" data-id="'+esc(x.id)+'"'+(x.act==='evEdit'?holdAt('evMenu'):''):'')+' style="top:'+((x.a-lo)/60*px)+'px;height:'+Math.max(20,(x.b-x.a)/60*px-3)+'px;left:calc('+(x.l/x.n*100)+'% + 2px);width:calc('+(100/x.n)+'% - 4px)"><b>'+esc(x.t)+'</b>'+(x.s&&(x.b-x.a)>=40?'<span>'+esc(x.s)+'</span>':'')+'</button>';
 function calSpann(list){let lo=7*60,hi=22*60;list.forEach(x=>{lo=Math.min(lo,x.a);hi=Math.max(hi,x.b)});return[Math.floor(lo/60)*60,Math.ceil(hi/60)*60]}
@@ -2941,7 +2942,7 @@ function renderOverlay(){
   const body='<div class="cv-typ">'+segc('Typ','evNewTyp',[['ev','Händelse'],['task','Uppgift']],'ev')+'</div>'+group('<div class="cell"><input class="field" id="en-title" name="title" placeholder="Vad händer?" required autocomplete="off" aria-label="Titel" enterkeyhint="done"></div>')+
    '<div style="height:16px"></div>'+group(fieldCell('Datum','<input class="field r" name="date" type="date" value="'+esc(n.date||'')+'" required style="max-width:170px">')+
    fieldCell('Heldag','<input type="checkbox" class="switch" id="en-allday" name="allDay"'+(n.allDay?' checked':'')+'>')+
-   '<div id="en-times"'+(n.allDay?' hidden':'')+'>'+fieldCell('Börjar','<input class="field r" name="start" type="time" step="300" value="'+tidInp(n.a)+'" style="max-width:130px">')+fieldCell('Slutar','<input class="field r" name="end" type="time" step="300" value="'+tidInp(n.b)+'" style="max-width:130px">')+'</div>')+
+   '<div id="en-times"'+(n.allDay?' hidden':'')+'>'+fieldCell('Börjar','<input class="field r" name="start" type="time" value="'+tidInp(n.a)+'" style="max-width:130px">')+fieldCell('Slutar','<input class="field r" name="end" type="time" value="'+tidInp(n.b)+'" style="max-width:130px">')+'</div>')+
    '<div style="height:16px"></div>'+group(fieldCell('Vem',menuSel('name="who"',people().concat(['Båda']).map(p=>'<option value="'+esc(p)+'"'+(p===me?' selected':'')+'>'+esc(p==='Båda'?'Båda':personLabel(p))+'</option>').join(''))))+
    '<div class="foot">Sparas i den gemensamma Google-kalendern, så att den syns i era telefoner också.</div>';
   o.innerHTML=sheetHtml('evNew','Ny händelse','<button class="tb strong">Lägg till</button>',body,enter);return}
