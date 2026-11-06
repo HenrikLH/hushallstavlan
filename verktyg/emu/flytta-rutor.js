@@ -35,4 +35,11 @@ module.exports=async(pg,h)=>{
  if(mitt===sparad)fel('andra flytten gick inte');const av=await pg.$('[data-act="arrangeCancel"]');if(!av)return fel('Avbryt saknas');await av.evaluate(e=>e.click());await h.idle(500);
  const ef=await ordning();console.log('efter Avbryt: '+ef);if(ef!==sparad)fel('Avbryt lade inte tillbaka ordningen');
  await pg.reload();await h.idle(2000);await pg.click('[data-act="nav"][data-id="oversikt"]');await h.idle(800);if(await ordning()!==sparad)fel('utkastet sparades trots Avbryt');
+ // Klar och sedan Ångra / Föregående: den gamla layouten ska gå att få tillbaka efter att den nya sparats
+ await dra(f2[0],f2[1]);const ny=await ordning();await (await pg.$('[data-act="arrangeDone"]')).evaluate(e=>e.click());await h.idle(400);
+ const ud=await pg.evaluate(()=>{const u=document.getElementById('undo');return u&&!u.hidden?u.textContent:''});console.log('sparad: '+ny+' · '+ud);if(!/sparad/.test(ud))fel('Ångra visas inte efter Klar');
+ await h.shot((wall?'vagg':'tel')+'-angra-layout');
+ await pg.evaluate(()=>document.querySelector('#undo .ud-b').click());await h.idle(500);const ut=await ordning();console.log('efter Ångra: '+ut);if(ut!==sparad)fel('Ångra gav inte tillbaka föregående layout');
+ await pg.click('[data-act="settings"]');await h.idle(600);const lk=await pg.$('[data-act="boxPrev"]');if(!lk){await h.shot('inst-prev');fel('Gå tillbaka saknas i Inställningar');return}
+ await lk.evaluate(e=>e.click());await h.idle(800);const ig=await ordning();console.log('växla igen: '+ig);if(ig!==ny)fel('växlingen tillbaka gav '+ig);
 };
