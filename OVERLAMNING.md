@@ -4,7 +4,7 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 ## Börja här
 
-- Aktuell release: **ht-v257** (UI 5.0 Apple som frivilligt val). Ångra-gren `version-fore-ui5`.
+- Aktuell release: **ht-v259** (väggskärmen: centrerad UI 5.0-meny via `--navw`, ingen rullningslist på `body.wall`, svepytor `.dr-act/.dr-actl` dolda tills raden dras). Ångra-gren `version-fore-vaggfel`; före det ht-v258 (svepgester, `version-fore-svepgester`), ht-v257 (UI 5.0 som val, `version-fore-ui5`).
 - Inga pågående uppgifter utöver punkterna nedan. Gör inte om godkända ändringar.
 - Strömningen i ChatGPT har avbrutits flera gånger: kontrollera gren/PR/main och Pages innan en avbruten publicering återupptas.
 
@@ -16,6 +16,7 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 ## Följ upp med Henrik
 
+- Svepgester i UI 5.0 (ht-v258, PR #69): känns svep tillbaka rätt i iPhone? Justera i så fall `u5Fart.proj` (r=0,997), gränsen W/2 eller fjäderns 0,42 s. Test `LS='{"ui":"5"}' node verktyg/emu/run.js verktyg/emu/ui5-gester.js`.
 - UI 5.0 (ht-v257): Henrik testar i telefonen. Göra UI 5.0 till standard först när han säger till (steg 5 i planen). Henrik underkände tidigare textknappen "Åtgärder" i Inköp (nu ⋯-meny i rubriken).
 
 - Städvyn (ht-v256): vilken av Rutnät/Ring vill han ha kvar? Förslag C (lugn lista) byggdes inte. Rutnätets rutor bockas av med tryck, håll in ger bladet.
