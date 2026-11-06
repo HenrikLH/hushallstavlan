@@ -1,7 +1,7 @@
 // Städvyn i lägena Rutnät och Ring (Inställningar → Mat och städ → Städvyn). VY=rutnat|ring. Kör med NOW=dagens datum: emulerade servern sätter lastDone med riktigt datum
 require('./stad-data');const assert=require('node:assert/strict');
 module.exports=async(pg,h)=>{const click=async s=>{await pg.locator(s).first().click();await h.idle(500)},read=s=>pg.evaluate(s=>window.__d(s),s);
- await click('#nav [data-act="nav"][data-id="stad"]');
+ await click('#nav [data-act="nav"][data-id="uppgifter"]');await click('[data-act="taskTab"][data-id="stad"]');
  for(const vy of (process.env.VY||'rutnat,ring').split(',')){
   await click('[data-act="settings"]');if(!await pg.locator('[data-k="pref-vardag"]').evaluate(x=>x.open))await click('[data-k="pref-vardag"]>summary');
   await click('[data-act="stadVy"][data-id="'+vy+'"]');await click('[data-act="sheetClose"]');

@@ -37,7 +37,7 @@ module.exports=async(pg,h)=>{
  await click('[data-act="calToday"]');
  await click('.cal-grid [data-act="calDay"][data-id="2026-10-19"]');
  assert.ok((await pg.locator('main').innerText()).includes(task),'Uppgiften ska finnas på rätt kalenderdag');await h.shot('uppgifter-kalender-vald');
- await click('[data-act="taskTab"][data-id="lista"]');await click('input[data-act="taskToggle"][data-id="'+t.id+'"]');await h.idle(1200);await h.waitFlush();
+ await click('#nav [data-act="nav"][data-id="uppgifter"]');await click('input[data-act="taskToggle"][data-id="'+t.id+'"]');await h.idle(1200);await h.waitFlush();
  assert.equal(await read('D().tasks.find(x=>x.title==="'+task+'").done'),true);
  await click('#nav [data-act="nav"][data-id="mat"]');await click('[data-act="matTab"][data-id="inkop"]');
  await pg.locator('form[data-form="shopQuick"] input').fill('UI-test äpplen');await pg.locator('form[data-form="shopQuick"] input').press('Enter');await h.idle(1600);await h.waitFlush();
@@ -51,9 +51,9 @@ module.exports=async(pg,h)=>{
  await click('[data-act="cook"]');assert.ok(await pg.locator('[aria-label="Matlagningsläge"]').isVisible());await h.shot('matlagningslage');
  if(await pg.locator('[data-act="cookStep"][data-d="1"]').count())await click('[data-act="cookStep"][data-d="1"]');
  await click('[data-act="cookClose"]');
- await click('#nav [data-act="nav"][data-id="stad"]');
+ await click('#nav [data-act="nav"][data-id="uppgifter"]');await click('[data-act="taskTab"][data-id="stad"]');
  await pg.locator('form[data-form="cleanQuick"] input').first().fill('UI-test damma');await pg.locator('form[data-form="cleanQuick"] input').first().press('Enter');await h.idle(1400);await h.waitFlush();
- await click('#nav [data-act="nav"][data-id="stad"]');
+ await click('#nav [data-act="nav"][data-id="uppgifter"]');await click('[data-act="taskTab"][data-id="stad"]');
  assert.ok(await read('D().clean.some(x=>x.title==="UI-test damma")'),'Städrutin ska sparas');await h.shot('stad-med-rutin');
  await click('#nav [data-act="nav"][data-id="ekonomi"]');
  if(await read('ekoLocked()'))for(const k of String(await read('EKO_PIN')))await click('[data-act="pin"][data-id="'+k+'"]');
