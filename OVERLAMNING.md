@@ -44,9 +44,8 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 ## Väntar på Henrik (Kod.gs)
 
-- `eventAdd` (tidsblock i kalendern, se Pågår nu). Utan ny Kod.gs visar appen "kräver att Kod.gs uppdateras" och händelsen försvinner vid nästa hämtning.
-- `rid`-skydd mot dubbletter i `doPost` (ht-v261, [Kod.gs](https://github.com/HenrikLH/hushallstavlan/blob/main/apps-script/Kod.gs)). Appen klarar sig utan; ta bort punkten när Henrik klistrat in och publicerat.
-- Tidigare: Henrik bekräftade 2026-10-21 att Kod.gs/setupRecipes/distribution är uppdaterade. Namn/rum på sysslor kan inte ändras utan ny Kod.gs (`cleanSet` tillåter bara freq/min/who/plannedFor/snoozeUntil).
+- Inget. Henrik klistrade in och publicerade Kod.gs från main 2026-11-06 20:06 (med `eventAdd` och `rid`-skyddet).
+- Namn/rum på sysslor kan inte ändras utan ny Kod.gs (`cleanSet` tillåter bara freq/min/who/plannedFor/snoozeUntil).
 
 ## Beslut som ska bevaras (inte självklara i koden)
 
