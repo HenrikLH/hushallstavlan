@@ -1,4 +1,4 @@
-// Födelsedagar: lägg till med plus, ta bort med svep och Ångra, och att kalendersynken inte skriver över ändringarna.
+// Födelsedagar: lägg till med plus, svep i sidled byter visning (tar inte bort), ta bort med håll in i bladet och Ångra, och att kalendersynken inte skriver över ändringarna.
 const assert=require('node:assert/strict');
 module.exports=async(pg,h)=>{
  const st=()=>h.sheet('Inställningar'),row=k=>st().find(x=>x[0]===k);
@@ -24,19 +24,40 @@ module.exports=async(pg,h)=>{
  assert.equal(await pg.locator('form[data-form="fodAdd"]').count(),0);
  assert.ok((await main()).includes('Testkusin'),'Ny person ska synas');
  await h.shot('fod-2-tillagd');
- // Svep vänster på Morfar (från kalendern)
+ // Svep i sidled byter visning och tar aldrig bort en rad
  const cdp=await pg.context().newCDPSession(pg);
- const swipe=async name=>{const r=pg.locator('.dr-slide.bd').filter({hasText:name}).first();await r.evaluate(e=>e.scrollIntoView({block:'center'}));await h.idle(300);const b=await r.boundingBox();const y=b.y+b.height/2;
-  const tp=x=>[{x,y}];await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:tp(b.x+b.width-20)});
-  for(let x=b.x+b.width-40;x>b.x-40;x-=30){await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:tp(x)});await pg.waitForTimeout(16)}
-  await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await h.idle(600)};
- await swipe('Morfar');
+ const swipe=async(name,dir)=>{const r=name?pg.locator('.cell.bd').filter({hasText:name}).first():pg.locator('main .head,main h1').first();if(name){await r.evaluate(e=>e.scrollIntoView({block:'center'}));await h.idle(300)}const b=await r.boundingBox();const y=b.y+b.height/2,x0=dir<0?Math.min(b.x+b.width,340)-20:60;
+  const tp=x=>[{x,y}];await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:tp(x0)});
+  for(let i=1;i<=9;i++){await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:tp(x0+dir*30*i)});await pg.waitForTimeout(16)}
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await h.idle(700)};
+ assert.equal(await pg.locator('.dr-act[data-act="fodDel"],.cell.bd.dr-slide').count(),0,'Raderna ska inte ha svep-ta-bort');
+ await swipe('Morfar',-1);
+ assert.ok((await main()).includes('Morfar'),'Svep vänster får inte ta bort Morfar');
+ assert.ok(!(await pg.locator('#undo').isVisible()),'Ingen Ångra efter svep');
+ assert.equal(await pg.evaluate(()=>window.__d('S.fodMode')),'lista','Tidslinje är sista visningen');
+ // Svep åt höger testas bara i UI 5.0: i UI 2.0 tar Chromiums egen bakåtgest över i emulatorn (inte på iPhone, där bara kanten gör det)
+ const U5=await pg.evaluate(()=>window.__d('U5')),md=()=>pg.evaluate(()=>window.__d('S.fodMode'));
+ await click('[data-act="fodMode"][data-id="hjul"]');
+ await swipe('',-1);assert.equal(await md(),'manad','Svep vänster: Månader');
+ await swipe('',-1);assert.equal(await md(),'lista','Svep vänster: Tidslinje');
+ if(U5){await swipe('Morfar',1);assert.equal(await md(),'manad','Svep höger: Månader');
+  await swipe('',1);assert.equal(await md(),'hjul','Svep höger: Årshjul');await click('[data-act="fodMode"][data-id="lista"]')}
+ assert.ok((await main()).includes('Morfar'));
+ // Ta bort: håll in raden, håll in Ta bort i bladet
+ const del=async name=>{await pg.locator('.cell.bd').filter({hasText:name}).first().evaluate(e=>e.scrollIntoView({block:'center'}));await h.idle(300);await h.hold('.cell.bd[data-hold-lift="fodEdit"]:has-text("'+name+'")');
+  assert.equal(await pg.locator('[data-hold="fodDelHold"]').count(),1,'Ta bort ska finnas i bladet');await h.hold('[data-hold="fodDelHold"]');await h.idle(400)};
+ // vanligt tryck på Ta bort tar inte bort
+ await pg.locator('.cell.bd').filter({hasText:'Morfar'}).first().evaluate(e=>e.scrollIntoView({block:'center'}));await h.idle(300);await h.hold('.cell.bd[data-hold-lift="fodEdit"]:has-text("Morfar")');
+ await h.shot('fod-3-blad');
+ await click('[data-hold="fodDelHold"]');assert.equal(await pg.locator('form[data-form="fodAdd"]').count(),1,'Tryck ska inte ta bort');
+ await pg.locator('[data-hold="fodDelHold"]').evaluate(e=>e.scrollIntoView({block:'center'}));
+ await h.hold('[data-hold="fodDelHold"]');await h.idle(400);
  assert.ok(!(await main()).includes('Morfar'),'Morfar ska försvinna');
  assert.ok(await pg.locator('#undo').isVisible(),'Ångra ska synas');
  await h.shot('fod-3-angra');
  await click('#undo .ud-b');
  assert.ok((await main()).includes('Morfar'),'Ångra ska ta tillbaka');
- await swipe('Morfar');await swipe('Testkusin');await h.idle(5600);await h.waitFlush();
+ await del('Morfar');await del('Testkusin');await h.idle(5600);await h.waitFlush();
  let egna=JSON.parse(row('onskelista')[1]).find(x=>x.fod);
  assert.deepEqual(egna.del,['Morfar|03-02']);assert.equal(egna.add.length,0,'Egen person ska försvinna helt');
  // Lägg till igen och låt kalendersynken skriva om raden
@@ -75,7 +96,9 @@ module.exports=async(pg,h)=>{
  await click('[data-act="fodMode"][data-id="hjul"]');await h.shot('fod-7-hjul');
  await click('[data-act="fodMode"][data-id="manad"]');await h.shot('fod-8-manader');
  // Ta bort från bladet
- await click('[data-act="fodMode"][data-id="lista"]');await pg.locator('.cell.bd:has-text("Testkusin")').evaluate(e=>e.scrollIntoView({block:'center'}));await h.idle(300);await h.hold('.cell.bd[data-hold-lift="fodEdit"]:has-text("Testkusin")');await click('[data-act="fodDelSheet"]');
+ await click('[data-act="fodMode"][data-id="lista"]');await pg.locator('.cell.bd:has-text("Testkusin")').evaluate(e=>e.scrollIntoView({block:'center'}));await h.idle(300);await h.hold('.cell.bd[data-hold-lift="fodEdit"]:has-text("Testkusin")');await h.hold('[data-hold="fodDelHold"]');await h.idle(400);
  assert.ok(!(await main()).includes('Testkusin'));await click('#undo .ud-b');assert.ok((await main()).includes('Testkusin'));
+ // UI 5.0: från Årshjul (första visningen) går svep höger tillbaka till Översikt
+ if(U5){await click('[data-act="fodMode"][data-id="hjul"]');await swipe('',1);await h.idle(600);assert.equal(await pg.evaluate(()=>window.__d('S.view')),'oversikt','Svep höger från Årshjul ska gå tillbaka')}
  await click('#nav [data-act="nav"][data-id="oversikt"]');await h.shot('fod-9-oversikt');
 };
