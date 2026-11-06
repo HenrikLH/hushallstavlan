@@ -1448,9 +1448,28 @@ function wkAngra(tyst){const Z=S.wkDraft;if(!Z)return;wkApply(Z.orig);if(Z.ny)Ob
 function wkSpara(){const Z=S.wkDraft;if(!Z)return;if(Z.ny)Object.assign(settings(),Z.st0);
  const used=new Set(Z.rows.map(m=>m.recipe).filter(Boolean));if(wishes().some(w=>used.has(w.id)))updJSON('onskelista',[],a=>a.filter(w=>!used.has(w.id)));
  weekSend({vs:Z.vs,ve:Z.ve,ny:Z.ny},'Veckan är sparad och inköpslistan uppdaterad');render()}
-function wkBar(){const Z=S.wkDraft;if(!Z)return'';const B=planBudget(),n=Z.antal;
- return'<div class="wk-draft" role="region" aria-label="Förslag på veckan"><div class="wd-t"><b>'+(n?n+(n===1?' ny rätt':' nya rätter'):'Inga nya rätter')+'</b><span>'+kr(Z.kassa)+' av '+kr(B)+' · låsta ligger kvar</span></div>'+
-  '<div class="wd-b"><button class="btn-plain" data-act="wkAngra">Ångra</button><button class="btn-tint" data-act="wkNytt">'+I.swap+'Nytt</button><button class="btn-fill" data-act="wkSpara">Spara</button></div></div><div class="wd-sp"></div>'}
+// Fyra förslag att välja mellan. Varje nytt förslag undviker rätterna i de förra, Blanda gör fyra nya
+function wkAlts(blanda){const W=weekTarget(),P=wkP(W.vs),fore=new Set(weekRows(W).map(m=>m.recipe||(/^macka$/i.test(m.title)?'macka:'+m.date:'')).filter(Boolean)),prev=blanda&&S.wkAlts?S.wkAlts.list.map(a=>a.ids):[],list=[];
+ for(let k=0;k<4;k++){P.gen++;P.hist=list.map(a=>a.ids).concat(prev);
+  try{autoFranVecka(P,{ny:1,om:1})}catch(e){console.warn(e);break}
+  const M=autoMenu(P),ids=autoItems(P.plan).filter(x=>!P.lock[x.key]).map(x=>x.id);
+  M.menu.forEach(m=>{const kk=m.recipe||(/^macka$/i.test(m.title)?'macka:'+m.date:'');if(kk&&!fore.has(kk))m._f=1});
+  list.push({rows:M.menu,kassa:M.C.E.kassa,ids})}
+ planSave(P);S.wkAlts={vs:W.vs,ve:W.ve,ny:W.ny,list};return list.length}
+function wkAltOpen(blanda){if(!wkAlts(blanda)){toast('Kunde inte göra några förslag');return}const t=document.getElementById('toast');if(t)t.hidden=true;S.sheet='wkAlt';render()}
+function wkVal(i){const A0=S.wkAlts,a=A0&&A0.list[Number(i)];if(!a)return;
+ const Z={vs:A0.vs,ve:A0.ve,ny:A0.ny,st0:{vecka_start:settings().vecka_start,vecka_slut:settings().vecka_slut},orig:[],rows:a.rows};Z.orig=D().menu.filter(m=>wkInV(Z,m));
+ S.wkDraft=Z;wkApply();S.wkAlts=null;closeSheets();wkSpara()}
+function wkAltBody(){const A0=S.wkAlts,B=planBudget();if(!A0)return'';
+ const L=weekLocks(A0.vs);return A0.list.map((a,i)=>{const W={vs:A0.vs},rad=[];
+  const del=(namn,f)=>{const rs=a.rows.filter(f),r=rs.filter(m=>m.recipe),mack=rs.filter(m=>/^macka$/i.test(m.title)).length;if(!r.length&&!mack)return;
+   rad.push('<div class="wa-g">'+namn+'</div>'+r.map(m=>'<div class="wa-r">'+(L.has(m.recipe)?'<span class="wa-lk" aria-label="Låst">'+I.lock+'</span>':'')+esc(cap(m.title.replace(/^Storkok:\s*/i,'')))+(/4 portioner/.test(m.note||'')?'<span class="wa-m"> · 2 kvällar</span>':'')+(m._f?'<span class="chip g">Ny</span>':'')+'</div>').join('')+(mack?'<div class="wa-r wa-m">🥪 Macka '+mack+(mack===1?' kväll':' kvällar')+'</div>':''))};
+  const sk=m=>!!(m.recipe&&isStorkok(recipeById(m.recipe)));
+  del('Vardagar',m=>!sk(m)&&dagNr(W,m.date)<=3);del('Helg',m=>!sk(m)&&dagNr(W,m.date)>=4);del('Lunchlådor',sk);
+  const ny=a.rows.filter(m=>m._f&&m.recipe).length;
+  return'<div class="wa-k"><div class="wa-h"><b>Förslag '+(i+1)+'</b><span class="num'+(a.kassa>B?' bad':'')+'">'+kr(a.kassa)+'</span></div><div class="wa-s">'+(ny?ny+(ny===1?' ny rätt':' nya rätter'):'Inga nya rätter')+' · '+(a.kassa>B?kr(a.kassa-B)+' över budget':kr(B-a.kassa)+' kvar av '+kr(B))+'</div>'+rad.join('')+
+   '<button type="button" class="btn-fill wa-v" data-act="wkVal" data-id="'+i+'">Välj förslag '+(i+1)+'</button></div>'}).join('')+
+  '<button type="button" class="btn-tint wa-bl" data-act="wkBlanda">'+I.swap+'Blanda, fyra nya förslag</button><div class="foot">Låsta rätter, kvällar borta och efterrätten ligger kvar i alla förslag. Det du väljer sparas på veckosedeln och i inköpslistan.</div>'}
 // Föreslå en ny vecka för samma vecka som veckosedeln: utgå från det som redan ligger där.
 // Rätter, mackor och rester som finns behålls (de låsta även när man gör om veckan), bara tomma platser fylls
 function autoFranVecka(P,o){o=o||{};const st=settings();if(!o.ny&&st.vecka_start!==P.vecka)return;const W={vs:P.vecka,ve:addDays(P.vecka,6)},rows=weekRows(W);if(!o.ny&&!rows.some(m=>m.recipe))return;
@@ -1530,7 +1549,7 @@ function matWeek(){
  // Efterrätten låses som rätterna (håll in). Bara en låst efterrätt kommer med när man uppdaterar varorna
  const dl=dr&&weekLocks(st.vecka_start).has(dr.id);
  const dn=dr&&dessPort(dr);
- vd+='<div class="bt-sec"'+RF('M5')+'>'+gh('Efterrätt',dr?'<span class="num">'+dn+(dn===1?' portion':' portioner')+'</span>':'Valfri')+'<div class="bt-g">'+(dr?bt(null,dr,dn,'d',dr.id,dl,dr.title):btTom('dessPick','','Lägg till efterrätt'))+'</div></div>';h+='<div class="g-one">'+group('<div class="bt-all">'+vd+'</div>')+'</div>'+wkBar();
+ vd+='<div class="bt-sec"'+RF('M5')+'>'+gh('Efterrätt',dr?'<span class="num">'+dn+(dn===1?' portion':' portioner')+'</span>':'Valfri')+'<div class="bt-g">'+(dr?bt(null,dr,dn,'d',dr.id,dl,dr.title):btTom('dessPick','','Lägg till efterrätt'))+'</div></div>';h+='<div class="g-one">'+group('<div class="bt-all">'+vd+'</div>')+'</div>';
  return h}
 /* ---------- Valfritt protein (kategorin Kött/Veg) ----------
    Rätter med ett tydligt huvudprotein lagas som en grundrätt där var och en väljer sitt eget protein.
@@ -2771,7 +2790,7 @@ function pickSheet(k,enter){
  // Knappen ligger under listan, utanför det som scrollar, så inga rader syns under den
  const foot='<div class="sw-foot"><button type="button" class="btn-fill" data-act="pickGo"'+(S.psel?'':' disabled')+'>'+esc(pickBtnTxt(k,S.psel))+'</button></div>';
  return sheetHtml(k,title,'<span class="tb" aria-hidden="true"></span>',body,enter).replace(/<\/form><\/div>$/,foot+'</form></div>')}
-function sheetHtml(form,title,right,body,enter,left){return'<div class="sheet'+enter+'" data-act="sheetBg"><form class="sheet-panel"'+RF({settings:'B1',prefs:'B2',shop:'B3',task:'B4',taskEdit:'B5',evEdit:'B6',cleanQuick:'B7',cost:'B8',income:'B9',matb:'B23',wxDay:'B24',dish:'B10',farg:'B11',fodAdd:'B12',ljuskal:'B13',ov:'B14',prot:'B15',rate:'B16',tmr:'B17',vagg:'B18',wish:'B19',taskMenu:'B20',evMenu:'B21',cleanMenu:'B22'}[form])+' data-form="'+form+'" role="dialog" aria-modal="true" aria-label="'+title+'"><button type="button" class="grabber" data-sheet-grip aria-label="Dra ned för att stänga eller tryck"></button><div class="sheet-head">'+(left||'<button type="button" class="tb" data-act="sheetClose">Avbryt</button>')+'<h2>'+title+'</h2>'+right+'</div><div class="sheet-body">'+body+'</div></form></div>'}
+function sheetHtml(form,title,right,body,enter,left){return'<div class="sheet'+enter+'" data-act="sheetBg"><form class="sheet-panel"'+RF({settings:'B1',prefs:'B2',shop:'B3',task:'B4',taskEdit:'B5',evEdit:'B6',cleanQuick:'B7',cost:'B8',income:'B9',matb:'B23',wxDay:'B24',dish:'B10',farg:'B11',fodAdd:'B12',ljuskal:'B13',ov:'B14',prot:'B15',rate:'B16',tmr:'B17',vagg:'B18',wish:'B19',taskMenu:'B20',evMenu:'B21',cleanMenu:'B22',wkAlt:'B25'}[form])+' data-form="'+form+'" role="dialog" aria-modal="true" aria-label="'+title+'"><button type="button" class="grabber" data-sheet-grip aria-label="Dra ned för att stänga eller tryck"></button><div class="sheet-head">'+(left||'<button type="button" class="tb" data-act="sheetClose">Avbryt</button>')+'<h2>'+title+'</h2>'+right+'</div><div class="sheet-body">'+body+'</div></form></div>'}
 // slider i en rad: rubrik och värde överst, reglaget under och förklaring i ändarna
 const ljVal=(id,v)=>id==='ljMork'?luxTxt(morkLux(v)):v+(id==='ljKans'?'':' %');
 const ljSlider=(label,id,v,min,max,l,r)=>'<div class="cell lj-sl"><div class="lj-h"><span>'+label+'</span><span class="meta" data-ljv="'+id+'">'+ljVal(id,v)+'</span></div><input type="range" min="'+min+'" max="'+max+'" step="1" value="'+v+'" data-input="'+id+'" aria-label="'+label+'"><div class="lj-e"><span>'+l+'</span><span>'+r+'</span></div></div>';
@@ -2822,7 +2841,7 @@ function overlayKeepScroll(){const o=document.getElementById('overlay'),k=o.data
  const nb=o.querySelector('.sheet-body');if(y&&k&&o.dataset.k===k&&nb&&nb!==b)nb.scrollTop=y}
 function renderOverlay(){
  const o=document.getElementById('overlay');
- const k=S.cook?'cook':S.sheet==='settings'?'settings':S.sheet==='farg'?'farg':S.sheet==='vagg'?'vagg':S.sheet==='ljuskal'?'ljuskal':S.sheet==='rate'?'rate':S.sheet==='income'?'income':S.sheet==='matb'?'matb':S.sheet==='cost'?'cost':S.sheet==='ov'?'ov':S.sheet==='prefs'?'prefs':S.sheet==='swap'?'swap':S.sheet==='prot'?'prot':S.sheet==='wish'?'wish':S.sheet==='shopMore'?'shopMore':S.sheet==='dess'?'dess':S.sheet==='slot'?'slot':S.sheet==='delLas'?'delLas':S.sheet==='dish'?'dish':S.sheet==='tmr'?'tmr':S.sheet==='tmrMenu'?'tmrMenu':S.rcpSheet?'rcpSheet':S.sheet==='cleanAdd'?'cleanAdd':S.sheet==='fodAdd'?'fodAdd':S.sheet==='taskMenu'?'taskMenu':S.sheet==='ekoMenu'?'ekoMenu':S.sheet==='evMenu'?'evMenu':S.sheet==='cleanMenu'?'cleanMenu':S.sheet==='taskEdit'?'taskEdit':S.sheet==='evEdit'?'evEdit':S.sheet==='evNew'?'evNew':S.sheet==='wxDay'?'wxDay':S.shopAdd?'shop':S.taskAdd?'task':'';
+ const k=S.cook?'cook':S.sheet==='settings'?'settings':S.sheet==='farg'?'farg':S.sheet==='vagg'?'vagg':S.sheet==='ljuskal'?'ljuskal':S.sheet==='rate'?'rate':S.sheet==='income'?'income':S.sheet==='matb'?'matb':S.sheet==='cost'?'cost':S.sheet==='ov'?'ov':S.sheet==='prefs'?'prefs':S.sheet==='swap'?'swap':S.sheet==='prot'?'prot':S.sheet==='wish'?'wish':S.sheet==='shopMore'?'shopMore':S.sheet==='dess'?'dess':S.sheet==='slot'?'slot':S.sheet==='delLas'?'delLas':S.sheet==='dish'?'dish':S.sheet==='wkAlt'?'wkAlt':S.sheet==='tmr'?'tmr':S.sheet==='tmrMenu'?'tmrMenu':S.rcpSheet?'rcpSheet':S.sheet==='cleanAdd'?'cleanAdd':S.sheet==='fodAdd'?'fodAdd':S.sheet==='taskMenu'?'taskMenu':S.sheet==='ekoMenu'?'ekoMenu':S.sheet==='evMenu'?'evMenu':S.sheet==='cleanMenu'?'cleanMenu':S.sheet==='taskEdit'?'taskEdit':S.sheet==='evEdit'?'evEdit':S.sheet==='evNew'?'evNew':S.sheet==='wxDay'?'wxDay':S.shopAdd?'shop':S.taskAdd?'task':'';
  const prev=o.dataset.k||'';
  // Rita inte om ett öppet blad medan någon skriver i det
  if(k&&k!=='cook'&&k===prev&&busyTyping()&&o.contains(document.activeElement))return;
@@ -2974,6 +2993,7 @@ function renderOverlay(){
  if(k==='tmrMenu'){const h=tmMenu(enter);if(!h){closeSheets();o.dataset.k='';o.innerHTML='';return}o.innerHTML=h;return}
  // Bladet följer rätten, inte platsen i listan: inköpslistan kan räkna om och flytta raderna
  if(k==='dish'&&S.dm!=='d'&&S.dmK){const j=D().menu.findIndex(x=>dmKey(x)===S.dmK);if(j>=0)S.dm=String(j)}
+ if(k==='wkAlt'){if(!S.wkAlts){closeSheets();o.dataset.k='';o.innerHTML='';return}o.innerHTML=sheetHtml('wkAlt','Välj en vecka','<button type="button" class="tb strong" data-act="wkBlanda">Blanda</button>',wkAltBody(),enter);return}
  if(k==='dish'){const ds=S.dm==='d',m=ds?null:D().menu[Number(S.dm)],r=ds?weekDessert():m&&m.recipe&&recipeById(m.recipe);if(ds?!r:!m){closeSheets();o.dataset.k='';o.innerHTML='';return}
   const rid=ds?r.id:lasId(m),lst=!!(rid&&weekLocks(weekTarget().vs).has(rid)),tit=ds?r.title:m.title,n=ds?dessPort(r):dishPort(m,r),pa=ds?'dessPortStep':'portStep',pid=ds?'':S.dm;
   const meta=[ds?'Efterrätt':'',lst?'Låst':'',r&&r.min?r.min+' min':'',r&&portKr(r)?portTxt(r)+'/port':''].filter(Boolean).join('<span class="dot" aria-hidden="true">·</span>');
@@ -4729,10 +4749,9 @@ const ACT={
  planPick(id,el){const P=planState(),k=el.dataset.k;P.val[k]=id;if(P.port){if(el.dataset.n)P.port[k]=Number(el.dataset.n);delete P.mack[k]}planSave(P);S.planOpen=null;render()},
  planByt(id){S.planOpen=S.planOpen===id?null:id;render()},
  planUnpick(id){const P=planState();delete P.val[id];if(P.port)delete P.port[id];planSave(P);S.planOpen=null;render()},
- wkNy(){wkForeslaa(0)},
- wkNytt(){wkForeslaa(1)},
- wkAngra(){wkAngra()},
- wkSpara(){wkSpara()},
+ wkNy(){toast('Tar fram fyra förslag …');setTimeout(()=>wkAltOpen(0),30)},
+ wkBlanda(){wkAltOpen(1);const b=document.querySelector('.sheet-body');if(b)b.scrollTop=0;toast('Fyra nya förslag')},
+ wkVal(i){wkVal(i)},
  autoOpen(){S.plan='auto';S.planOpen=null;try{autoFranVecka(autoState())}catch(e){console.warn(e)}window.scrollTo(0,0);render()},
  autoPrio(id){const P=autoState();P.prio=AUTO_W[id]?id:'balans';autoNy(P);render()},
  autoSk(id){const P=autoState();P.skMode=['two','gem'].includes(id)?id:'auto';['sk','sv','sg'].forEach(k=>delete P.lock[k]);autoNy(P);render()},
