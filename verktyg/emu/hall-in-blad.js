@@ -29,7 +29,7 @@ module.exports=async(pg,h)=>{
  await hold(er);await click('.sheet [data-a="calDayVy"]');assert.equal(await read('S.calVy'),'dag','Visa dagen ska byta till dagvyn');
  const blk='.cv-ev[data-hold-lift="evMenu"]';if(await pg.locator(blk).count()){await hold(blk);assert.equal(await read('S.sheet'),'evMenu','Håll in i dagvyn');await click('.sheet [data-act="sheetClose"]')}
  // Städ: Alla sysslor
- await click('#nav [data-act="nav"][data-id="stad"]');
+ await click('#nav [data-act="nav"][data-id="uppgifter"]');await click('[data-act="taskTab"][data-id="stad"]');
  await pg.locator('details[data-k="all"]').evaluate(d=>d.open=true);await h.idle(300);
  const cr='[data-hold-lift="cleanMenu"]:has-text("Dammsuga testsoffan")';
  await hold(cr);assert.equal(await read('S.sheet'),'cleanMenu','Håll in sysslan ska öppna bladet');

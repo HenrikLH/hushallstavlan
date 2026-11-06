@@ -7,7 +7,7 @@ gas.book.sheets['Städ'].rows.push(
  ['stad-bild-4','Vardagsrum','Dammsug vardagsrummet',7,10,'2026-10-10','','','','','','','']);
 module.exports=async(pg,h)=>{
  const click=async s=>{await pg.locator(s).first().click();await h.idle(400)},read=s=>pg.evaluate(s=>window.__d(s),s),quick='form[data-form="cleanQuick"][data-room=""]';
- await click('#nav [data-act="nav"][data-id="stad"]');
+ await click('#nav [data-act="nav"][data-id="uppgifter"]');await click('[data-act="taskTab"][data-id="stad"]');
  const original=await read('JSON.stringify(D().clean)'),choose=async mode=>{await click('[data-act="settings"]');if(!await pg.locator('[data-k="pref-utseende"]').evaluate(x=>x.open))await click('[data-k="pref-utseende"]>summary');await click('[data-act="addPlace"][data-id="'+mode+'"]');await click('[data-act="sheetClose"]')};
  for(const mode of ['profil','flytande','rad']){
   await choose(mode);await pg.reload();await h.idle(1300);assert.equal(await read('addPlace()'),mode);
