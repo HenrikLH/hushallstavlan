@@ -924,7 +924,7 @@ const XW={
   if(z==='s')return xh('fod',I.cake,'Födelsedag')+av(B[0],'big')+'<div class="sp"></div><div class="t one xmidt2">'+esc(B[0].name)+'</div><div class="xs mu">'+esc(bdTurns(B[0]))+' · '+esc(bdWhen(B[0]))+'</div>';
   if(z==='m')return xh('fod',I.cake,'Födelsedagar')+'<div class="xrows">'+B.slice(0,3).map(row).join('')+'</div>';
   return xh('fod',I.cake,'Födelsedagar','Alla')+'<div class="xbd1"'+bdSt(B[0])+'>'+av(B[0],'big')+'<div class="grow"><div class="t">'+esc(B[0].name)+' '+esc(bdTurns(B[0]))+'</div><div class="xs mu">'+esc(cap(DAYS[parse(B[0].next).getDay()]))+' '+B[0].dd+' '+MON3[B[0].mo]+' · '+esc(bdWhen(B[0]))+'</div></div></div><div class="xrows">'+B.slice(1,6).map(row).join('')+'</div>'}};
-const XW_NAV={kal:'uppgifter',upg:'uppgifter',mat:'mat',stad:'stad',inkop:'inkop',hem:'stad',imorgon:'uppgifter',fod:'fod'};
+const XW_NAV={kal:'kalender',upg:'uppgifter',mat:'mat',stad:'stad',inkop:'inkop',hem:'stad',imorgon:'kalender',fod:'fod'};
 const XW_REF={ov:{kal:'Ö2',upg:'Ö3',mat:'Ö4',stad:'Ö5',inkop:'Ö6',hem:'Ö7',imorgon:'Ö8',fod:'Ö9'},wall:{kal:'T3',mat:'T4',inkop:'T5',fod:'T6',stad:'T7',upg:'T8',hem:'T10',imorgon:'T11'}};
 function xwBox(id,z,wall,X){const body=XW[id](z,X);if(!body)return'';const arr=S.arrange;
  let h='<section data-box="'+id+'"'+RF(XW_REF[wall?'wall':'ov'][id])+' class="widget xw xw-'+z+(id==='mat'&&z==='s'?' xw-photo':'')+(arr?' arr'+(DRAG_ID===id?' ph':''):'')+'"'+(arr?'':' data-act="nav" data-id="'+XW_NAV[id]+'"')+'>';
