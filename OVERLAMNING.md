@@ -4,7 +4,8 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 ## Börja här
 
-- Aktuell release: **ht-v262** (Uppgifter: Ångra och "Nyligen borttagna", PR #70). Ångra-gren `version-fore-aterstall-uppgift` (= ht-v261).
+- Aktuell release: **ht-v263**: kalendern har egen flik i menyraden (Mat, Ekonomi, Översikt, Kalender, Att göra). Uppgifter och Städ delar fliken Att göra med en växlingsknapp (vy-id `uppgifter`/`stad`, `attSeg`, `S.taskTab` = lista|stad); menyknappen minns Städ. Ångra-gren `version-fore-kalenderflik` (= ht-v262). Röktest telefon+vägg grönt.
+- Förra: ht-v262 (Uppgifter: Ångra och "Nyligen borttagna", PR #70), ångra-gren `version-fore-aterstall-uppgift`.
 - ht-v261: inga dubbletter av uppgifter/varor när svaret från arket tappas (`redanSparad`/`osaker`/`n0` i flush/apiPost, `rid` till Kod.gs; test `verktyg/emu/uppgift-dubblett.js`, även `NOCACHE=1`). Ångra-gren `version-fore-dubbletter`.
 - Inga pågående uppgifter utöver punkterna nedan. Gör inte om godkända ändringar.
 - Strömningen i ChatGPT har avbrutits flera gånger: kontrollera gren/PR/main och Pages innan en avbruten publicering återupptas.
@@ -18,6 +19,7 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 ## Följ upp med Henrik
 
+- Kalenderflik (ht-v263): hittar ni kalendern nu, och saknas Städ som egen flik? Gamla `ht.taskTab=kalender` öppnar Kalender-fliken vid start.
 - Svepgester i UI 5.0 (ht-v258, PR #69): känns svep tillbaka rätt i iPhone? Justera i så fall `u5Fart.proj` (r=0,997), gränsen W/2 eller fjäderns 0,42 s. Test `LS='{"ui":"5"}' node verktyg/emu/run.js verktyg/emu/ui5-gester.js`.
 - UI 5.0 (ht-v257): Henrik testar i telefonen. Göra UI 5.0 till standard först när han säger till (steg 5 i planen). Henrik underkände tidigare textknappen "Åtgärder" i Inköp (nu ⋯-meny i rubriken).
 
