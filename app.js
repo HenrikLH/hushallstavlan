@@ -3678,6 +3678,8 @@ function evStates(evs){const n=new Date(),mins=n.getHours()*60+n.getMinutes(),ou
 const durTxt=m=>m<60?m+' min':Math.floor(m/60)+' h'+(m%60?' '+m%60+' min':'');
 // sol- och månbanans horisont: mitt i namnsdagsraden (annars faktaraden), aldrig under hundarnas fötter
 function placeSky(){const h=document.querySelector('.hero');if(!h)return;
+ // Geometrisk i telefonen: bilden står i högerkolumnen; flytta den så att den hamnar mitt i kortet oavsett telefonens bredd (358 px = kortet på en 390 px bred telefon)
+ if(h.classList.contains('art-geo')&&!h.closest('.board'))h.style.setProperty('--gx',Math.round((h.offsetWidth-358)/2)+'px');
  const arc=h.querySelector('.arc.b'),gf=h.querySelector('.fig-box.grass');
  // Fast höjd mot väderbilden: kortets nederkant flyttas när grafen dras ut.
  if(arc&&gf){const hr=h.getBoundingClientRect(),fr=gf.getBoundingClientRect(),z=h.offsetWidth?hr.width/h.offsetWidth:1,hl=[...h.querySelectorAll('.hero-wx .fn')].pop(),top=hl?Math.round((hl.getBoundingClientRect().bottom-hr.top)/z+16):parseFloat(getComputedStyle(arc).top);arc.style.top=top+'px';arc.style.bottom='auto';arc.style.height=Math.max(0,Math.round((fr.top-hr.top)/z+34)-top)+'px'}
