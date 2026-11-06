@@ -4,7 +4,7 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 ## Börja här
 
-- Aktuell release: **ht-v263**: kalendern har egen flik i menyraden (Mat, Ekonomi, Översikt, Kalender, Att göra). Uppgifter och Städ delar fliken Att göra med en växlingsknapp (vy-id `uppgifter`/`stad`, `attSeg`, `S.taskTab` = lista|stad); menyknappen minns Städ. Ångra-gren `version-fore-kalenderflik` (= ht-v262). Röktest telefon+vägg grönt.
+- Aktuell release: **ht-v264**: UI 5.0 (Apple) är standard. Förra: **ht-v263**: kalendern har egen flik i menyraden (Mat, Ekonomi, Översikt, Kalender, Att göra). Uppgifter och Städ delar fliken Att göra med en växlingsknapp (vy-id `uppgifter`/`stad`, `attSeg`, `S.taskTab` = lista|stad); menyknappen minns Städ. Ångra-gren `version-fore-kalenderflik` (= ht-v262). Röktest telefon+vägg grönt.
 - Förra: ht-v262 (Uppgifter: Ångra och "Nyligen borttagna", PR #70), ångra-gren `version-fore-aterstall-uppgift`.
 - ht-v261: inga dubbletter av uppgifter/varor när svaret från arket tappas (`redanSparad`/`osaker`/`n0` i flush/apiPost, `rid` till Kod.gs; test `verktyg/emu/uppgift-dubblett.js`, även `NOCACHE=1`). Ångra-gren `version-fore-dubbletter`.
 - Inga pågående uppgifter utöver punkterna nedan. Gör inte om godkända ändringar.
@@ -14,14 +14,13 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 - Inget pågående. Senast publicerat (ht-v261): borttagen öppen uppgift ger Ångra i 5 s och hamnar i "Nyligen borttagna" (ruta U12) under Klara i 30 dagar, synkat mellan enheter via `onskelista` `{bort:1,l:[{k,title,due,who,repeat,at,by}]}` (ingen Kod.gs; `wishes()`/`recipeWishes` hoppar över den). Återställ = `taskAdd`. Klara uppgifter sparas inte. Test `verktyg/emu/uppgift-aterstall.js`.
 
-- Inget pågående. **UI 5.0 (Apple)** publicerad i ht-v257 som val (Inställningar → Utseende → Design; `ht.ui=5`, `U5`, CSS bara under `html.ny.ui5` sist i `<style>`). Plan/beslut: Claude Doc "Apple-känsla: genomgång och plan". Tester: `verktyg/emu/ui5.js`, `ui5-navigering.js` (svep tillbaka, dra ned, svep på uppgift), alla-flikar med `LS={"ui":"5"}`. UI 2.0 är fortfarande standard.
+- Inget pågående. **UI 5.0 (Apple) är standard** sedan ht-v264 (Henriks beslut 2026-11-06; ångra-gren `version-fore-ui5-standard`). `U5` = `ht.ui` saknas eller `5`; UI 2.0 sparas som `ht.ui=2`. CI: matris UI 2 kör med `{ui:"2"}`, UI 5 utan `ui`. Kända fel från ht-v263 (kalenderfliken): `ui-versioner.js` och `plus-alternativ.js` klickar på `taskTab` lista som inte längre finns där; behöver anpassas.
 - Inget. Senast publicerat: Städvyn kan väljas som Lista (standard), Rutnät eller Ring under Inställningar → Mat och städ (`ht.stadVy`, `stadRutnat`/`stadRing` i app.js, CSS `.sx-*`). Test: `NOW=<idag> node verktyg/emu/run.js verktyg/emu/stad-vyer.js` (emulerade servern sätter lastDone med riktigt datum).
 
 ## Följ upp med Henrik
 
 - Kalenderflik (ht-v263): hittar ni kalendern nu, och saknas Städ som egen flik? Gamla `ht.taskTab=kalender` öppnar Kalender-fliken vid start.
 - Svepgester i UI 5.0 (ht-v258, PR #69): känns svep tillbaka rätt i iPhone? Justera i så fall `u5Fart.proj` (r=0,997), gränsen W/2 eller fjäderns 0,42 s. Test `LS='{"ui":"5"}' node verktyg/emu/run.js verktyg/emu/ui5-gester.js`.
-- UI 5.0 (ht-v257): Henrik testar i telefonen. Göra UI 5.0 till standard först när han säger till (steg 5 i planen). Henrik underkände tidigare textknappen "Åtgärder" i Inköp (nu ⋯-meny i rubriken).
 
 - Städvyn (ht-v256): vilken av Rutnät/Ring vill han ha kvar? Förslag C (lugn lista) byggdes inte. Rutnätets rutor bockas av med tryck, håll in ger bladet.
 
