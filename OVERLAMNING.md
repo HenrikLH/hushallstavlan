@@ -4,7 +4,7 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 ## Börja här
 
-- Aktuell release: **ht-v259** (väggskärmen: centrerad UI 5.0-meny via `--navw`, ingen rullningslist på `body.wall`, svepytor `.dr-act/.dr-actl` dolda tills raden dras). Ångra-gren `version-fore-vaggfel`; före det ht-v258 (svepgester, `version-fore-svepgester`), ht-v257 (UI 5.0 som val, `version-fore-ui5`).
+- Aktuell release: **ht-v260** (sol/månbanan i telefonens Översikt följer med hundbilden 42 px åt vänster, `.hero.art-geo>.arc.b`). Ångra-gren `version-fore-solbana-vanster`. Röktest telefon+vägg grönt.
 - Inga pågående uppgifter utöver punkterna nedan. Gör inte om godkända ändringar.
 - Strömningen i ChatGPT har avbrutits flera gånger: kontrollera gren/PR/main och Pages innan en avbruten publicering återupptas.
 
