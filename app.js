@@ -304,7 +304,7 @@ let fitScrollbar=()=>{},hideCursor=()=>{};
 (function(){const touch=()=>{const was=nightOn();A.touch=Date.now();if(was&&S.view==='oversikt')render()};
  document.addEventListener('pointerdown',touch,true);
  setInterval(()=>{if(!S.wall||motionDrag||sheetDrag)return;const idle=Date.now()-(A.touch||0)>120000;
-  if(idle&&S.arrange){S.arrange=false;render()}
+  if(idle&&S.arrange){arrCancel();render()}
   if(idle&&(S.view!=='oversikt'||S.sheet||S.shopAdd||S.taskAdd||S.recipe||window.scrollY>0)&&!S.cook){closeSheets();S.recipe=null;ACT.nav('oversikt')}
   else if(S.view==='oversikt'&&document.body.classList.contains('is-night')!==nightOn())render();
   autoTheme()},20000)})();
@@ -468,28 +468,33 @@ let camN=0;setInterval(()=>{if(KAL)return;if(CAM.src==='als'&&!ALS||++camN%60===
  function place(){const{root,z}=G.lf;root.style.transform='translate('+(G.px-G.dx)/z+'px,'+(G.py-G.dy)/z+'px)'}
  function start(id,px,py){const b=document.querySelector('[data-box="'+id+'"]');if(!b)return;const r=b.getBoundingClientRect(),wall=wallBoardOn();
   const L=JSON.parse(JSON.stringify(layout(wall,wall?boardDefault():OV_DEF())));
-  G={id,wall,L,px,py,dx:px-r.left,dy:py-r.top,lf:lift(b)};place();PREVIEW={wall,L};DRAG_ID=id;G.rects=redraw();eat=true;
+  G={id,wall,L,px,py,dx:px-r.left,dy:py-r.top,lf:lift(b),gw:(b.closest('.xgrid')||{}).clientWidth||0};place();PREVIEW={wall,L};DRAG_ID=id;G.rects=redraw();eat=true;
   try{navigator.vibrate&&navigator.vibrate(10)}catch(err){}}
  function move(px,py){G.px=px;G.py=py;place();const X=px,Y=py+scrollY,R=G.rects,L=G.L;
   if(!G.wall){if(py<90)scrollBy(0,-12);else if(py>innerHeight-160)scrollBy(0,12)}
   const inR=r=>r&&X>=r.l&&X<=r.l+r.w&&Y>=r.t&&Y<=r.t+r.h;if(inR(R[G.id]))return;
   const col=L.cols.find(c=>c.includes(G.id));let to=null;
-  for(const k in R){if(k===G.id||!inR(R[k]))continue;const r=R[k],tc=L.cols.find(c=>c.includes(k)),side=L.size[k]==='h'&&(G.wall||L.size[G.id]==='h'),after=side?X>r.l+r.w/2:Y>r.t+r.h/2;
+  for(const k in R){if(k===G.id||!inR(R[k]))continue;const r=R[k],tc=L.cols.find(c=>c.includes(k)),side=G.gw?r.w<G.gw*.7:L.size[k]==='h'&&(G.wall||L.size[G.id]==='h'),after=side?X>r.l+r.w/2:Y>r.t+r.h/2;
    const c2=tc.filter(x=>x!==G.id);to={c:tc,i:c2.indexOf(k)+(after?1:0)};break}
   if(!to&&G.wall){document.querySelectorAll('.bcol[data-col]').forEach(cl=>{const r=cl.getBoundingClientRect();if(px>=r.left&&px<=r.right&&py>=r.top&&py<=r.bottom){const tc=L.cols[Number(cl.dataset.col)];{const last=tc.filter(x=>x!==G.id).map(x=>R[x]).filter(Boolean).pop();if(!last||Y>last.t+last.h)to={c:tc,i:tc.filter(x=>x!==G.id).length}}}})}
   if(!to)return;const before=JSON.stringify(L.cols);col.splice(col.indexOf(G.id),1);to.c.splice(to.i,0,G.id);if(JSON.stringify(L.cols)!==before)G.rects=redraw()}
  function end(){const g=G;G=null;PREVIEW=null;DRAG_ID=null;saveLayout(g.wall,g.L);const ph=document.querySelector('[data-box="'+g.id+'"]'),{root,z}=g.lf;
   const done=()=>{root.remove();doRender()};if(!ph||calm())return done();const r=ph.getBoundingClientRect();
   root.style.transition='transform .18s ease';root.style.transform='translate('+r.left/z+'px,'+r.top/z+'px)';setTimeout(done,190);setTimeout(()=>eat=false,250)}
- document.addEventListener('pointerdown',e=>{if(e.button>0||S.view!=='oversikt'||nightOn()||G)return;const b=e.target.closest('[data-box]');if(!b||e.target.closest('#clock,.arr-x,.arr-s'))return;
+ document.addEventListener('pointerdown',e=>{if(e.button>0||S.view!=='oversikt'||nightOn()||G)return;const b=e.target.closest('[data-box]');if(!b||e.target.closest('#clock,.arr-x,.arr-s,.xsz'))return;
   stop();x=e.clientX;y=e.clientY;const id=b.dataset.box,was=S.arrange;pid=id;mouse=e.pointerType!=='touch';
   // i ändra-läget räcker en kort stund, annars en längre så att vanliga tryck och scroll fungerar som förut
   if(!was){LPB=b;LPW=setTimeout(()=>{if(lp)hlOn(b,510,1.02)},90)}
-  lp=setTimeout(()=>{lp=0;LPB=null;if(!was){S.arrange=true;doRender()}start(id,x,y)},was?180:600)});
+  lp=setTimeout(()=>{lp=0;LPB=null;if(!was){arrOn();doRender()}start(id,x,y)},was?180:600)});
  // med mus (och väggskärmens pekskärm) börjar dragningen direkt när man rör sig i ändra-läget
  addEventListener('pointermove',e=>{if(G){move(e.clientX,e.clientY);return}if(!lp||Math.hypot(e.clientX-x,e.clientY-y)<=(S.arrange&&mouse?4:9))return;stop();if(S.arrange&&mouse){start(pid,x,y);if(G)move(e.clientX,e.clientY)}});
  addEventListener('pointerup',()=>{stop();if(G)end()});addEventListener('pointercancel',()=>{stop();if(G)end()});
- document.addEventListener('touchmove',e=>{if(G)e.preventDefault()},{passive:false});
+ // Rutan under fingret ritas om när dragningen börjar. Touchhändelserna går då fortfarande till den gamla, lösryckta noden
+ // och når aldrig document, så sidan rullade och webbläsaren avbröt dragningen (pointercancel). Lyssna därför på själva noden.
+ const tm=e=>{if(G&&e.cancelable)e.preventDefault()};
+ document.addEventListener('touchstart',e=>{if(S.view!=='oversikt'||!e.target.closest||!e.target.closest('[data-box]'))return;const t=e.target;t.addEventListener('touchmove',tm,{passive:false});
+  const off=()=>{t.removeEventListener('touchmove',tm);t.removeEventListener('touchend',off);t.removeEventListener('touchcancel',off)};t.addEventListener('touchend',off);t.addEventListener('touchcancel',off)},{passive:true});
+ document.addEventListener('touchmove',tm,{passive:false});
  document.addEventListener('click',e=>{if(eat){eat=false;e.stopPropagation();e.preventDefault()}},true);
  document.addEventListener('contextmenu',e=>{if(e.target.closest('[data-box]')&&S.view==='oversikt')e.preventDefault()})})();
 
@@ -790,16 +795,16 @@ const BOX={kal:'Kalender',mat:'Middag',stad:'Städ',inkop:'Inköp',upg:'Uppgifte
 // vilka rutor som får vara halv bredd, och vilka som är det från början
 const SIZES={ov:{can:['mat','stad','inkop','upg','hem','fod','imorgon'],half:['stad','inkop']},wall:{can:['mat','inkop','fod'],half:['inkop','fod']}};
 const SV2='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
-const IA={minus:SV2+'<path d="M6 12h12"/></svg>',grow:SV2+'<path d="M14 4h6v6M10 20H4v-6M20 4l-6.5 6.5M4 20l6.5-6.5"/></svg>',shrink:SV2+'<path d="M20 10h-6V4M4 14h6v6M14 10l6-6M10 14l-6 6"/></svg>'};
+const IA={minus:SV2+'<path d="M6 12h12"/></svg>',grow:SV2+'<path d="M14 4h6v6M10 20H4v-6M20 4l-6.5 6.5M4 20l6.5-6.5"/></svg>',shrink:SV2+'<path d="M20 10h-6V4M4 14h6v6M14 10l6-6M10 14l-6 6"/></svg>',undo:SV2+'<path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>'};
 let PREVIEW=null,DRAG_ID=null;// medan en ruta dras ritas tavlan med den tillfälliga ordningen
-function layout(wall,def){if(PREVIEW&&PREVIEW.wall===wall)return PREVIEW.L;
+function layout(wall,def){if(PREVIEW&&PREVIEW.wall===wall)return PREVIEW.L;if(expOn())return layoutX(wall);
  const k=(wall?'wallLayout':'ovLayout')+(U4?'4':U3?'3':'Ny'),Z=SIZES[wall?'wall':'ov'];let o=null;try{o=JSON.parse(lsGet(k)||(U4?lsGet((wall?'wallLayout':'ovLayout')+'Ny'):null)||'null')}catch(e){}
  const known=new Set(def.flat()),hidden=(o&&Array.isArray(o.hidden)?o.hidden:[]).filter(x=>known.has(x));
  let cols=o&&Array.isArray(o.cols)&&o.cols.length===def.length?o.cols.map(c=>c.filter(x=>known.has(x))):def.map(c=>c.slice());
  const seen=new Set(cols.flat().concat(hidden));def.forEach((c,i)=>c.forEach(x=>{if(!seen.has(x))cols[i].push(x)}));// nya rutor hamnar på sin vanliga plats
  const size={};known.forEach(id=>{const v=o&&o.size&&o.size[id];size[id]=Z.can.includes(id)&&(v?v==='h':Z.half.includes(id))?'h':'f'});
  return{cols,hidden,size}}
-function saveLayout(wall,L){lsSet((wall?'wallLayout':'ovLayout')+(U4?'4':U3?'3':'Ny'),L?JSON.stringify({cols:L.cols,hidden:L.hidden,size:L.size}):null)}
+function saveLayout(wall,L){lsSet((wall?'wallLayout':'ovLayout')+(expOn()?'X':U4?'4':U3?'3':'Ny'),L?JSON.stringify({cols:L.cols,hidden:L.hidden,size:L.size}):null)}
 // I ändra-läget vickar rutorna och får sina knappar. Innehållet syns som vanligt men går inte att trycka på.
 function boxify(id,html,wall,L){if(!html)return'';
  const half=L.size[id]==='h';
@@ -816,10 +821,127 @@ function boxRow(list,wall,html,L){let out='',i=0;const n=list.length,H=id=>L.siz
   if(wall&&H(a)){const two=b&&H(b);out+='<div class="wpair"'+(two&&!(a==='inkop'&&b==='fod')?' style="grid-template-columns:1fr 1fr"':'')+'>'+boxify(a,html[a],wall,L)+(two?boxify(b,html[b],wall,L):'<div></div>')+'</div>';i+=two?2:1;continue}
   out+=boxify(a,html[a],wall,L);i++}
  return out}
+// Ändra-läget är ett utkast: ändringarna syns direkt men sparas först med Klar. Avbryt (eller att lämna Översikt) lägger tillbaka den gamla ordningen.
+let ARR0=null;
+const layoutKey=wall=>(wall?'wallLayout':'ovLayout')+(expOn()?'X':U4?'4':U3?'3':'Ny');
+function arrOn(){if(S.arrange)return;const k=layoutKey(wallBoardOn());ARR0={k,v:lsGet(k)};S.arrange=true}
+const arrChanged=()=>!!ARR0&&lsGet(ARR0.k)!==ARR0.v;
+// Föregående layout: varje Klar minns layouten från före ändringen, så att man kan gå tillbaka efter att ha provat den nya
+const prevGet=k=>{try{const o=JSON.parse(lsGet(k+'Prev')||'null');return o&&'v'in o?o:null}catch(e){return null}};
+function arrCancel(){if(ARR0)lsSet(ARR0.k,ARR0.v);ARR0=null;S.arrange=false;S.xsz=null}
 function arrangeFoot(L,wall){if(!S.arrange)return'';
- const hid=L.hidden.map(id=>'<button type="button" class="pill" data-act="boxShow" data-id="'+id+'">'+I.plus+BOX[id]+'</button>').join('');
- return'<div class="arr-foot" role="toolbar" aria-label="Ändra ordning"><div class="arr-hid">'+(hid?'<span class="muted">Dolda:</span>'+hid:'<span class="muted">Inga dolda rutor</span>')+'</div>'+
-  '<button type="button" class="tb" data-act="boxReset">Återställ</button><button type="button" class="btn-fill" data-act="arrangeDone">Klar</button></div>'}
+ const hid=L.hidden.map(id=>'<button type="button" class="pill" data-act="boxShow" data-id="'+id+'">'+I.plus+BOX[id]+'</button>').join(''),ch=arrChanged(),pv=ARR0&&prevGet(ARR0.k);
+ return'<div class="arr-foot" role="toolbar" aria-label="Ändra ordning"><div class="arr-hid">'+(pv?'<button type="button" class="pill" data-act="boxPrev">'+IA.undo+'Föregående</button>':'')+'<button type="button" class="pill" data-act="boxReset">Från början</button>'+(hid?'<span class="muted">Dolda:</span>'+hid:'')+'</div>'+
+  '<div class="arr-btns"><button type="button" class="tb" data-act="arrangeCancel">Avbryt</button><span class="arr-st muted">'+(ch?'Inte sparat än':'Inga ändringar')+'</span><button type="button" class="btn-fill" data-act="arrangeDone">Klar</button></div></div>'}
+/* ---------- Widgets i tre storlekar (Experimentellt, bara i utvecklarläget) ----------
+   Som hemskärmens widgets i en mobil: varje ruta finns som Liten, Mellan och Stor och visar mer ju större den är.
+   Telefonen: rutnät med fyra spalter, Liten 2×2, Mellan 4×2, Stor 4×4. Väggen: 4×4 rutor bredvid klockan, Liten 1, Mellan 2, Stor 4.
+   Egen ordning sparas i ovLayoutX/wallLayoutX; första gången ärvs ordningen från vanliga layouten (halv blir Liten, hel blir Mellan). */
+const expOn=()=>DEV&&lsGet('exp')==='1';
+const XW_DEF={ov:{o:['kal','mat','inkop','upg','stad','fod','hem','imorgon'],z:{kal:'m',mat:'s',inkop:'s',upg:'m',stad:'s',fod:'s',hem:'m',imorgon:'m'},hid:[]},
+ wall:{o:['mat','kal','upg','inkop','stad','fod','hem','imorgon'],z:{mat:'l',kal:'l',upg:'m',inkop:'s',stad:'s',fod:'m',hem:'m',imorgon:'m'},hid:['imorgon']}};
+const XW_U={s:1,m:2,l:4},XW_NAMN={s:'Liten',m:'Mellan',l:'Stor'};
+function layoutX(wall){const Z=XW_DEF[wall?'wall':'ov'],k=(wall?'wallLayout':'ovLayout')+'X',known=new Set(Z.o);let o=null;try{o=JSON.parse(lsGet(k)||'null')}catch(e){}
+ if(!o&&!wall){// ärv ordningen från den vanliga layouten
+  let g=null;try{g=JSON.parse(lsGet('ovLayout'+(U4?'4':U3?'3':'Ny'))||'null')}catch(e){}
+  if(g&&Array.isArray(g.cols)){o={cols:[g.cols.flat()],hidden:g.hidden||[],size:{}};Object.entries(g.size||{}).forEach(([id,v])=>{o.size[id]=id==='kal'?'m':v==='h'?'s':'m'})}}
+ const hidden=(o&&Array.isArray(o.hidden)?o.hidden:Z.hid).filter(x=>known.has(x));
+ const list=(o&&Array.isArray(o.cols)?o.cols.flat():Z.o).filter((x,i,a)=>known.has(x)&&!hidden.includes(x)&&a.indexOf(x)===i);
+ Z.o.forEach(x=>{if(!list.includes(x)&&!hidden.includes(x))list.push(x)});
+ const size={};Z.o.forEach(id=>{const v=o&&o.size&&o.size[id];size[id]=XW_U[v]?v:Z.z[id]});
+ return{cols:[list],hidden,size}}
+// små byggstenar
+const xh=(id,ic,txt,r,act)=>'<button class="wh" data-act="'+(act||'nav')+'" data-id="'+id+'">'+ic+'<span>'+txt+'</span>'+(r?'<span class="r">'+r+'</span>':'')+'</button>';
+const xdot=w=>'<span class="xdot'+(people().includes(w)?' '+pcls(w):'')+'"></span>';
+const evW=e=>evParts(e).name||evPerson(e)||'';
+const evT=e=>String(e.time||'').split(/\s*[–-]\s*/)[0];
+const xev=e=>'<div class="xr"><span class="xt num">'+esc(evT(e)||'Heldag')+'</span><span class="grow one">'+esc(e.title)+'</span>'+(evW(e)?xdot(evW(e)):'')+'</div>';
+const xmealDot=w=>'<span class="xdot '+(w==='Henrik'?'k':w==='Vegetariskt'?'v':w==='Gemensam'?'g':'')+'"></span>';
+const xring=(a,b,big)=>'<div class="xring'+(big?' big':'')+'" style="--p:'+(b?a/b:0)+'"><b class="num">'+a+'<small>/'+b+'</small></b></div>';
+const xbar=(sc,w)=>'<i class="xbar '+healthCls(sc)+'"'+(w?' style="margin-top:'+w+'px"':'')+'><b style="width:'+Math.round(sc*100)+'%"></b></i>';
+const xck=(act,id,t)=>'<input type="checkbox" class="check" data-act="'+act+'" data-id="'+esc(id)+'" aria-label="'+esc(t)+'">';
+const xempty=t=>'<div class="xe">'+t+'</div>';
+// allt innehåll räknas ut en gång per ritning
+function xwData(){const t=today(),d=D(),now=new Date(),hm=pad(now.getHours())+':'+pad(now.getMinutes()),days=planDays(),tm=addDays(t,1),cp=cleanPlan();
+ const evs=date=>d.events.filter(e=>e.date===date).sort((a,b)=>String(a.time||'').localeCompare(String(b.time||'')));
+ const evT0=evs(t),coming=evT0.filter(e=>!evT(e)||evT(e).replace('.',':')>=hm);
+ const td=dayOf(t),nextDay=(td&&td.meals.length)?td:days.find(x=>x.date>t&&x.meals.length);
+ const open=d.tasks.filter(x=>!x.done).sort((a,b)=>(a.due||'9').localeCompare(b.due||'9'));
+ const ovs=!people().includes(S.me)?[]:[['shared',ovOpen('shared')],[S.me,ovOpen(S.me)]].flatMap(([l,a])=>a.map(c=>({l,c})));
+ const clean=[...cp.routines.filter(x=>!doneToday(x)),...cp.todo],doneN=cp.routines.filter(doneToday).length+cp.doneRot.length,totN=cp.routines.length+cp.doneRot.length+cp.todo.length;
+ const W=wxModel(),wtm=W&&W.days.find(x=>x.date===tm);
+ return{t,tm,hm,d,evs,evT0,coming,nextDay,open,ovs,clean,doneN,totN,cp,left:d.shop.filter(i=>!i.done),shopAll:d.shop.filter(i=>i.name&&i.name!==PLATS),rooms:roomHealth().sort((a,b)=>a.score-b.score),bd:bdNext(bdays()),wtm}}
+const XW={
+ kal(z,X){const head='<span class="xwd">'+(DAYS[parse(X.t).getDay()]).toUpperCase()+'</span>',n=X.coming[0],more=X.coming.length-1;
+  if(z==='s')return'<div class="xg" data-act="calOpen" data-id="'+X.t+'">'+head+'<div class="xbig num">'+parse(X.t).getDate()+'</div><div class="sp"></div>'+(n?'<div class="xs mu num">'+esc(evT(n)||'Heldag')+'</div><div class="t one">'+esc(n.title)+'</div><div class="xs mu">'+(more>0?'+'+more+' till idag':'&nbsp;')+'</div>':'<div class="xs mu">Inget mer idag</div>')+'</div>';
+  if(z==='m')return'<div class="xmrow" data-act="calOpen" data-id="'+X.t+'"><div class="xdate">'+head+'<div class="xbig num">'+parse(X.t).getDate()+'</div><div class="xs mu">Vecka '+isoWeek(parse(X.t))+'</div></div><div class="grow xrows">'+(X.coming.length?X.coming.slice(0,4).map(xev).join(''):xempty('Inget mer i kalendern idag.'))+'</div></div>';
+  let wk='<div class="xwk">';for(let i=0;i<7;i++){const dt=addDays(X.t,i),n2=X.evs(dt).length;wk+='<button class="'+(i?'':'on')+'" data-act="calOpen" data-id="'+dt+'"><span>'+(i?cap(DAYS3[parse(dt).getDay()]):'Idag')+'</span><b class="num">'+parse(dt).getDate()+'</b><i>'+'<em></em>'.repeat(Math.min(3,n2))+'</i></button>'}wk+='</div>';
+  const nT=Math.min(4,X.evT0.length),tmE=X.evs(X.tm).slice(0,Math.max(0,Math.min(2,4-nT)));
+  return xh(X.t,I.cal,'Schema','Kalender','calOpen')+wk+'<div class="xsub">Idag</div><div class="xrows">'+(X.evT0.length?X.evT0.slice(0,4).map(xev).join(''):xempty('Inget i kalendern idag.'))+'</div>'+(tmE.length?'<div class="xsub">Imorgon</div><div class="xrows">'+tmE.map(xev).join('')+'</div>':'')},
+ upg(z,X){const n=X.open.length,late=X.open.filter(x=>isDate(x.due)&&x.due<=X.t).length,all=n?'Alla '+n:'';
+  const row=x=>{const lt=isDate(x.due)&&x.due<=X.t;return'<div class="xr">'+xck('taskToggle',x.id,x.title)+'<span class="grow one">'+esc(x.title)+'</span>'+(x.due?'<span class="xchip'+(lt?' red':'')+'">'+esc(x.due===X.t?'Idag':isDate(x.due)&&x.due<X.t?'Sen':dateShort(x.due))+'</span>':'')+'</div>'};
+  const ovr=X.ovs.map(o=>'<div class="xr" data-act="ovGo" data-id="'+esc(o.l+'|'+o.c.id)+'"><span class="xwarn">!</span><span class="grow"><span class="one">'+(ovState(o.c)==='andrad'?'Uppdatera':'Lägg in')+' stående överföring</span><span class="xs mu one">'+esc(o.c.name)+'</span></span></div>').join('');
+  if(z==='s')return xh('uppgifter',I.list,'Att göra')+'<div class="xbig num">'+n+'</div><div class="sp"></div>'+(n?'<div class="t one">'+esc(X.open[0].title)+'</div>'+(late?'<div class="xs red b">'+late+' idag eller sen'+(late>1?'a':'')+'</div>':'<div class="xs mu">&nbsp;</div>'):'<div class="xs mu">Inget att göra</div>');
+  const L=X.open.slice(0,z==='m'?3:7);
+  return xh('uppgifter',I.list,'Att göra',all)+((L.length||ovr)?'<div class="xrows">'+(z==='l'?ovr:'')+L.map(row).join('')+'</div>':xempty('Inget att göra just nu.'))},
+ mat(z,X){const nd=X.nextDay,isT=nd&&nd.date===X.t,lbl=!nd||isT?'Middag ikväll':'Middag '+dateShort(nd.date);
+  if(!nd)return xh('mat',I.fork,'Middag')+xempty('Ingen matsedel inlagd än.');
+  const ms=nd.meals,r0=ms[0].recipe&&recipeById(ms[0].recipe),img=r0&&(r0.img||imgOf(r0.id));
+  const go=m=>{const r=m.recipe&&recipeById(m.recipe);return r?' data-act="recipe" data-id="'+esc(r.id)+'"':''};
+  if(z==='s')return'<div class="xphoto full"'+go(ms[0])+'>'+(img?'<img src="'+esc(img)+'" alt="" loading="lazy" onerror="this.remove()">':'<span class="xfood">'+foodIcon(ms[0].title,r0)+'</span>')+'<div class="xov"><div class="xs b">'+(isT?'IKVÄLL':esc(dateShort(nd.date)).toUpperCase())+'</div><div class="t clamp2">'+esc(ms[0].title)+'</div>'+(ms.length>1?'<div class="xs">+'+(ms.length-1)+' till</div>':'')+'</div></div>';
+  if(z==='m')return xh('mat',I.fork,lbl,ms.length>1?ms.length+' rätter':'')+'<div class="xrows">'+ms.slice(0,3).map(m=>{const r=m.recipe&&recipeById(m.recipe);return'<div class="xr"'+go(m)+'>'+xmealDot(m.who)+'<span class="grow one t">'+esc(m.title)+'</span>'+(r&&r.kr?'<span class="xs mu">'+kr(r.kr)+'</span>':'')+'</div>'}).join('')+'</div>';
+  const nx=planDays().find(x=>x.date>nd.date&&x.meals.length),ck=r0&&r0.steps&&r0.steps.length;
+  return(img?'<div class="xphoto band"'+go(ms[0])+'><img src="'+esc(img)+'" alt="" loading="lazy" onerror="this.remove()"></div>':'')+xh('mat',I.fork,lbl)+'<div class="xrows">'+ms.slice(0,3).map(m=>{const r=m.recipe&&recipeById(m.recipe);return'<div class="xr top"'+go(m)+'><span class="grow">'+whoChip(m.who)+'<span class="t one">'+esc(m.title)+'</span>'+(m.addon?'<span class="xs mu one">+ Kött: '+esc(m.addon)+'</span>':'')+'</span>'+(r&&r.kr?'<span class="xs mu">'+kr(r.kr)+'/port</span>':'')+'</div>'}).join('')+'</div><div class="sp"></div><div class="xfoot">'+(nx?'<span class="xs mu grow one">'+esc(cap(dateShort(nx.date)))+': '+esc(nx.meals[0].title)+'</span>':'<span class="grow"></span>')+(ck&&isT?'<button class="btn-fill xbtn" data-act="cook" data-id="'+esc(r0.id)+'">'+I.play+'Börja laga</button>':'')+'</div>'},
+ stad(z,X){const r=xring(X.doneN,X.totN,z!=='s'),kv=X.cp.minLeft+' min kvar';
+  if(!X.d.clean.length)return xh('stad',I.sparkles,'Städ')+xempty('Inga rutiner tillagda än.');
+  if(z==='s')return xh('stad',I.sparkles,'Städ')+'<div class="xc">'+r+'</div><div class="xs mu xmid">'+(X.clean.length?kv:'Allt är gjort idag')+'</div>';
+  const row=x=>'<div class="xr">'+xck('cleanToggle',x.id,x.title)+'<span class="grow one">'+esc(x.title)+'</span>'+(z==='l'?'<span class="xs mu num">'+x.min+' min</span>':'')+'</div>';
+  const L=X.clean.slice(0,z==='m'?3:6),done='<div class="xok">'+I.tick+'Allt är gjort idag</div>';
+  if(z==='m')return xh('stad',I.sparkles,'Städ idag',X.clean.length?kv:'')+'<div class="xmrow">'+r+'<div class="grow xrows">'+(L.length?L.map(row).join(''):done)+'</div></div>';
+  return xh('stad',I.sparkles,'Städ idag',X.clean.length?kv:'')+'<div class="xmrow c">'+r+'<div class="grow xs mu">'+X.doneN+' av '+X.totN+' klara'+(X.rooms[0]?'<br>Mest att göra: '+esc(X.rooms[0].room):'')+'</div></div><div class="xrows">'+(L.length?L.map(row).join(''):done)+'</div>'},
+ inkop(z,X){const n=X.left.length,cost='ca '+kr(shopCost(X.left)),tot=X.shopAll.length,inK=tot-n;
+  const row=i=>'<div class="xr">'+xck('shopToggle',i.id,i.name)+'<span class="grow one">'+esc(i.name)+'</span></div>';
+  if(z==='s')return xh('inkop',I.basket,'Inköp','')+'<div class="xbig num">'+n+'</div><div class="xs mu">kvar · '+cost+'</div><div class="sp"></div>'+(tot?'<i class="xbar acc"><b style="width:'+Math.round(inK/tot*100)+'%"></b></i><div class="xs mu" style="margin-top:4px">'+inK+' av '+tot+' i korgen</div>':'');
+  if(!n)return xh('inkop',I.basket,'Inköp','')+xempty('Listan är tom.');
+  if(z==='m')return xh('inkop',I.basket,'Inköp',n+' kvar · '+cost)+'<div class="xrows two">'+X.left.slice(0,6).map(row).join('')+'</div>';
+  const g={};X.left.forEach(i=>{(g[i.cat||'Övrigt']=g[i.cat||'Övrigt']||[]).push(i)});let c=0,h='';
+  for(const k of Object.keys(g)){const L=g[k].slice(0,6-c);if(!L.length)break;c+=L.length;h+='<div class="xsub">'+esc(k)+'</div><div class="xrows">'+L.map(row).join('')+'</div>'}
+  return xh('inkop',I.basket,'Inköp',n+' kvar · '+cost)+h},
+ hem(z,X){const R=X.rooms;if(!R.length)return xh('stad',I.home,'Hemmet')+xempty('Städschemat är tomt.');
+  if(z==='s')return xh('stad',I.home,'Hemmet')+'<div class="xmidt one">'+esc(R[0].room)+'</div><div class="xs b hw '+healthCls(R[0].score)+'">'+healthWord(R[0].score)+'</div><div class="sp"></div>'+R.slice(0,3).map(r=>xbar(r.score,5)).join('');
+  if(z==='m')return xh('stad',I.home,'Hemmet')+'<div class="xgrid2">'+R.slice(0,4).map(r=>'<div><div class="xs b one">'+esc(r.room)+'</div>'+xbar(r.score,4)+'<div class="xs mu">'+healthWord(r.score)+'</div></div>').join('')+'</div>';
+  return xh('stad',I.home,'Hemmet')+'<div class="xrows">'+R.slice(0,7).map(r=>'<div class="xr"><span class="grow"><span class="xs b">'+esc(r.room)+'</span>'+xbar(r.score,4)+'</span><span class="xs mu xw90">'+healthWord(r.score)+'</span></div>').join('')+'</div>'},
+ imorgon(z,X){const E=X.evs(X.tm),day=dayOf(X.tm),ms=day?day.meals:[],f=X.wtm,wd=cap(DAYS[parse(X.tm).getDay()]);
+  const wx=f?'<span class="xwx">'+symInfo(f.sym)[0]+'</span><span class="xmidt num">'+deg(f.max)+'</span>':'';
+  if(z==='s')return xh(X.tm,I.cal,'Imorgon','','calOpen')+'<div class="xwxrow">'+wx+'</div><div class="sp"></div>'+(E[0]?'<div class="xs mu num">'+esc(evT(E[0])||'Heldag')+'</div><div class="t one">'+esc(E[0].title)+'</div>':ms[0]?'<div class="xs mu">Middag</div><div class="t one">'+esc(ms[0].title)+'</div>':'<div class="xs mu">'+wd+' · inget inplanerat</div>');
+  const rows=E.slice(0,z==='m'?2:4).map(xev).join('')+(ms[0]?'<div class="xr"><span class="xt acc">Mat</span><span class="grow one">'+esc(ms[0].title)+'</span></div>':'');
+  const hd=xh(X.tm,I.cal,'Imorgon',wd+' '+parse(X.tm).getDate()+' '+MON3[parse(X.tm).getMonth()],'calOpen');
+  if(z==='m')return hd+'<div class="xmrow">'+(f?'<div class="xwxcol">'+symInfo(f.sym)[0]+'<div class="xmidt num">'+deg(f.max)+'</div><div class="xs mu num">'+deg(f.min)+'</div></div>':'')+'<div class="grow xrows">'+(rows||xempty('Inget inplanerat.'))+'</div></div>';
+  const tk=X.open.filter(x=>x.due===X.tm).slice(0,2);
+  return hd+(f?'<div class="xwxband">'+symInfo(f.sym)[0]+'<span class="num"><b>'+deg(f.max)+'</b> / '+deg(f.min)+'</span><span class="xs mu grow">'+esc(symInfo(f.sym)[1]||'')+'</span></div>':'')+'<div class="xrows">'+(rows||xempty('Inget inplanerat.'))+tk.map(x=>'<div class="xr">'+xck('taskToggle',x.id,x.title)+'<span class="grow one">'+esc(x.title)+'</span></div>').join('')+'</div>'},
+ fod(z,X){const B=X.bd;if(!B.length)return'';const av=(b,c)=>'<span class="xav'+(c?' '+c:'')+'"'+bdSt(b)+'>'+esc(b.name.charAt(0).toUpperCase())+'</span>';
+  const row=b=>'<div class="xr"'+bdSt(b)+'>'+av(b)+'<span class="grow one"><b class="t">'+esc(b.name)+'</b> <span class="xs mu">'+(b.age!=null?b.age+' år':'')+'</span></span><span class="xs mu'+(b.days<14?' soon':'')+'">'+esc(bdWhen(b))+'</span></div>';
+  if(z==='s')return xh('fod',I.cake,'Födelsedag')+av(B[0],'big')+'<div class="sp"></div><div class="t one xmidt2">'+esc(B[0].name)+'</div><div class="xs mu">'+esc(bdTurns(B[0]))+' · '+esc(bdWhen(B[0]))+'</div>';
+  if(z==='m')return xh('fod',I.cake,'Födelsedagar')+'<div class="xrows">'+B.slice(0,3).map(row).join('')+'</div>';
+  return xh('fod',I.cake,'Födelsedagar','Alla')+'<div class="xbd1"'+bdSt(B[0])+'>'+av(B[0],'big')+'<div class="grow"><div class="t">'+esc(B[0].name)+' '+esc(bdTurns(B[0]))+'</div><div class="xs mu">'+esc(cap(DAYS[parse(B[0].next).getDay()]))+' '+B[0].dd+' '+MON3[B[0].mo]+' · '+esc(bdWhen(B[0]))+'</div></div></div><div class="xrows">'+B.slice(1,6).map(row).join('')+'</div>'}};
+const XW_NAV={kal:'kalender',upg:'uppgifter',mat:'mat',stad:'stad',inkop:'inkop',hem:'stad',imorgon:'kalender',fod:'fod'};
+const XW_REF={ov:{kal:'Ö2',upg:'Ö3',mat:'Ö4',stad:'Ö5',inkop:'Ö6',hem:'Ö7',imorgon:'Ö8',fod:'Ö9'},wall:{kal:'T3',mat:'T4',inkop:'T5',fod:'T6',stad:'T7',upg:'T8',hem:'T10',imorgon:'T11'}};
+function xwBox(id,z,wall,X){const body=XW[id](z,X);if(!body)return'';const arr=S.arrange;
+ let h='<section data-box="'+id+'"'+RF(XW_REF[wall?'wall':'ov'][id])+' class="widget xw xw-'+z+(id==='mat'&&z==='s'?' xw-photo':'')+(arr?' arr'+(DRAG_ID===id?' ph':''):'')+'"'+(arr?'':' data-act="nav" data-id="'+XW_NAV[id]+'"')+'>';
+ if(arr){h+='<button type="button" class="arr-x" data-act="boxHide" data-id="'+id+'" aria-label="Dölj '+BOX[id]+'">'+IA.minus+'</button><button type="button" class="arr-s" data-act="boxSize" data-id="'+id+'" aria-label="Storlek för '+BOX[id]+'">'+IA.grow+'</button>';
+}
+ return h+'<div class="xin">'+body+'</div></section>'}
+const xwMenu=L=>{const id=S.xsz;if(!S.arrange||!id||!L.size[id]||L.hidden.includes(id))return'';const z=L.size[id];
+ return'<div class="xsz" role="menu" aria-label="Storlek för '+BOX[id]+'"><span class="xsz-n">Storlek för '+BOX[id]+'</span>'+['s','m','l'].map(k=>'<button type="button" role="menuitemradio" aria-checked="'+(k===z)+'" class="'+(k===z?'on':'')+'" data-act="boxSz" data-id="'+id+':'+k+'"><i class="xi-'+k+'">'+'<b></b>'.repeat(k==='s'?4:k==='m'?8:16)+'</i>'+XW_NAMN[k]+'</button>').join('')+'</div>'};
+function xwGrid(wall){const X=xwData(),L=layout(wall),list=L.cols[0];
+ const used=list.reduce((s,id)=>s+(XW[id](L.size[id],X)?XW_U[L.size[id]]:0),0);
+ return{html:'<div class="xgrid'+(wall?' wallg':'')+(S.arrange?' arranging':'')+'">'+list.map(id=>xwBox(id,L.size[id],wall,X)).join('')+'</div>'+xwMenu(L),L,used}}
+function ovX(){const hh=new Date().getHours(),greet=hh<5?'God natt':hh<10?'God morgon':hh<17?'Hej':hh<22?'God kväll':'God natt',g=xwGrid(false);
+ return head(greet+(people().includes(S.me)?', '+personLabel(S.me):''),U3?{sub:cap(dayHead(today()))}:undefined)+'<div class="ov">'+refAdd(heroHtml(),'Ö1')+g.html+
+  (S.arrange?'<p class="arr-intro">Håll kvar och dra en ruta dit du vill ha den. Hörnknappen väljer Liten, Mellan eller Stor och − döljer rutan. Gäller bara den här enheten.</p>':smileyCard())+'</div>'+arrangeFoot(g.L,false)}
+function wallX(){const g=xwGrid(true),top=VKNAPP==='rubrik';
+ return'<div class="board xboard'+(S.arrange?' arranging':'')+(top?' har-top':'')+'">'+(top?'<div class="wall-top"><h1 class="lt">'+(new Date().getHours()<10?'God morgon':new Date().getHours()<18?'Hej':'God kväll')+'</h1></div>':'')+
+  '<div class="bcol bhero">'+refAdd(heroHtml(),'T1')+refAdd(wallWx(),'T2')+'</div>'+g.html+'</div>'+(S.arrange&&g.used>16?'<div class="xfull" role="status">Tavlan är full: '+g.used+' av 16 platser. Gör en ruta mindre eller dölj den.</div>':'')+arrangeFoot(g.L,true)}
 /* ---------- väggtavlan ----------
    På väggskärmen (väggläge, bred skärm) blir Översikt en tavla i tre kolumner som alltid får plats
    utan att scrolla: tid och väder | kalender och middag | städ, inköp och födelsedagar.
@@ -939,6 +1061,7 @@ function wallBd(){const L=bdays();if(!L.length)return'';const t=parse(today()),m
   (more?'<div class="fn">och '+more+' till</div>':'')+'</div></div>')}
 function wallBoard(){
  if(nightOn())return wallNight();
+ if(expOn())return wallX();
  const t=today(),d=D(),cp=cleanPlan(),td=dayOf(t),tm=dayOf(addDays(t,1)),days=planDays();
  const nextDay=(td&&td.meals.length)?td:days.find(x=>x.date>t&&x.meals.length),isT=nextDay&&nextDay.date===t;
  const left=d.shop.filter(i=>!i.done);
@@ -965,6 +1088,7 @@ const WALL_DEF=[['kal','mat','inkop','fod'],['stad','upg']];
 const boardDefault=()=>U3?[['kal','mat'],['upg','inkop','fod','stad']]:WALL_DEF;
 V.oversikt=function(){
  if(wallBoardOn())return wallBoard();
+ if(expOn())return ovX();
  const t=today(),now=new Date(),days=planDays();
  const td=dayOf(t),tm=dayOf(addDays(t,1));
  const nextDay=(td&&td.meals.length)?td:days.find(d=>d.date>t&&d.meals.length);
@@ -994,7 +1118,7 @@ V.oversikt=function(){
  H.imorgon=tm?widget('mat','w2',I.cal,'Imorgon',esc(dateShort(tm.date)),(eventsHtml(tm)||'<div class="wempty">Inga händelser.</div>')+(tm.meals.length?wMeals(tm):'')):'';
  H.fod=bdWidget();
  const L=layout(false,OV_DEF());
- return h+(S.arrange?'<p class="arr-intro">Håll kvar och dra en ruta dit du vill ha den. − döljer rutan och hörnknappen gör den halv eller hel. Gäller bara den här enheten.</p>':'')+'<div class="widgets'+(S.arrange?' arranging':'')+'">'+boxRow(L.cols[0].filter(id=>H[id]),false,H,L)+'</div>'+(!S.arrange?smileyCard():'')+'</div>'+arrangeFoot(L,false)};
+ return h+'<div class="widgets'+(S.arrange?' arranging':'')+'">'+boxRow(L.cols[0].filter(id=>H[id]),false,H,L)+'</div>'+(S.arrange?'<p class="arr-intro">Håll kvar och dra en ruta dit du vill ha den. − döljer rutan och hörnknappen gör den halv eller hel. Gäller bara den här enheten.</p>':smileyCard())+'</div>'+arrangeFoot(L,false)};
 // utan egen ordning ligger födelsedagarna näst sist
 const OV_DEF=()=>U3?[['mat','upg','kal','inkop','stad','fod','hem','imorgon']]:[['kal','upg','mat','stad','inkop','fod','hem','imorgon']];
 function wMeals(d){if(U3)return(d.meals||[]).map(m=>{const r=m.recipe&&recipeById(m.recipe),go=r?'button':'div';return'<div class="u3-dinner"><'+go+' class="u3-meal"'+(r?' data-act="recipe" data-id="'+esc(r.id)+'"':'')+'>'+dishThumb(r,m.title)+'<span class="grow"><span class="chips-row">'+whoChip(m.who)+'</span><span class="hl">'+esc(m.title)+'</span>'+(m.addon?'<span class="meta">'+esc(m.addon)+'</span>':'')+(r&&r.min?'<span class="meta">'+r.min+' min'+(r.kr?' · '+kr(r.kr)+'/port':'')+'</span>':'')+'</span></'+go+'>'+(r&&r.steps&&r.steps.length?'<button class="btn-fill" data-act="cook" data-id="'+esc(r.id)+'">'+I.play+'Börja laga</button>':'')+'</div>'}).join('');return(d.meals||[]).map(m=>{const r=m.recipe&&recipeById(m.recipe);const tag=r?'button':'div';
@@ -2568,13 +2692,13 @@ function renderOverlay(){
       sh('Menyraden längst ner')+'<div class="seg-wrap">'+segc('Menyraden längst ner','flikrad',[['fast','Fast'],['glas','Svävande'],['piller','Piller']],FLIKRAD)+'</div><div class="foot">Fast ligger kant i kant längst ner. Svävande är en rundad glasbubbla ovanpå innehållet, som i iOS 26, och krymper till en rund knapp när du scrollar. Piller krymper i stället till ett smalt piller med bara ikonerna, halvt nedanför skärmkanten. Gäller bara den här enheten.</div>':'')+sh('Placering av plusknappen')+'<div class="seg-wrap">'+segc('Placering av plusknappen','addPlace',[['flytande','Flytande'],['profil','Vid profilen'],['rad','Vid raden']],addPlace())+'</div><div class="foot">Gäller Recept, Inköp och Uppgifter. I Städ flyttar Vid profilen pluset till rubriken och döljer snabbfältet. Flytande visas ovanför menyraden. Vid profilen visas bredvid användaren. Vid raden låter dig lägga till direkt i listan; i kalendern öppnas formuläret. Receptpluset visar Nytt recept och Importera recept. Gäller bara den här enheten.</div>'],
    ['vardag','Mat och städ',sh('Städtid och matbudget')+group(fieldCell('Vardag, min','<input class="field r" id="set-wd" name="wd" inputmode="numeric" value="'+esc(st.stadtid_vardag||20)+'" style="max-width:110px">')+fieldCell('Helg, min','<input class="field r" id="set-we" name="we" inputmode="numeric" value="'+esc(st.stadtid_helg||40)+'" style="max-width:110px">')+fieldCell('Mat/vecka, kr','<input class="field r" id="set-budget" name="budget" inputmode="numeric" value="'+esc(st.matbudget||'')+'" style="max-width:110px">'))+sh('Låsa rätter')+'<div class="seg-wrap">'+segc('Låsa rätter','lasstil',[['rad','Runt rätten'],['bild','Runt bilden']],LASSTIL)+'</div><div class="foot">'+'Tryck på låset för att låsa en rätt. Håll in rätten för att ändra den.'+' Föreslå en ny vecka behåller låsta rätter. Gäller bara den här enheten.</div>'+sh('Städvyn')+'<div class="seg-wrap">'+segc('Städvyn','stadVy',[['lista','Lista'],['rutnat','Rutnät'],['ring','Ring']],stadVy())+'</div><div class="foot">Lista visar allt som förut. Rutnät visar dagens sysslor som rutor du trycker på. Ring visar minuterna kvar som en ring och dagens sysslor i en lugn lista. Gäller bara den här enheten.</div>'+(DEV?sh('Förslag i Planera med portioner')+'<div class="seg-wrap">'+segc('Förslag i Planera med portioner','flStyle',[['karusell','Stort kort'],['lista','Lista']],FL_STYLE)+'</div>':'')],
    ['oversikt','Översikt och väder',sh('Vädervyn')+'<div class="seg-wrap">'+segc('Vädervyn','wxvy',[['kurva','Dagskurva'],['bild','Bild med hundar']],WXVY)+'</div><div class="foot">Dagskurvan visar temperaturen de närmaste 24 timmarna. Gäller bara den här enheten.</div>'+sh('Vädret under hundarna')+'<div class="seg-wrap">'+segc('Vädret under hundarna','ovwx',[['tim','Timme för timme'],['graf','Med graf']],OVWX)+'</div><div class="foot">'+(motionOn()?'Dra handtaget under timmarna nedåt för grafen, uppåt för att fälla ihop. Du kan också trycka på handtaget.':'Håll in timmarna i Översikt för att visa eller dölja grafen.')+' Gäller bara den här enheten.</div>'+sh('Bildstil')+'<div class="seg-wrap">'+segc('Bildstil','wxart',WX_ART,WXART)+'</div><div class="foot">Förfinad ger mjukare former. Geometrisk har tydliga färgplan, inspirerade av Kurzgesagt. Alla stilar följer samma väder, årstider och himmel. Gäller bilden i Väder och Översikt på den här enheten.</div>'+sh('Hundar i bilden')+'<div class="seg-wrap">'+segc('Hundar i bilden','hundar',[['vaxla','Växla'],['bada','Båda'],['brun','Bruna'],['svart','Svarta']],HUNDAR)+'</div><div class="foot">Växla byter var tredje timme. Du kan också trycka på hundarna i Väder för att byta. Gäller bara den här enheten.</div>'+
-  sh('Översikten')+group('<button type="button" class="cell link" data-act="arrange"><span class="grow">Ändra ordning på rutorna</span>'+chevron+'</button>')+'<div class="foot">Gäller bara den här enheten. Du kan också hålla fingret på en ruta en stund.</div>'],
+  sh('Översikten')+group('<button type="button" class="cell link" data-act="arrange"><span class="grow">Ändra ordning på rutorna</span>'+chevron+'</button>'+(prevGet(layoutKey(S.wall))?'<button type="button" class="cell link" data-act="boxPrev"><span class="grow">Gå tillbaka till föregående layout</span>'+chevron+'</button>':''))+'<div class="foot">Gäller bara den här enheten. Du kan också hålla fingret på en ruta en stund.</div>'],
    ['enhet','Enheten',sh('Skärm')+group(fieldCell('Väggläge','<input type="checkbox" role="switch" class="switch" data-act="wall" aria-label="Väggläge"'+(S.wall?' checked':'')+'>')+
    (S.wall?'<button type="button" class="cell link" data-act="vagg"><span class="grow">Nattläge</span><span class="meta">'+esc((!NATT.on?'Av':NATT.sol?'Solnedgång–soluppgång':nattTid(NATT.a)+'–'+nattTid(NATT.b))+(CAM.on?' · kamera':''))+'</span>'+chevron+'</button>':'')+statusHtml())+
   (topic?sh('Notiser')+group('<div class="cell"><span class="grow copy">'+esc(topic)+'</span><button type="button" class="pill" data-act="copy" data-id="'+esc(topic)+'">Kopiera</button></div>')+'<div class="foot">Installera appen ntfy och prenumerera på det här ämnet. Använd servern ntfy.sh.</div>':'')+(S.wall?sh('Inställningsknappen på väggskärmen')+'<div class="seg-wrap">'+segc('Inställningsknappen på väggskärmen','vaggknapp',[['meny','I menyraden'],['knapp','Egen knapp'],['rubrik','Rubrikrad']],VKNAPP)+'</div><div class="foot">I menyraden sitter cirkeln längst till höger i menyn. Egen knapp är en rund knapp nere till höger. Rubrikrad lägger en rad överst med cirkeln till höger, som på telefonen. Gäller bara den här enheten.</div>':'')+sh('Den här enheten')+group('<button type="button" class="cell link center red" data-act="logout">Logga ut</button>')],
    ['avancerat','Avancerat',sh('Utvecklare')+group(fieldCell('Utvecklarläge','<input type="checkbox" role="switch" class="switch" data-act="dev" aria-label="Utvecklarläge"'+(DEV?' checked':'')+'>'))+'<div class="foot">Visar menyer som inte är färdiga, just nu Planera nästa vecka och Planera med portioner. Gäller bara den här enheten.</div>'+
   (sh('Rörelse')+group(fieldCell('Vägledande animationer','<input type="checkbox" role="switch" class="switch" data-act="motion" aria-label="Vägledande animationer"'+(MOTION?' checked':'')+'>'))+'<div class="foot">Riktade sidbyten, glidande menyval och mjuk expansion. Systemets inställning för minskad rörelse går alltid före. Gäller den här enheten.</div>')+
-  (DEV?sh('Rutnummer')+group(fieldCell('Visa rutnummer','<input type="checkbox" role="switch" class="switch" data-act="refs" aria-label="Visa rutnummer"'+(refsOn()?' checked':'')+'>'))+'<div class="foot">Varje ruta får sitt fasta nummer i hörnet, till exempel M2. Tryck på numret för att kopiera det. Gäller bara den här enheten.</div>':'')]])+'<div class="foot ver">Hushållstavlan · UI '+(U5?'5.0':U4?'4.0':U3?'3.0':UI_VER)+' · version '+esc(APP_VER)+'</div>';
+  (DEV?sh('Rutnummer')+group(fieldCell('Visa rutnummer','<input type="checkbox" role="switch" class="switch" data-act="refs" aria-label="Visa rutnummer"'+(refsOn()?' checked':'')+'>'))+'<div class="foot">Varje ruta får sitt fasta nummer i hörnet, till exempel M2. Tryck på numret för att kopiera det. Gäller bara den här enheten.</div>'+sh('Experimentellt')+group(fieldCell('Widgets i olika storlekar','<input type="checkbox" role="switch" class="switch" data-act="exp" aria-label="Widgets i olika storlekar"'+(expOn()?' checked':'')+'>'))+'<div class="foot">Rutorna på Översikt och väggskärmen kan vara Liten, Mellan eller Stor och visar mer ju större de är. Välj storlek med hörnknappen i Ändra ordning. Gäller bara den här enheten.</div>':'')]])+'<div class="foot ver">Hushållstavlan · UI '+(U5?'5.0':U4?'4.0':U3?'3.0':UI_VER)+' · version '+esc(APP_VER)+'</div>';
   o.innerHTML=sheetHtml('settings','Inställningar','<button class="tb strong">Spara</button>',body,enter);if(S.prefDraft){Object.entries(S.prefDraft).forEach(([k,v])=>{const f=o.querySelector('[name="'+k+'"]');if(f&&!/radio|checkbox/.test(f.type))f.value=v})}segSlide(o);restoreColorStrips(o);return}
  if(k==='ljuskal'){const K=KAL||{},nm=['full','mitten','lägsta'];let body='',right='<button type="button" class="tb strong" data-act="sheetClose">'+(K.step==='klar'||SMAK?'Klar':'Avbryt')+'</button>';
   if(SMAK){const i=SMAK.i,v=Math.round(SMAK.v[i]*100);
@@ -4339,7 +4463,7 @@ const ACT={
  smileyQuick(id,el){const v=Number(el.dataset.v)||0;A.user=Date.now();saveSmiley(id,el.dataset.date,v);markCooked(id,el.dataset.date);toast(v>0?'Vad bra! Rätten kommer tillbaka lite oftare':v<0?'Noterat. Rätten kommer tillbaka mer sällan':'Tack!')},
  smileySkip(id,el){A.user=Date.now();saveSmiley(id,el.dataset.date,'x');toast('Okej, den räknas inte som lagad')},
  wakeBoard(){render()},
- nav(id,el){if(RC.busy){toast('Vänta tills receptbegäran är klar.');return}if(RC.screen&&RC.edit&&RC.edit.dirty){RC.leaveTo=id;recipeLeave();S.view='mat';return}if(RC.screen)RC.screen=null;if(id!=='oversikt')S.arrange=false;if(normView(id)!=='ekonomi'){S.ekoOpen=false;S.pin=''}try{document.activeElement&&document.activeElement.blur()}catch(e){}id=normView(id);if(id==='uppgifter'&&S.taskTab==='stad'&&S.view!=='stad'&&el&&el.closest&&el.closest('#nav'))id='stad';if(id==='uppgifter'||id==='stad'){S.taskTab=id==='stad'?'stad':'lista';lsSet('taskTab',S.taskTab)}S.shopAdd=false;S.taskAdd=false;S.view=id;S.recipe=null;S.confirm=null;lsSet('view',id);try{history.replaceState(null,'','#'+id)}catch(e){}window.scrollTo(0,0);render()},
+ nav(id,el){if(RC.busy){toast('Vänta tills receptbegäran är klar.');return}if(RC.screen&&RC.edit&&RC.edit.dirty){RC.leaveTo=id;recipeLeave();S.view='mat';return}if(RC.screen)RC.screen=null;if(id!=='oversikt')arrCancel();if(normView(id)!=='ekonomi'){S.ekoOpen=false;S.pin=''}try{document.activeElement&&document.activeElement.blur()}catch(e){}id=normView(id);if(id==='uppgifter'&&S.taskTab==='stad'&&S.view!=='stad'&&el&&el.closest&&el.closest('#nav'))id='stad';if(id==='uppgifter'||id==='stad'){S.taskTab=id==='stad'?'stad':'lista';lsSet('taskTab',S.taskTab)}S.shopAdd=false;S.taskAdd=false;S.view=id;S.recipe=null;S.confirm=null;lsSet('view',id);try{history.replaceState(null,'','#'+id)}catch(e){}window.scrollTo(0,0);render()},
  refresh(){refresh()},
  settings(){if(S.sheet!=='farg')S.prefDraft=null;S.sheet='settings';render()},
  farg(){rememberSettings();S.sheet='farg';render()},
@@ -4368,12 +4492,20 @@ const ACT={
  hundar(id){HUNDAR=['bada','brun','svart'].includes(id)?id:'vaxla';lsSet('hundar',HUNDAR==='vaxla'?null:HUNDAR);S.wxVar=null;render()},
  accMin(){ACT.accent(accentPref()==='min'?accentKey():'min')},
  accent(id){if(U4){const k=id==='min'||colOk(id)?id:'lavendel';lsSet('accent4',k==='lavendel'?null:k)}else{ACCENT=id==='min'||colOk(id)?id:'vinrod';lsSet('accent',ACCENT==='vinrod'?null:ACCENT)}render()},
- arrange(){closeSheets();S.arrange=true;ACT.nav('oversikt')},
- arrangeDone(){S.arrange=false;render()},
- boxSize(id){boxEdit(L=>{L.size[id]=L.size[id]==='h'?'f':'h'})},
+ arrange(){closeSheets();arrOn();ACT.nav('oversikt')},
+ arrangeDone(){const ch=arrChanged();if(ch)lsSet(ARR0.k+'Prev',JSON.stringify({v:ARR0.v}));ARR0=null;S.arrange=false;S.xsz=null;render();
+  if(ch){const u=document.getElementById('undo');u.querySelector('.ud-t').textContent='Den nya ordningen är sparad';const b=u.querySelector('.ud-b');b.dataset.act='boxPrev';b.textContent='Ångra';u.hidden=false;clearTimeout(ACT.boxPrev.t);ACT.boxPrev.t=setTimeout(()=>{if(b.dataset.act==='boxPrev')undoHide()},6000)}},
+ // i ändra-läget läggs föregående layout in i utkastet; annars byter den plats med den sparade direkt, så att man kan växla tillbaka igen
+ boxPrev(){undoHide();const k=ARR0?ARR0.k:layoutKey(wallBoardOn()),p=prevGet(k);if(!p)return toast('Det finns ingen föregående layout');
+  if(ARR0){lsSet(k,p.v);render();return toast('Föregående layout. Tryck Klar för att spara.')}
+  const cur=lsGet(k);lsSet(k,p.v);lsSet(k+'Prev',JSON.stringify({v:cur}));closeSheets();if(S.view!=='oversikt')ACT.nav('oversikt');else render();toast('Tillbaka till föregående layout')},
+ arrangeCancel(){const ch=arrChanged();arrCancel();render();if(ch)toast('Ändringarna är ångrade')},
+ boxSize(id){if(expOn()){S.xsz=S.xsz===id?null:id;render();return}boxEdit(L=>{L.size[id]=L.size[id]==='h'?'f':'h'})},
+ boxSz(v){const[id,z]=String(v).split(':');S.xsz=null;if(XW_U[z])boxEdit(L=>{L.size[id]=z})},
+ exp(){arrCancel();lsSet('exp',expOn()?null:'1');S.xsz=null;render();toast(expOn()?'Widgets i olika storlekar är på':'Widgets i olika storlekar är av')},
  boxHide(id){boxEdit(L=>{L.cols.forEach(c=>{const i=c.indexOf(id);if(i>=0)c.splice(i,1)});L.hidden.push(id)})},
  boxShow(id){boxEdit(L=>{L.hidden=L.hidden.filter(x=>x!==id);L.cols[L.cols.length-1].push(id)})},
- boxReset(){saveLayout(wallBoardOn(),null);render();toast('Rutorna ligger som från början')},
+ boxReset(){saveLayout(wallBoardOn(),null);render();toast('Rutorna ligger som från början. Tryck Klar för att spara.')},
  prefs(){S.sheet='prefs';render()},
  sheetClose(){closeSheets();render()},
  sheetBg(id,el,e){if(e.target===el){closeSheets();render()}},
