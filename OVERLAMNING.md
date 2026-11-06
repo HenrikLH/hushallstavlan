@@ -4,13 +4,13 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 ## Börja här
 
-- Aktuell release: **ht-v260** (sol/månbanan i telefonens Översikt följer med hundbilden 42 px åt vänster, `.hero.art-geo>.arc.b`). Ångra-gren `version-fore-solbana-vanster`. Röktest telefon+vägg grönt.
+- Aktuell release: **ht-v261** (Uppgifter: Ångra och "Nyligen borttagna", PR #70). Ångra-gren `version-fore-aterstall-uppgift`; före det ht-v260 (sol/månbanan 42 px åt vänster, `version-fore-solbana-vanster`).
 - Inga pågående uppgifter utöver punkterna nedan. Gör inte om godkända ändringar.
 - Strömningen i ChatGPT har avbrutits flera gånger: kontrollera gren/PR/main och Pages innan en avbruten publicering återupptas.
 
 ## Pågår nu
 
-- **Återställ borttagna uppgifter** (Claude, gren `claude/project-thread-ux66an`, PR #70, väntar på Henriks "Pusha"). Borttagen öppen uppgift ger Ångra i 5 s och hamnar i "Nyligen borttagna" (ruta U12) under Klara i 30 dagar. Synkas mellan enheter (Henriks krav) via `onskelista` som `{bort:1,l:[{k,title,due,who,repeat,at,by}]}`, så ingen Kod.gs-ändring; `wishes()`/`recipeWishes` hoppar över den. Återställ = `taskAdd` med samma fält. Klara uppgifter sparas inte. Test `verktyg/emu/uppgift-aterstall.js` (OK, även `LS={"ui":"5"}`); alla-flikar telefon+vägg utan PAGEERROR. Nästa steg: version.js + publicera efter "Pusha".
+- Inget pågående. Senast publicerat (ht-v261): borttagen öppen uppgift ger Ångra i 5 s och hamnar i "Nyligen borttagna" (ruta U12) under Klara i 30 dagar, synkat mellan enheter via `onskelista` `{bort:1,l:[{k,title,due,who,repeat,at,by}]}` (ingen Kod.gs; `wishes()`/`recipeWishes` hoppar över den). Återställ = `taskAdd`. Klara uppgifter sparas inte. Test `verktyg/emu/uppgift-aterstall.js`.
 
 - Inget pågående. **UI 5.0 (Apple)** publicerad i ht-v257 som val (Inställningar → Utseende → Design; `ht.ui=5`, `U5`, CSS bara under `html.ny.ui5` sist i `<style>`). Plan/beslut: Claude Doc "Apple-känsla: genomgång och plan". Tester: `verktyg/emu/ui5.js`, `ui5-navigering.js` (svep tillbaka, dra ned, svep på uppgift), alla-flikar med `LS={"ui":"5"}`. UI 2.0 är fortfarande standard.
 - Inget. Senast publicerat: Städvyn kan väljas som Lista (standard), Rutnät eller Ring under Inställningar → Mat och städ (`ht.stadVy`, `stadRutnat`/`stadRing` i app.js, CSS `.sx-*`). Test: `NOW=<idag> node verktyg/emu/run.js verktyg/emu/stad-vyer.js` (emulerade servern sätter lastDone med riktigt datum).
