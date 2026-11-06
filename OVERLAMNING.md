@@ -31,6 +31,9 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 - Inget pågående. **UI 5.0 (Apple) är standard** sedan ht-v264 (Henriks beslut 2026-11-06; ångra-gren `version-fore-ui5-standard`). `U5` = `ht.ui` saknas eller `5`; UI 2.0 sparas som `ht.ui=2`. CI: matris UI 2 kör med `{ui:"2"}`, UI 5 utan `ui`. Kända fel från ht-v263 (kalenderfliken): `ui-versioner.js` och `plus-alternativ.js` klickar på `taskTab` lista som inte längre finns där; behöver anpassas.
 - Inget. Senast publicerat: Städvyn kan väljas som Lista (standard), Rutnät eller Ring under Inställningar → Mat och städ (`ht.stadVy`, `stadRutnat`/`stadRing` i app.js, CSS `.sx-*`). Test: `NOW=<idag> node verktyg/emu/run.js verktyg/emu/stad-vyer.js` (emulerade servern sätter lastDone med riktigt datum).
 
+- **Tillförlitliga priser** publicerat ht-v282 (PR #32, ångra-gren `version-fore-priser`): Inköp = hela Willysförpackningar, pris/portion = använd mängd inkl. skafferi. `MV.rimligFor` (¼–3× standard), `portTxt` "minst X kr" (<90 % känt), `prisAlder`/`prisVarning` (>7 dagar; Kod.gs `senastOk`, `d`, omförsök vid 503). Fast lista `verktyg/priskopplingar.json` + `node verktyg/priskoll.js` (CI); ny ingrediens: granska, kör `--skriv`. Test `priser-tillit.js`.
+- **Varuregister** (Claude, gren `claude/project-thread-646pna`, Henrik 2026-11-06 "implementera"): varje basvara kopplas till en bestämd Willysprodukt (varunummer), Kod.gs hämtar per varunummer, appen frågar "Vilken vara är det här?" för nya ingredienser, recepten sparar kopplad vara. Pågår; bilder före publicering.
+
 ## Följ upp med Henrik
 
 - Kalenderflik (ht-v263): hittar ni kalendern nu, och saknas Städ som egen flik? Gamla `ht.taskTab=kalender` öppnar Kalender-fliken vid start.
@@ -50,7 +53,7 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 ## Väntar på Henrik (Kod.gs)
 
-- Inget. Henrik klistrade in och publicerade Kod.gs från main 2026-11-06 20:06 (med `eventAdd` och `rid`-skyddet).
+- Henrik klistrade in Kod.gs från main 2026-11-06 20:06 (med `eventAdd` och `rid`-skyddet). Prisdelen (PR #32, ht-v282) är publicerad men inte inklistrad: klistra in [Kod.gs](https://github.com/HenrikLH/hushallstavlan/blob/main/apps-script/Kod.gs) och kör `startaPrisSynk`.
 - Namn/rum på sysslor kan inte ändras utan ny Kod.gs (`cleanSet` tillåter bara freq/min/who/plannedFor/snoozeUntil).
 
 ## Beslut som ska bevaras (inte självklara i koden)
