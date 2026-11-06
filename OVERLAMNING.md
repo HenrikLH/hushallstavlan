@@ -4,6 +4,7 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 ## Börja här
 
+- **ht-v283**: Föreslå en ny vecka direkt på veckosedeln, bakom Inställningar → Experimentellt → Ny vecka på veckosedeln (utvecklarläget, `ht.expVecka=1`, `expVecka()`). Byter olåsta rätter i telefonen (`S.wkDraft`, `wkForeslaa`), märker dem Ny, rad med Ångra/Nytt/Spara (Spara = `weekSend`); låsta, Borta och efterrätt ligger kvar. Gäller veckan som visas (gamla Veckoförslag använder `planMonday` och planerar nästa vecka mitt i veckan; det är kvar utan experimentet). Ångra-gren `version-fore-ny-vecka`. Test `verktyg/emu/foresla-vecka.js`. Nästa: Henrik provar; vid ja, gör standard och ta bort gamla sidan.
 - Aktuell release: **ht-v281**: Födelsedagar: svep i sidled byter Årshjul/Månader/Tidslinje (`SUBS.fod`); svep-ta-bort på raderna borttaget, ta bort = håll in raden → håll in Ta bort i bladet (`fodDelHold`). UI 5.0: tillbaka-svep från kanten, eller inne på sidan från Årshjul. Ångra-gren `version-fore-fod-svep`, PR #76. Gröna: fodelsedagar.js (UI5+UI2), alla-flikar telefon+vägg. Följ upp: känns svepet rätt i iPhone?
 - Förra: **ht-v280**: macka på veckosedeln visar sina portioner och kan låsas som en rätt (låsnyckel `macka:<datum>`, `lasId` i app.js; Föreslå en ny vecka behåller låst mackkväll). Ångra-gren `version-fore-macka-las`. Gröna: macka-portioner, matsedel-gester, ta-bort-hall-in, alla-flikar telefon+vägg. CI-felet i `oversikt-manad.js` finns redan på main.
 - Förra: **ht-v279**: samma hörnrundning överallt (bara CSS). Inköp, månadsväljaren i Ekonomi, veckans knapp, rätternas rutor, bladen, widgets och receptkort följer Kantiga/Runda/Raka (UI 2/4) och `--r5` (UI 5). Ångra-gren `version-fore-hornrundning`, PR #75. Hitta fler avvikare: `verktyg/emu/radie-koll.js`. Gröna: alla-flikar telefon (UI5, UI2 Runda) + vägg; CI faller bara på gamla `oversikt-manad.js` (handtagets min-height, fel även på main).
@@ -23,7 +24,6 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 ## Pågår nu
 
-- **Föreslå en ny vecka på veckosedeln** (Claude, gren `claude/project-thread-qr5f3d`, förslag, väntar på Henriks val/"Pusha"): knappen fyller veckosedeln direkt (`wkForeslaa`/`wkBar`/`wkSpara`/`wkAngra`, `S.wkDraft`, `autoMenu`, `autoFranVecka(P,{ny})`). Nya rätter märks Ny; Ångra/Nytt/Spara i fast rad; låsta rätter, Borta-kvällar och efterrätt ligger kvar; Spara = `weekSend`. Rättat: mitt i veckan planerades nästa vecka (`planMonday`). Gamla Veckoförslag-sidan nås inte längre från knappen. Test `verktyg/emu/foresla-vecka.js` (även `NOW=2026-10-21…`), alla-flikar telefon grönt på 235b276.
 - **Tidsblock i kalendern** publicerat ht-v269 (ångra-gren `version-fore-tidsblock`, PR #72): Kalenderns plus och Lägg till öppnar Ny händelse (Händelse|Uppgift, Datum, Heldag, Börjar, Slutar, Vem; `evNyOpen`, `evNew`, `evNewTyp`). Dag- och breda veckovyn: tryck på tom tid = block vid halvtimmen, håll in 0,4 s och dra = start/slut i kvartar (`calNyAttr`, `.cv-ny`). Kod.gs `eventAdd` lägger i Familj-kalendern med "Vem: X" i beskrivningen (läses i `calRows_`). Test `node verktyg/emu/run.js verktyg/emu/kalender-tidsblock.js` (med eller utan NOW) (gas.js har låtsaskalendrar). Nästa: Henrik provar dra i iPhone efter Kod.gs-inklistring.
 - **Flytta rutor + widgets** publicerat ht-v267 (ångra-gren `version-fore-widgets`, main före: 6423eb1). Widgets i S/M/L bakom Inställningar → Avancerat → Experimentellt (utvecklarläge, `ht.exp=1`, `expOn()`, `XW`/`layoutX`/`ovX`/`wallX`). Ändra-läget är ett utkast (`ARR0`): Klar sparar och minns förra i `<nyckel>Prev` (Ångra, Föregående, Inställningar → Gå tillbaka). Tester `flytta-rutor.js`, `widgets.js`. Nästa: Henrik provar dragning på iPhone; CI-felen i `oversikt-manad.js`/`ui-versioner.js` fanns redan på main.
 - **Översikt-rutor** (Claude): vanliga rutor är standard (ht-v275), widgets ett val (`ht.exp=1`, Inställningar → Översikten). Dra i hörnknappen ändrar storlek. Henrik har inte valt utseende per storlek än (förslag A/B/C i /mnt/project-files/widgets/utseende/). Ring i Städ-rutan och årshjul i Födelsedagar på telefonen prövades och skippades (Henrik: bara om ett bättre upplägg hittas).
@@ -31,6 +31,9 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 - Inget pågående. **UI 5.0 (Apple) är standard** sedan ht-v264 (Henriks beslut 2026-11-06; ångra-gren `version-fore-ui5-standard`). `U5` = `ht.ui` saknas eller `5`; UI 2.0 sparas som `ht.ui=2`. CI: matris UI 2 kör med `{ui:"2"}`, UI 5 utan `ui`. Kända fel från ht-v263 (kalenderfliken): `ui-versioner.js` och `plus-alternativ.js` klickar på `taskTab` lista som inte längre finns där; behöver anpassas.
 - Inget. Senast publicerat: Städvyn kan väljas som Lista (standard), Rutnät eller Ring under Inställningar → Mat och städ (`ht.stadVy`, `stadRutnat`/`stadRing` i app.js, CSS `.sx-*`). Test: `NOW=<idag> node verktyg/emu/run.js verktyg/emu/stad-vyer.js` (emulerade servern sätter lastDone med riktigt datum).
+
+- **Tillförlitliga priser** publicerat ht-v282 (PR #32, ångra-gren `version-fore-priser`): Inköp = hela Willysförpackningar, pris/portion = använd mängd inkl. skafferi. `MV.rimligFor` (¼–3× standard), `portTxt` "minst X kr" (<90 % känt), `prisAlder`/`prisVarning` (>7 dagar; Kod.gs `senastOk`, `d`, omförsök vid 503). Fast lista `verktyg/priskopplingar.json` + `node verktyg/priskoll.js` (CI); ny ingrediens: granska, kör `--skriv`. Test `priser-tillit.js`.
+- **Varuregister** (Claude, gren `claude/project-thread-646pna`, Henrik 2026-11-06 "implementera"): varje basvara kopplas till en bestämd Willysprodukt (varunummer), Kod.gs hämtar per varunummer, appen frågar "Vilken vara är det här?" för nya ingredienser, recepten sparar kopplad vara. Pågår; bilder före publicering.
 
 ## Följ upp med Henrik
 
@@ -51,7 +54,7 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 ## Väntar på Henrik (Kod.gs)
 
-- Inget. Henrik klistrade in och publicerade Kod.gs från main 2026-11-06 20:06 (med `eventAdd` och `rid`-skyddet).
+- Henrik klistrade in Kod.gs från main 2026-11-06 20:06 (med `eventAdd` och `rid`-skyddet). Prisdelen (PR #32, ht-v282) är publicerad men inte inklistrad: klistra in [Kod.gs](https://github.com/HenrikLH/hushallstavlan/blob/main/apps-script/Kod.gs) och kör `startaPrisSynk`.
 - Namn/rum på sysslor kan inte ändras utan ny Kod.gs (`cleanSet` tillåter bara freq/min/who/plannedFor/snoozeUntil).
 
 ## Beslut som ska bevaras (inte självklara i koden)
