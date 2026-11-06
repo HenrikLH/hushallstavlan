@@ -7,7 +7,7 @@ module.exports=async(pg,h)=>{
  const tit=await read('D().menu['+i+'].title');
  await pg.evaluate(i=>window.__d('ACT.dishMenu('+JSON.stringify(String(i))+')'),i);await h.idle(500);
  assert.equal(await read('S.sheet'),'dish');
- assert.equal(await pg.locator('#overlay .sheet-head span.tb').evaluate(e=>getComputedStyle(e).visibility),'hidden','tom cirkel uppe till vänster syns');
+ assert.equal(await pg.locator('#overlay .sheet-head .dm-lk svg').count(),1,'cirkeln uppe till vänster saknar lås');
  const del=pg.locator('#overlay .dm-t.red');assert.equal(await del.getAttribute('data-hold'),'dishDelHold');
  await del.evaluate(e=>e.scrollIntoView({block:'center'}));await h.shot('ta-bort-meny');
  await del.click();await h.idle(500);
