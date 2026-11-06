@@ -10,6 +10,7 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 ## Pågår nu
 
+- **Flytta rutor + widgetstorlekar** (Claude, gren `claude/project-thread-jguuoh`). Lagat: dragningen avbröts på pekskärm (touchmove gick till omritad, lösryckt nod → sidan rullade → pointercancel). Test `verktyg/emu/flytta-rutor.js` (telefon+vägg, faller på main). Väntar på "Pusha". Förslag (inte byggt): rutnät 4 spalter, storlekar Liten 2×2 / Mellan 4×2 / Stor 4×4 på telefon; väggen 4×4 rutor bredvid T1 utan rullning (Liten 1×1, Mellan 2×1, Stor 2×2); innehåll per storlek i `/mnt/project-files/widgets/` (attrapp `forslag.html`). Nästa steg: bygg efter Henriks val, ersätt halv/hel (`SIZES`, `L.size` h/f) med s/m/l och läs gammalt h→s, f→m.
 - Inget pågående. **UI 5.0 (Apple)** publicerad i ht-v257 som val (Inställningar → Utseende → Design; `ht.ui=5`, `U5`, CSS bara under `html.ny.ui5` sist i `<style>`). Plan/beslut: Claude Doc "Apple-känsla: genomgång och plan". Tester: `verktyg/emu/ui5.js`, `ui5-navigering.js` (svep tillbaka, dra ned, svep på uppgift), alla-flikar med `LS={"ui":"5"}`. UI 2.0 är fortfarande standard.
 - Inget. Senast publicerat: Städvyn kan väljas som Lista (standard), Rutnät eller Ring under Inställningar → Mat och städ (`ht.stadVy`, `stadRutnat`/`stadRing` i app.js, CSS `.sx-*`). Test: `NOW=<idag> node verktyg/emu/run.js verktyg/emu/stad-vyer.js` (emulerade servern sätter lastDone med riktigt datum).
 
