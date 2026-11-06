@@ -56,7 +56,7 @@ module.exports=async(pg,h)=>{
  assert.deepEqual(await read('({accent:ACCENT,theme:S.theme})'),{accent:orig.accent,theme:orig.theme});
  await click('#nav [data-act="nav"][data-id="uppgifter"]');await click('[data-act="taskTab"][data-id="lista"]');assert.ok((await pg.locator('main').innerText()).includes(label));
  await click('[data-act="taskEdit"][data-id="person-task"]');assert.equal(await pg.locator('[name="who"]').inputValue(),ids[0]);assert.equal(await pg.locator('[name="who"] option:checked').innerText(),label);await click('[data-act="sheetClose"]');
- await click('[data-act="taskTab"][data-id="kalender"]');await click('.cal-grid [data-act="calDay"][data-id="2026-10-19"]');assert.ok((await pg.locator('main').innerText()).includes(label));
+ await click('#nav [data-act="nav"][data-id="kalender"]');await click('.cal-grid [data-act="calDay"][data-id="2026-10-19"]');assert.ok((await pg.locator('main').innerText()).includes(label));
  await pg.reload();await h.idle(1400);assert.equal(await read('personLabel(people()[0])'),label);assert.equal(await read('S.me'),ids[0]);
  await click('[data-act="settings"]');await click('[data-act="personFold"][data-id="0"]');
  await pg.locator('[name="p1"]').fill(orig.people[1].label);await click('form[data-form="settings"] .sheet-head .strong');assert.ok(await pg.locator('form[data-form="settings"]').isVisible());assert.equal(await read('personLabel(people()[0])'),label);

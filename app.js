@@ -62,23 +62,23 @@ const I={
 // Översikt ligger i mitten av flikraden
 const I_EKO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10h18M16.5 14.5h1.5"/></svg>';
 // Inköp ligger under Mat; Ekonomi har fått dess plats i flikraden
-// Förslag (ht.navf): a = fliken heter Kalender, b = egen kalenderflik och Uppgifter+Städ ihop, c = kalendern öppnas från Översikt
-const NAVF=['a','b','c'].includes(lsGet('navf'))?lsGet('navf'):'';
-const VIEWS=NAVF==='a'?[['mat','Mat',I.fork],['ekonomi','Ekonomi',I_EKO],['oversikt','Översikt',I.home],['uppgifter','Kalender',I.cal],['stad','Städ',I.sparkles]]:NAVF==='b'?[['mat','Mat',I.fork],['ekonomi','Ekonomi',I_EKO],['oversikt','Översikt',I.home],['kalender','Kalender',I.cal],['uppgifter','Att göra',I.list]]:[['mat','Mat',I.fork],['ekonomi','Ekonomi',I_EKO],['oversikt','Översikt',I.home],['uppgifter','Uppgifter',I.list],['stad','Städ',I.sparkles]];
-const VIEW_IDS=VIEWS.map(v=>v[0]).concat(['vader','fod'],NAVF==='b'?['stad']:NAVF==='c'?['kalender']:[]);
+// Kalendern har en egen flik. Uppgifter och Städ delar fliken Att göra (Städ har vy-id stad men markerar Att göra)
+const VIEWS=[['mat','Mat',I.fork],['ekonomi','Ekonomi',I_EKO],['oversikt','Översikt',I.home],['kalender','Kalender',I.cal],['uppgifter','Att göra',I.list]];
+const VIEW_IDS=VIEWS.map(v=>v[0]).concat(['vader','fod','stad']);
 const OLD_VIEWS={matsedel:'vecka',recept:'recept',inkop:'inkop'};
 
 /* ---------- state ---------- */
 const CFG=window.HT_CONFIG||{};
 const S={hj:new Set(),theme:['light','dark'].includes(lsGet('theme'))?lsGet('theme'):'system',key:lsGet('key')||'',me:lsGet('me')||'',view:lsGet('view')||'oversikt',wall:lsGet('wall')==='1',
  data:null,sync:'idle',lastSync:null,error:'',recipe:null,scale:{},cook:null,shopClosed:{},shopAdd:false,taskAdd:false,
- sheet:null,confirm:null,timers:[],pending:0,step:{},matTab:['recept','bank','efter','inkop'].includes(lsGet('matTab'))?lsGet('matTab'):'vecka',taskTab:NAVF==='c'?'lista':lsGet('taskTab')==='kalender'||NAVF==='a'&&!lsGet('taskTab')?'kalender':'lista',calDay:null,calMonth:null,ovDay:null,taskDue:'',bankFilter:'alla',rate:null,open:{}};
+ sheet:null,confirm:null,timers:[],pending:0,step:{},matTab:['recept','bank','efter','inkop'].includes(lsGet('matTab'))?lsGet('matTab'):'vecka',taskTab:lsGet('taskTab')==='stad'?'stad':'lista',calDay:null,calMonth:null,ovDay:null,taskDue:'',bankFilter:'alla',rate:null,open:{}};
 try{const c=lsGet('cache');if(c)S.data=JSON.parse(c)}catch(e){}
 // Gamla vyer (Matsedel, Recept) ligger nu i fliken Mat
 function normView(id){if(OLD_VIEWS[id]){S.matTab=OLD_VIEWS[id];lsSet('matTab',S.matTab);return'mat'}return id}
 S.view=normView(S.view);
 S.fodMode=['hjul','manad','lista'].includes(lsGet('fodMode'))?lsGet('fodMode'):'hjul';
 const h0=location.hash.slice(1);if(VIEW_IDS.includes(h0)||OLD_VIEWS[h0])S.view=normView(h0);
+if(S.view==='uppgifter'&&lsGet('taskTab')==='kalender'){S.view='kalender';lsSet('taskTab','lista')}
 if(!VIEW_IDS.includes(S.view))S.view='oversikt';
 
 const D=()=>S.data||{settings:{},shop:[],tasks:[],clean:[],menu:[],events:[],offers:[],recipes:[]};
@@ -191,7 +191,7 @@ function addToBank(r,quiet,fav){if(!r||inBank(r.id))return false;const snap=bank
 function renderNav(nav){
  const ui=U4?'4':String(U3);if(nav.dataset.ui!==ui){nav.innerHTML='';nav.dataset.ui=ui}
  if(!nav.querySelector('.nav-pill'))nav.innerHTML='<div class="brand" aria-hidden="true">'+(U4?'Hushållstavlan':'Hemma')+'</div><div class="nav-pill" aria-hidden="true"></div>'+VIEWS.map(([id,l,ic])=>'<button data-act="nav" data-id="'+id+'">'+ic+'<span>'+(U3&&id==='oversikt'?'Idag':l)+'</span></button>').join('')+'';
- const i=VIEW_IDS.indexOf(NAVF==='b'&&S.view==='stad'?'uppgifter':NAVF==='c'&&S.view==='kalender'?'oversikt':S.view);
+ const i=VIEW_IDS.indexOf(S.view==='stad'?'uppgifter':S.view);
  nav.querySelectorAll('button').forEach((b,j)=>j===i?b.setAttribute('aria-current','page'):b.removeAttribute('aria-current'));
  // Ekonomi ligger inte i flikraden på telefon; då visas ingen markering där
  nav.classList.toggle('none',i<0||i>=VIEWS.length);nav.style.setProperty('--i',Math.max(0,Math.min(i,VIEWS.length-1)));
@@ -263,7 +263,7 @@ function renderNav(nav){
   // (i Mat och Uppgifter byts först undermenyn, vid sista undermenyn fortsätter svepet till nästa flik)
   if(s.a==='x'&&!s.el&&Math.abs(dx)>80&&Math.abs(dx)>1.5*Math.abs(dy)&&inMain(s.tg)&&!document.querySelector('#overlay .sheet')){
    if(subSwipe(dx))return;
-   const i=VIEWS.findIndex(v=>v[0]===S.view),j=i<0?2:i+(dx<0?1:-1);if(j>=0&&j<VIEWS.length)ACT.nav(VIEWS[j][0]);return}
+   const i=VIEWS.findIndex(v=>v[0]===(S.view==='stad'?'uppgifter':S.view)),j=i<0?2:i+(dx<0?1:-1);if(j>=0&&j<VIEWS.length)ACT.nav(VIEWS[j][0]);return}
   if(!s.mouse||performance.now()-s.t>80)return;
   // fortsätt glida och bromsa in mjukt
   const el=s.a==='y'?(s.el||document.scrollingElement):s.el;if(!el)return;let v=s.v,last=performance.now();
@@ -286,7 +286,7 @@ function renderNav(nav){
   if(Math.abs(dx)>70&&Math.abs(dx)>1.8*Math.abs(dy)&&performance.now()-g.t0<800&&!document.querySelector('#overlay .sheet'))subSwipe(dx)},{passive:true})})();
 
 /* Undermenyerna i Mat och Uppgifter i samma ordning som segmentreglaget. Svep åt vänster = nästa. */
-const SUBS={mat:['matTab',['vecka','inkop','recept','bank','efter']],uppgifter:['taskTab',['lista','kalender']]};
+const SUBS={mat:['matTab',['vecka','inkop','recept','bank','efter']],uppgifter:['taskTab',['lista','stad']],stad:['taskTab',['lista','stad']]};
 function subSwipe(dx){const sub=SUBS[S.view];if(!sub||S.recipe||S.cook||S.sheet)return false;
  const[k,list]=sub,i=list.indexOf(S[k]),j=i+(dx<0?1:-1);if(i<0||j<0||j>=list.length)return false;
  A.dir=dx<0?'in-right':'in-left';A.user=Date.now();
@@ -2176,11 +2176,7 @@ V.uppgifter=function(){
  const t=today(),d=D(),open=d.tasks.filter(x=>!x.done),done=d.tasks.filter(x=>x.done);
  const g=[['Försenade',open.filter(x=>isDate(x.due)&&x.due<t)],['Idag',open.filter(x=>x.due===t)],['Kommande',open.filter(x=>isDate(x.due)&&x.due>t).sort((a,b)=>a.due.localeCompare(b.due))],['Utan datum',open.filter(x=>!isDate(x.due))]];
  const plus='<button class="ib plus" data-act="taskAdd" aria-label="Ny uppgift">'+I.plus+'</button>';
- let h=head(NAVF==='a'?'Kalender':NAVF==='b'?'Att göra':'Uppgifter',{sub:NAVF==='a'&&S.taskTab==='kalender'?'':open.length+' att göra',tools:plus});
- if(NAVF==='a')h+=segc('Visa','taskTab',[['kalender','Kalender'],['lista','Att göra']],S.taskTab);
- else if(NAVF==='b')h+=segc('Visa','taskTab',[['lista','Uppgifter'],['stad','Städ']],'lista');
- else if(NAVF!=='c')h+=segc('Visa','taskTab',[['lista','Lista'],['kalender','Kalender']],S.taskTab);
- if(NAVF!=='c'&&S.taskTab==='kalender')return h+calView();
+ let h=head('Att göra',{sub:open.length?open.length+' uppgifter kvar':'Inget kvar att göra',tools:plus})+attSeg('lista');
  h+='<form class="add-row"'+RF('U1')+' data-form="taskQuick"><input class="field" name="title" placeholder="Ny uppgift" aria-label="Ny uppgift" autocomplete="off" enterkeyhint="done"><button type="button" class="add-go" data-act="quickGo" data-alt="taskAdd" aria-label="Lägg till">'+I.plus+'</button></form>';
  h+='<div class="split"><div class="col">';
  const td=g.filter(([,xs])=>xs.length).map(([l,xs])=>gh(l,xs.length,l==='Försenade'?'red':'')+xs.map(taskRow).join('')).join('');if(td)h+='<div class="g-one">'+rgroup('U2',td)+'</div>';
@@ -2336,12 +2332,13 @@ function orkSlider(B){const i=orkIndex(B),o=ORK[i];
  return sh('Hur mycket ork har ni idag?','<span class="num">'+o.min+' min</span>')+'<div class="ork-seg"'+RF('S2')+'>'+segc('Dagens ork','orkPick',ORK.map((x,k)=>[String(k),x.name.replace(' ork','')]),String(i))+'</div><div class="foot">Gäller bara idag. I morgon börjar det om på '+tomorrowDefault()+' min.</div>'}
 function tomorrowDefault(){const wd=parse(addDays(today(),1)).getDay(),st=settings();return(wd===0||wd===6)?Number(st.stadtid_helg||40):Number(st.stadtid_vardag||20)}
 const menuSel=(attrs,opts)=>'<span class="menu"><select '+attrs+'>'+opts+'</select></span>';
-V.kalender=function(){const back=NAVF==='c'?'<div class="rcp-top"><button class="back" data-act="nav" data-id="oversikt">'+I.back+'Översikt</button></div>':'';
- return back+head('Kalender',{tools:'<button class="ib plus" data-act="taskAdd" aria-label="Ny uppgift">'+I.plus+'</button>'})+calView()};
+const attSeg=v=>segc('Visa','taskTab',[['lista','Uppgifter'],['stad','Städ']],v);
+V.kalender=function(){
+ return head('Kalender',{tools:'<button class="ib plus" data-act="taskAdd" aria-label="Ny uppgift">'+I.plus+'</button>'})+calView()};
 V.stad=function(){
  const cp=cleanPlan(),all=D().clean,vy=all.length?stadVy():'lista',nu=vy==='lista'?null:stadIdag(cp);
- let h=head(NAVF==='b'?'Att göra':'Städ',{sub:vy==='ring'?cap(dateLong(today())):vy==='rutnat'?nu.minLeft+' min kvar idag':'Lite varje dag, så slipper ni storstäda'});
- if(NAVF==='b')h+=segc('Visa','taskTab',[['lista','Uppgifter'],['stad','Städ']],'stad');
+ let h=head('Att göra',{sub:vy==='ring'?cap(dateLong(today())):vy==='rutnat'?nu.minLeft+' min kvar idag':'Lite varje dag, så slipper ni storstäda'});
+ h+=attSeg('stad');
  h+='<form class="add-row"'+RF('S1')+' data-form="cleanQuick" data-room=""><input class="field" name="title" placeholder="Ny syssla" aria-label="Ny syssla" autocomplete="off" enterkeyhint="done"><button type="button" class="add-go" data-act="quickGo" data-alt="cleanFocus" aria-label="Lägg till">'+I.plus+'</button></form>';
  if(!all.length)return h+'<div style="height:22px"></div>'+rgroup('S11',emptyCell('Städschemat är tomt. Lägg till sysslor under rummen nedan.'))+cleanAll(all,true);
  if(vy!=='lista')return h+(vy==='rutnat'?stadRutnat(cp,all,nu):stadRing(cp,all,nu));
@@ -4156,7 +4153,7 @@ function motionPage(el,page,prev,dir){if(motionPageAnim)motionPageAnim.cancel();
   const a=push>0?el.animate([{transform:'translateX(100%)',boxShadow:'-8px 0 24px rgba(0,0,0,.12)'},{transform:'none',boxShadow:'none'}],{duration:440,easing:'cubic-bezier(.32,.72,0,1)'}):push<0?u5Pop(el):el.animate([{opacity:.25},{opacity:1}],{duration:180,easing:'ease-out'});
   motionPageAnim={animations:[a],direction:push,cancel(){a.cancel()}};return}
  if(!motionOn()){const[pv,pr]=prev.split('|'),cls=dir||(S.recipe&&!pr?'in-right':(!S.recipe&&pr&&pv===S.view)?'in-left':'in-fade');void el.offsetWidth;el.classList.add(cls);return}
- const p=page.split('|'),o=prev.split('|'),nav=VIEWS.map(x=>x[0]),order=p[0]==='mat'?['vecka','inkop','recept','bank','efter']:['lista','kalender'];
+ const p=page.split('|'),o=prev.split('|'),nav=VIEWS.map(x=>x[0]).concat('stad'),order=p[0]==='mat'?['vecka','inkop','recept','bank','efter']:['lista','kalender'];
  const d=dir==='in-left'?-1:dir==='in-right'?1:p[0]!==o[0]?Math.sign(nav.indexOf(p[0])-nav.indexOf(o[0]))||1:p[1]!==o[1]?(p[1]?1:-1):Math.sign(order.indexOf(p[2])-order.indexOf(o[2]))||1;
  // Menyerna är referensram. Bara innehållet under dem flyttar sig, tydligare än tidigare 22 px.
  const targets=[...el.children].filter(e=>!e.matches('.head,.segc,.subseg,.cv-seg,.ws-pin'));
@@ -4323,7 +4320,7 @@ const ACT={
  smileyQuick(id,el){const v=Number(el.dataset.v)||0;A.user=Date.now();saveSmiley(id,el.dataset.date,v);markCooked(id,el.dataset.date);toast(v>0?'Vad bra! Rätten kommer tillbaka lite oftare':v<0?'Noterat. Rätten kommer tillbaka mer sällan':'Tack!')},
  smileySkip(id,el){A.user=Date.now();saveSmiley(id,el.dataset.date,'x');toast('Okej, den räknas inte som lagad')},
  wakeBoard(){render()},
- nav(id){if(RC.busy){toast('Vänta tills receptbegäran är klar.');return}if(RC.screen&&RC.edit&&RC.edit.dirty){RC.leaveTo=id;recipeLeave();S.view='mat';return}if(RC.screen)RC.screen=null;if(id!=='oversikt')S.arrange=false;if(normView(id)!=='ekonomi'){S.ekoOpen=false;S.pin=''}try{document.activeElement&&document.activeElement.blur()}catch(e){}id=normView(id);S.shopAdd=false;S.taskAdd=false;S.view=id;S.recipe=null;S.confirm=null;lsSet('view',id);try{history.replaceState(null,'','#'+id)}catch(e){}window.scrollTo(0,0);render()},
+ nav(id,el){if(RC.busy){toast('Vänta tills receptbegäran är klar.');return}if(RC.screen&&RC.edit&&RC.edit.dirty){RC.leaveTo=id;recipeLeave();S.view='mat';return}if(RC.screen)RC.screen=null;if(id!=='oversikt')S.arrange=false;if(normView(id)!=='ekonomi'){S.ekoOpen=false;S.pin=''}try{document.activeElement&&document.activeElement.blur()}catch(e){}id=normView(id);if(id==='uppgifter'&&S.taskTab==='stad'&&S.view!=='stad'&&el&&el.closest&&el.closest('#nav'))id='stad';if(id==='uppgifter'||id==='stad'){S.taskTab=id==='stad'?'stad':'lista';lsSet('taskTab',S.taskTab)}S.shopAdd=false;S.taskAdd=false;S.view=id;S.recipe=null;S.confirm=null;lsSet('view',id);try{history.replaceState(null,'','#'+id)}catch(e){}window.scrollTo(0,0);render()},
  refresh(){refresh()},
  settings(){if(S.sheet!=='farg')S.prefDraft=null;S.sheet='settings';render()},
  farg(){rememberSettings();S.sheet='farg';render()},
@@ -4546,11 +4543,11 @@ const ACT={
  clearShopYes(){S.confirm=null;leaveAnim('shopToggle',D().shop.filter(i=>i.done),()=>{S.data.shop=D().shop.filter(i=>!i.done);render();apiPost({action:'shopClearDone'})})},
  confirmNo(){S.confirm=null;render()},
  taskList(){S.taskTab='lista';lsSet('taskTab','lista');ACT.nav('uppgifter')},
- taskTab(id){if(NAVF==='b'){ACT.nav(id==='stad'?'stad':'uppgifter');return}S.taskTab=id==='kalender'?'kalender':'lista';lsSet('taskTab',S.taskTab);render()},
+ taskTab(id){S.taskTab=id==='stad'?'stad':'lista';ACT.nav(S.taskTab==='stad'?'stad':'uppgifter')},
  calDay(id){S.calDay=id;S.calMonth=ymKey(id);render()},
  ovDay(id){S.ovDay=id;if(S.ovCalOpen)S.ovCalMonth=id.slice(0,7);render()},
  ovMonth(id){const d=parse((S.ovCalMonth||(S.ovDay||today()).slice(0,7))+'-01');d.setMonth(d.getMonth()+Number(id));S.ovCalMonth=ymd(d).slice(0,7);render()},
- calOpen(id){S.calDay=id||today();S.calMonth=ymKey(S.calDay);if(NAVF==='b'||NAVF==='c'){ACT.nav('kalender');return}S.taskTab='kalender';lsSet('taskTab','kalender');ACT.nav('uppgifter')},
+ calOpen(id){S.calDay=id||today();S.calMonth=ymKey(S.calDay);ACT.nav('kalender')},
  calMonth(id,el){const[y,m]=(S.calMonth||ymKey(S.calDay||today())).split('-').map(Number),d=new Date(y,m-1+Number(el.dataset.d),1);S.calMonth=d.getFullYear()+'-'+pad(d.getMonth()+1);render()},
  calVy(id){motionCalBefore();S.calVy=['dag','vecka','manad'].includes(id)?id:'manad';lsSet('calVy',S.calVy);render()},
  calDayVy(id){motionCalBefore(id);S.calDay=id;S.calMonth=ymKey(id);S.calVy='dag';lsSet('calVy','dag');render()},

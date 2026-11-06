@@ -10,7 +10,6 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 ## Pågår nu
 
-- **Kalenderns plats (förslag, Claude, gren `claude/project-thread-subhl7`)**: Henrik väljer A (fliken heter Kalender), B (egen kalenderflik, Uppgifter+Städ ihop under Att göra) eller C (kalendern öppnas från Översikt). Prototyp bakom `ht.navf=a|b|c` i app.js (`NAVF`, `V.kalender`), bilder `verktyg/emu/kalender-plats.js`. Inte på main. Nästa steg: bygg valet ordentligt (ta bort flaggan, svep `SUBS`, väggtavlan, röktest).
 - Inget pågående. **UI 5.0 (Apple)** publicerad i ht-v257 som val (Inställningar → Utseende → Design; `ht.ui=5`, `U5`, CSS bara under `html.ny.ui5` sist i `<style>`). Plan/beslut: Claude Doc "Apple-känsla: genomgång och plan". Tester: `verktyg/emu/ui5.js`, `ui5-navigering.js` (svep tillbaka, dra ned, svep på uppgift), alla-flikar med `LS={"ui":"5"}`. UI 2.0 är fortfarande standard.
 - Inget. Senast publicerat: Städvyn kan väljas som Lista (standard), Rutnät eller Ring under Inställningar → Mat och städ (`ht.stadVy`, `stadRutnat`/`stadRing` i app.js, CSS `.sx-*`). Test: `NOW=<idag> node verktyg/emu/run.js verktyg/emu/stad-vyer.js` (emulerade servern sätter lastDone med riktigt datum).
 

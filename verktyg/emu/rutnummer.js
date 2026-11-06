@@ -9,7 +9,7 @@ module.exports=async(pg,h)=>{
   if(!await pg.$('[data-act="refs"]')){await pg.evaluate(()=>{const d=document.querySelector('details[data-k="pref-avancerat"]');if(d)d.open=true});await h.idle(300);await klick('[data-act="dev"]');await pg.evaluate(()=>{const d=document.querySelector('details[data-k="pref-avancerat"]');if(d)d.open=true});await h.idle(300)}
   await klick('[data-act="refs"]');await h.shot('rutnr-installningar');await klick('[data-act="sheetClose"]')}
  const vyer=[['[data-act="nav"][data-id="oversikt"]','oversikt'],['[data-act="nav"][data-id="mat"]','mat'],['[data-act="matTab"][data-id="vecka"]','mat-vecka'],['[data-act="matTab"][data-id="inkop"]','mat-inkop'],['[data-act="matTab"][data-id="recept"]','mat-recept'],
-  ['[data-act="nav"][data-id="uppgifter"]','uppgifter'],['[data-act="taskTab"][data-id="kalender"]','kalender'],['[data-act="nav"][data-id="stad"]','stad'],['[data-act="nav"][data-id="ekonomi"]','ekonomi'],['[data-act="nav"][data-id="oversikt"]','oversikt2'],['[data-act="nav"][data-id="vader"]','vader']];
+  ['[data-act="nav"][data-id="uppgifter"]','uppgifter'],['[data-act="taskTab"][data-id="stad"]','stad'],['#nav [data-act="nav"][data-id="kalender"]','kalender'],['[data-act="nav"][data-id="ekonomi"]','ekonomi'],['[data-act="nav"][data-id="oversikt"]','oversikt2'],['[data-act="nav"][data-id="vader"]','vader']];
  for(const [sel,n] of vyer){if(!await pg.$(sel)){console.log('hoppar över '+n);continue}await klick(sel);const r=await refs();console.log(n+': '+r.join(' '));
   if(!r.length)fel('inga rutnummer i '+n);if(r.some(x=>/utan/.test(x)))fel('märke saknas i '+n);await h.shot('rutnr-'+n)}
  await klick('[data-act="nav"][data-id="mat"]');await klick('[data-act="matTab"][data-id="vecka"]');
