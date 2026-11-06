@@ -2001,6 +2001,9 @@ html.ny .wsum-n b{font-size:28px;line-height:32px;font-weight:700;letter-spacing
 html.ny .wsum-n span{font-size:15px;color:var(--ink-2)}
 html.ny .wsum-m{font-size:15px;color:var(--ink-2);margin-top:2px}
 html.ny .wsum-m.pris-gammal{color:var(--red)}
+html.ny .foot.pris-gammal{color:var(--red)}
+.vval input[type=radio]{accent-color:var(--accent);width:20px;height:20px;margin:0 12px 0 0;flex:none}
+.rc-koppla{display:block;margin-top:6px;padding:0;border:0;background:none;color:var(--accent);font:inherit;font-size:15px;font-weight:600;cursor:pointer;text-align:left}
 html.ny .wsum .thin{margin-top:10px}
 html.ny .wsum-d{margin-top:10px;border-top:.5px solid var(--line);padding-top:10px}
 html.ny .wsum-s{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:600;list-style:none;cursor:pointer;min-height:28px}
@@ -2866,6 +2869,9 @@ html.ny.ui5 .sheet-head{padding:12px 16px 8px}
 html.ny.ui5 .sheet-head .tb{min-width:44px;height:44px;border-radius:22px;padding:0 16px;background:var(--surface);box-shadow:0 1px 6px rgba(0,0,0,.08);color:var(--ink);font-weight:500}
 html.ny.ui5 .sheet-head .tb.strong{background:var(--accent);color:var(--on-accent);font-weight:600}
 html.ny.ui5 .sheet-head span.tb{visibility:hidden}
+html.ny.ui5 .sheet-head .tb.dm-lk{padding:0;width:44px;display:grid;place-items:center;color:var(--ink-2)}
+html.ny.ui5 .sheet-head .tb.dm-lk.on{color:var(--accent)}
+html.ny.ui5 .sheet-head .tb.dm-lk svg{width:20px;height:20px}
 /* Inställningar som iOS Inställningar: en grupperad lista med färgade symboler */
 html.ny.ui5 .pref-section{margin:0 16px!important;border-radius:0;border:0!important;background:var(--surface)}
 html.ny.ui5 .pref-section:first-of-type{border-radius:var(--r5) var(--r5) 0 0}
@@ -2962,11 +2968,11 @@ html.ui4.seg-klassisk :is(.wsum,.sh-btn,.mswitch,.create-options,.add-row){borde
 <div id="toast" hidden class="toast" role="status"></div>
 <div id="undo" hidden class="toast undo" role="status"><span class="ud-t"></span><button type="button" class="ud-b" data-act="shopUndo">Ångra</button></div>
 <script src="config.js?v=37"></script>
-<script src="matvaror.js?v=12"></script>
+<script src="matvaror.js?v=13"></script>
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=273"></script>
+<script src="app.js?v=276"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>

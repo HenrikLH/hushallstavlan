@@ -169,10 +169,20 @@
     const st = v[2] <= 12;
     return rimlig(forpack(x, v[2], st), v[3], v[2], st);
   }
+  /* Varuregistret (sparas i onskelista som {vreg:1, v, ing}): Henriks egna kopplingar går före mönstren ovan.
+     ing: {ingrediensnamn: basvara} (basvara kan vara en V- eller SK-nyckel, eller namnet självt = egen vara som Willys söker på).
+     v: {basvara: {c: Willys varunummer, n: produktnamn}} = vald produkt; Kod.gs hämtar priset för just den */
+  let REG = { v: {}, ing: {} };
+  function setRegister(r) { REG = { v: (r && r.v) || {}, ing: (r && r.ing) || {} }; }
+  const kopplad = n => { const m = REG.ing[n]; return m ? norm(m) : ''; };
   function vara(n) {
     n = rent(n);
-    if (!n || SKAFFERI.test(n)) return null;
-    const v = V.find(([, re]) => re.test(n));
+    if (!n) return null;
+    const m = kopplad(n);
+    if (m && SK.some(a => a[0] === m)) return null;
+    if (!m && SKAFFERI.test(n)) return null;
+    const v = m ? V.find(a => a[0] === m) : V.find(([, re]) => re.test(n));
+    if (m && !v) n = m;
     if (!v) {
       const x = P[n];
       if (x) { const f = forpack(x, Number(x.pkt) || 1, Number(x.pkt) <= 12); return { k: n, pkt: f.pkt, kr: f.kr, st: f.st, los: f.los, mal: f.pkt, gdl: Number(x.gdl) || 100, gst: Number(x.gst) || 1, hall: !!x.hall }; }
@@ -186,9 +196,11 @@
   // Skafferivara med pris, för när den ändå ska köpas. Kod.gs hämtar Willyspris för dem också (nyckel = namnet i SK)
   function skafferi(n) {
     n = rent(n);
+    const m = kopplad(n), sk = m && SK.find(a => a[0] === m);
+    if (m && !sk) return null;
     // Vatten och is kostar inget
-    if (!n || !SKAFFERI.test(n) || /vatten|^is(bitar)?$/.test(n)) return null;
-    const s = SK.find(([, re]) => re.test(n)), k = s[0] === 'kryddor' ? n : s[0], x = P[k], st = s[2] <= 12;
+    if (!sk && (!n || !SKAFFERI.test(n) || /vatten|^is(bitar)?$/.test(n))) return null;
+    const s = sk || SK.find(([, re]) => re.test(n)), k = s[0] === 'kryddor' ? n : s[0], x = P[k], st = s[2] <= 12;
     let f = x && forpack(x, s[2], st);
     if (!f || !rimlig(f, s[3], s[2], st)) f = { kr: s[3], pkt: s[2], st };
     return { k, pkt: f.pkt, kr: f.kr, st: f.st, los: f.los, mal: s[2], gdl: s[4] || 100, gst: s[5] || 1, hall: true, skafferi: true };
@@ -277,6 +289,6 @@
     Object.values(b).forEach(x => { if (x.v.okand) saknas++; else kr += x.m * x.v.kr / x.v.pkt; });
     return { kr, saknas };
   }
-  root.MatVaror = { V, SK, setPriser, vara, skafferi, mangd, behov, korg, tillagg, forp, anvant, rent, rimligFor };
+  root.MatVaror = { V, SK, setPriser, vara, skafferi, mangd, behov, korg, tillagg, forp, anvant, rent, rimligFor, setRegister, kopplad };
 })(typeof window !== 'undefined' ? window : globalThis);
 if (typeof module !== 'undefined') module.exports = globalThis.MatVaror;

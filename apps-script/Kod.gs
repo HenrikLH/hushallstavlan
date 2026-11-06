@@ -831,7 +831,9 @@ function kampanj_(x) {
    mal = matvarornas standardmängd (gram, eller styck om <= 12). Den förpackning väljs som gör det billigast att köpa mal,
    så 2 kg potatis väljs före en säck på 5 kg. Lösvikt räknas som mal gram eller en bit. Okända varor (okand) får den
    förpackning som är billigast per kg eller styck bland dem som kostar högst dubbelt så mycket som den billigaste. */
-function willysPris_(lista, mal, okand) {
+/* Svar: {pris, forslag}. pris = billigaste sättet att köpa standardmängden, eller den produkt Henrik valt i varuregistret (val = {c, n}).
+   forslag = upp till tre produkter att välja mellan i appen (Varor och priser). */
+function willysPris_(lista, mal, okand, val) {
   const alla = [];
   lista.forEach(function (x) {
     const k = kampanj_(x), pris = k ? k.pris : tal_(x.priceValue != null ? x.priceValue : x.price);
@@ -855,20 +857,30 @@ function willysPris_(lista, mal, okand) {
     c.per = c.kr / c.pkt;
     c.kop = okand ? c.kr : Math.ceil(mal / c.pkt - 1e-9) * c.kr;
     c.namn = [x.name, x.manufacturer, x.displayVolume].filter(String).join(', ');
+    c.c = String(x.code || '');
     c.kampanj = !!k;
     alla.push(c);
   });
-  if (!alla.length) return null;
+  if (!alla.length) return { pris: null, forslag: [] };
   let urval = alla;
   if (okand) {
     // Blanda inte styck och gram: gram går före om det finns
     const gram = alla.filter(function (c) { return !c.st; });
     if (gram.length) urval = gram;
     const min = Math.min.apply(null, urval.map(function (c) { return c.kr; }));
-    urval = urval.filter(function (c) { return c.kr <= min * 2; });
-    return urval.sort(function (a, b) { return a.per - b.per; })[0];
-  }
-  return urval.sort(function (a, b) { return a.kop - b.kop || a.per - b.per; })[0];
+    urval = urval.filter(function (c) { return c.kr <= min * 2; }).sort(function (a, b) { return a.per - b.per; });
+  } else urval = urval.slice().sort(function (a, b) { return a.kop - b.kop || a.per - b.per; });
+  const vald = val ? alla.filter(function (c) { return (val.c && c.c === val.c) || (!val.c && val.n && c.namn === val.n); })[0] || null : null;
+  const pris = val ? vald : urval[0], sett = {}, forslag = [];
+  [vald].concat(urval).forEach(function (c) {
+    if (!c || forslag.length >= 3 || sett[c.c || c.namn]) return;
+    sett[c.c || c.namn] = 1;
+    const o = { c: c.c, n: c.namn, kr: Math.round(c.kr * 100) / 100, pkt: Math.round(c.pkt) };
+    if (c.st) o.st = 1;
+    if (c.los) o.los = 1;
+    forslag.push(o);
+  });
+  return { pris: pris, forslag: forslag };
 }
 
 function prisSynk() {
@@ -877,6 +889,11 @@ function prisSynk() {
   laddaJs_('willys-sok.js', g);
   const MV = g.MatVaror, SOK = g.WillysSok || {};
   // Alla varor som recepten behöver
+  // Varuregistret: Henriks kopplingar (ingrediens → vara) och valda produkter (vara → varunummer), sparade i onskelista
+  let reg = {};
+  try { reg = (JSON.parse(readSettings_().onskelista || '[]') || []).filter(function (x) { return x && x.vreg; })[0] || {}; } catch (e) { }
+  if (MV.setRegister) MV.setRegister(reg);
+  const regV = reg.v || {};
   const recept = readTab_('recipes').map(parseRecipe_);
   try { JSON.parse(UrlFetchApp.fetch(APP_URL + 'inspiration.json?t=' + Date.now()).getContentText()).forEach(function (r) { recept.push(r); }); } catch (e) { }
   // Recept som sparats i receptbanken i appen
@@ -909,6 +926,7 @@ function prisSynk() {
     v.q = s[0];
     v.med = s[1] || new RegExp(v.k.split(/\s+/).filter(function (w) { return w.length > 2; }).map(function (w) { return '(?=.*' + w.slice(0, 4) + ')'; }).join(''), 'i');
     v.utan = s[2] || null;
+    v.val = regV[v.k] && (regV[v.k].c || regV[v.k].n) ? regV[v.k] : null;
   });
   // Sök på willys.se, 20 åt gången. Går det inte att söka med butiken används Willys pris för hela landet.
   const hdr = { Accept: 'application/json', 'User-Agent': 'Mozilla/5.0 (Hushallstavlan)' };
@@ -941,18 +959,35 @@ function prisSynk() {
       try { res = JSON.parse(r.getContentText()).results || []; } catch (e) { v.fel = 'inte JSON'; return; }
       if (!exempel && res[0]) { exempel = Object.assign({}, res[0]); delete exempel.image; }
       if (!v.kampanjExempel) { const p = res.find(function (x) { return x.potentialPromotions && x.potentialPromotions.length; }); if (p) v.kampanjExempel = p.potentialPromotions[0]; }
-      res = res.filter(function (x) { const n = String(x.name || ''); return v.med.test(n) && !(v.utan && v.utan.test(n)); });
-      v.pris = willysPris_(res, v.pkt, v.okand);
+      v.res = res;
+      // Vald produkt: alla träffar får vara med (filtren gäller bara den automatiska gissningen)
+      if (!v.val) res = res.filter(function (x) { const n = String(x.name || ''); return v.med.test(n) && !(v.utan && v.utan.test(n)); });
+      const w = willysPris_(res, v.pkt, v.okand, v.val);
+      v.pris = w.pris; v.forslag = w.forslag;
       // Fel träff (marmelad i stället för rabarber): priset per gram är långt från det väntade. Behåll då förra priset
-      if (v.pris && MV.rimligFor && !MV.rimligFor(v.k, { kr: v.pris.kr, pkt: v.pris.pkt, fp: 1, st: v.pris.st, los: v.pris.los })) { v.fel = 'orimligt pris: ' + v.pris.namn; v.pris = null; }
+      if (v.pris && !v.val && MV.rimligFor && !MV.rimligFor(v.k, { kr: v.pris.kr, pkt: v.pris.pkt, fp: 1, st: v.pris.st, los: v.pris.los })) { v.fel = 'orimligt pris: ' + v.pris.namn; v.pris = null; }
     });
   }
+  // Vald produkt som inte kom med i den vanliga sökningen: sök på produktens eget namn
+  lista.forEach(function (v) {
+    if (!v.val || v.pris || !v.res) return;
+    const q = String(v.val.n || '').split(',')[0];
+    if (!q) return;
+    const r = UrlFetchApp.fetch(WILLYS + '/search?q=' + encodeURIComponent(q) + '&size=30&storeId=' + WILLYS_BUTIK, { headers: hdr, muteHttpExceptions: true });
+    if (r.getResponseCode() !== 200) { v.fel = 'HTTP ' + r.getResponseCode(); return; }
+    let res = []; try { res = JSON.parse(r.getContentText()).results || []; } catch (e) { }
+    const w = willysPris_(res, v.pkt, v.okand, v.val);
+    v.pris = w.pris;
+    if (!v.pris) v.fel = 'vald vara finns inte längre: ' + v.val.n;
+  });
   const priser = {}, saknas = [], kampanjer = [];
   let kampanjExempel = null;
   lista.forEach(function (v) {
     if (v.kampanjExempel && !kampanjExempel) kampanjExempel = v.kampanjExempel;
     if (!v.pris) { saknas.push(v.k + (v.fel ? ' (' + v.fel + ')' : '')); return; }
     const p = v.pris, o = { kr: Math.round(p.kr * 100) / 100, pkt: Math.round(p.pkt), vara: p.namn, fp: 1, d: Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd') };
+    if (p.c) o.c = p.c;
+    if (v.val) o.vald = 1;
     if (p.st) o.st = 1;
     if (p.los) o.los = 1;
     if (p.kampanj) { o.kampanj = 1; kampanjer.push(v.k); }
@@ -976,6 +1011,10 @@ function prisSynk() {
       if (!v.pris && o && n && v.med.test(n) && !(v.utan && v.utan.test(n)) && (!MV.rimligFor || MV.rimligFor(v.k, o))) priser[v.k] = o;
     });
     writeSetting_('priser', JSON.stringify(priser));
+    // Förslag att välja mellan i appen. Behåll förra förslagen för varor som inte gick att söka den här gången
+    let fs = {}; try { fs = JSON.parse(inst.prisforslag || '{}'); } catch (e) { }
+    lista.forEach(function (v) { if (v.forslag && v.forslag.length) fs[v.k] = v.forslag; });
+    writeSetting_('prisforslag', JSON.stringify(fs));
     writeSetting_('prislogg', JSON.stringify(logg));
   } finally { lock.releaseLock(); }
   Logger.log(logg.medPris + ' av ' + logg.varor + ' varor fick pris. Saknas: ' + saknas.join(', '));
