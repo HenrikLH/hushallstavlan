@@ -21,6 +21,12 @@ module.exports=async(pg,h)=>{const read=s=>pg.evaluate(s=>window.__d(s),s);
  await h.idle(900);
  assert.equal(await read('S.view'),ids[ids.length-1],'släpp över sista fliken ska byta dit');
  const slut=await lins();assert(Math.abs(slut.x-b.x)<3,'linsen ska landa mitt på fliken');assert(['1','1 1','1.0000 1.0000'].includes(slut.sc),'linsen ska bli normal igen: '+slut.sc);
+ // tryck från ena kanten till den andra: linsen ska synligt glida, inte hoppa
+ {const k0=await knapp(ids[ids.length-1]),k1=await knapp(ids[0]);await pg.mouse.click(k1.x,k1.y);const t0=Date.now(),spar=[];
+  for(let n=0;n<14;n++){const l=await lins();spar.push([Date.now()-t0,Math.round((l.x-k0.x)/(k1.x-k0.x)*100)]);await pg.waitForTimeout(25)}
+  console.log('glidning (ms, % av vägen):',spar.map(x=>x.join(':')).join(' '));
+  const tidig=spar.find(x=>x[0]>=90);if(await read('motionOn()'))assert(tidig&&tidig[1]<85,'linsen ska inte vara framme efter 0,1 s');
+  await h.idle(900);const l=await lins();assert(Math.abs(l.x-k1.x)<3,'linsen ska landa på första fliken')}
  // tryck på en flik: linsen glider dit
  await pg.click('#nav [data-act="nav"][data-id="'+ids[1]+'"]');await h.idle(900);
  const t=await lins(),k=await knapp(ids[1]);assert(Math.abs(t.x-k.x)<3,'tryck ska flytta linsen');

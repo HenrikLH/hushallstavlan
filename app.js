@@ -202,10 +202,11 @@ function renderNav(nav){
  if(vk==='knapp'||vk==='rubrik'){const h=meBtn();if(!cm){cm=document.createElement('div');cm.id='corner-me';document.body.appendChild(cm)}cm.className=vk==='rubrik'?'top-me':'corner-me';if(cm.dataset.h!==h){cm.innerHTML=h;cm.dataset.h=h}}else if(cm)cm.remove();
  nav.classList.toggle('har-me',!!me);
  if(!me){if(el)el.remove()}else if(!el||el.dataset.h!==me){if(el)el.remove();nav.insertAdjacentHTML('beforeend','<div class="nav-me" data-h=""><i aria-hidden="true"></i>'+me+'</div>');nav.querySelector('.nav-me').dataset.h=me}}
-// UI 5.0: markeringen i flikraden är en lins som drivs av fjädrar (som iOS). Den lyfts och växer när fingret trycker,
-// följer fingret med lite eftersläp och sträcks i rörelseriktningen efter farten, och fjädrar in i fliken vid släpp.
+// UI 5.0: markeringen i flikraden är en lins som drivs av fjädrar (som iOS). Den lyfts när fingret trycker, följer ett drag
+// med lite eftersläp och sträcks i rörelseriktningen efter farten, och fjädrar in i fliken vid släpp. Tryck på en annan flik:
+// linsen lyfts och glider dit i lugn takt som en Web Animation (går på grafikkretsen, så sidbytets omritning hackar den inte).
 // Läget räknas i flikbredder så att det klarar storleksändring. Utan U5 styr CSS som förut.
-const navLins=(()=>{const L={p:null,v:0,t:0,R:.4,D:.8,s:0,sv:0,ts:0,raf:0,last:0,nav:null,w:0,dragar:false};
+const navLins=(()=>{const L={p:null,v:0,t:0,R:.4,D:.8,s:0,sv:0,ts:0,raf:0,last:0,nav:null,w:0,dragar:false,an:null};
  const lugn=()=>!motionOn()||matchMedia('(prefers-reduced-motion:reduce)').matches;
  const pill=()=>L.nav&&L.nav.querySelector('.nav-pill');
  const rita=()=>{const pl=pill();if(!pl||L.p==null)return;if(!L.w)L.w=pl.offsetWidth;
@@ -217,12 +218,28 @@ const navLins=(()=>{const L={p:null,v:0,t:0,R:.4,D:.8,s:0,sv:0,ts:0,raf:0,last:0
   const klar=!L.dragar&&Math.abs(L.p-L.t)<.002&&Math.abs(L.v)<.02&&Math.abs(L.s-L.ts)<.002&&Math.abs(L.sv)<.02;
   if(klar){L.p=L.t;L.v=0;L.s=L.ts;L.sv=0}rita();L.raf=klar?0:requestAnimationFrame(steg)};
  const kor=()=>{if(lugn()){L.p=L.t;L.v=0;L.s=0;L.sv=0;rita();return}if(!L.raf){L.last=0;L.raf=requestAnimationFrame(steg)}};
+ // avbryt en pågående glidning där linsen just nu är, så att fingret kan ta den mitt i
+ const fang=()=>{const a=L.an;if(!a)return;L.an=null;const k=Math.min(a.f.length-1,Math.max(0,Math.round((performance.now()-a.t0)/(1000/60))));
+  L.p=a.f[k][0];L.v=a.f[k][1];L.s=a.f[k][2];L.sv=0;clearTimeout(a.ned);try{a.a.cancel()}catch(e){}rita()};
+ // glid till fliken i: samma fjädrar räknade i förväg, lyft första halvan av vägen, sträckning efter farten
+ const glid=i=>{const pl=pill();if(!pl)return;cancelAnimationFrame(L.raf);L.raf=0;if(!L.w)L.w=pl.offsetWidth;
+  const R=.65,D=.8,k=(2*Math.PI/R)**2,c=4*Math.PI*D/R,ks=(2*Math.PI/.3)**2,cs=4*Math.PI*.6/.3,p0=L.p,f=[];let p=L.p,v=L.v,sl=L.s,sv=L.sv,ned=0;
+  for(let n=0;n<90;n++){const ts=Math.abs(p-p0)<Math.abs(i-p0)*.5?1:0;if(!ts&&!ned)ned=n;
+   for(let m=0;m<4;m++){const d=1/240;v+=(-k*(p-i)-c*v)*d;p+=v*d;sv+=(-ks*(sl-ts)-cs*sv)*d;sl+=sv*d}f.push([p,v,sl]);
+   if(n>12&&Math.abs(p-i)<.002&&Math.abs(v)<.02&&Math.abs(sl)<.004&&Math.abs(sv)<.03)break}
+  const kf=f.map(([p,v,sl])=>{const fart=Math.min(Math.abs(v*L.w)/2600,.28);return{transform:'translateX('+(p*L.w).toFixed(2)+'px) scale('+(1+.18*sl+fart).toFixed(4)+','+(1+.26*sl-fart*.45).toFixed(4)+')'}});
+  L.p=i;L.v=0;L.s=0;L.sv=0;L.ts=0;pl.style.scale='';pl.style.transform='translateX('+(i*L.w).toFixed(2)+'px)';
+  L.nav.classList.add('lyft');const a=pl.animate(kf,{duration:f.length*1000/60,easing:'linear'});
+  L.an={a,f,t0:performance.now(),ned:setTimeout(()=>{if(!L.dragar)L.nav.classList.remove('lyft')},(ned||f.length)*1000/60)};
+  a.onfinish=()=>{if(L.an&&L.an.a===a){L.an=null;rita()}}};
  return{
   // från renderNav: flytta till fliken i (eller rensa när UI 5.0 inte används)
   till(nav,i,dold){L.nav=nav;const pl=pill();if(!U5){if(L.p!=null){nav.classList.remove('fj','lyft');if(pl){pl.style.transform='';pl.style.scale=''}cancelAnimationFrame(L.raf);L.raf=0;L.p=null}return}
-   nav.classList.add('fj');if(L.dragar)return;L.t=i;L.R=.42;L.D=.78;if(L.p==null||dold||(pl&&!pl.style.transform)){L.p=i;L.v=0;L.w=0;rita();return}if(L.p!==i)kor()},
+   nav.classList.add('fj');if(L.dragar)return;if(L.an&&L.an.f.length&&Math.abs(L.p-i)<1e-6)return;fang();L.t=i;L.R=.42;L.D=.78;if(L.p==null||dold||(pl&&!pl.style.transform)){L.p=i;L.v=0;L.w=0;rita();return}if(Math.abs(L.p-i)>.01&&!lugn())glid(i);else if(L.p!==i)kor()},
+  // fingret trycker: linsen lyfts där den är
+  lyft(nav){L.nav=nav;fang();if(L.p==null)return;L.ts=1;nav.classList.add('lyft');kor()},
   // under draget: x i flikbredder (flytande), lyft = linsen är uppe
-  drag(nav,x,w){L.nav=nav;L.w=w;if(L.p==null)L.p=x;L.dragar=true;L.t=x;L.R=.17;L.D=.86;L.ts=1;nav.classList.add('lyft');kor()},
+  drag(nav,x,w){L.nav=nav;L.w=w;fang();if(L.p==null)L.p=x;L.dragar=true;L.t=x;L.R=.17;L.D=.86;L.ts=1;nav.classList.add('lyft');kor()},
   slapp(nav,j){L.dragar=false;L.t=j;L.R=.4;L.D=.7;L.ts=0;nav.classList.remove('lyft');kor()},
   stor(){L.w=0;if(L.p!=null&&!L.raf)rita()}}})();
 addEventListener('resize',()=>navLins.stor());
@@ -234,10 +251,11 @@ addEventListener('resize',()=>navLins.stor());
   return{w,f:Math.min(Math.max((x-r.left-l-w/2)/w,-.18),VIEWS.length-1+.18)}};
  const over=j=>nav.querySelectorAll('button').forEach((b,k)=>b.classList.toggle('over',k===j));
  nav.addEventListener('pointerdown',e=>{if(e.button>0||nav.classList.contains('mini')||U4&&matchMedia('(min-width:900px)').matches)return;st={x0:e.clientX,id:e.pointerId,moved:false,a:[],j:-1};
-  if(U5&&!nav.classList.contains('none')){const q=lins(e.clientX);u5Fart.add(st.a,q.f*q.w);navLins.drag(nav,q.f,q.w)}});
+  if(U5&&!nav.classList.contains('none'))navLins.lyft(nav)});
  nav.addEventListener('pointermove',e=>{if(!st||e.pointerId!==st.id)return;
-  if(U5&&!nav.classList.contains('none')){const q=lins(e.clientX);u5Fart.add(st.a,q.f*q.w);navLins.drag(nav,q.f,q.w);
+  if(U5&&!nav.classList.contains('none')){const q=lins(e.clientX);u5Fart.add(st.a,q.f*q.w);
    if(!st.moved){if(Math.abs(e.clientX-st.x0)<6)return;st.moved=true;nav.classList.add('drag');try{nav.setPointerCapture(e.pointerId)}catch(_){}}
+   navLins.drag(nav,q.f,q.w);
    const j=Math.round(Math.min(Math.max(q.f,0),VIEWS.length-1));if(j!==st.j){if(st.j>=0)u5Tick();st.j=j;over(j)}return}
   if(!st.moved){if(Math.abs(e.clientX-st.x0)<8)return;st.moved=true;nav.classList.add('drag');try{nav.setPointerCapture(e.pointerId)}catch(_){}}
   const p=at(e.clientX);nav.style.setProperty('--dx',p.dx+'px');over(p.j)});
@@ -894,7 +912,7 @@ function arrangeFoot(L,wall){if(!S.arrange)return'';
    Som hemskärmens widgets i en mobil: varje ruta finns som Liten, Mellan och Stor och visar mer ju större den är.
    Telefonen: rutnät med fyra spalter, Liten 2×2, Mellan 4×2, Stor 4×4. Väggen: 4×4 rutor bredvid klockan, Liten 1, Mellan 2, Stor 4.
    Egen ordning sparas i ovLayoutX/wallLayoutX; första gången ärvs ordningen från vanliga layouten (halv blir Liten, hel blir Mellan). */
-const expOn=()=>lsGet('exp')!=='0';// widgets i tre storlekar är standard sedan ht-v274; 0 = vanliga rutor
+const expOn=()=>lsGet('exp')==='1';// widgets i tre storlekar är ett val; vanliga rutor är standard igen (Henrik 2026-11-06)
 const XW_DEF={ov:{o:['kal','mat','inkop','upg','stad','fod','hem','imorgon'],z:{kal:'m',mat:'s',inkop:'s',upg:'m',stad:'s',fod:'s',hem:'m',imorgon:'m'},hid:[]},
  wall:{o:['mat','kal','upg','inkop','stad','fod','hem','imorgon'],z:{mat:'l',kal:'l',upg:'m',inkop:'s',stad:'s',fod:'m',hem:'m',imorgon:'m'},hid:['imorgon']}};
 const XW_U={s:1,m:2,l:4},XW_NAMN={s:'Liten',m:'Mellan',l:'Stor'};
@@ -2776,7 +2794,7 @@ function renderOverlay(){
       sh('Menyraden längst ner')+'<div class="seg-wrap">'+segc('Menyraden längst ner','flikrad',[['fast','Fast'],['glas','Svävande'],['piller','Piller']],FLIKRAD)+'</div><div class="foot">Fast ligger kant i kant längst ner. Svävande är en rundad glasbubbla ovanpå innehållet, som i iOS 26, och krymper till en rund knapp när du scrollar. Piller krymper i stället till ett smalt piller med bara ikonerna, halvt nedanför skärmkanten. Gäller bara den här enheten.</div>':'')+sh('Placering av plusknappen')+'<div class="seg-wrap">'+segc('Placering av plusknappen','addPlace',[['flytande','Flytande'],['profil','Vid profilen'],['rad','Vid raden']],addPlace())+'</div><div class="foot">Gäller Recept, Inköp och Uppgifter. I Städ flyttar Vid profilen pluset till rubriken och döljer snabbfältet. Flytande visas ovanför menyraden. Vid profilen visas bredvid användaren. Vid raden låter dig lägga till direkt i listan; i kalendern öppnas formuläret. Receptpluset visar Nytt recept och Importera recept. Gäller bara den här enheten.</div>'],
    ['vardag','Mat och städ',sh('Städtid och matbudget')+group(fieldCell('Vardag, min','<input class="field r" id="set-wd" name="wd" inputmode="numeric" value="'+esc(st.stadtid_vardag||20)+'" style="max-width:110px">')+fieldCell('Helg, min','<input class="field r" id="set-we" name="we" inputmode="numeric" value="'+esc(st.stadtid_helg||40)+'" style="max-width:110px">')+fieldCell('Mat/vecka, kr','<input class="field r" id="set-budget" name="budget" inputmode="numeric" value="'+esc(st.matbudget||'')+'" style="max-width:110px">'))+sh('Låsa rätter')+'<div class="seg-wrap">'+segc('Låsa rätter','lasstil',[['rad','Runt rätten'],['bild','Runt bilden']],LASSTIL)+'</div><div class="foot">'+'Tryck på låset för att låsa en rätt. Håll in rätten för att ändra den.'+' Föreslå en ny vecka behåller låsta rätter. Gäller bara den här enheten.</div>'+sh('Städvyn')+'<div class="seg-wrap">'+segc('Städvyn','stadVy',[['lista','Lista'],['rutnat','Rutnät'],['ring','Ring']],stadVy())+'</div><div class="foot">Lista visar allt som förut. Rutnät visar dagens sysslor som rutor du trycker på. Ring visar minuterna kvar som en ring och dagens sysslor i en lugn lista. Gäller bara den här enheten.</div>'+(DEV?sh('Förslag i Planera med portioner')+'<div class="seg-wrap">'+segc('Förslag i Planera med portioner','flStyle',[['karusell','Stort kort'],['lista','Lista']],FL_STYLE)+'</div>':'')],
    ['oversikt','Översikt och väder',sh('Vädervyn')+'<div class="seg-wrap">'+segc('Vädervyn','wxvy',[['kurva','Dagskurva'],['bild','Bild med hundar']],WXVY)+'</div><div class="foot">Dagskurvan visar temperaturen de närmaste 24 timmarna. Gäller bara den här enheten.</div>'+sh('Vädret under hundarna')+'<div class="seg-wrap">'+segc('Vädret under hundarna','ovwx',[['tim','Timme för timme'],['graf','Med graf']],OVWX)+'</div><div class="foot">'+(motionOn()?'Dra handtaget under timmarna nedåt för grafen, uppåt för att fälla ihop. Du kan också trycka på handtaget.':'Håll in timmarna i Översikt för att visa eller dölja grafen.')+' Gäller bara den här enheten.</div>'+sh('Bildstil')+'<div class="seg-wrap">'+segc('Bildstil','wxart',WX_ART,WXART)+'</div><div class="foot">Förfinad ger mjukare former. Geometrisk har tydliga färgplan, inspirerade av Kurzgesagt. Alla stilar följer samma väder, årstider och himmel. Gäller bilden i Väder och Översikt på den här enheten.</div>'+sh('Hundar i bilden')+'<div class="seg-wrap">'+segc('Hundar i bilden','hundar',[['vaxla','Växla'],['bada','Båda'],['brun','Bruna'],['svart','Svarta']],HUNDAR)+'</div><div class="foot">Växla byter var tredje timme. Du kan också trycka på hundarna i Väder för att byta. Gäller bara den här enheten.</div>'+
-  sh('Översikten')+group('<button type="button" class="cell link" data-act="arrange"><span class="grow">Ändra ordning på rutorna</span>'+chevron+'</button>'+(prevGet(layoutKey(S.wall))?'<button type="button" class="cell link" data-act="boxPrev"><span class="grow">Gå tillbaka till föregående layout</span>'+chevron+'</button>':''))+'<div class="foot">Gäller bara den här enheten. Du kan också hålla fingret på en ruta en stund.</div>'+group(fieldCell('Widgets i olika storlekar','<input type="checkbox" role="switch" class="switch" data-act="exp" aria-label="Widgets i olika storlekar"'+(expOn()?' checked':'')+'>'))+'<div class="foot">Rutorna kan vara Liten, Mellan eller Stor och visar mer ju större de är. Dra i hörnknappen i Ändra ordning. Av ger de vanliga rutorna med halv eller hel bredd.</div>'],
+  sh('Översikten')+group('<button type="button" class="cell link" data-act="arrange"><span class="grow">Ändra ordning på rutorna</span>'+chevron+'</button>'+(prevGet(layoutKey(S.wall))?'<button type="button" class="cell link" data-act="boxPrev"><span class="grow">Gå tillbaka till föregående layout</span>'+chevron+'</button>':''))+'<div class="foot">Gäller bara den här enheten. Du kan också hålla fingret på en ruta en stund.</div>'+group(fieldCell('Widgets i olika storlekar','<input type="checkbox" role="switch" class="switch" data-act="exp" aria-label="Widgets i olika storlekar"'+(expOn()?' checked':'')+'>'))+'<div class="foot">Rutorna kan vara Liten, Mellan eller Stor och visar mer ju större de är. Dra i hörnknappen i Ändra ordning. Av ger de vanliga rutorna, som du gör halva eller hela genom att dra i hörnet.</div>'],
    ['enhet','Enheten',sh('Skärm')+group(fieldCell('Väggläge','<input type="checkbox" role="switch" class="switch" data-act="wall" aria-label="Väggläge"'+(S.wall?' checked':'')+'>')+
    (S.wall?'<button type="button" class="cell link" data-act="vagg"><span class="grow">Nattläge</span><span class="meta">'+esc((!NATT.on?'Av':NATT.sol?'Solnedgång–soluppgång':nattTid(NATT.a)+'–'+nattTid(NATT.b))+(CAM.on?' · kamera':''))+'</span>'+chevron+'</button>':'')+statusHtml())+
   (topic?sh('Notiser')+group('<div class="cell"><span class="grow copy">'+esc(topic)+'</span><button type="button" class="pill" data-act="copy" data-id="'+esc(topic)+'">Kopiera</button></div>')+'<div class="foot">Installera appen ntfy och prenumerera på det här ämnet. Använd servern ntfy.sh.</div>':'')+(S.wall?sh('Inställningsknappen på väggskärmen')+'<div class="seg-wrap">'+segc('Inställningsknappen på väggskärmen','vaggknapp',[['meny','I menyraden'],['knapp','Egen knapp'],['rubrik','Rubrikrad']],VKNAPP)+'</div><div class="foot">I menyraden sitter cirkeln längst till höger i menyn. Egen knapp är en rund knapp nere till höger. Rubrikrad lägger en rad överst med cirkeln till höger, som på telefonen. Gäller bara den här enheten.</div>':'')+sh('Den här enheten')+group('<button type="button" class="cell link center red" data-act="logout">Logga ut</button>')],
@@ -4608,7 +4626,7 @@ const ACT={
  arrangeCancel(){const ch=arrChanged();arrCancel();render();if(ch)toast('Ändringarna är ångrade')},
  boxSize(id){if(expOn()){S.xsz=S.xsz===id?null:id;render();return}boxEdit(L=>{L.size[id]=L.size[id]==='h'?'f':'h'})},
  boxSz(v){const[id,z]=String(v).split(':');S.xsz=null;if(XW_U[z])boxEdit(L=>{L.size[id]=z})},
- exp(){arrCancel();lsSet('exp',expOn()?'0':null);S.xsz=null;render();toast(expOn()?'Widgets i olika storlekar är på':'Widgets i olika storlekar är av')},
+ exp(){arrCancel();lsSet('exp',expOn()?null:'1');S.xsz=null;render();toast(expOn()?'Widgets i olika storlekar är på':'Widgets i olika storlekar är av')},
  boxHide(id){boxEdit(L=>{L.cols.forEach(c=>{const i=c.indexOf(id);if(i>=0)c.splice(i,1)});L.hidden.push(id)})},
  boxShow(id){boxEdit(L=>{L.hidden=L.hidden.filter(x=>x!==id);L.cols[L.cols.length-1].push(id)})},
  boxReset(){saveLayout(wallBoardOn(),null);render();toast('Rutorna ligger som från början. Tryck Klar för att spara.')},
