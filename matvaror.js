@@ -222,9 +222,11 @@
       case 'hg': return q * 100;
       case 'dl': return q * (v.gdl || 100);
       case 'l': return q * 10 * (v.gdl || 100);
-      case 'msk': return q * 15;
-      case 'tsk': return q * 5;
-      case 'burk': case 'burkar': case 'påse': case 'paket': case 'förp': return q * mal;
+      // Skedmått efter varans vikt per dl: en tesked torkad oregano väger 2 g, inte 5
+      case 'msk': return q * 0.15 * (v.gdl || 100);
+      case 'tsk': return q * 0.05 * (v.gdl || 100);
+      // En burk eller påse är en förpackning som Willys säljer den (kikärtor 400/240 g = en burk, inte 380 g)
+      case 'burk': case 'burkar': case 'påse': case 'paket': case 'förp': return q * (v.los ? mal : v.pkt);
       case 'st': case 'skivor': case 'stjälkar': return q * (v.gst || mal / 4);
       case 'näve': return q * 30;
       default: return q * (v.gst || 100);
