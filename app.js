@@ -1919,7 +1919,54 @@ function portAuto(igen){const W=weekTarget(),P=planState(),runda=igen?(P.runda||
  planSave(P);
  for(let i=0;i<12;i++){const C=portCalc(),id=PORT_ORD.find(k=>{const X=C.plats[k];if(!X||P.val[k]||P.mack[k]||!X.val.length)return false;return k[0]!=='d'||C.dag[Number(k.slice(1))].t==='tom'});
   if(!id)break;const x=C.plats[id].val.slice().sort((a,c)=>(c.p?c.p.summa:0)-(a.p?a.p.summa:0))[0];P.val[id]=x.r.id;if(id[0]==='d')P.port[id]=x.n;planSave(P)}}
-function portView(){const C=portCalc(),{P,B}=C,mon=parse(P.vecka),sun=parse(addDays(P.vecka,6));
+/* UI 5.0: Ny veckosedel som en Apple-vy. Stor rubrik, en sammanfattning med budget och kvällarna, och veckan som
+   inset-listor (Lunchlådor, Middagar) med en rad per rätt. ⇄ fäller ut raden: portioner, andra förslag och Ta bort.
+   Att köpa är en rad som fälls ut. Samma data och handlingar som portView */
+function portViewU5(){const C=portCalc(),{P,B}=C,mon=parse(P.vecka),sun=parse(addDays(P.vecka,6));
+ NB.title='Ny veckosedel';NB.back=true;
+ const dot=' · ',n=t=>C.dag.filter(x=>x.t===t).length,harMat=7-C.tomma.length,over=C.kassa>B,pct=Math.min(100,C.kassa/B*100);
+ let h='<div class="rcp-top"><button class="back" data-act="planClose">'+I.back+'Mat</button></div><header class="head"><div class="head-row"><h1 class="lt" id="lt">Ny veckosedel</h1></div><div class="sub">Vecka '+isoWeek(mon)+' · '+mon.getDate()+(mon.getMonth()!==sun.getMonth()?' '+MON[mon.getMonth()]:'')+'–'+sun.getDate()+' '+MON[sun.getMonth()]+'</div></header>';
+ const delar=[[n('ratt'),'rätt','rätter'],[n('rest'),'kväll med rester','kvällar med rester'],[n('macka')+n('auto'),'macka','mackor']].filter(x=>x[0]).map(x=>antal(...x));
+ h+='<div class="g5-sum"><div class="g5-kr"><b class="num">'+kr(C.kassa)+'</b><span>av '+kr(B)+'</span><span class="grow"></span><span class="g5-kv'+(over?' bad':'')+'">'+(over?kr(C.kassa-B)+' över':kr(B-C.kassa)+' kvar')+'</span></div>'+
+  '<div class="g5-bar'+(over?' bad':'')+'" role="img" aria-label="'+kr(C.kassa)+' av '+kr(B)+'"><i style="width:'+pct.toFixed(1)+'%"></i></div>'+
+  '<div class="g5-dagar" aria-label="'+harMat+' av 7 middagar har mat">'+C.dag.map(x=>'<span class="g5-d '+x.t+'"><i>'+esc(DAYS3[(x.p.dag+1)%7].slice(0,1).toUpperCase())+'</i></span>').join('')+'</div>'+
+  '<div class="g5-txt">'+harMat+' av 7 middagar har mat'+(delar.length?dot+esc(lista(delar)):'')+'</div>'+
+  (C.svinn.length?'<div class="g5-txt g5-svinn">Blir över och håller inte: '+esc(lista(C.svinn.slice(0,3).map(x=>planVaraNamn(x).toLowerCase()+' ('+kr(x.overKr)+')')))+'</div>':'')+
+  '<label class="g5-bud"><span class="grow">Budget</span><input class="num" type="number" inputmode="numeric" min="200" max="5000" step="10" value="'+B+'" data-change="planBudget" aria-label="Veckobudget i kronor"><span>kr</span></label></div>';
+ h+='<div class="g5-gen"><button class="btn-tint" data-act="genIgen">'+I.swap+'Generera igen</button></div>';
+ // En rad per rätt. Undertext: dag, portioner, pris. ⇄ fäller ut raden
+ const rad=(p,X,o)=>{const v=X.valt,r=v.r,pv=protVal(p.id,r),open=S.planOpen===p.id;
+  const sub=[o.dag,v.n+' port',o.rest,kr(Math.round(v.t.kassa))].filter(Boolean).join(' · ');
+  let g='<div class="cell g5-r'+(open?' open':'')+'"><button class="g5-th" data-act="recipe" data-id="'+esc(r.id)+'" aria-label="Öppna '+esc(r.title)+'">'+dishThumb(r,r.title)+'</button>'+
+   '<button class="grow g5-b" data-act="recipe" data-id="'+esc(r.id)+'"><span class="title">'+esc(cap(r.title.replace(/^Storkok:\s*/i,'')))+'</span><span class="meta">'+esc(sub)+'</span></button>'+
+   '<button class="g5-byt" data-act="planByt" data-id="'+p.id+'" aria-expanded="'+open+'" aria-label="Byt eller ändra '+esc(r.title)+'">'+I.swap+'</button></div>'+(pv?'<div class="cell g5-pv">'+protPills(pv,'planProt',p.id)+'</div>':'');
+  if(!open)return g;
+  if(p.typ!=='storkok')g+='<div class="cell g5-x"><span class="grow">Portioner</span><div class="pl-step" role="group" aria-label="Portioner"><button data-act="portPort" data-id="'+p.id+'" data-d="-2" aria-label="Färre portioner"'+(v.minus?'':' disabled')+'>'+I.minus+'</button><span class="num">'+v.n+'</span><button data-act="portPort" data-id="'+p.id+'" data-d="2" aria-label="Fler portioner"'+(v.plus?'':' disabled')+'>'+I.plus+'</button></div></div>';
+  g+=alt(X,p)+'<button class="cell g5-x g5-del" data-act="planUnpick" data-id="'+p.id+'"><span class="grow">Ta bort rätten</span></button>';return g};
+ // Andra förslag: rader med Välj
+ const alt=(X,p)=>{const L=X.val.concat(X.bonus?[X.bonus]:[]);if(!L.length)return'';
+  return'<div class="cell g5-x g5-h">Andra förslag</div>'+L.map(x=>{const r=x.r,stars=x.l.betyg?'★ '+starNum(x.l.s):'Ny';
+   return'<button class="cell g5-alt" data-act="planPick" data-id="'+esc(r.id)+'" data-k="'+p.id+'" data-n="'+x.n+'"><span class="g5-th">'+dishThumb(r,r.title)+'</span><span class="grow"><span class="title">'+esc(cap(r.title.replace(/^Storkok:\s*/i,'')))+'</span><span class="meta">'+esc(stars+' · '+kr(Math.round(x.t.kassa))+(p.typ!=='storkok'&&x.n>2?' · '+x.n+' port':''))+'</span></span><span class="g5-v">Välj</span></button>'}).join('')+
+   (X.antalOk>L.length?'<button class="cell g5-x g5-mer" data-act="planMore" data-id="'+p.id+'"><span class="grow">Fler förslag</span><span class="meta">'+X.antalOk+' ryms</span></button>':'')};
+ const tom=(p,X,namn)=>'<div class="cell g5-r g5-tom"><span class="g5-th"><span class="dr-th"><span>＋</span></span></span><span class="grow"><span class="title">Välj '+esc(namn)+'</span><span class="meta">'+(X.antal&&!X.antalOk?'Inget ryms i budgeten':'Inget valt')+'</span></span></div>'+alt(X,p);
+ // Lunchlådor
+ let g='';PLATSER2.filter(p=>p.typ==='storkok').forEach(p=>{const X=C.plats[p.id];g+=X.valt?rad(p,X,{dag:p.id==='sv'?'Vegetariskt':'Kött'}):tom(p,X,p.namn.toLowerCase())});
+ h+=sh('Lunchlådor','Mån–fre')+group(g);
+ // Middagar
+ g='';C.dag.forEach(x=>{const p=x.p,X=C.plats[p.id],dag=cap(portDag(p.dag));
+  if(x.t==='ratt'){const rest=C.dag.filter(y=>y.t==='rest'&&y.fr===p.dag).map(y=>portDag(y.p.dag));g+=rad(p,X,{dag,rest:rest.length?'rester '+lista(rest):''})}
+  else if(x.t==='rest'){const r=recipeById(P.val['d'+x.fr]);g+='<div class="cell g5-r g5-rest"><span class="g5-th">'+dishThumb(r,r.title)+'</span><span class="grow"><span class="title">Rester</span><span class="meta">'+esc(dag+' · '+r.title)+'</span></span></div>'}
+  else if(x.t==='macka'||x.t==='auto'){g+='<div class="cell g5-r"><span class="g5-th"><span class="dr-th"><span>🥪</span></span></span><span class="grow"><span class="title">Macka</span><span class="meta">'+esc(dag+' · '+kr(C.MK)+(x.t==='auto'?' · ingen rätt ryms':''))+'</span></span>'+(x.t==='macka'?'<button class="g5-v" data-act="portMacka" data-id="'+p.id+'">Välj rätt</button>':'')+'</div>'+
+    x.fler.map(f=>'<button class="cell g5-alt" data-act="portFler" data-id="'+f.q.id+'" data-n="'+f.n+'"><span class="g5-th"></span><span class="grow"><span class="meta">Laga '+f.n+' portioner '+esc(f.r.title.toLowerCase())+' i stället · '+(f.extra>0?'+'+kr(f.extra):kr(-f.extra)+' billigare')+'</span></span></button>').join('')}
+  else g+=tom(p,X,dag.toLowerCase())+'<button class="cell g5-x" data-act="portMacka" data-id="'+p.id+'"><span class="grow">Macka den här kvällen</span><span class="meta">'+kr(C.MK)+'</span></button>'});
+ h+=sh('Middagar','Mån–sön')+group(g);
+ // Att köpa, utfällbar
+ const kop=C.korg.rad.filter(x=>x.n>0).sort((a,c)=>c.kr-a.kr),hemma=C.korg.rad.filter(x=>x.fran>0);
+ if(kop.length)h+=group('<details class="g5-kop"><summary class="cell"><span class="grow">Att köpa</span><span class="meta">'+antal(kop.length,'vara','varor')+' · '+kr(C.korg.kr)+'</span>'+chevron+'</summary>'+
+  kop.map(x=>'<div class="cell"><div class="grow"><div class="title">'+esc(planVaraNamn(x))+'</div><div class="meta">'+esc(MV.forp(x))+'</div></div><span class="val num">'+kr(x.kr)+'</span></div>').join('')+'</details>')+(hemma.length?'<div class="foot">Finns hemma och används: '+esc(hemma.map(x=>x.k).join(', '))+'.</div>':'');
+ h+='<div class="pl-send"><button class="btn-fill" data-act="portSend"'+(C.klar?'':' disabled')+'>Spara veckosedeln</button><div class="foot">'+(C.klar?'Rätterna, resterna och mackorna läggs på veckosedeln och varorna i inköpslistan.':'Varje middag behöver en rätt, rester eller macka, och båda storkoken behöver väljas.')+' Priserna är ungefärliga.</div></div>';
+ return h}
+function portView(){if(U5)return portViewU5();const C=portCalc(),{P,B}=C,mon=parse(P.vecka),sun=parse(addDays(P.vecka,6));
  NB.title='Ny veckosedel';NB.back=true;
  let h='<div class="rcp-top"><button class="back" data-act="planClose">'+I.back+'Mat</button></div><header class="head"><div class="head-row"><h1 class="lt" id="lt">Vecka '+isoWeek(mon)+'</h1></div><div class="sub">'+esc(cap(DAYS[mon.getDay()])+' '+mon.getDate()+' '+MON[mon.getMonth()]+' – '+DAYS[sun.getDay()]+' '+sun.getDate()+' '+MON[sun.getMonth()])+' · portioner</div></header>';
  const pct=Math.min(100,Math.round(C.kassa/B*100)),over=C.kassa>B,heltOver=C.kassa+C.reserv>B*MP.CFG.marginal;

@@ -2948,6 +2948,39 @@ html.ny.ui5 .bq{border-radius:20px}
 html.ui4.seg-kapsel .widget{border-radius:26px}
 html.ui4.seg-kapsel .mswitch{border-radius:999px}
 html.ui4.seg-klassisk :is(.wsum,.sh-btn,.mswitch,.create-options,.add-row){border-radius:8px}
+/* UI 5.0: Ny veckosedel (portViewU5) – sammanfattning, inset-listor med en rad per rätt, utfällbar rad med portioner och förslag */
+html.ny.ui5 .g5-sum{margin:12px 16px 0;padding:16px 18px 6px;background:var(--surface);border-radius:var(--r5,20px)}
+html.ny.ui5 .g5-kr{display:flex;align-items:baseline;gap:6px}html.ny.ui5 .g5-kr b{font-size:34px;font-weight:700;letter-spacing:-.6px}
+html.ny.ui5 .g5-kr>span{font-size:15px;color:var(--ink-3)}html.ny.ui5 .g5-kr .g5-kv{color:var(--ink-2);font-weight:600}html.ny.ui5 .g5-kv.bad{color:var(--red,#d33)}
+html.ny.ui5 .g5-bar{height:6px;border-radius:3px;background:var(--fill);margin:10px 0 14px;overflow:hidden}html.ny.ui5 .g5-bar i{display:block;height:100%;border-radius:3px;background:var(--accent)}html.ny.ui5 .g5-bar.bad i{background:var(--red,#d33)}
+html.ny.ui5 .g5-dagar{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+html.ny.ui5 .g5-d{display:grid;place-items:center}html.ny.ui5 .g5-d i{font-style:normal;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:600;background:var(--fill);color:var(--ink-3)}
+html.ny.ui5 .g5-d.ratt i{background:var(--accent);color:#fff}html.ny.ui5 .g5-d.rest i{background:color-mix(in srgb,var(--accent) 22%,transparent);color:var(--accent)}
+html.ny.ui5 .g5-d.tom i{background:none;box-shadow:inset 0 0 0 1.5px var(--line);color:var(--ink-3)}
+html.ny.ui5 .g5-txt{font-size:13px;color:var(--ink-3);margin-top:10px;text-align:center}html.ny.ui5 .g5-svinn{color:#c66a00}
+html.ny.ui5 .g5-bud{display:flex;align-items:center;gap:6px;margin:12px -18px 0;padding:10px 18px;border-top:.5px solid var(--line);font-size:17px}
+html.ny.ui5 .g5-bud input{width:90px;text-align:right;border:0;background:none;font:inherit;color:var(--ink-3);padding:4px 0}html.ny.ui5 .g5-bud>span:last-child{color:var(--ink-3)}
+html.ny.ui5 .g5-gen{display:flex;justify-content:center;margin:14px 16px 4px}
+html.ny.ui5 .g5-gen .btn-tint{width:auto;height:40px;padding:0 18px;border-radius:20px;display:flex;align-items:center;gap:6px;font-size:15px;font-weight:600}html.ny.ui5 .g5-gen svg{width:17px;height:17px}
+html.ny.ui5 .g5-r{gap:12px;padding-top:8px;padding-bottom:8px}
+html.ny.ui5 .g5-th{flex:none;width:44px;height:44px;padding:0;border:0;background:none;display:block}
+html.ny.ui5 .g5-th .dr-th{width:44px;height:44px;border-radius:10px;font-size:24px}
+html.ny.ui5 .g5-b{display:flex;flex-direction:column;align-items:flex-start;text-align:left;padding:0;border:0;background:none;font:inherit;color:inherit;min-width:0}
+html.ny.ui5 .g5-r .title,html.ny.ui5 .g5-alt .title{font-size:17px;line-height:1.25}
+html.ny.ui5 .g5-r .meta,html.ny.ui5 .g5-alt .meta{font-size:13px;color:var(--ink-3);margin-top:2px}
+html.ny.ui5 .g5-byt{flex:none;width:36px;height:36px;border-radius:50%;border:0;background:var(--fill);color:var(--accent);display:grid;place-items:center;padding:0}
+html.ny.ui5 .g5-byt svg{width:17px;height:17px}html.ny.ui5 .g5-r.open .g5-byt{background:var(--accent);color:#fff}
+html.ny.ui5 .g5-pv{padding-left:76px;min-height:0;padding-top:0}
+html.ny.ui5 .g5-x{background:color-mix(in srgb,var(--fill) 45%,var(--surface));min-height:48px;font-size:16px}
+html.ny.ui5 .g5-h{font-size:13px;color:var(--ink-3);min-height:34px;padding-top:10px}
+html.ny.ui5 .g5-alt{gap:12px;width:100%;text-align:left;border:0;font:inherit;color:inherit;background:color-mix(in srgb,var(--fill) 45%,var(--surface))}
+html.ny.ui5 .g5-v{flex:none;color:var(--accent);font-weight:600;font-size:15px;border:0;background:none;padding:6px 0}
+html.ny.ui5 .g5-mer .grow,html.ny.ui5 .g5-del .grow{color:var(--accent)}html.ny.ui5 .g5-del .grow{color:var(--red,#d33)}
+html.ny.ui5 button.g5-x{width:100%;border:0;font:inherit;text-align:left}
+html.ny.ui5 .g5-tom .title{color:var(--accent)}
+html.ny.ui5 .g5-kop summary{list-style:none;cursor:pointer;gap:8px}html.ny.ui5 .g5-kop summary::-webkit-details-marker{display:none}
+html.ny.ui5 .g5-kop summary .chev{transition:transform .2s}html.ny.ui5 .g5-kop[open] summary .chev{transform:rotate(90deg)}
+html.ny.ui5 .g5-kop .val{color:var(--ink-3)}
 </style>
 </head>
 <body>
