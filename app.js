@@ -1163,7 +1163,7 @@ function rainTxt(W){const n=new Date(),tm=n.getHours()>=18,day=tm?ymd(new Date(n
  const tot=sp.reduce((a,x)=>a+x.mm,0),mx=Math.max(...sp.map(x=>x.mx)),ord=mx>=2?'kraftigt regn':mx>=0.5?'regn':'lätt regn';
  const when=sp.slice(0,2).map(x=>pad(x.a)+'–'+pad(x.b)).join(' och ')+(sp.length>2?' med flera':'');
  return{wet:tot>=0.3,txt:(tot>=0.3?'Ta paraply'+(tm?' i morgon':'')+' · '+cap(ord):(tm?'I morgon ':'')+ord)+' '+when+' · '+mm(tot)}}
-// liten version av årshjulet och månadens födelsedagar i tur och ordning
+// liten version av årshjulet och månadens födelsedagar i tur och ordning (väggskärm och telefonens Översikt)
 function wallBd(){const L=bdays();if(!L.length)return'';const t=parse(today()),m=t.getMonth();
  let mon=L.filter(b=>b.mo===m).sort((a,b)=>a.dd-b.dd),mm2=m;
  if(!mon.length){const nx=bdNext(L)[0];mm2=nx.mo;mon=L.filter(b=>b.mo===mm2).sort((a,b)=>a.dd-b.dd)}
@@ -1228,7 +1228,7 @@ V.oversikt=function(){
  const rh=roomHealth();
  H.hem=widget('stad','w2',I.home,'Hemmet','',rh.length?'<div class="wl">'+rh.map(healthRow).join('')+'</div>':'<div class="wempty">Städschemat är tomt.</div>');
  H.imorgon=tm?widget('mat','w2',I.cal,'Imorgon',esc(dateShort(tm.date)),(eventsHtml(tm)||'<div class="wempty">Inga händelser.</div>')+(tm.meals.length?wMeals(tm):'')):'';
- H.fod=bdWidget();
+ H.fod=wallBd();
  const L=layout(false,OV_DEF());
  return h+'<div class="widgets'+(S.arrange?' arranging':'')+'">'+boxRow(L.cols[0].filter(id=>H[id]),false,H,L)+'</div>'+(S.arrange?'<p class="arr-intro">Håll kvar och dra en ruta dit du vill ha den. Dra i hörnknappen för att göra den halv eller hel. − döljer rutan. Gäller bara den här enheten.</p>':smileyCard())+'</div>'+arrangeFoot(L,false)};
 // utan egen ordning ligger födelsedagarna näst sist
@@ -4361,10 +4361,6 @@ const bdTurns=b=>b.age!=null?'fyller '+b.age:'fyller år';
 const bdNext=L=>L.slice().sort((a,b)=>a.days-b.days);
 function bdRow(b,o){o=o||{};return'<div class="cell bd'+(b.days===0?' today':'')+(b.passed&&o.dim?' past':'')+'" data-hold-lift="fodEdit" data-id="'+esc(b.key)+'"'+bdSt(b)+'><span class="bd-date num"><b>'+b.dd+'</b><small>'+MON3[b.mo]+'</small></span>'+
  '<div class="grow"><div>'+esc(b.name)+'</div><div class="sub">'+esc(cap(bdTurns(b)))+(b.yr?' · född '+b.yr:'')+'</div></div><span class="bd-when'+(b.days<14?' soon':'')+'">'+esc(bdWhen(b))+'</span></div>'}
-function bdWidget(){const L=bdNext(bdays()).slice(0,3);if(!L.length)return'';
- return widget('fod','w2',I.cake,'Födelsedagar','',
-  '<div class="wl">'+L.map(b=>'<div class="cell bdw"><span class="grow">'+esc(b.name)+' <span class="muted">'+esc(bdTurns(b))+'</span></span><span class="bd-when'+(b.days<14?' soon':'')+'">'+esc(bdWhen(b))+'</span></div>').join('')+'</div>')}
-
 // Årshjul: tolv lika stora månadssegment, januari överst, medurs. Varje födelsedag är en prick på sin dag.
 function bdWheel(L,sel){const C=180,R0=102,R1=174,t=parse(today());
  const ang=(mo,day)=>{const n=new Date(2001,mo+1,0).getDate();return(mo+(day-.5)/n)/12*2*Math.PI-Math.PI/2};
