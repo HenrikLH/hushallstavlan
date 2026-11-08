@@ -915,7 +915,7 @@ function widget(id,cls,icon,label,right,body){return'<section class="widget'+(cl
    Som hemskärmen i en mobil: håll fingret på en ruta tills rutorna börjar vicka, dra den dit du vill
    så viker de andra undan. − döljer en ruta och hörnknappen växlar mellan halv och hel bredd.
    Ordningen sparas per enhet, så telefonen och väggskärmen kan se olika ut. Bilden med klockan ligger alltid först. */
-const BOX={kal:'Kalender',mat:'Middag',stad:'Städ',inkop:'Inköp',upg:'Uppgifter',hem:'Hemmet',fod:'Födelsedagar',imorgon:'Imorgon'};
+const BOX={kal:'Kalender',mat:'Middag',stad:'Städ',inkop:'Inköp',upg:'Uppgifter',hem:'Hemmet',fod:'Födelsedagar',imorgon:'Imorgon',hus:'Smart hem'};
 // vilka rutor som får vara halv bredd, och vilka som är det från början
 const SIZES={ov:{can:['mat','stad','inkop','upg','hem','fod','imorgon'],half:['stad','inkop']},wall:{can:['mat','inkop','fod'],half:['inkop','fod']}};
 const SV2='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
@@ -933,7 +933,7 @@ function saveLayout(wall,L){lsSet((wall?'wallLayout':'ovLayout')+(expOn()?'X':U4
 function boxify(id,html,wall,L){if(!html)return'';
  const half=L.size[id]==='h';
  if(!wall)html=html.replace(/class="widget( w2)?/,'class="widget'+(half?'':' w2'));
- html=html.replace('<section ','<section data-box="'+id+'"'+RF((wall?{kal:'T3',mat:'T4',inkop:'T5',fod:'T6',stad:'T7',upg:'T8'}:{kal:'Ö2',upg:'Ö3',mat:'Ö4',stad:'Ö5',inkop:'Ö6',hem:'Ö7',imorgon:'Ö8',fod:'Ö9'})[id])+' ');if(!S.arrange)return html;
+ html=html.replace('<section ','<section data-box="'+id+'"'+RF((wall?{kal:'T3',mat:'T4',inkop:'T5',fod:'T6',stad:'T7',upg:'T8',hus:'T12'}:{hus:'Ö12',kal:'Ö2',upg:'Ö3',mat:'Ö4',stad:'Ö5',inkop:'Ö6',hem:'Ö7',imorgon:'Ö8',fod:'Ö9'})[id])+' ');if(!S.arrange)return html;
  html=html.replace(/(<section[^>]*?) data-act="nav"/,'$1').replace(/(<section[^>]*?class="widget)/,'$1 arr'+(DRAG_ID===id?' ph':''));
  const can=SIZES[wall?'wall':'ov'].can.includes(id);
  const btn='<button type="button" class="arr-x" data-act="boxHide" data-id="'+id+'" aria-label="Dölj '+BOX[id]+'">'+IA.minus+'</button>'+
@@ -1203,13 +1203,27 @@ function wallBoard(){
   '<div class="wk-sub">Hemmet</div><div class="brooms">'+roomHealth().map(r=>'<div class="'+healthCls(r.score)+'"><span>'+esc(r.room)+'</span><i><b style="width:'+Math.round(r.score*100)+'%"></b></i></div>').join('')+'</div>');
  H.upg=widget('uppgifter','btasks',I.list,'Uppgifter',d.tasks.filter(x=>!x.done).length+' kvar',tasks.length?'<div class="wl">'+tasks.map(taskRow).join('')+'</div>':'<div class="wempty">Inget att göra.</div>');
  if(U3&&!d.clean.length)H.stad=widget('stad','bclean',I.sparkles,'Städ idag','','<div class="u3-empty"><p>Inga rutiner tillagda än.</p><button class="btn-tint" data-act="nav" data-id="stad">'+I.plus+'Lägg till rutin</button></div>');
+ if(haOn())H.hus=haBox(true);
  const L=layout(true,boardDefault());
  let h='<div class="board'+(S.arrange?' arranging':'')+(VKNAPP==='rubrik'?' har-top':'')+'">'+(VKNAPP==='rubrik'?'<div class="wall-top"><h1 class="lt">'+(new Date().getHours()<10?'God morgon':new Date().getHours()<18?'Hej':'God kväll')+'</h1></div>':'');
  h+='<div class="bcol bhero">'+refAdd(heroHtml(),'T1')+refAdd(wallWx(),'T2')+'</div>';
  L.cols.forEach((c,ci)=>{h+='<div class="bcol" data-col="'+ci+'">'+boxRow(c.filter(id=>H[id]),true,H,L)+'</div>'});
  return h+'</div>'+arrangeFoot(L,true)}
-const WALL_DEF=[['kal','mat','inkop','fod'],['stad','upg']];
+const WALL_DEF=[['kal','mat','inkop','fod'],['hus','stad','upg']];
 const boardDefault=()=>U3?[['kal','mat'],['upg','inkop','fod','stad']]:WALL_DEF;
+/* ---------- Smart hem (Home Assistant) – förslag ----------
+   Rutan styr lampor och scener i Home Assistant och ändras direkt när något tänds eller släcks hemma.
+   Förslaget visar låtsasdata (ht.haDemo=1); den riktiga kopplingen (HA:s inloggning och WebSocket) byggs efter Henriks val. */
+const haOn=()=>lsGet('haDemo')==='1';
+const HAI={bulb:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.7.5 1.1 1.3 1.1 2.2h5c0-.9.4-1.7 1.1-2.2A6 6 0 0 0 12 3z"/></svg>',
+ plug:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3v5M15 3v5"/><path d="M6.5 8h11v3a5.5 5.5 0 0 1-11 0z"/><path d="M12 16.5V21"/></svg>'};
+const HA={e:null,sc:[{id:'morgon',n:'Morgon'},{id:'kvall',n:'Kväll'},{id:'film',n:'Film'},{id:'av',n:'Släck allt'}],temp:21.4,last:null};
+function haEnt(){if(!HA.e)HA.e=[{id:'light.kok',n:'Köket',on:1,b:80},{id:'light.vardagsrum',n:'Vardagsrum',on:1,b:45},{id:'switch.fonster',n:'Fönster',on:1,t:'switch'},{id:'light.hall',n:'Hallen',on:0,b:60},{id:'light.sovrum',n:'Sovrum',on:0,b:30},{id:'light.bad',n:'Badrum',on:0,b:100}];return HA.e}
+function haBox(wall){const E=haEnt(),n=E.filter(x=>x.on).length;
+ const tile=x=>'<button type="button" class="ha-t'+(x.on?' on':'')+'" data-act="haTog" data-id="'+esc(x.id)+'" aria-pressed="'+!!x.on+'"><span class="ha-i">'+(x.t==='switch'?HAI.plug:HAI.bulb)+'</span><span class="ha-n">'+esc(x.n)+'</span><span class="ha-s">'+(x.on?(x.b?x.b+' %':'På'):'Av')+'</span></button>';
+ return'<section class="widget'+(wall?' bhus':' w2')+' ha"><div class="wh">'+I.home+'<span>Smart hem</span><span class="r"><i class="ha-live" title="Uppdateras live"></i>'+(n?n+' tända':'Allt släckt')+' · '+String(HA.temp).replace('.',',')+'° inne</span></div>'+
+  '<div class="ha-g">'+E.map(tile).join('')+'</div><div class="ha-sc">'+HA.sc.map(s=>'<button type="button" class="pill'+(HA.last===s.id?' on':'')+'" data-act="haScen" data-id="'+s.id+'">'+esc(s.n)+'</button>').join('')+'</div></section>'}
+const HA_SCEN={morgon:{'light.kok':100,'light.hall':60,'light.bad':100},kvall:{'light.vardagsrum':45,'switch.fonster':1,'light.kok':30},film:{'light.vardagsrum':10},av:{}};
 V.oversikt=function(){
  if(wallBoardOn())return wallBoard();
  if(expOn())return ovX();
@@ -1241,10 +1255,11 @@ V.oversikt=function(){
  H.hem=widget('stad','w2',I.home,'Hemmet','',rh.length?'<div class="wl">'+rh.map(healthRow).join('')+'</div>':'<div class="wempty">Städschemat är tomt.</div>');
  H.imorgon=tm?widget('mat','w2',I.cal,'Imorgon',esc(dateShort(tm.date)),(eventsHtml(tm)||'<div class="wempty">Inga händelser.</div>')+(tm.meals.length?wMeals(tm):'')):'';
  H.fod=wallBd();
+ if(haOn())H.hus=haBox(false);
  const L=layout(false,OV_DEF());
  return h+'<div class="widgets'+(S.arrange?' arranging':'')+'">'+boxRow(L.cols[0].filter(id=>H[id]),false,H,L)+'</div>'+(S.arrange?'<p class="arr-intro">Håll kvar och dra en ruta dit du vill ha den. Dra i hörnknappen för att göra den halv eller hel. − döljer rutan. Gäller bara den här enheten.</p>':smileyCard())+'</div>'+arrangeFoot(L,false)};
 // utan egen ordning ligger födelsedagarna näst sist
-const OV_DEF=()=>U3?[['mat','upg','kal','inkop','stad','fod','hem','imorgon']]:[['kal','upg','mat','stad','inkop','fod','hem','imorgon']];
+const OV_DEF=()=>U3?[['mat','upg','kal','inkop','stad','fod','hem','imorgon','hus']]:[['kal','hus','upg','mat','stad','inkop','fod','hem','imorgon']];
 function wMeals(d){if(U3)return(d.meals||[]).map(m=>{const r=m.recipe&&recipeById(m.recipe),go=r?'button':'div';return'<div class="u3-dinner"><'+go+' class="u3-meal"'+(r?' data-act="recipe" data-id="'+esc(r.id)+'"':'')+'>'+dishThumb(r,m.title)+'<span class="grow"><span class="chips-row">'+whoChip(m.who)+'</span><span class="hl">'+esc(m.title)+'</span>'+(m.addon?'<span class="meta">'+esc(m.addon)+'</span>':'')+(r&&r.min?'<span class="meta">'+r.min+' min'+(portKr(r)?' · '+portTxt(r)+'/port':'')+'</span>':'')+'</span></'+go+'>'+(r&&r.steps&&r.steps.length?'<button class="btn-fill" data-act="cook" data-id="'+esc(r.id)+'">'+I.play+'Börja laga</button>':'')+'</div>'}).join('');return(d.meals||[]).map(m=>{const r=m.recipe&&recipeById(m.recipe);const tag=r?'button':'div';
  return'<'+tag+' class="wmeal"'+(r?' data-act="recipe" data-id="'+esc(m.recipe)+'"':'')+'><div class="top">'+whoChip(m.who)+(r&&portKr(r)?'<span class="val">'+portTxt(r)+'/port</span>':'')+'</div><div class="hl title">'+esc(m.title)+'</div>'+(m.addon?'<div class="sub">+ Kött: '+esc(m.addon)+'</div>':'')+'</'+tag+'>'}).join('')}
 const healthRow=r=>'<div class="cell room"><div class="grow"><div>'+esc(r.room)+'</div><div class="cap '+healthCls(r.score)+'"><i style="width:'+Math.round(r.score*100)+'%"></i></div></div><span class="hw '+healthCls(r.score)+'">'+healthWord(r.score)+'</span></div>';
@@ -4824,6 +4839,8 @@ const ACT={
  smileyQuick(id,el){const v=Number(el.dataset.v)||0;A.user=Date.now();saveSmiley(id,el.dataset.date,v);markCooked(id,el.dataset.date);toast(v>0?'Vad bra! Rätten kommer tillbaka lite oftare':v<0?'Noterat. Rätten kommer tillbaka mer sällan':'Tack!')},
  smileySkip(id,el){A.user=Date.now();saveSmiley(id,el.dataset.date,'x');toast('Okej, den räknas inte som lagad')},
  wakeBoard(){render()},
+ haTog(id){const x=haEnt().find(e=>e.id===id);if(!x)return;x.on=x.on?0:1;HA.last=null;render()},
+ haScen(id){const m=HA_SCEN[id];if(!m)return;haEnt().forEach(x=>{const v=m[x.id];x.on=v?1:0;if(v>1)x.b=v});HA.last=id;render()},
  nav(id,el){if(RC.busy){toast('Vänta tills receptbegäran är klar.');return}if(RC.screen&&RC.edit&&RC.edit.dirty){RC.leaveTo=id;recipeLeave();S.view='mat';return}if(RC.screen)RC.screen=null;if(id!=='oversikt')arrCancel();if(normView(id)!=='ekonomi'){S.ekoOpen=false;S.pin=''}try{document.activeElement&&document.activeElement.blur()}catch(e){}id=normView(id);if(id==='uppgifter'&&S.taskTab==='stad'&&S.view!=='stad'&&el&&el.closest&&el.closest('#nav'))id='stad';if(id==='uppgifter'||id==='stad'){S.taskTab=id==='stad'?'stad':'lista';lsSet('taskTab',S.taskTab)}S.shopAdd=false;S.taskAdd=false;S.view=id;S.recipe=null;S.confirm=null;lsSet('view',id);try{history.replaceState(null,'','#'+id)}catch(e){}window.scrollTo(0,0);render()},
  refresh(){refresh()},
  settings(){if(S.sheet!=='farg')S.prefDraft=null;S.sheet='settings';render()},
