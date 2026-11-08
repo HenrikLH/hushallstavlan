@@ -6,8 +6,8 @@ module.exports=async(pg,h)=>{
  const close=()=>click('.sheet [data-act="sheetClose"]');
  const nav=async()=>{if(await read('S.view')==='vader')return;await click('#nav [data-id="oversikt"]');await click('[data-act="nav"][data-id="vader"]')};
  const boot=process.env.ART||'geo';let originalGeometry;
- await settings();assert.equal(await pg.locator('[data-act="wxart"]').count(),3);await click('[data-act="wxvy"][data-id="bild"]');await click('[data-act="hundar"][data-id="bada"]');await close();
- for(const art of ['original','soft','geo']){
+ await settings();assert.equal(await pg.locator('[data-act="wxart"]').count(),2);await click('[data-act="wxvy"][data-id="bild"]');await click('[data-act="hundar"][data-id="bada"]');await close();
+ for(const art of ['original','geo']){
   await settings();await click('[data-act="wxart"][data-id="'+art+'"]');assert.equal(await read('WXART'),art);await close();await nav();
   assert.equal(await pg.locator('.wx2').count(),1);assert.equal(await pg.locator('.wx2.art-'+art).count(),art==='original'?0:1);
   const geometry=await pg.locator('.wx2').evaluate(e=>{const world=e.querySelector('.wx2-gs>.bd').getBoundingClientRect(),dogs=e.querySelector('.fig-box').getBoundingClientRect();return[world.width,world.height,dogs.width,dogs.height]});
@@ -32,7 +32,7 @@ module.exports=async(pg,h)=>{
    symbols.forEach((sym,i)=>{const n={s:sym+(hour===1?'_night':'_day'),T:[-8,-1,2,9,18,28][i%6],pr:/rain|snow|sleet/.test(sym)?[.1,.8,5][i%3]:0,w:[0,5,10,18][i%4],wd:[0,90,180,270][i%4],cf:[0,18,50,89,100][i%5]},W={now:n,hours:[n,n]};lsSet('snow',JSON.stringify({at:now,cm:[0,1,6,15][di%4]}));
     WXART='original';const sc=wxScene(W),sig=JSON.stringify(sc);seasons.add(grassSeason(today()));phases.add(sc.phase);types.add(sc.type);fits.add(sc.fit.coat);levels.add(snowLevel(sc));
     const baseSky=skyFx(W),baseArc=arcHtml(W,'w');const skyCount=(h,s)=>(h.match({'.cl':/<div class="cl /g,'.st':/<i class="st[ "]/g,'.cst':/<div class="cst"/g,'.sk':/<i class="sk[ "]/g}[s])||[]).length,arcPos=h=>h.match(/<div class="sky-b [^"]*" style="([^"]*)"/)[1];
-    for(const art of ['original','soft','geo']){WXART=art;check(JSON.stringify(wxScene(W))===sig,'Bildstilen ändrar vädermodellen');const bd=backdropSvg(sc),fig=figSvg(sc,{bare:1,patch:1,nocl:1}),sky=skyFx(W),arc=arcHtml(W,'w');count++;
+    for(const art of ['original','geo']){WXART=art;check(JSON.stringify(wxScene(W))===sig,'Bildstilen ändrar vädermodellen');const bd=backdropSvg(sc),fig=figSvg(sc,{bare:1,patch:1,nocl:1}),sky=skyFx(W),arc=arcHtml(W,'w');count++;
      check(!/NaN|undefined/.test(bd+fig+sky+arc),'Ogiltigt tal i '+art+'/'+sym);check(bd.includes('data-season="'+grassSeason(today())+'"'),'Årstid saknas');check(bd.includes('data-snow="'+snowLevel(sc)+'"'),'Snödjup saknas');
      for(const selector of ['.cl','.st','.cst','.sk'])check(skyCount(sky,selector)===skyCount(baseSky,selector),'Himmellager skiljer sig '+selector);
      check(arcPos(arc)===arcPos(baseArc),'Sol/månbana skiljer sig');
@@ -44,19 +44,19 @@ module.exports=async(pg,h)=>{
    })
   }});
   // Soluppgång, gyllene timmen och skymning (förutom dag/natt ovan).
-  const date='2026-07-15',P=WX_POS(),st=sunTimes(date,P.lat,P.lon);for(const now of [st[0].getTime()-20*60000,st[0].getTime()+20*60000,st[1].getTime()-30*60000,st[1].getTime()+20*60000]){window.Date=class extends D0{constructor(...a){super(...(a.length?a:[now]))}static now(){return now}};const n={s:'fair',T:18,w:0,pr:0},sc=wxScene({now:n,hours:[n]});phases.add(sc.phase);for(const art of ['soft','geo']){WXART=art;xml(backdropSvg(sc));xml(figSvg(sc,{patch:1,bare:1,nocl:1}))}}
+  const date='2026-07-15',P=WX_POS(),st=sunTimes(date,P.lat,P.lon);for(const now of [st[0].getTime()-20*60000,st[0].getTime()+20*60000,st[1].getTime()-30*60000,st[1].getTime()+20*60000]){window.Date=class extends D0{constructor(...a){super(...(a.length?a:[now]))}static now(){return now}};const n={s:'fair',T:18,w:0,pr:0},sc=wxScene({now:n,hours:[n]});phases.add(sc.phase);for(const art of ['geo']){WXART=art;xml(backdropSvg(sc));xml(figSvg(sc,{patch:1,bare:1,nocl:1}))}}
   // En hund och alla poser/kläder; snöminnet lever vidare även när det slutat snöa.
-  const n={s:'clearsky',T:3,w:0,pr:0},sc=wxScene({now:n,hours:[n]});for(const art of ['soft','geo']){WXART=art;for(const variant of ['a','b','ab','A','B','AB','aB','Ab'])xml(figSvg(sc,{patch:1,bare:1,nocl:1,variant}))}
+  const n={s:'clearsky',T:3,w:0,pr:0},sc=wxScene({now:n,hours:[n]});for(const art of ['geo']){WXART=art;for(const variant of ['a','b','ab','A','B','AB','aB','Ab'])xml(figSvg(sc,{patch:1,bare:1,nocl:1,variant}))}
   return{count,symbols:symbols.length,seasons:[...seasons],phases:[...phases],types:[...types],fits:[...fits],levels:[...levels]};
  }finally{window.Date=D0;WXART=old;HUNDAR=oldDogs;S.wxVar=oldVar;EXT.yr=oldYr;lsSet('snow',oldSnow)}})()`);
  assert.equal(report.seasons.length,8);assert.equal(report.phases.length,5);assert.equal(report.types.length,5);assert.equal(report.levels.length,4);console.log('PASS bildstilar',JSON.stringify(report));
  // Bildfilerna ska gå att avkoda, inte bara finnas som tomma SVG-element.
- const decoded=await pg.evaluate(async()=>{const names=['trees-v2','mascots-v4','sleep-v1','clouds-v2'];return Promise.all(names.map(async name=>{const img=new Image();img.src='bilder/vader/'+name+'.webp?v=1';await img.decode();return{name,w:img.naturalWidth,h:img.naturalHeight}}))});assert.equal(decoded.length,4);for(const im of decoded)assert(im.w>=400&&im.h>=1000,'Bildlagret är avkodat: '+im.name);
+ const decoded=await pg.evaluate(async()=>{const names=['trees-v2','mascots-v5','sleep-v1','clouds-v2'];return Promise.all(names.map(async name=>{const img=new Image();img.src='bilder/vader/'+name+'.webp?v=1';await img.decode();return{name,w:img.naturalWidth,h:img.naturalHeight}}))});assert.equal(decoded.length,4);for(const im of decoded)assert(im.w>=400&&im.h>=1000,'Bildlagret är avkodat: '+im.name);
  // Granska riktiga kort i representativa väder och årstider; endast emulatorns modell/klocka ersätts.
  await read('window.__artSaved={Date:window.Date,model:wxModel,W:wxModel(),art:WXART,snow:lsGet("snow"),variant:S.wxVar}');
  try{
   const scenes=[['var','2026-04-30T12:00:00+02:00','partlycloudy',15,0,40,0],['varnatt','2026-04-30T23:00:00+02:00','fair',12,0,18,0],['vinterbar','2026-01-15T12:00:00+01:00','partlycloudy',2,0,40,0],['ogon','2026-07-15T12:00:00+02:00','partlycloudy',18,0,50,0],['hostnatt','2026-10-31T19:49:00+01:00','cloudy',6,0,100,0],['sommar','2026-07-15T12:00:00+02:00','clearsky',26,0,0,0],['regn','2026-05-15T12:00:00+02:00','heavyrainandthunder',9,5,100,0],['sno','2026-01-15T12:00:00+01:00','heavysnow',-5,4,95,15],['dimma','2026-11-15T09:00:00+01:00','fog',2,0,100,0],['stjarnor','2026-08-15T23:00:00+02:00','clearsky',14,0,0,0]];
-  for(const art of ['geo','soft'])for(const [name,date,sym,T,pr,cf,cm] of scenes){
+  for(const art of ['geo'])for(const [name,date,sym,T,pr,cf,cm] of scenes){
    await read(`(()=>{const saved=window.__artSaved,now=new saved.Date('${date}').getTime();window.Date=class extends saved.Date{constructor(...a){super(...(a.length?a:[now]))}static now(){return now}};const W=saved.W,n={...W.now,s:'${sym}',T:${T},pr:${pr},cf:${cf},w:${name==='hostnatt'?0:pr?10:2},wd:${name==='hostnatt'?315:230}};wxModel=()=>({...W,now:n,hours:W.hours.map(x=>({...x,...n})),days:W.days.map(x=>({...x,min:${T},max:${T}}))});WXART='${art}';S.wxVar=null;lsSet('snow',JSON.stringify({at:now,cm:${cm}}));render()})()`);
    await h.idle(120);await pg.evaluate(()=>document.getAnimations().forEach(a=>{a.pause();a.currentTime=42000}));await pg.locator('.wx2').screenshot({path:path.join(h.OUT,'bildstil-'+art+'-'+name+'.png')});
   }

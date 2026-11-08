@@ -18,7 +18,7 @@ const WX=wx();
 const srv=http.createServer((q,r)=>{let p=decodeURIComponent(q.url.split('?')[0]);if(p==='/')p='/index.html';const f=path.join(APP,p);
  fs.readFile(f,(e,b)=>{if(e){r.writeHead(404);return r.end()}if(p==='/app.js')b=Buffer.from(String(b).replace(/\}\)\(\);\s*$/,'window.__d=s=>eval(s);})();'));const ext=path.extname(f);r.writeHead(200,{'Content-Type':{'.html':'text/html','.js':'text/javascript','.json':'application/json','.css':'text/css','.webp':'image/webp','.png':'image/png','.jpg':'image/jpeg','.svg':'image/svg+xml','.webmanifest':'application/json'}[ext]||'application/octet-stream'});r.end(b)})});
 let PORT;
-(async()=>{await new Promise(r=>srv.listen(0,()=>{PORT=srv.address().port;r()}));
+(async()=>{await new Promise(r=>srv.listen(+process.env.PORT||0,()=>{PORT=srv.address().port;r()}));
  const scen=require(path.resolve(process.argv[2]));
  const exe=process.env.CHROMIUM||(fs.existsSync('/opt/pw-browsers/chromium')?'/opt/pw-browsers/chromium':undefined);
  const b=await chromium.launch(exe?{executablePath:exe}:{});
@@ -46,7 +46,7 @@ let PORT;
    if(u.includes('air-quality-api.open-meteo.com'))return r.fulfill({contentType:'application/json',body:JSON.stringify({hourly:{time:H,uv_index:H.map((_,i)=>i%24>8&&i%24<14?1.2:0),alder_pollen:H.map(()=>0),birch_pollen:H.map(()=>+(process.env.WXPOLL||0)),grass_pollen:H.map(()=>0),mugwort_pollen:H.map(()=>null)}})});
    if(u.includes('services.swpc.noaa.gov'))return r.fulfill({contentType:'application/json',body:JSON.stringify([...Array(24)].map((_,i)=>({time_tag:new Date(d0.getTime()+i*3*36e5).toISOString().slice(0,19),kp:i%8>=6?+(process.env.WXKP||4.67):2.33,observed:'predicted'})))});
    if(u.includes('opendata-download-warnings.smhi.se'))return r.fulfill({contentType:'application/json',body:JSON.stringify(process.env.WXPLUS==='2'?[]:[{id:1,event:{sv:'Halka',code:'SLIPPERINESS'},warningAreas:[{id:2,approximateStart:new Date(n0+2*36e5).toISOString(),approximateEnd:new Date(n0+18*36e5).toISOString(),areaName:{sv:'Jönköpings län'},warningLevel:{sv:'Gul',code:'YELLOW'},eventDescription:{sv:'Halka'},descriptions:[{title:{sv:'Vad händer'},text:{sv:'Underkylt regn kan ge isbark på vägar och trottoarer.'}}],area:{type:'Feature',geometry:{type:'Polygon',coordinates:[[[13,56.5],[15.5,56.5],[15.5,58.2],[13,58.2],[13,56.5]]]}}}]},{id:3,event:{sv:'Vattenbrist'},warningAreas:[{warningLevel:{code:'MESSAGE'},area:{geometry:{type:'Polygon',coordinates:[[[13,56.5],[15.5,56.5],[15.5,58.2],[13,58.2],[13,56.5]]]}}}]}])})}
-  if(u.startsWith('http://localhost'))return r.continue();return r.abort()});
+  if(u.startsWith('http://localhost')||(process.env.HA&&u.startsWith('http://127.0.0.1:8777/ha')))return r.continue();return r.abort()});
  const h={
   OUT,gas,
   async shot(n,full){await pg.waitForTimeout(350);await pg.screenshot({path:path.join(OUT,n+'.png'),fullPage:!!full,animations:process.env.REDUCED==='1'?'disabled':'allow'});console.log('shot',n)},
