@@ -31,9 +31,10 @@ module.exports=async(pg,h)=>{
  assert.ok(!(await main()).includes('Oskar'),'Oskar ska inte få present');
  await h.shot('famA-2-present-tidslinje');
  await filt('alla');
- await click('[data-act="fodMode"][data-id="fam"]');
- assert.ok((await main()).includes('Utan familj'));
- await h.shot('famB-1-familjer');
+ assert.equal(await pg.locator('[data-act="fodMode"][data-id="fam"]').count(),0,'Familjer är ingen egen visning');
+ await filt('f2');assert.ok(/Elsa\s+10 år/.test(await main()),'Rubriken namn och ålder');assert.ok(!(await main()).includes('Ingrid'),'Filtret visar bara Lunds');
+ await h.shot('famB-1-filter-lunds');
+ await filt('utan');assert.ok((await main()).includes('Sven'));await filt('alla');
  // Ny familj med Sven och Gun
  await meny();await click('[data-act="fodFam"]');
  assert.equal(await pg.locator('form[data-form="fodFam"]').count(),1);

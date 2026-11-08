@@ -78,7 +78,7 @@ try{const c=lsGet('cache');if(c)S.data=JSON.parse(c)}catch(e){}
 // Gamla vyer (Matsedel, Recept) ligger nu i fliken Mat
 function normView(id){if(OLD_VIEWS[id]){S.matTab=OLD_VIEWS[id];lsSet('matTab',S.matTab);return'mat'}return id}
 S.view=normView(S.view);
-S.fodMode=['hjul','manad','lista','fam'].includes(lsGet('fodMode'))?lsGet('fodMode'):'hjul';
+S.fodMode=['hjul','manad','lista'].includes(lsGet('fodMode'))?lsGet('fodMode'):'hjul';
 const h0=location.hash.slice(1);if(VIEW_IDS.includes(h0)||OLD_VIEWS[h0])S.view=normView(h0);
 if(S.view==='uppgifter'&&lsGet('taskTab')==='kalender'){S.view='kalender';lsSet('taskTab','lista')}
 if(!VIEW_IDS.includes(S.view))S.view='oversikt';
@@ -344,7 +344,7 @@ addEventListener('resize',()=>navLins.stor());
   if(Math.abs(dx)>70&&Math.abs(dx)>1.8*Math.abs(dy)&&performance.now()-g.t0<800&&!document.querySelector('#overlay .sheet'))subSwipe(dx)},{passive:true})})();
 
 /* Undermenyerna i Mat, Uppgifter och Födelsedagar i samma ordning som segmentreglaget. Svep åt vänster = nästa. */
-const SUBS={mat:['matTab',['vecka','inkop','recept','bank','efter']],uppgifter:['taskTab',['lista','stad']],stad:['taskTab',['lista','stad']],fod:['fodMode',['hjul','manad','lista','fam']]};
+const SUBS={mat:['matTab',['vecka','inkop','recept','bank','efter']],uppgifter:['taskTab',['lista','stad']],stad:['taskTab',['lista','stad']],fod:['fodMode',['hjul','manad','lista']]};
 // Kalender-fliken: svep byter månad, vecka eller dag som i iPhones Kalender (vänster = framåt)
 function calSwipe(dx){if(S.view!=='kalender'||S.sheet||S.cook)return false;const d=dx<0?1:-1;A.user=Date.now();
  if(S.calVy==='manad')ACT.calMonth(null,{dataset:{d}});else ACT.calStep(null,{dataset:{d}});
@@ -4440,7 +4440,8 @@ function presAr(from){const t=from||thisMonth(),y=+t.slice(0,4),m=+t.slice(5,7)-
 const presPerMan=ym=>{if(!bdays().length)return 0;const P=presBud();return P.satt==='manad'?presMan(ym).reduce((a,x)=>a+x.kr,0):presAr(ym).jamn};
 // Present märks med beloppet till höger (Henriks val), barn med etiketten Barn. Åldern i "Fyller 19" står i personens färg
 const bdCol=b=>b.col&&colOk(b.col)?PCOL[b.col][isDark()?3:1]:'var(--accent)',bmDot=b=>'<i class="bm-dot" style="--bm:'+bdCol(b)+'" aria-label="Present"></i>';
-const bdFyller=b=>b.age!=null?'Fyller <b class="bm-age num">'+b.age+'</b>':'Fyller år';
+// Rubriken är namnet och åldern personen fyller, till exempel "Elsa 10 år"
+const bdRubrik=b=>esc(b.name)+(b.age!=null?' <span class="num">'+b.age+' år</span>':'');
 // Liten märkning i månadsrutnätet och på väggtavlan
 const bmMini=b=>b.gift?bmDot(b):'';
 // Barn (fyller under 18, födelseår känt) får orange om ingen egen färg är vald
@@ -4466,7 +4467,7 @@ const bdTurns=b=>b.age!=null?'fyller '+b.age:'fyller år';
 const bdNext=L=>L.slice().sort((a,b)=>a.days-b.days);
 function bdRow(b,o){o=o||{};const when='<span class="bd-when'+(b.days<14?' soon':'')+'">'+esc(bdWhen(b))+'</span>';
  return'<div class="cell bd'+(b.barn?' barn':'')+(b.gift?' gave':'')+(b.days===0?' today':'')+(b.passed&&o.dim?' past':'')+'" data-hold-lift="fodEdit" data-id="'+esc(b.key)+'"'+bdSt(b)+'><span class="bd-date num"><b>'+b.dd+'</b><small>'+MON3[b.mo]+'</small></span>'+
- '<div class="grow"><div class="bd-nm">'+esc(b.name)+(b.barn?'<span class="bm-barn">Barn</span>':'')+'</div><div class="sub">'+bdFyller(b)+(b.yr?' · född '+b.yr:'')+(b.fam&&!o.nofam?' · '+esc(b.fam.n):'')+'</div></div>'+
+ (sub=>'<div class="grow"><div class="bd-nm">'+bdRubrik(b)+(b.barn?'<span class="bm-barn">Barn</span>':'')+'</div>'+(sub?'<div class="sub">'+sub+'</div>':'')+'</div>')([b.yr?'född '+b.yr:'',b.fam&&!o.nofam?esc(b.fam.n):''].filter(Boolean).join(' · '))+
  (b.gift?'<span class="bm-hoger"><span class="bm-kr num">'+kr(presKr(b.age,presBud()))+'</span>'+when+'</span>':when)+'</div>'}
 // Årshjul: tolv lika stora månadssegment, januari överst, medurs. Varje födelsedag är en prick på sin dag.
 function bdWheel(L,sel){const C=180,R0=102,R1=174,t=parse(today());
@@ -4514,15 +4515,9 @@ V.fod=function(){const ALLA=bdays(),t=parse(today()),mode=S.fodMode||'hjul';if(S
  const fNamn=S.fodFilt==='pres'?'Present':S.fodFilt==='utan'?'Utan familj':(fodFam().find(x=>x.id===S.fodFilt)||{}).n;
  h+=head('Födelsedagar',{sub:ALLA.length?(U5&&fNamn?esc(fNamn)+' · ':'')+(L.length<ALLA.length?L.length+' av ':'')+ALLA.length+' personer':'',tools:'<button class="ib plus" data-act="fodAdd" aria-label="Ny födelsedag">'+I.plus+'</button>'});
  if(!ALLA.length)return h+group(emptyCell('Inga födelsedagar ännu. Lägg till med plus, eller vänta på att listan fylls i från kalendern.'));
- h+=segc('Visning','fodMode',[['hjul','Årshjul'],['manad','Månader'],['lista','Tidslinje'],['fam','Familjer']],mode)+(U5?'':fodChips(ALLA));
+ h+=segc('Visning','fodMode',[['hjul','Årshjul'],['manad','Månader'],['lista','Tidslinje']],mode)+(U5?'':fodChips(ALLA));
  if(S.fodFilt==='pres'){const v=presPerMan(thisMonth()),Y=presAr();h+=group('<button type="button" class="cell link pb-kort" data-act="presBud"><div class="grow"><div class="pb-k1 num">'+nv('pb-kort',v,'kr')+'<small>/mån</small></div><div class="meta">Lägg undan till '+Y.M.reduce((a,x)=>a+x.L.length,0)+' presenter, '+kr(Y.tot)+' de kommande tolv månaderna</div></div>'+chevron+'</button>')}
  if(!L.length)return h+group(emptyCell(S.fodFilt==='pres'?'Ingen ska ha present. Present får de som fyller jämnt (0 och 5) och barn till och med 18.':'Ingen här ännu. Lägg till personer under Familjer.'));
- if(mode==='fam'){const F=fodFam(),grp=(f,rows)=>'<button type="button" class="gh ff-gh" data-act="'+(f?'fodFamEdit':'fodFam')+'" data-id="'+(f?esc(f.id):'')+'"'+(f&&colOk(f.c)?' style="--ff:'+PCOL[f.c][isDark()?3:1]+'"':'')+'><span><i class="ff-dot"></i>'+(f?esc(f.n):'Utan familj')+'</span><span class="r">'+rows.length+(rows.some(b=>b.gift)?' · '+rows.filter(b=>b.gift).length+' presenter':'')+'</span></button>'+rows.map(b=>bdRow(b,{nofam:1})).join('');
-  const U=bdNext(L).filter(b=>!b.fam),FL=F.map(f=>[f,bdNext(L).filter(b=>b.fam&&b.fam.id===f.id)]).filter(x=>x[1].length).concat(U.length?[[null,U]]:[]);
-  if(U5){const gn=b=>b.filter(x=>x.gift).length;h+='<div'+RF('F8')+'>'+FL.map(([f,R_])=>'<div class="sh ff-sh"'+(f&&colOk(f.c)?' style="--ff:'+PCOL[f.c][isDark()?3:1]+'"':'')+'><span>'+(f?esc(f.n):'Utan familj')+'</span><button type="button" class="r ff-ed5" data-act="'+(f?'fodFamEdit':'fodFam')+'" data-id="'+(f?esc(f.id):'')+'">'+(gn(R_)?'<span class="ff-gn">'+gn(R_)+(gn(R_)===1?' present':' presenter')+'</span>':'')+(f?'Ändra':'Lägg till')+'</button></div>'+group(R_.map(b=>bdRow(b,{nofam:1})).join(''))).join('')+'</div>';
-   return h+'<div class="foot">Märkta får present: fyller jämnt (0 och 5) eller är barn till och med 18.</div>'}
-  let in_='';FL.forEach(([f,R_])=>{in_+=grp(f,R_)});
-  return h+rgroup('F8',in_)+'<div class="foot">Tryck på en familj för att ändra namn, färg och vilka som hör till den. Märkta får present: fyller jämnt (0 och 5) eller är barn till och med 18.</div>'}
  const nx=bdNext(L),first=nx[0],same=nx.filter(b=>b.days===first.days);
  if(mode==='hjul'){const sel=S.fodMon!=null?S.fodMon:t.getMonth(),ML=L.filter(b=>b.mo===sel);
   h+='<div class="bd-wrap"'+RF('F1')+'>'+bdWheel(L,sel)+'<div class="bd-center"><div class="eyebrow">'+(first.days===0?'Idag':'Nästa')+'</div><div class="bd-cn">'+esc(same.map(b=>b.name).join(' & '))+'</div><div class="sub">'+esc(cap(same.length===1?bdTurns(first):'fyller år')+(first.days?' '+bdWhen(first):''))+'</div></div></div>';
@@ -4918,7 +4913,7 @@ const ACT={
  cookTo(id,el){A.user=Date.now();S.cook.step=Number(el.dataset.i)||0;S.step[S.cook.id]=S.cook.step;render()},
  pickStep(id,el){S.step[id]=Number(el.dataset.i);render();setTimeout(()=>{const li=document.querySelector('.steps li.active');if(li&&li.getBoundingClientRect().top<70)li.scrollIntoView({block:'start',behavior:'smooth'})},30)},
  cookStep(id,el){A.user=Date.now();const r=recipeById(S.cook.id);S.cook.step=Math.max(0,Math.min(stegFor(r).length-1,S.cook.step+Number(el.dataset.d)));S.step[S.cook.id]=S.cook.step;render()},
- fodMode(id){S.fodMode=id;lsSet('fodMode',id);render()},
+ fodMode(id){if(!['hjul','manad','lista'].includes(id))return;S.fodMode=id;lsSet('fodMode',id);render()},
  fodMon(id){S.fodMon=Number(id);render()},
  ekoMonth(id,el){S.ekoMonth=addMonths(S.ekoMonth||thisMonth(),Number(el.dataset.d));render()},
  ekoIncome(){S.sheet='income';render()}, ekoMat(){S.sheet='matb';render()},
