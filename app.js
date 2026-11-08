@@ -4496,8 +4496,14 @@ function bdWheel(L,sel){const C=180,R0=102,R1=174,t=parse(today());
   s+='<text class="ml'+(m===sel?' on':'')+'" x="'+lx+'" y="'+ly+'" text-anchor="middle" dominant-baseline="central">'+MON3[m]+'</text>'}
  const nx=bdNext(L)[0];
  // Födelsedagar som ligger nära varandra läggs i en inre bana så att prickarna inte täcker varandra
+ const RV=lsGet('fodRing')||'c';let hal='',dots='';
  const lanes=[];L.forEach(b=>{const a=ang(b.mo,b.dd);let k=0;while(lanes[k]!=null&&a-lanes[k]<.09)k++;lanes[k]=a;
-  const[x,y]=pt(R1-14-k*11,a);const cc=b.col&&colOk(b.col)?PCOL[b.col][isDark()?3:1]:'';if(b.gift)s+='<circle class="gring" cx="'+x+'" cy="'+y+'" r="'+(b===nx?9.5:8)+'"'+(cc?' style="stroke:'+cc+'"':'')+'/>';s+='<circle class="dot'+(b===nx?' next':'')+'" cx="'+x+'" cy="'+y+'" r="'+(b===nx?6:4.5)+'"'+(cc?' style="'+(b===nx?'stroke':'fill')+':'+cc+'"':'')+'/>'});
+  const[x,y]=pt(R1-14-k*(RV==='a'?13:11),a),cc=b.col&&colOk(b.col)?PCOL[b.col][isDark()?3:1]:'',nt=b===nx,g=b.gift;
+  // Present: A större prick, B fylld mot tom, C mjuk gloria bakom (ritas under alla prickar så att inget täcks)
+  if(g&&RV==='c')hal+='<circle class="ghalo" cx="'+x+'" cy="'+y+'" r="'+(nt?11:9)+'"'+(cc?' style="fill:'+cc+'"':'')+'/>';
+  const r=nt?6:RV==='a'?(g?6:3.2):RV==='b'?(g?5:4):(g?5:3.6),tom=RV==='b'&&!g&&!nt;
+  dots+='<circle class="dot'+(nt?' next':'')+(tom?' tom':'')+(!g&&RV!=='b'?' liten':'')+'" cx="'+x+'" cy="'+y+'" r="'+r+'"'+(cc?' style="'+(nt||tom?'stroke':'fill')+':'+cc+'"':'')+'/>'});
+ s+=hal+dots;
  const ta=ang(t.getMonth(),t.getDate()),[hx0,hy0]=pt(R1+3,ta),[hx1,hy1]=pt(R1+13,ta);
  s+='<line class="hand" x1="'+hx0+'" y1="'+hy0+'" x2="'+hx1+'" y2="'+hy1+'"/><circle class="hand-dot" cx="'+hx1+'" cy="'+hy1+'" r="3"/>';
  return s+'</svg>'}
