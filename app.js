@@ -1203,7 +1203,7 @@ function wallBoard(){
   '<div class="wk-sub">Hemmet</div><div class="brooms">'+roomHealth().map(r=>'<div class="'+healthCls(r.score)+'"><span>'+esc(r.room)+'</span><i><b style="width:'+Math.round(r.score*100)+'%"></b></i></div>').join('')+'</div>');
  H.upg=widget('uppgifter','btasks',I.list,'Uppgifter',d.tasks.filter(x=>!x.done).length+' kvar',tasks.length?'<div class="wl">'+tasks.map(taskRow).join('')+'</div>':'<div class="wempty">Inget att göra.</div>');
  if(U3&&!d.clean.length)H.stad=widget('stad','bclean',I.sparkles,'Städ idag','','<div class="u3-empty"><p>Inga rutiner tillagda än.</p><button class="btn-tint" data-act="nav" data-id="stad">'+I.plus+'Lägg till rutin</button></div>');
- if(haOn())H.hus=haBox(true);
+ if(haOn(true))H.hus=haBox(true);
  const L=layout(true,boardDefault());
  let h='<div class="board'+(S.arrange?' arranging':'')+(VKNAPP==='rubrik'?' har-top':'')+'">'+(VKNAPP==='rubrik'?'<div class="wall-top"><h1 class="lt">'+(new Date().getHours()<10?'God morgon':new Date().getHours()<18?'Hej':'God kväll')+'</h1></div>':'');
  h+='<div class="bcol bhero">'+refAdd(heroHtml(),'T1')+refAdd(wallWx(),'T2')+'</div>';
@@ -1211,19 +1211,36 @@ function wallBoard(){
  return h+'</div>'+arrangeFoot(L,true)}
 const WALL_DEF=[['kal','mat','inkop','fod'],['hus','stad','upg']];
 const boardDefault=()=>U3?[['kal','mat'],['upg','inkop','fod','stad']]:WALL_DEF;
-/* ---------- Smart hem (Home Assistant) – förslag ----------
-   Rutan styr lampor och scener i Home Assistant och ändras direkt när något tänds eller släcks hemma.
-   Förslaget visar låtsasdata (ht.haDemo=1); den riktiga kopplingen (HA:s inloggning och WebSocket) byggs efter Henriks val. */
-const haOn=()=>lsGet('haDemo')==='1';
+/* ---------- Smart hem (Home Assistant), bara på väggskärmen ----------
+   Väggdatorns lokala tjänst (kiosk/ljussensor.py, /ha) håller HA-nyckeln och släpper bara igenom valda lampor, scener och
+   givare. Appen frågar med lång väntan (?v=N svarar först vid en ändring), så rutan följer med inom en sekund när någon
+   tänder via Google, IKEA eller strömbrytaren. Utan tjänsten eller inställningen syns ingen ruta. ht.haDemo=1 = låtsasdata. */
+const HA_URL='http://127.0.0.1:8777/ha',HA={d:null,v:0,fel:null,busy:false,retry:0,last:null,demo:null};
+const haDemo=()=>lsGet('haDemo')==='1';
+const haData=()=>{if(haDemo()){if(!HA.demo)HA.demo={lampor:[{id:'light.kok',n:'Köket',t:'light',on:true,b:80},{id:'light.vardagsrum',n:'Vardagsrum',t:'light',on:true,b:45},{id:'switch.fonster',n:'Fönster',t:'switch',on:true},{id:'light.hall',n:'Hallen',t:'light',on:false},{id:'light.sovrum',n:'Sovrum',t:'light',on:false},{id:'light.bad',n:'Badrum',t:'light',on:false}],scener:[{id:'scene.morgon',n:'Morgon'},{id:'scene.kvall',n:'Kväll'},{id:'scene.film',n:'Film'}],givare:[{id:'sensor.inne',n:'Inne',v:'21.4',u:'°C'}]};return HA.demo}return HA.d};
+const haOn=wall=>haDemo()||(wall&&wallBoardOn()&&!!HA.d);
 const HAI={bulb:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.7.5 1.1 1.3 1.1 2.2h5c0-.9.4-1.7 1.1-2.2A6 6 0 0 0 12 3z"/></svg>',
  plug:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3v5M15 3v5"/><path d="M6.5 8h11v3a5.5 5.5 0 0 1-11 0z"/><path d="M12 16.5V21"/></svg>'};
-const HA={e:null,sc:[{id:'morgon',n:'Morgon'},{id:'kvall',n:'Kväll'},{id:'film',n:'Film'},{id:'av',n:'Släck allt'}],temp:21.4,last:null};
-function haEnt(){if(!HA.e)HA.e=[{id:'light.kok',n:'Köket',on:1,b:80},{id:'light.vardagsrum',n:'Vardagsrum',on:1,b:45},{id:'switch.fonster',n:'Fönster',on:1,t:'switch'},{id:'light.hall',n:'Hallen',on:0,b:60},{id:'light.sovrum',n:'Sovrum',on:0,b:30},{id:'light.bad',n:'Badrum',on:0,b:100}];return HA.e}
-function haBox(wall){const E=haEnt(),n=E.filter(x=>x.on).length;
- const tile=x=>'<button type="button" class="ha-t'+(x.on?' on':'')+'" data-act="haTog" data-id="'+esc(x.id)+'" aria-pressed="'+!!x.on+'"><span class="ha-i">'+(x.t==='switch'?HAI.plug:HAI.bulb)+'</span><span class="ha-n">'+esc(x.n)+'</span><span class="ha-s">'+(x.on?(x.b?x.b+' %':'På'):'Av')+'</span></button>';
- return'<section class="widget'+(wall?' bhus':' w2')+' ha"><div class="wh">'+I.home+'<span>Smart hem</span><span class="r"><i class="ha-live" title="Uppdateras live"></i>'+(n?n+' tända':'Allt släckt')+' · '+String(HA.temp).replace('.',',')+'° inne</span></div>'+
-  '<div class="ha-g">'+E.map(tile).join('')+'</div><div class="ha-sc">'+HA.sc.map(s=>'<button type="button" class="pill'+(HA.last===s.id?' on':'')+'" data-act="haScen" data-id="'+s.id+'">'+esc(s.n)+'</button>').join('')+'</div></section>'}
-const HA_SCEN={morgon:{'light.kok':100,'light.hall':60,'light.bad':100},kvall:{'light.vardagsrum':45,'switch.fonster':1,'light.kok':30},film:{'light.vardagsrum':10},av:{}};
+const haGiv=g=>{const v=isNaN(+g.v)?g.v:String(Math.round(+g.v*10)/10).replace('.',',');return v+(g.u==='°C'?'°':g.u?' '+g.u:'')+' '+g.n.toLowerCase()};
+function haBox(wall){const D=haData();if(!D)return'';const E=D.lampor||[],n=E.filter(x=>x.on).length,g=(D.givare||[])[0];
+ const tile=x=>'<button type="button" class="ha-t'+(x.on?' on':'')+(x.nas?' nas':'')+'" data-act="haTog" data-id="'+esc(x.id)+'" aria-pressed="'+!!x.on+'"'+(x.nas?' disabled':'')+'><span class="ha-i">'+(x.t==='light'?HAI.bulb:HAI.plug)+'</span><span class="ha-n">'+esc(x.n)+'</span><span class="ha-s">'+(x.nas?'Svarar inte':x.on?(x.b?x.b+' %':'På'):'Av')+'</span></button>';
+ const sc=(D.scener||[]).concat(n?[{id:'av',n:'Släck allt'}]:[]);
+ return'<section class="widget'+(wall?' bhus':' w2')+' ha"><div class="wh">'+I.home+'<span>Smart hem</span><span class="r"><i class="ha-live'+(HA.fel&&!haDemo()?' fel':'')+'" title="'+(HA.fel&&!haDemo()?esc(HA.fel):'Uppdateras direkt')+'"></i>'+(n?n+' tända':'Allt släckt')+(g?' · '+esc(haGiv(g)):'')+'</span></div>'+
+  '<div class="ha-g">'+E.map(tile).join('')+'</div>'+(sc.length?'<div class="ha-sc">'+sc.map(s=>'<button type="button" class="pill'+(HA.last===s.id?' on':'')+'" data-act="haScen" data-id="'+esc(s.id)+'">'+esc(s.n)+'</button>').join('')+'</div>':'')+'</section>'}
+// lång väntan mot tjänsten: svarar direkt första gången, sedan när något ändras (eller efter 25 s)
+async function haLoop(){if(HA.busy||haDemo()||!wallBoardOn()||Date.now()<HA.retry)return;HA.busy=true;
+ try{while(wallBoardOn()){const ac=new AbortController(),t=setTimeout(()=>ac.abort(),40000);
+   const r=await fetch(HA_URL+'?v='+HA.v,{cache:'no-store',signal:ac.signal});clearTimeout(t);const j=await r.json();
+   if(!j.lampor){HA.d=null;HA.retry=Date.now()+300000;render();break}// inte inställt: fråga igen om fem minuter
+   const ch=JSON.stringify([j.lampor,j.scener,j.givare,j.fel])!==JSON.stringify(HA.d&&[HA.d.lampor,HA.d.scener,HA.d.givare,HA.fel]);
+   HA.d=j;HA.v=j.v;HA.fel=j.fel;if(ch&&!HA.pend)render()}}
+ catch(e){HA.fel='Väggdatorns tjänst svarar inte';HA.retry=Date.now()+(HA.d?15000:300000);if(HA.d)render()}
+ HA.busy=false}
+setInterval(haLoop,5000);setTimeout(haLoop,1500);
+async function haSend(body,undo){if(haDemo())return;HA.pend=(HA.pend||0)+1;
+ try{const r=await fetch(HA_URL,{method:'POST',body:JSON.stringify(body)});if(!r.ok)throw 0}
+ catch(e){undo();toast('Kunde inte nå Home Assistant');render()}
+ HA.pend--;render()}
 V.oversikt=function(){
  if(wallBoardOn())return wallBoard();
  if(expOn())return ovX();
@@ -1255,7 +1272,7 @@ V.oversikt=function(){
  H.hem=widget('stad','w2',I.home,'Hemmet','',rh.length?'<div class="wl">'+rh.map(healthRow).join('')+'</div>':'<div class="wempty">Städschemat är tomt.</div>');
  H.imorgon=tm?widget('mat','w2',I.cal,'Imorgon',esc(dateShort(tm.date)),(eventsHtml(tm)||'<div class="wempty">Inga händelser.</div>')+(tm.meals.length?wMeals(tm):'')):'';
  H.fod=wallBd();
- if(haOn())H.hus=haBox(false);
+ if(haDemo())H.hus=haBox(false);// telefonen: bara förhandsvisningen
  const L=layout(false,OV_DEF());
  return h+'<div class="widgets'+(S.arrange?' arranging':'')+'">'+boxRow(L.cols[0].filter(id=>H[id]),false,H,L)+'</div>'+(S.arrange?'<p class="arr-intro">Håll kvar och dra en ruta dit du vill ha den. Dra i hörnknappen för att göra den halv eller hel. − döljer rutan. Gäller bara den här enheten.</p>':smileyCard())+'</div>'+arrangeFoot(L,false)};
 // utan egen ordning ligger födelsedagarna näst sist
@@ -4839,8 +4856,11 @@ const ACT={
  smileyQuick(id,el){const v=Number(el.dataset.v)||0;A.user=Date.now();saveSmiley(id,el.dataset.date,v);markCooked(id,el.dataset.date);toast(v>0?'Vad bra! Rätten kommer tillbaka lite oftare':v<0?'Noterat. Rätten kommer tillbaka mer sällan':'Tack!')},
  smileySkip(id,el){A.user=Date.now();saveSmiley(id,el.dataset.date,'x');toast('Okej, den räknas inte som lagad')},
  wakeBoard(){render()},
- haTog(id){const x=haEnt().find(e=>e.id===id);if(!x)return;x.on=x.on?0:1;HA.last=null;render()},
- haScen(id){const m=HA_SCEN[id];if(!m)return;haEnt().forEach(x=>{const v=m[x.id];x.on=v?1:0;if(v>1)x.b=v});HA.last=id;render()},
+ haTog(id){const x=(haData()||{lampor:[]}).lampor.find(e=>e.id===id);if(!x||x.nas)return;const was=x.on;x.on=!was;if(x.on&&!x.b&&x.t==='light')x.b=null;HA.last=null;render();haSend({id,gor:'vaxla'},()=>{x.on=was})},
+ haScen(id){const D=haData();if(!D)return;HA.last=id;
+  if(id==='av'){const was=D.lampor.map(x=>x.on);D.lampor.forEach(x=>{if(!x.nas)x.on=false});render();return haSend({alla:'av'},()=>D.lampor.forEach((x,i)=>x.on=was[i]))}
+  if(haDemo()){const m={'scene.morgon':{'light.kok':100,'light.hall':60},'scene.kvall':{'light.vardagsrum':45,'switch.fonster':1,'light.kok':30},'scene.film':{'light.vardagsrum':10}}[id]||{};D.lampor.forEach(x=>{const v=m[x.id];x.on=!!v;if(v>1)x.b=v})}
+  render();haSend({scen:id},()=>{})},
  nav(id,el){if(RC.busy){toast('Vänta tills receptbegäran är klar.');return}if(RC.screen&&RC.edit&&RC.edit.dirty){RC.leaveTo=id;recipeLeave();S.view='mat';return}if(RC.screen)RC.screen=null;if(id!=='oversikt')arrCancel();if(normView(id)!=='ekonomi'){S.ekoOpen=false;S.pin=''}try{document.activeElement&&document.activeElement.blur()}catch(e){}id=normView(id);if(id==='uppgifter'&&S.taskTab==='stad'&&S.view!=='stad'&&el&&el.closest&&el.closest('#nav'))id='stad';if(id==='uppgifter'||id==='stad'){S.taskTab=id==='stad'?'stad':'lista';lsSet('taskTab',S.taskTab)}S.shopAdd=false;S.taskAdd=false;S.view=id;S.recipe=null;S.confirm=null;lsSet('view',id);try{history.replaceState(null,'','#'+id)}catch(e){}window.scrollTo(0,0);render()},
  refresh(){refresh()},
  settings(){if(S.sheet!=='farg')S.prefDraft=null;S.sheet='settings';render()},
