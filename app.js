@@ -3728,7 +3728,7 @@ function figSvg(sc,o){o=o||{};const id='fg'+(++FIG_N),ph=sc.phase,dark=sc.dark,w
   s+='<g class="fx-stars" fill="#E6ECFF">'+st.map(([x,y,r,c])=>'<circle class="tw'+c+'" cx="'+x+'" cy="'+y+'" r="'+r+'"/>').join('')+'</g>'}
  // 2. molnen: antalet följer himlen, tonen följer nederbörden och ljuset
  const sky=wet||snow||sc.thunder?(/^(clear|fair)$/.test(sc.sky)?'partly':sc.sky):sc.sky;
- let base=sc.thunder?'#4C5672':wet?['#A3AFC2','#7E8BA3','#5F6B84'][lv-1]:snow?['#CBD6E3','#B9C6D7','#A2B1C6'][lv-1]:{fair:'#EEF3F8',partly:'#DCE4EE',cloudy:'#C3CFDE',fog:'#DCE4EE'}[sky];
+ let base=sc.thunder?'#4C5672':wet?['#A3AFC2','#7E8BA3','#5F6B84'][lv-1]:snow?['#CBD6E3','#B9C6D7','#A2B1C6'][lv-1]:{fair:'#EEF3F8',partly:'#E6ECF3',cloudy:'#DCE3ED',fog:'#DCE4EE'}[sky];
  if(o.patch&&!(wet||snow||sc.thunder)||o.nocl)base=null;   // på gräsplätten bara moln när det regnar eller snöar
  if(base){base=dark?mixHex(base,'#2A3350',.5):warmL?mixHex(base,'#F2B48A',.22):base;
   const L={fair:[[4,12,.55]],partly:[[4,12,.6],[122,28,.45,'d2']],cloudy:[[120,0,.85],[2,6,.7,'d2']],fog:[[124,4,.75],[2,16,.55,'d2']]}[sky].slice();
@@ -3846,7 +3846,7 @@ function starSign(m){const[n,P,L]=STJB[m],f=v=>v.toFixed(0);
 // molnets bas: rundad och platt, på stora moln med små bulor och ett svagt streck i underkanten så att den inte ser linjerad ut
 // ikonmoln: runda tussar på en rak baslinje som sticker ut lite, ett kort streck under och (stora moln) ett mindre, mörkare moln bakom med en glipa runt det främre
 // Molnens målade silhuetter färgsätts här så att samma lager följer dag/natt och nederbörd.
-function geoCloudSvg(P,x0,x1,B,c,o,id){const variant=o.storm?3:P.length<=2?0:o.back||P.length>=4?2:1,[sx,sy,sw,sh]=[[62,308,597,139],[767,257,348,225],[38,767,631,282],[713,756,504,303]][variant],W=x1-x0+12,H=Math.min(42,W*sh/sw),f=v=>v.toFixed(4),rgb=[1,3,5].map(i=>parseInt(c.slice(i,i+2),16)/255),matrix=rgb.map(v=>f(v)+' 0 0 0 0').join(' ')+' 0 0 0 1 0';
+function geoCloudSvg(P,x0,x1,B,c,o,id){const variant=o.storm?3:P.length<=2?0:o.back||P.length>=4?2:1,[sx,sy,sw,sh]=[[62,308,597,139],[767,257,348,225],[38,767,631,282],[713,756,504,303]][variant],W=x1-x0+12,H=Math.min(42,W*sh/sw),f=v=>v.toFixed(4),rgb=[1,3,5].map(i=>parseInt(c.slice(i,i+2),16)/255),L=o.ljus?.4:0,matrix=rgb.map((v,i)=>[0,1,2].map(j=>j===i?f(v*(1-L)):0).join(' ')+' 0 '+f(L)).join(' ')+' 0 0 0 1 0';
  return'<defs><clipPath id="'+id+'clip"><rect width="'+sw+'" height="'+sh+'"/></clipPath><filter id="'+id+'tint"'+geoReg([-1,-1,sw+2,sh+2])+' color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="'+matrix+'"/></filter></defs><g transform="translate('+f(x0-6)+' '+f(B-H+5)+') scale('+f(W/sw)+' '+f(H/sh)+')"><g clip-path="url(#'+id+'clip)"><image class="geo-cloud" data-shape="'+variant+'" href="'+geoAsset('clouds-v2')+'" x="'+(-sx)+'" y="'+(-sy)+'" width="1254" height="1254" filter="url(#'+id+'tint)"/></g></g>'}
 function iconCloud(P,x0,x1,B,c,o){const f=v=>v.toFixed(1),g='ic'+(++FIG_N),sp=x1-x0;o=o||{};
  if(WXART==='geo')return geoCloudSvg(P,x0,x1,B,c,o,g);
@@ -3857,7 +3857,7 @@ function iconCloud(P,x0,x1,B,c,o){const f=v=>v.toFixed(1),g='ic'+(++FIG_N),sp=x1
   back='<mask id="'+g+'m" maskUnits="userSpaceOnUse" x="-60" y="-60" width="'+f(sp+160)+'" height="200"><rect x="-60" y="-60" width="'+f(sp+160)+'" height="200" fill="#fff"/><g fill="#000" stroke="#000" stroke-width="3.2" stroke-linejoin="round">'+front+'</g></mask>'+
    '<g fill="url(#'+g+'b)" mask="url(#'+g+'m)">'+bp.map(([x,y,r])=>'<circle cx="'+f(x)+'" cy="'+f(y)+'" r="'+f(r)+'"/>').join('')+'<rect x="'+f(ox)+'" y="'+f(bp[0][1])+'" width="'+f(sp*k)+'" height="'+f(B-8-bp[0][1])+'" rx="4"/></g>'}
  const lg=(id,a,b)=>'<linearGradient id="'+id+'" gradientUnits="userSpaceOnUse" x1="'+x0+'" y1="0" x2="'+x1+'" y2="0"><stop offset="0" stop-color="'+a+'"/><stop offset="1" stop-color="'+b+'"/></linearGradient>';
- return'<defs>'+lg(g,mixHex(c,'#FFFFFF',.35),shadeHex(c,.86))+(o.back?lg(g+'b',shadeHex(c,.9),shadeHex(c,.78)):'')+'</defs>'+back+'<g fill="url(#'+g+')">'+front+'</g>'}
+ return'<defs>'+lg(g,mixHex(c,'#FFFFFF',.35),shadeHex(c,o.ljus?.93:.86))+(o.back?lg(g+'b',shadeHex(c,o.ljus?.95:.9),shadeHex(c,o.ljus?.87:.78)):'')+'</defs>'+back+'<g fill="url(#'+g+')">'+front+'</g>'}
 let SOLMOLN=lsGet('solmoln')==='0'?'':/^[ac]$/.test(lsGet('solmoln')||'')?lsGet('solmoln'):'c';
 function sunCloud(sc,day,D){const wet=/^(drizzle|rain|sleet)$/.test(sc.type),snow=sc.type==='snow',sleet=sc.type==='sleet',lv=sc.lv,f=x=>x.toFixed(1);
  const kind=sc.thunder||wet||snow?'wet':sc.sky==='cloudy'?'cloudy':sc.sky==='partly'?'partly':sc.sky==='fair'?'fair':'';if(!kind)return'';
@@ -3867,7 +3867,7 @@ function sunCloud(sc,day,D){const wet=/^(drizzle|rain|sleet)$/.test(sc.type),sno
  const W=D*(kind==='fair'?1.1:kind==='partly'?1.65:kind==='cloudy'?3:2.6+lv*.2),ox=D*({fair:.55,partly:.38,cloudy:.05,wet:.1}[kind]),oy=D*({fair:.3,partly:.32,cloudy:.16,wet:.18}[kind]);
  const P=wide?[[18,26,10],[32,17,13],[50,13,15],[68,18,12],[82,26,9]]:[[20,25,10],[34,17,14],[48,25,10]];
  const Wv=W*(VW+12)/VW,svg='<svg class="sb-c" viewBox="-6 -10 '+(VW+12)+' 58" width="'+f(Wv)+'" height="'+f(Wv*58/(VW+12))+'" style="opacity:'+(kind==='wet'?.88:kind==='cloudy'?.8:.85)+'">'+
-  iconCloud(P,wide?8:10,wide?92:58,38,c,{back:wide,dash:1,seed:wide?0:1,storm:sc.thunder})+'</svg>';
+  iconCloud(P,wide?8:10,wide?92:58,38,c,{back:wide,dash:1,seed:wide?0:1,storm:sc.thunder,ljus:kind!=='wet'&&!sc.dark})+'</svg>';
  let r='';
  if(kind==='wet'){
   // nederbörden faller från molnet: duggregn tunt och långsamt, regn tätare och snabbare med styrkan, snö singlar och vajar, åska blixtrar
@@ -3975,7 +3975,7 @@ function skyFit1(sx){const pole=sx.querySelector('.pole');
 // molnens färg på himlen: tonen följer nederbörden och ljuset. Solens eget moln får samma färg som de andra
 function skyTon(sc){const wet=/^(drizzle|rain|sleet)$/.test(sc.type),snow=sc.type==='snow',lv=sc.lv,warmL=sc.phase==='dawn'||sc.phase==='golden';
  const sky=wet||snow||sc.thunder?(/^(clear|fair)$/.test(sc.sky)?'partly':sc.sky):sc.sky;
- const base=sc.thunder?'#4C5672':wet?['#A3AFC2','#7E8BA3','#5F6B84'][lv-1]:snow?['#CBD6E3','#B9C6D7','#A2B1C6'][lv-1]:{clear:'',fair:'#FFFFFF',partly:'#F7F9FC',cloudy:'#C3CFDE',fog:'#DCE4EE'}[sky];
+ const base=sc.thunder?'#4C5672':wet?['#A3AFC2','#7E8BA3','#5F6B84'][lv-1]:snow?['#CBD6E3','#B9C6D7','#A2B1C6'][lv-1]:{clear:'',fair:'#FFFFFF',partly:'#F7F9FC',cloudy:'#DCE3ED',fog:'#DCE4EE'}[sky];
  return{sky,base,tone:c=>sc.dark?(WXART==='geo'?shadeHex(mixHex(c,'#5362B3',.78),sc.thunder?.65:wet?.8:1):mixHex(c,'#2A3350',.5)):warmL?mixHex(c,'#F2B48A',.22):WXART==='soft'?mixHex(c,'#CAD9D7',.12):c}}
 function skyFx(W){const sc=wxScene(W),wet=/^(drizzle|rain|sleet)$/.test(sc.type),snow=sc.type==='snow',lv=sc.lv,warmL=sc.phase==='dawn'||sc.phase==='golden';
  const rnd=k=>{const x=Math.sin(k*311.7+17.3)*43758.5453;return x-Math.floor(x)},f=v=>v.toFixed(1);
@@ -3993,7 +3993,8 @@ function skyFx(W){const sc=wxScene(W),wet=/^(drizzle|rain|sleet)$/.test(sc.type)
  // molnens ton följer nederbörden och ljuset, som molnen i bilden
  const{sky,base,tone}=skyTon(sc);
  if(!base)return s?'<div class="skyfx" aria-hidden="true">'+s+'</div>':'';
- const lite=tone(mixHex(base,'#FFFFFF',.35)),mid=tone(base),dark=tone(wet||snow||sc.thunder?shadeHex(base,.82):mixHex(base,'#9AA8BC',.35));
+ const lite=tone(mixHex(base,'#FFFFFF',.35)),mid=tone(base),dark=tone(wet||snow||sc.thunder?shadeHex(base,.82):mixHex(base,'#B4BFCE',.22));
+ // utan nederbörd är molnen ljusa på dagen; bara regn, snö och åska ger mörka moln (natten behåller sin blå ton)
  // antalet moln följer det verkliga molntäcket (met.no cloud_area_fraction): helt mulet ger ett tätt täcke i tre lager, mindre moln ger stegvis färre, klart inga
  const N=sky==='fog'?[0,0,0]:[4,6,3].map((m,i)=>Math.round(m*cov+(i===1?.4:0)));
  const sp=1/(.75+sc.wl*.35),rev=sc.dir<0?' rev':'';
@@ -4002,12 +4003,13 @@ function skyFx(W){const sc=wxScene(W),wet=/^(drizzle|rain|sleet)$/.test(sc.type)
  const shape=(t,k,c,w)=>{const np=t==='hi'?2+Math.round(rnd(k)):t==='mid'?3+Math.round(rnd(k)*2):4+Math.round(rnd(k)*2),VW=np*16+20,B=t==='hi'?30:28,P=[];
   for(let j=0;j<np;j++){const mid=1-Math.abs((j+.5)/np-.5)*2,r=(t==='hi'?6:8)+mid*(t==='hi'?5:7)+rnd(k+j*3)*4,x=12+(j+.5)*16+(rnd(k+j*3+1)-.5)*4;P.push([x,B-r*.62,r])}
   const big=t!=='hi'&&np>=4,Bb=B+(t==='hi'?4:8),w2=w*(VW+12)/VW,h=w2*58/(VW+12);
-  return{svg:'<svg viewBox="-6 -10 '+(VW+12)+' 58" width="'+f(w2)+'" height="'+f(h)+'">'+iconCloud(P,8,VW-8,Bb,c,{back:big,dash:t!=='hi',seed:k,storm:sc.thunder&&t==='lo'})+'</svg>',h}};
+  return{svg:'<svg viewBox="-6 -10 '+(VW+12)+' 58" width="'+f(w2)+'" height="'+f(h)+'">'+iconCloud(P,8,VW-8,Bb,c,{back:big,dash:t!=='hi',seed:k,storm:sc.thunder&&t==='lo',ljus:!(wet||snow||sc.thunder||sc.dark)})+'</svg>',h}};
   // molnen i samma höjd går lika fort med jämna mellanrum, så att de aldrig klumpar ihop sig och lämnar himlen tom
- const band={hi:[2,16],mid:[8,30],lo:[18,40]},dur={hi:220,mid:100,lo:52};
+ // lagren överlappar och varje moln får en egen höjd i en blandad ordning, så att molnen sprids över hela himlen i stället för att ligga i samma rad
+ const band={hi:[0,30],mid:[10,50],lo:[26,58]},dur={hi:220,mid:100,lo:52};
  let k=0,cs='';
- [['hi',N[0],lite],['mid',N[1],mid],['lo',N[2],dark]].forEach(([t,n,c])=>{for(let j=0;j<n;j++){k+=7;
-  const w=t==='hi'?34+rnd(k)*16:t==='mid'?46+rnd(k)*26:sky==='fog'?120+rnd(k)*40:62+rnd(k)*30,top=band[t][0]+rnd(k+1)*(band[t][1]-band[t][0]),D=dur[t]*sp;
+ [['hi',N[0],lite],['mid',N[1],mid],['lo',N[2],dark]].forEach(([t,n,c])=>{const ord=[...Array(n).keys()].sort((a,b)=>rnd(k+a*13+3)-rnd(k+b*13+3));for(let j=0;j<n;j++){k+=7;
+  const w=t==='hi'?34+rnd(k)*16:t==='mid'?46+rnd(k)*26:sky==='fog'?120+rnd(k)*40:62+rnd(k)*30,top=band[t][0]+(ord[j]+.15+rnd(k+1)*.7)/n*(band[t][1]-band[t][0]),D=dur[t]*sp;
    const{svg}=shape(t,k,j%2&&t!=='hi'?shadeHex(c,.95):c,w),bob=t==='hi'?12+rnd(k+3)*8:t==='mid'?7+rnd(k+3)*5:3.5+rnd(k+3)*2.5;
    cs+='<div class="cl '+t+(sky==='fog'&&t==='lo'?' fog':'')+rev+'" style="top:'+f(top)+'%;--w:'+f(w)+'px;animation-duration:'+f(D)+'s;animation-delay:-'+f(((j+.2+rnd(k+4)*.6)/n+(t==='mid'?.37:t==='lo'?.71:0))%1*D)+'s"><i style="animation-duration:'+f(bob)+'s;animation-delay:-'+f(rnd(k+5)*bob)+'s">'+svg+'</i></div>'}});
  // dimma: breda, mjuka dimbankar i olika höjd som driver långsamt, så att det syns att det är dimma och inte moln

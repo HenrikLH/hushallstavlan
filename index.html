@@ -1617,6 +1617,8 @@ body.dragging .bwx-h{scroll-snap-type:none}
 .bhero .hero-wx.wbt .fig-tip{margin-top:4px;text-align:right;max-width:120px}
 /* stjärnbildens namn innanför kortet (himlen sticker ut åt sidorna och tonas bort där) */
 .gs.wb>.skyfx .stjn{right:136px;top:8px}
+/* väggens himmel når högre upp i det tomma kortet, så att molnen kan ligga på olika höjd utan att hamna framför hunden */
+.gs.wb>.skyfx{top:-100px;height:260px}.gs.wb>.skyfx .stjn{top:108px}.gs.wb>.skyfx .pole{top:212px}
 .hero-pic{display:block;margin:auto auto -14px;transform:translateX(34px);padding:0;background:none;border:0;color:inherit;font:inherit;cursor:pointer}
 .hero-pic .gs.wb{position:relative;width:250px;padding-top:66px;margin:0 auto}
 .gs.wb .fig-box.grass{width:250px;height:222px}
