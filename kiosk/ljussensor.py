@@ -7,6 +7,8 @@
 #   POST /puls                           tavlan har just ritat en bild (skickas var 20:e sekund)
 #   GET  /ha?v=N       -> lampor, scener och givare från Home Assistant; väntar upp till 25 s på en ändring om N är aktuell
 #   POST /ha           {"id": "light.kok", "gor": "vaxla"|"pa"|"av", "b": 1-100, "k": kelvin, "hs": [nyans, mättnad]} | {"scen": "scene.kvall"} | {"alla": "av"}
+#   GET  /ha/alla      -> enheter i HA som tavlan får lägga till (lampor, brytare, fläktar, scener, temperatur/fukt)
+#   POST /ha/val       {"lagg": id} | {"ta": id} | {"id": id, "namn": "Taklampa", "rum": "Kök"}   ändrar tavlans lista i HA_FIL
 # Home Assistant (smart hem): nyckeln ligger bara i HA_FIL (chmod 600) och lämnar aldrig datorn. Tavlan ser bara de
 # lampor, scener och givare som står i filen och kan bara tända, släcka, dimma, byta färg och starta scener. Utan filen svarar /ha 503.
 # Vakthund: Chromium på väggdatorn kan fastna med en grå/svart sida (renderaren väntar på GPU-processen, som har tappat
@@ -179,6 +181,7 @@ def ha_cfg():
             if not c.get('token'): raise ValueError('token saknas')
             c.setdefault('url', 'http://127.0.0.1:8123')
             for k in ('lampor', 'scener', 'givare'): c[k] = [str(x) for x in c.get(k) or []]
+            for k in ('namn', 'rum'): c[k] = {str(a): str(b) for a, b in (c.get(k) or {}).items()}
             HA['cfg'], HA['mtid'] = c, m
         return HA['cfg']
     except FileNotFoundError:
@@ -199,7 +202,7 @@ def ha_las(c):
         x = alla.get(e)
         if not x: continue
         a, pa = x.get('attributes') or {}, x.get('state') == 'on'
-        l = {'id': e, 'n': namn(e, x), 't': e.split('.')[0], 'on': pa, 'nas': x.get('state') == 'unavailable',
+        l = {'id': e, 'n': c['namn'].get(e) or namn(e, x), 'hn': namn(e, x), 'rum': c['rum'].get(e), 't': e.split('.')[0], 'on': pa, 'nas': x.get('state') == 'unavailable',
              'b': round((a.get('brightness') or 0) / 2.55) if pa and a.get('brightness') else None}
         if l['t'] == 'light':
             # vad lampan klarar: dimmer, färgtemperatur (kelvin) och/eller färg (nyans/mättnad)
@@ -207,10 +210,10 @@ def ha_las(c):
                       'kmin': a.get('min_color_temp_kelvin'), 'kmax': a.get('max_color_temp_kelvin'), 'hs': a.get('hs_color')})
         lampor.append(l)
     for e in c['scener']:
-        if e in alla: scener.append({'id': e, 'n': namn(e, alla[e])})
+        if e in alla: scener.append({'id': e, 'n': c['namn'].get(e) or namn(e, alla[e]), 'hn': namn(e, alla[e])})
     for e in c['givare']:
         x = alla.get(e)
-        if x: givare.append({'id': e, 'n': namn(e, x), 'v': x.get('state'), 'u': (x.get('attributes') or {}).get('unit_of_measurement')})
+        if x: givare.append({'id': e, 'n': c['namn'].get(e) or namn(e, x), 'hn': namn(e, x), 'rum': c['rum'].get(e), 'v': x.get('state'), 'u': (x.get('attributes') or {}).get('unit_of_measurement')})
     return {'lampor': lampor, 'scener': scener, 'givare': givare}
 
 def ha_uppdatera():
@@ -228,6 +231,55 @@ def ha_bevakare():
     while True:
         if time.time() - HA['fragad'] < 60: ha_uppdatera()
         time.sleep(1)
+
+LISTA = {'light': 'lampor', 'switch': 'lampor', 'fan': 'lampor', 'input_boolean': 'lampor', 'scene': 'scener', 'script': 'scener', 'sensor': 'givare'}
+GIVARTYP = ('temperature', 'humidity')
+
+def ha_valbar(x):
+    dom = x['entity_id'].split('.')[0]
+    if dom not in LISTA: return False
+    return dom != 'sensor' or (x.get('attributes') or {}).get('device_class') in GIVARTYP
+
+def ha_alla():
+    c = ha_cfg()
+    if not c: return 503, {'fel': 'inte inställt'}
+    valda = set(c['lampor'] + c['scener'] + c['givare'])
+    ut = [{'id': x['entity_id'], 'n': (x.get('attributes') or {}).get('friendly_name') or x['entity_id'], 't': x['entity_id'].split('.')[0],
+           'dc': (x.get('attributes') or {}).get('device_class'), 'vald': x['entity_id'] in valda}
+          for x in ha_anrop(c, '/api/states') if ha_valbar(x)]
+    return 200, {'alla': sorted(ut, key=lambda x: (x['t'], x['n'].lower()))}
+
+def ha_spara(c):
+    ut = {k: v for k, v in c.items()}
+    tmp = HA_FIL + '.ny'
+    fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    with os.fdopen(fd, 'w') as f: json.dump(ut, f, ensure_ascii=False, indent=1)
+    os.replace(tmp, HA_FIL)
+    HA['mtid'] = None
+
+def ha_val(d):
+    c = ha_cfg()
+    if not c: return 503, {'fel': 'inte inställt'}
+    c = json.loads(json.dumps(c))
+    e = str(d.get('lagg') or d.get('ta') or d.get('id') or '')
+    if d.get('lagg'):
+        x = next((x for x in ha_anrop(c, '/api/states') if x['entity_id'] == e), None)
+        if not x or not ha_valbar(x): return 403, {'fel': 'den enheten kan inte läggas på tavlan'}
+        lista = c[LISTA[e.split('.')[0]]]
+        if e not in lista: lista.append(e)
+    elif d.get('ta'):
+        for k in ('lampor', 'scener', 'givare'): c[k] = [x for x in c[k] if x != e]
+        c['namn'].pop(e, None); c['rum'].pop(e, None)
+    else:
+        if e not in c['lampor'] + c['scener'] + c['givare']: return 403, {'fel': 'enheten finns inte på tavlan'}
+        for k in ('namn', 'rum'):
+            if k in d:
+                v = str(d[k] or '').strip()[:40]
+                if v: c[k][e] = v
+                else: c[k].pop(e, None)
+    ha_spara(c)
+    ha_uppdatera()
+    return 200, {'ok': True, 'v': HA['v']}
 
 def ha_styr(d):
     c = ha_cfg()
@@ -282,6 +334,13 @@ class H(http.server.BaseHTTPRequestHandler):
             lux = las_lux(); self.svara(200 if lux is not None else 503, {'lux': lux})
         elif p == '/ljusstyrka':
             self.svara(200 if BL else 503, self.status())
+        elif p == '/ha/alla':
+            if self.headers.get('Origin') not in TILLATNA:
+                return self.svara(403, {'fel': 'bara tavlan får läsa hemmet'})
+            try: kod, svar = ha_alla()
+            except Exception as e:
+                logg('ha: ' + repr(e)[:200]); kod, svar = 502, {'fel': 'Home Assistant svarade inte'}
+            self.svara(kod, svar)
         elif p == '/ha':
             if self.headers.get('Origin') not in TILLATNA:
                 return self.svara(403, {'fel': 'bara tavlan får läsa hemmet'})
@@ -305,12 +364,12 @@ class H(http.server.BaseHTTPRequestHandler):
                 json.dump({'aktiv': True}, open(VAKT_FIL, 'w'))
                 logg('vakt: första pulsen, vakten är på')
             return self.svara(200, {'ok': True, 'tyst': VAKT_TYST})
-        if self.path.split('?')[0] == '/ha':
+        if self.path.split('?')[0] in ('/ha', '/ha/val'):
             if self.headers.get('Origin') not in TILLATNA:
                 return self.svara(403, {'fel': 'bara tavlan får styra hemmet'})
             try:
                 n = int(self.headers.get('Content-Length') or 0)
-                kod, svar = ha_styr(json.loads(self.rfile.read(min(n, 1000)) or b'{}'))
+                kod, svar = (ha_val if self.path.split('?')[0] == '/ha/val' else ha_styr)(json.loads(self.rfile.read(min(n, 1000)) or b'{}'))
             except Exception as e:
                 logg('ha: ' + repr(e)[:200]); kod, svar = 502, {'fel': 'Home Assistant svarade inte'}
             return self.svara(kod, svar)
