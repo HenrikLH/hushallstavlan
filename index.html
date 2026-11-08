@@ -854,17 +854,17 @@ html.ny .chip.lk::before{display:none}
 .wx2-bar b{font-size:12px;letter-spacing:.3px;text-transform:uppercase;color:var(--ink-2);font-weight:600}
 .wx2-bar span{font-size:15px;line-height:20px}
 /* Extra bildstilar: geometrin för himmel, graf och draghandtag lämnas åt befintlig layout. */
-.wx2.art-geo,.wx2.art-soft{background:linear-gradient(170deg,var(--art-bg),var(--art-end));color:var(--art-ink);--ink:var(--art-ink);--ink-2:var(--art-sub);--line:var(--art-line);--sky-star:var(--art-star);--sky-moon:var(--art-moon);--fog:rgba(193,210,230,.45)}
-.wx2.art-geo .wx-place,.wx2.art-soft .wx-place{color:var(--art-sub)}
-.wx2.art-geo .wx-hl,.wx2.art-soft .wx-hl{color:var(--art-sub)}
-.wx2.art-geo .skyfx .st,.wx2.art-soft .skyfx .st{background:#fff}
+.wx2.art-geo{background:linear-gradient(170deg,var(--art-bg),var(--art-end));color:var(--art-ink);--ink:var(--art-ink);--ink-2:var(--art-sub);--line:var(--art-line);--sky-star:var(--art-star);--sky-moon:var(--art-moon);--fog:rgba(193,210,230,.45)}
+.wx2.art-geo .wx-place{color:var(--art-sub)}
+.wx2.art-geo .wx-hl{color:var(--art-sub)}
+.wx2.art-geo .skyfx .st{background:#fff}
 .art-geo .sb-cl>.sb-c{filter:none}
 .art-geo .sky-b .sb-body svg>circle:first-of-type{opacity:.14}
-.fig.art-geo .dog-head,.fig.art-soft .dog-head{animation-name:artDogTilt}
+.fig.art-geo .dog-head{animation-name:artDogTilt}
 @keyframes artDogTilt{0%,65%,100%{transform:rotate(0)}73%,80%{transform:rotate(-3deg)}}
-.fig.art-geo .dog-b,.fig.art-soft .dog-b{filter:none}
-.fig.art-geo .dog.lie,.fig.art-soft .dog.lie{animation-duration:4.5s}
-.art-geo .fig-z text,.art-soft .fig-z text{font-weight:600}
+.fig.art-geo .dog-b{filter:none}
+.fig.art-geo .dog.lie{animation-duration:4.5s}
+.art-geo .fig-z text{font-weight:600}
 /* Geometrisk: sammanhängande utsikt som i referensen, med små maskotar i förgrunden. */
 .wx2.art-geo .skyfx .pole{opacity:var(--art-stars,1)}
 .art-geo .dog.lie .dog-head{animation-name:geoSleep}
@@ -875,10 +875,16 @@ html.ny .chip.lk::before{display:none}
 /* Hundarna rör sig i olika takt så att man aldrig ser att de är animerade lika: huvudet vickar ibland, ryggen andas i sömnen. */
 .fig.art-geo .dog.geo-b[data-raster]{animation-duration:5.6s;animation-delay:-2.1s}
 .fig.art-geo .dog.lie[data-raster]{animation:none}
-.geo-huvud{transform-box:view-box;animation:geoHuvA 11s ease-in-out infinite -3.2s}
+.geo-huvud{transform-box:view-box;animation:geoHuvA 9.5s ease-in-out infinite -3.2s}
 .geo-b .geo-huvud{animation-name:geoHuvB;animation-duration:14.6s;animation-delay:-8.5s}
-@keyframes geoHuvA{0%,30%,62%,100%{transform:rotate(0)}40%,52%{transform:rotate(-2.2deg)}}
-@keyframes geoHuvB{0%,14%,48%,100%{transform:rotate(0)}25%,37%{transform:rotate(2deg)}}
+/* huvudet vaggar lugnt åt båda hållen och stannar upp en stund; öronen skakar till ibland, vänster och höger i egen takt */
+@keyframes geoHuvA{0%,8%,100%{transform:rotate(0)}22%{transform:rotate(-3deg)}30%{transform:rotate(-3.2deg)}46%{transform:rotate(2.4deg)}54%{transform:rotate(2.6deg)}68%,82%{transform:rotate(-.6deg)}}
+@keyframes geoHuvB{0%,12%,100%{transform:rotate(0)}26%{transform:rotate(2.8deg)}34%{transform:rotate(3deg)}50%{transform:rotate(-2.2deg)}57%{transform:rotate(-2.4deg)}72%,86%{transform:rotate(.5deg)}}
+.geo-ora{transform-box:view-box;animation:geoOraL 6.3s linear infinite -1.4s}
+.geo-ora.or{animation-name:geoOraR;animation-duration:8.9s;animation-delay:-6.1s}
+.geo-b .geo-ora{animation-duration:7.7s;animation-delay:-4.2s}.geo-b .geo-ora.or{animation-duration:5.9s;animation-delay:-.6s}
+@keyframes geoOraL{0%,86%,100%{transform:rotate(0)}88%{transform:rotate(-7deg)}90%{transform:rotate(4deg)}92%{transform:rotate(-4.5deg)}94%{transform:rotate(2deg)}96.5%{transform:rotate(-1deg)}}
+@keyframes geoOraR{0%,86%,100%{transform:rotate(0)}88%{transform:rotate(7deg)}90%{transform:rotate(-4deg)}92%{transform:rotate(4.5deg)}94%{transform:rotate(-2deg)}96.5%{transform:rotate(1deg)}}
 .geo-andas{transform-box:view-box;animation:geoAndas 3.9s ease-in-out infinite -1.3s}
 .geo-b .geo-andas{animation-duration:4.7s;animation-delay:-3.6s}
 @keyframes geoAndas{0%,100%{transform:scale(1,1)}42%{transform:scale(1.012,1.055)}}
