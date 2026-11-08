@@ -3106,6 +3106,8 @@ if(k==='vara'){const n=S.varaK||'',ing=S.varaTyp==='ing',R=regGet(),F=parseJ(set
   o.innerHTML=sheetHtml('presBud','Presenter','<button type="button" class="tb strong" data-act="sheetClose">Klar</button>',body,enter,'<span class="tb"></span>');return}
  // Familjer: lista (S.fodFamId tom) eller en familj (id eller 'ny') med namn, färg och medlemmar
  if(k==='fodFam'){const F=fodFam(),L=bdays(),id=S.fodFamId;
+  // Rita om samma familj (data hämtas i bakgrunden): behåll namn, färg, bockar och var man har scrollat
+  const of=prev==='fodFam'&&id&&o.dataset.fid===id&&o.querySelector('form[data-form="fodFam"]'),ov=of&&{n:of.elements.n?of.elements.n.value:null,c:(of.querySelector('input[name="c"]:checked')||{}).value,m:new Set([...of.querySelectorAll('input[name="m"]:checked')].map(x=>x.value)),y:(of.querySelector('.sheet-body')||{}).scrollTop||0};o.dataset.fid=id||'';
   const fic=(c,cls)=>'<span class="ff-ic'+(cls?' '+cls:'')+'" style="background:'+(colOk(c)?PCOL[c][isDark()?3:1]:'var(--ink-2)')+'">'+I.people+'</span>';
   if(!id){const body='<div style="height:16px"></div>'+(F.length?group(F.map(f=>'<button type="button" class="cell link ff-row" data-act="fodFamEdit" data-id="'+esc(f.id)+'">'+fic(f.c)+'<span class="grow">'+esc(f.n)+'</span><span class="meta num">'+L.filter(b=>b.fam&&b.fam.id===f.id).length+'</span>'+chevron+'</button>').join('')):'')+
     group('<button type="button" class="cell link ff-row ff-add" data-act="fodFamEdit" data-id="ny"><span class="ff-ic plus">'+I.plus+'</span><span class="grow">Lägg till familj</span></button>')+
@@ -3120,6 +3122,9 @@ if(k==='vara'){const n=S.varaK||'',ing=S.varaTyp==='ing',R=regGet(),F=parseJ(set
    '<div class="foot">En person hör till en familj. Bockar du för någon som redan är i en annan familj flyttas personen hit.</div>'+
    (f.id!=='ny'?'<div style="height:22px"></div>'+group('<button type="button" class="cell link center red hold" data-hold="fodFamDel" data-id="'+esc(f.id)+'"><i class="sh-fill"></i><span>Ta bort familjen</span></button>')+'<div class="foot">Håll in. Personerna och deras födelsedagar finns kvar.</div>':'');
   o.innerHTML=sheetHtml('fodFam',f.id==='ny'?'Ny familj':'Ändra familj','<button class="tb strong">Klar</button>',body,enter,'<button type="button" class="tb" data-act="fodFamBack">Avbryt</button>');
+  if(ov){const nf=o.querySelector('form[data-form="fodFam"]');if(ov.n!=null&&nf.elements.n)nf.elements.n.value=ov.n;
+   nf.querySelectorAll('input[name="c"]').forEach(x=>{x.checked=x.value===ov.c});if(ov.c&&colOk(ov.c)){const ic=nf.querySelector('.ff-ic.stor');if(ic)ic.style.background=PCOL[ov.c][isDark()?3:1]}
+   nf.querySelectorAll('input[name="m"]').forEach(x=>{x.checked=ov.m.has(x.value)});const sb=nf.querySelector('.sheet-body');if(sb)sb.scrollTop=ov.y}
   // Den stora ikonen tar färgen direkt när en färg väljs
   o.querySelectorAll('.ff-farger input').forEach(x=>x.addEventListener('change',()=>{const ic=o.querySelector('.ff-ic.stor');if(ic)ic.style.background=PCOL[x.value][isDark()?3:1]}));return}
  if(k==='task'){

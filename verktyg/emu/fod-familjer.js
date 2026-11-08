@@ -42,6 +42,10 @@ module.exports=async(pg,h)=>{
  await pg.fill('#fam-name','Farmor och farfar');
  await pg.locator('input[name="c"][value="orange"]').evaluate(e=>{e.checked=true;e.dispatchEvent(new Event('change',{bubbles:true}))});await h.idle(300);await h.shot('famC-0-ny-familj-topp');
  await pg.locator('label.ff-m').filter({hasText:'Sven'}).click();await pg.locator('label.ff-m').filter({hasText:'Gun'}).click();
+ // Bakgrundshämtning ritar om bladet: bockar, namn och färg ska vara kvar
+ await pg.locator('#main').evaluate(()=>{document.activeElement&&document.activeElement.blur();window.__d('render()')});await h.idle(200);
+ assert.deepEqual(await pg.evaluate(()=>[...document.querySelectorAll('input[name="m"]:checked')].map(x=>x.value.split('|')[0]).sort()),['Gun','Sven'],'Bockarna finns kvar efter omritning');
+ assert.equal(await pg.inputValue('#fam-name'),'Farmor och farfar','Namnet finns kvar efter omritning');
  await pg.locator('input[name="c"][value="orange"]').evaluate(e=>{e.checked=true;e.dispatchEvent(new Event('change',{bubbles:true}))});
  await h.shot('famC-1-ny-familj');
  await click('form[data-form="fodFam"] .tb.strong');await h.waitFlush();
