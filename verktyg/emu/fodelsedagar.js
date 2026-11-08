@@ -34,7 +34,8 @@ module.exports=async(pg,h)=>{
  await swipe('Morfar',-1);
  assert.ok((await main()).includes('Morfar'),'Svep vänster får inte ta bort Morfar');
  assert.ok(!(await pg.locator('#undo').isVisible()),'Ingen Ångra efter svep');
- assert.equal(await pg.evaluate(()=>window.__d('S.fodMode')),'lista','Tidslinje är sista visningen');
+ assert.equal(await pg.evaluate(()=>window.__d('S.fodMode')),'fam','Svep vänster från Tidslinje: Familjer');
+ assert.ok((await main()).includes('Morfar'),'Morfar syns under Utan familj');
  // Svep åt höger testas bara i UI 5.0: i UI 2.0 tar Chromiums egen bakåtgest över i emulatorn (inte på iPhone, där bara kanten gör det)
  const U5=await pg.evaluate(()=>window.__d('U5')),md=()=>pg.evaluate(()=>window.__d('S.fodMode'));
  await click('[data-act="fodMode"][data-id="hjul"]');
