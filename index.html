@@ -1513,7 +1513,28 @@ html.ny .motion-panel>.wm-body{display:block}
 button.gh.ff-gh{width:100%;font:inherit;font-size:15px;font-weight:700;color:var(--ink);text-align:left;border:0;cursor:pointer}
 .ff-gh>span:first-child{display:inline-flex;align-items:center;gap:8px}.ff-gh .r{display:inline-flex;align-items:center;gap:3px}.ff-gh .r svg{width:13px;height:13px;margin-left:4px}
 label.cell>.grow>svg{width:16px;height:16px;vertical-align:-3px}
-.ff-m .grow .meta{display:block;color:var(--ink-2);font-size:14px}
+.ff-m .grow .meta{display:block;color:var(--ink-2);font-size:14px;font-weight:400}
+/* Familjer som listorna i Påminnelser: rund färgad ikon, stor ikon och färgrutnät i bladet, bock till höger */
+.ff-ic{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;flex:none;color:#fff;margin-right:12px}.ff-ic svg{width:18px;height:18px;stroke-width:2}
+.ff-ic.plus{background:var(--fill);color:var(--accent)}.ff-add .grow{color:var(--accent)}
+.ff-ic.stor{width:88px;height:88px;margin:0 auto;box-shadow:0 6px 18px rgba(0,0,0,.14);transition:background .25s}.ff-ic.stor svg{width:48px;height:48px;stroke-width:1.6}
+.ff-top{display:flex;flex-direction:column;align-items:center;gap:16px;padding:22px 16px 16px}
+.ff-top .ff-namn{width:100%;text-align:center;font-size:22px;font-weight:700;padding:12px;border-radius:12px;background:var(--fill)}
+.pcols.ff-farger{display:grid;grid-template-columns:repeat(7,1fr);justify-items:center;gap:16px 6px;padding:18px 10px}
+.pcols.ff-farger span{width:36px;height:36px}
+.ff-m{cursor:pointer}.ff-m input{position:absolute;opacity:0;pointer-events:none}
+.ff-bock{color:var(--accent);visibility:hidden}.ff-bock svg{width:18px;height:18px}.ff-m input:checked~.ff-bock{visibility:visible}
+html.ny .sh.ff-sh,html.ny.ui5 .sh.ff-sh{text-transform:none;letter-spacing:-.4px;align-items:baseline;padding-left:20px}.ff-sh>span:first-child{color:var(--ff,var(--ink));font-weight:700;font-size:20px;line-height:25px}.ff-sh .ff-ed5{font-size:17px}
+.ff-sh .ff-ed5{background:none;border:0;font:inherit;color:var(--accent);font-weight:400;cursor:pointer;display:inline-flex;gap:10px;align-items:center;text-transform:none;letter-spacing:0}
+.ff-gn{display:inline-flex;gap:3px;align-items:center;color:var(--ink-2)}.ff-gn svg{width:14px;height:14px}
+.foot svg{width:14px;height:14px;vertical-align:-2px}
+.fod-menu .fm-ck{width:18px;flex:none;color:var(--accent)}.fod-menu .fm-ck svg{width:16px;height:16px}
+.fod-menu .create-options button{justify-content:flex-start}.fod-menu .grow{flex:1;text-align:left}
+.fod-menu .fm-n{color:var(--ink-2);font-size:15px}.fod-menu .fm-dot{width:14px;height:14px;border-radius:50%;flex:none;margin:0 3px}
+.fod-menu .fm-sep{height:8px;background:var(--fill)}
+html.ny.ui5 .rcp-top:has(.fod-menu){display:flex;align-items:center;justify-content:space-between;position:relative}
+html.ny.ui5 .rcp-top .fod-menu .u5-dots{width:40px;height:40px}
+html.ny.ui5 .u5-dots.on{background:var(--accent);color:var(--on-accent);border-color:transparent}
 .bd-hero{margin:14px 16px 0;padding:18px 18px 16px;border-radius:20px;background:var(--accent);color:var(--on-accent)}
 .bd-hero .eyebrow{margin:0;color:inherit;opacity:.8}
 .bd-hn{font-size:34px;line-height:40px;font-weight:700;letter-spacing:.3px;margin-top:2px}

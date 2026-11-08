@@ -16,30 +16,36 @@ module.exports=async(pg,h)=>{
  await click('[data-act="nav"][data-id="fod"]');
  await click('[data-act="fodMode"][data-id="hjul"]');
  await click('[data-act="fodMon"][data-id="10"]');
+ // UI 5.0: filtret ligger i en meny bakom en rund knapp i rubriken, annars en knapprad
+ const U5=await pg.evaluate(()=>window.__d('U5')),meny=async()=>{if(U5)await click('.fod-menu summary')};
+ const filt=async id=>{await meny();await click('[data-act="fodFilt"][data-id="'+id+'"]')};
  assert.ok(await pg.locator('[data-act="fodFilt"][data-id="f2"]').count(),'Familjeknapp ska finnas');
  await h.shot('famA-1-hjul');
+ if(U5){await meny();await h.shot('famA-0-meny');await pg.mouse.click(5,300);await h.idle(300)}
  // Present: Elsa fyller 10, Gun 70, Oskar 39 (nej)
  const gifts=await pg.evaluate(()=>window.__d('JSON.stringify(bdays().filter(b=>b.gift).map(b=>b.name))'));
  console.log('present:',gifts);
  assert.ok(gifts.includes('Elsa')&&gifts.includes('Gun')&&!gifts.includes('Oskar')&&gifts.includes('Noah'),'Presentregeln');
- await click('[data-act="fodFilt"][data-id="pres"]');
+ await filt('pres');
  await click('[data-act="fodMode"][data-id="lista"]');
  assert.ok(!(await main()).includes('Oskar'),'Oskar ska inte få present');
  await h.shot('famA-2-present-tidslinje');
- await click('[data-act="fodFilt"][data-id="alla"]');
+ await filt('alla');
  await click('[data-act="fodMode"][data-id="fam"]');
  assert.ok((await main()).includes('Utan familj'));
  await h.shot('famB-1-familjer');
  // Ny familj med Sven och Gun
- await click('[data-act="fodFam"]');
+ await meny();await click('[data-act="fodFam"]');
  assert.equal(await pg.locator('form[data-form="fodFam"]').count(),1);
  await click('form[data-form="fodFam"] [data-act="fodFamEdit"][data-id="ny"]');
  await pg.fill('#fam-name','Farmor och farfar');
- await pg.locator('input[name="m"][value="'+k('Sven')+'"]').check();await pg.locator('input[name="m"][value="'+k('Gun')+'"]').check();
- await pg.locator('input[name="c"][value="orange"]').check({force:true});
+ await pg.locator('input[name="c"][value="orange"]').evaluate(e=>{e.checked=true;e.dispatchEvent(new Event('change',{bubbles:true}))});await h.idle(300);await h.shot('famC-0-ny-familj-topp');
+ await pg.locator('label.ff-m').filter({hasText:'Sven'}).click();await pg.locator('label.ff-m').filter({hasText:'Gun'}).click();
+ await pg.locator('input[name="c"][value="orange"]').evaluate(e=>{e.checked=true;e.dispatchEvent(new Event('change',{bubbles:true}))});
  await h.shot('famC-1-ny-familj');
  await click('form[data-form="fodFam"] .tb.strong');await h.waitFlush();
  assert.ok((await pg.locator('form[data-form="fodFam"]').innerText()).includes('Farmor och farfar'),'Ny familj i listan');
+ await h.idle(2600);await h.shot('famC-1b-familjelista');
  await click('form[data-form="fodFam"] [data-act="sheetClose"]');
  assert.ok((await main()).includes('Farmor och farfar'));
  // Personens blad: Familj och Present
