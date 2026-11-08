@@ -1094,7 +1094,7 @@ function wallNight(){const n=new Date(),t=today(),tm=addDays(t,1),W=wxModel();
 // Mer väder under hundarna på väggen: kommande timmar och tre dagar framåt
 function wallWx(){const W=wxModel();if(!W)return'';
  const R=rainTxt(W);
- return'<div class="bwx"><div class="bwx-r'+(R.wet?' wet':'')+'">'+(R.wet?UMB:I.tick)+'<span>'+esc(R.txt)+'</span></div>'+wxStrip(W)+'</div>'}
+ return'<div class="bwx"><div class="bwx-r'+(R.wet?' wet':'')+'">'+(R.wet?UMB:I.tick)+'<span>'+esc(R.txt)+'</span></div>'+wxLarmHtml(W)+wxStrip(W)+'</div>'}
 // ett dygn framåt, timme för timme; svep i sidled för fler timmar, tryck för att öppna vädret
 // H och X (översiktens graf): timmarna från Nu med grafens x-lägen, så att remsan kan pressas ihop till var tredje timme under kurvan
 function wxStrip(W,H,X){return'<div class="bwx-h" data-act="nav" data-id="vader" role="link" aria-label="Väder timme för timme, öppna vädret">'+(H||W.hours.slice(1,25)).map((x,j)=>{const hr=x.d.getHours(),nd=hr===0;
@@ -4191,7 +4191,7 @@ function heroHtml(){const n=new Date(),t=today(),dy=EXT.day&&EXT.day.date===t?EX
  // telefonen: bilden breder ut sig under vänsterspalten, så sol- och namnsdagsraden står under bilden i stället för bakom marken
  const lo=ny&&wx&&!U3&&!U4,fh=lo?'<div class="hero-fot"><div class="hero-facts">'+facts.slice().sort((a,b)=>a.length-b.length).map(f=>'<span>'+esc(f)+'</span>').join('')+'</div>'+(tipT?'<button class="fig-tip" data-act="nav" data-id="vader">'+esc(tipT)+'</button>':'')+'</div>':'<div class="hero-facts">'+facts.map(f=>'<span>'+esc(f)+'</span>').join('')+'</div>';
  return'<section class="hero'+wxArtClass()+(wx?' has-wx':'')+(W&&grassOn()&&grassV()==='b'&&heroSky()?' has-sky':'')+'">'+(W?(grassOn()?(grassV()==='b'?(heroSky()?skyFx(W):'')+arcHtml(W,'b'):''):skyHtml(W)):'')+'<div class="hero-l"><div class="clock num" id="clock">'+pad(hh)+':'+pad(n.getMinutes())+'</div><div class="hero-date">'+esc(cap(dayHead(t)))+'</div>'+(ny?'<div class="hero-date">Vecka '+isoWeek(n)+'</div>':'')+
-  '<div class="hero-greet">'+greet+(S.me?', '+esc(personLabel(S.me)):'')+'!</div>'+(lo?'':fh+wxLarmHtml(W))+'</div>'+wx+(lo?wxLarmHtml(W)+fh:'')+(W&&!wallBoardOn()?ovWx(W):'')+'</section>'}
+  '<div class="hero-greet">'+greet+(S.me?', '+esc(personLabel(S.me)):'')+'!</div>'+(lo?'':fh+(wallBoardOn()?'':wxLarmHtml(W)))+'</div>'+wx+(lo?wxLarmHtml(W)+fh:'')+(W&&!wallBoardOn()?ovWx(W):'')+'</section>'}
 async function loadExt(){const t=today();let changed=await loadWx();if(await loadPast())changed=true;if(await loadWxPlus())changed=true;
  if(!EXT.day||EXT.day.date!==t){try{const[y,mo,d]=t.split('-');
   const r=await fetch('https://sholiday.faboul.se/dagar/v2.1/'+y+'/'+mo+'/'+d);const j=await r.json(),x=j.dagar&&j.dagar[0];
