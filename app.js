@@ -1222,7 +1222,7 @@ V.oversikt=function(){
  const tasksSoon=d.tasks.filter(x=>!x.done&&!(isDate(x.due)&&x.due<=t)).sort((a,b)=>(a.due||'9').localeCompare(b.due||'9')).slice(0,4);
  const hh=now.getHours(),greet=hh<5?'God natt':hh<10?'God morgon':hh<17?'Hej':hh<22?'God kväll':'God natt';
  let h=head((U6&&greet==='Hej'?'God dag':greet)+(people().includes(S.me)?', '+personLabel(S.me):''),U3?{sub:cap(dayHead(t))}:undefined);
- h+='<div class="ov">'+refAdd(heroHtml(),'Ö1');
+ h+='<div class="ov">'+refAdd(heroHtml(),'Ö1')+forslagHtml();
  const H={kal:calWidget()};
  const isT=nextDay&&nextDay.date===t;
  H.mat=widget('mat','w2',I.fork,(isT||!nextDay)?'Middag ikväll':'Nästa middag',nextDay&&!isT?esc(dateShort(nextDay.date)):'',
@@ -3243,6 +3243,94 @@ async function loadPast(force){const P=WX_POS();if(!force&&EXT.past&&Date.now()-
   const ts=H.time.map((t,k)=>{const b=OM_SYM[H.weather_code[k]]||'cloudy',dn=/^(clearsky|fair|partlycloudy|.*showers)$/.test(b)?(H.is_day[k]?'_day':'_night'):'';
    return{t:t+':00Z',T:H.temperature_2m[k],w:H.wind_speed_10m[k],wd:H.wind_direction_10m[k],s:b+dn,pr:H.precipitation[k]}}).filter(x=>x.T!=null&&Date.parse(x.t)<now&&Date.parse(x.t)>now-26*36e5);
   EXT.past={at:now,lat:P.lat,ts};return true}catch(e){return false}}
+/* Mer väder: SMHI:s varningar, UV och pollen (Open-Meteos luftkvalitet) och norrskensindex (NOAA). Hämtas var 30:e minut.
+   Går en källa inte att nå syns bara inte dess ruta. Vädra och Ute idag räknas fram ur prognosen. */
+async function loadWxPlus(force){const P=WX_POS(),o=EXT.wxp||{},same=o.lat===P.lat;if(!force&&o.at&&Date.now()-o.at<30*60000&&same)return false;
+ const n={at:Date.now(),lat:P.lat,aq:same?o.aq:null,kp:o.kp||null,warn:same?o.warn:null},j=async u=>{const r=await fetch(u);if(!r.ok)throw new Error(r.status);return r.json()};
+ await Promise.all([
+  j('https://air-quality-api.open-meteo.com/v1/air-quality?latitude='+P.lat+'&longitude='+P.lon+'&hourly=uv_index,alder_pollen,birch_pollen,grass_pollen,mugwort_pollen&timezone=UTC&forecast_days=2').then(x=>{const H=x.hourly;n.aq={t:H.time,uv:H.uv_index,p:{al:H.alder_pollen,bj:H.birch_pollen,gr:H.grass_pollen,gb:H.mugwort_pollen}}}).catch(()=>{}),
+  j('https://services.swpc.noaa.gov/products/noaa-planetary-k-index-forecast.json').then(x=>{n.kp=(x||[]).map(r=>Array.isArray(r)?{t:r[0],kp:r[1]}:{t:r&&r.time_tag,kp:r&&r.kp}).filter(r=>r.t&&r.kp!=null&&!isNaN(+r.kp)&&/^\d{4}-/.test(r.t)).map(r=>({t:String(r.t).replace(' ','T').replace(/Z?$/,'Z'),kp:+r.kp}))}).catch(()=>{}),
+  j('https://opendata-download-warnings.smhi.se/ibww/api/version/1/warning.json').then(x=>{n.warn=smhiVarn(x,P)}).catch(()=>{})]);
+ EXT.wxp=n;return true}
+function inPoly(x,y,ring){let c=false;for(let i=0,k=ring.length-1;i<ring.length;k=i++){const[xi,yi]=ring[i],[xk,yk]=ring[k];if((yi>y)!==(yk>y)&&x<(xk-xi)*(y-yi)/(yk-yi)+xi)c=!c}return c}
+function inGeo(g,lon,lat){const L=!g?[]:g.type==='Polygon'?[g.coordinates]:g.type==='MultiPolygon'?g.coordinates:[];return L.some(p=>p&&p[0]&&inPoly(lon,lat,p[0]))}
+const VARN_NIV={YELLOW:1,ORANGE:2,RED:3},VARN_NAMN=['','Gul','Orange','Röd'];
+// SMHI:s varningar som gäller platsen (gul, orange, röd). Polygonerna sparas inte, bara det som visas.
+function smhiVarn(x,P){const out=[];(Array.isArray(x)?x:[]).forEach(w=>(w.warningAreas||[]).forEach(a=>{const lv=VARN_NIV[(a.warningLevel||{}).code];if(!lv||!inGeo((a.area||{}).geometry,P.lon,P.lat))return;
+ const d=(a.descriptions||[]).map(z=>z&&z.text&&z.text.sv).filter(Boolean);
+ out.push({lv,ev:(a.eventDescription||{}).sv||(w.event||{}).sv||'Varning',area:(a.areaName||{}).sv||'',start:a.approximateStart||'',end:a.approximateEnd||'',txt:d[0]||''})}));
+ return out.sort((a,b)=>b.lv-a.lv)}
+const varnNu=()=>((EXT.wxp||{}).warn||[]).filter(v=>!v.end||Date.parse(v.end)>Date.now());
+function varnTid(v){const t=today(),f=s=>{const d=new Date(s),k=ymd(d),h=d.getHours();return(k===t?(h>=17?'i kväll':'i dag'):k===addDays(t,1)?'i morgon':DAYS[d.getDay()])+' '+pad(h)+'.'+pad(d.getMinutes())};
+ if(!v.start)return v.end?'till '+f(v.end):'';return Date.parse(v.start)<=Date.now()?(v.end?'nu till '+f(v.end):'gäller nu'):f(v.start)+(v.end?' till '+f(v.end):'')}
+const WP_IC={warn:'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M10.3 3.9a2 2 0 0 1 3.4 0l8 13.6A2 2 0 0 1 20 20.5H4a2 2 0 0 1-1.7-3Z"/><path d="M12 9v5M12 17.2v.1" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg>',
+ pollen:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 21v-9M12 12c-4 0-6-3-6-7 4 0 6 3 6 7ZM12 15c3 0 5-2 5-5-3 0-5 2-5 5Z"/></svg>',
+ aur:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 18c3-7 6-10 9-10s6 3 9 10M6 18c2-4 4-6 6-6s4 2 6 6"/></svg>'};
+// Timmar i prognosen för en dag mellan två klockslag (lokal tid), från och med nu
+const wxTim=(W,dag,a,b)=>W.all.filter(x=>ymd(x.d)===dag&&x.d.getHours()>=a&&x.d.getHours()<b&&x.d.getTime()>Date.now()-3600000);
+const wxTorr=x=>x.pr!=null?x.pr<0.1:!/rain|sleet|snow|drizzle|thunder/.test(x.s||'');
+function wxPlus(W){const n=new Date(),t=today(),R={},P=EXT.wxp||{};
+ // Vädra: längsta torra stunden utan hård vind, i dag till 21 (efter 20 i morgon)
+ {const sen=n.getHours()>=20,dag=sen?addDays(t,1):t,H=wxTim(W,dag,7,21);let best=null,cur=null;
+  H.forEach(x=>{if(wxTorr(x)&&(x.w||0)<10){cur=cur&&x.d.getHours()===cur.e?{s:cur.s,e:x.d.getHours()+1,L:cur.L.concat(x)}:{s:x.d.getHours(),e:x.d.getHours()+1,L:[x]};if(!best||cur.e-cur.s>best.e-best.s)best=cur}else cur=null});
+  if(H.length)R.vadra={dag:sen?'i morgon':'',bars:H.map(x=>best&&x.d.getHours()>=best.s&&x.d.getHours()<best.e?2:wxTorr(x)?1:0),
+   v:!best?'Inte '+(sen?'i morgon':'i dag'):!sen&&best.s<=n.getHours()?'Nu':best.s+'–'+best.e,
+   sub:!best?'Nederbörd hela dagen':(!sen&&best.s<=n.getHours()?'Torrt till '+best.e+', ':'Torrt, ')+deg(best.L.reduce((s,x)=>s+x.T,0)/best.L.length)+(best.L.every(x=>(x.w||0)<4)?' och lugnt':'')}}
+ // Ute: bästa två timmarna 8–20 efter känns som-temperatur, torrt och sol
+ {const P0=WX_POS(),ljus=dg=>{const su=sunTimes(dg,P0.lat,P0.lon);return wxTim(W,dg,8,20).filter(x=>!su||x.d>=su[0]-18e5&&x.d.getTime()+36e5<=su[1].getTime()+18e5)};let dag=t,H=ljus(t);if(H.length<2){dag=addDays(t,1);H=ljus(dag)}const sen=dag!==t;let best=null;
+  const p=x=>feels(x.T,x.w||0)-(wxTorr(x)?0:12)+(/^(clearsky|fair)/.test(x.s||'')?3:/^partly/.test(x.s||'')?1.5:0);
+  for(let i=0;i<H.length;i++){const a=H[i],b=H[i+1]&&H[i+1].d.getHours()===a.d.getHours()+1?H[i+1]:null,s=b?(p(a)+p(b))/2:p(a)-1;if(!best||s>best.s)best={s,h:a.d.getHours(),e:a.d.getHours()+(b?2:1),x:a}}
+  if(best)R.ute={dag:sen?'i morgon':'',v:best.h+'–'+best.e,sub:(wxTorr(best.x)?'Uppehåll':'Risk för regn')+', '+deg(best.x.T)+(/^(clearsky|fair)/.test(best.x.s||'')?' och sol':/^partly/.test(best.x.s||'')?' och sol emellanåt':'')}}
+ // UV och pollen för i dag
+ if(P.aq&&P.aq.t){const ix=P.aq.t.map((s,i)=>ymd(new Date(s+':00Z'))===t?i:-1).filter(i=>i>=0),mx=a=>Math.max(-1,...ix.map(i=>a&&a[i]!=null?a[i]:-1));
+  const uv=mx(P.aq.uv);if(uv>=0){const u=Math.round(uv);R.uv={v:String(u),pos:Math.min(100,uv/11*100),sub:(u<=2?'Låg':u<=5?'Måttlig':u<=7?'Hög':u<=10?'Mycket hög':'Extrem')+(u<=2?' hela dagen':', solskydd mitt på dagen')}}
+  const G={al:[1,11,101,1001],bj:[1,11,101,1001],gr:[1,11,31,81],gb:[1,11,31,81]},NM={al:'Al',bj:'Björk',gr:'Gräs',gb:'Gråbo'},NV=['Inget','Låga','Måttliga','Höga','Mycket höga'];
+  let top=null;Object.keys(G).forEach(k=>{const v=mx(P.aq.p&&P.aq.p[k]);if(v<0)return;const lv=G[k].filter(g=>v>=g).length;if(!top||lv>top.lv||lv===top.lv&&v>top.v)top={k,v,lv}});
+  if(top)R.pollen={lv:top.lv,v:NV[top.lv],sub:top.lv?NM[top.k]+(top.lv>=3?', ta medicin i tid':''):'Inga pollen i luften just nu'}}
+ // Norrsken: högsta Kp i natt (18–06) och hur molnigt det blir. Värnamo ligger på 57° N: från Kp 4 kan det synas lågt i norr
+ if(P.kp&&P.kp.length){const a=new Date(n),b=new Date(n);if(n.getHours()<6){a.setHours(0,0,0,0);b.setHours(6,0,0,0)}else{a.setHours(18,0,0,0);b.setDate(b.getDate()+1);b.setHours(6,0,0,0)}
+  const K=P.kp.filter(r=>{const x=Date.parse(r.t);return x+3*36e5>a.getTime()&&x<b.getTime()});
+  if(K.length){const kp=Math.max(...K.map(r=>r.kp)),lv=kp>=7?4:kp>=6?3:kp>=5?2:kp>=4?1:0,C=W.all.filter(x=>x.d>=a&&x.d<b&&x.cf!=null),cf=C.length?C.reduce((s,x)=>s+x.cf,0)/C.length:null,mol=cf!=null&&cf>=80;
+   R.aur={lv:mol?0:lv,v:lv&&mol?'Molnigt':['Ingen chans','Liten chans','Möjligt','Goda chanser','Stora chanser'][lv],sub:'Kp '+(Math.round(kp*10)/10).toString().replace('.',',')+' i natt'+(lv&&mol?', men molnen skymmer':cf!=null&&cf<40?', mest klart':'')+(lv&&!mol?'. Titta norrut.':'')}}}
+ return R}
+// Det viktigaste vädret just nu, en rad i Översikten: SMHI-varning, mycket pollen eller chans för norrsken
+function wxLarm(W){const v=varnNu()[0];if(v)return{k:'v'+v.lv,ic:WP_IC.warn,t:VARN_NAMN[v.lv]+' varning: '+v.ev.toLowerCase(),b:'SMHI · '+varnTid(v)};
+ if(!W)return null;const R=wxPlus(W);
+ if(R.pollen&&R.pollen.lv>=3)return{k:'p',ic:WP_IC.pollen,t:R.pollen.v+' halter av pollen',b:R.pollen.sub};
+ if(R.aur&&R.aur.lv>=2)return{k:'n',ic:WP_IC.aur,t:'Norrsken: '+R.aur.v.toLowerCase()+' i natt',b:R.aur.sub};return null}
+/* Smarta förslag i Översikten: ett kort i taget, svep för nästa. Byggs av det appen redan vet (matsedeln, vädret, födelsedagar, städ och uppgifter).
+   Klart döljer förslaget, Inte nu i tre timmar. Valet sparas på enheten (ht.fDone). */
+const FS_IC={fork:['#FF9500',I.fork],frost:['#007AFF','<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 13.5V5a2 2 0 1 1 4 0v8.5a4 4 0 1 1-4 0Z"/><path d="M12 15v2"/></svg>'],
+ regn:['#5AC8FA','<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12a9 9 0 0 1 18 0ZM12 12v7a2 2 0 0 1-4 0"/></svg>'],
+ gift:['#FF2D55','<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="8.5" width="17" height="4" rx="1"/><path d="M5 12.5V20h14v-7.5M12 8.5V20M12 8.5C10 4 6.5 5 7.5 7.5 8 8.5 12 8.5 12 8.5ZM12 8.5c2-4.5 5.5-3.5 4.5-1-.5 1-4.5 1-4.5 1Z"/></svg>'],
+ stad:['#34C759',I.sparkles],task:['#AF52DE',I.list],cal:['#FF3B30',I.cal]};
+function fsDone(){const o=parseJ(lsGet('fDone'),{}),n=Date.now();Object.keys(o).forEach(k=>{const d=/(\d{4}-\d{2}-\d{2})/.exec(k);if(o[k]!==-1&&o[k]<n||d&&d[1]<addDays(today(),-3))delete o[k]});return o}
+function forslag(){const n=new Date(),hh=n.getHours(),t=today(),tm=addDays(t,1),L=[],W=wxModel(),d=D();
+ // Matsedeln: middag saknas i morgon, eller något i morgondagens middag som kan behöva tina
+ const md=dayOf(tm);if(hh>=12&&planDays().some(x=>x.date>=tm)&&!(md&&md.meals.length))L.push({id:'mid:'+tm,ic:'cal',t:'Ingen middag planerad i morgon',b:'Välj en rätt nu så hinner ni handla.',go:['Planera','mat']});
+ if(hh>=15&&md&&md.meals.length){const FR=/(kyckling\w*|nötfärs|köttfärs|blandfärs|fläskfilé|fläskkotlett\w*|kycklingfilé\w*|laxfilé\w*|lax|torsk\w*|räkor|fisk\w*|högrevs?\w*|entrecôte|biff\w*)/i;
+  for(const m of md.meals){const r=m.recipe&&recipeById(m.recipe),ing=r?(r.groups||[]).flatMap(g=>g.items||[]).map(x=>x.n||'').join(' · '):'',k=FR.exec(ing);
+   if(k){L.push({id:'tina:'+tm+':'+(r.id||m.title),ic:'fork',t:'Ska '+k[1].toLowerCase()+' tina till i morgon?',b:'Till '+m.title.charAt(0).toLowerCase()+m.title.slice(1)+' i morgon. Lägg över den i kylen i kväll om den ligger i frysen.'});break}}}
+ if(W){const H=W.all.filter(x=>x.d>n);
+  // Regn inom tre timmar när det är torrt nu
+  if(hh>=7&&hh<21&&wxTorr(W.now)){const r=H.find(x=>x.d-n<3*36e5&&(x.pr!=null?x.pr>=0.3:/rain|sleet|snow/.test(x.s||'')));if(r)L.push({id:'regn:'+t+':'+r.d.getHours(),ic:'regn',t:(/snow/.test(r.s||'')?'Snö':'Regn')+' från '+pad(r.d.getHours())+'.00',b:'Ta in tvätten eller ta med paraply.'})}
+  // Frost i natt efter en dag över noll
+  if(hh>=15&&W.now.T>1){const N=H.filter(x=>x.d-n<18*36e5&&x.d.getHours()<=9),lo=N.reduce((a,x)=>!a||x.T<a.T?x:a,null);if(lo&&lo.T<=0)L.push({id:'frost:'+t,ic:'frost',t:'Frost i natt, '+deg(lo.T).replace('-','−')+' vid '+pad(lo.d.getHours()),b:'Skrapa bilen i morgon bitti och ta in det som inte tål kyla.'})}}
+ // Födelsedagar: idag, och inom en vecka när det är dags för present
+ try{bdays().filter(b=>b.days===0||(b.days<=7&&b.gift)).sort((a,b)=>a.days-b.days).slice(0,2).forEach(b=>L.push({id:'fod:'+b.key+':'+b.next,ic:'gift',t:b.name+' '+bdTurns(b)+' '+(b.days===0?'idag':bdWhen(b)),b:b.days===0?'Glöm inte att gratulera.':'Dags att ordna present.',go:['Visa','fod']}))}catch(e){}
+ // Städ och uppgifter som har väntat länge
+ const sen=d.clean.filter(c=>c.freq>1&&c.freq<30&&!doneToday(c)&&!snoozed(c)&&ratio(c)>=2);if(sen.length)L.push({id:'stad:'+t,ic:'stad',t:sen.length===1?sen[0].name+' har väntat länge':sen.length+' sysslor har väntat länge',b:'Dubbelt så länge som de brukar.',go:['Visa','stad']});
+ const ff=d.tasks.filter(x=>!x.done&&isDate(x.due)&&x.due<t);if(ff.length)L.push({id:'upg:'+t,ic:'task',t:ff.length===1?ff[0].title+' är försenad':ff.length+' uppgifter är försenade',b:'Gör dem idag eller flytta datumet.',go:['Visa','uppgifter']});
+ const D0=fsDone(),nu=Date.now();return L.filter(f=>!(f.id in D0&&fsDolj(D0[f.id],nu)))}
+// Värdet i ht.fDone: tidpunkt då förslaget visas igen (Inte nu) eller -1 (Klart)
+const fsDolj=(v,nu)=>v===-1||v>nu;
+function forslagHtml(){const L=forslag();if(!L.length)return'';
+ return'<div class="fsl"'+RF('Ö14')+'><div class="sh"><span>Förslag</span><span class="r">'+(L.length>1?L.length+' st':'')+'</span></div><div class="fs-sc">'+L.map(f=>{const[c,ic]=FS_IC[f.ic]||FS_IC.cal;
+  return'<div class="fs-k"><div class="fs-r"><span class="fs-ic" style="background:'+c+'">'+ic+'</span><div><b>'+esc(f.t)+'</b><span>'+esc(f.b)+'</span></div></div><div class="fs-b">'+
+   (f.go?'<button class="fs-p" data-act="fsGo" data-id="'+esc(f.id)+'" data-go="'+f.go[1]+'">'+f.go[0]+'</button>':'<button class="fs-p" data-act="fsKlart" data-id="'+esc(f.id)+'">Klart</button>')+
+   '<button class="fs-g" data-act="fsSen" data-id="'+esc(f.id)+'">Inte nu</button></div></div>'}).join('')+'</div></div>'}
+function fsSet(id,v){const o=fsDone();o[id]=v;lsSet('fDone',JSON.stringify(o))}
+function wxLarmHtml(W){const L=wxLarm(W);return L?'<button class="wx-larm wl-'+L.k+'" data-act="nav" data-id="vader"'+RF(wallBoardOn()?'T13':'Ö13')+'>'+L.ic+'<span><b>'+esc(L.t)+'</b><small>'+esc(L.b)+'</small></span></button>':''}
 // Samlad bild: nu, kommande timmar och dagar (lokal tid)
 function wxModel(){const y=EXT.yr;if(!y||!y.ts||!y.ts.length||Date.now()-y.at>12*3600000)return null;
  const now=Date.now(),hrs=y.ts.map(x=>Object.assign({},x,{d:new Date(x.t)})).filter(x=>x.d.getTime()>now-3600000);if(!hrs.length)return null;
@@ -4103,8 +4191,8 @@ function heroHtml(){const n=new Date(),t=today(),dy=EXT.day&&EXT.day.date===t?EX
  // telefonen: bilden breder ut sig under vänsterspalten, så sol- och namnsdagsraden står under bilden i stället för bakom marken
  const lo=ny&&wx&&!U3&&!U4,fh=lo?'<div class="hero-fot"><div class="hero-facts">'+facts.slice().sort((a,b)=>a.length-b.length).map(f=>'<span>'+esc(f)+'</span>').join('')+'</div>'+(tipT?'<button class="fig-tip" data-act="nav" data-id="vader">'+esc(tipT)+'</button>':'')+'</div>':'<div class="hero-facts">'+facts.map(f=>'<span>'+esc(f)+'</span>').join('')+'</div>';
  return'<section class="hero'+wxArtClass()+(wx?' has-wx':'')+(W&&grassOn()&&grassV()==='b'&&heroSky()?' has-sky':'')+'">'+(W?(grassOn()?(grassV()==='b'?(heroSky()?skyFx(W):'')+arcHtml(W,'b'):''):skyHtml(W)):'')+'<div class="hero-l"><div class="clock num" id="clock">'+pad(hh)+':'+pad(n.getMinutes())+'</div><div class="hero-date">'+esc(cap(dayHead(t)))+'</div>'+(ny?'<div class="hero-date">Vecka '+isoWeek(n)+'</div>':'')+
-  '<div class="hero-greet">'+greet+(S.me?', '+esc(personLabel(S.me)):'')+'!</div>'+(lo?'':fh)+'</div>'+wx+(lo?fh:'')+(W&&!wallBoardOn()?ovWx(W):'')+'</section>'}
-async function loadExt(){const t=today();let changed=await loadWx();if(await loadPast())changed=true;
+  '<div class="hero-greet">'+greet+(S.me?', '+esc(personLabel(S.me)):'')+'!</div>'+(lo?'':fh+wxLarmHtml(W))+'</div>'+wx+(lo?wxLarmHtml(W)+fh:'')+(W&&!wallBoardOn()?ovWx(W):'')+'</section>'}
+async function loadExt(){const t=today();let changed=await loadWx();if(await loadPast())changed=true;if(await loadWxPlus())changed=true;
  if(!EXT.day||EXT.day.date!==t){try{const[y,mo,d]=t.split('-');
   const r=await fetch('https://sholiday.faboul.se/dagar/v2.1/'+y+'/'+mo+'/'+d);const j=await r.json(),x=j.dagar&&j.dagar[0];
   if(x){EXT.day={date:t,names:x.namnsdag||[],holiday:x.helgdag||'',flag:x.flaggdag||''};changed=true}}catch(e){}}
@@ -4205,6 +4293,7 @@ V.vader=function(){const W=wxModel(),P=WX_POS();
  const[ic,tx]=symInfo(W.now.s),d0=W.days[0],F=wxToday(W),sun=sunTimes(today(),P.lat,P.lon);
  // vädret ligger i miljöbilden: ort och temperatur uppe till vänster, väderläget uppe till höger, tips och vind i en remsa nederst
  // UI 2.0: samma bild som på Översikt i större format (träd, kulle och gräsplätt som tonar ut i rutan), råden under bilden
+ h+=varnNu().map(v=>'<div class="wx-varn wv'+v.lv+'"'+RF('W11')+'><div class="wx-cap">'+WP_IC.warn+VARN_NAMN[v.lv]+' varning · SMHI</div><b>'+esc(v.ev+(v.area?' i '+v.area:''))+'</b><span class="fn">'+esc(capS(varnTid(v)))+(v.txt?'. '+esc(v.txt):'')+'</span></div>').join('');
  if(WXVY==='kurva')h+=wxHeroC(W,P,ic,tx,d0,F,sun);
  else h+='<section class="wx2'+wxArtClass()+'"'+wxArtVars(W)+RF('W1')+'><div class="wx2-top"><div><div class="wx-place">'+esc(P.name)+'</div><div class="wx-big num" id="lt">'+deg(W.now.T)+'</div></div>'+
   '<div class="wx2-r"><div class="wx2-cond"><span aria-hidden="true">'+ic+'</span>'+esc(tx)+'</div><div class="wx-hl num">H:'+deg(d0.max)+'  L:'+deg(d0.min)+'</div></div></div>'+
@@ -4219,14 +4308,20 @@ V.vader=function(){const W=wxModel(),P=WX_POS();
   return'<button type="button" class="day-row" data-act="wxDay" data-id="'+x.date+'"><span class="dn">'+(k?capS(DAYS3[parse(x.date).getDay()]):'Idag')+'</span><span class="di" aria-hidden="true">'+ii+'</span><span class="dp num">'+(x.pr>=0.2?mm(x.pr):'')+'</span><span class="dmin num">'+deg(x.min)+'</span><span class="range" aria-hidden="true"><i style="left:'+l+'%;right:'+(100-r)+'%;background:'+tempGrad(x.min,x.max)+'"></i>'+(k===0?'<b style="left:'+((W.now.T-lo)/span*100)+'%"></b>':'')+'</span><span class="dmax num">'+deg(x.max)+'</span></button>'}).join('')+'</div>';
  // Detaljer
  const n=W.now,prToday=d0.pr,tile=(lab,val,sub)=>'<div class="wx-tile"'+RF({Vind:'W5','Känns som':'W6',Nederbörd:'W7',Luftfuktighet:'W8',Sol:'W9',Lufttryck:'W10'}[lab])+'><div class="wx-cap">'+lab+'</div><div class="tv num">'+val+'</div><div class="fn">'+sub+'</div></div>';
+ const R=wxPlus(W),tp=(ref,lab,val,sub,ex,cls)=>'<div class="wx-tile'+(cls||'')+'"'+RF(ref)+'><div class="wx-cap">'+lab+'</div><div class="tv num">'+esc(val)+'</div><div class="fn">'+esc(sub)+'</div>'+(ex||'')+'</div>';
  h+='<div class="wx-tiles">'+
+  (R.vadra?tp('W12','Vädra'+(R.vadra.dag?' i morgon':''),R.vadra.v,R.vadra.sub,'<div class="wp-bars" aria-hidden="true">'+R.vadra.bars.map(b=>'<i class="b'+b+'"></i>').join('')+'</div>'):'')+
+  (R.ute?tp('W13','Ute '+(R.ute.dag||'i dag'),R.ute.v,R.ute.sub):'')+
+  (R.uv?tp('W14','UV-index',R.uv.v,R.uv.sub,'<div class="wp-uv" aria-hidden="true"><i style="left:'+R.uv.pos.toFixed(0)+'%"></i></div>'):'')+
+  (R.pollen?tp('W15','Pollen',R.pollen.v,R.pollen.sub):'')+
+  (R.aur?tp('W16','Norrsken',R.aur.v,R.aur.sub,'',' wp-full'):'')+
   tile('Vind',Math.round(n.w)+' m/s','<span class="wd" style="transform:rotate('+((n.wd||0)+180)+'deg)">↑</span> '+capS(windDir(n.wd))+' vind')+
   tile('Känns som',deg(feels(n.T,n.w)),feels(n.T,n.w)<n.T-1?'Vinden gör det kallare':'Ungefär som det är')+
   tile('Nederbörd',mm(prToday),'idag'+(W.days[1]?' · '+mm(W.days[1].pr)+' i morgon':''))+
   tile('Luftfuktighet',Math.round(n.h||0)+' %',(n.h||0)>85?'Fuktigt':(n.h||0)<40?'Torr luft':'Normal')+
   (sun?tile('Sol','<span class="sm">↑ '+hhmm(sun[0])+'</span> <span class="sm">↓ '+hhmm(sun[1])+'</span>','Dagens längd '+Math.floor((sun[1]-sun[0])/3600000)+' h '+Math.round(((sun[1]-sun[0])%3600000)/60000)+' min'):'')+
   tile('Lufttryck',Math.round(n.p||0)+' hPa',(n.p||1013)<1000?'Lågtryck':(n.p||1013)>1022?'Högtryck':'Normalt')+'</div>';
- h+='<div class="foot">Väderdata från '+(W.src==='yr'?'<a href="https://www.yr.no/" target="_blank" rel="noopener">Yr</a> och MET Norway (CC BY 4.0)':'Open-Meteo, eftersom Yr inte gick att nå')+'. Uppdaterad '+hhmm(new Date(EXT.yr.at))+'.</div>';
+ h+='<div class="foot">Väderdata från '+(W.src==='yr'?'<a href="https://www.yr.no/" target="_blank" rel="noopener">Yr</a> och MET Norway (CC BY 4.0)':'Open-Meteo, eftersom Yr inte gick att nå')+'. Varningar från SMHI, UV och pollen från Open-Meteo, norrsken från NOAA. Uppdaterad '+hhmm(new Date(EXT.yr.at))+'.</div>';
  return h};
 
 /* Dagens väder (tryck på en dag i W4): ett blad som Apples Väder. Dagarna överst, dagens läge, en graf över dygnet 00–24
@@ -4885,6 +4980,9 @@ const ACT={
  theme(id){S.theme=['light','dark'].includes(id)?id:'system';lsSet('theme',S.theme==='system'?null:S.theme);applyTheme(true);render()},
  uiVersion(id){if(!['2','4','5','6'].includes(id)&&!(DEV&&id==='3'))return;const f=document.querySelector('form[data-form="settings"]');if(f)S.prefDraft=Object.fromEntries(new FormData(f));U3=id==='3';U4=id==='4';U6=id==='6';U5=id==='5'||U6;lsSet('ui',U6?'6':U5?null:U4?'4':U3?'3':'2');S.arrange=false;applyNy();applyStil();applyTheme(true);document.querySelector('.nav-mini')?.classList.remove('on');document.getElementById('nav').classList.remove('mini','ut');render()},
  auraMork(id){lsSet('auraM',id==='noir'?'noir':null);applyNy();applyTheme(true);render()},
+ fsKlart(id){fsSet(id,-1);render()},
+ fsSen(id){fsSet(id,Date.now()+3*36e5);render();toast('Visas igen om tre timmar')},
+ fsGo(id,el){fsSet(id,-1);ACT.nav(el&&el.dataset.go||'oversikt')},
  recipeSearchClear(){S.u3Query='';render()},
  dev(){motionAbort();if(motionPageAnim)motionPageAnim.cancel();DEV=!DEV;lsSet('dev',DEV?'1':null);applyStil();applyRefs();if(!DEV&&U3){U3=false;U5=true;lsSet('ui',null);applyStil();applyTheme(false)}applyNy();if(!DEV&&S.plan&&S.plan!=='auto')S.plan=null;render()},
  wall(){S.wall=!S.wall;lsSet('wall',S.wall?'1':'0');fitScrollbar();hideCursor();wake();autoTheme();applyTheme(true);render();camSample()},

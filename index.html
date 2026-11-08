@@ -3039,6 +3039,35 @@ html.ny.ui5 .g5-tom .title{color:var(--accent)}
 html.ny.ui5 .g5-kop summary{list-style:none;cursor:pointer;gap:8px}html.ny.ui5 .g5-kop summary::-webkit-details-marker{display:none}
 html.ny.ui5 .g5-kop summary .chev{transition:transform .2s}html.ny.ui5 .g5-kop[open] summary .chev{transform:rotate(90deg)}
 html.ny.ui5 .g5-kop .val{color:var(--ink-3)}
+/* ===== Mer väder och smarta förslag (alla UI) ===== */
+/* Väder: SMHI-varning överst, nya rutor (Vädra, Ute, UV, Pollen, Norrsken) */
+.wx-varn{display:block;background:var(--surface);border-radius:var(--r5,16px);padding:12px 16px 14px;margin:0 16px 14px}
+.wx-varn .wx-cap{display:flex;align-items:center;gap:6px;color:var(--ink-2);padding-bottom:8px;margin-bottom:8px;border-bottom:.5px solid var(--line)}
+.wx-varn .wx-cap svg{width:16px;height:16px;flex:none;color:#E5A000}.wx-varn.wv2 .wx-cap svg{color:#FF9500}.wx-varn.wv3 .wx-cap svg{color:#FF3B30}
+.wx-varn b{display:block;font-size:17px;line-height:22px;font-weight:600}.wx-varn .fn{display:block;color:var(--ink-2);font-size:15px;line-height:20px;margin-top:2px}
+.wx-tile.wp-full{grid-column:1/-1}
+.wp-bars{display:flex;gap:3px;align-items:flex-end;height:30px;margin-top:10px}.wp-bars i{flex:1;max-width:12px;border-radius:3px;background:var(--fill);height:40%}
+.wp-bars i.b1{background:color-mix(in srgb,var(--green) 35%,transparent)}.wp-bars i.b2{background:var(--green);height:100%}
+.wp-uv{position:relative;height:6px;border-radius:3px;margin-top:12px;background:linear-gradient(90deg,#34C759,#FFCC00,#FF9500,#FF3B30,#AF52DE)}
+.wp-uv i{position:absolute;top:-3px;width:12px;height:12px;margin-left:-6px;border-radius:50%;background:#fff;box-shadow:0 0 0 2px var(--surface),0 1px 4px rgba(0,0,0,.3)}
+/* Översikt: en rad i väderkortet när något spelar roll */
+.wx-larm{grid-column:1/-1;display:flex;align-items:center;gap:10px;width:100%;text-align:left;margin-top:12px;padding:10px 12px;border-radius:14px;background:color-mix(in srgb,#FFCC00 20%,var(--surface));color:var(--ink);position:relative;z-index:3}
+.wx-larm svg{width:20px;height:20px;flex:none;color:#C98A00}.wx-larm span{min-width:0}
+.wx-larm b{display:block;font-size:15px;line-height:20px;font-weight:600}.wx-larm small{display:block;font-size:13px;line-height:17px;color:var(--ink-2)}
+.wx-larm.wl-v2{background:color-mix(in srgb,#FF9500 20%,var(--surface))}.wx-larm.wl-v2 svg{color:#E06A00}.wx-larm.wl-v3{background:color-mix(in srgb,#FF3B30 16%,var(--surface))}.wx-larm.wl-v3 svg{color:#E0332A}
+.wx-larm.wl-p{background:color-mix(in srgb,#34C759 16%,var(--surface))}.wx-larm.wl-p svg{color:var(--green)}.wx-larm.wl-n{background:color-mix(in srgb,#5856D6 16%,var(--surface))}.wx-larm.wl-n svg{color:#5856D6}
+body.wall .hero-l:has(.wx-larm){position:relative;z-index:4}body.wall .wx-larm{margin-top:14px}body.wall .wx-larm b{font-size:18px;line-height:23px}body.wall .wx-larm small{font-size:15px;line-height:19px}
+/* Översikt: förslag, ett kort i taget med nästa kort som skymtar */
+.ov>.fsl{background:none!important;box-shadow:none!important;border:0!important;break-inside:avoid;margin:20px 0 6px;padding:0;min-width:0}
+.fsl>.sh{margin:0;padding:0 20px 7px 36px;display:flex;justify-content:space-between}
+.fs-sc{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;padding:0 16px;scroll-padding:0 16px;scrollbar-width:none;overscroll-behavior-x:contain}.fs-sc::-webkit-scrollbar{display:none}
+.fs-k{flex:none;width:100%;scroll-snap-align:start;background:var(--surface);border-radius:var(--r5,16px);padding:16px 18px;display:flex;flex-direction:column;justify-content:space-between;gap:14px}
+.fs-sc>.fs-k:not(:only-child){width:calc(100% - 26px)}
+.fs-r{display:flex;gap:12px;align-items:flex-start}.fs-r b{display:block;font-size:17px;line-height:22px;font-weight:600}.fs-r span:not(.fs-ic){display:block;font-size:15px;line-height:20px;color:var(--ink-2);margin-top:2px}
+.fs-ic{flex:none;width:36px;height:36px;border-radius:10px;display:grid;place-items:center;color:#fff}.fs-ic svg{width:21px;height:21px}
+.fs-b{display:flex;gap:10px}.fs-b button{height:36px;border-radius:999px;padding:0 16px;font-size:15px;font-weight:600}
+.fs-p{background:var(--accent);color:var(--on-accent)}.fs-g{background:var(--fill);color:var(--ink)}
+
 /* ===== Aura (frivilligt val, ht.ui=6, gäller bara html.aura) =====
    UI 5.0:s funktioner och former med ett varmare utseende, inspirerat av hemappen Aura 2.0 (github.com/sundqvist80/aura-2, MIT-licens):
    ljust = kräm och brons, mörkt = marin och indigo eller noir (svart och champagne). Mjuka kort med stor rundning,

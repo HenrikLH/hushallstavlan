@@ -41,6 +41,11 @@ let PORT;
    const out=gas.handle(m,body,q);if(m==='POST'){const j=JSON.parse(body),o=JSON.parse(out);console.log('  POST',j.action,(j.id||j.k||''),o.ok?'ok':'ERR '+o.error)}
    return r.fulfill({contentType:'application/json',body:out})}
   if(u.includes('api.met.no'))return r.fulfill({contentType:'application/json',body:WX});
+  // WXPLUS=1: låtsasdata för mer väder (gul SMHI-varning för halka över Värnamo, UV 1, pollen enligt WXPOLL, Kp enligt WXKP)
+  if(process.env.WXPLUS){const n0=Date.parse(NOW),d0=new Date(n0);d0.setUTCHours(0,0,0,0);const H=[...Array(48)].map((_,i)=>new Date(d0.getTime()+i*36e5).toISOString().slice(0,16));
+   if(u.includes('air-quality-api.open-meteo.com'))return r.fulfill({contentType:'application/json',body:JSON.stringify({hourly:{time:H,uv_index:H.map((_,i)=>i%24>8&&i%24<14?1.2:0),alder_pollen:H.map(()=>0),birch_pollen:H.map(()=>+(process.env.WXPOLL||0)),grass_pollen:H.map(()=>0),mugwort_pollen:H.map(()=>null)}})});
+   if(u.includes('services.swpc.noaa.gov'))return r.fulfill({contentType:'application/json',body:JSON.stringify([...Array(24)].map((_,i)=>({time_tag:new Date(d0.getTime()+i*3*36e5).toISOString().slice(0,19),kp:i%8>=6?+(process.env.WXKP||4.67):2.33,observed:'predicted'})))});
+   if(u.includes('opendata-download-warnings.smhi.se'))return r.fulfill({contentType:'application/json',body:JSON.stringify(process.env.WXPLUS==='2'?[]:[{id:1,event:{sv:'Halka',code:'SLIPPERINESS'},warningAreas:[{id:2,approximateStart:new Date(n0+2*36e5).toISOString(),approximateEnd:new Date(n0+18*36e5).toISOString(),areaName:{sv:'Jönköpings län'},warningLevel:{sv:'Gul',code:'YELLOW'},eventDescription:{sv:'Halka'},descriptions:[{title:{sv:'Vad händer'},text:{sv:'Underkylt regn kan ge isbark på vägar och trottoarer.'}}],area:{type:'Feature',geometry:{type:'Polygon',coordinates:[[[13,56.5],[15.5,56.5],[15.5,58.2],[13,58.2],[13,56.5]]]}}}]},{id:3,event:{sv:'Vattenbrist'},warningAreas:[{warningLevel:{code:'MESSAGE'},area:{geometry:{type:'Polygon',coordinates:[[[13,56.5],[15.5,56.5],[15.5,58.2],[13,58.2],[13,56.5]]]}}}]}])})}
   if(u.startsWith('http://localhost'))return r.continue();return r.abort()});
  const h={
   OUT,gas,
