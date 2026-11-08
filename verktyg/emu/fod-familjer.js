@@ -57,5 +57,24 @@ module.exports=async(pg,h)=>{
  await click('form[data-form="fodAdd"] .tb.strong');await h.waitFlush();
  assert.equal(await pg.evaluate(()=>window.__d('bdays().find(b=>b.name==="Lisa").gift')),true,'Alltid present');
  const ok=JSON.parse(row('onskelista')[1]).find(x=>x.fod);assert.ok(ok.fam.length===5&&ok.pr[k('Lisa')]===1,'Sparat i arket');
- await click('[data-act="fodMode"][data-id="hjul"]');
+ // Presentbudget: 5 barn à 250 kr + Gun 70 år 500 kr + Lisa (Alltid, 37 år) 250 kr = 2 000 kr, jämnt 170 kr/mån
+ const tot=await pg.evaluate(()=>window.__d('presAr().tot'));assert.equal(tot,2000,'Presenter kommande tolv månader');
+ await click('[data-act="fodMode"][data-id="lista"]');
+ await h.shot('famD-1-lista');
+ await meny();await click('[data-act="presBud"]');
+ assert.equal(await pg.locator('form[data-form="presBud"]').count(),1,'Presentbudget ska öppnas');
+ assert.ok((await pg.locator('form[data-form="presBud"]').innerText()).includes('170 kr'),'Jämnt 170 kr/mån');
+ await h.idle(900);await h.shot('famE-1-budget');
+ await click('[data-act="presStep"][data-id="barn"][data-d="50"]');await h.waitFlush();
+ assert.equal(await pg.evaluate(()=>window.__d('presAr().tot')),2250,'Barn 300 kr');
+ await click('[data-act="presSatt"][data-id="manad"]');await h.waitFlush();
+ await h.shot('famE-2-efter-manad');
+ await pg.locator('form[data-form="presBud"] .pb-p').first().evaluate(e=>e.scrollIntoView({block:'center'}));await h.idle(300);await h.shot('famE-3-kommande');
+ await click('[data-act="presSatt"][data-id="jamn"]');await h.waitFlush();
+ await click('form[data-form="presBud"] [data-act="sheetClose"]');
+ // Ekonomi: presenter som gemensam fast kostnad
+ await click('#nav [data-act="nav"][data-id="ekonomi"]');await h.idle(800);
+ const eko=await main();
+ if(!eko.includes('Kodlås')&&!(await pg.locator('.eko-lock,[data-act="pin"]').count())){assert.ok(eko.includes('Presenter'),'Presenter i Ekonomi');
+  await pg.locator('.pb-row').first().evaluate(e=>e.scrollIntoView({block:'center'}));await h.idle(400);await h.shot('famF-1-ekonomi')}
 };
