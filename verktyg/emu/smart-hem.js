@@ -56,6 +56,7 @@ module.exports=async(pg,h)=>{
  await pg.locator(Ad+' [data-act="sheetClose"]').click();await h.idle(800);
  assert.equal(await pg.locator('main .ha-t[data-id="light.tak_kok"]').count(),1,'Tillagd i vyn');
  // ta bort med håll in
+ await pg.locator('main .ha-t[data-id="light.tak_kok"]').evaluate(e=>e.scrollIntoView({block:'center'}));await h.idle(300);
  await h.hold('main .ha-t[data-id="light.tak_kok"] .ha-n');await h.idle(500);
  await h.hold('[data-hold="haDelHold"]');await h.idle(1500);
  assert.equal(await pg.locator('main .ha-t[data-id="light.tak_kok"]').count(),0,'Borttagen');

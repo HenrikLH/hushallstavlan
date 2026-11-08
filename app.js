@@ -1214,10 +1214,10 @@ const boardDefault=()=>U3?[['kal','mat'],['upg','inkop','fod','stad']]:WALL_DEF;
    Väggdatorns lokala tjänst (kiosk/ljussensor.py, /ha) håller HA-nyckeln och släpper bara igenom valda lampor, scener och
    givare. Appen frågar med lång väntan (?v=N svarar först vid en ändring), så rutan följer med inom en sekund när någon
    tänder via Google, IKEA eller strömbrytaren. Utan tjänsten eller inställningen syns ingen ruta. ht.haDemo=1 = låtsasdata. */
-const HA_URL='http://127.0.0.1:8777/ha',HA={d:null,v:0,fel:null,busy:false,retry:0,last:null,demo:null};
+const HA_LOKAL='http://127.0.0.1:8777/ha',haUrl=()=>wallBoardOn()?HA_LOKAL:lsGet('haUrl')?lsGet('haUrl')+'/ha':'',HA={d:null,v:0,fel:null,busy:false,retry:0,last:null,demo:null};
 const haDemo=()=>lsGet('haDemo')==='1';
 const haData=()=>{if(haDemo()){if(!HA.demo)HA.demo={lampor:[{id:'light.kok',n:'Köket',hn:'Köket',rum:'Kök',t:'light',on:true,b:80,lagen:['color_temp'],lage:'color_temp',k:2700,kmin:2200,kmax:4000},{id:'light.vardagsrum',n:'Golvlampa',hn:'Vardagsrum',rum:'Vardagsrum',t:'light',on:true,b:45,lagen:['color_temp','xy'],lage:'xy',hs:[28,70],kmin:2200,kmax:6500},{id:'switch.fonster',n:'Fönsterlampa',hn:'Fönster',rum:'Vardagsrum',t:'switch',on:true},{id:'light.hall',n:'Hallen',hn:'Hallen',rum:'Hall',t:'light',on:false,lagen:['brightness']},{id:'light.sovrum',n:'Sovrumslampa',hn:'Sovrum',rum:'Sovrum',t:'light',on:false,lagen:['brightness']},{id:'light.bad',n:'Badrum',hn:'Badrum',t:'light',on:false}],scener:[{id:'scene.morgon',n:'Morgon'},{id:'scene.kvall',n:'Kväll'},{id:'scene.film',n:'Film'}],givare:[{id:'sensor.inne',n:'Inne',v:'21.4',u:'°C'}]};return HA.demo}return HA.d};
-const haOn=wall=>haDemo()||(wall&&wallBoardOn()&&!!HA.d);
+const haOn=wall=>haDemo()||!!HA.d&&!!haUrl()&&(!wall||wallBoardOn());
 const HAI={bulb:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.7.5 1.1 1.3 1.1 2.2h5c0-.9.4-1.7 1.1-2.2A6 6 0 0 0 12 3z"/></svg>',
  plug:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3v5M15 3v5"/><path d="M6.5 8h11v3a5.5 5.5 0 0 1-11 0z"/><path d="M12 16.5V21"/></svg>',
  temp:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14.5V5a2 2 0 0 1 4 0v9.5a4 4 0 1 1-4 0z"/><path d="M12 10v7"/></svg>',
@@ -1260,12 +1260,12 @@ function haAddSheet(enter){const A0=HA.alla;
   HA_SORT.map(([rub,f])=>{const R=A0.alla.filter(f);return R.length?sh(rub)+group(R.map(x=>'<div class="cell"><span class="grow">'+esc(x.n)+'</span>'+(x.vald?'<span class="meta">Tillagd</span>':'<button type="button" class="pill" data-act="haAdd" data-id="'+esc(x.id)+'">'+I.plus+'Lägg till</button>')+'</div>').join('')):''}).join('')+'<div class="foot">Lås, larm och liknande går inte att lägga till på tavlan.</div>';
  return sheetHtml('haAdd','Lägg till enhet','<button type="button" class="tb strong" data-act="sheetClose">Klar</button>',body,enter,'<span class="tb"></span>')}
 async function haAllaHamta(){if(haDemo()){HA.alla={alla:HA_DEMO_ALLA.map(x=>Object.assign({},x,{vald:haAllaEnh().some(e=>e.id===x.id)}))};render();return}
- try{const r=await fetch(HA_URL+'/alla',{cache:'no-store'}),j=await r.json();HA.alla=j.alla?j:{fel:j.fel==='inte inställt'?'Väggdatorn är inte kopplad till Home Assistant.':'Home Assistant svarar inte just nu.'}}
+ try{const r=await fetch(haUrl()+'/alla',{cache:'no-store'}),j=await r.json();HA.alla=j.alla?j:{fel:j.fel==='inte inställt'?'Väggdatorn är inte kopplad till Home Assistant.':'Home Assistant svarar inte just nu.'}}
  catch(e){HA.alla={fel:'Väggdatorns tjänst svarar inte.'}}render()}
 const HA_DEMO_ALLA=[{id:'light.kok',n:'Köket',t:'light'},{id:'light.vardagsrum',n:'Vardagsrum',t:'light'},{id:'light.hall',n:'Hallen',t:'light'},{id:'light.sovrum',n:'Sovrum',t:'light'},{id:'light.bad',n:'Badrum',t:'light'},{id:'light.tak_kok',n:'Taklampa kök',t:'light'},{id:'switch.fonster',n:'Fönster',t:'switch'},{id:'switch.kaffe',n:'Kaffebryggare',t:'switch'},{id:'fan.golvflakt',n:'Golvfläkt',t:'fan'},{id:'scene.morgon',n:'Morgon',t:'scene'},{id:'scene.kvall',n:'Kväll',t:'scene'},{id:'scene.film',n:'Film',t:'scene'},{id:'sensor.inne',n:'Inne',t:'sensor'},{id:'sensor.ute',n:'Ute',t:'sensor'}];
 // ändra listan: optimistiskt här, sedan till tjänsten (som sparar i väggdatorns fil och skickar nytt läge)
 async function haValj(body,lok){lok();render();if(haDemo())return;HA.pend=(HA.pend||0)+1;
- try{const r=await fetch(HA_URL+'/val',{method:'POST',body:JSON.stringify(body)});if(!r.ok)throw 0}
+ try{const r=await fetch(haUrl()+'/val',{method:'POST',body:JSON.stringify(body)});if(!r.ok)throw 0}
  catch(e){toast('Kunde inte spara på väggdatorn');HA.v=0}
  HA.pend--;render()}
 const haVal=(id,v)=>id==='b'?v+' %':Math.round(v/50)*50+' K';
@@ -1277,7 +1277,7 @@ document.addEventListener('change',e=>{const id=e.target.dataset&&e.target.datas
 V.hus=function(){const D=haData();let h='<div class="rcp-top"><button class="back" data-act="nav" data-id="oversikt">'+I.back+'Översikt</button></div>';
  const E=D?D.lampor||[]:[],n=E.filter(x=>x.on).length,g=D&&(D.givare||[])[0];
  h+=head('Smart hem',{sub:D?(n?n+' tända':'Allt släckt')+(g?' · '+esc(haGiv(g)):''):'',tools:D?'<button type="button" class="ib" data-act="haAddOpen" aria-label="Lägg till enhet">'+I.plus+'</button>':''});
- if(!D)return h+'<div class="group"><div class="cell"><span class="grow">'+(wallBoardOn()?'Väggdatorn är inte kopplad till Home Assistant än, eller svarar inte just nu.':'Smart hem styrs från väggskärmen.')+'</span></div></div>';
+ if(!D)return h+'<div class="group"><div class="cell"><span class="grow">'+(haUrl()?'Får ingen kontakt med väggdatorn. Är Tailscale på i telefonen?':'Lägg in väggdatorns adress under Inställningar → Enheten för att styra hemmet från telefonen.')+'</span></div></div>';
  const sc=(D.scener||[]).concat(n?[{id:'av',n:'Släck allt'}]:[]);
  if(sc.length)h+=sh('Scener')+'<div class="ha-sc ha-sc-v">'+sc.map(s=>'<button type="button" class="pill'+(HA.last===s.id?' on':'')+'" data-act="haScen" data-id="'+esc(s.id)+'"'+(s.id!=='av'?' data-hold-lift="haEdit"':'')+'>'+esc(s.n)+'</button>').join('')+'</div>';
  const rum=HA_RUM.filter(r=>E.some(x=>x.rum===r)).concat(E.some(x=>x.rum&&!HA_RUM.includes(x.rum))?[...new Set(E.filter(x=>x.rum&&!HA_RUM.includes(x.rum)).map(x=>x.rum))]:[]).concat(E.some(x=>!x.rum)?['']:[]);
@@ -1286,9 +1286,9 @@ V.hus=function(){const D=haData();let h='<div class="rcp-top"><button class="bac
  if((D.givare||[]).length)h+=sh('Givare')+group(D.givare.map(x=>'<div class="cell" data-hold-lift="haEdit" data-id="'+esc(x.id)+'"><span class="ha-i sm">'+HAI.temp+'</span><span class="grow">'+esc(x.n)+(x.rum?'<span class="meta"> · '+esc(x.rum)+'</span>':'')+'</span><span class="num">'+esc(haGiv(Object.assign({},x,{n:''})).trim())+'</span></div>').join(''));
  return h+'<div class="foot">Tryck på en enhet för att styra den, på den runda ikonen för att tända eller släcka. Håll in för att byta namn, rum eller ta bort.</div>'};
 // lång väntan mot tjänsten: svarar direkt första gången, sedan när något ändras (eller efter 25 s)
-async function haLoop(){if(HA.busy||haDemo()||!wallBoardOn()||Date.now()<HA.retry)return;HA.busy=true;
- try{while(wallBoardOn()){const ac=new AbortController(),t=setTimeout(()=>ac.abort(),40000);
-   const r=await fetch(HA_URL+'?v='+HA.v,{cache:'no-store',signal:ac.signal});clearTimeout(t);const j=await r.json();
+async function haLoop(){if(HA.busy||haDemo()||!haUrl()||Date.now()<HA.retry)return;HA.busy=true;const bas=haUrl();
+ try{while(haUrl()===bas&&(wallBoardOn()||document.visibilityState==='visible')){const ac=new AbortController(),t=setTimeout(()=>ac.abort(),40000);
+   const r=await fetch(bas+'?v='+HA.v,{cache:'no-store',signal:ac.signal});clearTimeout(t);const j=await r.json();
    if(!j.lampor){HA.d=null;HA.retry=Date.now()+300000;render();break}// inte inställt: fråga igen om fem minuter
    const ch=JSON.stringify([j.lampor,j.scener,j.givare,j.fel])!==JSON.stringify(HA.d&&[HA.d.lampor,HA.d.scener,HA.d.givare,HA.fel]);
    HA.d=j;HA.v=j.v;HA.fel=j.fel;if(ch&&!HA.pend&&!HA.drag)render()}}
@@ -1296,7 +1296,7 @@ async function haLoop(){if(HA.busy||haDemo()||!wallBoardOn()||Date.now()<HA.retr
  HA.busy=false}
 setInterval(haLoop,5000);setTimeout(haLoop,1500);
 async function haSend(body,undo){if(haDemo())return;HA.pend=(HA.pend||0)+1;
- try{const r=await fetch(HA_URL,{method:'POST',body:JSON.stringify(body)});if(!r.ok)throw 0}
+ try{const r=await fetch(haUrl(),{method:'POST',body:JSON.stringify(body)});if(!r.ok)throw 0}
  catch(e){undo();toast('Kunde inte nå Home Assistant');render()}
  HA.pend--;render()}
 V.oversikt=function(){
@@ -1330,7 +1330,7 @@ V.oversikt=function(){
  H.hem=widget('stad','w2',I.home,'Hemmet','',rh.length?'<div class="wl">'+rh.map(healthRow).join('')+'</div>':'<div class="wempty">Städschemat är tomt.</div>');
  H.imorgon=tm?widget('mat','w2',I.cal,'Imorgon',esc(dateShort(tm.date)),(eventsHtml(tm)||'<div class="wempty">Inga händelser.</div>')+(tm.meals.length?wMeals(tm):'')):'';
  H.fod=wallBd();
- if(haDemo())H.hus=haBox(false);// telefonen: bara förhandsvisningen
+ if(haOn(false))H.hus=haBox(false);
  const L=layout(false,OV_DEF());
  return h+'<div class="widgets'+(S.arrange?' arranging':'')+'">'+boxRow(L.cols[0].filter(id=>H[id]),false,H,L)+'</div>'+(S.arrange?'<p class="arr-intro">Håll kvar och dra en ruta dit du vill ha den. Dra i hörnknappen för att göra den halv eller hel. − döljer rutan. Gäller bara den här enheten.</p>':smileyCard())+'</div>'+arrangeFoot(L,false)};
 // utan egen ordning ligger födelsedagarna näst sist
@@ -3004,6 +3004,7 @@ function renderOverlay(){
   sh('Översikten')+group('<button type="button" class="cell link" data-act="arrange"><span class="grow">Ändra ordning på rutorna</span>'+chevron+'</button>'+(prevGet(layoutKey(S.wall))?'<button type="button" class="cell link" data-act="boxPrev"><span class="grow">Gå tillbaka till föregående layout</span>'+chevron+'</button>':''))+'<div class="foot">Gäller bara den här enheten. Du kan också hålla fingret på en ruta en stund.</div>'+group(fieldCell('Widgets i olika storlekar','<input type="checkbox" role="switch" class="switch" data-act="exp" aria-label="Widgets i olika storlekar"'+(expOn()?' checked':'')+'>'))+'<div class="foot">Rutorna kan vara Liten, Mellan eller Stor och visar mer ju större de är. Dra i hörnknappen i Ändra ordning. Av ger de vanliga rutorna, som du gör halva eller hela genom att dra i hörnet.</div>'],
    ['enhet','Enheten',sh('Skärm')+group(fieldCell('Väggläge','<input type="checkbox" role="switch" class="switch" data-act="wall" aria-label="Väggläge"'+(S.wall?' checked':'')+'>')+
    (S.wall?'<button type="button" class="cell link" data-act="vagg"><span class="grow">Nattläge</span><span class="meta">'+esc((!NATT.on?'Av':NATT.sol?'Solnedgång–soluppgång':nattTid(NATT.a)+'–'+nattTid(NATT.b))+(CAM.on?' · kamera':''))+'</span>'+chevron+'</button>':'')+statusHtml())+
+  (!wallBoardOn()?sh('Smart hem')+group(fieldCell('Väggdatorns adress','<input class="field r" name="haurl" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="https://….ts.net" value="'+esc(lsGet('haUrl')||'')+'" style="max-width:220px">'))+'<div class="foot">Med Tailscale på telefonen kan du styra hemmets lampor och uttag härifrån, hemma och borta. Adressen får du från väggdatorn.</div>':'')+
   (topic?sh('Notiser')+group('<div class="cell"><span class="grow copy">'+esc(topic)+'</span><button type="button" class="pill" data-act="copy" data-id="'+esc(topic)+'">Kopiera</button></div>')+'<div class="foot">Installera appen ntfy och prenumerera på det här ämnet. Använd servern ntfy.sh.</div>':'')+(S.wall?sh('Inställningsknappen på väggskärmen')+'<div class="seg-wrap">'+segc('Inställningsknappen på väggskärmen','vaggknapp',[['meny','I menyraden'],['knapp','Egen knapp'],['rubrik','Rubrikrad']],VKNAPP)+'</div><div class="foot">I menyraden sitter cirkeln längst till höger i menyn. Egen knapp är en rund knapp nere till höger. Rubrikrad lägger en rad överst med cirkeln till höger, som på telefonen. Gäller bara den här enheten.</div>':'')+sh('Den här enheten')+group('<button type="button" class="cell link center red" data-act="logout">Logga ut</button>')],
    ['avancerat','Avancerat',sh('Utvecklare')+group(fieldCell('Utvecklarläge','<input type="checkbox" role="switch" class="switch" data-act="dev" aria-label="Utvecklarläge"'+(DEV?' checked':'')+'>'))+'<div class="foot">Visar menyer som inte är färdiga, just nu Planera nästa vecka och Planera med portioner. Gäller bara den här enheten.</div>'+
   (sh('Rörelse')+group(fieldCell('Vägledande animationer','<input type="checkbox" role="switch" class="switch" data-act="motion" aria-label="Vägledande animationer"'+(MOTION?' checked':'')+'>'))+'<div class="foot">Riktade sidbyten, glidande menyval och mjuk expansion. Systemets inställning för minskad rörelse går alltid före. Gäller den här enheten.</div>')+
@@ -5450,7 +5451,7 @@ document.addEventListener('submit',async e=>{const f=e.target.closest('[data-for
  if(f.dataset.form==='prefs'){const st=settings();
   const ch=PREFS.map(([k])=>[k,String(d[k]||'').replace(/\s+\n/g,'\n').trim()]).filter(([k,v])=>String(st[k]||'')!==v);
   closeSheets();ch.forEach(([k,v])=>{st[k]=v;apiPost({action:'setting',k,v})});render();toast(ch.length?'Preferenserna är sparade':'Inget ändrades');return}
- if(f.dataset.form==='settings'){const L=personList().slice(0,2),names=[d.p1,d.p2].map(x=>String(x||'').trim().replace(/\s+/g,' '));if(names.some(n=>!n)||names[0].toLocaleLowerCase('sv')===names[1].toLocaleLowerCase('sv')){toast('Skriv två olika namn');return}
+ if(f.dataset.form==='settings'){if('haurl' in d){const u=String(d.haurl||'').trim().replace(/\/+$/,'');if(u!==(lsGet('haUrl')||'')){lsSet('haUrl',/^https:\/\//.test(u)?u:null);HA.d=null;HA.v=0;HA.retry=0;setTimeout(haLoop,100)}}const L=personList().slice(0,2),names=[d.p1,d.p2].map(x=>String(x||'').trim().replace(/\s+/g,' '));if(names.some(n=>!n)||names[0].toLocaleLowerCase('sv')===names[1].toLocaleLowerCase('sv')){toast('Skriv två olika namn');return}
   L.forEach((x,i)=>{x.label=names[i];x.c=d['c'+(i+1)]});const p=personSetting(L),st=settings();
   const ch=[['personer',p],['stadtid_vardag',String(Number(d.wd)||20)],['stadtid_helg',String(Number(d.we)||40)],['matbudget',String(Number(d.budget)||0)]].filter(([k,v])=>String(st[k]||'')!==v);
   ch.forEach(([k,v])=>{st[k]=v;apiPost({action:'setting',k,v})});S.prefDraft=null;S.sheet=null;render();if(ch.length)toast('Sparat')}
