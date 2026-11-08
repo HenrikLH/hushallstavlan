@@ -1178,7 +1178,7 @@ function wallBd(){const L=bdays();if(!L.length)return'';const t=parse(today()),m
  if(!mon.length){const nx=bdNext(L)[0];mm2=nx.mo;mon=L.filter(b=>b.mo===mm2).sort((a,b)=>a.dd-b.dd)}
  const more=mon.length>4?mon.length-3:0,show=more?mon.slice(0,3):mon;
  return widget('fod','bbd',I.cake,'Födelsedagar',esc(cap(MON[mm2])),'<div class="bbd-in"><div class="bbd-w">'+bdWheel(L,mm2)+'</div><div class="bbd-l">'+
-  show.map(b=>'<div class="'+(b.days===0?'today':b.passed?'past':'')+'"'+bdSt(b)+'><span class="num">'+b.dd+'</span><span class="grow">'+bmMini(b)+esc(b.name)+'</span><span class="fn num'+(b.gift&&fodStil()==='a'?' bm-kap':'')+'"'+(b.gift&&fodStil()==='a'?' style="--bm:'+bdCol(b)+'"':'')+'>'+(b.age!=null?b.age:"")+'</span></div>').join('')+
+  show.map(b=>'<div class="'+(b.days===0?'today':b.passed?'past':'')+'"'+bdSt(b)+'><span class="num">'+b.dd+'</span><span class="grow">'+bmMini(b)+esc(b.name)+'</span><span class="fn num">'+(b.age!=null?b.age:"")+'</span></div>').join('')+
   (more?'<div class="fn">och '+more+' till</div>':'')+'</div></div>')}
 function wallBoard(){
  if(nightOn())return wallNight();
@@ -4438,12 +4438,11 @@ function presAr(from){const t=from||thisMonth(),y=+t.slice(0,4),m=+t.slice(5,7)-
  const tot=M.reduce((a,x)=>a+x.kr,0);return{M,tot,jamn:Math.ceil(tot/12/10-1e-9)*10}}
 // Månadens fasta kostnad för presenter i Ekonomi
 const presPerMan=ym=>{if(!bdays().length)return 0;const P=presBud();return P.satt==='manad'?presMan(ym).reduce((a,x)=>a+x.kr,0):presAr(ym).jamn};
-// Märkning (förslag tills Henrik valt): a = kapsel med åldern, b = prick som olästa i Mail och runt datum för barn, c = beloppet till höger
-const fodStil=()=>['a','b','c'].includes(lsGet('fodStil'))?lsGet('fodStil'):'a';
-const bdCol=b=>b.col&&colOk(b.col)?PCOL[b.col][isDark()?3:1]:'var(--accent)';
-const bmKap=b=>'<span class="bm-kap num" style="--bm:'+bdCol(b)+'">'+(b.age!=null?b.age:'•')+'</span>',bmDot=b=>'<i class="bm-dot" style="--bm:'+bdCol(b)+'" aria-label="Present"></i>';
+// Present märks med beloppet till höger (Henriks val), barn med etiketten Barn. Åldern i "Fyller 19" står i personens färg
+const bdCol=b=>b.col&&colOk(b.col)?PCOL[b.col][isDark()?3:1]:'var(--accent)',bmDot=b=>'<i class="bm-dot" style="--bm:'+bdCol(b)+'" aria-label="Present"></i>';
+const bdFyller=b=>b.age!=null?'Fyller <b class="bm-age num">'+b.age+'</b>':'Fyller år';
 // Liten märkning i månadsrutnätet och på väggtavlan
-const bmMini=b=>!b.gift?'':fodStil()==='a'?'':bmDot(b);
+const bmMini=b=>b.gift?bmDot(b):'';
 // Barn (fyller under 18, födelseår känt) får orange om ingen egen färg är vald
 const BD_BARN='orange';
 // Egen färg per person: style med --bd (prick), --bd-soft (bakgrund) och --bd-ink (text). Utan färg används accentfärgen
@@ -4465,10 +4464,10 @@ function bdays(){const t=today(),ty=Number(t.slice(0,4)),seen=new Set(),E=fodEgn
 const bdWhen=b=>b.days===0?'idag':b.days===1?'imorgon':b.days<7?'på '+DAYS[parse(b.next).getDay()]:b.days<45?'om '+b.days+' dagar':'om '+Math.round(b.days/30.4)+' mån';
 const bdTurns=b=>b.age!=null?'fyller '+b.age:'fyller år';
 const bdNext=L=>L.slice().sort((a,b)=>a.days-b.days);
-function bdRow(b,o){o=o||{};const s=fodStil(),when='<span class="bd-when'+(b.days<14?' soon':'')+'">'+esc(bdWhen(b))+'</span>';
- return'<div class="cell bd fs-'+s+(b.barn?' barn':'')+(b.gift?' gave':'')+(b.days===0?' today':'')+(b.passed&&o.dim?' past':'')+'" data-hold-lift="fodEdit" data-id="'+esc(b.key)+'"'+bdSt(b)+'><span class="bd-date num"><b>'+b.dd+'</b><small>'+MON3[b.mo]+'</small></span>'+
- '<div class="grow"><div class="bd-nm">'+(s==='b'&&b.gift?bmDot(b):'')+esc(b.name)+(s==='a'&&b.gift?bmKap(b):'')+(s==='c'&&b.barn?'<span class="bm-barn">Barn</span>':'')+'</div><div class="sub">'+esc(s==='a'&&b.barn?'Barn · '+bdTurns(b):cap(bdTurns(b)))+(b.yr?' · född '+b.yr:'')+(b.fam&&!o.nofam?' · '+esc(b.fam.n):'')+'</div></div>'+
- (s==='c'&&b.gift?'<span class="bm-hoger"><span class="bm-kr num">'+kr(presKr(b.age,presBud()))+'</span>'+when+'</span>':when)+'</div>'}
+function bdRow(b,o){o=o||{};const when='<span class="bd-when'+(b.days<14?' soon':'')+'">'+esc(bdWhen(b))+'</span>';
+ return'<div class="cell bd'+(b.barn?' barn':'')+(b.gift?' gave':'')+(b.days===0?' today':'')+(b.passed&&o.dim?' past':'')+'" data-hold-lift="fodEdit" data-id="'+esc(b.key)+'"'+bdSt(b)+'><span class="bd-date num"><b>'+b.dd+'</b><small>'+MON3[b.mo]+'</small></span>'+
+ '<div class="grow"><div class="bd-nm">'+esc(b.name)+(b.barn?'<span class="bm-barn">Barn</span>':'')+'</div><div class="sub">'+bdFyller(b)+(b.yr?' · född '+b.yr:'')+(b.fam&&!o.nofam?' · '+esc(b.fam.n):'')+'</div></div>'+
+ (b.gift?'<span class="bm-hoger"><span class="bm-kr num">'+kr(presKr(b.age,presBud()))+'</span>'+when+'</span>':when)+'</div>'}
 // Årshjul: tolv lika stora månadssegment, januari överst, medurs. Varje födelsedag är en prick på sin dag.
 function bdWheel(L,sel){const C=180,R0=102,R1=174,t=parse(today());
  const ang=(mo,day)=>{const n=new Date(2001,mo+1,0).getDate();return(mo+(day-.5)/n)/12*2*Math.PI-Math.PI/2};
@@ -4532,7 +4531,7 @@ V.fod=function(){const ALLA=bdays(),t=parse(today()),mode=S.fodMode||'hjul';if(S
  else if(mode==='manad'){h+='<div class="bd-grid"'+RF('F3')+'>';
   for(let m=0;m<12;m++){const ML=L.filter(b=>b.mo===m),cur=m===t.getMonth();
    h+='<section class="bd-mon'+(cur?' now':'')+(!ML.length?' empty':'')+'"><div class="bd-mh"><span>'+cap(MON[m])+'</span>'+(ML.length?'<span class="n">'+ML.length+'</span>':'')+'</div>'+
-    (ML.length?ML.map(b=>'<div class="bd-li'+(b.passed?' past':'')+(b===first?' next':'')+'"'+bdSt(b)+'><span class="d num">'+b.dd+'</span><span class="nm">'+bmMini(b)+esc(b.name)+'</span>'+(b.age!=null?'<span class="a num'+(b.gift&&fodStil()==='a'?' bm-kap':'')+'"'+(b.gift&&fodStil()==='a'?' style="--bm:'+bdCol(b)+'"':'')+'>'+b.age+'</span>':'')+'</div>').join(''):'<div class="bd-none">–</div>')+'</section>'}
+    (ML.length?ML.map(b=>'<div class="bd-li'+(b.passed?' past':'')+(b===first?' next':'')+'"'+bdSt(b)+'><span class="d num">'+b.dd+'</span><span class="nm">'+bmMini(b)+esc(b.name)+'</span>'+(b.age!=null?'<span class="a num">'+b.age+'</span>':'')+'</div>').join(''):'<div class="bd-none">–</div>')+'</section>'}
   h+='</div><div class="foot">Siffran efter namnet är åldern personen fyller. Grått har redan varit i år.</div>'}
  else{h+='<section class="bd-hero"'+RF('F4')+'><div class="eyebrow">'+(first.days===0?'Idag':'Nästa födelsedag')+'</div><div class="bd-hn">'+esc(same.map(b=>b.name).join(' & '))+'</div><div class="bd-hs">'+esc(cap(same.length===1?bdTurns(first):'fyller år'))+' '+esc(bdWhen(first))+'</div><div class="sub">'+esc(dateLong(first.next))+'</div></section>';
   // Årsremsa: tolv månader från och med den här, en prick per födelsedag
