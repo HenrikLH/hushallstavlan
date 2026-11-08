@@ -3039,6 +3039,90 @@ html.ny.ui5 .g5-tom .title{color:var(--accent)}
 html.ny.ui5 .g5-kop summary{list-style:none;cursor:pointer;gap:8px}html.ny.ui5 .g5-kop summary::-webkit-details-marker{display:none}
 html.ny.ui5 .g5-kop summary .chev{transition:transform .2s}html.ny.ui5 .g5-kop[open] summary .chev{transform:rotate(90deg)}
 html.ny.ui5 .g5-kop .val{color:var(--ink-3)}
+/* ===== Aura (frivilligt val, ht.ui=6, gäller bara html.aura) =====
+   UI 5.0:s funktioner och former med ett varmare utseende, inspirerat av hemappen Aura 2.0 (github.com/sundqvist80/aura-2, MIT-licens):
+   ljust = kräm och brons, mörkt = marin och indigo eller noir (svart och champagne). Mjuka kort med stor rundning,
+   rubriker i små spärrade versaler med ikon i en liten ruta, kapslar med fylld markering och typsnittet Manrope. */
+html.ny.ui5.aura{
+ --bg:#ECE6DD;--surface:#FBF9F5;--surface-raised:#FBF9F5;--fill:#F2EDE5;--track:#E7E0D5;--line:rgba(60,45,25,.10);
+ --ink:#1E1A15;--ink-2:rgba(30,26,21,.56);--ink-3:rgba(30,26,21,.34);
+ --accent:#B07D3A;--accent-soft:rgba(176,125,58,.14);--on-accent:#fff;--acc2:#D9B072;
+ --green:#3E9A62;--orange:#C68A1A;--red:#D0503F;--veg-ink:#3E9A62;--gem-ink:#B5651D;
+ --bar:rgba(236,230,221,.82);--glass:rgba(251,249,245,.86);--glass-line:rgba(60,45,25,.07);--pill:#F2EDE5;--lins:#FBF9F5;--seg-on:#B07D3A;
+ --kant:rgba(60,45,25,.07);--skugga:0 1px 2px rgba(60,40,10,.05),0 20px 44px -26px rgba(80,55,20,.35);
+ --glow1:#F7F2EA;--glow2:#E2D6C4;--r5:26px;
+ --font:'Manrope',ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){html.ny.ui5.aura:not([data-theme="light"]){
+ --bg:#080A15;--surface:#111427;--surface-raised:#181C34;--fill:#181C34;--track:#222744;--line:rgba(255,255,255,.07);
+ --ink:#EEF0FF;--ink-2:rgba(238,240,255,.58);--ink-3:rgba(238,240,255,.34);
+ --accent:#7568FF;--accent-soft:rgba(117,104,255,.2);--on-accent:#fff;--acc2:#A69EFF;
+ --green:#4ADE80;--orange:#FBBF24;--red:#FB7185;--veg-ink:#4ADE80;--gem-ink:#FBBF24;
+ --bar:rgba(8,10,21,.8);--glass:rgba(17,20,39,.86);--glass-line:rgba(255,255,255,.07);--pill:#181C34;--lins:#222744;--seg-on:#7568FF;
+ --kant:rgba(255,255,255,.06);--skugga:inset 0 1px 0 rgba(255,255,255,.04),0 24px 50px -28px rgba(0,0,0,.9);--glow1:rgba(117,104,255,.28);--glow2:rgba(30,107,255,.16)}
+ html.ny.ui5.aura.aura-noir:not([data-theme="light"]){
+ --bg:#0A0908;--surface:#141210;--surface-raised:#1C1916;--fill:#1C1916;--track:#28241F;--line:rgba(255,236,210,.08);
+ --ink:#F5EFE6;--ink-2:rgba(245,239,230,.58);--ink-3:rgba(245,239,230,.34);
+ --accent:#D4AF7A;--accent-soft:rgba(212,175,122,.18);--on-accent:#1B150D;--acc2:#F0D9AE;
+ --green:#7CC9A0;--orange:#E8B85C;--red:#E3806F;--veg-ink:#7CC9A0;--gem-ink:#E8B85C;
+ --bar:rgba(10,9,8,.8);--glass:rgba(20,18,16,.86);--glass-line:rgba(255,236,210,.07);--pill:#1C1916;--lins:#28241F;--seg-on:#D4AF7A;
+ --kant:rgba(255,236,210,.07);--skugga:inset 0 1px 0 rgba(255,236,210,.05),0 24px 50px -28px rgba(0,0,0,.95);--glow1:rgba(212,175,122,.12);--glow2:rgba(107,69,35,.22)}}
+html.ny.ui5.aura[data-theme="dark"]{
+ --bg:#080A15;--surface:#111427;--surface-raised:#181C34;--fill:#181C34;--track:#222744;--line:rgba(255,255,255,.07);
+ --ink:#EEF0FF;--ink-2:rgba(238,240,255,.58);--ink-3:rgba(238,240,255,.34);
+ --accent:#7568FF;--accent-soft:rgba(117,104,255,.2);--on-accent:#fff;--acc2:#A69EFF;
+ --green:#4ADE80;--orange:#FBBF24;--red:#FB7185;--veg-ink:#4ADE80;--gem-ink:#FBBF24;
+ --bar:rgba(8,10,21,.8);--glass:rgba(17,20,39,.86);--glass-line:rgba(255,255,255,.07);--pill:#181C34;--lins:#222744;--seg-on:#7568FF;
+ --kant:rgba(255,255,255,.06);--skugga:inset 0 1px 0 rgba(255,255,255,.04),0 24px 50px -28px rgba(0,0,0,.9);--glow1:rgba(117,104,255,.28);--glow2:rgba(30,107,255,.16)}
+html.ny.ui5.aura.aura-noir[data-theme="dark"]{
+ --bg:#0A0908;--surface:#141210;--surface-raised:#1C1916;--fill:#1C1916;--track:#28241F;--line:rgba(255,236,210,.08);
+ --ink:#F5EFE6;--ink-2:rgba(245,239,230,.58);--ink-3:rgba(245,239,230,.34);
+ --accent:#D4AF7A;--accent-soft:rgba(212,175,122,.18);--on-accent:#1B150D;--acc2:#F0D9AE;
+ --green:#7CC9A0;--orange:#E8B85C;--red:#E3806F;--veg-ink:#7CC9A0;--gem-ink:#E8B85C;
+ --bar:rgba(10,9,8,.8);--glass:rgba(20,18,16,.86);--glass-line:rgba(255,236,210,.07);--pill:#1C1916;--lins:#28241F;--seg-on:#D4AF7A;
+ --kant:rgba(255,236,210,.07);--skugga:inset 0 1px 0 rgba(255,236,210,.05),0 24px 50px -28px rgba(0,0,0,.95);--glow1:rgba(212,175,122,.12);--glow2:rgba(107,69,35,.22)}
+/* Bakgrund: mjukt ljus i två hörn, stilla (ingen oskärpa eller animation, så att väggdatorn orkar) */
+html.ny.ui5.aura body{font-family:var(--font);letter-spacing:-.01em;font-feature-settings:'tnum';background:var(--bg)}
+html.ny.ui5.aura body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(60% 50% at 12% 0%,var(--glow1),transparent 70%),radial-gradient(55% 50% at 100% 100%,var(--glow2),transparent 70%)}
+/* Rubriker: datum ovanför, kraftig hälsning */
+html.ny.ui5.aura .lt{font-weight:800;letter-spacing:-.035em;font-size:31px;line-height:38px}
+html.ny.ui5.aura .head .sub{font-weight:600}
+/* Kort */
+html.ny.ui5.aura :is(.group,.pref-section,.add-row,.wcard,.ws-card,.widget),html.ny.ui5.aura body:not(.wall) .ov>.hero{background:var(--surface);border:1px solid var(--kant);box-shadow:var(--skugga)}
+html.ny.ui5.aura :is(.group,.pref-section,.add-row,.wcard,.ws-card,.widget,.ov>*){border-radius:var(--r5)}
+/* Kortens rubrik: små spärrade versaler med ikonen i en liten ruta, siffror till höger som kapsel */
+html.ny.ui5.aura .widget .wh{display:flex;align-items:center;gap:10px;font-size:12px;line-height:16px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2);margin-bottom:10px}
+html.ny.ui5.aura .widget .wh>svg{display:block;flex:none;width:32px;height:32px;padding:7px;border-radius:11px;background:var(--fill);color:var(--ink)}
+html.ny.ui5.aura .widget .wh .r{margin-left:auto;text-transform:none;letter-spacing:0;font-size:12.5px;font-weight:800;color:var(--accent);background:var(--accent-soft);border-radius:999px;padding:4px 10px}
+html.ny.ui5.aura .widget .wh .r:empty{display:none}
+html.ny.ui5.aura .sh{font-size:12px;font-weight:800;letter-spacing:.12em;color:var(--ink-2)}
+html.ny.ui5.aura .sh .r,html.ny.ui5.aura .sh .acc,html.ny.ui5.aura .sh a,html.ny.ui5.aura .sh button{letter-spacing:0;font-weight:700}
+html.ny.ui5.aura .gh{font-weight:800;letter-spacing:-.03em}
+/* Stora tal tunna och luftiga, som Aura:s temperatur och klocka */
+html.ny.ui5.aura .clock{font-weight:300;letter-spacing:-.04em}
+html.ny.ui5.aura :is(.wx-t,.g5-sum b,.wcard .ws-kr,.big){font-weight:300;letter-spacing:-.03em}
+/* Kapslar: fylld markering i accentfärg */
+html.ny.ui5.aura .segc{background:var(--surface);border:1px solid var(--kant);box-shadow:var(--skugga);height:44px;padding:4px}
+html.ny.ui5.aura .segc .seg-thumb{top:4px;bottom:4px;left:4px;width:calc((100% - 8px) / var(--n,2));border-radius:999px;background:var(--accent);box-shadow:0 8px 18px -8px color-mix(in srgb,var(--accent) 80%,transparent)}
+html.ny.ui5.aura .segc button{font-weight:700;color:var(--ink-2);transition:color .25s}
+html.ny.ui5.aura .segc button[aria-pressed="true"]{color:var(--on-accent)}
+html.ny.ui5.aura .pref-section .seg-thumb{background:var(--accent)}
+/* Knappar och reglage */
+html.ny.ui5.aura :is(.btn-fill,.pill.on){box-shadow:0 10px 22px -10px color-mix(in srgb,var(--accent) 80%,transparent)}
+html.ny.ui5.aura .switch{background:var(--track)}
+html.ny.ui5.aura .switch:checked{background:var(--accent)}
+html.ny.ui5.aura :is(.create-plus,.tools>.ib:not(.me-av)){background:var(--surface);border:1px solid var(--kant);box-shadow:var(--skugga)}
+html.ny.ui5.aura .me-av span{border-radius:14px;background:var(--accent)!important;color:var(--on-accent)!important;box-shadow:0 10px 24px -8px color-mix(in srgb,var(--accent) 70%,transparent)}
+/* Menyraden: ljus yta, vald flik i en upphöjd ruta */
+html.ny.ui5.aura.nav-glas .nav{border-radius:30px;background:var(--glass);border:1px solid var(--kant);box-shadow:0 18px 40px -18px rgba(60,40,10,.35)}
+html.ny.ui5.aura.nav-glas .nav-pill{border-radius:20px;background:var(--surface-raised);box-shadow:var(--skugga),0 0 0 1px var(--kant)}
+html.ny.ui5.aura .nav.fj.lyft .nav-pill{background:var(--lins)}
+html.ny.ui5.aura .nav button{color:var(--ink-3);font-weight:800;letter-spacing:.02em}
+html.ny.ui5.aura .nav button[aria-current="page"]{color:var(--accent)}
+html.ny.ui5.aura .navbar{background:var(--bar)}
+/* Schemats dag i dag och andra fyllda markeringar */
+html.ny.ui5.aura :is(.wk-d.on .n,.cal-today,.today-dot){background:var(--accent);color:var(--on-accent)}
+
 </style>
 </head>
 <body>
