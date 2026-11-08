@@ -22,6 +22,14 @@ module.exports=async(pg,h)=>{
  assert.ok(await pg.locator('[data-act="fodFilt"][data-id="f2"]').count(),'Familjeknapp ska finnas');
  await h.shot('famA-1-hjul');
  if(U5){await meny();await h.shot('famA-0-meny');await pg.mouse.click(5,300);await h.idle(300)}
+ if(U5){assert.equal(await pg.locator('.rcp-top > .me-av').count(),1,'Profilen överst till höger');assert.equal(await pg.locator('.head .tools .fod-menu').count(),1,'Filtret bredvid plus');
+  const b=await pg.evaluate(()=>['.rcp-top>.me-av','.head .tools .fod-menu summary'].map(q=>{const r=document.querySelector(q).getBoundingClientRect();return Math.round(r.left+r.width/2)}));assert.ok(Math.abs(b[0]-b[1])<=1,'Profil och filter i linje '+b)}
+ // Månader: håll in ett namn för att ändra eller ta bort
+ await click('[data-act="fodMode"][data-id="manad"]');await h.shot('famA-3-manader');
+ await h.hold('.bd-li[data-hold-lift="fodEdit"]:has-text("Moa")');assert.equal(await pg.locator('[data-hold="fodDelHold"]').count(),1,'Ta bort finns från Månader');
+ await h.hold('[data-hold="fodDelHold"]');await h.idle(400);assert.ok(!/Moa/.test(await main()),'Moa borttagen');
+ await pg.locator('#undo .ud-b').click().catch(()=>{});await h.idle(600);
+ await click('[data-act="fodMode"][data-id="hjul"]');
  // Present: Elsa fyller 10, Gun 70, Oskar 39 (nej)
  const gifts=await pg.evaluate(()=>window.__d('JSON.stringify(bdays().filter(b=>b.gift).map(b=>b.name))'));
  console.log('present:',gifts);
