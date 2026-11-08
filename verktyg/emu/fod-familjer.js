@@ -34,7 +34,7 @@ module.exports=async(pg,h)=>{
  const gifts=await pg.evaluate(()=>window.__d('JSON.stringify(bdays().filter(b=>b.gift).map(b=>b.name))'));
  console.log('present:',gifts);
  assert.ok(gifts.includes('Elsa')&&gifts.includes('Gun')&&!gifts.includes('Oskar')&&gifts.includes('Noah'),'Presentregeln');
- await filt('pres');
+ await filt('pres');assert.match(await pg.locator('.pb-rad').innerText(),/^\d+ kr\/mån – 6 av 16 personer$/,'Snittbelopp under visningsväljaren');
  await click('[data-act="fodMode"][data-id="lista"]');
  assert.ok(!(await main()).includes('Oskar'),'Oskar ska inte få present');
  await h.shot('famA-2-present-tidslinje');

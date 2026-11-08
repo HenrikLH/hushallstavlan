@@ -4533,12 +4533,12 @@ function fodChips(L){const f=S.fodFilt||'alla',F=fodFam(),dot=c=>'<i class="ff-d
 V.fod=function(){const ALLA=bdays(),t=parse(today()),mode=S.fodMode||'hjul';if(S.fodFilt&&!['alla','pres','utan'].includes(S.fodFilt)&&!fodFam().some(f=>f.id===S.fodFilt))S.fodFilt='alla';const L=fodFilt(ALLA);
  let h='<div class="rcp-top"><button class="back" data-act="nav" data-id="oversikt">'+I.back+'Översikt</button></div>';
  const fNamn=S.fodFilt==='pres'?'Present':S.fodFilt==='utan'?'Utan familj':(fodFam().find(x=>x.id===S.fodFilt)||{}).n;
- // Presentbeloppet visas diskret när filtret är Present: A i underrubriken, B liten kapsel, C sist på sidan (ht.pbVis, förslag)
- const PBV=lsGet('pbVis')||'a',pres=S.fodFilt==='pres'&&ALLA.length,pv=pres?presPerMan(thisMonth()):0;
- h+=head('Födelsedagar',{sub:ALLA.length?(U5&&fNamn?esc(fNamn)+' · ':'')+(L.length<ALLA.length?L.length+' av ':'')+ALLA.length+' personer'+(pres&&PBV==='a'?' · <button type="button" class="pb-lank num" data-act="presBud">'+kr(pv)+'/mån</button>':''):'',tools:'<button class="ib plus" data-act="fodAdd" aria-label="Ny födelsedag">'+I.plus+'</button>'});
+ // Filtret Present: en diskret rad under visningsväljaren med snittbeloppet (öppnar Presentbudget) och antalet
+ const pres=S.fodFilt==='pres'&&ALLA.length,antal=(L.length<ALLA.length?L.length+' av ':'')+ALLA.length+' personer';
+ h+=head('Födelsedagar',{sub:ALLA.length?(U5&&fNamn?esc(fNamn)+(pres?'':' · '):'')+(pres?'':antal):'',tools:'<button class="ib plus" data-act="fodAdd" aria-label="Ny födelsedag">'+I.plus+'</button>'});
  if(!ALLA.length)return h+group(emptyCell('Inga födelsedagar ännu. Lägg till med plus, eller vänta på att listan fylls i från kalendern.'));
  h+=segc('Visning','fodMode',[['hjul','Årshjul'],['manad','Månader'],['lista','Tidslinje']],mode)+(U5?'':fodChips(ALLA));
- if(pres&&PBV==='b')h+='<button type="button" class="pb-kaps num" data-act="presBud">Presenter i snitt '+kr(pv)+'/mån'+chevron+'</button>';
+ if(pres)h+='<div class="pb-rad"'+RF('F9')+'><button type="button" class="pb-lank num" data-act="presBud">'+kr(presPerMan(thisMonth()))+'/mån</button> – '+antal+'</div>';
  if(!L.length)return h+group(emptyCell(S.fodFilt==='pres'?'Ingen ska ha present. Present får de som fyller jämnt (0 och 5) och barn till och med 18.':'Ingen här ännu. Lägg till personer under Familjer.'));
  const nx=bdNext(L),first=nx[0],same=nx.filter(b=>b.days===first.days);
  if(mode==='hjul'){const sel=S.fodMon!=null?S.fodMon:t.getMonth(),ML=L.filter(b=>b.mo===sel);
@@ -4557,7 +4557,6 @@ V.fod=function(){const ALLA=bdays(),t=parse(today()),mode=S.fodMode||'hjul';if(S
   h+='</div>';
   let lastM=-1;const rows=[],fg=x=>rgroup('F6',x);nx.forEach(b=>{if(b.mo!==lastM){if(rows.length)h+=fg(rows.splice(0).join(''));h+=sh(cap(MON[b.mo])+(parse(b.next).getFullYear()!==t.getFullYear()?' '+parse(b.next).getFullYear():''));lastM=b.mo}rows.push(bdRow(b))});
   if(rows.length)h+=fg(rows.join(''))}
- if(pres&&PBV==='c')h+='<div class="foot pb-fot">I snitt <b class="num">'+kr(pv)+'</b> i månaden till presenter. <button type="button" class="pb-lank" data-act="presBud">Presentbudget</button></div>';
  return h};
 
 /* ---------- utseende ---------- */
