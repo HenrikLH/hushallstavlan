@@ -894,8 +894,7 @@ function u5Fod(m){const top=m.querySelector('.rcp-top'),t=m.querySelector('.head
  const av=t.querySelector('.me-av');if(av)top.appendChild(av);const f=S.fodFilt||'alla',L=bdays(),F=fodFam(),
   it=(k,txt,ic,n)=>'<button type="button" role="'+(k==='alla'||k==='pres'?'menuitemradio':'menuitemcheckbox')+'" aria-checked="'+fodPa(k)+'" data-act="fodFilt" data-id="'+esc(k)+'"><span class="fm-ck">'+(fodPa(k)?I.tick:'')+'</span><span class="grow">'+txt+'</span>'+(n!=null?'<span class="fm-n num">'+n+'</span>':'')+ic+'</button>',
   rund=c=>'<i class="fm-dot" style="background:'+(colOk(c)?PCOL[c][isDark()?3:1]:'var(--ink-2)')+'"></i>';
- const op=A.fodMenyOppen;A.fodMenyOppen=false;
- t.insertAdjacentHTML('beforeend','<details class="create-menu u5-menu fod-menu"'+RF('F7')+(op?' open':'')+'><summary class="u5-dots'+(f!=='alla'?' on':'')+'" aria-label="Filtrera">'+I.filt+'</summary><div class="create-options" role="menu" aria-label="Filtrera födelsedagar">'+
+ t.insertAdjacentHTML('beforeend','<details class="create-menu u5-menu fod-menu"'+RF('F7')+'><summary class="u5-dots'+(f!=='alla'?' on':'')+'" aria-label="Filtrera">'+I.filt+'</summary><div class="create-options" role="menu" aria-label="Filtrera födelsedagar">'+
   it('alla','Alla','',L.length)+it('pres','Present','<i class="fm-dot" style="background:var(--accent)"></i>',L.filter(b=>b.gift).length)+'<div class="fm-sep"></div>'+F.map(x=>it(x.id,esc(x.n),rund(x.c),L.filter(b=>b.fam&&b.fam.id===x.id).length)).join('')+(F.length&&L.some(b=>!b.fam)?it('utan','Utan familj','',L.filter(b=>!b.fam).length):'')+
   '<div class="fm-sep"></div><button type="button" role="menuitem" data-act="presBud"><span class="fm-ck"></span><span class="grow">Presentbudget</span><span class="fm-n num">'+kr(presPerMan(thisMonth()))+'/mån</span></button><button type="button" role="menuitem" data-act="fodFam"><span class="fm-ck"></span><span class="grow">'+(F.length?'Ändra familjer':'Lägg till familj')+'</span>'+I.people+'</button></div></details>')}
 function u5More(m){if(S.view==='fod'&&!S.cook)return u5Fod(m);if(S.view!=='mat'||S.matTab!=='inkop'||S.plan||S.recipe||S.cook)return;const t=m.querySelector('.head .tools');if(!t)return;const vs=settings().vecka_start,wk=isDate(vs)?'vecka '+isoWeek(parse(vs)):'veckan',n=D().shop.length,it=(act,txt,ic,cl)=>'<button type="button" role="menuitem"'+(cl?' class="'+cl+'"':'')+' data-act="'+act+'"><span>'+txt+'</span>'+ic+'</button>';
@@ -4555,11 +4554,12 @@ V.fod=function(){const ALLA=bdays(),t=parse(today()),mode=S.fodMode||'hjul';if(f
     (ML.length?ML.map(b=>'<div class="bd-li'+(b.passed?' past':'')+(b===first?' next':'')+'" data-hold-lift="fodEdit" data-id="'+esc(b.key)+'"'+bdSt(b)+'><span class="d num">'+b.dd+'</span><span class="nm">'+bmMini(b)+esc(b.name)+'</span>'+(b.age!=null?'<span class="a num">'+b.age+'</span>':'')+'</div>').join(''):'<div class="bd-none">–</div>')+'</section>'}
   h+='</div><div class="foot">Siffran efter namnet är åldern personen fyller. Grått har redan varit i år. Håll in ett namn för att ändra eller ta bort.</div>'}
  else{h+='<section class="bd-hero"'+RF('F4')+'><div class="eyebrow">'+(first.days===0?'Idag':'Nästa födelsedag')+'</div><div class="bd-hn">'+esc(same.map(b=>b.name).join(' & '))+'</div><div class="bd-hs">'+esc(cap(same.length===1?bdTurns(first):'fyller år'))+' '+esc(bdWhen(first))+'</div><div class="sub">'+esc(dateLong(first.next))+'</div></section>';
-  // Årsremsa: tolv månader från och med den här, en prick per födelsedag
-  h+='<div class="bd-strip"'+RF('F5')+'>';for(let i=0;i<12;i++){const m=(t.getMonth()+i)%12,ML=L.filter(b=>b.mo===m);
-   h+='<div class="bs-col'+(i===0?' now':'')+'"><div class="bs-dots">'+ML.map(b=>'<i'+(b===first?' class="next"':'')+bdSt(b)+'></i>').join('')+'</div><span>'+MON3[m].charAt(0).toUpperCase()+'</span></div>'}
+  // Årsremsa: januari till december, en prick per födelsedag, innevarande månad markerad
+  h+='<div class="bd-strip"'+RF('F5')+'>';for(let m=0;m<12;m++){const ML=L.filter(b=>b.mo===m);
+   h+='<div class="bs-col'+(m===t.getMonth()?' now':'')+'"><div class="bs-dots">'+ML.map(b=>'<i'+(b===first?' class="next"':'')+bdSt(b)+'></i>').join('')+'</div><span>'+MON3[m].charAt(0).toUpperCase()+'</span></div>'}
   h+='</div>';
-  let lastM=-1;const rows=[],fg=x=>rgroup('F6',x);nx.forEach(b=>{if(b.mo!==lastM){if(rows.length)h+=fg(rows.splice(0).join(''));h+=sh(cap(MON[b.mo])+(parse(b.next).getFullYear()!==t.getFullYear()?' '+parse(b.next).getFullYear():''));lastM=b.mo}rows.push(bdRow(b))});
+  // Listan går januari till december; de som redan fyllt år i år är grå
+  let lastM=-1;const rows=[],fg=x=>rgroup('F6',x);L.slice().sort((a,b)=>a.mo-b.mo||a.dd-b.dd).forEach(b=>{if(b.mo!==lastM){if(rows.length)h+=fg(rows.splice(0).join(''));h+=sh(cap(MON[b.mo]));lastM=b.mo}rows.push(bdRow(b,{dim:1}))});
   if(rows.length)h+=fg(rows.join(''))}
  return h};
 
@@ -5112,7 +5112,12 @@ const ACT={
  fodAdd(){S.fodEdit=null;S.sheet='fodAdd';render();setTimeout(()=>document.getElementById('fod-name')?.focus(),30)},
  fodEdit(k){if(!bdays().some(b=>b.key===k))return;S.fodEdit=k;S.sheet='fodAdd';render()},
  fodDelHold(k){closeSheets();const b=bdays().find(x=>x.key===k);if(b)fdelStart(b)},
- fodFilt(id){if(id==='alla'||id==='pres')S.fodFilt=id;else{const v=fodSel(),i=v.indexOf(id);if(i<0)v.push(id);else v.splice(i,1);S.fodFilt=v.length?v.join(','):'alla';A.fodMenyOppen=true}render()},
+ fodFilt(id,el){if(id==='alla'||id==='pres'){S.fodFilt=id;render();return}const v=fodSel(),i=v.indexOf(id);if(i<0)v.push(id);else v.splice(i,1);S.fodFilt=v.length?v.join(','):'alla';
+  // I menyn: bocka bara i, så att menyn ligger still. Listan ritas om när menyn stängs
+  const m=el&&el.closest('details.fod-menu');if(!m){render();return}
+  m.querySelectorAll('[data-act="fodFilt"]').forEach(x=>{const on=fodPa(x.dataset.id);x.setAttribute('aria-checked',on);const ck=x.querySelector('.fm-ck');if(ck)ck.innerHTML=on?I.tick:''});
+  m.querySelector('summary').classList.toggle('on',S.fodFilt!=='alla');
+  if(!m.dataset.vanta){m.dataset.vanta=1;m.addEventListener('toggle',()=>{if(!m.open)render()})}},
  presBud(){document.querySelectorAll('.create-menu[open]').forEach(x=>x.open=false);S.sheet='presBud';render()},
  presSatt(id){if(!['jamn','manad'].includes(id))return;setFodEgna(e=>{e.pb=Object.assign({},e.pb,{satt:id});return e});render()},
  presStep(id,el){if(!['barn','tio','fem','ar'].includes(id))return;const d=Number(el.dataset.d),v=id==='ar'?Math.max(1,Math.min(10,presBud().ar+d)):Math.max(0,Math.min(5000,presBud()[id]+d));setFodEgna(e=>{e.pb=Object.assign({},e.pb,{[id]:v});return e});render()},
