@@ -3096,13 +3096,15 @@ if(k==='vara'){const n=S.varaK||'',ing=S.varaTyp==='ing',R=regGet(),F=parseJ(set
    (e?'<div style="height:22px"></div>'+group('<button type="button" class="cell link center red hold" data-hold="fodDelHold" data-id="'+esc(e.key)+'"><i class="sh-fill"></i><span>Ta bort födelsedagen</span></button>')+'<div class="foot">Håll in för att ta bort.</div>':'');
   o.innerHTML=sheetHtml('fodAdd',e?'Ändra födelsedag':'Ny födelsedag','<button class="tb strong">'+(e?'Spara':'Lägg till')+'</button>',body,enter);restoreColorStrips(o);return}
  // Presentbudget: stort belopp, Jämnt/Efter månad, staplar för tolv månader, belopp per present och kommande presenter
- if(k==='presBud'){const P=presBud(),Y=presAr(),mx=Math.max(1,...Y.M.map(x=>x.kr)),val=P.satt==='manad'?Y.M[0].kr:Y.jamn,
+ if(k==='presBud'){const P=presBud(),Y=presAr(),ty=+thisMonth().slice(0,4),SN=presSnitt(ty,P.ar),mx=Math.max(1,SN.jamn,...Y.M.map(x=>x.kr)),val=P.satt==='manad'?Y.M[0].kr:SN.jamn,
    st=(id,lab,sub,v)=>'<div class="cell pb-st"><div class="grow"><div>'+lab+'</div><div class="meta">'+sub+'</div></div><span class="stepper"><button type="button" data-act="presStep" data-id="'+id+'" data-d="-50" aria-label="Minska '+lab+'">−</button><span class="num"><b>'+v+'</b> kr</span><button type="button" data-act="presStep" data-id="'+id+'" data-d="50" aria-label="Öka '+lab+'">+</button></span></div>';
   const body='<div class="pb-hero"><div class="pb-big num">'+kr(val)+'</div><div class="pb-sub">'+(P.satt==='manad'?'till presenter i '+MON[Y.M[0].mo]:'att lägga undan varje månad')+'</div></div>'+
    segc('Sparande','presSatt',[['jamn','Jämnt varje månad'],['manad','Efter månad']],P.satt)+
-   '<div class="group pb-g"><div class="pb-chart'+(P.satt==='jamn'?' jamn':'')+'" style="--snitt:'+(Y.jamn/mx).toFixed(3)+'">'+Y.M.map((x,i)=>'<div class="pb-col'+(i===0?' nu':'')+'" style="--i:'+i+'"><div class="pb-bar"><i style="height:'+(x.kr/mx*100).toFixed(1)+'%"></i></div><span class="pb-l">'+MON3[x.mo].charAt(0).toUpperCase()+'</span></div>').join('')+'<i class="pb-snitt"></i></div>'+
+   (P.satt==='jamn'?group('<div class="cell pb-st"><div class="grow"><div>Räkna på</div><div class="meta">'+(P.ar>1?ty+'–'+(ty+P.ar-1):ty)+' · '+kr(SN.tot)+'</div></div><span class="stepper"><button type="button" data-act="presStep" data-id="ar" data-d="-1" aria-label="Färre år">−</button><span class="num"><b>'+P.ar+'</b> år</span><button type="button" data-act="presStep" data-id="ar" data-d="1" aria-label="Fler år">+</button></span></div>'+
+    (P.ar>1?SN.Y.map(x=>'<div class="cell pb-p"><span class="grow">'+x.y+'</span><span class="val num">'+kr(x.kr)+'</span></div>').join(''):'')):'')+
+   '<div class="group pb-g"><div class="pb-chart'+(P.satt==='jamn'?' jamn':'')+'" style="--snitt:'+(SN.jamn/mx).toFixed(3)+'">'+Y.M.map((x,i)=>'<div class="pb-col'+(i===0?' nu':'')+'" style="--i:'+i+'"><div class="pb-bar"><i style="height:'+(x.kr/mx*100).toFixed(1)+'%"></i></div><span class="pb-l">'+MON3[x.mo].charAt(0).toUpperCase()+'</span></div>').join('')+'<i class="pb-snitt"></i></div>'+
    '<div class="pb-leg"><span><b class="num">'+kr(Y.tot)+'</b> kommande tolv månader</span><span class="num">'+Y.M.reduce((a,x)=>a+x.L.length,0)+' presenter</span></div></div>'+
-   '<div class="foot">'+(P.satt==='jamn'?'Samma belopp varje månad, så att pengarna finns när någon fyller år. Linjen visar månadsbeloppet.':'Beloppet följer månadens födelsedagar och ändras från månad till månad.')+' Syns som fast kostnad under Gemensamma fasta i Ekonomi.</div>'+
+   '<div class="foot">'+(P.satt==='jamn'?'Samma belopp varje månad i '+P.ar+(P.ar===1?' år':' år framåt')+', så att dyra och billiga år jämnas ut. Beloppet räknas om vid årsskiftet. Linjen visar månadsbeloppet.':'Beloppet följer månadens födelsedagar och ändras från månad till månad.')+' Syns som fast kostnad under Gemensamma fasta i Ekonomi.</div>'+
    sh('Belopp per present')+group(st('barn','Barn','till och med 18 år',P.barn)+st('tio','Vuxen fyller jämnt','25, 30, 35 …',P.tio)+st('fem','Övriga vuxna','när du valt Alltid present',P.fem))+
    sh('Kommande presenter')+group(Y.M.filter(x=>x.L.length).map(x=>gh(cap(MON[x.mo]),kr(x.kr))+x.L.map(g=>'<div class="cell pb-p"><span class="grow">'+esc(g.b.name)+'<span class="meta">'+(g.age!=null?(g.age<=18?'Barn, fyller ':'Fyller ')+g.age:'Fyller år')+' · '+g.b.dd+' '+MON3[g.b.mo]+'</span></span><span class="val num">'+kr(g.kr)+'</span></div>').join('')).join('')||emptyCell('Inga presenter de kommande tolv månaderna.'));
   o.innerHTML=sheetHtml('presBud','Presenter','<button type="button" class="tb strong" data-act="sheetClose">Klar</button>',body,enter,'<span class="tb"></span>');return}
@@ -4434,8 +4436,8 @@ const bdGiftAuto=age=>age!=null&&(age%5===0||age<=18);
 const fodFam=()=>fodEgna().fam;
 /* Presentbudget: belopp per present (barn till och med 18, vuxen jämnt 30/40…, vuxen halvjämnt 25/35…) och sättet att spara:
    jamn = årets presenter delat på tolv, manad = varje månads egna presenter. Sparas som pb i födelsedagsobjektet */
-const PB0={barn:250,tio:500,fem:250,satt:'jamn'};
-const presBud=()=>{const x=Object.assign({},PB0,fodEgna().pb);['barn','tio','fem'].forEach(k=>{x[k]=Math.max(0,Number(x[k])||0)});if(!['jamn','manad'].includes(x.satt))x.satt='jamn';return x};
+const PB0={barn:250,tio:500,fem:250,satt:'jamn',ar:5};
+const presBud=()=>{const x=Object.assign({},PB0,fodEgna().pb);['barn','tio','fem'].forEach(k=>{x[k]=Math.max(0,Number(x[k])||0)});if(!['jamn','manad'].includes(x.satt))x.satt='jamn';x.ar=Math.min(10,Math.max(1,Math.round(Number(x.ar)||PB0.ar)));return x};
 const presKr=(age,P)=>age!=null&&age<=18?P.barn:age!=null&&age%5===0?P.tio:P.fem;
 // Presenter i en månad 'YYYY-MM': åldern räknas för det året, regeln och personens Alltid/Aldrig som i listan
 function presMan(ym){const P=presBud(),y=+ym.slice(0,4),mo=+ym.slice(5,7)-1;
@@ -4444,7 +4446,12 @@ function presAr(from){const t=from||thisMonth(),y=+t.slice(0,4),m=+t.slice(5,7)-
  for(let i=0;i<12;i++){const d=new Date(y,m+i,1),ym=d.getFullYear()+'-'+pad(d.getMonth()+1),L=presMan(ym);M.push({ym,mo:d.getMonth(),L,kr:L.reduce((a,x)=>a+x.kr,0)})}
  const tot=M.reduce((a,x)=>a+x.kr,0);return{M,tot,jamn:Math.ceil(tot/12-1e-9)}}
 // Månadens fasta kostnad för presenter i Ekonomi
-const presPerMan=ym=>{if(!bdays().length)return 0;const P=presBud();return P.satt==='manad'?presMan(ym).reduce((a,x)=>a+x.kr,0):presAr(ym).jamn};
+// Jämnt: snitt över ar kalenderår från årets januari, så beloppet bara byts vid årsskiftet (och när priser eller personer ändras)
+let PSN={};
+function presSnitt(y,n){const k=y+'|'+n+'|'+(settings().onskelista||'')+'|'+(settings().fodelsedagar||'');if(PSN.k===k)return PSN.v;let tot=0;const Y=[];
+ for(let i=0;i<n;i++){let t=0;for(let m=0;m<12;m++)t+=presMan((y+i)+'-'+pad(m+1)).reduce((a,x)=>a+x.kr,0);Y.push({y:y+i,kr:t});tot+=t}
+ const v={Y,tot,jamn:Math.ceil(tot/12/n-1e-9)};PSN={k,v};return v}
+const presPerMan=ym=>{if(!bdays().length)return 0;const P=presBud();return P.satt==='manad'?presMan(ym).reduce((a,x)=>a+x.kr,0):presSnitt(+ym.slice(0,4),P.ar).jamn};
 // Present märks med beloppet till höger (Henriks val), barn med etiketten Barn. Åldern i "Fyller 19" står i personens färg
 const bdCol=b=>b.col&&colOk(b.col)?PCOL[b.col][isDark()?3:1]:'var(--accent)',bmDot=b=>'<i class="bm-dot" style="--bm:'+bdCol(b)+'" aria-label="Present"></i>';
 // Rubriken är namnet och åldern personen fyller, till exempel "Elsa 10 år"
@@ -5096,7 +5103,7 @@ const ACT={
  fodFilt(id){S.fodFilt=id;render()},
  presBud(){document.querySelectorAll('.create-menu[open]').forEach(x=>x.open=false);S.sheet='presBud';render()},
  presSatt(id){if(!['jamn','manad'].includes(id))return;setFodEgna(e=>{e.pb=Object.assign({},e.pb,{satt:id});return e});render()},
- presStep(id,el){if(!['barn','tio','fem'].includes(id))return;const v=Math.max(0,Math.min(5000,presBud()[id]+Number(el.dataset.d)));setFodEgna(e=>{e.pb=Object.assign({},e.pb,{[id]:v});return e});render()},
+ presStep(id,el){if(!['barn','tio','fem','ar'].includes(id))return;const d=Number(el.dataset.d),v=id==='ar'?Math.max(1,Math.min(10,presBud().ar+d)):Math.max(0,Math.min(5000,presBud()[id]+d));setFodEgna(e=>{e.pb=Object.assign({},e.pb,{[id]:v});return e});render()},
  fodFam(){S.fodFamId=null;S.sheet='fodFam';render()},
  fodFamEdit(id){S.fodFamId=id||'ny';S.sheet='fodFam';render()},
  fodFamBack(){S.fodFamId=null;render()},
