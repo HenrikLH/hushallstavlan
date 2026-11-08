@@ -17,7 +17,7 @@ module.exports=async(pg,h)=>{
  await click('[data-act="fodMode"][data-id="hjul"]');
  await click('[data-act="fodMon"][data-id="10"]');
  // UI 5.0: filtret ligger i en meny bakom en rund knapp i rubriken, annars en knapprad
- const U5=await pg.evaluate(()=>window.__d('U5')),meny=async()=>{if(U5)await click('.fod-menu summary')};
+ const U5=await pg.evaluate(()=>window.__d('U5')),meny=async()=>{if(U5&&!(await pg.locator('.fod-menu[open]').count()))await click('.fod-menu summary')},stang=async()=>{if(U5&&await pg.locator('.fod-menu[open]').count())await click('.fod-menu summary')};
  const filt=async id=>{await meny();await click('[data-act="fodFilt"][data-id="'+id+'"]')};
  assert.ok(await pg.locator('[data-act="fodFilt"][data-id="f2"]').count(),'Familjeknapp ska finnas');
  await h.shot('famA-1-hjul');
@@ -41,8 +41,14 @@ module.exports=async(pg,h)=>{
  await filt('alla');
  assert.equal(await pg.locator('[data-act="fodMode"][data-id="fam"]').count(),0,'Familjer är ingen egen visning');
  await filt('f2');assert.ok(/Elsa\s+10 år/.test(await main()),'Rubriken namn och ålder');assert.ok(!(await main()).includes('Ingrid'),'Filtret visar bara Lunds');
- await h.shot('famB-1-filter-lunds');
- await filt('utan');assert.ok((await main()).includes('Sven'));await filt('alla');
+ if(U5)assert.equal(await pg.locator('.fod-menu[open]').count(),1,'Menyn står kvar öppen efter en familj');
+ await stang();await h.shot('famB-1-filter-lunds');
+ // Flera familjer samtidigt
+ await filt('f3');let tx=await main();assert.ok(/Lunds och Hellstrands · 8 av 16|8 av 16/.test(tx)&&tx.includes('Leah')&&tx.includes('Elsa')&&!tx.includes('Ingrid'),'Lunds och Hellstrands');
+ if(U5)await h.shot('famB-2-flera-familjer');
+ await filt('f3');tx=await main();assert.ok(!tx.includes('Leah')&&tx.includes('Elsa'),'Hellstrands bort igen');
+ await filt('f2');assert.ok(/16 personer/.test(await main()),'Tom markering ger Alla');await stang();
+ await filt('utan');assert.ok((await main()).includes('Sven'));await filt('alla');await stang();
  // Ny familj med Sven och Gun
  await meny();await click('[data-act="fodFam"]');
  assert.equal(await pg.locator('form[data-form="fodFam"]').count(),1);

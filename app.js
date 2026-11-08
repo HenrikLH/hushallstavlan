@@ -892,9 +892,10 @@ function addControl(c,mode){return '<div class="create-control create-'+mode+'">
 function u5Fod(m){const top=m.querySelector('.rcp-top'),t=m.querySelector('.head .tools');if(!top||!t||!bdays().length)return;
  // Profilen överst till höger, filtret bredvid plus i samma storlek
  const av=t.querySelector('.me-av');if(av)top.appendChild(av);const f=S.fodFilt||'alla',L=bdays(),F=fodFam(),
-  it=(k,txt,ic,n)=>'<button type="button" role="menuitemradio" aria-checked="'+(f===k)+'" data-act="fodFilt" data-id="'+esc(k)+'"><span class="fm-ck">'+(f===k?I.tick:'')+'</span><span class="grow">'+txt+'</span>'+(n!=null?'<span class="fm-n num">'+n+'</span>':'')+ic+'</button>',
+  it=(k,txt,ic,n)=>'<button type="button" role="'+(k==='alla'||k==='pres'?'menuitemradio':'menuitemcheckbox')+'" aria-checked="'+fodPa(k)+'" data-act="fodFilt" data-id="'+esc(k)+'"><span class="fm-ck">'+(fodPa(k)?I.tick:'')+'</span><span class="grow">'+txt+'</span>'+(n!=null?'<span class="fm-n num">'+n+'</span>':'')+ic+'</button>',
   rund=c=>'<i class="fm-dot" style="background:'+(colOk(c)?PCOL[c][isDark()?3:1]:'var(--ink-2)')+'"></i>';
- t.insertAdjacentHTML('beforeend','<details class="create-menu u5-menu fod-menu"'+RF('F7')+'><summary class="u5-dots'+(f!=='alla'?' on':'')+'" aria-label="Filtrera">'+I.filt+'</summary><div class="create-options" role="menu" aria-label="Filtrera födelsedagar">'+
+ const op=A.fodMenyOppen;A.fodMenyOppen=false;
+ t.insertAdjacentHTML('beforeend','<details class="create-menu u5-menu fod-menu"'+RF('F7')+(op?' open':'')+'><summary class="u5-dots'+(f!=='alla'?' on':'')+'" aria-label="Filtrera">'+I.filt+'</summary><div class="create-options" role="menu" aria-label="Filtrera födelsedagar">'+
   it('alla','Alla','',L.length)+it('pres','Present','<i class="fm-dot" style="background:var(--accent)"></i>',L.filter(b=>b.gift).length)+'<div class="fm-sep"></div>'+F.map(x=>it(x.id,esc(x.n),rund(x.c),L.filter(b=>b.fam&&b.fam.id===x.id).length)).join('')+(F.length&&L.some(b=>!b.fam)?it('utan','Utan familj','',L.filter(b=>!b.fam).length):'')+
   '<div class="fm-sep"></div><button type="button" role="menuitem" data-act="presBud"><span class="fm-ck"></span><span class="grow">Presentbudget</span><span class="fm-n num">'+kr(presPerMan(thisMonth()))+'/mån</span></button><button type="button" role="menuitem" data-act="fodFam"><span class="fm-ck"></span><span class="grow">'+(F.length?'Ändra familjer':'Lägg till familj')+'</span>'+I.people+'</button></div></details>')}
 function u5More(m){if(S.view==='fod'&&!S.cook)return u5Fod(m);if(S.view!=='mat'||S.matTab!=='inkop'||S.plan||S.recipe||S.cook)return;const t=m.querySelector('.head .tools');if(!t)return;const vs=settings().vecka_start,wk=isDate(vs)?'vecka '+isoWeek(parse(vs)):'veckan',n=D().shop.length,it=(act,txt,ic,cl)=>'<button type="button" role="menuitem"'+(cl?' class="'+cl+'"':'')+' data-act="'+act+'"><span>'+txt+'</span>'+ic+'</button>';
@@ -3096,14 +3097,14 @@ if(k==='vara'){const n=S.varaK||'',ing=S.varaTyp==='ing',R=regGet(),F=parseJ(set
    (e?'<div style="height:22px"></div>'+group('<button type="button" class="cell link center red hold" data-hold="fodDelHold" data-id="'+esc(e.key)+'"><i class="sh-fill"></i><span>Ta bort födelsedagen</span></button>')+'<div class="foot">Håll in för att ta bort.</div>':'');
   o.innerHTML=sheetHtml('fodAdd',e?'Ändra födelsedag':'Ny födelsedag','<button class="tb strong">'+(e?'Spara':'Lägg till')+'</button>',body,enter);restoreColorStrips(o);return}
  // Presentbudget: stort belopp, Jämnt/Efter månad, staplar för tolv månader, belopp per present och kommande presenter
- if(k==='presBud'){const P=presBud(),Y=presAr(),ty=+thisMonth().slice(0,4),SN=presSnitt(ty,P.ar),mx=Math.max(1,SN.jamn,...Y.M.map(x=>x.kr)),val=P.satt==='manad'?Y.M[0].kr:SN.jamn,
+ if(k==='presBud'){const P=presBud(),Y=presAr(),ty=+thisMonth().slice(0,4),SN=presSnitt(ty,P.ar),YK=presAr(ty+'-01'),nu=new Date().getMonth(),mx=Math.max(1,SN.jamn,...YK.M.map(x=>x.kr)),val=P.satt==='manad'?Y.M[0].kr:SN.jamn,
    st=(id,lab,sub,v)=>'<div class="cell pb-st"><div class="grow"><div>'+lab+'</div><div class="meta">'+sub+'</div></div><span class="stepper"><button type="button" data-act="presStep" data-id="'+id+'" data-d="-50" aria-label="Minska '+lab+'">−</button><span class="num"><b>'+v+'</b> kr</span><button type="button" data-act="presStep" data-id="'+id+'" data-d="50" aria-label="Öka '+lab+'">+</button></span></div>';
   const body='<div class="pb-hero"><div class="pb-big num">'+kr(val)+'</div><div class="pb-sub">'+(P.satt==='manad'?'till presenter i '+MON[Y.M[0].mo]:'att lägga undan varje månad')+'</div></div>'+
    segc('Sparande','presSatt',[['jamn','Jämnt varje månad'],['manad','Efter månad']],P.satt)+
    (P.satt==='jamn'?group('<div class="cell pb-st"><div class="grow"><div>Räkna på</div><div class="meta">'+(P.ar>1?ty+'–'+(ty+P.ar-1):ty)+' · '+kr(SN.tot)+'</div></div><span class="stepper"><button type="button" data-act="presStep" data-id="ar" data-d="-1" aria-label="Färre år">−</button><span class="num"><b>'+P.ar+'</b> år</span><button type="button" data-act="presStep" data-id="ar" data-d="1" aria-label="Fler år">+</button></span></div>'+
     (P.ar>1?SN.Y.map(x=>'<div class="cell pb-p"><span class="grow">'+x.y+'</span><span class="val num">'+kr(x.kr)+'</span></div>').join(''):'')):'')+
-   '<div class="group pb-g"><div class="pb-chart'+(P.satt==='jamn'?' jamn':'')+'" style="--snitt:'+(SN.jamn/mx).toFixed(3)+'">'+Y.M.map((x,i)=>'<div class="pb-col'+(i===0?' nu':'')+'" style="--i:'+i+'"><div class="pb-bar"><i style="height:'+(x.kr/mx*100).toFixed(1)+'%"></i></div><span class="pb-l">'+MON3[x.mo].charAt(0).toUpperCase()+'</span></div>').join('')+'<i class="pb-snitt"></i></div>'+
-   '<div class="pb-leg"><span><b class="num">'+kr(Y.tot)+'</b> kommande tolv månader</span><span class="num">'+Y.M.reduce((a,x)=>a+x.L.length,0)+' presenter</span></div></div>'+
+   '<div class="group pb-g"><div class="pb-chart'+(P.satt==='jamn'?' jamn':'')+'" style="--snitt:'+(SN.jamn/mx).toFixed(3)+'">'+YK.M.map((x,i)=>'<div class="pb-col'+(i===nu?' nu':'')+'" style="--i:'+i+'"><div class="pb-bar"><i style="height:'+(x.kr/mx*100).toFixed(1)+'%"></i></div><span class="pb-l">'+MON3[x.mo].charAt(0).toUpperCase()+'</span></div>').join('')+'<i class="pb-snitt"></i></div>'+
+   '<div class="pb-leg"><span><b class="num">'+kr(YK.tot)+'</b> under '+ty+'</span><span class="num">'+YK.M.reduce((a,x)=>a+x.L.length,0)+' presenter</span></div></div>'+
    '<div class="foot">'+(P.satt==='jamn'?'Samma belopp varje månad i '+P.ar+(P.ar===1?' år':' år framåt')+', så att dyra och billiga år jämnas ut. Beloppet räknas om vid årsskiftet. Linjen visar månadsbeloppet.':'Beloppet följer månadens födelsedagar och ändras från månad till månad.')+' Syns som fast kostnad under Gemensamma fasta i Ekonomi.</div>'+
    sh('Belopp per present')+group(st('barn','Barn','till och med 18 år',P.barn)+st('tio','Vuxen fyller jämnt','25, 30, 35 …',P.tio)+st('fem','Övriga vuxna','när du valt Alltid present',P.fem))+
    sh('Kommande presenter')+group(Y.M.filter(x=>x.L.length).map(x=>gh(cap(MON[x.mo]),kr(x.kr))+x.L.map(g=>'<div class="cell pb-p"><span class="grow">'+esc(g.b.name)+'<span class="meta">'+(g.age!=null?(g.age<=18?'Barn, fyller ':'Fyller ')+g.age:'Fyller år')+' · '+g.b.dd+' '+MON3[g.b.mo]+'</span></span><span class="val num">'+kr(g.kr)+'</span></div>').join('')).join('')||emptyCell('Inga presenter de kommande tolv månaderna.'));
@@ -4524,15 +4525,18 @@ V.varor=function(){const R=regGet(),a=prisAlder(),ok=varorOkopplade(),bas=varorB
  h+=sh('Godkända',klara.length||'')+group(klara.length?klara.map(k=>varaRad(k,'bas')).join(''):emptyCell('Inga godkända varor ännu.'));
  return h};
 // Filter överst: Alla, Present och en knapp per familj. Sista knappen öppnar familjerna
-function fodFilt(L){const f=S.fodFilt||'alla';return f==='pres'?L.filter(b=>b.gift):f==='utan'?L.filter(b=>!b.fam):f!=='alla'?L.filter(b=>b.fam&&b.fam.id===f):L}
+// Flera familjer (och Utan familj) kan väljas samtidigt: S.fodFilt = 'f1,f3,utan'. Alla och Present väljs ensamma
+const fodSel=()=>{const f=S.fodFilt||'alla';return f==='alla'||f==='pres'?[]:f.split(',').filter(Boolean)};
+const fodPa=k=>(S.fodFilt||'alla')===k||fodSel().includes(k);
+function fodFilt(L){const f=S.fodFilt||'alla',v=fodSel();return f==='pres'?L.filter(b=>b.gift):v.length?L.filter(b=>b.fam?v.includes(b.fam.id):v.includes('utan')):L}
 function fodChips(L){const f=S.fodFilt||'alla',F=fodFam(),dot=c=>'<i class="ff-dot" style="background:'+(colOk(c)?PCOL[c][isDark()?3:1]:'var(--ink-2)')+'"></i>',
- b=(k,l,n)=>'<button type="button" data-act="fodFilt" data-id="'+esc(k)+'" aria-pressed="'+(f===k)+'">'+l+(n!=null?'<span class="ff-n num">'+n+'</span>':'')+'</button>';
+ b=(k,l,n)=>'<button type="button" data-act="fodFilt" data-id="'+esc(k)+'" aria-pressed="'+fodPa(k)+'">'+l+(n!=null?'<span class="ff-n num">'+n+'</span>':'')+'</button>';
  return'<div class="fchips fod-f" role="group" aria-label="Filter"'+RF('F7')+'>'+b('alla','Alla')+b('pres','Present',L.filter(x=>x.gift).length)+
   F.map(x=>b(x.id,dot(x.c)+esc(x.n),L.filter(y=>y.fam&&y.fam.id===x.id).length)).join('')+(F.length&&L.some(x=>!x.fam)?b('utan','Utan familj',L.filter(x=>!x.fam).length):'')+
   '<button type="button" class="ff-ed" data-act="presBud">Presentbudget</button><button type="button" class="ff-ed" data-act="fodFam">'+(F.length?I.pencil+'Familjer':I.plus+'Familj')+'</button></div>'}
-V.fod=function(){const ALLA=bdays(),t=parse(today()),mode=S.fodMode||'hjul';if(S.fodFilt&&!['alla','pres','utan'].includes(S.fodFilt)&&!fodFam().some(f=>f.id===S.fodFilt))S.fodFilt='alla';const L=fodFilt(ALLA);
+V.fod=function(){const ALLA=bdays(),t=parse(today()),mode=S.fodMode||'hjul';if(fodSel().length){const v=fodSel().filter(k=>k==='utan'||fodFam().some(f=>f.id===k));S.fodFilt=v.length?v.join(','):'alla'}const L=fodFilt(ALLA);
  let h='<div class="rcp-top"><button class="back" data-act="nav" data-id="oversikt">'+I.back+'Översikt</button></div>';
- const fNamn=S.fodFilt==='pres'?'Present':S.fodFilt==='utan'?'Utan familj':(fodFam().find(x=>x.id===S.fodFilt)||{}).n;
+ const fv=fodSel().map(k=>k==='utan'?'Utan familj':(fodFam().find(x=>x.id===k)||{}).n).filter(Boolean),fNamn=S.fodFilt==='pres'?'Present':fv.length>2?fv.length+' familjer':fv.join(' och ');
  // Filtret Present: en diskret rad under visningsväljaren med snittbeloppet (öppnar Presentbudget) och antalet
  const pres=S.fodFilt==='pres'&&ALLA.length,antal=(L.length<ALLA.length?L.length+' av ':'')+ALLA.length+' personer';
  h+=head('Födelsedagar',{sub:ALLA.length?(U5&&fNamn?esc(fNamn)+(pres?'':' · '):'')+(pres?'':antal):'',tools:'<button class="ib plus" data-act="fodAdd" aria-label="Ny födelsedag">'+I.plus+'</button>'});
@@ -5108,14 +5112,14 @@ const ACT={
  fodAdd(){S.fodEdit=null;S.sheet='fodAdd';render();setTimeout(()=>document.getElementById('fod-name')?.focus(),30)},
  fodEdit(k){if(!bdays().some(b=>b.key===k))return;S.fodEdit=k;S.sheet='fodAdd';render()},
  fodDelHold(k){closeSheets();const b=bdays().find(x=>x.key===k);if(b)fdelStart(b)},
- fodFilt(id){S.fodFilt=id;render()},
+ fodFilt(id){if(id==='alla'||id==='pres')S.fodFilt=id;else{const v=fodSel(),i=v.indexOf(id);if(i<0)v.push(id);else v.splice(i,1);S.fodFilt=v.length?v.join(','):'alla';A.fodMenyOppen=true}render()},
  presBud(){document.querySelectorAll('.create-menu[open]').forEach(x=>x.open=false);S.sheet='presBud';render()},
  presSatt(id){if(!['jamn','manad'].includes(id))return;setFodEgna(e=>{e.pb=Object.assign({},e.pb,{satt:id});return e});render()},
  presStep(id,el){if(!['barn','tio','fem','ar'].includes(id))return;const d=Number(el.dataset.d),v=id==='ar'?Math.max(1,Math.min(10,presBud().ar+d)):Math.max(0,Math.min(5000,presBud()[id]+d));setFodEgna(e=>{e.pb=Object.assign({},e.pb,{[id]:v});return e});render()},
  fodFam(){S.fodFamId=null;S.sheet='fodFam';render()},
  fodFamEdit(id){S.fodFamId=id||'ny';S.sheet='fodFam';render()},
  fodFamBack(){S.fodFamId=null;render()},
- fodFamDel(id){S.fodFamId=null;if(S.fodFilt===id)S.fodFilt='alla';setFodEgna(e=>{e.fam=e.fam.filter(f=>f.id!==id);Object.keys(e.fm).forEach(k=>{if(e.fm[k]===id)delete e.fm[k]});return e});render();toast('Familjen togs bort')},
+ fodFamDel(id){S.fodFamId=null;if(fodSel().includes(id)){const v=fodSel().filter(k=>k!==id);S.fodFilt=v.length?v.join(','):'alla'}setFodEgna(e=>{e.fam=e.fam.filter(f=>f.id!==id);Object.keys(e.fm).forEach(k=>{if(e.fm[k]===id)delete e.fm[k]});return e});render();toast('Familjen togs bort')},
  fodUndo(){if(!FDEL.k)return;clearTimeout(FDEL.t);FDEL.k=null;undoHide();render()},
  cleanAdd(){S.sheet='cleanAdd';render();setTimeout(()=>document.getElementById('clean-title')?.focus(),30)},
  cleanFocus(_,el){el?.closest('form')?.querySelector('.field')?.focus()},
