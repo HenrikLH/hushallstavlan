@@ -18,7 +18,7 @@ const WX=wx();
 const srv=http.createServer((q,r)=>{let p=decodeURIComponent(q.url.split('?')[0]);if(p==='/')p='/index.html';const f=path.join(APP,p);
  fs.readFile(f,(e,b)=>{if(e){r.writeHead(404);return r.end()}if(p==='/app.js')b=Buffer.from(String(b).replace(/\}\)\(\);\s*$/,'window.__d=s=>eval(s);})();'));const ext=path.extname(f);r.writeHead(200,{'Content-Type':{'.html':'text/html','.js':'text/javascript','.json':'application/json','.css':'text/css','.webp':'image/webp','.png':'image/png','.jpg':'image/jpeg','.svg':'image/svg+xml','.webmanifest':'application/json'}[ext]||'application/octet-stream'});r.end(b)})});
 let PORT;
-(async()=>{await new Promise(r=>srv.listen(0,()=>{PORT=srv.address().port;r()}));
+(async()=>{await new Promise(r=>srv.listen(+process.env.PORT||0,()=>{PORT=srv.address().port;r()}));
  const scen=require(path.resolve(process.argv[2]));
  const exe=process.env.CHROMIUM||(fs.existsSync('/opt/pw-browsers/chromium')?'/opt/pw-browsers/chromium':undefined);
  const b=await chromium.launch(exe?{executablePath:exe}:{});
@@ -41,7 +41,7 @@ let PORT;
    const out=gas.handle(m,body,q);if(m==='POST'){const j=JSON.parse(body),o=JSON.parse(out);console.log('  POST',j.action,(j.id||j.k||''),o.ok?'ok':'ERR '+o.error)}
    return r.fulfill({contentType:'application/json',body:out})}
   if(u.includes('api.met.no'))return r.fulfill({contentType:'application/json',body:WX});
-  if(u.startsWith('http://localhost'))return r.continue();return r.abort()});
+  if(u.startsWith('http://localhost')||(process.env.HA&&u.startsWith('http://127.0.0.1:8777/ha')))return r.continue();return r.abort()});
  const h={
   OUT,gas,
   async shot(n,full){await pg.waitForTimeout(350);await pg.screenshot({path:path.join(OUT,n+'.png'),fullPage:!!full,animations:process.env.REDUCED==='1'?'disabled':'allow'});console.log('shot',n)},
