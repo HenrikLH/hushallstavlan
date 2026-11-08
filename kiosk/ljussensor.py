@@ -6,9 +6,9 @@
 #   POST /ljusstyrka   {"normal": true}  tillbaka till normal ljusstyrka
 #   POST /puls                           tavlan har just ritat en bild (skickas var 20:e sekund)
 #   GET  /ha?v=N       -> lampor, scener och givare från Home Assistant; väntar upp till 25 s på en ändring om N är aktuell
-#   POST /ha           {"id": "light.kok", "gor": "vaxla"|"pa"|"av", "b": 1-100} | {"scen": "scene.kvall"} | {"alla": "av"}
+#   POST /ha           {"id": "light.kok", "gor": "vaxla"|"pa"|"av", "b": 1-100, "k": kelvin, "hs": [nyans, mättnad]} | {"scen": "scene.kvall"} | {"alla": "av"}
 # Home Assistant (smart hem): nyckeln ligger bara i HA_FIL (chmod 600) och lämnar aldrig datorn. Tavlan ser bara de
-# lampor, scener och givare som står i filen och kan bara tända, släcka och starta scener. Utan filen svarar /ha 503.
+# lampor, scener och givare som står i filen och kan bara tända, släcka, dimma, byta färg och starta scener. Utan filen svarar /ha 503.
 # Vakthund: Chromium på väggdatorn kan fastna med en grå/svart sida (renderaren väntar på GPU-processen, som har tappat
 # sitt delade minne) utan att krascha. Har tavlan skickat puls någon gång men tystnat i VAKT_TYST sekunder medan
 # kioskfönstret finns kvar, startas tavlan om med samma kommando som vid inloggning. Stänger man tavlan finns ingen
@@ -199,8 +199,13 @@ def ha_las(c):
         x = alla.get(e)
         if not x: continue
         a, pa = x.get('attributes') or {}, x.get('state') == 'on'
-        lampor.append({'id': e, 'n': namn(e, x), 't': e.split('.')[0], 'on': pa, 'nas': x.get('state') == 'unavailable',
-                       'b': round((a.get('brightness') or 0) / 2.55) if pa and a.get('brightness') else None})
+        l = {'id': e, 'n': namn(e, x), 't': e.split('.')[0], 'on': pa, 'nas': x.get('state') == 'unavailable',
+             'b': round((a.get('brightness') or 0) / 2.55) if pa and a.get('brightness') else None}
+        if l['t'] == 'light':
+            # vad lampan klarar: dimmer, färgtemperatur (kelvin) och/eller färg (nyans/mättnad)
+            l.update({'lagen': a.get('supported_color_modes') or [], 'lage': a.get('color_mode'), 'k': a.get('color_temp_kelvin'),
+                      'kmin': a.get('min_color_temp_kelvin'), 'kmax': a.get('max_color_temp_kelvin'), 'hs': a.get('hs_color')})
+        lampor.append(l)
     for e in c['scener']:
         if e in alla: scener.append({'id': e, 'n': namn(e, alla[e])})
     for e in c['givare']:
@@ -241,8 +246,11 @@ def ha_styr(d):
         tj = {'vaxla': 'toggle', 'pa': 'turn_on', 'av': 'turn_off'}.get(gor)
         if not tj: return 400, {'fel': 'gor ska vara vaxla, pa eller av'}
         data = {'entity_id': e}
-        if tj == 'turn_on' and dom == 'light' and d.get('b') is not None:
-            data['brightness_pct'] = max(1, min(100, int(d['b'])))
+        if tj == 'turn_on' and dom == 'light':
+            if d.get('b') is not None: data['brightness_pct'] = max(1, min(100, int(d['b'])))
+            if d.get('k') is not None: data['color_temp_kelvin'] = max(1500, min(9000, int(d['k'])))
+            elif d.get('hs') is not None:
+                h, m = d['hs']; data['hs_color'] = [max(0.0, min(360.0, float(h))), max(0.0, min(100.0, float(m)))]
         ha_anrop(c, '/api/services/%s/%s' % (dom, tj), data)
     ha_uppdatera()
     return 200, {'ok': True, 'v': HA['v']}

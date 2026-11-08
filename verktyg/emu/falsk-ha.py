@@ -3,8 +3,8 @@
 # Kör: python3 verktyg/emu/falsk-ha.py 18123   (token "test")
 import json, sys, http.server, threading
 S = {
- 'light.kok': ['on', {'friendly_name': 'Köket', 'brightness': 204}],
- 'light.vardagsrum': ['on', {'friendly_name': 'Vardagsrum', 'brightness': 115}],
+ 'light.kok': ['on', {'friendly_name': 'Köket', 'brightness': 204, 'supported_color_modes': ['color_temp'], 'color_mode': 'color_temp', 'color_temp_kelvin': 2700, 'min_color_temp_kelvin': 2200, 'max_color_temp_kelvin': 4000}],
+ 'light.vardagsrum': ['on', {'friendly_name': 'Vardagsrum', 'brightness': 115, 'supported_color_modes': ['color_temp', 'xy'], 'color_mode': 'xy', 'hs_color': [28, 70], 'min_color_temp_kelvin': 2200, 'max_color_temp_kelvin': 6500}],
  'switch.fonster': ['on', {'friendly_name': 'Fönster'}],
  'light.hall': ['off', {'friendly_name': 'Hallen'}],
  'light.sovrum': ['off', {'friendly_name': 'Sovrum'}],
@@ -45,6 +45,8 @@ class H(http.server.BaseHTTPRequestHandler):
         elif tj == 'turn_on':
             S[e][0] = 'on'
             if 'brightness_pct' in d: S[e][1]['brightness'] = round(d['brightness_pct'] * 2.55)
+            if 'color_temp_kelvin' in d: S[e][1].update(color_temp_kelvin=d['color_temp_kelvin'], color_mode='color_temp')
+            if 'hs_color' in d: S[e][1].update(hs_color=d['hs_color'], color_mode='hs')
         self.svar(200, [])
     def log_message(self, *a): pass
 http.server.ThreadingHTTPServer(('127.0.0.1', int(sys.argv[1]) if len(sys.argv) > 1 else 18123), H).serve_forever()
