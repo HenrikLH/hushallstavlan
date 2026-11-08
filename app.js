@@ -4442,7 +4442,7 @@ function presMan(ym){const P=presBud(),y=+ym.slice(0,4),mo=+ym.slice(5,7)-1;
  return bdays().filter(b=>b.mo===mo).map(b=>{const age=b.yr?y-b.yr:null,g=b.pr===1?true:b.pr===0?false:bdGiftAuto(age);return g?{b,age,kr:presKr(age,P)}:null}).filter(Boolean).sort((a,b)=>a.b.dd-b.b.dd)}
 function presAr(from){const t=from||thisMonth(),y=+t.slice(0,4),m=+t.slice(5,7)-1,M=[];
  for(let i=0;i<12;i++){const d=new Date(y,m+i,1),ym=d.getFullYear()+'-'+pad(d.getMonth()+1),L=presMan(ym);M.push({ym,mo:d.getMonth(),L,kr:L.reduce((a,x)=>a+x.kr,0)})}
- const tot=M.reduce((a,x)=>a+x.kr,0);return{M,tot,jamn:Math.ceil(tot/12/10-1e-9)*10}}
+ const tot=M.reduce((a,x)=>a+x.kr,0);return{M,tot,jamn:Math.ceil(tot/12-1e-9)}}
 // Månadens fasta kostnad för presenter i Ekonomi
 const presPerMan=ym=>{if(!bdays().length)return 0;const P=presBud();return P.satt==='manad'?presMan(ym).reduce((a,x)=>a+x.kr,0):presAr(ym).jamn};
 // Present märks med beloppet till höger (Henriks val), barn med etiketten Barn. Åldern i "Fyller 19" står i personens färg
