@@ -12,7 +12,12 @@ S = {
  'lock.ytterdorr': ['locked', {'friendly_name': 'Ytterdörren'}],
  'scene.kvall': ['scening', {'friendly_name': 'Kväll'}],
  'scene.film': ['scening', {'friendly_name': 'Film'}],
- 'sensor.inne': ['21.4', {'friendly_name': 'Inne', 'unit_of_measurement': '°C'}],
+ 'sensor.inne': ['21.4', {'friendly_name': 'Inne', 'unit_of_measurement': '°C', 'device_class': 'temperature'}],
+ 'light.tak_kok': ['off', {'friendly_name': 'Taklampa kök', 'supported_color_modes': ['brightness'], 'color_mode': 'brightness'}],
+ 'fan.golvflakt': ['off', {'friendly_name': 'Golvfläkt'}],
+ 'switch.diskmaskin_barnlas': ['off', {'friendly_name': 'Diskmaskin Barnlås'}],
+ 'sensor.ute': ['6.1', {'friendly_name': 'Ute', 'unit_of_measurement': '°C', 'device_class': 'temperature'}],
+ 'sensor.batteri': ['80', {'friendly_name': 'Batteri', 'unit_of_measurement': '%', 'device_class': 'battery'}],
 }
 SCEN = {'scene.kvall': {'light.vardagsrum': 115, 'switch.fonster': 1, 'light.kok': 77}, 'scene.film': {'light.vardagsrum': 26}}
 LOG = []

@@ -66,7 +66,7 @@ const I_EKO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-w
 // Inköp ligger under Mat; Ekonomi har fått dess plats i flikraden
 // Kalendern har en egen flik. Uppgifter och Städ delar fliken Att göra (Städ har vy-id stad men markerar Att göra)
 const VIEWS=[['mat','Mat',I.fork],['ekonomi','Ekonomi',I_EKO],['oversikt','Översikt',I.home],['kalender','Kalender',I.cal],['uppgifter','Att göra',I.list]];
-const VIEW_IDS=VIEWS.map(v=>v[0]).concat(['vader','fod','stad','varor']);
+const VIEW_IDS=VIEWS.map(v=>v[0]).concat(['vader','fod','stad','varor','hus']);
 const OLD_VIEWS={matsedel:'vecka',recept:'recept',inkop:'inkop'};
 
 /* ---------- state ---------- */
@@ -1093,7 +1093,7 @@ function wallNight(){const n=new Date(),t=today(),tm=addDays(t,1),W=wxModel();
 // Mer väder under hundarna på väggen: kommande timmar och tre dagar framåt
 function wallWx(){const W=wxModel();if(!W)return'';
  const R=rainTxt(W);
- return'<div class="bwx"><div class="bwx-r'+(R.wet?' wet':'')+'">'+(R.wet?UMB:I.tick)+'<span>'+esc(R.txt)+'</span></div>'+wxStrip(W)+'</div>'}
+ return'<div class="bwx"><div class="bwx-r'+(R.wet?' wet':'')+'">'+(R.wet?UMB:I.tick)+'<span>'+esc(R.txt)+'</span></div>'+wxLarmHtml(W)+wxStrip(W)+'</div>'}
 // ett dygn framåt, timme för timme; svep i sidled för fler timmar, tryck för att öppna vädret
 // H och X (översiktens graf): timmarna från Nu med grafens x-lägen, så att remsan kan pressas ihop till var tredje timme under kurvan
 function wxStrip(W,H,X){return'<div class="bwx-h" data-act="nav" data-id="vader" role="link" aria-label="Väder timme för timme, öppna vädret">'+(H||W.hours.slice(1,25)).map((x,j)=>{const hr=x.d.getHours(),nd=hr===0;
@@ -1216,16 +1216,20 @@ const boardDefault=()=>U3?[['kal','mat'],['upg','inkop','fod','stad']]:WALL_DEF;
    tänder via Google, IKEA eller strömbrytaren. Utan tjänsten eller inställningen syns ingen ruta. ht.haDemo=1 = låtsasdata. */
 const HA_URL='http://127.0.0.1:8777/ha',HA={d:null,v:0,fel:null,busy:false,retry:0,last:null,demo:null};
 const haDemo=()=>lsGet('haDemo')==='1';
-const haData=()=>{if(haDemo()){if(!HA.demo)HA.demo={lampor:[{id:'light.kok',n:'Köket',t:'light',on:true,b:80,lagen:['color_temp'],lage:'color_temp',k:2700,kmin:2200,kmax:4000},{id:'light.vardagsrum',n:'Vardagsrum',t:'light',on:true,b:45,lagen:['color_temp','xy'],lage:'xy',hs:[28,70],kmin:2200,kmax:6500},{id:'switch.fonster',n:'Fönster',t:'switch',on:true},{id:'light.hall',n:'Hallen',t:'light',on:false},{id:'light.sovrum',n:'Sovrum',t:'light',on:false},{id:'light.bad',n:'Badrum',t:'light',on:false}],scener:[{id:'scene.morgon',n:'Morgon'},{id:'scene.kvall',n:'Kväll'},{id:'scene.film',n:'Film'}],givare:[{id:'sensor.inne',n:'Inne',v:'21.4',u:'°C'}]};return HA.demo}return HA.d};
+const haData=()=>{if(haDemo()){if(!HA.demo)HA.demo={lampor:[{id:'light.kok',n:'Köket',hn:'Köket',rum:'Kök',t:'light',on:true,b:80,lagen:['color_temp'],lage:'color_temp',k:2700,kmin:2200,kmax:4000},{id:'light.vardagsrum',n:'Golvlampa',hn:'Vardagsrum',rum:'Vardagsrum',t:'light',on:true,b:45,lagen:['color_temp','xy'],lage:'xy',hs:[28,70],kmin:2200,kmax:6500},{id:'switch.fonster',n:'Fönsterlampa',hn:'Fönster',rum:'Vardagsrum',t:'switch',on:true},{id:'light.hall',n:'Hallen',hn:'Hallen',rum:'Hall',t:'light',on:false,lagen:['brightness']},{id:'light.sovrum',n:'Sovrumslampa',hn:'Sovrum',rum:'Sovrum',t:'light',on:false,lagen:['brightness']},{id:'light.bad',n:'Badrum',hn:'Badrum',t:'light',on:false}],scener:[{id:'scene.morgon',n:'Morgon'},{id:'scene.kvall',n:'Kväll'},{id:'scene.film',n:'Film'}],givare:[{id:'sensor.inne',n:'Inne',v:'21.4',u:'°C'}]};return HA.demo}return HA.d};
 const haOn=wall=>haDemo()||(wall&&wallBoardOn()&&!!HA.d);
 const HAI={bulb:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.7.5 1.1 1.3 1.1 2.2h5c0-.9.4-1.7 1.1-2.2A6 6 0 0 0 12 3z"/></svg>',
- plug:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3v5M15 3v5"/><path d="M6.5 8h11v3a5.5 5.5 0 0 1-11 0z"/><path d="M12 16.5V21"/></svg>'};
+ plug:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3v5M15 3v5"/><path d="M6.5 8h11v3a5.5 5.5 0 0 1-11 0z"/><path d="M12 16.5V21"/></svg>',
+ temp:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14.5V5a2 2 0 0 1 4 0v9.5a4 4 0 1 1-4 0z"/><path d="M12 10v7"/></svg>',
+ fan:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="1.6"/><path d="M12 10.4c-1-3.6.3-6.4 2.6-6.4 2.6 0 2.4 3.9-2.6 6.4zM13.6 12c3.6-1 6.4.3 6.4 2.6 0 2.6-3.9 2.4-6.4-2.6zM12 13.6c1 3.6-.3 6.4-2.6 6.4-2.6 0-2.4-3.9 2.6-6.4zM10.4 12c-3.6 1-6.4-.3-6.4-2.6 0-2.6 3.9-2.4 6.4 2.6z"/></svg>'};
 const haGiv=g=>{const v=isNaN(+g.v)?g.v:String(Math.round(+g.v*10)/10).replace('.',',');return v+(g.u==='°C'?'°':g.u?' '+g.u:'')+' '+g.n.toLowerCase()};
+// En enhet: tryck = styrning, den runda ikonen = tänd/släck direkt, håll in = lyft och ändra (namn, rum, ta bort)
+const haTile=x=>'<div class="ha-t'+(x.on?' on':'')+(x.nas?' nas':'')+'" role="button" tabindex="0" data-act="haLampa" data-id="'+esc(x.id)+'" data-hold-lift="haEdit" aria-label="'+esc(x.n)+', styr"><button type="button" class="ha-i" data-act="haTog" data-id="'+esc(x.id)+'" aria-pressed="'+!!x.on+'" aria-label="'+(x.on?'Släck ':'Tänd ')+esc(x.n)+'"'+(x.nas?' disabled':'')+(x.on&&haFargLage(x)&&x.hs?' style="background:hsl('+Math.round(x.hs[0])+' '+Math.max(40,Math.round(x.hs[1]))+'% 62%)"':'')+'>'+(x.t==='light'?HAI.bulb:x.t==='fan'?HAI.fan:HAI.plug)+'</button><span class="ha-n">'+esc(x.n)+'</span><span class="ha-s">'+(x.nas?'Svarar inte':x.on?(x.b?x.b+' %':'På'):'Av')+'</span></div>';
 function haBox(wall){const D=haData();if(!D)return'';const E=D.lampor||[],n=E.filter(x=>x.on).length,g=(D.givare||[])[0];
- const tile=x=>'<button type="button" class="ha-t'+(x.on?' on':'')+(x.nas?' nas':'')+'" data-act="haTog" data-id="'+esc(x.id)+'"'+(x.t==='light'&&!x.nas?' data-hold-lift="haLampa"':'')+' aria-pressed="'+!!x.on+'"'+(x.nas?' disabled':'')+'><span class="ha-i"'+(x.on&&haFargLage(x)&&x.hs?' style="background:hsl('+Math.round(x.hs[0])+' '+Math.max(40,Math.round(x.hs[1]))+'% 62%)"':'')+'>'+(x.t==='light'?HAI.bulb:HAI.plug)+'</span><span class="ha-n">'+esc(x.n)+'</span><span class="ha-s">'+(x.nas?'Svarar inte':x.on?(x.b?x.b+' %':'På'):'Av')+'</span></button>';
+ const tile=haTile;
  const sc=(D.scener||[]).concat(n?[{id:'av',n:'Släck allt'}]:[]);
- return'<section class="widget'+(wall?' bhus':' w2')+' ha"><div class="wh">'+I.home+'<span>Smart hem</span><span class="r"><i class="ha-live'+(HA.fel&&!haDemo()?' fel':'')+'" title="'+(HA.fel&&!haDemo()?esc(HA.fel):'Uppdateras direkt')+'"></i>'+(n?n+' tända':'Allt släckt')+(g?' · '+esc(haGiv(g)):'')+'</span></div>'+
-  '<div class="ha-g">'+E.map(tile).join('')+'</div>'+(sc.length?'<div class="ha-sc">'+sc.map(s=>'<button type="button" class="pill'+(HA.last===s.id?' on':'')+'" data-act="haScen" data-id="'+esc(s.id)+'">'+esc(s.n)+'</button>').join('')+'</div>':'')+'</section>'}
+ return'<section class="widget'+(wall?' bhus':' w2')+' ha"><button type="button" class="wh" data-act="nav" data-id="hus" style="width:100%">'+I.home+'<span>Smart hem</span><span class="r"><i class="ha-live'+(HA.fel&&!haDemo()?' fel':'')+'" title="'+(HA.fel&&!haDemo()?esc(HA.fel):'Uppdateras direkt')+'"></i>'+(n?n+' tända':'Allt släckt')+(g?' · '+esc(haGiv(g)):'')+'</span></button>'+
+  '<div class="ha-g">'+E.map(tile).join('')+'</div>'+(sc.length?'<div class="ha-sc">'+sc.map(s=>'<button type="button" class="pill'+(HA.last===s.id?' on':'')+'" data-act="haScen" data-id="'+esc(s.id)+'"'+(s.id!=='av'?' data-hold-lift="haEdit"':'')+'>'+esc(s.n)+'</button>').join('')+'</div>':'')+'</section>'}
 // Blad för en lampa (håll in rutan): på/av, ljusstyrka, färgtemperatur och färg, efter vad lampan klarar
 const HA_FARG=[['Röd',0,90],['Orange',28,95],['Gul',48,85],['Grön',120,75],['Turkos',178,70],['Blå',220,85],['Lila',275,75],['Rosa',325,65]];
 const haFargLage=x=>(x.lagen||[]).some(m=>/^(hs|xy|rgb|rgbw|rgbww)$/.test(m))&&/^(hs|xy|rgb|rgbw|rgbww)$/.test(x.lage||'');
@@ -1236,12 +1240,51 @@ function haLampSheet(enter){const D=haData(),x=D&&D.lampor.find(e=>e.id===S.haId
   (K.dim?sl('Ljusstyrka','b',x.on&&x.b?x.b:100,1,100,'Svag','Stark'):'')+
   (K.k?sl('Färgtemperatur','k',k,kmin,kmax,'Varm','Kall',' ha-k'+(haFargLage(x)?'':' vald')):'')+'</div>'+
   (K.f?sh('Färg')+'<div class="group"><div class="cell ha-farger">'+HA_FARG.map(([n,h,m])=>{const v=x.on&&haFargLage(x)&&x.hs&&Math.abs(x.hs[0]-h)<12;return'<button type="button" class="ha-f'+(v?' vald':'')+'" data-act="haFarg" data-id="'+h+','+m+'" style="background:hsl('+h+' '+m+'% 58%)" aria-label="'+n+'" aria-pressed="'+v+'"></button>'}).join('')+'</div></div>':'');
- return sheetHtml('haLampa',esc(x.n),'<button type="button" class="tb strong" data-act="sheetClose">Klar</button>',body,enter,'<span class="tb"></span>')}
+ return sheetHtml('haLampa',esc(x.n)+(x.rum?' · '+esc(x.rum):''),'<button type="button" class="tb strong" data-act="sheetClose">Klar</button>',body,enter,'<span class="tb"></span>')}
+// Ändra en enhet utan tangentbord: namn och rum väljs bland förslag, Ta bort kräver håll in
+const HA_RUM=['Kök','Vardagsrum','Sovrum','Hall','Badrum','Kontor','Barnrum','Ute'];
+const HA_NAMN={light:['Taklampa','Golvlampa','Bordslampa','Vägglampa','Fönsterlampa','Spotlights','Lampslinga','Vitrinskåp'],switch:['Uttag','Fönsterlampa','Lampslinga','Fläkt','Kaffebryggare'],fan:['Fläkt','Golvfläkt','Takfläkt']};
+const haAllaEnh=()=>{const D=haData()||{};return(D.lampor||[]).concat(D.scener||[],D.givare||[])};
+function haEditSheet(enter){const x=haAllaEnh().find(e=>e.id===S.haId);if(!x){S.sheet=null;return''}const dom=x.id.split('.')[0],ar=dom==='scene'||dom==='script';
+ const chip=(act,v,on,lab)=>'<button type="button" class="pill ha-c'+(on?' on':'')+'" data-act="'+act+'" data-id="'+esc(v)+'" aria-pressed="'+!!on+'">'+esc(lab||v)+'</button>';
+ const namn=[x.hn||x.n].concat(HA_NAMN[dom]||[]).filter((v,i,a)=>v&&a.indexOf(v)===i);
+ const body='<div class="ha-ed-top"><span class="ha-i">'+(dom==='light'?HAI.bulb:dom==='fan'?HAI.fan:ar?I.sparkles:dom==='sensor'?HAI.temp:HAI.plug)+'</span><div><div class="hl">'+esc(x.n)+'</div><div class="meta">'+esc(x.rum||'Inget rum')+' · '+esc(x.id)+'</div></div></div>'+
+  sh('Namn')+'<div class="group"><div class="cell ha-chips">'+namn.map((v,i)=>chip('haNamn',i?v:'',x.n===v||!i&&x.n===x.hn,i?v:v+' (HA)')).join('')+'</div></div>'+
+  (ar?'':sh('Rum')+'<div class="group"><div class="cell ha-chips">'+HA_RUM.map(v=>chip('haRum',v,x.rum===v)).join('')+chip('haRum','',!x.rum,'Inget rum')+'</div></div>')+
+  '<div style="height:22px"></div>'+group('<button type="button" class="cell link center red hold" data-hold="haDelHold" data-id="'+esc(x.id)+'"><i class="sh-fill"></i><span>Ta bort från tavlan</span></button>')+'<div class="foot">Håll in för att ta bort. Enheten finns kvar i Home Assistant och kan läggas till igen.</div>';
+ return sheetHtml('haEdit','Ändra '+esc(x.n),'<button type="button" class="tb strong" data-act="sheetClose">Klar</button>',body,enter,'<span class="tb"></span>')}
+// Lägg till: allt i Home Assistant som tavlan får styra eller visa, grupperat efter sort
+const HA_SORT=[['Lampor',x=>x.t==='light'],['Uttag och brytare',x=>x.t==='switch'||x.t==='input_boolean'],['Fläktar',x=>x.t==='fan'],['Scener',x=>x.t==='scene'||x.t==='script'],['Temperatur och fukt',x=>x.t==='sensor']];
+function haAddSheet(enter){const A0=HA.alla;
+ const body=!A0?'<div class="foot">Hämtar enheter från Home Assistant…</div>':A0.fel?'<div class="foot">'+esc(A0.fel)+'</div>':
+  HA_SORT.map(([rub,f])=>{const R=A0.alla.filter(f);return R.length?sh(rub)+group(R.map(x=>'<div class="cell"><span class="grow">'+esc(x.n)+'</span>'+(x.vald?'<span class="meta">Tillagd</span>':'<button type="button" class="pill" data-act="haAdd" data-id="'+esc(x.id)+'">'+I.plus+'Lägg till</button>')+'</div>').join('')):''}).join('')+'<div class="foot">Lås, larm och liknande går inte att lägga till på tavlan.</div>';
+ return sheetHtml('haAdd','Lägg till enhet','<button type="button" class="tb strong" data-act="sheetClose">Klar</button>',body,enter,'<span class="tb"></span>')}
+async function haAllaHamta(){if(haDemo()){HA.alla={alla:HA_DEMO_ALLA.map(x=>Object.assign({},x,{vald:haAllaEnh().some(e=>e.id===x.id)}))};render();return}
+ try{const r=await fetch(HA_URL+'/alla',{cache:'no-store'}),j=await r.json();HA.alla=j.alla?j:{fel:j.fel==='inte inställt'?'Väggdatorn är inte kopplad till Home Assistant.':'Home Assistant svarar inte just nu.'}}
+ catch(e){HA.alla={fel:'Väggdatorns tjänst svarar inte.'}}render()}
+const HA_DEMO_ALLA=[{id:'light.kok',n:'Köket',t:'light'},{id:'light.vardagsrum',n:'Vardagsrum',t:'light'},{id:'light.hall',n:'Hallen',t:'light'},{id:'light.sovrum',n:'Sovrum',t:'light'},{id:'light.bad',n:'Badrum',t:'light'},{id:'light.tak_kok',n:'Taklampa kök',t:'light'},{id:'switch.fonster',n:'Fönster',t:'switch'},{id:'switch.kaffe',n:'Kaffebryggare',t:'switch'},{id:'fan.golvflakt',n:'Golvfläkt',t:'fan'},{id:'scene.morgon',n:'Morgon',t:'scene'},{id:'scene.kvall',n:'Kväll',t:'scene'},{id:'scene.film',n:'Film',t:'scene'},{id:'sensor.inne',n:'Inne',t:'sensor'},{id:'sensor.ute',n:'Ute',t:'sensor'}];
+// ändra listan: optimistiskt här, sedan till tjänsten (som sparar i väggdatorns fil och skickar nytt läge)
+async function haValj(body,lok){lok();render();if(haDemo())return;HA.pend=(HA.pend||0)+1;
+ try{const r=await fetch(HA_URL+'/val',{method:'POST',body:JSON.stringify(body)});if(!r.ok)throw 0}
+ catch(e){toast('Kunde inte spara på väggdatorn');HA.v=0}
+ HA.pend--;render()}
 const haVal=(id,v)=>id==='b'?v+' %':Math.round(v/50)*50+' K';
 function haLampSkicka(x,ch){if(!x)return;const was=JSON.stringify(x);x.on=true;if(ch.b!=null)x.b=ch.b;if(ch.k!=null){x.k=ch.k;x.lage='color_temp'}if(ch.hs){x.hs=ch.hs;x.lage='hs'}
  render();haSend(Object.assign({id:x.id,gor:'pa'},ch),()=>Object.assign(x,JSON.parse(was)))}
 document.addEventListener('input',e=>{const id=e.target.dataset&&e.target.dataset.hainput;if(!id)return;HA.drag=true;const m=document.querySelector('[data-hav="'+id+'"]');if(m)m.textContent=haVal(id,+e.target.value)});
 document.addEventListener('change',e=>{const id=e.target.dataset&&e.target.dataset.hainput;if(!id)return;HA.drag=false;const D=haData(),x=D&&D.lampor.find(l=>l.id===S.haId);haLampSkicka(x,{[id]:+e.target.value})});
+// Smart hem-vyn: alla enheter per rum, scener och givare. Plus lägger till, håll in ändrar.
+V.hus=function(){const D=haData();let h='<div class="rcp-top"><button class="back" data-act="nav" data-id="oversikt">'+I.back+'Översikt</button></div>';
+ const E=D?D.lampor||[]:[],n=E.filter(x=>x.on).length,g=D&&(D.givare||[])[0];
+ h+=head('Smart hem',{sub:D?(n?n+' tända':'Allt släckt')+(g?' · '+esc(haGiv(g)):''):'',tools:D?'<button type="button" class="ib" data-act="haAddOpen" aria-label="Lägg till enhet">'+I.plus+'</button>':''});
+ if(!D)return h+'<div class="group"><div class="cell"><span class="grow">'+(wallBoardOn()?'Väggdatorn är inte kopplad till Home Assistant än, eller svarar inte just nu.':'Smart hem styrs från väggskärmen.')+'</span></div></div>';
+ const sc=(D.scener||[]).concat(n?[{id:'av',n:'Släck allt'}]:[]);
+ if(sc.length)h+=sh('Scener')+'<div class="ha-sc ha-sc-v">'+sc.map(s=>'<button type="button" class="pill'+(HA.last===s.id?' on':'')+'" data-act="haScen" data-id="'+esc(s.id)+'"'+(s.id!=='av'?' data-hold-lift="haEdit"':'')+'>'+esc(s.n)+'</button>').join('')+'</div>';
+ const rum=HA_RUM.filter(r=>E.some(x=>x.rum===r)).concat(E.some(x=>x.rum&&!HA_RUM.includes(x.rum))?[...new Set(E.filter(x=>x.rum&&!HA_RUM.includes(x.rum)).map(x=>x.rum))]:[]).concat(E.some(x=>!x.rum)?['']:[]);
+ rum.forEach(r=>{const R=E.filter(x=>(x.rum||'')===r);h+=sh(r||'Utan rum',R.filter(x=>x.on).length?R.filter(x=>x.on).length+' tända':'')+'<div class="ha-g ha-g-v">'+R.map(haTile).join('')+'</div>'});
+ if(!E.length)h+='<div class="group"><div class="cell"><span class="grow">Inga enheter på tavlan än.</span><button type="button" class="pill" data-act="haAddOpen">'+I.plus+'Lägg till</button></div></div>';
+ if((D.givare||[]).length)h+=sh('Givare')+group(D.givare.map(x=>'<div class="cell" data-hold-lift="haEdit" data-id="'+esc(x.id)+'"><span class="ha-i sm">'+HAI.temp+'</span><span class="grow">'+esc(x.n)+(x.rum?'<span class="meta"> · '+esc(x.rum)+'</span>':'')+'</span><span class="num">'+esc(haGiv(Object.assign({},x,{n:''})).trim())+'</span></div>').join(''));
+ return h+'<div class="foot">Tryck på en enhet för att styra den, på den runda ikonen för att tända eller släcka. Håll in för att byta namn, rum eller ta bort.</div>'};
 // lång väntan mot tjänsten: svarar direkt första gången, sedan när något ändras (eller efter 25 s)
 async function haLoop(){if(HA.busy||haDemo()||!wallBoardOn()||Date.now()<HA.retry)return;HA.busy=true;
  try{while(wallBoardOn()){const ac=new AbortController(),t=setTimeout(()=>ac.abort(),40000);
@@ -1267,8 +1310,8 @@ V.oversikt=function(){
  const tasksNow=d.tasks.filter(x=>!x.done&&isDate(x.due)&&x.due<=t).sort((a,b)=>a.due.localeCompare(b.due));
  const tasksSoon=d.tasks.filter(x=>!x.done&&!(isDate(x.due)&&x.due<=t)).sort((a,b)=>(a.due||'9').localeCompare(b.due||'9')).slice(0,4);
  const hh=now.getHours(),greet=hh<5?'God natt':hh<10?'God morgon':hh<17?'Hej':hh<22?'God kväll':'God natt';
- let h=head(greet+(people().includes(S.me)?', '+personLabel(S.me):''),U3?{sub:cap(dayHead(t))}:undefined);
- h+='<div class="ov">'+refAdd(heroHtml(),'Ö1');
+ let h=head((U6&&greet==='Hej'?'God dag':greet)+(people().includes(S.me)?', '+personLabel(S.me):''),U3?{sub:cap(dayHead(t))}:undefined);
+ h+='<div class="ov">'+refAdd(heroHtml(),'Ö1')+forslagHtml();
  const H={kal:calWidget()};
  const isT=nextDay&&nextDay.date===t;
  H.mat=widget('mat','w2',I.fork,(isT||!nextDay)?'Middag ikväll':'Nästa middag',nextDay&&!isT?esc(dateShort(nextDay.date)):'',
@@ -2082,7 +2125,10 @@ const APP_VER=((document.querySelector('script[src*="app.js?v="]')||{}).src||'')
 // UI 1.0 är borttagen: städa bort dess sparade val och rutordning
 ['ny','ovLayout','wallLayout','calStyle'].forEach(k=>lsSet(k,null));
 let U3=DEV&&lsGet('ui')==='3',U4=lsGet('ui')==='4',U5=!['2','3','4'].includes(lsGet('ui'));
-function applyNy(){document.documentElement.classList.add('ny');document.documentElement.classList.toggle('ui3',U3);document.documentElement.classList.toggle('ui4',U4);document.documentElement.classList.toggle('ui5',U5)}
+// Aura (ht.ui=6): UI 5.0:s funktioner med ett eget utseende (kräm och brons, mjuka kort, Manrope), inspirerat av Aura 2.0 (github.com/sundqvist80/aura-2, MIT). Mörkt läge: marin (standard) eller noir (ht.auraM=noir)
+let U6=lsGet('ui')==='6';
+function applyNy(){document.documentElement.classList.add('ny');document.documentElement.classList.toggle('ui3',U3);document.documentElement.classList.toggle('ui4',U4);document.documentElement.classList.toggle('ui5',U5);const c=document.documentElement.classList;c.toggle('aura',U6);c.toggle('aura-noir',U6&&lsGet('auraM')==='noir');
+ if(U6&&!document.getElementById('aura-font')){const l=document.createElement('link');l.id='aura-font';l.rel='stylesheet';l.href='https://fonts.googleapis.com/css2?family=Manrope:wght@300..800&display=swap';document.head.appendChild(l)}}
 applyNy();
 // Visa rutnummer (utvecklarläget): ett märke i hörnet på varje ruta med data-ref. Tryck på märket kopierar numret och rutans rubrik
 const refsOn=()=>DEV&&lsGet('refs')==='1';let refMO=null;
@@ -2930,7 +2976,7 @@ function overlayKeepScroll(){const o=document.getElementById('overlay'),k=o.data
  const nb=o.querySelector('.sheet-body');if(y&&k&&o.dataset.k===k&&nb&&nb!==b)nb.scrollTop=y}
 function renderOverlay(){
  const o=document.getElementById('overlay');
- const k=S.cook?'cook':S.sheet==='settings'?'settings':S.sheet==='farg'?'farg':S.sheet==='vagg'?'vagg':S.sheet==='ljuskal'?'ljuskal':S.sheet==='rate'?'rate':S.sheet==='income'?'income':S.sheet==='matb'?'matb':S.sheet==='vara'?'vara':S.sheet==='cost'?'cost':S.sheet==='ov'?'ov':S.sheet==='prefs'?'prefs':S.sheet==='swap'?'swap':S.sheet==='prot'?'prot':S.sheet==='wish'?'wish':S.sheet==='shopMore'?'shopMore':S.sheet==='dess'?'dess':S.sheet==='slot'?'slot':S.sheet==='delLas'?'delLas':S.sheet==='dish'?'dish':S.sheet==='tmr'?'tmr':S.sheet==='tmrMenu'?'tmrMenu':S.rcpSheet?'rcpSheet':S.sheet==='cleanAdd'?'cleanAdd':S.sheet==='fodAdd'?'fodAdd':S.sheet==='fodFam'?'fodFam':S.sheet==='presBud'?'presBud':S.sheet==='haLampa'?'haLampa':S.sheet==='taskMenu'?'taskMenu':S.sheet==='ekoMenu'?'ekoMenu':S.sheet==='evMenu'?'evMenu':S.sheet==='cleanMenu'?'cleanMenu':S.sheet==='taskEdit'?'taskEdit':S.sheet==='evEdit'?'evEdit':S.sheet==='evNew'?'evNew':S.sheet==='wxDay'?'wxDay':S.shopAdd?'shop':S.taskAdd?'task':'';
+ const k=S.cook?'cook':S.sheet==='settings'?'settings':S.sheet==='farg'?'farg':S.sheet==='vagg'?'vagg':S.sheet==='ljuskal'?'ljuskal':S.sheet==='rate'?'rate':S.sheet==='income'?'income':S.sheet==='matb'?'matb':S.sheet==='vara'?'vara':S.sheet==='cost'?'cost':S.sheet==='ov'?'ov':S.sheet==='prefs'?'prefs':S.sheet==='swap'?'swap':S.sheet==='prot'?'prot':S.sheet==='wish'?'wish':S.sheet==='shopMore'?'shopMore':S.sheet==='dess'?'dess':S.sheet==='slot'?'slot':S.sheet==='delLas'?'delLas':S.sheet==='dish'?'dish':S.sheet==='tmr'?'tmr':S.sheet==='tmrMenu'?'tmrMenu':S.rcpSheet?'rcpSheet':S.sheet==='cleanAdd'?'cleanAdd':S.sheet==='fodAdd'?'fodAdd':S.sheet==='fodFam'?'fodFam':S.sheet==='presBud'?'presBud':S.sheet==='haLampa'?'haLampa':S.sheet==='haEdit'?'haEdit':S.sheet==='haAdd'?'haAdd':S.sheet==='taskMenu'?'taskMenu':S.sheet==='ekoMenu'?'ekoMenu':S.sheet==='evMenu'?'evMenu':S.sheet==='cleanMenu'?'cleanMenu':S.sheet==='taskEdit'?'taskEdit':S.sheet==='evEdit'?'evEdit':S.sheet==='evNew'?'evNew':S.sheet==='wxDay'?'wxDay':S.shopAdd?'shop':S.taskAdd?'task':'';
  const prev=o.dataset.k||'';
  // Rita inte om ett öppet blad medan någon skriver i det
  if(k&&k!=='cook'&&k===prev&&busyTyping()&&o.contains(document.activeElement))return;
@@ -2952,7 +2998,7 @@ function renderOverlay(){
  if(k==='settings'){const st=settings(),topic=D().ntfyTopic||'';
   const body=settingsGroups([
    ['personer','Personer',settingsPeople()],
-   ['utseende','Utseende',sh('Design')+'<div class="seg-wrap">'+segc('Design','uiVersion',[['2','UI 2.0'],...(DEV?[['3','UI 3.0']]:[]),['4','UI 4.0'],['5','UI 5.0']],U5?'5':U4?'4':U3?'3':'2')+'</div><div class="foot">UI 4.0 är Ateljé: tydligare text, sammanhållna listor och sidomeny på stora skärmar. UI 5.0 (standard) ser ut som en app från Apple: glasmeny, Apples färger och former. Valet gäller den här enheten. Era data och funktioner är samma.</div>'+sh('Utseende')+group('<button type="button" class="cell link" data-act="farg"><span class="grow">Färgval</span><span class="meta">'+esc({system:'System',light:'Ljust',dark:'Mörkt'}[S.theme]+' · '+(accentPref()==='min'?'Min färg':PCOL[accentKey()][0]))+'</span>'+chevron+'</button>')+'<div class="foot">Ljust eller mörkt och appens accentfärg. Personernas färger finns under Personer.</div>'+
+   ['utseende','Utseende',sh('Design')+'<div class="seg-wrap">'+segc('Design','uiVersion',[['2','UI 2.0'],...(DEV?[['3','UI 3.0']]:[]),['4','UI 4.0'],['5','UI 5.0'],['6','Aura']],U6?'6':U5?'5':U4?'4':U3?'3':'2')+'</div>'+(U6?sh('Aura i mörkt läge')+'<div class="seg-wrap">'+segc('Aura i mörkt läge','auraMork',[['marin','Marin'],['noir','Noir']],lsGet('auraM')==='noir'?'noir':'marin')+'</div>':'')+'<div class="foot">UI 4.0 är Ateljé: tydligare text, sammanhållna listor och sidomeny på stora skärmar. UI 5.0 (standard) ser ut som en app från Apple: glasmeny, Apples färger och former. Aura har samma funktioner som UI 5.0 men varma färger, mjuka kort och rundad text, inspirerat av hemappen Aura. Valet gäller den här enheten. Era data och funktioner är samma.</div>'+sh('Utseende')+group('<button type="button" class="cell link" data-act="farg"><span class="grow">Färgval</span><span class="meta">'+esc({system:'System',light:'Ljust',dark:'Mörkt'}[S.theme]+' · '+(accentPref()==='min'?'Min färg':PCOL[accentKey()][0]))+'</span>'+chevron+'</button>')+'<div class="foot">Ljust eller mörkt och appens accentfärg. Personernas färger finns under Personer.</div>'+
   (!U3&&!U5?sh('Form på knappar och rutor')+'<div class="seg-wrap">'+segc('Form på knappar och rutor','segstil',[['standard','Kantiga'],['kapsel','Runda'],['klassisk','Raka']],SEGSTIL)+'</div><div class="foot">Gäller växlingsknappar, rutor, listor och knappar i hela appen. Kantiga har lätt rundade hörn. Runda har helt runda knappar och mjukare rutor, som i iOS 26. Raka har små hörn och streck mellan valen, som i äldre iOS. Text, höjd och färg är samma i alla tre. Gäller bara den här enheten.</div>'+
       (!U4&&!U5?sh('Prova ett rymligare utseende')+group(fieldCell('Rymligare kontroller','<input type="checkbox" role="switch" class="switch" data-act="rymlig" aria-label="Rymligare kontroller"'+(RYMLIG?' checked':'')+'>'))+'<div class="foot">Mer luft runt knappar, fält och menyernas valmarkering. Kryssrutor och kalenderns datum följer Kantiga, Runda eller Raka. Av från början och kan stängas av när som helst. Gäller bara den här enheten.</div>':'')+
       sh('Menyraden längst ner')+'<div class="seg-wrap">'+segc('Menyraden längst ner','flikrad',[['fast','Fast'],['glas','Svävande'],['piller','Piller']],FLIKRAD)+'</div><div class="foot">Fast ligger kant i kant längst ner. Svävande är en rundad glasbubbla ovanpå innehållet, som i iOS 26, och krymper till en rund knapp när du scrollar. Piller krymper i stället till ett smalt piller med bara ikonerna, halvt nedanför skärmkanten. Gäller bara den här enheten.</div>':'')+sh('Placering av plusknappen')+'<div class="seg-wrap">'+segc('Placering av plusknappen','addPlace',[['flytande','Flytande'],['profil','Vid profilen'],['rad','Vid raden']],addPlace())+'</div><div class="foot">Gäller Recept, Inköp och Uppgifter. I Städ flyttar Vid profilen pluset till rubriken och döljer snabbfältet. Flytande visas ovanför menyraden. Vid profilen visas bredvid användaren. Vid raden låter dig lägga till direkt i listan; i kalendern öppnas formuläret. Receptpluset visar Nytt recept och Importera recept. Gäller bara den här enheten.</div>'],
@@ -2964,7 +3010,7 @@ function renderOverlay(){
   (topic?sh('Notiser')+group('<div class="cell"><span class="grow copy">'+esc(topic)+'</span><button type="button" class="pill" data-act="copy" data-id="'+esc(topic)+'">Kopiera</button></div>')+'<div class="foot">Installera appen ntfy och prenumerera på det här ämnet. Använd servern ntfy.sh.</div>':'')+(S.wall?sh('Inställningsknappen på väggskärmen')+'<div class="seg-wrap">'+segc('Inställningsknappen på väggskärmen','vaggknapp',[['meny','I menyraden'],['knapp','Egen knapp'],['rubrik','Rubrikrad']],VKNAPP)+'</div><div class="foot">I menyraden sitter cirkeln längst till höger i menyn. Egen knapp är en rund knapp nere till höger. Rubrikrad lägger en rad överst med cirkeln till höger, som på telefonen. Gäller bara den här enheten.</div>':'')+sh('Den här enheten')+group('<button type="button" class="cell link center red" data-act="logout">Logga ut</button>')],
    ['avancerat','Avancerat',sh('Utvecklare')+group(fieldCell('Utvecklarläge','<input type="checkbox" role="switch" class="switch" data-act="dev" aria-label="Utvecklarläge"'+(DEV?' checked':'')+'>'))+'<div class="foot">Visar menyer som inte är färdiga, just nu Planera nästa vecka och Planera med portioner. Gäller bara den här enheten.</div>'+
   (sh('Rörelse')+group(fieldCell('Vägledande animationer','<input type="checkbox" role="switch" class="switch" data-act="motion" aria-label="Vägledande animationer"'+(MOTION?' checked':'')+'>'))+'<div class="foot">Riktade sidbyten, glidande menyval och mjuk expansion. Systemets inställning för minskad rörelse går alltid före. Gäller den här enheten.</div>')+
-  (DEV?sh('Rutnummer')+group(fieldCell('Visa rutnummer','<input type="checkbox" role="switch" class="switch" data-act="refs" aria-label="Visa rutnummer"'+(refsOn()?' checked':'')+'>'))+'<div class="foot">Varje ruta får sitt fasta nummer i hörnet, till exempel M2. Tryck på numret för att kopiera det. Gäller bara den här enheten.</div>':'')]])+'<div class="foot ver">Hushållstavlan · UI '+(U5?'5.0':U4?'4.0':U3?'3.0':UI_VER)+' · version '+esc(APP_VER)+'</div>';
+  (DEV?sh('Rutnummer')+group(fieldCell('Visa rutnummer','<input type="checkbox" role="switch" class="switch" data-act="refs" aria-label="Visa rutnummer"'+(refsOn()?' checked':'')+'>'))+'<div class="foot">Varje ruta får sitt fasta nummer i hörnet, till exempel M2. Tryck på numret för att kopiera det. Gäller bara den här enheten.</div>':'')]])+'<div class="foot ver">Hushållstavlan · '+(U6?'Aura':'UI '+(U5?'5.0':U4?'4.0':U3?'3.0':UI_VER))+' · version '+esc(APP_VER)+'</div>';
   o.innerHTML=sheetHtml('settings','Inställningar','<button class="tb strong">Spara</button>',body,enter);if(S.prefDraft){Object.entries(S.prefDraft).forEach(([k,v])=>{const f=o.querySelector('[name="'+k+'"]');if(f&&!/radio|checkbox/.test(f.type))f.value=v})}segSlide(o);restoreColorStrips(o);return}
  if(k==='ljuskal'){const K=KAL||{},nm=['full','mitten','lägsta'];let body='',right='<button type="button" class="tb strong" data-act="sheetClose">'+(K.step==='klar'||SMAK?'Klar':'Avbryt')+'</button>';
   if(SMAK){const i=SMAK.i,v=Math.round(SMAK.v[i]*100);
@@ -3145,6 +3191,8 @@ if(k==='vara'){const n=S.varaK||'',ing=S.varaTyp==='ing',R=regGet(),F=parseJ(set
   o.innerHTML=sheetHtml('fodAdd',e?'Ändra födelsedag':'Ny födelsedag','<button class="tb strong">'+(e?'Spara':'Lägg till')+'</button>',body,enter);restoreColorStrips(o);return}
  // Presentbudget: stort belopp, Jämnt/Efter månad, staplar för tolv månader, belopp per present och kommande presenter
  if(k==='haLampa'){o.innerHTML=haLampSheet(enter);return}
+ if(k==='haEdit'){o.innerHTML=haEditSheet(enter);return}
+ if(k==='haAdd'){o.innerHTML=haAddSheet(enter);return}
  if(k==='presBud'){const P=presBud(),Y=presAr(),ty=+thisMonth().slice(0,4),SN=presSnitt(ty,P.ar),YK=presAr(ty+'-01'),nu=new Date().getMonth(),mx=Math.max(1,SN.jamn,...YK.M.map(x=>x.kr)),val=P.satt==='manad'?Y.M[0].kr:SN.jamn,
    st=(id,lab,sub,v)=>'<div class="cell pb-st"><div class="grow"><div>'+lab+'</div><div class="meta">'+sub+'</div></div><span class="stepper"><button type="button" data-act="presStep" data-id="'+id+'" data-d="-50" aria-label="Minska '+lab+'">−</button><span class="num"><b>'+v+'</b> kr</span><button type="button" data-act="presStep" data-id="'+id+'" data-d="50" aria-label="Öka '+lab+'">+</button></span></div>';
   const body='<div class="pb-hero"><div class="pb-big num">'+kr(val)+'</div><div class="pb-sub">'+(P.satt==='manad'?'till presenter i '+MON[Y.M[0].mo]:'att lägga undan varje månad')+'</div></div>'+
@@ -3288,6 +3336,94 @@ async function loadPast(force){const P=WX_POS();if(!force&&EXT.past&&Date.now()-
   const ts=H.time.map((t,k)=>{const b=OM_SYM[H.weather_code[k]]||'cloudy',dn=/^(clearsky|fair|partlycloudy|.*showers)$/.test(b)?(H.is_day[k]?'_day':'_night'):'';
    return{t:t+':00Z',T:H.temperature_2m[k],w:H.wind_speed_10m[k],wd:H.wind_direction_10m[k],s:b+dn,pr:H.precipitation[k]}}).filter(x=>x.T!=null&&Date.parse(x.t)<now&&Date.parse(x.t)>now-26*36e5);
   EXT.past={at:now,lat:P.lat,ts};return true}catch(e){return false}}
+/* Mer väder: SMHI:s varningar, UV och pollen (Open-Meteos luftkvalitet) och norrskensindex (NOAA). Hämtas var 30:e minut.
+   Går en källa inte att nå syns bara inte dess ruta. Vädra och Ute idag räknas fram ur prognosen. */
+async function loadWxPlus(force){const P=WX_POS(),o=EXT.wxp||{},same=o.lat===P.lat;if(!force&&o.at&&Date.now()-o.at<30*60000&&same)return false;
+ const n={at:Date.now(),lat:P.lat,aq:same?o.aq:null,kp:o.kp||null,warn:same?o.warn:null},j=async u=>{const r=await fetch(u);if(!r.ok)throw new Error(r.status);return r.json()};
+ await Promise.all([
+  j('https://air-quality-api.open-meteo.com/v1/air-quality?latitude='+P.lat+'&longitude='+P.lon+'&hourly=uv_index,alder_pollen,birch_pollen,grass_pollen,mugwort_pollen&timezone=UTC&forecast_days=2').then(x=>{const H=x.hourly;n.aq={t:H.time,uv:H.uv_index,p:{al:H.alder_pollen,bj:H.birch_pollen,gr:H.grass_pollen,gb:H.mugwort_pollen}}}).catch(()=>{}),
+  j('https://services.swpc.noaa.gov/products/noaa-planetary-k-index-forecast.json').then(x=>{n.kp=(x||[]).map(r=>Array.isArray(r)?{t:r[0],kp:r[1]}:{t:r&&r.time_tag,kp:r&&r.kp}).filter(r=>r.t&&r.kp!=null&&!isNaN(+r.kp)&&/^\d{4}-/.test(r.t)).map(r=>({t:String(r.t).replace(' ','T').replace(/Z?$/,'Z'),kp:+r.kp}))}).catch(()=>{}),
+  j('https://opendata-download-warnings.smhi.se/ibww/api/version/1/warning.json').then(x=>{n.warn=smhiVarn(x,P)}).catch(()=>{})]);
+ EXT.wxp=n;return true}
+function inPoly(x,y,ring){let c=false;for(let i=0,k=ring.length-1;i<ring.length;k=i++){const[xi,yi]=ring[i],[xk,yk]=ring[k];if((yi>y)!==(yk>y)&&x<(xk-xi)*(y-yi)/(yk-yi)+xi)c=!c}return c}
+function inGeo(g,lon,lat){const L=!g?[]:g.type==='Polygon'?[g.coordinates]:g.type==='MultiPolygon'?g.coordinates:[];return L.some(p=>p&&p[0]&&inPoly(lon,lat,p[0]))}
+const VARN_NIV={YELLOW:1,ORANGE:2,RED:3},VARN_NAMN=['','Gul','Orange','Röd'];
+// SMHI:s varningar som gäller platsen (gul, orange, röd). Polygonerna sparas inte, bara det som visas.
+function smhiVarn(x,P){const out=[];(Array.isArray(x)?x:[]).forEach(w=>(w.warningAreas||[]).forEach(a=>{const lv=VARN_NIV[(a.warningLevel||{}).code];if(!lv||!inGeo((a.area||{}).geometry,P.lon,P.lat))return;
+ const d=(a.descriptions||[]).map(z=>z&&z.text&&z.text.sv).filter(Boolean);
+ out.push({lv,ev:(a.eventDescription||{}).sv||(w.event||{}).sv||'Varning',area:(a.areaName||{}).sv||'',start:a.approximateStart||'',end:a.approximateEnd||'',txt:d[0]||''})}));
+ return out.sort((a,b)=>b.lv-a.lv)}
+const varnNu=()=>((EXT.wxp||{}).warn||[]).filter(v=>!v.end||Date.parse(v.end)>Date.now());
+function varnTid(v){const t=today(),f=s=>{const d=new Date(s),k=ymd(d),h=d.getHours();return(k===t?(h>=17?'i kväll':'i dag'):k===addDays(t,1)?'i morgon':DAYS[d.getDay()])+' '+pad(h)+'.'+pad(d.getMinutes())};
+ if(!v.start)return v.end?'till '+f(v.end):'';return Date.parse(v.start)<=Date.now()?(v.end?'nu till '+f(v.end):'gäller nu'):f(v.start)+(v.end?' till '+f(v.end):'')}
+const WP_IC={warn:'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M10.3 3.9a2 2 0 0 1 3.4 0l8 13.6A2 2 0 0 1 20 20.5H4a2 2 0 0 1-1.7-3Z"/><path d="M12 9v5M12 17.2v.1" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg>',
+ pollen:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 21v-9M12 12c-4 0-6-3-6-7 4 0 6 3 6 7ZM12 15c3 0 5-2 5-5-3 0-5 2-5 5Z"/></svg>',
+ aur:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 18c3-7 6-10 9-10s6 3 9 10M6 18c2-4 4-6 6-6s4 2 6 6"/></svg>'};
+// Timmar i prognosen för en dag mellan två klockslag (lokal tid), från och med nu
+const wxTim=(W,dag,a,b)=>W.all.filter(x=>ymd(x.d)===dag&&x.d.getHours()>=a&&x.d.getHours()<b&&x.d.getTime()>Date.now()-3600000);
+const wxTorr=x=>x.pr!=null?x.pr<0.1:!/rain|sleet|snow|drizzle|thunder/.test(x.s||'');
+function wxPlus(W){const n=new Date(),t=today(),R={},P=EXT.wxp||{};
+ // Vädra: längsta torra stunden utan hård vind, i dag till 21 (efter 20 i morgon)
+ {const sen=n.getHours()>=20,dag=sen?addDays(t,1):t,H=wxTim(W,dag,7,21);let best=null,cur=null;
+  H.forEach(x=>{if(wxTorr(x)&&(x.w||0)<10){cur=cur&&x.d.getHours()===cur.e?{s:cur.s,e:x.d.getHours()+1,L:cur.L.concat(x)}:{s:x.d.getHours(),e:x.d.getHours()+1,L:[x]};if(!best||cur.e-cur.s>best.e-best.s)best=cur}else cur=null});
+  if(H.length)R.vadra={dag:sen?'i morgon':'',bars:H.map(x=>best&&x.d.getHours()>=best.s&&x.d.getHours()<best.e?2:wxTorr(x)?1:0),
+   v:!best?'Inte '+(sen?'i morgon':'i dag'):!sen&&best.s<=n.getHours()?'Nu':best.s+'–'+best.e,
+   sub:!best?'Nederbörd hela dagen':(!sen&&best.s<=n.getHours()?'Torrt till '+best.e+', ':'Torrt, ')+deg(best.L.reduce((s,x)=>s+x.T,0)/best.L.length)+(best.L.every(x=>(x.w||0)<4)?' och lugnt':'')}}
+ // Ute: bästa två timmarna 8–20 efter känns som-temperatur, torrt och sol
+ {const P0=WX_POS(),ljus=dg=>{const su=sunTimes(dg,P0.lat,P0.lon);return wxTim(W,dg,8,20).filter(x=>!su||x.d>=su[0]-18e5&&x.d.getTime()+36e5<=su[1].getTime()+18e5)};let dag=t,H=ljus(t);if(H.length<2){dag=addDays(t,1);H=ljus(dag)}const sen=dag!==t;let best=null;
+  const p=x=>feels(x.T,x.w||0)-(wxTorr(x)?0:12)+(/^(clearsky|fair)/.test(x.s||'')?3:/^partly/.test(x.s||'')?1.5:0);
+  for(let i=0;i<H.length;i++){const a=H[i],b=H[i+1]&&H[i+1].d.getHours()===a.d.getHours()+1?H[i+1]:null,s=b?(p(a)+p(b))/2:p(a)-1;if(!best||s>best.s)best={s,h:a.d.getHours(),e:a.d.getHours()+(b?2:1),x:a}}
+  if(best)R.ute={dag:sen?'i morgon':'',v:best.h+'–'+best.e,sub:(wxTorr(best.x)?'Uppehåll':'Risk för regn')+', '+deg(best.x.T)+(/^(clearsky|fair)/.test(best.x.s||'')?' och sol':/^partly/.test(best.x.s||'')?' och sol emellanåt':'')}}
+ // UV och pollen för i dag
+ if(P.aq&&P.aq.t){const ix=P.aq.t.map((s,i)=>ymd(new Date(s+':00Z'))===t?i:-1).filter(i=>i>=0),mx=a=>Math.max(-1,...ix.map(i=>a&&a[i]!=null?a[i]:-1));
+  const uv=mx(P.aq.uv);if(uv>=0){const u=Math.round(uv);R.uv={v:String(u),pos:Math.min(100,uv/11*100),sub:(u<=2?'Låg':u<=5?'Måttlig':u<=7?'Hög':u<=10?'Mycket hög':'Extrem')+(u<=2?' hela dagen':', solskydd mitt på dagen')}}
+  const G={al:[1,11,101,1001],bj:[1,11,101,1001],gr:[1,11,31,81],gb:[1,11,31,81]},NM={al:'Al',bj:'Björk',gr:'Gräs',gb:'Gråbo'},NV=['Inget','Låga','Måttliga','Höga','Mycket höga'];
+  let top=null;Object.keys(G).forEach(k=>{const v=mx(P.aq.p&&P.aq.p[k]);if(v<0)return;const lv=G[k].filter(g=>v>=g).length;if(!top||lv>top.lv||lv===top.lv&&v>top.v)top={k,v,lv}});
+  if(top)R.pollen={lv:top.lv,v:NV[top.lv],sub:top.lv?NM[top.k]+(top.lv>=3?', ta medicin i tid':''):'Inga pollen i luften just nu'}}
+ // Norrsken: högsta Kp i natt (18–06) och hur molnigt det blir. Värnamo ligger på 57° N: från Kp 4 kan det synas lågt i norr
+ if(P.kp&&P.kp.length){const a=new Date(n),b=new Date(n);if(n.getHours()<6){a.setHours(0,0,0,0);b.setHours(6,0,0,0)}else{a.setHours(18,0,0,0);b.setDate(b.getDate()+1);b.setHours(6,0,0,0)}
+  const K=P.kp.filter(r=>{const x=Date.parse(r.t);return x+3*36e5>a.getTime()&&x<b.getTime()});
+  if(K.length){const kp=Math.max(...K.map(r=>r.kp)),lv=kp>=7?4:kp>=6?3:kp>=5?2:kp>=4?1:0,C=W.all.filter(x=>x.d>=a&&x.d<b&&x.cf!=null),cf=C.length?C.reduce((s,x)=>s+x.cf,0)/C.length:null,mol=cf!=null&&cf>=80;
+   R.aur={lv:mol?0:lv,v:lv&&mol?'Molnigt':['Ingen chans','Liten chans','Möjligt','Goda chanser','Stora chanser'][lv],sub:'Kp '+(Math.round(kp*10)/10).toString().replace('.',',')+' i natt'+(lv&&mol?', men molnen skymmer':cf!=null&&cf<40?', mest klart':'')+(lv&&!mol?'. Titta norrut.':'')}}}
+ return R}
+// Det viktigaste vädret just nu, en rad i Översikten: SMHI-varning, mycket pollen eller chans för norrsken
+function wxLarm(W){const v=varnNu()[0];if(v)return{k:'v'+v.lv,ic:WP_IC.warn,t:VARN_NAMN[v.lv]+' varning: '+v.ev.toLowerCase(),b:'SMHI · '+varnTid(v)};
+ if(!W)return null;const R=wxPlus(W);
+ if(R.pollen&&R.pollen.lv>=3)return{k:'p',ic:WP_IC.pollen,t:R.pollen.v+' halter av pollen',b:R.pollen.sub};
+ if(R.aur&&R.aur.lv>=2)return{k:'n',ic:WP_IC.aur,t:'Norrsken: '+R.aur.v.toLowerCase()+' i natt',b:R.aur.sub};return null}
+/* Smarta förslag i Översikten: ett kort i taget, svep för nästa. Byggs av det appen redan vet (matsedeln, vädret, födelsedagar, städ och uppgifter).
+   Klart döljer förslaget, Inte nu i tre timmar. Valet sparas på enheten (ht.fDone). */
+const FS_IC={fork:['#FF9500',I.fork],frost:['#007AFF','<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 13.5V5a2 2 0 1 1 4 0v8.5a4 4 0 1 1-4 0Z"/><path d="M12 15v2"/></svg>'],
+ regn:['#5AC8FA','<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12a9 9 0 0 1 18 0ZM12 12v7a2 2 0 0 1-4 0"/></svg>'],
+ gift:['#FF2D55','<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="8.5" width="17" height="4" rx="1"/><path d="M5 12.5V20h14v-7.5M12 8.5V20M12 8.5C10 4 6.5 5 7.5 7.5 8 8.5 12 8.5 12 8.5ZM12 8.5c2-4.5 5.5-3.5 4.5-1-.5 1-4.5 1-4.5 1Z"/></svg>'],
+ stad:['#34C759',I.sparkles],task:['#AF52DE',I.list],cal:['#FF3B30',I.cal]};
+function fsDone(){const o=parseJ(lsGet('fDone'),{}),n=Date.now();Object.keys(o).forEach(k=>{const d=/(\d{4}-\d{2}-\d{2})/.exec(k);if(o[k]!==-1&&o[k]<n||d&&d[1]<addDays(today(),-3))delete o[k]});return o}
+function forslag(){const n=new Date(),hh=n.getHours(),t=today(),tm=addDays(t,1),L=[],W=wxModel(),d=D();
+ // Matsedeln: middag saknas i morgon, eller något i morgondagens middag som kan behöva tina
+ const md=dayOf(tm);if(hh>=12&&planDays().some(x=>x.date>=tm)&&!(md&&md.meals.length))L.push({id:'mid:'+tm,ic:'cal',t:'Ingen middag planerad i morgon',b:'Välj en rätt nu så hinner ni handla.',go:['Planera','mat']});
+ if(hh>=15&&md&&md.meals.length){const FR=/(kyckling\w*|nötfärs|köttfärs|blandfärs|fläskfilé|fläskkotlett\w*|kycklingfilé\w*|laxfilé\w*|lax|torsk\w*|räkor|fisk\w*|högrevs?\w*|entrecôte|biff\w*)/i;
+  for(const m of md.meals){const r=m.recipe&&recipeById(m.recipe),ing=r?(r.groups||[]).flatMap(g=>g.items||[]).map(x=>x.n||'').join(' · '):'',k=FR.exec(ing);
+   if(k){L.push({id:'tina:'+tm+':'+(r.id||m.title),ic:'fork',t:'Ska '+k[1].toLowerCase()+' tina till i morgon?',b:'Till '+m.title.charAt(0).toLowerCase()+m.title.slice(1)+' i morgon. Lägg över den i kylen i kväll om den ligger i frysen.'});break}}}
+ if(W){const H=W.all.filter(x=>x.d>n);
+  // Regn inom tre timmar när det är torrt nu
+  if(hh>=7&&hh<21&&wxTorr(W.now)){const r=H.find(x=>x.d-n<3*36e5&&(x.pr!=null?x.pr>=0.3:/rain|sleet|snow/.test(x.s||'')));if(r)L.push({id:'regn:'+t+':'+r.d.getHours(),ic:'regn',t:(/snow/.test(r.s||'')?'Snö':'Regn')+' från '+pad(r.d.getHours())+'.00',b:'Ta in tvätten eller ta med paraply.'})}
+  // Frost i natt efter en dag över noll
+  if(hh>=15&&W.now.T>1){const N=H.filter(x=>x.d-n<18*36e5&&x.d.getHours()<=9),lo=N.reduce((a,x)=>!a||x.T<a.T?x:a,null);if(lo&&lo.T<=0)L.push({id:'frost:'+t,ic:'frost',t:'Frost i natt, '+deg(lo.T).replace('-','−')+' vid '+pad(lo.d.getHours()),b:'Skrapa bilen i morgon bitti och ta in det som inte tål kyla.'})}}
+ // Födelsedagar: idag, och inom en vecka när det är dags för present
+ try{bdays().filter(b=>b.days===0||(b.days<=7&&b.gift)).sort((a,b)=>a.days-b.days).slice(0,2).forEach(b=>L.push({id:'fod:'+b.key+':'+b.next,ic:'gift',t:b.name+' '+bdTurns(b)+' '+(b.days===0?'idag':bdWhen(b)),b:b.days===0?'Glöm inte att gratulera.':'Dags att ordna present.',go:['Visa','fod']}))}catch(e){}
+ // Städ och uppgifter som har väntat länge
+ const sen=d.clean.filter(c=>c.freq>1&&c.freq<30&&!doneToday(c)&&!snoozed(c)&&ratio(c)>=2);if(sen.length)L.push({id:'stad:'+t,ic:'stad',t:sen.length===1?sen[0].name+' har väntat länge':sen.length+' sysslor har väntat länge',b:'Dubbelt så länge som de brukar.',go:['Visa','stad']});
+ const ff=d.tasks.filter(x=>!x.done&&isDate(x.due)&&x.due<t);if(ff.length)L.push({id:'upg:'+t,ic:'task',t:ff.length===1?ff[0].title+' är försenad':ff.length+' uppgifter är försenade',b:'Gör dem idag eller flytta datumet.',go:['Visa','uppgifter']});
+ const D0=fsDone(),nu=Date.now();return L.filter(f=>!(f.id in D0&&fsDolj(D0[f.id],nu)))}
+// Värdet i ht.fDone: tidpunkt då förslaget visas igen (Inte nu) eller -1 (Klart)
+const fsDolj=(v,nu)=>v===-1||v>nu;
+function forslagHtml(){const L=forslag();if(!L.length)return'';
+ return'<div class="fsl"'+RF('Ö14')+'><div class="sh"><span>Förslag</span><span class="r">'+(L.length>1?L.length+' st':'')+'</span></div><div class="fs-sc">'+L.map(f=>{const[c,ic]=FS_IC[f.ic]||FS_IC.cal;
+  return'<div class="fs-k"><div class="fs-r"><span class="fs-ic" style="background:'+c+'">'+ic+'</span><div><b>'+esc(f.t)+'</b><span>'+esc(f.b)+'</span></div></div><div class="fs-b">'+
+   (f.go?'<button class="fs-p" data-act="fsGo" data-id="'+esc(f.id)+'" data-go="'+f.go[1]+'">'+f.go[0]+'</button>':'<button class="fs-p" data-act="fsKlart" data-id="'+esc(f.id)+'">Klart</button>')+
+   '<button class="fs-g" data-act="fsSen" data-id="'+esc(f.id)+'">Inte nu</button></div></div>'}).join('')+'</div></div>'}
+function fsSet(id,v){const o=fsDone();o[id]=v;lsSet('fDone',JSON.stringify(o))}
+function wxLarmHtml(W){const L=wxLarm(W);return L?'<button class="wx-larm wl-'+L.k+'" data-act="nav" data-id="vader"'+RF(wallBoardOn()?'T13':'Ö13')+'>'+L.ic+'<span><b>'+esc(L.t)+'</b><small>'+esc(L.b)+'</small></span></button>':''}
 // Samlad bild: nu, kommande timmar och dagar (lokal tid)
 function wxModel(){const y=EXT.yr;if(!y||!y.ts||!y.ts.length||Date.now()-y.at>12*3600000)return null;
  const now=Date.now(),hrs=y.ts.map(x=>Object.assign({},x,{d:new Date(x.t)})).filter(x=>x.d.getTime()>now-3600000);if(!hrs.length)return null;
@@ -4149,8 +4285,8 @@ function heroHtml(){const n=new Date(),t=today(),dy=EXT.day&&EXT.day.date===t?EX
  // telefonen: bilden breder ut sig under vänsterspalten, så sol- och namnsdagsraden står under bilden i stället för bakom marken
  const lo=ny&&wx&&!U3&&!U4,fh=lo?'<div class="hero-fot"><div class="hero-facts">'+facts.slice().sort((a,b)=>a.length-b.length).map(f=>'<span>'+esc(f)+'</span>').join('')+'</div>'+(tipT?'<button class="fig-tip" data-act="nav" data-id="vader">'+esc(tipT)+'</button>':'')+'</div>':'<div class="hero-facts">'+facts.map(f=>'<span>'+esc(f)+'</span>').join('')+'</div>';
  return'<section class="hero'+wxArtClass()+(wx?' has-wx':'')+(W&&grassOn()&&grassV()==='b'&&heroSky()?' has-sky':'')+'">'+(W?(grassOn()?(grassV()==='b'?(heroSky()?skyFx(W):'')+arcHtml(W,'b'):''):skyHtml(W)):'')+'<div class="hero-l"><div class="clock num" id="clock">'+pad(hh)+':'+pad(n.getMinutes())+'</div><div class="hero-date">'+esc(cap(dayHead(t)))+'</div>'+(ny?'<div class="hero-date">Vecka '+isoWeek(n)+'</div>':'')+
-  '<div class="hero-greet">'+greet+(S.me?', '+esc(personLabel(S.me)):'')+'!</div>'+(lo?'':fh)+'</div>'+wx+(lo?fh:'')+(W&&!wallBoardOn()?ovWx(W):'')+'</section>'}
-async function loadExt(){const t=today();let changed=await loadWx();if(await loadPast())changed=true;
+  '<div class="hero-greet">'+greet+(S.me?', '+esc(personLabel(S.me)):'')+'!</div>'+(lo?'':fh+(wallBoardOn()?'':wxLarmHtml(W)))+'</div>'+wx+(lo?wxLarmHtml(W)+fh:'')+(W&&!wallBoardOn()?ovWx(W):'')+'</section>'}
+async function loadExt(){const t=today();let changed=await loadWx();if(await loadPast())changed=true;if(await loadWxPlus())changed=true;
  if(!EXT.day||EXT.day.date!==t){try{const[y,mo,d]=t.split('-');
   const r=await fetch('https://sholiday.faboul.se/dagar/v2.1/'+y+'/'+mo+'/'+d);const j=await r.json(),x=j.dagar&&j.dagar[0];
   if(x){EXT.day={date:t,names:x.namnsdag||[],holiday:x.helgdag||'',flag:x.flaggdag||''};changed=true}}catch(e){}}
@@ -4251,6 +4387,7 @@ V.vader=function(){const W=wxModel(),P=WX_POS();
  const[ic,tx]=symInfo(W.now.s),d0=W.days[0],F=wxToday(W),sun=sunTimes(today(),P.lat,P.lon);
  // vädret ligger i miljöbilden: ort och temperatur uppe till vänster, väderläget uppe till höger, tips och vind i en remsa nederst
  // UI 2.0: samma bild som på Översikt i större format (träd, kulle och gräsplätt som tonar ut i rutan), råden under bilden
+ h+=varnNu().map(v=>'<div class="wx-varn wv'+v.lv+'"'+RF('W11')+'><div class="wx-cap">'+WP_IC.warn+VARN_NAMN[v.lv]+' varning · SMHI</div><b>'+esc(v.ev+(v.area?' i '+v.area:''))+'</b><span class="fn">'+esc(capS(varnTid(v)))+(v.txt?'. '+esc(v.txt):'')+'</span></div>').join('');
  if(WXVY==='kurva')h+=wxHeroC(W,P,ic,tx,d0,F,sun);
  else h+='<section class="wx2'+wxArtClass()+'"'+wxArtVars(W)+RF('W1')+'><div class="wx2-top"><div><div class="wx-place">'+esc(P.name)+'</div><div class="wx-big num" id="lt">'+deg(W.now.T)+'</div></div>'+
   '<div class="wx2-r"><div class="wx2-cond"><span aria-hidden="true">'+ic+'</span>'+esc(tx)+'</div><div class="wx-hl num">H:'+deg(d0.max)+'  L:'+deg(d0.min)+'</div></div></div>'+
@@ -4265,14 +4402,20 @@ V.vader=function(){const W=wxModel(),P=WX_POS();
   return'<button type="button" class="day-row" data-act="wxDay" data-id="'+x.date+'"><span class="dn">'+(k?capS(DAYS3[parse(x.date).getDay()]):'Idag')+'</span><span class="di" aria-hidden="true">'+ii+'</span><span class="dp num">'+(x.pr>=0.2?mm(x.pr):'')+'</span><span class="dmin num">'+deg(x.min)+'</span><span class="range" aria-hidden="true"><i style="left:'+l+'%;right:'+(100-r)+'%;background:'+tempGrad(x.min,x.max)+'"></i>'+(k===0?'<b style="left:'+((W.now.T-lo)/span*100)+'%"></b>':'')+'</span><span class="dmax num">'+deg(x.max)+'</span></button>'}).join('')+'</div>';
  // Detaljer
  const n=W.now,prToday=d0.pr,tile=(lab,val,sub)=>'<div class="wx-tile"'+RF({Vind:'W5','Känns som':'W6',Nederbörd:'W7',Luftfuktighet:'W8',Sol:'W9',Lufttryck:'W10'}[lab])+'><div class="wx-cap">'+lab+'</div><div class="tv num">'+val+'</div><div class="fn">'+sub+'</div></div>';
+ const R=wxPlus(W),tp=(ref,lab,val,sub,ex,cls)=>'<div class="wx-tile'+(cls||'')+'"'+RF(ref)+'><div class="wx-cap">'+lab+'</div><div class="tv num">'+esc(val)+'</div><div class="fn">'+esc(sub)+'</div>'+(ex||'')+'</div>';
  h+='<div class="wx-tiles">'+
+  (R.vadra?tp('W12','Vädra'+(R.vadra.dag?' i morgon':''),R.vadra.v,R.vadra.sub,'<div class="wp-bars" aria-hidden="true">'+R.vadra.bars.map(b=>'<i class="b'+b+'"></i>').join('')+'</div>'):'')+
+  (R.ute?tp('W13','Ute '+(R.ute.dag||'i dag'),R.ute.v,R.ute.sub):'')+
+  (R.uv?tp('W14','UV-index',R.uv.v,R.uv.sub,'<div class="wp-uv" aria-hidden="true"><i style="left:'+R.uv.pos.toFixed(0)+'%"></i></div>'):'')+
+  (R.pollen?tp('W15','Pollen',R.pollen.v,R.pollen.sub):'')+
+  (R.aur?tp('W16','Norrsken',R.aur.v,R.aur.sub,'',' wp-full'):'')+
   tile('Vind',Math.round(n.w)+' m/s','<span class="wd" style="transform:rotate('+((n.wd||0)+180)+'deg)">↑</span> '+capS(windDir(n.wd))+' vind')+
   tile('Känns som',deg(feels(n.T,n.w)),feels(n.T,n.w)<n.T-1?'Vinden gör det kallare':'Ungefär som det är')+
   tile('Nederbörd',mm(prToday),'idag'+(W.days[1]?' · '+mm(W.days[1].pr)+' i morgon':''))+
   tile('Luftfuktighet',Math.round(n.h||0)+' %',(n.h||0)>85?'Fuktigt':(n.h||0)<40?'Torr luft':'Normal')+
   (sun?tile('Sol','<span class="sm">↑ '+hhmm(sun[0])+'</span> <span class="sm">↓ '+hhmm(sun[1])+'</span>','Dagens längd '+Math.floor((sun[1]-sun[0])/3600000)+' h '+Math.round(((sun[1]-sun[0])%3600000)/60000)+' min'):'')+
   tile('Lufttryck',Math.round(n.p||0)+' hPa',(n.p||1013)<1000?'Lågtryck':(n.p||1013)>1022?'Högtryck':'Normalt')+'</div>';
- h+='<div class="foot">Väderdata från '+(W.src==='yr'?'<a href="https://www.yr.no/" target="_blank" rel="noopener">Yr</a> och MET Norway (CC BY 4.0)':'Open-Meteo, eftersom Yr inte gick att nå')+'. Uppdaterad '+hhmm(new Date(EXT.yr.at))+'.</div>';
+ h+='<div class="foot">Väderdata från '+(W.src==='yr'?'<a href="https://www.yr.no/" target="_blank" rel="noopener">Yr</a> och MET Norway (CC BY 4.0)':'Open-Meteo, eftersom Yr inte gick att nå')+'. Varningar från SMHI, UV och pollen från Open-Meteo, norrsken från NOAA. Uppdaterad '+hhmm(new Date(EXT.yr.at))+'.</div>';
  return h};
 
 /* Dagens väder (tryck på en dag i W4): ett blad som Apples Väder. Dagarna överst, dagens läge, en graf över dygnet 00–24
@@ -4620,7 +4763,7 @@ const isDark=()=>themeNow()==='dark'||themeNow()==='system'&&matchMedia('(prefer
 function applyTheme(fade){const root=document.documentElement;
  if(fade&&!calm()){root.classList.add('theme-fade');clearTimeout(applyTheme.t);applyTheme.t=setTimeout(()=>root.classList.remove('theme-fade'),450)}
  const th=themeNow();if(th==='system')root.removeAttribute('data-theme');else root.setAttribute('data-theme',th);root.classList.toggle('u3-dark',U3&&isDark());root.classList.toggle('u4-dark',U4&&isDark());
- document.querySelectorAll('meta[name="theme-color"]').forEach(mt=>{const dark=th==='dark'||(th==='system'&&/dark/.test(mt.media));mt.content=U4?(dark?'#17151E':'#F5F4F8'):U3?(dark?'#181A19':'#F6F4EF'):dark?'#000000':'#F2F2F7'})}
+ document.querySelectorAll('meta[name="theme-color"]').forEach(mt=>{const dark=th==='dark'||(th==='system'&&/dark/.test(mt.media));mt.content=U6?(dark?(lsGet('auraM')==='noir'?'#0A0908':'#080A15'):'#ECE6DD'):U4?(dark?'#17151E':'#F5F4F8'):U3?(dark?'#181A19':'#F6F4EF'):dark?'#000000':'#F2F2F7'})}
 autoTheme();applyTheme(false);
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(U3||U4)applyTheme(false)});
 
@@ -4704,7 +4847,7 @@ function motionPage(el,page,prev,dir){if(motionPageAnim)motionPageAnim.cancel();
 // Sidan följer fingret och sidan under syns med parallax. Vid släpp avgör farten: rörelsen projiceras som i UIKit
 // (WWDC 2018 "Designing Fluid Interfaces") och sidan fjädrar vidare med fingrets fart. Ett nytt grepp under fjädringen fångar sidan.
 var edgeBack=false,U5UNDER=null,u5BackAt=0;
-const u5Sub=x=>!!x[1]||x[0]==='vader'||x[0]==='fod';
+const u5Sub=x=>!!x[1]||x[0]==='vader'||x[0]==='fod'||x[0]==='hus';
 // Fart i px/ms över de senaste 100 ms; står fingret still innan släpp är farten noll
 const u5Fart={add(a,x){const t=performance.now();a.push([t,x]);while(a.length>2&&t-a[0][0]>100)a.shift()},
  v(a){if(!a||a.length<2)return 0;const f=a[0],l=a[a.length-1];if(performance.now()-l[0]>60)return 0;const dt=l[0]-f[0];return dt>0?(l[1]-f[1])/dt:0},
@@ -4876,6 +5019,13 @@ const ACT={
  wakeBoard(){render()},
  haTog(id){const x=(haData()||{lampor:[]}).lampor.find(e=>e.id===id);if(!x||x.nas)return;const was=x.on;x.on=!was;if(x.on&&!x.b&&x.t==='light')x.b=null;HA.last=null;render();haSend({id,gor:'vaxla'},()=>{x.on=was})},
  haLampa(id){S.haId=id;S.sheet='haLampa';render()},
+ haEdit(id){if(!haAllaEnh().some(e=>e.id===id))return;S.haId=id;S.sheet='haEdit';render()},
+ haNamn(v){const x=haAllaEnh().find(e=>e.id===S.haId);if(!x)return;haValj({id:x.id,namn:v},()=>{x.n=v||x.hn||x.n})},
+ haRum(v){const x=haAllaEnh().find(e=>e.id===S.haId);if(!x)return;haValj({id:x.id,rum:v},()=>{x.rum=v||null})},
+ haDelHold(id){const D=haData();if(!D)return;closeSheets();S.sheet=null;haValj({ta:id},()=>{['lampor','scener','givare'].forEach(k=>{if(D[k])D[k]=D[k].filter(e=>e.id!==id)})});toast('Borttagen från tavlan')},
+ haAddOpen(){HA.alla=null;S.sheet='haAdd';render();haAllaHamta()},
+ haAdd(id){const a=HA.alla&&HA.alla.alla&&HA.alla.alla.find(x=>x.id===id),D=haData();if(!a||!D)return;a.vald=true;const k=a.t==='scene'||a.t==='script'?'scener':a.t==='sensor'?'givare':'lampor';
+  haValj({lagg:id},()=>{if(haDemo()&&!D[k].some(e=>e.id===id))D[k].push(k==='givare'?{id,n:a.n,hn:a.n,v:'6.1',u:'°C'}:k==='scener'?{id,n:a.n,hn:a.n}:{id,n:a.n,hn:a.n,t:a.t,on:false,lagen:a.t==='light'?['brightness']:[]})});toast(a.n+' finns nu på tavlan')},
  haFarg(v){const D=haData(),x=D&&D.lampor.find(l=>l.id===S.haId),[h,m]=String(v).split(',').map(Number);haLampSkicka(x,{hs:[h,m]})},
  haScen(id){const D=haData();if(!D)return;HA.last=id;
   if(id==='av'){const was=D.lampor.map(x=>x.on);D.lampor.forEach(x=>{if(!x.nas)x.on=false});render();return haSend({alla:'av'},()=>D.lampor.forEach((x,i)=>x.on=was[i]))}
@@ -4937,7 +5087,11 @@ const ACT={
  copy(id){try{navigator.clipboard.writeText(id).then(()=>toast('Kopierat'),()=>toast('Markera och kopiera texten'))}catch(e){toast('Markera och kopiera texten')}},
  flStyle(id){FL_STYLE=id==='lista'?'lista':'karusell';lsSet('forslag',FL_STYLE==='lista'?'lista':null);render()},
  theme(id){S.theme=['light','dark'].includes(id)?id:'system';lsSet('theme',S.theme==='system'?null:S.theme);applyTheme(true);render()},
- uiVersion(id){if(!['2','4','5'].includes(id)&&!(DEV&&id==='3'))return;const f=document.querySelector('form[data-form="settings"]');if(f)S.prefDraft=Object.fromEntries(new FormData(f));U3=id==='3';U4=id==='4';U5=id==='5';lsSet('ui',U5?null:U4?'4':U3?'3':'2');S.arrange=false;applyNy();applyStil();applyTheme(true);document.querySelector('.nav-mini')?.classList.remove('on');document.getElementById('nav').classList.remove('mini','ut');render()},
+ uiVersion(id){if(!['2','4','5','6'].includes(id)&&!(DEV&&id==='3'))return;const f=document.querySelector('form[data-form="settings"]');if(f)S.prefDraft=Object.fromEntries(new FormData(f));U3=id==='3';U4=id==='4';U6=id==='6';U5=id==='5'||U6;lsSet('ui',U6?'6':U5?null:U4?'4':U3?'3':'2');S.arrange=false;applyNy();applyStil();applyTheme(true);document.querySelector('.nav-mini')?.classList.remove('on');document.getElementById('nav').classList.remove('mini','ut');render()},
+ auraMork(id){lsSet('auraM',id==='noir'?'noir':null);applyNy();applyTheme(true);render()},
+ fsKlart(id){fsSet(id,-1);render()},
+ fsSen(id){fsSet(id,Date.now()+3*36e5);render();toast('Visas igen om tre timmar')},
+ fsGo(id,el){fsSet(id,-1);ACT.nav(el&&el.dataset.go||'oversikt')},
  recipeSearchClear(){S.u3Query='';render()},
  dev(){motionAbort();if(motionPageAnim)motionPageAnim.cancel();DEV=!DEV;lsSet('dev',DEV?'1':null);applyStil();applyRefs();if(!DEV&&U3){U3=false;U5=true;lsSet('ui',null);applyStil();applyTheme(false)}applyNy();if(!DEV&&S.plan&&S.plan!=='auto')S.plan=null;render()},
  wall(){S.wall=!S.wall;lsSet('wall',S.wall?'1':'0');fitScrollbar();hideCursor();wake();autoTheme();applyTheme(true);render();camSample()},
@@ -5205,7 +5359,7 @@ const ACT={
   el.classList.add('holding');h={el,x:e.clientX,y:e.clientY,t:setTimeout(()=>{const a=el.dataset.hold;stop();fired=Date.now();try{navigator.vibrate&&navigator.vibrate(15)}catch(x){}ACT[a]&&ACT[a](el.dataset.id)},T)}});
  document.addEventListener('pointermove',e=>{if(h&&Math.hypot(e.clientX-h.x,e.clientY-h.y)>12)stop()});
  ['pointerup','pointercancel','scroll'].forEach(k=>document.addEventListener(k,stop,true));
- document.addEventListener('click',e=>{const el=e.target.closest('[data-hold]');if(el&&Date.now()-fired>800)toast('Håll in knappen för att '+({shopEmptyYes:'tömma listan',weekDelYes:'bekräfta',dishDelHold:'ta bort rätten',ekoDelHold:'ta bort utgiften',fodDelHold:'ta bort födelsedagen',shopImportYes:'uppdatera varorna'}[el.dataset.hold]||'bekräfta'))});
+ document.addEventListener('click',e=>{const el=e.target.closest('[data-hold]');if(el&&Date.now()-fired>800)toast('Håll in knappen för att '+({shopEmptyYes:'tömma listan',weekDelYes:'bekräfta',dishDelHold:'ta bort rätten',haDelHold:'ta bort enheten',ekoDelHold:'ta bort utgiften',fodDelHold:'ta bort födelsedagen',shopImportYes:'uppdatera varorna'}[el.dataset.hold]||'bekräfta'))});
  document.addEventListener('contextmenu',e=>{if(e.target.closest('[data-hold]'))e.preventDefault()})})();
 /* Håll in = lyft: det man håller i växer sakta (4 % på 0,8 s) med en mjuk skugga och åtgärden körs när det nått fram.
    Släpper eller flyttar man fingret glider det tillbaka. hlOn/hlOff används av alla håll-in-gester med lyft (ändra, lås, ordna rutor, klockan) */
