@@ -3063,8 +3063,12 @@ html.ny.ui5 .g5-kop .val{color:var(--ink-3)}
 .ha-k input[type=range]{accent-color:#F5A623}.ha-k input[type=range]{background:linear-gradient(90deg,#FFB861,#FFF4E5 55%,#CFE3FF);border-radius:14px;height:28px;-webkit-appearance:none;appearance:none}
 .ha-k input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.35)}
 .ha-live.fel{background:var(--orange);box-shadow:0 0 0 3px color-mix(in srgb,var(--orange) 22%,transparent)}.ha-t.nas{opacity:.45;cursor:default}
-/* Väggtavlan: sista rutan i varje spalt fyller ner till botten, så att alla spalter slutar på samma linje */
-html.ny.ui5 body.wall .board .bcol[data-col]>:last-child{flex:1 1 auto}
+/* Väggtavlan: rutorna delar spaltens höjd efter innehåll (fitBoard5 döljer hela rader när spalten inte räcker), och sista rutan fyller ner till botten så att alla spalter slutar på samma linje */
+html.ny.ui5 body.wall .board:not(.arranging) .bcol[data-col]>*{flex:0 0 auto;min-height:0;overflow:hidden}
+html.ny.ui5 body.wall .board .bcol[data-col]>:last-child{flex-grow:1}
+.board .fit-dold{display:none!important}
+html.ny .board .ev.fit-dold+.ev{border-top:0}
+html.ny.ui5 .board .fit-mer{font-size:13px;line-height:18px;color:var(--ink-2);padding:6px 0 0}
 </style>
 </head>
 <body>

@@ -3889,8 +3889,23 @@ function placeSky(){const h=document.querySelector('.hero');if(!h)return;
   sky.style.left=Math.round((cr.right-hr.left)/z+4)+'px';sky.style.right='4px'}}
 window.addEventListener('resize',placeSky);
 // väggtavlan: rader som inte får plats i sin ruta döljs hela i stället för att klippas mitt i
-function fitBoard(){document.querySelectorAll('.board .btasks .wl').forEach(l=>{const box=l.closest('.widget').getBoundingClientRect().bottom-12;
+// UI 5.0: rutorna i en spalt är så höga som innehållet kräver och sista rutan fyller till botten. Räcker inte spalten döljs hela rader (passerade händelser först,
+// sedan från slutet i den högsta rutan), med "+N till" i stället. Mäts om efter 0,7 s när nya rader har fällts ut.
+let FIT_T=0;function fitBoard(){if(U5){fitBoard5();clearTimeout(FIT_T);FIT_T=setTimeout(fitBoard5,700);return}document.querySelectorAll('.board .btasks .wl').forEach(l=>{const box=l.closest('.widget').getBoundingClientRect().bottom-12;
  [...l.children].forEach(c=>c.hidden=false);[...l.children].forEach(c=>{if(c.getBoundingClientRect().bottom>box)c.hidden=true})})}
+// rutor som ritas om på egen hand (schemats minuttext, Smart hem) mäts om via en MutationObserver på spalterna
+let FIT_MO=null,FIT_R=0;
+function fitBoard5(){const B=document.querySelector('.board:not(.arranging)');if(FIT_MO)FIT_MO.disconnect();if(!B)return;
+ B.querySelectorAll('.fit-dold').forEach(e=>e.classList.remove('fit-dold'));B.querySelectorAll('.fit-mer').forEach(e=>e.remove());
+ B.querySelectorAll('.bcol[data-col]').forEach(col=>{const X=[...col.querySelectorAll(':scope>.widget')].map(w=>({w,r:[...w.querySelectorAll('.evs>.ev,:scope>.wmeal,.wl>.cell,.brooms>div')],n:0,m:null}));// passerade händelser försvinner tyst, övriga räknas i "+N till"
+
+  for(let k=0;k<80&&col.scrollHeight>col.clientHeight+1;k++){const vis=x=>x.r.filter(r=>!r.classList.contains('fit-dold')),C=X.filter(x=>vis(x).length);if(!C.length)break;
+   // passerade händelser går först, sedan en rad från den högsta rutan som har fler än en rad kvar; kvällens middag kortas sist
+   let b=C.find(x=>vis(x).some(r=>r.classList.contains('past')));if(!b){const ej=C.filter(x=>!x.w.classList.contains('bmeal')),M=ej.filter(x=>vis(x).length>1);b=(M.length?M:ej.length?ej:C).reduce((a,x)=>x.w.offsetHeight>a.w.offsetHeight?x:a)}
+   const v=vis(b),r=v.find(r=>r.classList.contains('past'))||v[v.length-1];r.classList.add('fit-dold');if(r.classList.contains('past'))continue;b.n++;
+   if(!b.m){b.m=document.createElement('div');b.m.className='fit-mer';r.parentNode.appendChild(b.m)}b.m.textContent='+'+b.n+' till'}})
+ if(!FIT_MO)FIT_MO=new MutationObserver(()=>{cancelAnimationFrame(FIT_R);FIT_R=requestAnimationFrame(fitBoard5)});
+ B.querySelectorAll('.bcol[data-col]').forEach(c=>FIT_MO.observe(c,{childList:true,subtree:true,characterData:true}))}
 window.addEventListener('resize',fitBoard);
 /* Sol- och månbanan ovanför gräsplätten i stället för över hela rutan. Solen går från soluppgången till vänster
    till solnedgången till höger, på natten månen i sin verkliga fas. Banan har samma höjd året runt och ligger ovanför hundarna. */
