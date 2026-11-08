@@ -3896,7 +3896,7 @@ let FIT_T=0;function fitBoard(){if(U5){fitBoard5();clearTimeout(FIT_T);FIT_T=set
 // rutor som ritas om på egen hand (schemats minuttext, Smart hem) mäts om via en MutationObserver på spalterna
 let FIT_MO=null,FIT_R=0;
 function fitBoard5(){const B=document.querySelector('.board:not(.arranging)');if(FIT_MO)FIT_MO.disconnect();if(!B)return;
- B.querySelectorAll('.fit-dold').forEach(e=>e.classList.remove('fit-dold'));B.querySelectorAll('.fit-mer').forEach(e=>e.remove());
+ B.querySelectorAll('.fit-dold').forEach(e=>e.classList.remove('fit-dold'));B.querySelectorAll('.fit-mer').forEach(e=>e.remove());B.querySelectorAll('.wpair>.widget').forEach(w=>w.style.removeProperty('--z'));
  B.querySelectorAll('.bcol[data-col]').forEach(col=>{const X=[...col.querySelectorAll(':scope>.widget')].map(w=>({w,r:[...w.querySelectorAll('.evs>.ev,:scope>.wmeal,.wl>.cell,.brooms>div')],n:0,m:null}));// passerade händelser försvinner tyst, övriga räknas i "+N till"
 
   for(let k=0;k<80&&col.scrollHeight>col.clientHeight+1;k++){const vis=x=>x.r.filter(r=>!r.classList.contains('fit-dold')),C=X.filter(x=>vis(x).length);if(!C.length)break;
@@ -3904,6 +3904,9 @@ function fitBoard5(){const B=document.querySelector('.board:not(.arranging)');if
    let b=C.find(x=>vis(x).some(r=>r.classList.contains('past')));if(!b){const ej=C.filter(x=>!x.w.classList.contains('bmeal')),M=ej.filter(x=>vis(x).length>1);b=(M.length?M:ej.length?ej:C).reduce((a,x)=>x.w.offsetHeight>a.w.offsetHeight?x:a)}
    const v=vis(b),r=v.find(r=>r.classList.contains('past'))||v[v.length-1];r.classList.add('fit-dold');if(r.classList.contains('past'))continue;b.n++;
    if(!b.m){b.m=document.createElement('div');b.m.className='fit-mer';r.parentNode.appendChild(b.m)}b.m.textContent='+'+b.n+' till'}})
+ // Inköp och Födelsedagar som fått mer höjd än de behöver: siffran och årshjulet växer (--z, högst 1,8) så länge allt får plats
+ B.querySelectorAll('.bcol[data-col] .wpair>.widget').forEach(w=>{let z=1;const H0=w.offsetHeight,col=w.closest('.bcol'),l=w.querySelector('.bbd-l'),ok=()=>w.offsetHeight<=H0+1&&col.scrollHeight<=col.clientHeight+1&&(!l||l.clientWidth>=130);
+  for(const t of [1.8,1.6,1.45,1.3,1.2,1.1]){w.style.setProperty('--z',t);if(ok()){z=t;break}}if(z===1)w.style.removeProperty('--z')});
  if(!FIT_MO)FIT_MO=new MutationObserver(()=>{cancelAnimationFrame(FIT_R);FIT_R=requestAnimationFrame(fitBoard5)});
  B.querySelectorAll('.bcol[data-col]').forEach(c=>FIT_MO.observe(c,{childList:true,subtree:true,characterData:true}))}
 window.addEventListener('resize',fitBoard);
