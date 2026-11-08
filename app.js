@@ -4006,7 +4006,8 @@ function skyFx(W){const sc=wxScene(W),wet=/^(drizzle|rain|sleet)$/.test(sc.type)
   return{svg:'<svg viewBox="-6 -10 '+(VW+12)+' 58" width="'+f(w2)+'" height="'+f(h)+'">'+iconCloud(P,8,VW-8,Bb,c,{back:big,dash:t!=='hi',seed:k,storm:sc.thunder&&t==='lo',ljus:!(wet||snow||sc.thunder||sc.dark)})+'</svg>',h}};
   // molnen i samma höjd går lika fort med jämna mellanrum, så att de aldrig klumpar ihop sig och lämnar himlen tom
  // lagren överlappar och varje moln får en egen höjd i en blandad ordning, så att molnen sprids över hela himlen i stället för att ligga i samma rad
- const band={hi:[0,30],mid:[10,50],lo:[26,58]},dur={hi:220,mid:100,lo:52};
+ // mulet och nederbörd: ett tätare täcke (mitt emellan det gamla smala bandet och den spridda himlen)
+ const band=covered||wet||snow||sc.thunder?{hi:[1,22],mid:[9,38],lo:[22,46]}:{hi:[0,30],mid:[10,50],lo:[26,58]},dur={hi:220,mid:100,lo:52};
  let k=0,cs='';
  [['hi',N[0],lite],['mid',N[1],mid],['lo',N[2],dark]].forEach(([t,n,c])=>{const ord=[...Array(n).keys()].sort((a,b)=>rnd(k+a*13+3)-rnd(k+b*13+3));for(let j=0;j<n;j++){k+=7;
   const w=t==='hi'?34+rnd(k)*16:t==='mid'?46+rnd(k)*26:sky==='fog'?120+rnd(k)*40:62+rnd(k)*30,top=band[t][0]+(ord[j]+.15+rnd(k+1)*.7)/n*(band[t][1]-band[t][0]),D=dur[t]*sp;
