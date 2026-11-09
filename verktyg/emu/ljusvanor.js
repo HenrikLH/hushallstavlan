@@ -9,7 +9,8 @@ module.exports=async(pg,h)=>{
  await oppna('light.vardagsrum');
  const rad=pg.locator(F+' [data-act="haSub"][data-id="vanor"]');
  assert.equal(await rad.count(),1,'Raden Automatisk ton');assert.match(await rad.innerText(),/Lär sig, 3 dagar/);
- assert.match(await pg.locator(F+' [data-act="haVanaAnv"]').innerText(),/Ni brukar ha 2\s000 K nu/,'Förslaget');
+ assert.match(await pg.locator(F+' .ha-vfo').innerText(),/2\s000 K\s+Använd/,'Förslaget med kelvin under');
+ assert.match(await pg.locator(F+' .ha-vau').innerText(),/Auto\s+Lär sig/,'Auto-knappen');
  await h.shot('ljusvanor-1-forslag');
  await pg.locator(F+' [data-act="haVanaAnv"]').first().click();await h.idle(700);
  assert.equal(await pg.locator(F+' [data-act="haVanaAnv"]').count(),0,'Förslaget försvinner när det används');
@@ -23,6 +24,8 @@ module.exports=async(pg,h)=>{
  assert.equal(await pg.locator(F+' [data-act="haVanaAuto"]').isChecked(),false,'Brytaren av');
  await pg.locator(F+' [data-act="haSub"][data-id=""]').click();await h.idle(700);
  assert.match(await rad.innerText(),/Av/,'Status Av på huvudsidan');
+ await pg.locator(F+' .ha-vau').click();await h.idle(400);
+ assert.equal(await pg.locator(F+' .ha-vau.on').count(),1,'Auto-knappen slår på igen');
  await pg.locator(F+' .ha-x').click();await h.idle(900);
  // Köket: säker vana, inget förslag
  await oppna('light.kok');
