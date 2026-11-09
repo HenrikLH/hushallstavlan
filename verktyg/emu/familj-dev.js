@@ -2,6 +2,8 @@
 const assert=require('node:assert/strict');
 module.exports=async(pg,h)=>{
  const sh=()=>h.sheet('Inställningar'),before=()=>{const r=sh().find(x=>x[0]==='onskelista');return r?r[1]:''};
+ const fr=sh().find(x=>x[0]==='fodelsedagar');if(fr)fr[1]=JSON.stringify([{namn:'Testperson',datum:'10-25',ar:1990}]);else sh().push(['fodelsedagar',JSON.stringify([{namn:'Testperson',datum:'10-25',ar:1990}])]);
+ await pg.reload();await h.idle(1000);
  const initial=before();
  const click=async(sel)=>{await pg.locator(sel).first().click();await h.idle(450)};
  assert.equal(await pg.locator('[data-act="familjOpen"]').count(),0,'Förhandsvisningen får inte finnas i normalvy');
