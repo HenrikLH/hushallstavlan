@@ -6,6 +6,7 @@ module.exports=async(pg,h)=>{await h.idle(800);await pg.locator('[data-act="nav"
   return{cls:nb.className,vis:c.visibility,op:c.opacity,bf:c.backdropFilter,nbB:nb.getBoundingClientRect().bottom,lt:lt&&lt.getBoundingClientRect().top,me:me&&me.className+' '+me.getBoundingClientRect().top,sbw:getComputedStyle(document.documentElement).scrollbarWidth,iw:innerWidth-document.documentElement.clientWidth}});
  console.log(JSON.stringify(r));await h.shot('topp-0');
  assert.equal(r.vis,'hidden','rubrikraden ska vara dold högst upp');assert.equal(r.iw,0,'ingen scrollist');
+ const k=await pg.evaluate(()=>{const e=document.querySelector('.sat-kant'),c=getComputedStyle(e);return[c.position,e.getBoundingClientRect().height,c.backgroundColor]});console.log('sat-kant',k);assert.equal(k[0],'fixed');assert.equal(k[1],59,'remsan täcker statusfältet');
  await pg.evaluate(()=>scrollTo(0,500));await h.idle(500);
  const v=await pg.evaluate(()=>getComputedStyle(document.getElementById('navbar')).visibility);console.log('scrollad',v);await h.shot('topp-500');
  console.log('PASS topp-skarp');
