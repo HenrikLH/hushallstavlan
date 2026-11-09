@@ -3093,22 +3093,6 @@ html.ny.ui5 .g5-kop .val{color:var(--ink-3)}
 .ha-i.sm{width:30px;height:30px;margin:0 10px 0 0;flex:none}.ha-i.sm svg{width:17px;height:17px}
 .ha-chips{flex-wrap:wrap;gap:8px;padding-top:12px;padding-bottom:12px}.ha-c{background:var(--fill);color:var(--ink);font-weight:500}.ha-c.on{background:var(--accent);color:var(--on-accent)}
 .ha-ed-top{display:flex;align-items:center;gap:12px;margin:4px 16px 6px}.ha-ed-top .ha-i{margin:0;width:44px;height:44px;cursor:default}.ha-ed-top .hl{font-size:19px;font-weight:600}
-/* Smart hem som Hem-appen: mörk bakgrundsbild bakom vyn, frostade brickor (av) och vita (på), vit text */
-body[data-view="hus"]{background:#14121c;color-scheme:dark}
-html body[data-view="hus"][data-view]::before,html.ny body.wall[data-view="hus"]::before{display:block;content:'';position:fixed;inset:-10%;z-index:-1;pointer-events:none;background:radial-gradient(60% 45% at 18% 12%,#b8633a 0,transparent 70%),radial-gradient(55% 40% at 88% 30%,#3d4fa8 0,transparent 70%),radial-gradient(70% 50% at 40% 78%,#6a2e63 0,transparent 72%),radial-gradient(50% 40% at 95% 95%,#1f6d78 0,transparent 70%),#17151f;filter:blur(30px) saturate(1.15)}
-body[data-view="hus"] main{--ink:#fff;--ink-2:rgba(235,235,245,.62);--ink-3:rgba(235,235,245,.4);color:#fff;background:transparent}
-body[data-view="hus"] .rcp-top .back,body[data-view="hus"] .head .lt,body[data-view="hus"] .head .sub{color:#fff}
-body[data-view="hus"] #navbar{background:rgba(20,18,28,.55);-webkit-backdrop-filter:blur(24px) saturate(1.6);backdrop-filter:blur(24px) saturate(1.6);color:#fff}
-body[data-view="hus"] .head .ib{background:rgba(255,255,255,.16);color:#fff;-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);box-shadow:none}
-body[data-view="hus"] .ha-t,body[data-view="hus"] .ha-st,body[data-view="hus"] .ha-chip,body[data-view="hus"] main .group{background:rgba(255,255,255,.15);color:#fff;-webkit-backdrop-filter:blur(24px) saturate(1.6);backdrop-filter:blur(24px) saturate(1.6);box-shadow:none}
-body[data-view="hus"] main .group .cell{color:#fff;border-color:rgba(255,255,255,.14)}
-body[data-view="hus"] .ha-t .ha-i,body[data-view="hus"] .ha-chip .ha-i{background:rgba(255,255,255,.2);color:#fff}
-body[data-view="hus"] .ha-st .ha-i{background:rgba(255,255,255,.2);color:#fff}
-body[data-view="hus"] .ha-t.on,body[data-view="hus"] .ha-st.on{background:rgba(255,255,255,.94);color:#1c1c1e}
-body[data-view="hus"] .ha-t.on .ha-s{color:rgba(60,60,67,.7)}body[data-view="hus"] .ha-t.on .ha-i{background:#FFD60A;color:#5A4500}
-body[data-view="hus"] .ha-st.on .ha-i{background:var(--accent);color:#fff}
-body[data-view="hus"] .ha-chip.on .ha-i{background:#FFD60A;color:#5A4500}
-body[data-view="hus"] .ha-rh{color:#fff;font-size:20px}
 .ha-rh-k{display:flex;align-items:center;gap:6px;border:0;background:none;font:inherit;font-weight:700;font-size:20px;letter-spacing:-.2px;padding:0;cursor:pointer;color:inherit}.ha-rh-k .chev{display:inline-grid;opacity:.6;transform:scale(.95)}.ha-rh-k .chev svg{width:9px;height:15px}
 .ha-t .ha-i{border:0;padding:0;font:inherit;cursor:pointer;transition:transform .14s,background .3s,color .3s}.ha-t .ha-i:active{transform:scale(.86)}
 .ha-rum-in{animation:ha-rum .5s cubic-bezier(.2,.9,.25,1) both}@keyframes ha-rum{from{opacity:0;transform:translateX(40px)}}
