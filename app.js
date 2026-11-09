@@ -1315,11 +1315,17 @@ document.addEventListener('change',e=>{if(!e.target.dataset||!e.target.dataset.h
 // Förslag först ("Ni brukar ha … nu · Använd"), styr själv när samma ton hållit 5 av 7 dagar, pausar lampan när någon ändrar själv.
 const haVanaStat=V=>!V.auto?'Av':V.paus?'Pausad till '+hhmm(new Date(V.paus*1e3)):V.saker?'Följer era vanor':V.dagar?'Lär sig, '+V.dagar+(V.dagar===1?' dag':' dagar'):'Lär sig';
 const haVanaForslag=x=>{const V=x.vana;if(!x.on||!V||!V.k||V.paus||V.auto&&V.saker)return false;const W=haVarm(x);return W.ok&&!haRiktigFarg(x)&&Math.abs(haTonK(x,W)-V.k)>=150};
-// två runda knappar (som favoritprickarna): Auto slår på/av automatisk ton, förslaget visar tonen i sin färg med kelvin under
-const HAV_IK={auto:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19.5 12a7.5 7.5 0 1 1-2.2-5.3"/><path d="M19.6 3.8v3.6H16"/><path d="M9.4 15.6 12 8.6l2.6 7M10.3 13.3h3.4"/></svg>',
- anv:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5.5 12.8 4 4 8.5-9"/><path d="M19 2.8v3.4M17.3 4.5h3.4" stroke-width="1.6"/></svg>'};
-const haVanaFo=x=>haVanaForslag(x)?'<button type="button" class="ha-fpb ha-vfo" data-act="haVanaAnv" aria-label="Använd '+haKTxt(x.vana.k)+', som ni brukar ha nu"><b style="background:'+haKFarg(x.vana.k)+'">'+HAV_IK.anv+'</b><span>'+haKTxt(x.vana.k)+'</span><small>Använd</small></button>':'';
-const haVanaIk=x=>{const V=x.vana,p=V.auto&&V.paus;return'<div class="ha-fp ha-vik"><button type="button" class="ha-fpb ha-vau'+(V.auto?' on':'')+'" data-act="haVanaAuto" aria-pressed="'+!!V.auto+'" aria-label="Automatisk ton, '+haVanaStat(V)+'"><b>'+HAV_IK.auto+'</b><span>Auto</span><small>'+(!V.auto?'Av':p?'Pausad':V.saker?'På':'Lär sig')+'</small></button>'+haVanaFo(x)+'</div>'};
+// Tonraden mellan reglaget och favoriterna: kelvin i mitten, Auto (automatisk ton) till vänster, förslaget till höger.
+// Håll in en knapp = förklaring som växer ur knappen (data-hold-lift som övriga håll in). Utan vanedata (äldre tjänst) bara kelvin.
+const HAV_IK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19.5 12a7.5 7.5 0 1 1-2.2-5.3"/><path d="M19.6 3.8v3.6H16"/><path d="M9.4 15.6 12 8.6l2.6 7M10.3 13.3h3.4"/></svg>';
+const HAV_TIPS={auto:V=>'<b>Automatisk ton</b>Lampan får själv den ton ni brukar ha vid den här tiden. Den ändrar först när samma ton hållit 5 av 7 dagar. Ändrar ni själv pausas den '+(V.pauslage==='1'?'i 1 timme':V.pauslage==='3'?'i 3 timmar':'tills lampan släcks')+'.<span>'+(V.auto?'Nu: '+haVanaStat(V).toLowerCase()+'. Tryck för att stänga av.':'Av. Tryck för att slå på.')+'</span>',
+ anv:V=>'<b>Er vanliga ton</b>Så här dags brukar ni ha '+haKTxt(V.k)+'.<span>Tryck för att byta till den.</span>'};
+function haTonRad(x,W,tK){if(!W.ok||!x.on||haRiktigFarg(x))return'';const V=x.t==='light'&&x.vana,fo=V&&haVanaForslag(x),t=V&&HA.tips;
+ const au=V?'<button type="button" class="ha-vau'+(V.auto?' on':'')+(V.auto&&V.paus?' paus':'')+'" data-act="haVanaAuto" data-hold-lift="haVanaTips" data-id="auto" data-hold-t="500" aria-pressed="'+!!V.auto+'" aria-label="Automatisk ton, '+haVanaStat(V)+'">'+HAV_IK+'</button>':'<span class="ha-vx"></span>';
+ const an=fo?'<button type="button" class="ha-vfo" data-act="haVanaAnv" data-hold-lift="haVanaTips" data-id="anv" data-hold-t="500" aria-label="Byt till '+haKTxt(V.k)+', som ni brukar ha nu"><i style="background:'+haKFarg(V.k)+'"></i><span><small>Brukar</small>'+haKTxt(V.k)+'</span></button>':'<span class="ha-vx"></span>';
+ const tip=t&&(t!=='anv'||fo)?'<div class="ha-tips ha-tips-'+t+(HA.tipsNy&&!haLugn()?' ny':'')+'" role="status">'+HAV_TIPS[t](V)+'</div>':'';HA.tipsNy=false;
+ return'<div class="ha-tr">'+au+'<b class="ha-tk" data-hav="k2">'+haKTxt(tK)+'</b>'+an+tip+'</div>'}
+document.addEventListener('pointerdown',()=>{if(HA.tips&&Date.now()-HA.tipsT>600){HA.tips=null;render()}},true);
 const haVanaRad=x=>{const V=x.vana;if(!V||x.t!=='light'||!haVarm(x).ok)return'';return'<button type="button" class="ha-rad" data-act="haSub" data-id="vanor"><span>Automatisk ton</span><span class="meta">'+haVanaStat(V)+'<span class="chev">'+I.chev+'</span></span></button>'};
 // dygnsremsa: en färg per kvart, osäkra kvartar svagare, tomma luckor genomskinliga; strecket = nu
 const haVanaRemsa=(T,nu)=>{const st=T.kurva.map((k,i)=>(k?T.saker[i]?haKFarg(k):haKFarg(k).replace('rgb','rgba').replace(')',',.4)'):'transparent')+' '+(i/.96).toFixed(2)+'% '+((i+1)/.96).toFixed(2)+'%').join(',');
@@ -1360,7 +1366,7 @@ function haLampSheet(enter){const x=haLamp();if(!x){S.sheet=null;return''}const 
  const top='<div class="ha-top"><button type="button" class="ha-i'+(x.on?' on':'')+'" data-act="haTog" data-id="'+esc(x.id)+'" aria-label="'+(x.on?'Släck':'Tänd')+'"'+haIkSt(x)+'>'+haIk(x)+'</button><div class="ha-tx"><div class="ha-n">'+esc(x.n)+'</div><div class="ha-s"><span>'+esc(x.rum||'Hemma')+'</span> · <span data-hav="s">'+haStat(x)+'</span></div></div><button type="button" class="ha-x" data-act="sheetClose" aria-label="Stäng">'+I.x+'</button></div>';
  const subTop='<div class="ha-top ha-subtop"><button type="button" class="ha-tbk" data-act="haSub" data-id="">'+I.back+'<span>'+esc(x.n)+'</span></button><button type="button" class="ha-x" data-act="sheetClose" aria-label="Stäng">'+I.x+'</button></div>';
  const body=sub?subTop+'<div class="ha-ctl ha-sub'+ny+'">'+(sub==='ton'?ton+(far?'<div class="ha-farger ha-fsub">'+far+'</div>':'')+(W.ok?'<button type="button" class="ha-rad ha-radc" data-act="haFavNy">＋ Spara som favorit</button>':''):haVanaSida(x))+'</div>':
-  top+'<div class="ha-ctl'+ny+'">'+vs+prick+(x.vana&&x.t==='light'&&W.ok?haVanaIk(x):'')+(rader?'<div class="ha-rader">'+rader+'</div>':'')+'</div>'+'<button type="button" class="ha-gear" data-act="haEdit" data-id="'+esc(x.id)+'" aria-label="Namn, rum och ta bort">'+I.gear+'</button>';
+  top+'<div class="ha-ctl'+ny+'">'+vs+haTonRad(x,W,tK)+prick+(rader?'<div class="ha-rader">'+rader+'</div>':'')+'</div>'+'<button type="button" class="ha-gear" data-act="haEdit" data-id="'+esc(x.id)+'" aria-label="Namn, rum och ta bort">'+I.gear+'</button>';
  return sheetHtml('haLampa',esc(x.n),'<span class="tb"></span>',body,enter,'<span class="tb"></span>')}
 // Ändra en enhet utan tangentbord: namn och rum väljs bland förslag, Ta bort kräver håll in
 const HA_RUM=['Kök','Vardagsrum','Sovrum','Hall','Badrum','Kontor','Barnrum','Ute'];
@@ -5250,6 +5256,7 @@ const ACT={
  haVanaAuto(){haVanaPost({auto:!haLamp().vana.auto},V=>{V.auto=!V.auto;V.paus=null})},
  haVanaAter(){haVanaPost({ateruppta:1},V=>{V.paus=null})},
  haVanaAnv(){const x=haLamp();if(!x||!x.vana||!x.vana.k)return;const c=haTonCmd(x.vana.k,haVarm(x));haVanaPost({anvand:1},(V,L)=>{if(c.k!=null){L.k=c.k;L.lage='color_temp'}if(c.hs){L.hs=c.hs;L.lage='hs'}V.paus=null});toast('Ton '+haKTxt(x.vana.k))},
+ haVanaTips(id){HA.tips=id;HA.tipsT=Date.now();HA.tipsNy=true;render()},
  haVanaPaus(v){haVanaPost({pauslage:v},V=>{V.pauslage=v})},
  haTonHel(){lsSet('haTonHel',lsGet('haTonHel')==='1'?null:'1');render()},
  haFavV(i){const x=haLamp(),f=haFavs()[+i];if(!x||!f)return;const W=haVarm(x),c=haTonCmd(f.K,W);if(f.b!=null&&haKan(x).dim)c.b=f.b;haLampSkicka(x,c)},
