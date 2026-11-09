@@ -1311,6 +1311,8 @@ document.addEventListener('input',e=>{const r=e.target;if(!r.dataset||!r.dataset
 document.addEventListener('change',e=>{const r=e.target;if(!r.dataset||!r.dataset.hat)return;HA.drag=false;const[lo,hi]=r.dataset.hat.split(',').map(Number),x=haLamp();if(x)haLampSkicka(x,haTonCmd(hi+lo-+r.value,haVarm(x)))});
 document.addEventListener('input',e=>{if(!e.target.dataset||!e.target.dataset.haw)return;HA.drag=true;const x=haLamp(),m=document.querySelector('[data-hav="w"]');if(x&&m)m.textContent=haVarmNamn(+e.target.value,haVarm(x))});
 document.addEventListener('change',e=>{if(!e.target.dataset||!e.target.dataset.haw)return;HA.drag=false;const x=haLamp();if(x)haLampSkicka(x,haVarmCmd(+e.target.value,haVarm(x)))});
+// Platser för vaneinlärningen (fylls i av den tråden).
+const haVanaRad=x=>'',haVanaSida=x=>'';
 function haLampSheet(enter){const x=haLamp();if(!x){S.sheet=null;return''}const K=haKan(x),kmin=x.kmin||2200,kmax=x.kmax||6500,p=x.on?(K.dim?x.b||100:100):0;
  const fr=HA.vsId===x.id&&HA.vsP!=null&&HA.vsP!==p?HA.vsP:null;HA.vsId=x.id;HA.vsP=p;
  const vs='<div class="ha-vs'+((fr!=null?fr>0:x.on)?' on':'')+(K.dim?'':' tog')+'"'+(fr!=null?' data-mal="'+p+'"':'')+' '+(K.dim?'data-havs="b" role="slider" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+p+'" aria-label="Ljusstyrka"':'role="switch" aria-checked="'+!!x.on+'" aria-label="Tänd '+esc(x.n)+'"')+' style="--p:'+(fr!=null?fr:p)+'%'+(x.on&&haFargLage(x)&&x.hs?';--f:hsl('+Math.round(x.hs[0])+' '+Math.max(40,Math.round(x.hs[1]))+'% 64%)':x.on&&x.k?';--f:'+(x.k<3000?'#FFC67E':x.k<3800?'#FFDCA0':x.k<5000?'#FFEDCB':'#EEF2F8'):'')+'"><i></i>'+(K.dim?'<span class="ha-vs-ik">'+haIk(x)+'</span>':'<b class="ha-knopp">'+haIk(x)+'</b>')+'</div>';
@@ -1318,14 +1320,21 @@ function haLampSheet(enter){const x=haLamp();if(!x){S.sheet=null;return''}const 
  const W=haVarm(x),wp=haVarmPos(x,W);
  const tK=haTonK(x,W),TO=haTonOmr(W,tK),FV=haFavs(),fNamn=(FV.find(f=>x.on&&haFavPa(x,f,tK))||{}).n||'';
  const grad='linear-gradient(90deg,'+[0,.25,.5,.75,1].map(q=>haKFarg(TO.hi-(TO.hi-TO.lo)*q)).join(',')+')';
- const varm=W.ok?'<div class="ha-w"><div class="lj-h"><span>Ton</span><span class="meta" data-hav="w">'+esc(fNamn)+'</span></div><input type="range" min="'+TO.lo+'" max="'+TO.hi+'" step="10" value="'+(TO.hi+TO.lo-tK)+'" data-hat="'+TO.lo+','+TO.hi+'" aria-label="Ton, från kallt till varmt" aria-valuetext="'+haKTxt(tK)+'" style="background:'+grad+'">'+
+ // Huvudsidan: ljusstyrka, favoriter som prickar och rader till undersidor (som Hem-appen). Undersidan 'ton': kelvin, −/+, färger, spara favorit.
+ // haVanaRad(x)/haVanaSida(x) fylls av "lamporna lär sig vanor" (egen tråd); tomma tills dess.
+ const sub=S.haSub&&(S.haSub!=='ton'||W.ok||K.f)?S.haSub:null,ny=sub!==HA.subPrev&&!haLugn()?' ha-in'+(sub?'':' ha-ut'):'';HA.subPrev=sub;
+ const ton=W.ok?'<div class="ha-w"><div class="lj-h"><span>Ton</span><span class="meta" data-hav="w">'+esc(fNamn)+'</span></div><input type="range" min="'+TO.lo+'" max="'+TO.hi+'" step="10" value="'+(TO.hi+TO.lo-tK)+'" data-hat="'+TO.lo+','+TO.hi+'" aria-label="Ton, från kallt till varmt" aria-valuetext="'+haKTxt(tK)+'" style="background:'+grad+'">'+
   '<div class="ha-tz"><span>'+haKTxt(TO.hi)+'</span><button type="button" class="ha-tzb" data-act="haTonHel">'+(TO.hel?'Visa varma':'Visa hela')+'</button><span>'+haKTxt(TO.lo)+'</span></div>'+
-  '<div class="ha-tn"><button type="button" data-act="haTonSteg" data-id="-50" aria-label="Varmare">−</button><b data-hav="k">'+haKTxt(tK)+'</b><button type="button" data-act="haTonSteg" data-id="50" aria-label="Kallare">+</button></div>'+
-  '<div class="ha-wp ha-fv">'+FV.map((f,i)=>'<button type="button" class="pill ha-c'+(x.on&&haFavPa(x,f,tK)?' on':'')+'" data-act="haFavV" data-id="'+i+'" data-hold-lift="haFavRed" data-hold-t="500"><i style="background:'+haKFarg(f.K)+'"></i>'+esc(f.n)+'</button>').join('')+'<button type="button" class="pill ha-c ha-fny" data-act="haFavNy">＋ Spara</button></div></div>':'';
- const far=K.f?HA_FARG.map(([n,h,m])=>{const v=x.on&&haFargLage(x)&&x.hs&&Math.abs(x.hs[0]-h)<12&&!(W.f&&wp>W.kd);return'<button type="button" class="ha-f'+(v?' vald':'')+'" data-act="haFarg" data-id="'+h+','+m+'" style="background:hsl('+h+' '+m+'% 58%)" aria-label="'+n+'" aria-pressed="'+v+'"></button>'}).join(''):'';
+  '<div class="ha-tn"><button type="button" data-act="haTonSteg" data-id="-50" aria-label="Varmare">−</button><b data-hav="k">'+haKTxt(tK)+'</b><button type="button" data-act="haTonSteg" data-id="50" aria-label="Kallare">+</button></div></div>':'';
+ const far=K.f?HA_FARG.map(([n,h,m])=>{const v=x.on&&haRiktigFarg(x)&&Math.abs(x.hs[0]-h)<12;return'<button type="button" class="ha-f'+(v?' vald':'')+'" data-act="haFarg" data-id="'+h+','+m+'" style="background:hsl('+h+' '+m+'% 58%)" aria-label="'+n+'" aria-pressed="'+v+'"></button>'}).join(''):'';
+ const fargNamn=(HA_FARG.find(([n,h])=>x.on&&haRiktigFarg(x)&&Math.abs(x.hs[0]-h)<12)||[])[0];
+ const prick=W.ok?'<div class="ha-fp">'+FV.map((f,i)=>'<button type="button" class="ha-fpb'+(x.on&&haFavPa(x,f,tK)?' on':'')+'" data-act="haFavV" data-id="'+i+'" data-hold-lift="haFavRed" data-hold-t="500" aria-label="'+esc(f.n)+'"><b style="background:'+haKFarg(f.K)+'"></b><span>'+esc(f.n)+'</span></button>').join('')+'<button type="button" class="ha-fpb ha-fpn" data-act="haFavNy" aria-label="Spara som favorit"><b>'+I.plus+'</b><span>Spara</span></button></div>':'';
+ const rad=(act,id,txt,meta)=>'<button type="button" class="ha-rad" data-act="'+act+'" data-id="'+id+'"><span>'+txt+'</span><span class="meta">'+meta+'<span class="chev">'+I.chev+'</span></span></button>';
+ const rader=(W.ok||K.f?rad('haSub','ton',W.ok?'Ton och färg':'Färg',fargNamn||(W.ok?(fNamn?esc(fNamn)+' · ':'')+haKTxt(tK):'')):'')+haVanaRad(x);
  const top='<div class="ha-top"><button type="button" class="ha-i'+(x.on?' on':'')+'" data-act="haTog" data-id="'+esc(x.id)+'" aria-label="'+(x.on?'Släck':'Tänd')+'"'+haIkSt(x)+'>'+haIk(x)+'</button><div class="ha-tx"><div class="ha-n">'+esc(x.n)+'</div><div class="ha-s"><span>'+esc(x.rum||'Hemma')+'</span> · <span data-hav="s">'+haStat(x)+'</span></div></div><button type="button" class="ha-x" data-act="sheetClose" aria-label="Stäng">'+I.x+'</button></div>';
- const body=top+'<div class="ha-ctl">'+vs+varm+(far?'<details class="ha-fd"'+(/ vald/.test(far)?' open':'')+'><summary>Färger</summary><div class="ha-farger">'+far+'</div></details>':'')+'</div>'+
-  '<button type="button" class="ha-gear" data-act="haEdit" data-id="'+esc(x.id)+'" aria-label="Namn, rum och ta bort">'+I.gear+'</button>';
+ const subTop='<div class="ha-top ha-subtop"><button type="button" class="ha-tbk" data-act="haSub" data-id="">'+I.back+'<span>'+esc(x.n)+'</span></button><button type="button" class="ha-x" data-act="sheetClose" aria-label="Stäng">'+I.x+'</button></div>';
+ const body=sub?subTop+'<div class="ha-ctl ha-sub'+ny+'">'+(sub==='ton'?ton+(far?'<div class="ha-farger ha-fsub">'+far+'</div>':'')+(W.ok?'<button type="button" class="ha-rad ha-radc" data-act="haFavNy">＋ Spara som favorit</button>':''):haVanaSida(x))+'</div>':
+  top+'<div class="ha-ctl'+ny+'">'+vs+prick+(rader?'<div class="ha-rader">'+rader+'</div>':'')+'</div>'+'<button type="button" class="ha-gear" data-act="haEdit" data-id="'+esc(x.id)+'" aria-label="Namn, rum och ta bort">'+I.gear+'</button>';
  return sheetHtml('haLampa',esc(x.n),'<span class="tb"></span>',body,enter,'<span class="tb"></span>')}
 // Ändra en enhet utan tangentbord: namn och rum väljs bland förslag, Ta bort kräver håll in
 const HA_RUM=['Kök','Vardagsrum','Sovrum','Hall','Badrum','Kontor','Barnrum','Ute'];
@@ -5201,7 +5210,7 @@ const ACT={
  haTog(id){const x=(haData()||{lampor:[]}).lampor.find(e=>e.id===id);if(!x||x.nas)return;try{u5Tick()}catch(e){}const was=x.on;x.on=!was;if(x.on&&!x.b&&x.t==='light')x.b=null;HA.last=null;render();haSend({id,gor:'vaxla'},()=>{x.on=was})},
  haTest(){closeSheets();S.haTest=true;S.haRum=null;HA.demo=null;HA.syn={};HA.byt={};HA.last=null;S.view='hus';try{scrollTo(0,0)}catch(e){}render()},
  haRumVy(id){S.haRum=id?(id==='_'?'':id):null;try{scrollTo(0,0)}catch(e){}render()},
- haLampa(id){S.haId=id;S.sheet='haLampa';HA.vsId=null;try{u5Tick()}catch(e){}render()},
+ haLampa(id){S.haId=id;S.sheet='haLampa';S.haSub=null;HA.subPrev=null;HA.vsId=null;try{u5Tick()}catch(e){}render()},
  haEdit(id){if(!haAllaEnh().some(e=>e.id===id))return;S.haId=id;S.sheet='haEdit';render()},
  haNamn(v){const x=haAllaEnh().find(e=>e.id===S.haId);if(!x)return;haValj({id:x.id,namn:v},()=>{x.n=v||x.hn||x.n})},
  haNamnSpara(){const f=document.querySelector('#overlay [name="hanamn"]');haNamnSatt(f&&f.value)},
@@ -5211,6 +5220,7 @@ const ACT={
  haAdd(id){const a=HA.alla&&HA.alla.alla&&HA.alla.alla.find(x=>x.id===id),D=haData();if(!a||!D)return;a.vald=true;const k=a.t==='scene'||a.t==='script'?'scener':a.t==='sensor'?'givare':'lampor';
   haValj({lagg:id},()=>{if(haDemo()&&!D[k].some(e=>e.id===id))D[k].push(k==='givare'?{id,n:a.n,hn:a.n,v:'6.1',u:'°C'}:k==='scener'?{id,n:a.n,hn:a.n}:{id,n:a.n,hn:a.n,t:a.t,on:false,lagen:a.t==='light'?['brightness']:[]})});toast(a.n+' finns nu på tavlan')},
  haTonSteg(v){const x=haLamp();if(!x)return;const W=haVarm(x);haLampSkicka(x,haTonCmd(Math.round(haTonK(x,W)/50)*50+(+v),W))},
+ haSub(id){S.haSub=id||null;render()},
  haTonHel(){lsSet('haTonHel',lsGet('haTonHel')==='1'?null:'1');render()},
  haFavV(i){const x=haLamp(),f=haFavs()[+i];if(!x||!f)return;const W=haVarm(x),c=haTonCmd(f.K,W);if(f.b!=null&&haKan(x).dim)c.b=f.b;haLampSkicka(x,c)},
  haFavNy(){const x=haLamp();if(!x)return;S.haFav={i:-1,ny:1};S.sheet='haFav';render()},
