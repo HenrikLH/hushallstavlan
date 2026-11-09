@@ -543,7 +543,7 @@ let camN=0;setInterval(()=>{if(KAL)return;if(CAM.src==='als'&&!ALS||++camN%60===
  function end(){const g=G;G=null;PREVIEW=null;DRAG_ID=null;saveLayout(g.wall,g.L);const ph=document.querySelector('[data-box="'+g.id+'"]'),{root,z}=g.lf;
   const done=()=>{root.remove();doRender()};if(!ph||calm())return done();const r=ph.getBoundingClientRect();
   root.style.transition='transform .18s ease';root.style.transform='translate('+r.left/z+'px,'+r.top/z+'px)';setTimeout(done,190);setTimeout(()=>eat=false,250)}
- document.addEventListener('pointerdown',e=>{if(e.button>0||S.view!=='oversikt'||nightOn()||G)return;const b=e.target.closest('[data-box]');if(!b||e.target.closest('#clock,.arr-x,.arr-s,.xsz')||!S.arrange&&e.target.closest('.ha-g,.ha-sc'))return;// håll in en lampa öppnar dess blad, inte ändra-läget
+ document.addEventListener('pointerdown',e=>{if(e.button>0||S.view!=='oversikt'||nightOn()||G)return;const b=e.target.closest('[data-box]');if(!b||e.target.closest('#clock,.arr-x,.arr-s,.xsz')||!S.arrange&&e.target.closest('.ha-g,.ha-sg'))return;// håll in en lampa öppnar dess blad, inte ändra-läget
   stop();x=e.clientX;y=e.clientY;const id=b.dataset.box,was=S.arrange;pid=id;mouse=e.pointerType!=='touch';
   // i ändra-läget räcker en kort stund, annars en längre så att vanliga tryck och scroll fungerar som förut
   if(!was){LPB=b;LPW=setTimeout(()=>{if(lp)hlOn(b,510,1.02)},90)}
@@ -1221,25 +1221,47 @@ const haOn=wall=>haDemo()||!!HA.d&&!!haUrl()&&(!wall||wallBoardOn());
 const HAI={bulb:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.7.5 1.1 1.3 1.1 2.2h5c0-.9.4-1.7 1.1-2.2A6 6 0 0 0 12 3z"/></svg>',
  plug:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3v5M15 3v5"/><path d="M6.5 8h11v3a5.5 5.5 0 0 1-11 0z"/><path d="M12 16.5V21"/></svg>',
  temp:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14.5V5a2 2 0 0 1 4 0v9.5a4 4 0 1 1-4 0z"/><path d="M12 10v7"/></svg>',
- fan:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="1.6"/><path d="M12 10.4c-1-3.6.3-6.4 2.6-6.4 2.6 0 2.4 3.9-2.6 6.4zM13.6 12c3.6-1 6.4.3 6.4 2.6 0 2.6-3.9 2.4-6.4-2.6zM12 13.6c1 3.6-.3 6.4-2.6 6.4-2.6 0-2.4-3.9 2.6-6.4zM10.4 12c-3.6 1-6.4-.3-6.4-2.6 0-2.6 3.9-2.4 6.4 2.6z"/></svg>'};
+ fan:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="1.6"/><path d="M12 10.4c-1-3.6.3-6.4 2.6-6.4 2.6 0 2.4 3.9-2.6 6.4zM13.6 12c3.6-1 6.4.3 6.4 2.6 0 2.6-3.9 2.4-6.4-2.6zM12 13.6c1 3.6-.3 6.4-2.6 6.4-2.6 0-2.4-3.9 2.6-6.4zM10.4 12c-3.6 1-6.4-.3-6.4-2.6 0-2.6 3.9-2.4 6.4 2.6z"/></svg>',
+ sun:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M2.5 12h2M19.5 12h2M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></svg>',
+ moon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 13.2A8.5 8.5 0 1 1 10.8 3.5a6.6 6.6 0 0 0 9.7 9.7z"/></svg>',
+ film:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M7.5 4.5v15M16.5 4.5v15M3.5 9.5h4M3.5 14.5h4M16.5 9.5h4M16.5 14.5h4"/></svg>',
+ off:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="M12 3.5v8.5M6.6 6.6a7.5 7.5 0 1 0 10.8 0"/></svg>'};
 const haGiv=g=>{const v=isNaN(+g.v)?g.v:String(Math.round(+g.v*10)/10).replace('.',',');return v+(g.u==='°C'?'°':g.u?' '+g.u:'')+' '+g.n.toLowerCase()};
-// En enhet: tryck = styrning, den runda ikonen = tänd/släck direkt, håll in = lyft och ändra (namn, rum, ta bort)
-const haTile=x=>'<div class="ha-t'+(x.on?' on':'')+(x.nas?' nas':'')+'" role="button" tabindex="0" data-act="haLampa" data-id="'+esc(x.id)+'" data-hold-lift="haEdit" aria-label="'+esc(x.n)+', styr"><button type="button" class="ha-i" data-act="haTog" data-id="'+esc(x.id)+'" aria-pressed="'+!!x.on+'" aria-label="'+(x.on?'Släck ':'Tänd ')+esc(x.n)+'"'+(x.nas?' disabled':'')+(x.on&&haFargLage(x)&&x.hs?' style="background:hsl('+Math.round(x.hs[0])+' '+Math.max(40,Math.round(x.hs[1]))+'% 62%)"':'')+'>'+(x.t==='light'?HAI.bulb:x.t==='fan'?HAI.fan:HAI.plug)+'</button><span class="ha-n">'+esc(x.n)+'</span><span class="ha-s">'+(x.nas?'Svarar inte':x.on?(x.b?x.b+' %':'På'):'Av')+'</span></div>';
+// Som Apple Hem: hela brickan tänder/släcker, håll in = styrning (ljusstyrka, färg, namn/rum). Scener som brickor med ikon.
+const haIk=x=>x.t==='light'?HAI.bulb:x.t==='fan'?HAI.fan:HAI.plug;
+const haIkSt=x=>x.on&&haFargLage(x)&&x.hs?' style="background:hsl('+Math.round(x.hs[0])+' '+Math.max(40,Math.round(x.hs[1]))+'% 62%);color:#fff"':'';
+const haStat=x=>x.nas?'Svarar inte':x.on?(x.b?x.b+' %':'På'):'Av';
+const haTile=x=>'<button type="button" class="ha-t'+(x.on?' on':'')+(x.nas?' nas':'')+'" data-act="haTog" data-id="'+esc(x.id)+'" data-hold-lift="haLampa" aria-pressed="'+!!x.on+'" aria-label="'+esc(x.n)+', '+haStat(x)+'"><span class="ha-i"'+haIkSt(x)+'>'+haIk(x)+'</span><span class="ha-tx"><span class="ha-n">'+esc(x.n)+'</span><span class="ha-s">'+haStat(x)+'</span></span></button>';
+const haScIk=s=>s.id==='av'?HAI.off:/morgon|vakna|dag|ljust/i.test(s.n)?HAI.sun:/kväll|natt|sov|mys|lugn/i.test(s.n)?HAI.moon:/film|tv|bio/i.test(s.n)?HAI.film:I.sparkles;
+const haScener=(D,kort)=>{const n=(D.lampor||[]).some(x=>x.on);return(D.scener||[]).concat(n||!kort?[{id:'av',n:kort?'Släck':'Släck allt'}]:[])};
+const haScT=s=>'<button type="button" class="ha-st'+(HA.last===s.id?' on':'')+'" data-act="haScen" data-id="'+esc(s.id)+'"'+(s.id!=='av'?' data-hold-lift="haEdit"':'')+'><span class="ha-i">'+haScIk(s)+'</span><span class="ha-n">'+esc(s.n)+'</span></button>';
 function haBox(wall){const D=haData();if(!D)return'';const E=D.lampor||[],n=E.filter(x=>x.on).length,g=(D.givare||[])[0];
- const tile=haTile;
- const sc=(D.scener||[]).concat(n?[{id:'av',n:'Släck allt'}]:[]);
+ const sc=haScener(D,true);
  return'<section class="widget'+(wall?' bhus':' w2')+' ha"><button type="button" class="wh" data-act="nav" data-id="hus" style="width:100%">'+I.home+'<span>Smart hem</span><span class="r"><i class="ha-live'+(HA.fel&&!haDemo()?' fel':'')+'" title="'+(HA.fel&&!haDemo()?esc(HA.fel):'Uppdateras direkt')+'"></i>'+(n?n+' tända':'Allt släckt')+(g?' · '+esc(haGiv(g)):'')+'</span></button>'+
-  '<div class="ha-g">'+E.map(tile).join('')+'</div>'+(sc.length?'<div class="ha-sc">'+sc.map(s=>'<button type="button" class="pill'+(HA.last===s.id?' on':'')+'" data-act="haScen" data-id="'+esc(s.id)+'"'+(s.id!=='av'?' data-hold-lift="haEdit"':'')+'>'+esc(s.n)+'</button>').join('')+'</div>':'')+'</section>'}
-// Blad för en lampa (håll in rutan): på/av, ljusstyrka, färgtemperatur och färg, efter vad lampan klarar
+  '<div class="ha-g">'+E.map(haTile).join('')+'</div>'+(sc.length?'<div class="ha-sg ha-sg-k">'+sc.map(haScT).join('')+'</div>':'')+'</section>'}
+// Blad för en lampa (håll in brickan): stort lodrätt reglage (dra = ljusstyrka, tryck = tänd/släck), vithet och färg under
 const HA_FARG=[['Röd',0,90],['Orange',28,95],['Gul',48,85],['Grön',120,75],['Turkos',178,70],['Blå',220,85],['Lila',275,75],['Rosa',325,65]];
 const haFargLage=x=>(x.lagen||[]).some(m=>/^(hs|xy|rgb|rgbw|rgbww)$/.test(m))&&/^(hs|xy|rgb|rgbw|rgbww)$/.test(x.lage||'');
 const haKan=x=>{const L=x.lagen||[];return{dim:L.length&&!(L.length===1&&L[0]==='onoff'),k:L.includes('color_temp'),f:L.some(m=>/^(hs|xy|rgb|rgbw|rgbww)$/.test(m))}};
-function haLampSheet(enter){const D=haData(),x=D&&D.lampor.find(e=>e.id===S.haId);if(!x){S.sheet=null;return''}const K=haKan(x),kmin=x.kmin||2200,kmax=x.kmax||6500,k=x.k||Math.round((kmin+kmax)/2);
- const sl=(lab,id,v,min,max,l,r,cls)=>'<div class="cell lj-sl ha-sl'+(cls||'')+'"><div class="lj-h"><span>'+lab+'</span><span class="meta" data-hav="'+id+'">'+haVal(id,v)+'</span></div><input type="range" min="'+min+'" max="'+max+'" step="1" value="'+v+'" data-hainput="'+id+'" aria-label="'+lab+'"><div class="lj-e"><span>'+l+'</span><span>'+r+'</span></div></div>';
- const body='<div class="group"><div class="cell"><span class="grow">'+esc(x.n)+'</span><input type="checkbox" role="switch" class="switch" data-act="haTog" data-id="'+esc(x.id)+'"'+(x.on?' checked':'')+' aria-label="Tänd '+esc(x.n)+'"></div>'+
-  (K.dim?sl('Ljusstyrka','b',x.on&&x.b?x.b:100,1,100,'Svag','Stark'):'')+
-  (K.k?sl('Färgtemperatur','k',k,kmin,kmax,'Varm','Kall',' ha-k'+(haFargLage(x)?'':' vald')):'')+'</div>'+
-  (K.f?sh('Färg')+'<div class="group"><div class="cell ha-farger">'+HA_FARG.map(([n,h,m])=>{const v=x.on&&haFargLage(x)&&x.hs&&Math.abs(x.hs[0]-h)<12;return'<button type="button" class="ha-f'+(v?' vald':'')+'" data-act="haFarg" data-id="'+h+','+m+'" style="background:hsl('+h+' '+m+'% 58%)" aria-label="'+n+'" aria-pressed="'+v+'"></button>'}).join('')+'</div></div>':'');
+const haLamp=()=>{const D=haData();return D&&(D.lampor||[]).find(e=>e.id===S.haId)};
+const haVarm=x=>{const K=haKan(x),kmin=x.kmin||2200,kmax=x.kmax||6500,f=K.f,kd=K.k?(f?70:100):0,s0=K.k?55:0;
+ return{ok:K.k||K.f,k:K.k,f,kmin,kmax,kd,s0,g:'linear-gradient(90deg,'+(K.k&&f?'#EEF4FF,#FFF3DE 35%,#FFC98A 70%,#FF8A1F':K.k?'#EEF4FF,#FFF3DE 50%,#FFB45C':'#FFFFFF,#FFD7A8 50%,#FF8A1F')+')'}};
+const haVarmPos=(x,W)=>{const c=v=>Math.max(0,Math.min(100,Math.round(v)));
+ if(W.f&&haFargLage(x)&&x.hs&&x.hs[0]>=15&&x.hs[0]<=45)return c(W.kd+Math.max(0,(x.hs[1]-W.s0)/(100-W.s0))*(100-W.kd));
+ if(W.k&&x.k)return c((W.kmax-x.k)/(W.kmax-W.kmin)*W.kd);return c(W.kd/2)};
+const haVarmNamn=(p,W)=>{if(p<=W.kd&&W.k){const r=p/W.kd;return r<.2?'Vitt':r<.5?'Neutral':!W.f&&r>.85?'Stearin':'Mys'}return(p-W.kd)/(100-W.kd)<.8?'Stearin':'Orange'};
+const haVarmCmd=(p,W)=>{if(W.k&&p<=W.kd)return{k:Math.round(W.kmax-(W.kmax-W.kmin)*p/W.kd)};const t=W.kd>=100?1:(p-W.kd)/(100-W.kd);return{hs:[Math.round(34-10*t),Math.round(W.s0+(100-W.s0)*t)]}};
+document.addEventListener('input',e=>{if(!e.target.dataset||!e.target.dataset.haw)return;HA.drag=true;const x=haLamp(),m=document.querySelector('[data-hav="w"]');if(x&&m)m.textContent=haVarmNamn(+e.target.value,haVarm(x))});
+document.addEventListener('change',e=>{if(!e.target.dataset||!e.target.dataset.haw)return;HA.drag=false;const x=haLamp();if(x)haLampSkicka(x,haVarmCmd(+e.target.value,haVarm(x)))});
+function haLampSheet(enter){const x=haLamp();if(!x){S.sheet=null;return''}const K=haKan(x),kmin=x.kmin||2200,kmax=x.kmax||6500,p=x.on?(K.dim?x.b||100:100):0;
+ const vs='<div class="ha-vs'+(x.on?' on':'')+(K.dim?'':' tog')+'" '+(K.dim?'data-havs="b" role="slider" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+p+'" aria-label="Ljusstyrka"':'role="switch" aria-checked="'+!!x.on+'" aria-label="Tänd '+esc(x.n)+'"')+' style="--p:'+p+'%'+(x.on&&haFargLage(x)&&x.hs?';--f:hsl('+Math.round(x.hs[0])+' '+Math.max(40,Math.round(x.hs[1]))+'% 64%)':x.on&&x.k?';--f:'+(x.k<3000?'#FFC67E':x.k<3800?'#FFDCA0':x.k<5000?'#FFEDCB':'#EEF2F8'):'')+'"><i></i><span class="ha-vs-ik">'+haIk(x)+'</span></div>';
+// värme: ett reglage från vitt till orange. Vitt → varmvitt med färgtemperatur; klarar lampan färg fortsätter sista delen till stearin/orange.
+ const W=haVarm(x),wp=haVarmPos(x,W);
+ const varm=W.ok?'<div class="ha-w"><div class="lj-h"><span>Värme</span><span class="meta" data-hav="w">'+haVarmNamn(wp,W)+'</span></div><input type="range" min="0" max="100" step="1" value="'+wp+'" data-haw="1" aria-label="Värme, från vitt till orange" style="background:'+W.g+'"><div class="ha-wp">'+[['Vitt',0],['Mys',W.f?40:60],['Stearin',W.f?88:100]].map(([n,v])=>'<button type="button" class="pill ha-c'+(x.on&&Math.abs(wp-v)<6?' on':'')+'" data-act="haVarmV" data-id="'+v+'">'+n+'</button>').join('')+'</div></div>':'';
+ const far=K.f?HA_FARG.map(([n,h,m])=>{const v=x.on&&haFargLage(x)&&x.hs&&Math.abs(x.hs[0]-h)<12&&!(W.f&&wp>W.kd);return'<button type="button" class="ha-f'+(v?' vald':'')+'" data-act="haFarg" data-id="'+h+','+m+'" style="background:hsl('+h+' '+m+'% 58%)" aria-label="'+n+'" aria-pressed="'+v+'"></button>'}).join(''):'';
+ const body='<div class="ha-ctl"><div class="ha-ctl-v num" data-hav="s">'+haStat(x)+'</div>'+vs+varm+(far?'<details class="ha-fd"'+(/ vald/.test(far)?' open':'')+'><summary>Färger</summary><div class="ha-farger">'+far+'</div></details>':'')+
+  '<div class="foot">'+(K.dim?'Dra upp eller ned för ljusstyrkan, tryck för att tända eller släcka.':'Tryck för att tända eller släcka.')+'</div></div>'+
+  group('<button type="button" class="cell link" data-act="haEdit" data-id="'+esc(x.id)+'"><span class="grow">Namn, rum och ta bort</span><span class="chev">'+I.chev+'</span></button>');
  return sheetHtml('haLampa',esc(x.n)+(x.rum?' · '+esc(x.rum):''),'<button type="button" class="tb strong" data-act="sheetClose">Klar</button>',body,enter,'<span class="tb"></span>')}
 // Ändra en enhet utan tangentbord: namn och rum väljs bland förslag, Ta bort kräver håll in
 const HA_RUM=['Kök','Vardagsrum','Sovrum','Hall','Badrum','Kontor','Barnrum','Ute'];
@@ -1271,20 +1293,29 @@ async function haValj(body,lok){lok();render();if(haDemo())return;HA.pend=(HA.pe
 const haVal=(id,v)=>id==='b'?v+' %':Math.round(v/50)*50+' K';
 function haLampSkicka(x,ch){if(!x)return;const was=JSON.stringify(x);x.on=true;if(ch.b!=null)x.b=ch.b;if(ch.k!=null){x.k=ch.k;x.lage='color_temp'}if(ch.hs){x.hs=ch.hs;x.lage='hs'}
  render();haSend(Object.assign({id:x.id,gor:'pa'},ch),()=>Object.assign(x,JSON.parse(was)))}
-document.addEventListener('input',e=>{const id=e.target.dataset&&e.target.dataset.hainput;if(!id)return;HA.drag=true;const m=document.querySelector('[data-hav="'+id+'"]');if(m)m.textContent=haVal(id,+e.target.value)});
-document.addEventListener('change',e=>{const id=e.target.dataset&&e.target.dataset.hainput;if(!id)return;HA.drag=false;const D=haData(),x=D&&D.lampor.find(l=>l.id===S.haId);haLampSkicka(x,{[id]:+e.target.value})});
+// det lodräta reglaget: drag relativt där fingret började (hoppar inte vid tryck), 0 % släcker, tryck utan drag tänder/släcker
+(()=>{let d=null;const st=v=>{const el=document.querySelector('[data-hav="s"]');if(el)el.textContent=v?v+' %':'Av'};
+ document.addEventListener('pointerdown',e=>{const el=e.target.closest('.ha-vs');if(!el||e.button>0)return;e.preventDefault();d={el,y:e.clientY,v0:parseFloat(el.style.getPropertyValue('--p'))||0,v:null,h:el.getBoundingClientRect().height,id:e.pointerId};try{el.setPointerCapture(e.pointerId)}catch(_){}HA.drag=true;el.classList.add('tag')});
+ document.addEventListener('pointermove',e=>{if(!d||e.pointerId!==d.id||!d.el.dataset.havs)return;const dy=d.y-e.clientY;if(d.v==null&&Math.abs(dy)<6)return;d.v=Math.max(0,Math.min(100,Math.round(d.v0+dy/d.h*100)));d.el.style.setProperty('--p',d.v+'%');d.el.classList.toggle('on',d.v>0);st(d.v)});
+ const slut=e=>{if(!d||e.pointerId!==d.id)return;const D=d;d=null;HA.drag=false;D.el.classList.remove('tag');const x=haLamp();if(!x||e.type==='pointercancel'){render();return}
+  if(D.v==null)ACT.haTog(x.id);else if(D.v===0)haAv(x);else haLampSkicka(x,{b:D.v})};
+ document.addEventListener('pointerup',slut);document.addEventListener('pointercancel',slut)})();
+function haAv(x){if(!x||!x.on)return render();const was=x.on;x.on=false;HA.last=null;render();haSend({id:x.id,gor:'av'},()=>{x.on=was})}
 // Smart hem-vyn: alla enheter per rum, scener och givare. Plus lägger till, håll in ändrar.
 V.hus=function(){const D=haData();let h='<div class="rcp-top"><button class="back" data-act="nav" data-id="oversikt">'+I.back+'Översikt</button></div>';
- const E=D?D.lampor||[]:[],n=E.filter(x=>x.on).length,g=D&&(D.givare||[])[0];
- h+=head('Smart hem',{sub:D?(n?n+' tända':'Allt släckt')+(g?' · '+esc(haGiv(g)):''):'',tools:D?'<button type="button" class="ib" data-act="haAddOpen" aria-label="Lägg till enhet">'+I.plus+'</button>':''});
+ const E=D?D.lampor||[]:[],G=D?D.givare||[]:[];
+ h+=head('Smart hem',{sub:D&&HA.fel&&!haDemo()?esc(HA.fel):'',tools:D?'<button type="button" class="ib" data-act="haAddOpen" aria-label="Lägg till enhet">'+I.plus+'</button>':''});
  if(!D)return h+'<div class="group"><div class="cell"><span class="grow">'+(haUrl()?'Får ingen kontakt med väggdatorn. Är Tailscale på i telefonen?':'Lägg in väggdatorns adress under Inställningar → Enheten för att styra hemmet från telefonen.')+'</span></div></div>';
- const sc=(D.scener||[]).concat(n?[{id:'av',n:'Släck allt'}]:[]);
- if(sc.length)h+=sh('Scener')+'<div class="ha-sc ha-sc-v">'+sc.map(s=>'<button type="button" class="pill'+(HA.last===s.id?' on':'')+'" data-act="haScen" data-id="'+esc(s.id)+'"'+(s.id!=='av'?' data-hold-lift="haEdit"':'')+'>'+esc(s.n)+'</button>').join('')+'</div>';
+ const lj=E.filter(x=>x.t==='light'),ut=E.filter(x=>x.t!=='light'),nl=lj.filter(x=>x.on).length,nu=ut.filter(x=>x.on).length;
+ const chip=(ik,n,s,on,st)=>'<div class="ha-chip'+(on?' on':'')+'"><span class="ha-i"'+(st||'')+'>'+ik+'</span><span class="ha-tx"><span class="ha-n">'+n+'</span><span class="ha-s">'+s+'</span></span></div>';
+ h+='<div class="ha-chips-v">'+(lj.length?chip(HAI.bulb,'Ljus',nl?nl+(nl>1?' tända':' tänd'):'Allt släckt',nl):'')+(G.length?chip(HAI.temp,'Klimat',esc(haGiv(G[0])),0,' style="background:#FFE2CC;color:#C2410C"'):'')+(ut.length?chip(HAI.plug,'Uttag',nu?nu+' på':'Alla av',nu):'')+'</div>';
+ const sc=haScener(D,false);
+ if(sc.length)h+='<div class="ha-rh">Scener</div><div class="ha-sg">'+sc.map(haScT).join('')+'</div>';
  const rum=HA_RUM.filter(r=>E.some(x=>x.rum===r)).concat(E.some(x=>x.rum&&!HA_RUM.includes(x.rum))?[...new Set(E.filter(x=>x.rum&&!HA_RUM.includes(x.rum)).map(x=>x.rum))]:[]).concat(E.some(x=>!x.rum)?['']:[]);
- rum.forEach(r=>{const R=E.filter(x=>(x.rum||'')===r);h+=sh(r||'Utan rum',R.filter(x=>x.on).length?R.filter(x=>x.on).length+' tända':'')+'<div class="ha-g ha-g-v">'+R.map(haTile).join('')+'</div>'});
+ rum.forEach(r=>{const R=E.filter(x=>(x.rum||'')===r);h+='<div class="ha-rh">'+esc(r||'Övrigt')+'</div><div class="ha-g ha-g-v">'+R.map(haTile).join('')+'</div>'});
  if(!E.length)h+='<div class="group"><div class="cell"><span class="grow">Inga enheter på tavlan än.</span><button type="button" class="pill" data-act="haAddOpen">'+I.plus+'Lägg till</button></div></div>';
- if((D.givare||[]).length)h+=sh('Givare')+group(D.givare.map(x=>'<div class="cell" data-hold-lift="haEdit" data-id="'+esc(x.id)+'"><span class="ha-i sm">'+HAI.temp+'</span><span class="grow">'+esc(x.n)+(x.rum?'<span class="meta"> · '+esc(x.rum)+'</span>':'')+'</span><span class="num">'+esc(haGiv(Object.assign({},x,{n:''})).trim())+'</span></div>').join(''));
- return h+'<div class="foot">Tryck på en enhet för att styra den, på den runda ikonen för att tända eller släcka. Håll in för att byta namn, rum eller ta bort.</div>'};
+ if(G.length)h+='<div class="ha-rh">Givare</div>'+group(G.map(x=>'<div class="cell" data-hold-lift="haEdit" data-id="'+esc(x.id)+'"><span class="ha-i sm">'+HAI.temp+'</span><span class="grow">'+esc(x.n)+(x.rum?'<span class="meta"> · '+esc(x.rum)+'</span>':'')+'</span><span class="num">'+esc(haGiv(Object.assign({},x,{n:''})).trim())+'</span></div>').join(''));
+ return h+'<div class="foot">Tryck för att tända eller släcka. Håll in för ljusstyrka, färg, namn och rum.</div>'};
 // lång väntan mot tjänsten: svarar direkt första gången, sedan när något ändras (eller efter 25 s)
 async function haLoop(){if(HA.busy||haDemo()||!haUrl()||Date.now()<HA.retry)return;HA.busy=true;const bas=haUrl();
  try{while(haUrl()===bas&&(wallBoardOn()||document.visibilityState==='visible')){const ac=new AbortController(),t=setTimeout(()=>ac.abort(),40000);
@@ -5053,6 +5084,7 @@ const ACT={
  haAddOpen(){HA.alla=null;S.sheet='haAdd';render();haAllaHamta()},
  haAdd(id){const a=HA.alla&&HA.alla.alla&&HA.alla.alla.find(x=>x.id===id),D=haData();if(!a||!D)return;a.vald=true;const k=a.t==='scene'||a.t==='script'?'scener':a.t==='sensor'?'givare':'lampor';
   haValj({lagg:id},()=>{if(haDemo()&&!D[k].some(e=>e.id===id))D[k].push(k==='givare'?{id,n:a.n,hn:a.n,v:'6.1',u:'°C'}:k==='scener'?{id,n:a.n,hn:a.n}:{id,n:a.n,hn:a.n,t:a.t,on:false,lagen:a.t==='light'?['brightness']:[]})});toast(a.n+' finns nu på tavlan')},
+ haVarmV(v){const x=haLamp();if(x)haLampSkicka(x,haVarmCmd(+v,haVarm(x)))},
  haFarg(v){const D=haData(),x=D&&D.lampor.find(l=>l.id===S.haId),[h,m]=String(v).split(',').map(Number);haLampSkicka(x,{hs:[h,m]})},
  haScen(id){const D=haData();if(!D)return;HA.last=id;
   if(id==='av'){const was=D.lampor.map(x=>x.on);D.lampor.forEach(x=>{if(!x.nas)x.on=false});render();return haSend({alla:'av'},()=>D.lampor.forEach((x,i)=>x.on=was[i]))}

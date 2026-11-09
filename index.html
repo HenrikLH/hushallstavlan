@@ -3053,25 +3053,37 @@ html.ny.ui5 .g5-kop .val{color:var(--ink-3)}
 /* Smart hem (Home Assistant), förslag: tända lampor lyser gult som i Hem-appen */
 .widget.ha .wh{cursor:pointer}.widget.ha .wh .r,html.ny .widget.ha .wh .r{display:inline-flex;align-items:center;gap:6px;color:var(--ink-2);font-weight:400;font-size:15px}html.ny .widget.ha .wh .r::after{display:none}
 .ha-live{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px color-mix(in srgb,var(--green) 22%,transparent)}
-.ha-g{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}
-.ha-t{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-height:92px;padding:10px 11px;border:0;border-radius:var(--r5,14px);background:var(--fill);color:var(--ink);text-align:left;font:inherit;cursor:pointer;transition:transform .15s,background .2s}
-.ha-t:active:not(:has(.ha-i:active)){transform:scale(.96)}
-.ha-i{display:grid;place-items:center;width:38px;height:38px;padding:0;border:0;border-radius:50%;background:var(--pill);color:var(--ink-2);margin:-4px 0 auto -4px;cursor:pointer;font:inherit;transition:transform .15s,background .2s}.ha-i:active{transform:scale(.88)}.ha-i svg{width:20px;height:20px}
-.ha-n{font-size:14px;font-weight:600;line-height:1.2;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ha-s{font-size:13px;color:var(--ink-2)}
-.ha-t.on{background:#FFF7DB;color:#1C1C1E}.ha-t.on .ha-i{background:#FFD60A;color:#5A4500}.ha-t.on .ha-s{color:rgba(60,60,67,.7)}
-.ha-sc{display:flex;gap:8px;margin-top:10px;overflow-x:auto;scrollbar-width:none}.ha-sc .pill{flex:none}.ha-sc .pill.on{background:var(--accent);color:var(--on-accent)}
-.bhus .ha-t{min-height:104px}
-.ha-g-v{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));margin:0 16px 6px}.ha-g-v .ha-t{background:var(--surface);min-height:104px}.ha-g-v .ha-t.on{background:#FFF7DB}
-.ha-sc-v{margin:0 16px 6px;flex-wrap:wrap}
+.ha-g{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}
+.ha-t,.ha-st,.ha-chip{display:flex;align-items:center;gap:10px;min-width:0;min-height:62px;padding:10px 12px 10px 10px;border:0;border-radius:var(--r5,16px);background:var(--fill);color:var(--ink);text-align:left;font:inherit;cursor:pointer;transition:transform .15s,background .2s,box-shadow .2s;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.ha-t:active,.ha-st:active{transform:scale(.96)}
+.ha-tx{display:flex;flex-direction:column;min-width:0}
+.ha-i{display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:var(--pill);color:var(--ink-2);flex:none;transition:background .2s,color .2s}.ha-i svg{width:20px;height:20px}
+.ha-n{font-size:15px;font-weight:600;line-height:1.25;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ha-s{font-size:13px;color:var(--ink-2);line-height:1.25}
+.ha-t.on{background:#FFF7DB;color:#1C1C1E}.ha-t.on .ha-i{background:#FFD60A;color:#5A4500}.ha-t.on .ha-s{color:rgba(60,60,67,.75)}
+.ha-live.fel{background:var(--orange);box-shadow:0 0 0 3px color-mix(in srgb,var(--orange) 22%,transparent)}.ha-t.nas{opacity:.45;cursor:default}
+.ha-st .ha-i{background:var(--accent-soft);color:var(--accent)}.ha-st.on{background:var(--accent);color:var(--on-accent)}.ha-st.on .ha-i{background:rgba(255,255,255,.22);color:inherit}
+.ha-sg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:0 16px 6px}.ha-sg .ha-st{background:var(--surface)}.ha-sg .ha-st.on{background:var(--accent)}
+.ha-sg-k{grid-template-columns:repeat(4,minmax(0,1fr));margin:8px 0 0}.ha-sg-k .ha-st{flex-direction:column;justify-content:center;gap:5px;min-height:0;padding:9px 4px;text-align:center;background:var(--fill)}.ha-sg-k .ha-n{font-size:13px}
+.ha-rh{font-size:20px;font-weight:700;letter-spacing:-.2px;margin:20px 18px 8px}
+.ha-g-v{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));margin:0 16px 6px}.ha-g-v .ha-t{background:color-mix(in srgb,var(--surface) 55%,transparent)}.ha-g-v .ha-t.on{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.ha-chips-v{display:flex;gap:8px;margin:4px 16px 0;overflow-x:auto;scrollbar-width:none}.ha-chip{flex:none;min-height:0;gap:8px;padding:7px 14px 7px 7px;border-radius:999px;background:var(--surface);cursor:default}.ha-chip .ha-i{width:30px;height:30px}.ha-chip .ha-i svg{width:17px;height:17px}.ha-chip .ha-n{font-size:13px}.ha-chip .ha-s{font-size:12px}.ha-chip.on .ha-i{background:#FFD60A;color:#5A4500}
+.ha-ctl{display:flex;flex-direction:column;align-items:center;padding:2px 16px 8px}.ha-ctl .foot{text-align:center;margin-top:14px}
+.ha-ctl-v{font-size:30px;font-weight:700;letter-spacing:-.5px}
+.ha-vs{--p:0%;position:relative;width:118px;height:min(320px,40vh);margin-top:12px;border-radius:36px;background:var(--pill);overflow:hidden;touch-action:none;cursor:ns-resize;user-select:none;-webkit-user-select:none;transition:transform .15s}.ha-vs.tag{transform:scale(1.03)}.ha-vs.tog{cursor:pointer}
+.ha-vs i{position:absolute;left:0;right:0;bottom:0;height:var(--p);background:var(--f,linear-gradient(#FFE38A,#FFD24D));transition:height .15s}.ha-vs.tag i{transition:none}
+.ha-vs-ik{position:absolute;left:0;right:0;bottom:18px;display:grid;place-items:center;color:var(--ink-2)}.ha-vs.on .ha-vs-ik{color:#5A4500}.ha-vs.on[style*="hsl"] .ha-vs-ik{color:#fff}.ha-vs-ik svg{width:30px;height:30px}
+.ha-farger{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;max-width:340px;margin:14px auto 4px}
+.ha-w{width:100%;max-width:340px;margin-top:22px}.ha-w .lj-h{display:flex;justify-content:space-between;font-weight:600;margin-bottom:8px}
+.ha-w input[type=range]{width:100%;height:36px;margin:0;border-radius:18px;-webkit-appearance:none;appearance:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);touch-action:pan-y}
+.ha-w input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:32px;height:32px;border-radius:50%;background:#fff;box-shadow:0 1px 5px rgba(0,0,0,.35)}
+.ha-w input[type=range]::-moz-range-thumb{width:32px;height:32px;border:0;border-radius:50%;background:#fff;box-shadow:0 1px 5px rgba(0,0,0,.35)}
+.ha-wp{display:flex;gap:8px;justify-content:center;margin-top:12px}
+.ha-fd{width:100%;max-width:340px;margin-top:16px}.ha-fd summary{list-style:none;cursor:pointer;text-align:center;color:var(--accent);font-weight:600;padding:6px}.ha-fd summary::-webkit-details-marker{display:none}
+.ha-f{width:42px;height:42px;border-radius:50%;border:0;padding:0;cursor:pointer;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}.ha-f.vald{box-shadow:0 0 0 3px var(--bg,#F2F2F7),0 0 0 5px var(--ink)}
 .ha-i.sm{width:30px;height:30px;margin:0 10px 0 0;flex:none}.ha-i.sm svg{width:17px;height:17px}
 .ha-chips{flex-wrap:wrap;gap:8px;padding-top:12px;padding-bottom:12px}.ha-c{background:var(--fill);color:var(--ink);font-weight:500}.ha-c.on{background:var(--accent);color:var(--on-accent)}
 .ha-ed-top{display:flex;align-items:center;gap:12px;margin:4px 16px 6px}.ha-ed-top .ha-i{margin:0;width:44px;height:44px;cursor:default}.ha-ed-top .hl{font-size:19px;font-weight:600}
-.ha-farger{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;justify-items:center;padding-top:14px;padding-bottom:14px}
-.ha-f{width:52px;height:52px;border-radius:50%;border:0;cursor:pointer;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}.ha-f.vald{box-shadow:0 0 0 3px var(--surface),0 0 0 5px var(--ink)}
-.ha-k input[type=range]{accent-color:#F5A623}.ha-k input[type=range]{background:linear-gradient(90deg,#FFB861,#FFF4E5 55%,#CFE3FF);border-radius:14px;height:28px;-webkit-appearance:none;appearance:none}
-.ha-k input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.35)}
-.ha-live.fel{background:var(--orange);box-shadow:0 0 0 3px color-mix(in srgb,var(--orange) 22%,transparent)}.ha-t.nas{opacity:.45;cursor:default}
 /* ===== Mer väder och smarta förslag (alla UI) ===== */
 /* Väder: SMHI-varning överst, nya rutor (Vädra, Ute, UV, Pollen, Norrsken) */
 .wx-varn{display:block;background:var(--surface);border-radius:var(--r5,16px);padding:12px 16px 14px;margin:0 16px 14px}
@@ -3212,7 +3224,7 @@ html.ny.ui5 body.wall .board .wpair .bbd-l{font-size:calc(15px*min(var(--z),1.2)
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=294"></script>
+<script src="app.js?v=295"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
