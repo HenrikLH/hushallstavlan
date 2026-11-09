@@ -18,10 +18,12 @@ module.exports=async(pg,h)=>{
  const tryck=async id=>{const r=R.rum.find(q=>q.id===id),b=await pg.locator('#overlay .ha-karta img').boundingBox();await pg.mouse.click(b.x+(r.cx-R.crop[0])/R.crop[2]*b.width,b.y+(r.cy-R.crop[1])/R.crop[3]*b.height);await h.idle(500)};
  const [r1,r2]=R.rum.map(r=>r.id);
  await tryck(r1);await tryck(r2);
- assert.equal(await pg.locator('#overlay .ha-rumval button.on').count(),2,'Två rum valda genom tryck i kartan');
+ assert.match(await pg.locator('#overlay .ha-valt').innerText(),/,/,'Två rum valda genom tryck i kartan');
+ assert.doesNotMatch(await pg.locator('#overlay').innerHTML(),/undefined/,'Inget odefinierat i kortet');
  await h.shot('apparater-robot');
  await pg.locator('#overlay [data-act="haRob"][data-id="paus"],#overlay [data-act="haRob"][data-id="start"]').first().click();await h.idle(800);
  if(!demo)assert.ok(ut.some(u=>/"gor":"(start|paus)"/.test(u)),'Skickat till tjänsten');
+ await pg.locator('#overlay [data-act="haAppDel"][data-id="sug"]').click();await h.idle(400);
  await pg.locator('#overlay .ha-ap-in').evaluate(e=>e.closest('.sheet-body').scrollTop=9999);await h.idle(300);
  await h.shot('apparater-robot-nedre');
  await pg.locator('#overlay [data-act="sheetClose"]').click();await h.idle(900);
