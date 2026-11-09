@@ -834,18 +834,29 @@ function watchTitle(){
 const KEEP_FX='svg.bd,.fig-box,.skyfx,.sb-cl',keepNorm=h=>h.replace(/((?:\sid="|url\(#|href="#)[A-Za-z_-]*)\d+/g,'$1#');/* bara id=, inte data-id= */
 function keepFxFore(m){return[...m.querySelectorAll(KEEP_FX)].filter(e=>e.__src).map(e=>{const n=e.nextElementSibling;e.__gl=n&&n.classList.contains('gl')?n:null;return e})}
 function keepFxEfter(m,old){if(!old.length&&!m.querySelector(KEEP_FX))return;m.querySelectorAll(KEEP_FX).forEach(e=>{if(!m.contains(e))return;const j=old.indexOf(e);if(j>=0){old.splice(j,1);return}const s=keepNorm(e.outerHTML),i=old.findIndex(o=>o.__src===s);if(i>=0){const o=old[i];e.replaceWith(o);if(o.__gl)o.after(o.__gl);old.splice(i,1)}else e.__src=s})}
-// Översiktens rutor behålls på samma sätt var för sig när ett blad öppnas eller stängs (sidan i övrigt har bara en del, väderkortet ändras med solens läge)
-const KEEP_BL='.ov>*,.bcol>*';
-function keepBlockFore(m){return[...m.querySelectorAll(KEEP_BL)].filter(e=>e.__src)}
-function keepBlockEfter(m,old){m.querySelectorAll(KEEP_BL).forEach(e=>{const s=keepNorm(e.outerHTML),i=old.findIndex(o=>o.__src===s);if(i>=0){e.replaceWith(old[i]);old.splice(i,1)}else e.__src=s})}
+// När ett blad öppnas eller stängs ändras sidan under på plats (morf): bara noder som skiljer sig mellan förra och nya HTML:en rörs.
+// Inget lyfts ur och sätts tillbaka, för då ritar iPhone om bilderna (hundbilden blinkade). a = förra färska trädet, b = nya; live = sidan som den ser ut nu.
+// Har efterbehandlingen (addLayout, u5More, fitBoard …) lagt till eller tagit bort noder här byts hela innehållet i just den noden, som förut. gpuLagers .gl hoppas över.
+const morfLika=(x,y)=>x.isEqualNode(y)||x.nodeType===1&&keepNorm(x.outerHTML)===keepNorm(y.outerHTML);
+function morf(live,a,b){const lk=[...live.childNodes].filter(x=>!(x.nodeType===1&&x.classList.contains('gl'))),ak=a.childNodes,bk=b.childNodes;
+ if(lk.length!==ak.length||ak.length!==bk.length){live.replaceChildren(...[...bk].map(x=>x.cloneNode(true)));return}
+ for(let i=0;i<bk.length;i++){const l=lk[i],x=ak[i],y=bk[i];
+  if(x.nodeName!==y.nodeName||l.nodeName!==y.nodeName){live.replaceChild(y.cloneNode(true),l);continue}
+  if(y.nodeType!==1){if(x.data!==y.data)l.data=y.data;continue}
+  if(morfLika(x,y))continue;
+  const at=n=>' '+n.name+'="'+n.value;
+  for(const n of y.attributes){const o=x.attributes.getNamedItemNS(n.namespaceURI,n.localName);if(!o||o.value!==n.value&&keepNorm(at(o))!==keepNorm(at(n)))l.setAttributeNS(n.namespaceURI,n.name,n.value)}
+  for(const o of x.attributes)if(!y.attributes.getNamedItemNS(o.namespaceURI,o.localName))l.removeAttributeNS(o.namespaceURI,o.localName);
+  if(y.localName==='template'||y.localName==='textarea'){if(l.innerHTML!==y.innerHTML)l.innerHTML=y.innerHTML;continue}
+  morf(l,x,y)}}
 function doRender(){if(motionDrag||sheetDrag||bladDrag){pendingRender=true;return}applyPersonColors();applyAccent();
  if(!S.key||!S.data)document.getElementById('create-dock')?.remove();
  document.body.classList.toggle('wall',S.wall);document.body.classList.toggle('is-night',S.view==='oversikt'&&nightOn());document.body.dataset.view=S.view;
  document.body.classList.toggle('cook-open',!!S.cook);
  const nav=document.getElementById('nav'),m=document.getElementById('main');
  NB={title:'',back:false};
- if(!CFG.api||/DIN-/.test(CFG.api)){nav.hidden=true;m.__src='';m.innerHTML='<div class="setup"><h1 class="lt">Hemma</h1><div class="banner">Appen är inte kopplad till kalkylarket än. Lägg in adressen till Apps Script-webbappen i filen <b>config.js</b>.</div></div>';watchTitle();return}
- if(!S.key){nav.hidden=true;overlayKeepScroll();if(busyTyping())return;m.__src='';m.innerHTML=setupHtml();watchTitle();return}
+ if(!CFG.api||/DIN-/.test(CFG.api)){nav.hidden=true;m.__src='';m.__fresh=null;m.innerHTML='<div class="setup"><h1 class="lt">Hemma</h1><div class="banner">Appen är inte kopplad till kalkylarket än. Lägg in adressen till Apps Script-webbappen i filen <b>config.js</b>.</div></div>';watchTitle();return}
+ if(!S.key){nav.hidden=true;overlayKeepScroll();if(busyTyping())return;m.__src='';m.__fresh=null;m.innerHTML=setupHtml();watchTitle();return}
  nav.hidden=false;
  renderNav(nav);
  const ov=document.getElementById('overlay'),ovK0=ov.dataset.k||'';
@@ -854,14 +865,17 @@ function doRender(){if(motionDrag||sheetDrag||bladDrag){pendingRender=true;retur
  const lugn=!!(ovK0||ov.dataset.k);
  if(busyTyping()){pendingRender=true;return}
  pendingRender=false;
- if(!S.data){m.__src='';m.innerHTML='<div class="setup"><h1 class="lt">Hemma</h1><p>Hämtar hushållets data…</p>'+(S.sync==='err'?'<div class="banner">'+esc(S.error)+'</div><div class="block"><button class="btn-tint" style="width:100%" data-act="refresh">Försök igen</button></div>':'')+'</div>';watchTitle();return}
+ if(!S.data){m.__src='';m.__fresh=null;m.innerHTML='<div class="setup"><h1 class="lt">Hemma</h1><p>Hämtar hushållets data…</p>'+(S.sync==='err'?'<div class="banner">'+esc(S.error)+'</div><div class="block"><button class="btn-tint" style="width:100%" data-act="refresh">Försök igen</button></div>':'')+'</div>';watchTitle();return}
  const banner=S.sync==='offline'&&OUTBOX.length?'<div class="outbox" role="status">'+I.clock+'<span class="grow">'+waitTxt(OUTBOX.length)+'</span><span class="muted">Skickas automatiskt</span></div>':S.sync==='err'?'<div class="banner">Ingen kontakt med kalkylarket just nu. Du ser senast hämtade data. '+esc(S.error)+'</div>':'';
  A.before(m);
  // Om en vy kraschar visas ett fel i stället, så att resten av appen (svep, menyn) fortsätter att fungera
  let page;try{page=(V[S.view]||V.oversikt)()}catch(e){console.error(e);page='<div class="banner">Något gick fel när sidan skulle visas: '+esc(e.message)+'</div>'}
  const src=keepNorm(banner+page)+'|'+S.view+'|'+addPlace();
  if(lugn&&src===m.__src){A.old=null;watchTitle();plPin();wsPin();return}
- const kb=lugn?keepBlockFore(m):[],kv=keepFxFore(m);m.innerHTML=banner+page;m.__src=src;keepBlockEfter(m,kb);keepFxEfter(m,kv);addLayout(m);if(U5)u5More(m);
+ const t=document.createElement('template');t.innerHTML=banner+page;const ny=t.content,vy=S.view+'|'+(S.recipe||'')+'|'+S.matTab+'|'+S.taskTab,samma=m.__fresh&&m.__vy===vy;
+ if(lugn&&samma){morf(m,m.__fresh,ny);m.querySelectorAll(KEEP_FX).forEach(e=>{if(!e.__src)e.__src=keepNorm(e.outerHTML)})}
+ else{const kv=keepFxFore(m);m.replaceChildren(ny.cloneNode(true));keepFxEfter(m,kv)}
+ m.__fresh=ny;m.__src=src;m.__vy=vy;addLayout(m);if(U5)u5More(m);
  {const w=m.querySelector('.wk-sw');if(w&&S.wkX){w.scrollLeft=S.wkX;wkMonth(w)}}
  {const w=m.querySelector('.wxC-sc');if(w)w.scrollLeft=S.wxX!=null?S.wxX:WXC_NP*WXC_SW}
  placeSky();skyFit();fitBoard();gpuLager();loopSync();
