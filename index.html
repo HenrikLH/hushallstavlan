@@ -3055,7 +3055,16 @@ html.ny.ui5 .g5-kop .val{color:var(--ink-3)}
 .ha-live{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px color-mix(in srgb,var(--green) 22%,transparent)}
 .ha-g{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}
 .ha-t,.ha-st,.ha-chip{display:flex;align-items:center;gap:10px;min-width:0;min-height:62px;padding:10px 12px 10px 10px;border:0;border-radius:var(--r5,16px);background:var(--fill);color:var(--ink);text-align:left;font:inherit;cursor:pointer;transition:transform .15s,background .2s,box-shadow .2s;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
-.ha-t:active,.ha-st:active{transform:scale(.96)}
+/* Smart hem-rörelser som i Hem-appen: tryck krymper snabbt, släpp studsar tillbaka med fjäder; ändrat läge tonar och ikonen studsar */
+.ha-t,.ha-st{--ha-fj:linear(0,0.048,0.165,0.318,0.482,0.639,0.776,0.889,0.975,1.034,1.072,1.09,1.095,1.089,1.078,1.063,1.047,1.033,1.02,1.009,1.002,0.996,0.993,0.991,0.991,0.992,0.993,0.994,0.996,0.997,1);transition:transform .71s var(--ha-fj),background-color .3s ease,box-shadow .3s ease}
+.ha-t:active,.ha-st:active{transform:scale(.95);transition:transform .14s cubic-bezier(.3,0,.5,1),background-color .3s,box-shadow .3s}
+.ha-ny{animation:ha-tona .42s ease-out both;animation-delay:var(--ha-d,0ms)}.ha-ny .ha-i{animation:ha-pop .71s var(--ha-fj) both;animation-delay:var(--ha-d,0ms)}
+@keyframes ha-tona{from{filter:saturate(.3) brightness(.94)}}
+@keyframes ha-pop{0%{transform:scale(.72)}100%{transform:none}}
+.ha-vs{transition:transform .15s}.ha-vs i{transition:height .71s var(--ha-fj,ease),background .3s}
+.ha-vs{--ha-fj:linear(0,0.048,0.165,0.318,0.482,0.639,0.776,0.889,0.975,1.034,1.072,1.09,1.095,1.089,1.078,1.063,1.047,1.033,1.02,1.009,1.002,0.996,0.993,0.991,0.991,0.992,0.993,0.994,0.996,0.997,1)}
+@media (prefers-reduced-motion:reduce){.ha-ny,.ha-ny .ha-i{animation:none}.ha-t,.ha-st,.ha-vs i{transition:none}}
+.ha-t.hl-on,.ha-t.hl-on:active,.ha-st.hl-on,.ha-st.hl-on:active{transform:scale(var(--hl-s,1.04));transition:transform var(--hl-t,.5s) cubic-bezier(.3,.1,.3,1),box-shadow var(--hl-t,.5s) ease-in}
 .ha-tx{display:flex;flex-direction:column;min-width:0}
 .ha-i{display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:var(--pill);color:var(--ink-2);flex:none;transition:background .2s,color .2s}.ha-i svg{width:20px;height:20px}
 .ha-n{font-size:15px;font-weight:600;line-height:1.25;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -3071,7 +3080,7 @@ html.ny.ui5 .g5-kop .val{color:var(--ink-3)}
 .ha-ctl{display:flex;flex-direction:column;align-items:center;padding:2px 16px 8px}.ha-ctl .foot{text-align:center;margin-top:14px}
 .ha-ctl-v{font-size:30px;font-weight:700;letter-spacing:-.5px}
 .ha-vs{--p:0%;position:relative;width:118px;height:min(320px,40vh);margin-top:12px;border-radius:36px;background:var(--pill);overflow:hidden;touch-action:none;cursor:ns-resize;user-select:none;-webkit-user-select:none;transition:transform .15s}.ha-vs.tag{transform:scale(1.03)}.ha-vs.tog{cursor:pointer}
-.ha-vs i{position:absolute;left:0;right:0;bottom:0;height:var(--p);background:var(--f,linear-gradient(#FFE38A,#FFD24D));transition:height .15s}.ha-vs.tag i{transition:none}
+.ha-vs i{position:absolute;left:0;right:0;bottom:0;height:var(--p);background:var(--f,linear-gradient(#FFE38A,#FFD24D))}.ha-vs.tag i{transition:none}
 .ha-vs-ik{position:absolute;left:0;right:0;bottom:18px;display:grid;place-items:center;color:var(--ink-2)}.ha-vs.on .ha-vs-ik{color:#5A4500}.ha-vs.on[style*="hsl"] .ha-vs-ik{color:#fff}.ha-vs-ik svg{width:30px;height:30px}
 .ha-farger{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;max-width:340px;margin:14px auto 4px}
 .ha-w{width:100%;max-width:340px;margin-top:22px}.ha-w .lj-h{display:flex;justify-content:space-between;font-weight:600;margin-bottom:8px}

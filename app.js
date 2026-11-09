@@ -1231,10 +1231,15 @@ const haGiv=g=>{const v=isNaN(+g.v)?g.v:String(Math.round(+g.v*10)/10).replace('
 const haIk=x=>x.t==='light'?HAI.bulb:x.t==='fan'?HAI.fan:HAI.plug;
 const haIkSt=x=>x.on&&haFargLage(x)&&x.hs?' style="background:hsl('+Math.round(x.hs[0])+' '+Math.max(40,Math.round(x.hs[1]))+'% 62%);color:#fff"':'';
 const haStat=x=>x.nas?'Svarar inte':x.on?(x.b?x.b+' %':'På'):'Av';
-const haTile=x=>'<button type="button" class="ha-t'+(x.on?' on':'')+(x.nas?' nas':'')+'" data-act="haTog" data-id="'+esc(x.id)+'" data-hold-lift="haLampa" aria-pressed="'+!!x.on+'" aria-label="'+esc(x.n)+', '+haStat(x)+'"><span class="ha-i"'+haIkSt(x)+'>'+haIk(x)+'</span><span class="ha-tx"><span class="ha-n">'+esc(x.n)+'</span><span class="ha-s">'+haStat(x)+'</span></span></button>';
+// Ändrat läge (här, i en scen eller utifrån) tonar och studsar in. Fördröjningen räknas från ändringen, så en omritning mitt i fortsätter animationen.
+// Ändras flera samtidigt (scen, Släck allt) kommer de i en kort våg, som i Hem-appen.
+const haLugn=()=>!motionOn()||matchMedia('(prefers-reduced-motion:reduce)').matches;
+const haNy=(k,on)=>{if(haLugn())return'';const B=HA.byt||(HA.byt={}),Y=HA.syn||(HA.syn={}),nu=performance.now();if(k in Y&&Y[k]!==on){if(!B._t||nu-B._t>40){B._t=nu;B._n=0}B[k]=nu+(B._n++)*45}Y[k]=on;
+ const d=B[k]!=null?nu-B[k]:1e9;return d<700?' ha-ny" style="--ha-d:'+Math.round(-d)+'ms':''};
+const haTile=x=>'<button type="button" class="ha-t'+(x.on?' on':'')+(x.nas?' nas':'')+haNy(x.id,!!x.on)+'" data-act="haTog" data-id="'+esc(x.id)+'" data-hold-lift="haLampa" data-hold-t="500" aria-pressed="'+!!x.on+'" aria-label="'+esc(x.n)+', '+haStat(x)+'"><span class="ha-i"'+haIkSt(x)+'>'+haIk(x)+'</span><span class="ha-tx"><span class="ha-n">'+esc(x.n)+'</span><span class="ha-s">'+haStat(x)+'</span></span></button>';
 const haScIk=s=>s.id==='av'?HAI.off:/morgon|vakna|dag|ljust/i.test(s.n)?HAI.sun:/kväll|natt|sov|mys|lugn/i.test(s.n)?HAI.moon:/film|tv|bio/i.test(s.n)?HAI.film:I.sparkles;
 const haScener=(D,kort)=>{const n=(D.lampor||[]).some(x=>x.on);return(D.scener||[]).concat(n||!kort?[{id:'av',n:kort?'Släck':'Släck allt'}]:[])};
-const haScT=s=>'<button type="button" class="ha-st'+(HA.last===s.id?' on':'')+'" data-act="haScen" data-id="'+esc(s.id)+'"'+(s.id!=='av'?' data-hold-lift="haEdit"':'')+'><span class="ha-i">'+haScIk(s)+'</span><span class="ha-n">'+esc(s.n)+'</span></button>';
+const haScT=s=>'<button type="button" class="ha-st'+(HA.last===s.id?' on':'')+haNy('sc:'+s.id,HA.last===s.id)+'" data-act="haScen" data-id="'+esc(s.id)+'"'+(s.id!=='av'?' data-hold-lift="haEdit"':'')+'><span class="ha-i">'+haScIk(s)+'</span><span class="ha-n">'+esc(s.n)+'</span></button>';
 function haBox(wall){const D=haData();if(!D)return'';const E=D.lampor||[],n=E.filter(x=>x.on).length,g=(D.givare||[])[0];
  const sc=haScener(D,true);
  return'<section class="widget'+(wall?' bhus':' w2')+' ha"><button type="button" class="wh" data-act="nav" data-id="hus" style="width:100%">'+I.home+'<span>Smart hem</span><span class="r"><i class="ha-live'+(HA.fel&&!haDemo()?' fel':'')+'" title="'+(HA.fel&&!haDemo()?esc(HA.fel):'Uppdateras direkt')+'"></i>'+(n?n+' tända':'Allt släckt')+(g?' · '+esc(haGiv(g)):'')+'</span></button>'+
@@ -1254,7 +1259,8 @@ const haVarmCmd=(p,W)=>{if(W.k&&p<=W.kd)return{k:Math.round(W.kmax-(W.kmax-W.kmi
 document.addEventListener('input',e=>{if(!e.target.dataset||!e.target.dataset.haw)return;HA.drag=true;const x=haLamp(),m=document.querySelector('[data-hav="w"]');if(x&&m)m.textContent=haVarmNamn(+e.target.value,haVarm(x))});
 document.addEventListener('change',e=>{if(!e.target.dataset||!e.target.dataset.haw)return;HA.drag=false;const x=haLamp();if(x)haLampSkicka(x,haVarmCmd(+e.target.value,haVarm(x)))});
 function haLampSheet(enter){const x=haLamp();if(!x){S.sheet=null;return''}const K=haKan(x),kmin=x.kmin||2200,kmax=x.kmax||6500,p=x.on?(K.dim?x.b||100:100):0;
- const vs='<div class="ha-vs'+(x.on?' on':'')+(K.dim?'':' tog')+'" '+(K.dim?'data-havs="b" role="slider" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+p+'" aria-label="Ljusstyrka"':'role="switch" aria-checked="'+!!x.on+'" aria-label="Tänd '+esc(x.n)+'"')+' style="--p:'+p+'%'+(x.on&&haFargLage(x)&&x.hs?';--f:hsl('+Math.round(x.hs[0])+' '+Math.max(40,Math.round(x.hs[1]))+'% 64%)':x.on&&x.k?';--f:'+(x.k<3000?'#FFC67E':x.k<3800?'#FFDCA0':x.k<5000?'#FFEDCB':'#EEF2F8'):'')+'"><i></i><span class="ha-vs-ik">'+haIk(x)+'</span></div>';
+ const fr=HA.vsId===x.id&&HA.vsP!=null&&HA.vsP!==p?HA.vsP:null;HA.vsId=x.id;HA.vsP=p;
+ const vs='<div class="ha-vs'+(x.on?' on':'')+(K.dim?'':' tog')+'"'+(fr!=null?' data-mal="'+p+'"':'')+' '+(K.dim?'data-havs="b" role="slider" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+p+'" aria-label="Ljusstyrka"':'role="switch" aria-checked="'+!!x.on+'" aria-label="Tänd '+esc(x.n)+'"')+' style="--p:'+(fr!=null?fr:p)+'%'+(x.on&&haFargLage(x)&&x.hs?';--f:hsl('+Math.round(x.hs[0])+' '+Math.max(40,Math.round(x.hs[1]))+'% 64%)':x.on&&x.k?';--f:'+(x.k<3000?'#FFC67E':x.k<3800?'#FFDCA0':x.k<5000?'#FFEDCB':'#EEF2F8'):'')+'"><i></i><span class="ha-vs-ik">'+haIk(x)+'</span></div>';
 // värme: ett reglage från vitt till orange. Vitt → varmvitt med färgtemperatur; klarar lampan färg fortsätter sista delen till stearin/orange.
  const W=haVarm(x),wp=haVarmPos(x,W);
  const varm=W.ok?'<div class="ha-w"><div class="lj-h"><span>Värme</span><span class="meta" data-hav="w">'+haVarmNamn(wp,W)+'</span></div><input type="range" min="0" max="100" step="1" value="'+wp+'" data-haw="1" aria-label="Värme, från vitt till orange" style="background:'+W.g+'"><div class="ha-wp">'+[['Vitt',0],['Mys',W.f?40:60],['Stearin',W.f?88:100]].map(([n,v])=>'<button type="button" class="pill ha-c'+(x.on&&Math.abs(wp-v)<6?' on':'')+'" data-act="haVarmV" data-id="'+v+'">'+n+'</button>').join('')+'</div></div>':'';
@@ -1296,10 +1302,26 @@ function haLampSkicka(x,ch){if(!x)return;const was=JSON.stringify(x);x.on=true;i
 // det lodräta reglaget: drag relativt där fingret började (hoppar inte vid tryck), 0 % släcker, tryck utan drag tänder/släcker
 (()=>{let d=null;const st=v=>{const el=document.querySelector('[data-hav="s"]');if(el)el.textContent=v?v+' %':'Av'};
  document.addEventListener('pointerdown',e=>{const el=e.target.closest('.ha-vs');if(!el||e.button>0)return;e.preventDefault();d={el,y:e.clientY,v0:parseFloat(el.style.getPropertyValue('--p'))||0,v:null,h:el.getBoundingClientRect().height,id:e.pointerId};try{el.setPointerCapture(e.pointerId)}catch(_){}HA.drag=true;el.classList.add('tag')});
- document.addEventListener('pointermove',e=>{if(!d||e.pointerId!==d.id||!d.el.dataset.havs)return;const dy=d.y-e.clientY;if(d.v==null&&Math.abs(dy)<6)return;d.v=Math.max(0,Math.min(100,Math.round(d.v0+dy/d.h*100)));d.el.style.setProperty('--p',d.v+'%');d.el.classList.toggle('on',d.v>0);st(d.v)});
- const slut=e=>{if(!d||e.pointerId!==d.id)return;const D=d;d=null;HA.drag=false;D.el.classList.remove('tag');const x=haLamp();if(!x||e.type==='pointercancel'){render();return}
+ document.addEventListener('pointermove',e=>{if(!d||e.pointerId!==d.id||!d.el.dataset.havs)return;const dy=d.y-e.clientY;if(d.v==null&&Math.abs(dy)<6)return;const raw=d.v0+dy/d.h*100;d.v=Math.max(0,Math.min(100,Math.round(raw)));d.el.style.setProperty('--p',d.v+'%');d.el.classList.toggle('on',d.v>0);st(d.v);
+  // gummiband: drar man förbi botten eller toppen sträcks reglaget lite åt det hållet, som i Hem-appen
+  const ov=raw>100?raw-100:raw<0?raw:0,g=(1-Math.exp(-Math.abs(ov)/45))*.09;d.g=g;d.el.style.transformOrigin=ov<0?'50% 0':'50% 100%';d.el.style.transform=g?'scale('+(1-g*.45)+','+(1+g)+')':''});
+ const slut=e=>{if(!d||e.pointerId!==d.id)return;const D=d;d=null;HA.drag=false;D.el.classList.remove('tag');
+  if(D.g&&!haLugn()){const s=fjader(.42,.55),t=D.el.style.transform;D.el.style.transform='';D.el.animate([{transform:t},{transform:'none'}],{duration:s.d,easing:s.e})}else D.el.style.transform='';if(D.v!=null)HA.vsP=D.v;const x=haLamp();if(!x||e.type==='pointercancel'){render();return}
   if(D.v==null)ACT.haTog(x.id);else if(D.v===0)haAv(x);else haLampSkicka(x,{b:D.v})};
  document.addEventListener('pointerup',slut);document.addEventListener('pointercancel',slut)})();
+const haTileEl=id=>[...document.querySelectorAll('.ha-t[data-id="'+CSS.escape(id||'')+'"]')].find(e=>{const r=e.getBoundingClientRect();return r.width&&r.bottom>0&&r.top<innerHeight});
+/* Lampbladet växer ut ur brickan och krymper tillbaka in i den, med fjäder som i Hem-appen. Innehållet tonar in när kortet nästan är framme.
+   Under animationen ritas bladet inte om (HA.drag), annars hoppar det. */
+function haZoom(inn,klar){const o=document.getElementById('overlay'),bg=o&&o.querySelector('.sheet'),p=bg&&bg.querySelector('.sheet-panel'),t=haTileEl(S.haId);
+ if(haLugn()||!p||!t){klar&&klar();return false}
+ p.style.animation='none';bg.style.animation='none';
+ const a=t.getBoundingClientRect(),b=p.getBoundingClientRect(),fra={transform:'translate('+(a.left-b.left)+'px,'+(a.top-b.top)+'px) scale('+a.width/b.width+','+a.height/b.height+')',borderRadius:'40px'},till={transform:'none',borderRadius:getComputedStyle(p).borderRadius};
+ const s=inn?fjader(.5,.8):fjader(.36,.99);p.style.transformOrigin='0 0';HA.drag=true;
+ const an=p.animate(inn?[fra,till]:[till,fra],{duration:s.d,easing:s.e,fill:'forwards'});
+ bg.animate([{backgroundColor:'rgba(0,0,0,0)'},{backgroundColor:getComputedStyle(bg).backgroundColor}],{duration:inn?260:s.d,easing:'ease-out',direction:inn?'normal':'reverse',fill:'forwards'});
+ [...p.children].forEach(c=>c.animate([{opacity:0},{opacity:1}],inn?{duration:220,delay:s.d*.25,easing:'ease-out',fill:'backwards'}:{duration:120,easing:'ease-in',direction:'reverse',fill:'forwards'}));
+ t.style.visibility='hidden';
+ an.onfinish=()=>{HA.drag=false;t.style.visibility='';if(klar)klar()};return true}
 function haAv(x){if(!x||!x.on)return render();const was=x.on;x.on=false;HA.last=null;render();haSend({id:x.id,gor:'av'},()=>{x.on=was})}
 // Smart hem-vyn: alla enheter per rum, scener och givare. Plus lägger till, håll in ändrar.
 V.hus=function(){const D=haData();let h='<div class="rcp-top"><button class="back" data-act="nav" data-id="oversikt">'+I.back+'Översikt</button></div>';
@@ -3222,7 +3244,7 @@ if(k==='vara'){const n=S.varaK||'',ing=S.varaTyp==='ing',R=regGet(),F=parseJ(set
    (e?'<div style="height:22px"></div>'+group('<button type="button" class="cell link center red hold" data-hold="fodDelHold" data-id="'+esc(e.key)+'"><i class="sh-fill"></i><span>Ta bort födelsedagen</span></button>')+'<div class="foot">Håll in för att ta bort.</div>':'');
   o.innerHTML=sheetHtml('fodAdd',e?'Ändra födelsedag':'Ny födelsedag','<button class="tb strong">'+(e?'Spara':'Lägg till')+'</button>',body,enter);restoreColorStrips(o);return}
  // Presentbudget: stort belopp, Jämnt/Efter månad, staplar för tolv månader, belopp per present och kommande presenter
- if(k==='haLampa'){o.innerHTML=haLampSheet(enter);return}
+ if(k==='haLampa'){o.innerHTML=haLampSheet(enter);const v=o.querySelector('.ha-vs[data-mal]');if(v)requestAnimationFrame(()=>requestAnimationFrame(()=>v.style.setProperty('--p',v.dataset.mal+'%')));if(enter)haZoom(true);return}
  if(k==='haEdit'){o.innerHTML=haEditSheet(enter);return}
  if(k==='haAdd'){o.innerHTML=haAddSheet(enter);return}
  if(k==='presBud'){const P=presBud(),Y=presAr(),ty=+thisMonth().slice(0,4),SN=presSnitt(ty,P.ar),YK=presAr(ty+'-01'),nu=new Date().getMonth(),mx=Math.max(1,SN.jamn,...YK.M.map(x=>x.kr)),val=P.satt==='manad'?Y.M[0].kr:SN.jamn,
@@ -5075,8 +5097,8 @@ const ACT={
  smileyQuick(id,el){const v=Number(el.dataset.v)||0;A.user=Date.now();saveSmiley(id,el.dataset.date,v);markCooked(id,el.dataset.date);toast(v>0?'Vad bra! Rätten kommer tillbaka lite oftare':v<0?'Noterat. Rätten kommer tillbaka mer sällan':'Tack!')},
  smileySkip(id,el){A.user=Date.now();saveSmiley(id,el.dataset.date,'x');toast('Okej, den räknas inte som lagad')},
  wakeBoard(){render()},
- haTog(id){const x=(haData()||{lampor:[]}).lampor.find(e=>e.id===id);if(!x||x.nas)return;const was=x.on;x.on=!was;if(x.on&&!x.b&&x.t==='light')x.b=null;HA.last=null;render();haSend({id,gor:'vaxla'},()=>{x.on=was})},
- haLampa(id){S.haId=id;S.sheet='haLampa';render()},
+ haTog(id){const x=(haData()||{lampor:[]}).lampor.find(e=>e.id===id);if(!x||x.nas)return;try{u5Tick()}catch(e){}const was=x.on;x.on=!was;if(x.on&&!x.b&&x.t==='light')x.b=null;HA.last=null;render();haSend({id,gor:'vaxla'},()=>{x.on=was})},
+ haLampa(id){S.haId=id;S.sheet='haLampa';HA.vsId=null;try{u5Tick()}catch(e){}render()},
  haEdit(id){if(!haAllaEnh().some(e=>e.id===id))return;S.haId=id;S.sheet='haEdit';render()},
  haNamn(v){const x=haAllaEnh().find(e=>e.id===S.haId);if(!x)return;haValj({id:x.id,namn:v},()=>{x.n=v||x.hn||x.n})},
  haRum(v){const x=haAllaEnh().find(e=>e.id===S.haId);if(!x)return;haValj({id:x.id,rum:v},()=>{x.rum=v||null})},
@@ -5134,11 +5156,11 @@ const ACT={
  boxShow(id){boxEdit(L=>{L.hidden=L.hidden.filter(x=>x!==id);L.cols[L.cols.length-1].push(id)})},
  boxReset(){saveLayout(wallBoardOn(),null);render();toast('Rutorna ligger som från början. Tryck Klar för att spara.')},
  prefs(){S.sheet='prefs';render()},
- sheetClose(){closeSheets();render()},
+ sheetClose(){if(S.sheet==='haLampa'&&haZoom(false,()=>{closeSheets();render()}))return;closeSheets();render()},
  varor(){closeSheets();ACT.nav('varor')},
  varaOpen(id,el){S.varaK=id;S.varaTyp=el&&el.dataset&&el.dataset.typ||'bas';S.sheet='vara';render()},
  varaAlla(){const P=parseJ(settings().priser,{}),R=regGet(),ej=varorBas().filter(k=>!(R.v||{})[k]&&P[k]&&P[k].vara&&MV.rimligFor(k,P[k]));if(!ej.length){toast('Inga förval att godkänna');return}regSet(r=>ej.forEach(k=>{r.v[k]={c:P[k].c||'',n:P[k].vara}}));toast(ej.length+' varor godkända')},
- sheetBg(id,el,e){if(e.target===el){closeSheets();render()}},
+ sheetBg(id,el,e){if(e.target===el){if(S.sheet==='haLampa'&&haZoom(false,()=>{closeSheets();render()}))return;closeSheets();render()}},
  personFold(id){S.open['person-'+id]=!S.open['person-'+id];render()},
  me(id){S.me=id;lsSet('me',id);render()},
  logout(){S.key='';S.data=null;S.sheet=null;lsSet('key',null);lsSet('cache',null);render()},
@@ -5430,8 +5452,8 @@ function hlOff(el){if(!el||!el.classList.contains('hl-on'))return;el.classList.a
  // håller man kvar fingret länge efter att hållet nått fram räknas släppet ändå inte som ett tryck
  document.addEventListener('pointerup',()=>{if(fired>ned)fired=Date.now()},true);
  document.addEventListener('pointerdown',e=>{if(e.button>0)return;ned=Date.now();const el=e.target.closest('[data-hold-lift]');if(!el||e.target.closest('.dr-act,.dr-actl,.pl-step,.dr-x,.bq-lk,[data-hold-lock]')||el.classList.contains('open')||el.classList.contains('openl'))return;stop();
-  const x={el,x:e.clientX,y:e.clientY};h=x;x.w=setTimeout(()=>{if(h!==x)return;hlOn(el,T);x.t=setTimeout(()=>{if(h!==x)return;fired=Date.now();try{navigator.vibrate&&navigator.vibrate(10)}catch(z){}
-   const a=el.dataset.holdLift,id=el.dataset.id;h=null;ACT[a]&&ACT[a](id);setTimeout(()=>hlOff(el),300)},T)},WAIT)});
+  const x={el,x:e.clientX,y:e.clientY};h=x;const TT=+el.dataset.holdT||T;x.w=setTimeout(()=>{if(h!==x)return;hlOn(el,TT);x.t=setTimeout(()=>{if(h!==x)return;fired=Date.now();try{navigator.vibrate&&navigator.vibrate(10)}catch(z){}
+   const a=el.dataset.holdLift,id=el.dataset.id;h=null;ACT[a]&&ACT[a](id);setTimeout(()=>hlOff(el),300)},TT)},WAIT)});
  document.addEventListener('pointermove',e=>{if(h&&Math.hypot(e.clientX-h.x,e.clientY-h.y)>10)stop()},{passive:true});
  ['pointerup','pointercancel'].forEach(k=>document.addEventListener(k,stop,true));document.addEventListener('scroll',stop,{capture:true,passive:true});
  document.addEventListener('click',e=>{if(Date.now()-fired<700&&e.target.closest('[data-hold-lift]')){e.stopPropagation();e.preventDefault()}},true);
