@@ -807,7 +807,7 @@ function planPortions(){const ids=new Set();D().menu.forEach(m=>{if(m.recipe)ids
 
 /* ---------- render ---------- */
 /* ---------- render ---------- */
-let rq=0,pendingRender=false;
+let rq=0,pendingRender=false,bladDrag=null;
 function render(){if(rq)return;rq=setTimeout(()=>{rq=0;doRender()},0)}
 function busyTyping(){const a=document.activeElement;return a&&a.closest&&a.closest('#main,#overlay')&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)&&!/^(checkbox|radio|range)$/.test(a.type)}
 function renderStatus(){const el=document.getElementById('sync');if(el)el.outerHTML=statusHtml()}
@@ -828,7 +828,7 @@ function watchTitle(){
  if(!lt||!('IntersectionObserver' in window)){show(false);return}
  io=new IntersectionObserver(es=>{const e=es[es.length-1];show(!e.isIntersecting&&e.boundingClientRect.top<bar.offsetHeight)},{rootMargin:'-'+(bar.offsetHeight||44)+'px 0px 0px 0px',threshold:0});
  io.observe(lt)}
-function doRender(){if(motionDrag||sheetDrag){pendingRender=true;return}applyPersonColors();applyAccent();
+function doRender(){if(motionDrag||sheetDrag||bladDrag){pendingRender=true;return}applyPersonColors();applyAccent();
  if(!S.key||!S.data)document.getElementById('create-dock')?.remove();
  document.body.classList.toggle('wall',S.wall);document.body.classList.toggle('is-night',S.view==='oversikt'&&nightOn());document.body.dataset.view=S.view;
  document.body.classList.toggle('cook-open',!!S.cook);
@@ -4955,7 +4955,7 @@ window.addEventListener('click',e=>{const summary=e.target.closest('summary');if
 },true);
 // Bladhandtag: direkt förflyttning, närmaste ändläge och återställning vid avbruten gest.
 let sheetDrag=null;
-function sheetDragEnd(cancel){const d=sheetDrag;if(!d)return;sheetDrag=null;d.h.dataset.skip='1';setTimeout(()=>delete d.h.dataset.skip,450);A.touch=A.user=Date.now();if(pendingRender)setTimeout(render,460);try{d.h.releasePointerCapture(d.id)}catch(_){}const close=!cancel&&(d.dy<6||(U5?d.dy+u5Fart.proj(u5Fart.v(d.a)):d.dy)>=d.range/2),from=d.dy;d.panel.style.removeProperty('transform');const finish=()=>{if(close){closeSheets();render()}};
+function sheetDragEnd(cancel){const d=sheetDrag;if(!d)return;sheetDrag=null;d.h.dataset.skip='1';setTimeout(()=>delete d.h.dataset.skip,450);A.touch=A.user=Date.now();if(pendingRender)setTimeout(render,460);try{d.h.releasePointerCapture(d.id)}catch(_){}const close=!cancel&&(d.dy<6||bladStang(d.dy,u5Fart.v(d.a),d.range)),from=d.dy;d.panel.style.removeProperty('transform');const finish=()=>{if(close){closeSheets();render()}};
  if(calm()){finish();return}const a=d.panel.animate([{transform:'translateY('+from+'px)'},{transform:'translateY('+(close?d.range:0)+'px)'}],{duration:420,easing:MOTION_EASE,fill:'forwards'});a.onfinish=()=>{a.cancel();finish()}}
 window.addEventListener('pointerdown',e=>{const h=e.target.closest('[data-sheet-grip]');if(!h||e.button>0||!e.isPrimary)return;e.preventDefault();e.stopImmediatePropagation();A.touch=A.user=Date.now();const panel=h.closest('.sheet-panel');panel.getAnimations().forEach(a=>a.cancel());sheetDrag={h,panel,id:e.pointerId,start:e.clientY,dy:0,range:(innerHeight-panel.getBoundingClientRect().top)/motionScale(panel),scale:motionScale(panel),a:[]};h.setPointerCapture(e.pointerId)},true);
 window.addEventListener('pointermove',e=>{const d=sheetDrag;if(!d||d.id!==e.pointerId)return;e.preventDefault();e.stopImmediatePropagation();A.touch=A.user=Date.now();d.dy=Math.max(0,Math.min(d.range,(e.clientY-d.start)/d.scale));u5Fart.add(d.a,d.dy);d.panel.style.transform='translateY('+d.dy+'px)'},{capture:true,passive:false});
@@ -4963,6 +4963,32 @@ window.addEventListener('pointerup',e=>{if(!sheetDrag||sheetDrag.id!==e.pointerI
 ['pointercancel','lostpointercapture'].forEach(t=>window.addEventListener(t,e=>{if(sheetDrag?.id===e.pointerId)sheetDragEnd(true)},true));
 ['blur','resize','pagehide'].forEach(t=>window.addEventListener(t,()=>sheetDragEnd(true)));
 window.addEventListener('click',e=>{const h=e.target.closest('[data-sheet-grip]');if(!h)return;e.preventDefault();e.stopImmediatePropagation();if(!h.dataset.skip){closeSheets();render()}},true);
+// Öppna blad (iOS): bakgrunden scrollar aldrig, och ett svep nedåt var som helst i bladet stänger det när svepet är snabbt eller långt nog; annars fjädrar det tillbaka
+const bladStang=(dy,v,range)=>dy>8&&(v>.5||v>-.1&&dy+u5Fart.proj(v,.995)>=Math.min(range/2,240));
+(function(){let t=null;
+ const kan=(el,stop,dy)=>{for(;el&&el!==stop;el=el.parentElement){const cs=getComputedStyle(el);if(cs.touchAction==='none')return 2;if(/(auto|scroll)/.test(cs.overflowY)&&el.scrollHeight>el.clientHeight+1&&(dy<0?el.scrollTop+el.clientHeight<el.scrollHeight-1:el.scrollTop>.5))return 1}return 0};
+ const gummi=x=>(1-1/(x*.55/60+1))*60;
+ const satt=(d,y)=>{d.y=y;d.panel.style.transform='translateY('+(y<0?-gummi(-y):y)+'px)';d.panel.style.boxShadow=y<0?'0 '+Math.ceil(gummi(-y)+2)+'px 0 0 '+d.bg:'';d.sheet.style.backgroundColor=d.dim(1-Math.max(0,y)/d.range)};
+ const slapp=(d,avbryt)=>{bladDrag=null;A.touch=A.user=Date.now();const v=avbryt?0:u5Fart.v(d.a),y=d.y,go=!avbryt&&bladStang(y,v,d.range),y0=y<0?-gummi(-y):y;
+  const klar=()=>{d.panel.style.removeProperty('transform');d.panel.style.removeProperty('box-shadow');d.sheet.style.removeProperty('background-color');if(go){closeSheets();render()}else if(pendingRender)render()};
+  if(calm()){klar();return}const sp=u5Fjader(y0,go?d.range:0,go?Math.max(v,.4):v,go?.36:.42),o={duration:sp.ms,easing:'linear',fill:'forwards'};d.panel.style.removeProperty('box-shadow');
+  const a=d.panel.animate(sp.xs.map(x=>({transform:'translateY('+x+'px)'})),o);d.sheet.animate(sp.xs.map(x=>({backgroundColor:d.dim(1-Math.max(0,Math.min(d.range,x))/d.range)})),o);
+  a.onfinish=()=>{d.sheet.getAnimations().forEach(x=>x.cancel());a.cancel();klar()}};
+ document.addEventListener('touchstart',e=>{t=null;const o=document.getElementById('overlay');if(bladDrag||e.touches.length!==1||!o||!o.contains(e.target)||e.target.closest('[data-sheet-grip]'))return;const p=e.touches[0];
+  const panel=e.target.closest('.sheet-panel');t={x0:p.clientX,y0:p.clientY,el:e.target,o,panel,dir:panel||e.target.closest('.cook')?'':'lock'}},{passive:true});
+ document.addEventListener('touchmove',e=>{if(!t)return;if(e.touches.length!==1){if(bladDrag)slapp(bladDrag,true);t=null;return}const p=e.touches[0],dx=p.clientX-t.x0,dy=p.clientY-t.y0;
+  if(bladDrag){if(e.cancelable)e.preventDefault();A.touch=A.user=Date.now();u5Fart.add(bladDrag.a,dy);satt(bladDrag,dy);return}
+  if(t.dir==='lock'){if(e.cancelable)e.preventDefault();return}
+  if(!t.dir){if(Math.max(Math.abs(dx),Math.abs(dy))<6)return;
+   if(Math.abs(dx)>Math.abs(dy))t.dir='x';
+   else{const r=kan(t.el,t.o,dy);t.dir=r===2?'x':r===1?'scroll':'lock';
+    if(t.dir==='lock'&&t.panel&&!t.el.closest('input,textarea,select,[contenteditable]')){const s=t.panel.closest('.sheet'),cs=getComputedStyle(s),m=cs.backgroundColor.match(/[\d.]+/g)||[0,0,0,0],al=m.length>3?+m[3]:1;
+     t.panel.getAnimations().forEach(a=>a.cancel());s.getAnimations().forEach(a=>a.cancel());
+     bladDrag={panel:t.panel,sheet:s,a:[],y:0,bg:getComputedStyle(t.panel).backgroundColor,range:Math.max(120,innerHeight-t.panel.getBoundingClientRect().top),dim:k=>'rgba('+m[0]+','+m[1]+','+m[2]+','+(al*Math.max(0,k)).toFixed(3)+')'};t.y0=p.clientY;u5Fart.add(bladDrag.a,0)}}}
+  if(t.dir==='lock'&&e.cancelable)e.preventDefault()},{passive:false});
+ document.addEventListener('touchend',()=>{if(bladDrag)slapp(bladDrag,false);t=null},{passive:true});
+ document.addEventListener('touchcancel',()=>{if(bladDrag)slapp(bladDrag,true);t=null},{passive:true});
+})();
 function motionUnlock(){const d=motionDrag;if(!d)return null;A.touch=A.user=Date.now();motionDrag=null;Object.assign(document.body.style,d.style);document.documentElement.classList.remove('motion-dragging');scrollTo(d.x,d.y);
  try{if(d.h.hasPointerCapture(d.id))d.h.releasePointerCapture(d.id)}catch(_){}if(pendingRender)setTimeout(render,520);return d}
 function motionAbort(){const d=motionUnlock();if(!d)return;if(d.wx)d.wx.finish(d.open);else{d.panel.style.removeProperty('height');d.panel.style.removeProperty('overflow');d.panel.hidden=!d.open;d.panel.inert=!d.open;d.panel.setAttribute('aria-hidden',String(!d.open))}}

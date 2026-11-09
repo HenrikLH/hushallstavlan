@@ -362,6 +362,9 @@ body.wall .clock{display:block}
 .sheet-head>:first-child{justify-self:start}
 .sheet-head>:last-child{justify-self:end}
 .sheet-body{overflow:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(24px + var(--sab));overscroll-behavior:contain}
+/* Öppet blad: sidan bakom står still (även på iPhone, se bladDrag i app.js) */
+html:has(#overlay .sheet),html:has(#overlay .cook){overflow:hidden;overscroll-behavior:none}
+.sheet{overscroll-behavior:contain}
 .field{flex:1;min-width:0;border:0;background:none;outline:none;padding:0;font-size:17px;color:var(--ink);text-align:left}
 .field.r{text-align:right}
 .field::placeholder{color:var(--ink-3)}
