@@ -9,8 +9,8 @@ module.exports=async(pg,h)=>{
  await pg.locator('main .ha-rh',{hasText:'Apparater'}).scrollIntoViewIfNeeded();await h.idle(300);
  await h.shot('apparater-vy');
  await pg.locator('main .ha-ap[data-id="vacuum.roborock"]').click();await h.idle(900);
- await pg.locator('#overlay [data-act="haRobRum"][data-id="17"]').click();await h.idle(400);
- await pg.locator('#overlay [data-act="haRobRum"][data-id="19"]').click();await h.idle(400);
+ await pg.locator('#overlay .ha-rumval [data-id="17"]').click();await h.idle(400);
+ await pg.locator('#overlay polygon[data-id="19"]').click();await h.idle(400);
  assert.match(await pg.locator('#overlay').innerText(),/Pausa/,'Robotkortet visar Pausa när den städar');
  await h.shot('apparater-robot');
  await pg.locator('#overlay [data-act="haRob"][data-id="paus"]').click();await h.idle(500);

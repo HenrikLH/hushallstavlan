@@ -1322,7 +1322,7 @@ const haAppTile=a=>'<div class="ha-t ha-ap'+(haAppAktiv(a)?' on':'')+' ha-ap-'+a
 const HA_KARTA_DEMO=[['Vardagsrum','10,10 170,10 170,120 10,120','#6FA8EE',90,62],['Kök','170,10 290,10 290,90 180,90 170,90','#EFC15C',230,48],['Sovrum','180,90 290,90 290,210 180,210','#7FCB90',236,152],['Hall','90,120 170,120 170,90 180,90 180,210 90,210','#EE95AC',136,168],['Badrum','10,120 90,120 90,210 10,210','#AE97E0',50,166]];
 function haKarta(a){const V=S.haRobRum||[],sel=n=>{const r=(a.rum||[]).find(x=>x.n===n);return r&&V.includes(r.id)};
  if(!haDemo())return'<div class="ha-karta"><img src="'+esc(haUrl()+'/karta?id='+encodeURIComponent(a.id)+'&v='+(HA.v||0))+'" alt="Karta över hemmet"></div>';
- const rum=HA_KARTA_DEMO.map(([n,p,c,x,y])=>'<polygon points="'+p+'" fill="'+c+'" opacity="'+(V.length&&!sel(n)?.35:.92)+'"/><text x="'+x+'" y="'+y+'"'+(V.length&&!sel(n)?' class="av"':'')+'>'+n+'</text>').join('');
+ const rid=n=>((a.rum||[]).find(r=>r.n===n)||{}).id,rum=HA_KARTA_DEMO.map(([n,p,c,x,y])=>'<polygon points="'+p+'" fill="'+c+'" opacity="'+(V.length&&!sel(n)?.35:.92)+'"'+(sel(n)?' class="vald"':'')+' data-act="haRobRum" data-id="'+rid(n)+'" role="button" aria-label="'+n+'" aria-pressed="'+!!sel(n)+'"/><text x="'+x+'" y="'+y+'"'+(V.length&&!sel(n)?' class="av"':'')+'>'+n+'</text>').join('');
  const vag=/cleaning|paused/.test(a.st)?'<path class="ha-k-vag" d="M276 22v60M266 82V22M256 22v60M246 82V22M236 22v60M226 82V22M216 22v60M206 82V22M196 22v40"/>':'';
  const rob=/cleaning|paused/.test(a.st)?[196,62]:[262,20];
  return'<div class="ha-karta"><svg viewBox="0 0 300 220" role="img" aria-label="Karta över lägenheten">'+rum+'<path class="ha-k-vagg" d="M10 10h280v200H10zM170 10v28M170 64v56H10M90 120v90M180 90v120M180 90h110M90 120h18M136 120h34"/>'+vag+
