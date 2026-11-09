@@ -1244,13 +1244,22 @@ const HA_FARG=[['Röd',0,90],['Orange',28,95],['Gul',48,85],['Grön',120,75],['T
 const haFargLage=x=>(x.lagen||[]).some(m=>/^(hs|xy|rgb|rgbw|rgbww)$/.test(m))&&/^(hs|xy|rgb|rgbw|rgbww)$/.test(x.lage||'');
 const haKan=x=>{const L=x.lagen||[];return{dim:L.length&&!(L.length===1&&L[0]==='onoff'),k:L.includes('color_temp'),f:L.some(m=>/^(hs|xy|rgb|rgbw|rgbww)$/.test(m))}};
 const haLamp=()=>{const D=haData();return D&&(D.lampor||[]).find(e=>e.id===S.haId)};
-const haVit=k=>k<3200?'linear-gradient(160deg,#FFB45C,#FFE3BD)':k<5000?'linear-gradient(160deg,#FFF1D6,#FFFBF2)':'linear-gradient(160deg,#CFE2FF,#F2F7FF)';
+const haVarm=x=>{const K=haKan(x),kmin=x.kmin||2200,kmax=x.kmax||6500,f=K.f,kd=K.k?(f?70:100):0,s0=K.k?55:0;
+ return{ok:K.k||K.f,k:K.k,f,kmin,kmax,kd,s0,g:'linear-gradient(90deg,'+(K.k&&f?'#EEF4FF,#FFF3DE 35%,#FFC98A 70%,#FF8A1F':K.k?'#EEF4FF,#FFF3DE 50%,#FFB45C':'#FFFFFF,#FFD7A8 50%,#FF8A1F')+')'}};
+const haVarmPos=(x,W)=>{const c=v=>Math.max(0,Math.min(100,Math.round(v)));
+ if(W.f&&haFargLage(x)&&x.hs&&x.hs[0]>=15&&x.hs[0]<=45)return c(W.kd+Math.max(0,(x.hs[1]-W.s0)/(100-W.s0))*(100-W.kd));
+ if(W.k&&x.k)return c((W.kmax-x.k)/(W.kmax-W.kmin)*W.kd);return c(W.kd/2)};
+const haVarmNamn=(p,W)=>{if(p<=W.kd&&W.k){const r=p/W.kd;return r<.2?'Vitt':r<.5?'Neutral':!W.f&&r>.85?'Stearin':'Mys'}return(p-W.kd)/(100-W.kd)<.8?'Stearin':'Orange'};
+const haVarmCmd=(p,W)=>{if(W.k&&p<=W.kd)return{k:Math.round(W.kmax-(W.kmax-W.kmin)*p/W.kd)};const t=W.kd>=100?1:(p-W.kd)/(100-W.kd);return{hs:[Math.round(34-10*t),Math.round(W.s0+(100-W.s0)*t)]}};
+document.addEventListener('input',e=>{if(!e.target.dataset||!e.target.dataset.haw)return;HA.drag=true;const x=haLamp(),m=document.querySelector('[data-hav="w"]');if(x&&m)m.textContent=haVarmNamn(+e.target.value,haVarm(x))});
+document.addEventListener('change',e=>{if(!e.target.dataset||!e.target.dataset.haw)return;HA.drag=false;const x=haLamp();if(x)haLampSkicka(x,haVarmCmd(+e.target.value,haVarm(x)))});
 function haLampSheet(enter){const x=haLamp();if(!x){S.sheet=null;return''}const K=haKan(x),kmin=x.kmin||2200,kmax=x.kmax||6500,p=x.on?(K.dim?x.b||100:100):0;
- const vs='<div class="ha-vs'+(x.on?' on':'')+(K.dim?'':' tog')+'" '+(K.dim?'data-havs="b" role="slider" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+p+'" aria-label="Ljusstyrka"':'role="switch" aria-checked="'+!!x.on+'" aria-label="Tänd '+esc(x.n)+'"')+' style="--p:'+p+'%'+(x.on&&haFargLage(x)&&x.hs?';--f:hsl('+Math.round(x.hs[0])+' '+Math.max(40,Math.round(x.hs[1]))+'% 64%)':'')+'"><i></i><span class="ha-vs-ik">'+haIk(x)+'</span></div>';
- const kv=[['Varm',Math.max(kmin,2200)],['Neutral',Math.round(Math.min(Math.max(4000,kmin),kmax))],['Kall',Math.min(kmax,6500)]].filter((v,i,a)=>a.findIndex(w=>Math.abs(w[1]-v[1])<300)===i);
- const vit=K.k?kv.map(([n,k])=>{const v=x.on&&!haFargLage(x)&&x.k&&Math.abs(x.k-k)<300;return'<button type="button" class="ha-f'+(v?' vald':'')+'" data-act="haKel" data-id="'+k+'" style="background:'+haVit(k)+'" aria-label="'+n+'" aria-pressed="'+v+'"></button>'}).join(''):'';
- const far=K.f?HA_FARG.map(([n,h,m])=>{const v=x.on&&haFargLage(x)&&x.hs&&Math.abs(x.hs[0]-h)<12;return'<button type="button" class="ha-f'+(v?' vald':'')+'" data-act="haFarg" data-id="'+h+','+m+'" style="background:hsl('+h+' '+m+'% 58%)" aria-label="'+n+'" aria-pressed="'+v+'"></button>'}).join(''):'';
- const body='<div class="ha-ctl"><div class="ha-ctl-v num" data-hav="s">'+haStat(x)+'</div>'+vs+(vit||far?'<div class="ha-farger">'+vit+far+'</div>':'')+
+ const vs='<div class="ha-vs'+(x.on?' on':'')+(K.dim?'':' tog')+'" '+(K.dim?'data-havs="b" role="slider" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+p+'" aria-label="Ljusstyrka"':'role="switch" aria-checked="'+!!x.on+'" aria-label="Tänd '+esc(x.n)+'"')+' style="--p:'+p+'%'+(x.on&&haFargLage(x)&&x.hs?';--f:hsl('+Math.round(x.hs[0])+' '+Math.max(40,Math.round(x.hs[1]))+'% 64%)':x.on&&x.k?';--f:'+(x.k<3000?'#FFC67E':x.k<3800?'#FFDCA0':x.k<5000?'#FFEDCB':'#EEF2F8'):'')+'"><i></i><span class="ha-vs-ik">'+haIk(x)+'</span></div>';
+// värme: ett reglage från vitt till orange. Vitt → varmvitt med färgtemperatur; klarar lampan färg fortsätter sista delen till stearin/orange.
+ const W=haVarm(x),wp=haVarmPos(x,W);
+ const varm=W.ok?'<div class="ha-w"><div class="lj-h"><span>Värme</span><span class="meta" data-hav="w">'+haVarmNamn(wp,W)+'</span></div><input type="range" min="0" max="100" step="1" value="'+wp+'" data-haw="1" aria-label="Värme, från vitt till orange" style="background:'+W.g+'"><div class="ha-wp">'+[['Vitt',0],['Mys',W.f?40:60],['Stearin',W.f?88:100]].map(([n,v])=>'<button type="button" class="pill ha-c'+(x.on&&Math.abs(wp-v)<6?' on':'')+'" data-act="haVarmV" data-id="'+v+'">'+n+'</button>').join('')+'</div></div>':'';
+ const far=K.f?HA_FARG.map(([n,h,m])=>{const v=x.on&&haFargLage(x)&&x.hs&&Math.abs(x.hs[0]-h)<12&&!(W.f&&wp>W.kd);return'<button type="button" class="ha-f'+(v?' vald':'')+'" data-act="haFarg" data-id="'+h+','+m+'" style="background:hsl('+h+' '+m+'% 58%)" aria-label="'+n+'" aria-pressed="'+v+'"></button>'}).join(''):'';
+ const body='<div class="ha-ctl"><div class="ha-ctl-v num" data-hav="s">'+haStat(x)+'</div>'+vs+varm+(far?'<details class="ha-fd"'+(/ vald/.test(far)?' open':'')+'><summary>Färger</summary><div class="ha-farger">'+far+'</div></details>':'')+
   '<div class="foot">'+(K.dim?'Dra upp eller ned för ljusstyrkan, tryck för att tända eller släcka.':'Tryck för att tända eller släcka.')+'</div></div>'+
   group('<button type="button" class="cell link" data-act="haEdit" data-id="'+esc(x.id)+'"><span class="grow">Namn, rum och ta bort</span><span class="chev">'+I.chev+'</span></button>');
  return sheetHtml('haLampa',esc(x.n)+(x.rum?' · '+esc(x.rum):''),'<button type="button" class="tb strong" data-act="sheetClose">Klar</button>',body,enter,'<span class="tb"></span>')}
@@ -5049,7 +5058,7 @@ const ACT={
  haAddOpen(){HA.alla=null;S.sheet='haAdd';render();haAllaHamta()},
  haAdd(id){const a=HA.alla&&HA.alla.alla&&HA.alla.alla.find(x=>x.id===id),D=haData();if(!a||!D)return;a.vald=true;const k=a.t==='scene'||a.t==='script'?'scener':a.t==='sensor'?'givare':'lampor';
   haValj({lagg:id},()=>{if(haDemo()&&!D[k].some(e=>e.id===id))D[k].push(k==='givare'?{id,n:a.n,hn:a.n,v:'6.1',u:'°C'}:k==='scener'?{id,n:a.n,hn:a.n}:{id,n:a.n,hn:a.n,t:a.t,on:false,lagen:a.t==='light'?['brightness']:[]})});toast(a.n+' finns nu på tavlan')},
- haKel(v){haLampSkicka(haLamp(),{k:+v})},
+ haVarmV(v){const x=haLamp();if(x)haLampSkicka(x,haVarmCmd(+v,haVarm(x)))},
  haFarg(v){const D=haData(),x=D&&D.lampor.find(l=>l.id===S.haId),[h,m]=String(v).split(',').map(Number);haLampSkicka(x,{hs:[h,m]})},
  haScen(id){const D=haData();if(!D)return;HA.last=id;
   if(id==='av'){const was=D.lampor.map(x=>x.on);D.lampor.forEach(x=>{if(!x.nas)x.on=false});render();return haSend({alla:'av'},()=>D.lampor.forEach((x,i)=>x.on=was[i]))}
