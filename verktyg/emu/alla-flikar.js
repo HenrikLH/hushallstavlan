@@ -4,7 +4,9 @@
 module.exports=async(pg,h)=>{
  const fel=m=>{console.log('PAGEERROR '+m);process.exitCode=1};
  const klick=async(sel,namn)=>{const el=await pg.$(sel);if(!el)return fel('knappen saknas: '+sel+' ('+namn+')');
-  try{await el.scrollIntoViewIfNeeded({timeout:1000});await el.click({timeout:2000})}catch(e){return fel('gick inte att klicka: '+sel+' ('+namn+'): '+e.message)}
+  // ritades sidan om mellan sökning och klick (knappen byttes ut) letar vi upp den igen en gång
+  const tryck=async e=>{await e.scrollIntoViewIfNeeded({timeout:1000});await e.click({timeout:2000})};
+  try{await tryck(el)}catch(e){const ny=/not attached/.test(e.message)&&await pg.$(sel);try{if(!ny)throw e;await h.idle(300);await tryck(ny)}catch(e2){return fel('gick inte att klicka: '+sel+' ('+namn+'): '+e2.message)}}
   await h.idle(700);
   const b=await pg.evaluate(()=>{const x=[...document.querySelectorAll('.banner')].find(y=>/Något gick fel/.test(y.textContent));return x?x.textContent:''});
   if(b)fel('(banner) '+namn+': '+b);await h.shot(namn)};

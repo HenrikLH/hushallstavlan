@@ -3248,7 +3248,7 @@ if(k==='vara'){const n=S.varaK||'',ing=S.varaTyp==='ing',R=regGet(),F=parseJ(set
    (e?'<div style="height:22px"></div>'+group('<button type="button" class="cell link center red hold" data-hold="fodDelHold" data-id="'+esc(e.key)+'"><i class="sh-fill"></i><span>Ta bort födelsedagen</span></button>')+'<div class="foot">Håll in för att ta bort.</div>':'');
   o.innerHTML=sheetHtml('fodAdd',e?'Ändra födelsedag':'Ny födelsedag','<button class="tb strong">'+(e?'Spara':'Lägg till')+'</button>',body,enter);restoreColorStrips(o);return}
  // Presentbudget: stort belopp, Jämnt/Efter månad, staplar för tolv månader, belopp per present och kommande presenter
- if(k==='haLampa'){o.innerHTML=haLampSheet(enter);const v=o.querySelector('.ha-vs[data-mal]');if(v)requestAnimationFrame(()=>requestAnimationFrame(()=>v.style.setProperty('--p',v.dataset.mal+'%')));if(enter)haZoom(true);return}
+ if(k==='haLampa'){o.innerHTML=haLampSheet(enter);const sh0=o.querySelector('.sheet');if(sh0)sh0.classList.add('ha-hel');const v=o.querySelector('.ha-vs[data-mal]');if(v)requestAnimationFrame(()=>requestAnimationFrame(()=>v.style.setProperty('--p',v.dataset.mal+'%')));if(enter)haZoom(true);return}
  if(k==='haEdit'){o.innerHTML=haEditSheet(enter);return}
  if(k==='haAdd'){o.innerHTML=haAddSheet(enter);return}
  if(k==='presBud'){const P=presBud(),Y=presAr(),ty=+thisMonth().slice(0,4),SN=presSnitt(ty,P.ar),YK=presAr(ty+'-01'),nu=new Date().getMonth(),mx=Math.max(1,SN.jamn,...YK.M.map(x=>x.kr)),val=P.satt==='manad'?Y.M[0].kr:SN.jamn,
