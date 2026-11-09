@@ -2,6 +2,16 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Utvecklingsgren – Familj och släktträd (ej publicerad, 2026-11-09)
+
+- Gren: `feature/familj-slakttrad-ui5`. Ändringarna ligger **inte** på main. Godkännande inväntas före publicering.
+- Ny sida `V.familj` nås via Inställningar → Personer samt tillbaka från Födelsedagar. Familj använder **tryckbara navigeringsrader**, inte ett eget svepbart segmentreglage. Födelsedagarnas tre visningslägen och befintliga `SUBS.fod`-svep behålls.
+- Ny sida `V.slakt`: person i fokus, riktiga föräldra-/barnlinjer, syskon och val av person. Den visar inga påhittade släktskapskopplingar.
+- Relationer `par:{barnKey:[förälderKey1,förälderKey2]}` i befintliga `onskelista`-objektet `{fod:1}`; formuläret `slaktRel` ändrar relationer och stoppar cykler, samma person två gånger samt självreferenser. Kod.gs behöver ingen ny inställningsnyckel.
+- Vid ändring av födelsedagsnyckel flyttas relationskopplingar; vid borttagning rensas relationerna.
+- Verifierat: JavaScript-syntax och vyernas HTML-generering med testdata. **Kvar:** kör emulatorns UI5-skärmbilder och gester för iPhone/vägg, samt provspara mot testdata innan merge. Inget verkligt användardata har ändrats.
+- Tidigare fristående designprototyper ligger kvar lokalt och har inte ersatts av denna implementation.
+
 ## Börja här
 
 - Aktuell release: **ht-v302**: väggtavlans rutnät (bara UI 5.0): rutorna är så höga som innehållet, sista rutan i varje spalt fyller till botten; räcker inte spalten döljer `fitBoard5` hela rader (passerade händelser först, sedan högsta rutan, middagen sist) med "+N till" (MutationObserver på spalterna + omtag efter 0,7 s). Innehållet centreras i höga rutor, Inköps siffra växer (`--z`). Gruset i Geometrisk klipps inte längre nertill. Ångra-gren `version-fore-rutnat`. Gröna: alla-flikar telefon+vägg (även UI2, haDemo), flytta-rutor. Följ upp: ser det bra ut på riktiga väggen med riktiga data?
