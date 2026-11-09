@@ -2,6 +2,14 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Pågående förhandsvisning: Familj och släktträd (endast utvecklarläge)
+
+- Arbetsgren `feature/familj-utvecklarlage`, separat från PR #84. **Testversion**, ännu inte fullständig funktion.
+- Inställningar → Avancerat → Utvecklarläge → Förhandsvisning → Testa Familj och släktträd öppnar ny Familj-sida och ett släktträd med tio påhittade personer.
+- Visningarna **I fokus** och **Hela trädet** kan växlas med tryck, och det utfällda trädet panoreras i sidled. Födelsedagarnas befintliga Årshjul/Månader/Tidslinje-svep påverkas inte.
+- Skydd: sidorna går inte att öppna när utvecklarläge är av. Förhandsvisningen kan inte skriva släktrelationer eller andra familjeuppgifter, och visar bara exempelpersoner. Dataimplementeringen i PR #84 hålls separat.
+- Test `verktyg/emu/familj-dev.js`, körs i UI 5.0 telefon/ljust i CI. Vänta på granskning innan riktig funktion införs.
+
 ## Börja här
 
 - Aktuell release: **ht-v302**: väggtavlans rutnät (bara UI 5.0): rutorna är så höga som innehållet, sista rutan i varje spalt fyller till botten; räcker inte spalten döljer `fitBoard5` hela rader (passerade händelser först, sedan högsta rutan, middagen sist) med "+N till" (MutationObserver på spalterna + omtag efter 0,7 s). Innehållet centreras i höga rutor, Inköps siffra växer (`--z`). Gruset i Geometrisk klipps inte längre nertill. Ångra-gren `version-fore-rutnat`. Gröna: alla-flikar telefon+vägg (även UI2, haDemo), flytta-rutor. Följ upp: ser det bra ut på riktiga väggen med riktiga data?
