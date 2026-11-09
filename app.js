@@ -828,6 +828,12 @@ function watchTitle(){
  if(!lt||!('IntersectionObserver' in window)){show(false);return}
  io=new IntersectionObserver(es=>{const e=es[es.length-1];show(!e.isIntersecting&&e.boundingClientRect.top<bar.offsetHeight)},{rootMargin:'-'+(bar.offsetHeight||44)+'px 0px 0px 0px',threshold:0});
  io.observe(lt)}
+// Väderbilden (himmel, sol/månbana, landskap med hundar) behålls när den ritas likadant igen, till exempel när arket hämtas var 30:e sekund.
+// Annars byggs bilderna om, bildrutorna avkodas på nytt och animationerna börjar om, så att man ser hela bilden ritas om. Löpnumren i id jämförs inte.
+// Delarna med bilder behålls var för sig (sol/månbanan flyttas hela tiden och ritas om). gpuLager lägger sina lager direkt efter svg:n; de flyttas med.
+const KEEP_FX='svg.bd,.fig-box,.skyfx,.sb-cl',keepNorm=h=>h.replace(/((?:id="|url\(#|href="#)[A-Za-z_-]*)\d+/g,'$1#');
+function keepFxFore(m){return[...m.querySelectorAll(KEEP_FX)].filter(e=>e.__src).map(e=>{const n=e.nextElementSibling;e.__gl=n&&n.classList.contains('gl')?n:null;return e})}
+function keepFxEfter(m,old){if(!old.length&&!m.querySelector(KEEP_FX))return;m.querySelectorAll(KEEP_FX).forEach(e=>{if(!m.contains(e))return;const s=keepNorm(e.outerHTML),i=old.findIndex(o=>o.__src===s);if(i>=0){const o=old[i];e.replaceWith(o);if(o.__gl)o.after(o.__gl);old.splice(i,1)}else e.__src=s})}
 function doRender(){if(motionDrag||sheetDrag){pendingRender=true;return}applyPersonColors();applyAccent();
  if(!S.key||!S.data)document.getElementById('create-dock')?.remove();
  document.body.classList.toggle('wall',S.wall);document.body.classList.toggle('is-night',S.view==='oversikt'&&nightOn());document.body.dataset.view=S.view;
@@ -846,7 +852,7 @@ function doRender(){if(motionDrag||sheetDrag){pendingRender=true;return}applyPer
  A.before(m);
  // Om en vy kraschar visas ett fel i stället, så att resten av appen (svep, menyn) fortsätter att fungera
  let page;try{page=(V[S.view]||V.oversikt)()}catch(e){console.error(e);page='<div class="banner">Något gick fel när sidan skulle visas: '+esc(e.message)+'</div>'}
- m.innerHTML=banner+page;addLayout(m);if(U5)u5More(m);
+ const kv=keepFxFore(m);m.innerHTML=banner+page;keepFxEfter(m,kv);addLayout(m);if(U5)u5More(m);
  {const w=m.querySelector('.wk-sw');if(w&&S.wkX){w.scrollLeft=S.wkX;wkMonth(w)}}
  {const w=m.querySelector('.wxC-sc');if(w)w.scrollLeft=S.wxX!=null?S.wxX:WXC_NP*WXC_SW}
  placeSky();skyFit();fitBoard();gpuLager();loopSync();
@@ -4133,7 +4139,7 @@ function glVars(nm){const C=glVars.c||(glVars.c={});if(C[nm])return C[nm];let v=
 // bara på gemensam skärm (väggläge eller datorn med ljustjänsten) tills det är prövat i iPhone; ht.gpu=1 slår på det även här, ht.gpu=0 stänger av
 function gpuLager(){const g=lsGet('gpu');if(g==='0'||g!=='1'&&!(S.wall||CAM.src==='als')||!window.CSS||!CSS.supports('anchor-name:--a')||!CSS.supports('width:anchor-size(width)'))return;try{
  const M=new Map();document.getAnimations().forEach(a=>{const t=a.effect&&a.effect.target;if(!(t instanceof SVGElement)||!a.animationName||a.effect.getTiming().iterations!==Infinity)return;(M.get(t)||M.set(t,[]).get(t)).push(a)});
- const R=new Set();M.forEach((_,t)=>{let r=t;while(r.parentNode instanceof SVGElement)r=r.parentNode;if(!r.closest('clipPath,mask,defs,pattern,symbol'))R.add(r)});
+ const R=new Set();M.forEach((_,t)=>{let r=t;while(r.parentNode instanceof SVGElement)r=r.parentNode;if(!r.closest('clipPath,mask,defs,pattern,symbol,.gl')&&!r.classList.contains('gl-o'))R.add(r)});
  R.forEach(r=>{try{gpuLager1(r,M)}catch(e){console.error(e)}})}catch(e){console.error(e)}}
 function gpuLager1(svg,M){const NS='http://www.w3.org/2000/svg',n=++FIG_N,cs=getComputedStyle(svg),W=parseFloat(cs.width),H=parseFloat(cs.height);if(!W||!H)return;
  // innehåller elementet något som rör sig?
