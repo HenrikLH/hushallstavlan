@@ -2230,7 +2230,7 @@ function portView(){if(U5)return portViewU5();const C=portCalc(),{P,B}=C,mon=par
 // Förslagen som stora kort i en karusell som loopar. Varje kort: bild (eller ikon), namn, pris, portioner och kort om rätten
 let FL_STYLE=lsGet('forslag')==='lista'?'lista':'karusell';
 // Utvecklarläge: visar menyer som inte är färdiga. Gäller bara den här enheten
-let DEV=lsGet('dev')==='1';if(!DEV&&['familj','slakt'].includes(S.view)){S.view='oversikt';lsSet('view','oversikt')}
+let DEV=lsGet('dev')==='1';if(DEV&&['familj','slakt'].includes(S.view))S.slaktDemo=true;if(!DEV&&['familj','slakt'].includes(S.view)){S.view='oversikt';lsSet('view','oversikt')}
 // UI 5.0 (Apple) är standard. UI 2.0 (sparas som '2') och UI 4.0 (Ateljé) väljs per enhet och UI 3.0 provas i utvecklarläget
 const UI_VER='2.0';
 // Appens version, samma nummer som ?v= på app.js
@@ -3291,10 +3291,6 @@ if(k==='vara'){const n=S.varaK||'',ing=S.varaTyp==='ing',R=regGet(),F=parseJ(set
   o.innerHTML=sheetHtml('shop','Ny vara','<button class="tb strong">Lägg till</button>',body,enter);return}
  if(k==='cleanAdd'){
   o.innerHTML=sheetHtml('cleanQuick','Ny syssla','<button class="tb strong">Lägg till</button>',group('<div class="cell"><input class="field" id="clean-title" name="title" placeholder="Vad behöver göras?" aria-label="Syssla" required autocomplete="off" enterkeyhint="done"></div>')+'<div class="foot">Rummet väljs utifrån namnet. Du kan ändra sysslan efteråt.</div>',enter);return}
- if(k==='slaktRel'){if(!DEV){S.sheet=null;return}const L=bdays(),key=S.slaktEdit,cur=L.find(b=>b.key===key);if(!cur){S.sheet=null;return}
-  const p=slaktParents(key),sel=(nm,val)=>menuSel('name="'+nm+'" aria-label="'+(nm==='p1'?'Förälder 1':'Förälder 2')+'"','<option value="">Ingen</option>'+L.filter(b=>b.key!==key).sort((a,b)=>a.name.localeCompare(b.name,'sv')).map(b=>'<option value="'+esc(b.key)+'"'+(b.key===val?' selected':'')+'>'+esc(b.name)+'</option>').join(''));
-  const body=sh('Föräldrar till '+esc(cur.name))+group(fieldCell('Förälder 1',sel('p1',p[0]))+fieldCell('Förälder 2',sel('p2',p[1])))+'<div class="foot">Välj föräldrar från födelsedagsregistret. Det går också att lämna ett eller båda fälten tomma. Förbindelserna visas först när du sparat.</div>';
-  o.innerHTML=sheetHtml('slaktRel','Släktrelationer','<button class="tb strong">Spara</button>',body,enter);return}
  if(k==='fodAdd'){const t=parse(today()),ty=t.getFullYear(),e=S.fodEdit&&bdays().find(b=>b.key===S.fodEdit),dd=e?e.dd:t.getDate(),mo=e?e.mo:t.getMonth(),col=e?e.own:'';
   let yrs='<option value="">Vet inte</option>';for(let y=ty;y>=ty-110;y--)yrs+='<option'+(e&&e.yr===y?' selected':'')+'>'+y+'</option>';
   const dot=(v,c,cd,lab,x)=>'<label title="'+esc(lab)+'"><input type="radio" name="col" value="'+v+'"'+(v===col?' checked':'')+' aria-label="'+esc(lab)+'"><span style="--c:'+c+';--cd:'+cd+(x||'')+'"></span></label>';
@@ -4749,9 +4745,9 @@ const MON3=['jan','feb','mar','apr','maj','jun','jul','aug','sep','okt','nov','d
 function bdKey(x){const m=/^(\d{1,2})-(\d{1,2})$/.exec(String(x&&x.datum||''));return m&&x.namn?String(x.namn).trim()+'|'+pad(m[1])+'-'+pad(m[2]):''}
 /* Familjer i samma objekt: fam:[{id,n,c}] (namn, färg), fm:{'namn|MM-DD':familjens id}, pr:{'namn|MM-DD':1|0} = present alltid/aldrig (saknas = automatiskt) */
 const fodOb=v=>v&&typeof v==='object'&&!Array.isArray(v)?v:{};
-function fodEgna(){const o=parseJ(settings().onskelista,[]).find(x=>x&&x.fod)||{};return{add:Array.isArray(o.add)?o.add:[],del:Array.isArray(o.del)?o.del:[],col:fodOb(o.col),fam:Array.isArray(o.fam)?o.fam.filter(f=>f&&f.id):[],fm:fodOb(o.fm),pr:fodOb(o.pr),pb:fodOb(o.pb),par:fodOb(o.par)}}
-function setFodEgna(fn){A.user=Date.now();updJSON('onskelista',[],a=>{const o=a.find(x=>x&&x.fod)||{},e={add:(o.add||[]).slice(),del:(o.del||[]).slice(),col:Object.assign({},o.col),fam:(Array.isArray(o.fam)?o.fam:[]).map(f=>Object.assign({},f)),fm:Object.assign({},fodOb(o.fm)),pr:Object.assign({},fodOb(o.pr)),pb:Object.assign({},fodOb(o.pb)),par:Object.assign({},fodOb(o.par))},n=Object.assign(e,fn(e)),k=x=>Object.keys(x).length;
- return a.filter(x=>!(x&&x.fod)).concat(n.add.length||n.del.length||k(n.col)||n.fam.length||k(n.fm)||k(n.pr)||k(n.pb)||k(n.par)?[{fod:1,add:n.add,del:n.del,col:n.col,fam:n.fam,fm:n.fm,pr:n.pr,pb:n.pb,par:n.par}]:[])})}
+function fodEgna(){const o=parseJ(settings().onskelista,[]).find(x=>x&&x.fod)||{};return{add:Array.isArray(o.add)?o.add:[],del:Array.isArray(o.del)?o.del:[],col:fodOb(o.col),fam:Array.isArray(o.fam)?o.fam.filter(f=>f&&f.id):[],fm:fodOb(o.fm),pr:fodOb(o.pr),pb:fodOb(o.pb)}}
+function setFodEgna(fn){A.user=Date.now();updJSON('onskelista',[],a=>{const o=a.find(x=>x&&x.fod)||{},e={add:(o.add||[]).slice(),del:(o.del||[]).slice(),col:Object.assign({},o.col),fam:(Array.isArray(o.fam)?o.fam:[]).map(f=>Object.assign({},f)),fm:Object.assign({},fodOb(o.fm)),pr:Object.assign({},fodOb(o.pr)),pb:Object.assign({},fodOb(o.pb))},n=Object.assign(e,fn(e)),k=x=>Object.keys(x).length;
+ return a.filter(x=>!(x&&x.fod)).concat(n.add.length||n.del.length||k(n.col)||n.fam.length||k(n.fm)||k(n.pr)||k(n.pb)?[{fod:1,add:n.add,del:n.del,col:n.col,fam:n.fam,fm:n.fm,pr:n.pr,pb:n.pb}]:[])})}
 // Present: jämna år (0 och 5) och alla barn till och med 18, om födelseåret är känt. Går att ändra per person (alltid/aldrig)
 const bdGiftAuto=age=>age!=null&&(age%5===0||age<=18);
 const fodFam=()=>fodEgna().fam;
@@ -4787,7 +4783,7 @@ const bdFill=b=>b.col&&colOk(b.col)?' style="fill:'+PCOL[b.col][isDark()?3:1]+'"
 // Ta bort med svep: raden försvinner direkt och sparas när Ångra har försvunnit, som i Inköp
 const FDEL={k:null,t:0};
 function fdelCommit(){if(!FDEL.k)return;clearTimeout(FDEL.t);const k=FDEL.k,syncad=parseJ(settings().fodelsedagar,[]).some(x=>bdKey(x)===k);FDEL.k=null;undoHide();
- setFodEgna(e=>{delete e.col[k];delete e.fm[k];delete e.pr[k];delete e.par[k];Object.keys(e.par).forEach(j=>{e.par[j]=(Array.isArray(e.par[j])?e.par[j]:[]).filter(p=>p!==k);if(!e.par[j].length)delete e.par[j]});return{add:e.add.filter(x=>bdKey(x)!==k),del:syncad&&!e.del.includes(k)?e.del.concat([k]):e.del,col:e.col}})}
+ setFodEgna(e=>{delete e.col[k];delete e.fm[k];delete e.pr[k];return{add:e.add.filter(x=>bdKey(x)!==k),del:syncad&&!e.del.includes(k)?e.del.concat([k]):e.del,col:e.col}})}
 function fdelStart(b){delCommit();cdelCommit();fdelCommit();FDEL.k=b.key;render();
  const u=document.getElementById('undo');u.querySelector('.ud-t').textContent=b.name+' togs bort';u.querySelector('.ud-b').dataset.act='fodUndo';u.hidden=false;FDEL.t=setTimeout(fdelCommit,5000)}
 function bdays(){const t=today(),ty=Number(t.slice(0,4)),seen=new Set(),E=fodEgna(),bort=new Set(E.del.concat(FDEL.k?[FDEL.k]:[])),FM=new Map(E.fam.map(f=>[f.id,f]));
@@ -4859,8 +4855,8 @@ function fodChips(L){const f=S.fodFilt||'alla',F=fodFam(),dot=c=>'<i class="ff-d
 const SL_DEMO=[['Britt','03-02',0],['Karl','10-21',0],['Anna','05-12',1],['Erik','06-05',1],['Maja','08-18',2],['Lukas','09-09',2],['Sofia','02-11',2],['Ella','08-29',3],['Leo','11-03',3],['Olle','12-04',3]];
 const SL_PARENTS={'Anna|05-12':['Britt|03-02','Karl|10-21'],'Maja|08-18':['Anna|05-12','Erik|06-05'],'Lukas|09-09':['Anna|05-12','Erik|06-05'],'Sofia|02-11':['Anna|05-12','Erik|06-05'],'Ella|08-29':['Maja|08-18'],'Leo|11-03':['Maja|08-18'],'Olle|12-04':['Sofia|02-11']};
 function slaktData(){return SL_DEMO.map(([name,date,gen])=>{const[m,d]=date.split('-').map(Number);return{name,key:name+'|'+date,mo:m-1,dd:d,days:gen*10,fam:{id:'demo',n:'Familjen Lind'},col:'',age:null}})}
-const slaktPersons=()=>S.slaktDemo?slaktData():bdays();
-const slaktParents=k=>{const x=S.slaktDemo?SL_PARENTS[k]:fodEgna().par[k];return Array.isArray(x)?x.slice(0,2).filter(p=>typeof p==='string'):[]};
+const slaktPersons=()=>slaktData();
+const slaktParents=k=>{const x=SL_PARENTS[k];return Array.isArray(x)?x.slice(0,2).filter(p=>typeof p==='string'):[]};
 function slaktGroups(){const B=slaktPersons(),F=S.slaktDemo?[{id:'demo',n:'Familjen Lind'}]:fodFam();return F.length?F.map(f=>({id:f.id,n:f.n,L:B.filter(b=>b.fam&&b.fam.id===f.id)})).concat(B.some(b=>!b.fam)?[{id:'utan',n:'Utan familj',L:B.filter(b=>!b.fam)}]:[]):[{id:'alla',n:'Alla personer',L:B}]}
 V.familj=function(){if(!DEV)return V.oversikt();const B=slaktPersons(),N=bdNext(B).slice(0,3),F=slaktGroups();
  let h='<div class="rcp-top"><button class="back" data-act="nav" data-id="oversikt">'+I.back+'Översikt</button></div>';
@@ -4874,9 +4870,14 @@ V.familj=function(){if(!DEV)return V.oversikt();const B=slaktPersons(),N=bdNext(
 
 /* Fullständig trädkarta: alla registrerade personer visas, även utan relationer.
    Generationer följer sparade föräldralänkar. Separata familjer ligger kvar som öar. */
-function slaktFullSvg(B){const par=S.slaktDemo?SL_PARENTS:fodEgna().par,by=new Map(B.map(b=>[b.key,b])),ids=new Set(by.keys()),P=k=>(Array.isArray(par[k])?par[k]:[]).filter(x=>ids.has(x)&&x!==k),dep=new Map(),busy=new Set();
+function slaktFullSvg(B){const par=SL_PARENTS,by=new Map(B.map(b=>[b.key,b])),ids=new Set(by.keys()),P=k=>(Array.isArray(par[k])?par[k]:[]).filter(x=>ids.has(x)&&x!==k),dep=new Map(),busy=new Set();
  const depth=k=>{if(dep.has(k))return dep.get(k);if(busy.has(k))return 0;busy.add(k);const p=P(k),d=p.length?1+Math.max(...p.map(depth)):0;busy.delete(k);dep.set(k,Math.min(20,d));return dep.get(k)};
  B.forEach(b=>depth(b.key));
+ // Samordna partners på samma generation och barn direkt under båda föräldrarna.
+ for(let i=0;i<B.length*2;i++){let changed=false;
+  B.forEach(c=>{const p=P(c.key);if(p.length===2){const d=Math.max(...p.map(k=>dep.get(k)));p.forEach(k=>{if(dep.get(k)<d){dep.set(k,d);changed=true}})}});
+  B.forEach(c=>{const p=P(c.key);if(p.length){const d=Math.min(20,1+Math.max(...p.map(k=>dep.get(k))));if(dep.get(c.key)<d){dep.set(c.key,d);changed=true}}});
+  if(!changed)break}
  // Para ihop partners på samma nivå när de har gemensamma barn; ordna barn efter föräldrarnas mittpunkt.
  let groups=new Map();B.forEach(b=>{const d=dep.get(b.key);if(!groups.has(d))groups.set(d,[]);groups.get(d).push(b)});
  const levels=[...groups.keys()].sort((a,b)=>a-b),pos=new Map(),spacing=112,margin=88;
@@ -5727,11 +5728,6 @@ document.addEventListener('submit',async e=>{const f=e.target.closest('[data-for
   D().clean.push({id,room,title:t,freq:7,min:10,lastDone:'',prevDone:'',doneBy:'',who:'',tip:'',plannedFor:'',snoozeUntil:'',order:null});const modal=S.sheet==='cleanAdd';if(modal)closeSheets();S.open.all=true;render();
   if(!modal)setTimeout(()=>{const x=document.querySelector('form[data-form="cleanQuick"][data-room="'+f.dataset.room+'"] .field');if(x)x.focus()},30);
   apiPost({action:'cleanAdd',id,room,title:t,freq:7,min:10});toast('Tillagd i '+room);return}
- if(f.dataset.form==='slaktRel'){if(!DEV)return;const k=S.slaktEdit,L=bdays(),keys=new Set(L.map(b=>b.key)),p=[String(d.p1||''),String(d.p2||'')].filter(x=>x&&x!==k&&keys.has(x));
-  if(new Set(p).size!==p.length){toast('Välj två olika föräldrar');return}
-  const par=fodEgna().par,ancestor=(from,target,seen=new Set())=>{if(from===target)return true;if(seen.has(from))return false;seen.add(from);return(Array.isArray(par[from])?par[from]:[]).some(x=>ancestor(x,target,seen))};
-  if(p.some(x=>ancestor(x,k))){toast('En person kan inte vara sin egen förfader');return}
-  setFodEgna(e=>{if(p.length)e.par[k]=p;else delete e.par[k];return e});closeSheets();render();toast('Relationerna sparades');return}
  if(f.dataset.form==='fodAdd'){const namn=String(d.namn||'').trim(),dg=Number(d.dag),mn=Number(d.man),ar=Number(d.ar)||null,md=new Date(2000,mn,0).getDate();if(!namn)return;
   if(dg>md){toast(cap(MON[mn-1])+' har bara '+md+' dagar');return}
   const x={namn,datum:pad(mn)+'-'+pad(dg)},k=bdKey(x),col=colOk(d.col)?d.col:'',ok=S.fodEdit,old=ok&&bdays().find(b=>b.key===ok);if(ar)x.ar=ar;
@@ -5740,7 +5736,6 @@ document.addEventListener('submit',async e=>{const f=e.target.closest('[data-for
   const same=old&&k===ok&&(old.yr||null)===ar,syncad=parseJ(settings().fodelsedagar,[]).some(y=>bdKey(y)===ok);
   closeSheets();S.fodMon=mn-1;setFodEgna(e=>{if(ok)delete e.col[ok];if(col)e.col[k]=col;
    if(ok){delete e.fm[ok];delete e.pr[ok]}if(d.fam&&e.fam.some(f=>f.id===d.fam))e.fm[k]=d.fam;if(d.pr==='1'||d.pr==='0')e.pr[k]=Number(d.pr);
-   if(ok&&ok!==k){if(e.par[ok]){e.par[k]=e.par[ok];delete e.par[ok]}Object.keys(e.par).forEach(j=>{e.par[j]=(Array.isArray(e.par[j])?e.par[j]:[]).map(p=>p===ok?k:p)})}
    if(same)return e;
    const add=e.add.filter(y=>bdKey(y)!==k&&bdKey(y)!==ok).concat([x]),del=e.del.filter(y=>y!==k).concat(ok&&ok!==k&&syncad&&!e.del.includes(ok)?[ok]:[]);return{add,del,col:e.col}});
   toast(old?'Sparat':namn+' är tillagd');return}
