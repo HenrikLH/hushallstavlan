@@ -831,28 +831,37 @@ function watchTitle(){
 // Väderbilden (himmel, sol/månbana, landskap med hundar) behålls när den ritas likadant igen, till exempel när arket hämtas var 30:e sekund.
 // Annars byggs bilderna om, bildrutorna avkodas på nytt och animationerna börjar om, så att man ser hela bilden ritas om. Löpnumren i id jämförs inte.
 // Delarna med bilder behålls var för sig (sol/månbanan flyttas hela tiden och ritas om). gpuLager lägger sina lager direkt efter svg:n; de flyttas med.
-const KEEP_FX='svg.bd,.fig-box,.skyfx,.sb-cl',keepNorm=h=>h.replace(/((?:id="|url\(#|href="#)[A-Za-z_-]*)\d+/g,'$1#');
+const KEEP_FX='svg.bd,.fig-box,.skyfx,.sb-cl',keepNorm=h=>h.replace(/((?:\sid="|url\(#|href="#)[A-Za-z_-]*)\d+/g,'$1#');/* bara id=, inte data-id= */
 function keepFxFore(m){return[...m.querySelectorAll(KEEP_FX)].filter(e=>e.__src).map(e=>{const n=e.nextElementSibling;e.__gl=n&&n.classList.contains('gl')?n:null;return e})}
-function keepFxEfter(m,old){if(!old.length&&!m.querySelector(KEEP_FX))return;m.querySelectorAll(KEEP_FX).forEach(e=>{if(!m.contains(e))return;const s=keepNorm(e.outerHTML),i=old.findIndex(o=>o.__src===s);if(i>=0){const o=old[i];e.replaceWith(o);if(o.__gl)o.after(o.__gl);old.splice(i,1)}else e.__src=s})}
+function keepFxEfter(m,old){if(!old.length&&!m.querySelector(KEEP_FX))return;m.querySelectorAll(KEEP_FX).forEach(e=>{if(!m.contains(e))return;const j=old.indexOf(e);if(j>=0){old.splice(j,1);return}const s=keepNorm(e.outerHTML),i=old.findIndex(o=>o.__src===s);if(i>=0){const o=old[i];e.replaceWith(o);if(o.__gl)o.after(o.__gl);old.splice(i,1)}else e.__src=s})}
+// Översiktens rutor behålls på samma sätt var för sig när ett blad öppnas eller stängs (sidan i övrigt har bara en del, väderkortet ändras med solens läge)
+const KEEP_BL='.ov>*,.bcol>*';
+function keepBlockFore(m){return[...m.querySelectorAll(KEEP_BL)].filter(e=>e.__src)}
+function keepBlockEfter(m,old){m.querySelectorAll(KEEP_BL).forEach(e=>{const s=keepNorm(e.outerHTML),i=old.findIndex(o=>o.__src===s);if(i>=0){e.replaceWith(old[i]);old.splice(i,1)}else e.__src=s})}
 function doRender(){if(motionDrag||sheetDrag||bladDrag){pendingRender=true;return}applyPersonColors();applyAccent();
  if(!S.key||!S.data)document.getElementById('create-dock')?.remove();
  document.body.classList.toggle('wall',S.wall);document.body.classList.toggle('is-night',S.view==='oversikt'&&nightOn());document.body.dataset.view=S.view;
  document.body.classList.toggle('cook-open',!!S.cook);
  const nav=document.getElementById('nav'),m=document.getElementById('main');
  NB={title:'',back:false};
- if(!CFG.api||/DIN-/.test(CFG.api)){nav.hidden=true;m.innerHTML='<div class="setup"><h1 class="lt">Hemma</h1><div class="banner">Appen är inte kopplad till kalkylarket än. Lägg in adressen till Apps Script-webbappen i filen <b>config.js</b>.</div></div>';watchTitle();return}
- if(!S.key){nav.hidden=true;overlayKeepScroll();if(busyTyping())return;m.innerHTML=setupHtml();watchTitle();return}
+ if(!CFG.api||/DIN-/.test(CFG.api)){nav.hidden=true;m.__src='';m.innerHTML='<div class="setup"><h1 class="lt">Hemma</h1><div class="banner">Appen är inte kopplad till kalkylarket än. Lägg in adressen till Apps Script-webbappen i filen <b>config.js</b>.</div></div>';watchTitle();return}
+ if(!S.key){nav.hidden=true;overlayKeepScroll();if(busyTyping())return;m.__src='';m.innerHTML=setupHtml();watchTitle();return}
  nav.hidden=false;
  renderNav(nav);
+ const ov=document.getElementById('overlay'),ovK0=ov.dataset.k||'';
  overlayKeepScroll();
+ // Medan ett blad är öppet, öppnas eller stängs rör man inte sidan under: samma HTML som sist behåller elementen som de är (scroll, bilder, animationer)
+ const lugn=!!(ovK0||ov.dataset.k);
  if(busyTyping()){pendingRender=true;return}
  pendingRender=false;
- if(!S.data){m.innerHTML='<div class="setup"><h1 class="lt">Hemma</h1><p>Hämtar hushållets data…</p>'+(S.sync==='err'?'<div class="banner">'+esc(S.error)+'</div><div class="block"><button class="btn-tint" style="width:100%" data-act="refresh">Försök igen</button></div>':'')+'</div>';watchTitle();return}
+ if(!S.data){m.__src='';m.innerHTML='<div class="setup"><h1 class="lt">Hemma</h1><p>Hämtar hushållets data…</p>'+(S.sync==='err'?'<div class="banner">'+esc(S.error)+'</div><div class="block"><button class="btn-tint" style="width:100%" data-act="refresh">Försök igen</button></div>':'')+'</div>';watchTitle();return}
  const banner=S.sync==='offline'&&OUTBOX.length?'<div class="outbox" role="status">'+I.clock+'<span class="grow">'+waitTxt(OUTBOX.length)+'</span><span class="muted">Skickas automatiskt</span></div>':S.sync==='err'?'<div class="banner">Ingen kontakt med kalkylarket just nu. Du ser senast hämtade data. '+esc(S.error)+'</div>':'';
  A.before(m);
  // Om en vy kraschar visas ett fel i stället, så att resten av appen (svep, menyn) fortsätter att fungera
  let page;try{page=(V[S.view]||V.oversikt)()}catch(e){console.error(e);page='<div class="banner">Något gick fel när sidan skulle visas: '+esc(e.message)+'</div>'}
- const kv=keepFxFore(m);m.innerHTML=banner+page;keepFxEfter(m,kv);addLayout(m);if(U5)u5More(m);
+ const src=keepNorm(banner+page)+'|'+S.view+'|'+addPlace();
+ if(lugn&&src===m.__src){A.old=null;watchTitle();plPin();wsPin();return}
+ const kb=lugn?keepBlockFore(m):[],kv=keepFxFore(m);m.innerHTML=banner+page;m.__src=src;keepBlockEfter(m,kb);keepFxEfter(m,kv);addLayout(m);if(U5)u5More(m);
  {const w=m.querySelector('.wk-sw');if(w&&S.wkX){w.scrollLeft=S.wkX;wkMonth(w)}}
  {const w=m.querySelector('.wxC-sc');if(w)w.scrollLeft=S.wxX!=null?S.wxX:WXC_NP*WXC_SW}
  placeSky();skyFit();fitBoard();gpuLager();loopSync();
@@ -3045,7 +3054,7 @@ function renderOverlay(){
  const prev=o.dataset.k||'';
  // Rita inte om ett öppet blad medan någon skriver i det
  if(k&&k!=='cook'&&k===prev&&busyTyping()&&o.contains(document.activeElement))return;
- o.dataset.k=k;const enter=k!==prev?' enter':'';
+ o.dataset.k=k;const enter=k!==prev?' enter':'';if(k&&o.__ut){o.__ut=null;o.style.pointerEvents=''}
  if(S.cook){const r=recipeById(S.cook.id);if(!r){S.cook=null;o.dataset.k='';o.innerHTML='';return}
   const pv=protNu(r),rr=pv?protRecipe(r,pv):r,ST=kvSteps(r,pv),i=Math.min(S.cook.step,ST.length-1),n=ST.length,s=ST[i],{f}=scaled(r),hits=stepIngredients(rr,{t:stegText(s)});
   const dir=A.cookStep==null||A.cookStep===i?'':i>A.cookStep?' from-r':' from-l',grew=A.cookStep!=null&&i>A.cookStep;A.cookStep=i;
@@ -3366,7 +3375,15 @@ if(k==='vara'){const n=S.varaK||'',ing=S.varaTyp==='ing',R=regGet(),F=parseJ(set
    '<div class="foot">'+(cal?'Ändras i Google Kalender'+(rec?', bara den här gången. Hela serien ändrar du i kalendern.':'.'):'Finns bara i hushållstavlan.')+'</div>'+
    '<div style="height:22px"></div>'+group(del);
   o.innerHTML=sheetHtml('evEdit','Ändra händelse','<button class="tb strong">Spara</button>',body,enter);return}
- o.innerHTML=''}
+ bladUt(o)}
+// Ett blad som stängs glider ner (popup: tonar) i stället för att försvinna tvärt. Har det redan dragits ner (svep, handtag, Smart hems zoom) tas det bort direkt.
+// Under tiden släpper överlägget klicken till sidan; öppnas ett nytt blad avbryts utgången.
+function bladUt(o){if(o.__ut)return;const p=calm()?null:o.querySelector('.sheet-panel,.as-panel,.pop');
+ if(!p||!p.animate||p.getAnimations().some(a=>a.playState==='finished'&&/forwards|both/.test(a.effect.getTiming().fill))){o.innerHTML='';return}
+ const bg=o.firstElementChild,pop=p.classList.contains('pop'),ms=pop?180:280,t={duration:ms,easing:'cubic-bezier(.4,0,.6,1)',fill:'forwards'};
+ o.style.pointerEvents='none';const a=p.animate(pop?[{opacity:0,transform:'scale(.94)'}]:[{transform:'translateY(calc(100% + 40px))'}],t);o.__ut=a;
+ if(bg&&bg!==p)bg.animate(pop?[{opacity:0}]:[{backgroundColor:'rgba(0,0,0,0)'}],t);
+ const klar=()=>{if(o.__ut!==a)return;o.__ut=null;o.style.pointerEvents='';if(!o.dataset.k)o.innerHTML=''};a.onfinish=a.oncancel=klar}
 
 /* ---------- översiktens topp: klocka, väder, namnsdag och härnäst ---------- */
 // Namnsdag från Svenska dagar-API:t; sparas lokalt och visas bara när den gått att hämta.
@@ -5022,7 +5039,7 @@ window.addEventListener('click',e=>{const summary=e.target.closest('summary');if
 // Bladhandtag: direkt förflyttning, närmaste ändläge och återställning vid avbruten gest.
 let sheetDrag=null;
 function sheetDragEnd(cancel){const d=sheetDrag;if(!d)return;sheetDrag=null;d.h.dataset.skip='1';setTimeout(()=>delete d.h.dataset.skip,450);A.touch=A.user=Date.now();if(pendingRender)setTimeout(render,460);try{d.h.releasePointerCapture(d.id)}catch(_){}const close=!cancel&&(d.dy<6||bladStang(d.dy,u5Fart.v(d.a),d.range)),from=d.dy;d.panel.style.removeProperty('transform');const finish=()=>{if(close){closeSheets();render()}};
- if(calm()){finish();return}const a=d.panel.animate([{transform:'translateY('+from+'px)'},{transform:'translateY('+(close?d.range:0)+'px)'}],{duration:420,easing:MOTION_EASE,fill:'forwards'});a.onfinish=()=>{a.cancel();finish()}}
+ if(calm()){finish();return}const a=d.panel.animate([{transform:'translateY('+from+'px)'},{transform:'translateY('+(close?d.range:0)+'px)'}],{duration:420,easing:MOTION_EASE,fill:'forwards'});a.onfinish=()=>{if(!close)a.cancel();finish()}}
 window.addEventListener('pointerdown',e=>{const h=e.target.closest('[data-sheet-grip]');if(!h||e.button>0||!e.isPrimary)return;e.preventDefault();e.stopImmediatePropagation();A.touch=A.user=Date.now();const panel=h.closest('.sheet-panel');panel.getAnimations().forEach(a=>a.cancel());sheetDrag={h,panel,id:e.pointerId,start:e.clientY,dy:0,range:(innerHeight-panel.getBoundingClientRect().top)/motionScale(panel),scale:motionScale(panel),a:[]};h.setPointerCapture(e.pointerId)},true);
 window.addEventListener('pointermove',e=>{const d=sheetDrag;if(!d||d.id!==e.pointerId)return;e.preventDefault();e.stopImmediatePropagation();A.touch=A.user=Date.now();d.dy=Math.max(0,Math.min(d.range,(e.clientY-d.start)/d.scale));u5Fart.add(d.a,d.dy);d.panel.style.transform='translateY('+d.dy+'px)'},{capture:true,passive:false});
 window.addEventListener('pointerup',e=>{if(!sheetDrag||sheetDrag.id!==e.pointerId)return;e.preventDefault();e.stopImmediatePropagation();sheetDrag.h.dataset.skip='1';const h=sheetDrag.h;setTimeout(()=>delete h.dataset.skip,450);sheetDragEnd(false)},true);
@@ -5039,7 +5056,7 @@ const bladStang=(dy,v,range)=>dy>8&&(v>.5||v>-.1&&dy+u5Fart.proj(v,.995)>=Math.m
   const klar=()=>{d.panel.style.removeProperty('transform');d.panel.style.removeProperty('box-shadow');d.sheet.style.removeProperty('background-color');if(go){closeSheets();render()}else if(pendingRender)render()};
   if(calm()){klar();return}const sp=u5Fjader(y0,go?d.range:0,go?Math.max(v,.4):v,go?.36:.42),o={duration:sp.ms,easing:'linear',fill:'forwards'};d.panel.style.removeProperty('box-shadow');
   const a=d.panel.animate(sp.xs.map(x=>({transform:'translateY('+x+'px)'})),o);d.sheet.animate(sp.xs.map(x=>({backgroundColor:d.dim(1-Math.max(0,Math.min(d.range,x))/d.range)})),o);
-  a.onfinish=()=>{d.sheet.getAnimations().forEach(x=>x.cancel());a.cancel();klar()}};
+  a.onfinish=()=>{if(!go){d.sheet.getAnimations().forEach(x=>x.cancel());a.cancel()}klar()}};
  document.addEventListener('touchstart',e=>{t=null;const o=document.getElementById('overlay');if(bladDrag||e.touches.length!==1||!o||!o.contains(e.target)||e.target.closest('[data-sheet-grip]'))return;const p=e.touches[0];
   const panel=e.target.closest('.sheet-panel');t={x0:p.clientX,y0:p.clientY,el:e.target,o,panel,dir:panel||e.target.closest('.cook')?'':'lock'}},{passive:true});
  document.addEventListener('touchmove',e=>{if(!t)return;if(e.touches.length!==1){if(bladDrag)slapp(bladDrag,true);t=null;return}const p=e.touches[0],dx=p.clientX-t.x0,dy=p.clientY-t.y0;
