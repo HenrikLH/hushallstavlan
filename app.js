@@ -1332,9 +1332,10 @@ function haZoom(inn,klar){const o=document.getElementById('overlay'),bg=o&&o.que
  // Rörelsen (transform) i en egen animation så att den går på grafikkretsen; hörn och färg i en annan som får hacka utan att rörelsen gör det.
  const vand=a=>inn?a:a.map(k=>({...k,offset:1-k.offset})).reverse(),op={duration:s.d,easing:s.e,fill:'forwards'};
  const an=p.animate(vand(kf.map(k=>({offset:k.offset,transform:k.transform}))),op),an2=p.animate(vand(kf.map(k=>({offset:k.offset,borderRadius:k.borderRadius,backgroundColor:k.backgroundColor}))),op);
- bg.animate([{opacity:0},{opacity:1}],{pseudoElement:'::before',duration:inn?300:s.d,easing:'ease-out',direction:inn?'normal':'reverse',fill:'forwards'});
+ bg.animate([{opacity:0},{opacity:1}],{pseudoElement:'::before',duration:inn?300:s.d*.6,easing:'ease-out',direction:inn?'normal':'reverse',fill:'forwards'});
  [...p.children].forEach(c=>c.animate([{opacity:0},{opacity:1}],inn?{duration:220,delay:s.d*.25,easing:'ease-out',fill:'backwards'}:{duration:120,easing:'ease-in',direction:'reverse',fill:'forwards'}));
- t.style.visibility='hidden';
+ // In: brickan göms medan kortet växer. Ut: brickan tonar fram under kortet och kortet tonar bort innan det tas bort, så att omritningen efteråt inte syns som ett hack.
+ if(inn)t.style.visibility='hidden';else{t.animate([{opacity:0},{opacity:0,offset:.3},{opacity:1,offset:.6},{opacity:1}],{duration:s.d});p.animate([{opacity:1},{opacity:1,offset:.4},{opacity:0,offset:.7},{opacity:0}],{duration:s.d,fill:'forwards'})}
  an.onfinish=()=>{HA.drag=false;t.style.visibility='';p.style.willChange='';if(inn){an.cancel();an2.cancel()}if(klar)klar()};return true}
 function haAv(x){if(!x||!x.on)return render();const was=x.on;x.on=false;HA.last=null;render();haSend({id:x.id,gor:'av'},()=>{x.on=was})}
 // Smart hem-vyn: alla enheter per rum, scener och givare. Plus lägger till, håll in ändrar.
