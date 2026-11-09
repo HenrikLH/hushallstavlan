@@ -2,6 +2,7 @@
 # Test av ljusvanorna i kiosk/ljussensor.py mot falsk-ha.py: inlärning, säker/osäker, autopilot och paus.
 # Kör: python3 verktyg/ljusvanor-test.py   (startar själv falsk-ha på port 18124 och använder en tillfällig HOME)
 import importlib.util, json, os, subprocess, sys, tempfile, time, urllib.request
+sys.dont_write_bytecode = True   # ingen __pycache__ i kiosk/
 ROT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.environ['HOME'] = tempfile.mkdtemp(); os.environ['TZ'] = 'Europe/Stockholm'; time.tzset()
 os.makedirs(os.environ['HOME'] + '/.config')
