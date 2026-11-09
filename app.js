@@ -277,7 +277,7 @@ addEventListener('resize',()=>navLins.stor());
 // Piller: samma kapsel krymper till ett litet piller med bara ikonerna, halvt nedanför skärmkanten (bara CSS).
 (function(){const nav=document.getElementById('nav'),mini=document.createElement('button');let y0=scrollY,acc=0;
  mini.className='nav-mini';mini.type='button';mini.setAttribute('aria-label','Visa menyn');document.body.appendChild(mini);
- const on=()=>!U3&&!(U4&&matchMedia('(min-width:900px)').matches)&&!U5&&FLIKRAD!=='fast'&&!nav.classList.contains('none');
+ const on=()=>!U3&&!(U4&&matchMedia('(min-width:900px)').matches)&&(U5?!S.wall&&!matchMedia('(min-width:900px)').matches:FLIKRAD!=='fast')&&!nav.classList.contains('none');/* UI 5.0: bara telefon (på väggen ska menyn ligga kvar) */
  const set=m=>{if(nav.classList.contains('mini')===m)return;
   if(m){const b=nav.querySelector('button[aria-current] svg');mini.innerHTML=b?b.outerHTML:''}
   nav.classList.remove('ut');nav.classList.toggle('mini',m);if(!m)nav.classList.add('ut');mini.classList.toggle('on',m);};
