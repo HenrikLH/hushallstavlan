@@ -1325,13 +1325,17 @@ const haTileEl=id=>[...document.querySelectorAll('.ha-t[data-id="'+CSS.escape(id
 function haZoom(inn,klar){const o=document.getElementById('overlay'),bg=o&&o.querySelector('.sheet'),p=bg&&bg.querySelector('.sheet-panel'),t=haTileEl(S.haId);
  if(haLugn()||!p||!t){klar&&klar();return false}
  p.style.animation='none';bg.style.animation='none';
- const a=t.getBoundingClientRect(),b=p.getBoundingClientRect(),fra={transform:'translate('+(a.left-b.left)+'px,'+(a.top-b.top)+'px) scale('+a.width/b.width+','+a.height/b.height+')',borderRadius:'40px'},till={transform:'none',borderRadius:getComputedStyle(p).borderRadius};
- const s=inn?fjader(.5,.8):fjader(.36,.99);p.style.transformOrigin='0 0';HA.drag=true;
- const an=p.animate(inn?[fra,till]:[till,fra],{duration:s.d,easing:s.e,fill:'forwards'});
- bg.animate([{backgroundColor:'rgba(0,0,0,0)'},{backgroundColor:getComputedStyle(bg).backgroundColor}],{duration:inn?260:s.d,easing:'ease-out',direction:inn?'normal':'reverse',fill:'forwards'});
+ const a=t.getBoundingClientRect(),b=p.getBoundingClientRect(),R0=parseFloat(getComputedStyle(t).borderTopLeftRadius)||20,R1=parseFloat(getComputedStyle(p).borderTopLeftRadius)||38,sx=a.width/b.width,sy=a.height/b.height,dx=a.left-b.left,dy=a.top-b.top,L=(x,y,q)=>x+(y-x)*q;
+ // Många nyckelbilder: hörnen räknas om mot skalningen så att de är lika runda hela vägen (ingen hackig radie).
+ const tb=getComputedStyle(t).backgroundColor,pb=getComputedStyle(p).backgroundColor,kf=[];for(let i=0;i<=16;i++){const q=i/16,X=L(sx,1,q),Y=L(sy,1,q),r=L(R0,R1,q);kf.push({offset:q,backgroundColor:q<.3?(q?'color-mix(in srgb,'+pb+' '+Math.round(q/.3*100)+'%,'+tb+')':tb):pb,transform:'translate('+L(dx,0,q)+'px,'+L(dy,0,q)+'px) scale('+X+','+Y+')',borderRadius:(r/X).toFixed(2)+'px / '+(r/Y).toFixed(2)+'px'})}
+ const s=inn?fjader(.5,.9):fjader(.36,.99);p.style.transformOrigin='0 0';p.style.willChange='transform';HA.drag=true;
+ // Rörelsen (transform) i en egen animation så att den går på grafikkretsen; hörn och färg i en annan som får hacka utan att rörelsen gör det.
+ const vand=a=>inn?a:a.map(k=>({...k,offset:1-k.offset})).reverse(),op={duration:s.d,easing:s.e,fill:'forwards'};
+ const an=p.animate(vand(kf.map(k=>({offset:k.offset,transform:k.transform}))),op),an2=p.animate(vand(kf.map(k=>({offset:k.offset,borderRadius:k.borderRadius,backgroundColor:k.backgroundColor}))),op);
+ bg.animate([{opacity:0},{opacity:1}],{pseudoElement:'::before',duration:inn?300:s.d,easing:'ease-out',direction:inn?'normal':'reverse',fill:'forwards'});
  [...p.children].forEach(c=>c.animate([{opacity:0},{opacity:1}],inn?{duration:220,delay:s.d*.25,easing:'ease-out',fill:'backwards'}:{duration:120,easing:'ease-in',direction:'reverse',fill:'forwards'}));
  t.style.visibility='hidden';
- an.onfinish=()=>{HA.drag=false;t.style.visibility='';if(klar)klar()};return true}
+ an.onfinish=()=>{HA.drag=false;t.style.visibility='';p.style.willChange='';if(inn){an.cancel();an2.cancel()}if(klar)klar()};return true}
 function haAv(x){if(!x||!x.on)return render();const was=x.on;x.on=false;HA.last=null;render();haSend({id:x.id,gor:'av'},()=>{x.on=was})}
 // Smart hem-vyn: alla enheter per rum, scener och givare. Plus lägger till, håll in ändrar.
 // Smart hem-vyn som Hem-appen: bakgrundsbild, statusknappar, scener, rum (rubriken öppnar rummets sida) och givare

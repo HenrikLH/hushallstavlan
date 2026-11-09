@@ -3100,8 +3100,8 @@ html.ny.ui5 .g5-kop .val{color:var(--ink-3)}
 .ha-t .ha-i{border:0;padding:0;font:inherit;cursor:pointer;transition:transform .14s,background .3s,color .3s}.ha-t .ha-i:active{transform:scale(.86)}
 .ha-rum-in{animation:ha-rum .5s cubic-bezier(.2,.9,.25,1) both}@keyframes ha-rum{from{opacity:0;transform:translateX(40px)}}
 /* Reglagen i helskärm över suddig bakgrund, som när man håller in en enhet i Hem-appen */
-.sheet.ha-hel{align-items:center;padding:calc(var(--sat) + 12px) 12px calc(var(--sab) + 12px);background:rgba(0,0,0,.28);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px)}
-html body form[data-form="haLampa"].sheet-panel.sheet-panel{width:100%;max-width:400px;height:auto;max-height:100%;border-radius:38px;background:rgba(36,34,44,.72);-webkit-backdrop-filter:blur(40px) saturate(1.6);backdrop-filter:blur(40px) saturate(1.6);box-shadow:0 20px 60px rgba(0,0,0,.35);color:#fff;--ink:#fff;--ink-2:rgba(235,235,245,.62);--pill:rgba(255,255,255,.2);--fill:rgba(255,255,255,.16);--bg:#2a2733}
+.sheet.ha-hel{align-items:center;padding:calc(var(--sat) + 12px) 12px calc(var(--sab) + 12px);background:none}.sheet.ha-hel::before{content:"";position:absolute;inset:0;background:rgba(0,0,0,.28);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px)}
+html body form[data-form="haLampa"].sheet-panel.sheet-panel{width:100%;max-width:400px;height:auto;max-height:100%;border-radius:38px;background:rgba(40,38,48,.9);box-shadow:0 20px 60px rgba(0,0,0,.35);color:#fff;--ink:#fff;--ink-2:rgba(235,235,245,.62);--pill:rgba(255,255,255,.2);--fill:rgba(255,255,255,.16);--bg:#2a2733}
 form[data-form="haLampa"] .grabber,form[data-form="haLampa"] .sheet-head{display:none}
 form[data-form="haLampa"] .sheet-body{flex:1;display:flex;flex-direction:column;padding:18px 0 14px;overflow-y:auto}
 .ha-top{display:flex;align-items:center;gap:12px;padding:0 18px;max-width:560px;width:100%;margin:0 auto}
