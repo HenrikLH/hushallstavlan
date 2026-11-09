@@ -31,10 +31,10 @@ module.exports=async(pg,h)=>{
  await pg.mouse.move(cx,cy);await pg.mouse.down();for(let i=1;i<=10;i++){await pg.mouse.move(cx,cy-i*r.height*.025);await h.idle(16)}await pg.mouse.up();await h.idle(800);
  assert.match(await pg.locator(F+' [data-hav="s"]').innerText(),/70 %/,'Dra uppåt: 45 → 70 %');
  await pg.locator(F+' [data-act="haFavV"]:has-text("Stearin")').click();await h.idle(900);
- assert.match(await pg.locator(F+' [data-act="haSub"]').innerText(),/Stearin/,'Stearin valt');
+ assert.match(await pg.locator(F+' [data-act="haSub"][data-id="ton"]').innerText(),/Stearin/,'Stearin valt');
  await h.shot('smart-hem-3b-stearin');
  await pg.locator(F+' [data-act="haFavV"]:has-text("Vitt")').click();await h.idle(900);
- assert.match(await pg.locator(F+' [data-act="haSub"]').innerText(),/Vitt/,'Vitt valt');
+ assert.match(await pg.locator(F+' [data-act="haSub"][data-id="ton"]').innerText(),/Vitt/,'Vitt valt');
  await pg.locator(F+' [data-act="haSub"][data-id="ton"]').click();await h.idle(700);
  assert.equal(await pg.locator(F+' [data-hat]').count(),1,'Tonreglage på undersidan');assert.equal(await pg.locator(F+' .ha-f').count(),8,'Färger på undersidan');
   await pg.locator(F+' .ha-f[aria-label="Blå"]').click();await h.idle(1200);
