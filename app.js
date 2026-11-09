@@ -4864,6 +4864,35 @@ V.familj=function(){const B=bdays(),N=bdNext(B).slice(0,3),F=slaktGroups();
  h+=sh('Nästa födelsedagar',N.length||'')+group(N.length?N.map(b=>'<button class="cell link" data-act="nav" data-id="fod"><span class="fam-datebox"><b>'+b.dd+'</b><small>'+MON3[b.mo]+'</small></span><span class="grow">'+esc(b.name)+'</span><span class="meta">'+esc(bdWhen(b))+'</span>'+chevron+'</button>').join(''):emptyCell('Inga födelsedagar inlagda.'));
  h+=sh('Familjegrupper',F.length||'')+group(F.map(f=>'<button class="cell link" data-act="slaktGroup" data-id="'+esc(f.id)+'"><span class="grow">'+esc(f.n)+'</span><span class="meta num">'+f.L.length+' personer</span>'+chevron+'</button>').join(''));
  return h+'<div class="foot">Familj öppnas med tryck, inte sidledssvep. I Födelsedagar fortsätter svep att växla mellan de tre befintliga visningarna.</div>'};
+
+/* Fullständig trädkarta: alla registrerade personer visas, även utan relationer.
+   Generationer följer sparade föräldralänkar. Separata familjer ligger kvar som öar. */
+function slaktFullSvg(B){const par=fodEgna().par,by=new Map(B.map(b=>[b.key,b])),ids=new Set(by.keys()),P=k=>(Array.isArray(par[k])?par[k]:[]).filter(x=>ids.has(x)&&x!==k),dep=new Map(),busy=new Set();
+ const depth=k=>{if(dep.has(k))return dep.get(k);if(busy.has(k))return 0;busy.add(k);const p=P(k),d=p.length?1+Math.max(...p.map(depth)):0;busy.delete(k);dep.set(k,Math.min(20,d));return dep.get(k)};
+ B.forEach(b=>depth(b.key));
+ // Para ihop partners på samma nivå när de har gemensamma barn; ordna barn efter föräldrarnas mittpunkt.
+ let groups=new Map();B.forEach(b=>{const d=dep.get(b.key);if(!groups.has(d))groups.set(d,[]);groups.get(d).push(b)});
+ const levels=[...groups.keys()].sort((a,b)=>a-b),pos=new Map(),spacing=112,margin=88;
+ levels.forEach(d=>{const L=groups.get(d),n=L.length;L.sort((a,b)=>{const ca=P(a.key).map(k=>pos.get(k)?.x).filter(x=>x!=null),cb=P(b.key).map(k=>pos.get(k)?.x).filter(x=>x!=null),av=c=>c.length?c.reduce((s,x)=>s+x,0)/c.length:99999;return av(ca)-av(cb)||a.name.localeCompare(b.name,'sv')});
+  L.forEach((b,i)=>pos.set(b.key,{x:margin+i*spacing,y:60+d*165}))});
+ // Centrera varje nivå över samma diagramyta, utan att noder överlappar.
+ const wide=Math.max(360,...[...groups.values()].map(L=>2*margin+(L.length-1)*spacing)),H=130+Math.max(...levels,0)*165;
+ levels.forEach(d=>{const L=groups.get(d),off=(wide-(2*margin+(L.length-1)*spacing))/2;L.forEach(b=>pos.get(b.key).x+=off)});
+ const paths=[];
+ // Dela föräldrastam för syskon med exakt samma föräldrauppsättning. Rita aldrig en relation som saknas.
+ const kids=new Map();B.forEach(b=>{const p=P(b.key).slice().sort();if(!p.length)return;const key=p.join('\u001f');if(!kids.has(key))kids.set(key,{p,c:[]});kids.get(key).c.push(b.key)});
+ kids.forEach(({p,c})=>{const parents=p.map(k=>pos.get(k)).filter(Boolean),children=c.map(k=>pos.get(k)).filter(Boolean);if(!parents.length||!children.length)return;
+  const a=parents.reduce((t,z)=>t+z.x,0)/parents.length, py=Math.max(...parents.map(z=>z.y)),minY=Math.min(...children.map(z=>z.y));
+  const cy=Math.min(py+72,minY-45);
+  if(parents.length===2){const x0=Math.min(...parents.map(z=>z.x)),x1=Math.max(...parents.map(z=>z.x));paths.push('M'+x0+' '+py+'H'+x1)}
+  paths.push('M'+a+' '+py+'V'+cy);
+  const xs=children.map(z=>z.x),left=Math.min(a,...xs),right=Math.max(a,...xs);
+  if(left!==right)paths.push('M'+left+' '+cy+'H'+right);
+  children.forEach(z=>paths.push('M'+z.x+' '+cy+'V'+(z.y-25)));
+ });
+ const node=b=>{const p=pos.get(b.key),active=S.slaktFocus===b.key;return'<g role="button" tabindex="0" class="fam-node'+(active?' selected':'')+'" data-act="slaktFocus" data-id="'+esc(b.key)+'" aria-label="Fokusera '+esc(b.name)+'"><circle class="fam-ring" cx="'+p.x+'" cy="'+p.y+'" r="25"/><circle class="fam-circle" cx="'+p.x+'" cy="'+p.y+'" r="21"/><text class="fam-letter" text-anchor="middle" x="'+p.x+'" y="'+(p.y+6)+'">'+esc(b.name.slice(0,1).toUpperCase())+'</text><text class="fam-name" text-anchor="middle" x="'+p.x+'" y="'+(p.y+43)+'">'+esc(b.name.length>13?b.name.slice(0,12)+'…':b.name)+'</text><text class="fam-date" text-anchor="middle" x="'+p.x+'" y="'+(p.y+58)+'">'+b.dd+' '+MON3[b.mo]+'</text></g>'};
+ return'<svg class="fam-full-svg" viewBox="0 0 '+wide+' '+H+'" width="'+wide+'" height="'+H+'" role="group" aria-label="Fullständigt släktträd, '+B.length+' personer"><g class="fam-lines"><path d="'+paths.join('')+'"/></g>'+B.map(node).join('')+'</svg>'}
+
 V.slakt=function(){const all=bdays(),G=slaktGroups(),g=G.find(x=>x.id===S.slaktFam)||G[0]||{n:'Familj',L:all},B=g.L;
  let h='<div class="rcp-top"><button class="back" data-act="nav" data-id="familj">'+I.back+'Familj</button></div>';
  h+=head('Släktträd',{sub:g.n+' · '+B.length+' personer'});
@@ -4876,6 +4905,8 @@ V.slakt=function(){const all=bdays(),G=slaktGroups(),g=G.find(x=>x.id===S.slaktF
  if(child.length){const br=yc+80;lines+='<path d="M180 '+(yc+28)+'V'+br+(child.length>1?'M'+xs[0]+' '+br+'H'+xs[xs.length-1]:'')+xs.map(x=>'M'+x+' '+br+'V'+(yb-24)).join('')+'"/>'}
  const height=par.length?(child.length?390:255):(child.length?312:167);
  const svg='<svg class="fam-svg" viewBox="0 0 360 '+height+'" role="group" aria-label="Släktträd med '+esc(focus.name)+' i fokus"><g class="fam-lines">'+lines+'</g>'+par.map((b,i)=>node(b,px[i],yp,false)).join('')+node(focus,180,yc,true)+child.map((b,i)=>node(b,xs[i],yb,false)).join('')+'</svg>';
+ const fullt=S.slaktVy==='alla';h+=sh('Visning')+'<div class="seg-wrap">'+segc('Släktträdsvy','slaktVy',[['fokus','I fokus'],['alla','Hela trädet']],fullt?'alla':'fokus')+'</div>';
+ if(fullt){const allTree=slaktFullSvg(all);h+=group('<div class="fam-all-head"><b>Hela släktträdet</b><span class="meta">'+all.length+' personer · dra åt sidan för att se alla</span></div><div class="fam-pan" tabindex="0" aria-label="Hela släktträdet, scrolla i sidled">'+allTree+'</div><div class="fam-all-help">Alla personer visas, även de som ännu saknar släktrelationer. Tryck på en cirkel för att fokusera på den personen.</div>')+'<div class="foot">Dra trädet i sidled om det är bredare än skärmen. Öppna I fokus för att se en person med närmaste släktingar.</div>';return h}
  h+=sh('Utforska relationer')+group('<div class="fam-focus"><span class="fam-spot"></span><span class="grow"><strong>'+esc(focus.name)+'</strong><span class="meta">Vald person</span></span><button class="pill" data-act="slaktEdit" data-id="'+esc(focus.key)+'">Ändra</button></div><div class="fam-tree">'+svg+(!par.length&&!children.length?'<div class="fam-empty">Inga släktrelationer inlagda än.</div>':'')+'</div>'+
  '<button class="cell link" data-act="slaktEdit" data-id="'+esc(focus.key)+'"><span class="grow">Ange föräldrar till '+esc(focus.name)+'</span>'+chevron+'</button>');
  if(sib.length)h+=sh('Syskon',sib.length)+group(sib.map(b=>'<button class="cell link" data-act="slaktFocus" data-id="'+esc(b.key)+'"><span class="grow">'+esc(b.name)+'</span>'+chevron+'</button>').join(''));
@@ -5337,6 +5368,7 @@ const ACT={
  cookTo(id,el){A.user=Date.now();S.cook.step=Number(el.dataset.i)||0;S.step[S.cook.id]=S.cook.step;render()},
  pickStep(id,el){S.step[id]=Number(el.dataset.i);render();setTimeout(()=>{const li=document.querySelector('.steps li.active');if(li&&li.getBoundingClientRect().top<70)li.scrollIntoView({block:'start',behavior:'smooth'})},30)},
  cookStep(id,el){A.user=Date.now();const r=recipeById(S.cook.id);S.cook.step=Math.max(0,Math.min(stegFor(r).length-1,S.cook.step+Number(el.dataset.d)));S.step[S.cook.id]=S.cook.step;render()},
+ slaktVy(id){if(!['fokus','alla'].includes(id))return;S.slaktVy=id;render()},
  slaktFocus(id){if(!bdays().some(b=>b.key===id))return;S.slaktFocus=id;render()},
  slaktGroup(id){S.slaktFam=id;S.slaktFocus=null;ACT.nav('slakt')},
  slaktEdit(id){S.slaktEdit=id;S.sheet='slaktRel';render()},
