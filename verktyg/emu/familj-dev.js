@@ -8,7 +8,7 @@ module.exports=async(pg,h)=>{
  const click=async(sel)=>{await pg.locator(sel).first().click();await h.idle(450)};
  assert.equal(await pg.locator('[data-act="familjOpen"]').count(),0,'Förhandsvisningen får inte finnas i normalvy');
  await click('[data-act="settings"]');
- await click('details[data-k="pref-avancerat"] > summary');
+ if(!(await pg.locator('details[data-k="pref-avancerat"]').evaluate(el=>el.open)))await click('details[data-k="pref-avancerat"] > summary');
  assert.equal(await pg.locator('[data-act="familjOpen"]').count(),0,'Testknappen dold utan utvecklarläge');
  await click('[data-act="dev"]');
  await h.idle(350);
@@ -34,7 +34,7 @@ module.exports=async(pg,h)=>{
  await click('[data-act="nav"][data-id="familj"]');
  await click('[data-act="nav"][data-id="oversikt"]');
  await click('[data-act="settings"]');
- await click('details[data-k="pref-avancerat"] > summary');
+ if(!(await pg.locator('details[data-k="pref-avancerat"]').evaluate(el=>el.open)))await click('details[data-k="pref-avancerat"] > summary');
  await click('[data-act="dev"]');
  await h.idle(300);
  assert.equal(await pg.locator('[data-act="familjOpen"]').count(),0,'Testknappen försvinner när utvecklarläge stängs');
