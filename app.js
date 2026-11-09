@@ -151,7 +151,7 @@ const isFav=id=>bankRaw().some(x=>recipeRoot(x.id)===recipeRoot(id)&&x.fav);
 function kcalOf(id){const v=parseJ(settings().kcal,{})[recipeRoot(id)];if(v==null||v==='')return null;const n=Number(Array.isArray(v)?v[0]:v);return n>0?{n:Math.round(n)}:null}
 const ratings=()=>recipeAliases(parseJ(settings().betyg,{}));
 // Veckans efterrätt och låsta rätter ligger också i önskelistan (som {efter:1,...} och {las:1,...}) men är inga önskemål
-const wishes=()=>recipeWishes(parseJ(settings().onskelista,[])).filter(x=>x&&!x.efter&&!x.las&&!x.fod&&!x.bort&&!x.vreg);
+const wishes=()=>recipeWishes(parseJ(settings().onskelista,[])).filter(x=>x&&!x.efter&&!x.las&&!x.fod&&!x.bort&&!x.vreg&&!x.haf);
 function ratingOf(id){const x=ratings()[id];if(!x||!x.p)return null;const ps=Object.entries(x.p).filter(([,e])=>e&&e.s);if(!ps.length)return null;
  return{avg:ps.reduce((a,[,e])=>a+Number(e.s),0)/ps.length,people:ps,never:ps.some(([,e])=>e.v==='aldrig')}}
 const VERD={igen:'Laga igen',okej:'Okej',aldrig:'Aldrig mer'};
@@ -1293,6 +1293,22 @@ const haVarmPos=(x,W)=>{const c=v=>Math.max(0,Math.min(100,Math.round(v)));
  if(W.k&&x.k)return c((W.kmax-x.k)/(W.kmax-W.kmin)*W.kd);return c(W.kd/2)};
 const haVarmNamn=(p,W)=>{if(p<=W.kd&&W.k){const r=p/W.kd;return r<.2?'Vitt':r<.5?'Neutral':!W.f&&r>.85?'Stearin':'Mys'}return(p-W.kd)/(100-W.kd)<.55?'Stearin':'Orange'};
 const haVarmCmd=(p,W)=>{if(W.k&&p<=W.kd)return{k:Math.round(W.kmax-(W.kmax-W.kmin)*p/W.kd)};const t=W.kd>=100?1:(p-W.kd)/(100-W.kd);return{hs:[Math.round(44-18*t),Math.round(W.s0+(100-W.s0)*t)]}};
+/* Ton i kelvin: färgtemperatur där lampan klarar det, och för färglampor fortsätter skalan under kmin (ned till 1500 K) som stearin/orange i hs.
+   Reglaget är inzoomat på de varma tonerna (≤2700 K) tills man väljer Visa hela (ht.haTonHel, per enhet). −/+ = 50 K. */
+const HA_KST=1500,HA_KF=[[6500,[220,232,255]],[4000,[255,246,234]],[2700,[255,217,160]],[2200,[255,194,102]],[1800,[255,160,64]],[1500,[255,138,31]]];
+const haKFarg=K=>{for(let i=1;i<HA_KF.length;i++){const[a,ca]=HA_KF[i-1],[b,cb]=HA_KF[i];if(K>=b||i===HA_KF.length-1){const t=Math.max(0,Math.min(1,(a-K)/(a-b)));return'rgb('+ca.map((v,j)=>Math.round(v+(cb[j]-v)*t)).join(',')+')'}}};
+const haTonSk=W=>({lo:W.f?HA_KST:W.kmin,hi:W.k?W.kmax:4000});
+const haTonK=(x,W)=>{if(W.f&&haFargLage(x)&&x.hs&&x.hs[0]>=15&&x.hs[0]<=45){const t=Math.max(0,Math.min(1,(x.hs[1]-W.s0)/(100-W.s0)));return Math.round((W.k?W.kmin-(W.kmin-HA_KST)*t:4000-(4000-HA_KST)*t)/10)*10}return W.k&&x.k?x.k:W.k?2700:4000};
+const haTonCmd=(K,W)=>{const T=haTonSk(W);K=Math.max(T.lo,Math.min(T.hi,K));if(W.k&&K>=W.kmin)return{k:Math.round(K)};const t=Math.max(0,Math.min(1,W.k?(W.kmin-K)/(W.kmin-HA_KST):(4000-K)/(4000-HA_KST)));return{hs:[Math.round(44-18*t),Math.round(W.s0+(100-W.s0)*t)]}};
+const haTonOmr=(W,K)=>{const T=haTonSk(W),z=Math.min(T.hi,Math.max(T.lo+800,2700));return lsGet('haTonHel')==='1'||K>z?{lo:T.lo,hi:T.hi,hel:1}:{lo:T.lo,hi:z,hel:0}};
+const haKTxt=K=>Math.round(K).toLocaleString('sv-SE')+' K';
+// Favoriter (ton + ev. ljusstyrka) för hela hushållet i onskelista som {haf:1,l:[{n,K,b}]} (ingen ny Kod.gs). Utan sparade gäller Vitt/Mys/Stearin.
+const HA_FAV0=[{n:'Vitt',K:4000},{n:'Mys',K:2700},{n:'Stearin',K:2000}];
+const haFavs=()=>{const o=parseJ(settings().onskelista,[]).find(x=>x&&x.haf);return o&&Array.isArray(o.l)?o.l.filter(f=>f&&f.n&&f.K):HA_FAV0};
+function haFavSet(fn){A.user=Date.now();updJSON('onskelista',[],a=>{const o=a.find(x=>x&&x.haf),l=fn((o&&Array.isArray(o.l)?o.l:HA_FAV0).slice()).slice(0,12);return a.filter(x=>!(x&&x.haf)).concat([{haf:1,l}])})}
+const haFavPa=(x,f,K)=>Math.abs(K-f.K)<=25&&(f.b==null||Math.abs((x.b||100)-f.b)<=3);
+document.addEventListener('input',e=>{const r=e.target;if(!r.dataset||!r.dataset.hat)return;HA.drag=true;const[lo,hi]=r.dataset.hat.split(',').map(Number),m=document.querySelector('[data-hav="k"]');if(m)m.textContent=haKTxt(hi+lo-+r.value)});
+document.addEventListener('change',e=>{const r=e.target;if(!r.dataset||!r.dataset.hat)return;HA.drag=false;const[lo,hi]=r.dataset.hat.split(',').map(Number),x=haLamp();if(x)haLampSkicka(x,haTonCmd(hi+lo-+r.value,haVarm(x)))});
 document.addEventListener('input',e=>{if(!e.target.dataset||!e.target.dataset.haw)return;HA.drag=true;const x=haLamp(),m=document.querySelector('[data-hav="w"]');if(x&&m)m.textContent=haVarmNamn(+e.target.value,haVarm(x))});
 document.addEventListener('change',e=>{if(!e.target.dataset||!e.target.dataset.haw)return;HA.drag=false;const x=haLamp();if(x)haLampSkicka(x,haVarmCmd(+e.target.value,haVarm(x)))});
 function haLampSheet(enter){const x=haLamp();if(!x){S.sheet=null;return''}const K=haKan(x),kmin=x.kmin||2200,kmax=x.kmax||6500,p=x.on?(K.dim?x.b||100:100):0;
@@ -1300,7 +1316,12 @@ function haLampSheet(enter){const x=haLamp();if(!x){S.sheet=null;return''}const 
  const vs='<div class="ha-vs'+((fr!=null?fr>0:x.on)?' on':'')+(K.dim?'':' tog')+'"'+(fr!=null?' data-mal="'+p+'"':'')+' '+(K.dim?'data-havs="b" role="slider" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+p+'" aria-label="Ljusstyrka"':'role="switch" aria-checked="'+!!x.on+'" aria-label="Tänd '+esc(x.n)+'"')+' style="--p:'+(fr!=null?fr:p)+'%'+(x.on&&haFargLage(x)&&x.hs?';--f:hsl('+Math.round(x.hs[0])+' '+Math.max(40,Math.round(x.hs[1]))+'% 64%)':x.on&&x.k?';--f:'+(x.k<3000?'#FFC67E':x.k<3800?'#FFDCA0':x.k<5000?'#FFEDCB':'#EEF2F8'):'')+'"><i></i>'+(K.dim?'<span class="ha-vs-ik">'+haIk(x)+'</span>':'<b class="ha-knopp">'+haIk(x)+'</b>')+'</div>';
 // värme: ett reglage från vitt till orange. Vitt → varmvitt med färgtemperatur; klarar lampan färg fortsätter sista delen till stearin/orange.
  const W=haVarm(x),wp=haVarmPos(x,W);
- const varm=W.ok?'<div class="ha-w"><div class="lj-h"><span>Värme</span><span class="meta" data-hav="w">'+haVarmNamn(wp,W)+'</span></div><input type="range" min="0" max="100" step="1" value="'+wp+'" data-haw="1" aria-label="Värme, från vitt till orange" style="background:'+W.g+'"><div class="ha-wp">'+[['Vitt',0],['Mys',W.f?40:60],['Stearin',W.f?Math.round(W.kd+(100-W.kd)*(W.k?.28:.4)):100]].map(([n,v])=>'<button type="button" class="pill ha-c'+(x.on&&Math.abs(wp-v)<6?' on':'')+'" data-act="haVarmV" data-id="'+v+'">'+n+'</button>').join('')+'</div></div>':'';
+ const tK=haTonK(x,W),TO=haTonOmr(W,tK),FV=haFavs(),fNamn=(FV.find(f=>x.on&&haFavPa(x,f,tK))||{}).n||'';
+ const grad='linear-gradient(90deg,'+[0,.25,.5,.75,1].map(q=>haKFarg(TO.hi-(TO.hi-TO.lo)*q)).join(',')+')';
+ const varm=W.ok?'<div class="ha-w"><div class="lj-h"><span>Ton</span><span class="meta" data-hav="w">'+esc(fNamn)+'</span></div><input type="range" min="'+TO.lo+'" max="'+TO.hi+'" step="10" value="'+(TO.hi+TO.lo-tK)+'" data-hat="'+TO.lo+','+TO.hi+'" aria-label="Ton, från kallt till varmt" aria-valuetext="'+haKTxt(tK)+'" style="background:'+grad+'">'+
+  '<div class="ha-tz"><span>'+haKTxt(TO.hi)+'</span><button type="button" class="ha-tzb" data-act="haTonHel">'+(TO.hel?'Visa varma':'Visa hela')+'</button><span>'+haKTxt(TO.lo)+'</span></div>'+
+  '<div class="ha-tn"><button type="button" data-act="haTonSteg" data-id="-50" aria-label="Varmare">−</button><b data-hav="k">'+haKTxt(tK)+'</b><button type="button" data-act="haTonSteg" data-id="50" aria-label="Kallare">+</button></div>'+
+  '<div class="ha-wp ha-fv">'+FV.map((f,i)=>'<button type="button" class="pill ha-c'+(x.on&&haFavPa(x,f,tK)?' on':'')+'" data-act="haFavV" data-id="'+i+'" data-hold-lift="haFavRed" data-hold-t="500"><i style="background:'+haKFarg(f.K)+'"></i>'+esc(f.n)+'</button>').join('')+'<button type="button" class="pill ha-c ha-fny" data-act="haFavNy">＋ Spara</button></div></div>':'';
  const far=K.f?HA_FARG.map(([n,h,m])=>{const v=x.on&&haFargLage(x)&&x.hs&&Math.abs(x.hs[0]-h)<12&&!(W.f&&wp>W.kd);return'<button type="button" class="ha-f'+(v?' vald':'')+'" data-act="haFarg" data-id="'+h+','+m+'" style="background:hsl('+h+' '+m+'% 58%)" aria-label="'+n+'" aria-pressed="'+v+'"></button>'}).join(''):'';
  const top='<div class="ha-top"><button type="button" class="ha-i'+(x.on?' on':'')+'" data-act="haTog" data-id="'+esc(x.id)+'" aria-label="'+(x.on?'Släck':'Tänd')+'"'+haIkSt(x)+'>'+haIk(x)+'</button><div class="ha-tx"><div class="ha-n">'+esc(x.n)+'</div><div class="ha-s"><span>'+esc(x.rum||'Hemma')+'</span> · <span data-hav="s">'+haStat(x)+'</span></div></div><button type="button" class="ha-x" data-act="sheetClose" aria-label="Stäng">'+I.x+'</button></div>';
  const body=top+'<div class="ha-ctl">'+vs+varm+(far?'<details class="ha-fd"'+(/ vald/.test(far)?' open':'')+'><summary>Färger</summary><div class="ha-farger">'+far+'</div></details>':'')+'</div>'+
@@ -1310,6 +1331,17 @@ function haLampSheet(enter){const x=haLamp();if(!x){S.sheet=null;return''}const 
 const HA_RUM=['Kök','Vardagsrum','Sovrum','Hall','Badrum','Kontor','Barnrum','Ute'];
 const HA_NAMN={light:['Taklampa','Golvlampa','Bordslampa','Vägglampa','Fönsterlampa','Spotlights','Lampslinga','Vitrinskåp'],switch:['Uttag','Fönsterlampa','Lampslinga','Fläkt','Kaffebryggare'],fan:['Fläkt','Golvfläkt','Takfläkt']};
 const haAllaEnh=()=>{const D=haData()||{};return(D.lampor||[]).concat(D.scener||[],D.givare||[])};
+// Favoritens blad: namn (inte på väggen, inget tangentbord), uppdatera till lampans läge, ta bort. Ny = sparar lampans ton och ljusstyrka.
+function haFavSheet(enter){const x=haLamp(),F=S.haFav;if(!x||!F){S.sheet=null;return''}const W=haVarm(x),L=haFavs(),f=F.i>=0?L[F.i]:null;if(F.i>=0&&!f){S.sheet=null;return''}
+ const K=f?f.K:haTonK(x,W),b=f?f.b:(haKan(x).dim?x.b||100:null),nm=f?f.n:'Favorit '+(L.length+1);
+ const body='<div class="ha-ed-top"><span class="ha-i" style="background:'+haKFarg(K)+';color:#5A4500">'+HAI.bulb+'</span><div><div class="hl">'+esc(nm)+'</div><div class="meta">'+haKTxt(K)+(b!=null?' · '+b+' %':'')+'</div></div></div>'+
+  (wallBoardOn()?'':sh('Namn')+'<div class="group"><label class="cell"><input class="field" name="hafn" value="'+esc(nm)+'" maxlength="24" autocomplete="off" enterkeyhint="done" aria-label="Favoritens namn"></label></div>')+
+  (f?'<div style="height:14px"></div>'+group('<button type="button" class="cell link center" data-act="haFavUpd">Spara lampans läge här</button>')+'<div class="foot">'+esc(x.n)+' har nu '+haKTxt(haTonK(x,W))+(haKan(x).dim?' · '+(x.b||100)+' %':'')+'.</div><div style="height:14px"></div>'+group('<button type="button" class="cell link center red" data-act="haFavDel">Ta bort favoriten</button>'):'<div class="foot">Sparar tonen och ljusstyrkan som '+esc(x.n)+' har nu. Favoriten går att använda på alla lampor.</div>');
+ return sheetHtml('haFav',f?'Favorit':'Ny favorit','<button type="submit" class="tb strong">Spara</button>',body,enter,'<button type="button" class="tb" data-act="haFavTill">Avbryt</button>')}
+function haFavSpara(n){const x=haLamp(),F=S.haFav;if(!x||!F)return;n=String(n||'').trim().slice(0,24);
+ if(F.i<0){const W=haVarm(x),K=haTonK(x,W),b=haKan(x).dim?x.b||100:null;haFavSet(l=>l.concat([{n:n||'Favorit '+(l.length+1),K,b}]));toast('Sparad som '+(n||'favorit'))}
+ else if(n)haFavSet(l=>{if(l[F.i])l[F.i]=Object.assign({},l[F.i],{n});return l});
+ S.sheet='haLampa';render()}
 function haEditSheet(enter){const x=haAllaEnh().find(e=>e.id===S.haId);if(!x){S.sheet=null;return''}const dom=x.id.split('.')[0],ar=dom==='scene'||dom==='script';
  const chip=(act,v,on,lab)=>'<button type="button" class="pill ha-c'+(on?' on':'')+'" data-act="'+act+'" data-id="'+esc(v)+'" aria-pressed="'+!!on+'">'+esc(lab||v)+'</button>';
  const namn=[x.hn||x.n].concat(HA_NAMN[dom]||[]).filter((v,i,a)=>v&&a.indexOf(v)===i);
@@ -3089,7 +3121,7 @@ function overlayKeepScroll(){const o=document.getElementById('overlay'),k=o.data
  const nb=o.querySelector('.sheet-body');if(y&&k&&o.dataset.k===k&&nb&&nb!==b)nb.scrollTop=y}
 function renderOverlay(){
  const o=document.getElementById('overlay');
- const k=S.cook?'cook':S.sheet==='settings'?'settings':S.sheet==='farg'?'farg':S.sheet==='vagg'?'vagg':S.sheet==='ljuskal'?'ljuskal':S.sheet==='rate'?'rate':S.sheet==='income'?'income':S.sheet==='matb'?'matb':S.sheet==='vara'?'vara':S.sheet==='cost'?'cost':S.sheet==='ov'?'ov':S.sheet==='prefs'?'prefs':S.sheet==='swap'?'swap':S.sheet==='prot'?'prot':S.sheet==='wish'?'wish':S.sheet==='shopMore'?'shopMore':S.sheet==='dess'?'dess':S.sheet==='slot'?'slot':S.sheet==='delLas'?'delLas':S.sheet==='dish'?'dish':S.sheet==='tmr'?'tmr':S.sheet==='tmrMenu'?'tmrMenu':S.rcpSheet?'rcpSheet':S.sheet==='cleanAdd'?'cleanAdd':S.sheet==='fodAdd'?'fodAdd':S.sheet==='fodFam'?'fodFam':S.sheet==='presBud'?'presBud':S.sheet==='haLampa'?'haLampa':S.sheet==='haEdit'?'haEdit':S.sheet==='haAdd'?'haAdd':S.sheet==='taskMenu'?'taskMenu':S.sheet==='ekoMenu'?'ekoMenu':S.sheet==='evMenu'?'evMenu':S.sheet==='cleanMenu'?'cleanMenu':S.sheet==='taskEdit'?'taskEdit':S.sheet==='evEdit'?'evEdit':S.sheet==='evNew'?'evNew':S.sheet==='wxDay'?'wxDay':S.shopAdd?'shop':S.taskAdd?'task':'';
+ const k=S.cook?'cook':S.sheet==='settings'?'settings':S.sheet==='farg'?'farg':S.sheet==='vagg'?'vagg':S.sheet==='ljuskal'?'ljuskal':S.sheet==='rate'?'rate':S.sheet==='income'?'income':S.sheet==='matb'?'matb':S.sheet==='vara'?'vara':S.sheet==='cost'?'cost':S.sheet==='ov'?'ov':S.sheet==='prefs'?'prefs':S.sheet==='swap'?'swap':S.sheet==='prot'?'prot':S.sheet==='wish'?'wish':S.sheet==='shopMore'?'shopMore':S.sheet==='dess'?'dess':S.sheet==='slot'?'slot':S.sheet==='delLas'?'delLas':S.sheet==='dish'?'dish':S.sheet==='tmr'?'tmr':S.sheet==='tmrMenu'?'tmrMenu':S.rcpSheet?'rcpSheet':S.sheet==='cleanAdd'?'cleanAdd':S.sheet==='fodAdd'?'fodAdd':S.sheet==='fodFam'?'fodFam':S.sheet==='presBud'?'presBud':S.sheet==='haLampa'?'haLampa':S.sheet==='haEdit'?'haEdit':S.sheet==='haFav'?'haFav':S.sheet==='haAdd'?'haAdd':S.sheet==='taskMenu'?'taskMenu':S.sheet==='ekoMenu'?'ekoMenu':S.sheet==='evMenu'?'evMenu':S.sheet==='cleanMenu'?'cleanMenu':S.sheet==='taskEdit'?'taskEdit':S.sheet==='evEdit'?'evEdit':S.sheet==='evNew'?'evNew':S.sheet==='wxDay'?'wxDay':S.shopAdd?'shop':S.taskAdd?'task':'';
  const prev=o.dataset.k||'';
  // Rita inte om ett öppet blad medan någon skriver i det
  if(k&&k!=='cook'&&k===prev&&busyTyping()&&o.contains(document.activeElement))return;
@@ -3306,7 +3338,7 @@ if(k==='vara'){const n=S.varaK||'',ing=S.varaTyp==='ing',R=regGet(),F=parseJ(set
   o.innerHTML=sheetHtml('fodAdd',e?'Ändra födelsedag':'Ny födelsedag','<button class="tb strong">'+(e?'Spara':'Lägg till')+'</button>',body,enter);restoreColorStrips(o);return}
  // Presentbudget: stort belopp, Jämnt/Efter månad, staplar för tolv månader, belopp per present och kommande presenter
  if(k==='haLampa'){o.innerHTML=haLampSheet(enter);const sh0=o.querySelector('.sheet');if(sh0)sh0.classList.add('ha-hel');const v=o.querySelector('.ha-vs[data-mal]');if(v)requestAnimationFrame(()=>requestAnimationFrame(()=>{v.style.setProperty('--p',v.dataset.mal+'%');v.classList.toggle('on',+v.dataset.mal>0)}));if(enter)haZoom(true);return}
- if(k==='haEdit'){o.innerHTML=haEditSheet(enter);return}
+ if(k==='haFav'){o.innerHTML=haFavSheet(enter);return}if(k==='haEdit'){o.innerHTML=haEditSheet(enter);return}
  if(k==='haAdd'){o.innerHTML=haAddSheet(enter);return}
  if(k==='presBud'){const P=presBud(),Y=presAr(),ty=+thisMonth().slice(0,4),SN=presSnitt(ty,P.ar),YK=presAr(ty+'-01'),nu=new Date().getMonth(),mx=Math.max(1,SN.jamn,...YK.M.map(x=>x.kr)),val=P.satt==='manad'?Y.M[0].kr:SN.jamn,
    st=(id,lab,sub,v)=>'<div class="cell pb-st"><div class="grow"><div>'+lab+'</div><div class="meta">'+sub+'</div></div><span class="stepper"><button type="button" data-act="presStep" data-id="'+id+'" data-d="-50" aria-label="Minska '+lab+'">−</button><span class="num"><b>'+v+'</b> kr</span><button type="button" data-act="presStep" data-id="'+id+'" data-d="50" aria-label="Öka '+lab+'">+</button></span></div>';
@@ -5178,6 +5210,14 @@ const ACT={
  haAddOpen(){HA.alla=null;S.sheet='haAdd';render();haAllaHamta()},
  haAdd(id){const a=HA.alla&&HA.alla.alla&&HA.alla.alla.find(x=>x.id===id),D=haData();if(!a||!D)return;a.vald=true;const k=a.t==='scene'||a.t==='script'?'scener':a.t==='sensor'?'givare':'lampor';
   haValj({lagg:id},()=>{if(haDemo()&&!D[k].some(e=>e.id===id))D[k].push(k==='givare'?{id,n:a.n,hn:a.n,v:'6.1',u:'°C'}:k==='scener'?{id,n:a.n,hn:a.n}:{id,n:a.n,hn:a.n,t:a.t,on:false,lagen:a.t==='light'?['brightness']:[]})});toast(a.n+' finns nu på tavlan')},
+ haTonSteg(v){const x=haLamp();if(!x)return;const W=haVarm(x);haLampSkicka(x,haTonCmd(Math.round(haTonK(x,W)/50)*50+(+v),W))},
+ haTonHel(){lsSet('haTonHel',lsGet('haTonHel')==='1'?null:'1');render()},
+ haFavV(i){const x=haLamp(),f=haFavs()[+i];if(!x||!f)return;const W=haVarm(x),c=haTonCmd(f.K,W);if(f.b!=null&&haKan(x).dim)c.b=f.b;haLampSkicka(x,c)},
+ haFavNy(){const x=haLamp();if(!x)return;S.haFav={i:-1,ny:1};S.sheet='haFav';render()},
+ haFavRed(i){if(!haFavs()[+i])return;S.haFav={i:+i};S.sheet='haFav';render()},
+ haFavUpd(){const x=haLamp(),F=S.haFav;if(!x||!F||F.i<0)return;const K=haTonK(x,haVarm(x)),b=haKan(x).dim?x.b||100:null;haFavSet(l=>{if(l[F.i])l[F.i]=Object.assign({},l[F.i],{K,b});return l});toast('Uppdaterad');S.sheet='haLampa';render()},
+ haFavDel(){const F=S.haFav;if(!F||F.i<0)return;haFavSet(l=>l.filter((f,j)=>j!==F.i));toast('Borttagen');S.sheet='haLampa';render()},
+ haFavTill(){S.sheet='haLampa';render()},
  haVarmV(v){const x=haLamp();if(x)haLampSkicka(x,haVarmCmd(+v,haVarm(x)))},
  haFarg(v){const D=haData(),x=D&&D.lampor.find(l=>l.id===S.haId),[h,m]=String(v).split(',').map(Number);haLampSkicka(x,{hs:[h,m]})},
  haScen(id){const D=haData();if(!D)return;HA.last=id;
@@ -5631,7 +5671,7 @@ document.addEventListener('change',e=>{const el=e.target.closest('[data-change]'
   if(el.dataset.change==='eko'){const v=Math.max(0,Number(String(el.value).replace(',','.'))||0);updJSON('ekonomi',{},o=>{o[id]=v;return o});return}
  const f=el.dataset.change==='freq'?{freq:Number(el.value)}:el.dataset.change==='min'?{min:Number(el.value)}:{who:el.value};mutate('clean',id,f);apiPost({action:'cleanSet',id,fields:f})});
 document.addEventListener('submit',async e=>{const f=e.target.closest('[data-form]');if(!f)return;e.preventDefault();const d=Object.fromEntries(new FormData(f));
- if(f.dataset.form==='haEdit'){haNamnSatt(d.hanamn);return}
+ if(f.dataset.form==='haFav'){haFavSpara(d.hafn);return}if(f.dataset.form==='haEdit'){haNamnSatt(d.hanamn);return}
  if(U3&&f.dataset.form==='recipeSearch'){S.u3Query=String(d.q||'').trim();document.activeElement?.blur();render();return}
  if(f.dataset.form==='setup'){S.key=String(d.key||'').trim().toLowerCase();S.error='';S.sync='busy';render();
   try{const data=await apiGet();lsSet('key',S.key);setData(data);S.sync='idle';if(!S.me)S.sheet='settings'}catch(err){S.error=err.message;S.key=''}render();return}
@@ -5760,7 +5800,7 @@ function recipeLibrary(saved){const store=D().recipeStore,heads=store&&store.hea
  const source=bankRaw().concat(saved?[]:D().recipes);heads.forEach(h=>{const r=recipeGet(h.id);if(r)source.unshift(r)});
  source.forEach(r=>{const root=recipeRoot(r.id),h=recipeHead(root);if(seen.has(root)||h&&h.archived)return;seen.add(root);const v=recipeLatest(r),b=bankRaw().find(x=>recipeRoot(x.id)===root);out.push(Object.assign({},v,{fav:!!(b&&b.fav),savedAt:b&&b.savedAt||v.updatedAt||''}))});return out}
 function recipeAliases(o){recipeVersions().forEach(r=>{if(r._root&&o[r._root]!=null)o[r.id]=o[r._root]});return o}
-function recipeWishes(a){return a.map(x=>{const h=x&&x.id&&!x.efter&&!x.las&&!x.fod&&!x.bort&&recipeHead(x.id);return h?Object.assign({},x,{id:h.id}):x})}
+function recipeWishes(a){return a.map(x=>{const h=x&&x.id&&!x.efter&&!x.las&&!x.fod&&!x.bort&&!x.haf&&recipeHead(x.id);return h?Object.assign({},x,{id:h.id}):x})}
 function recipeChange(k,fn,o){if(k==='onskelista')return fn(recipeWishes(o));if(!['betyg','frekvens','kcal','receptlogg'].includes(k))return fn(o);o=fn(recipeAliases(o));const n={};Object.keys(o).forEach(id=>{n[recipeRoot(id)]=o[id]});return n}
 function recipeAllowed(){return !!(D().recipeStore&&D().recipeStore.schema===1)}
 function recipeClone(r){return JSON.parse(JSON.stringify(r))}
