@@ -3288,6 +3288,10 @@ if(k==='vara'){const n=S.varaK||'',ing=S.varaTyp==='ing',R=regGet(),F=parseJ(set
   o.innerHTML=sheetHtml('shop','Ny vara','<button class="tb strong">Lägg till</button>',body,enter);return}
  if(k==='cleanAdd'){
   o.innerHTML=sheetHtml('cleanQuick','Ny syssla','<button class="tb strong">Lägg till</button>',group('<div class="cell"><input class="field" id="clean-title" name="title" placeholder="Vad behöver göras?" aria-label="Syssla" required autocomplete="off" enterkeyhint="done"></div>')+'<div class="foot">Rummet väljs utifrån namnet. Du kan ändra sysslan efteråt.</div>',enter);return}
+ if(k==='slaktRel'){const L=bdays(),key=S.slaktEdit,cur=L.find(b=>b.key===key);if(!cur){S.sheet=null;return}
+  const p=slaktParents(key),sel=(nm,val)=>menuSel('name="'+nm+'" aria-label="'+(nm==='p1'?'Förälder 1':'Förälder 2')+'"','<option value="">Ingen</option>'+L.filter(b=>b.key!==key).sort((a,b)=>a.name.localeCompare(b.name,'sv')).map(b=>'<option value="'+esc(b.key)+'"'+(b.key===val?' selected':'')+'>'+esc(b.name)+'</option>').join(''));
+  const body=sh('Föräldrar till '+esc(cur.name))+group(fieldCell('Förälder 1',sel('p1',p[0]))+fieldCell('Förälder 2',sel('p2',p[1])))+'<div class="foot">Välj föräldrar från födelsedagsregistret. Det går också att lämna ett eller båda fälten tomma. Förbindelserna visas först när du sparat.</div>';
+  o.innerHTML=sheetHtml('slaktRel','Släktrelationer','<button class="tb strong">Spara</button>',body,enter);return}
  if(k==='fodAdd'){const t=parse(today()),ty=t.getFullYear(),e=S.fodEdit&&bdays().find(b=>b.key===S.fodEdit),dd=e?e.dd:t.getDate(),mo=e?e.mo:t.getMonth(),col=e?e.own:'';
   let yrs='<option value="">Vet inte</option>';for(let y=ty;y>=ty-110;y--)yrs+='<option'+(e&&e.yr===y?' selected':'')+'>'+y+'</option>';
   const dot=(v,c,cd,lab,x)=>'<label title="'+esc(lab)+'"><input type="radio" name="col" value="'+v+'"'+(v===col?' checked':'')+' aria-label="'+esc(lab)+'"><span style="--c:'+c+';--cd:'+cd+(x||'')+'"></span></label>';
@@ -5333,6 +5337,10 @@ const ACT={
  cookTo(id,el){A.user=Date.now();S.cook.step=Number(el.dataset.i)||0;S.step[S.cook.id]=S.cook.step;render()},
  pickStep(id,el){S.step[id]=Number(el.dataset.i);render();setTimeout(()=>{const li=document.querySelector('.steps li.active');if(li&&li.getBoundingClientRect().top<70)li.scrollIntoView({block:'start',behavior:'smooth'})},30)},
  cookStep(id,el){A.user=Date.now();const r=recipeById(S.cook.id);S.cook.step=Math.max(0,Math.min(stegFor(r).length-1,S.cook.step+Number(el.dataset.d)));S.step[S.cook.id]=S.cook.step;render()},
+ slaktFocus(id){if(!bdays().some(b=>b.key===id))return;S.slaktFocus=id;render()},
+ slaktGroup(id){S.slaktFam=id;S.slaktFocus=null;ACT.nav('slakt')},
+ slaktEdit(id){S.slaktEdit=id;S.sheet='slaktRel';render()},
+ familjOpen(){closeSheets();ACT.nav('familj')},
  fodMode(id){if(!['hjul','manad','lista'].includes(id))return;S.fodMode=id;lsSet('fodMode',id);render()},
  fodMon(id){S.fodMon=Number(id);render()},
  ekoMonth(id,el){S.ekoMonth=addMonths(S.ekoMonth||thisMonth(),Number(el.dataset.d));render()},
@@ -5680,6 +5688,11 @@ document.addEventListener('submit',async e=>{const f=e.target.closest('[data-for
   D().clean.push({id,room,title:t,freq:7,min:10,lastDone:'',prevDone:'',doneBy:'',who:'',tip:'',plannedFor:'',snoozeUntil:'',order:null});const modal=S.sheet==='cleanAdd';if(modal)closeSheets();S.open.all=true;render();
   if(!modal)setTimeout(()=>{const x=document.querySelector('form[data-form="cleanQuick"][data-room="'+f.dataset.room+'"] .field');if(x)x.focus()},30);
   apiPost({action:'cleanAdd',id,room,title:t,freq:7,min:10});toast('Tillagd i '+room);return}
+ if(f.dataset.form==='slaktRel'){const k=S.slaktEdit,L=bdays(),keys=new Set(L.map(b=>b.key)),p=[String(d.p1||''),String(d.p2||'')].filter(x=>x&&x!==k&&keys.has(x));
+  if(new Set(p).size!==p.length){toast('Välj två olika föräldrar');return}
+  const par=fodEgna().par,ancestor=(from,target,seen=new Set())=>{if(from===target)return true;if(seen.has(from))return false;seen.add(from);return(Array.isArray(par[from])?par[from]:[]).some(x=>ancestor(x,target,seen))};
+  if(p.some(x=>ancestor(x,k))){toast('En person kan inte vara sin egen förfader');return}
+  setFodEgna(e=>{if(p.length)e.par[k]=p;else delete e.par[k];return e});closeSheets();render();toast('Relationerna sparades');return}
  if(f.dataset.form==='fodAdd'){const namn=String(d.namn||'').trim(),dg=Number(d.dag),mn=Number(d.man),ar=Number(d.ar)||null,md=new Date(2000,mn,0).getDate();if(!namn)return;
   if(dg>md){toast(cap(MON[mn-1])+' har bara '+md+' dagar');return}
   const x={namn,datum:pad(mn)+'-'+pad(dg)},k=bdKey(x),col=colOk(d.col)?d.col:'',ok=S.fodEdit,old=ok&&bdays().find(b=>b.key===ok);if(ar)x.ar=ar;
