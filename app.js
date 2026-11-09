@@ -1306,43 +1306,84 @@ function haLampSheet(enter){const x=haLamp();if(!x){S.sheet=null;return''}const 
  const body=top+'<div class="ha-ctl">'+vs+varm+(far?'<details class="ha-fd"'+(/ vald/.test(far)?' open':'')+'><summary>Färger</summary><div class="ha-farger">'+far+'</div></details>':'')+'</div>'+
   '<button type="button" class="ha-gear" data-act="haEdit" data-id="'+esc(x.id)+'" aria-label="Namn, rum och ta bort">'+I.gear+'</button>';
  return sheetHtml('haLampa',esc(x.n),'<span class="tb"></span>',body,enter,'<span class="tb"></span>')}
-// Apparater (dammsugare, diskmaskin) från Home Assistant: D.apparater. Äldre tjänst skickar inget, då syns inget.
-const HA_DEMO_APP=()=>[{id:'vacuum.roborock',typ:'robot',n:'Dammsugaren',st:'cleaning',bat:64,rumNu:'Kök',sug:'balanced',mopp:'medium',rum:[{id:16,n:'Vardagsrum'},{id:17,n:'Kök'},{id:18,n:'Sovrum'},{id:19,n:'Hall'},{id:20,n:'Badrum'}],yta:18,min:21,pct:46,und:[['Filter',72,150],['Huvudborste',210,300],['Sidoborste',120,200],['Givare',8,30]],senast:'I går 10:12 · 54 m² · 48 min'},{id:'sensor.diskmaskin',typ:'disk',n:'Diskmaskinen',st:'run',prog:'Eco 50°',progAlt:['Eco 50°','Auto 45–65°','Snabb 45°','Intensiv 70°'],kvar:42,pct:68,dorr:false,fjarr:true,salt:true,spol:false}];
+// Apparater (dammsugare, diskmaskin) från Home Assistant: D.apparater från väggdatorns tjänst. Äldre tjänst skickar inget, då syns inget.
+// Roboten: rum och kalibrering från RoborockCustomMap, kartbilden via /ha/karta. Rummen känns igen på sina färger i bilden.
+const HA_DEMO_RUM=[[16,'Vardagsrum','30,30 510,30 510,360 30,360','#6FA8EE'],[17,'Kök','510,30 870,30 870,270 510,270','#EFC15C'],[18,'Sovrum','540,270 870,270 870,630 540,630','#7FCB90'],[19,'Hall','270,360 510,360 510,270 540,270 540,630 270,630','#EE95AC'],[20,'Badrum','30,360 270,360 270,630 30,630','#AE97E0']];
+const haDemoKarta=()=>'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="900" height="660" viewBox="0 0 900 660">'+HA_DEMO_RUM.map(r=>'<polygon points="'+r[2]+'" fill="'+r[3]+'"/>').join('')+'<path d="M30 30h840v600H30zM510 30v84M510 192v168H30M270 360v270M540 270v360M540 270h330M270 360h54M408 360h102" fill="none" stroke="#5D6C7D" stroke-width="10" stroke-linejoin="round"/><rect x="760" y="24" width="54" height="26" rx="8" fill="#2C2C2E"/><circle cx="600" cy="180" r="24" fill="#fff" stroke="#0A84FF" stroke-width="6"/></svg>');
+const HA_DEMO_APP=()=>[{id:'vacuum.dammsugare',typ:'robot',n:'Dammsugaren',st:'segment_cleaning',bat:64,pct:46,yta:13.3,min:12,sug:'balanced',sugAlt:['quiet','balanced','turbo','max','max_plus','off','custom'],lage:'vac_and_mop',lageAlt:['vacuum','vac_and_mop','mop','custom'],vatten:'medium',vattenAlt:['off','low','medium','high','custom_water_flow','custom'],
+ und:[{n:'Filtertid kvar',h:54},{n:'Huvudborste tid kvar',h:47.9},{n:'Sensortid kvar',h:-142.6},{n:'Sidoborste tid kvar',h:-90.7}],senast:new Date(Date.now()-864e5).toISOString(),rutiner:[{id:'button.k',n:'K'},{id:'button.v_s',n:'V+S'},{id:'button.allt',n:'Allt - V + M'}],
+ karta:'demo',kartaV:'1',rum:HA_DEMO_RUM.map(([id,n,p])=>{const P=p.split(' ').map(q=>q.split(',').map(Number)),X=P.map(q=>q[0]),Y=P.map(q=>q[1]);return{id,n,b:[Math.min(...X),Math.min(...Y),Math.max(...X),Math.max(...Y)]}})},
+ {id:'diskmaskin',typ:'disk',n:'Diskmaskinen',st:'run',prog:'Eco 50°',progId:'eco',progAlt:[['intensiv','Intensiv 70°'],['auto','Auto 45–65°'],['eco','Eco 50°'],['snabb','Snabb 65°'],['natt','Natt']],pct:68,slut:new Date(Date.now()+42*60000).toISOString(),dorr:'locked',salt:false,spol:true,fjarr:true,kanStoppa:true}];
 const HAI_APP={robot:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M7 9.2a6 6 0 0 1 10 0"/><circle cx="12" cy="13.6" r="1.8"/></svg>',disk:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="3" width="15" height="18" rx="2.5"/><path d="M4.5 8h15"/><circle cx="8" cy="5.5" r=".4" fill="currentColor"/><circle cx="11" cy="5.5" r=".4" fill="currentColor"/><path d="M9 13.5c1-1 2-1 3 0s2 1 3 0M9 16.5c1-1 2-1 3 0s2 1 3 0"/></svg>',
- play:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l10.5-6.5z"/></svg>',paus:'<svg viewBox="0 0 24 24" fill="currentColor"><rect x="7" y="5.5" width="3.6" height="13" rx="1"/><rect x="13.4" y="5.5" width="3.6" height="13" rx="1"/></svg>',hem:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11 12 4l8 7M6.5 9.5V20h11V9.5"/></svg>'};
+ play:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l10.5-6.5z"/></svg>',paus:'<svg viewBox="0 0 24 24" fill="currentColor"><rect x="7" y="5.5" width="3.6" height="13" rx="1"/><rect x="13.4" y="5.5" width="3.6" height="13" rx="1"/></svg>',stopp:'<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6.5" y="6.5" width="11" height="11" rx="2"/></svg>',hem:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11 12 4l8 7M6.5 9.5V20h11V9.5"/></svg>'};
 const haApps=()=>{const D=haData();return D&&D.apparater||[]};
 const haAppX=()=>haApps().find(a=>a.id===S.haAppId);
-const HA_ROB_ST={cleaning:'Städar',docked:'Laddar',charging:'Laddar',returning:'Åker hem',paused:'Pausad',idle:'Väntar',error:'Behöver hjälp'};
-const HA_DISK_ST={run:'Diskar',paus:'Pausad',klar:'Klar',redo:'Redo att starta',av:'Av'};
-const haKlockan=min=>{const d=new Date(Date.now()+min*60000);return pad(d.getHours())+':'+pad(d.getMinutes())};
-const haAppAktiv=a=>a.typ==='robot'?/cleaning|returning/.test(a.st):a.st==='run';
-const haAppStat=a=>a.typ==='robot'?(a.st==='cleaning'?'Städar '+(a.rumNu?a.rumNu.toLowerCase():'')+' · '+a.pct+' %':(HA_ROB_ST[a.st]||a.st)+' · '+a.bat+' %'):a.st==='run'?'Klar '+haKlockan(a.kvar)+' · '+a.kvar+' min kvar':a.st==='klar'?'Klar · töm diskmaskinen':(HA_DISK_ST[a.st]||a.st)+(a.prog?' · '+a.prog:'');
-const haAppTile=a=>'<div class="ha-t ha-ap'+(haAppAktiv(a)?' on':'')+' ha-ap-'+a.typ+'" role="button" tabindex="0" data-act="haApp" data-id="'+esc(a.id)+'" aria-label="'+esc(a.n)+', '+esc(haAppStat(a))+'"><span class="ha-i">'+HAI_APP[a.typ]+'</span><span class="ha-tx"><span class="ha-n">'+esc(a.n)+'</span><span class="ha-s">'+esc(haAppStat(a))+'</span></span>'+(haAppAktiv(a)&&a.pct!=null?'<i class="ha-ap-p" style="--p:'+a.pct+'%"></i>':'')+'</div>';
-// Kartan: riktig bild från Home Assistant (Roborocks kartbild via tjänsten), i testläget en ritad lägenhet
-const HA_KARTA_DEMO=[['Vardagsrum','10,10 170,10 170,120 10,120','#6FA8EE',90,62],['Kök','170,10 290,10 290,90 180,90 170,90','#EFC15C',230,48],['Sovrum','180,90 290,90 290,210 180,210','#7FCB90',236,152],['Hall','90,120 170,120 170,90 180,90 180,210 90,210','#EE95AC',136,168],['Badrum','10,120 90,120 90,210 10,210','#AE97E0',50,166]];
-function haKarta(a){const V=S.haRobRum||[],sel=n=>{const r=(a.rum||[]).find(x=>x.n===n);return r&&V.includes(r.id)};
- if(!haDemo())return'<div class="ha-karta"><img src="'+esc(haUrl()+'/karta?id='+encodeURIComponent(a.id)+'&v='+(HA.v||0))+'" alt="Karta över hemmet"></div>';
- const rid=n=>((a.rum||[]).find(r=>r.n===n)||{}).id,rum=HA_KARTA_DEMO.map(([n,p,c,x,y])=>'<polygon points="'+p+'" fill="'+c+'" opacity="'+(V.length&&!sel(n)?.35:.92)+'"'+(sel(n)?' class="vald"':'')+' data-act="haRobRum" data-id="'+rid(n)+'" role="button" aria-label="'+n+'" aria-pressed="'+!!sel(n)+'"/><text x="'+x+'" y="'+y+'"'+(V.length&&!sel(n)?' class="av"':'')+'>'+n+'</text>').join('');
- const vag=/cleaning|paused/.test(a.st)?'<path class="ha-k-vag" d="M276 22v60M266 82V22M256 22v60M246 82V22M236 22v60M226 82V22M216 22v60M206 82V22M196 22v40"/>':'';
- const rob=/cleaning|paused/.test(a.st)?[196,62]:[262,20];
- return'<div class="ha-karta"><svg viewBox="0 0 300 220" role="img" aria-label="Karta över lägenheten">'+rum+'<path class="ha-k-vagg" d="M10 10h280v200H10zM170 10v28M170 64v56H10M90 120v90M180 90v120M180 90h110M90 120h18M136 120h34"/>'+vag+
-  '<g class="ha-k-dock" transform="translate(262 13)"><rect x="-9" y="-5" width="18" height="9" rx="3"/><path d="M1-3.5-2 .2h3l-2 3"/></g><g class="ha-k-rob" transform="translate('+rob+')"><circle r="8.5"/><circle r="3" cy="-2.6"/></g></svg></div>'}
+const haStadar=a=>/clean|mopping|going_to_target/.test(a.st||'');
+const haRobSt=a=>haStadar(a)?'Städar':({returning_home:'Åker hem',docking:'Åker hem',paused:'Pausad',charging:'Laddar',charging_complete:'Laddad',idle:'Väntar',error:'Behöver hjälp',device_offline:'Svarar inte',emptying_the_bin:'Tömmer',washing_the_mop:'Tvättar moppen',washing_the_mop_2:'Tvättar moppen',going_to_wash_the_mop:'Tvättar moppen',air_drying_stopping:'Torkar moppen',docked:'Laddar'}[a.st]||'Vid laddstationen');
+const HA_DISK_ST={inactive:'Av',ready:'Redo',delayedstart:'Startar senare',run:'Diskar',pause:'Pausad',actionrequired:'Behöver hjälp',finished:'Klar',error:'Fel',aborting:'Avbryter'};
+const haKvar=a=>a.slut?Math.max(0,Math.round((Date.parse(a.slut)-Date.now())/60000)):null;
+const haKl=t=>{const d=new Date(t);return pad(d.getHours())+':'+pad(d.getMinutes())};
+const haNar=t=>{if(!t)return'';const d=new Date(t),n=new Date(),dag=Math.round((new Date(n.getFullYear(),n.getMonth(),n.getDate())-new Date(d.getFullYear(),d.getMonth(),d.getDate()))/864e5);return(dag===0?'I dag':dag===1?'I går':d.getDate()+' '+['jan','feb','mar','apr','maj','jun','jul','aug','sep','okt','nov','dec'][d.getMonth()])+' '+haKl(t)};
+const haAppAktiv=a=>a.typ==='robot'?haStadar(a)||/returning|docking/.test(a.st||''):/run|delayedstart|pause/.test(a.st||'');
+const HA_UND=[[/huvud|main/i,'Huvudborste',300,'Byt'],[/sido|side/i,'Sidoborste',200,'Byt'],[/filter/i,'Filter',150,'Byt'],[/sensor/i,'Givare',30,'Rengör']];
+const haUnd=a=>(a.und||[]).map(u=>{const t=HA_UND.find(x=>x[0].test(u.n))||[0,u.n.replace(/ tid kvar$/i,''),100,'Byt'];return{n:t[1],h:u.h,max:t[2],gor:t[3]}});
+const haAppStat=a=>{if(a.typ==='robot'){const s=haRobSt(a);return haStadar(a)?s+(a.pct!=null?' · '+Math.round(a.pct)+' %':''):s+(a.bat!=null&&!/Behöver|Svarar/.test(s)?' · '+Math.round(a.bat)+' %':'')}
+ const k=haKvar(a);return a.st==='run'&&k!=null?'Klar '+haKl(a.slut)+' · '+k+' min kvar':a.st==='finished'?'Klar · töm diskmaskinen':(HA_DISK_ST[a.st]||'Svarar inte')+(a.st==='ready'&&a.prog?' · '+a.prog:'')};
+const haAppVarn=a=>a.typ==='robot'?haUnd(a).filter(u=>u.h<=0).map(u=>u.gor+' '+u.n.toLowerCase()):[a.salt&&'Fyll på salt',a.spol&&'Fyll på spolglans'].filter(Boolean);
+const haAppTile=a=>'<div class="ha-t ha-ap'+(haAppAktiv(a)?' on':'')+' ha-ap-'+a.typ+'" role="button" tabindex="0" data-act="haApp" data-id="'+esc(a.id)+'" aria-label="'+esc(a.n)+', '+esc(haAppStat(a))+'"><span class="ha-i">'+HAI_APP[a.typ]+'</span><span class="ha-tx"><span class="ha-n">'+esc(a.n)+'</span><span class="ha-s">'+esc(haAppStat(a))+'</span></span>'+(haAppVarn(a).length&&!haAppAktiv(a)?'<span class="ha-ap-v" title="'+esc(haAppVarn(a).join(', '))+'">!</span>':'')+(haAppAktiv(a)&&a.pct!=null?'<i class="ha-ap-p" style="--p:'+a.pct+'%"></i>':'')+'</div>';
+// Kartan: bilden ritas om i en canvas. Varje rum får sin färg ur bilden (vanligast inom rummets ruta); valda rum behåller färgen, övriga tonas ned.
+const haRumN=(a,r)=>r.n||'Rum '+((a.rum||[]).indexOf(r)+1);
+function haKartaLas(a){const src=a.karta==='demo'?haDemoKarta():haUrl()+'/karta?id='+encodeURIComponent(a.id)+'&v='+encodeURIComponent(a.kartaV||''),K=HA.km;
+ if(K&&K.src===src)return K.ok?K:null;const k=HA.km={src,ok:false,url:{}};const img=new Image();img.crossOrigin='anonymous';
+ img.onload=()=>{try{haKartaTolka(k,img,a);k.ok=true}catch(e){k.fel=true}if(HA.km===k)render()};img.onerror=()=>{k.fel=true;if(HA.km===k)render()};img.src=src;return null}
+function haKartaTolka(k,img,a){const W=img.naturalWidth||img.width,H=img.naturalHeight||img.height,c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');g.drawImage(img,0,0);const D=g.getImageData(0,0,W,H).data;
+ let x0=W,y0=H,x1=0,y1=0;for(let y=0;y<H;y+=2)for(let x=0;x<W;x+=2)if(D[(y*W+x)*4+3]>40){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
+ const m=Math.round(Math.max(x1-x0,y1-y0)*.04);x0=Math.max(0,x0-m);y0=Math.max(0,y0-m);x1=Math.min(W,x1+m);y1=Math.min(H,y1+m);
+ const gra=(r,gg,b)=>Math.abs(r-gg)<20&&Math.abs(gg-b)<34&&Math.abs(r-b)<40;
+ const rum=(a.rum||[]).filter(r=>r.b).map(r=>{const h={};const[bx0,by0,bx1,by1]=r.b;for(let y=Math.max(0,by0);y<Math.min(H,by1);y+=2)for(let x=Math.max(0,bx0);x<Math.min(W,bx1);x+=2){const i=(y*W+x)*4;if(D[i+3]<200||gra(D[i],D[i+1],D[i+2])||D[i]+D[i+1]+D[i+2]>720)continue;const q=(D[i]>>4)+'.'+(D[i+1]>>4)+'.'+(D[i+2]>>4);h[q]=(h[q]||0)+1}
+  const b=Object.keys(h).sort((p,q)=>h[q]-h[p])[0];return{id:r.id,b:r.b,f:b?b.split('.').map(v=>(+v<<4)+8):null}});
+ const cw=x1-x0,ch=y1-y0,kl=new Int8Array(cw*ch).fill(-1),sx=new Float64Array(rum.length),sy=new Float64Array(rum.length),sn=new Float64Array(rum.length);
+ for(let y=0;y<ch;y++)for(let x=0;x<cw;x++){const i=((y+y0)*W+x+x0)*4;if(D[i+3]<200)continue;let bj=-1,bd=34*34*3;for(let j=0;j<rum.length;j++){const f=rum[j].f;if(!f)continue;const d=(D[i]-f[0])**2+(D[i+1]-f[1])**2+(D[i+2]-f[2])**2;if(d<bd){bd=d;bj=j}}
+  if(bj>=0){const[bx0,by0,bx1,by1]=rum[bj].b,X=x+x0,Y=y+y0;if(X<bx0-30||X>bx1+30||Y<by0-30||Y>by1+30)continue;kl[y*cw+x]=bj;sx[bj]+=X;sy[bj]+=Y;sn[bj]++}}
+ rum.forEach((r,j)=>{r.cx=sn[j]?sx[j]/sn[j]:(r.b[0]+r.b[2])/2;r.cy=sn[j]?sy[j]/sn[j]:(r.b[1]+r.b[3])/2});
+ Object.assign(k,{W,H,crop:[x0,y0,cw,ch],rum,kl,bas:g.getImageData(x0,y0,cw,ch)})}
+function haKartaUrl(k,a,V){const key=V.join(',')+'|'+(a.rum||[]).map(r=>haRumN(a,r)).join(',');if(k.url[key])return k.url[key];
+ const[x0,y0,cw,ch]=k.crop,s=Math.min(1,900/Math.max(cw,ch)),c=document.createElement('canvas');c.width=cw;c.height=ch;const g=c.getContext('2d'),B=new ImageData(new Uint8ClampedArray(k.bas.data),cw,ch),P=B.data;
+ if(V.length){const val=k.rum.map(r=>V.includes(r.id));for(let i=0;i<k.kl.length;i++){const j=k.kl[i];if(j<0||val[j])continue;const p=i*4,l=.3*P[p]+.59*P[p+1]+.11*P[p+2];P[p]=P[p+1]=P[p+2]=l*.45+70;P[p+3]=P[p+3]*.7}}
+ g.putImageData(B,0,0);const fs=Math.round(Math.max(cw,ch)/26);g.font='600 '+fs+'px -apple-system,system-ui,sans-serif';g.textAlign='center';g.textBaseline='middle';g.lineJoin='round';
+ k.rum.forEach(r=>{const R=(a.rum||[]).find(x=>x.id===r.id);if(!R)return;const t=haRumN(a,R),x=r.cx-x0,y=r.cy-y0,on=!V.length||V.includes(r.id);g.lineWidth=fs*.28;g.strokeStyle=on?'rgba(255,255,255,.85)':'rgba(40,38,48,.6)';g.strokeText(t,x,y);g.fillStyle=on?'#1C1C1E':'rgba(255,255,255,.75)';g.fillText(t,x,y)});
+ let ut=c;if(s<1){ut=document.createElement('canvas');ut.width=Math.round(cw*s);ut.height=Math.round(ch*s);ut.getContext('2d').drawImage(c,0,0,ut.width,ut.height)}
+ const keys=Object.keys(k.url);if(keys.length>12)delete k.url[keys[0]];return k.url[key]=ut.toDataURL('image/png')}
+function haKarta(a){const V=S.haRobRum||[],k=haKartaLas(a);
+ if(!k)return'<div class="ha-karta tom">'+(HA.km&&HA.km.fel?'Kartan gick inte att hämta':'Hämtar kartan …')+'</div>';
+ return'<div class="ha-karta"><img src="'+haKartaUrl(k,a,V)+'" alt="Karta över hemmet. Tryck på ett rum för att välja det." data-act="haKartaTryck" data-id="'+esc(a.id)+'" style="aspect-ratio:'+k.crop[2]+'/'+k.crop[3]+'"></div>'}
+const HA_RUMNAMN=['Kök','Vardagsrum','Sovrum','Hall','Badrum','Kontor','Barnrum','Matplats','Klädkammare','Tvättstuga','Arbetsrum','Gästrum'];
 function haAppSheet(enter){const a=haAppX();if(!a){S.sheet=null;return''}
  const top='<div class="ha-top"><span class="ha-i ha-ap-'+a.typ+(haAppAktiv(a)?' on':'')+'">'+HAI_APP[a.typ]+'</span><div class="ha-tx"><div class="ha-n">'+esc(a.n)+'</div><div class="ha-s">'+esc(haAppStat(a))+'</div></div><button type="button" class="ha-x" data-act="sheetClose" aria-label="Stäng">'+I.x+'</button></div>';
- const seg=(rub,act,alt,v)=>'<div class="ha-ap-rad"><span>'+rub+'</span><div class="ha-seg">'+alt.map(([k,n])=>'<button type="button" class="'+(k===v?'on':'')+'" data-act="'+act+'" data-id="'+k+'">'+n+'</button>').join('')+'</div></div>';
+ const seg=(rub,k,alt,v)=>{alt=alt.filter(([o])=>o!=null);return alt.length?'<div class="ha-ap-rad"><span>'+rub+'</span><div class="ha-seg">'+alt.map(([o,n])=>'<button type="button" class="'+(o===v?'on':'')+'" data-act="haRobSet" data-id="'+k+':'+esc(o)+'" aria-pressed="'+(o===v)+'">'+n+'</button>').join('')+'</div></div>':''};
+ const finns=(L,o)=>(L||[]).includes(o)?o:null;
  const knapp=(ik,n,act,id,prim,av)=>'<button type="button" class="ha-ap-k'+(prim?' prim':'')+'" data-act="'+act+'" data-id="'+(id||'')+'"'+(av?' disabled':'')+'>'+ik+'<span>'+n+'</span></button>';
  let b='';
- if(a.typ==='robot'){const V=S.haRobRum||[],stadar=a.st==='cleaning';
-  b+=haKarta(a)+'<div class="ha-rumval">'+'<button type="button" class="'+(V.length?'':'on')+'" data-act="haRobRum" data-id="">Hela hemmet</button>'+(a.rum||[]).map(r=>'<button type="button" class="'+(V.includes(r.id)?'on':'')+'" data-act="haRobRum" data-id="'+r.id+'">'+esc(r.n)+'</button>').join('')+'</div>';
-  b+='<div class="ha-ap-ks">'+(stadar?knapp(HAI_APP.paus,'Pausa','haRob','paus',true):knapp(HAI_APP.play,V.length?'Städa '+(V.length===1?(a.rum.find(r=>r.id===V[0])||{}).n.toLowerCase():V.length+' rum'):'Städa allt','haRob','start',true))+knapp(HAI_APP.hem,'Åk hem','haRob','hem',false,a.st==='docked'||a.st==='charging')+'</div>';
-  if(stadar)b+='<div class="ha-ap-info">'+a.yta+' m² · '+a.min+' min · batteri '+a.bat+' %</div>';
-  b+=seg('Sug','haRobSug',[['quiet','Tyst'],['balanced','Normal'],['turbo','Turbo'],['max','Max']],a.sug)+seg('Mopp','haRobMopp',[['off','Av'],['low','Låg'],['medium','Medel'],['high','Hög']],a.mopp);
-  b+='<div class="ha-ap-rub">Underhåll</div><div class="ha-ap-lista">'+(a.und||[]).map(([n,h,max])=>'<div class="ha-und-r"><span>'+n+'</span><i style="--p:'+Math.round(100*h/max)+'%"'+(h/max<.15?' class="lag"':'')+'></i><b>'+h+' h</b></div>').join('')+'</div>'+(a.senast?'<div class="ha-ap-info">Senast: '+esc(a.senast)+'</div>':'')}
- else{const kor=a.st==='run',R=54,O=2*Math.PI*R;
-  b+='<div class="ha-ring"><svg viewBox="0 0 128 128"><circle cx="64" cy="64" r="'+R+'"/><circle class="p" cx="64" cy="64" r="'+R+'" stroke-dasharray="'+O+'" stroke-dashoffset="'+(O*(1-(kor||a.st==='paus'?a.pct:a.st==='klar'?100:0)/100))+'"/></svg><div><b>'+(kor||a.st==='paus'?a.kvar+' min':a.st==='klar'?'Klar':'–')+'</b><span>'+(kor?'klar '+haKlockan(a.kvar):esc(HA_DISK_ST[a.st]||''))+'</span></div></div><div class="ha-ap-info">'+esc(a.prog||'')+'</div>';
-  b+='<div class="ha-ap-ks">'+(kor?knapp(HAI_APP.paus,'Pausa','haDisk','paus',true):knapp(HAI_APP.play,a.st==='paus'?'Fortsätt':'Starta','haDisk','start',true,!a.fjarr||a.dorr))+'</div>'+(!kor&&(!a.fjarr||a.dorr)?'<div class="ha-ap-info">'+(a.dorr?'Stäng luckan först.':'Tryck på fjärrstart på maskinen först.')+'</div>':'');
-  b+='<div class="ha-ap-rub">Program</div><div class="ha-rumval">'+(a.progAlt||[]).map(p=>'<button type="button" class="'+(p===a.prog?'on':'')+'" data-act="haDiskProg" data-id="'+esc(p)+'"'+(kor?' disabled':'')+'>'+esc(p)+'</button>').join('')+'</div>';
-  b+='<div class="ha-ap-lista">'+[['Lucka',a.dorr?'Öppen':'Stängd'],['Salt',a.salt?'Finns':'Fyll på',!a.salt],['Spolglans',a.spol?'Finns':'Fyll på',!a.spol]].map(([n,v,f])=>'<div><span>'+n+'</span><b'+(f?' class="fyll"':'')+'>'+v+'</b></div>').join('')+'</div>'}
+ if(a.typ==='robot'){const V=S.haRobRum||[],st=haStadar(a),R=a.rum||[],NR=S.haRumNamn!=null&&R.find(r=>r.id===S.haRumNamn);
+  b+=haKarta(a)+'<div class="ha-rumval"><button type="button" class="'+(V.length?'':'on')+'" data-act="haRobRum" data-id="">Hela hemmet</button>'+R.map(r=>'<button type="button" class="'+(V.includes(r.id)?'on':'')+(NR&&NR.id===r.id?' namn':'')+'" data-act="haRobRum" data-id="'+r.id+'" data-hold-lift="haRumNamn">'+esc(haRumN(a,r))+'</button>').join('')+'</div>';
+  if(NR)b+='<div class="ha-ap-rub">Vad heter '+esc(haRumN(a,NR).toLowerCase())+'?</div><div class="ha-rumval ha-namnval">'+HA_RUMNAMN.map(n=>'<button type="button" class="'+(NR.n===n?'on':'')+'" data-act="haRumNamnV" data-id="'+NR.id+':'+n+'">'+n+'</button>').join('')+'</div>';
+  else if(R.some(r=>!r.n))b+='<div class="ha-ap-info">Håll in ett rum för att ge det ett namn.</div>';
+  const vn=V.length===1?haRumN(a,R.find(r=>r.id===V[0])||{}).toLowerCase():V.length+' rum';
+  b+='<div class="ha-ap-ks">'+(st?knapp(HAI_APP.paus,'Pausa','haRob','paus',true):knapp(HAI_APP.play,V.length?'Städa '+vn:a.st==='paused'?'Fortsätt':'Städa allt','haRob','start',true))+knapp(HAI_APP.hem,'Åk hem','haRob','hem',false,/charging|docked|returning|docking/.test(a.st||''))+'</div>';
+  if(st&&(a.yta!=null||a.min!=null))b+='<div class="ha-ap-info">'+[a.yta!=null&&String(a.yta).replace('.',',')+' m²',a.min!=null&&Math.round(a.min)+' min',a.bat!=null&&'batteri '+Math.round(a.bat)+' %'].filter(Boolean).join(' · ')+'</div>';
+  b+=seg('Läge','lage',[[finns(a.lageAlt,'vacuum'),'Sug'],[finns(a.lageAlt,'vac_and_mop'),'Båda'],[finns(a.lageAlt,'mop'),'Mopp'],[finns(a.lageAlt,'custom'),'Eget']],a.lage)+
+   (a.lage!=='mop'?seg('Sug','sug',[[finns(a.sugAlt,'quiet'),'Tyst'],[finns(a.sugAlt,'balanced'),'Normal'],[finns(a.sugAlt,'turbo'),'Turbo'],[finns(a.sugAlt,'max'),'Max'],[finns(a.sugAlt,'max_plus'),'Max+']],a.sug):'')+
+   (a.lage!=='vacuum'?seg('Vatten','vatten',[[finns(a.vattenAlt,'low'),'Låg'],[finns(a.vattenAlt,'medium'),'Medel'],[finns(a.vattenAlt,'high'),'Hög']],a.vatten):'');
+  if(a.lage==='custom')b+='<div class="ha-ap-info">Eget = rummens egna inställningar från Roborock-appen.</div>';
+  if((a.rutiner||[]).length)b+='<div class="ha-ap-rub">Rutiner</div><div class="ha-rumval">'+a.rutiner.map(r=>'<button type="button" data-act="haRutin" data-id="'+esc(r.id)+'">'+esc(r.n)+'</button>').join('')+'</div>';
+  const U=haUnd(a);if(U.length)b+='<div class="ha-ap-rub">Underhåll</div><div class="ha-ap-lista">'+U.map(u=>'<div class="ha-und-r"><span>'+u.n+'</span><i style="--p:'+Math.max(0,Math.min(100,Math.round(100*u.h/u.max)))+'%"'+(u.h/u.max<.15?' class="lag"':'')+'></i><b'+(u.h<=0?' class="fyll"':'')+'>'+(u.h<=0?u.gor+' nu':Math.round(u.h)+' h')+'</b></div>').join('')+'</div>';
+  if(a.senast)b+='<div class="ha-ap-info">Senast städat '+haNar(a.senast).toLowerCase()+'</div>'}
+ else{const kor=/run|pause|delayedstart/.test(a.st||''),k=haKvar(a),R=54,O=2*Math.PI*R,p=kor?(a.pct||0):a.st==='finished'?100:0,kan=a.fjarr&&a.dorr!=='open';
+  b+='<div class="ha-ring"><svg viewBox="0 0 128 128"><circle cx="64" cy="64" r="'+R+'"/><circle class="p" cx="64" cy="64" r="'+R+'" stroke-dasharray="'+O+'" stroke-dashoffset="'+(O*(1-p/100))+'"/></svg><div><b>'+(kor&&k!=null?k+' min':a.st==='finished'?'Klar':esc(HA_DISK_ST[a.st]||'–'))+'</b><span>'+(kor&&a.slut?'klar '+haKl(a.slut):kor?'':esc(a.prog||''))+'</span></div></div>'+(kor?'<div class="ha-ap-info">'+esc(a.prog||'')+'</div>':'');
+  b+='<div class="ha-ap-ks">'+(kor?(a.kanStoppa?'<button type="button" class="ha-ap-k prim hold" data-hold="haDiskStopp" data-id="'+esc(a.id)+'"><i class="sh-fill"></i>'+HAI_APP.stopp+'<span>Håll in för att stoppa</span></button>':''):knapp(HAI_APP.play,'Starta '+esc(a.prog||''),'haDisk','start',true,!kan))+'</div>'+(!kor&&!kan?'<div class="ha-ap-info">'+(a.dorr==='open'?'Stäng luckan först.':'Tryck på fjärrstart på diskmaskinen först.')+'</div>':'');
+  if(!kor)b+='<div class="ha-ap-rub">Program</div><div class="ha-rumval">'+(a.progAlt||[]).map(([o,n])=>'<button type="button" class="'+(o===a.progId?'on':'')+'" data-act="haDiskProg" data-id="'+esc(o)+'">'+esc(n)+'</button>').join('')+'</div>';
+  const L=[['Lucka',{closed:'Stängd',locked:'Låst',open:'Öppen'}[a.dorr]||'–'],a.salt!=null&&['Salt',a.salt?'Fyll på':'Räcker',a.salt],a.spol!=null&&['Spolglans',a.spol?'Fyll på':'Räcker',a.spol]].filter(Boolean);
+  b+='<div class="ha-ap-lista">'+L.map(([n,v,f])=>'<div><span>'+n+'</span><b'+(f?' class="fyll"':'')+'>'+v+'</b></div>').join('')+'</div>'}
  return sheetHtml('haApp',esc(a.n),'<span class="tb"></span>',top+'<div class="ha-ap-in">'+b+'</div>',enter,'<span class="tb"></span>')}
 // Ändra en enhet utan tangentbord: namn och rum väljs bland förslag, Ta bort kräver håll in
 const HA_RUM=['Kök','Vardagsrum','Sovrum','Hall','Badrum','Kontor','Barnrum','Ute'];
@@ -5209,13 +5250,19 @@ const ACT={
  haTog(id){const x=(haData()||{lampor:[]}).lampor.find(e=>e.id===id);if(!x||x.nas)return;try{u5Tick()}catch(e){}const was=x.on;x.on=!was;if(x.on&&!x.b&&x.t==='light')x.b=null;HA.last=null;render();haSend({id,gor:'vaxla'},()=>{x.on=was})},
  haTest(){closeSheets();S.haTest=true;S.haRum=null;HA.demo=null;HA.syn={};HA.byt={};HA.last=null;S.view='hus';try{scrollTo(0,0)}catch(e){}render()},
  haRumVy(id){S.haRum=id?(id==='_'?'':id):null;try{scrollTo(0,0)}catch(e){}render()},
- haApp(id){S.haAppId=id;S.sheet='haApp';try{u5Tick()}catch(e){}render()},
- haRobRum(id){if(id===''){S.haRobRum=[];return render()}const v=+id,L=S.haRobRum||[];S.haRobRum=L.includes(v)?L.filter(x=>x!==v):L.concat(v);render()},
- haRob(g){const a=haAppX();if(!a)return;const rum=(S.haRobRum||[]).slice();if(haDemo()){if(g==='start'){a.st='cleaning';a.pct=a.pct||1;a.rumNu=rum.length?(a.rum.find(r=>r.id===rum[0])||{}).n:'Kök'}else if(g==='paus')a.st='paused';else{a.st='returning'}render();return}haSend({app:a.id,gor:g,rum})},
- haRobSug(v){const a=haAppX();if(!a)return;a.sug=v;render();haSend({app:a.id,sug:v})},
- haRobMopp(v){const a=haAppX();if(!a)return;a.mopp=v;render();haSend({app:a.id,mopp:v})},
- haDisk(g){const a=haAppX();if(!a)return;a.st=g==='paus'?'paus':'run';render();haSend({app:a.id,gor:g})},
- haDiskProg(p){const a=haAppX();if(!a||a.st==='run')return;a.prog=p;render();haSend({app:a.id,prog:p})},
+ haApp(id){S.haAppId=id;S.sheet='haApp';S.haRumNamn=null;try{u5Tick()}catch(e){}render()},
+ haRobRum(id){S.haRumNamn=null;if(id===''){S.haRobRum=[];return render()}const v=+id,L=S.haRobRum||[];S.haRobRum=L.includes(v)?L.filter(x=>x!==v):L.concat(v);render()},
+ haKartaTryck(id,el,e){const a=haAppX(),k=HA.km;if(!a||!k||!k.ok||!e)return;const r=el.getBoundingClientRect(),[x0,y0,cw,ch]=k.crop,x=Math.floor((e.clientX-r.left)/r.width*cw),y=Math.floor((e.clientY-r.top)/r.height*ch);
+  let j=x>=0&&y>=0&&x<cw&&y<ch?k.kl[y*cw+x]:-1,rid=j>=0?k.rum[j].id:null;if(rid==null){const X=x+x0,Y=y+y0,T=(a.rum||[]).filter(q=>q.b&&X>=q.b[0]&&X<=q.b[2]&&Y>=q.b[1]&&Y<=q.b[3]).sort((p,q)=>(p.b[2]-p.b[0])*(p.b[3]-p.b[1])-(q.b[2]-q.b[0])*(q.b[3]-q.b[1]));rid=T[0]&&T[0].id}
+  if(rid!=null){try{u5Tick()}catch(err){}ACT.haRobRum(String(rid))}},
+ haRumNamn(id){S.haRumNamn=S.haRumNamn===+id?null:+id;render()},
+ haRumNamnV(v){const a=haAppX();if(!a)return;const i=v.indexOf(':'),nr=+v.slice(0,i),n=v.slice(i+1),r=(a.rum||[]).find(x=>x.id===nr);if(!r)return;S.haRumNamn=null;haValj({rumnr:nr,rumnamn:n},()=>{r.n=n})},
+ haRob(g){const a=haAppX();if(!a)return;const rum=(S.haRobRum||[]).slice(),was=a.st;a.st=g==='start'?(rum.length?'segment_cleaning':'cleaning'):g==='paus'?'paused':'returning_home';if(g==='start'&&a.pct==null)a.pct=0;render();haSend({app:a.id,gor:g,rum},()=>{a.st=was})},
+ haRobSet(v){const a=haAppX();if(!a)return;const i=v.indexOf(':'),k=v.slice(0,i),o=v.slice(i+1),was=a[k];a[k]=o;render();haSend({app:a.id,[k]:o},()=>{a[k]=was})},
+ haRutin(id){const a=haAppX();if(!a)return;const r=(a.rutiner||[]).find(x=>x.id===id);toast('Startar '+(r?r.n:'rutinen'));if(haDemo()){a.st='cleaning';render();return}haSend({app:a.id,rutin:id})},
+ haDisk(g){const a=haAppX();if(!a)return;const was=a.st;a.st='run';if(haDemo()){a.slut=new Date(Date.now()+180*60000).toISOString();a.pct=0}render();haSend({app:a.id,gor:'start',prog:a.progId},()=>{a.st=was})},
+ haDiskStopp(){const a=haAppX();if(!a)return;const was=a.st;a.st='ready';render();haSend({app:a.id,gor:'stopp'},()=>{a.st=was})},
+ haDiskProg(p){const a=haAppX();if(!a||/run|pause/.test(a.st||''))return;const was=[a.progId,a.prog];a.progId=p;a.prog=((a.progAlt||[]).find(x=>x[0]===p)||[0,p])[1];render();haSend({app:a.id,prog:p},()=>{[a.progId,a.prog]=was})},
  haLampa(id){S.haId=id;S.sheet='haLampa';HA.vsId=null;try{u5Tick()}catch(e){}render()},
  haEdit(id){if(!haAllaEnh().some(e=>e.id===id))return;S.haId=id;S.sheet='haEdit';render()},
  haNamn(v){const x=haAllaEnh().find(e=>e.id===S.haId);if(!x)return;haValj({id:x.id,namn:v},()=>{x.n=v||x.hn||x.n})},
