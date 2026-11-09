@@ -1258,7 +1258,9 @@ const HAI={bulb:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stro
 const haGiv=g=>{const v=isNaN(+g.v)?g.v:String(Math.round(+g.v*10)/10).replace('.',',');return v+(g.u==='°C'?'°':g.u?' '+g.u:'')+' '+g.n.toLowerCase()};
 // Som Apple Hem: hela brickan tänder/släcker, håll in = styrning (ljusstyrka, färg, namn/rum). Scener som brickor med ikon.
 const haIk=x=>x.t==='light'?HAI.bulb:x.t==='fan'?HAI.fan:HAI.plug;
-const haIkSt=x=>x.on&&haFargLage(x)&&x.hs?' style="background:hsl('+Math.round(x.hs[0])+' '+Math.max(40,Math.round(x.hs[1]))+'% 62%);color:#fff"':'';
+// Stearin/mys skickas som hs till färglampor men är vitt ljus: visas som vanliga tända lampor (gult), bara riktiga färger syns på brickan.
+const haRiktigFarg=x=>x.on&&haFargLage(x)&&x.hs&&!(x.hs[0]>=18&&x.hs[0]<=50);
+const haIkSt=x=>haRiktigFarg(x)?' style="background:hsl('+Math.round(x.hs[0])+' '+Math.max(40,Math.round(x.hs[1]))+'% 62%);color:#fff"':'';
 const haStat=x=>x.nas?'Svarar inte':x.on?(x.b?x.b+' %':'På'):'Av';
 // Ändrat läge (här, i en scen eller utifrån) tonar och studsar in. Fördröjningen räknas från ändringen, så en omritning mitt i fortsätter animationen.
 // Ändras flera samtidigt (scen, Släck allt) kommer de i en kort våg, som i Hem-appen.
@@ -1267,7 +1269,7 @@ const haNy=(k,on)=>{if(haLugn())return'';const B=HA.byt||(HA.byt={}),Y=HA.syn||(
  const d=B[k]!=null?nu-B[k]:1e9;return d<700?' ha-ny" style="--ha-d:'+Math.round(-d)+'ms':''};
 // Som i Hem-appen: ikonen tänder/släcker, resten av brickan (eller håll in) öppnar reglagen
 // Dimbar lampa: brickan fylls i lampans färg efter ljusstyrkan och går att dra i sidled (haDraTile).
-const haFyll=x=>x.on&&haFargLage(x)&&x.hs?'hsl('+Math.round(x.hs[0])+' '+Math.max(40,Math.round(x.hs[1]))+'% 80%)':'#FFE28A';
+const haFyll=x=>haRiktigFarg(x)?'hsl('+Math.round(x.hs[0])+' '+Math.max(40,Math.round(x.hs[1]))+'% 80%)':'#FFE28A';
 const haTile=x=>{const sw=!haKan(x).dim,dim=!sw&&!x.nas;return'<div class="ha-t'+(sw?' ha-swt':'')+(dim?' ha-dim':'')+(x.on?' on':'')+(x.nas?' nas':'')+haNy(x.id,!!x.on)+'"'+(dim?' style="--p:'+(x.on?(x.b||100):0)+'%;--hf:'+haFyll(x)+'"':'')+' role="button" tabindex="0" data-act="haLampa" data-id="'+esc(x.id)+'" data-hold-lift="haLampa" data-hold-t="500" aria-label="'+esc(x.n)+', '+haStat(x)+', reglage'+(dim?', dra i sidled för ljusstyrka':'')+'"><button type="button" class="ha-i" data-act="haTog" data-id="'+esc(x.id)+'" aria-pressed="'+!!x.on+'" aria-label="'+(x.on?'Släck ':'Tänd ')+esc(x.n)+'"'+(x.nas?' disabled':'')+haIkSt(x)+'>'+haIk(x)+'</button><span class="ha-tx"><span class="ha-n">'+esc(x.n)+'</span><span class="ha-s">'+haStat(x)+'</span></span>'+(sw?'<span class="ha-sw" aria-hidden="true" data-act="haTog" data-id="'+esc(x.id)+'"></span>':'')+'</div>'};
 const haScIk=s=>s.id==='av'?HAI.off:/morgon|vakna|dag|ljust/i.test(s.n)?HAI.sun:/kväll|natt|sov|mys|lugn/i.test(s.n)?HAI.moon:/film|tv|bio/i.test(s.n)?HAI.film:I.sparkles;
 const haScener=(D,kort)=>{const n=(D.lampor||[]).some(x=>x.on);return(D.scener||[]).concat(n||!kort?[{id:'av',n:kort?'Släck':'Släck allt'}]:[])};
