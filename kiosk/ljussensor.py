@@ -9,6 +9,8 @@
 #   POST /ha           {"id": "light.kok", "gor": "vaxla"|"pa"|"av", "b": 1-100, "k": kelvin, "hs": [nyans, mättnad]} | {"scen": "scene.kvall"} | {"alla": "av"}
 #   GET  /ha/alla      -> enheter i HA som tavlan får lägga till (lampor, brytare, fläktar, scener, temperatur/fukt)
 #   POST /ha/val       {"lagg": id} | {"ta": id} | {"id": id, "namn": "Taklampa", "rum": "Kök"}   ändrar tavlans lista i HA_FIL
+#   GET  /ha/vanor?id= -> inlärd ton per kvart (vardag "v", helg "h"), säker eller inte, paus
+#   POST /ha/vanor     {"id": id, "auto": true|false} | {"id": id, "ateruppta": 1} | {"id": id, "anvand": 1} | {"pauslage": "slack"|"1"|"3"}
 # Home Assistant (smart hem): nyckeln ligger bara i HA_FIL (chmod 600) och lämnar aldrig datorn. Tavlan ser bara de
 # lampor, scener och givare som står i filen och kan bara tända, släcka, dimma, byta färg och starta scener. Utan filen svarar /ha 503.
 # Vakthund: Chromium på väggdatorn kan fastna med en grå/svart sida (renderaren väntar på GPU-processen, som har tappat
@@ -19,7 +21,7 @@
 # inte av sig på LEASE sekunder går skärmen tillbaka till normal ljusstyrka (så den aldrig fastnar mörk).
 # Installera: kopiera till ~/.local/bin/ljussensor.py och ljussensor.service till ~/.config/systemd/user/,
 # kör sedan: systemctl --user daemon-reload && systemctl --user enable --now ljussensor
-import glob, json, os, re, signal, subprocess, threading, time, http.server
+import datetime, glob, json, os, re, signal, subprocess, threading, time, http.server
 
 TILLATNA = {'https://henriklh.github.io'} | set(filter(None, os.environ.get('HT_TILLATNA', '').split()))
 MIN_PROCENT = 1.0
@@ -208,6 +210,8 @@ def ha_las(c):
             # vad lampan klarar: dimmer, färgtemperatur (kelvin) och/eller färg (nyans/mättnad)
             l.update({'lagen': a.get('supported_color_modes') or [], 'lage': a.get('color_mode'), 'k': a.get('color_temp_kelvin'),
                       'kmin': a.get('min_color_temp_kelvin'), 'kmax': a.get('max_color_temp_kelvin'), 'hs': a.get('hs_color')})
+            try: l['vana'] = vanor_info(e, time.time(), a)
+            except Exception as fel: logg('vanor: ' + repr(fel)[:150])
         lampor.append(l)
     for e in c['scener']:
         if e in alla: scener.append({'id': e, 'n': c['namn'].get(e) or namn(e, alla[e]), 'hn': namn(e, alla[e])})
@@ -307,6 +311,302 @@ def ha_styr(d):
     ha_uppdatera()
     return 200, {'ok': True, 'v': HA['v']}
 
+# --- Ljusvanor: tavlan skriver upp lampornas ton (kelvin) dygnet runt, lär sig vilken ton ni brukar ha vid varje kvart
+# (vardag och helg för sig) och ställer in den själv när mönstret hållit VANOR_SAKER. Ändrar någon tonen själv (i appen,
+# Google Home eller med knappen) pausas just den lampan (tills den släcks, högst till kl. 04, eller 1/3 timmar). Tänder
+# och släcker aldrig. Tonskalan är samma som lampkortets (haTonK/haTonCmd i app.js): kelvin med color_temp, varmare än
+# kmin ned till 1500 K som hs [44-18t, s0+(100-s0)t] på färglampor.
+VANOR_LOGG = os.path.expanduser('~/.config/hushallstavlan-ljusvanor.jsonl')
+VANOR_FIL = os.path.expanduser('~/.config/hushallstavlan-ljusvanor.json')
+VANOR_DAGAR = 28        # så långt bak den tittar
+VANOR_HALV = 7.0        # en vecka gammal dag väger hälften
+VANOR_SAKER = (5, 7)    # mönstret ska ha hållit 5 av de senaste 7 dagarna (samma dagtyp) innan den styr själv
+VANOR_NARA = 150        # K: så nära räknas som samma ton
+VANOR_GLID = 60         # s övergång när den ändrar själv (2 s när lampan just tänts)
+VANOR_MIN_PA = 300      # s: lampan ska ha lyst minst så länge under en kvart för att kvarten ska räknas
+VANOR = {'senast': {}, 'egna': {}, 'logg': None, 'kurvor': {}, 'styrd': 0.0, 'lock': threading.RLock()}
+
+def ton_k(a):
+    # lampans ton i kelvin, eller None om den lyser i en riktig färg (inte vitt/varmt)
+    L = a.get('supported_color_modes') or []
+    if a.get('color_mode') == 'color_temp' and a.get('color_temp_kelvin'): return int(a['color_temp_kelvin'])
+    hs = a.get('hs_color')
+    if hs and 15 <= hs[0] <= 45 and any(m in L for m in ('hs', 'xy', 'rgb', 'rgbw', 'rgbww')):
+        k = 'color_temp' in L
+        kmin, s0 = (a.get('min_color_temp_kelvin') or 2200, 40) if k else (4000, 0)
+        t = max(0.0, min(1.0, (hs[1] - s0) / (100 - s0)))
+        return int(round(kmin - t * (kmin - 1500)))
+    return None
+
+def ton_kan(a):
+    L = a.get('supported_color_modes') or []
+    return 'color_temp' in L or any(m in L for m in ('hs', 'xy', 'rgb', 'rgbw', 'rgbww'))
+
+def ton_cmd(a, K):
+    L = a.get('supported_color_modes') or []
+    k, f = 'color_temp' in L, any(m in L for m in ('hs', 'xy', 'rgb', 'rgbw', 'rgbww'))
+    kmin, kmax = a.get('min_color_temp_kelvin') or 2200, a.get('max_color_temp_kelvin') or 6500
+    if k and (K >= kmin or not f): return {'color_temp_kelvin': int(max(kmin, min(kmax, K)))}
+    top, s0 = (kmin, 40) if k else (4000, 0)
+    t = max(0.0, min(1.0, (top - K) / (top - 1500)))
+    return {'hs_color': [round(44 - 18 * t), round(s0 + (100 - s0) * t)]}
+
+def vanor_inst():
+    try: d = json.load(open(VANOR_FIL))
+    except Exception: d = {}
+    d.setdefault('av', []); d.setdefault('paus', {}); d.setdefault('pauslage', 'slack')
+    return d
+
+def vanor_spara_inst(d):
+    tmp = VANOR_FIL + '.ny'
+    with open(tmp, 'w') as f: json.dump(d, f, ensure_ascii=False)
+    os.replace(tmp, VANOR_FIL)
+
+def vanor_logg():
+    with VANOR['lock']:
+        if VANOR['logg'] is None:
+            L = []
+            try:
+                for rad in open(VANOR_LOGG):
+                    try: L.append(json.loads(rad))
+                    except ValueError: pass
+            except FileNotFoundError: pass
+            VANOR['logg'] = L
+            vanor_rensa(time.time())
+        return VANOR['logg']
+
+def vanor_rensa(nu):
+    # spara bara VANOR_DAGAR + några dagar; skriv om filen
+    with VANOR['lock']:
+        gr = nu - (VANOR_DAGAR + 3) * 86400
+        L = VANOR['logg'] or []
+        # behåll senaste raden före gränsen per lampa, så att läget vid gränsen är känt
+        sist = {}
+        for r in L:
+            if r['t'] < gr: sist[r['e']] = r
+        ny = sorted(sist.values(), key=lambda r: r['t']) + [r for r in L if r['t'] >= gr]
+        if len(ny) != len(L) or not os.path.exists(VANOR_LOGG):
+            os.makedirs(os.path.dirname(VANOR_LOGG), exist_ok=True)
+            tmp = VANOR_LOGG + '.ny'
+            with open(tmp, 'w') as f:
+                for r in ny: f.write(json.dumps(r) + '\n')
+            os.replace(tmp, VANOR_LOGG)
+        VANOR['logg'] = ny
+
+def vanor_skriv(r):
+    with VANOR['lock']:
+        vanor_logg().append(r)
+        os.makedirs(os.path.dirname(VANOR_LOGG), exist_ok=True)
+        with open(VANOR_LOGG, 'a') as f: f.write(json.dumps(r) + '\n')
+        VANOR['kurvor'].pop(r['e'], None)
+
+def vanor_historik(c, lampor, nu):
+    # första gången: hämta det Home Assistant redan minns (oftast 10 dagar) så inlärningen inte börjar från noll
+    har = {r['e'] for r in vanor_logg()}
+    nya = [e for e in lampor if e not in har]
+    if not nya: return
+    fran = time.strftime('%Y-%m-%dT%H:%M:%S', time.gmtime(nu - VANOR_DAGAR * 86400)) + '+00:00'
+    try:
+        svar = ha_anrop(c, '/api/history/period/%s?filter_entity_id=%s' % (fran, ','.join(nya)))
+    except Exception as e:
+        logg('vanor: historik ' + repr(e)[:150]); return
+    rader = []
+    for lista in svar or []:
+        for x in lista:
+            try: t = datetime.datetime.fromisoformat(x.get('last_updated') or x['last_changed']).timestamp()
+            except Exception: continue
+            a, pa = x.get('attributes') or {}, x.get('state') == 'on'
+            rader.append({'t': round(t), 'e': x['entity_id'], 'on': int(pa), 'k': ton_k(a) if pa else None,
+                          'b': round(a['brightness'] / 2.55) if pa and a.get('brightness') else None, 's': 'm'})
+    with VANOR['lock']:
+        L = vanor_logg(); L.extend(rader); L.sort(key=lambda r: r['t'])
+        for e in nya: VANOR['kurvor'].pop(e, None)
+        VANOR['logg'] = L
+        if os.path.exists(VANOR_LOGG): os.remove(VANOR_LOGG)
+        vanor_rensa(nu)
+    logg('vanor: hämtade %d rader historik' % len(rader))
+
+def dagtyp(t):
+    return 'h' if time.localtime(t).tm_wday >= 5 else 'v'
+
+def vanor_kurva(e, nu):
+    # per dagtyp och kvart: den ton ni brukar ha (viktad median, nyare dagar väger mer, egna ändringar mer än tavlans),
+    # om den är säker (VANOR_SAKER) och hur många dagar den bygger på
+    with VANOR['lock']:
+        K = VANOR['kurvor'].get(e)
+        if K and nu - K['t'] < 600 and time.localtime(K['t']).tm_mday == time.localtime(nu).tm_mday: return K
+        rader = [r for r in vanor_logg() if r['e'] == e]
+    dag = {}   # (datum, kvart) -> [summa k*s, summa s, sekunder på, vikt efter källa]
+    gr = nu - VANOR_DAGAR * 86400
+    for i, r in enumerate(rader):
+        slut = rader[i + 1]['t'] if i + 1 < len(rader) else nu
+        if not r.get('on') or not r.get('k'): continue
+        a, slut = max(r['t'], gr), min(slut, nu)
+        while a < slut:
+            lt = time.localtime(a)
+            kv = lt.tm_hour * 4 + lt.tm_min // 15
+            grans = a - (lt.tm_min % 15) * 60 - lt.tm_sec + 900
+            b = min(slut, grans); s = b - a
+            if s > 0:
+                d = dag.setdefault((time.strftime('%Y-%m-%d', lt), kv), [0.0, 0.0, 0.0, 0.0])
+                w = 0.5 if r.get('s') == 'a' else 1.0
+                d[0] += r['k'] * s * w; d[1] += s * w; d[2] += s
+            a = b
+    idag = time.strftime('%Y-%m-%d', time.localtime(nu))
+    per = {'v': [[] for _ in range(96)], 'h': [[] for _ in range(96)]}
+    for (datum, kv), d in dag.items():
+        if d[2] < VANOR_MIN_PA or not d[1]: continue
+        t0 = time.mktime(time.strptime(datum, '%Y-%m-%d')) + 43200
+        per[dagtyp(t0)][kv].append((datum, d[0] / d[1], 0.5 ** (max(0, nu - t0) / 86400 / VANOR_HALV) * min(1.0, d[1] / d[2] * 2)))
+    ut = {'t': nu, 'dagar': len({datum for (datum, kv) in dag if dag[(datum, kv)][2] >= VANOR_MIN_PA})}
+    for typ, P in per.items():
+        kurva, saker, n = [], [], []
+        for kv in range(96):
+            kand = [(k, w) for (_, k, w) in P[kv]] + [(k, w * 0.5) for j in (kv - 1, (kv + 1) % 96) for (_, k, w) in P[j]]
+            if not kand: kurva.append(None); saker.append(0); n.append(0); continue
+            kand.sort(); tot = sum(w for _, w in kand); acc = 0
+            for k, w in kand:
+                acc += w
+                if acc >= tot / 2: med = k; break
+            senaste = sorted(P[kv], key=lambda x: x[0], reverse=True)[:VANOR_SAKER[1]]
+            traff = sum(1 for (_, k, _) in senaste if abs(k - med) <= VANOR_NARA)
+            kurva.append(int(round(med / 10) * 10)); saker.append(int(traff >= VANOR_SAKER[0])); n.append(len(P[kv]))
+        ut[typ] = {'kurva': kurva, 'saker': saker, 'n': n}
+    with VANOR['lock']: VANOR['kurvor'][e] = ut
+    return ut
+
+def vanor_nu(e, nu):
+    K = vanor_kurva(e, nu); lt = time.localtime(nu); kv = lt.tm_hour * 4 + lt.tm_min // 15
+    T = K[dagtyp(nu)]
+    return {'k': T['kurva'][kv], 'saker': bool(T['saker'][kv]), 'n': T['n'][kv], 'dagar': K['dagar']}
+
+def vanor_pausad(e, nu, inst=None):
+    p = (inst or vanor_inst())['paus'].get(e)
+    return p if p and p > nu else None
+
+def vanor_pausa(e, nu):
+    inst = vanor_inst(); lage = inst.get('pauslage')
+    if lage in ('1', '3'): till = nu + int(lage) * 3600
+    else:
+        lt = time.localtime(nu)
+        till = time.mktime((lt.tm_year, lt.tm_mon, lt.tm_mday, 4, 0, 0, 0, 0, -1))
+        if till <= nu: till = time.mktime((lt.tm_year, lt.tm_mon, lt.tm_mday + 1, 4, 0, 0, 0, 0, -1))
+    inst['paus'][e] = round(till)
+    inst['paus'] = {k: v for k, v in inst['paus'].items() if v > nu}
+    vanor_spara_inst(inst)
+
+def vanor_info(e, nu, a=None):
+    # kort sammanfattning som följer med lampan i /ha
+    if a is not None and not ton_kan(a): return None
+    v = vanor_nu(e, nu); inst = vanor_inst()
+    return {'auto': e not in inst['av'], 'k': v['k'], 'saker': v['saker'], 'n': v['n'], 'dagar': v['dagar'],
+            'paus': vanor_pausad(e, nu, inst), 'pauslage': inst['pauslage']}
+
+def vanor_satt(c, e, a, K, glid, nu):
+    fran = ton_k(a)
+    data = {'entity_id': e, 'transition': glid, **ton_cmd(a, K)}
+    ha_anrop(c, '/api/services/light/turn_on', data)
+    VANOR['egna'][e] = {'fran': fran or K, 'mal': K, 'till': nu + glid + 20}
+
+def vanor_egen(e, k, nu):
+    # är ändringen tavlans egen (pågående övergång mot målet)?
+    E = VANOR['egna'].get(e)
+    if not E or nu > E['till'] or k is None: return False
+    lo, hi = sorted((E['fran'], E['mal']))
+    return lo - VANOR_NARA / 2 <= k <= hi + VANOR_NARA / 2
+
+def vanor_styr(c, e, a, nu, tandes=False):
+    inst = vanor_inst()
+    if e in inst['av'] or vanor_pausad(e, nu, inst) or not ton_kan(a): return False
+    k = ton_k(a)
+    if k is None: return False   # lyser i en riktig färg: rör inte
+    v = vanor_nu(e, nu)
+    if not v['k'] or not v['saker']: return False
+    cmd = ton_cmd(a, v['k']); mal = cmd.get('color_temp_kelvin') or v['k']   # så nära lampan klarar
+    if abs(k - mal) < VANOR_NARA * 2 / 3: return False
+    E = VANOR['egna'].get(e)
+    if E and nu <= E['till'] and E['mal'] == mal: return False
+    vanor_satt(c, e, a, mal, 2 if tandes else VANOR_GLID, nu)
+    return True
+
+def vanor_varv(c, nu):
+    lampor = [e for e in c['lampor'] if e.split('.')[0] == 'light']
+    if not lampor: return
+    alla = {x['entity_id']: x for x in ha_anrop(c, '/api/states')}
+    styr = nu - VANOR['styrd'] >= 60
+    if styr: VANOR['styrd'] = nu
+    for e in lampor:
+        x = alla.get(e)
+        if not x or x.get('state') not in ('on', 'off'): continue
+        a, pa = x.get('attributes') or {}, x.get('state') == 'on'
+        if not ton_kan(a): continue
+        k = ton_k(a) if pa else None
+        b = round(a['brightness'] / 2.55) if pa and a.get('brightness') else None
+        f = VANOR['senast'].get(e)
+        VANOR['senast'][e] = {'on': pa, 'k': k, 'b': b}
+        andrad = f is None or f['on'] != pa or (k or 0) != (f['k'] or 0) and abs((k or 0) - (f['k'] or 0)) > 50 or abs((b or 0) - (f['b'] or 0)) > 3
+        if andrad:
+            egen = vanor_egen(e, k, nu)
+            vanor_skriv({'t': round(nu), 'e': e, 'on': int(pa), 'k': k, 'b': b, 's': 'a' if egen else 'm'})
+            if f and f['on'] and pa and not egen and k and f['k'] and abs(k - f['k']) >= 100 and e not in vanor_inst()['av']:
+                VANOR['egna'].pop(e, None); vanor_pausa(e, nu)   # någon ändrade tonen själv
+            if f and f['on'] and not pa:
+                VANOR['egna'].pop(e, None)
+                inst = vanor_inst()
+                if inst['pauslage'] == 'slack' and e in inst['paus']: inst['paus'].pop(e); vanor_spara_inst(inst)
+            if pa and f is not None and not f['on']:
+                vanor_styr(c, e, a, nu, tandes=True); continue
+        if styr and pa: vanor_styr(c, e, a, nu)
+
+def vanor_bevakare():
+    forsta = True
+    while True:
+        try:
+            c = ha_cfg()
+            if c:
+                if forsta: vanor_historik(c, [e for e in c['lampor'] if e.split('.')[0] == 'light'], time.time()); forsta = False
+                vanor_varv(c, time.time())
+                if time.localtime().tm_hour == 3 and time.localtime().tm_min < 1: vanor_rensa(time.time())
+        except Exception as e:
+            logg('vanor: ' + repr(e)[:200])
+        time.sleep(5)
+
+def vanor_get(e):
+    c = ha_cfg()
+    if not c: return 503, {'fel': 'inte inställt'}
+    if e not in c['lampor']: return 403, {'fel': 'lampan är inte vald för tavlan'}
+    nu = time.time(); K = vanor_kurva(e, nu); inst = vanor_inst()
+    return 200, {'id': e, 'typ': dagtyp(nu), 'v': K['v'], 'h': K['h'], 'dagar': K['dagar'], 'auto': e not in inst['av'],
+                 'paus': vanor_pausad(e, nu, inst), 'pauslage': inst['pauslage'], 'saker': list(VANOR_SAKER)}
+
+def vanor_post(d):
+    c = ha_cfg()
+    if not c: return 503, {'fel': 'inte inställt'}
+    inst, nu = vanor_inst(), time.time()
+    if 'pauslage' in d:
+        if d['pauslage'] not in ('slack', '1', '3'): return 400, {'fel': 'pauslage ska vara slack, 1 eller 3'}
+        inst['pauslage'] = d['pauslage']; vanor_spara_inst(inst)
+    else:
+        e = str(d.get('id') or '')
+        if e not in c['lampor'] or e.split('.')[0] != 'light': return 403, {'fel': 'lampan är inte vald för tavlan'}
+        if 'auto' in d:
+            inst['av'] = [x for x in inst['av'] if x != e] + ([] if d['auto'] else [e])
+            inst['paus'].pop(e, None); vanor_spara_inst(inst)
+        elif d.get('ateruppta'):
+            inst['paus'].pop(e, None); vanor_spara_inst(inst)
+            x = next((x for x in ha_anrop(c, '/api/states') if x['entity_id'] == e), None)
+            if x and x.get('state') == 'on': vanor_styr(c, e, x.get('attributes') or {}, nu)
+        elif d.get('anvand'):
+            # förslaget "Ni brukar ha … nu": ställ in som tavlans egen ändring, så det inte räknas som paus
+            v = vanor_nu(e, nu)
+            x = next((x for x in ha_anrop(c, '/api/states') if x['entity_id'] == e), None)
+            if not v['k'] or not x or x.get('state') != 'on': return 409, {'fel': 'inget förslag just nu'}
+            inst['paus'].pop(e, None); vanor_spara_inst(inst)
+            vanor_satt(c, e, x.get('attributes') or {}, v['k'], 3, nu)
+        else: return 400, {'fel': 'skicka auto, ateruppta, anvand eller pauslage'}
+    ha_uppdatera()
+    return 200, {'ok': True, 'v': HA['v']}
+
 class H(http.server.BaseHTTPRequestHandler):
     def huvuden(self, kod):
         self.send_response(kod)
@@ -341,6 +641,14 @@ class H(http.server.BaseHTTPRequestHandler):
             except Exception as e:
                 logg('ha: ' + repr(e)[:200]); kod, svar = 502, {'fel': 'Home Assistant svarade inte'}
             self.svara(kod, svar)
+        elif p == '/ha/vanor':
+            if self.headers.get('Origin') not in TILLATNA:
+                return self.svara(403, {'fel': 'bara tavlan får läsa hemmet'})
+            m = re.search(r'[?&]id=([\w.]+)', self.path)
+            try: kod, svar = vanor_get(m.group(1) if m else '')
+            except Exception as e:
+                logg('vanor: ' + repr(e)[:200]); kod, svar = 502, {'fel': 'Home Assistant svarade inte'}
+            self.svara(kod, svar)
         elif p == '/ha':
             if self.headers.get('Origin') not in TILLATNA:
                 return self.svara(403, {'fel': 'bara tavlan får läsa hemmet'})
@@ -364,12 +672,12 @@ class H(http.server.BaseHTTPRequestHandler):
                 json.dump({'aktiv': True}, open(VAKT_FIL, 'w'))
                 logg('vakt: första pulsen, vakten är på')
             return self.svara(200, {'ok': True, 'tyst': VAKT_TYST})
-        if self.path.split('?')[0] in ('/ha', '/ha/val'):
+        if self.path.split('?')[0] in ('/ha', '/ha/val', '/ha/vanor'):
             if self.headers.get('Origin') not in TILLATNA:
                 return self.svara(403, {'fel': 'bara tavlan får styra hemmet'})
             try:
                 n = int(self.headers.get('Content-Length') or 0)
-                kod, svar = (ha_val if self.path.split('?')[0] == '/ha/val' else ha_styr)(json.loads(self.rfile.read(min(n, 1000)) or b'{}'))
+                kod, svar = {'/ha/val': ha_val, '/ha/vanor': vanor_post}.get(self.path.split('?')[0], ha_styr)(json.loads(self.rfile.read(min(n, 1000)) or b'{}'))
             except Exception as e:
                 logg('ha: ' + repr(e)[:200]); kod, svar = 502, {'fel': 'Home Assistant svarade inte'}
             return self.svara(kod, svar)
@@ -393,19 +701,21 @@ class H(http.server.BaseHTTPRequestHandler):
         self.svara(200, self.status())
     def log_message(self, *a): pass
 
-if BL:
-    # Normal ljusstyrka = den skärmen hade första gången tjänsten startade (ändras genom att redigera filen)
-    TILL['normal'] = las_normal()
-    if TILL['normal'] is None:
-        TILL['normal'] = max(MIN_PROCENT, round(bl_las(), 1))
-        os.makedirs(os.path.dirname(NORMAL_FIL), exist_ok=True)
-        json.dump({'normal': TILL['normal']}, open(NORMAL_FIL, 'w'))
-    else:
-        try: bl_satt(TILL['normal'])   # efter omstart eller krasch: börja alltid från normal ljusstyrka
-        except Exception: pass
-    threading.Thread(target=vakt, daemon=True).start()
-    threading.Thread(target=tonare, daemon=True).start()
+if __name__ == '__main__':
+    if BL:
+        # Normal ljusstyrka = den skärmen hade första gången tjänsten startade (ändras genom att redigera filen)
+        TILL['normal'] = las_normal()
+        if TILL['normal'] is None:
+            TILL['normal'] = max(MIN_PROCENT, round(bl_las(), 1))
+            os.makedirs(os.path.dirname(NORMAL_FIL), exist_ok=True)
+            json.dump({'normal': TILL['normal']}, open(NORMAL_FIL, 'w'))
+        else:
+            try: bl_satt(TILL['normal'])   # efter omstart eller krasch: börja alltid från normal ljusstyrka
+            except Exception: pass
+        threading.Thread(target=vakt, daemon=True).start()
+        threading.Thread(target=tonare, daemon=True).start()
 
-threading.Thread(target=vakthund, daemon=True).start()
-threading.Thread(target=ha_bevakare, daemon=True).start()
-http.server.ThreadingHTTPServer(('127.0.0.1', 8777), H).serve_forever()
+    threading.Thread(target=vakthund, daemon=True).start()
+    threading.Thread(target=ha_bevakare, daemon=True).start()
+    threading.Thread(target=vanor_bevakare, daemon=True).start()
+    http.server.ThreadingHTTPServer(('127.0.0.1', 8777), H).serve_forever()
