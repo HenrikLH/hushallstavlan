@@ -4847,6 +4847,38 @@ function fodChips(L){const f=S.fodFilt||'alla',F=fodFam(),dot=c=>'<i class="ff-d
  return'<div class="fchips fod-f" role="group" aria-label="Filter"'+RF('F7')+'>'+b('alla','Alla')+b('pres','Present',L.filter(x=>x.gift).length)+
   F.map(x=>b(x.id,dot(x.c)+esc(x.n),L.filter(y=>y.fam&&y.fam.id===x.id).length)).join('')+(F.length&&L.some(x=>!x.fam)?b('utan','Utan familj',L.filter(x=>!x.fam).length):'')+
   '<button type="button" class="ff-ed" data-act="presBud">Presentbudget</button><button type="button" class="ff-ed" data-act="fodFam">'+(F.length?I.pencil+'Familjer':I.plus+'Familj')+'</button></div>'}
+
+/* Familj är en navigationssida utan sidledssvep. Födelsedagarnas svep ligger kvar enbart i V.fod. */
+const slaktParents=k=>{const x=fodEgna().par[k];return Array.isArray(x)?x.slice(0,2).filter(p=>typeof p==='string'):[]};
+function slaktGroups(){const B=bdays(),F=fodFam();return F.length?F.map(f=>({id:f.id,n:f.n,L:B.filter(b=>b.fam&&b.fam.id===f.id)})).concat(B.some(b=>!b.fam)?[{id:'utan',n:'Utan familj',L:B.filter(b=>!b.fam)}]:[]):[{id:'alla',n:'Alla personer',L:B}]}
+V.familj=function(){const B=bdays(),N=bdNext(B).slice(0,3),F=slaktGroups();
+ let h='<div class="rcp-top"><button class="back" data-act="nav" data-id="oversikt">'+I.back+'Översikt</button></div>';
+ h+=head('Familj',{sub:B.length+' personer · släkt och födelsedagar'});
+ h+=sh('Utforska')+group('<button class="cell link" data-act="nav" data-id="slakt"><span class="fam-ico">'+I.people+'</span><span class="grow"><span class="title">Släktträd</span><span class="meta">Personer och relationer</span></span>'+chevron+'</button>'+
+ '<button class="cell link" data-act="nav" data-id="fod"><span class="fam-ico">'+I.cake+'</span><span class="grow"><span class="title">Födelsedagar</span><span class="meta">Årshjul, månader och tidslinje</span></span>'+chevron+'</button>'+
+ '<button class="cell link" data-act="fodFam"><span class="fam-ico">'+I.people+'</span><span class="grow"><span class="title">Personer och familjer</span><span class="meta">Skapa grupper och ändra medlemmar</span></span>'+chevron+'</button>');
+ h+=sh('Nästa födelsedagar',N.length||'')+group(N.length?N.map(b=>'<button class="cell link" data-act="nav" data-id="fod"><span class="fam-datebox"><b>'+b.dd+'</b><small>'+MON3[b.mo]+'</small></span><span class="grow">'+esc(b.name)+'</span><span class="meta">'+esc(bdWhen(b))+'</span>'+chevron+'</button>').join(''):emptyCell('Inga födelsedagar inlagda.'));
+ h+=sh('Familjegrupper',F.length||'')+group(F.map(f=>'<button class="cell link" data-act="slaktGroup" data-id="'+esc(f.id)+'"><span class="grow">'+esc(f.n)+'</span><span class="meta num">'+f.L.length+' personer</span>'+chevron+'</button>').join(''));
+ return h+'<div class="foot">Familj öppnas med tryck, inte sidledssvep. I Födelsedagar fortsätter svep att växla mellan de tre befintliga visningarna.</div>'};
+V.slakt=function(){const all=bdays(),G=slaktGroups(),g=G.find(x=>x.id===S.slaktFam)||G[0]||{n:'Familj',L:all},B=g.L.length?g.L:all;
+ let h='<div class="rcp-top"><button class="back" data-act="nav" data-id="familj">'+I.back+'Familj</button></div>';
+ h+=head('Släktträd',{sub:g.n+' · '+B.length+' personer'});
+ const focus=B.find(x=>x.key===S.slaktFocus)||B[0];if(!focus)return h+group(emptyCell('Lägg till personer via Födelsedagar för att bygga släktträdet.'));
+ const par=slaktParents(focus.key).map(k=>all.find(b=>b.key===k)).filter(Boolean),children=all.filter(b=>slaktParents(b.key).includes(focus.key));
+ const sib=all.filter(b=>b.key!==focus.key&&slaktParents(b.key).some(k=>par.some(p=>p.key===k)));
+ const child=children.slice(0,4),xs=child.map((_,i)=>360*(i+1)/(child.length+1)),yc=par.length?179:73,yp=43,yb=par.length?298:223,px=par.length===2?[92,268]:[180];
+ const node=(b,x,y,active)=>'<g tabindex="0" role="button" class="fam-node'+(active?' selected':'')+'" data-act="slaktFocus" data-id="'+esc(b.key)+'" aria-label="Visa '+esc(b.name)+'"><circle class="fam-ring" cx="'+x+'" cy="'+y+'" r="'+(active?28:24)+'"/><circle class="fam-circle" cx="'+x+'" cy="'+y+'" r="'+(active?23:20)+'"/><text class="fam-letter" x="'+x+'" y="'+(y+5)+'" text-anchor="middle">'+esc(b.name.slice(0,1).toUpperCase())+'</text><text class="fam-name" x="'+x+'" y="'+(y+42)+'" text-anchor="middle">'+esc(b.name.length>13?b.name.slice(0,12)+'…':b.name)+'</text><text class="fam-date" x="'+x+'" y="'+(y+58)+'" text-anchor="middle">'+b.dd+' '+MON3[b.mo]+'</text></g>';
+ let lines=par.length===2?'<path d="M92 43H268M180 43V'+(yc-28)+'"/>':par.length===1?'<path d="M180 63V'+(yc-28)+'"/>':'';
+ if(child.length){const br=yc+80;lines+='<path d="M180 '+(yc+28)+'V'+br+(child.length>1?'M'+xs[0]+' '+br+'H'+xs[xs.length-1]:'')+xs.map(x=>'M'+x+' '+br+'V'+(yb-24)).join('')+'"/>'}
+ const height=par.length?(child.length?390:255):(child.length?312:167);
+ const svg='<svg class="fam-svg" viewBox="0 0 360 '+height+'" role="group" aria-label="Släktträd med '+esc(focus.name)+' i fokus"><g class="fam-lines">'+lines+'</g>'+par.map((b,i)=>node(b,px[i],yp,false)).join('')+node(focus,180,yc,true)+child.map((b,i)=>node(b,xs[i],yb,false)).join('')+'</svg>';
+ h+=sh('Utforska relationer')+group('<div class="fam-focus"><span class="fam-spot"></span><span class="grow"><strong>'+esc(focus.name)+'</strong><span class="meta">Vald person</span></span><button class="pill" data-act="slaktEdit" data-id="'+esc(focus.key)+'">Ändra</button></div><div class="fam-tree">'+svg+(!par.length&&!children.length?'<div class="fam-empty">Inga släktrelationer inlagda än.</div>':'')+'</div>'+
+ '<button class="cell link" data-act="slaktEdit" data-id="'+esc(focus.key)+'"><span class="grow">Ange föräldrar till '+esc(focus.name)+'</span>'+chevron+'</button>');
+ if(sib.length)h+=sh('Syskon',sib.length)+group(sib.map(b=>'<button class="cell link" data-act="slaktFocus" data-id="'+esc(b.key)+'"><span class="grow">'+esc(b.name)+'</span>'+chevron+'</button>').join(''));
+ if(children.length>4)h+='<div class="foot">Visar 4 av '+children.length+' barn. Tryck på en person för att utforska vidare.</div>';
+ h+=sh('Övriga personer')+group(all.filter(b=>b.key!==focus.key).sort((a,b)=>a.name.localeCompare(b.name,'sv')).map(b=>'<button class="cell link" data-act="slaktFocus" data-id="'+esc(b.key)+'"><span class="grow">'+esc(b.name)+'</span><span class="meta">'+b.dd+' '+MON3[b.mo]+'</span>'+chevron+'</button>').join('')||emptyCell('Inga fler personer.'));
+ return h+'<div class="foot">Förbindelser ritas bara för relationer som faktiskt lagrats. En familjegrupp innebär inte automatiskt ett släktskap.</div>'};
+
 V.fod=function(){const ALLA=bdays(),t=parse(today()),mode=S.fodMode||'hjul';if(fodSel().length){const v=fodSel().filter(k=>k==='utan'||fodFam().some(f=>f.id===k));S.fodFilt=v.length?v.join(','):'alla'}const L=fodFilt(ALLA);
  let h='<div class="rcp-top"><button class="back" data-act="nav" data-id="familj">'+I.back+'Familj</button></div>';
  const fv=fodSel().map(k=>k==='utan'?'Utan familj':(fodFam().find(x=>x.id===k)||{}).n).filter(Boolean),fNamn=S.fodFilt==='pres'?'Present':fv.length>2?fv.length+' familjer':fv.join(' och ');
