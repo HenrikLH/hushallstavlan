@@ -303,7 +303,7 @@ addEventListener('resize',()=>navLins.stor());
  const ax=(el,a)=>{const cs=getComputedStyle(el),o=a==='x'?cs.overflowX:cs.overflowY;return/(auto|scroll)/.test(o)&&(a==='x'?el.scrollWidth>el.clientWidth+1:el.scrollHeight>el.clientHeight+1)};
  const scroller=(el,a)=>{for(;el&&el!==document.body&&el!==document.documentElement;el=el.parentElement)if(ax(el,a))return el;return null};
  document.addEventListener('pointerdown',e=>{cancelAnimationFrame(glide);
-  if((!on()&&!e.target.closest('.wd-body'))||e.button>0||!S.data||e.target.closest('input,select,textarea,[contenteditable],.nav,.dr-slide,.car')||(S.arrange&&e.target.closest('[data-box]')))return;
+  if((!on()&&!e.target.closest('.wd-body'))||e.button>0||!S.data||e.target.closest('input,select,textarea,[contenteditable],.nav,.dr-slide,.car,.ha-dim')||(S.arrange&&e.target.closest('[data-box]')))return;
   if(e.target.closest('.wd-body')&&(!e.isPrimary||e.clientX<24||e.clientX>innerWidth-24)){st=null;return;}
   st={id:e.pointerId,x0:e.clientX,y0:e.clientY,x:e.clientX,y:e.clientY,t:performance.now(),v:0,mouse:e.pointerType!=='touch',a:null,el:null,tg:e.target}});
  addEventListener('pointermove',e=>{if(!st||e.pointerId!==st.id)return;if(document.documentElement.classList.contains('cv-drar')){st=null;document.body.classList.remove('dragging');return}const dx=e.clientX-st.x0,dy=e.clientY-st.y0;
@@ -334,7 +334,7 @@ addEventListener('resize',()=>navLins.stor());
  // Svep som börjar vid skärmkanten lämnas åt Safaris bakåtgest, och listor som scrollar i sidled scrollar som vanligt.
  let t=null;
  document.addEventListener('touchstart',e=>{t=null;if(on()||e.touches.length!==1||!S.data)return;const p=e.touches[0];
-  if(p.clientX<24||p.clientX>innerWidth-24||!inMain(e.target)||e.target.closest('input,select,textarea,[contenteditable],.dr-slide,.car')||scroller(e.target,'x'))return;
+  if(p.clientX<24||p.clientX>innerWidth-24||!inMain(e.target)||e.target.closest('input,select,textarea,[contenteditable],.dr-slide,.car,.ha-dim')||scroller(e.target,'x'))return;
   t={x0:p.clientX,y0:p.clientY,x:p.clientX,y:p.clientY,t0:performance.now(),a:[]}},{passive:true});
  document.addEventListener('touchmove',e=>{if(!t)return;if(e.touches.length!==1){t=null;return}t.x=e.touches[0].clientX;t.y=e.touches[0].clientY;if(U5)u5Fart.add(t.a,t.x)},{passive:true});
  document.addEventListener('touchcancel',()=>{t=null},{passive:true});
@@ -1266,7 +1266,9 @@ const haLugn=()=>!motionOn()||matchMedia('(prefers-reduced-motion:reduce)').matc
 const haNy=(k,on)=>{if(haLugn())return'';const B=HA.byt||(HA.byt={}),Y=HA.syn||(HA.syn={}),nu=performance.now();if(k in Y&&Y[k]!==on){if(!B._t||nu-B._t>40){B._t=nu;B._n=0}B[k]=nu+(B._n++)*45}Y[k]=on;
  const d=B[k]!=null?nu-B[k]:1e9;return d<700?' ha-ny" style="--ha-d:'+Math.round(-d)+'ms':''};
 // Som i Hem-appen: ikonen tänder/släcker, resten av brickan (eller håll in) öppnar reglagen
-const haTile=x=>{const sw=!haKan(x).dim;return'<div class="ha-t'+(sw?' ha-swt':'')+(x.on?' on':'')+(x.nas?' nas':'')+haNy(x.id,!!x.on)+'" role="button" tabindex="0" data-act="haLampa" data-id="'+esc(x.id)+'" data-hold-lift="haLampa" data-hold-t="500" aria-label="'+esc(x.n)+', '+haStat(x)+', reglage"><button type="button" class="ha-i" data-act="haTog" data-id="'+esc(x.id)+'" aria-pressed="'+!!x.on+'" aria-label="'+(x.on?'Släck ':'Tänd ')+esc(x.n)+'"'+(x.nas?' disabled':'')+haIkSt(x)+'>'+haIk(x)+'</button><span class="ha-tx"><span class="ha-n">'+esc(x.n)+'</span><span class="ha-s">'+haStat(x)+'</span></span>'+(sw?'<span class="ha-sw" aria-hidden="true" data-act="haTog" data-id="'+esc(x.id)+'"></span>':'')+'</div>'};
+// Dimbar lampa: brickan fylls i lampans färg efter ljusstyrkan och går att dra i sidled (haDraTile).
+const haFyll=x=>x.on&&haFargLage(x)&&x.hs?'hsl('+Math.round(x.hs[0])+' '+Math.max(40,Math.round(x.hs[1]))+'% 80%)':'#FFE28A';
+const haTile=x=>{const sw=!haKan(x).dim,dim=!sw&&!x.nas;return'<div class="ha-t'+(sw?' ha-swt':'')+(dim?' ha-dim':'')+(x.on?' on':'')+(x.nas?' nas':'')+haNy(x.id,!!x.on)+'"'+(dim?' style="--p:'+(x.on?(x.b||100):0)+'%;--hf:'+haFyll(x)+'"':'')+' role="button" tabindex="0" data-act="haLampa" data-id="'+esc(x.id)+'" data-hold-lift="haLampa" data-hold-t="500" aria-label="'+esc(x.n)+', '+haStat(x)+', reglage'+(dim?', dra i sidled för ljusstyrka':'')+'"><button type="button" class="ha-i" data-act="haTog" data-id="'+esc(x.id)+'" aria-pressed="'+!!x.on+'" aria-label="'+(x.on?'Släck ':'Tänd ')+esc(x.n)+'"'+(x.nas?' disabled':'')+haIkSt(x)+'>'+haIk(x)+'</button><span class="ha-tx"><span class="ha-n">'+esc(x.n)+'</span><span class="ha-s">'+haStat(x)+'</span></span>'+(sw?'<span class="ha-sw" aria-hidden="true" data-act="haTog" data-id="'+esc(x.id)+'"></span>':'')+'</div>'};
 const haScIk=s=>s.id==='av'?HAI.off:/morgon|vakna|dag|ljust/i.test(s.n)?HAI.sun:/kväll|natt|sov|mys|lugn/i.test(s.n)?HAI.moon:/film|tv|bio/i.test(s.n)?HAI.film:I.sparkles;
 const haScener=(D,kort)=>{const n=(D.lampor||[]).some(x=>x.on);return(D.scener||[]).concat(n||!kort?[{id:'av',n:kort?'Släck':'Släck allt'}]:[])};
 const haScT=s=>'<button type="button" class="ha-st'+(HA.last===s.id?' on':'')+haNy('sc:'+s.id,HA.last===s.id)+'" data-act="haScen" data-id="'+esc(s.id)+'"'+(s.id!=='av'?' data-hold-lift="haEdit"':'')+'><span class="ha-i">'+haScIk(s)+'</span><span class="ha-n">'+esc(s.n)+'</span></button>';
@@ -1342,6 +1344,22 @@ function haLampSkicka(x,ch){if(!x)return;const was=JSON.stringify(x);x.on=true;i
   if(D.g&&!haLugn()){const s=fjader(.42,.55),t=D.el.style.transform;D.el.style.transform='';D.el.animate([{transform:t},{transform:'none'}],{duration:s.d,easing:s.e})}else D.el.style.transform='';if(D.v!=null)HA.vsP=D.v;const x=haLamp();if(!x||e.type==='pointercancel'){render();return}
   if(D.v==null)ACT.haTog(x.id);else if(D.v===0)haAv(x);else haLampSkicka(x,{b:D.v})};
  document.addEventListener('pointerup',slut);document.addEventListener('pointercancel',slut)})();
+/* Dra i sidled på en dimbar bricka = ljusstyrka (relativt från nuvärdet). Lodrätt drag scrollar som vanligt (touch-action:pan-y),
+   tryck öppnar kortet och ikonen tänder/släcker som förut. Efter ett drag räknas släppet inte som tryck. */
+(()=>{let d=null,klar=0;
+ document.addEventListener('pointerdown',e=>{if(e.button>0)return;const el=e.target.closest('.ha-t.ha-dim');if(!el||e.target.closest('.ha-i,.ha-sw'))return;
+  d={el,x0:e.clientX,y0:e.clientY,b0:parseFloat(el.style.getPropertyValue('--p'))||0,w:el.getBoundingClientRect().width,id:e.pointerId,on:false,v:null}},true);
+ document.addEventListener('pointermove',e=>{if(!d||e.pointerId!==d.id)return;const dx=e.clientX-d.x0,dy=e.clientY-d.y0;
+  if(!d.on){if(Math.abs(dy)>10&&Math.abs(dy)>Math.abs(dx)){d=null;return}if(Math.abs(dx)<8||Math.abs(dx)<Math.abs(dy)*1.2)return;
+   d.on=true;d.x0=e.clientX;HA.drag=true;d.el.classList.add('ha-drar');try{d.el.setPointerCapture(e.pointerId)}catch(z){}}
+  const v=Math.max(0,Math.min(100,Math.round(d.b0+(e.clientX-d.x0)/d.w*100)));if(v===d.v)return;
+  if((v===0||v===100)&&d.v!=null)u5Tick();d.v=v;d.el.style.setProperty('--p',v+'%');d.el.classList.toggle('on',v>0);
+  const s=d.el.querySelector('.ha-s');if(s)s.textContent=v?v+' %':'Av'},{passive:true});
+ const slut=e=>{if(!d||e.pointerId!==d.id)return;const D=d;d=null;if(!D.on)return;klar=Date.now();HA.drag=false;D.el.classList.remove('ha-drar');
+  const D0=haData(),x=D0&&(D0.lampor||[]).find(l=>l.id===D.el.dataset.id);if(!x||D.v==null)return render();
+  if(D.v===0)haAv(x);else haLampSkicka(x,{b:D.v})};
+ document.addEventListener('pointerup',slut,true);document.addEventListener('pointercancel',slut,true);
+ document.addEventListener('click',e=>{if(Date.now()-klar<400&&e.target.closest('.ha-t')){e.stopPropagation();e.preventDefault()}},true)})();
 const haTileEl=id=>[...document.querySelectorAll('.ha-t[data-id="'+CSS.escape(id||'')+'"]')].find(e=>{const r=e.getBoundingClientRect();return r.width&&r.bottom>0&&r.top<innerHeight});
 /* Lampbladet växer ut ur brickan och krymper tillbaka in i den, med fjäder som i Hem-appen. Innehållet tonar in när kortet nästan är framme.
    Under animationen ritas bladet inte om (HA.drag), annars hoppar det. */
@@ -4976,7 +4994,7 @@ function u5Sida(page,prev){const p=page.split('|'),o=prev.split('|'),push=u5Sub(
 (function(){let g=null,pr=null,fj=null;const main=()=>document.getElementById('main'),backBtn=()=>document.querySelector('#main .back,#navbar .back');
  const ok=()=>U5&&S.data&&!S.sheet&&!S.cook&&!S.arrange&&!wallBoardOn()&&!document.querySelector('#overlay .sheet');
  const hsc=el=>{for(;el&&el!==document.body&&el!==document.documentElement;el=el.parentElement){const cs=getComputedStyle(el);if(/(auto|scroll)/.test(cs.overflowX)&&el.scrollWidth>el.clientWidth+1)return true}return false};
- const fri=el=>!!el.closest&&!!el.closest('main')&&!el.closest('input,textarea,select,[contenteditable],.dr-slide,.dr-wrap,.car,[data-motion-grip],.navbar')&&!hsc(el);
+ const fri=el=>!!el.closest&&!!el.closest('main')&&!el.closest('input,textarea,select,[contenteditable],.dr-slide,.dr-wrap,.car,[data-motion-grip],.navbar,.ha-dim')&&!hsc(el);
  // Födelsedagar: svep inne på sidan byter visning, tillbaka går från kanten (och från Årshjul, den första visningen)
  // Raderna med svep lämnar kanten åt tillbaka-svepet
  window.u5Kant=e=>{const t=e.touches&&e.touches[0];return!!t&&t.clientX<=24&&ok()&&!!backBtn()};
