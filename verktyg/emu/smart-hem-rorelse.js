@@ -13,6 +13,18 @@ module.exports=async(pg,h)=>{
  const d=await pg.locator('main .ha-t.ha-ny').evaluateAll(a=>a.map(e=>parseFloat(e.style.getPropertyValue('--ha-d'))));
  assert.ok(d.length>=3&&new Set(d.map(Math.round)).size>1,'Scenen tänder i en våg: '+d);
  await h.idle(1200);
+ // uttag är brytare: hela brickan växlar och har en brytare
+ const fo=t('switch.fonster');assert.equal(await fo.locator('.ha-sw').count(),1,'Uttaget visar en brytare');
+ const fore=await fo.evaluate(e=>e.classList.contains('on'));await fo.locator('.ha-n').click();await h.idle(700);
+ assert.equal(await fo.evaluate(e=>e.classList.contains('on')),!fore,'Tryck på uttaget växlar');
+ assert.equal(await pg.locator('#overlay form').count(),0,'Uttaget öppnar inget blad');
+ // eget namn med textfältet
+ await t('light.kok').locator('.ha-n').click();await h.idle(1100);
+ await pg.locator('form[data-form="haLampa"] .ha-gear').click();await h.idle(500);
+ await pg.locator('[name="hanamn"]').fill('Taklampa kök');await pg.locator('[name="hanamn"]').press('Enter');await h.idle(700);
+ await h.shot('rorelse-namn');
+ await pg.locator('form[data-form="haEdit"] [data-act="sheetClose"]').click();await h.idle(600);
+ assert.match(await t('light.kok').innerText(),/Taklampa kök/,'Nytt namn från textfältet');
  // rumssidan
  await pg.locator('main [data-act="haRumVy"][data-id="Vardagsrum"]').click();await h.idle(700);
  assert.equal(await pg.locator('main .ha-t').count(),2,'Rummets sida visar bara rummets enheter');
