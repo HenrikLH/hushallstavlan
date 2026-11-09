@@ -3072,7 +3072,7 @@ html.ny.ui5 .g5-kop .val{color:var(--ink-3)}
 .ha-t.on{background:#FFF7DB;color:#1C1C1E}.ha-t.on .ha-i{background:#FFD60A;color:#5A4500}.ha-t.on .ha-s{color:rgba(60,60,67,.75)}
 .ha-live.fel{background:var(--orange);box-shadow:0 0 0 3px color-mix(in srgb,var(--orange) 22%,transparent)}.ha-t.nas{opacity:.45;cursor:default}
 .ha-st .ha-i{background:var(--accent-soft);color:var(--accent)}.ha-st.on{background:var(--accent);color:var(--on-accent)}.ha-st.on .ha-i{background:rgba(255,255,255,.22);color:inherit}
-.ha-sg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:0 16px 6px}.ha-sg .ha-st{background:var(--surface)}.ha-sg .ha-st.on{background:var(--accent)}
+.ha-sg{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin:0 16px 6px}.ha-sg .ha-st{background:var(--surface)}.ha-sg .ha-st.on{background:var(--accent)}
 .ha-sg-k{grid-template-columns:repeat(4,minmax(0,1fr));margin:8px 0 0}.ha-sg-k .ha-st{flex-direction:column;justify-content:center;gap:5px;min-height:0;padding:9px 4px;text-align:center;background:var(--fill)}.ha-sg-k .ha-n{font-size:13px}
 .ha-rh{font-size:20px;font-weight:700;letter-spacing:-.2px;margin:20px 18px 8px}
 .ha-g-v{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));margin:0 16px 6px}.ha-g-v .ha-t{background:color-mix(in srgb,var(--surface) 55%,transparent)}.ha-g-v .ha-t.on{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.08)}
@@ -3093,6 +3093,41 @@ html.ny.ui5 .g5-kop .val{color:var(--ink-3)}
 .ha-i.sm{width:30px;height:30px;margin:0 10px 0 0;flex:none}.ha-i.sm svg{width:17px;height:17px}
 .ha-chips{flex-wrap:wrap;gap:8px;padding-top:12px;padding-bottom:12px}.ha-c{background:var(--fill);color:var(--ink);font-weight:500}.ha-c.on{background:var(--accent);color:var(--on-accent)}
 .ha-ed-top{display:flex;align-items:center;gap:12px;margin:4px 16px 6px}.ha-ed-top .ha-i{margin:0;width:44px;height:44px;cursor:default}.ha-ed-top .hl{font-size:19px;font-weight:600}
+/* Smart hem som Hem-appen: mörk bakgrundsbild bakom vyn, frostade brickor (av) och vita (på), vit text */
+body[data-view="hus"]{background:#14121c;color-scheme:dark}
+html body[data-view="hus"][data-view]::before,html.ny body.wall[data-view="hus"]::before{display:block;content:'';position:fixed;inset:-10%;z-index:-1;pointer-events:none;background:radial-gradient(60% 45% at 18% 12%,#b8633a 0,transparent 70%),radial-gradient(55% 40% at 88% 30%,#3d4fa8 0,transparent 70%),radial-gradient(70% 50% at 40% 78%,#6a2e63 0,transparent 72%),radial-gradient(50% 40% at 95% 95%,#1f6d78 0,transparent 70%),#17151f;filter:blur(30px) saturate(1.15)}
+body[data-view="hus"] main{--ink:#fff;--ink-2:rgba(235,235,245,.62);--ink-3:rgba(235,235,245,.4);color:#fff;background:transparent}
+body[data-view="hus"] .rcp-top .back,body[data-view="hus"] .head .lt,body[data-view="hus"] .head .sub{color:#fff}
+body[data-view="hus"] #navbar{background:rgba(20,18,28,.55);-webkit-backdrop-filter:blur(24px) saturate(1.6);backdrop-filter:blur(24px) saturate(1.6);color:#fff}
+body[data-view="hus"] .head .ib{background:rgba(255,255,255,.16);color:#fff;-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);box-shadow:none}
+body[data-view="hus"] .ha-t,body[data-view="hus"] .ha-st,body[data-view="hus"] .ha-chip,body[data-view="hus"] main .group{background:rgba(255,255,255,.15);color:#fff;-webkit-backdrop-filter:blur(24px) saturate(1.6);backdrop-filter:blur(24px) saturate(1.6);box-shadow:none}
+body[data-view="hus"] main .group .cell{color:#fff;border-color:rgba(255,255,255,.14)}
+body[data-view="hus"] .ha-t .ha-i,body[data-view="hus"] .ha-chip .ha-i{background:rgba(255,255,255,.2);color:#fff}
+body[data-view="hus"] .ha-st .ha-i{background:rgba(255,255,255,.2);color:#fff}
+body[data-view="hus"] .ha-t.on,body[data-view="hus"] .ha-st.on{background:rgba(255,255,255,.94);color:#1c1c1e}
+body[data-view="hus"] .ha-t.on .ha-s{color:rgba(60,60,67,.7)}body[data-view="hus"] .ha-t.on .ha-i{background:#FFD60A;color:#5A4500}
+body[data-view="hus"] .ha-st.on .ha-i{background:var(--accent);color:#fff}
+body[data-view="hus"] .ha-chip.on .ha-i{background:#FFD60A;color:#5A4500}
+body[data-view="hus"] .ha-rh{color:#fff;font-size:20px}
+.ha-rh-k{display:flex;align-items:center;gap:6px;border:0;background:none;font:inherit;font-weight:700;font-size:20px;letter-spacing:-.2px;padding:0;cursor:pointer;color:inherit}.ha-rh-k .chev{display:inline-grid;opacity:.6;transform:scale(.95)}.ha-rh-k .chev svg{width:9px;height:15px}
+.ha-t .ha-i{border:0;padding:0;font:inherit;cursor:pointer;transition:transform .14s,background .3s,color .3s}.ha-t .ha-i:active{transform:scale(.86)}.ha-t:active:has(.ha-i:active){transform:none}
+.ha-rum-in{animation:ha-rum .5s cubic-bezier(.2,.9,.25,1) both}@keyframes ha-rum{from{opacity:0;transform:translateX(40px)}}
+/* Reglagen i helskärm över suddig bakgrund, som när man håller in en enhet i Hem-appen */
+.sheet:has(form[data-form="haLampa"]){align-items:stretch;background:rgba(0,0,0,.2)}
+html body form[data-form="haLampa"].sheet-panel.sheet-panel{width:100%;max-width:none;height:100dvh;max-height:none;border-radius:0;background:rgba(28,26,36,.62);-webkit-backdrop-filter:blur(40px) saturate(1.5);backdrop-filter:blur(40px) saturate(1.5);color:#fff;--ink:#fff;--ink-2:rgba(235,235,245,.62);--pill:rgba(255,255,255,.2);--fill:rgba(255,255,255,.16);--bg:#2a2733}
+form[data-form="haLampa"] .grabber,form[data-form="haLampa"] .sheet-head{display:none}
+form[data-form="haLampa"] .sheet-body{flex:1;display:flex;flex-direction:column;padding:calc(var(--sat) + 14px) 0 calc(var(--sab) + 18px);overflow-y:auto}
+.ha-top{display:flex;align-items:center;gap:12px;padding:0 18px;max-width:560px;width:100%;margin:0 auto}
+.ha-top .ha-i{width:44px;height:44px;border:0;padding:0;cursor:pointer;background:rgba(255,255,255,.2);color:#fff}.ha-top .ha-i.on:not([style]){background:#FFD60A;color:#5A4500}.ha-top .ha-i svg{width:24px;height:24px}
+.ha-top .ha-tx{flex:1}.ha-top .ha-n{font-size:20px;font-weight:700}.ha-top .ha-s{font-size:15px;color:rgba(235,235,245,.62)}
+.ha-x{width:34px;height:34px;border-radius:50%;border:0;background:rgba(255,255,255,.2);color:#fff;display:grid;place-items:center;cursor:pointer;flex:none}.ha-x svg{width:13px;height:13px}
+form[data-form="haLampa"] .ha-ctl{flex:1;justify-content:center;padding-top:10px}
+form[data-form="haLampa"] .ha-vs{width:min(150px,36vw);height:min(400px,46vh);border-radius:44px;background:rgba(255,255,255,.2)}
+form[data-form="haLampa"] .ha-vs i{background:var(--f,#F5F3EE)}form[data-form="haLampa"] .ha-vs-ik{color:rgba(255,255,255,.75)}form[data-form="haLampa"] .ha-vs.on .ha-vs-ik{color:#3a3a3c}
+form[data-form="haLampa"] .ha-w .lj-h{color:#fff}form[data-form="haLampa"] .ha-w .meta{color:rgba(235,235,245,.62)}
+form[data-form="haLampa"] .ha-c{background:rgba(255,255,255,.18);color:#fff}form[data-form="haLampa"] .ha-c.on{background:#fff;color:#1c1c1e}
+form[data-form="haLampa"] .ha-fd summary{color:#fff}form[data-form="haLampa"] .ha-farger{gap:10px;max-width:none;flex-wrap:nowrap}form[data-form="haLampa"] .ha-f{width:34px;height:34px;flex:none}form[data-form="haLampa"] .ha-f.vald{box-shadow:0 0 0 3px rgba(40,38,48,.9),0 0 0 5px #fff}
+.ha-gear{align-self:flex-end;margin:6px 20px 0 0;width:44px;height:44px;border-radius:50%;border:0;background:rgba(255,255,255,.2);color:#fff;display:grid;place-items:center;cursor:pointer;flex:none}.ha-gear svg{width:22px;height:22px}
 /* ===== Mer väder och smarta förslag (alla UI) ===== */
 /* Väder: SMHI-varning överst, nya rutor (Vädra, Ute, UV, Pollen, Norrsken) */
 .wx-varn{display:block;background:var(--surface);border-radius:var(--r5,16px);padding:12px 16px 14px;margin:0 16px 14px}

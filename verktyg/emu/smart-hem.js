@@ -10,10 +10,14 @@ module.exports=async(pg,h)=>{
  await box.evaluate(e=>scrollBy(0,e.getBoundingClientRect().top-90));await h.idle(400);
  await h.shot('smart-hem-1');
  const tile=id=>pg.locator('section.ha .ha-t[data-id="'+id+'"]');
- // tryck på brickan tänder och släcker direkt
- await tile('light.hall').click();await h.idle(800);
- assert.match(await tile('light.hall').innerText(),/På|%/,'Hallen tänd med ett tryck');
- assert.equal(await pg.locator('#overlay form').count(),0,'Trycket öppnar inget blad');
+ // ikonen tänder och släcker direkt, resten av brickan öppnar reglagen
+ await tile('light.hall').locator('.ha-i').click();await h.idle(800);
+ assert.match(await tile('light.hall').innerText(),/På|%/,'Hallen tänd med ikonen');
+ assert.equal(await pg.locator('#overlay form').count(),0,'Ikonen öppnar inget blad');
+ await tile('light.hall').locator('.ha-n').click();await h.idle(1200);
+ assert.equal(await pg.locator('form[data-form="haLampa"]').count(),1,'Tryck på brickan öppnar reglagen');
+ await pg.locator('form[data-form="haLampa"] .ha-x').click();await h.idle(900);
+ assert.equal(await pg.locator('form[data-form="haLampa"]').count(),0,'Krysset stänger');
  await pg.locator('[data-act="haScen"][data-id="av"]').click();await h.idle(800);
  assert.equal(await pg.locator('section.ha .ha-t.on').count(),0,'Släck allt');
  await pg.locator('[data-act="haScen"][data-id="scene.kvall"]').click();await h.idle(1200);

@@ -5,7 +5,7 @@ module.exports=async(pg,h)=>{
  await pg.locator('#nav [data-act="nav"][data-id="oversikt"]').first().click();await h.idle(500);
  await pg.locator('section.ha .wh').click();await h.idle(900);
  const t=id=>pg.locator('main .ha-t[data-id="'+id+'"]');
- await t('light.hall').click();await h.idle(120);
+ await t('light.hall').locator('.ha-i').click();await h.idle(120);
  assert.equal(await t('light.hall').evaluate(e=>e.classList.contains('ha-ny')),true,'Tänd brickan animeras');
  await h.idle(900);
  await pg.locator('main [data-act="haScen"][data-id="av"]').click();await h.idle(1200);
@@ -13,6 +13,12 @@ module.exports=async(pg,h)=>{
  const d=await pg.locator('main .ha-t.ha-ny').evaluateAll(a=>a.map(e=>parseFloat(e.style.getPropertyValue('--ha-d'))));
  assert.ok(d.length>=3&&new Set(d.map(Math.round)).size>1,'Scenen tänder i en våg: '+d);
  await h.idle(1200);
+ // rumssidan
+ await pg.locator('main [data-act="haRumVy"][data-id="Vardagsrum"]').click();await h.idle(700);
+ assert.equal(await pg.locator('main .ha-t').count(),2,'Rummets sida visar bara rummets enheter');
+ await h.shot('rorelse-rum');
+ await pg.locator('main .back').click();await h.idle(700);
+ assert.ok(await pg.locator('main .ha-t').count()>3,'Tillbaka till alla');
  // håll in: bladet växer ur brickan
  const tile=t('light.vardagsrum');await tile.scrollIntoViewIfNeeded();const r0=await tile.boundingBox();
  await pg.mouse.move(r0.x+r0.width/2,r0.y+r0.height/2);await pg.mouse.down();await pg.waitForTimeout(650);
