@@ -26,7 +26,7 @@ module.exports=async(pg,h)=>{
  await pg.locator('form[data-form="haLampa"] .ha-x').click();await h.idle(900);
  // eget namn med textfältet
  await t('light.kok').locator('.ha-n').click();await h.idle(1100);
- await pg.locator('form[data-form="haLampa"] .ha-gear').click();await h.idle(500);
+ await pg.locator('form[data-form="haLampa"] .ha-kng button').click();await h.idle(500);
  await pg.locator('[name="hanamn"]').fill('Taklampa kök');await pg.locator('[name="hanamn"]').press('Enter');await h.idle(700);
  await h.shot('rorelse-namn');
  await pg.locator('form[data-form="haEdit"] [data-act="sheetClose"]').click();await h.idle(600);
