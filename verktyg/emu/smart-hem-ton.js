@@ -26,13 +26,13 @@ module.exports=async(pg,h)=>{
  assert.match(await pg.locator(P+'[data-hav="w"]').innerText(),new RegExp(NM),'Namnet visas vid tonen');await hem();
  const fav=pg.locator(P+'[data-act="haFavV"]').filter({hasText:NM});
  assert.equal(await fav.count(),1,'Favoriten finns');assert.ok(await fav.evaluate(e=>e.classList.contains('on')),'Favoriten är vald');
- assert.match(await pg.locator(P+'[data-act="haSub"]').innerText(),new RegExp(NM),'Namnet visas på raden');
+ assert.match(await pg.locator(P+'[data-act="haSub"][data-id="ton"]').innerText(),new RegExp(NM),'Namnet visas på raden');
  await h.shot('ton-fav');
  // använd Vitt, sedan favoriten igen
  await pg.locator(P+'[data-act="haFavV"]').filter({hasText:'Vitt'}).click();await h.idle(900);
- assert.match(await pg.locator(P+'[data-act="haSub"]').innerText(),/4\s?000 K/,'Vitt = 4 000 K');
+ assert.match(await pg.locator(P+'[data-act="haSub"][data-id="ton"]').innerText(),/4\s?000 K/,'Vitt = 4 000 K');
  await pg.locator(P+'[data-act="haFavV"]').filter({hasText:NM}).click();await h.idle(900);
- assert.match(await pg.locator(P+'[data-act="haSub"]').innerText(),new RegExp(NM),'Favoriten ger tillbaka tonen');
+ assert.match(await pg.locator(P+'[data-act="haSub"][data-id="ton"]').innerText(),new RegExp(NM),'Favoriten ger tillbaka tonen');
  // håll in = blad, ta bort
  const b=await pg.locator(P+'[data-act="haFavV"]').filter({hasText:NM}).boundingBox();
  await pg.mouse.move(b.x+b.width/2,b.y+b.height/2);await pg.mouse.down();await pg.waitForTimeout(900);await pg.mouse.up();await h.idle(900);
