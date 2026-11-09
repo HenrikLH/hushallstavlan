@@ -15,9 +15,15 @@ module.exports=async(pg,h)=>{
  await h.idle(1200);
  // uttag är brytare: hela brickan växlar och har en brytare
  const fo=t('switch.fonster');assert.equal(await fo.locator('.ha-sw').count(),1,'Uttaget visar en brytare');
- const fore=await fo.evaluate(e=>e.classList.contains('on'));await fo.locator('.ha-n').click();await h.idle(700);
- assert.equal(await fo.evaluate(e=>e.classList.contains('on')),!fore,'Tryck på uttaget växlar');
- assert.equal(await pg.locator('#overlay form').count(),0,'Uttaget öppnar inget blad');
+ const fore=await fo.evaluate(e=>e.classList.contains('on'));await fo.locator('.ha-sw').click();await h.idle(700);
+ assert.equal(await fo.evaluate(e=>e.classList.contains('on')),!fore,'Brytaren växlar');
+ assert.equal(await pg.locator('#overlay form').count(),0,'Brytaren öppnar inget blad');
+ await fo.locator('.ha-n').click();await h.idle(1100);
+ assert.equal(await pg.locator('form[data-form="haLampa"]').count(),1,'Brickan öppnar uttagets vy');
+ const kort=await pg.locator('form[data-form="haLampa"]').boundingBox();
+ assert.ok(kort.height<760&&kort.width<=400,'Vyn är ett kort, inte hela skärmen ('+Math.round(kort.width)+'x'+Math.round(kort.height)+')');
+ await h.shot('rorelse-uttag-kort');
+ await pg.locator('form[data-form="haLampa"] .ha-x').click();await h.idle(900);
  // eget namn med textfältet
  await t('light.kok').locator('.ha-n').click();await h.idle(1100);
  await pg.locator('form[data-form="haLampa"] .ha-gear').click();await h.idle(500);
