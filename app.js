@@ -4081,7 +4081,7 @@ function starSign(m){const[n,P,L]=STJB[m],f=v=>v.toFixed(0);
 // solen eller månen med ett eget moln som följer med över himlen, som en vädersymbol (förslag a/b/c, ls ht.solmoln)
 // molnets bas: rundad och platt, på stora moln med små bulor och ett svagt streck i underkanten så att den inte ser linjerad ut
 // ikonmoln: runda tussar på en rak baslinje som sticker ut lite, ett kort streck under och (stora moln) ett mindre, mörkare moln bakom med en glipa runt det främre
-// Molnen är 1,3 gånger ikonmolnets bredd (centrerade på samma bas) så att de blir ungefär lika stora som i originalstilen.
+// Molnen är 1,3 gånger ikonmolnets bredd (centrerade på samma bas) så att de blir ungefär lika stora som i originalstilen; molnens svg har overflow=visible så att de inte klipps.
 // Molnens målade silhuetter färgsätts här så att samma lager följer dag/natt och nederbörd.
 function geoCloudSvg(P,x0,x1,B,c,o,id){const variant=o.storm?3:P.length<=2?0:o.back||P.length>=4?2:1,[sx,sy,sw,sh]=[[62,308,597,139],[767,257,348,225],[38,767,631,282],[713,756,504,303]][variant],k=1.3,W=(x1-x0+12)*k,H=Math.min(42*k,W*sh/sw),X=(x0+x1)/2-W/2,f=v=>v.toFixed(4),rgb=[1,3,5].map(i=>parseInt(c.slice(i,i+2),16)/255),L=o.ljus?.4:0,matrix=rgb.map((v,i)=>[0,1,2].map(j=>j===i?f(v*(1-L)):0).join(' ')+' 0 '+f(L)).join(' ')+' 0 0 0 1 0';
  return'<defs><clipPath id="'+id+'clip"><rect width="'+sw+'" height="'+sh+'"/></clipPath><filter id="'+id+'tint"'+geoReg([-1,-1,sw+2,sh+2])+' color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="'+matrix+'"/></filter></defs><g transform="translate('+f(X)+' '+f(B-H+5)+') scale('+f(W/sw)+' '+f(H/sh)+')"><g clip-path="url(#'+id+'clip)"><image class="geo-cloud" data-shape="'+variant+'" href="'+geoAsset('clouds-v2')+'" x="'+(-sx)+'" y="'+(-sy)+'" width="1254" height="1254" filter="url(#'+id+'tint)"/></g></g>'}
@@ -4103,7 +4103,7 @@ function sunCloud(sc,day,D){const wet=/^(drizzle|rain|sleet)$/.test(sc.type),sno
  // molnet breder ut sig ju mulnare det är; det är lite genomskinligt så att solen alltid syns igenom
  const W=D*(kind==='fair'?1.1:kind==='partly'?1.65:kind==='cloudy'?3:2.6+lv*.2),ox=D*({fair:.55,partly:.38,cloudy:.05,wet:.1}[kind]),oy=D*({fair:.3,partly:.32,cloudy:.16,wet:.18}[kind]);
  const P=wide?[[18,26,10],[32,17,13],[50,13,15],[68,18,12],[82,26,9]]:[[20,25,10],[34,17,14],[48,25,10]];
- const Wv=W*(VW+12)/VW,svg='<svg class="sb-c" viewBox="-6 -10 '+(VW+12)+' 58" width="'+f(Wv)+'" height="'+f(Wv*58/(VW+12))+'" style="opacity:'+(kind==='wet'?.88:kind==='cloudy'?.8:.85)+'">'+
+ const Wv=W*(VW+12)/VW,svg='<svg class="sb-c" overflow="visible" viewBox="-6 -10 '+(VW+12)+' 58" width="'+f(Wv)+'" height="'+f(Wv*58/(VW+12))+'" style="opacity:'+(kind==='wet'?.88:kind==='cloudy'?.8:.85)+'">'+
   iconCloud(P,wide?8:10,wide?92:58,38,c,{back:wide,dash:1,seed:wide?0:1,storm:sc.thunder,ljus:kind!=='wet'&&!sc.dark})+'</svg>';
  let r='';
  if(kind==='wet'){
@@ -4240,7 +4240,7 @@ function skyFx(W){const sc=wxScene(W),wet=/^(drizzle|rain|sleet)$/.test(sc.type)
  const shape=(t,k,c,w)=>{const np=t==='hi'?2+Math.round(rnd(k)):t==='mid'?3+Math.round(rnd(k)*2):4+Math.round(rnd(k)*2),VW=np*16+20,B=t==='hi'?30:28,P=[];
   for(let j=0;j<np;j++){const mid=1-Math.abs((j+.5)/np-.5)*2,r=(t==='hi'?6:8)+mid*(t==='hi'?5:7)+rnd(k+j*3)*4,x=12+(j+.5)*16+(rnd(k+j*3+1)-.5)*4;P.push([x,B-r*.62,r])}
   const big=t!=='hi'&&np>=4,Bb=B+(t==='hi'?4:8),w2=w*(VW+12)/VW,h=w2*58/(VW+12);
-  return{svg:'<svg viewBox="-6 -10 '+(VW+12)+' 58" width="'+f(w2)+'" height="'+f(h)+'">'+iconCloud(P,8,VW-8,Bb,c,{back:big,dash:t!=='hi',seed:k,storm:sc.thunder&&t==='lo',ljus:!(wet||snow||sc.thunder||sc.dark)})+'</svg>',h}};
+  return{svg:'<svg overflow="visible" viewBox="-6 -10 '+(VW+12)+' 58" width="'+f(w2)+'" height="'+f(h)+'">'+iconCloud(P,8,VW-8,Bb,c,{back:big,dash:t!=='hi',seed:k,storm:sc.thunder&&t==='lo',ljus:!(wet||snow||sc.thunder||sc.dark)})+'</svg>',h}};
   // molnen i samma höjd går lika fort med jämna mellanrum, så att de aldrig klumpar ihop sig och lämnar himlen tom
  // lagren överlappar och varje moln får en egen höjd i en blandad ordning, så att molnen sprids över hela himlen i stället för att ligga i samma rad
  // mulet och nederbörd: ett tätare täcke (mitt emellan det gamla smala bandet och den spridda himlen)
