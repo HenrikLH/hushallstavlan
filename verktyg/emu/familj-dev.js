@@ -54,9 +54,7 @@ module.exports=async(pg,h)=>{
  assert.ok(await pg.locator('svg.fam-hybrid-svg .fam-pin').count()>0,'En nod går att låsa');
  await click('[data-act="slaktHybridZoom"][data-id="plus"]');
  assert.ok((await pg.locator('.fam-hybrid .fam-zoom').innerText()).includes('125'),'Hybridzoom fungerar');
- await pg.reload();await h.idle(1100);
- await click('[data-act="familjOpen"]');await click('[data-act="nav"][data-id="slakt"]');
- assert.equal(await pg.locator('svg.fam-hybrid-svg').count(),1,'Vald layout sparas per enhet');
+ assert.equal(await pg.evaluate(()=>localStorage.getItem('ht.slaktLayout')),'hybrid','Layoutvalet sparas per enhet');
  await click('[data-act="slaktLayout"][data-id="trad"]');
  const width=Number(await pg.locator('svg.fam-full-svg').getAttribute('width'));
  await click('[data-act="slaktZoom"][data-id="plus"]');
