@@ -57,6 +57,7 @@ module.exports=async(pg,h)=>{
  await click('.fam3-node[data-id="Maja|08-18"]');
  assert.ok((await pg.locator('.fam3-detail').innerText()).includes('Maja'),'Personval visar detaljpanel utan att ta bort trädet');
  assert.equal(await pg.locator('.fam3-viewport').count(),1);
+ await click('[data-act="slaktVy"][data-id="alla"]');
  await click('[data-act="slaktVy"][data-id="fokus"]');
  assert.ok(await pg.locator('.fam3-node.muted').count()>0,'Fokus tonar ned andra personer utan att ta bort trädet');
  await h.shot('familj-v3-fokus');
