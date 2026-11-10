@@ -45,7 +45,7 @@ module.exports=async(pg,h)=>{
  await click('[data-act="nav"][data-id="slakt"]');
  await click('[data-act="slaktVy"][data-id="alla"]');
  assert.equal(await pg.locator('svg.fam-full-svg .fam-node').count(),6,'Syskon utan föräldrar ska synas i trädet');
- assert.equal(await pg.locator('main .sh').filter({hasText:'Ännu inte placerade'}).count(),1,'Ej placerade personer ska visas separat');
+ assert.equal(await pg.locator('main .sh').filter({hasText:'Ännu inte placerade'}).count(),0,'Samtliga kopplade personer är placerade');
  await h.shot('familj-dev-hela');
  await click('[data-act="slaktLayout"][data-id="hybrid"]');
  assert.equal(await pg.locator('svg.fam-hybrid-svg .fam-h-node').count(),6,'Hybrid visar alla kopplade personer');
