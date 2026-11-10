@@ -5297,7 +5297,7 @@ function slaktV3Camera(init=false){
    const nodes=[...box.querySelectorAll('.fam3-node')],coords=new Map(nodes.map(n=>{const m=n.getAttribute('transform').match(/translate\(([\d.]+) ([\d.]+)\)/);return[n.dataset.id,{x:Number(m?.[1]||0),y:Number(m?.[2]||0)}]}));
    const chosen=coords.get(box.dataset.selected),person=slaktPersons().find(b=>b.key===box.dataset.selected);
    const related=person?slaktNear(person,slaktPersons()):null;
-   const close=[chosen,...(related?.parents||[]).map(x=>coords.get(x.key)),...(related?.partners||[]).map(x=>coords.get(x.key)),...(related?.children||[]).slice(0,2).map(x=>coords.get(x.key))].filter(Boolean);
+   const close=[chosen,...(related?.parents||[]).map(x=>coords.get(x.key)),...(related?.partners||[]).map(x=>coords.get(x.key)),...(related?.children||[]).map(x=>coords.get(x.key)).filter(Boolean).sort((a,b)=>Math.abs(a.x-(chosen?.x||0))-Math.abs(b.x-(chosen?.x||0))).slice(0,2)].filter(Boolean);
    const xs=close.map(p=>p.x),ys=close.map(p=>p.y),minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
    const z=Math.max(.35,Math.min(.9,(w-55)/(maxX-minX+100),(h-50)/(maxY-minY+160)));
    const minTreeY=Math.min(...[...coords.values()].map(p=>p.y));
