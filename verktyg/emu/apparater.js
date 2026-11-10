@@ -26,6 +26,20 @@ module.exports=async(pg,h)=>{
  await pg.locator('#overlay [data-act="haAppDel"][data-id="sug"]').click();await h.idle(400);
  await pg.locator('#overlay .ha-ap-in').evaluate(e=>e.closest('.sheet-body').scrollTop=9999);await h.idle(300);
  await h.shot('apparater-robot-nedre');
+ // zonstädning: rita en rektangel i kartan (pausa först om roboten städar)
+ if(await pg.locator('#overlay [data-act="haRob"][data-id="paus"]').count()){await pg.locator('#overlay [data-act="haRob"][data-id="paus"]').click();await h.idle(1500)}
+ await pg.locator('#overlay [data-act="haZon"]').first().click();await h.idle(500);
+ await pg.locator('#overlay .ha-karta img').scrollIntoViewIfNeeded();await h.idle(200);
+ {const b=await pg.locator('#overlay .ha-kw').boundingBox();await pg.mouse.move(b.x+b.width*.3,b.y+b.height*.35);await pg.mouse.down();for(let i=1;i<=6;i++)await pg.mouse.move(b.x+b.width*(.3+.05*i),b.y+b.height*(.35+.04*i));await pg.mouse.up();await h.idle(500)}
+ assert.equal(await pg.locator('#overlay [data-act="haZonStada"]').isDisabled(),false,'Städa zon går att trycka efter ritad zon');
+ await h.shot('apparater-zon');
+ await pg.locator('#overlay [data-act="haZonStada"]').click();await h.idle(700);
+ if(!demo)assert.ok(ut.some(u=>/"zon":\[/.test(u)),'Zonen skickad');
+ assert.match(await pg.locator('#overlay').innerText(),/Töm dammbehållaren[\s\S]*Tvätta moppen/,'Dockans knappar finns');
+ assert.doesNotMatch(await pg.locator('#overlay').innerHTML(),/Sug och mopp<\/span>/,'Sug och mopp går inte att välja');
+ if(await pg.locator('#overlay [data-act="haRot"]').count()){await pg.locator('#overlay [data-act="haRot"]').click();await h.idle(900);if(!demo)assert.ok(ut.some(u=>/"rot":"90"/.test(u)),'Rotation skickad')}
+ await pg.locator('#overlay [data-act="haDock"][data-id="tom"]').click();await h.idle(500);
+ if(!demo)assert.ok(ut.some(u=>/"gor":"tom"/.test(u)),'Tömning skickad');
  await pg.locator('#overlay [data-act="sheetClose"]').click();await h.idle(900);
  await pg.locator('main .ha-ap[data-id="'+(demo?'diskmaskin':'diskmaskin')+'"]').click();await h.idle(900);
  assert.match(await pg.locator('#overlay').innerText(),/Eco 50°/,'Diskkortet visar programmet');

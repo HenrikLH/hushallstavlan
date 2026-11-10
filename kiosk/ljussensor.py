@@ -9,7 +9,8 @@
 #   POST /ha           {"id": "light.kok", "gor": "vaxla"|"pa"|"av", "b": 1-100, "k": kelvin, "hs": [nyans, mättnad]} | {"scen": "scene.kvall"} | {"alla": "av"}
 #   GET  /ha/alla      -> enheter i HA som tavlan får lägga till (lampor, brytare, fläktar, scener, temperatur/fukt)
 #   GET  /ha/karta?id=vacuum.x -> robotens kartbild (png)
-#   POST /ha           {"app": id, "gor": "start"|"paus"|"hem"|"stopp", "rum": [16, 17]} | {"app": id, "sug"|"lage"|"vatten"|"prog"|"rutin": värde}   dammsugare och diskmaskin
+#   POST /ha           {"app": id, "gor": "start"|"paus"|"hem"|"stopp"|"tom"|"tvatt"|"tvattstopp", "rum": [16, 17]} | {"app": id, "zon": [x0, y0, x1, y1] (kartans pixlar)}
+#                      | {"app": id, "sug"|"lage"|"vatten"|"prog"|"rutin"|"rot"|"dockLage": värde}   dammsugare och diskmaskin
 #   POST /ha/val       {"rumnr": 16, "rumnamn": "Kök"} namnger robotens rum
 #   POST /ha/val       {"lagg": id} | {"ta": id} | {"id": id, "namn": "Taklampa", "rum": "Kök"}   ändrar tavlans lista i HA_FIL
 # Home Assistant (smart hem): nyckeln ligger bara i HA_FIL (chmod 600) och lämnar aldrig datorn. Tavlan ser bara de
@@ -290,6 +291,16 @@ def ha_robot(c, alla, e):
          'lage': lage.get('state') if lage else None, 'lageAlt': A(lage).get('options') if lage else [], 'lageId': lage and lage['entity_id'],
          'vatten': vatten.get('state') if vatten else None, 'vattenAlt': A(vatten).get('options') if vatten else [], 'vattenId': vatten and vatten['entity_id'],
          'und': und, 'senast': max(senast) if senast else None, 'rutiner': rut, 'rum': []}
+    # kartans rotation (RoborockCustomMap) och dockan (egna entiteter med "dock" i namnet)
+    rot = next((x for e2, x in sorted(alla.items()) if e2.startswith('select.') and 'rotation' in e2), None)
+    if rot: r.update(rot=rot.get('state'), rotAlt=A(rot).get('options') or [], rotId=rot['entity_id'])
+    D = {e2: x for e2, x in alla.items() if 'dock' in e2.split('.', 1)[1] and ('roborock' in e2 or p in e2)}
+    dl = next((x for e2, x in sorted(D.items()) if e2.startswith('select.')), None)
+    if dl: r.update(dockLage=dl.get('state'), dockLageAlt=A(dl).get('options') or [], dockLageId=dl['entity_id'])
+    dn = lambda x: re.sub(r'^.*?dock(an)?\s+', '', A(x).get('friendly_name') or x['entity_id'], flags=re.I)
+    r['dockVarn'] = [dn(x) for e2, x in sorted(D.items()) if e2.startswith('binary_sensor.') and x.get('state') == 'on' and A(x).get('device_class') == 'problem']
+    r['dockVarn'] += [dn(x) + ': ' + x['state'] for e2, x in sorted(D.items()) if e2.startswith('sensor.') and A(x).get('device_class') == 'enum' and x.get('state') not in (None, 'ok', 'none', 'unknown', 'unavailable', 'no_error', 'idle')]
+    r['dock'] = bool(D)
     k = ha_karta_info(alla, p)
     if k:
         a = A(k); r['karta'] = k['entity_id']; r['kartaV'] = k.get('state')
@@ -356,11 +367,25 @@ def ha_app_styr(c, d):
             if rum: tj('vacuum', 'send_command', {'entity_id': e, 'command': 'app_segment_clean', 'params': [{'segments': rum, 'repeat': 1}]})
             else: tj('vacuum', 'start', {'entity_id': e})
         elif g == 'paus': tj('vacuum', 'pause', {'entity_id': e})
+        elif g in ('tom', 'tvatt', 'tvattstopp'):
+            tj('vacuum', 'send_command', {'entity_id': e, 'command': {'tom': 'app_start_collect_dust', 'tvatt': 'app_start_wash', 'tvattstopp': 'app_stop_wash'}[g]})
+        elif d.get('zon'):
+            # zonen kommer i kartbildens pixlar; räknas om till robotens koordinater med samma kalibrering som rummen
+            k = ha_karta_info(alla, e.split('.', 1)[1]); cal = (k.get('attributes') or {}).get('calibration_points') if k else None
+            if not cal: return 400, {'fel': 'kartan saknar kalibrering'}
+            f = ha_pixel([{'vacuum': q['map'], 'map': q['vacuum']} for q in cal])
+            x0, y0, x1, y1 = [float(v) for v in d['zon'][:4]]
+            (a0, b0), (a1, b1) = f(x0, y0), f(x1, y1)
+            z = [round(min(a0, a1)), round(min(b0, b1)), round(max(a0, a1)), round(max(b0, b1))]
+            if z[2] - z[0] < 300 or z[3] - z[1] < 300: return 400, {'fel': 'zonen är för liten'}
+            tj('vacuum', 'send_command', {'entity_id': e, 'command': 'app_zoned_clean', 'params': [z + [1]]})
         elif g == 'hem': tj('vacuum', 'return_to_base', {'entity_id': e})
         elif d.get('sug') in a['sugAlt']: tj('vacuum', 'set_fan_speed', {'entity_id': e, 'fan_speed': d['sug']})
         elif d.get('lage') in a['lageAlt']: tj('select', 'select_option', {'entity_id': a['lageId'], 'option': d['lage']})
         elif d.get('vatten') in a['vattenAlt']: tj('select', 'select_option', {'entity_id': a['vattenId'], 'option': d['vatten']})
         elif d.get('rutin') in [r['id'] for r in a['rutiner']]: tj('button', 'press', {'entity_id': d['rutin']})
+        elif a.get('rotId') and d.get('rot') in a.get('rotAlt', []): tj('select', 'select_option', {'entity_id': a['rotId'], 'option': d['rot']})
+        elif a.get('dockLageId') and d.get('dockLage') in a.get('dockLageAlt', []): tj('select', 'select_option', {'entity_id': a['dockLageId'], 'option': d['dockLage']})
         else: return 400, {'fel': 'okänd begäran'}
     else:
         G = ha_grupp(alla, a['id'])
