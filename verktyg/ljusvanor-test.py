@@ -83,6 +83,20 @@ try:
     v = L.vanor_nu('light.sol', ned0 - 1800); koll('före solnedgången: 3000 K', v['k'] == 3000, v)
     v = L.vanor_nu('light.sol', kl(0, 22, 50)); koll('22.50: läggdags efter klockan', v['k'] == 2300 and v['kalla'] == 'k', v)
     K = L.vanor_kurva('light.sol', kl(0, 21)); koll('soltider följer med till appen', abs(K['sol']['ned'] - 961) < 6, K['sol'])
+    # historik från HA: end_time skickas, bara rader äldre än loggen läggs till, inte igen när loggen redan är lång
+    anrop = []
+    def falsk(c, vag, data=None):
+        anrop.append(vag)
+        return [[{'entity_id': 'light.hist', 'state': 'on', 'attributes': {'color_mode': 'color_temp', 'color_temp_kelvin': 2400, 'supported_color_modes': ['color_temp'], 'brightness': 128}, 'last_updated': time.strftime('%Y-%m-%dT%H:%M:%S+00:00', time.gmtime(nu - 5 * 86400))},
+                  {'entity_id': 'light.hist', 'state': 'off', 'attributes': {}, 'last_updated': time.strftime('%Y-%m-%dT%H:%M:%S+00:00', time.gmtime(nu - 100))}]]
+    gammal = L.ha_anrop; L.ha_anrop = falsk
+    L.VANOR['logg'] = [{'t': round(nu - 3600), 'e': 'light.hist', 'on': 1, 'k': 2000, 'b': 50, 's': 'm'}]
+    L.vanor_historik(cfg, ['light.hist'], nu)
+    h = [r for r in L.VANOR['logg'] if r['e'] == 'light.hist']
+    koll('historik med end_time', 'end_time=' in anrop[-1] and len(h) == 2 and h[0]['k'] == 2400, anrop[-1], h)
+    n0 = len(anrop); L.VANOR['logg'] = [{'t': round(nu - 5 * 86400), 'e': 'light.hist', 'on': 1, 'k': 2000, 'b': 50, 's': 'm'}]
+    L.vanor_historik(cfg, ['light.hist'], nu); koll('ingen ny hämtning när loggen är lång', len(anrop) == n0)
+    L.ha_anrop = gammal
     # filen skrivs och läses tillbaka
     L.VANOR['logg'] = None; koll('loggen sparas på disk', len(L.vanor_logg()) > 0)
 finally:

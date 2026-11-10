@@ -586,26 +586,33 @@ def vanor_skriv(r):
         VANOR['kurvor'].pop(r['e'], None)
 
 def vanor_historik(c, lampor, nu):
-    # första gången: hämta det Home Assistant redan minns (oftast 10 dagar) så inlärningen inte börjar från noll
-    har = {r['e'] for r in vanor_logg()}
-    nya = [e for e in lampor if e not in har]
-    if not nya: return
-    fran = time.strftime('%Y-%m-%dT%H:%M:%S', time.gmtime(nu - VANOR_DAGAR * 86400)) + '+00:00'
-    try:
-        svar = ha_anrop(c, '/api/history/period/%s?filter_entity_id=%s' % (fran, ','.join(nya)))
-    except Exception as e:
-        logg('vanor: historik ' + repr(e)[:150]); return
+    # Vid start: hämta det Home Assistant redan minns (10 dagar som standard) för lampor som tavlan bara loggat kort tid,
+    # så inlärningen inte börjar från noll. Bara rader äldre än tavlans egen logg läggs till. end_time krävs: utan den
+    # ger HA bara 24 timmar räknat från starttiden.
+    iso = lambda t: time.strftime('%Y-%m-%dT%H:%M:%S', time.gmtime(t)) + 'Z'
+    forst = {}
+    for r in vanor_logg(): forst[r['e']] = min(forst.get(r['e'], r['t']), r['t'])
     rader = []
-    for lista in svar or []:
-        for x in lista:
-            try: t = datetime.datetime.fromisoformat(x.get('last_updated') or x['last_changed']).timestamp()
-            except Exception: continue
-            a, pa = x.get('attributes') or {}, x.get('state') == 'on'
-            rader.append({'t': round(t), 'e': x['entity_id'], 'on': int(pa), 'k': ton_k(a) if pa else None,
-                          'b': round(a['brightness'] / 2.55) if pa and a.get('brightness') else None, 's': 'm'})
+    for e in lampor:
+        till = forst.get(e, nu)
+        if till < nu - 2 * 86400: continue
+        try:
+            svar = ha_anrop(c, '/api/history/period/%s?filter_entity_id=%s&end_time=%s' % (iso(nu - VANOR_DAGAR * 86400), e, iso(till)))
+        except Exception as fel:
+            logg('vanor: historik ' + repr(fel)[:150]); continue
+        for lista in svar or []:
+            for x in lista:
+                try: t = datetime.datetime.fromisoformat((x.get('last_updated') or x['last_changed']).replace('Z', '+00:00')).timestamp()
+                except Exception: continue
+                if t >= till: continue
+                a, pa = x.get('attributes') or {}, x.get('state') == 'on'
+                if x.get('state') not in ('on', 'off'): continue
+                rader.append({'t': round(t), 'e': x.get('entity_id') or e, 'on': int(pa), 'k': ton_k(a) if pa else None,
+                              'b': round(a['brightness'] / 2.55) if pa and a.get('brightness') else None, 's': 'm'})
+    if not rader: return
     with VANOR['lock']:
         L = vanor_logg(); L.extend(rader); L.sort(key=lambda r: r['t'])
-        for e in nya: VANOR['kurvor'].pop(e, None)
+        VANOR['kurvor'] = {}
         VANOR['logg'] = L
         if os.path.exists(VANOR_LOGG): os.remove(VANOR_LOGG)
         vanor_rensa(nu)
