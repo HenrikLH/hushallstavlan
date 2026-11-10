@@ -99,6 +99,8 @@ class H(http.server.BaseHTTPRequestHandler):
         self.svar(404, {})
     def do_POST(self):
         n = int(self.headers.get('Content-Length') or 0); d = json.loads(self.rfile.read(n) or b'{}')
+        if self.path == '/yttre/hemma':   # testet: roboten har städat klart och står i dockan
+            S['vacuum.dammsugare'][0] = 'docked'; S['sensor.dammsugare_status'][0] = 'charging'; return self.svar(200, {})
         if self.path.startswith('/yttre/'):   # testet: någon tänder med strömbrytaren
             e = self.path[7:]; S[e][0] = 'on' if S[e][0] == 'off' else 'off'; return self.svar(200, {})
         if not self.ok(): return
