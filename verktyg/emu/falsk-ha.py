@@ -48,6 +48,11 @@ S.update({
    'rooms': {'16': {'x0': 17100, 'y0': 17700, 'x1': 18450, 'y1': 19800, 'number': 16, 'name': 'Unknown'}, '17': {'x0': 18050, 'y0': 20050, 'x1': 21650, 'y1': 24450, 'number': 17, 'name': 'Unknown'},
              '18': {'x0': 20600, 'y0': 20200, 'x1': 26400, 'y1': 28050, 'number': 18, 'name': 'Unknown'}, '19': {'x0': 22050, 'y0': 16550, 'x1': 26400, 'y1': 20150, 'number': 19, 'name': 'Unknown'},
              '20': {'x0': 26450, 'y0': 18200, 'x1': 28200, 'y1': 20250, 'number': 20, 'name': 'Unknown'}, '21': {'x0': 18500, 'y0': 17700, 'x1': 22050, 'y1': 19800, 'number': 21, 'name': 'Unknown'}}}],
+ 'select.roborock_qrevo_storgatsbacken_4b_rotation': ['0', {'friendly_name': 'Roborock Qrevo Storgatsbacken 4B Rotation', 'options': ['0', '90', '180', '270']}],
+ 'select.roborock_qrevo_dock_tomningslage': ['smart', {'friendly_name': 'Roborock Qrevo Dock Tömningsläge', 'options': ['smart', 'light', 'balanced', 'max']}],
+ 'binary_sensor.roborock_qrevo_dock_rentvattenbehallare': ['on', {'friendly_name': 'Roborock Qrevo Dock Rentvattenbehållaren är tom', 'device_class': 'problem'}],
+ 'binary_sensor.roborock_qrevo_dock_smutsvatten': ['off', {'friendly_name': 'Roborock Qrevo Dock Smutsvattenbehållaren är full', 'device_class': 'problem'}],
+ 'sensor.roborock_qrevo_dock_fel': ['ok', {'friendly_name': 'Roborock Qrevo Dock Fel på dockan', 'device_class': 'enum', 'options': ['ok', 'water_empty', 'waste_water_tank_full']}],
  'select.diskmaskin_valt_program': ['dishcare_dishwasher_program_eco_50', {'friendly_name': 'Diskmaskin Valt program', 'options': ['dishcare_dishwasher_program_intensiv_70', 'dishcare_dishwasher_program_auto_2', 'dishcare_dishwasher_program_eco_50', 'dishcare_dishwasher_program_pre_rinse', 'dishcare_dishwasher_program_night_wash', 'dishcare_dishwasher_program_quick_65', 'dishcare_dishwasher_program_machine_care']}],
  'select.diskmaskin_aktivt_program': ['unknown', {'friendly_name': 'Diskmaskin Aktivt program', 'options': ['dishcare_dishwasher_program_intensiv_70', 'dishcare_dishwasher_program_auto_2', 'dishcare_dishwasher_program_eco_50', 'dishcare_dishwasher_program_pre_rinse', 'dishcare_dishwasher_program_night_wash', 'dishcare_dishwasher_program_quick_65', 'dishcare_dishwasher_program_machine_care']}],
  'sensor.diskmaskin_driftstatus': ['ready', {'friendly_name': 'Diskmaskin Driftstatus', 'device_class': 'enum', 'options': ['inactive', 'ready', 'delayedstart', 'run', 'pause', 'actionrequired', 'finished', 'error', 'aborting']}],
@@ -95,6 +100,10 @@ class H(http.server.BaseHTTPRequestHandler):
         self.svar(404, {})
     def do_POST(self):
         n = int(self.headers.get('Content-Length') or 0); d = json.loads(self.rfile.read(n) or b'{}')
+        if self.path == '/yttre/hemma':   # testet: roboten har städat klart och står i dockan
+            S['vacuum.dammsugare'][0] = 'docked'; S['sensor.dammsugare_status'][0] = 'charging'; return self.svar(200, {})
+        if self.path.startswith('/yttre/rum/'):   # testet: roboten har kört in i ett annat rum
+            S['sensor.dammsugare_nuvarande_rum'][0] = self.path[11:]; return self.svar(200, {})
         if self.path.startswith('/yttre/'):   # testet: någon tänder med strömbrytaren
             e, _, k = self.path[7:].partition('?k=')
             if k: S[e][1].update(color_temp_kelvin=int(k), color_mode='color_temp')   # någon ändrar tonen i Google Home
@@ -103,6 +112,7 @@ class H(http.server.BaseHTTPRequestHandler):
         if not self.ok(): return
         _, _, _, dom, tj = self.path.split('/'); e = d['entity_id']; LOG.append([dom, tj, d])
         if dom == 'vacuum':
+            if tj == 'send_command' and not str(d.get('command')).startswith('app_') or d.get('command') in ('app_start_collect_dust', 'app_start_wash', 'app_stop_wash'): return self.svar(200, [])
             S[e][0] = {'start': 'cleaning', 'send_command': 'cleaning', 'pause': 'paused', 'return_to_base': 'returning'}.get(tj, S[e][0])
             S['sensor.dammsugare_status'][0] = {'cleaning': 'segment_cleaning' if tj == 'send_command' else 'cleaning', 'paused': 'paused', 'returning': 'returning_home'}.get(S[e][0], 'charging')
             if tj == 'set_fan_speed': S[e][1]['fan_speed'] = d['fan_speed']
