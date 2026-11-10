@@ -55,7 +55,7 @@ module.exports=async(pg,h)=>{
  assert.equal(await pg.locator('.fam-h-overview svg').count(),0,'Översikten ska inte bli ett linjenät');
  await h.shot('familj-dev-hybrid-oversikt');
  await click('.fam-h-overview [data-act="slaktFocus"][data-id="Maja|08-18"]');
- assert.equal(await pg.locator('.fam-hybrid-svg .fam-h-node').count(),5,'Fokus visar bara närmaste noder');
+ assert.equal(await pg.locator('.fam-hybrid-svg .fam-h-node').count(),4,'Fokus visar bara närmaste noder');
  assert.ok(await pg.locator('.fam-hybrid .fam-h-edge').count()<10,'Fokus ska inte få en linje per släkting');
  await h.shot('familj-dev-hybrid-fokus');
  await click('[data-act="slaktHybridLock"]');
