@@ -5148,6 +5148,7 @@ V.slakt=function(){if(!DEV)return V.oversikt();const all=slaktPersons(),assigned
  else h+=group(emptyCell('Inga relationer ännu. Välj en person och lägg till föräldrar, partner, syskon eller barn.'));
  h+=sh('Personer och relationer')+group('<button type="button" class="cell link" data-act="nav" data-id="slaktPersoner"><span class="grow">Hantera alla personer</span><span class="meta">'+all.length+' personer</span>'+chevron+'</button>');
  if(unplaced.length)h+=sh('Ännu inte placerade',unplaced.length)+group(unplaced.map(b=>slaktLink(b,'Tilldela relationer')).join(''));
+ requestAnimationFrame(()=>slaktV3Camera());
  return h;
 };
 function slaktV3Camera(init=false){
@@ -5155,7 +5156,7 @@ function slaktV3Camera(init=false){
  const svg=box.querySelector('svg'),stage=box.querySelector('.fam3-stage'),rect=box.getBoundingClientRect(),w=rect.width,h=rect.height;
  if(!w||!h)return;svg.setAttribute('viewBox','0 0 '+w+' '+h);
  const ww=Number(box.dataset.width),hh=Number(box.dataset.height),fit=Math.max(.13,Math.min(1.1,Math.min((w-35)/ww,(h-35)/hh)));
- if(!SL3.camera||SL3.fitNext){SL3.camera={z:fit,tx:(w-ww*fit)/2,ty:(h-hh*fit)/2};SL3.fitNext=false}
+ if(!SL3.camera||SL3.fitNext){SL3.camera={z:SL3.fitNext?fit:Math.max(.78,fit),tx:(w-ww*fit)/2,ty:(h-hh*fit)/2};if(!SL3.fitNext&&!SL3.target)SL3.target=box.dataset.selected;SL3.fitNext=false}
  if(SL3.target){const node=[...box.querySelectorAll('.fam3-node')].find(x=>x.dataset.id===SL3.target);if(node){const tr=node.getAttribute('transform').match(/translate\(([\d.]+) ([\d.]+)\)/);if(tr){SL3.camera.tx=w/2-Number(tr[1])*SL3.camera.z;SL3.camera.ty=h/2-Number(tr[2])*SL3.camera.z}}SL3.target=null}
  const c=SL3.camera;stage.setAttribute('transform','translate('+c.tx+' '+c.ty+') scale('+c.z+')');box.querySelector('.fam3-scale').textContent=Math.round(c.z*100)+' %';
 }
