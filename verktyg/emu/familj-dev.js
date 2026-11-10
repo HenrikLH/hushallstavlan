@@ -23,7 +23,20 @@ module.exports=async(pg,h)=>{
  await click('[data-act="slaktVy"][data-id="alla"]');
  assert.equal(await pg.locator('svg.fam-full-svg').count(),1,'Hela släktträdet syns');
  assert.equal(await pg.locator('svg.fam-full-svg .fam-node').count(),10,'Alla tio testpersoner visas');
+ const starting=await pg.locator('svg.fam-full-svg').getAttribute('width');
+ await click('[data-act="slaktZoom"][data-id="plus"]');
+ const zoomed=await pg.locator('svg.fam-full-svg').getAttribute('width');
+ assert.ok(Number(zoomed)>Number(starting),'Zooma in gör trädet större');
+ await click('[data-act="slaktZoom"][data-id="minus"]');
+ assert.equal(await pg.locator('svg.fam-full-svg').getAttribute('width'),starting,'Zooma ut återställer storleken');
+ // Släktkopplingarna ska vara separata vägar som når avatarernas kant, inte fria linjer.
+ const paths=await pg.locator('svg.fam-full-svg .fam-lines path').count();
+ assert.ok(paths>=8,'Föräldra- och syskonkopplingar har egna sammanhängande linjer');
  await h.shot('familj-dev-hela');
+ await click('svg.fam-full-svg .fam-node[data-id="Anna|05-12"]');
+ assert.equal(await pg.locator('svg.fam-svg').count(),1,'Tryck på person i hela trädet öppnar I fokus');
+ assert.ok((await pg.locator('.fam-focus').innerText()).includes('Anna'),'Rätt person väljs från hela trädet');
+ await click('[data-act="slaktVy"][data-id="alla"]');
  await click('[data-act="slaktVy"][data-id="fokus"]');
  await click('svg.fam-svg .fam-node[data-id="Anna|05-12"]');
  assert.ok((await pg.locator('.fam-focus').innerText()).includes('Anna'),'Fokus kan flyttas');
