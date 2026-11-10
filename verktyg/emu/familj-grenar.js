@@ -46,6 +46,14 @@ module.exports=async(pg,h)=>{
  });
  assert.equal(issues.hits,0,'Ingen relationslinje får passera genom något personkort');
  assert.equal(issues.diagonal,0,'Ingen diagonal spaghettilinje i relationskartan');
+ const camera=await pg.locator('.fam3-viewport').evaluate(box=>{
+  const stage=box.querySelector('.fam3-stage'),sel=box.querySelector('.fam3-node.selected');
+  const m=stage.getAttribute('transform').match(/translate\(([-\d.]+) ([-\d.]+)\) scale\(([\d.]+)\)/);
+  const p=sel.getAttribute('transform').match(/translate\(([\d.]+) ([\d.]+)\)/);
+  return{x:Number(m[1])+Number(p[1])*Number(m[3]),zoom:Number(m[3]),width:box.getBoundingClientRect().width};
+ });
+ assert.ok(camera.x>85&&camera.x<camera.width-85,'Den valda personen ska synas centralt vid start');
+ assert.ok(camera.zoom>=.7,'Namnkorten ska vara läsbara vid start');
  await h.shot('familj-grenar-korsningar');
  await click('.fam3-node[data-id="'+key(6)+'"]');
  await click('[data-act="slaktVy"][data-id="fokus"]');
