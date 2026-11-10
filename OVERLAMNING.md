@@ -12,6 +12,7 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 - `docs/granskning-2026-11/README.md` + skisser: arbetspaket A–M. Henrik valde meny A (Översikt först + flik Hemmet), ännu inte byggd. Övriga frågor i avsnitt 8 öppna.
 - Paket G publicerat ht-v332 (ångra-gren `version-fore-fargroller`): UI 5.0-tokens `--obs/--obs-bg/--obs-ring` (bärnsten) för obs-text (priser, stående överföring, Maten räcker inte), framsteg `.bt-m.bad`/`.wm-port.bad` neutrala, Städs `.dr-slide .pill` gråa. Bara CSS i index.html sist i UI 5.0-blocket.
+- Paket B (del 1) publicerat ht-v333 (ångra-gren `version-fore-oversikt-brus`): i UI 5.0 blir flera saknade stående överföringar en rad till Ekonomi (`ovEn`), Hemmet visar bara rum under 0,85 (resten som "N fint"), tomma Att göra/Hemmet/Imorgon göms utom i Ändra ordning. Kvar i B: slå ihop Schema + Att göra till "Idag", samma logik på väggen. Nästa paket: C (recept/rättens blad).
 - Gröna lokalt: alla-flikar telefon+vägg, ui5, ui5-navigering. CI-fel i `oversikt-manad.js`, `vader-dag.js`, `animationer.js` finns redan på main.
 
 ## Familj Hybrid + syskon (ht-v330, utvecklarläge)
