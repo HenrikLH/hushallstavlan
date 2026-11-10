@@ -94,6 +94,7 @@ class H(http.server.BaseHTTPRequestHandler):
         if not self.ok(): return
         if self.path == '/api/states': return self.svar(200, [{'entity_id': k, 'state': v[0], 'attributes': v[1]} for k, v in S.items()])
         if self.path == '/logg': return self.svar(200, LOG)
+        if self.path.startswith('/api/history/period/'): return self.svar(200, [])
         if self.path.startswith('/api/image_proxy/'):
             b = karta_png(); self.send_response(200); self.send_header('Content-Type', 'image/png'); self.end_headers(); self.wfile.write(b); return
         self.svar(404, {})
@@ -104,7 +105,10 @@ class H(http.server.BaseHTTPRequestHandler):
         if self.path.startswith('/yttre/rum/'):   # testet: roboten har kört in i ett annat rum
             S['sensor.dammsugare_nuvarande_rum'][0] = self.path[11:]; return self.svar(200, {})
         if self.path.startswith('/yttre/'):   # testet: någon tänder med strömbrytaren
-            e = self.path[7:]; S[e][0] = 'on' if S[e][0] == 'off' else 'off'; return self.svar(200, {})
+            e, _, k = self.path[7:].partition('?k=')
+            if k: S[e][1].update(color_temp_kelvin=int(k), color_mode='color_temp')   # någon ändrar tonen i Google Home
+            else: S[e][0] = 'on' if S[e][0] == 'off' else 'off'
+            return self.svar(200, {})
         if not self.ok(): return
         _, _, _, dom, tj = self.path.split('/'); e = d['entity_id']; LOG.append([dom, tj, d])
         if dom == 'vacuum':
