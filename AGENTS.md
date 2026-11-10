@@ -2,7 +2,7 @@
 
 Gemensam grund för Codex och Claude Code (via `CLAUDE.md`). Läs hela filen och `OVERLAMNING.md` när du tar över eller börjar en ny session. I samma session räcker det att läsa det som ändrats. Arbetsrutinen står i avsnitt 7.
 
-**Rutiner som skills:** stegen för att ta över, förhandsvisa och publicera ligger i `.claude/skills/hushallstavlan-ta-over/`, `hushallstavlan-forhandsvisa/` och `hushallstavlan-publicera/` (`SKILL.md`). Claude Code läser dem automatiskt när de behövs; Codex och andra agenter läser filen när avsnittet nedan hänvisar dit. Ändra rutinen i skill-filen, inte på två ställen.
+**Rutiner som skills:** stegen för att ta över, förhandsvisa och publicera ligger i `.claude/skills/hushallstavlan-ta-over/`, `hushallstavlan-forhandsvisa/` och `hushallstavlan-publicera/` (`SKILL.md`). All design (rutor, blad, listor, ikoner) följer de fasta måtten och granskningslistan i `hushallstavlan-apple-design/`. Claude Code läser dem automatiskt när de behövs; Codex och andra agenter läser filen när avsnittet nedan hänvisar dit. Ändra rutinen i skill-filen, inte på två ställen.
 
 Om något här säger emot det Henrik skriver till dig gäller Henriks ord. Uppdatera då filen i samma ändring så att nästa agent vet.
 
