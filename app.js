@@ -5299,10 +5299,11 @@ function slaktV3Camera(init=false){
    const related=person?slaktNear(person,slaktPersons()):null;
    const close=[chosen,...(related?.parents||[]).map(x=>coords.get(x.key)),...(related?.partners||[]).map(x=>coords.get(x.key)),...(related?.children||[]).map(x=>coords.get(x.key)).filter(Boolean).sort((a,b)=>Math.abs(a.x-(chosen?.x||0))-Math.abs(b.x-(chosen?.x||0))).slice(0,2)].filter(Boolean);
    const xs=close.map(p=>p.x),ys=close.map(p=>p.y),minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
-   const z=Math.max(.35,Math.min(.9,(w-55)/(maxX-minX+100),(h-50)/(maxY-minY+160)));
+   const z=Math.max(.72,Math.min(.96,(w-45)/(maxX-minX+100),(h-50)/(maxY-minY+130)));
    const minTreeY=Math.min(...[...coords.values()].map(p=>p.y));
-   const aimY=chosen?.y===minTreeY?h*.30:h*.49,centerX=(minX+maxX)/2;
-   SL3.camera={z,tx:w/2-centerX*z,ty:aimY-(chosen?.y||0)*z};SL3.target=null;
+   const aimY=chosen?.y===minTreeY?h*.24:h*.42;
+   // Start on the selected person, never on the bounding box of distant children.
+   SL3.camera={z,tx:w/2-(chosen?.x||0)*z,ty:aimY-(chosen?.y||0)*z};SL3.target=null;
   }
  }
  if(SL3.target){const node=[...box.querySelectorAll('.fam3-node')].find(x=>x.dataset.id===SL3.target);if(node){const tr=node.getAttribute('transform').match(/translate\(([\d.]+) ([\d.]+)\)/);if(tr){SL3.camera.tx=w/2-Number(tr[1])*SL3.camera.z;SL3.camera.ty=h*.43-Number(tr[2])*SL3.camera.z}}SL3.target=null}
