@@ -5044,21 +5044,21 @@ V.slaktPersoner=function(){if(!DEV)return V.oversikt();const B=slaktPersons().sl
  h+=sh('Personer',B.length)+group(B.length?B.map(b=>slaktLink(b,slaktPersonInfo(b))).join(''):emptyCell('Inga personer ännu. Lägg till dem i Födelsedagar.'));
  h+='<div class="foot">Tryck på en persons cirkel eller rad för att ange partner, föräldrar och barn. Platserna i släktträdet beräknas sedan utifrån relationerna.</div>';
  return h};
-function slaktFullSvg(B){const R=slaktR(),ids=new Set(B.map(b=>b.key)),P=k=>slaktParents(k).filter(x=>ids.has(x)&&x!==k),partners=R.partners.filter(p=>Array.isArray(p)&&p.length===2&&p.every(x=>ids.has(x))),depths=new Map(),busy=new Set();
+function slaktFullSvg(B){const R=slaktR(),ids=new Set(B.map(b=>b.key)),P=k=>slaktParents(k).filter(x=>ids.has(x)&&x!==k),partners=R.partners.filter(p=>Array.isArray(p)&&p.length===2&&p.every(x=>ids.has(x))),coParents=Object.values(R.par).filter(p=>Array.isArray(p)&&p.length===2&&p.every(x=>ids.has(x))),links=[...partners,...coParents].filter((p,i,a)=>a.findIndex(q=>q.slice().sort().join('|')===p.slice().sort().join('|'))===i),depths=new Map(),busy=new Set();
  const depth=k=>{if(depths.has(k))return depths.get(k);if(busy.has(k))return 0;busy.add(k);const p=P(k),d=p.length?Math.min(15,1+Math.max(...p.map(depth))):0;busy.delete(k);depths.set(k,d);return d};
- B.forEach(b=>depth(b.key));for(let i=0;i<B.length*3;i++){let change=false;partners.forEach(p=>{const d=Math.max(...p.map(k=>depths.get(k)));p.forEach(k=>{if(depths.get(k)<d){depths.set(k,d);change=true}})});B.forEach(b=>{const p=P(b.key);if(p.length){const d=Math.min(15,1+Math.max(...p.map(k=>depths.get(k))));if(d>depths.get(b.key)){depths.set(b.key,d);change=true}}});if(!change)break}
+ B.forEach(b=>depth(b.key));for(let i=0;i<B.length*3;i++){let change=false;links.forEach(p=>{const d=Math.max(...p.map(k=>depths.get(k)));p.forEach(k=>{if(depths.get(k)<d){depths.set(k,d);change=true}})});B.forEach(b=>{const p=P(b.key);if(p.length){const d=Math.min(15,1+Math.max(...p.map(k=>depths.get(k))));if(d>depths.get(b.key)){depths.set(b.key,d);change=true}}});if(!change)break}
  const rows=new Map();B.forEach(b=>{const d=depths.get(b.key);if(!rows.has(d))rows.set(d,[]);rows.get(d).push(b)});
  const levels=[...rows.keys()].sort((a,b)=>a-b),pos=new Map(),step=130,margin=85;
  levels.forEach(d=>{const row=rows.get(d),mean=k=>{const p=P(k).map(x=>pos.get(x)?.x).filter(x=>x!=null);return p.length?p.reduce((a,b)=>a+b,0)/p.length:1e5};row.sort((a,b)=>mean(a.key)-mean(b.key)||a.name.localeCompare(b.name,'sv'));
  // Flytta ihop partnerpar inom varje generationsrad.
- for(const pair of partners){const ia=row.findIndex(b=>b.key===pair[0]),ib=row.findIndex(b=>b.key===pair[1]);if(ia>=0&&ib>=0&&Math.abs(ia-ib)>1){const item=row.splice(ib,1)[0],i=row.findIndex(b=>b.key===pair[0]);row.splice(i+1,0,item)}}
+ for(const pair of links){const ia=row.findIndex(b=>b.key===pair[0]),ib=row.findIndex(b=>b.key===pair[1]);if(ia>=0&&ib>=0&&Math.abs(ia-ib)>1){const item=row.splice(ib,1)[0],i=row.findIndex(b=>b.key===pair[0]);row.splice(i+1,0,item)}}
  row.forEach((b,i)=>pos.set(b.key,{x:margin+i*step,y:58+d*170}))});
  const width=Math.max(370,...[...rows.values()].map(row=>margin*2+(row.length-1)*step)),height=125+Math.max(0,...levels)*170;
  levels.forEach(d=>{const row=rows.get(d),off=(width-(margin*2+(row.length-1)*step))/2;row.forEach(b=>pos.get(b.key).x+=off)});
  const edges=[];
- partners.forEach(pair=>{const a=pos.get(pair[0]),b=pos.get(pair[1]);if(a.y===b.y)edges.push('M'+(Math.min(a.x,b.x)+22)+' '+a.y+'H'+(Math.max(a.x,b.x)-22))});
+ links.forEach(pair=>{const a=pos.get(pair[0]),b=pos.get(pair[1]);if(a.y===b.y)edges.push('M'+(Math.min(a.x,b.x)+22)+' '+a.y+'H'+(Math.max(a.x,b.x)-22))});
  const clusters=new Map();B.forEach(b=>{const p=P(b.key).sort();if(!p.length)return;const key=JSON.stringify(p);if(!clusters.has(key))clusters.set(key,{p,children:[]});clusters.get(key).children.push(b.key)});
- clusters.forEach(({p,children})=>{const parents=p.map(k=>pos.get(k)),kids=children.map(k=>pos.get(k)),py=Math.max(...parents.map(x=>x.y)),ky=Math.min(...kids.map(x=>x.y)),root=parents.reduce((n,v)=>n+v.x,0)/parents.length,branch=Math.min(py+82,ky-40),paired=p.length===2&&parents.every(x=>x.y===py)&&partners.some(a=>a.includes(p[0])&&a.includes(p[1]));
+ clusters.forEach(({p,children})=>{const parents=p.map(k=>pos.get(k)),kids=children.map(k=>pos.get(k)),py=Math.max(...parents.map(x=>x.y)),ky=Math.min(...kids.map(x=>x.y)),root=parents.reduce((n,v)=>n+v.x,0)/parents.length,branch=Math.min(py+82,ky-40),paired=p.length===2&&parents.every(x=>x.y===py)&&links.some(a=>a.includes(p[0])&&a.includes(p[1]));
  edges.push('M'+root+' '+(paired?py:py+25)+'V'+branch);
  const xx=kids.map(x=>x.x),lo=Math.min(root,...xx),hi=Math.max(root,...xx);if(hi>lo)edges.push('M'+lo+' '+branch+'H'+hi);
  kids.forEach(k=>edges.push('M'+k.x+' '+branch+'V'+(k.y-25)))});
