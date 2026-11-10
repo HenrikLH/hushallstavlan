@@ -5117,7 +5117,7 @@ function slaktV3Layout(B){
   const py=Math.max(...ps.map(p=>p.y)),cx=ps.reduce((a,p)=>a+p.x,0)/ps.length;
   // Link connectors only in the open corridor between generations.
   const firstY=Math.min(...children.map(p=>p.y));if(firstY<=py+75)return;
-  const trunkY=py+78+(index%3)*12,childY=firstY-32,lo=Math.min(cx,...children.map(p=>p.x)),hi=Math.max(cx,...children.map(p=>p.x));
+  const trunkY=py+78+(index%3)*12,childY=firstY-32,lo=Math.min(...ps.map(p=>p.x),...children.map(p=>p.x)),hi=Math.max(...ps.map(p=>p.x),...children.map(p=>p.x));
   ps.forEach(p=>{path('M'+p.x+' '+(p.y+29)+' V'+trunkY,'parent')});
   path('M'+lo+' '+trunkY+' H'+hi,'child');
   children.forEach(p=>path('M'+p.x+' '+trunkY+' V'+(p.y-30),'child'));
@@ -5157,8 +5157,21 @@ function slaktV3Camera(init=false){
  const svg=box.querySelector('svg'),stage=box.querySelector('.fam3-stage'),rect=box.getBoundingClientRect(),w=rect.width,h=rect.height;
  if(!w||!h)return;svg.setAttribute('viewBox','0 0 '+w+' '+h);
  const ww=Number(box.dataset.width),hh=Number(box.dataset.height),fit=Math.max(.13,Math.min(1.1,Math.min((w-35)/ww,(h-35)/hh)));
- if(!SL3.camera||SL3.fitNext){SL3.camera={z:SL3.fitNext?fit:Math.max(.78,fit),tx:(w-ww*fit)/2,ty:(h-hh*fit)/2};if(!SL3.fitNext&&!SL3.target)SL3.target=box.dataset.selected;SL3.fitNext=false}
- if(SL3.target){const node=[...box.querySelectorAll('.fam3-node')].find(x=>x.dataset.id===SL3.target);if(node){const tr=node.getAttribute('transform').match(/translate\(([\d.]+) ([\d.]+)\)/);if(tr){SL3.camera.tx=w/2-Number(tr[1])*SL3.camera.z;SL3.camera.ty=h/2-Number(tr[2])*SL3.camera.z}}SL3.target=null}
+ if(!SL3.camera||SL3.fitNext){
+  if(SL3.fitNext){SL3.camera={z:fit,tx:(w-ww*fit)/2,ty:(h-hh*fit)/2};SL3.fitNext=false;SL3.target=null}
+  else {
+   const nodes=[...box.querySelectorAll('.fam3-node')],coords=new Map(nodes.map(n=>{const m=n.getAttribute('transform').match(/translate\(([\d.]+) ([\d.]+)\)/);return[n.dataset.id,{x:Number(m?.[1]||0),y:Number(m?.[2]||0)}]}));
+   const chosen=coords.get(box.dataset.selected),person=slaktPersons().find(b=>b.key===box.dataset.selected);
+   const related=person?slaktNear(person,slaktPersons()):null;
+   const close=[chosen,...(related?.parents||[]).map(x=>coords.get(x.key)),...(related?.partners||[]).map(x=>coords.get(x.key)),...(related?.children||[]).slice(0,2).map(x=>coords.get(x.key))].filter(Boolean);
+   const xs=close.map(p=>p.x),ys=close.map(p=>p.y),minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
+   const z=Math.max(.35,Math.min(.9,(w-55)/(maxX-minX+100),(h-50)/(maxY-minY+160)));
+   const minTreeY=Math.min(...[...coords.values()].map(p=>p.y));
+   const aimY=chosen?.y===minTreeY?h*.30:h*.49,centerX=(minX+maxX)/2;
+   SL3.camera={z,tx:w/2-centerX*z,ty:aimY-(chosen?.y||0)*z};SL3.target=null;
+  }
+ }
+ if(SL3.target){const node=[...box.querySelectorAll('.fam3-node')].find(x=>x.dataset.id===SL3.target);if(node){const tr=node.getAttribute('transform').match(/translate\(([\d.]+) ([\d.]+)\)/);if(tr){SL3.camera.tx=w/2-Number(tr[1])*SL3.camera.z;SL3.camera.ty=h*.43-Number(tr[2])*SL3.camera.z}}SL3.target=null}
  const c=SL3.camera;stage.setAttribute('transform','translate('+c.tx+' '+c.ty+') scale('+c.z+')');box.querySelector('.fam3-scale').textContent=Math.round(c.z*100)+' %';
 }
 function slaktV3Zoom(factor,clientX,clientY){
