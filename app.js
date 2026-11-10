@@ -5130,12 +5130,12 @@ function slaktTraditionalFocus(focus,all){
 function slaktHybridPins(){return fodOb(parseJ(lsGet('slaktHybridPins2')||'{}',{}))}
 function slaktHybridSvg(B,focus){
  const n=slaktNear(focus,B),expanded=!!S.slaktExpandChildren,shown=n.children.slice(0,3),more=n.children.length-shown.length,pins=slaktHybridPins();
- const places=new Map(),x=180,y=202;
- const put=(b,px,py)=>{const p=pins[b.key];places.set(b.key,{x:p&&Number.isFinite(p.x)?Math.max(34,Math.min(326,p.x)):px,y:p&&Number.isFinite(p.y)?Math.max(38,Math.min(400,p.y)):py,locked:!!p})};
+ const places=new Map(),x=180,y=n.parents.length?202:110,canvasH=n.children.length?(n.parents.length?440:340):(n.parents.length?275:190),childY=n.parents.length?347:258;
+ const put=(b,px,py)=>{const p=pins[b.key];places.set(b.key,{x:p&&Number.isFinite(p.x)?Math.max(34,Math.min(326,p.x)):px,y:p&&Number.isFinite(p.y)?Math.max(38,Math.min(canvasH-38,p.y)):py,locked:!!p})};
  const parents=n.parents.slice(0,2),partner=n.partners[0];
  parents.forEach((p,i)=>put(p,parents.length===1?180:i===0?103:257,66));
  put(focus,partner?119:180,y);if(partner)put(partner,260,y);
- shown.forEach((p,i)=>put(p,shown.length===1?180:shown.length===2?103+i*154:61+i*119,347));
+ shown.forEach((p,i)=>put(p,shown.length===1?180:shown.length===2?103+i*154:61+i*119,childY));
  const path=[],edge=(d,type)=>path.push('<path d="'+d+'" class="fam-h-edge '+type+'"/>'),q=k=>places.get(k);
  const me=q(focus.key);
  if(parents.length){const midX=parents.reduce((sum,b)=>sum+q(b.key).x,0)/parents.length,branch=139;
@@ -5143,7 +5143,7 @@ function slaktHybridSvg(B,focus){
   edge('M'+midX+' '+branch+' V'+(me.y-27)+' H'+me.x,'parent');
  }
  if(partner){const p=q(partner.key);edge('M'+(me.x+27)+' '+me.y+' H'+(p.x-27),'partner')}
- if(shown.length){const joint=partner?(me.x+q(partner.key).x)/2:me.x,branch=284;
+ if(shown.length){const joint=partner?(me.x+q(partner.key).x)/2:me.x,branch=n.parents.length?284:190;
   edge('M'+joint+' '+(me.y+27)+' V'+branch,'child');
   shown.forEach(b=>{const p=q(b.key);edge('M'+joint+' '+branch+' H'+p.x+' V'+(p.y-27),'child')});
  }
@@ -5153,7 +5153,7 @@ function slaktHybridSvg(B,focus){
  const zoom=S.slaktHybridZoom||1;
  const related=n.siblings.length?'<div class="fam-h-relationship"><div class="fam-tr-label">Syskon · '+n.siblings.length+'</div><div class="fam-h-chips">'+n.siblings.slice(0,S.slaktExpandSiblings?n.siblings.length:4).map(b=>'<button type="button" class="fam-h-chip" data-act="slaktFocus" data-id="'+esc(b.key)+'">'+esc(b.name)+'</button>').join('')+'</div>'+(n.siblings.length>4?'<button class="fam-gen-more" type="button" data-act="slaktSiblingsMore">'+(S.slaktExpandSiblings?'Visa färre':'Visa '+(n.siblings.length-4)+' fler syskon')+'</button>':'')+'</div>':'';
  return '<div class="fam-hybrid"><div class="fam-focus"><span class="grow"><strong>'+esc(focus.name)+'</strong><span class="meta">'+esc(slaktPersonInfo(focus))+'</span></span><button type="button" class="pill" data-act="slaktEdit" data-id="'+esc(focus.key)+'">Relationer</button></div>'+
- '<div class="fam-hybrid-pan"><svg class="fam-hybrid-svg" viewBox="0 0 360 440" width="'+Math.round(360*zoom)+'" height="'+Math.round(440*zoom)+'" style="width:'+Math.round(zoom*100)+'%;height:auto" role="group" aria-label="Närmaste relationer till '+esc(focus.name)+'"><g class="fam-h-lines">'+path.join('')+'</g>'+nodes+'</svg></div>'+
+ '<div class="fam-hybrid-pan"><svg class="fam-hybrid-svg" viewBox="0 0 360 '+canvasH+'" width="'+Math.round(360*zoom)+'" height="'+Math.round(canvasH*zoom)+'" style="width:'+Math.round(zoom*100)+'%;height:auto" role="group" aria-label="Närmaste relationer till '+esc(focus.name)+'"><g class="fam-h-lines">'+path.join('')+'</g>'+nodes+'</svg></div>'+
  '<div class="fam-h-actions"><div class="fam-zoom"><button type="button" data-act="slaktHybridZoom" data-id="minus" aria-label="Zooma ut">−</button><span class="num">'+Math.round(zoom*100)+' %</span><button type="button" data-act="slaktHybridZoom" data-id="plus" aria-label="Zooma in">+</button></div><button type="button" class="pill" data-act="slaktHybridLock" data-id="'+esc(focus.key)+'">'+(pins[focus.key]?'Lås upp':'Lås position')+'</button><button type="button" class="pill" data-act="slaktHybridFit">Återställ zoom</button></div>'+
  (more?'<div class="fam-h-relationship"><div class="fam-tr-label">Fler barn · '+more+'</div>'+n.children.slice(3,expanded?n.children.length:3).map(b=>slaktMiniNode(b)).join('')+'<button class="fam-gen-more" type="button" data-act="slaktChildrenMore">'+(expanded?'Visa färre':'Visa '+more+' fler barn')+'</button></div>':'')+
  related+'<div class="fam-hint">Bara närmaste relationerna visas. Tryck på en person för att utforska vidare. Dra en nod för att flytta och låsa den.</div></div>';
