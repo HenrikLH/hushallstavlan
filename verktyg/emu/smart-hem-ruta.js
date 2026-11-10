@@ -15,7 +15,9 @@ module.exports=async(pg,h)=>{
  // egen scen: Släck allt, sedan en ny egen scen som tänder köket
  await box.locator('[data-act="habScen"][data-id="3"]').click();await h.idle(600);
  assert.equal(await box.locator('.ha-t.on:not(.ha-ap)').count(),0,'Släck allt');
- await box.locator('.hab-mer').click();await h.idle(700);
+ await box.locator('.hab-mer').click();await h.idle(400);await h.shot('ruta-meny');
+ assert.equal(await box.locator('.hab-menu[open] [data-act="habOpen"]').count(),1,'Menyn har Redigera rutan');
+ await box.locator('.hab-menu [data-act="habOpen"]').click();await h.idle(700);
  const F='form[data-form="habRuta"]';assert.equal(await pg.locator(F).count(),1,'Anpassa-bladet');
  // ta bort en favorit, lägg till en annan, flytta med greppet
  const ids=async()=>pg.locator(F+' .hab-lista .hab-r').evaluateAll(L=>L.map(e=>e.dataset.id));
@@ -39,6 +41,7 @@ module.exports=async(pg,h)=>{
  await pg.locator(F+' [data-act="habKlar"]').click();await h.idle(700);
  assert.deepEqual(await fv().evaluateAll(L=>L.map(e=>e.dataset.id)),f1.slice(0,(await fv().count())),'Rutan följer ordningen');
  assert.match(await box.locator('.hab-sc .ha-st').first().innerText(),/Middag/,'Scenen heter Middag');
+ assert.doesNotMatch(await box.locator('.hab-h').innerText(),/°/,'Ingen temperatur');
  // köret: scenen sparades när allt var släckt; tänd köket, kör scenen = köket släcks igen
  await box.locator('[data-act="habScen"][data-id="0"]').click();await h.idle(400);
  assert.ok(await box.locator('.hab-sc .ha-st').first().evaluate(e=>e.classList.contains('on')),'Middag är aktiv');
