@@ -4,7 +4,7 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 ## Förslag: expertgranskning (Claude, väntar på Henrik)
 
-- `docs/granskning-2026-11/README.md` + skisser: prioriterade arbetspaket A–M (meny, översikt, recept, färgroller, väggskärm, animationer, färre val, nya funktioner). Gren `claude/project-thread-davi5e`. Inget byggt; Henrik väljer meny A/B och ordning först (frågor i avsnitt 8).
+- `docs/granskning-2026-11/README.md` + skisser: prioriterade arbetspaket A–M (meny, översikt, recept, färgroller, väggskärm, animationer, färre val, nya funktioner). Gren `claude/project-thread-davi5e`. Inget byggt. Henrik valde meny A (2026-11-10); övriga frågor i avsnitt 8 öppna.
 
 ## Familj Hybrid + syskon (ht-v330, utvecklarläge)
 

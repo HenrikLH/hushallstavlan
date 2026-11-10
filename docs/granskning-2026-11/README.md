@@ -38,7 +38,7 @@ Hushållstavlan är redan ovanligt genomarbetad för en hemmaapp: riktigt bra ve
 
 ---
 
-## A. Menystruktur och navigering — Välj A/B
+## A. Menystruktur och navigering — Henrik valde A (2026-11-10)
 
 ![Meny före och efter](1-meny-fore-efter.png)
 
@@ -320,7 +320,7 @@ const m=await pg.evaluate(()=>{const r={};document.querySelectorAll('#main *').f
 
 ## 8. Frågor till Henrik innan bygget
 
-1. Meny: förslag **A** (Översikt först + ny flik Hemmet) eller **B** (bara byt plats på Översikt och Ekonomi)?
+1. ~~Meny A eller B?~~ Besvarad 2026-11-10: **A** (Översikt först + ny flik Hemmet).
 2. Får UI 2.0, 3.0 och 4.0 pensioneras så att bara UI 5.0 (och Aura som färgtema) finns kvar?
 3. Vilka av de nya funktionerna i M vill du ha först? Mitt förslag: M1 Söndagsplanering, M2 Slut på…, M3 Elpris.
 4. Kan kameran på väggdatorn användas för att se om någon står nära (för avståndsläget), eller ska det bara gå på tid sedan senaste tryck?
