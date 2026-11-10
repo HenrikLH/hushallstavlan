@@ -5130,101 +5130,120 @@ function slaktHybridLayout(B){
 }
 
 /* Telefonvänliga familjevyer. Endast fokuserade relationer får linjer; översikten består av generationskort. */
-function slaktFamiljGen(B){
- const ids=new Set(B.map(b=>b.key)),R=slaktR(),depths=new Map(),active=new Set();
- const gen=k=>{if(depths.has(k))return depths.get(k);if(active.has(k))return 0;active.add(k);const pp=slaktParents(k).filter(x=>ids.has(x)),d=pp.length?Math.min(15,1+Math.max(...pp.map(gen))):0;active.delete(k);depths.set(k,d);return d};
- B.forEach(b=>gen(b.key));
- // Partner och uttryckliga syskon tillhör samma generation; barn hamnar alltid senare.
- for(let n=0;n<B.length*2;n++){let changed=false;
-  [...R.partners,...R.siblings].forEach(pair=>{if(!Array.isArray(pair)||pair.length!==2||!pair.every(x=>ids.has(x)))return;const d=Math.max(...pair.map(x=>depths.get(x)));pair.forEach(k=>{if(depths.get(k)<d){depths.set(k,d);changed=true}})});
-  B.forEach(b=>{const pp=slaktParents(b.key).filter(x=>ids.has(x));if(pp.length){const d=Math.min(15,1+Math.max(...pp.map(x=>depths.get(x))));if(depths.get(b.key)<d){depths.set(b.key,d);changed=true}}});if(!changed)break;
+
+/* Släktträd v3 – en enda panorerbar canvas, oberoende av mobilskärmens bredd.
+   Alla kopplingar ligger i fria generationsmellanrum; inga linjer bakom personcirklar. */
+const SL3={camera:null,target:null,pointers:new Map(),gesture:null,fitNext:false};
+function slaktV3Layout(B){
+ const R=slaktR(),ids=new Set(B.map(b=>b.key)),levels=new Map(),active=new Set(),P=k=>slaktParents(k).filter(p=>ids.has(p));
+ const depth=k=>{if(levels.has(k))return levels.get(k);if(active.has(k))return 0;active.add(k);const ps=P(k),d=ps.length?Math.min(12,Math.max(...ps.map(depth))+1):0;active.delete(k);levels.set(k,d);return d};
+ B.forEach(b=>depth(b.key));
+ for(let i=0;i<B.length*2;i++){let changed=false;
+  [...R.partners,...R.siblings].forEach(pair=>{if(!Array.isArray(pair)||pair.length!==2||!pair.every(x=>ids.has(x)))return;const d=Math.max(...pair.map(x=>levels.get(x)));pair.forEach(k=>{if(levels.get(k)<d){levels.set(k,d);changed=true}})});
+  B.forEach(b=>{const ps=P(b.key);if(!ps.length)return;const d=Math.min(12,Math.max(...ps.map(x=>levels.get(x)))+1);if(levels.get(b.key)<d){levels.set(b.key,d);changed=true}});if(!changed)break;
  }
- const groups=new Map();B.forEach(b=>{const d=depths.get(b.key);if(!groups.has(d))groups.set(d,[]);groups.get(d).push(b)});
- return [...groups.entries()].sort((a,b)=>a[0]-b[0]).map(([level,rows])=>({level,rows:rows.sort((a,b)=>{const p=k=>slaktParents(k).slice().sort().join('|')||'~'+k;return p(a.key).localeCompare(p(b.key),'sv')||a.name.localeCompare(b.name,'sv')})}));
+ const grouped=new Map();B.forEach(b=>{const d=levels.get(b.key);if(!grouped.has(d))grouped.set(d,[]);grouped.get(d).push(b)});
+ const partnerPairs=R.partners.filter(p=>Array.isArray(p)&&p.length===2&&p.every(x=>ids.has(x)));
+ const pos=new Map(),maxItems=Math.max(1,...[...grouped.values()].map(row=>row.length)),width=Math.max(500,maxItems*174+180),minDepth=Math.min(...grouped.keys());
+ [...grouped.keys()].sort((x,y)=>x-y).forEach(d=>{
+  const row=grouped.get(d),avg=b=>{const xs=P(b.key).map(x=>pos.get(x)?.x).filter(x=>Number.isFinite(x));return xs.length?xs.reduce((a,b)=>a+b,0)/xs.length:width/2};
+  row.sort((x,y)=>avg(x)-avg(y)||P(x.key).slice().sort().join('|').localeCompare(P(y.key).slice().sort().join('|'),'sv')||x.name.localeCompare(y.name,'sv'));
+  // Keep partners adjacent, so the connector cannot cross unrelated person nodes.
+  for(const pair of partnerPairs){const ia=row.findIndex(x=>x.key===pair[0]),ib=row.findIndex(x=>x.key===pair[1]);if(ia!==-1&&ib!==-1&&Math.abs(ia-ib)>1){const b=row.splice(ib,1)[0],newI=row.findIndex(x=>x.key===pair[0]);row.splice(newI+1,0,b)}}
+  row.forEach((b,i)=>pos.set(b.key,{x:width/2+(i-(row.length-1)/2)*174,y:90+(d-minDepth)*190,level:d}));
+ });
+ const edges=[],seenPartner=new Set(),familyGroups=new Map();
+ const path=(d,kind)=>edges.push('<path class="fam3-edge '+kind+'" d="'+d+'"/>');
+ partnerPairs.forEach(pair=>{const a=pos.get(pair[0]),b=pos.get(pair[1]);if(!a||!b||a.y!==b.y)return;const key=pair.slice().sort().join('|');if(seenPartner.has(key))return;seenPartner.add(key);const l=a.x<b.x?a:b,r=a.x<b.x?b:a;path('M'+(l.x+75)+' '+l.y+' H'+(r.x-75),'partner')});
+ B.forEach(child=>{const parents=P(child.key).slice().sort();if(!parents.length)return;const key=parents.join('\u0001'),p=pos.get(child.key);if(!familyGroups.has(key))familyGroups.set(key,{parents,children:[]});familyGroups.get(key).children.push(p)});
+ [...familyGroups.values()].forEach(({parents,children},index)=>{
+  const ps=parents.map(k=>pos.get(k)).filter(Boolean);if(!ps.length)return;
+  const py=Math.max(...ps.map(p=>p.y)),cx=ps.reduce((a,p)=>a+p.x,0)/ps.length;
+  // Link connectors only in the open corridor between generations.
+  const firstY=Math.min(...children.map(p=>p.y));if(firstY<=py+75)return;
+  const trunkY=py+78+(index%3)*12,childY=firstY-32,lo=Math.min(...ps.map(p=>p.x),...children.map(p=>p.x)),hi=Math.max(...ps.map(p=>p.x),...children.map(p=>p.x));
+  ps.forEach(p=>{path('M'+p.x+' '+(p.y+36)+' V'+trunkY,'parent')});
+  path('M'+lo+' '+trunkY+' H'+hi,'child');
+  children.forEach(p=>path('M'+p.x+' '+trunkY+' V'+(p.y-36),'child'));
+ });
+ // Explicit siblings without shared known parents: a light dashed connection below names.
+ const sibSeen=new Set();
+ R.siblings.forEach(pair=>{if(!Array.isArray(pair)||pair.length!==2)return;const [a,b]=pair.map(k=>pos.get(k));if(!a||!b||a.y!==b.y)return;const key=pair.slice().sort().join('|');if(sibSeen.has(key))return;sibSeen.add(key);
+  if(Math.abs(a.x-b.x)<=200)path('M'+a.x+' '+(a.y+36)+' V'+(a.y+58)+' H'+b.x+' V'+(b.y+36),'sibling');
+ });
+ const height=Math.max(...[...pos.values()].map(p=>p.y))+95;
+ return{pos,width,height,edges};
 }
-function slaktMiniNode(b,active=false,extra=''){
- return '<button type="button" class="fam-mini'+(active?' selected':'')+'" data-act="slaktFocus" data-id="'+esc(b.key)+'">'+slaktAvatar(b)+'<span class="grow"><strong>'+esc(b.name)+'</strong><small>'+esc(extra||slaktPersonInfo(b))+'</small></span>'+chevron+'</button>';
+function slaktNear(focus,all){const look=k=>all.find(b=>b.key===k),parents=slaktParents(focus.key).map(look).filter(Boolean),partners=slaktPartners(focus.key).map(look).filter(Boolean);const sib=new Map();slaktSiblings(focus.key).map(look).filter(Boolean).forEach(b=>sib.set(b.key,b));parents.forEach(p=>slaktChildren(p.key).filter(b=>b.key!==focus.key).forEach(b=>sib.set(b.key,b)));return{parents,partners,siblings:[...sib.values()],children:slaktChildren(focus.key)}}
+function slaktV3Markup(B,focus){
+ const t=slaktV3Layout(B),R=slaktR(),related=new Set([focus.key,...slaktParents(focus.key),...slaktPartners(focus.key),...slaktSiblings(focus.key),...slaktChildren(focus.key).map(x=>x.key)]),active=S.slaktVy==='fokus';
+ const nodes=B.map(b=>{const p=t.pos.get(b.key),selected=b.key===focus.key,fade=active&&!related.has(b.key);
+  return '<g class="fam3-node'+(selected?' selected':'')+(fade?' muted':'')+'" role="button" tabindex="0" data-act="slaktFocus" data-id="'+esc(b.key)+'" transform="translate('+p.x+' '+p.y+')"><rect class="fam3-card" x="-74" y="-34" width="148" height="68" rx="17"/><circle class="fam3-circle" cx="-47" cy="0" r="19"/><text class="fam3-initial" x="-47" y="6" text-anchor="middle">'+esc(b.name[0].toUpperCase())+'</text><text class="fam3-name" x="-21" y="5" text-anchor="start">'+esc(b.name.length>13?b.name.slice(0,12)+'…':b.name)+'</text></g>'}).join('');
+ const near=slaktNear(focus,slaktPersons()),meta=[near.parents.length+' föräldrar',near.siblings.length+' syskon',near.children.length+' barn'].join(' · ');
+ return '<div class="fam3"><div class="fam3-toolbar"><div class="fam3-toolbar-title"><strong>Släktträd</strong><small>'+B.length+' personer · '+new Set([...t.pos.values()].map(p=>p.level)).size+' generationer</small></div><div class="fam3-toolbar-buttons"><button type="button" class="fam3-tool" data-act="slaktV3Fit" aria-label="Visa hela trädet" title="Visa hela trädet">⤢</button><button type="button" class="fam3-tool" data-act="slaktV3Center" aria-label="Centrera vald" title="Centrera vald">◎</button></div></div>'+
+  '<div class="fam3-viewport" data-width="'+t.width+'" data-height="'+t.height+'" data-selected="'+esc(focus.key)+'" aria-label="Släktträd. Dra för att flytta kartan, nyp för att zooma."><svg class="fam3-svg" xmlns="http://www.w3.org/2000/svg"><g class="fam3-stage"><g class="fam3-connectors">'+t.edges.join('')+'</g><g class="fam3-nodes">'+nodes+'</g></g></svg><div class="fam3-zoom"><button type="button" data-act="slaktV3Zoom" data-id="minus" aria-label="Zooma ut">−</button><span class="fam3-scale">100 %</span><button type="button" data-act="slaktV3Zoom" data-id="plus" aria-label="Zooma in">+</button></div></div>'+
+  '<div class="fam3-legend">Dra för att panorera · Nyp för att zooma · Tryck på en person</div>'+
+  '<div class="fam3-detail"><span class="fam3-person-circle">'+esc(focus.name.slice(0,1).toUpperCase())+'</span><span class="grow"><strong>'+esc(focus.name)+'</strong><small>'+esc(meta)+'</small></span><button type="button" class="fam3-details-edit" data-act="slaktEdit" data-id="'+esc(focus.key)+'">Relationer</button></div>'+
+  '<div class="fam3-detail-actions"><button type="button" data-act="slaktVy" data-id="'+(active?'alla':'fokus')+'">'+(active?'Visa alla relationer':'Framhäv närmaste familjen')+'</button></div></div>';
 }
-function slaktTraditionalFull(B){
- const groups=slaktFamiljGen(B);
- return '<div class="fam-gen-intro">Generationerna visas från vänster till höger. Svep mellan kolumnerna, välj en person för närmare relationer.</div>'+
- '<div class="fam-gen-scroll" tabindex="0" aria-label="Släktträd med generationskolumner">'+groups.map(({level,rows},idx)=>{
-  const expanded=!!(S.slaktExpandedGen&&S.slaktExpandedGen[level]),shown=expanded?rows:rows.slice(0,5),remaining=rows.length-shown.length;
-  return '<section class="fam-gen-col"><div class="fam-gen-head"><span>Generation '+(idx+1)+'</span><span class="meta">'+rows.length+' personer</span></div><div class="fam-gen-rows">'+shown.map(b=>{
-   const pp=slaktParents(b.key).map(k=>B.find(x=>x.key===k)?.name).filter(Boolean),extra=pp.length?'Föräldrar: '+pp.join(' & '):slaktSiblings(b.key).length?'Syskonrelation':'';
-   return slaktMiniNode(b,S.slaktFocus===b.key,extra)}).join('')+
-   (remaining?'<button type="button" class="fam-gen-more" data-act="slaktGenExpand" data-id="'+level+'">Visa '+remaining+' fler</button>':expanded&&rows.length>5?'<button type="button" class="fam-gen-more" data-act="slaktGenExpand" data-id="'+level+'">Visa färre</button>':'')+'</div></section>'}).join('')+'</div>';
-}
-function slaktNear(focus,all){
- const look=k=>all.find(b=>b.key===k),parents=slaktParents(focus.key).map(look).filter(Boolean),partners=slaktPartners(focus.key).map(look).filter(Boolean);
- const siblings=new Map();slaktSiblings(focus.key).map(look).filter(Boolean).forEach(b=>siblings.set(b.key,b));
- parents.forEach(p=>slaktChildren(p.key).filter(b=>b.key!==focus.key).forEach(b=>siblings.set(b.key,b)));
- const children=slaktChildren(focus.key);
- return{parents,partners,siblings:[...siblings.values()],children};
-}
-function slaktTraditionalFocus(focus,all){
- const n=slaktNear(focus,all),expanded=!!S.slaktExpandChildren,child=n.children.slice(0,expanded?n.children.length:4);
- const section=(title,arr,empty)=>'<div class="fam-tr-section"><div class="fam-tr-label">'+title+'</div>'+(arr.length?arr.map(b=>slaktMiniNode(b,false)).join(''):'<div class="fam-tr-empty">'+empty+'</div>')+'</div>';
- return '<div class="fam-tr-focus">'+section('Föräldrar',n.parents,'Inte angivna')+
-  '<div class="fam-tr-current">'+slaktMiniNode(focus,true,'Person i fokus')+'</div>'+
-  (n.partners.length?section('Partner',n.partners,''):'')+
-  (n.siblings.length?section('Syskon',n.siblings,''):'')+
-  section('Barn',child,'Inga barn angivna')+
-  (n.children.length>4?'<button type="button" class="fam-gen-more" data-act="slaktChildrenMore">'+(expanded?'Visa färre':'Visa '+(n.children.length-4)+' fler barn')+'</button>':'')+
-  '<div class="fam-tr-foot"><button type="button" class="pill" data-act="slaktEdit" data-id="'+esc(focus.key)+'">Ändra relationer</button></div></div>';
-}
-function slaktHybridPins(){return fodOb(parseJ(lsGet('slaktHybridPins2')||'{}',{}))}
-function slaktHybridSvg(B,focus){
- const n=slaktNear(focus,B),expanded=!!S.slaktExpandChildren,shown=n.children.slice(0,3),more=n.children.length-shown.length,pins=slaktHybridPins();
- const places=new Map(),x=180,y=n.parents.length?202:110,canvasH=n.children.length?(n.parents.length?440:340):(n.parents.length?275:190),childY=n.parents.length?347:258;
- const put=(b,px,py)=>{const p=pins[b.key];places.set(b.key,{x:p&&Number.isFinite(p.x)?Math.max(34,Math.min(326,p.x)):px,y:p&&Number.isFinite(p.y)?Math.max(38,Math.min(canvasH-38,p.y)):py,locked:!!p})};
- const parents=n.parents.slice(0,2),partner=n.partners[0];
- parents.forEach((p,i)=>put(p,parents.length===1?180:i===0?103:257,66));
- put(focus,partner?119:180,y);if(partner)put(partner,260,y);
- shown.forEach((p,i)=>put(p,shown.length===1?180:shown.length===2?103+i*154:61+i*119,childY));
- const path=[],edge=(d,type)=>path.push('<path d="'+d+'" class="fam-h-edge '+type+'"/>'),q=k=>places.get(k);
- const me=q(focus.key);
- if(parents.length){const midX=parents.reduce((sum,b)=>sum+q(b.key).x,0)/parents.length,branch=139;
-  parents.forEach(p=>{const v=q(p.key);edge('M'+v.x+' '+(v.y+27)+' V'+branch+' H'+midX,'parent')});
-  edge('M'+midX+' '+branch+' V'+(me.y-27)+' H'+me.x,'parent');
- }
- if(partner){const p=q(partner.key);edge('M'+(me.x+27)+' '+me.y+' H'+(p.x-27),'partner')}
- if(shown.length){const joint=partner?(me.x+q(partner.key).x)/2:me.x,branch=n.parents.length?284:190;
-  edge('M'+joint+' '+(me.y+27)+' V'+branch,'child');
-  shown.forEach(b=>{const p=q(b.key);edge('M'+joint+' '+branch+' H'+p.x+' V'+(p.y-27),'child')});
- }
- const nodes=[...parents,focus,...(partner?[partner]:[]),...shown].map(b=>{
-  const p=q(b.key),active=b.key===focus.key;
-  return '<g class="fam-node fam-h-node'+(active?' selected':'')+'" data-act="slaktFocus" data-id="'+esc(b.key)+'" data-x="'+p.x+'" data-y="'+p.y+'" role="button" tabindex="0" transform="translate('+p.x+' '+p.y+')"><circle class="fam-ring" r="27"/><circle class="fam-circle" r="23"/><text class="fam-letter" text-anchor="middle" y="6">'+esc(b.name.slice(0,1).toUpperCase())+'</text><text class="fam-name" text-anchor="middle" y="44">'+esc(b.name.length>12?b.name.slice(0,11)+'…':b.name)+'</text>'+(p.locked?'<text class="fam-pin" x="19" y="-24">●</text>':'')+'</g>'}).join('');
- const zoom=S.slaktHybridZoom||1;
- const related=n.siblings.length?'<div class="fam-h-relationship"><div class="fam-tr-label">Syskon · '+n.siblings.length+'</div><div class="fam-h-chips">'+n.siblings.slice(0,S.slaktExpandSiblings?n.siblings.length:4).map(b=>'<button type="button" class="fam-h-chip" data-act="slaktFocus" data-id="'+esc(b.key)+'">'+esc(b.name)+'</button>').join('')+'</div>'+(n.siblings.length>4?'<button class="fam-gen-more" type="button" data-act="slaktSiblingsMore">'+(S.slaktExpandSiblings?'Visa färre':'Visa '+(n.siblings.length-4)+' fler syskon')+'</button>':'')+'</div>':'';
- return '<div class="fam-hybrid"><div class="fam-focus"><span class="grow"><strong>'+esc(focus.name)+'</strong><span class="meta">'+esc(slaktPersonInfo(focus))+'</span></span><button type="button" class="pill" data-act="slaktEdit" data-id="'+esc(focus.key)+'">Relationer</button></div>'+
- '<div class="fam-hybrid-pan"><svg class="fam-hybrid-svg" viewBox="0 0 360 '+canvasH+'" width="'+Math.round(360*zoom)+'" height="'+Math.round(canvasH*zoom)+'" style="width:'+Math.round(zoom*100)+'%;height:auto" role="group" aria-label="Närmaste relationer till '+esc(focus.name)+'"><g class="fam-h-lines">'+path.join('')+'</g>'+nodes+'</svg></div>'+
- '<div class="fam-h-actions"><div class="fam-zoom"><button type="button" data-act="slaktHybridZoom" data-id="minus" aria-label="Zooma ut">−</button><span class="num">'+Math.round(zoom*100)+' %</span><button type="button" data-act="slaktHybridZoom" data-id="plus" aria-label="Zooma in">+</button></div><button type="button" class="pill" data-act="slaktHybridLock" data-id="'+esc(focus.key)+'">'+(pins[focus.key]?'Lås upp':'Lås position')+'</button><button type="button" class="pill" data-act="slaktHybridFit">Återställ zoom</button></div>'+
- (more?'<div class="fam-h-relationship"><div class="fam-tr-label">Fler barn · '+more+'</div>'+n.children.slice(3,expanded?n.children.length:3).map(b=>slaktMiniNode(b)).join('')+'<button class="fam-gen-more" type="button" data-act="slaktChildrenMore">'+(expanded?'Visa färre':'Visa '+more+' fler barn')+'</button></div>':'')+
- related+'<div class="fam-hint">Bara närmaste relationerna visas. Tryck på en person för att utforska vidare. Dra en nod för att flytta och låsa den.</div></div>';
-}
-function slaktHybridOverview(B){
- return '<div class="fam-h-overview"><div class="fam-gen-intro">Översikten visar personer grupperade per generation, utan korsande relationslinjer. Välj en person för att utforska dennes familj.</div>'+slaktFamiljGen(B).map(({level,rows},i)=>'<div class="fam-h-relationship"><div class="fam-tr-label">Generation '+(i+1)+' · '+rows.length+' personer</div><div class="fam-h-chips">'+rows.map(b=>'<button class="fam-h-chip" type="button" data-act="slaktFocus" data-id="'+esc(b.key)+'">'+esc(b.name)+'</button>').join('')+'</div></div>').join('')+'</div>';
-}
-V.slakt=function(){if(!DEV)return V.oversikt();const all=slaktPersons(),assigned=slaktAssigned(all),L=all.filter(b=>assigned.has(b.key)),unplaced=all.filter(b=>!assigned.has(b.key)),focus=L.find(b=>b.key===S.slaktFocus)||L[0]||all[0],full=S.slaktVy==='alla',hybrid=lsGet('slaktLayout')==='hybrid';
+V.slakt=function(){if(!DEV)return V.oversikt();const all=slaktPersons(),assigned=slaktAssigned(all),L=all.filter(b=>assigned.has(b.key)),unplaced=all.filter(b=>!assigned.has(b.key)),focus=L.find(b=>b.key===S.slaktFocus)||L[0]||all[0];
  let h='<div class="rcp-top"><button class="back" data-act="nav" data-id="familj">'+I.back+'Familj</button></div>';
  h+=head('Släktträd',{sub:assigned.size+' av '+all.length+' personer placerade'});
- h+=sh('Layout')+'<div class="seg-wrap">'+segc('Layout','slaktLayout',[['trad','Traditionellt'],['hybrid','Hybrid']],hybrid?'hybrid':'trad')+'</div>';
- h+=sh('Visning')+'<div class="seg-wrap">'+segc('Släktträdsvy','slaktVy',[['fokus','I fokus'],['alla','Hela trädet']],full?'alla':'fokus')+'</div>';
- if(!L.length){h+=group(emptyCell('Inga relationer ännu. Välj en person och lägg till föräldrar, syskon, partner eller barn.'))}
- else if(hybrid){h+=sh(full?'Översikt':'Närmaste familjen')+group(full?slaktHybridOverview(L):slaktHybridSvg(L,focus))}
- else if(full){h+=sh('Generationer')+group(slaktTraditionalFull(L))}
- else{h+=sh('Person i fokus')+group(slaktTraditionalFocus(focus,all))}
+ if(L.length)h+=sh('Släktträd')+group(slaktV3Markup(L,focus));
+ else h+=group(emptyCell('Inga relationer ännu. Välj en person och lägg till föräldrar, partner, syskon eller barn.'));
  h+=sh('Personer och relationer')+group('<button type="button" class="cell link" data-act="nav" data-id="slaktPersoner"><span class="grow">Hantera alla personer</span><span class="meta">'+all.length+' personer</span>'+chevron+'</button>');
  if(unplaced.length)h+=sh('Ännu inte placerade',unplaced.length)+group(unplaced.map(b=>slaktLink(b,'Tilldela relationer')).join(''));
- if(!all.length)h+='<div class="foot">Börja med att lägga till en födelsedag. Släktträdet använder samma personer.</div>';
+ requestAnimationFrame(()=>slaktV3Camera());
  return h;
 };
-/* Dra bara noderna i fokusläget. Relationslinjerna ritas om vid släpp och följer den låsta positionen. */
-(function(){let move=null;document.addEventListener('pointerdown',e=>{const node=e.target.closest?.('.fam-h-node'),pan=e.target.closest?.('.fam-hybrid-pan');if(!node||!pan||!DEV)return;move={node,pan,id:e.pointerId,startX:e.clientX,startY:e.clientY,x:Number(node.dataset.x),y:Number(node.dataset.y),dragged:false};try{node.setPointerCapture(e.pointerId)}catch(_){}},{passive:true});
- document.addEventListener('pointermove',e=>{if(!move||move.id!==e.pointerId)return;const dx=e.clientX-move.startX,dy=e.clientY-move.startY;if(Math.hypot(dx,dy)>5)move.dragged=true;if(!move.dragged)return;const factor=360/move.pan.querySelector('svg').getBoundingClientRect().width;move.node.setAttribute('transform','translate('+(move.x+dx*factor)+' '+(move.y+dy*factor)+')')},{passive:true});
- document.addEventListener('pointerup',e=>{if(!move||move.id!==e.pointerId)return;if(move.dragged){const factor=360/move.pan.querySelector('svg').getBoundingClientRect().width,id=move.node.dataset.id,pins=slaktHybridPins();pins[id]={x:Math.max(34,Math.min(326,Math.round(move.x+(e.clientX-move.startX)*factor))),y:Math.max(38,Math.min(400,Math.round(move.y+(e.clientY-move.startY)*factor)))};lsSet('slaktHybridPins2',JSON.stringify(pins));S.slaktFocus=id;document.addEventListener('click',event=>{if(event.target.closest?.('.fam-h-node')){event.preventDefault();event.stopImmediatePropagation()}},{capture:true,once:true});render()}move=null},{passive:true});document.addEventListener('pointercancel',()=>{move=null},{passive:true})})();
+function slaktV3Camera(init=false){
+ const box=document.querySelector('.fam3-viewport');if(!box)return;
+ const svg=box.querySelector('svg'),stage=box.querySelector('.fam3-stage'),rect=box.getBoundingClientRect(),w=rect.width,h=rect.height;
+ if(!w||!h)return;svg.setAttribute('viewBox','0 0 '+w+' '+h);
+ const ww=Number(box.dataset.width),hh=Number(box.dataset.height),fit=Math.max(.13,Math.min(1.1,Math.min((w-35)/ww,(h-35)/hh)));
+ if(!SL3.camera||SL3.fitNext){
+  if(SL3.fitNext){SL3.camera={z:fit,tx:(w-ww*fit)/2,ty:(h-hh*fit)/2};SL3.fitNext=false;SL3.target=null}
+  else {
+   const nodes=[...box.querySelectorAll('.fam3-node')],coords=new Map(nodes.map(n=>{const m=n.getAttribute('transform').match(/translate\(([\d.]+) ([\d.]+)\)/);return[n.dataset.id,{x:Number(m?.[1]||0),y:Number(m?.[2]||0)}]}));
+   const chosen=coords.get(box.dataset.selected),person=slaktPersons().find(b=>b.key===box.dataset.selected);
+   const related=person?slaktNear(person,slaktPersons()):null;
+   const close=[chosen,...(related?.parents||[]).map(x=>coords.get(x.key)),...(related?.partners||[]).map(x=>coords.get(x.key)),...(related?.children||[]).slice(0,2).map(x=>coords.get(x.key))].filter(Boolean);
+   const xs=close.map(p=>p.x),ys=close.map(p=>p.y),minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
+   const z=Math.max(.35,Math.min(.9,(w-55)/(maxX-minX+100),(h-50)/(maxY-minY+160)));
+   const minTreeY=Math.min(...[...coords.values()].map(p=>p.y));
+   const aimY=chosen?.y===minTreeY?h*.30:h*.49,centerX=(minX+maxX)/2;
+   SL3.camera={z,tx:w/2-centerX*z,ty:aimY-(chosen?.y||0)*z};SL3.target=null;
+  }
+ }
+ if(SL3.target){const node=[...box.querySelectorAll('.fam3-node')].find(x=>x.dataset.id===SL3.target);if(node){const tr=node.getAttribute('transform').match(/translate\(([\d.]+) ([\d.]+)\)/);if(tr){SL3.camera.tx=w/2-Number(tr[1])*SL3.camera.z;SL3.camera.ty=h*.43-Number(tr[2])*SL3.camera.z}}SL3.target=null}
+ const c=SL3.camera;stage.setAttribute('transform','translate('+c.tx+' '+c.ty+') scale('+c.z+')');box.querySelector('.fam3-scale').textContent=Math.round(c.z*100)+' %';
+}
+function slaktV3Zoom(factor,clientX,clientY){
+ const box=document.querySelector('.fam3-viewport');if(!box)return;slaktV3Camera();
+ const r=box.getBoundingClientRect(),c=SL3.camera,ax=clientX==null?r.width/2:clientX-r.left,ay=clientY==null?r.height/2:clientY-r.top;
+ const z=Math.max(.12,Math.min(2.8,c.z*factor)),ratio=z/c.z;c.tx=ax-(ax-c.tx)*ratio;c.ty=ay-(ay-c.ty)*ratio;c.z=z;slaktV3Camera();
+}
+/* Native pointer events: one finger pans, two fingers pinch around midpoint, double tap centers a person. */
+(function(){let lastTap=0;const pt=(e,box)=>{const r=box.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}};
+ document.addEventListener('pointerdown',e=>{const box=e.target.closest?.('.fam3-viewport');if(!box||!DEV)return;
+  if(!SL3.camera)slaktV3Camera();SL3.pointers.set(e.pointerId,pt(e,box));
+  if(SL3.pointers.size===1){SL3.gesture={start:pt(e,box),tx:SL3.camera.tx,ty:SL3.camera.ty,moved:false}}
+  if(SL3.pointers.size===2){const [a,b]=[...SL3.pointers.values()];SL3.gesture={distance:Math.hypot(a.x-b.x,a.y-b.y),zoom:SL3.camera.z,tx:SL3.camera.tx,ty:SL3.camera.ty,mid:{x:(a.x+b.x)/2,y:(a.y+b.y)/2},pinching:true,moved:true}}
+  // No capture on the viewport: taps must still reach the person node.
+ },{passive:true});
+ document.addEventListener('pointermove',e=>{if(!SL3.pointers.has(e.pointerId))return;const box=document.querySelector('.fam3-viewport');if(!box)return;SL3.pointers.set(e.pointerId,pt(e,box));const g=SL3.gesture,c=SL3.camera;if(!g||!c)return;
+  if(SL3.pointers.size>=2){const [a,b]=[...SL3.pointers.values()],mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2},dist=Math.max(1,Math.hypot(a.x-b.x,a.y-b.y)),z=Math.max(.12,Math.min(2.8,g.zoom*dist/Math.max(g.distance,1)));
+   c.z=z;c.tx=mid.x-(g.mid.x-g.tx)*z/g.zoom;c.ty=mid.y-(g.mid.y-g.ty)*z/g.zoom;slaktV3Camera();return}
+  const p=pt(e,box),dx=p.x-g.start.x,dy=p.y-g.start.y;if(Math.hypot(dx,dy)>5)g.moved=true;if(g.moved){c.tx=g.tx+dx;c.ty=g.ty+dy;slaktV3Camera()}
+ },{passive:true});
+ const end=e=>{if(!SL3.pointers.has(e.pointerId))return;const g=SL3.gesture;SL3.pointers.delete(e.pointerId);
+  if(g?.moved){document.addEventListener('click',ev=>{if(ev.target.closest?.('.fam3-node')){ev.preventDefault();ev.stopImmediatePropagation()}},{once:true,capture:true})}
+  if(!SL3.pointers.size){SL3.gesture=null;const now=Date.now();if(!g?.moved&&now-lastTap<310){const n=e.target.closest?.('.fam3-node');if(n){SL3.target=n.dataset.id;slaktV3Camera()}}lastTap=now}
+  else{SL3.gesture=null}
+ };
+ document.addEventListener('pointerup',end,{passive:true});document.addEventListener('pointercancel',end,{passive:true});
+ document.addEventListener('wheel',e=>{if(!e.target.closest?.('.fam3-viewport'))return;e.preventDefault();slaktV3Zoom(e.deltaY<0?1.13:1/1.13,e.clientX,e.clientY)},{passive:false});
+})();
 V.fod=function(){const ALLA=bdays(),t=parse(today()),mode=S.fodMode||'hjul';if(fodSel().length){const v=fodSel().filter(k=>k==='utan'||fodFam().some(f=>f.id===k));S.fodFilt=v.length?v.join(','):'alla'}const L=fodFilt(ALLA);
  let h='<div class="rcp-top"><button class="back" data-act="nav" data-id="'+(DEV&&S.fodFromFamilj?'familj':'oversikt')+'">'+I.back+(DEV&&S.fodFromFamilj?'Familj':'Översikt')+'</button></div>';
  const fv=fodSel().map(k=>k==='utan'?'Utan familj':(fodFam().find(x=>x.id===k)||{}).n).filter(Boolean),fNamn=S.fodFilt==='pres'?'Present':fv.length>2?fv.length+' familjer':fv.join(' och ');
@@ -5714,16 +5733,11 @@ const ACT={
  cookTo(id,el){A.user=Date.now();S.cook.step=Number(el.dataset.i)||0;S.step[S.cook.id]=S.cook.step;render()},
  pickStep(id,el){S.step[id]=Number(el.dataset.i);render();setTimeout(()=>{const li=document.querySelector('.steps li.active');if(li&&li.getBoundingClientRect().top<70)li.scrollIntoView({block:'start',behavior:'smooth'})},30)},
  cookStep(id,el){A.user=Date.now();const r=recipeById(S.cook.id);S.cook.step=Math.max(0,Math.min(stegFor(r).length-1,S.cook.step+Number(el.dataset.d)));S.step[S.cook.id]=S.cook.step;render()},
- slaktLayout(id){if(!DEV||!['trad','hybrid'].includes(id))return;lsSet('slaktLayout',id);render()},
- slaktHybridZoom(id){if(!DEV)return;S.slaktHybridZoom=Math.max(.8,Math.min(1.6,(S.slaktHybridZoom||1)*(id==='plus'?1.2:1/1.2)));render()},
- slaktHybridFit(){S.slaktHybridZoom=1;render()},
- slaktGenExpand(id){S.slaktExpandedGen=S.slaktExpandedGen||{};S.slaktExpandedGen[id]=!S.slaktExpandedGen[id];render()},
- slaktChildrenMore(){S.slaktExpandChildren=!S.slaktExpandChildren;render()},
- slaktSiblingsMore(){S.slaktExpandSiblings=!S.slaktExpandSiblings;render()},
- slaktHybridLock(id){if(!DEV)return;const pins=slaktHybridPins();if(pins[id])delete pins[id];else {const B=slaktPersons().filter(p=>slaktAssigned(slaktPersons()).has(p.key)),p=B.find(x=>x.key===id);if(!p)return;const node=[...document.querySelectorAll('.fam-h-node')].find(x=>x.dataset.id===id);pins[id]=node?{x:Number(node.dataset.x),y:Number(node.dataset.y)}:{x:180,y:202}}lsSet('slaktHybridPins2',JSON.stringify(pins));render()},
+ slaktV3Fit(){SL3.fitNext=true;slaktV3Camera()},
+ slaktV3Center(){const b=document.querySelector('.fam3-viewport');if(!b)return;SL3.target=b.dataset.selected;slaktV3Camera()},
+ slaktV3Zoom(id){slaktV3Zoom(id==='plus'?1.25:.8)},
  slaktVy(id){if(!['fokus','alla'].includes(id))return;S.slaktVy=id;render()},
- slaktFocus(id){if(!DEV||!slaktPersons().some(b=>b.key===id))return;S.slaktFocus=id;S.slaktVy='fokus';S.slaktExpandChildren=false;S.slaktExpandSiblings=false;render()},
- slaktZoom(id){if(!DEV)return;const steps=[.75,1,1.25],v=S.slaktZoom||1,i=steps.indexOf(v),n=steps[Math.max(0,Math.min(steps.length-1,i+(id==='plus'?1:-1)))];if(n!==v){S.slaktZoom=n;render()}},
+ slaktFocus(id){if(!DEV||!slaktPersons().some(b=>b.key===id))return;S.slaktFocus=id;SL3.target=id;render()},
  slaktEdit(id){if(!DEV||!bdays().some(b=>b.key===id))return;S.slaktEdit=id;S.sheet='slaktRel';render()},
  familjOpen(){if(!DEV)return;closeSheets();const first=bdays()[0];S.slaktFocus=first?first.key:null;S.slaktVy='alla';S.slaktZoom=1;ACT.nav('familj')},
  fodMode(id){if(!['hjul','manad','lista'].includes(id))return;S.fodMode=id;lsSet('fodMode',id);render()},
