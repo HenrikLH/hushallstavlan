@@ -2,9 +2,17 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
-## Förslag: expertgranskning (Claude, väntar på Henrik)
+## Förbättrat släktträd för telefon (ht-v331, utvecklarläge)
 
-- `docs/granskning-2026-11/README.md` + skisser: prioriterade arbetspaket A–M (meny, översikt, recept, färgroller, väggskärm, animationer, färre val, nya funktioner). Gren `claude/project-thread-davi5e`. Inget byggt. Henrik valde meny A (2026-11-10); övriga frågor i avsnitt 8 öppna.
+- Hybrid är numera fokusbaserad: bara föräldrar, partner och tre barn i kartan; syskon och fler barn i kompakta knappar. Hela trädet visar en förenklad generationsöversikt utan spaghettilinjer. Zoom, drag/lås per person och relationsredigering bevaras; nya låspositioner har separat `ht.slaktHybridPins2` eftersom koordinatsystemet ändrats.
+- Traditionellt: i Hela trädet finns svepbara generationskolumner med max fem personer per kolumn innan Visa fler. I fokus visas föräldrar, person, partner, syskon och barn i kompakta sektioner. Inget stort SVG-nät på mobil.
+- Tester: `verktyg/emu/familj-dev.js`, CI via PR. Ångra-gren `version-fore-familj-lattlast`. Inga Apps Script-ändringar. Enbart utvecklarläge.
+
+## Expertgranskning + färgroller (Claude, ht-v332)
+
+- `docs/granskning-2026-11/README.md` + skisser: arbetspaket A–M. Henrik valde meny A (Översikt först + flik Hemmet), ännu inte byggd. Övriga frågor i avsnitt 8 öppna.
+- Paket G publicerat ht-v332 (ångra-gren `version-fore-fargroller`): UI 5.0-tokens `--obs/--obs-bg/--obs-ring` (bärnsten) för obs-text (priser, stående överföring, Maten räcker inte), framsteg `.bt-m.bad`/`.wm-port.bad` neutrala, Städs `.dr-slide .pill` gråa. Bara CSS i index.html sist i UI 5.0-blocket.
+- Gröna lokalt: alla-flikar telefon+vägg, ui5, ui5-navigering. CI-fel i `oversikt-manad.js`, `vader-dag.js`, `animationer.js` finns redan på main.
 
 ## Familj Hybrid + syskon (ht-v330, utvecklarläge)
 

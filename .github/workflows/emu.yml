@@ -49,7 +49,9 @@ jobs:
         if: matrix.ui == 5 && matrix.screen == 'telefon' && matrix.theme == 'light'
         env:
           LS: '{}'
-        run: node verktyg/emu/run.js verktyg/emu/familj-dev.js
+        run: |
+          node verktyg/emu/run.js verktyg/emu/familj-dev.js
+          node verktyg/emu/run.js verktyg/emu/familj-stor.js
       - name: Kör alla flikar och funktionstester
         env:
           THEME: ${{ matrix.theme }}
