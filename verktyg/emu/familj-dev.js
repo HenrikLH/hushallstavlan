@@ -33,11 +33,11 @@ module.exports=async(pg,h)=>{
  assert.ok(sr.par['Maja|08-18'].includes('Anna|05-12'),'Anna har Maja som barn');
  assert.equal(sr.partners.length,1,'Partner sparad');
  assert.deepEqual(fst.filter(x=>!x.fod),other,'Övriga önskemål ska bevaras');
- await click('[data-act="nav"][data-id="slaktPersoner"]');
  await click('[data-act="slaktEdit"][data-id="Maja|08-18"]');
  await pg.selectOption('select[name="slParent2"]','Erik|06-05');
  await pg.locator('input[name="slChild"][value="Ella|08-29"]').check();
  await click('form[data-form="slaktRel"] .tb.strong');await h.waitFlush();
+ await click('[data-act="nav"][data-id="familj"]');
  await click('[data-act="nav"][data-id="slakt"]');
  await click('[data-act="slaktVy"][data-id="alla"]');
  assert.equal(await pg.locator('svg.fam-full-svg .fam-node').count(),5,'Fem anslutna personer syns i trädet');
