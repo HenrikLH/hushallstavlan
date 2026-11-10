@@ -2,6 +2,13 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Släktträd v3 (ht-v335, utvecklarläge)
+
+- Ett visuellt, sammanhängande släktträd med panorerbar SVG-canvas, pinch-zoom, centrering och gemensamma familjekopplingar i stället för listbaserad generationsmeny. Personkort och detaljpanel med UI 5.0-anpassning.
+- Relationslagringen (Födelsedagar/onskelista) är oförändrad. Endast DEV; användaren vill granska i telefon innan ytterligare designarbete.
+- Tester: `verktyg/emu/familj-dev.js` och `verktyg/emu/familj-stor.js` i GitHub CI. Ångra-gren `version-fore-slakttrad-v3`.
+
+
 ## Förbättrat släktträd för telefon (ht-v331, utvecklarläge)
 
 - Hybrid är numera fokusbaserad: bara föräldrar, partner och tre barn i kartan; syskon och fler barn i kompakta knappar. Hela trädet visar en förenklad generationsöversikt utan spaghettilinjer. Zoom, drag/lås per person och relationsredigering bevaras; nya låspositioner har separat `ht.slaktHybridPins2` eftersom koordinatsystemet ändrats.

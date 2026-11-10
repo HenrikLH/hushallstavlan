@@ -43,30 +43,42 @@ module.exports=async(pg,h)=>{
  assert.deepEqual(newWishes.par['Maja|08-18'].sort(),['Anna|05-12','Erik|06-05'].sort(),'Båda föräldrarna valdes i ett steg');
  await click('[data-act="nav"][data-id="familj"]');
  await click('[data-act="nav"][data-id="slakt"]');
+
+ assert.equal(await pg.locator('.fam3-viewport').count(),1,'Ett riktigt visuellt träd visas');
+ assert.equal(await pg.locator('.fam3-node').count(),6,'Alla sex personer finns på samma canvas');
+ assert.ok(await pg.locator('.fam3-edge').count()>0,'Familjekopplingar ritas');
+ await pg.locator('.fam3-viewport').evaluate(el=>{el.scrollIntoView({block:'center'})});
+ await h.shot('familj-v3-hela');
+ await click('[data-act="slaktV3Fit"]');
+ const scaleFit=await pg.locator('.fam3-scale').innerText();
+ await click('[data-act="slaktV3Zoom"][data-id="plus"]');
+ assert.notEqual(await pg.locator('.fam3-scale').innerText(),scaleFit,'Zoom ändrar skalan');
+ await click('[data-act="slaktV3Center"]');
+ await click('.fam3-node[data-id="Maja|08-18"]');
+ assert.ok((await pg.locator('.fam3-detail').innerText()).includes('Maja'),'Personval visar detaljpanel utan att ta bort trädet');
+ assert.equal(await pg.locator('.fam3-viewport').count(),1);
  await click('[data-act="slaktVy"][data-id="alla"]');
- assert.ok(await pg.locator('.fam-gen-col').count()>=2,'Traditionellt visar generationskolumner');
- assert.equal(await pg.locator('.fam-gen-col .fam-mini').count(),6,'Alla sex personer nås i generationsvyn');
- assert.equal(await pg.locator('main .sh').filter({hasText:'Ännu inte placerade'}).count(),0,'Syskonrelationen placerar alla');
- const cardWidth=await pg.locator('.fam-gen-col').first().evaluate(x=>x.getBoundingClientRect().width);
- assert.ok(cardWidth<=300,'En generationskolumn ska passa mobilbredden');
- await h.shot('familj-dev-hela');
- await click('[data-act="slaktLayout"][data-id="hybrid"]');
- assert.ok(await pg.locator('.fam-h-overview .fam-h-chip').count()>=6,'Hybridens översikt visar alla personer utan relationslinjer');
- assert.equal(await pg.locator('.fam-h-overview svg').count(),0,'Översikten ska inte bli ett linjenät');
- await h.shot('familj-dev-hybrid-oversikt');
- await click('.fam-h-overview [data-act="slaktFocus"][data-id="Maja|08-18"]');
- assert.equal(await pg.locator('.fam-hybrid-svg .fam-h-node').count(),4,'Fokus visar bara närmaste noder');
- assert.ok(await pg.locator('.fam-hybrid .fam-h-edge').count()<10,'Fokus ska inte få en linje per släkting');
- await h.shot('familj-dev-hybrid-fokus');
- await click('[data-act="slaktHybridLock"]');
- assert.ok(await pg.locator('.fam-hybrid-svg .fam-pin').count()>0,'En nod går att låsa');
- await click('[data-act="slaktHybridZoom"][data-id="plus"]');
- assert.ok((await pg.locator('.fam-hybrid .fam-zoom').innerText()).includes('120'),'Hybridzoom fungerar');
- assert.equal(await pg.evaluate(()=>localStorage.getItem('ht.slaktLayout')),'hybrid','Layoutvalet sparas per enhet');
- await click('[data-act="slaktLayout"][data-id="trad"]');
- assert.equal(await pg.locator('.fam-tr-focus .fam-mini.selected').count(),1,'Traditionellt har en tydlig person i fokus');
- assert.ok((await pg.locator('.fam-tr-focus').innerText()).includes('Morfar'),'Syskon kan visas utan angivna föräldrar');
- await h.shot('familj-dev-fokus');
+ await click('[data-act="slaktVy"][data-id="fokus"]');
+ assert.ok(await pg.locator('.fam3-node.muted').count()>0,'Fokus tonar ned andra personer utan att ta bort trädet');
+ await h.shot('familj-v3-fokus');
+ // Simulera en- och tvåfingergester: kameran ska förflyttas och zooma utan menybyte.
+ const moved=await pg.locator('.fam3-viewport').evaluate(el=>{
+  const stage=el.querySelector('.fam3-stage'),before=stage.getAttribute('transform'),r=el.getBoundingClientRect();
+  const dispatch=(type,id,x,y,target=el)=>target.dispatchEvent(new PointerEvent(type,{bubbles:true,pointerType:'touch',pointerId:id,clientX:r.left+x,clientY:r.top+y}));
+  dispatch('pointerdown',501,100,200);dispatch('pointermove',501,150,226,document);dispatch('pointerup',501,150,226,document);
+  return before!==stage.getAttribute('transform');
+ });
+ assert.ok(moved,'Panorering flyttar kameran');
+ const pinch=await pg.locator('.fam3-viewport').evaluate(el=>{
+  const r=el.getBoundingClientRect(),stage=el.querySelector('.fam3-stage'),before=stage.getAttribute('transform');
+  const dispatch=(type,id,x,y,target=el)=>target.dispatchEvent(new PointerEvent(type,{bubbles:true,pointerType:'touch',pointerId:id,clientX:r.left+x,clientY:r.top+y}));
+  dispatch('pointerdown',601,110,180);dispatch('pointerdown',602,210,180);
+  dispatch('pointermove',602,285,180,document);
+  dispatch('pointerup',602,285,180,document);dispatch('pointerup',601,110,180,document);
+  return before!==stage.getAttribute('transform');
+ });
+ assert.ok(pinch,'Nypzoom ändrar kamerans transform');
+
  await click('[data-act="slaktEdit"][data-id="Maja|08-18"]');
  // Cykler får inte gå att spara.
  await pg.locator('input[name="slParent"][value="Ella|08-29"]').check();

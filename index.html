@@ -1538,6 +1538,43 @@ html.ny .motion-panel>.wm-body{display:block}
 .fam-h-chip{display:inline-flex;align-items:center;justify-content:center;min-height:36px;padding:7px 12px;max-width:100%;border-radius:999px;border:1px solid var(--line);background:var(--fill);color:var(--ink);font-size:13px;font-weight:600;cursor:pointer;overflow-wrap:anywhere}
 .fam-h-overview{padding-bottom:3px}
 .fam-h-overview .fam-h-relationship{padding:9px 20px 18px}
+/* Släktträd v3: Apple-lik arbetsyta, alltid ett visuellt träd – inga generationslistor. */
+.fam3{overflow:hidden;background:var(--surface);border-radius:inherit}
+.fam3-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px 12px}
+.fam3-toolbar-title{display:flex;flex-direction:column;min-width:0;gap:2px}
+.fam3-toolbar-title strong{font-size:16px;line-height:21px;font-weight:650;letter-spacing:-.2px}
+.fam3-toolbar-title small{font-size:12px;line-height:17px;color:var(--ink-2)}
+.fam3-toolbar-buttons{display:flex;gap:7px}
+.fam3-tool{display:grid;place-items:center;width:37px;height:37px;border-radius:11px;background:var(--fill);font-size:23px;font-weight:450;color:var(--ink);touch-action:manipulation}
+.fam3-viewport{height:clamp(390px,60dvh,650px);position:relative;overflow:hidden;touch-action:none;background:var(--surface);border-top:.5px solid var(--line);border-bottom:.5px solid var(--line);user-select:none;-webkit-user-select:none;cursor:grab}
+.fam3-viewport:active{cursor:grabbing}
+.fam3-svg{display:block;width:100%;height:100%;overflow:hidden}
+.fam3-edge{fill:none;stroke:var(--ink-3);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.fam3-edge.partner{stroke:var(--accent);stroke-width:2.3}
+.fam3-edge.sibling{stroke:var(--green);stroke-dasharray:4 5;opacity:.7}
+.fam3-node{cursor:pointer;outline:none}
+.fam3-node.muted{opacity:.22}
+.fam3-card{fill:var(--surface);stroke:var(--line);stroke-width:1.4}
+.fam3-node.selected .fam3-card{stroke:var(--accent);stroke-width:2.2}
+.fam3-circle{fill:var(--fill)}
+.fam3-node.selected .fam3-circle{fill:var(--accent-soft)}
+.fam3-initial{fill:var(--ink-2);font-family:var(--font);font-size:17px;font-weight:700;pointer-events:none}
+.fam3-node.selected .fam3-initial{fill:var(--accent)}
+.fam3-name{fill:var(--ink);font-family:var(--font);font-size:13px;font-weight:650;pointer-events:none}
+.fam3-node:focus-visible .fam3-card{stroke:var(--accent);stroke-width:3}
+.fam3-zoom{position:absolute;right:10px;bottom:11px;display:flex;align-items:center;gap:4px;padding:4px;border-radius:13px;background:var(--glass);border:1px solid var(--glass-line);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:0 2px 12px rgba(0,0,0,.08)}
+.fam3-zoom button{width:31px;height:31px;border-radius:9px;display:grid;place-items:center;font-size:20px;background:var(--fill);color:var(--ink)}
+.fam3-scale{font-size:11px;font-weight:600;color:var(--ink-2);min-width:40px;text-align:center;font-variant-numeric:tabular-nums}
+.fam3-legend{padding:11px 16px;font-size:12px;line-height:17px;color:var(--ink-2);border-bottom:.5px solid var(--line)}
+.fam3-detail{display:flex;align-items:center;gap:11px;padding:13px 16px}
+.fam3-person-circle{display:grid;place-items:center;flex:none;width:42px;height:42px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-size:17px;font-weight:700}
+.fam3-detail .grow{min-width:0}
+.fam3-detail strong{display:block;font-size:15px;line-height:20px;font-weight:650}
+.fam3-detail small{display:block;font-size:12px;line-height:17px;color:var(--ink-2)}
+.fam3-details-edit{padding:9px 12px;border-radius:99px;color:var(--accent);background:var(--accent-soft);font-size:12px;font-weight:650;white-space:nowrap}
+.fam3-detail-actions{border-top:.5px solid var(--line);padding:10px 16px 14px}
+.fam3-detail-actions button{color:var(--accent);font-size:13px;font-weight:600}
+@media(prefers-reduced-motion:no-preference){.fam3-node{transition:opacity .2s ease}}
 /* ===== Födelsedagar ===== */
 .bd .bd-date{display:flex;flex-direction:column;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;background:var(--accent-soft);color:var(--accent);flex:none;line-height:1}
 .bd .bd-date b{font-size:19px;font-weight:700;letter-spacing:-.4px}
@@ -3385,7 +3422,7 @@ html.ny.ui5 body.wall .board .wpair .bbd-l{font-size:calc(15px*min(var(--z),1.2)
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=324"></script>
+<script src="app.js?v=325"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
