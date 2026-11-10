@@ -3446,6 +3446,16 @@ if(k==='vara'){const n=S.varaK||'',ing=S.varaTyp==='ing',R=regGet(),F=parseJ(set
   o.innerHTML=sheetHtml('shop','Ny vara','<button class="tb strong">Lägg till</button>',body,enter);return}
  if(k==='cleanAdd'){
   o.innerHTML=sheetHtml('cleanQuick','Ny syssla','<button class="tb strong">Lägg till</button>',group('<div class="cell"><input class="field" id="clean-title" name="title" placeholder="Vad behöver göras?" aria-label="Syssla" required autocomplete="off" enterkeyhint="done"></div>')+'<div class="foot">Rummet väljs utifrån namnet. Du kan ändra sysslan efteråt.</div>',enter);return}
+ if(k==='slaktRel'){if(!DEV){S.sheet=null;return}const all=slaktPersons().slice().sort((a,b)=>a.name.localeCompare(b.name,'sv')),key=S.slaktEdit,person=all.find(b=>b.key===key);if(!person){S.sheet=null;return}
+  const parents=slaktParents(key),partner=slaktPartners(key)[0]||'',children=new Set(slaktChildren(key).map(b=>b.key)),other=all.filter(b=>b.key!==key);
+  const opts=selected=>'<option value="">Ingen</option>'+other.map(b=>'<option value="'+esc(b.key)+'"'+(b.key===selected?' selected':'')+'>'+esc(b.name)+'</option>').join('');
+  const childRows=other.map(b=>'<label class="cell fam-check-row"><input type="checkbox" name="slChild" value="'+esc(b.key)+'"'+(children.has(b.key)?' checked':'')+'><span class="grow">'+esc(b.name)+'</span></label>').join('');
+  const body=sh('Person')+group('<div class="cell fam-selected">'+slaktAvatar(person)+'<span class="grow"><strong>'+esc(person.name)+'</strong><span class="meta">'+person.dd+' '+MON3[person.mo]+'</span></span></div>')+
+   sh('Partner')+group(fieldCell('Partner',menuSel('name="slPartner" aria-label="Partner"',opts(partner))))+
+   sh('Föräldrar')+group(fieldCell('Förälder 1',menuSel('name="slParent1" aria-label="Förälder 1"',opts(parents[0]||'')))+fieldCell('Förälder 2',menuSel('name="slParent2" aria-label="Förälder 2"',opts(parents[1]||''))))+
+   sh('Barn',children.size?children.size+' valda':'')+group(childRows||emptyCell('Lägg till fler personer under Födelsedagar först.'))+
+   '<div class="foot">Välj vilka personer som hör ihop. Barn får automatiskt sin plats under föräldrarna i släktträdet. Relationerna sparas för hela hushållet, men släktträdet visas fortfarande bara i utvecklarläge.</div>';
+  o.innerHTML=sheetHtml('slaktRel','Relationer','<button class="tb strong">Spara</button>',body,enter);return}
  if(k==='fodAdd'){const t=parse(today()),ty=t.getFullYear(),e=S.fodEdit&&bdays().find(b=>b.key===S.fodEdit),dd=e?e.dd:t.getDate(),mo=e?e.mo:t.getMonth(),col=e?e.own:'';
   let yrs='<option value="">Vet inte</option>';for(let y=ty;y>=ty-110;y--)yrs+='<option'+(e&&e.yr===y?' selected':'')+'>'+y+'</option>';
   const dot=(v,c,cd,lab,x)=>'<label title="'+esc(lab)+'"><input type="radio" name="col" value="'+v+'"'+(v===col?' checked':'')+' aria-label="'+esc(lab)+'"><span style="--c:'+c+';--cd:'+cd+(x||'')+'"></span></label>';
@@ -5907,6 +5917,23 @@ document.addEventListener('submit',async e=>{const f=e.target.closest('[data-for
   D().clean.push({id,room,title:t,freq:7,min:10,lastDone:'',prevDone:'',doneBy:'',who:'',tip:'',plannedFor:'',snoozeUntil:'',order:null});const modal=S.sheet==='cleanAdd';if(modal)closeSheets();S.open.all=true;render();
   if(!modal)setTimeout(()=>{const x=document.querySelector('form[data-form="cleanQuick"][data-room="'+f.dataset.room+'"] .field');if(x)x.focus()},30);
   apiPost({action:'cleanAdd',id,room,title:t,freq:7,min:10});toast('Tillagd i '+room);return}
+ if(f.dataset.form==='slaktRel'){if(!DEV)return;const key=S.slaktEdit,all=slaktPersons(),keys=new Set(all.map(b=>b.key));if(!keys.has(key))return;
+  const parents=[String(d.slParent1||''),String(d.slParent2||'')].filter(Boolean),partner=String(d.slPartner||''),children=[...f.querySelectorAll('input[name="slChild"]:checked')].map(el=>el.value);
+  if(new Set(parents).size!==parents.length||parents.includes(key)||new Set(children).size!==children.length||children.includes(key)||partner===key||[...parents,partner,...children].some(k=>k&&!keys.has(k))){toast('Kontrollera dina relationer');return}
+  const old=slaktR(),par=Object.fromEntries(Object.entries(old.par).map(([k,v])=>[k,Array.isArray(v)?v.slice():[]]));
+  if(parents.length)par[key]=parents;else delete par[key];
+  // Uppdatera både borttagna och nya barn utifrån just den valda förälderns relationer.
+  Object.keys(par).forEach(k=>{if(k!==key){par[k]=par[k].filter(p=>p!==key);if(!par[k].length)delete par[k]}});
+  children.forEach(k=>{const current=par[k]||[];if(!current.includes(key))par[k]=current.concat(key)});
+  if(Object.values(par).some(v=>v.length>2)){toast('Ett barn kan ha högst två angivna föräldrar');return}
+  const seen=new Set(),active=new Set(),visit=k=>{if(active.has(k))return true;if(seen.has(k))return false;active.add(k);if((par[k]||[]).some(visit))return true;active.delete(k);seen.add(k);return false};
+  if([...keys].some(visit)){toast('Relationerna skulle skapa ett cirkulärt släktträd');return}
+  let partners=old.partners.filter(p=>Array.isArray(p)&&p.length===2&&!p.includes(key));if(partner)partners.push([key,partner].sort());
+  partners=partners.filter((p,i)=>partners.findIndex(x=>x[0]===p[0]&&x[1]===p[1])===i);
+  const ancestors=(from,target,used=new Set())=>{if(from===target)return true;if(used.has(from))return false;used.add(from);return(par[from]||[]).some(x=>ancestors(x,target,used))};
+  if(partners.some(p=>ancestors(p[0],p[1])||ancestors(p[1],p[0]))){toast('En förälder och ett barn kan inte vara partner');return}
+  setFodEgna(e=>{e.sr=Object.keys(par).length||partners.length?{par,partners}:{};return e});
+  closeSheets();S.slaktFocus=key;S.slaktVy='fokus';render();toast('Släktrelationer sparade');return}
  if(f.dataset.form==='fodAdd'){const namn=String(d.namn||'').trim(),dg=Number(d.dag),mn=Number(d.man),ar=Number(d.ar)||null,md=new Date(2000,mn,0).getDate();if(!namn)return;
   if(dg>md){toast(cap(MON[mn-1])+' har bara '+md+' dagar');return}
   const x={namn,datum:pad(mn)+'-'+pad(dg)},k=bdKey(x),col=colOk(d.col)?d.col:'',ok=S.fodEdit,old=ok&&bdays().find(b=>b.key===ok);if(ar)x.ar=ar;
