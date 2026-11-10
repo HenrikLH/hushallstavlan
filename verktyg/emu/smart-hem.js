@@ -18,9 +18,9 @@ module.exports=async(pg,h)=>{
  assert.equal(await pg.locator('form[data-form="haLampa"]').count(),1,'Tryck på brickan öppnar reglagen');
  await pg.locator('form[data-form="haLampa"] .ha-x').click();await h.idle(900);
  assert.equal(await pg.locator('form[data-form="haLampa"]').count(),0,'Krysset stänger');
- await pg.locator('[data-act="haScen"][data-id="av"]').click();await h.idle(800);
+ await pg.locator('section.ha [data-act="habScen"][data-id="3"]').click();await h.idle(800);
  assert.equal(await pg.locator('section.ha .ha-t.on').count(),0,'Släck allt');
- await pg.locator('[data-act="haScen"][data-id="scene.kvall"]').click();await h.idle(1200);
+ await pg.locator('section.ha [data-act="habScen"][data-id="1"]').click();await h.idle(1200);
  assert.equal(await pg.locator('section.ha .ha-t.on').count(),3,'Kväll tänder tre');
  // håll in: styrningen med det lodräta reglaget
  await h.hold('section.ha .ha-t[data-id="light.vardagsrum"] .ha-n');await h.idle(600);

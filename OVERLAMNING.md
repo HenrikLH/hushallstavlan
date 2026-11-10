@@ -2,6 +2,12 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Smart hem-rutan: scener och favoriter (förslag, väntar på Henrik)
+
+- Mål: rutan Ö12/T12 ska få plats i rutnätet. Fyra scenplatser överst (egen scen = valda enheters läge, scen i HA eller Släck allt; håll in = ändra) och favoriter under (högst 6 platser, apparater tar 2). ⋯ i rubriken öppnar bladet `habRuta` (scener, ta bort/dra ≡/lägg till favoriter, Klar sparar).
+- Ägare Claude, gren `claude/project-thread-erprdk`. Kod: `hab*` i app.js efter `haScener`, CSS `.hab-*` i index.html. Data för hushållet i onskelista `{hab:1,sc,fv}` (ingen Kod.gs, ingen tjänständring); egna scener körs i appen som vanliga `{id,gor}`-anrop.
+- Test: `smart-hem-ruta.js` (telefon, vägg, mörkt), `smart-hem.js` anpassad, alla-flikar telefon+vägg (med och utan haDemo) gröna. Bilder /mnt/project-files/smart-hem/ruta/. Nästa: Henriks ok → `node verktyg/version.js` och publicera.
+
 ## Släktträd v3 (ht-v335, utvecklarläge)
 
 - Ett visuellt, sammanhängande släktträd med panorerbar SVG-canvas, pinch-zoom, centrering och gemensamma familjekopplingar i stället för listbaserad generationsmeny. Personkort och detaljpanel med UI 5.0-anpassning.

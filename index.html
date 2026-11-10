@@ -3234,6 +3234,22 @@ form[data-form="haLampa"] .ha-ctl{flex:1;justify-content:center;padding-top:24px
 .ha-ap{grid-column:1/-1;position:relative;overflow:hidden}.ha-ap .ha-i{background:rgba(120,120,128,.16);color:var(--ink-2)}.ha-ap.on.ha-ap-robot .ha-i{background:#0A84FF;color:#fff}.ha-ap.on.ha-ap-disk .ha-i{background:#30B0C7;color:#fff}
 .ha-ap .ha-tx{flex:1}.ha-ap-p{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(120,120,128,.18)}.ha-ap-p::after{content:'';position:absolute;inset:0 auto 0 0;width:var(--p);background:#0A84FF;border-radius:0 2px 2px 0}.ha-ap-disk .ha-ap-p::after{background:#30B0C7}
 .ha-g .ha-t.ha-ap.on{background:var(--fill);box-shadow:none}.ha-g-v .ha-t.ha-ap.on{background:var(--surface)}
+/* Smart hem-rutan: fyra scener överst och favoriter under, blad för att anpassa (ht-v338) */
+.hab-h{display:flex;align-items:center;gap:8px}.hab-h .wh{flex:1;min-width:0}
+.hab-mer{flex:none;display:grid;place-items:center;width:30px;height:30px;padding:0;border:0;border-radius:50%;background:var(--fill);color:var(--ink-2);cursor:pointer;-webkit-tap-highlight-color:transparent}.hab-mer svg{width:18px;height:18px}
+.hab .hab-sc{margin:10px 0 0}.hab .hab-sc .ha-st{min-width:0}.hab .hab-sc .ha-n{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hab .hab-sc .ha-st.on{background:var(--accent);color:var(--on-accent)}
+.hab .hab-sc .hab-tom{background:transparent;box-shadow:inset 0 0 0 1.5px var(--line);color:var(--ink-3)}.hab-tom .ha-i{background:transparent;color:var(--ink-3)}
+.hab .hab-g{margin-top:8px}
+.hab-inga{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin-top:8px;min-height:56px;border:0;border-radius:var(--r5,16px);background:transparent;box-shadow:inset 0 0 0 1.5px var(--line);color:var(--ink-2);font:inherit;cursor:pointer}.hab-inga svg{width:18px;height:18px}
+.hab-r{display:flex;align-items:center;gap:0;width:100%;text-align:left;font:inherit;color:inherit;background:none;border:0}.hab-r .grow{min-width:0}
+.hab-pm{flex:none;display:grid;place-items:center;width:24px;height:24px;margin:0 12px 0 0;padding:0;border:0;border-radius:50%;color:#fff;cursor:pointer}.hab-pm svg{width:14px;height:14px}.hab-minus{background:#FF3B30}.hab-plus{background:#34C759;margin:0 0 0 10px}
+.hab-grip{flex:none;display:grid;place-items:center;width:40px;height:40px;margin:-8px -8px -8px 6px;color:var(--ink-3);touch-action:none;cursor:grab}.hab-grip svg{width:20px;height:20px}
+.hab-lista .hab-r.hab-drar{position:relative;z-index:3;background:var(--surface);box-shadow:0 10px 28px rgba(0,0,0,.2);border-radius:12px}
+.hab-ck{flex:none;display:grid;place-items:center;width:24px;height:24px;margin:0 12px 0 0;border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--ink-3);color:#fff}.hab-ck.on{background:var(--accent);box-shadow:none;color:var(--on-accent)}.hab-ck svg{width:14px;height:14px}
+.hab-ik{background:var(--accent-soft);color:var(--accent)}
+.hab-iks .pill{display:grid;place-items:center;width:42px;height:42px;padding:0}.hab-iks .pill svg{width:20px;height:20px}
+.hab-rub{margin:14px 16px 6px;color:var(--ink-2);font-size:13px;font-weight:600}
 html body form[data-form="haApp"].sheet-panel.sheet-panel{width:100%;max-width:420px;height:auto;max-height:100%;border-radius:38px;background:rgba(40,38,48,.92);box-shadow:0 20px 60px rgba(0,0,0,.35);color:#fff;--ink:#fff;--ink-2:rgba(235,235,245,.62);--fill:rgba(255,255,255,.16);--bg:#2a2733}
 form[data-form="haApp"] .grabber,form[data-form="haApp"] .sheet-head{display:none}
 form[data-form="haApp"] .sheet-body{flex:1;display:flex;flex-direction:column;padding:18px 0 14px;overflow-y:auto}
