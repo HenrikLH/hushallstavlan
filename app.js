@@ -2385,7 +2385,7 @@ function portView(){if(U5)return portViewU5();const C=portCalc(),{P,B}=C,mon=par
 // Förslagen som stora kort i en karusell som loopar. Varje kort: bild (eller ikon), namn, pris, portioner och kort om rätten
 let FL_STYLE=lsGet('forslag')==='lista'?'lista':'karusell';
 // Utvecklarläge: visar menyer som inte är färdiga. Gäller bara den här enheten
-let DEV=lsGet('dev')==='1';if(DEV&&['familj','slakt','slaktPersoner'].includes(S.view))S.slaktDemo=true;if(!DEV&&['familj','slakt','slaktPersoner'].includes(S.view)){S.view='oversikt';lsSet('view','oversikt')}
+let DEV=lsGet('dev')==='1';if(!DEV&&['familj','slakt','slaktPersoner'].includes(S.view)){S.view='oversikt';lsSet('view','oversikt')}
 // UI 5.0 (Apple) är standard. UI 2.0 (sparas som '2') och UI 4.0 (Ateljé) väljs per enhet och UI 3.0 provas i utvecklarläget
 const UI_VER='2.0';
 // Appens version, samma nummer som ?v= på app.js
@@ -5071,7 +5071,7 @@ V.slakt=function(){if(!DEV)return V.oversikt();const all=slaktPersons(),assigned
  if(!L.length){h+=group(emptyCell('Inga relationer tilldelade ännu. Välj en person och lägg till partner, barn eller föräldrar.'))}
  else if(full){const z=S.slaktZoom||1;h+=sh('Släktträd')+group('<div class="fam-all-head"><div class="grow"><strong>Hela släktträdet</strong><span class="meta">'+L.length+' placerade personer</span></div><div class="fam-zoom"><button type="button" data-act="slaktZoom" data-id="minus" aria-label="Zooma ut"'+(z<=.75?' disabled':'')+'>−</button><span class="num">'+Math.round(z*100)+' %</span><button type="button" data-act="slaktZoom" data-id="plus" aria-label="Zooma in"'+(z>=1.25?' disabled':'')+'>+</button></div></div><div class="fam-pan" tabindex="0" aria-label="Panorera släktträdet i sidled">'+slaktFullSvg(L)+'</div><div class="fam-hint">Dra i sidled för att se hela trädet. Tryck på en person för att byta fokus.</div>')}
  else{const par=slaktParents(focus.key).map(k=>all.find(x=>x.key===k)).filter(Boolean),partner=slaktPartners(focus.key).map(k=>all.find(x=>x.key===k)).filter(Boolean)[0],kids=slaktChildren(focus.key).slice(0,4),yTop=57,yMid=192,yChild=340,ys=partner?[116,244]:[180],node=(b,x,y,selected=false)=>'<g role="button" tabindex="0" class="fam-node'+(selected?' selected':'')+'" data-act="slaktFocus" data-id="'+esc(b.key)+'" aria-label="Visa '+esc(b.name)+'"><circle class="fam-ring" cx="'+x+'" cy="'+y+'" r="25"/><circle class="fam-circle" cx="'+x+'" cy="'+y+'" r="21"/><text class="fam-letter" x="'+x+'" y="'+(y+6)+'" text-anchor="middle">'+esc(b.name[0].toUpperCase())+'</text><text class="fam-name" x="'+x+'" y="'+(y+43)+'" text-anchor="middle">'+esc(b.name.length>13?b.name.slice(0,12)+'…':b.name)+'</text></g>',pX=par.length===2?[90,270]:[180],fx=ys[0],px=partner?ys[1]:null,lines=[];
- if(par.length===2)lines.push('M112 '+yTop+'H248','M180 '+yTop+'V'+(yMid-25));else if(par.length===1)lines.push('M180 '+(yTop+24)+'V'+(yMid-25));
+ if(par.length===2)lines.push('M112 '+yTop+'H248','M180 '+yTop+'V128H'+fx+'V'+(yMid-25));else if(par.length===1)lines.push('M180 '+(yTop+24)+'V128H'+fx+'V'+(yMid-25));
  if(partner)lines.push('M'+(fx+22)+' '+yMid+'H'+(px-22));
  if(kids.length){const xs=kids.map((_,i)=>360*(i+1)/(kids.length+1)),root=partner?(fx+px)/2:fx,br=269;lines.push('M'+root+' '+(partner?yMid:yMid+24)+'V'+br);if(kids.length>1||root!==xs[0])lines.push('M'+Math.min(root,...xs)+' '+br+'H'+Math.max(root,...xs));xs.forEach(x=>lines.push('M'+x+' '+br+'V'+(yChild-25)))}
  const ht=kids.length?399:275,svg='<svg class="fam-svg" viewBox="0 0 360 '+ht+'" role="group" aria-label="Närmaste släkten till '+esc(focus.name)+'"><g class="fam-lines">'+lines.map(d=>'<path d="'+d+'"/>').join('')+'</g>'+par.map((b,i)=>node(b,pX[i],yTop)).join('')+node(focus,fx,yMid,true)+(partner?node(partner,px,yMid):'')+kids.map((b,i)=>node(b,360*(i+1)/(kids.length+1),yChild)).join('')+'</svg>';
@@ -5567,7 +5567,6 @@ const ACT={
  slaktVy(id){if(!['fokus','alla'].includes(id))return;S.slaktVy=id;render()},
  slaktFocus(id){if(!DEV||!slaktPersons().some(b=>b.key===id))return;S.slaktFocus=id;S.slaktVy='fokus';render()},
  slaktZoom(id){if(!DEV)return;const steps=[.75,1,1.25],v=S.slaktZoom||1,i=steps.indexOf(v),n=steps[Math.max(0,Math.min(steps.length-1,i+(id==='plus'?1:-1)))];if(n!==v){S.slaktZoom=n;render()}},
- slaktGroup(id){if(!DEV)return;S.slaktFam=id;S.slaktFocus=null;ACT.nav('slakt')},
  slaktEdit(id){if(!DEV||!bdays().some(b=>b.key===id))return;S.slaktEdit=id;S.sheet='slaktRel';render()},
  familjOpen(){if(!DEV)return;closeSheets();const first=bdays()[0];S.slaktFocus=first?first.key:null;S.slaktVy='alla';S.slaktZoom=1;ACT.nav('familj')},
  fodMode(id){if(!['hjul','manad','lista'].includes(id))return;S.fodMode=id;lsSet('fodMode',id);render()},
