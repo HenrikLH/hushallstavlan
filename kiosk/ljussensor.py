@@ -382,10 +382,13 @@ def ha_app_styr(c, d):
             if rum or damm or mopp: PLAN.pop(e, None)
             if (damm or mopp) and a.get('lageId') and {'vacuum', 'mop'} <= set(a['lageAlt']):
                 # alla rum dammsugs först, sedan moppas mopprummen: andra körningen startas av ha_plan när roboten är hemma
-                # små rum i ett svep, sedan varje stort rum för sig; dockan tömmer mellan omgångarna
+                # dockan tömmer mellan omgångarna
                 stor = {x['id'] for x in a['rum'] if x.get('stor')}
-                sma = [x for x in damm if x not in stor]
-                steg = [{'typ': 'damm', 'rum': sma}] * bool(sma) + [{'typ': 'damm', 'rum': [x]} for x in damm if x in stor] + [{'typ': 'mopp', 'rum': mopp}] * bool(mopp)
+                steg = []   # i den ordning rummen valdes: små rum i följd blir en omgång, ett stort rum en egen
+                for x in damm:
+                    if x not in stor and steg and not steg[-1].get('stor'): steg[-1]['rum'].append(x)
+                    else: steg.append({'typ': 'damm', 'rum': [x], 'stor': x in stor})
+                steg = [{'typ': 'damm', 'rum': t['rum']} for t in steg] + [{'typ': 'mopp', 'rum': mopp}] * bool(mopp)
                 PLAN[e] = {'steg': steg, 'i': 0, 'klara': [[] for _ in steg], 'nu': None, 'sett': False, 'tid': time.time(), 'hemma': None, 'klar': None}
                 PLAN[e]['val'] = {'sug': a.get('sug'), 'vatten': a.get('vatten'), 'rutt': a.get('rutt')}
                 ha_plan_kor(c, a, 'vacuum' if damm else 'mop', steg[0]['rum'], PLAN[e]['val'])

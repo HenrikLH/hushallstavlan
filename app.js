@@ -66,7 +66,7 @@ const I_EKO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-w
 // Inköp ligger under Mat; Ekonomi har fått dess plats i flikraden
 // Kalendern har en egen flik. Uppgifter och Städ delar fliken Att göra (Städ har vy-id stad men markerar Att göra)
 const VIEWS=[['mat','Mat',I.fork],['ekonomi','Ekonomi',I_EKO],['oversikt','Översikt',I.home],['kalender','Kalender',I.cal],['uppgifter','Att göra',I.list]];
-const VIEW_IDS=VIEWS.map(v=>v[0]).concat(['vader','fod','familj','slakt','slaktPersoner','stad','varor','hus']);
+const VIEW_IDS=VIEWS.map(v=>v[0]).concat(['vader','fod','familj','slakt','slaktPersoner','stad','varor','hus','robot']);
 const OLD_VIEWS={matsedel:'vecka',recept:'recept',inkop:'inkop'};
 
 /* ---------- state ---------- */
@@ -1426,9 +1426,10 @@ function haKarta(a){const V0=S.haRobRum||[],V=S.haZon?[]:V0.length?V0:a.plan&&!a
  document.addEventListener('pointermove',e=>{if(!d||e.pointerId!==d.id)return;const p=pt(e,d.w);S.haZonR=[d.p[0],d.p[1],p[0],p[1]];const z=d.w.querySelector('.ha-zr');if(z){z.hidden=false;z.style.cssText=haZonStil(HA.km,S.haZonR)}});
  const slut=e=>{if(!d||e.pointerId!==d.id)return;d=null;const z=S.haZonR,k=HA.km;if(z&&k&&(Math.abs(z[2]-z[0])<k.crop[2]*.04||Math.abs(z[3]-z[1])<k.crop[3]*.04))S.haZonR=null;render()};
  document.addEventListener('pointerup',slut);document.addEventListener('pointercancel',slut)})();
-// samma uppdelning som väggdatorns tjänst: små rum i ett svep, sedan varje stort rum för sig (töms emellan), sist moppning
-function haRobPlan(a){const V=S.haRobRum||[],W=S.haRobV||{},damm=V.filter(id=>(W[id]||'v').includes('v')),mopp=V.filter(id=>(W[id]||'').includes('m')),stor=id=>((a.rum||[]).find(r=>r.id===id)||{}).stor,sma=damm.filter(id=>!stor(id));
- return{damm,mopp,steg:[sma.length&&{typ:'damm',rum:sma}].concat(damm.filter(stor).map(id=>({typ:'damm',rum:[id]})),[mopp.length&&{typ:'mopp',rum:mopp}]).filter(Boolean)}}
+// samma uppdelning som väggdatorns tjänst: i den ordning rummen valdes; små rum i följd i ett svep, varje stort rum för sig (töms emellan), sist moppning
+function haRobPlan(a){const V=S.haRobRum||[],W=S.haRobV||{},damm=V.filter(id=>(W[id]||'v').includes('v')),mopp=V.filter(id=>(W[id]||'').includes('m')),stor=id=>!!((a.rum||[]).find(r=>r.id===id)||{}).stor,steg=[];
+ damm.forEach(id=>{const f=steg[steg.length-1];if(!stor(id)&&f&&!f.stor)f.rum.push(id);else steg.push({typ:'damm',rum:[id],stor:stor(id)})});
+ return{damm,mopp,steg:steg.map(x=>({typ:'damm',rum:x.rum})).concat(mopp.length?[{typ:'mopp',rum:mopp}]:[])}}
 // flödet: tidslinje med stegen (Vacuum, dockan, Mop, Klart); i varje steg rummen i tur och ordning, avbockade när roboten lämnat dem
 function haRumLage(pl,j,id,fh){const k=(pl.klara||[])[j]||[],R=pl.steg[j].rum,aktiv=!fh&&!pl.klar&&j===pl.i;if(!fh&&(pl.klar&&j<pl.i||j<pl.i||k.includes(id)))return'klar';if(!aktiv)return'';if(pl.hemma)return'klar';if(pl.nu===id)return'nu';
  const kvar=R.filter(x=>!k.includes(x));return pl.nu==null?(kvar[0]===id?'nasta':''):(kvar.filter(x=>x!==pl.nu)[0]===id&&kvar.indexOf(pl.nu)<kvar.indexOf(id)?'nasta':'')}
@@ -1453,11 +1454,8 @@ function haKartaNr(a,k){const P=haRobPlan(a),pl=a.plan&&!a.plan.klar&&(a.plan.st
  const typ=Sn[pl?Math.min(pl.i,Sn.length-1):0].typ,[x0,y0,cw,ch]=k.crop;let n=0,h='';
  Sn.forEach((st,j)=>{if(st.typ!==typ)return;st.rum.forEach(id=>{n++;const r=k.rum.find(q=>q.id===id);if(!r)return;const c=pl?haRumLage(pl,j,id,false):'',R0=(a.rum||[]).find(q=>q.id===id),hb=haRumN(a,R0||{}).length*Math.max(cw,ch)/26*.29;
   h+='<b class="ha-kn '+typ+' '+c+'" style="left:'+((r.cx-x0-hb)/cw*100).toFixed(2)+'%;top:'+((r.cy-y0)/ch*100).toFixed(2)+'%">'+(c==='klar'?I.tick:n)+'</b>'})});return h}
-function haRutt(a,Sn){const R=a.rum||[],nm=id=>esc(haRumN(a,R.find(r=>r.id===id)||{}));let n=0,m=0;
- return'<div class="ha-rutt">'+Sn.map((st,j)=>st.rum.map(id=>'<span class="ha-rn '+st.typ+'"><i>'+(st.typ==='damm'?++n:HAI_K.mopp)+'</i>'+nm(id)+'</span>').join('<em>›</em>')+(j<Sn.length-1?'<em>›</em><span class="ha-rd" title="Töms i dockan">'+HAI_APP.hem+'</span><em>›</em>':'')).join('')+'</div>'}
 const HA_RUMNAMN=['Kök','Vardagsrum','Sovrum','Hall','Badrum','Kontor','Barnrum','Matplats','Klädkammare','Tvättstuga','Arbetsrum','Gästrum'];
-function haAppSheet(enter){const a=haAppX();if(!a){S.sheet=null;return''}
- const top='<div class="ha-top"><span class="ha-i ha-ap-'+a.typ+(haAppAktiv(a)?' on':'')+'">'+HAI_APP[a.typ]+'</span><div class="ha-tx"><div class="ha-n">'+esc(a.n)+'</div><div class="ha-s">'+esc(haAppStat(a))+'</div></div><button type="button" class="ha-x" data-act="sheetClose" aria-label="Stäng">'+I.x+'</button></div>';
+function haAppKropp(a,sida){
  // Apple-lista: en rad per inställning med värdet till höger; trycket fäller ut valen med bock under raden (en åt gången)
  const ut=S.haAppDel,rad=(k,n,v,inre,varn)=>'<button type="button" class="ha-gr'+(ut===k?' ut':'')+'" data-act="haAppDel" data-id="'+k+'" aria-expanded="'+(ut===k)+'"><span>'+n+'</span><b'+(varn?' class="fyll"':'')+'>'+v+'</b><i>'+I.chev+'</i></button>'+(ut===k?'<div class="ha-gin">'+inre+'</div>':'');
  const val=(k,alt,v)=>alt.filter(([o])=>o!=null).map(([o,n])=>'<button type="button" class="ha-gv" data-act="haRobSet" data-id="'+k+':'+esc(o)+'" aria-pressed="'+(o===v)+'"><span>'+n+'</span>'+(o===v?'<i>'+I.tick+'</i>':'')+'</button>').join('');
@@ -1471,7 +1469,7 @@ function haAppSheet(enter){const a=haAppX();if(!a){S.sheet=null;return''}
   // plan: alla rum dammsugs först, sedan moppas mopprummen (väggdatorns tjänst startar nästa steg när roboten är hemma)
   const P=haRobPlan(a),pl=a.plan&&(a.plan.steg||[]).length?a.plan:null,kor=pl&&!pl.klar;
   const U=haUnd(a),Ux=U.filter(u=>u.h<=0),lag=S.haLager==='m'?'m':'v',hemma=/charging|docked|returning|docking/.test(a.st||'');
-  if(S.haAppSida==='inst'){b+='<button type="button" class="ha-bak" data-act="haAppSida" data-id="">'+I.back+'<span>Karta</span></button>';
+  if(S.haAppSida==='inst'){b+='<button type="button" class="ha-bak" data-act="haAppSida" data-id="">'+I.back+'<span>Tillbaka</span></button>';
   b+='<div class="ha-gl">'+rad('lage','Mode',a.lage==='vac_and_mop'?'Vacuum & Mop':namn(LAGE,a.lage),val('lage',LAGE,a.lage)+(a.lage==='custom'?'<div class="ha-gnot">Custom = the per-room settings in the Roborock app.</div>':''))+
    (a.lage!=='mop'?rad('sug','Suction',namn(SUG,a.sug),val('sug',SUG,a.sug)):'')+(a.lage!=='vacuum'?rad('vatten','Water flow',namn(VAT.filter(x=>x[1]),a.vatten)==='–'&&/custom/.test(a.vatten||'')?'Custom':namn(VAT.filter(x=>x[1]),a.vatten),val('vatten',VAT.filter(x=>x[1]),a.vatten)):'')+((a.ruttAlt||[]).length?rad('rutt','Mop route',namn(RUT,a.rutt),val('rutt',RUT,a.rutt)):'')+'</div>';
   if(a.dock){const DL=(a.dockLageAlt||[]).filter(o=>o!=='unknown').map(o=>[o,{smart:'Smart',light:'Light',balanced:'Balanced',max:'Max'}[o]||o]);
@@ -1482,14 +1480,14 @@ function haAppSheet(enter){const a=haAppX();if(!a){S.sheet=null;return''}
    rad('rum','Rooms',R.some(r=>!r.n)?'Name them':R.length+'',R.map(r=>'<button type="button" class="ha-gv'+(S.haRumNamn===r.id?' ut':'')+'" data-act="haRumNamn" data-id="'+r.id+'"><span>'+esc(haRumN(a,r))+(r.stor?'<small>Stort rum</small>':'')+'</span><i>'+I.chev+'</i></button>'+(S.haRumNamn===r.id?'<div class="ha-namnval">'+HA_RUMNAMN.map(n=>'<button type="button" class="'+(r.n===n?'on':'')+'" data-act="haRumNamnV" data-id="'+r.id+':'+n+'">'+n+'</button>').join('')+'</div><button type="button" class="ha-gv ha-stor" data-act="haRumStor" data-id="'+r.id+'" aria-pressed="'+!!r.stor+'"><span>Stort rum<small>Dammsugs ensamt och töms efteråt</small></span>'+(r.stor?'<i>'+I.tick+'</i>':'')+'</button>':'')).join(''),R.some(r=>!r.n))+
    (U.length?rad('und','Maintenance',Ux.length?Ux.length+' need attention':'All good',U.map(u=>'<div class="ha-und-r"><span>'+u.n+'</span><i style="--p:'+Math.max(0,Math.min(100,Math.round(100*u.h/u.max)))+'%"'+(u.h/u.max<.15?' class="lag"':'')+'></i><b'+(u.h<=0?' class="fyll"':'')+'>'+(u.h<=0?u.gor+' now':Math.round(u.h)+' h')+'</b></div>').join(''),Ux.length):'')+'</div>';
   }else{
-  b+=haKarta(a);
+  if(!sida)b+=haKarta(a);
   // lager: välj Vacuum eller Mop och tryck på rummen i kartan; rutten under visar ordningen innan start
   if(S.haZon)b+='<div class="ha-valt"><span>'+(S.haZonR?'Zon ritad':'Dra i kartan för att rita en zon')+'</span><button type="button" data-act="haZon">Avbryt</button></div>';
   else if(!kor&&!st){b+='<div class="ha-lag">'+[['v','damm','Vacuum',P.damm.length],['m','mopp','Mop',P.mopp.length]].map(([k,c,n,ant])=>'<button type="button" class="'+c+(lag===k?' on':'')+'" data-act="haLager" data-id="'+k+'" aria-pressed="'+(lag===k)+'">'+HAI_K[c]+'<span>'+n+'</span>'+(ant?'<b>'+ant+'</b>':'')+'</button>').join('')+'</div>';
    b+='<div class="ha-valt">'+(V.length?'<span>'+V.length+(V.length>1?' rum valda':' rum valt')+'</span><button type="button" data-act="haRobRum" data-id="">Rensa</button>':'<em>Tryck på rummen som ska '+(lag==='m'?'moppas':'dammsugas')+'</em>')+'</div>';
-   const snabb=(k,n,alt,v)=>{const A2=alt.filter(([o,t])=>o!=null&&t&&!/custom|off/.test(o));return A2.length>1?'<div class="ha-sv"><span>'+n+'</span><div>'+A2.map(([o,t])=>'<button type="button" data-act="haRobSet" data-id="'+k+':'+esc(o)+'" aria-pressed="'+(o===v)+'">'+t+'</button>').join('')+'</div></div>':''};
+   const snabb=(k,n,alt,v)=>{const A2=alt.filter(([o,t])=>o!=null&&t&&!/custom|off/.test(o));return A2.length>1?'<div class="ha-sv"><span>'+n+'</span><div style="--n:'+A2.length+'">'+A2.map(([o,t])=>'<button type="button" data-act="haRobSet" data-id="'+k+':'+esc(o)+'" aria-pressed="'+(o===v)+'">'+t+'</button>').join('')+'</div></div>':''};
    b+=lag==='m'?snabb('rutt','Route',RUT,a.rutt)+snabb('vatten','Water',VAT,a.vatten):snabb('sug','Suction',SUG,a.sug);
-   if(P.steg.length)b+=haRutt(a,P.steg)}
+   if(P.steg.length)b+=haFlode(a,{steg:P.steg,i:-1,klara:[]},true)}
   if(pl&&!S.haZon&&(kor||!V.length))b+=haFlode(a,pl);
   const varn=(a.dockVarn||[]).concat(Ux.length?[Ux.length+' need attention']:[]);
   b+='<div class="ha-gl">'+(varn.length?'<button type="button" class="ha-gr" data-act="haAppSida" data-id="inst"><span>'+esc(varn[0])+(varn.length>1?' +'+(varn.length-1):'')+'</span><b class="fyll">Visa</b><i>'+I.chev+'</i></button>':'')+
@@ -1507,7 +1505,15 @@ function haAppSheet(enter){const a=haAppX();if(!a){S.sheet=null;return''}
   b+='<div class="ha-gl">'+(kor?'<div class="ha-gr"><span>Program</span><b>'+esc(a.prog||'–')+'</b></div>':rad('prog','Program',esc(a.prog||'–'),(a.progAlt||[]).map(([o,n])=>'<button type="button" class="ha-gv" data-act="haDiskProg" data-id="'+esc(o)+'" aria-pressed="'+(o===a.progId)+'"><span>'+esc(n)+'</span>'+(o===a.progId?'<i>'+I.tick+'</i>':'')+'</button>').join('')))+
    '<div class="ha-gr"><span>Lucka</span><b>'+({closed:'Stängd',locked:'Låst',open:'Öppen'}[a.dorr]||'–')+'</b></div>'+
    (varn.length?'<div class="ha-gr"><span>Fyll på</span><b class="fyll">'+varn.join(' och ')+'</b></div>':(a.salt!=null||a.spol!=null)?'<div class="ha-gr"><span>Salt och spolglans</span><b>Räcker</b></div>':'')+'</div>'}
- return sheetHtml('haApp',esc(a.n),'<span class="tb"></span>',top+'<div class="ha-ap-in">'+b+'</div>',enter,'<span class="tb"></span>')}
+ return b}
+function haAppSheet(enter){const a=haAppX();if(!a){S.sheet=null;return''}
+ const top='<div class="ha-top"><span class="ha-i ha-ap-'+a.typ+(haAppAktiv(a)?' on':'')+'">'+HAI_APP[a.typ]+'</span><div class="ha-tx"><div class="ha-n">'+esc(a.n)+'</div><div class="ha-s">'+esc(haAppStat(a))+'</div></div><button type="button" class="ha-x" data-act="sheetClose" aria-label="Stäng">'+I.x+'</button></div>';
+ return sheetHtml('haApp',esc(a.n),'<span class="tb"></span>',top+'<div class="ha-ap-in">'+haAppKropp(a)+'</div>',enter,'<span class="tb"></span>')}
+// dammsugaren har en egen sida (ingen lampa: kartan behöver plats); på väggen kartan till vänster och allt annat till höger
+const haRobot=()=>haApps().find(x=>x.typ==='robot'&&x.id===S.haAppId)||haApps().find(x=>x.typ==='robot');
+V.robot=function(){const a=haRobot();let h='<div class="rcp-top"><button class="back" data-act="nav" data-id="hus">'+I.back+'Smart hem</button></div>';
+ if(!a)return h+'<div class="banner">Dammsugaren svarar inte just nu.</div>';S.haAppId=a.id;
+ return h+'<div class="rob-vy'+(S.haAppSida==='inst'?' inst':'')+'"><div class="rob-hd"><span class="ha-i ha-ap-robot'+(haAppAktiv(a)?' on':'')+'">'+HAI_APP.robot+'</span><div><h1>'+esc(a.n)+'</h1><p>'+esc(haAppStat(a))+'</p></div></div><div class="rob-k">'+haKarta(a)+'</div><div class="rob-r">'+haAppKropp(a,true)+'</div></div>'};
 // Ändra en enhet utan tangentbord: namn och rum väljs bland förslag, Ta bort kräver håll in
 const HA_RUM=['Kök','Vardagsrum','Sovrum','Hall','Badrum','Kontor','Barnrum','Ute'];
 const HA_NAMN={light:['Taklampa','Golvlampa','Bordslampa','Vägglampa','Fönsterlampa','Spotlights','Lampslinga','Vitrinskåp'],switch:['Uttag','Fönsterlampa','Lampslinga','Fläkt','Kaffebryggare'],fan:['Fläkt','Golvfläkt','Takfläkt']};
@@ -5382,7 +5388,7 @@ function motionPage(el,page,prev,dir){if(motionPageAnim)motionPageAnim.cancel();
 // Sidan följer fingret och sidan under syns med parallax. Vid släpp avgör farten: rörelsen projiceras som i UIKit
 // (WWDC 2018 "Designing Fluid Interfaces") och sidan fjädrar vidare med fingrets fart. Ett nytt grepp under fjädringen fångar sidan.
 var edgeBack=false,U5UNDER=null,u5BackAt=0;
-const u5Sub=x=>!!x[1]||['vader','fod','familj','slakt','slaktPersoner','hus'].includes(x[0]);
+const u5Sub=x=>!!x[1]||['vader','fod','familj','slakt','slaktPersoner','hus','robot'].includes(x[0]);
 // Fart i px/ms över de senaste 100 ms; står fingret still innan släpp är farten noll
 const u5Fart={add(a,x){const t=performance.now();a.push([t,x]);while(a.length>2&&t-a[0][0]>100)a.shift()},
  v(a){if(!a||a.length<2)return 0;const f=a[0],l=a[a.length-1];if(performance.now()-l[0]>60)return 0;const dt=l[0]-f[0];return dt>0?(l[1]-f[1])/dt:0},
@@ -5581,7 +5587,7 @@ const ACT={
  haTog(id){const x=(haData()||{lampor:[]}).lampor.find(e=>e.id===id);if(!x||x.nas)return;try{u5Tick()}catch(e){}const was=x.on;x.on=!was;if(x.on&&!x.b&&x.t==='light')x.b=null;HA.last=null;render();haSend({id,gor:'vaxla'},()=>{x.on=was})},
  haTest(){closeSheets();S.haTest=true;S.haRum=null;HA.demo=null;HA.syn={};HA.byt={};HA.last=null;S.view='hus';try{scrollTo(0,0)}catch(e){}render()},
  haRumVy(id){S.haRum=id?(id==='_'?'':id):null;try{scrollTo(0,0)}catch(e){}render()},
- haApp(id){S.haAppId=id;S.sheet='haApp';S.haAppSida=null;S.haLager='v';S.haRumNamn=null;S.haAppDel=null;S.haZon=false;S.haZonR=null;try{u5Tick()}catch(e){}render()},
+ haApp(id){const rob=(haApps().find(x=>x.id===id)||{}).typ==='robot';S.haAppId=id;if(rob)closeSheets();else S.sheet='haApp';S.haAppSida=null;S.haLager='v';S.haRumNamn=null;S.haAppDel=null;S.haZon=false;S.haZonR=null;try{u5Tick()}catch(e){}if(rob){ACT.nav('robot');try{scrollTo(0,0)}catch(e){}}else render()},
  haRobRum(id){S.haRumNamn=null;if(id===''){S.haRobRum=[];S.haRobV={};return render()}const v=+id,L=S.haRobRum||[];S.haRobRum=L.includes(v)?L.filter(x=>x!==v):L.concat(v);render()},
  haKartaTryck(id,el,e){const a=haAppX(),k=HA.km;if(!a||!k||!k.ok||!e||S.haZon)return;const r=el.getBoundingClientRect(),[x0,y0,cw,ch]=k.crop,x=Math.floor((e.clientX-r.left)/r.width*cw),y=Math.floor((e.clientY-r.top)/r.height*ch);
   let j=x>=0&&y>=0&&x<cw&&y<ch?k.kl[y*cw+x]:-1,rid=j>=0?k.rum[j].id:null;if(rid==null){const X=x+x0,Y=y+y0,T=(a.rum||[]).filter(q=>q.b&&X>=q.b[0]&&X<=q.b[2]&&Y>=q.b[1]&&Y<=q.b[3]).sort((p,q)=>(p.b[2]-p.b[0])*(p.b[3]-p.b[1])-(q.b[2]-q.b[0])*(q.b[3]-q.b[1]));rid=T[0]&&T[0].id}
@@ -5589,7 +5595,7 @@ const ACT={
  haLager(k){S.haLager=k==='m'?'m':'v';render()},
  haLagerRum(id){const a=haAppX();if(!a||haStadar(a)||(a.plan&&!a.plan.klar&&(a.plan.steg||[]).length))return;const k=S.haLager==='m'?'m':'v',V=S.haRobRum||[],W=S.haRobV=S.haRobV||{};S.haRumNamn=null;
   if(!V.includes(id)){S.haRobRum=V.concat(id);W[id]=k}else{const o=W[id]||'v',n=o.includes(k)?o.replace(k,''):'vm';if(n)W[id]=n;else{S.haRobRum=V.filter(x=>x!==id);delete W[id]}}render()},
- haAppSida(v){S.haAppSida=v||null;S.haAppDel=null;S.haRumNamn=null;render();try{const b=document.querySelector('#overlay form[data-form="haApp"] .sheet-body');if(b)b.scrollTop=0}catch(e){}},
+ haAppSida(v){S.haAppSida=v||null;S.haAppDel=null;S.haRumNamn=null;render();try{scrollTo(0,0)}catch(e){}},
  haRumNamn(id){S.haRumNamn=S.haRumNamn===+id?null:+id;render()},
  haZon(){S.haZon=!S.haZon;S.haZonR=null;S.haRobRum=[];S.haAppDel=null;render()},
  haZonStada(){const a=haAppX();if(!a||!S.haZonR)return;const z=S.haZonR.slice(),was=a.st;a.st='zoned_cleaning';S.haZon=false;S.haZonR=null;render();toast('Städar zonen');haSend({app:a.id,zon:[Math.min(z[0],z[2]),Math.min(z[1],z[3]),Math.max(z[0],z[2]),Math.max(z[1],z[3])]},()=>{a.st=was})},
@@ -5634,7 +5640,7 @@ const ACT={
   if(id==='av'){const was=D.lampor.map(x=>x.on);D.lampor.forEach(x=>{if(!x.nas)x.on=false});render();return haSend({alla:'av'},()=>D.lampor.forEach((x,i)=>x.on=was[i]))}
   if(haDemo()){const m={'scene.morgon':{'light.kok':100,'light.hall':60},'scene.kvall':{'light.vardagsrum':45,'switch.fonster':1,'light.kok':30},'scene.film':{'light.vardagsrum':10}}[id]||{};D.lampor.forEach(x=>{const v=m[x.id];x.on=!!v;if(v>1)x.b=v})}
   render();haSend({scen:id},()=>{})},
- nav(id,el){if(id!=='hus'){S.haRum=null;if(S.haTest){S.haTest=false;HA.demo=null;HA.syn={};HA.v=0;HA.retry=0}}if(RC.busy){toast('Vänta tills receptbegäran är klar.');return}if(RC.screen&&RC.edit&&RC.edit.dirty){RC.leaveTo=id;recipeLeave();S.view='mat';return}if(RC.screen)RC.screen=null;if(id!=='oversikt')arrCancel();if(normView(id)!=='ekonomi'){S.ekoOpen=false;S.pin=''}try{document.activeElement&&document.activeElement.blur()}catch(e){}id=normView(id);if(id==='fod')S.fodFromFamilj=DEV&&S.view==='familj';if(id==='uppgifter'&&S.taskTab==='stad'&&S.view!=='stad'&&el&&el.closest&&el.closest('#nav'))id='stad';if(['familj','slakt','slaktPersoner'].includes(id)&&!DEV)id='oversikt';if(id==='uppgifter'||id==='stad'){S.taskTab=id==='stad'?'stad':'lista';lsSet('taskTab',S.taskTab)}S.shopAdd=false;S.taskAdd=false;S.view=id;S.recipe=null;S.confirm=null;lsSet('view',id);try{history.replaceState(null,'','#'+id)}catch(e){}window.scrollTo(0,0);render()},
+ nav(id,el){if(id!=='hus'&&id!=='robot'){S.haRum=null;if(S.haTest){S.haTest=false;HA.demo=null;HA.syn={};HA.v=0;HA.retry=0}}if(RC.busy){toast('Vänta tills receptbegäran är klar.');return}if(RC.screen&&RC.edit&&RC.edit.dirty){RC.leaveTo=id;recipeLeave();S.view='mat';return}if(RC.screen)RC.screen=null;if(id!=='oversikt')arrCancel();if(normView(id)!=='ekonomi'){S.ekoOpen=false;S.pin=''}try{document.activeElement&&document.activeElement.blur()}catch(e){}id=normView(id);if(id==='fod')S.fodFromFamilj=DEV&&S.view==='familj';if(id==='uppgifter'&&S.taskTab==='stad'&&S.view!=='stad'&&el&&el.closest&&el.closest('#nav'))id='stad';if(['familj','slakt','slaktPersoner'].includes(id)&&!DEV)id='oversikt';if(id==='uppgifter'||id==='stad'){S.taskTab=id==='stad'?'stad':'lista';lsSet('taskTab',S.taskTab)}S.shopAdd=false;S.taskAdd=false;S.view=id;S.recipe=null;S.confirm=null;lsSet('view',id);try{history.replaceState(null,'','#'+id)}catch(e){}window.scrollTo(0,0);render()},
  refresh(){refresh()},
  settings(){if(S.sheet!=='farg')S.prefDraft=null;S.sheet='settings';render()},
  farg(){rememberSettings();S.sheet='farg';render()},
