@@ -3446,12 +3446,14 @@ if(k==='vara'){const n=S.varaK||'',ing=S.varaTyp==='ing',R=regGet(),F=parseJ(set
  if(k==='cleanAdd'){
   o.innerHTML=sheetHtml('cleanQuick','Ny syssla','<button class="tb strong">Lägg till</button>',group('<div class="cell"><input class="field" id="clean-title" name="title" placeholder="Vad behöver göras?" aria-label="Syssla" required autocomplete="off" enterkeyhint="done"></div>')+'<div class="foot">Rummet väljs utifrån namnet. Du kan ändra sysslan efteråt.</div>',enter);return}
  if(k==='slaktRel'){if(!DEV){S.sheet=null;return}const all=slaktPersons().slice().sort((a,b)=>a.name.localeCompare(b.name,'sv')),key=S.slaktEdit,person=all.find(b=>b.key===key);if(!person){S.sheet=null;return}
-  const parents=slaktParents(key),partner=slaktPartners(key)[0]||'',children=new Set(slaktChildren(key).map(b=>b.key)),other=all.filter(b=>b.key!==key);
+  const parents=slaktParents(key),partner=slaktPartners(key)[0]||'',children=new Set(slaktChildren(key).map(b=>b.key)),siblings=new Set(slaktSiblings(key)),other=all.filter(b=>b.key!==key);
   const opts=selected=>'<option value="">Ingen</option>'+other.map(b=>'<option value="'+esc(b.key)+'"'+(b.key===selected?' selected':'')+'>'+esc(b.name)+'</option>').join('');
+  const parentRows=other.map(b=>'<label class="cell fam-check-row"><input type="checkbox" name="slParent" value="'+esc(b.key)+'"'+(parents.includes(b.key)?' checked':'')+'><span class="grow">'+esc(b.name)+'</span></label>').join('');
+  const siblingRows=other.map(b=>'<label class="cell fam-check-row"><input type="checkbox" name="slSibling" value="'+esc(b.key)+'"'+(siblings.has(b.key)?' checked':'')+'><span class="grow">'+esc(b.name)+'</span></label>').join('');
   const childRows=other.map(b=>'<label class="cell fam-check-row"><input type="checkbox" name="slChild" value="'+esc(b.key)+'"'+(children.has(b.key)?' checked':'')+'><span class="grow">'+esc(b.name)+'</span></label>').join('');
   const body=sh('Person')+group('<div class="cell fam-selected">'+slaktAvatar(person)+'<span class="grow"><strong>'+esc(person.name)+'</strong><span class="meta">'+person.dd+' '+MON3[person.mo]+'</span></span></div>')+
    sh('Partner')+group(fieldCell('Partner',menuSel('name="slPartner" aria-label="Partner"',opts(partner))))+
-   sh('Föräldrar')+group(fieldCell('Förälder 1',menuSel('name="slParent1" aria-label="Förälder 1"',opts(parents[0]||'')))+fieldCell('Förälder 2',menuSel('name="slParent2" aria-label="Förälder 2"',opts(parents[1]||''))))+
+   sh('Föräldrar',parents.length+' av 2 valda')+group(parentRows||emptyCell('Inga andra personer.'))+'<div class="foot">Markera båda föräldrarna direkt här (högst två).</div>'+sh('Syskon')+group(siblingRows||emptyCell('Inga andra personer.'))+'<div class="foot">Syskon kan kopplas utan att föräldrar anges.</div>'+
    sh('Barn',children.size?children.size+' valda':'')+group(childRows||emptyCell('Lägg till fler personer under Födelsedagar först.'))+
    '<div class="foot">Välj vilka personer som hör ihop. Barn får automatiskt sin plats under föräldrarna i släktträdet. Relationerna sparas för hela hushållet, men släktträdet visas fortfarande bara i utvecklarläge.</div>';
   o.innerHTML=sheetHtml('slaktRel','Relationer','<button class="tb strong">Spara</button>',body,enter);return}
@@ -4949,7 +4951,7 @@ const bdFill=b=>b.col&&colOk(b.col)?' style="fill:'+PCOL[b.col][isDark()?3:1]+'"
 // Ta bort med svep: raden försvinner direkt och sparas när Ångra har försvunnit, som i Inköp
 const FDEL={k:null,t:0};
 function fdelCommit(){if(!FDEL.k)return;clearTimeout(FDEL.t);const k=FDEL.k,syncad=parseJ(settings().fodelsedagar,[]).some(x=>bdKey(x)===k);FDEL.k=null;undoHide();
- setFodEgna(e=>{delete e.col[k];delete e.fm[k];delete e.pr[k];if(e.sr){const par=fodOb(e.sr.par);delete par[k];Object.keys(par).forEach(j=>{par[j]=(Array.isArray(par[j])?par[j]:[]).filter(x=>x!==k);if(!par[j].length)delete par[j]});e.sr.par=par;e.sr.partners=(Array.isArray(e.sr.partners)?e.sr.partners:[]).filter(p=>!p.includes(k))}return{add:e.add.filter(x=>bdKey(x)!==k),del:syncad&&!e.del.includes(k)?e.del.concat([k]):e.del,col:e.col}})}
+ setFodEgna(e=>{delete e.col[k];delete e.fm[k];delete e.pr[k];if(e.sr){const par=fodOb(e.sr.par);delete par[k];Object.keys(par).forEach(j=>{par[j]=(Array.isArray(par[j])?par[j]:[]).filter(x=>x!==k);if(!par[j].length)delete par[j]});e.sr.par=par;e.sr.partners=(Array.isArray(e.sr.partners)?e.sr.partners:[]).filter(p=>!p.includes(k));e.sr.siblings=(Array.isArray(e.sr.siblings)?e.sr.siblings:[]).filter(p=>!p.includes(k))}return{add:e.add.filter(x=>bdKey(x)!==k),del:syncad&&!e.del.includes(k)?e.del.concat([k]):e.del,col:e.col}})}
 function fdelStart(b){delCommit();cdelCommit();fdelCommit();FDEL.k=b.key;render();
  const u=document.getElementById('undo');u.querySelector('.ud-t').textContent=b.name+' togs bort';u.querySelector('.ud-b').dataset.act='fodUndo';u.hidden=false;FDEL.t=setTimeout(fdelCommit,5000)}
 function bdays(){const t=today(),ty=Number(t.slice(0,4)),seen=new Set(),E=fodEgna(),bort=new Set(E.del.concat(FDEL.k?[FDEL.k]:[])),FM=new Map(E.fam.map(f=>[f.id,f]));
@@ -5021,19 +5023,20 @@ function fodChips(L){const f=S.fodFilt||'alla',F=fodFam(),dot=c=>'<i class="ff-d
 /* Familj i utvecklarläge: samma personregister som Födelsedagar.
    Endast släktrelationer sparas i sr på den befintliga födelsedagsposten i onskelista. */
 const slaktPersons=()=>bdays();
-function slaktR(){const s=fodOb(fodEgna().sr);return{par:fodOb(s.par),partners:Array.isArray(s.partners)?s.partners:[]}}
+function slaktR(){const s=fodOb(fodEgna().sr);return{par:fodOb(s.par),partners:Array.isArray(s.partners)?s.partners:[],siblings:Array.isArray(s.siblings)?s.siblings:[]}}
 function slaktParents(k){const p=slaktR().par[k];return Array.isArray(p)?[...new Set(p)].slice(0,2):[]}
 function slaktPartners(k){return slaktR().partners.filter(p=>Array.isArray(p)&&p.includes(k)).map(p=>p.find(x=>x!==k)).filter(Boolean)}
 function slaktChildren(k){return slaktPersons().filter(b=>slaktParents(b.key).includes(k))}
-function slaktAssigned(L){const ids=new Set(L.map(b=>b.key)),R=slaktR(),placed=new Set();Object.entries(R.par).forEach(([k,p])=>{if(!ids.has(k))return;(Array.isArray(p)?p:[]).forEach(x=>{if(ids.has(x)){placed.add(k);placed.add(x)}})});R.partners.forEach(pair=>{if(Array.isArray(pair)&&pair.length===2&&pair.every(x=>ids.has(x))){pair.forEach(x=>placed.add(x))}});return placed}
+function slaktSiblings(k){return slaktR().siblings.filter(p=>Array.isArray(p)&&p.includes(k)).map(p=>p.find(x=>x!==k)).filter(Boolean)}
+function slaktAssigned(L){const ids=new Set(L.map(b=>b.key)),R=slaktR(),placed=new Set();Object.entries(R.par).forEach(([k,p])=>{if(!ids.has(k))return;(Array.isArray(p)?p:[]).forEach(x=>{if(ids.has(x)){placed.add(k);placed.add(x)}})});[...R.partners,...R.siblings].forEach(pair=>{if(Array.isArray(pair)&&pair.length===2&&pair.every(x=>ids.has(x))){pair.forEach(x=>placed.add(x))}});return placed}
 const slaktAvatar=(b,cls='')=>'<span class="fam-person-av '+cls+'" aria-hidden="true">'+esc(b.name.slice(0,1).toUpperCase())+'</span>';
 const slaktLink=(b,txt,act='slaktEdit')=>'<button type="button" class="cell link fam-person-row" data-act="'+act+'" data-id="'+esc(b.key)+'">'+slaktAvatar(b)+'<span class="grow"><span class="title">'+esc(b.name)+'</span><span class="meta">'+(txt||b.dd+' '+MON3[b.mo])+'</span></span>'+chevron+'</button>';
-function slaktPersonInfo(b){const p=slaktParents(b.key).length,c=slaktChildren(b.key).length,v=slaktPartners(b.key).length;return[p?p+' förälder'+(p===1?'':'ar'):'',v?'Partner':'',c?c+' barn':''].filter(Boolean).join(' · ')||'Relationer saknas'}
+function slaktPersonInfo(b){const p=slaktParents(b.key).length,c=slaktChildren(b.key).length,v=slaktPartners(b.key).length,sy=slaktSiblings(b.key).length;return[p?p+' förälder'+(p===1?'':'ar'):'',v?'Partner':'',c?c+' barn':'',sy?sy+' syskon':''].filter(Boolean).join(' · ')||'Relationer saknas'}
 V.familj=function(){if(!DEV)return V.oversikt();const B=slaktPersons(),placed=slaktAssigned(B),n=placed.size;
  let h='<div class="rcp-top"><button class="back" data-act="nav" data-id="oversikt">'+I.back+'Översikt</button></div>';
  h+=head('Familj',{sub:'Förhandsvisning · '+B.length+' personer'});
  h+=sh('Familj')+group('<button type="button" class="cell link" data-act="nav" data-id="slakt"><span class="fam-ico">'+I.people+'</span><span class="grow"><span class="title">Släktträd</span><span class="meta">'+n+' av '+B.length+' personer placerade</span></span>'+chevron+'</button>'+
- '<button type="button" class="cell link" data-act="nav" data-id="slaktPersoner"><span class="fam-ico">'+I.people+'</span><span class="grow"><span class="title">Personer och relationer</span><span class="meta">Tilldela partner, föräldrar och barn</span></span>'+chevron+'</button>'+
+ '<button type="button" class="cell link" data-act="nav" data-id="slaktPersoner"><span class="fam-ico">'+I.people+'</span><span class="grow"><span class="title">Personer och relationer</span><span class="meta">Tilldela föräldrar, syskon, partner och barn</span></span>'+chevron+'</button>'+
  '<button type="button" class="cell link" data-act="nav" data-id="fod"><span class="fam-ico">'+I.cake+'</span><span class="grow"><span class="title">Födelsedagar</span><span class="meta">Årshjul, månader och tidslinje</span></span>'+chevron+'</button>');
  h+='<div class="foot">Relationerna använder personerna som redan finns under Födelsedagar. De som inte fått någon relation ligger kvar i personlistan tills du placerar dem.</div>';
  return h};
@@ -5041,11 +5044,12 @@ V.slaktPersoner=function(){if(!DEV)return V.oversikt();const B=slaktPersons().sl
  let h='<div class="rcp-top"><button class="back" data-act="nav" data-id="familj">'+I.back+'Familj</button></div>';
  h+=head('Personer och relationer',{sub:placed.size+' av '+B.length+' placerade'});
  h+=sh('Personer',B.length)+group(B.length?B.map(b=>slaktLink(b,slaktPersonInfo(b))).join(''):emptyCell('Inga personer ännu. Lägg till dem i Födelsedagar.'));
- h+='<div class="foot">Tryck på en persons cirkel eller rad för att ange partner, föräldrar och barn. Platserna i släktträdet beräknas sedan utifrån relationerna.</div>';
+ h+='<div class="foot">Tryck på en persons cirkel eller rad för att ange föräldrar, syskon, partner och barn. Platserna i släktträdet beräknas sedan utifrån relationerna.</div>';
  return h};
 function slaktFullSvg(B){const R=slaktR(),ids=new Set(B.map(b=>b.key)),P=k=>slaktParents(k).filter(x=>ids.has(x)&&x!==k),partners=R.partners.filter(p=>Array.isArray(p)&&p.length===2&&p.every(x=>ids.has(x))),coParents=Object.values(R.par).filter(p=>Array.isArray(p)&&p.length===2&&p.every(x=>ids.has(x))),links=[...partners,...coParents].filter((p,i,a)=>a.findIndex(q=>q.slice().sort().join('|')===p.slice().sort().join('|'))===i),depths=new Map(),busy=new Set();
  const depth=k=>{if(depths.has(k))return depths.get(k);if(busy.has(k))return 0;busy.add(k);const p=P(k),d=p.length?Math.min(15,1+Math.max(...p.map(depth))):0;busy.delete(k);depths.set(k,d);return d};
  B.forEach(b=>depth(b.key));for(let i=0;i<B.length*3;i++){let change=false;links.forEach(p=>{const d=Math.max(...p.map(k=>depths.get(k)));p.forEach(k=>{if(depths.get(k)<d){depths.set(k,d);change=true}})});B.forEach(b=>{const p=P(b.key);if(p.length){const d=Math.min(15,1+Math.max(...p.map(k=>depths.get(k))));if(d>depths.get(b.key)){depths.set(b.key,d);change=true}}});if(!change)break}
+ R.siblings.filter(p=>Array.isArray(p)&&p.length===2&&p.every(x=>ids.has(x))).forEach(p=>{const d=Math.max(...p.map(k=>depths.get(k)));p.forEach(k=>depths.set(k,d))});
  const rows=new Map();B.forEach(b=>{const d=depths.get(b.key);if(!rows.has(d))rows.set(d,[]);rows.get(d).push(b)});
  const levels=[...rows.keys()].sort((a,b)=>a-b),pos=new Map(),step=130,margin=85;
  levels.forEach(d=>{const row=rows.get(d),mean=k=>{const p=P(k).map(x=>pos.get(x)?.x).filter(x=>x!=null);return p.length?p.reduce((a,b)=>a+b,0)/p.length:1e5};row.sort((a,b)=>mean(a.key)-mean(b.key)||a.name.localeCompare(b.name,'sv'));
@@ -5055,6 +5059,7 @@ function slaktFullSvg(B){const R=slaktR(),ids=new Set(B.map(b=>b.key)),P=k=>slak
  const width=Math.max(370,...[...rows.values()].map(row=>margin*2+(row.length-1)*step)),height=125+Math.max(0,...levels)*170;
  levels.forEach(d=>{const row=rows.get(d),off=(width-(margin*2+(row.length-1)*step))/2;row.forEach(b=>pos.get(b.key).x+=off)});
  const edges=[];
+ R.siblings.filter(p=>Array.isArray(p)&&p.length===2&&p.every(x=>ids.has(x))).forEach(pair=>{const a=pos.get(pair[0]),b=pos.get(pair[1]);if(a&&b&&a.y===b.y)edges.push('M'+a.x+' '+(a.y+68)+'H'+b.x)});
  links.forEach(pair=>{const a=pos.get(pair[0]),b=pos.get(pair[1]);if(a.y===b.y)edges.push('M'+(Math.min(a.x,b.x)+22)+' '+a.y+'H'+(Math.max(a.x,b.x)-22))});
  const clusters=new Map();B.forEach(b=>{const p=P(b.key).sort();if(!p.length)return;const key=JSON.stringify(p);if(!clusters.has(key))clusters.set(key,{p,children:[]});clusters.get(key).children.push(b.key)});
  clusters.forEach(({p,children})=>{const parents=p.map(k=>pos.get(k)),kids=children.map(k=>pos.get(k)),py=Math.max(...parents.map(x=>x.y)),ky=Math.min(...kids.map(x=>x.y)),root=parents.reduce((n,v)=>n+v.x,0)/parents.length,branch=Math.min(py+82,ky-40),paired=p.length===2&&parents.every(x=>x.y===py)&&links.some(a=>a.includes(p[0])&&a.includes(p[1]));
@@ -5063,13 +5068,39 @@ function slaktFullSvg(B){const R=slaktR(),ids=new Set(B.map(b=>b.key)),P=k=>slak
  kids.forEach(k=>edges.push('M'+k.x+' '+branch+'V'+(k.y-25)))});
  const node=b=>{const p=pos.get(b.key),sel=S.slaktFocus===b.key;return'<g role="button" tabindex="0" class="fam-node'+(sel?' selected':'')+'" data-act="slaktFocus" data-id="'+esc(b.key)+'" aria-label="Visa '+esc(b.name)+' i fokus"><circle class="fam-ring" cx="'+p.x+'" cy="'+p.y+'" r="25"/><circle class="fam-circle" cx="'+p.x+'" cy="'+p.y+'" r="21"/><text class="fam-letter" x="'+p.x+'" y="'+(p.y+6)+'" text-anchor="middle">'+esc(b.name[0].toUpperCase())+'</text><text class="fam-name" x="'+p.x+'" y="'+(p.y+43)+'" text-anchor="middle">'+esc(b.name.length>13?b.name.slice(0,12)+'…':b.name)+'</text><text class="fam-date" x="'+p.x+'" y="'+(p.y+58)+'" text-anchor="middle">'+b.dd+' '+MON3[b.mo]+'</text></g>'};
  const z=S.slaktZoom||1;return'<svg class="fam-full-svg" viewBox="0 0 '+width+' '+height+'" width="'+Math.round(width*z)+'" height="'+Math.round(height*z)+'" role="group" aria-label="Hela släktträdet med '+B.length+' personer"><g class="fam-lines">'+edges.map(d=>'<path d="'+d+'"/>').join('')+'</g>'+B.map(node).join('')+'</svg>'}
+
+/* Hybridens positioner sparas bara på denna enhet; gemensamma släktrelationer berörs inte. */
+const slaktHybridPins=()=>fodOb(parseJ(lsGet('slaktHybridPins')||'{}',{}));
+function slaktHybridLayout(B){
+ const ids=new Set(B.map(b=>b.key)),R=slaktR(),pins=slaktHybridPins(),lev=new Map(),vis=new Set();
+ const depth=k=>{if(lev.has(k))return lev.get(k);if(vis.has(k))return 0;vis.add(k);const par=slaktParents(k).filter(x=>ids.has(x)),d=par.length?Math.min(12,1+Math.max(...par.map(depth))):0;vis.delete(k);lev.set(k,d);return d};
+ B.forEach(b=>depth(b.key));
+ for(let n=0;n<B.length*2;n++){let dirty=false;[...R.partners,...R.siblings].forEach(pair=>{if(!Array.isArray(pair)||!pair.every(k=>ids.has(k)))return;const d=Math.max(...pair.map(k=>lev.get(k)));pair.forEach(k=>{if(lev.get(k)!==d){lev.set(k,d);dirty=true}})});B.forEach(b=>{const ps=slaktParents(b.key).filter(x=>ids.has(x));if(ps.length){const d=Math.min(12,1+Math.max(...ps.map(k=>lev.get(k))));if(lev.get(b.key)<d){lev.set(b.key,d);dirty=true}}});if(!dirty)break}
+ const rows=new Map();B.forEach(b=>{const d=lev.get(b.key);if(!rows.has(d))rows.set(d,[]);rows.get(d).push(b)});
+ const positions=new Map(),count=Math.max(1,...[...rows.values()].map(r=>r.length)),width=Math.max(360,count*116+80);
+ [...rows.keys()].sort((a,b)=>a-b).forEach(d=>{const row=rows.get(d),prev=k=>{const ps=slaktParents(k).map(x=>positions.get(x)?.x).filter(x=>x!=null);return ps.length?ps.reduce((a,b)=>a+b,0)/ps.length:1e5};row.sort((a,b)=>prev(a.key)-prev(b.key)||a.name.localeCompare(b.name,'sv'));row.forEach((b,i)=>{const pin=pins[b.key];positions.set(b.key,pin&&Number.isFinite(pin.x)&&Number.isFinite(pin.y)?{x:pin.x,y:pin.y,locked:true}:{x:width/2+(i-(row.length-1)/2)*116,y:75+(d-Math.min(...rows.keys()))*142,locked:false})})});
+ const maxX=Math.max(width,...[...positions.values()].map(p=>p.x+55)),maxY=Math.max(310,...[...positions.values()].map(p=>p.y+75));
+ return{positions,width:maxX+20,height:maxY+25};
+}
+function slaktHybridSvg(B){
+ const {positions,width,height}=slaktHybridLayout(B),R=slaktR(),sel=S.slaktFocus;
+ const edge=[],found=new Set(),add=(a,b,color,dash='')=>{const p=positions.get(a),q=positions.get(b);if(!p||!q)return;const k=[a,b].sort().join('|')+color;if(found.has(k))return;found.add(k);edge.push('<path d="M'+p.x+' '+p.y+' Q'+((p.x+q.x)/2)+' '+((p.y+q.y)/2)+' '+q.x+' '+q.y+'" stroke="'+color+'"'+(dash?' stroke-dasharray="5 5"':'')+'/>')};
+ B.forEach(b=>slaktParents(b.key).forEach(k=>add(k,b.key,'var(--ink-3)')));
+ R.partners.forEach(p=>{if(Array.isArray(p)&&p.length===2)add(p[0],p[1],'var(--accent)','dash')});
+ R.siblings.forEach(p=>{if(Array.isArray(p)&&p.length===2)add(p[0],p[1],'var(--green)','dash')});
+ const nodes=B.map(b=>{const p=positions.get(b.key),active=sel===b.key;return'<g class="fam-node fam-h-node'+(active?' selected':'')+'" data-act="slaktFocus" data-id="'+esc(b.key)+'" data-x="'+p.x+'" data-y="'+p.y+'" role="button" tabindex="0" transform="translate('+p.x+' '+p.y+')"><circle class="fam-ring" r="27" cx="0" cy="0"/><circle class="fam-circle" r="23" cx="0" cy="0"/><text class="fam-letter" y="6" text-anchor="middle">'+esc(b.name.slice(0,1).toUpperCase())+'</text><text class="fam-name" y="43" text-anchor="middle">'+esc(b.name.length>13?b.name.slice(0,12)+'…':b.name)+'</text>'+(p.locked?'<text class="fam-pin" x="19" y="-24">●</text>':'')+'</g>'}).join('');
+ const zoom=S.slaktHybridZoom||1;return'<div class="fam-hybrid" aria-label="Dynamiskt familjeträd"><div class="fam-all-head"><div class="grow"><strong>Hybrid</strong><span class="meta">'+B.length+' personer · dra för att flytta och låsa</span></div><div class="fam-zoom"><button type="button" data-act="slaktHybridZoom" data-id="minus" aria-label="Zooma ut">−</button><span class="num">'+Math.round(zoom*100)+' %</span><button type="button" data-act="slaktHybridZoom" data-id="plus" aria-label="Zooma in">+</button></div></div><div class="fam-hybrid-pan"><svg class="fam-hybrid-svg" viewBox="0 0 '+width+' '+height+'" width="'+Math.round(width*zoom)+'" height="'+Math.round(height*zoom)+'" role="group"><g fill="none" stroke-width="2" class="fam-h-lines">'+edge.join('')+'</g>'+nodes+'</svg></div><div class="fam-h-actions"><button type="button" class="pill" data-act="slaktHybridLock" data-id="'+esc(sel||B[0].key)+'">'+(slaktHybridPins()[sel]?.x!=null?'Lås upp position':'Lås position')+'</button><button type="button" class="pill" data-act="slaktHybridFit">Visa alla</button></div><div class="fam-hint">Dra i kartan för att panorera, eller dra en person för att flytta och låsa positionen. Grönt = syskon. Valet sparas på den här enheten.</div></div>';
+}
+
 V.slakt=function(){if(!DEV)return V.oversikt();const all=slaktPersons(),assigned=slaktAssigned(all),L=all.filter(b=>assigned.has(b.key)),unplaced=all.filter(b=>!assigned.has(b.key)),focus=L.find(b=>b.key===S.slaktFocus)||L[0]||all[0],full=S.slaktVy==='alla';
  let h='<div class="rcp-top"><button class="back" data-act="nav" data-id="familj">'+I.back+'Familj</button></div>';
  h+=head('Släktträd',{sub:assigned.size+' av '+all.length+' personer placerade'});
+ h+=sh('Layout')+'<div class="seg-wrap">'+segc('Layout','slaktLayout',[['trad','Traditionellt'],['hybrid','Hybrid']],lsGet('slaktLayout')==='hybrid'?'hybrid':'trad')+'</div>';
  h+=sh('Visning')+'<div class="seg-wrap">'+segc('Släktträdsvy','slaktVy',[['fokus','I fokus'],['alla','Hela trädet']],full?'alla':'fokus')+'</div>';
  if(!L.length){h+=group(emptyCell('Inga relationer tilldelade ännu. Välj en person och lägg till partner, barn eller föräldrar.'))}
+ else if(lsGet('slaktLayout')==='hybrid'){h+=sh('Släktträd')+group(slaktHybridSvg(L))}
  else if(full){const z=S.slaktZoom||1;h+=sh('Släktträd')+group('<div class="fam-all-head"><div class="grow"><strong>Hela släktträdet</strong><span class="meta">'+L.length+' placerade personer</span></div><div class="fam-zoom"><button type="button" data-act="slaktZoom" data-id="minus" aria-label="Zooma ut"'+(z<=.75?' disabled':'')+'>−</button><span class="num">'+Math.round(z*100)+' %</span><button type="button" data-act="slaktZoom" data-id="plus" aria-label="Zooma in"'+(z>=1.25?' disabled':'')+'>+</button></div></div><div class="fam-pan" tabindex="0" aria-label="Panorera släktträdet i sidled">'+slaktFullSvg(L)+'</div><div class="fam-hint">Dra i sidled för att se hela trädet. Tryck på en person för att byta fokus.</div>')}
- else{const par=slaktParents(focus.key).map(k=>all.find(x=>x.key===k)).filter(Boolean),partner=slaktPartners(focus.key).map(k=>all.find(x=>x.key===k)).filter(Boolean)[0],kids=slaktChildren(focus.key).slice(0,4),yTop=57,yMid=192,yChild=340,ys=partner?[116,244]:[180],node=(b,x,y,selected=false)=>'<g role="button" tabindex="0" class="fam-node'+(selected?' selected':'')+'" data-act="slaktFocus" data-id="'+esc(b.key)+'" aria-label="Visa '+esc(b.name)+'"><circle class="fam-ring" cx="'+x+'" cy="'+y+'" r="25"/><circle class="fam-circle" cx="'+x+'" cy="'+y+'" r="21"/><text class="fam-letter" x="'+x+'" y="'+(y+6)+'" text-anchor="middle">'+esc(b.name[0].toUpperCase())+'</text><text class="fam-name" x="'+x+'" y="'+(y+43)+'" text-anchor="middle">'+esc(b.name.length>13?b.name.slice(0,12)+'…':b.name)+'</text></g>',pX=par.length===2?[90,270]:[180],fx=ys[0],px=partner?ys[1]:null,lines=[];
+ else{const siblings=slaktSiblings(focus.key).map(k=>all.find(x=>x.key===k)).filter(Boolean),par=slaktParents(focus.key).map(k=>all.find(x=>x.key===k)).filter(Boolean),partner=slaktPartners(focus.key).map(k=>all.find(x=>x.key===k)).filter(Boolean)[0],kids=slaktChildren(focus.key).slice(0,4),yTop=57,yMid=192,yChild=340,ys=partner?[116,244]:[180],node=(b,x,y,selected=false)=>'<g role="button" tabindex="0" class="fam-node'+(selected?' selected':'')+'" data-act="slaktFocus" data-id="'+esc(b.key)+'" aria-label="Visa '+esc(b.name)+'"><circle class="fam-ring" cx="'+x+'" cy="'+y+'" r="25"/><circle class="fam-circle" cx="'+x+'" cy="'+y+'" r="21"/><text class="fam-letter" x="'+x+'" y="'+(y+6)+'" text-anchor="middle">'+esc(b.name[0].toUpperCase())+'</text><text class="fam-name" x="'+x+'" y="'+(y+43)+'" text-anchor="middle">'+esc(b.name.length>13?b.name.slice(0,12)+'…':b.name)+'</text></g>',pX=par.length===2?[90,270]:[180],fx=ys[0],px=partner?ys[1]:null,lines=[];
  if(par.length===2)lines.push('M112 '+yTop+'H248','M180 '+yTop+'V128H'+fx+'V'+(yMid-25));else if(par.length===1)lines.push('M180 '+(yTop+24)+'V128H'+fx+'V'+(yMid-25));
  if(partner)lines.push('M'+(fx+22)+' '+yMid+'H'+(px-22));
  if(kids.length){const xs=kids.map((_,i)=>360*(i+1)/(kids.length+1)),root=partner?(fx+px)/2:fx,br=269;lines.push('M'+root+' '+(partner?yMid:yMid+24)+'V'+br);if(kids.length>1||root!==xs[0])lines.push('M'+Math.min(root,...xs)+' '+br+'H'+Math.max(root,...xs));xs.forEach(x=>lines.push('M'+x+' '+br+'V'+(yChild-25)))}
@@ -5080,6 +5111,12 @@ V.slakt=function(){if(!DEV)return V.oversikt();const all=slaktPersons(),assigned
  if(unplaced.length)h+=sh('Ännu inte placerade',unplaced.length)+group(unplaced.map(b=>slaktLink(b,'Tilldela relationer')).join(''));
  if(!all.length)h+='<div class="foot">Börja med att lägga till en födelsedag. Släktträdet använder samma personer.</div>';
  return h};
+
+
+/* Pointerhantering utan nya beroenden; låsning aktiveras när en nod dras. */
+(function(){let move=null;document.addEventListener('pointerdown',e=>{const node=e.target.closest?.('.fam-hybrid .fam-h-node'),pan=e.target.closest?.('.fam-hybrid-pan');if(!pan||!DEV)return;if(e.target.closest('button'))return;move={node,pan,startX:e.clientX,startY:e.clientY,scrollX:pan.scrollLeft,scrollY:pan.scrollTop,x:node?Number(node.dataset.x):0,y:node?Number(node.dataset.y):0,dragged:false,id:e.pointerId};try{pan.setPointerCapture(e.pointerId)}catch(_){}},{passive:true});
+ document.addEventListener('pointermove',e=>{if(!move||move.id!==e.pointerId)return;const dx=e.clientX-move.startX,dy=e.clientY-move.startY;if(Math.hypot(dx,dy)>6)move.dragged=true;if(!move.dragged)return;if(move.node){const z=S.slaktHybridZoom||1;move.node.setAttribute('transform','translate('+(move.x+dx/z)+' '+(move.y+dy/z)+')')}else{move.pan.scrollLeft=move.scrollX-dx;move.pan.scrollTop=move.scrollY-dy}},{passive:true});
+ document.addEventListener('pointerup',e=>{if(!move||move.id!==e.pointerId)return;if(move.dragged&&move.node){const z=S.slaktHybridZoom||1,id=move.node.dataset.id,pins=slaktHybridPins();pins[id]={x:Math.round(move.x+(e.clientX-move.startX)/z),y:Math.round(move.y+(e.clientY-move.startY)/z)};lsSet('slaktHybridPins',JSON.stringify(pins));S.slaktFocus=id;document.addEventListener('click',block=>{if(block.target.closest?.('.fam-h-node')){block.preventDefault();block.stopImmediatePropagation()}}, {capture:true,once:true});render()}move=null},{passive:true});document.addEventListener('pointercancel',()=>{move=null},{passive:true})})();
 
 V.fod=function(){const ALLA=bdays(),t=parse(today()),mode=S.fodMode||'hjul';if(fodSel().length){const v=fodSel().filter(k=>k==='utan'||fodFam().some(f=>f.id===k));S.fodFilt=v.length?v.join(','):'alla'}const L=fodFilt(ALLA);
  let h='<div class="rcp-top"><button class="back" data-act="nav" data-id="'+(DEV&&S.fodFromFamilj?'familj':'oversikt')+'">'+I.back+(DEV&&S.fodFromFamilj?'Familj':'Översikt')+'</button></div>';
@@ -5562,6 +5599,10 @@ const ACT={
  cookTo(id,el){A.user=Date.now();S.cook.step=Number(el.dataset.i)||0;S.step[S.cook.id]=S.cook.step;render()},
  pickStep(id,el){S.step[id]=Number(el.dataset.i);render();setTimeout(()=>{const li=document.querySelector('.steps li.active');if(li&&li.getBoundingClientRect().top<70)li.scrollIntoView({block:'start',behavior:'smooth'})},30)},
  cookStep(id,el){A.user=Date.now();const r=recipeById(S.cook.id);S.cook.step=Math.max(0,Math.min(stegFor(r).length-1,S.cook.step+Number(el.dataset.d)));S.step[S.cook.id]=S.cook.step;render()},
+ slaktLayout(id){if(!DEV||!['trad','hybrid'].includes(id))return;lsSet('slaktLayout',id);render()},
+ slaktHybridZoom(id){if(!DEV)return;S.slaktHybridZoom=Math.max(.35,Math.min(2.5,(S.slaktHybridZoom||1)*(id==='plus'?1.25:.8)));render()},
+ slaktHybridFit(){S.slaktHybridZoom=1;render()},
+ slaktHybridLock(id){if(!DEV)return;const pins=slaktHybridPins();if(pins[id])delete pins[id];else {const B=slaktPersons().filter(p=>slaktAssigned(slaktPersons()).has(p.key)),point=slaktHybridLayout(B).positions.get(id);if(!point)return;pins[id]={x:point.x,y:point.y}}lsSet('slaktHybridPins',JSON.stringify(pins));render()},
  slaktVy(id){if(!['fokus','alla'].includes(id))return;S.slaktVy=id;render()},
  slaktFocus(id){if(!DEV||!slaktPersons().some(b=>b.key===id))return;S.slaktFocus=id;S.slaktVy='fokus';render()},
  slaktZoom(id){if(!DEV)return;const steps=[.75,1,1.25],v=S.slaktZoom||1,i=steps.indexOf(v),n=steps[Math.max(0,Math.min(steps.length-1,i+(id==='plus'?1:-1)))];if(n!==v){S.slaktZoom=n;render()}},
@@ -5915,8 +5956,9 @@ document.addEventListener('submit',async e=>{const f=e.target.closest('[data-for
   if(!modal)setTimeout(()=>{const x=document.querySelector('form[data-form="cleanQuick"][data-room="'+f.dataset.room+'"] .field');if(x)x.focus()},30);
   apiPost({action:'cleanAdd',id,room,title:t,freq:7,min:10});toast('Tillagd i '+room);return}
  if(f.dataset.form==='slaktRel'){if(!DEV)return;const key=S.slaktEdit,all=slaktPersons(),keys=new Set(all.map(b=>b.key));if(!keys.has(key))return;
-  const parents=[String(d.slParent1||''),String(d.slParent2||'')].filter(Boolean),partner=String(d.slPartner||''),children=[...f.querySelectorAll('input[name="slChild"]:checked')].map(el=>el.value);
-  if(new Set(parents).size!==parents.length||parents.includes(key)||new Set(children).size!==children.length||children.includes(key)||partner===key||[...parents,partner,...children].some(k=>k&&!keys.has(k))){toast('Kontrollera dina relationer');return}
+  const parents=[...f.querySelectorAll('input[name="slParent"]:checked')].map(el=>el.value),partner=String(d.slPartner||''),children=[...f.querySelectorAll('input[name="slChild"]:checked')].map(el=>el.value),siblings=[...f.querySelectorAll('input[name="slSibling"]:checked')].map(el=>el.value);
+  if(parents.length>2){toast('Välj högst två föräldrar');return}
+  if(new Set(parents).size!==parents.length||parents.includes(key)||new Set(children).size!==children.length||children.includes(key)||partner===key||siblings.includes(key)||[...parents,partner,...children,...siblings].some(k=>k&&!keys.has(k))){toast('Kontrollera dina relationer');return}
   const old=slaktR(),par=Object.fromEntries(Object.entries(old.par).map(([k,v])=>[k,Array.isArray(v)?v.slice():[]]));
   if(parents.length)par[key]=parents;else delete par[key];
   // Uppdatera både borttagna och nya barn utifrån just den valda förälderns relationer.
@@ -5929,7 +5971,9 @@ document.addEventListener('submit',async e=>{const f=e.target.closest('[data-for
   partners=partners.filter((p,i)=>partners.findIndex(x=>x[0]===p[0]&&x[1]===p[1])===i);
   const ancestors=(from,target,used=new Set())=>{if(from===target)return true;if(used.has(from))return false;used.add(from);return(par[from]||[]).some(x=>ancestors(x,target,used))};
   if(partners.some(p=>ancestors(p[0],p[1])||ancestors(p[1],p[0]))){toast('En förälder och ett barn kan inte vara partner');return}
-  setFodEgna(e=>{e.sr=Object.keys(par).length||partners.length?{par,partners}:{};return e});
+  let sib=old.siblings.filter(p=>Array.isArray(p)&&p.length===2&&!p.includes(key)&&p.every(x=>keys.has(x)));siblings.forEach(k=>sib.push([key,k].sort()));sib=sib.filter((p,i)=>sib.findIndex(x=>x[0]===p[0]&&x[1]===p[1])===i);
+  if(sib.some(p=>(par[p[0]]||[]).includes(p[1])||(par[p[1]]||[]).includes(p[0]))){toast('En förälder och ett barn kan inte vara syskon');return}
+  setFodEgna(e=>{e.sr=Object.keys(par).length||partners.length||sib.length?{par,partners,siblings:sib}:{};return e});
   closeSheets();S.slaktFocus=key;S.slaktVy='fokus';render();toast('Släktrelationer sparade');return}
  if(f.dataset.form==='fodAdd'){const namn=String(d.namn||'').trim(),dg=Number(d.dag),mn=Number(d.man),ar=Number(d.ar)||null,md=new Date(2000,mn,0).getDate();if(!namn)return;
   if(dg>md){toast(cap(MON[mn-1])+' har bara '+md+' dagar');return}
@@ -5939,7 +5983,7 @@ document.addEventListener('submit',async e=>{const f=e.target.closest('[data-for
   const same=old&&k===ok&&(old.yr||null)===ar,syncad=parseJ(settings().fodelsedagar,[]).some(y=>bdKey(y)===ok);
   closeSheets();S.fodMon=mn-1;setFodEgna(e=>{if(ok)delete e.col[ok];if(col)e.col[k]=col;
    if(ok){delete e.fm[ok];delete e.pr[ok]}if(d.fam&&e.fam.some(f=>f.id===d.fam))e.fm[k]=d.fam;if(d.pr==='1'||d.pr==='0')e.pr[k]=Number(d.pr);
-   if(ok&&ok!==k&&e.sr){const par=fodOb(e.sr.par);if(par[ok]){par[k]=par[ok];delete par[ok]}Object.keys(par).forEach(j=>{par[j]=(Array.isArray(par[j])?par[j]:[]).map(x=>x===ok?k:x)});e.sr.par=par;e.sr.partners=(Array.isArray(e.sr.partners)?e.sr.partners:[]).map(p=>p.map(x=>x===ok?k:x))}
+   if(ok&&ok!==k&&e.sr){const par=fodOb(e.sr.par);if(par[ok]){par[k]=par[ok];delete par[ok]}Object.keys(par).forEach(j=>{par[j]=(Array.isArray(par[j])?par[j]:[]).map(x=>x===ok?k:x)});e.sr.par=par;e.sr.partners=(Array.isArray(e.sr.partners)?e.sr.partners:[]).map(p=>p.map(x=>x===ok?k:x));e.sr.siblings=(Array.isArray(e.sr.siblings)?e.sr.siblings:[]).map(p=>p.map(x=>x===ok?k:x))}
    if(same)return e;
    const add=e.add.filter(y=>bdKey(y)!==k&&bdKey(y)!==ok).concat([x]),del=e.del.filter(y=>y!==k).concat(ok&&ok!==k&&syncad&&!e.del.includes(ok)?[ok]:[]);return{add,del,col:e.col}});
   toast(old?'Sparat':namn+' är tillagd');return}

@@ -1498,6 +1498,16 @@ html.ny .motion-panel>.wm-body{display:block}
 .fam-zoom button:disabled{opacity:.3;cursor:default}
 .fam-zoom .num{color:var(--ink-2);font-size:12px;min-width:35px;text-align:center}
 @media(prefers-reduced-motion:no-preference){.fam-node{transition:opacity .18s}.fam-node:active{opacity:.65}}
+/* Hybrid: opt-in enbart under utvecklarläget, befintliga UI-token och kort används. */
+.fam-hybrid{min-width:0}
+.fam-hybrid-pan{height:min(58vh,420px);min-height:300px;overflow:auto;overscroll-behavior:contain;touch-action:none;background:var(--surface);border-top:.5px solid var(--line);border-bottom:.5px solid var(--line);scrollbar-width:thin}
+.fam-hybrid-svg{display:block;max-width:none;min-width:100%;height:auto;touch-action:none}
+.fam-h-node{cursor:grab;touch-action:none}
+.fam-h-node:active{cursor:grabbing}
+.fam-h-lines{pointer-events:none}
+.fam-pin{font-size:13px;fill:var(--accent)}
+.fam-h-actions{display:flex;gap:8px;padding:12px 20px}
+.fam-h-actions button{font-size:13px}
 /* ===== Födelsedagar ===== */
 .bd .bd-date{display:flex;flex-direction:column;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;background:var(--accent-soft);color:var(--accent);flex:none;line-height:1}
 .bd .bd-date b{font-size:19px;font-weight:700;letter-spacing:-.4px}
@@ -3330,7 +3340,7 @@ html.ny.ui5 body.wall .board .wpair .bbd-l{font-size:calc(15px*min(var(--z),1.2)
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=319"></script>
+<script src="app.js?v=320"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
