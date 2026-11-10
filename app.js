@@ -5203,7 +5203,7 @@ function slaktV3Layout(B){
  // All connectors use assigned, orthogonal corridors; each family gets ONE shared children bus.
  const edges=[],segments=[],crossings=[],byFamily=new Map();
  const add=(coords,kind,key)=>{if(coords.length<2)return;let d='M'+coords[0][0]+' '+coords[0][1];for(let i=1;i<coords.length;i++){const [x,y]=coords[i],[px,py]=coords[i-1];d+=' '+(x===px?'V'+y:y===py?'H'+x:'L'+x+' '+y);segments.push({x1:px,y1:py,x2:x,y2:y,kind,key})}
-  edges.push('<path class="fam3-edge '+kind+'" data-family="'+key.replace(/"/g,'')+'" d="'+d+'"/>');
+  edges.push('<path class="fam3-edge '+kind+'" data-family="'+encodeURIComponent(key)+'" d="'+d+'"/>');
  };
  const uniquePartners=new Set();
  partnerPairs.forEach(pair=>{const key=pair.slice().sort().join('|');if(uniquePartners.has(key))return;uniquePartners.add(key);
@@ -5229,10 +5229,10 @@ function slaktV3Layout(B){
    add([[anchorX,baseY],[anchorX,busY]],'stem',f.key);
   }else{
    parents.forEach(p=>add([[p.x,p.y+35],[p.x,busY]],'stem',f.key));
-   if(parents.length===2)add([[Math.min(...parents.map(p=>p.x)),busY],[Math.max(...parents.map(p=>p.x)),busY]],'bus',f.key);
+   // The single children bus below also joins the two parents: do not draw the same line twice.
    anchorX=parents.length===2?parents.reduce((n,p)=>n+p.x,0)/2:parents[0].x;
   }
-  const xs=children.map(p=>p.x),left=Math.min(anchorX,...xs),right=Math.max(anchorX,...xs);
+  const xs=children.map(p=>p.x),left=Math.min(anchorX,...xs,...parents.map(p=>p.x)),right=Math.max(anchorX,...xs,...parents.map(p=>p.x));
   if(right-left>1)add([[left,busY],[right,busY]],'bus',f.key);
   children.forEach(p=>add([[p.x,busY],[p.x,p.y-35]],'child',f.key));
   byFamily.set(f.key,{parents:f.parents,children:f.children,busY});
@@ -5250,11 +5250,15 @@ function slaktV3Layout(B){
 function slaktNear(focus,all){const look=k=>all.find(b=>b.key===k),parents=slaktParents(focus.key).map(look).filter(Boolean),partners=slaktPartners(focus.key).map(look).filter(Boolean);const sib=new Map();slaktSiblings(focus.key).map(look).filter(Boolean).forEach(b=>sib.set(b.key,b));parents.forEach(p=>slaktChildren(p.key).filter(b=>b.key!==focus.key).forEach(b=>sib.set(b.key,b)));return{parents,partners,siblings:[...sib.values()],children:slaktChildren(focus.key)}}
 function slaktV3Markup(B,focus){
  const t=slaktV3Layout(B),R=slaktR(),related=new Set([focus.key,...slaktParents(focus.key),...slaktPartners(focus.key),...slaktSiblings(focus.key),...slaktChildren(focus.key).map(x=>x.key)]),active=S.slaktVy==='fokus';
+ const selectedFamilies=new Set([...t.families].filter(([id,g])=>g.parents.includes(focus.key)||g.children.includes(focus.key)).map(([id])=>encodeURIComponent(id)));
+ const nearEdges=t.edges.map(d=>{if(!active)return d;const m=d.match(/data-family="([^"]*)"/),id=m?.[1]||'',pair=decodeURIComponent(id).split('|');
+  return selectedFamilies.has(id)||pair.includes(focus.key)?d:d.replace('class="fam3-edge ','class="fam3-edge muted ');
+ }).join('');
  const nodes=B.map(b=>{const p=t.pos.get(b.key),selected=b.key===focus.key,fade=active&&!related.has(b.key);
   return '<g class="fam3-node'+(selected?' selected':'')+(fade?' muted':'')+'" role="button" tabindex="0" data-act="slaktFocus" data-id="'+esc(b.key)+'" transform="translate('+p.x+' '+p.y+')"><rect class="fam3-card" x="-74" y="-34" width="148" height="68" rx="17"/><circle class="fam3-circle" cx="-47" cy="0" r="19"/><text class="fam3-initial" x="-47" y="6" text-anchor="middle">'+esc(b.name[0].toUpperCase())+'</text><text class="fam3-name" x="-21" y="5" text-anchor="start">'+esc(b.name.length>13?b.name.slice(0,12)+'…':b.name)+'</text></g>'}).join('');
  const near=slaktNear(focus,slaktPersons()),meta=[near.parents.length+' föräldrar',near.siblings.length+' syskon',near.children.length+' barn'].join(' · ');
  return '<div class="fam3"><div class="fam3-toolbar"><div class="fam3-toolbar-title"><strong>Släktträd</strong><small>'+B.length+' personer · '+new Set([...t.pos.values()].map(p=>p.level)).size+' generationer</small></div><div class="fam3-toolbar-buttons"><button type="button" class="fam3-tool" data-act="slaktV3Fit" aria-label="Visa hela trädet" title="Visa hela trädet">⤢</button><button type="button" class="fam3-tool" data-act="slaktV3Center" aria-label="Centrera vald" title="Centrera vald">◎</button></div></div>'+
-  '<div class="fam3-viewport" data-width="'+t.width+'" data-height="'+t.height+'" data-selected="'+esc(focus.key)+'" aria-label="Släktträd. Dra för att flytta kartan, nyp för att zooma."><svg class="fam3-svg" xmlns="http://www.w3.org/2000/svg"><g class="fam3-stage"><g class="fam3-connectors">'+t.edges.join('')+'</g><g class="fam3-nodes">'+nodes+'</g></g></svg><div class="fam3-zoom"><button type="button" data-act="slaktV3Zoom" data-id="minus" aria-label="Zooma ut">−</button><span class="fam3-scale">100 %</span><button type="button" data-act="slaktV3Zoom" data-id="plus" aria-label="Zooma in">+</button></div></div>'+
+  '<div class="fam3-viewport" data-width="'+t.width+'" data-height="'+t.height+'" data-selected="'+esc(focus.key)+'" aria-label="Släktträd. Dra för att flytta kartan, nyp för att zooma."><svg class="fam3-svg" xmlns="http://www.w3.org/2000/svg"><g class="fam3-stage"><g class="fam3-connectors">'+nearEdges+'</g><g class="fam3-nodes">'+nodes+'</g></g></svg><div class="fam3-zoom"><button type="button" data-act="slaktV3Zoom" data-id="minus" aria-label="Zooma ut">−</button><span class="fam3-scale">100 %</span><button type="button" data-act="slaktV3Zoom" data-id="plus" aria-label="Zooma in">+</button></div></div>'+
   '<div class="fam3-legend">Dra för att panorera · Nyp för att zooma · Tryck på en person</div>'+
   '<div class="fam3-detail"><span class="fam3-person-circle">'+esc(focus.name.slice(0,1).toUpperCase())+'</span><span class="grow"><strong>'+esc(focus.name)+'</strong><small>'+esc(meta)+'</small></span><button type="button" class="fam3-details-edit" data-act="slaktEdit" data-id="'+esc(focus.key)+'">Relationer</button></div>'+
   '<div class="fam3-detail-actions"><button type="button" data-act="slaktVy" data-id="'+(active?'alla':'fokus')+'">'+(active?'Visa alla relationer':'Framhäv närmaste familjen')+'</button></div></div>';
