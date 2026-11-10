@@ -2,6 +2,12 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Förbättrat släktträd för telefon (ht-v331, utvecklarläge)
+
+- Hybrid är numera fokusbaserad: bara föräldrar, partner och tre barn i kartan; syskon och fler barn i kompakta knappar. Hela trädet visar en förenklad generationsöversikt utan spaghettilinjer. Zoom, drag/lås per person och relationsredigering bevaras; nya låspositioner har separat `ht.slaktHybridPins2` eftersom koordinatsystemet ändrats.
+- Traditionellt: i Hela trädet finns svepbara generationskolumner med max fem personer per kolumn innan Visa fler. I fokus visas föräldrar, person, partner, syskon och barn i kompakta sektioner. Inget stort SVG-nät på mobil.
+- Tester: `verktyg/emu/familj-dev.js`, CI via PR. Ångra-gren `version-fore-familj-lattlast`. Inga Apps Script-ändringar. Enbart utvecklarläge.
+
 ## Familj Hybrid + syskon (ht-v330, utvecklarläge)
 
 - Ny inställning direkt i Släktträd: Traditionellt / Hybrid (per enhet `ht.slaktLayout`). Hybrid bygger på samma födelsedagspersoner, panorerbar/zoomningsbar dynamisk karta och flyttbara noder; dragning låser automatiskt position per enhet (`ht.slaktHybridPins`).
