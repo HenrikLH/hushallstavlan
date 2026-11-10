@@ -1326,18 +1326,21 @@ const haTopKn=(x,W)=>{const V=haVanaVis(x,W);return(V?'<button type="button" cla
 // sista pricken bland favoriterna: Justera öppnar Ton och färg (där finns Spara som favorit)
 const haJustera=(W,K)=>(W.ok||K.f)?'<button type="button" class="ha-fpb ha-fpj" data-act="haSub" data-id="ton" aria-label="'+(W.ok?'Ton och färg':'Färg')+'"><b>'+HAV_IK.hjul+'</b><span>Justera</span></button>':'';
 // dygnsremsa: en färg per kvart, osäkra kvartar svagare, tomma luckor genomskinliga; strecket = nu
-const haVanaRemsa=(T,nu)=>{const st=T.kurva.map((k,i)=>(k?T.saker[i]?haKFarg(k):haKFarg(k).replace('rgb','rgba').replace(')',',.4)'):'transparent')+' '+(i/.96).toFixed(2)+'% '+((i+1)/.96).toFixed(2)+'%').join(',');
- return'<div class="ha-vr" style="background-image:linear-gradient(90deg,'+st+')">'+(nu!=null?'<i style="left:'+(nu/.96).toFixed(2)+'%"></i>':'')+'</div><div class="ha-vt"><span>00</span><span>06</span><span>12</span><span>18</span><span>24</span></div>'};
+const haVanaRemsa=(T,nu,sol)=>{const st=T.kurva.map((k,i)=>(k?T.saker[i]?haKFarg(k):haKFarg(k).replace('rgb','rgba').replace(')',',.4)'):'transparent')+' '+(i/.96).toFixed(2)+'% '+((i+1)/.96).toFixed(2)+'%').join(',');
+ // tunn linje under remsan: ljus mellan sol upp och ned, mörk natt (som Väder-appen)
+ const p=m=>(m/14.4).toFixed(2)+'%',dag=sol?'<div class="ha-vsol" style="background:linear-gradient(90deg,var(--hv-natt) 0 '+p(sol.upp)+',var(--hv-dag) '+p(sol.upp)+' '+p(sol.ned)+',var(--hv-natt) '+p(sol.ned)+')"></div>':'';
+ return'<div class="ha-vr" style="background-image:linear-gradient(90deg,'+st+')">'+(nu!=null?'<i style="left:'+(nu/.96).toFixed(2)+'%"></i>':'')+'</div>'+dag+'<div class="ha-vt"><span>00</span><span>06</span><span>12</span><span>18</span><span>24</span></div>'};
 // låtsaskurva i Testa Smart hem: morgon 3 500 K, kväll 2 700 K, varmare efter 20; helgen inte säker än
-const haVanaDemo=()=>{const f=s=>{const k=[],m=[];for(let i=0;i<96;i++){const t=i/4;k.push(t>=6.5&&t<8.5?3500:t>=17&&t<20?2700:t>=20&&t<23.5?2000:t>=9&&t<11&&!s?3000:null);m.push(k[i]&&s?1:0)}return{kurva:k,saker:m}};return{v:f(1),h:f(0)}};
+const haVanaDemo=()=>{const f=s=>{const k=[],m=[];for(let i=0;i<96;i++){const t=i/4;k.push(t>=6.5&&t<8.5?3500:t>=17&&t<20?2700:t>=20&&t<23.5?2000:t>=9&&t<11&&!s?3000:null);m.push(k[i]&&s?1:0)}return{kurva:k,saker:m,kalla:k.map((v,i)=>v?i>=64?'s':'k':'')}};return{v:f(1),h:f(0),sol:{upp:454,ned:961}}};
 const haVanaSida=x=>{const V=x.vana;if(!V)return'';const K=HA.vanor&&HA.vanor.id===x.id?HA.vanor:haDemo()?haVanaDemo():null;if(!K)haVanaHamta(x.id);
  const d=new Date(),kv=d.getHours()*4+(d.getMinutes()/15|0),idag=d.getDay()%6===0?'h':'v',lage=V.pauslage||'slack';
  const chip=(v,n)=>'<button type="button" class="'+(lage===v?'on':'')+'" data-act="haVanaPaus" data-id="'+v+'" aria-pressed="'+(lage===v)+'">'+n+'</button>';
- const kurva=([t,n])=>{const T=K&&K[t],har=T&&T.kurva.some(k=>k);return'<div class="ha-vk"><div class="ha-vh"><span>'+n+'</span><span>'+(!K?'Hämtar…':har?'':'Inget än')+'</span></div>'+(har?haVanaRemsa(T,t===idag?kv:null):'<div class="ha-vr"></div>')+'</div>'};
- return'<p class="ha-vf ha-vin">Lampan får själv den ton ni brukar ha vid varje tid på dygnet. Ändrar ni själv pausas den en stund.</p><div class="ha-rader ha-vs0"><label class="ha-rad"><span>Automatisk ton</span><input type="checkbox" role="switch" class="switch" data-act="haVanaAuto" aria-label="Automatisk ton"'+(V.auto?' checked':'')+'></label>'+
+ const kurva=([t,n])=>{const T=K&&K[t],har=T&&T.kurva.some(k=>k);return'<div class="ha-vk"><div class="ha-vh"><span>'+n+'</span><span>'+(!K?'Hämtar…':har?'':'Inget än')+'</span></div>'+(har?haVanaRemsa(T,t===idag?kv:null,K.sol):'<div class="ha-vr"></div>')+'</div>'};
+ return'<p class="ha-vf ha-vin">Lampan får själv den ton ni brukar ha, efter klockan eller efter mörkret. Ändrar ni själv pausas den en stund.</p><div class="ha-rader ha-vs0"><label class="ha-rad"><span>Automatisk ton</span><input type="checkbox" role="switch" class="switch" data-act="haVanaAuto" aria-label="Automatisk ton"'+(V.auto?' checked':'')+'></label>'+
   (V.auto&&V.paus?'<button type="button" class="ha-rad" data-act="haVanaAter"><span>Pausad till '+hhmm(new Date(V.paus*1e3))+'</span><span class="meta ha-va">Återuppta</span></button>':'')+'</div>'+
   '<div class="ha-vl">Det här har den lärt sig</div><div class="ha-vbox">'+[['v','Vardagar'],['h','Helger']].map(kurva).join('')+'</div>'+
-  '<p class="ha-vf">Svagare färg = inte säker än. Lampan ändras själv först när samma ton hållit 5 av 7 dagar. Den tänder och släcker aldrig.</p>'+
+  (K&&K.sol?'<p class="ha-vf ha-vsoltx"><span class="ha-vdot d"></span>Sol upp '+hm(K.sol.upp)+'  <span class="ha-vdot"></span>Sol ned '+hm(K.sol.ned)+'</p>':'')+
+  '<p class="ha-vf">'+(K&&K[idag]&&(K[idag].kalla||[]).includes('s')?'Kvällen följer mörkret, inte klockan: när solen går ner tidigare flyttas tonen med. ':'')+'Svagare färg = inte säker än. Lampan ändras själv först när samma ton hållit 5 av 7 dagar. Den tänder och släcker aldrig.</p>'+
   '<div class="ha-vl">När ni ändrar själv, pausa</div><div class="ha-vp" role="group">'+chip('slack','Tills släckt')+chip('1','1 timme')+chip('3','3 timmar')+'</div>'+
   '<p class="ha-vf">Er ändring blir också en vana: gör ni likadant flera dagar flyttas schemat dit.</p>'};
 async function haVanaHamta(id){if(HA.vanorH===id||haDemo())return;HA.vanorH=id;try{const r=await fetch(haUrl()+'/vanor?id='+encodeURIComponent(id));if(r.ok){HA.vanor=await r.json();render()}}catch(e){}setTimeout(()=>{if(HA.vanorH===id)HA.vanorH=null},5e3)}

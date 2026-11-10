@@ -69,6 +69,20 @@ try:
     L.vanor_post({'pauslage': '1'}); L.vanor_post({'id': 'light.kok', 'auto': True})
     ha('/yttre/light.kok?k=2700', {}); L.vanor_varv(cfg, nu + 900)
     p = L.vanor_pausad('light.kok', nu + 900); koll('pauslage 1 h', p and abs(p - (nu + 900 + 3600)) < 2)
+    # mörkret: fyra veckor där kvällen blir varm 30 min efter solnedgången (som flyttas från 18 till 16) och läggdags 22.30 efter klockan
+    sol = []
+    for d in range(-28, 0):
+        t0 = kl(d, 12); ned = L.sol_tider(t0)[1]
+        sol += [{'t': kl(d, 15), 'e': 'light.sol', 'on': 1, 'k': 3000, 'b': 80, 's': 'm'},
+                {'t': round(ned + 1800), 'e': 'light.sol', 'on': 1, 'k': 2000, 'b': 80, 's': 'm'},
+                {'t': kl(d, 22, 30), 'e': 'light.sol', 'on': 1, 'k': 2300, 'b': 40, 's': 'm'},
+                {'t': kl(d, 23, 30), 'e': 'light.sol', 'on': 0, 'k': None, 'b': None, 's': 'm'}]
+    L.VANOR['logg'] = sorted(sol, key=lambda r: r['t']); L.VANOR['kurvor'] = {}
+    ned0 = L.sol_tider(kl(0, 12))[1]
+    v = L.vanor_nu('light.sol', ned0 + 2700); koll('45 min efter solnedgången: varm, efter mörkret', v['k'] == 2000 and v['saker'] and v['kalla'] == 's', v, time.strftime('%H:%M', time.localtime(ned0 + 2700)))
+    v = L.vanor_nu('light.sol', ned0 - 1800); koll('före solnedgången: 3000 K', v['k'] == 3000, v)
+    v = L.vanor_nu('light.sol', kl(0, 22, 50)); koll('22.50: läggdags efter klockan', v['k'] == 2300 and v['kalla'] == 'k', v)
+    K = L.vanor_kurva('light.sol', kl(0, 21)); koll('soltider följer med till appen', abs(K['sol']['ned'] - 961) < 6, K['sol'])
     # filen skrivs och läses tillbaka
     L.VANOR['logg'] = None; koll('loggen sparas på disk', len(L.vanor_logg()) > 0)
 finally:

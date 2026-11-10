@@ -614,56 +614,96 @@ def vanor_historik(c, lampor, nu):
 def dagtyp(t):
     return 'h' if time.localtime(t).tm_wday >= 5 else 'v'
 
+# Solens upp- och nedgång för Värnamo, räknat utan internet (soluppgångsekvationen, ±2 min räcker gott)
+SOL_LAT, SOL_LON = 57.186, 14.040
+SOL_CACHE = {}
+
+def sol_tider(t):
+    # (upp, ned, middag) som unix-tid för det lokala datumet som t ligger i
+    datum = time.strftime('%Y-%m-%d', time.localtime(t))
+    if datum in SOL_CACHE: return SOL_CACHE[datum]
+    import math
+    t12 = time.mktime(time.strptime(datum + ' 12', '%Y-%m-%d %H'))
+    n = round(t12 / 86400 + 2440587.5 - 2451545.0 + 0.0008)
+    J = n - SOL_LON / 360
+    M = (357.5291 + 0.98560028 * J) % 360; Mr = math.radians(M)
+    C = 1.9148 * math.sin(Mr) + 0.02 * math.sin(2 * Mr) + 0.0003 * math.sin(3 * Mr)
+    L = math.radians((M + C + 180 + 102.9372) % 360)
+    Jt = 2451545.0 + J + 0.0053 * math.sin(Mr) - 0.0069 * math.sin(2 * L)
+    d = math.asin(math.sin(L) * math.sin(math.radians(23.4397))); f = math.radians(SOL_LAT)
+    c = (math.sin(math.radians(-0.833)) - math.sin(f) * math.sin(d)) / (math.cos(f) * math.cos(d))
+    w = math.degrees(math.acos(max(-1.0, min(1.0, c))))
+    unix = lambda jd: (jd - 2440587.5) * 86400
+    SOL_CACHE[datum] = (unix(Jt - w / 360), unix(Jt + w / 360), unix(Jt))
+    return SOL_CACHE[datum]
+
+def sol_nyckel(t):
+    # kvart räknat från soluppgången (förmiddag) eller solnedgången (eftermiddag och kväll): ('u', -2) = 30 min före soluppgången
+    upp, ned, mid = sol_tider(t)
+    return ('u', int((t - upp) // 900)) if t < mid else ('n', int((t - ned) // 900))
+
+def vanor_skatta(P, nyckel, grannar):
+    # viktad median av dagarnas ton för nyckeln (grannarna väger hälften), och hur många av de senaste 7 dagarna som stämmer
+    kand = [(k, w) for (_, k, w) in P.get(nyckel, [])] + [(k, w * 0.5) for g in grannar for (_, k, w) in P.get(g, [])]
+    if not kand: return None
+    kand.sort(); tot = sum(w for _, w in kand); acc = 0
+    for k, w in kand:
+        acc += w
+        if acc >= tot / 2: med = k; break
+    senaste = sorted(P.get(nyckel, []), key=lambda x: x[0], reverse=True)[:VANOR_SAKER[1]]
+    return med, sum(1 for (_, k, _) in senaste if abs(k - med) <= VANOR_NARA), len(P.get(nyckel, []))
+
 def vanor_kurva(e, nu):
-    # per dagtyp och kvart: den ton ni brukar ha (viktad median, nyare dagar väger mer, egna ändringar mer än tavlans),
-    # om den är säker (VANOR_SAKER) och hur många dagar den bygger på
+    # Per dagtyp (vardag/helg) lär den sig två förklaringar: efter klockan (kvart på dygnet) och efter solen (kvart före/efter
+    # sol upp/ned). För varje tid väljs den som stämt bäst med era val de senaste dagarna: kvällsvärmen följer oftast mörkret,
+    # läggdags oftast klockan. Kurvan gäller dagens soltider; nyare dagar väger mer, egna ändringar mer än tavlans.
     with VANOR['lock']:
         K = VANOR['kurvor'].get(e)
         if K and nu - K['t'] < 600 and time.localtime(K['t']).tm_mday == time.localtime(nu).tm_mday: return K
         rader = [r for r in vanor_logg() if r['e'] == e]
-    dag = {}   # (datum, kvart) -> [summa k*s, summa s, sekunder på, vikt efter källa]
+    dag = {}   # (datum, modell, nyckel) -> [summa k*s*w, summa s*w, sekunder på]
     gr = nu - VANOR_DAGAR * 86400
     for i, r in enumerate(rader):
         slut = rader[i + 1]['t'] if i + 1 < len(rader) else nu
         if not r.get('on') or not r.get('k'): continue
         a, slut = max(r['t'], gr), min(slut, nu)
+        w = 0.5 if r.get('s') == 'a' else 1.0
         while a < slut:
             lt = time.localtime(a)
-            kv = lt.tm_hour * 4 + lt.tm_min // 15
             grans = a - (lt.tm_min % 15) * 60 - lt.tm_sec + 900
             b = min(slut, grans); s = b - a
             if s > 0:
-                d = dag.setdefault((time.strftime('%Y-%m-%d', lt), kv), [0.0, 0.0, 0.0, 0.0])
-                w = 0.5 if r.get('s') == 'a' else 1.0
-                d[0] += r['k'] * s * w; d[1] += s * w; d[2] += s
+                datum = time.strftime('%Y-%m-%d', lt)
+                for nyckel in (('k', lt.tm_hour * 4 + lt.tm_min // 15), ('s', sol_nyckel((a + b) / 2))):
+                    d = dag.setdefault((datum,) + nyckel, [0.0, 0.0, 0.0])
+                    d[0] += r['k'] * s * w; d[1] += s * w; d[2] += s
             a = b
-    idag = time.strftime('%Y-%m-%d', time.localtime(nu))
-    per = {'v': [[] for _ in range(96)], 'h': [[] for _ in range(96)]}
-    for (datum, kv), d in dag.items():
+    per = {'v': {'k': {}, 's': {}}, 'h': {'k': {}, 's': {}}}
+    for (datum, modell, nyckel), d in dag.items():
         if d[2] < VANOR_MIN_PA or not d[1]: continue
         t0 = time.mktime(time.strptime(datum, '%Y-%m-%d')) + 43200
-        per[dagtyp(t0)][kv].append((datum, d[0] / d[1], 0.5 ** (max(0, nu - t0) / 86400 / VANOR_HALV) * min(1.0, d[1] / d[2] * 2)))
-    ut = {'t': nu, 'dagar': len({datum for (datum, kv) in dag if dag[(datum, kv)][2] >= VANOR_MIN_PA})}
+        per[dagtyp(t0)][modell].setdefault(nyckel, []).append((datum, d[0] / d[1], 0.5 ** (max(0, nu - t0) / 86400 / VANOR_HALV) * min(1.0, d[1] / d[2] * 2)))
+    lt = time.localtime(nu); t00 = time.mktime((lt.tm_year, lt.tm_mon, lt.tm_mday, 0, 0, 0, 0, 0, -1))
+    upp, ned, _ = sol_tider(nu)
+    ut = {'t': nu, 'dagar': len({k[0] for k, d in dag.items() if d[2] >= VANOR_MIN_PA}),
+          'sol': {'upp': round((upp - t00) / 60), 'ned': round((ned - t00) / 60)}}
     for typ, P in per.items():
-        kurva, saker, n = [], [], []
+        kurva, saker, n, kalla = [], [], [], []
         for kv in range(96):
-            kand = [(k, w) for (_, k, w) in P[kv]] + [(k, w * 0.5) for j in (kv - 1, (kv + 1) % 96) for (_, k, w) in P[j]]
-            if not kand: kurva.append(None); saker.append(0); n.append(0); continue
-            kand.sort(); tot = sum(w for _, w in kand); acc = 0
-            for k, w in kand:
-                acc += w
-                if acc >= tot / 2: med = k; break
-            senaste = sorted(P[kv], key=lambda x: x[0], reverse=True)[:VANOR_SAKER[1]]
-            traff = sum(1 for (_, k, _) in senaste if abs(k - med) <= VANOR_NARA)
-            kurva.append(int(round(med / 10) * 10)); saker.append(int(traff >= VANOR_SAKER[0])); n.append(len(P[kv]))
-        ut[typ] = {'kurva': kurva, 'saker': saker, 'n': n}
+            sn = sol_nyckel(t00 + kv * 900 + 450)
+            alt = [(x, m) for x, m in ((vanor_skatta(P['k'], kv, ((kv - 1) % 96, (kv + 1) % 96)), 'k'),
+                                       (vanor_skatta(P['s'], sn, ((sn[0], sn[1] - 1), (sn[0], sn[1] + 1))), 's')) if x]
+            if not alt: kurva.append(None); saker.append(0); n.append(0); kalla.append(''); continue
+            (med, traff, antal), m = max(alt, key=lambda a: (a[0][1], a[0][2], a[1] == 'k'))
+            kurva.append(int(round(med / 10) * 10)); saker.append(int(traff >= VANOR_SAKER[0])); n.append(antal); kalla.append(m)
+        ut[typ] = {'kurva': kurva, 'saker': saker, 'n': n, 'kalla': kalla}
     with VANOR['lock']: VANOR['kurvor'][e] = ut
     return ut
 
 def vanor_nu(e, nu):
     K = vanor_kurva(e, nu); lt = time.localtime(nu); kv = lt.tm_hour * 4 + lt.tm_min // 15
     T = K[dagtyp(nu)]
-    return {'k': T['kurva'][kv], 'saker': bool(T['saker'][kv]), 'n': T['n'][kv], 'dagar': K['dagar']}
+    return {'k': T['kurva'][kv], 'saker': bool(T['saker'][kv]), 'n': T['n'][kv], 'dagar': K['dagar'], 'kalla': T['kalla'][kv]}
 
 def vanor_pausad(e, nu, inst=None):
     p = (inst or vanor_inst())['paus'].get(e)
@@ -761,7 +801,7 @@ def vanor_get(e):
     if not c: return 503, {'fel': 'inte inställt'}
     if e not in c['lampor']: return 403, {'fel': 'lampan är inte vald för tavlan'}
     nu = time.time(); K = vanor_kurva(e, nu); inst = vanor_inst()
-    return 200, {'id': e, 'typ': dagtyp(nu), 'v': K['v'], 'h': K['h'], 'dagar': K['dagar'], 'auto': e not in inst['av'],
+    return 200, {'id': e, 'typ': dagtyp(nu), 'v': K['v'], 'h': K['h'], 'dagar': K['dagar'], 'sol': K['sol'], 'auto': e not in inst['av'],
                  'paus': vanor_pausad(e, nu, inst), 'pauslage': inst['pauslage'], 'saker': list(VANOR_SAKER)}
 
 def vanor_post(d):
