@@ -1460,40 +1460,44 @@ html.ny .motion-panel>.wm-body{display:block}
 .ovx .motion-grip:before{content:"";position:absolute;inset:-10px 0;min-height:44px}
 .motion-dragging{overscroll-behavior:none;scroll-behavior:auto!important;overflow-anchor:none}
 .motion-dragging body{overscroll-behavior:none}
-/* Familj och släktträd: använder UI 5.0:s befintliga färgvariabler, ytor och typografi. */
-.fam-ico{width:36px;height:36px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent);border-radius:12px;margin-right:12px;flex:none}
+/* Familj / Släktträd, utvecklarläge. Samma 20 px inset, kort och typografi som UI 5.0. */
+.fam-ico{width:36px;height:36px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent);border-radius:12px;flex:none}
 .fam-ico svg{width:19px;height:19px}
-.fam-datebox{width:43px;height:43px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1;background:var(--accent-soft);color:var(--accent);border-radius:12px;margin-right:12px;flex:none}
-.fam-datebox b{font-size:18px}.fam-datebox small{font-size:11px;font-weight:600;text-transform:uppercase}
-.fam-focus{display:flex;align-items:center;gap:12px;padding:14px 18px}
-.fam-focus strong{display:block;font-weight:650}.fam-focus .meta{display:block;font-size:13px;color:var(--ink-2)}
-.fam-spot{width:14px;height:14px;flex:none;border-radius:50%;background:var(--accent)}
-.fam-tree{padding:10px 8px 14px;min-width:0;border-top:.5px solid var(--line)}
+.fam-person-av{width:36px;height:36px;display:grid;place-items:center;flex:none;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-size:16px;font-weight:650}
+.fam-person-row{gap:12px}
+.fam-person-row .meta,.fam-selected .meta{display:block;font-size:13px;line-height:18px;color:var(--ink-2);margin-top:2px}
+.fam-selected{gap:12px}
+.fam-selected strong{font-weight:650}
+.fam-check-row{gap:14px;cursor:pointer}
+.fam-check-row input[type=checkbox]{width:21px;height:21px;margin:0;flex:none;accent-color:var(--accent)}
+.fam-focus{display:flex;align-items:center;gap:12px;padding:16px 20px;min-height:60px}
+.fam-focus strong{display:block;font-size:17px;line-height:23px;font-weight:650}
+.fam-focus .meta{display:block;font-size:13px;line-height:18px;color:var(--ink-2);margin-top:2px}
+.fam-focus .pill{flex:none}
+.fam-tree{padding:8px 12px 16px;min-width:0;border-top:.5px solid var(--line)}
 .fam-svg{display:block;width:100%;height:auto;overflow:visible}
 .fam-lines{stroke:var(--ink-3);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;fill:none}
 .fam-node{cursor:pointer;outline:none}
 .fam-node .fam-ring{fill:var(--surface);stroke:var(--line);stroke-width:1}
 .fam-node.selected .fam-ring{stroke:var(--accent);stroke-width:2.5}
-.fam-node .fam-circle{fill:var(--fill)}.fam-node.selected .fam-circle{fill:var(--accent-soft)}
+.fam-node .fam-circle{fill:var(--fill)}
+.fam-node.selected .fam-circle{fill:var(--accent-soft)}
 .fam-node .fam-letter{fill:var(--ink-2);font-family:var(--font);font-size:17px;font-weight:700}
 .fam-node.selected .fam-letter{fill:var(--accent)}
 .fam-node .fam-name{fill:var(--ink);font-family:var(--font);font-size:14px;font-weight:650}
 .fam-node .fam-date{fill:var(--ink-2);font-family:var(--font);font-size:11px}
 .fam-node:focus-visible .fam-ring{stroke:var(--accent);stroke-width:3}
-.fam-empty{margin:0 8px 6px;padding:11px;border-radius:12px;background:var(--fill);color:var(--ink-2);text-align:center;font-size:13px;line-height:18px}
-@media (prefers-reduced-motion:no-preference){.fam-node{transition:opacity .18s}.fam-node:active{opacity:.65}}
-
-/* Hela släktträdet: separat panoreringsyta, utan ett extra sidledssvep för menyer. */
-.fam-all-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:17px 18px 10px;font-size:15px}
-.fam-all-head .meta{font-size:12px;color:var(--ink-2);text-align:right;max-width:57%}
-.fam-pan{overflow-x:auto;overscroll-behavior-x:contain;touch-action:pan-x pan-y;-webkit-overflow-scrolling:touch;padding:6px 10px 12px;scrollbar-width:thin;scrollbar-color:var(--ink-3) transparent}
+.fam-all-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 20px 12px}
+.fam-all-head strong{display:block;font-size:16px;font-weight:650;line-height:22px}
+.fam-all-head .meta{display:block;font-size:13px;color:var(--ink-2);line-height:18px;margin-top:2px}
+.fam-pan{overflow-x:auto;overscroll-behavior-x:contain;touch-action:pan-x pan-y;-webkit-overflow-scrolling:touch;padding:8px 12px 12px;scrollbar-width:thin;scrollbar-color:var(--ink-3) transparent;border-top:.5px solid var(--line)}
 .fam-full-svg{display:block;max-width:none;min-width:0;height:auto;overflow:visible}
+.fam-hint{padding:12px 20px 16px;color:var(--ink-2);font-size:13px;line-height:19px;border-top:.5px solid var(--line)}
 .fam-zoom{display:flex;align-items:center;gap:8px;white-space:nowrap}
 .fam-zoom button{display:grid;place-items:center;border:1px solid var(--line);background:var(--fill);color:var(--ink);width:32px;height:32px;border-radius:50%;font-size:20px;line-height:1;cursor:pointer}
 .fam-zoom button:disabled{opacity:.3;cursor:default}
 .fam-zoom .num{color:var(--ink-2);font-size:12px;min-width:35px;text-align:center}
-.fam-all-head>div:first-child .meta{max-width:none;text-align:left;margin-top:3px}
-.fam-all-help{padding:0 18px 16px;font-size:13px;line-height:18px;color:var(--ink-2)}
+@media(prefers-reduced-motion:no-preference){.fam-node{transition:opacity .18s}.fam-node:active{opacity:.65}}
 /* ===== Födelsedagar ===== */
 .bd .bd-date{display:flex;flex-direction:column;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;background:var(--accent-soft);color:var(--accent);flex:none;line-height:1}
 .bd .bd-date b{font-size:19px;font-weight:700;letter-spacing:-.4px}
