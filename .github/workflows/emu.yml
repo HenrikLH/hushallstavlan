@@ -45,6 +45,11 @@ jobs:
           ref: ${{ github.event.pull_request.base.sha || 'main' }}
           path: baseline
           persist-credentials: false
+      - name: Kontrollera Familj i utvecklarläge
+        if: matrix.ui == 5 && matrix.screen == 'telefon' && matrix.theme == 'light'
+        env:
+          LS: '{}'
+        run: node verktyg/emu/run.js verktyg/emu/familj-dev.js
       - name: Kör alla flikar och funktionstester
         env:
           THEME: ${{ matrix.theme }}
