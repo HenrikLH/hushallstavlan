@@ -5474,7 +5474,7 @@ const ACT={
  slaktZoom(id){if(!DEV)return;const steps=[.75,1,1.25],v=S.slaktZoom||1,i=steps.indexOf(v),n=steps[Math.max(0,Math.min(steps.length-1,i+(id==='plus'?1:-1)))];if(n!==v){S.slaktZoom=n;render()}},
  slaktGroup(id){if(!DEV)return;S.slaktFam=id;S.slaktFocus=null;ACT.nav('slakt')},
  slaktEdit(id){if(!DEV)return;toast('Redigering blir tillgänglig efter designgranskningen')},
- familjOpen(){if(!DEV)return;closeSheets();S.slaktDemo=true;S.slaktFocus=null;S.slaktFam=null;S.slaktVy='fokus';S.slaktZoom=1;ACT.nav('familj')},
+ familjOpen(){if(!DEV)return;closeSheets();S.slaktDemo=true;S.slaktFocus='Maja|08-18';S.slaktFam=null;S.slaktVy='fokus';S.slaktZoom=1;ACT.nav('familj')},
  fodMode(id){if(!['hjul','manad','lista'].includes(id))return;S.fodMode=id;lsSet('fodMode',id);render()},
  fodMon(id){S.fodMon=Number(id);render()},
  ekoMonth(id,el){S.ekoMonth=addMonths(S.ekoMonth||thisMonth(),Number(el.dataset.d));render()},
