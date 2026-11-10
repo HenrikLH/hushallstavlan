@@ -5100,17 +5100,17 @@ function slaktV3Layout(B){
  }
  const grouped=new Map();B.forEach(b=>{const d=levels.get(b.key);if(!grouped.has(d))grouped.set(d,[]);grouped.get(d).push(b)});
  const partnerPairs=R.partners.filter(p=>Array.isArray(p)&&p.length===2&&p.every(x=>ids.has(x)));
- const pos=new Map(),maxItems=Math.max(1,...[...grouped.values()].map(row=>row.length)),width=Math.max(500,maxItems*154+150),minDepth=Math.min(...grouped.keys());
+ const pos=new Map(),maxItems=Math.max(1,...[...grouped.values()].map(row=>row.length)),width=Math.max(500,maxItems*174+180),minDepth=Math.min(...grouped.keys());
  [...grouped.keys()].sort((x,y)=>x-y).forEach(d=>{
   const row=grouped.get(d),avg=b=>{const xs=P(b.key).map(x=>pos.get(x)?.x).filter(x=>Number.isFinite(x));return xs.length?xs.reduce((a,b)=>a+b,0)/xs.length:width/2};
   row.sort((x,y)=>avg(x)-avg(y)||P(x.key).slice().sort().join('|').localeCompare(P(y.key).slice().sort().join('|'),'sv')||x.name.localeCompare(y.name,'sv'));
   // Keep partners adjacent, so the connector cannot cross unrelated person nodes.
   for(const pair of partnerPairs){const ia=row.findIndex(x=>x.key===pair[0]),ib=row.findIndex(x=>x.key===pair[1]);if(ia!==-1&&ib!==-1&&Math.abs(ia-ib)>1){const b=row.splice(ib,1)[0],newI=row.findIndex(x=>x.key===pair[0]);row.splice(newI+1,0,b)}}
-  row.forEach((b,i)=>pos.set(b.key,{x:width/2+(i-(row.length-1)/2)*154,y:90+(d-minDepth)*190,level:d}));
+  row.forEach((b,i)=>pos.set(b.key,{x:width/2+(i-(row.length-1)/2)*174,y:90+(d-minDepth)*190,level:d}));
  });
  const edges=[],seenPartner=new Set(),familyGroups=new Map();
  const path=(d,kind)=>edges.push('<path class="fam3-edge '+kind+'" d="'+d+'"/>');
- partnerPairs.forEach(pair=>{const a=pos.get(pair[0]),b=pos.get(pair[1]);if(!a||!b||a.y!==b.y)return;const key=pair.slice().sort().join('|');if(seenPartner.has(key))return;seenPartner.add(key);const l=a.x<b.x?a:b,r=a.x<b.x?b:a;path('M'+(l.x+30)+' '+l.y+' H'+(r.x-30),'partner')});
+ partnerPairs.forEach(pair=>{const a=pos.get(pair[0]),b=pos.get(pair[1]);if(!a||!b||a.y!==b.y)return;const key=pair.slice().sort().join('|');if(seenPartner.has(key))return;seenPartner.add(key);const l=a.x<b.x?a:b,r=a.x<b.x?b:a;path('M'+(l.x+75)+' '+l.y+' H'+(r.x-75),'partner')});
  B.forEach(child=>{const parents=P(child.key).slice().sort();if(!parents.length)return;const key=parents.join('\u0001'),p=pos.get(child.key);if(!familyGroups.has(key))familyGroups.set(key,{parents,children:[]});familyGroups.get(key).children.push(p)});
  [...familyGroups.values()].forEach(({parents,children},index)=>{
   const ps=parents.map(k=>pos.get(k)).filter(Boolean);if(!ps.length)return;
@@ -5118,14 +5118,14 @@ function slaktV3Layout(B){
   // Link connectors only in the open corridor between generations.
   const firstY=Math.min(...children.map(p=>p.y));if(firstY<=py+75)return;
   const trunkY=py+78+(index%3)*12,childY=firstY-32,lo=Math.min(...ps.map(p=>p.x),...children.map(p=>p.x)),hi=Math.max(...ps.map(p=>p.x),...children.map(p=>p.x));
-  ps.forEach(p=>{path('M'+p.x+' '+(p.y+29)+' V'+trunkY,'parent')});
+  ps.forEach(p=>{path('M'+p.x+' '+(p.y+36)+' V'+trunkY,'parent')});
   path('M'+lo+' '+trunkY+' H'+hi,'child');
-  children.forEach(p=>path('M'+p.x+' '+trunkY+' V'+(p.y-30),'child'));
+  children.forEach(p=>path('M'+p.x+' '+trunkY+' V'+(p.y-36),'child'));
  });
  // Explicit siblings without shared known parents: a light dashed connection below names.
  const sibSeen=new Set();
  R.siblings.forEach(pair=>{if(!Array.isArray(pair)||pair.length!==2)return;const [a,b]=pair.map(k=>pos.get(k));if(!a||!b||a.y!==b.y)return;const key=pair.slice().sort().join('|');if(sibSeen.has(key))return;sibSeen.add(key);
-  if(Math.abs(a.x-b.x)<=170)path('M'+a.x+' '+(a.y+65)+' H'+b.x+' V'+(b.y+65),'sibling');
+  if(Math.abs(a.x-b.x)<=200)path('M'+a.x+' '+(a.y+36)+' V'+(a.y+58)+' H'+b.x+' V'+(b.y+36),'sibling');
  });
  const height=Math.max(...[...pos.values()].map(p=>p.y))+95;
  return{pos,width,height,edges};
@@ -5134,7 +5134,7 @@ function slaktNear(focus,all){const look=k=>all.find(b=>b.key===k),parents=slakt
 function slaktV3Markup(B,focus){
  const t=slaktV3Layout(B),R=slaktR(),related=new Set([focus.key,...slaktParents(focus.key),...slaktPartners(focus.key),...slaktSiblings(focus.key),...slaktChildren(focus.key).map(x=>x.key)]),active=S.slaktVy==='fokus';
  const nodes=B.map(b=>{const p=t.pos.get(b.key),selected=b.key===focus.key,fade=active&&!related.has(b.key);
-  return '<g class="fam3-node'+(selected?' selected':'')+(fade?' muted':'')+'" role="button" tabindex="0" data-act="slaktFocus" data-id="'+esc(b.key)+'" transform="translate('+p.x+' '+p.y+')"><circle class="fam3-halo" r="35"/><circle class="fam3-circle" r="27"/><text class="fam3-initial" y="6" text-anchor="middle">'+esc(b.name[0].toUpperCase())+'</text><text class="fam3-name" y="49" text-anchor="middle">'+esc(b.name.length>17?b.name.slice(0,16)+'…':b.name)+'</text></g>'}).join('');
+  return '<g class="fam3-node'+(selected?' selected':'')+(fade?' muted':'')+'" role="button" tabindex="0" data-act="slaktFocus" data-id="'+esc(b.key)+'" transform="translate('+p.x+' '+p.y+')"><rect class="fam3-card" x="-74" y="-34" width="148" height="68" rx="17"/><circle class="fam3-circle" cx="-47" cy="0" r="19"/><text class="fam3-initial" x="-47" y="6" text-anchor="middle">'+esc(b.name[0].toUpperCase())+'</text><text class="fam3-name" x="-21" y="5" text-anchor="start">'+esc(b.name.length>13?b.name.slice(0,12)+'…':b.name)+'</text></g>'}).join('');
  const near=slaktNear(focus,slaktPersons()),meta=[near.parents.length+' föräldrar',near.siblings.length+' syskon',near.children.length+' barn'].join(' · ');
  return '<div class="fam3"><div class="fam3-toolbar"><div class="fam3-toolbar-title"><strong>Släktträd</strong><small>'+B.length+' personer · '+new Set([...t.pos.values()].map(p=>p.level)).size+' generationer</small></div><div class="fam3-toolbar-buttons"><button type="button" class="fam3-tool" data-act="slaktV3Fit" aria-label="Visa hela trädet" title="Visa hela trädet">⤢</button><button type="button" class="fam3-tool" data-act="slaktV3Center" aria-label="Centrera vald" title="Centrera vald">◎</button></div></div>'+
   '<div class="fam3-viewport" data-width="'+t.width+'" data-height="'+t.height+'" data-selected="'+esc(focus.key)+'" aria-label="Släktträd. Dra för att flytta kartan, nyp för att zooma."><svg class="fam3-svg" xmlns="http://www.w3.org/2000/svg"><g class="fam3-stage"><g class="fam3-connectors">'+t.edges.join('')+'</g><g class="fam3-nodes">'+nodes+'</g></g></svg><div class="fam3-zoom"><button type="button" data-act="slaktV3Zoom" data-id="minus" aria-label="Zooma ut">−</button><span class="fam3-scale">100 %</span><button type="button" data-act="slaktV3Zoom" data-id="plus" aria-label="Zooma in">+</button></div></div>'+
