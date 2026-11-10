@@ -61,6 +61,24 @@ module.exports=async(pg,h)=>{
  await click('[data-act="slaktVy"][data-id="fokus"]');
  assert.ok(await pg.locator('.fam3-node.muted').count()>0,'Fokus tonar ned andra personer utan att ta bort trädet');
  await h.shot('familj-v3-fokus');
+ // Simulera en- och tvåfingergester: kameran ska förflyttas och zooma utan menybyte.
+ const moved=await pg.locator('.fam3-viewport').evaluate(el=>{
+  const stage=el.querySelector('.fam3-stage'),before=stage.getAttribute('transform'),r=el.getBoundingClientRect();
+  const dispatch=(type,id,x,y,target=el)=>target.dispatchEvent(new PointerEvent(type,{bubbles:true,pointerType:'touch',pointerId:id,clientX:r.left+x,clientY:r.top+y}));
+  dispatch('pointerdown',501,100,200);dispatch('pointermove',501,150,226,document);dispatch('pointerup',501,150,226,document);
+  return before!==stage.getAttribute('transform');
+ });
+ assert.ok(moved,'Panorering flyttar kameran');
+ const pinch=await pg.locator('.fam3-viewport').evaluate(el=>{
+  const r=el.getBoundingClientRect(),stage=el.querySelector('.fam3-stage'),before=stage.getAttribute('transform');
+  const dispatch=(type,id,x,y,target=el)=>target.dispatchEvent(new PointerEvent(type,{bubbles:true,pointerType:'touch',pointerId:id,clientX:r.left+x,clientY:r.top+y}));
+  dispatch('pointerdown',601,110,180);dispatch('pointerdown',602,210,180);
+  dispatch('pointermove',602,285,180,document);
+  dispatch('pointerup',602,285,180,document);dispatch('pointerup',601,110,180,document);
+  return before!==stage.getAttribute('transform');
+ });
+ assert.ok(pinch,'Nypzoom ändrar kamerans transform');
+
  await click('[data-act="slaktEdit"][data-id="Maja|08-18"]');
  // Cykler får inte gå att spara.
  await pg.locator('input[name="slParent"][value="Ella|08-29"]').check();
