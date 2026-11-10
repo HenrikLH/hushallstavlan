@@ -1,6 +1,12 @@
-# Aktuell överlämning — 2026-11-04
+# Aktuell överlämning — 2026-11-10
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
+
+## Familj Hybrid + syskon (ht-v330, utvecklarläge)
+
+- Ny inställning direkt i Släktträd: Traditionellt / Hybrid (per enhet `ht.slaktLayout`). Hybrid bygger på samma födelsedagspersoner, panorerbar/zoomningsbar dynamisk karta och flyttbara noder; dragning låser automatiskt position per enhet (`ht.slaktHybridPins`).
+- Relationsbladet låter dig välja båda föräldrarna i samma flervalslista (max två). Nya fristående syskonrelationer `sr.siblings` sparas i befintlig `onskelista` utan att kräva kända föräldrar. Namnbyte och borttagning följer med. Partner-/barnrelationer och traditionell vy finns kvar.
+- Test `verktyg/emu/familj-dev.js`, CI `.github/workflows/emu.yml` via PR. Rollback `version-fore-familj-hybrid`. Ingen Apps Script-ändring.
 
 ## Pågår: Riktiga släktrelationer i utvecklarläge (ht-v326)
 
