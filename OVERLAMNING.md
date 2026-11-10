@@ -2,6 +2,13 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Förfining Familj/släktträd (ht-v324, endast utvecklarläge)
+
+- Förfinade sammanhängande partner- och syskonlinjer, mer konsekventa generationsrader, zoom 75/100/125 % i Hela trädet samt tryck på person → I fokus.
+- Startfokus Maja så flera generationer syns direkt. Familj-menyn har nu rättvisande, ännu ej aktiverat Personer-val i stället för dubbla födelsedagslänkar.
+- Fortsatt enbart utvecklarläge med fiktiva testpersoner; ingen skrivning till kalkylarket. Födelsedagarnas svepmeny bibehållen.
+- Förhandsvisningens tester finns i `verktyg/emu/familj-dev.js`; återställning `version-fore-slakttrad-forfining`.
+
 ## Pågående förhandsvisning: Familj (ht-v323, utvecklarläge)
 
 - Endast utvecklarläge på UI 5.0: Inställningar → Avancerat → Utvecklarläge → Förhandsvisning → Testa Familj och släktträd.

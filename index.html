@@ -1487,7 +1487,12 @@ html.ny .motion-panel>.wm-body{display:block}
 .fam-all-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:17px 18px 10px;font-size:15px}
 .fam-all-head .meta{font-size:12px;color:var(--ink-2);text-align:right;max-width:57%}
 .fam-pan{overflow-x:auto;overscroll-behavior-x:contain;touch-action:pan-x pan-y;-webkit-overflow-scrolling:touch;padding:6px 10px 12px;scrollbar-width:thin;scrollbar-color:var(--ink-3) transparent}
-.fam-full-svg{display:block;max-width:none;min-width:100%;height:auto;overflow:visible}
+.fam-full-svg{display:block;max-width:none;min-width:0;height:auto;overflow:visible}
+.fam-zoom{display:flex;align-items:center;gap:8px;white-space:nowrap}
+.fam-zoom button{display:grid;place-items:center;border:1px solid var(--line);background:var(--fill);color:var(--ink);width:32px;height:32px;border-radius:50%;font-size:20px;line-height:1;cursor:pointer}
+.fam-zoom button:disabled{opacity:.3;cursor:default}
+.fam-zoom .num{color:var(--ink-2);font-size:12px;min-width:35px;text-align:center}
+.fam-all-head>div:first-child .meta{max-width:none;text-align:left;margin-top:3px}
 .fam-all-help{padding:0 18px 16px;font-size:13px;line-height:18px;color:var(--ink-2)}
 /* ===== Födelsedagar ===== */
 .bd .bd-date{display:flex;flex-direction:column;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;background:var(--accent-soft);color:var(--accent);flex:none;line-height:1}
