@@ -1448,9 +1448,13 @@ function haFlode(a,pl,fh){const R=a.rum||[],nm=id=>esc(haRumN(a,R.find(r=>r.id==
  return h+'</div>'+stopp}
 // kartans ordningsnummer: rummen i steget som pågår (eller det första i förhandsvisningen)
 function haKartaNr(a,k){const P=haRobPlan(a),pl=a.plan&&!a.plan.klar&&(a.plan.steg||[]).length&&!(S.haRobRum||[]).length?a.plan:null,Sn=pl?pl.steg:P.steg;if(!Sn.length)return'';
+ if(!pl){const[x0,y0,cw,ch]=k.crop;return(S.haRobRum||[]).map(id=>{const r=k.rum.find(q=>q.id===id);if(!r)return'';const R0=(a.rum||[]).find(q=>q.id===id),hb=haRumN(a,R0||{}).length*Math.max(cw,ch)/26*.29,pos='left:'+((r.cx-x0-hb)/cw*100).toFixed(2)+'%;top:'+((r.cy-y0)/ch*100).toFixed(2)+'%',d=P.damm.indexOf(id),m=P.mopp.includes(id);
+  return'<b class="ha-kn '+(d>=0?'damm':'mopp')+'" style="'+pos+'">'+(d>=0?d+1:HAI_K.mopp)+(d>=0&&m?'<i>'+HAI_K.mopp+'</i>':'')+'</b>'}).join('')}
  const typ=Sn[pl?Math.min(pl.i,Sn.length-1):0].typ,[x0,y0,cw,ch]=k.crop;let n=0,h='';
  Sn.forEach((st,j)=>{if(st.typ!==typ)return;st.rum.forEach(id=>{n++;const r=k.rum.find(q=>q.id===id);if(!r)return;const c=pl?haRumLage(pl,j,id,false):'',R0=(a.rum||[]).find(q=>q.id===id),hb=haRumN(a,R0||{}).length*Math.max(cw,ch)/26*.29;
   h+='<b class="ha-kn '+typ+' '+c+'" style="left:'+((r.cx-x0-hb)/cw*100).toFixed(2)+'%;top:'+((r.cy-y0)/ch*100).toFixed(2)+'%">'+(c==='klar'?I.tick:n)+'</b>'})});return h}
+function haRutt(a,Sn){const R=a.rum||[],nm=id=>esc(haRumN(a,R.find(r=>r.id===id)||{}));let n=0,m=0;
+ return'<div class="ha-rutt">'+Sn.map((st,j)=>st.rum.map(id=>'<span class="ha-rn '+st.typ+'"><i>'+(st.typ==='damm'?++n:HAI_K.mopp)+'</i>'+nm(id)+'</span>').join('<em>›</em>')+(j<Sn.length-1?'<em>›</em><span class="ha-rd" title="Töms i dockan">'+HAI_APP.hem+'</span><em>›</em>':'')).join('')+'</div>'}
 const HA_RUMNAMN=['Kök','Vardagsrum','Sovrum','Hall','Badrum','Kontor','Barnrum','Matplats','Klädkammare','Tvättstuga','Arbetsrum','Gästrum'];
 function haAppSheet(enter){const a=haAppX();if(!a){S.sheet=null;return''}
  const top='<div class="ha-top"><span class="ha-i ha-ap-'+a.typ+(haAppAktiv(a)?' on':'')+'">'+HAI_APP[a.typ]+'</span><div class="ha-tx"><div class="ha-n">'+esc(a.n)+'</div><div class="ha-s">'+esc(haAppStat(a))+'</div></div><button type="button" class="ha-x" data-act="sheetClose" aria-label="Stäng">'+I.x+'</button></div>';
@@ -1465,13 +1469,8 @@ function haAppSheet(enter){const a=haAppX();if(!a){S.sheet=null;return''}
   const vald=V.length?V.map(id=>haRumN(a,R.find(r=>r.id===id)||{})).join(', '):'Hela hemmet';
   // plan: alla rum dammsugs först, sedan moppas mopprummen (väggdatorns tjänst startar nästa steg när roboten är hemma)
   const P=haRobPlan(a),pl=a.plan&&(a.plan.steg||[]).length?a.plan:null,kor=pl&&!pl.klar;
-  b+=haKarta(a);
-  if(!S.haZon&&!kor)b+='<div class="ha-valt"><span>'+(V.length?V.length+(V.length>1?' rum valda':' rum valt'):esc(vald))+'</span>'+(V.length?'<button type="button" data-act="haRobRum" data-id="">Rensa</button>':'<em>Tryck på ett rum</em>')+'</div>';
-  if(!S.haZon&&V.length&&!st&&!kor)b+='<div class="ha-gl ha-rv">'+V.map(id=>{const v=S.haRobV&&S.haRobV[id]||'v';return'<div class="ha-gr"><span>'+esc(haRumN(a,R.find(r=>r.id===id)||{}))+'</span>'+[['v','Vacuum'],['m','Mop']].map(([k,n])=>'<button type="button" class="ha-pill" data-act="haRobV" data-id="'+id+':'+k+'" aria-pressed="'+v.includes(k)+'">'+n+'</button>').join('')+'</div>'}).join('')+'</div>'+haFlode(a,{steg:P.steg,i:-1,klara:[]},true);
-  else if(pl&&!S.haZon)b+=haFlode(a,pl);
-  if(S.haZon)b+='<div class="ha-valt"><span>'+(S.haZonR?'Zon ritad':'Dra i kartan för att rita en zon')+'</span><button type="button" data-act="haZon">Avbryt</button></div><div class="ha-rks">'+(st?rund(HAI_APP.paus,'Pausa','haRob','paus',true):rund(HAI_APP.play,'Städa zon','haZonStada','',true,!S.haZonR))+'</div>';
-  else b+='<div class="ha-rks">'+(st?rund(HAI_APP.paus,'Pausa','haRob','paus',true):rund(HAI_APP.play,V.length?(P.damm.length?'Städa':'Moppa'):a.st==='paused'?'Fortsätt':'Städa allt','haRob','start',true))+rund(HAI_APP.hem,'Åk hem','haRob','hem',false,/charging|docked|returning|docking/.test(a.st||''))+'</div>';
-  const U=haUnd(a),Ux=U.filter(u=>u.h<=0);
+  const U=haUnd(a),Ux=U.filter(u=>u.h<=0),lag=S.haLager==='m'?'m':'v',hemma=/charging|docked|returning|docking/.test(a.st||'');
+  if(S.haAppSida==='inst'){b+='<button type="button" class="ha-bak" data-act="haAppSida" data-id="">'+I.back+'<span>Karta</span></button>';
   b+='<div class="ha-gl">'+rad('lage','Mode',a.lage==='vac_and_mop'?'Vacuum & Mop':namn(LAGE,a.lage),val('lage',LAGE,a.lage)+(a.lage==='custom'?'<div class="ha-gnot">Custom = the per-room settings in the Roborock app.</div>':''))+
    (a.lage!=='mop'?rad('sug','Suction',namn(SUG,a.sug),val('sug',SUG,a.sug)):'')+(a.lage!=='vacuum'?rad('vatten','Water flow',namn(VAT.filter(x=>x[1]),a.vatten)==='–'&&/custom/.test(a.vatten||'')?'Custom':namn(VAT.filter(x=>x[1]),a.vatten),val('vatten',VAT.filter(x=>x[1]),a.vatten)):'')+'</div>';
   if(a.dock){const DL=(a.dockLageAlt||[]).filter(o=>o!=='unknown').map(o=>[o,{smart:'Smart',light:'Light',balanced:'Balanced',max:'Max'}[o]||o]);
@@ -1481,7 +1480,23 @@ function haAppSheet(enter){const a=haAppX();if(!a){S.sheet=null;return''}
   b+='<div class="ha-gl">'+((a.rutiner||[]).length?rad('rut','Routines',a.rutiner.length+'','<div class="ha-gnot">From the Roborock app.</div>'+a.rutiner.map(r=>'<button type="button" class="ha-gv" data-act="haRutin" data-id="'+esc(r.id)+'"><span>'+esc(r.n)+'</span><i>'+HAI_APP.play+'</i></button>').join('')):'')+
    rad('rum','Rooms',R.some(r=>!r.n)?'Name them':R.length+'',R.map(r=>'<button type="button" class="ha-gv'+(S.haRumNamn===r.id?' ut':'')+'" data-act="haRumNamn" data-id="'+r.id+'"><span>'+esc(haRumN(a,r))+(r.stor?'<small>Stort rum</small>':'')+'</span><i>'+I.chev+'</i></button>'+(S.haRumNamn===r.id?'<div class="ha-namnval">'+HA_RUMNAMN.map(n=>'<button type="button" class="'+(r.n===n?'on':'')+'" data-act="haRumNamnV" data-id="'+r.id+':'+n+'">'+n+'</button>').join('')+'</div><button type="button" class="ha-gv ha-stor" data-act="haRumStor" data-id="'+r.id+'" aria-pressed="'+!!r.stor+'"><span>Stort rum<small>Dammsugs ensamt och töms efteråt</small></span>'+(r.stor?'<i>'+I.tick+'</i>':'')+'</button>':'')).join(''),R.some(r=>!r.n))+
    (U.length?rad('und','Maintenance',Ux.length?Ux.length+' need attention':'All good',U.map(u=>'<div class="ha-und-r"><span>'+u.n+'</span><i style="--p:'+Math.max(0,Math.min(100,Math.round(100*u.h/u.max)))+'%"'+(u.h/u.max<.15?' class="lag"':'')+'></i><b'+(u.h<=0?' class="fyll"':'')+'>'+(u.h<=0?u.gor+' now':Math.round(u.h)+' h')+'</b></div>').join(''),Ux.length):'')+'</div>';
-  b+='<div class="ha-ap-info">'+(st&&(a.yta!=null||a.min!=null)?[a.yta!=null&&String(a.yta).replace('.',',')+' m²',a.min!=null&&Math.round(a.min)+' min',a.bat!=null&&'batteri '+Math.round(a.bat)+' %'].filter(Boolean).join(' · '):a.senast?'Senast städat '+haNar(a.senast).toLowerCase():'')+'</div>'}
+  }else{
+  b+=haKarta(a);
+  // lager: välj Vacuum eller Mop och tryck på rummen i kartan; rutten under visar ordningen innan start
+  if(S.haZon)b+='<div class="ha-valt"><span>'+(S.haZonR?'Zon ritad':'Dra i kartan för att rita en zon')+'</span><button type="button" data-act="haZon">Avbryt</button></div>';
+  else if(!kor&&!st){b+='<div class="ha-lag">'+[['v','damm','Vacuum',P.damm.length],['m','mopp','Mop',P.mopp.length]].map(([k,c,n,ant])=>'<button type="button" class="'+c+(lag===k?' on':'')+'" data-act="haLager" data-id="'+k+'" aria-pressed="'+(lag===k)+'">'+HAI_K[c]+'<span>'+n+'</span>'+(ant?'<b>'+ant+'</b>':'')+'</button>').join('')+'</div>';
+   b+='<div class="ha-valt">'+(V.length?'<span>'+V.length+(V.length>1?' rum valda':' rum valt')+'</span><button type="button" data-act="haRobRum" data-id="">Rensa</button>':'<em>Tryck på rummen som ska '+(lag==='m'?'moppas':'dammsugas')+'</em>')+'</div>';
+   if(P.steg.length)b+=haRutt(a,P.steg)}
+  if(pl&&!S.haZon&&(kor||!V.length))b+=haFlode(a,pl);
+  const varn=(a.dockVarn||[]).concat(Ux.length?[Ux.length+' need attention']:[]);
+  b+='<div class="ha-gl">'+(varn.length?'<button type="button" class="ha-gr" data-act="haAppSida" data-id="inst"><span>'+esc(varn[0])+(varn.length>1?' +'+(varn.length-1):'')+'</span><b class="fyll">Visa</b><i>'+I.chev+'</i></button>':'')+
+   '<button type="button" class="ha-gr" data-act="haAppSida" data-id="inst"><span>Inställningar</span><b>'+[a.lage!=='mop'&&namn(SUG,a.sug),a.dock&&'Dock'].filter(x=>x&&x!=='–').join(' · ')+'</b><i>'+I.chev+'</i></button></div>';
+  b+='<div class="ha-ap-info">'+(st&&(a.yta!=null||a.min!=null)?[a.yta!=null&&String(a.yta).replace('.',',')+' m²',a.min!=null&&Math.round(a.min)+' min',a.bat!=null&&'batteri '+Math.round(a.bat)+' %'].filter(Boolean).join(' · '):a.senast?'Senast städat '+haNar(a.senast).toLowerCase():'')+'</div>';
+  // fast rad längst ner: en stor knapp för det som går att göra nu, och Åk hem
+  const stor=(ik,n,act,id,av,sub)=>'<button type="button" class="ha-bk" data-act="'+act+'" data-id="'+(id||'')+'"'+(av?' disabled':'')+'>'+ik+'<span>'+n+(sub?'<small>'+sub+'</small>':'')+'</span></button>';
+  const sub=V.length?[P.damm.length&&P.damm.length+' Vacuum',P.mopp.length&&P.mopp.length+' Mop'].filter(Boolean).join(' · '):'';
+  b+='<div class="ha-bar">'+(S.haZon?(st?stor(HAI_APP.paus,'Pausa','haRob','paus'):stor(HAI_APP.play,'Städa zon','haZonStada','',!S.haZonR)):st?stor(HAI_APP.paus,'Pausa','haRob','paus'):stor(HAI_APP.play,V.length?(P.damm.length?'Starta':'Moppa'):a.st==='paused'?'Fortsätt':'Städa allt','haRob','start',false,sub))+
+   '<button type="button" class="ha-bh" data-act="haRob" data-id="hem" aria-label="Åk hem"'+(hemma?' disabled':'')+'>'+HAI_APP.hem+'</button></div>'}}
  else{const kor=/run|pause|delayedstart/.test(a.st||''),k=haKvar(a),R=54,O=2*Math.PI*R,p=kor?(a.pct||0):a.st==='finished'?100:0,kan=a.fjarr&&a.dorr!=='open';
   b+='<div class="ha-ring"><svg viewBox="0 0 128 128"><circle cx="64" cy="64" r="'+R+'"/><circle class="p" cx="64" cy="64" r="'+R+'" stroke-dasharray="'+O+'" stroke-dashoffset="'+(O*(1-p/100))+'"/></svg><div><b>'+(kor&&k!=null?k+'<small> min</small>':a.st==='finished'?'Klar':esc(a.prog||'–'))+'</b><span>'+(kor&&a.slut?'klar '+haKl(a.slut):kor?'':esc(HA_DISK_ST[a.st]||''))+'</span></div></div>';
   b+='<div class="ha-rks">'+(kor?(a.kanStoppa?rund(HAI_APP.stopp,'Håll för att stoppa','haDiskStopp',a.id,true,false,true):''):rund(HAI_APP.play,'Starta','haDisk','start',true,!kan))+'</div>'+(!kor&&!kan?'<div class="ha-ap-info">'+(a.dorr==='open'?'Stäng luckan för att starta.':'Tryck på fjärrstart på diskmaskinen för att starta härifrån.')+'</div>':'');
@@ -5545,11 +5560,15 @@ const ACT={
  haTog(id){const x=(haData()||{lampor:[]}).lampor.find(e=>e.id===id);if(!x||x.nas)return;try{u5Tick()}catch(e){}const was=x.on;x.on=!was;if(x.on&&!x.b&&x.t==='light')x.b=null;HA.last=null;render();haSend({id,gor:'vaxla'},()=>{x.on=was})},
  haTest(){closeSheets();S.haTest=true;S.haRum=null;HA.demo=null;HA.syn={};HA.byt={};HA.last=null;S.view='hus';try{scrollTo(0,0)}catch(e){}render()},
  haRumVy(id){S.haRum=id?(id==='_'?'':id):null;try{scrollTo(0,0)}catch(e){}render()},
- haApp(id){S.haAppId=id;S.sheet='haApp';S.haRumNamn=null;S.haAppDel=null;S.haZon=false;S.haZonR=null;try{u5Tick()}catch(e){}render()},
- haRobRum(id){S.haRumNamn=null;if(id===''){S.haRobRum=[];return render()}const v=+id,L=S.haRobRum||[];S.haRobRum=L.includes(v)?L.filter(x=>x!==v):L.concat(v);render()},
+ haApp(id){S.haAppId=id;S.sheet='haApp';S.haAppSida=null;S.haLager='v';S.haRumNamn=null;S.haAppDel=null;S.haZon=false;S.haZonR=null;try{u5Tick()}catch(e){}render()},
+ haRobRum(id){S.haRumNamn=null;if(id===''){S.haRobRum=[];S.haRobV={};return render()}const v=+id,L=S.haRobRum||[];S.haRobRum=L.includes(v)?L.filter(x=>x!==v):L.concat(v);render()},
  haKartaTryck(id,el,e){const a=haAppX(),k=HA.km;if(!a||!k||!k.ok||!e||S.haZon)return;const r=el.getBoundingClientRect(),[x0,y0,cw,ch]=k.crop,x=Math.floor((e.clientX-r.left)/r.width*cw),y=Math.floor((e.clientY-r.top)/r.height*ch);
   let j=x>=0&&y>=0&&x<cw&&y<ch?k.kl[y*cw+x]:-1,rid=j>=0?k.rum[j].id:null;if(rid==null){const X=x+x0,Y=y+y0,T=(a.rum||[]).filter(q=>q.b&&X>=q.b[0]&&X<=q.b[2]&&Y>=q.b[1]&&Y<=q.b[3]).sort((p,q)=>(p.b[2]-p.b[0])*(p.b[3]-p.b[1])-(q.b[2]-q.b[0])*(q.b[3]-q.b[1]));rid=T[0]&&T[0].id}
-  if(rid!=null){try{u5Tick()}catch(err){}ACT.haRobRum(String(rid))}},
+  if(rid!=null){try{u5Tick()}catch(err){}ACT.haLagerRum(rid)}},
+ haLager(k){S.haLager=k==='m'?'m':'v';render()},
+ haLagerRum(id){const a=haAppX();if(!a||haStadar(a)||(a.plan&&!a.plan.klar&&(a.plan.steg||[]).length))return;const k=S.haLager==='m'?'m':'v',V=S.haRobRum||[],W=S.haRobV=S.haRobV||{};S.haRumNamn=null;
+  if(!V.includes(id)){S.haRobRum=V.concat(id);W[id]=k}else{const o=W[id]||'v',n=o.includes(k)?o.replace(k,''):'vm';if(n)W[id]=n;else{S.haRobRum=V.filter(x=>x!==id);delete W[id]}}render()},
+ haAppSida(v){S.haAppSida=v||null;S.haAppDel=null;S.haRumNamn=null;render();try{const b=document.querySelector('#overlay form[data-form="haApp"] .sheet-body');if(b)b.scrollTop=0}catch(e){}},
  haRumNamn(id){S.haRumNamn=S.haRumNamn===+id?null:+id;render()},
  haZon(){S.haZon=!S.haZon;S.haZonR=null;S.haRobRum=[];S.haAppDel=null;render()},
  haZonStada(){const a=haAppX();if(!a||!S.haZonR)return;const z=S.haZonR.slice(),was=a.st;a.st='zoned_cleaning';S.haZon=false;S.haZonR=null;render();toast('Städar zonen');haSend({app:a.id,zon:[Math.min(z[0],z[2]),Math.min(z[1],z[3]),Math.max(z[0],z[2]),Math.max(z[1],z[3])]},()=>{a.st=was})},
