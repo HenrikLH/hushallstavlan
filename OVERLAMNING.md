@@ -2,6 +2,10 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Förslag: expertgranskning (Claude, väntar på Henrik)
+
+- `docs/granskning-2026-11/README.md` + skisser: prioriterade arbetspaket A–M (meny, översikt, recept, färgroller, väggskärm, animationer, färre val, nya funktioner). Gren `claude/project-thread-davi5e`. Inget byggt; Henrik väljer meny A/B och ordning först (frågor i avsnitt 8).
+
 ## Familj Hybrid + syskon (ht-v330, utvecklarläge)
 
 - Ny inställning direkt i Släktträd: Traditionellt / Hybrid (per enhet `ht.slaktLayout`). Hybrid bygger på samma födelsedagspersoner, panorerbar/zoomningsbar dynamisk karta och flyttbara noder; dragning låser automatiskt position per enhet (`ht.slaktHybridPins`).
