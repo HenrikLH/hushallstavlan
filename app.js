@@ -1384,7 +1384,7 @@ function haAppSheet(enter){const a=haAppX();if(!a){S.sheet=null;return''}
   const U=haUnd(a),Ux=U.filter(u=>u.h<=0);
   b+='<div class="ha-gl">'+rad('lage','Läge',a.lage==='vac_and_mop'?'Sug och mopp':namn(LAGE,a.lage),val('lage',LAGE,a.lage)+(a.lage==='custom'?'<div class="ha-gnot">Rummens egna = inställningarna per rum i Roborock-appen.</div>':''))+
    (a.lage!=='mop'?rad('sug','Sug',namn(SUG,a.sug),val('sug',SUG,a.sug)):'')+(a.lage!=='vacuum'?rad('vatten','Vatten',namn(VAT.filter(x=>x[1]),a.vatten)==='–'&&/custom/.test(a.vatten||'')?'Rummens egna':namn(VAT.filter(x=>x[1]),a.vatten),val('vatten',VAT.filter(x=>x[1]),a.vatten)):'')+'</div>';
-  if(a.dock){const DL=(a.dockLageAlt||[]).map(o=>[o,{smart:'Smart',light:'Lätt',balanced:'Normal',max:'Max'}[o]||o]);
+  if(a.dock){const DL=(a.dockLageAlt||[]).filter(o=>o!=='unknown').map(o=>[o,{smart:'Smart',light:'Lätt',balanced:'Normal',max:'Max'}[o]||o]);
    b+='<div class="ha-gl">'+(a.dockVarn||[]).map(v=>'<div class="ha-gr"><span>Dockan</span><b class="fyll">'+esc(v)+'</b></div>').join('')+
     '<button type="button" class="ha-gr" data-act="haDock" data-id="tom"><span>Töm dammbehållaren</span><b class="gor">Töm</b></button><button type="button" class="ha-gr" data-act="haDock" data-id="tvatt"><span>Tvätta moppen</span><b class="gor">Tvätta</b></button>'+
     (DL.length?rad('dockLage','Tömning efter städning',namn(DL,a.dockLage),val('dockLage',DL,a.dockLage)):'')+'</div>'}
