@@ -41,7 +41,7 @@ module.exports=async(pg,h)=>{
  await click('[data-act="nav"][data-id="slakt"]');
  await click('[data-act="slaktVy"][data-id="alla"]');
  assert.equal(await pg.locator('svg.fam-full-svg .fam-node').count(),5,'Fem anslutna personer syns i trädet');
- assert.ok((await main()).includes('Ännu inte placerade'),'Ej placerade personer ska visas separat');
+ assert.equal(await pg.locator('main .sh').filter({hasText:'Ännu inte placerade'}).count(),1,'Ej placerade personer ska visas separat');
  await h.shot('familj-dev-hela');
  const width=Number(await pg.locator('svg.fam-full-svg').getAttribute('width'));
  await click('[data-act="slaktZoom"][data-id="plus"]');
