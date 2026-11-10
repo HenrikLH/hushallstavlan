@@ -2,6 +2,12 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Släktträd – ny linjelayout för granskning
+
+- Arbetsgren `feature/slakttrad-v4-linjer`; ingen merge till `main`. Utvecklad efter återkoppling om korsande linjer i v3.
+- Algoritmen grupperar partnerpar och deras barn i familjegrenar, beräknar gruppbredd rekursivt och ritar en enda barnbuss per familj. Korsningar mellan olika familjer får visuella avbrott så de inte uppfattas som knutpunkter. Fokus tonar ned orelaterade relationer.
+- Regressionstest `verktyg/emu/familj-grenar.js` verifierar 20 personer, flera sammanflätade familjer, inga linjer genom personkort och fokusmarkering. Befintliga `familj-dev.js` och `familj-stor.js` används också. Ingen ändring i relationernas lagring.
+
 ## Släktträd v3 (ht-v335, utvecklarläge)
 
 - Ett visuellt, sammanhängande släktträd med panorerbar SVG-canvas, pinch-zoom, centrering och gemensamma familjekopplingar i stället för listbaserad generationsmeny. Personkort och detaljpanel med UI 5.0-anpassning.
