@@ -2,6 +2,14 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Pågår: Riktiga släktrelationer i utvecklarläge (ht-v326)
+
+- Gren `feature/slakttrad-riktiga-relationer-dev`. Utvecklarförhandsvisningen använder nu `bdays()` och listan Personer och relationer i stället för demodata. Vid tryck på en person öppnas ett blad där partner, 1–2 föräldrar och valfria barn kan tilldelas.
+- Relationer sparas som `sr:{par:{barn:[föräldrar]},partners:[[person,person]]}` i befintliga födelsedagsobjektet i `onskelista`; Apps Script behöver ingen ändring. Cykler och fler än två föräldrar blockeras; födelsedagsändringar uppdaterar nycklar, borttagning rensar relationer.
+- Hela trädet visar endast personer med sparade relationer; övriga finns under Ännu inte placerade. UI använder befintliga `head`, `sh`, `group`, `cell`, `segc`, `sheetHtml` med enhetlig 20px-inset.
+- `verktyg/emu/familj-dev.js` testar relationer, sparning, cykelskydd, zoom, fokusering, utvecklarläge och oförändrade födelsedagar. Endast DEV tills användaren godkänner designen.
+- Rollback: `version-fore-slakttrad-riktiga-data`. Separat gammal PR #84 används inte vid publicering.
+
 ## Förfining Familj/släktträd (ht-v324, endast utvecklarläge)
 
 - Förfinade sammanhängande partner- och syskonlinjer, mer konsekventa generationsrader, zoom 75/100/125 % i Hela trädet samt tryck på person → I fokus.
@@ -43,6 +51,7 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 ## Pågår nu
 
+- **Välj hur menyraden krymper i UI 5.0** publicerat ht-v327 (Claude, ångra-gren `version-fore-menyrad-piller`): Inställningar → Utseende → Menyraden när du scrollar: Rund knapp (standard) / Piller / Ligger kvar (`KRYMP5`, `ht.krymp5`, ACT `krymp5`; piller återanvänder `nav-piller`-CSS). Bara telefon. Test `flikrad-krymp.js` (`LS={"krymp5":"piller"|"av"}`), gröna: alla-flikar telefon+vägg, flikrad-lins.
 - **Dammsugare (Roborock) och diskmaskin i Smart hem** publicerat ht-v322 (Claude, ångra-gren `version-fore-apparater`): `kiosk/ljussensor.py` hittar Roborock (`ha_robot`, rum+kalibrering från RoborockCustomMap 0.1.6, installerad på Surfacen och tillagd i HA) och Home Connect-diskmaskinen (`ha_disk`) på options/enheter (svenska entity_id), `/ha/karta`, styrning `{app,…}` i `ha_app_styr`, rumsnamn `/ha/val {rumnr,rumnamn}` (HA ger "Unknown"). Appen: `haKartaLas/haKartaTolka/haKartaUrl` (canvas, rum känns igen på färg, ej valda tonas), `haAppSheet` (Apple-stil: runda knappar, lista `.ha-gl` som fälls ut via `S.haAppDel`), ACT `haKartaTryck/haRob*/haDisk*`. Bilder /mnt/project-files/apparater/3-4. Test: `apparater.js` (haDemo) och mot `falsk-ha.py`+tjänsten (`FALSK_KARTA=<1648px png>`; Henriks riktiga karta ska inte in i repot). Tjänsten installerad på Surfacen 2026-11-09 (backup `~/.local/bin/ljussensor.py.fore-v322`), /ha ger robot med 6 rum och diskmaskin. Följ upp: namnge rummen, fungerar Städa per rum och diskstart i verkligheten (telefon via Tailscale)? Att göra efter Henriks val av inriktning (Apple-version rekommenderad vs kopiera Roborock-appen): rotera kartan (select …_rotation), visa förbjudna zoner/virtuella väggar (kartlager i Roborock-integrationens inställningar), zonstädning (dra rektangel, `roborock.set_vacuum_zoned_cleaning`), docka (töm behållare, tvätta/torka mopp, tömningsläge), ta bort "Sug och mopp" (Henrik kör aldrig båda samtidigt). Inget ändrat än.
 - **Menyraden krymper vid scroll i UI 5.0** publicerat ht-v321 (Claude, ångra-gren `version-fore-menyrad-krymp`): Henrik saknade att flikraden krymper till en rund knapp vid scroll nedåt. Den var avstängd i UI 5.0 sedan 2026-11-05 (7182697, menyn försvann på väggen). Nu på igen i UI 5.0 men bara telefon (`!S.wall`, <900 px), runda knappen är en cirkel. Test `flikrad-krymp.js` (UI5, UI2 Svävande, vägg), gröna: alla-flikar telefon+vägg, flikrad-lins, ui5-gester.
 - **Flikraden täcktes av sidan vid scroll i iPhone** publicerat ht-v320 (Claude, ångra-gren `version-fore-scrollist-ios`): innehåll nedanför första skärmhöjden ritades över flikraden. Antagen orsak (ej verifierbar i Chromium): ht-v312:s dolda scrollist (`::-webkit-scrollbar` på html/body). Nu bara utanför iOS (`@supports not (-webkit-touch-callout:none)`). Om felet finns kvar: prova `.sat-kant` (ht-v317) härnäst. Gröna: topp-skarp, alla-flikar, flikrad-lins (telefon). Följ upp: är flikraden hel i iPhone?
