@@ -5130,6 +5130,7 @@ function slaktV3Layout(B){
  const height=Math.max(...[...pos.values()].map(p=>p.y))+95;
  return{pos,width,height,edges};
 }
+function slaktNear(focus,all){const look=k=>all.find(b=>b.key===k),parents=slaktParents(focus.key).map(look).filter(Boolean),partners=slaktPartners(focus.key).map(look).filter(Boolean);const sib=new Map();slaktSiblings(focus.key).map(look).filter(Boolean).forEach(b=>sib.set(b.key,b));parents.forEach(p=>slaktChildren(p.key).filter(b=>b.key!==focus.key).forEach(b=>sib.set(b.key,b)));return{parents,partners,siblings:[...sib.values()],children:slaktChildren(focus.key)}}
 function slaktV3Markup(B,focus){
  const t=slaktV3Layout(B),R=slaktR(),related=new Set([focus.key,...slaktParents(focus.key),...slaktPartners(focus.key),...slaktSiblings(focus.key),...slaktChildren(focus.key).map(x=>x.key)]),active=S.slaktVy==='fokus';
  const nodes=B.map(b=>{const p=t.pos.get(b.key),selected=b.key===focus.key,fade=active&&!related.has(b.key);
@@ -5171,7 +5172,7 @@ function slaktV3Zoom(factor,clientX,clientY){
   if(!SL3.camera)slaktV3Camera();SL3.pointers.set(e.pointerId,pt(e,box));
   if(SL3.pointers.size===1){SL3.gesture={start:pt(e,box),tx:SL3.camera.tx,ty:SL3.camera.ty,moved:false}}
   if(SL3.pointers.size===2){const [a,b]=[...SL3.pointers.values()];SL3.gesture={distance:Math.hypot(a.x-b.x,a.y-b.y),zoom:SL3.camera.z,tx:SL3.camera.tx,ty:SL3.camera.ty,mid:{x:(a.x+b.x)/2,y:(a.y+b.y)/2},pinching:true,moved:true}}
-  try{box.setPointerCapture(e.pointerId)}catch(_){}
+  // No capture on the viewport: taps must still reach the person node.
  },{passive:true});
  document.addEventListener('pointermove',e=>{if(!SL3.pointers.has(e.pointerId))return;const box=document.querySelector('.fam3-viewport');if(!box)return;SL3.pointers.set(e.pointerId,pt(e,box));const g=SL3.gesture,c=SL3.camera;if(!g||!c)return;
   if(SL3.pointers.size>=2){const [a,b]=[...SL3.pointers.values()],mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2},dist=Math.max(1,Math.hypot(a.x-b.x,a.y-b.y)),z=Math.max(.12,Math.min(2.8,g.zoom*dist/Math.max(g.distance,1)));
