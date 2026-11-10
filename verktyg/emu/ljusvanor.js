@@ -1,10 +1,9 @@
 // Ljusvanor i lampkortet: kelvin under reglaget, Auto (tryck = på/av, håll in = inställningarna), undersidan med dygnsremsor och paus.
-// Utseendet prövas i tre varianter (ht.haKortV A/B/C, A förvalt):
-//   LS='{"haDemo":"1","haKortV":"B"}' NOW=2026-11-10T21:00 node verktyg/emu/run.js verktyg/emu/ljusvanor.js
+// Auto och ⋯ uppe bredvid krysset, Justera sist bland favoriterna (Henrik valde C).
+//   LS='{"haDemo":"1"}' NOW=2026-11-10T21:00 node verktyg/emu/run.js verktyg/emu/ljusvanor.js
 //   Tjänstens del testas med python3 verktyg/ljusvanor-test.py
 const assert=require('node:assert/strict');
 module.exports=async(pg,h)=>{
- const V=(JSON.parse(process.env.LS||'{}').haKortV)||'A';
  await pg.locator('#nav [data-act="nav"][data-id="oversikt"]').first().click();await h.idle(500);
  const F='form[data-form="haLampa"]',oppna=async id=>{await pg.locator('section.ha .ha-t[data-id="'+id+'"] .ha-n').click();await h.idle(1100)};
  const AU=F+' button[data-act="haVanaAuto"]',stang=async()=>{await pg.locator(F+' .ha-x').click();await h.idle(900)};
@@ -15,7 +14,7 @@ module.exports=async(pg,h)=>{
  assert.equal(await pg.locator(F+' [data-act="haSub"][data-id="ton"]').count(),1,'Väg till Ton och färg');
  assert.equal(await pg.locator(F+' [data-act="haEdit"]').count(),1,'Väg till Ändra');
  assert.equal(await pg.locator(AU).count(),1,'Auto-knappen');assert.ok(await pg.locator(AU).evaluate(e=>e.classList.contains('on')||e.closest('.on')!=null),'Auto på');
- await h.shot('ljusvanor-'+V);
+ await h.shot('ljusvanor-1-kort');
  await pg.locator(AU).click();await h.idle(500);
  assert.equal(await pg.locator(AU).getAttribute('aria-pressed'),'false','Tryck slår av');
  await pg.locator(AU).click();await h.idle(500);
