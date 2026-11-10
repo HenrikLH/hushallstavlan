@@ -13,7 +13,7 @@
 #                      | {"app": id, "gor": "start", "damm": [16], "mopp": [16, 17]}  dammsuger först, moppar när roboten är hemma igen ("planstopp" hoppar över)
 #                      | {"app": id, "zon": [x0, y0, x1, y1] (kartans pixlar)}
 #                      | {"app": id, "sug"|"lage"|"vatten"|"prog"|"rutin"|"rot"|"dockLage": värde}   dammsugare och diskmaskin
-#   POST /ha/val       {"rumnr": 16, "rumnamn": "Kök"} namnger robotens rum
+#   POST /ha/val       {"rumnr": 16, "rumnamn": "Kök"} namnger robotens rum | {"rumnr": 16, "stor": true} stort rum (dammsugs ensamt, töms efteråt)
 #   POST /ha/val       {"lagg": id} | {"ta": id} | {"id": id, "namn": "Taklampa", "rum": "Kök"}   ändrar tavlans lista i HA_FIL
 # Home Assistant (smart hem): nyckeln ligger bara i HA_FIL (chmod 600) och lämnar aldrig datorn. Tavlan ser bara de
 # lampor, scener och givare som står i filen och kan bara tända, släcka, dimma, byta färg och starta scener. Utan filen svarar /ha 503.
@@ -315,6 +315,8 @@ def ha_robot(c, alla, e):
             f = ha_pixel(a['calibration_points']) if a.get('calibration_points') else None
             for nr, q in sorted((a.get('rooms') or {}).items(), key=lambda t: int(t[0])):
                 rum = {'id': int(nr), 'n': rn.get(str(nr)) or (q.get('name') if q.get('name') not in (None, 'Unknown') else None)}
+                st_ = (c.get('stora') or {}).get(str(nr))
+                rum['stor'] = st_ if st_ is not None else (rum['n'] or '').lower() in ('vardagsrum', 'sovrum')
                 if f:
                     x0, y0 = f(q['x0'], q['y0']); x1, y1 = f(q['x1'], q['y1'])
                     rum['b'] = [round(min(x0, x1)), round(min(y0, y1)), round(max(x0, x1)), round(max(y0, y1))]
@@ -374,9 +376,12 @@ def ha_app_styr(c, d):
             if rum or damm or mopp: PLAN.pop(e, None)
             if (damm or mopp) and a.get('lageId') and {'vacuum', 'mop'} <= set(a['lageAlt']):
                 # alla rum dammsugs först, sedan moppas mopprummen: andra körningen startas av ha_plan när roboten är hemma
-                steg = [{'typ': 'damm', 'rum': damm}] * bool(damm) + [{'typ': 'mopp', 'rum': mopp}] * bool(mopp)
+                # små rum i ett svep, sedan varje stort rum för sig; dockan tömmer mellan omgångarna
+                stor = {x['id'] for x in a['rum'] if x.get('stor')}
+                sma = [x for x in damm if x not in stor]
+                steg = [{'typ': 'damm', 'rum': sma}] * bool(sma) + [{'typ': 'damm', 'rum': [x]} for x in damm if x in stor] + [{'typ': 'mopp', 'rum': mopp}] * bool(mopp)
                 PLAN[e] = {'steg': steg, 'i': 0, 'klara': [[] for _ in steg], 'nu': None, 'sett': False, 'tid': time.time(), 'hemma': None, 'klar': None}
-                ha_plan_kor(c, a, 'vacuum' if damm else 'mop', damm or mopp)
+                ha_plan_kor(c, a, 'vacuum' if damm else 'mop', steg[0]['rum'])
             elif rum or damm or mopp: ha_plan_kor(c, a, None, rum or damm or mopp)
             else: tj('vacuum', 'start', {'entity_id': e})
         elif g == 'planstopp':   # hoppa över resten efter steget som pågår
@@ -464,9 +469,13 @@ def ha_plan():
             logg('ha: plan avbruten (%s, %s)' % (vst, st)); ha_plan_stopp(e)
         elif p['sett'] and vst == 'docked':
             k[:] = steg['rum']; p['nu'] = None
-            if re.search(r'empty|wash|going', st): continue
-            p['hemma'] = p['hemma'] or nu
-            if nu - p['hemma'] < 20: continue   # låt dockan tömma först
+            if re.search(r'empty|wash|going', st): p['hemma'] = p['hemma'] or nu; continue
+            if not p['hemma']:
+                p['hemma'] = nu
+                # efter en dammsugning töms behållaren alltid innan nästa omgång (dockans egen tömning kan vara av eller "smart")
+                if steg['typ'] == 'damm' and p['i'] + 1 < len(p['steg']):
+                    ha_anrop(c, '/api/services/vacuum/send_command', {'entity_id': e, 'command': 'app_start_collect_dust'})
+            if nu - p['hemma'] < 30: continue   # låt dockan tömma klart
             if p['i'] + 1 < len(p['steg']):
                 p['i'] += 1; n = p['steg'][p['i']]
                 logg('ha: steg %d klart, %s %s' % (p['i'], n['typ'], n['rum']))
@@ -541,6 +550,9 @@ def ha_val(d):
     if not c: return 503, {'fel': 'inte inställt'}
     c = json.loads(json.dumps(c))
     e = str(d.get('lagg') or d.get('ta') or d.get('id') or '')
+    if 'rumnr' in d and 'stor' in d:   # stort rum: dammsugs ensamt med tömning efteråt
+        c.setdefault('stora', {})[str(int(d['rumnr']))] = bool(d['stor'])
+        ha_spara(c); ha_uppdatera(); return 200, {'ok': True, 'v': HA['v']}
     if 'rumnr' in d:
         rn = c.setdefault('rumnamn', {}); v = str(d.get('rumnamn') or '').strip()[:30]
         if v: rn[str(int(d['rumnr']))] = v

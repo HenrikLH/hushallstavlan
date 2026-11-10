@@ -108,6 +108,7 @@ class H(http.server.BaseHTTPRequestHandler):
         if not self.ok(): return
         _, _, _, dom, tj = self.path.split('/'); e = d['entity_id']; LOG.append([dom, tj, d])
         if dom == 'vacuum':
+            if tj == 'send_command' and not str(d.get('command')).startswith('app_') or d.get('command') in ('app_start_collect_dust', 'app_start_wash', 'app_stop_wash'): return self.svar(200, [])
             S[e][0] = {'start': 'cleaning', 'send_command': 'cleaning', 'pause': 'paused', 'return_to_base': 'returning'}.get(tj, S[e][0])
             S['sensor.dammsugare_status'][0] = {'cleaning': 'segment_cleaning' if tj == 'send_command' else 'cleaning', 'paused': 'paused', 'returning': 'returning_home'}.get(S[e][0], 'charging')
             if tj == 'set_fan_speed': S[e][1]['fan_speed'] = d['fan_speed']

@@ -16,38 +16,45 @@ module.exports=async(pg,h)=>{
  console.log('karta',JSON.stringify(R));
  assert.ok(R.rum.every(r=>r.f),'Varje rum har fått en färg ur bilden');
  const tryck=async id=>{const r=R.rum.find(q=>q.id===id),b=await pg.locator('#overlay .ha-karta img').boundingBox();await pg.mouse.click(b.x+(r.cx-R.crop[0])/R.crop[2]*b.width,b.y+(r.cy-R.crop[1])/R.crop[3]*b.height);await h.idle(500)};
- const [r1,r2]=R.rum.map(r=>r.id);
- await tryck(r1);await tryck(r2);
- assert.match(await pg.locator('#overlay .ha-valt').innerText(),/2 rum valda/,'Två rum valda genom tryck i kartan');
+ const [r1,r2]=R.rum.map(r=>r.id),r3=R.rum[demo?3:2].id;
+ // r1 är ett stort rum (demons Vardagsrum; mot tjänsten markeras det i rumslistan)
+ if(!demo){await pg.locator('#overlay [data-act="haAppDel"][data-id="rum"]').click();await h.idle(400);await pg.locator('#overlay [data-act="haRumNamn"][data-id="'+r1+'"]').click();await h.idle(300);
+  await pg.locator('#overlay [data-act="haRumStor"][data-id="'+r1+'"]').click();await h.idle(1200);assert.ok(ut.some(u=>/\/val .*"stor":true/.test(u)),'Stort rum sparat');
+  await pg.locator('#overlay [data-act="haAppDel"][data-id="rum"]').click();await h.idle(300);await pg.locator('#overlay .ha-karta img').scrollIntoViewIfNeeded()}
+ await tryck(r1);await tryck(r2);await tryck(r3);
+ assert.match(await pg.locator('#overlay .ha-valt').innerText(),/3 rum valda/,'Tre rum valda genom tryck i kartan');
  assert.doesNotMatch(await pg.locator('#overlay').innerHTML(),/undefined/,'Inget odefinierat i kortet');
- // dammsug båda rummen, moppa det andra efteråt (roboten får inte städa när rummen väljs)
+ // små rum i ett svep, sedan det stora rummet, tömning emellan, sist moppning (roboten får inte städa när rummen väljs)
  if(await pg.locator('#overlay [data-act="haRob"][data-id="paus"]').count()){await pg.locator('#overlay [data-act="haRob"][data-id="paus"]').click();await h.idle(1500)}
- assert.equal(await pg.locator('#overlay .ha-rv .ha-gr').count(),2,'En rad per valt rum');
+ assert.equal(await pg.locator('#overlay .ha-rv .ha-gr').count(),3,'En rad per valt rum');
  await pg.locator('#overlay [data-act="haRobV"][data-id="'+r2+':m"]').click();await h.idle(400);
- assert.equal(await pg.locator('#overlay .ha-fl .ha-fs').count(),3,'Flödet visar Vacuum, dockan och Mop');
- assert.match(await pg.locator('#overlay .ha-fl').innerText(),/Vacuum[\s\S]*Dockan[\s\S]*Mop/,'Dammsugning före moppning');
- assert.match(await pg.locator('#overlay .ha-fs.damm .ha-fo').innerText(),/^1\s*\S[\s\S]*\n2\s*\S/,'Rummen numrerade i ordning');
+ assert.equal(await pg.locator('#overlay .ha-fl .ha-fs').count(),5,'Vacuum, dockan, Vacuum (stort rum), dockan, Mop');
+ assert.match(await pg.locator('#overlay .ha-fl').innerText(),/Vacuum[\s\S]*Dockan[\s\S]*Vacuum[\s\S]*Dockan[\s\S]*Mop/,'Dammsugning med tömning före moppning');
+ assert.match(await pg.locator('#overlay .ha-fs.damm .ha-fo').first().innerText(),/^1\s*\S[\s\S]*\n2\s*\S/,'Små rummen först, numrerade');
+ assert.match(await pg.locator('#overlay .ha-fs.damm .ha-fo').nth(1).innerText(),/^3\s/,'Stora rummet sist, nummer 3');
  await h.shot('apparater-robot');
  await pg.locator('#overlay [data-act="haRob"][data-id="start"]').click();await h.idle(1200);
  const HAU='http://127.0.0.1:18123',logg=async()=>(await(await fetch(HAU+'/logg',{headers:{Authorization:'Bearer test'}})).json()),
-  vanta=async f=>{for(let i=0;i<40;i++){if(f(await logg()))return true;await h.idle(500)}return false},seg=L=>x=>x[2].command==='app_segment_clean'&&JSON.stringify(x[2].params[0].segments)===JSON.stringify(L);
- if(!demo){assert.ok(ut.some(u=>u.includes('"damm":['+r1+','+r2+'],"mopp":['+r2+']')),'Dammsugning och moppning skickade');
-  let L=await logg();
-  assert.ok(await vanta(L=>L.some(seg([r1,r2]))),'Dammsugning startad');L=await logg();assert.ok(L.findIndex(x=>x[2].option==='vacuum')<L.findIndex(seg([r1,r2])),'Läget satt till dammsugning först');
+  vanta=async f=>{for(let i=0;i<120;i++){if(f(await logg()))return true;await h.idle(500)}return false},seg=L=>x=>x[2].command==='app_segment_clean'&&JSON.stringify(x[2].params[0].segments)===JSON.stringify(L),
+  hemma=async()=>{await h.idle(7000);await fetch(HAU+'/yttre/hemma',{method:'POST'})};
+ if(!demo){assert.ok(ut.some(u=>u.includes('"damm":['+r1+','+r2+','+r3+'],"mopp":['+r2+']')),'Dammsugning och moppning skickade');
+  assert.ok(await vanta(L=>L.some(seg([r2,r3]))),'Små rummen dammsugs först');
   await pg.waitForFunction(()=>document.querySelector('#overlay .ha-fs.nu.damm'),null,{timeout:15000});
-  await h.idle(6000);await fetch(HAU+'/yttre/rum/'+r1,{method:'POST'});await h.idle(6000);await fetch(HAU+'/yttre/rum/'+r2,{method:'POST'});
+  await h.idle(6000);await fetch(HAU+'/yttre/rum/'+r2,{method:'POST'});await h.idle(6000);await fetch(HAU+'/yttre/rum/'+r3,{method:'POST'});
   await pg.waitForFunction(()=>document.querySelectorAll('#overlay .ha-fs.damm .ha-fo li.klar').length===1&&document.querySelector('#overlay .ha-fs.damm .ha-fo li.nu'),null,{timeout:20000});
   await h.shot('apparater-plan');
-  await h.idle(7000);await fetch(HAU+'/yttre/hemma',{method:'POST'});
-  await pg.waitForFunction(()=>document.querySelector('#overlay .ha-fs.nu.mopp'),null,{timeout:60000});
-  L=await logg();assert.ok(L.some(x=>x[2].option==='mop')&&L.some(x=>x[2].command==='app_segment_clean'&&JSON.stringify(x[2].params[0].segments)===JSON.stringify([r2])),'Moppningen startad efter dammsugningen');
-  await h.idle(7000);await fetch(HAU+'/yttre/hemma',{method:'POST'});
+  await hemma();assert.ok(await vanta(L=>L.some(x=>x[2].command==='app_start_collect_dust')&&L.some(seg([r1]))),'Tömning och sedan stora rummet');
+  let L=await logg();assert.ok(L.findIndex(x=>x[2].command==='app_start_collect_dust')<L.findIndex(seg([r1])),'Tömning före stora rummet');
+  await hemma();assert.ok(await vanta(L=>L.some(x=>x[2].option==='mop')&&L.some(seg([r2]))),'Moppningen startad efter dammsugningen');
+  await pg.waitForFunction(()=>document.querySelector('#overlay .ha-fs.nu.mopp'),null,{timeout:20000});
+  await hemma();
   await pg.waitForFunction(()=>document.querySelector('#overlay .ha-fslut.klar'),null,{timeout:60000});await h.shot('apparater-plan-klar');
   L=await logg();assert.equal(L.filter(x=>x[2].option).pop()[2].option,'vacuum','Läget tillbaka till dammsugning')}
  else{assert.ok(await pg.locator('#overlay .ha-fs.nu.damm').count(),'Planen syns');
   await pg.evaluate(()=>window.__d('(()=>{const a=haAppX();a.plan.klara[0]=[a.plan.steg[0].rum[0]];a.plan.nu=a.plan.steg[0].rum[1];a.pct=55;render()})()'));await h.idle(400);await h.shot('apparater-plan');
-  assert.match(await pg.locator('#overlay .ha-fs.damm .ha-fo').innerText(),/Städar nu/,'Rummet som städas syns i tidslinjen');assert.equal(await pg.locator('#overlay .ha-kn').count(),2,'Ordningen syns i kartan');
-  await pg.locator('#overlay [data-act="haPlanStopp"]').click();await h.idle(400);assert.equal(await pg.locator('#overlay .ha-fs.mopp').count(),0,'Moppningen hoppas över')}
+  await pg.locator('#overlay .ha-karta').scrollIntoViewIfNeeded();await h.idle(300);await pg.locator('#overlay .sheet').first().screenshot({path:require('path').join(h.OUT,'apparater-plan-hel.png')});
+  assert.match(await pg.locator('#overlay .ha-fs.damm .ha-fo').first().innerText(),/Städar nu/,'Rummet som städas syns i tidslinjen');assert.equal(await pg.locator('#overlay .ha-kn').count(),3,'Ordningen syns i kartan');
+  await pg.locator('#overlay [data-act="haPlanStopp"]').click();await h.idle(400);assert.equal(await pg.locator('#overlay .ha-fs.mopp').count(),0,'Resten hoppas över')}
  await pg.locator('#overlay [data-act="haAppDel"][data-id="sug"]').click();await h.idle(400);
  await pg.locator('#overlay .ha-ap-in').evaluate(e=>e.closest('.sheet-body').scrollTop=9999);await h.idle(300);
  await h.shot('apparater-robot-nedre');
