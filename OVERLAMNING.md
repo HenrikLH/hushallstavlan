@@ -2,6 +2,12 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Pågår: Släktträd v3, riktig interaktiv canvas (förslag)
+
+- Ägare: Codex. Gren `feature/slakttrad-v3-canvas`; ännu **inte publicerad**. Henrik bad att börja om från släktmenyer till ett traditionellt visuellt träd.
+- Gemensam SVG-canvas, generationsrader, partner-/barnbussar i fria mellanrum, pan/pinch/wheel, centrera/visa hela, markering och detaljpanel utan att lämna trädet. Befintliga `sr.par`/`sr.partners`/`sr.siblings` och födelsedagsregister är oförändrade.
+- Tester uppdaterade: `verktyg/emu/familj-dev.js` och `familj-stor.js`. Kontrollera mobilskärmbilder, gestinteraktioner, långa barnkullar, ljus/mörk UI och UI5. Invänta Henriks godkännande innan `main`.
+
 ## Förbättrat släktträd för telefon (ht-v331, utvecklarläge)
 
 - Hybrid är numera fokusbaserad: bara föräldrar, partner och tre barn i kartan; syskon och fler barn i kompakta knappar. Hela trädet visar en förenklad generationsöversikt utan spaghettilinjer. Zoom, drag/lås per person och relationsredigering bevaras; nya låspositioner har separat `ht.slaktHybridPins2` eftersom koordinatsystemet ändrats.
