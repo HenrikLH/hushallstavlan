@@ -12,7 +12,7 @@
 #   POST /ha           {"app": id, "gor": "start"|"paus"|"hem"|"stopp"|"tom"|"tvatt"|"tvattstopp", "rum": [16, 17]}
 #                      | {"app": id, "gor": "start", "damm": [16], "mopp": [16, 17]}  dammsuger först, moppar när roboten är hemma igen ("planstopp" hoppar över)
 #                      | {"app": id, "zon": [x0, y0, x1, y1] (kartans pixlar)}
-#                      | {"app": id, "sug"|"lage"|"vatten"|"prog"|"rutin"|"rot"|"dockLage": värde}   dammsugare och diskmaskin
+#                      | {"app": id, "sug"|"lage"|"vatten"|"rutt"|"prog"|"rutin"|"rot"|"dockLage": värde}   dammsugare och diskmaskin
 #   POST /ha/val       {"rumnr": 16, "rumnamn": "Kök"} namnger robotens rum | {"rumnr": 16, "stor": true} stort rum (dammsugs ensamt, töms efteråt)
 #   POST /ha/val       {"lagg": id} | {"ta": id} | {"id": id, "namn": "Taklampa", "rum": "Kök"}   ändrar tavlans lista i HA_FIL
 #   GET  /ha/vanor?id= -> inlärd ton per kvart (vardag "v", helg "h"), säker eller inte, paus
@@ -280,6 +280,7 @@ def ha_robot(c, alla, e):
     fel = hitta('sensor', lambda k, a: 'lidar_blocked' in (a.get('options') or []))
     lage = hitta('select', lambda k, a: 'vac_and_mop' in (a.get('options') or []))
     vatten = hitta('select', lambda k, a: 'low' in (a.get('options') or []) and 'high' in (a.get('options') or []))
+    rutt = hitta('select', lambda k, a: 'deep' in (a.get('options') or []) and 'standard' in (a.get('options') or []))
     und = []
     for k, x in sorted(G.items()):
         a = A(x)
@@ -296,6 +297,7 @@ def ha_robot(c, alla, e):
          'sug': va.get('fan_speed'), 'sugAlt': va.get('fan_speed_list') or [],
          'lage': lage.get('state') if lage else None, 'lageAlt': A(lage).get('options') if lage else [], 'lageId': lage and lage['entity_id'],
          'vatten': vatten.get('state') if vatten else None, 'vattenAlt': A(vatten).get('options') if vatten else [], 'vattenId': vatten and vatten['entity_id'],
+         'rutt': rutt.get('state') if rutt else None, 'ruttAlt': A(rutt).get('options') if rutt else [], 'ruttId': rutt and rutt['entity_id'],
          'und': und, 'senast': max(senast) if senast else None, 'rutiner': rut, 'rum': []}
     # kartans rotation (RoborockCustomMap) och dockan (egna entiteter med "dock" i namnet)
     rot = next((x for e2, x in sorted(alla.items()) if e2.startswith('select.') and 'rotation' in e2), None)
@@ -385,7 +387,8 @@ def ha_app_styr(c, d):
                 sma = [x for x in damm if x not in stor]
                 steg = [{'typ': 'damm', 'rum': sma}] * bool(sma) + [{'typ': 'damm', 'rum': [x]} for x in damm if x in stor] + [{'typ': 'mopp', 'rum': mopp}] * bool(mopp)
                 PLAN[e] = {'steg': steg, 'i': 0, 'klara': [[] for _ in steg], 'nu': None, 'sett': False, 'tid': time.time(), 'hemma': None, 'klar': None}
-                ha_plan_kor(c, a, 'vacuum' if damm else 'mop', steg[0]['rum'])
+                PLAN[e]['val'] = {'sug': a.get('sug'), 'vatten': a.get('vatten'), 'rutt': a.get('rutt')}
+                ha_plan_kor(c, a, 'vacuum' if damm else 'mop', steg[0]['rum'], PLAN[e]['val'])
             elif rum or damm or mopp: ha_plan_kor(c, a, None, rum or damm or mopp)
             else: tj('vacuum', 'start', {'entity_id': e})
         elif g == 'planstopp':   # hoppa över resten efter steget som pågår
@@ -407,6 +410,7 @@ def ha_app_styr(c, d):
         elif g == 'hem': ha_plan_stopp(e); tj('vacuum', 'return_to_base', {'entity_id': e})
         elif d.get('sug') in a['sugAlt']: tj('vacuum', 'set_fan_speed', {'entity_id': e, 'fan_speed': d['sug']})
         elif d.get('lage') in a['lageAlt']: tj('select', 'select_option', {'entity_id': a['lageId'], 'option': d['lage']})
+        elif d.get('rutt') in a['ruttAlt']: tj('select', 'select_option', {'entity_id': a['ruttId'], 'option': d['rutt']})
         elif d.get('vatten') in a['vattenAlt']: tj('select', 'select_option', {'entity_id': a['vattenId'], 'option': d['vatten']})
         elif d.get('rutin') in [r['id'] for r in a['rutiner']]: PLAN.pop(e, None); tj('button', 'press', {'entity_id': d['rutin']})
         elif a.get('rotId') and d.get('rot') in a.get('rotAlt', []): tj('select', 'select_option', {'entity_id': a['rotId'], 'option': d['rot']})
@@ -433,10 +437,17 @@ def ha_app_styr(c, d):
 # Dammsug följt av mopp (inte båda samtidigt: fukten fastnar annars i dammbehållaren). Läget sätts före varje körning
 # och återställs till dammsugning efteråt, så att vanlig städning alltid är dammsugning.
 PLAN = {}
-def ha_plan_kor(c, a, lage, rum):
+def ha_plan_kor(c, a, lage, rum, val=None):
     tj = lambda dom, s, data: ha_anrop(c, '/api/services/%s/%s' % (dom, s), data)
     if lage and a.get('lage') != lage:
         tj('select', 'select_option', {'entity_id': a['lageId'], 'option': lage}); time.sleep(2)
+        # lägesbytet kan ändra sug, vatten och rutt: sätt tillbaka det som gällde när planen startades
+        v = val or {}
+        if lage == 'vacuum' and v.get('sug') in a['sugAlt'] and v['sug'] != 'off': tj('vacuum', 'set_fan_speed', {'entity_id': a['id'], 'fan_speed': v['sug']})
+        if lage == 'mop':
+            if v.get('vatten') in a['vattenAlt'] and v['vatten'] != 'off': tj('select', 'select_option', {'entity_id': a['vattenId'], 'option': v['vatten']})
+            if v.get('rutt') in a['ruttAlt']: tj('select', 'select_option', {'entity_id': a['ruttId'], 'option': v['rutt']})
+        if v: time.sleep(1)
     tj('vacuum', 'send_command', {'entity_id': a['id'], 'command': 'app_segment_clean', 'params': [{'segments': rum, 'repeat': 1}]})
 
 def ha_plan_stopp(e):
@@ -483,7 +494,7 @@ def ha_plan():
             if p['i'] + 1 < len(p['steg']):
                 p['i'] += 1; n = p['steg'][p['i']]
                 logg('ha: steg %d klart, %s %s' % (p['i'], n['typ'], n['rum']))
-                ha_plan_kor(c, a, 'mop' if n['typ'] == 'mopp' else 'vacuum', n['rum']); p.update(sett=False, tid=nu, hemma=None)
+                ha_plan_kor(c, a, 'mop' if n['typ'] == 'mopp' else 'vacuum', n['rum'], p.get('val')); p.update(sett=False, tid=nu, hemma=None)
             else:
                 p['i'] += 1; p['klar'] = nu
                 if a.get('lage') != 'vacuum': ha_anrop(c, '/api/services/select/select_option', {'entity_id': a['lageId'], 'option': 'vacuum'})

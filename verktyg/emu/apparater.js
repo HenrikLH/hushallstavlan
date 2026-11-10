@@ -29,6 +29,8 @@ module.exports=async(pg,h)=>{
  // små rum i ett svep, sedan det stora rummet, tömning emellan, sist moppning (roboten får inte städa när rummen väljs)
  await pg.locator('#overlay [data-act="haLager"][data-id="m"]').click();await h.idle(300);await tryck(r2);
  assert.equal(await pg.locator('#overlay .ha-lag .mopp b').innerText(),'1','Ett rum i mopplagret');
+ await pg.locator('#overlay .ha-sv [data-act="haRobSet"][data-id="rutt:deep"]').click();await h.idle(600);
+ assert.equal(await pg.locator('#overlay .ha-sv [data-id="rutt:deep"]').getAttribute('aria-pressed'),'true','Mopprutten vald');if(!demo)assert.ok(ut.some(u=>/"rutt":"deep"/.test(u)),'Mopprutten skickad');
  assert.deepEqual(await pg.locator('#overlay .ha-rutt > span').evaluateAll(E=>E.map(e=>e.className.replace('ha-rn ','').replace('ha-rd','dock'))),['damm','damm','dock','damm','dock','mopp'],'Rutten: små rum, tömning, stort rum, tömning, mopp');
  assert.match(await pg.locator('#overlay .ha-rutt .ha-rn').nth(2).innerText(),/^3/,'Stora rummet sist, nummer 3');
  assert.equal(await pg.locator('#overlay .ha-kn').count(),3,'Märken i kartan för valda rum');assert.equal(await pg.locator('#overlay .ha-kn > i').count(),1,'Droppe på rummet som också moppas');
@@ -46,6 +48,7 @@ module.exports=async(pg,h)=>{
   await hemma();assert.ok(await vanta(L=>L.some(x=>x[2].command==='app_start_collect_dust')&&L.some(seg([r1]))),'Tömning och sedan stora rummet');
   let L=await logg();assert.ok(L.findIndex(x=>x[2].command==='app_start_collect_dust')<L.findIndex(seg([r1])),'Tömning före stora rummet');
   await hemma();assert.ok(await vanta(L=>L.some(x=>x[2].option==='mop')&&L.some(seg([r2]))),'Moppningen startad efter dammsugningen');
+  L=await logg();assert.ok(L.filter(x=>x[2].option==='deep').length>=2,'Rutten sätts igen när moppningen börjar');
   await pg.waitForFunction(()=>document.querySelector('#overlay .ha-fs.nu.mopp'),null,{timeout:20000});
   await hemma();
   await pg.waitForFunction(()=>document.querySelector('#overlay .ha-fslut.klar'),null,{timeout:60000});await h.shot('apparater-plan-klar');
