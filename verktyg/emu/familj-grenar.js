@@ -48,7 +48,6 @@ module.exports=async(pg,h)=>{
  assert.equal(issues.diagonal,0,'Ingen diagonal spaghettilinje i relationskartan');
  await h.shot('familj-grenar-korsningar');
  await click('.fam3-node[data-id="'+key(6)+'"]');
- await click('[data-act="slaktVy"][data-id="alla"]');
  await click('[data-act="slaktVy"][data-id="fokus"]');
  assert.ok(await pg.locator('.fam3-edge.muted').count()>0,'Orelaterade linjer tonas ned i fokus');
  await h.shot('familj-grenar-fokus');
