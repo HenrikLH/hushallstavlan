@@ -2,6 +2,14 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Pågår: Riktiga släktrelationer i utvecklarläge (ht-v326)
+
+- Gren `feature/slakttrad-riktiga-relationer-dev`. Utvecklarförhandsvisningen använder nu `bdays()` och listan Personer och relationer i stället för demodata. Vid tryck på en person öppnas ett blad där partner, 1–2 föräldrar och valfria barn kan tilldelas.
+- Relationer sparas som `sr:{par:{barn:[föräldrar]},partners:[[person,person]]}` i befintliga födelsedagsobjektet i `onskelista`; Apps Script behöver ingen ändring. Cykler och fler än två föräldrar blockeras; födelsedagsändringar uppdaterar nycklar, borttagning rensar relationer.
+- Hela trädet visar endast personer med sparade relationer; övriga finns under Ännu inte placerade. UI använder befintliga `head`, `sh`, `group`, `cell`, `segc`, `sheetHtml` med enhetlig 20px-inset.
+- `verktyg/emu/familj-dev.js` testar relationer, sparning, cykelskydd, zoom, fokusering, utvecklarläge och oförändrade födelsedagar. Endast DEV tills användaren godkänner designen.
+- Rollback: `version-fore-slakttrad-riktiga-data`. Separat gammal PR #84 används inte vid publicering.
+
 ## Förfining Familj/släktträd (ht-v324, endast utvecklarläge)
 
 - Förfinade sammanhängande partner- och syskonlinjer, mer konsekventa generationsrader, zoom 75/100/125 % i Hela trädet samt tryck på person → I fokus.
