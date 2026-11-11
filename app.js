@@ -5113,7 +5113,7 @@ const hemTop=()=>'<div class="rcp-top"><button class="back" data-act="nav" data-
 V.hemmet=function(){const D=(haUrl()||haDemo())?haData():null,lj=D?(D.lampor||[]).filter(x=>x.t==='light'):[],nl=lj.filter(x=>x.on).length,G=D?D.givare||[]:[];
  const ovN=people().includes(S.me)?ovOpen('shared').length+ovOpen(S.me).length:0,b=bdNext(bdays())[0];
  const R=[(haUrl()||haDemo())&&['hus','Smart hem',HAI.bulb,'#FF9F0A',D?(nl?nl+(nl>1?' tända':' tänd'):'Allt släckt')+(G.length?' · '+haGiv(Object.assign({},G[0],{n:''})).trim():''):'Ingen kontakt'],
-  ['ekonomi','Ekonomi',I_EKO,'#34C759',ekoLocked()?'Låst på den här skärmen':ovN?ovN+(ovN>1?' överföringar saknas':' överföring saknas'):'Allt inlagt',ovN&&!ekoLocked()],
+  ['ekonomi','Ekonomi',I_EKO,'#34C759',ekoLocked()?'Låst med kod':ovN?ovN+(ovN>1?' överföringar saknas':' överföring saknas'):'Allt inlagt',ovN&&!ekoLocked()],
   ['fod','Födelsedagar',I.cake,'#FF2D55',b?b.name.split(' ')[0]+' '+bdWhen(b):'Inga inlagda'],
   DEV&&['familj','Familj',I.people,'#5856D6','Släktträd']].filter(Boolean);
  const ic=(c,svg)=>'<span class="hem-ic" style="background:'+c+'">'+svg+'</span>';

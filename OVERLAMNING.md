@@ -2,11 +2,11 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
-## Hemmet: Ekonomi ut ur flikraden (förslag, ej publicerat)
+## Hemmet ersätter Ekonomi i flikraden (publicerad ht-v352)
 
-- Mål: Ekonomi används sällan. Ny flik Hemmet (Smart hem, Ekonomi, Födelsedagar, Familj i DEV, Inställningar) med läget per rad; Ekonomi och Födelsedagar öppnas därifrån och bakåt leder dit de öppnades från (`S.hemFran`, `hemTill`, `hemTop`). Bygger på granskningens meny A. Ägare Claude, gren `claude/project-thread-x400ki`.
-- Förhandsval i localStorage: `ht.navF` A (Översikt · Mat · Att göra · Kalender · Hemmet, standard) eller B (Mat · Hemmet · Översikt · Kalender · Att göra); `ht.hemStil` lista (standard) eller brickor. Ta bort valet som inte väljs innan publicering. Översikt fick rutnätsikon (`I_OV`), Hemmet huset. Rutor H1/H2.
-- Väntar på Henriks val (A/B och lista/brickor). Bilder /mnt/project-files/hemmet/. Test: ny `verktyg/emu/hemmet.js`, alla-flikar (uppdaterad för Hemmet) telefon+vägg gröna, uppstart med `view=ekonomi` ok.
+- Henrik valde B + brickor: flikrad Mat · Hemmet · Översikt · Kalender · Att göra. Hemmet (`V.hemmet`, rutor H1/H2) har brickor för Smart hem (bara med haUrl/vägg), Ekonomi, Födelsedagar, Familj (DEV) och raden Inställningar. Undersidor (`HEM_UNDER`) markerar Hemmet; bakåt leder dit de öppnades från (`S.hemFran`, `hemTill`, `hemTop`). Översikt har rutnätsikonen `I_OV`.
+- Ångra-gren `version-fore-hemmet`. Väggdatorn uppdateras först när Henrik skriver "Kör" (laddar annars om sig själv när app.js?v ändras).
+- Test: `verktyg/emu/hemmet.js` (telefon, vägg, mörkt, uppstart view=ekonomi), alla-flikar telefon+vägg, flikrad-lins gröna.
 
 ## Smarta förslag borttagna från Översikt (publicerad ht-v351)
 
