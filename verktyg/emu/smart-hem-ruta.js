@@ -5,7 +5,7 @@ module.exports=async(pg,h)=>{
  await pg.locator('#nav [data-act="nav"][data-id="oversikt"]').first().click();await h.idle(800);
  const box=pg.locator('section.ha');assert.equal(await box.count(),1,'Rutan finns');
  assert.equal(await box.locator('.hab-sc .ha-st').count(),4,'Fyra scenplatser');
- const fv=()=>box.locator('.hab-g > .ha-t');
+ const fv=()=>box.locator('.hab-g > .ha-t:not(.hab-med)');
  const plats=async()=>(await fv().evaluateAll(L=>L.map(e=>e.classList.contains('ha-ap')?2:1))).reduce((a,b)=>a+b,0);
  assert.ok(await plats()<=8,'Högst åtta platser');
  if(vagg){const b=await box.boundingBox(),u=await pg.locator('section[data-box="upg"]').boundingBox(),nav=await pg.locator('#nav').boundingBox();
@@ -39,7 +39,9 @@ module.exports=async(pg,h)=>{
  await pg.locator(SC+' button[type="submit"]').click();await h.idle(500);
  assert.equal(await pg.locator(F).count(),1,'Tillbaka till Anpassa');
  await pg.locator(F+' [data-act="habKlar"]').click();await h.idle(700);
- assert.deepEqual(await fv().evaluateAll(L=>L.map(e=>e.dataset.id)),f1.slice(0,(await fv().count())),'Rutan följer ordningen');
+ // när något spelar visas färre favoriter (det som är igång går först), men alltid i sparad ordning
+ {const v=await fv().evaluateAll(L=>L.map(e=>e.dataset.id)),ix=v.map(id=>f1.indexOf(id));assert.ok(ix.every((x,i)=>x>=0&&(!i||x>ix[i-1])),'Rutan följer ordningen');
+  if(!await box.locator('.hab-med').count())assert.deepEqual(v,f1.slice(0,v.length),'Utan musik: de första i ordningen')}
  assert.match(await box.locator('.hab-sc .ha-st').first().innerText(),/Middag/,'Scenen heter Middag');
  assert.doesNotMatch(await box.locator('.hab-h').innerText(),/°/,'Ingen temperatur');
  // köret: scenen sparades när allt var släckt; tänd köket, kör scenen = köket släcks igen
