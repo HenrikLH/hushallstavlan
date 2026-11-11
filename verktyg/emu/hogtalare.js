@@ -6,7 +6,7 @@ module.exports=async(pg,h)=>{
  await pg.locator('#nav [data-act="nav"][data-id="oversikt"]').first().click();await h.idle(600);
  await pg.locator('section.ha [data-act="nav"][data-id="hus"]').first().click();await h.idle(700);
  const t=pg.locator('.ha-med');assert.equal(await t.count(),2,'Två högtalare');
- assert.match(await t.first().innerText(),/Mix Megapol/,'Stor spelar Mix Megapol');
+ assert.match(await t.first().innerText(),/Dancing Queen – ABBA/,'Stor spelar Spotify från mobilen');
  await t.first().evaluate(e=>scrollBy(0,e.getBoundingClientRect().top-200));await h.idle(300);await h.shot('hog-1-brickor');
  // tryck på den tysta högtalaren: bladet öppnas med den vald
  await t.nth(1).locator('.ha-n').click();await h.idle(800);
@@ -19,16 +19,16 @@ module.exports=async(pg,h)=>{
   await h.shot('hog-2-blad');
   // egen Spotify-lista med ny mediatyp
   await pg.locator(F+' [data-act="hamNy"]').click();await h.idle(500);
-  await pg.locator(F+' [name="hamn"]').fill('Hundmusik');await pg.locator(F+' [name="hamt"]').fill('Spotify');
-  await pg.locator(F+' [data-act="hamNyKalla"][data-id="sp"]').click();await h.idle(300);
-  await pg.locator(F+' [name="hamq"]').fill('https://open.spotify.com/playlist/37i9dQZF1DX4sWSpwq3LiO?si=abc');
+  assert.equal(await pg.locator(F+' [data-act="hamNyKalla"][data-id="sp"]').count(),0,'Spotify startas från mobilen');
+  await pg.locator(F+' [name="hamn"]').fill('Hundmusik');await pg.locator(F+' [name="hamt"]').fill('Lugnt');
+  await pg.locator(F+' [name="hamq"]').fill('Lugna Favoriter');
   await h.shot('hog-3-lagg-till');
   await pg.locator(F+' [data-act="hamNySpara"]').click();await h.idle(700);
   assert.equal(await pg.locator(F+' .segc[data-seg="haMedTyp"]').count(),1,'Mediatyp-väljare visas med två typer');
   assert.match(await pg.locator(F+' .ham-k[aria-pressed="true"]').innerText(),/Hundmusik/,'Nya listan vald');
   await h.shot('hog-3b-spotify');
   await h.hold(F+' .ham-k[aria-pressed="true"]');await h.idle(600);
-  assert.equal(await pg.locator(F+' [name="hamq"]').inputValue(),'https://open.spotify.com/playlist/37i9dQZF1DX4sWSpwq3LiO','Spotify-länken sparad som uri');
+  assert.equal(await pg.locator(F+' [name="hamq"]').inputValue(),'Lugna Favoriter','Kanalen sparad');
   await pg.locator(F+' [data-act="hamNyAvbryt"]').click();await h.idle(400);
   await pg.locator(F+' [data-act="haMedTyp"][data-id="Radio"]').click();await h.idle(300);
   await pg.locator(F+' .ham-k:has-text("P3")').click();await h.idle(200);
@@ -36,6 +36,15 @@ module.exports=async(pg,h)=>{
  await pg.locator(F+' [data-act="haMedSpela"]').click();await h.idle(900);
  assert.equal(await pg.locator(F).count(),0,'Bladet stängs');
  assert.match(await t.nth(1).innerText(),/P3/,'Liten spelar P3');
+ // Översikten: två olika spelningar (Spotify på Stor, P3 på Liten) blir två kort med egna knappar
+ await pg.locator('.rcp-top .back').click();await h.idle(700);
+ const K=pg.locator('section.ha .hab-med');assert.equal(await K.count(),2,'Två kort');
+ assert.match(await K.first().innerText(),/Dancing Queen/,'Spotify-kortet');assert.equal(await K.first().locator('.hab-steg').count(),2,'Föregående och nästa');
+ assert.equal(await K.nth(1).locator('.hab-steg').count(),0,'Radio utan nästa');
+ await K.first().evaluate(e=>scrollBy(0,e.getBoundingClientRect().top-300));await h.idle(300);await h.shot('hog-8-tva-kort');
+ await K.nth(1).locator('[data-act="habVol"][data-id="5"]').click();await h.idle(500);
+ assert.match(await K.nth(1).innerText(),/35 %/,'Litens volym 30 → 35');assert.match(await K.first().innerText(),/35 %/,'Stor orörd');
+ await pg.locator('section.ha [data-act="nav"][data-id="hus"]').first().click();await h.idle(700);
  // ikonen pausar
  await t.first().locator('.ha-i').click();await h.idle(500);assert.match(await t.first().innerText(),/Pausad/,'Pausad');
  // Ensam hemma visas som knappen Högtalare: Stäng av högtalare medan något spelar, annars öppnar den bladet i skriptläge

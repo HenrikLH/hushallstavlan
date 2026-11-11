@@ -13,7 +13,7 @@
 #                      | {"app": id, "gor": "start", "damm": [16], "mopp": [16, 17]}  dammsuger först, moppar när roboten är hemma igen ("planstopp" hoppar över)
 #                      | {"app": id, "zon": [x0, y0, x1, y1] (kartans pixlar)}
 #                      | {"app": id, "sug"|"lage"|"vatten"|"rutt"|"prog"|"rutin"|"rot"|"dockLage": värde}   dammsugare och diskmaskin
-#   POST /ha           {"media": ["media_player.kok"], "gor": "spela", "kanal": "p4", "vol": 35} | {"media": [...], "gor": "vol"|"paus"|"fortsatt"|"stopp"}
+#   POST /ha           {"media": ["media_player.kok"], "gor": "spela", "kanal": "p4", "vol": 35} | {"media": [...], "gor": "vol"|"paus"|"fortsatt"|"stopp"|"nasta"|"forra"}
 #                      | {"scen": "script.ensam_hemma", "var": {"kanal": "p4", "volym": 35, "hogtalare": ["media_player.kok"]}}
 #                      kanal = inbyggt id eller egen {"n": "Lugnt", "rb": "namn att söka" | "url": "https://…" | "sp": "spotify:playlist:…"}
 #   POST /ha/val       {"rumnr": 16, "rumnamn": "Kök"} namnger robotens rum | {"rumnr": 16, "stor": true} stort rum (dammsugs ensamt, töms efteråt)
@@ -505,15 +505,17 @@ def kanal_url(k):
 
 def ha_hogtalare(c, alla):
     egna = c.get('hogtalare')
-    ids = [e for e in (egna if egna is not None else sorted(alla)) if e.startswith('media_player.') and e in alla]
+    # Spotify-kontots egen spelare (media_player.spotify_*) är ingen högtalare; det som castas syns på högtalaren själv
+    ids = [e for e in (egna if egna is not None else sorted(alla)) if e.startswith('media_player.') and e in alla and not e.startswith('media_player.spotify')]
     ut = []
     for e in ids:
         x = alla[e]; a = x.get('attributes') or {}; st = x.get('state')
         if st not in ('playing', 'buffering', 'paused') and time.time() - (KANAL_NU.get(e) or ('', 0))[1] > 20: KANAL_NU.pop(e, None)
-        v = a.get('volume_level')
+        v, f = a.get('volume_level'), int(a.get('supported_features') or 0)
         ut.append({'id': e, 'n': c['namn'].get(e) or a.get('friendly_name') or e, 'hn': a.get('friendly_name') or e, 'rum': c['rum'].get(e),
                    'st': st, 'nas': st == 'unavailable', 'vol': round(v * 100) if isinstance(v, (int, float)) else None,
-                   'titel': a.get('media_title') or a.get('app_name'), 'kanal': (KANAL_NU.get(e) or (None,))[0], 'grupp': len(a.get('group_members') or []) > 1})
+                   'titel': a.get('media_title'), 'artist': a.get('media_artist') or a.get('media_album_artist'), 'app': a.get('app_name'),
+                   'kan': {'f': bool(f & 16), 'n': bool(f & 32)}, 'kanal': (KANAL_NU.get(e) or (None,))[0], 'grupp': len(a.get('group_members') or []) > 1})
     return ut
 
 def ha_hog_ok(c, L):
@@ -572,11 +574,11 @@ def ha_media_styr(c, d):
         for e in hog:
             ha_anrop(c, '/api/services/media_player/play_media', {'entity_id': e, 'media_content_id': url, 'media_content_type': 'music', 'extra': extra})
             KANAL_NU[e] = (k['id'], time.time())
-    elif g in ('paus', 'fortsatt', 'stopp'):
-        tj({'paus': 'media_pause', 'fortsatt': 'media_play', 'stopp': 'media_stop'}[g], {})
+    elif g in ('paus', 'fortsatt', 'stopp', 'nasta', 'forra'):
+        tj({'paus': 'media_pause', 'fortsatt': 'media_play', 'stopp': 'media_stop', 'nasta': 'media_next_track', 'forra': 'media_previous_track'}[g], {})
         if g == 'stopp':
             for e in hog: KANAL_NU.pop(e, None)
-    elif g != 'vol': return 400, {'fel': 'gor ska vara spela, vol, paus, fortsatt eller stopp'}
+    elif g != 'vol': return 400, {'fel': 'gor ska vara spela, vol, paus, fortsatt, stopp, nasta eller forra'}
     ha_uppdatera()
     return 200, {'ok': True, 'v': HA['v']}
 
