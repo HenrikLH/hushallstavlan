@@ -2,11 +2,11 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
-## Matbilder i Ny veckosedel (förslag, väntar på Henriks val)
+## Matbilder i Ny veckosedel (publiceras, se git-loggen för version)
 
-- Mål: se rätterna på bild i Ny veckosedel (`portViewU5`). Lägen A rutnät / B stora kort / C större rader via `MATBILD` (`ht.mbild`, förval a); ⇄ visar Andra förslag som bildkarusell. CSS `.g5-k*` sist i index.html. Bilder i /mnt/project-files/matbilder/.
-- Foton: `img` i inspiration.json (100/101, länkade från receptsidorna; ICA via WebFetch eftersom ICA spärrar GitHub). `inspoImg` matchar id eller namn. `verktyg/matbilder-hamta.js [--kolla]`.
-- Ägare Claude, gren `claude/project-thread-tjhego`. Före publicering: behåll valt läge, ta bort övriga + `.github/workflows/matbilder-forhandsvisning.yml` och grenen `forhandsvisning-matbilder` (molnet når inte bildsajterna, därför CI-bilder). Test: `verktyg/emu/matbilder.js` (BILDER=1 släpper igenom foton).
+- Ny veckosedel (`portViewU5`) visar rätterna som bildkort, två i bredd (fyra på väggen), eller som lista med stora bilder. Enhetsval Inställningar → Mat → Ny veckosedel (`MATBILD`, `ht.mbild`=c för lista, förval rutnät). ⇄ visar Andra förslag som bildkarusell. CSS `.g5-k*`/`.g5-big`. Ångra-gren `version-fore-matbilder`.
+- Foton: `img` i inspiration.json (100/101, länkade från receptsidorna; ICA hämtat med WebFetch eftersom ICA spärrar GitHub). `inspoImg` matchar id eller namn. Nya recept: `node verktyg/matbilder-hamta.js [--kolla]` där nätet når sajterna (inte molnet).
+- Test: `verktyg/emu/matbilder.js` (LS mbild=c för lista; BILDER=1 släpper igenom riktiga foton, fungerar bara där nätet når dem), generera-vecka, installningar-delar, alla-flikar telefon+vägg.
 
 ## Smarta förslag borttagna från Översikt (publicerad ht-v351)
 
