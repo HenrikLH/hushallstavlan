@@ -13,10 +13,11 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 - Henrik såg ett ljusrött streck efter "N tända". Orsak: `.ha-live` (felmarkering när väggdatorns tjänst inte svarar) var inline utan `display:inline-block`, så den blev 0×radhöjd med bara skuggan. Nu en prick; ett enstaka avbrott i `haLoop` (iPhone i bakgrunden) ger nytt försök efter 2 s i stället för fel (`HA.nf`). Ångra-gren `version-fore-smart-hem-streck`.
 - Test: `verktyg/emu/smart-hem-fel.js` (LS haUrl=http://ha.test, faller på main), smart-hem-ruta, alla-flikar telefon+vägg gröna.
 
-## Favorittoner ändrar bara tonen (publicerad ht-v343)
+## Favorittoner: −/+ hoppar inte tillbaka, kall → varm, byt namn i ⋯ (publicerad ht-v347, ångra-gren `version-fore-favoritton-steg`)
 
-- Henrik: ljusstyrkan ändrades när han bytte favoritton. Orsak: favoriterna sparade `b` och `haFavV` skickade den. Nu skickas bara k/hs; `b` sparas inte längre, gammalt `b` ignoreras och tas bort vid "Spara lampans ton här". Bara app.js (ingen Kod.gs/tjänst). Ångra-gren `version-fore-favoritton`.
-- Test: `smart-hem-ton.js` (ny kontroll: ljusstyrkan oförändrad, faller på main) telefon+vägg, smart-hem, smart-hem-ruta, ljusvanor, alla-flikar gröna.
+- Orsak −/+: anrop gick parallellt (kunde komma fram i fel ordning) och väggdatorns äldre läge skrev över det valda innan lampan rapporterat. Nu `haKo` (ett anrop i taget per lampa, däremellan bara det senaste) och `HA.mal`/`haMalLagg` (valt läge visas i `HA_MAL` 8 s). Gäller även ljusstyrkereglaget.
+- `haFavs()` sorterar kall→varm; Ändra-bladet (⋯) har Favorittoner, tryck öppnar `haFav` (namn bara i telefonen). Gren `claude/project-thread-9qfmlm`, ingen Kod.gs/tjänst.
+- Test: ny `smart-hem-tonsteg.js` (telefon, falsk tjänst; faller på main), smart-hem-ton telefon+vägg, ljusvanor, smart-hem-ruta, -rorelse gröna. `smart-hem.js` faller redan på main (light.hall).
 
 ## Högtalare och radio, Ensam hemma (publicerad ht-v342)
 
