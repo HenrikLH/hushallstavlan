@@ -17,6 +17,9 @@ module.exports=async(pg,h)=>{
  assert.ok(await pg.locator('main .ha-fl.fh').count(),'Tidslinjen för de valda rummen visas');
  await pg.locator('main .ha-fl.fh .ha-x').first().click();await h.idle(300);
  assert.equal(await pg.locator('main .ha-fl.fh .ha-x').first().innerText(),'×2','Rummet dammsugs två gånger');
+ await pg.locator('main .ha-fl.fh .ha-x').nth(1).click();await h.idle(300);
+ assert.ok(await pg.locator('main .ha-fl.fh .ha-fs.damm').count()>=2,'×2-rum får egen omgång');
+ assert.match(await pg.locator('main .ha-fl.fh').innerText(),/×2, töms efteråt/,'Egen omgång för ×2 visas');
  await pg.locator('main .ha-fl.fh').scrollIntoViewIfNeeded();await h.shot('robot-x2');
  await pg.locator('main [data-act="haRobRum"][data-id=""]').click();await h.idle(400);
  assert.equal(await pg.locator('main [data-act="haTankFylld"]').count(),0,'Ingen Påfylld-knapp när dockan själv vet om tanken är tom');
