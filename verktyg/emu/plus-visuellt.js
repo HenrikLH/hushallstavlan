@@ -6,7 +6,7 @@ module.exports=async(pg,h)=>{
  for(const mode of ['flytande','profil','rad']){
   await click('[data-act="settings"]');await h.idle(400);const d=pg.locator('[data-k="pref-utseende"]');if(!await d.evaluate(x=>x.open))await click('[data-k="pref-utseende"]>summary');await click('[data-act="addPlace"][data-id="'+mode+'"]');
   if(mode==='flytande'){await pg.locator('[data-act="addPlace"]').first().scrollIntoViewIfNeeded();await h.shot('installningar')}
-  await click('[data-act="sheetClose"]');await nav('mat');await click('[data-act="matTab"][data-id="recept"]');await click('[data-act="matTab"][data-id="bank"]');await h.shot(mode+'-recept');await click('.create-menu>summary');await h.shot(mode+'-meny');await pg.keyboard.press('Escape');
+  await click('[data-act="sheetClose"]',await pg.evaluate(()=>window.__d('ACT.prefBack()')));await nav('mat');await click('[data-act="matTab"][data-id="recept"]');await click('[data-act="matTab"][data-id="bank"]');await h.shot(mode+'-recept');await click('.create-menu>summary');await h.shot(mode+'-meny');await pg.keyboard.press('Escape');
   await nav('uppgifter');await click('[data-act="taskTab"][data-id="lista"]');await h.shot(mode+'-uppgifter');
   if(mode==='rad'){await click('#nav [data-act="nav"][data-id="kalender"]');await h.shot('rad-kalender');await nav('mat');await click('[data-act="matTab"][data-id="inkop"]');await h.shot('rad-inkop')}
  }

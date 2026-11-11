@@ -4,7 +4,7 @@ module.exports=async(pg,h)=>{
  const click=async s=>{await pg.locator(s).first().click();await h.idle(550)};
  const read=s=>pg.evaluate(s=>window.__d(s),s);
  await click('#nav [data-id="mat"]');await click('[data-act="matTab"][data-id="inkop"]');
- for(const name of ['Kollapstest äpple','Kollapstest mjölk']){const input=pg.locator('[data-form="shopQuick"] [name="name"]');if(await input.count()){await input.fill(name);await input.press('Enter')}else{await click('[data-act="shopAdd"]');await pg.locator('[data-form="shop"] [name="name"]').fill(name);await pg.locator('[data-form="shop"] button.tb.strong').click()}await h.idle(800);await h.waitFlush();if(await pg.locator('[data-form="shop"]').count())await click('[data-act="sheetClose"]')}
+ for(const name of ['Kollapstest äpple','Kollapstest mjölk']){const input=pg.locator('[data-form="shopQuick"] [name="name"]');if(await input.count()){await input.fill(name);await input.press('Enter')}else{await click('[data-act="shopAdd"]');await pg.locator('[data-form="shop"] [name="name"]').fill(name);await pg.locator('[data-form="shop"] button.tb.strong').click()}await h.idle(800);await h.waitFlush();if(await pg.locator('[data-form="shop"]').count())await click('[data-act="sheetClose"]',await pg.evaluate(()=>window.__d('ACT.prefBack()')))}
  assert.equal(await pg.locator('[data-act="shopFilter"]').count(),0,'Filtermenyn är ersatt');
  const buttons=pg.locator('[data-act="shopFold"]'),n=await buttons.count();assert(n>=2);
  assert.equal(await pg.locator('.g-one input[data-act="shopToggle"]').count(),await read('D().shop.length'),'Alla varor finns i M10');
@@ -21,7 +21,7 @@ module.exports=async(pg,h)=>{
  await pg.reload();await h.idle(1800);assert.equal(await pg.locator('[data-act="shopFold"][aria-expanded="false"]').count(),0,'Ny session börjar med synliga avdelningar');
  await h.shot('inkop-alla-avdelningar');
  await click('[data-act="settings"]');const advanced=pg.locator('[data-k="pref-avancerat"]');if(!await advanced.evaluate(e=>e.open))await advanced.locator('summary').click();await h.idle(550);
- if(await read('MOTION'))await click('[data-act="motion"]');await click('[data-act="sheetClose"]');
+ if(await read('MOTION'))await click('[data-act="motion"]');await click('[data-act="sheetClose"]',await pg.evaluate(()=>window.__d('ACT.prefBack()')));
  await pg.locator('[data-act="shopFold"]').first().click();assert(await pg.locator('[data-act="shopFold"]').first().evaluate(e=>e.nextElementSibling.hidden),'Fungerar med animationer av');
  assert(await pg.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
  console.log('PASS inkop-kollaps: kategori, antal/summa, tangentbord, avbockning, omritning, navigering, omstart och animationer av');

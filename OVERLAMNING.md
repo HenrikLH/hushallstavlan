@@ -2,6 +2,11 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Inställningar: rund tillbakaknapp i bladets rubrik (förslag, väntar på "Pusha")
+
+- Henrik valde A: på en undersida byts Avbryt mot en rund ‹-knapp (`.pref-bk`, `ACT.prefBack`) och delens namn står i bladets rubrik (20 pt fet, `prefHead`). Den gamla länken "‹ Inställningar" och stora rubriken borta. Bara UI 5.0. Gren `claude/project-thread-x44h4s`.
+- Testskript som stängde bladet från en öppen undersida anropar nu `ACT.prefBack()` först. Test: ny `installningar-tillbaka.js` (telefon/vägg), installningar-delar, alla-flikar gröna; animationer, inkop-kollaps, ui-versioner, stad-vyer, ui5 faller likadant på main.
+
 ## Smarta förslag borttagna från Översikt (publicerad ht-v351)
 
 - Henrik tyckte förslagen (Ö14) var irriterande. Hela funktionen borttagen: `forslag`/`forslagHtml`/`fsDone`, ACT `fsKlart/fsSen/fsGo`, CSS `.fsl/.fs-*`; Ö14 till borttagna. Väderlarmet (Ö13) och Vädra/Ute finns kvar. Ångra-gren `version-fore-smarta-forslag`.
