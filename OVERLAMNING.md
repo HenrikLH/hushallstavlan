@@ -2,6 +2,11 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Smart hem: felprick i stället för streck (publicerad ht-v344)
+
+- Henrik såg ett ljusrött streck efter "N tända". Orsak: `.ha-live` (felmarkering när väggdatorns tjänst inte svarar) var inline utan `display:inline-block`, så den blev 0×radhöjd med bara skuggan. Nu en prick; ett enstaka avbrott i `haLoop` (iPhone i bakgrunden) ger nytt försök efter 2 s i stället för fel (`HA.nf`). Ångra-gren `version-fore-smart-hem-streck`.
+- Test: `verktyg/emu/smart-hem-fel.js` (LS haUrl=http://ha.test, faller på main), smart-hem-ruta, alla-flikar telefon+vägg gröna.
+
 ## Favorittoner ändrar bara tonen (publicerad ht-v343)
 
 - Henrik: ljusstyrkan ändrades när han bytte favoritton. Orsak: favoriterna sparade `b` och `haFavV` skickade den. Nu skickas bara k/hs; `b` sparas inte längre, gammalt `b` ignoreras och tas bort vid "Spara lampans ton här". Bara app.js (ingen Kod.gs/tjänst). Ångra-gren `version-fore-favoritton`.
