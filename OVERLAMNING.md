@@ -18,6 +18,12 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 - Henrik: ljusstyrkan ändrades när han bytte favoritton. Orsak: favoriterna sparade `b` och `haFavV` skickade den. Nu skickas bara k/hs; `b` sparas inte längre, gammalt `b` ignoreras och tas bort vid "Spara lampans ton här". Bara app.js (ingen Kod.gs/tjänst). Ångra-gren `version-fore-favoritton`.
 - Test: `smart-hem-ton.js` (ny kontroll: ljusstyrkan oförändrad, faller på main) telefon+vägg, smart-hem, smart-hem-ruta, ljusvanor, alla-flikar gröna.
 
+## Pågår: Högtalare-knappen och Spotify (Claude, förslag)
+
+- Skript med kanalfält visas som knappen Högtalare (högtalarikon); när något spelar/är pausat blir samma knapp Stäng av (stoppar alla). Gäller scenplatser i rutan (`habScT`) och Smart hem (`haScT`). Gren `claude/project-thread-h4no38`.
+- Spotify utan Spotcast: tjänsten väljer högtalaren som källa på `media_player.spotify_*` och spelar där (`ha_spotify`); i skriptläge spelar tjänsten själv. Henriks skript heter `script.ensam_hemma_2`. Spotifys `source_list` var tom när den var ledig: fungerar bara om Spotify ser högtalaren.
+- Väntar: Henriks ok, sedan Pusha + Kör (tjänsten). Test: hogtalare.js, hogtalare-ruta.js (telefon/vägg), falsk-ha.
+
 ## Högtalare och radio, Ensam hemma (publicerad ht-v342)
 
 - Mål: styra Google-högtalarna (Stor, Liten) från Smart hem: välja mediatyp, kanal/Spotify-lista, volym, högtalare; HA-skriptet Ensam hemma (volym 35 %, radio) startas med valen. Gren `claude/project-thread-h4no38`.

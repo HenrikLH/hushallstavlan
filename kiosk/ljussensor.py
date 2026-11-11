@@ -232,7 +232,7 @@ def ha_las(c):
         f = [x for x in falt.get(s['id']) or [] if x in MEDIA_FALT]
         if f: s['falt'] = f
     return {'lampor': lampor, 'scener': scener, 'givare': givare, 'apparater': ha_appar(c, alla), 'media': ha_hogtalare(c, alla),
-            'kanaler': [{'id': k['id'], 'n': k['n'], 'typ': k.get('typ') or 'Radio'} for k in kanaler(c)], 'spotify': 'spotcast' in ha_tjanster(c)}
+            'kanaler': [{'id': k['id'], 'n': k['n'], 'typ': k.get('typ') or 'Radio'} for k in kanaler(c)], 'spotify': 'spotcast' in ha_tjanster(c) or bool(ha_spotify_spelare(alla))}
 
 # Apparater: robotdammsugare (Roborock) och diskmaskin (Home Connect). Hittas själva bland HA:s entiteter; "apparater" i
 # HA_FIL kan ange egna (vacuum.x / prefixet för diskmaskinen). Entiteternas namn är på svenska i HA, så de känns igen
@@ -522,6 +522,33 @@ def ha_hog_ok(c, L):
     L = [str(e) for e in (L if isinstance(L, list) else [L]) if str(e).startswith('media_player.') and str(e) in alla]
     return [e for e in L if egna is None or e in egna]
 
+def ha_spotify_spelare(alla):
+    return next((e for e in sorted(alla) if e.startswith('media_player.spotify')), None)
+
+def ha_spotify(c, hog, uri):
+    # Spotcast (HACS) om den finns, annars HA:s vanliga Spotify-koppling: välj högtalaren som Spotify Connect-källa och spela
+    if 'spotcast' in ha_tjanster(c):
+        for e in hog: ha_anrop(c, '/api/services/spotcast/start', {'entity_id': e, 'uri': uri, 'force_playback': True})
+        return 200, {}
+    alla = {x['entity_id']: x for x in ha_anrop(c, '/api/states')}
+    sp = ha_spotify_spelare(alla)
+    if not sp: return 501, {'fel': 'Koppla Spotify till Home Assistant först'}
+    namn = lambda e: (alla.get(e, {}).get('attributes') or {}).get('friendly_name') or e
+    mal = hog[0]
+    if len(hog) > 1:   # flera högtalare: Spotify spelar på en enhet, så ta en grupp som innehåller dem om den finns
+        mal = next((e for e in sorted(alla) if e.startswith('media_player.') and e not in hog and 'alla' in e), mal)
+    kalla = namn(mal)
+    L = (alla[sp].get('attributes') or {}).get('source_list') or []
+    try:
+        if (alla[sp].get('attributes') or {}).get('source') != kalla:
+            ha_anrop(c, '/api/services/media_player/select_source', {'entity_id': sp, 'source': kalla})
+            time.sleep(1.5)
+        ha_anrop(c, '/api/services/media_player/play_media', {'entity_id': sp, 'media_content_id': uri, 'media_content_type': uri.split(':')[1]})
+    except Exception as e:
+        logg('spotify: %s källor %s: %s' % (kalla, L, repr(e)[:150]))
+        return 502, {'fel': 'Spotify hittar inte ' + kalla + '. Spela något på den från Spotify-appen en gång och försök igen.'}
+    return 200, {}
+
 def ha_media_styr(c, d):
     hog = ha_hog_ok(c, d.get('media'))
     if not hog: return 403, {'fel': 'högtalaren finns inte'}
@@ -533,11 +560,9 @@ def ha_media_styr(c, d):
         k = kanal_fran(c, d.get('kanal'))
         if not k: return 400, {'fel': 'okänd kanal'}
         if k.get('sp'):
-            # Spotify spelas på Google-högtalare genom Spotcast (HACS) i HA
-            if 'spotcast' not in ha_tjanster(c): return 501, {'fel': 'Spotify behöver Spotcast i Home Assistant'}
-            for e in hog:
-                ha_anrop(c, '/api/services/spotcast/start', {'entity_id': e, 'uri': k['sp'], 'force_playback': True})
-                KANAL_NU[e] = (k['id'], time.time())
+            kod, svar = ha_spotify(c, hog, k['sp'])
+            if kod != 200: return kod, svar
+            for e in hog: KANAL_NU[e] = (k['id'], time.time())
             ha_uppdatera()
             return 200, {'ok': True, 'v': HA['v']}
         url, bild = kanal_url(k)
@@ -763,6 +788,11 @@ def ha_styr(d):
         e = str(d['scen'])
         if e not in c['scener']: return 403, {'fel': 'scenen är inte vald för tavlan'}
         data = {'entity_id': e}
+        v0 = d.get('var') if isinstance(d.get('var'), dict) else {}
+        k0 = kanal_fran(c, v0.get('kanal')) if v0.get('kanal') else None
+        if k0 and k0.get('sp') and e.startswith('script.') and 'spotify_uri' in (ha_skript_falt(c).get(e) or []) and 'spotcast' not in ha_tjanster(c):
+            # Spotify-lista utan Spotcast: tavlan spelar själv med volym och högtalare från bladet i stället för skriptet
+            return ha_media_styr(c, {'media': v0.get('hogtalare'), 'gor': 'spela', 'kanal': v0['kanal'], 'vol': v0.get('volym')})
         if e.startswith('script.') and d.get('var'):
             v = ha_skript_var(c, e, d['var'])
             if v: data['variables'] = v

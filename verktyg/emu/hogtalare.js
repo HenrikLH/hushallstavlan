@@ -38,11 +38,18 @@ module.exports=async(pg,h)=>{
  assert.match(await t.nth(1).innerText(),/P3/,'Liten spelar P3');
  // ikonen pausar
  await t.first().locator('.ha-i').click();await h.idle(500);assert.match(await t.first().innerText(),/Pausad/,'Pausad');
- // Ensam hemma: scenen öppnar bladet i skriptläge
- await pg.locator('[data-act="haScen"][data-id="script.ensam_hemma"]').first().click();await h.idle(800);
- assert.match(await pg.locator(F+' h2').innerText(),/Ensam hemma/,'Skriptets blad');
+ // Ensam hemma visas som knappen Högtalare: Stäng av högtalare medan något spelar, annars öppnar den bladet i skriptläge
+ const hk=pg.locator('[data-act="haScen"][data-id="script.ensam_hemma"]').first();
+ assert.match(await hk.innerText(),/Stäng av/,'Knappen stänger av när något spelar');
+ await hk.evaluate(e=>scrollBy(0,e.getBoundingClientRect().top-200));await h.idle(300);await h.shot('hog-5-stang-av');
+ await hk.click();await h.idle(700);
+ assert.equal(await pg.locator('.ha-med.on').count(),0,'Alla högtalare stoppade');
+ assert.match(await hk.innerText(),/^Högtalare$/,'Knappen heter Högtalare igen');
+ await hk.click();await h.idle(800);
+ assert.match(await pg.locator(F+' h2').innerText(),/Högtalare/,'Skriptets blad');
  assert.match(await pg.locator(F+' [data-act="haMedSpela"]').innerText(),/Starta/,'Starta-knapp');
  await h.shot('hog-4-ensam-hemma');
  await pg.locator(F+' [data-act="haMedSpela"]').click();await h.idle(600);
  assert.equal(await pg.locator(F).count(),0,'Startat');
+ assert.match(await hk.innerText(),/Stäng av/,'Samma knapp stänger av efter start');
 };
