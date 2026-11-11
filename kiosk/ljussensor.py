@@ -309,7 +309,6 @@ def ha_robot(c, alla, e):
          'rutt': rutt.get('state') if rutt else None, 'ruttAlt': A(rutt).get('options') if rutt else [], 'ruttId': rutt and rutt['entity_id'],
          'und': und, 'senast': max(senast) if senast else None, 'rutiner': rut, 'rum': [],
          'vbrist': (brist.get('state') == 'on') if brist and brist.get('state') in ('on', 'off') else None}
-    if 'mop' in r['lageAlt']: r['tank'] = ha_tank_info(c, r['vbrist'])
     # kartans rotation (RoborockCustomMap) och dockan (egna entiteter med "dock" i namnet)
     rot = next((x for e2, x in sorted(alla.items()) if e2.startswith('select.') and 'rotation' in e2), None)
     if rot: r.update(rot=rot.get('state'), rotAlt=A(rot).get('options') or [], rotId=rot['entity_id'])
@@ -322,6 +321,11 @@ def ha_robot(c, alla, e):
     r['dockVarn'] = [en(e2, x) for e2, x in sorted(D.items()) if e2.startswith('binary_sensor.') and x.get('state') == 'on' and A(x).get('device_class') == 'problem']
     r['dockVarn'] += ['Dock error: ' + x['state'].replace('_', ' ') for e2, x in sorted(D.items()) if e2.startswith('sensor.') and A(x).get('device_class') == 'enum' and x.get('state') not in (None, 'ok', 'none', 'unknown', 'unavailable', 'no_error', 'idle')]
     r['dock'] = bool(D)
+    # dockans egen givare för rent vatten (tom = på); går den från tom till inte tom är tanken påfylld
+    rv = [x for e2, x in sorted(D.items()) if e2.startswith('binary_sensor.') and re.search(r'rent|clean_water|water_shortage|vattenbrist', e2) and x.get('state') in ('on', 'off')]
+    if rv: r['vbrist'] = any(x['state'] == 'on' for x in rv)
+    if any(e2.startswith('sensor.') and x.get('state') in ('water_empty', 'clean_water_tank_empty') for e2, x in D.items()): r['vbrist'] = True
+    if 'mop' in r['lageAlt']: r['tank'] = ha_tank_info(c, r['vbrist'])
     if e in PLAN:
         q = PLAN[e]; r['plan'] = {'steg': q['steg'], 'i': q['i'], 'klara': q['klara'], 'nu': q['nu'], 'hemma': not q.get('avbr') and (bool(q['hemma']) or (q['sett'] and v.get('state') == 'docked')), 'klar': bool(q['klar']), 'avbr': bool(q.get('avbr'))}
     k = ha_karta_info(alla, p)
