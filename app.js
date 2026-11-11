@@ -1431,14 +1431,12 @@ const habSessioner=P=>{const g=new Map();P.forEach(m=>{const k=[m.app||'',m.tite
 const habKortP=el=>{const c=el&&el.closest&&el.closest('[data-hm]');if(!c)return habSpelar();const ids=c.dataset.hm.split(',');return haMedia().filter(m=>ids.includes(m.id))};
 const HAB_STEG=n=>'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">'+(n?'<path d="M4 6.3v11.4a.9.9 0 0 0 1.4.74L13 13v4.7a.9.9 0 0 0 1.4.74l8-5.7a.9.9 0 0 0 0-1.48l-8-5.7A.9.9 0 0 0 13 6.3V11L5.4 5.56A.9.9 0 0 0 4 6.3z"/>':'<path d="M20 6.3v11.4a.9.9 0 0 1-1.4.74L11 13v4.7a.9.9 0 0 1-1.4.74l-8-5.7a.9.9 0 0 1 0-1.48l8-5.7A.9.9 0 0 1 11 6.3V11l7.6-5.44A.9.9 0 0 1 20 6.3z"/>')+'</svg>';
 // Spotify med knappar ovanpå volymen tar två rader (4 platser), bara volym en rad (2)
-const habPlatser=P=>/spotify/i.test((P.find(haMedSpelar)||P[0]).app||'')&&!/[CS]/.test(lsGet('hamAlt')||'A')?4:2;
-function habMedKort(P){const v=habVolNu(P),sp=P.some(haMedSpelar),m0=P.find(haMedSpelar)||P[0],kan=m0.kan||{},spot=/spotify/i.test(m0.app||''),alt=lsGet('hamAlt')||'A',vg=P.map(m=>m.n).join(' och ');
- // bara reglage, ingen text. Spotify får ⏮ ⏯ ⏭ ovanpå volymen. Förhandsvisning: ht.hamAlt = A (tunt), B (tjockt), C (en rad)
+const habPlatser=P=>/spotify/i.test((P.find(haMedSpelar)||P[0]).app||'')?4:2;
+function habMedKort(P){const v=habVolNu(P),sp=P.some(haMedSpelar),m0=P.find(haMedSpelar)||P[0],kan=m0.kan||{},spot=/spotify/i.test(m0.app||''),vg=P.map(m=>m.n).join(' och ');
+ // bara reglage, ingen text (som Kontrollcenter): dra i stapeln = volym. Spotify får ⏮ ⏯ ⏭ ovanpå.
  const steg=n=>'<button type="button" class="hab-pp hab-steg" data-act="habMedSteg" data-id="'+(n?'nasta':'forra')+'" aria-label="'+(n?'Nästa':'Föregående')+'"'+((n?kan.n:kan.f)?'':' disabled')+'>'+HAB_STEG(n)+'</button>',
-  kn=spot?'<div class="hab-kn">'+steg(0)+'<button type="button" class="hab-pp hab-ppx" data-act="habMedTog" aria-pressed="'+sp+'" aria-label="'+(sp?'Pausa':'Spela')+'">'+HAB_PP(sp)+'</button>'+steg(1)+'</div>':'',
-  bar='<div class="hab-bar" data-hamvol="ruta" style="--p:'+v+'%" role="slider" aria-label="Volym, '+esc(vg)+'" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+v+'"><i></i>'+(alt!=='A'?'<span class="hab-bi">'+HAI_VOL(1)+'</span>':'<b></b>')+'</div>',
-  vol=alt==='A'?'<div class="hab-vr"><button type="button" class="hab-vb" data-act="habVol" data-id="-5" aria-label="Lägre volym">'+HAI_VOL(0)+'</button>'+bar+'<button type="button" class="hab-vb" data-act="habVol" data-id="5" aria-label="Högre volym">'+HAI_VOL(1)+'</button></div>':bar;
- return'<div class="ha-t hab-med hab-m'+alt[0]+' hab-'+alt+(spot?' spot':'')+'" role="group" aria-label="Spelar på '+esc(vg)+'" data-hm="'+esc(P.map(m=>m.id).join(','))+'">'+(alt==='C'?kn+vol:kn+vol)+'</div>'}
+  kn=spot?'<div class="hab-kn">'+steg(0)+'<button type="button" class="hab-pp hab-ppx" data-act="habMedTog" aria-pressed="'+sp+'" aria-label="'+(sp?'Pausa':'Spela')+'">'+HAB_PP(sp)+'</button>'+steg(1)+'</div>':'';
+ return'<div class="ha-t hab-med'+(spot?' spot':'')+'" role="group" aria-label="Spelar på '+esc(vg)+'" data-hm="'+esc(P.map(m=>m.id).join(','))+'">'+kn+'<div class="hab-bar" data-hamvol="ruta" style="--p:'+v+'%" role="slider" aria-label="Volym, '+esc(vg)+'" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+v+'"><i></i><span class="hab-bi">'+HAI_VOL(1)+'</span></div></div>'}
 // det som är igång stannar: apparater som kör går först, sedan tända lampor, sedan resten; ordningen i rutan behålls
 const habFvKort=(L,max)=>{const pr=e=>e.ap?(haAppAktiv(e.x)?0:2):e.x.on?1:2,ut=new Set();let n=0;
  L.map((e,i)=>[pr(e),i,e]).sort((a,b)=>a[0]-b[0]||a[1]-b[1]).forEach(([,,e])=>{if(n+habPl(e)<=max){ut.add(e);n+=habPl(e)}});return L.filter(e=>ut.has(e))};

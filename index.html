@@ -3262,46 +3262,19 @@ body.wall .hab .hab-g .ha-tx{flex-direction:row;align-items:baseline;gap:6px}bod
 .hab .hab-sc .hab-tom{background:transparent;box-shadow:inset 0 0 0 1.5px var(--line);color:var(--ink-3)}.hab-tom .ha-i{background:transparent;color:var(--ink-3)}
 .hab .hab-g{margin-top:8px;gap:8px}
 .hab-inga{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin-top:8px;min-height:56px;border:0;border-radius:var(--r5,16px);background:transparent;box-shadow:inset 0 0 0 1.5px var(--line);color:var(--ink-2);font:inherit;cursor:pointer}.hab-inga svg{width:18px;height:18px}
-/* Smart hem-rutan när något spelar: gemensamt volymreglage längst ner i stället för fyra favoritplatser */
+/* Smart hem-rutan när något spelar: mediaraden ersätter favoritplatser (2, eller 4 med Spotify-knappar) */
 .hab .hab-g .hab-med{grid-column:1/-1;gap:4px;cursor:default}
-.hab .hab-g .hab-med.ha-dim::before{background:var(--accent);opacity:.14}
-.hab-med .ha-tx{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;min-height:44px;border:0;background:none;padding:0 0 0 4px;font:inherit;color:inherit;text-align:left;cursor:pointer}
-.hab-med .ha-n,.hab-med .ha-s{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.hab-med .ham-pct{width:auto;font-size:inherit;color:inherit}
 .hab-pp{flex:none;display:grid;place-items:center;width:44px;height:44px;border:0;border-radius:999px;background:none;color:var(--ink);padding:0;cursor:pointer}.hab-pp svg{width:22px;height:22px}
-.hab-med .hab-pp{width:40px;margin:0}.hab-med .hab-pp svg{width:20px;height:20px}.hab-med .hab-steg svg{width:18px;height:18px}
-.hab-med.spl .ha-i{background:var(--accent);color:var(--on-accent,#fff)}
 body.wall .hab-pp{width:48px;height:48px}
-/* mediaraden: bara reglage. A tunt med högtalarikoner, B tjockt som Kontrollcenter, C knappar och reglage på en rad */
-.hab .hab-g .ha-t.hab-med{flex-direction:column;align-items:stretch;justify-content:center;gap:0;padding:6px 8px}
-.hab-med .hab-kn{display:flex;justify-content:center;align-items:center;gap:24px}
-.hab-med .hab-kn .hab-pp{width:44px;height:44px}.hab-med .hab-kn .hab-pp svg{width:22px;height:22px}.hab-med .hab-kn .hab-ppx svg{width:28px;height:28px}
+/* mediaraden: bara reglage som Kontrollcenter. Spotify: ⏮ ⏯ ⏭ ovanpå stapeln med jämn luft (8px) runt om */
+.hab .hab-g .ha-t.hab-med{flex-direction:column;align-items:stretch;justify-content:center;gap:0;padding:8px}
+.hab-med .hab-kn{display:flex;justify-content:center;align-items:center;gap:32px;height:40px;margin-bottom:8px}
+.hab-med .hab-kn .hab-pp{width:44px;height:40px}.hab-med .hab-kn .hab-pp svg{width:22px;height:22px}.hab-med .hab-kn .hab-ppx svg{width:32px;height:32px}
 .hab-pp:disabled{color:var(--ink-3);cursor:default}
-.hab-vr{display:flex;align-items:center;gap:4px}
-.hab-vb{flex:none;display:grid;place-items:center;width:44px;height:44px;border:0;background:none;color:var(--ink-2);padding:0;cursor:pointer}.hab-vb svg{width:20px;height:20px}
-.hab-bar{flex:1;position:relative;height:44px;touch-action:none;cursor:pointer}
-.hab-mA .hab-bar::before,.hab-mA .hab-bar i{content:"";position:absolute;left:0;right:0;top:50%;height:6px;margin-top:-3px;border-radius:999px;background:var(--line)}
-.hab-mA .hab-bar i{right:auto;width:var(--p);background:var(--accent)}
-.hab-mA .hab-bar b{position:absolute;top:50%;left:var(--p);width:24px;height:24px;margin:-12px 0 0 -12px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.25),0 0 0 .5px rgba(0,0,0,.06)}
-.hab-mB .hab-bar,.hab-mC .hab-bar{border-radius:14px;background:var(--line);overflow:hidden}
-.hab-mB .hab-bar i,.hab-mC .hab-bar i{position:absolute;inset:0;transform-origin:left;transform:scaleX(var(--p));background:var(--accent)}
-.hab-mC .hab-bar b{display:none}
-.hab-bi{position:absolute;left:12px;top:50%;margin-top:-10px;color:#fff;mix-blend-mode:normal}.hab-bi svg{width:20px;height:20px;display:block}
-.hab-mB .hab-kn{margin-bottom:6px}.hab-med>.hab-bar{flex:none}.hab .hab-g .ha-t.hab-mC.spot>.hab-bar{flex:1}
-.hab .hab-g .ha-t.hab-mC.spot{flex-direction:row;align-items:center;gap:8px}.hab-mC .hab-kn{gap:0}.hab-mC .hab-kn .hab-pp{width:40px}
+.hab-bar{flex:none;position:relative;height:44px;border-radius:14px;background:var(--line);overflow:hidden;touch-action:none;cursor:pointer}
+.hab-bar i{position:absolute;inset:0;transform-origin:left;transform:scaleX(var(--p));background:var(--accent)}
+.hab-bi{position:absolute;left:12px;top:50%;margin-top:-10px;color:#fff}.hab-bi svg{width:20px;height:20px;display:block}
 body.wall .hab-bar{height:48px}
-/* S: smal Kontrollcenter. Reglaget syns 28px högt men tar emot tryck på 44 (vägg 32/48); knapparna överlappar luften */
-.hab .hab-g .ha-t.hab-mS{padding:2px 8px;min-height:0}
-.hab-mS .hab-bar::before,.hab-mS .hab-bar i{content:"";position:absolute;left:0;right:0;top:8px;bottom:8px;border-radius:10px;background:var(--line)}
-.hab-mS .hab-bar i{background:var(--accent);clip-path:inset(0 calc(100% - var(--p)) 0 0);transition:clip-path .2s}
-.hab-mS .hab-bi{left:10px;margin-top:-8px;z-index:1}.hab-mS .hab-bi svg{width:16px;height:16px}
-.hab-mS .hab-kn{margin-bottom:-8px;gap:32px}.hab-mS .hab-kn .hab-pp svg{width:18px;height:18px}.hab-mS .hab-kn .hab-ppx svg{width:22px;height:22px}
-body.wall .hab-mS .hab-bar::before,body.wall .hab-mS .hab-bar i{top:8px;bottom:8px}body.wall .hab-vb{width:48px;height:48px}
-/* varianter av B: knapparnas luft och placering */
-.hab .hab-g .ha-t.hab-B1{padding:8px}.hab-B1 .hab-kn{height:40px;margin-bottom:8px;gap:32px}.hab-B1 .hab-kn .hab-pp{height:40px}
-.hab .hab-g .ha-t.hab-B2{padding:4px 8px 8px}.hab-B2 .hab-kn{justify-content:space-between;margin:0 2px 4px}
-.hab .hab-g .ha-t.hab-B3{padding:8px}.hab-B3 .hab-kn{gap:12px;margin-bottom:8px}.hab-B3 .hab-kn .hab-pp{background:var(--surface);flex:1;border-radius:12px;height:44px}.hab-B3 .hab-kn .hab-pp:disabled{background:transparent}
-.hab .hab-g .ha-t.hab-B4{padding:6px 8px 8px}.hab-B4 .hab-kn{gap:20px;margin-bottom:6px}.hab-B4 .hab-kn .hab-steg svg{width:20px;height:20px}.hab-B4 .hab-kn .hab-ppx{width:52px;height:52px}.hab-B4 .hab-kn .hab-ppx svg{width:34px;height:34px}
 /* högtalarval i bladet: A brickor, B segment */
 .ham-hg{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:8px;margin:0 16px}
 .ham-ht{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-height:96px;padding:12px;border:0;border-radius:16px;background:var(--surface);color:var(--ink);font:inherit;text-align:left;cursor:pointer;transition:background .2s,color .2s}
