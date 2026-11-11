@@ -13,7 +13,7 @@
 #                      | {"app": id, "gor": "start", "damm": [16], "mopp": [16, 17]}  dammsuger först, moppar när roboten är hemma igen ("planstopp" hoppar över)
 #                      | {"app": id, "zon": [x0, y0, x1, y1] (kartans pixlar)}
 #                      | {"app": id, "sug"|"lage"|"vatten"|"rutt"|"prog"|"rutin"|"rot"|"dockLage": värde}   dammsugare och diskmaskin
-#   POST /ha           {"media": ["media_player.kok"], "gor": "spela", "kanal": "p4", "vol": 35} | {"media": [...], "gor": "vol"|"paus"|"fortsatt"|"stopp"}
+#   POST /ha           {"media": ["media_player.kok"], "gor": "spela", "kanal": "p4", "vol": 35} | {"media": [...], "gor": "vol"|"paus"|"fortsatt"|"stopp"|"nasta"|"forra"}
 #                      | {"scen": "script.ensam_hemma", "var": {"kanal": "p4", "volym": 35, "hogtalare": ["media_player.kok"]}}
 #                      kanal = inbyggt id eller egen {"n": "Lugnt", "rb": "namn att söka" | "url": "https://…" | "sp": "spotify:playlist:…"}
 #   POST /ha/val       {"rumnr": 16, "rumnamn": "Kök"} namnger robotens rum | {"rumnr": 16, "stor": true} stort rum (dammsugs ensamt, töms efteråt)
@@ -232,7 +232,7 @@ def ha_las(c):
         f = [x for x in falt.get(s['id']) or [] if x in MEDIA_FALT]
         if f: s['falt'] = f
     return {'lampor': lampor, 'scener': scener, 'givare': givare, 'apparater': ha_appar(c, alla), 'media': ha_hogtalare(c, alla),
-            'kanaler': [{'id': k['id'], 'n': k['n'], 'typ': k.get('typ') or 'Radio'} for k in kanaler(c)], 'spotify': 'spotcast' in ha_tjanster(c)}
+            'kanaler': [{'id': k['id'], 'n': k['n'], 'typ': k.get('typ') or 'Radio'} for k in kanaler(c)], 'spotify': 'spotcast' in ha_tjanster(c) or bool(ha_spotify_spelare(alla))}
 
 # Apparater: robotdammsugare (Roborock) och diskmaskin (Home Connect). Hittas själva bland HA:s entiteter; "apparater" i
 # HA_FIL kan ange egna (vacuum.x / prefixet för diskmaskinen). Entiteternas namn är på svenska i HA, så de känns igen
@@ -519,15 +519,17 @@ def kanal_url(k):
 
 def ha_hogtalare(c, alla):
     egna = c.get('hogtalare')
-    ids = [e for e in (egna if egna is not None else sorted(alla)) if e.startswith('media_player.') and e in alla]
+    # Spotify-kontots egen spelare (media_player.spotify_*) är ingen högtalare; det som castas syns på högtalaren själv
+    ids = [e for e in (egna if egna is not None else sorted(alla)) if e.startswith('media_player.') and e in alla and not e.startswith('media_player.spotify')]
     ut = []
     for e in ids:
         x = alla[e]; a = x.get('attributes') or {}; st = x.get('state')
         if st not in ('playing', 'buffering', 'paused') and time.time() - (KANAL_NU.get(e) or ('', 0))[1] > 20: KANAL_NU.pop(e, None)
-        v = a.get('volume_level')
+        v, f = a.get('volume_level'), int(a.get('supported_features') or 0)
         ut.append({'id': e, 'n': c['namn'].get(e) or a.get('friendly_name') or e, 'hn': a.get('friendly_name') or e, 'rum': c['rum'].get(e),
                    'st': st, 'nas': st == 'unavailable', 'vol': round(v * 100) if isinstance(v, (int, float)) else None,
-                   'titel': a.get('media_title') or a.get('app_name'), 'kanal': (KANAL_NU.get(e) or (None,))[0], 'grupp': len(a.get('group_members') or []) > 1})
+                   'titel': a.get('media_title'), 'artist': a.get('media_artist') or a.get('media_album_artist'), 'app': a.get('app_name'),
+                   'kan': {'f': bool(f & 16), 'n': bool(f & 32)}, 'kanal': (KANAL_NU.get(e) or (None,))[0], 'grupp': len(a.get('group_members') or []) > 1})
     return ut
 
 def ha_hog_ok(c, L):
@@ -535,6 +537,33 @@ def ha_hog_ok(c, L):
     egna = c.get('hogtalare')
     L = [str(e) for e in (L if isinstance(L, list) else [L]) if str(e).startswith('media_player.') and str(e) in alla]
     return [e for e in L if egna is None or e in egna]
+
+def ha_spotify_spelare(alla):
+    return next((e for e in sorted(alla) if e.startswith('media_player.spotify')), None)
+
+def ha_spotify(c, hog, uri):
+    # Spotcast (HACS) om den finns, annars HA:s vanliga Spotify-koppling: välj högtalaren som Spotify Connect-källa och spela
+    alla = {x['entity_id']: x for x in ha_anrop(c, '/api/states')}
+    mal = hog[0]
+    if len(hog) > 1:   # flera högtalare: Spotify spelar på en enhet åt gången, så ta Google-gruppen (Alla högtalare) om den finns
+        mal = next((e for e in sorted(alla) if e.startswith('media_player.') and e not in hog and 'alla' in e), mal)
+    if 'spotcast' in ha_tjanster(c):
+        ha_anrop(c, '/api/services/spotcast/start', {'entity_id': mal, 'uri': uri, 'force_playback': True})
+        return 200, {}
+    sp = ha_spotify_spelare(alla)
+    if not sp: return 501, {'fel': 'Koppla Spotify till Home Assistant först'}
+    namn = lambda e: (alla.get(e, {}).get('attributes') or {}).get('friendly_name') or e
+    kalla = namn(mal)
+    L = (alla[sp].get('attributes') or {}).get('source_list') or []
+    try:
+        if (alla[sp].get('attributes') or {}).get('source') != kalla:
+            ha_anrop(c, '/api/services/media_player/select_source', {'entity_id': sp, 'source': kalla})
+            time.sleep(1.5)
+        ha_anrop(c, '/api/services/media_player/play_media', {'entity_id': sp, 'media_content_id': uri, 'media_content_type': uri.split(':')[1]})
+    except Exception as e:
+        logg('spotify: %s källor %s: %s' % (kalla, L, repr(e)[:150]))
+        return 502, {'fel': 'Spotify hittar inte ' + kalla + '. Spela något på den från Spotify-appen en gång och försök igen.'}
+    return 200, {}
 
 def ha_media_styr(c, d):
     hog = ha_hog_ok(c, d.get('media'))
@@ -547,11 +576,9 @@ def ha_media_styr(c, d):
         k = kanal_fran(c, d.get('kanal'))
         if not k: return 400, {'fel': 'okänd kanal'}
         if k.get('sp'):
-            # Spotify spelas på Google-högtalare genom Spotcast (HACS) i HA
-            if 'spotcast' not in ha_tjanster(c): return 501, {'fel': 'Spotify behöver Spotcast i Home Assistant'}
-            for e in hog:
-                ha_anrop(c, '/api/services/spotcast/start', {'entity_id': e, 'uri': k['sp'], 'force_playback': True})
-                KANAL_NU[e] = (k['id'], time.time())
+            kod, svar = ha_spotify(c, hog, k['sp'])
+            if kod != 200: return kod, svar
+            for e in hog: KANAL_NU[e] = (k['id'], time.time())
             ha_uppdatera()
             return 200, {'ok': True, 'v': HA['v']}
         url, bild = kanal_url(k)
@@ -561,11 +588,11 @@ def ha_media_styr(c, d):
         for e in hog:
             ha_anrop(c, '/api/services/media_player/play_media', {'entity_id': e, 'media_content_id': url, 'media_content_type': 'music', 'extra': extra})
             KANAL_NU[e] = (k['id'], time.time())
-    elif g in ('paus', 'fortsatt', 'stopp'):
-        tj({'paus': 'media_pause', 'fortsatt': 'media_play', 'stopp': 'media_stop'}[g], {})
+    elif g in ('paus', 'fortsatt', 'stopp', 'nasta', 'forra'):
+        tj({'paus': 'media_pause', 'fortsatt': 'media_play', 'stopp': 'media_stop', 'nasta': 'media_next_track', 'forra': 'media_previous_track'}[g], {})
         if g == 'stopp':
             for e in hog: KANAL_NU.pop(e, None)
-    elif g != 'vol': return 400, {'fel': 'gor ska vara spela, vol, paus, fortsatt eller stopp'}
+    elif g != 'vol': return 400, {'fel': 'gor ska vara spela, vol, paus, fortsatt, stopp, nasta eller forra'}
     ha_uppdatera()
     return 200, {'ok': True, 'v': HA['v']}
 
@@ -865,6 +892,11 @@ def ha_styr(d):
         e = str(d['scen'])
         if e not in c['scener']: return 403, {'fel': 'scenen är inte vald för tavlan'}
         data = {'entity_id': e}
+        v0 = d.get('var') if isinstance(d.get('var'), dict) else {}
+        k0 = kanal_fran(c, v0.get('kanal')) if v0.get('kanal') else None
+        if k0 and k0.get('sp') and e.startswith('script.') and 'spotify_uri' in (ha_skript_falt(c).get(e) or []) and 'spotcast' not in ha_tjanster(c):
+            # Spotify-lista utan Spotcast: tavlan spelar själv med volym och högtalare från bladet i stället för skriptet
+            return ha_media_styr(c, {'media': v0.get('hogtalare'), 'gor': 'spela', 'kanal': v0['kanal'], 'vol': v0.get('volym')})
         if e.startswith('script.') and d.get('var'):
             v = ha_skript_var(c, e, d['var'])
             if v: data['variables'] = v

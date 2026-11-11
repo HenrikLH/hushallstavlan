@@ -87,6 +87,8 @@ S.update({
  'media_player.stor': ['idle', {'friendly_name': 'Stor', 'volume_level': 0.5}],
  'media_player.liten': ['off', {'friendly_name': 'Liten', 'volume_level': 0.3}],
  'script.ensam_hemma': ['off', {'friendly_name': 'Ensam hemma'}],
+ 'media_player.alla_hogtalare': ['off', {'friendly_name': 'Alla högtalare'}],
+ 'media_player.spotify_henrik': ['idle', {'friendly_name': 'Spotify Henrik', 'source_list': ['Stor', 'Liten', 'Alla högtalare']}],
 })
 TJANSTER = [{'domain': 'script', 'services': {'turn_on': {}, 'reload': {}, 'ensam_hemma': {'fields': {k: {} for k in ('hogtalare', 'kanal_url', 'kanal_namn', 'kanal_bild', 'spotify_uri', 'volym')}}}},
             {'domain': 'media_player', 'services': {}}, {'domain': 'light', 'services': {}}]
@@ -130,7 +132,8 @@ class H(http.server.BaseHTTPRequestHandler):
             return self.svar(200, [])
         if dom == 'media_player':
             for x in (e if isinstance(e, list) else [e]):
-                if tj == 'volume_set': S[x][1]['volume_level'] = d['volume_level']
+                if tj == 'select_source': S[x][1]['source'] = d['source']
+                elif tj == 'volume_set': S[x][1]['volume_level'] = d['volume_level']
                 elif tj == 'play_media': S[x][0] = 'playing'; S[x][1]['media_title'] = (d.get('extra') or {}).get('title')
                 elif tj in ('media_pause', 'media_play', 'media_stop'): S[x][0] = {'media_pause': 'paused', 'media_play': 'playing', 'media_stop': 'idle'}[tj]
             return self.svar(200, [])
