@@ -2,6 +2,12 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Hemmet: Ekonomi ut ur flikraden (förslag, ej publicerat)
+
+- Mål: Ekonomi används sällan. Ny flik Hemmet (Smart hem, Ekonomi, Födelsedagar, Familj i DEV, Inställningar) med läget per rad; Ekonomi och Födelsedagar öppnas därifrån och bakåt leder dit de öppnades från (`S.hemFran`, `hemTill`, `hemTop`). Bygger på granskningens meny A. Ägare Claude, gren `claude/project-thread-x400ki`.
+- Förhandsval i localStorage: `ht.navF` A (Översikt · Mat · Att göra · Kalender · Hemmet, standard) eller B (Mat · Hemmet · Översikt · Kalender · Att göra); `ht.hemStil` lista (standard) eller brickor. Ta bort valet som inte väljs innan publicering. Översikt fick rutnätsikon (`I_OV`), Hemmet huset. Rutor H1/H2.
+- Väntar på Henriks val (A/B och lista/brickor). Bilder /mnt/project-files/hemmet/. Test: ny `verktyg/emu/hemmet.js`, alla-flikar (uppdaterad för Hemmet) telefon+vägg gröna, uppstart med `view=ekonomi` ok.
+
 ## Smarta förslag borttagna från Översikt (publicerad ht-v351)
 
 - Henrik tyckte förslagen (Ö14) var irriterande. Hela funktionen borttagen: `forslag`/`forslagHtml`/`fsDone`, ACT `fsKlart/fsSen/fsGo`, CSS `.fsl/.fs-*`; Ö14 till borttagna. Väderlarmet (Ö13) och Vädra/Ute finns kvar. Ångra-gren `version-fore-smarta-forslag`.
