@@ -2,6 +2,12 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Matbilder i Ny veckosedel (förslag, väntar på Henriks val)
+
+- Mål: se rätterna på bild i Ny veckosedel (`portViewU5`). Lägen A rutnät / B stora kort / C större rader via `MATBILD` (`ht.mbild`, förval a); ⇄ visar Andra förslag som bildkarusell. CSS `.g5-k*` sist i index.html. Bilder i /mnt/project-files/matbilder/.
+- Foton: `img` i inspiration.json (100/101, länkade från receptsidorna; ICA via WebFetch eftersom ICA spärrar GitHub). `inspoImg` matchar id eller namn. `verktyg/matbilder-hamta.js [--kolla]`.
+- Ägare Claude, gren `claude/project-thread-tjhego`. Före publicering: behåll valt läge, ta bort övriga + `.github/workflows/matbilder-forhandsvisning.yml` och grenen `forhandsvisning-matbilder` (molnet når inte bildsajterna, därför CI-bilder). Test: `verktyg/emu/matbilder.js` (BILDER=1 släpper igenom foton).
+
 ## Smarta förslag borttagna från Översikt (publicerad ht-v351)
 
 - Henrik tyckte förslagen (Ö14) var irriterande. Hela funktionen borttagen: `forslag`/`forslagHtml`/`fsDone`, ACT `fsKlart/fsSen/fsGo`, CSS `.fsl/.fs-*`; Ö14 till borttagna. Väderlarmet (Ö13) och Vädra/Ute finns kvar. Ångra-gren `version-fore-smarta-forslag`.
