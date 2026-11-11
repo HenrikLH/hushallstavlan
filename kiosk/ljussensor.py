@@ -527,16 +527,16 @@ def ha_spotify_spelare(alla):
 
 def ha_spotify(c, hog, uri):
     # Spotcast (HACS) om den finns, annars HA:s vanliga Spotify-koppling: välj högtalaren som Spotify Connect-källa och spela
-    if 'spotcast' in ha_tjanster(c):
-        for e in hog: ha_anrop(c, '/api/services/spotcast/start', {'entity_id': e, 'uri': uri, 'force_playback': True})
-        return 200, {}
     alla = {x['entity_id']: x for x in ha_anrop(c, '/api/states')}
+    mal = hog[0]
+    if len(hog) > 1:   # flera högtalare: Spotify spelar på en enhet åt gången, så ta Google-gruppen (Alla högtalare) om den finns
+        mal = next((e for e in sorted(alla) if e.startswith('media_player.') and e not in hog and 'alla' in e), mal)
+    if 'spotcast' in ha_tjanster(c):
+        ha_anrop(c, '/api/services/spotcast/start', {'entity_id': mal, 'uri': uri, 'force_playback': True})
+        return 200, {}
     sp = ha_spotify_spelare(alla)
     if not sp: return 501, {'fel': 'Koppla Spotify till Home Assistant först'}
     namn = lambda e: (alla.get(e, {}).get('attributes') or {}).get('friendly_name') or e
-    mal = hog[0]
-    if len(hog) > 1:   # flera högtalare: Spotify spelar på en enhet, så ta en grupp som innehåller dem om den finns
-        mal = next((e for e in sorted(alla) if e.startswith('media_player.') and e not in hog and 'alla' in e), mal)
     kalla = namn(mal)
     L = (alla[sp].get('attributes') or {}).get('source_list') or []
     try:
