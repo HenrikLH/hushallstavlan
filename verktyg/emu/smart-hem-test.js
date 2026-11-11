@@ -5,7 +5,7 @@ module.exports=async(pg,h)=>{
  const ut=[];pg.on('request',r=>{if(/falsk\.example|127\.0\.0\.1:8777/.test(r.url())&&r.method()==='POST')ut.push(r.url())});
  await pg.locator('[data-act="settings"]').first().click();await h.idle(600);
  const knapp=pg.locator('[data-act="haTest"]');
- if(!await knapp.isVisible()){const av=pg.locator('#overlay').getByText('Avancerat',{exact:true}).first();await av.click();await h.idle(700)}
+ if(!await knapp.isVisible()){const av=pg.locator('#overlay').getByText('Utvecklarläge',{exact:true}).first();await av.click();await h.idle(700)}
  await knapp.click();await h.idle(900);
  assert.match(await pg.locator('main').innerText(),/Testläge/,'Testläget syns');
  const t=pg.locator('main .ha-t[data-id="light.hall"]');

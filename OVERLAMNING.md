@@ -2,6 +2,13 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Pågår: Inställningar per huvudflik (Claude, förslag)
+
+- Mål: en inställningsdel per huvudflik. Ny ordning: Personer · Mat, Översikt, Att göra · Utseende, Enheten, Utvecklarläge (Ekonomi och Kalender har inga inställningar och visas inte).
+- Gren `claude/project-thread-yglded`. Flyttat: matbudget/priser/låsa → Mat (I7); städtid/Städvyn → Att göra (I8); Rörelse → Utseende; Avancerat heter Utvecklarläge. I3 borttagen. Grupper med `'|'` i `settingsGroups` → `.pref-gap`.
+- Test: nytt `verktyg/emu/installningar-delar.js`, installningar.js (LS ui=2), alla-flikar telefon+vägg gröna. stad-vyer/animationer/smart-hem-test föll redan på main.
+- Nästa: vänta på Henriks ok och "Pusha" (version.js, ångra-gren `version-fore-installningar-delar`).
+
 ## Smart hem-rutan: scener och favoriter (publicerad ht-v339)
 
 - Publicerad 2026-11-11 som ht-v339 (ångra-gren `version-fore-smart-hem-ruta`), sedan ht-v340: 8 favoritplatser, låga brickor med läget bredvid namnet på väggen (Henrik valde B; ångra-gren `version-fore-smart-hem-8`). Fyra scenplatser (egen/HA/Släck allt, färg per symbol `HAB_FARG`); data i onskelista `{hab:1,sc,fv}`. Kod `hab*` i app.js, CSS `.hab-*`.

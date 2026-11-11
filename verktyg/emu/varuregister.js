@@ -1,4 +1,4 @@
-// Varuregistret: Inställningar → Mat och städ → Varor och priser. Koppla en ingrediens utan vara, välj produkt bland Willys förslag
+// Varuregistret: Inställningar → Mat → Varor och priser. Koppla en ingrediens utan vara, välj produkt bland Willys förslag
 // och godkänn alla förval. Valen sparas i onskelista ({vreg:1}) och finns kvar efter omladdning.
 const assert=require('node:assert/strict');
 module.exports=async(pg,h)=>{
