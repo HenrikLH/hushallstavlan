@@ -34,17 +34,22 @@ module.exports=async(pg,h)=>{
  await pg.locator(F+' [data-act="habScRed"][data-id="0"]').click();await h.idle(500);
  const SC='form[data-form="habSc"]';assert.equal(await pg.locator(SC).count(),1,'Scenbladet');
  await pg.locator(SC+' [data-act="habScTyp"][data-id="egen"]').click();await h.idle(300);
- await pg.locator(SC+' [data-act="habScNamn"][data-id="Middag"]').click();await h.idle(300);
+ assert.equal(await pg.locator(SC+' [data-act="habScNamn"]').count(),0,'Inga namnförslag');
+ if(!vagg)await pg.locator(SC+' input[name="habn"]').fill('Middag');
+ await pg.locator(SC+' [data-act="habScF"][data-id="#FF375F"]').click();await h.idle(300);
+ assert.match(await pg.locator(SC+' .hab-hero').getAttribute('style'),/#FF375F/,'Vald färg i bladet');
+ assert.equal(await pg.locator(SC+' .hab-iks:not(.hab-fgr) [style*="#FF375F"]').count(),await pg.locator(SC+' [data-act="habScIk"]').count(),'Symbolerna i vald färg');
  await h.shot('ruta-3-scen');
  await pg.locator(SC+' button[type="submit"]').click();await h.idle(500);
  assert.equal(await pg.locator(F).count(),1,'Tillbaka till Anpassa');
  await pg.locator(F+' [data-act="habKlar"]').click();await h.idle(700);
  assert.deepEqual(await fv().evaluateAll(L=>L.map(e=>e.dataset.id)),f1.slice(0,(await fv().count())),'Rutan följer ordningen');
- assert.match(await box.locator('.hab-sc .ha-st').first().innerText(),/Middag/,'Scenen heter Middag');
+ if(!vagg)assert.match(await box.locator('.hab-sc .ha-st').first().innerText(),/Middag/,'Scenen heter Middag');
+ {const st=await box.locator('.hab-sc .ha-st').first().getAttribute('style');assert.match(st,/#FF375F/i,'Färgen sparad')}
  assert.doesNotMatch(await box.locator('.hab-h').innerText(),/°/,'Ingen temperatur');
  // köret: scenen sparades när allt var släckt; tänd köket, kör scenen = köket släcks igen
  await box.locator('[data-act="habScen"][data-id="0"]').click();await h.idle(400);
- assert.ok(await box.locator('.hab-sc .ha-st').first().evaluate(e=>e.classList.contains('on')),'Middag är aktiv');
+ assert.ok(await box.locator('.hab-sc .ha-st').first().evaluate(e=>e.classList.contains('on')),'Scenen är aktiv');
  // håll in en scen öppnar bladet direkt
  await h.hold('section.ha [data-act="habScen"][data-id="1"]');await h.idle(700);
  assert.equal(await pg.locator(SC).count(),1,'Håll in öppnar scenen');
