@@ -36,9 +36,9 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 - `haFavs()` sorterar kall→varm; Ändra-bladet (⋯) har Favorittoner, tryck öppnar `haFav` (namn bara i telefonen). Gren `claude/project-thread-9qfmlm`, ingen Kod.gs/tjänst.
 - Test: ny `smart-hem-tonsteg.js` (telefon, falsk tjänst; faller på main), smart-hem-ton telefon+vägg, ljusvanor, smart-hem-ruta, -rorelse gröna. `smart-hem.js` faller redan på main (light.hall).
 
-## En högtalare åt gången, mediarad utan text (förhandsvisad, inte publicerad)
+## En högtalare åt gången, mediarad utan text (publicerad ht-v354)
 
-- Henrik valde 2026-11-11: högtalarbrickor (Stor/Liten/Alla, en åt gången, `hamHogVal`, `hamEnHog`) och mediarad B1 = Kontrollcenter-stapel utan text, Spotify med ⏮ ⏯ ⏭ ovanpå och större play (`habMedKort`, `habPlatser`). Gren `claude/project-thread-h4no38`. Nästa: Henriks "Pusha". Ingen ändring i mellanledet.
+- Henrik valde 2026-11-11: högtalarbrickor (Stor/Liten/Alla, en åt gången, `hamHogVal`, `hamEnHog`) och mediarad B1 = Kontrollcenter-stapel utan text, Spotify med ⏮ ⏯ ⏭ ovanpå och större play (`habMedKort`, `habPlatser`). Ångra-gren `version-fore-hogtalarval`. Ingen ändring i mellanledet. Kvar: Henrik provar på väggen.
 - Test: hogtalare.js telefon/vägg och alla-flikar gröna; smart-hem.js faller som förut (även på main).
 
 ## Högtalare-knappen och mediakontroller (publicerad ht-v349)
