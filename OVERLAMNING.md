@@ -23,7 +23,7 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 - Skript med kanalfält visas som knappen Högtalare (högtalarikon); när något spelar/är pausat blir samma knapp Stäng av (stoppar alla). Gäller scenplatser i rutan (`habScT`) och Smart hem (`haScT`). Gren `claude/project-thread-h4no38`.
 - Spotify startas från mobilen (Henriks eller Cornelias konto) och castas till Stor/Liten/Alla högtalare; tavlan visar låt/artist och styr ⏮ ⏯ ⏭ och volym via Cast-högtalaren. Olika spelningar = egna låga rader i rutan (2 platser var, dra i sidled = volym via lamporna dragkod; `habSessioner`, `habKortP`). Spotify som källa i Lägg till borttagen. Spotcast borttagen ur HA igen (var aldrig aktiv). Henriks skript heter `script.ensam_hemma_2`. smart-hem.js faller även på main (favoriterna trängs undan av volymkortet).
-- Ångra-gren `version-fore-mediakontroller`. Tjänsten på väggdatorn: se nedan. Test: hogtalare.js, hogtalare-ruta.js (telefon/vägg), falsk-ha.
+- Ångra-gren `version-fore-mediakontroller`. Väggdatorn kör ljussensor.py från b300555 (installerad 2026-11-11 19:54; äldre kopior i ~/.local/bin, `.fore-v349` är redan ny). Kvar: Henrik provar casta från mobilen och styra från tavlan. Test: hogtalare.js, hogtalare-ruta.js (telefon/vägg), falsk-ha.
 
 ## Högtalare och radio, Ensam hemma (publicerad ht-v342)
 
