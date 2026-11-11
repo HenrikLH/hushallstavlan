@@ -1455,8 +1455,8 @@ const haTonOmr=(W,K)=>{const T=haTonSk(W),z=Math.min(T.hi,Math.max(T.lo+800,2700
 const haKTxt=K=>Math.round(K).toLocaleString('sv-SE')+' K';
 // Favoriter (bara ton; ljusstyrkan lämnas orörd, äldre sparat b används inte) för hela hushållet i onskelista som {haf:1,l:[{n,K}]} (ingen ny Kod.gs). Utan sparade gäller Vitt/Mys/Stearin.
 const HA_FAV0=[{n:'Vitt',K:4000},{n:'Mys',K:2700},{n:'Stearin',K:2000}];
-const haFavs=()=>{const o=parseJ(settings().onskelista,[]).find(x=>x&&x.haf);return o&&Array.isArray(o.l)?o.l.filter(f=>f&&f.n&&f.K):HA_FAV0};
-function haFavSet(fn){A.user=Date.now();updJSON('onskelista',[],a=>{const o=a.find(x=>x&&x.haf),l=fn((o&&Array.isArray(o.l)?o.l:HA_FAV0).slice()).slice(0,12);return a.filter(x=>!(x&&x.haf)).concat([{haf:1,l}])})}
+const haFavs=()=>{const o=parseJ(settings().onskelista,[]).find(x=>x&&x.haf);return (o&&Array.isArray(o.l)?o.l.filter(f=>f&&f.n&&f.K):HA_FAV0).slice().sort((a,b)=>b.K-a.K)};// kall till varm
+function haFavSet(fn){A.user=Date.now();updJSON('onskelista',[],a=>{const o=a.find(x=>x&&x.haf),l=fn((o&&Array.isArray(o.l)?o.l.filter(f=>f&&f.n&&f.K):HA_FAV0).slice().sort((a,b)=>b.K-a.K)).slice(0,12).sort((a,b)=>b.K-a.K);return a.filter(x=>!(x&&x.haf)).concat([{haf:1,l}])})}
 const haFavPa=(x,f,K)=>Math.abs(K-f.K)<=25;
 document.addEventListener('input',e=>{const r=e.target;if(!r.dataset||!r.dataset.hat)return;HA.drag=true;const[lo,hi]=r.dataset.hat.split(',').map(Number),m=document.querySelector('[data-hav="k"]');if(m)m.textContent=haKTxt(hi+lo-+r.value)});
 document.addEventListener('change',e=>{const r=e.target;if(!r.dataset||!r.dataset.hat)return;HA.drag=false;const[lo,hi]=r.dataset.hat.split(',').map(Number),x=haLamp();if(x)haLampSkicka(x,haTonCmd(hi+lo-+r.value,haVarm(x)))});
@@ -1679,13 +1679,14 @@ function haFavSheet(enter){const x=haLamp(),F=S.haFav;if(!x||!F){S.sheet=null;re
 function haFavSpara(n){const x=haLamp(),F=S.haFav;if(!x||!F)return;n=String(n||'').trim().slice(0,24);
  if(F.i<0){const K=haTonK(x,haVarm(x));haFavSet(l=>l.concat([{n:n||'Favorit '+(l.length+1),K}]));toast('Sparad som '+(n||'favorit'))}
  else if(n)haFavSet(l=>{if(l[F.i])l[F.i]=Object.assign({},l[F.i],{n});return l});
- S.sheet='haLampa';render()}
+ S.sheet=F.fr||'haLampa';render()}
 function haEditSheet(enter){const x=haAllaEnh().find(e=>e.id===S.haId);if(!x){S.sheet=null;return''}const dom=x.id.split('.')[0],ar=dom==='scene'||dom==='script';
  const chip=(act,v,on,lab)=>'<button type="button" class="pill ha-c'+(on?' on':'')+'" data-act="'+act+'" data-id="'+esc(v)+'" aria-pressed="'+!!on+'">'+esc(lab||v)+'</button>';
  const namn=[x.hn||x.n].concat(HA_NAMN[dom]||[]).filter((v,i,a)=>v&&a.indexOf(v)===i);
  const body='<div class="ha-ed-top"><span class="ha-i">'+(dom==='light'?HAI.bulb:dom==='fan'?HAI.fan:ar?I.sparkles:dom==='sensor'?HAI.temp:HAI.plug)+'</span><div><div class="hl">'+esc(x.n)+'</div><div class="meta">'+esc(x.rum||'Inget rum')+' · '+esc(x.id)+'</div></div></div>'+
   sh('Namn')+(wallBoardOn()?'':'<div class="group"><label class="cell"><input class="field ha-namnf" name="hanamn" value="'+esc(x.n)+'" maxlength="40" autocomplete="off" enterkeyhint="done" aria-label="Eget namn" placeholder="'+esc(x.hn||x.n)+'"><button type="button" class="pill" data-act="haNamnSpara">Spara</button></label></div>')+'<div class="group"><div class="cell ha-chips">'+namn.map((v,i)=>chip('haNamn',i?v:'',x.n===v||!i&&x.n===x.hn,i?v:v+' (HA)')).join('')+'</div></div>'+
   (ar?'':sh('Rum')+'<div class="group"><div class="cell ha-chips">'+HA_RUM.map(v=>chip('haRum',v,x.rum===v)).join('')+chip('haRum','',!x.rum,'Inget rum')+'</div></div>')+
+  (dom==='light'&&haVarm(x).ok?sh('Favorittoner')+group(haFavs().map((f,i)=>'<button type="button" class="cell link ha-fvr" data-act="haFavRed" data-id="'+i+'"><b style="background:'+haKFarg(f.K)+'"></b><span class="grow">'+esc(f.n)+'</span><span class="meta">'+haKTxt(f.K)+'</span><span class="chev">'+I.chev+'</span></button>').join(''))+'<div class="foot">Från kall till varm. Tryck för att byta namn'+(wallBoardOn()?' (i telefonen)':'')+', spara om eller ta bort. Gäller alla lampor.</div>':'')+
   '<div style="height:22px"></div>'+group('<button type="button" class="cell link center red hold" data-hold="haDelHold" data-id="'+esc(x.id)+'"><i class="sh-fill"></i><span>Ta bort från tavlan</span></button>')+'<div class="foot">Håll in för att ta bort. Enheten finns kvar i Home Assistant och kan läggas till igen.</div>';
  return sheetHtml('haEdit','Ändra '+esc(x.n),'<button type="button" class="tb strong" data-act="sheetClose">Klar</button>',body,enter,'<span class="tb"></span>')}
 // Lägg till: allt i Home Assistant som tavlan får styra eller visa, grupperat efter sort
@@ -1704,8 +1705,15 @@ async function haValj(body,lok){lok();render();if(haDemo())return;HA.pend=(HA.pe
  catch(e){toast('Kunde inte spara på väggdatorn');HA.v=0}
  HA.pend--;render()}
 const haVal=(id,v)=>id==='b'?v+' %':Math.round(v/50)*50+' K';
-function haLampSkicka(x,ch){if(!x)return;const was=JSON.stringify(x);x.on=true;if(ch.b!=null)x.b=ch.b;if(ch.k!=null){x.k=ch.k;x.lage='color_temp'}if(ch.hs){x.hs=ch.hs;x.lage='hs'}
- render();haSend(Object.assign({id:x.id,gor:'pa'},ch),()=>Object.assign(x,JSON.parse(was)))}
+function haLampSkicka(x,ch){if(!x)return;const was=JSON.stringify(x),m={on:true};if(ch.b!=null)m.b=ch.b;if(ch.k!=null){m.k=ch.k;m.lage='color_temp'}if(ch.hs){m.hs=ch.hs;m.lage='hs'}Object.assign(x,m);
+ const M=HA.mal||(HA.mal={}),P=M[x.id];M[x.id]={t:Date.now(),m:Object.assign({},P&&Date.now()-P.t<HA_MAL?P.m:null,m)};
+ render();haKo(x.id,Object.assign({id:x.id,gor:'pa'},ch),()=>{delete M[x.id];Object.assign(x,JSON.parse(was))})}
+// Snabba tryck (−/+ i tonen, favoriter): ett anrop i taget per lampa, däremellan bara det senaste, så att ett äldre värde aldrig kommer fram sist.
+// Det som valts visas tills lampan hunnit rapportera det (HA_MAL), annars hoppar −/+ tillbaka när ett äldre läge kommer från väggdatorn.
+const HA_MAL=8000;
+function haKo(id,body,undo){const Q=HA.ko||(HA.ko={});if(Q[id]){const n=Object.assign({},Q[id].n,body);if(body.k!=null)delete n.hs;if(body.hs)delete n.k;Q[id].n=n;return}Q[id]={};
+ const kor=b=>haSend(b,undo).then(()=>{const M=HA.mal&&HA.mal[id];if(M)M.t=Date.now();const n=Q[id].n;if(n){Q[id].n=null;return kor(n)}delete Q[id]});kor(body)}
+const haMalLagg=j=>{const M=HA.mal;if(!M)return;(j.lampor||[]).forEach(l=>{const v=M[l.id];if(!v)return;if(Date.now()-v.t<HA_MAL||HA.ko&&HA.ko[l.id])Object.assign(l,v.m);else delete M[l.id]})};
 // det lodräta reglaget: drag relativt där fingret började (hoppar inte vid tryck), 0 % släcker, tryck utan drag tänder/släcker
 (()=>{let d=null;const st=v=>{const el=document.querySelector('[data-hav="s"]');if(el)el.textContent=v?v+' %':'Av'};
  document.addEventListener('pointerdown',e=>{const el=e.target.closest('.ha-vs');if(!el||e.button>0)return;e.preventDefault();d={el,y:e.clientY,v0:parseFloat(el.style.getPropertyValue('--p'))||0,v:null,h:el.getBoundingClientRect().height,id:e.pointerId};try{el.setPointerCapture(e.pointerId)}catch(_){}HA.drag=true;el.classList.add('tag')});
@@ -1775,6 +1783,7 @@ async function haLoop(){if(HA.busy||haDemo()||!haUrl()||Date.now()<HA.retry)retu
  try{while(haUrl()===bas&&(wallBoardOn()||document.visibilityState==='visible')){const ac=new AbortController(),t=setTimeout(()=>ac.abort(),40000);
    const r=await fetch(bas+'?v='+HA.v,{cache:'no-store',signal:ac.signal});clearTimeout(t);const j=await r.json();
    if(!j.lampor){HA.d=null;HA.retry=Date.now()+300000;render();break}// inte inställt: fråga igen om fem minuter
+   haMalLagg(j);
    const ch=JSON.stringify([j.lampor,j.scener,j.givare,j.apparater,j.media,j.kanaler,j.fel])!==JSON.stringify(HA.d&&[HA.d.lampor,HA.d.scener,HA.d.givare,HA.d.apparater,HA.d.media,HA.d.kanaler,HA.fel]);
    HA.d=j;HA.v=j.v;HA.fel=j.fel;HA.nf=0;if(ch&&!HA.pend&&!HA.drag)render()}}
  catch(e){// ett enstaka avbrott (t.ex. när iPhone lägger appen i bakgrunden) är inget fel: försök igen strax
@@ -5791,10 +5800,10 @@ const ACT={
  haTonHel(){lsSet('haTonHel',lsGet('haTonHel')==='1'?null:'1');render()},
  haFavV(i){const x=haLamp(),f=haFavs()[+i];if(!x||!f)return;haLampSkicka(x,haTonCmd(f.K,haVarm(x)))},
  haFavNy(){const x=haLamp();if(!x)return;S.haFav={i:-1,ny:1};S.sheet='haFav';render()},
- haFavRed(i){if(!haFavs()[+i])return;S.haFav={i:+i};S.sheet='haFav';render()},
+ haFavRed(i){if(!haFavs()[+i])return;S.haFav={i:+i,fr:S.sheet==='haEdit'?'haEdit':null};S.sheet='haFav';render()},
  haFavUpd(){const x=haLamp(),F=S.haFav;if(!x||!F||F.i<0)return;const K=haTonK(x,haVarm(x));haFavSet(l=>{if(l[F.i]){l[F.i]=Object.assign({},l[F.i],{K});delete l[F.i].b}return l});toast('Uppdaterad');S.sheet='haLampa';render()},
- haFavDel(){const F=S.haFav;if(!F||F.i<0)return;haFavSet(l=>l.filter((f,j)=>j!==F.i));toast('Borttagen');S.sheet='haLampa';render()},
- haFavTill(){S.sheet='haLampa';render()},
+ haFavDel(){const F=S.haFav;if(!F||F.i<0)return;haFavSet(l=>l.filter((f,j)=>j!==F.i));toast('Borttagen');S.sheet=F.fr||'haLampa';render()},
+ haFavTill(){S.sheet=S.haFav&&S.haFav.fr||'haLampa';render()},
  haVarmV(v){const x=haLamp();if(x)haLampSkicka(x,haVarmCmd(+v,haVarm(x)))},
  haFarg(v){const D=haData(),x=D&&D.lampor.find(l=>l.id===S.haId),[h,m]=String(v).split(',').map(Number);haLampSkicka(x,{hs:[h,m]})},
  habScen(i){habKor(i)},
