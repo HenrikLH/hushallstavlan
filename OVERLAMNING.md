@@ -4,7 +4,7 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 ## Dammsugargenväg i Städ (förslag, väntar på Henriks ok)
 - Mål: liten genväg till dammsugarsidan i Att göra → Städ. Ägare Claude, gren `claude/project-thread-ys6yn3`.
-- `stadRob()` (ruta S12): samlad statusbricka (Henrik ville kombinera A+B): illustration med ringar batteri (yttre, grön) och rent vatten (inre, `a.tank`), "Snart på tur" = rum med `haRumSt` dags/snart som brickor med åtgärd: "Dammsug" eller "Dammsug + mopp" (mopp innebär alltid dammsugning direkt före, Henriks regel). Tryck → `V.robot` med Tillbaka "Att göra" (`S.robFran`).
+- `stadRob()` (ruta S12): samlad statusbricka (Henrik ville kombinera A+B): illustration med ringar batteri (yttre, grön) och rent vatten (inre, `a.tank`), "Rum att städa" ("Dags nu"/"Om n dagar", ikon till höger i brickan; väggen: status vänster halva, 4 rum höger) = rum med `haRumSt` dags/snart som brickor med åtgärd: "Dammsug" eller "Dammsug + mopp" (mopp innebär alltid dammsugning direkt före, Henriks regel). Tryck → `V.robot` med Tillbaka "Att göra" (`S.robFran`).
 - Test `stad-dammsugare.js` (haDemo) telefon/vägg/mörkt, alla-flikar telefon+vägg gröna. Bilder /mnt/project-files/apparater/stad-genvag/. Nästa: "Pusha" → publicera.
 
 ## Smarta förslag borttagna från Översikt (publicerad ht-v351)
