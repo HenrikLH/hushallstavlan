@@ -2,6 +2,11 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Smarta förslag borttagna från Översikt (publicerad ht-v351)
+
+- Henrik tyckte förslagen (Ö14) var irriterande. Hela funktionen borttagen: `forslag`/`forslagHtml`/`fsDone`, ACT `fsKlart/fsSen/fsGo`, CSS `.fsl/.fs-*`; Ö14 till borttagna. Väderlarmet (Ö13) och Vädra/Ute finns kvar. Ångra-gren `version-fore-smarta-forslag`.
+- Test: mer-vader.js (WXPLUS=1, kontrollerar att inga förslag finns), alla-flikar telefon+vägg gröna.
+
 ## Volymreglage i Smart hem-rutan (publicerad ht-v345)
 
 - Mål: rutan är adaptiv. När högtalare spelar (eller är pausade) ersätter ett gemensamt volymreglage fyra favoritplatser; annars vanlig layout. Gren `claude/project-thread-xrxlqt` (PR #98), ångra-gren `version-fore-smart-hem-volym`. Kortet: tunt reglage med −/+, paus/spela till höger, volym i statusraden.
