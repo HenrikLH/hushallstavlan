@@ -1,4 +1,4 @@
-// Smart hem: ton i kelvin (inzoomat på varma toner, Visa hela, −/+ 50 K) och egna favoriter med ton + ljusstyrka.
+// Smart hem: ton i kelvin (inzoomat på varma toner, Visa hela, −/+ 50 K) och egna favoriter (bara ton, ljusstyrkan lämnas orörd).
 //   LS='{"haDemo":"1"}' node verktyg/emu/run.js verktyg/emu/smart-hem-ton.js
 const assert=require('node:assert/strict');
 module.exports=async(pg,h)=>{
@@ -29,10 +29,15 @@ module.exports=async(pg,h)=>{
  assert.match(await pg.locator(P+'.ha-tk').innerText(),new RegExp(NM),'Namnet visas på raden');
  await h.shot('ton-fav');
  // använd Vitt, sedan favoriten igen
+ // ändra ljusstyrkan efter att favoriten sparats: favoriterna ska bara byta ton
+ const ljus=async()=>(await pg.locator(P+'[data-hav="s"]').innerText()).trim(),vs=await pg.locator(P+'.ha-vs').boundingBox();
+ await pg.mouse.move(vs.x+vs.width/2,vs.y+vs.height*.6);await pg.mouse.down();await pg.mouse.move(vs.x+vs.width/2,vs.y+vs.height*.3,{steps:8});await pg.mouse.up();await h.idle(900);
+ const L0=await ljus();assert.notEqual(L0,'45 %','Ljusstyrkan ändrad före testet');
  await pg.locator(P+'[data-act="haFavV"]').filter({hasText:'Vitt'}).click();await h.idle(900);
  assert.match(await pg.locator(P+'.ha-tk').innerText(),/4\s?000 K/,'Vitt = 4 000 K');
  await pg.locator(P+'[data-act="haFavV"]').filter({hasText:NM}).click();await h.idle(900);
  assert.match(await pg.locator(P+'.ha-tk').innerText(),new RegExp(NM),'Favoriten ger tillbaka tonen');
+ assert.equal(await ljus(),L0,'Favoriterna ändrar inte ljusstyrkan');
  // håll in = blad, ta bort
  const b=await pg.locator(P+'[data-act="haFavV"]').filter({hasText:NM}).boundingBox();
  await pg.mouse.move(b.x+b.width/2,b.y+b.height/2);await pg.mouse.down();await pg.waitForTimeout(900);await pg.mouse.up();await h.idle(900);
