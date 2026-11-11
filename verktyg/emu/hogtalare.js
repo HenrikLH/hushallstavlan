@@ -42,8 +42,11 @@ module.exports=async(pg,h)=>{
  assert.match(await K.first().innerText(),/Dancing Queen/,'Spotify-kortet');assert.equal(await K.first().locator('.hab-steg').count(),2,'Föregående och nästa');
  assert.equal(await K.nth(1).locator('.hab-steg').count(),0,'Radio utan nästa');
  await K.first().evaluate(e=>scrollBy(0,e.getBoundingClientRect().top-300));await h.idle(300);await h.shot('hog-8-tva-kort');
- await K.nth(1).locator('[data-act="habVol"][data-id="5"]').click();await h.idle(500);
- assert.match(await K.nth(1).innerText(),/35 %/,'Litens volym 30 → 35');assert.match(await K.first().innerText(),/35 %/,'Stor orörd');
+ assert.ok((await pg.locator('section.ha .hab-g > .ha-t:not(.hab-med)').count())>=2,'Lamporna får plats bredvid');
+ const r=await K.nth(1).boundingBox(),y=r.y+r.height/2,x=r.x+r.width*.45;
+ await pg.mouse.move(x,y);await pg.mouse.down();for(let i=1;i<=10;i++){await pg.mouse.move(x+i*r.width*.02,y);await h.idle(16)}await pg.mouse.up();await h.idle(700);
+ assert.ok(+(await K.nth(1).innerText()).match(/(\d+) %/)[1]>=40,'Dra åt höger höjer Litens volym');assert.match(await K.first().innerText(),/35 %/,'Stor orörd');
+ await K.first().locator('[data-act="habMedSteg"][data-id="nasta"]').click();await h.idle(300);
  await pg.locator('section.ha [data-act="nav"][data-id="hus"]').first().click();await h.idle(700);
  // ikonen pausar
  await t.first().locator('.ha-i').click();await h.idle(500);assert.match(await t.first().innerText(),/Pausad/,'Pausad');

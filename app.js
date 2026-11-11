@@ -1302,7 +1302,7 @@ const habScPa=(s,D)=>{if(!s)return false;if(s.ha)return HA.last===s.ha;if(s.av)r
 const habScTyp=s=>!s?'Tom plats':s.av?'Släcker allt':s.ha?'Home Assistant':Object.keys(s.l||{}).length+' enheter';
 const habScT=(s,i,D)=>{if(!s)return'<button type="button" class="ha-st hab-st hab-tom" data-act="habScRed" data-id="'+i+'"><span class="ha-i">'+I.plus+'</span><span class="ha-n">Ny scen</span></button>';
  const mk=s.ha&&haMedSk(s.ha,D),ig=mk&&haMedIgang(),on=mk?ig:habScPa(s,D),ny=haNy('hab:'+i,on),n=mk?haHogNamn(ig):s.n;return'<button type="button" class="ha-st hab-st'+(on?' on':'')+(ny?ny+';'+habSt(s.ik,s.f).slice(8):'"'+habSt(s.ik,s.f))+' data-act="habScen" data-id="'+i+'" data-hold-lift="habScRed" aria-label="'+esc(mk&&ig?'Stäng av högtalarna':n)+', håll in för att ändra"><span class="ha-i">'+(mk?ig?HAI_SPK_AV:HAI_SPK:HAB_IK[s.ik]||HAB_IK.star)+'</span><span class="ha-n">'+esc(n)+'</span></button>'};
-function haBox(wall){const D=haData();if(!D)return'';const E=D.lampor||[],n=E.filter(x=>x.on).length,P=habSpelar(),SS=habSessioner(P),fv=P.length?habFvKort(habFv(D),Math.max(0,HAB_MAX-4*SS.length)):habFv(D),sc=habSc(D),ny=sc.indexOf(null);
+function haBox(wall){const D=haData();if(!D)return'';const E=D.lampor||[],n=E.filter(x=>x.on).length,P=habSpelar(),SS=habSessioner(P),fv=P.length?habFvKort(habFv(D),Math.max(0,HAB_MAX-2*SS.length)):habFv(D),sc=habSc(D),ny=sc.indexOf(null);
  const it=(act,id,txt,ic)=>'<button type="button" role="menuitem" data-act="'+act+'" data-id="'+id+'"><span class="grow">'+txt+'</span>'+ic+'</button>';
  return'<section class="widget'+(wall?' bhus':' w2')+' ha hab"><div class="hab-h"><button type="button" class="wh" data-act="nav" data-id="hus">'+I.home+'<span>Smart hem <span class="wk-mo">'+(n?n+(n>1?' tända':' tänd'):'allt släckt')+'</span>'+(HA.fel&&!haDemo()?' <i class="ha-live fel" title="'+esc(HA.fel)+'"></i>':'')+'</span></button>'+
   '<details class="create-menu hab-menu"><summary class="hab-mer" aria-label="Anpassa Smart hem-rutan">'+I.dots+'</summary><div class="create-options" role="menu" aria-label="Smart hem-rutan">'+it('habOpen','','Redigera rutan',I.pencil)+(ny>=0?it('habScRed',ny,'Ny scen',I.plus):'')+it('nav','hus','Visa alla enheter',I.home)+'</div></details></div>'+
@@ -1426,10 +1426,10 @@ const HAB_STEG=n=>'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="tru
 function habMedKort(P){const v=habVolNu(P),sp=P.some(haMedSpelar),m0=P.find(haMedSpelar)||P[0],k=haKanaler().find(x=>haMedKId(x)===m0.kanal),kan=m0.kan||{};
  const titel=k?k.n:m0.titel||m0.app||'Spelar',under=[k?'Radio':m0.artist||m0.app,habOch(P.map(m=>m.n))].filter(Boolean).join(' · ');
  const steg=(n,on)=>on?'<button type="button" class="hab-pp hab-steg" data-act="habMedSteg" data-id="'+(n?'nasta':'forra')+'" aria-label="'+(n?'Nästa':'Föregående')+'">'+HAB_STEG(n)+'</button>':'';
- return'<div class="ha-t hab-med'+(sp?' spl':'')+'" role="group" aria-label="Spelar nu" data-hm="'+esc(P.map(m=>m.id).join(','))+'"><div class="hab-med-h"><button type="button" class="ha-i" data-act="habMedOpen" tabindex="-1" aria-hidden="true">'+(/spotify/i.test(m0.app||'')?HAI_SPOT:k?HAI_RADIO:HAI_SPK)+'</button>'+
+ // en låg rad (två platser): dra i sidled = volym som på lamporna, tryck på namnet = bladet med allt
+ return'<div class="ha-t ha-dim hab-med'+(sp?' spl':'')+'" style="--p:'+v+'%" role="group" aria-label="Spelar nu, dra i sidled för volym" data-hm="'+esc(P.map(m=>m.id).join(','))+'"><button type="button" class="ha-i" data-act="habMedOpen" tabindex="-1" aria-hidden="true">'+(/spotify/i.test(m0.app||'')?HAI_SPOT:k?HAI_RADIO:HAI_SPK)+'</button>'+
   '<button type="button" class="ha-tx" data-act="habMedOpen" aria-label="Öppna Musik"><span class="ha-n">'+esc(titel)+'</span><span class="ha-s">'+esc(under)+' · <span class="ham-pct">'+v+' %</span></span></button>'+
-  steg(0,kan.f)+'<button type="button" class="hab-pp" data-act="habMedTog" aria-pressed="'+sp+'" aria-label="'+(sp?'Pausa':'Spela')+'">'+HAB_PP(sp)+'</button>'+steg(1,kan.n)+'</div>'+
-  '<div class="ham-vol"><button type="button" class="ham-vb" data-act="habVol" data-id="-5" aria-label="Lägre volym">'+HAI_VOL(0)+'</button><div class="ham-bar" data-hamvol="ruta" style="--p:'+v+'%" role="slider" aria-label="Volym" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+v+'"><i></i></div><button type="button" class="ham-vb" data-act="habVol" data-id="5" aria-label="Högre volym">'+HAI_VOL(1)+'</button></div></div>'}
+  steg(0,kan.f)+'<button type="button" class="hab-pp" data-act="habMedTog" aria-pressed="'+sp+'" aria-label="'+(sp?'Pausa':'Spela')+'">'+HAB_PP(sp)+'</button>'+steg(1,kan.n)+'</div>'}
 // det som är igång stannar: apparater som kör går först, sedan tända lampor, sedan resten; ordningen i rutan behålls
 const habFvKort=(L,max)=>{const pr=e=>e.ap?(haAppAktiv(e.x)?0:2):e.x.on?1:2,ut=new Set();let n=0;
  L.map((e,i)=>[pr(e),i,e]).sort((a,b)=>a[0]-b[0]||a[1]-b[1]).forEach(([,,e])=>{if(n+habPl(e)<=max){ut.add(e);n+=habPl(e)}});return L.filter(e=>ut.has(e))};
@@ -1751,15 +1751,16 @@ const haMalLagg=j=>{const M=HA.mal;if(!M)return;(j.lampor||[]).forEach(l=>{const
 /* Dra i sidled på en dimbar bricka = ljusstyrka (relativt från nuvärdet). Lodrätt drag scrollar som vanligt (touch-action:pan-y),
    tryck öppnar kortet och ikonen tänder/släcker som förut. Efter ett drag räknas släppet inte som tryck. */
 (()=>{let d=null,klar=0;
- document.addEventListener('pointerdown',e=>{if(e.button>0)return;const el=e.target.closest('.ha-t.ha-dim');if(!el||e.target.closest('.ha-i,.ha-sw'))return;
+ document.addEventListener('pointerdown',e=>{if(e.button>0)return;const el=e.target.closest('.ha-t.ha-dim');if(!el||e.target.closest('.ha-i,.ha-sw,.hab-pp'))return;
   d={el,x0:e.clientX,y0:e.clientY,b0:parseFloat(el.style.getPropertyValue('--p'))||0,w:el.getBoundingClientRect().width,id:e.pointerId,on:false,v:null}},true);
  document.addEventListener('pointermove',e=>{if(!d||e.pointerId!==d.id)return;const dx=e.clientX-d.x0,dy=e.clientY-d.y0;
   if(!d.on){if(Math.abs(dy)>10&&Math.abs(dy)>Math.abs(dx)){d=null;return}if(Math.abs(dx)<8||Math.abs(dx)<Math.abs(dy)*1.2)return;
    d.on=true;d.x0=e.clientX;HA.drag=true;d.el.classList.add('ha-drar');try{d.el.setPointerCapture(e.pointerId)}catch(z){}}
   const v=Math.max(0,Math.min(100,Math.round(d.b0+(e.clientX-d.x0)/d.w*100)));if(v===d.v)return;
-  if((v===0||v===100)&&d.v!=null)u5Tick();d.v=v;d.el.style.setProperty('--p',v+'%');d.el.classList.toggle('on',v>0);
+  if((v===0||v===100)&&d.v!=null)u5Tick();d.v=v;d.el.style.setProperty('--p',v+'%');if(d.el.dataset.hm){const q=d.el.querySelector('.ham-pct');if(q)q.textContent=v+' %';return}d.el.classList.toggle('on',v>0);
   const s=d.el.querySelector('.ha-s');if(s)s.textContent=v?v+' %':'Av'},{passive:true});
  const slut=e=>{if(!d||e.pointerId!==d.id)return;const D=d;d=null;if(!D.on)return;klar=Date.now();HA.drag=false;D.el.classList.remove('ha-drar');
+  if(D.el.dataset.hm){if(D.v==null)return render();return habVolSkicka(D.v,habKortP(D.el))}
   const D0=haData(),x=D0&&(D0.lampor||[]).find(l=>l.id===D.el.dataset.id);if(!x||D.v==null)return render();
   if(D.v===0)haAv(x);else haLampSkicka(x,{b:D.v})};
  document.addEventListener('pointerup',slut,true);document.addEventListener('pointercancel',slut,true);
