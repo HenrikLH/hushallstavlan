@@ -111,6 +111,8 @@ class H(http.server.BaseHTTPRequestHandler):
         n = int(self.headers.get('Content-Length') or 0); d = json.loads(self.rfile.read(n) or b'{}')
         if self.path == '/yttre/hemma':   # testet: roboten har städat klart och står i dockan
             S['vacuum.dammsugare'][0] = 'docked'; S['sensor.dammsugare_status'][0] = 'charging'; return self.svar(200, {})
+        if self.path == '/yttre/stopp':   # testet: någon stoppar roboten i Roborock-appen
+            S['vacuum.dammsugare'][0] = 'idle'; S['sensor.dammsugare_status'][0] = 'idle'; return self.svar(200, {})
         if self.path.startswith('/yttre/rum/'):   # testet: roboten har kört in i ett annat rum
             S['sensor.dammsugare_nuvarande_rum'][0] = self.path[11:]; return self.svar(200, {})
         if self.path.startswith('/yttre/'):   # testet: någon tänder med strömbrytaren

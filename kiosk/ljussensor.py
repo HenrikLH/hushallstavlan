@@ -286,6 +286,7 @@ def ha_robot(c, alla, e):
     tid = hitta('sensor', lambda k, a: a.get('unit_of_measurement') == 'min' and a.get('device_class') == 'duration')
     rumnu = hitta('sensor', lambda k, a: a.get('device_class') == 'enum' and not a.get('options'))
     fel = hitta('sensor', lambda k, a: 'lidar_blocked' in (a.get('options') or []))
+    brist = next((x for k, x in sorted(G.items()) if k.startswith('binary_sensor.') and re.search('water_shortage|vattenbrist|vatten_brist|clean_water', k)), None)
     lage = hitta('select', lambda k, a: 'vac_and_mop' in (a.get('options') or []))
     vatten = hitta('select', lambda k, a: 'low' in (a.get('options') or []) and 'high' in (a.get('options') or []))
     rutt = hitta('select', lambda k, a: 'deep' in (a.get('options') or []) and 'standard' in (a.get('options') or []))
@@ -300,13 +301,15 @@ def ha_robot(c, alla, e):
     rut = [{'id': k, 'n': bort(A(x).get('friendly_name', k))} for k, x in sorted(G.items()) if k.startswith('button.') and not re.search(r'reset|aterstall|nollst|fel|error', k)]
     r = {'id': e, 'typ': 'robot', 'n': c['namn'].get(e) or 'Dammsugaren', 'hn': va.get('friendly_name'), 'vst': v.get('state'),
          'st': st.get('state') if st else v.get('state'), 'bat': ha_tal(bat.get('state')) if bat else va.get('battery_level'),
-         'pct': ha_tal(pct.get('state')) if pct else None, 'yta': ha_tal(yta.get('state')) if yta else None, 'min': ha_tal(tid.get('state')) if tid else None,
+         'pct': ha_tal(pct.get('state')) if pct else None, 'pctK': next((k for k, x in G.items() if x is pct), ''), 'yta': ha_tal(yta.get('state')) if yta else None, 'min': ha_tal(tid.get('state')) if tid else None,
          'rumNr': rumnu.get('state') if rumnu else None, 'fel': fel.get('state') if fel and fel.get('state') not in ('none', 'unknown') else None,
          'sug': va.get('fan_speed'), 'sugAlt': va.get('fan_speed_list') or [],
          'lage': lage.get('state') if lage else None, 'lageAlt': A(lage).get('options') if lage else [], 'lageId': lage and lage['entity_id'],
          'vatten': vatten.get('state') if vatten else None, 'vattenAlt': A(vatten).get('options') if vatten else [], 'vattenId': vatten and vatten['entity_id'],
          'rutt': rutt.get('state') if rutt else None, 'ruttAlt': A(rutt).get('options') if rutt else [], 'ruttId': rutt and rutt['entity_id'],
-         'und': und, 'senast': max(senast) if senast else None, 'rutiner': rut, 'rum': []}
+         'und': und, 'senast': max(senast) if senast else None, 'rutiner': rut, 'rum': [],
+         'vbrist': (brist.get('state') == 'on') if brist and brist.get('state') in ('on', 'off') else None}
+    if 'mop' in r['lageAlt']: r['tank'] = ha_tank_info(c, r['vbrist'])
     # kartans rotation (RoborockCustomMap) och dockan (egna entiteter med "dock" i namnet)
     rot = next((x for e2, x in sorted(alla.items()) if e2.startswith('select.') and 'rotation' in e2), None)
     if rot: r.update(rot=rot.get('state'), rotAlt=A(rot).get('options') or [], rotId=rot['entity_id'])
@@ -320,7 +323,7 @@ def ha_robot(c, alla, e):
     r['dockVarn'] += ['Dock error: ' + x['state'].replace('_', ' ') for e2, x in sorted(D.items()) if e2.startswith('sensor.') and A(x).get('device_class') == 'enum' and x.get('state') not in (None, 'ok', 'none', 'unknown', 'unavailable', 'no_error', 'idle')]
     r['dock'] = bool(D)
     if e in PLAN:
-        q = PLAN[e]; r['plan'] = {'steg': q['steg'], 'i': q['i'], 'klara': q['klara'], 'nu': q['nu'], 'hemma': bool(q['hemma']) or (q['sett'] and v.get('state') == 'docked'), 'klar': bool(q['klar'])}
+        q = PLAN[e]; r['plan'] = {'steg': q['steg'], 'i': q['i'], 'klara': q['klara'], 'nu': q['nu'], 'hemma': not q.get('avbr') and (bool(q['hemma']) or (q['sett'] and v.get('state') == 'docked')), 'klar': bool(q['klar']), 'avbr': bool(q.get('avbr'))}
     k = ha_karta_info(alla, p)
     if k:
         a = A(k); r['karta'] = k['entity_id']; r['kartaV'] = k.get('state')
@@ -330,7 +333,11 @@ def ha_robot(c, alla, e):
             for nr, q in sorted((a.get('rooms') or {}).items(), key=lambda t: int(t[0])):
                 rum = {'id': int(nr), 'n': rn.get(str(nr)) or (q.get('name') if q.get('name') not in (None, 'Unknown') else None)}
                 st_ = (c.get('stora') or {}).get(str(nr))
-                rum['stor'] = st_ if st_ is not None else (rum['n'] or '').lower() in ('vardagsrum', 'sovrum')
+                rum['stor'] = st_ if st_ is not None else bool(re.search('vardagsrum|sovrum', (rum['n'] or '').lower()))
+                sd, iv = (c.get('stadat') or {}).get(str(nr)) or {}, (c.get('intervall') or {}).get(str(nr)) or {}
+                rum.update(sv=sd.get('v'), sm=sd.get('m'), iv=iv.get('v', 3), im=iv.get('m', 7))
+                try: rum['m2'] = round(abs(q['x1'] - q['x0']) * abs(q['y1'] - q['y0']) / 1e6 * .75, 1)   # rektangeln runt rummet, ungefär tre fjärdedelar golv
+                except Exception: pass
                 if f:
                     x0, y0 = f(q['x0'], q['y0']); x1, y1 = f(q['x1'], q['y1'])
                     rum['b'] = [round(min(x0, x1)), round(min(y0, y1)), round(max(x0, x1)), round(max(y0, y1))]
@@ -614,6 +621,14 @@ def ha_plan_stopp(e):
     p = PLAN.get(e)
     if p and not p['klar']: del p['steg'][p['i']:]; del p['klara'][p['i']:]; p['klar'] = time.time()
 
+def ha_plan_avbruten(c, e, a, varfor):
+    # roboten stoppades mitt i (Roborock-appen, fel eller tidsgräns): rummen som inte hanns med visas som ej städade
+    p = PLAN.get(e)
+    if not p or p['klar']: return
+    logg('ha: plan avbruten i steg %d (%s), klara %s' % (p['i'], varfor, p['klara'][p['i']]))
+    p['avbr'], p['nu'], p['hemma'], p['klar'] = True, None, None, time.time()
+    if a and a.get('lage') not in (None, 'vacuum'): ha_anrop(c, '/api/services/select/select_option', {'entity_id': a['lageId'], 'option': 'vacuum'})
+
 def ha_plan_rum(a, v):
     # nuvarande rum: segmentnumret eller namnet (HA:s eller tavlans)
     if v is None or str(v).lower() in ('unknown', 'unavailable', 'none', ''): return None
@@ -634,15 +649,26 @@ def ha_plan():
         if e not in alla: PLAN.pop(e, None); continue
         a = ha_robot(c, alla, e); vst, st = a.get('vst'), a.get('st') or ''
         steg, k = p['steg'][p['i']], p['klara'][p['i']]
-        if vst in ('cleaning', 'returning') or 'clean' in st:
-            p['sett'], p['hemma'] = True, None
+        if vst == 'cleaning' or (vst != 'returning' and 'clean' in st):
+            p['sett'], p['hemma'], p['paus'] = True, None, False
+            if a.get('pct') is not None and re.search('progress|forlopp|framsteg', a.get('pctK') or ''): p['pct'] = a['pct']   # bara ett riktigt förloppsvärde, inte filter/borstar
             rid = ha_plan_rum(a, a.get('rumNr'))
-            if rid != p['nu']:   # roboten har bytt rum: förra rummet är klart
-                if p['nu'] in steg['rum'] and p['nu'] not in k: k.append(p['nu'])
+            if rid in steg['rum']: p['sedda'] = (p.get('sedda') or []) + [rid] * (rid not in (p.get('sedda') or []))
+            if rid != p['nu'] and rid is not None:   # roboten har bytt rum: förra rummet är klart (på väg hem räknas inte)
+                if p['nu'] in steg['rum'] and p['nu'] not in k: k.append(p['nu']); ha_stadat(c, [p['nu']], steg['typ'])
                 p['nu'] = rid
+        elif p['sett'] and vst in ('idle', 'paused'):
+            p['paus'] = True   # stoppad eller pausad: om den sedan åker hem utan att fortsätta är omgången avbruten
+        elif p['sett'] and vst == 'returning': pass
         elif vst == 'error' or nu - p['tid'] > 4 * 3600 or (not p['sett'] and nu - p['tid'] > 600):
-            logg('ha: plan avbruten (%s, %s)' % (vst, st)); ha_plan_stopp(e)
+            ha_plan_avbruten(c, e, a, '%s, %s' % (vst, st))
         elif p['sett'] and vst == 'docked':
+            if not p['hemma']:
+                # avbruten i Roborock-appen? stoppad innan den åkte hem, förloppet inte fullt eller rum som aldrig besöktes
+                sedda, pct = p.get('sedda') or [], p.get('pct')
+                if p.get('paus') or (pct is not None and pct < 90) or (sedda and set(steg['rum']) - set(sedda)):
+                    ha_plan_avbruten(c, e, a, 'paus' if p.get('paus') else 'förlopp %s%%, besökta %s' % (pct, sedda)); continue
+            if not p['hemma']: ha_stadat(c, [x for x in steg['rum'] if x not in k], steg['typ'])
             k[:] = steg['rum']; p['nu'] = None
             if re.search(r'empty|wash|going', st): p['hemma'] = p['hemma'] or nu; continue
             if not p['hemma']:
@@ -654,11 +680,70 @@ def ha_plan():
             if p['i'] + 1 < len(p['steg']):
                 p['i'] += 1; n = p['steg'][p['i']]
                 logg('ha: steg %d klart, %s %s' % (p['i'], n['typ'], n['rum']))
-                ha_plan_kor(c, a, 'mop' if n['typ'] == 'mopp' else 'vacuum', n['rum'], p.get('val')); p.update(sett=False, tid=nu, hemma=None)
+                ha_plan_kor(c, a, 'mop' if n['typ'] == 'mopp' else 'vacuum', n['rum'], p.get('val')); p.update(sett=False, tid=nu, hemma=None, sedda=[], pct=None, paus=False)
             else:
                 p['i'] += 1; p['klar'] = nu
                 if a.get('lage') != 'vacuum': ha_anrop(c, '/api/services/select/select_option', {'entity_id': a['lageId'], 'option': 'vacuum'})
     ha_uppdatera()
+
+# när varje rum senast dammsögs/moppades (för påminnelser i appen) och hur mycket som moppats sedan tanken fylldes
+def ha_stadat(c, rum, lage):
+    typ = {'vacuum': 'v', 'mop': 'm', 'vac_and_mop': 'vm', 'custom': 'v', 'damm': 'v', 'mopp': 'm'}.get(lage, 'v')
+    rum = [r for r in rum if r is not None]
+    if not rum: return
+    c = json.loads(json.dumps(c)); s = c.setdefault('stadat', {}); t = int(time.time())
+    for r in rum:
+        for x in typ: s.setdefault(str(r), {})[x] = t
+    ha_spara(c)
+
+TANK_STD = 150   # m² moppat (normalt vattenflöde) per full tank tills appen har lärt sig hur länge tanken räcker
+def ha_tank_info(c, brist):
+    t = c.get('tank') or {}; hist = t.get('hist') or []
+    kap = sum(hist) / len(hist) if hist else TANK_STD
+    m2 = t.get('m2') or 0
+    return {'m2': round(m2), 'kap': round(kap), 'lart': len(hist), 'fylld': t.get('fylld'), 'brist': brist, 'senast': t.get('senast'),
+            'pct': 0 if brist else max(0, min(100, round(100 * (1 - m2 / kap))))}
+
+def ha_tank(c, h, m2=0, vatten=None):
+    c = json.loads(json.dumps(c)); t = c.setdefault('tank', {}); nu = int(time.time())
+    t.setdefault('m2', 0); t.setdefault('hist', [])
+    if h == 'fylld':
+        t.update(m2=0, fylld=nu)
+    elif h == 'tom':   # dockan säger att tanken är tom: så långt räckte en tank (lärs in, de fem senaste)
+        if t['m2'] > 20 and t.get('fylld'): t['hist'] = (t['hist'] + [round(t['m2'])])[-5:]
+    elif h == 'mopp' and m2:
+        t['m2'] = round(t['m2'] + m2 * {'low': .7, 'high': 1.3}.get(vatten, 1), 1); t['senast'] = round(m2, 1)
+    ha_spara(c)
+
+# alla körningar (även från Roborock-appen): rummen roboten lämnar räknas som städade, moppad yta dras från tanken
+FOLJ = {}
+def ha_folj():
+    c = ha_cfg()
+    if not c: return
+    alla = {x['entity_id']: x for x in ha_anrop(c, '/api/states')}
+    rob, _ = ha_hitta_appar(c, alla)
+    for e in rob:
+        if e not in alla: continue
+        a = ha_robot(c, alla, e); vst = a.get('vst')
+        f = FOLJ.setdefault(e, {'kor': False, 'nu': None, 'lage': None, 'paus': False, 'brist': None})
+        b = a.get('vbrist')
+        if b is not None and f['brist'] is not None and b != f['brist']: ha_tank(c, 'tom' if b else 'fylld'); c = ha_cfg()
+        f['brist'] = b
+        planen = e in PLAN and not PLAN[e]['klar']
+        if vst == 'cleaning':
+            if not f['kor']: f.update(kor=True, nu=None, paus=False, lage=a.get('lage'), vatten=a.get('vatten'))
+            rid = ha_plan_rum(a, a.get('rumNr'))
+            if rid is not None and rid != f['nu']:
+                if f['nu'] is not None and not planen: ha_stadat(c, [f['nu']], f['lage']); c = ha_cfg()
+                f['nu'] = rid
+        elif vst in ('idle', 'paused') and f['kor']: f['paus'] = True
+        elif vst == 'docked' and f['kor']:
+            f['kor'] = False
+            if not planen and not f['paus'] and not (e in PLAN and PLAN[e].get('avbr')): ha_stadat(c, [f['nu']], f['lage']); c = ha_cfg()
+            if f['lage'] in ('mop', 'vac_and_mop'):
+                yta = a.get('yta')
+                if not yta: yta = sum(r.get('m2') or 0 for r in a['rum'] if r['id'] == f['nu'])
+                ha_tank(c, 'mopp', yta or 0, f.get('vatten'))
 
 KARTA = {'v': None, 'png': None, 'tid': 0}
 def ha_karta(eid):
@@ -693,6 +778,9 @@ def ha_bevakare():
         if PLAN and n % 5 == 0:
             try: ha_plan()
             except Exception as e: logg('ha plan: ' + repr(e)[:200])
+        if n % 10 == 3:
+            try: ha_folj()
+            except Exception as e: logg('ha följ: ' + repr(e)[:200])
         time.sleep(1)
 
 LISTA = {'light': 'lampor', 'switch': 'lampor', 'fan': 'lampor', 'input_boolean': 'lampor', 'scene': 'scener', 'script': 'scener', 'sensor': 'givare'}
@@ -725,6 +813,13 @@ def ha_val(d):
     if not c: return 503, {'fel': 'inte inställt'}
     c = json.loads(json.dumps(c))
     e = str(d.get('lagg') or d.get('ta') or d.get('id') or '')
+    if 'rumnr' in d and isinstance(d.get('intervall'), dict):   # påminnelse: dammsug/moppa var n:e dag (0 = av)
+        iv = c.setdefault('intervall', {}).setdefault(str(int(d['rumnr'])), {})
+        for x in ('v', 'm'):
+            if x in d['intervall']: iv[x] = max(0, min(60, int(d['intervall'][x])))
+        ha_spara(c); ha_uppdatera(); return 200, {'ok': True, 'v': HA['v']}
+    if d.get('tank') == 'fylld':
+        ha_tank(c, 'fylld'); ha_uppdatera(); return 200, {'ok': True, 'v': HA['v']}
     if 'rumnr' in d and 'stor' in d:   # stort rum: dammsugs ensamt med tömning efteråt
         c.setdefault('stora', {})[str(int(d['rumnr']))] = bool(d['stor'])
         ha_spara(c); ha_uppdatera(); return 200, {'ok': True, 'v': HA['v']}
