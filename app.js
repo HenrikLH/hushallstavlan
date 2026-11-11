@@ -5158,53 +5158,137 @@ function slaktHybridLayout(B){
    Alla kopplingar ligger i fria generationsmellanrum; inga linjer bakom personcirklar. */
 const SL3={camera:null,target:null,pointers:new Map(),gesture:null,fitNext:false};
 function slaktV3Layout(B){
- const R=slaktR(),ids=new Set(B.map(b=>b.key)),levels=new Map(),active=new Set(),P=k=>slaktParents(k).filter(p=>ids.has(p));
- const depth=k=>{if(levels.has(k))return levels.get(k);if(active.has(k))return 0;active.add(k);const ps=P(k),d=ps.length?Math.min(12,Math.max(...ps.map(depth))+1):0;active.delete(k);levels.set(k,d);return d};
+ const R=slaktR(),ids=new Set(B.map(b=>b.key)),P=k=>slaktParents(k).filter(p=>ids.has(p)),levels=new Map(),visiting=new Set();
+ const depth=k=>{if(levels.has(k))return levels.get(k);if(visiting.has(k))return 0;visiting.add(k);const parents=P(k),d=parents.length?Math.min(12,Math.max(...parents.map(depth))+1):0;visiting.delete(k);levels.set(k,d);return d};
  B.forEach(b=>depth(b.key));
+ // Partners/siblings share a row. Respect parent-child direction when propagating the levels.
+ const pairs=[...R.partners,...R.siblings].filter(pair=>Array.isArray(pair)&&pair.length===2&&pair.every(k=>ids.has(k)));
  for(let i=0;i<B.length*2;i++){let changed=false;
-  [...R.partners,...R.siblings].forEach(pair=>{if(!Array.isArray(pair)||pair.length!==2||!pair.every(x=>ids.has(x)))return;const d=Math.max(...pair.map(x=>levels.get(x)));pair.forEach(k=>{if(levels.get(k)<d){levels.set(k,d);changed=true}})});
-  B.forEach(b=>{const ps=P(b.key);if(!ps.length)return;const d=Math.min(12,Math.max(...ps.map(x=>levels.get(x)))+1);if(levels.get(b.key)<d){levels.set(b.key,d);changed=true}});if(!changed)break;
+  pairs.forEach(pair=>{const d=Math.max(...pair.map(k=>levels.get(k)));pair.forEach(k=>{if(levels.get(k)<d){levels.set(k,d);changed=true}})});
+  B.forEach(b=>{const par=P(b.key);if(!par.length)return;const d=Math.min(12,Math.max(...par.map(k=>levels.get(k)))+1);if(levels.get(b.key)<d){levels.set(b.key,d);changed=true}});if(!changed)break;
  }
- const grouped=new Map();B.forEach(b=>{const d=levels.get(b.key);if(!grouped.has(d))grouped.set(d,[]);grouped.get(d).push(b)});
- const partnerPairs=R.partners.filter(p=>Array.isArray(p)&&p.length===2&&p.every(x=>ids.has(x)));
- const pos=new Map(),maxItems=Math.max(1,...[...grouped.values()].map(row=>row.length)),width=Math.max(500,maxItems*174+180),minDepth=Math.min(...grouped.keys());
- [...grouped.keys()].sort((x,y)=>x-y).forEach(d=>{
-  const row=grouped.get(d),avg=b=>{const xs=P(b.key).map(x=>pos.get(x)?.x).filter(x=>Number.isFinite(x));return xs.length?xs.reduce((a,b)=>a+b,0)/xs.length:width/2};
-  row.sort((x,y)=>avg(x)-avg(y)||P(x.key).slice().sort().join('|').localeCompare(P(y.key).slice().sort().join('|'),'sv')||x.name.localeCompare(y.name,'sv'));
-  // Keep partners adjacent, so the connector cannot cross unrelated person nodes.
-  for(const pair of partnerPairs){const ia=row.findIndex(x=>x.key===pair[0]),ib=row.findIndex(x=>x.key===pair[1]);if(ia!==-1&&ib!==-1&&Math.abs(ia-ib)>1){const b=row.splice(ib,1)[0],newI=row.findIndex(x=>x.key===pair[0]);row.splice(newI+1,0,b)}}
-  row.forEach((b,i)=>pos.set(b.key,{x:width/2+(i-(row.length-1)/2)*174,y:90+(d-minDepth)*190,level:d}));
+ // One couple forms a single layout unit. Descendants are grouped by their actual parent set.
+ const units=[],byPerson=new Map(),partnerPairs=R.partners.filter(p=>Array.isArray(p)&&p.length===2&&p.every(k=>ids.has(k)));
+ B.forEach(person=>{if(byPerson.has(person.key))return;const partner=partnerPairs.find(pair=>pair.includes(person.key)&&pair.every(k=>levels.get(k)===levels.get(person.key)&&!byPerson.has(k)));
+  const people=partner?partner.map(k=>B.find(b=>b.key===k)):[person],u={id:people.map(x=>x.key).sort().join('|'),people,level:levels.get(person.key),children:[],parentGroup:null};
+  units.push(u);people.forEach(p=>byPerson.set(p.key,u));
  });
- const edges=[],seenPartner=new Set(),familyGroups=new Map();
- const path=(d,kind)=>edges.push('<path class="fam3-edge '+kind+'" d="'+d+'"/>');
- partnerPairs.forEach(pair=>{const a=pos.get(pair[0]),b=pos.get(pair[1]);if(!a||!b||a.y!==b.y)return;const key=pair.slice().sort().join('|');if(seenPartner.has(key))return;seenPartner.add(key);const l=a.x<b.x?a:b,r=a.x<b.x?b:a;path('M'+(l.x+75)+' '+l.y+' H'+(r.x-75),'partner')});
- B.forEach(child=>{const parents=P(child.key).slice().sort();if(!parents.length)return;const key=parents.join('\u0001'),p=pos.get(child.key);if(!familyGroups.has(key))familyGroups.set(key,{parents,children:[]});familyGroups.get(key).children.push(p)});
- [...familyGroups.values()].forEach(({parents,children},index)=>{
-  const ps=parents.map(k=>pos.get(k)).filter(Boolean);if(!ps.length)return;
-  const py=Math.max(...ps.map(p=>p.y)),cx=ps.reduce((a,p)=>a+p.x,0)/ps.length;
-  // Link connectors only in the open corridor between generations.
-  const firstY=Math.min(...children.map(p=>p.y));if(firstY<=py+75)return;
-  const trunkY=py+78+(index%3)*12,childY=firstY-32,lo=Math.min(...ps.map(p=>p.x),...children.map(p=>p.x)),hi=Math.max(...ps.map(p=>p.x),...children.map(p=>p.x));
-  ps.forEach(p=>{path('M'+p.x+' '+(p.y+36)+' V'+trunkY,'parent')});
-  path('M'+lo+' '+trunkY+' H'+hi,'child');
-  children.forEach(p=>path('M'+p.x+' '+trunkY+' V'+(p.y-36),'child'));
+ const families=new Map();B.forEach(child=>{const parents=P(child.key).slice().sort();if(!parents.length)return;const key=parents.join('\u0001');if(!families.has(key))families.set(key,{key,parents,children:[]});families.get(key).children.push(child.key)});
+ // Every unit gets a primary ancestor group, for a non-overlapping topological placement.
+ const links=new Map();
+ [...families.values()].forEach(f=>f.children.forEach(k=>{const u=byPerson.get(k);if(!u)return;const owner=byPerson.get(f.parents[0]);if(!owner||owner===u)return;
+  if(!u.parentGroup||f.parents.some(p=>byPerson.get(p)===owner&&owner.people.length===2))u.parentGroup=f.key;
+ }));
+ units.forEach(u=>{const f=families.get(u.parentGroup);if(!f)return;const parent=f.parents.map(k=>byPerson.get(k)).find(p=>p&&p!==u);if(!parent)return;
+  if(!links.has(parent.id))links.set(parent.id,[]);if(!links.get(parent.id).includes(u))links.get(parent.id).push(u);
  });
- // Explicit siblings without shared known parents: a light dashed connection below names.
- const sibSeen=new Set();
- R.siblings.forEach(pair=>{if(!Array.isArray(pair)||pair.length!==2)return;const [a,b]=pair.map(k=>pos.get(k));if(!a||!b||a.y!==b.y)return;const key=pair.slice().sort().join('|');if(sibSeen.has(key))return;sibSeen.add(key);
-  if(Math.abs(a.x-b.x)<=200)path('M'+a.x+' '+(a.y+36)+' V'+(a.y+58)+' H'+b.x+' V'+(b.y+36),'sibling');
+ const gap=24,unitWidth=u=>u.people.length>1?348:174,subtreeWidth=new Map(),stack=new Set();
+ const measure=u=>{if(subtreeWidth.has(u.id))return subtreeWidth.get(u.id);if(stack.has(u.id))return unitWidth(u);stack.add(u.id);
+  const children=links.get(u.id)||[],childWidth=children.reduce((sum,c)=>sum+measure(c),0)+Math.max(0,children.length-1)*gap;
+  const w=Math.max(unitWidth(u),childWidth);stack.delete(u.id);subtreeWidth.set(u.id,w);return w};
+ units.forEach(measure);
+ const childIds=new Set([...links.values()].flat().map(u=>u.id));
+ const roots=units.filter(u=>!childIds.has(u.id)).sort((a,b)=>a.level-b.level||a.people[0].name.localeCompare(b.people[0].name,'sv'));
+ const centers=new Map(),placed=new Set();
+ const put=(u,left)=>{if(placed.has(u.id))return;placed.add(u.id);const w=measure(u),center=left+w/2;centers.set(u.id,center);
+  const children=links.get(u.id)||[],total=children.reduce((sum,c)=>sum+measure(c),0)+Math.max(0,children.length-1)*gap;
+  let cursor=left+(w-total)/2;children.forEach(c=>{put(c,cursor);cursor+=measure(c)+gap});
+ };
+ let cursor=100;roots.forEach(u=>{put(u,cursor);cursor+=measure(u)+80});
+ units.filter(u=>!placed.has(u.id)).forEach(u=>{put(u,cursor);cursor+=measure(u)+80});
+ const width=Math.max(520,cursor+40),minLevel=Math.min(...[...levels.values()]),pos=new Map();
+ units.forEach(u=>{const x=centers.get(u.id),y=110+(u.level-minLevel)*230;
+  u.people.forEach((p,i)=>pos.set(p.key,{x:x+(u.people.length===2?(i===0?-87:87):0),y,level:u.level}));
  });
- const height=Math.max(...[...pos.values()].map(p=>p.y))+95;
- return{pos,width,height,edges};
+ // All connectors use assigned, orthogonal corridors; each family gets ONE shared children bus.
+ const edges=[],segments=[],crossings=[],byFamily=new Map();
+ const add=(coords,kind,key)=>{if(coords.length<2)return;let d='M'+coords[0][0]+' '+coords[0][1];for(let i=1;i<coords.length;i++){const [x,y]=coords[i],[px,py]=coords[i-1];d+=' '+(x===px?'V'+y:y===py?'H'+x:'L'+x+' '+y);segments.push({x1:px,y1:py,x2:x,y2:y,kind,key})}
+  edges.push('<path class="fam3-edge '+kind+'" data-family="'+encodeURIComponent(key)+'" d="'+d+'"/>');
+ };
+ const uniquePartners=new Set();
+ partnerPairs.forEach(pair=>{const key=pair.slice().sort().join('|');if(uniquePartners.has(key))return;uniquePartners.add(key);
+  const a=pos.get(pair[0]),b=pos.get(pair[1]);if(!a||!b||a.y!==b.y)return;const l=a.x<b.x?a:b,r=a.x<b.x?b:a;
+  if(r.x-l.x<=200)add([[l.x+75,l.y],[r.x-75,r.y]],'partner',key);
+ });
+ const usedLanes=new Map();
+ [...families.values()].sort((a,b)=>a.parents.join('|').localeCompare(b.parents.join('|'))).forEach(f=>{
+  const children=f.children.map(k=>pos.get(k)).filter(Boolean),parents=f.parents.map(k=>pos.get(k)).filter(Boolean);if(!parents.length||!children.length)return;
+  // Only join a row if parents are immediately above children; long-range links
+  // follow the same corridor when levels have been shifted by other relationships.
+  const baseY=Math.max(...parents.map(p=>p.y)),lowY=Math.min(...children.map(p=>p.y));
+  if(lowY<=baseY+90)return;
+  const range=[Math.min(...children.map(p=>p.x),...parents.map(p=>p.x)),Math.max(...children.map(p=>p.x),...parents.map(p=>p.x))];
+  const laneKey=baseY+'|'+lowY,used=usedLanes.get(laneKey)||[];
+  let lane=0;while(used.some(u=>u.lane===lane&&range[0]<u.max+12&&range[1]>u.min-12))lane++;
+  used.push({lane,min:range[0],max:range[1]});usedLanes.set(laneKey,used);
+  const busY=baseY+102+lane*17;
+  const two=parents.length===2&&parents[0].y===parents[1].y&&Math.abs(parents[0].x-parents[1].x)<=200;
+  let anchorX=parents.reduce((n,p)=>n+p.x,0)/parents.length;
+  if(two){
+   // The vertical stem begins in the clear gap between paired person cards.
+   add([[anchorX,baseY],[anchorX,busY]],'stem',f.key);
+  }else{
+   parents.forEach(p=>add([[p.x,p.y+35],[p.x,busY]],'stem',f.key));
+   // The single children bus below also joins the two parents: do not draw the same line twice.
+   anchorX=parents.length===2?parents.reduce((n,p)=>n+p.x,0)/2:parents[0].x;
+  }
+  const xs=children.map(p=>p.x),left=Math.min(anchorX,...xs,...parents.map(p=>p.x)),right=Math.max(anchorX,...xs,...parents.map(p=>p.x));
+  if(right-left>1)add([[left,busY],[right,busY]],'bus',f.key);
+  children.forEach(p=>add([[p.x,busY],[p.x,p.y-35]],'child',f.key));
+  byFamily.set(f.key,{parents:f.parents,children:f.children,busY});
+ });
+ // Explicit sibling relations without inferred shared parents: short, separate links.
+ const sibSeen=new Set();R.siblings.forEach(pair=>{
+  if(!Array.isArray(pair)||pair.length!==2)return;const key=pair.slice().sort().join('|');if(sibSeen.has(key))return;sibSeen.add(key);
+  const [a,b]=pair.map(k=>pos.get(k));if(!a||!b||a.y!==b.y||Math.abs(a.x-b.x)>200)return;
+  if(P(pair[0]).some(p=>P(pair[1]).includes(p)))return;
+  add([[a.x,a.y+35],[a.x,a.y+60],[b.x,b.y+60],[b.x,b.y+35]],'sibling',key);
+ });
+ // At unavoidable crossings, keep the vertical branch unbroken and visibly
+ // interrupt the unrelated horizontal bus. This avoids false junctions.
+ // Cut real gaps into unrelated horizontal buses rather than painting a circle
+ // over intersections. Masks can leave misleading junctions on translucent themes.
+ const busGaps=new Map();
+ const crossing=(v,h)=>{if(v.key===h.key||v.x1!==v.x2||h.y1!==h.y2||h.kind!=='bus')return;
+  const x=v.x1,y=h.y1;
+  if(x>Math.min(h.x1,h.x2)+9&&x<Math.max(h.x1,h.x2)-9&&y>Math.min(v.y1,v.y2)+9&&y<Math.max(v.y1,v.y2)-9){
+   const key=encodeURIComponent(h.key)+'@'+y;
+   if(!busGaps.has(key))busGaps.set(key,[]);
+   busGaps.get(key).push(x);
+  }
+ };
+ for(let i=0;i<segments.length;i++)for(let j=i+1;j<segments.length;j++){
+  crossing(segments[i],segments[j]);crossing(segments[j],segments[i]);
+ }
+ const clearEdges=edges.map(path=>{
+  if(!path.includes('fam3-edge bus'))return path;
+  const m=path.match(/data-family="([^"]+)" d="M([\d.]+) ([\d.]+) H([\d.]+)"/);
+  if(!m)return path;
+  const [,family,x0,y0,x1]=m,from=Number(x0),to=Number(x1),y=Number(y0),gaps=(busGaps.get(family+'@'+y)||[]).sort((a,b)=>a-b);
+  if(!gaps.length)return path;
+  let cursor=Math.min(from,to);const end=Math.max(from,to),pieces=[];
+  for(const x of gaps){const left=Math.max(cursor,x-7),right=Math.min(end,x+7);
+   if(left>cursor)pieces.push('M'+cursor+' '+y+' H'+left);
+   cursor=Math.max(cursor,right);
+  }
+  if(cursor<end)pieces.push('M'+cursor+' '+y+' H'+end);
+  return path.replace(/d="[^"]+"/,'d="'+pieces.join(' ')+'"');
+ });
+ const height=Math.max(...[...pos.values()].map(p=>p.y))+100;
+ return{pos,width,height,edges:clearEdges,segments,families:byFamily,units};
 }
 function slaktNear(focus,all){const look=k=>all.find(b=>b.key===k),parents=slaktParents(focus.key).map(look).filter(Boolean),partners=slaktPartners(focus.key).map(look).filter(Boolean);const sib=new Map();slaktSiblings(focus.key).map(look).filter(Boolean).forEach(b=>sib.set(b.key,b));parents.forEach(p=>slaktChildren(p.key).filter(b=>b.key!==focus.key).forEach(b=>sib.set(b.key,b)));return{parents,partners,siblings:[...sib.values()],children:slaktChildren(focus.key)}}
 function slaktV3Markup(B,focus){
  const t=slaktV3Layout(B),R=slaktR(),related=new Set([focus.key,...slaktParents(focus.key),...slaktPartners(focus.key),...slaktSiblings(focus.key),...slaktChildren(focus.key).map(x=>x.key)]),active=S.slaktVy==='fokus';
+ const selectedFamilies=new Set([...t.families].filter(([id,g])=>g.parents.includes(focus.key)||g.children.includes(focus.key)).map(([id])=>encodeURIComponent(id)));
+ const nearEdges=t.edges.map(d=>{if(!active)return d;const m=d.match(/data-family="([^"]*)"/),id=m?.[1]||'',pair=decodeURIComponent(id).split('|');
+  return selectedFamilies.has(id)||pair.includes(focus.key)?d:d.replace('class="fam3-edge ','class="fam3-edge muted ');
+ }).join('');
  const nodes=B.map(b=>{const p=t.pos.get(b.key),selected=b.key===focus.key,fade=active&&!related.has(b.key);
   return '<g class="fam3-node'+(selected?' selected':'')+(fade?' muted':'')+'" role="button" tabindex="0" data-act="slaktFocus" data-id="'+esc(b.key)+'" transform="translate('+p.x+' '+p.y+')"><rect class="fam3-card" x="-74" y="-34" width="148" height="68" rx="17"/><circle class="fam3-circle" cx="-47" cy="0" r="19"/><text class="fam3-initial" x="-47" y="6" text-anchor="middle">'+esc(b.name[0].toUpperCase())+'</text><text class="fam3-name" x="-21" y="5" text-anchor="start">'+esc(b.name.length>13?b.name.slice(0,12)+'…':b.name)+'</text></g>'}).join('');
  const near=slaktNear(focus,slaktPersons()),meta=[near.parents.length+' föräldrar',near.siblings.length+' syskon',near.children.length+' barn'].join(' · ');
  return '<div class="fam3"><div class="fam3-toolbar"><div class="fam3-toolbar-title"><strong>Släktträd</strong><small>'+B.length+' personer · '+new Set([...t.pos.values()].map(p=>p.level)).size+' generationer</small></div><div class="fam3-toolbar-buttons"><button type="button" class="fam3-tool" data-act="slaktV3Fit" aria-label="Visa hela trädet" title="Visa hela trädet">⤢</button><button type="button" class="fam3-tool" data-act="slaktV3Center" aria-label="Centrera vald" title="Centrera vald">◎</button></div></div>'+
-  '<div class="fam3-viewport" data-width="'+t.width+'" data-height="'+t.height+'" data-selected="'+esc(focus.key)+'" aria-label="Släktträd. Dra för att flytta kartan, nyp för att zooma."><svg class="fam3-svg" xmlns="http://www.w3.org/2000/svg"><g class="fam3-stage"><g class="fam3-connectors">'+t.edges.join('')+'</g><g class="fam3-nodes">'+nodes+'</g></g></svg><div class="fam3-zoom"><button type="button" data-act="slaktV3Zoom" data-id="minus" aria-label="Zooma ut">−</button><span class="fam3-scale">100 %</span><button type="button" data-act="slaktV3Zoom" data-id="plus" aria-label="Zooma in">+</button></div></div>'+
+  '<div class="fam3-viewport" data-width="'+t.width+'" data-height="'+t.height+'" data-selected="'+esc(focus.key)+'" aria-label="Släktträd. Dra för att flytta kartan, nyp för att zooma."><svg class="fam3-svg" xmlns="http://www.w3.org/2000/svg"><g class="fam3-stage"><g class="fam3-connectors">'+nearEdges+'</g><g class="fam3-nodes">'+nodes+'</g></g></svg><div class="fam3-zoom"><button type="button" data-act="slaktV3Zoom" data-id="minus" aria-label="Zooma ut">−</button><span class="fam3-scale">100 %</span><button type="button" data-act="slaktV3Zoom" data-id="plus" aria-label="Zooma in">+</button></div></div>'+
   '<div class="fam3-legend">Dra för att panorera · Nyp för att zooma · Tryck på en person</div>'+
   '<div class="fam3-detail"><span class="fam3-person-circle">'+esc(focus.name.slice(0,1).toUpperCase())+'</span><span class="grow"><strong>'+esc(focus.name)+'</strong><small>'+esc(meta)+'</small></span><button type="button" class="fam3-details-edit" data-act="slaktEdit" data-id="'+esc(focus.key)+'">Relationer</button></div>'+
   '<div class="fam3-detail-actions"><button type="button" data-act="slaktVy" data-id="'+(active?'alla':'fokus')+'">'+(active?'Visa alla relationer':'Framhäv närmaste familjen')+'</button></div></div>';
@@ -5230,12 +5314,13 @@ function slaktV3Camera(init=false){
    const nodes=[...box.querySelectorAll('.fam3-node')],coords=new Map(nodes.map(n=>{const m=n.getAttribute('transform').match(/translate\(([\d.]+) ([\d.]+)\)/);return[n.dataset.id,{x:Number(m?.[1]||0),y:Number(m?.[2]||0)}]}));
    const chosen=coords.get(box.dataset.selected),person=slaktPersons().find(b=>b.key===box.dataset.selected);
    const related=person?slaktNear(person,slaktPersons()):null;
-   const close=[chosen,...(related?.parents||[]).map(x=>coords.get(x.key)),...(related?.partners||[]).map(x=>coords.get(x.key)),...(related?.children||[]).slice(0,2).map(x=>coords.get(x.key))].filter(Boolean);
+   const close=[chosen,...(related?.parents||[]).map(x=>coords.get(x.key)),...(related?.partners||[]).map(x=>coords.get(x.key)),...(related?.children||[]).map(x=>coords.get(x.key)).filter(Boolean).sort((a,b)=>Math.abs(a.x-(chosen?.x||0))-Math.abs(b.x-(chosen?.x||0))).slice(0,2)].filter(Boolean);
    const xs=close.map(p=>p.x),ys=close.map(p=>p.y),minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
-   const z=Math.max(.35,Math.min(.9,(w-55)/(maxX-minX+100),(h-50)/(maxY-minY+160)));
+   const z=Math.max(.72,Math.min(.96,(w-45)/(maxX-minX+100),(h-50)/(maxY-minY+130)));
    const minTreeY=Math.min(...[...coords.values()].map(p=>p.y));
-   const aimY=chosen?.y===minTreeY?h*.30:h*.49,centerX=(minX+maxX)/2;
-   SL3.camera={z,tx:w/2-centerX*z,ty:aimY-(chosen?.y||0)*z};SL3.target=null;
+   const aimY=chosen?.y===minTreeY?h*.24:h*.42;
+   // Start on the selected person, never on the bounding box of distant children.
+   SL3.camera={z,tx:w/2-(chosen?.x||0)*z,ty:aimY-(chosen?.y||0)*z};SL3.target=null;
   }
  }
  if(SL3.target){const node=[...box.querySelectorAll('.fam3-node')].find(x=>x.dataset.id===SL3.target);if(node){const tr=node.getAttribute('transform').match(/translate\(([\d.]+) ([\d.]+)\)/);if(tr){SL3.camera.tx=w/2-Number(tr[1])*SL3.camera.z;SL3.camera.ty=h*.43-Number(tr[2])*SL3.camera.z}}SL3.target=null}

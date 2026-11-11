@@ -52,6 +52,7 @@ jobs:
         run: |
           node verktyg/emu/run.js verktyg/emu/familj-dev.js
           node verktyg/emu/run.js verktyg/emu/familj-stor.js
+          node verktyg/emu/run.js verktyg/emu/familj-grenar.js
       - name: Kör alla flikar och funktionstester
         env:
           THEME: ${{ matrix.theme }}
