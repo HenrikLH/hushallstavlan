@@ -82,6 +82,14 @@ def karta_png():
         rad.append(bytes(r))
     ch = lambda t, d: struct.pack('>I', len(d)) + t + d + struct.pack('>I', zlib.crc32(t + d) & 0xffffffff)
     return b'\x89PNG\r\n\x1a\n' + ch(b'IHDR', struct.pack('>IIBBBBB', W, H, 8, 6, 0, 0, 0)) + ch(b'IDAT', zlib.compress(b''.join(rad))) + ch(b'IEND', b'')
+# Google-högtalare (Google Cast) och skriptet Ensam hemma med kanalfält
+S.update({
+ 'media_player.stor': ['idle', {'friendly_name': 'Stor', 'volume_level': 0.5}],
+ 'media_player.liten': ['off', {'friendly_name': 'Liten', 'volume_level': 0.3}],
+ 'script.ensam_hemma': ['off', {'friendly_name': 'Ensam hemma'}],
+})
+TJANSTER = [{'domain': 'script', 'services': {'turn_on': {}, 'reload': {}, 'ensam_hemma': {'fields': {k: {} for k in ('hogtalare', 'kanal_url', 'kanal_namn', 'kanal_bild', 'spotify_uri', 'volym')}}}},
+            {'domain': 'media_player', 'services': {}}, {'domain': 'light', 'services': {}}]
 SCEN = {'scene.kvall': {'light.vardagsrum': 115, 'switch.fonster': 1, 'light.kok': 77}, 'scene.film': {'light.vardagsrum': 26}}
 LOG = []
 class H(http.server.BaseHTTPRequestHandler):
@@ -94,6 +102,7 @@ class H(http.server.BaseHTTPRequestHandler):
         if not self.ok(): return
         if self.path == '/api/states': return self.svar(200, [{'entity_id': k, 'state': v[0], 'attributes': v[1]} for k, v in S.items()])
         if self.path == '/logg': return self.svar(200, LOG)
+        if self.path == '/api/services': return self.svar(200, TJANSTER)
         if self.path.startswith('/api/history/period/'): return self.svar(200, [])
         if self.path.startswith('/api/image_proxy/'):
             b = karta_png(); self.send_response(200); self.send_header('Content-Type', 'image/png'); self.end_headers(); self.wfile.write(b); return
@@ -117,6 +126,13 @@ class H(http.server.BaseHTTPRequestHandler):
             S['sensor.dammsugare_status'][0] = {'cleaning': 'segment_cleaning' if tj == 'send_command' else 'cleaning', 'paused': 'paused', 'returning': 'returning_home'}.get(S[e][0], 'charging')
             if tj == 'set_fan_speed': S[e][1]['fan_speed'] = d['fan_speed']
             return self.svar(200, [])
+        if dom == 'media_player':
+            for x in (e if isinstance(e, list) else [e]):
+                if tj == 'volume_set': S[x][1]['volume_level'] = d['volume_level']
+                elif tj == 'play_media': S[x][0] = 'playing'; S[x][1]['media_title'] = (d.get('extra') or {}).get('title')
+                elif tj in ('media_pause', 'media_play', 'media_stop'): S[x][0] = {'media_pause': 'paused', 'media_play': 'playing', 'media_stop': 'idle'}[tj]
+            return self.svar(200, [])
+        if dom == 'script': return self.svar(200, [])
         if dom == 'select':
             S[e][0] = d['option']
             if e == 'select.diskmaskin_aktivt_program': S['sensor.diskmaskin_driftstatus'][0] = 'run'; S['sensor.diskmaskin_programmets_framsteg'][0] = '12'; S['sensor.diskmaskin_programmets_sluttid'][0] = '2026-11-09T22:40:00+00:00'

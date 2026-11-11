@@ -1,0 +1,20 @@
+# Kom hem: avslutar Ensam hemma. Stoppar radion och ställer tillbaka högtalarnas volym. Lamporna lämnas som de är.
+# Klistra in på samma sätt som ensam-hemma.yaml (nytt skript → ⋮ → Redigera i YAML).
+alias: Kom hem
+description: Avslutar Ensam hemma. Stoppar radion och ställer tillbaka volymen.
+icon: mdi:home-heart
+mode: single
+sequence:
+  - action: script.turn_off
+    target:
+      entity_id: script.ensam_hemma
+  - action: media_player.media_stop
+    target:
+      entity_id: "{{ integration_entities('cast') | reject('search', 'tv') | list }}"
+    continue_on_error: true
+  - delay:
+      seconds: 1
+  - action: scene.turn_on
+    target:
+      entity_id: scene.fore_ensam_hemma
+    continue_on_error: true

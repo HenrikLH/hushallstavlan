@@ -1245,7 +1245,7 @@ const boardDefault=()=>U3?[['kal','mat'],['upg','inkop','fod','stad']]:WALL_DEF;
    tänder via Google, IKEA eller strömbrytaren. Utan tjänsten eller inställningen syns ingen ruta. ht.haDemo=1 = låtsasdata. */
 const HA_LOKAL='http://127.0.0.1:8777/ha',haUrl=()=>wallBoardOn()?HA_LOKAL:lsGet('haUrl')?lsGet('haUrl')+'/ha':'',HA={d:null,v:0,fel:null,busy:false,retry:0,last:null,demo:null};
 const haDemo=()=>lsGet('haDemo')==='1'||!!S.haTest;
-const haData=()=>{if(haDemo()){if(!HA.demo)HA.demo={lampor:[{id:'light.kok',n:'Köket',hn:'Köket',rum:'Kök',t:'light',on:true,b:80,lagen:['color_temp'],lage:'color_temp',k:2700,kmin:2200,kmax:4000,vana:{auto:true,k:2700,saker:true,n:9,dagar:12,paus:null,pauslage:'slack'}},{id:'light.vardagsrum',n:'Golvlampa',hn:'Vardagsrum',rum:'Vardagsrum',t:'light',on:true,b:45,lagen:['color_temp','xy'],lage:'xy',hs:[28,70],kmin:2200,kmax:6500,vana:{auto:true,k:2000,saker:false,n:3,dagar:3,paus:null,pauslage:'slack'}},{id:'switch.fonster',n:'Fönsterlampa',hn:'Fönster',rum:'Vardagsrum',t:'switch',on:true},{id:'light.hall',n:'Hallen',hn:'Hallen',rum:'Hall',t:'light',on:false,lagen:['brightness']},{id:'light.sovrum',n:'Sovrumslampa',hn:'Sovrum',rum:'Sovrum',t:'light',on:false,lagen:['brightness']},{id:'light.bad',n:'Badrum',hn:'Badrum',t:'light',on:false}],scener:[{id:'scene.morgon',n:'Morgon'},{id:'scene.kvall',n:'Kväll'},{id:'scene.film',n:'Film'}],givare:[{id:'sensor.inne',n:'Inne',v:'21.4',u:'°C'}],apparater:HA_DEMO_APP()};return HA.demo}return HA.d};
+const haData=()=>{if(haDemo()){if(!HA.demo)HA.demo={lampor:[{id:'light.kok',n:'Köket',hn:'Köket',rum:'Kök',t:'light',on:true,b:80,lagen:['color_temp'],lage:'color_temp',k:2700,kmin:2200,kmax:4000,vana:{auto:true,k:2700,saker:true,n:9,dagar:12,paus:null,pauslage:'slack'}},{id:'light.vardagsrum',n:'Golvlampa',hn:'Vardagsrum',rum:'Vardagsrum',t:'light',on:true,b:45,lagen:['color_temp','xy'],lage:'xy',hs:[28,70],kmin:2200,kmax:6500,vana:{auto:true,k:2000,saker:false,n:3,dagar:3,paus:null,pauslage:'slack'}},{id:'switch.fonster',n:'Fönsterlampa',hn:'Fönster',rum:'Vardagsrum',t:'switch',on:true},{id:'light.hall',n:'Hallen',hn:'Hallen',rum:'Hall',t:'light',on:false,lagen:['brightness']},{id:'light.sovrum',n:'Sovrumslampa',hn:'Sovrum',rum:'Sovrum',t:'light',on:false,lagen:['brightness']},{id:'light.bad',n:'Badrum',hn:'Badrum',t:'light',on:false}],scener:[{id:'scene.morgon',n:'Morgon'},{id:'scene.kvall',n:'Kväll'},{id:'scene.film',n:'Film'},{id:'script.ensam_hemma',n:'Ensam hemma',falt:['hogtalare','kanal_url','kanal_namn','spotify_uri','volym']}],givare:[{id:'sensor.inne',n:'Inne',v:'21.4',u:'°C'}],apparater:HA_DEMO_APP(),media:[{id:'media_player.stor',n:'Stor',st:'playing',vol:35,kanal:'megapol'},{id:'media_player.liten',n:'Liten',st:'idle',vol:50}],kanaler:[{id:'megapol',n:'Mix Megapol',typ:'Radio'},{id:'p3',n:'P3',typ:'Radio'},{id:'nrj',n:'NRJ',typ:'Radio'},{id:'p1',n:'P1',typ:'Radio'},{id:'p4',n:'P4 Jönköping',typ:'Radio'}]};return HA.demo}return HA.d};
 const haOn=wall=>haDemo()||!!HA.d&&!!haUrl()&&(!wall||wallBoardOn());
 const HAI={bulb:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.7.5 1.1 1.3 1.1 2.2h5c0-.9.4-1.7 1.1-2.2A6 6 0 0 0 12 3z"/></svg>',
  plug:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3v5M15 3v5"/><path d="M6.5 8h11v3a5.5 5.5 0 0 1-11 0z"/><path d="M12 16.5V21"/></svg>',
@@ -1354,6 +1354,63 @@ function habKor(i,s0){const D=haData(),s=s0||D&&habSc(D)[+i];if(!s)return;if(s.a
   if(S.habD)S.habD.fv=[...D.l.querySelectorAll('.hab-r')].map(x=>x.dataset.id);render()};
  document.addEventListener('pointerup',slut);document.addEventListener('pointercancel',slut);
  document.addEventListener('touchmove',e=>{if(d&&e.cancelable)e.preventDefault()},{passive:false})})();
+/* Högtalare och radio: Google-högtalarna (Google Cast i HA) via väggdatorns tjänst. Bladet haMedia väljer mediatyp, kanal, volym och högtalare;
+   samma blad startar skript med kanalfält (Ensam hemma). Egna kanaler, Spotify-listor och mediatyper sparas för hela hushållet i onskelista {ham:1,egna,k,vol,hog}. */
+const HAI_SPK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5.5" y="2.5" width="13" height="19" rx="3.5"/><circle cx="12" cy="14.5" r="3.2"/><circle cx="12" cy="7" r=".9" fill="currentColor"/></svg>',
+ HAI_RADIO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="1.8"/><path d="M8.6 15.4a4.8 4.8 0 0 1 0-6.8M15.4 8.6a4.8 4.8 0 0 1 0 6.8M5.6 18.4a9 9 0 0 1 0-12.8M18.4 5.6a9 9 0 0 1 0 12.8"/></svg>',
+ HAI_SPOT='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M7.5 9.3c3.2-1 6.6-.7 9.2.8M8 12.4c2.7-.8 5.4-.5 7.6.7M8.6 15.3c2.1-.5 4.1-.3 5.8.6"/></svg>',
+ HAI_VOL=n=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5h3l4-3.5v12l-4-3.5H4z"/>'+(n?'<path d="M15 9a4 4 0 0 1 0 6M17.8 6.5a7.5 7.5 0 0 1 0 11"/>':'')+'</svg>';
+const haMedia=()=>{const D=haData();return D&&D.media||[]};
+const hamGet=()=>parseJ(settings().onskelista,[]).find(x=>x&&x.ham)||{};
+function hamSet(ch){A.user=Date.now();updJSON('onskelista',[],a=>{const o=a.find(x=>x&&x.ham)||{};return a.filter(x=>!(x&&x.ham)).concat([Object.assign({},o,ch,{ham:1})])})}
+// alla val: tjänstens kanaler (id) och hushållets egna ({id,n,typ,rb|url|sp}); dolda inbyggda tas bort
+const haKanaler=()=>{const D=haData()||{},o=hamGet(),d=o.dolda||[];return(D.kanaler||[]).filter(k=>!d.includes(k.id)).map(k=>Object.assign({},k,{typ:k.typ||'Radio'})).concat((o.egna||[]).filter(k=>k&&k.id&&k.n))};
+const hamTyper=()=>[...new Set(haKanaler().map(k=>k.typ))];
+const hamSkicka=k=>k.egen?{n:k.n,rb:k.rb,url:k.url,sp:k.sp}:k.id;
+const hamIk=k=>k&&k.sp?HAI_SPOT:HAI_RADIO;
+const haMedSpelar=m=>/playing|buffering/.test(m.st||'');
+const haMedStat=m=>{if(m.nas)return'Svarar inte';const k=haKanaler().find(x=>x.id===m.kanal||x.sp&&x.sp===m.kanal||x.url&&x.url===m.kanal);return haMedSpelar(m)?(k?k.n:m.titel||'Spelar'):m.st==='paused'?'Pausad':m.st==='off'?'Av':'Tyst'};
+const haMedTile=m=>'<div class="ha-t ha-med'+(haMedSpelar(m)?' on':'')+(m.nas?' nas':'')+'" role="button" tabindex="0" data-act="haMedOpen" data-id="'+esc(m.id)+'" aria-label="'+esc(m.n)+', '+esc(haMedStat(m))+'"><button type="button" class="ha-i" data-act="haMedTog" data-id="'+esc(m.id)+'" aria-pressed="'+haMedSpelar(m)+'" aria-label="'+(haMedSpelar(m)?'Pausa ':'Spela ')+esc(m.n)+'"'+(m.nas?' disabled':'')+'>'+HAI_SPK+'</button><span class="ha-tx"><span class="ha-n">'+esc(m.n)+'</span><span class="ha-s">'+esc(haMedStat(m))+'</span></span></div>';
+function hamUtkast(ch){const o=hamGet(),M=haMedia(),K=haKanaler(),k=K.find(x=>x.id===o.k)||K[0]||{},hog=(o.hog||[]).filter(id=>M.some(m=>m.id===id));
+ return Object.assign({k:k.id,typ:k.typ||'Radio',vol:o.vol!=null?o.vol:35,hog:hog.length?hog:M.filter(m=>!m.nas).map(m=>m.id),skript:null},ch||{})}
+function haMedSheet(enter){const F=S.haMed,D=haData();if(!F||!D){S.sheet=null;return''}
+ if(F.ny)return hamNySheet(enter);
+ const M=haMedia(),K=haKanaler(),T=hamTyper(),Kt=K.filter(k=>k.typ===F.typ),sc=F.skript&&(D.scener||[]).find(s=>s.id===F.skript),wall=wallBoardOn();
+ const ck=on=>'<span class="ham-ck">'+(on?I.tick:'')+'</span>',spelar=M.filter(m=>haMedSpelar(m)||m.st==='paused');
+ let body=(sc?'<div class="foot ham-in">Startar '+esc(sc.n)+' i Home Assistant med valen nedan.</div>':'')+
+  (T.length>1?segc('Mediatyp','haMedTyp',T.map(t=>[t,esc(t)]),F.typ):'')+
+  sh(T.length>1?'Välj':esc(F.typ))+group(Kt.map(k=>'<button type="button" class="cell ham-k" data-act="haMedKanal" data-id="'+esc(k.id)+'"'+(k.egen&&!wall?' data-hold-lift="hamNy"':'')+' aria-pressed="'+(F.k===k.id)+'"><span class="ha-i sm">'+hamIk(k)+'</span><span class="grow">'+esc(k.n)+'</span>'+ck(F.k===k.id)+'</button>').join('')+
+   (wall?'':'<button type="button" class="cell link ham-add" data-act="hamNy">'+I.plus+'<span class="grow">Lägg till kanal eller lista</span></button>'))+
+  (K.some(k=>k.egen)?'<div class="foot">Håll in en egen kanal för att ändra eller ta bort den.</div>':'')+
+  sh('Volym')+group('<div class="cell ham-vol"><button type="button" class="ham-vb" data-act="haMedVol" data-id="-5" aria-label="Lägre volym">'+HAI_VOL(0)+'</button><div class="ham-bar" data-hamvol style="--p:'+F.vol+'%" role="slider" aria-label="Volym" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+F.vol+'"><i></i></div><button type="button" class="ham-vb" data-act="haMedVol" data-id="5" aria-label="Högre volym">'+HAI_VOL(1)+'</button><span class="num ham-pct">'+F.vol+' %</span></div>')+
+  sh('Högtalare')+group(M.map(m=>'<button type="button" class="cell ham-h" data-act="haMedHog" data-id="'+esc(m.id)+'" aria-pressed="'+F.hog.includes(m.id)+'"'+(m.nas?' disabled':'')+'><span class="ha-i sm">'+HAI_SPK+'</span><span class="grow">'+esc(m.n)+'<span class="meta">'+esc(haMedStat(m))+(haMedSpelar(m)&&m.vol!=null?' · '+m.vol+' %':'')+'</span></span>'+ck(F.hog.includes(m.id))+'</button>').join('')||emptyCell('Inga högtalare i Home Assistant. Lägg till integrationen Google Cast.'));
+ if(!sc&&spelar.length)body+='<div style="height:22px"></div>'+group('<button type="button" class="cell link center red" data-act="haMedStopp">Stoppa '+(spelar.length>1?'alla':esc(spelar[0].n))+'</button>');
+ return sheetHtml('haMedia',sc?esc(sc.n):'Musik','<button type="button" class="tb strong" data-act="haMedSpela">'+(sc?'Starta':'Spela')+'</button>',body,enter)}
+// ny eller ändrad egen kanal: namn, mediatyp (befintlig eller ny) och källa (radiokanal att söka, Spotify-länk eller ljudadress)
+function hamNySheet(enter){const F=S.haMed.ny,T=hamTyper(),chip=(v,on)=>'<button type="button" class="pill ha-c'+(on?' on':'')+'" data-act="hamNyTyp" data-id="'+esc(v)+'" aria-pressed="'+!!on+'">'+esc(v)+'</button>';
+ const ph={rb:['Radiokanalens namn','Till exempel NRJ eller Rockklassiker'],sp:['Länk till Spotify','Dela → Kopiera länk i Spotify'],url:['Adress till ljudströmmen','https://…']}[F.kalla];
+ const body=sh('Namn')+group('<label class="cell"><input class="field" name="hamn" value="'+esc(F.n||'')+'" maxlength="40" autocomplete="off" placeholder="Visas i listan"></label>')+
+  sh('Mediatyp')+group('<div class="cell ha-chips">'+[...new Set(T.concat(F.typ&&!T.includes(F.typ)?[F.typ]:[]))].map(v=>chip(v,F.typ===v)).join('')+'</div><label class="cell"><input class="field" name="hamt" value="'+esc(T.includes(F.typ)?'':F.typ||'')+'" maxlength="20" autocomplete="off" placeholder="Ny mediatyp, till exempel Spotify eller Lugnt"></label>')+
+  '<div style="height:18px"></div>'+segc('Källa','hamNyKalla',[['rb','Radiokanal'],['sp','Spotify'],['url','Ljudadress']],F.kalla)+
+  sh(ph[0])+group('<label class="cell"><input class="field" name="hamq" value="'+esc(F.q||'')+'" autocomplete="off" inputmode="'+(F.kalla==='rb'?'text':'url')+'" placeholder="'+esc(ph[1])+'"></label>')+
+  '<div class="foot">'+(F.kalla==='rb'?'Väggdatorn söker upp kanalen på radio-browser.info när den spelas.':F.kalla==='sp'?'Spotify på Google-högtalarna kräver Spotcast i Home Assistant.':'En direktlänk till en ljudström (mp3 eller aac).')+'</div>'+
+  (F.id?'<div style="height:22px"></div>'+group('<button type="button" class="cell link center red" data-act="hamNyDel">Ta bort '+esc(F.n0||'')+'</button>'):'');
+ return sheetHtml('haMedia',F.id?'Ändra':'Lägg till','<button type="button" class="tb strong" data-act="hamNySpara">Klar</button>',body,enter,'<button type="button" class="tb" data-act="hamNyAvbryt">Avbryt</button>')}
+const hamNyLas=()=>{const F=S.haMed&&S.haMed.ny,v=n=>{const f=document.querySelector('#overlay [name="'+n+'"]');return f?f.value:null};if(!F)return;const a=v('hamn'),t=v('hamt'),q=v('hamq');if(a!=null)F.n=a;if(q!=null)F.q=q;if(t!=null&&t.trim())F.typ=t.trim()};
+const hamSpUri=s=>{s=String(s||'').trim();let m=s.match(/^spotify:(playlist|album|artist|track|show|episode):([A-Za-z0-9]+)$/);if(m)return s;m=s.match(/open\.spotify\.com\/(?:[a-z-]+\/)?(playlist|album|artist|track|show|episode)\/([A-Za-z0-9]+)/);return m?'spotify:'+m[1]+':'+m[2]:''};
+function hamMedSend(body,lok){const M=haMedia(),was=JSON.stringify(M);lok&&lok(M);render();haSend(body,()=>{const o=JSON.parse(was);M.forEach((m,i)=>Object.assign(m,o[i]))})}
+// tjänsten svarar med kanalens id: inbyggt id, Spotify-uri, adress eller "rb:<namn>"
+const haMedKId=k=>!k.egen?k.id:k.sp||k.url||'rb:'+String(k.rb||'').toLowerCase();
+async function hamPost(body){const r=await fetch(haUrl(),{method:'POST',body:JSON.stringify(body)});let j={};try{j=await r.json()}catch(e){}if(!r.ok)throw new Error(j.fel||'Kunde inte nå Home Assistant')}
+function hamMedSend(body,lok){const M=haMedia(),was=JSON.stringify(M);lok&&lok(M);render();if(haDemo())return;HA.pend=(HA.pend||0)+1;
+ hamPost(body).catch(e=>{const o=JSON.parse(was);M.forEach((m,i)=>Object.assign(m,o[i]));toast(e.message||'Kunde inte nå Home Assistant')}).finally(()=>{HA.pend--;render()})}
+// volymen ändras direkt på högtalare som redan spelar (inte när bladet startar ett skript)
+let hamVolT=0;function hamVolLive(){const F=S.haMed;if(!F||F.skript)return;const L=haMedia().filter(m=>F.hog.includes(m.id)&&haMedSpelar(m));if(!L.length)return;L.forEach(m=>m.vol=F.vol);clearTimeout(hamVolT);hamVolT=setTimeout(()=>{if(!haDemo())hamPost({media:L.map(m=>m.id),gor:'vol',vol:F.vol}).catch(e=>toast(e.message))},350)}
+// dra eller tryck i volymreglaget
+(()=>{let d=null;const satt=(e,slut)=>{const r=d.getBoundingClientRect(),F=S.haMed;if(!F)return;F.vol=Math.max(0,Math.min(100,Math.round((e.clientX-r.left)/r.width*20)*5));d.style.setProperty('--p',F.vol+'%');const p=d.parentNode.querySelector('.ham-pct');if(p)p.textContent=F.vol+' %';if(slut){render();hamVolLive()}};
+ document.addEventListener('pointerdown',e=>{const b=e.target.closest('[data-hamvol]');if(!b||e.button>0)return;e.preventDefault();d=b;try{b.setPointerCapture(e.pointerId)}catch(_){}satt(e)});
+ document.addEventListener('pointermove',e=>{if(d)satt(e)});
+ const upp=e=>{if(!d)return;satt(e,1);d=null};document.addEventListener('pointerup',upp);document.addEventListener('pointercancel',()=>{d=null})})();
 // Blad för en lampa (håll in brickan): stort lodrätt reglage (dra = ljusstyrka, tryck = tänd/släck), vithet och färg under
 const HA_FARG=[['Röd',0,90],['Orange',28,95],['Gul',48,85],['Grön',120,75],['Turkos',178,70],['Blå',220,85],['Lila',275,75],['Rosa',325,65]];
 const haFargLage=x=>(x.lagen||[]).some(m=>/^(hs|xy|rgb|rgbw|rgbww)$/.test(m))&&/^(hs|xy|rgb|rgbw|rgbww)$/.test(x.lage||'');
@@ -1690,6 +1747,7 @@ V.hus=function(){const D=haData(),R0=S.haRum;let h='<div class="rcp-top"><button
  const sc=haScener(D,false);
  if(sc.length)h+='<div class="ha-rh">Scener</div><div class="ha-sg">'+sc.map(haScT).join('')+'</div>';
  if((D.apparater||[]).length)h+='<div class="ha-rh">Apparater</div><div class="ha-g ha-g-v">'+D.apparater.map(haAppTile).join('')+'</div>';
+ if((D.media||[]).length)h+='<div class="ha-rh">Högtalare</div><div class="ha-g ha-g-v">'+D.media.map(haMedTile).join('')+'</div>';
  const rum=HA_RUM.filter(r=>E.some(x=>x.rum===r)).concat(E.some(x=>x.rum&&!HA_RUM.includes(x.rum))?[...new Set(E.filter(x=>x.rum&&!HA_RUM.includes(x.rum)).map(x=>x.rum))]:[]).concat(E.some(x=>!x.rum)?['']:[]);
  rum.forEach(r=>{const R=E.filter(x=>(x.rum||'')===r);h+='<button type="button" class="ha-rh ha-rh-k" data-act="haRumVy" data-id="'+esc(r||'_')+'">'+esc(r||'Övrigt')+'<span class="chev">'+I.chev+'</span></button><div class="ha-g ha-g-v">'+R.map(haTile).join('')+'</div>'});
  if(!E.length)h+='<div class="group"><div class="cell"><span class="grow">Inga enheter på tavlan än.</span><button type="button" class="pill" data-act="haAddOpen">'+I.plus+'Lägg till</button></div></div>';
@@ -1699,7 +1757,7 @@ async function haLoop(){if(HA.busy||haDemo()||!haUrl()||Date.now()<HA.retry)retu
  try{while(haUrl()===bas&&(wallBoardOn()||document.visibilityState==='visible')){const ac=new AbortController(),t=setTimeout(()=>ac.abort(),40000);
    const r=await fetch(bas+'?v='+HA.v,{cache:'no-store',signal:ac.signal});clearTimeout(t);const j=await r.json();
    if(!j.lampor){HA.d=null;HA.retry=Date.now()+300000;render();break}// inte inställt: fråga igen om fem minuter
-   const ch=JSON.stringify([j.lampor,j.scener,j.givare,j.apparater,j.fel])!==JSON.stringify(HA.d&&[HA.d.lampor,HA.d.scener,HA.d.givare,HA.d.apparater,HA.fel]);
+   const ch=JSON.stringify([j.lampor,j.scener,j.givare,j.apparater,j.media,j.kanaler,j.fel])!==JSON.stringify(HA.d&&[HA.d.lampor,HA.d.scener,HA.d.givare,HA.d.apparater,HA.d.media,HA.d.kanaler,HA.fel]);
    HA.d=j;HA.v=j.v;HA.fel=j.fel;if(ch&&!HA.pend&&!HA.drag)render()}}
  catch(e){HA.fel='Väggdatorns tjänst svarar inte';HA.retry=Date.now()+(HA.d?15000:300000);if(HA.d)render()}
  HA.busy=false}
@@ -3387,7 +3445,7 @@ function overlayKeepScroll(){const o=document.getElementById('overlay'),k=o.data
  const nb=o.querySelector('.sheet-body');if(y&&k&&o.dataset.k===k&&nb&&nb!==b)nb.scrollTop=y}
 function renderOverlay(){
  const o=document.getElementById('overlay');
- const k=S.cook?'cook':S.sheet==='settings'?'settings':S.sheet==='farg'?'farg':S.sheet==='vagg'?'vagg':S.sheet==='ljuskal'?'ljuskal':S.sheet==='rate'?'rate':S.sheet==='income'?'income':S.sheet==='matb'?'matb':S.sheet==='vara'?'vara':S.sheet==='cost'?'cost':S.sheet==='ov'?'ov':S.sheet==='prefs'?'prefs':S.sheet==='swap'?'swap':S.sheet==='prot'?'prot':S.sheet==='wish'?'wish':S.sheet==='shopMore'?'shopMore':S.sheet==='dess'?'dess':S.sheet==='slot'?'slot':S.sheet==='delLas'?'delLas':S.sheet==='dish'?'dish':S.sheet==='tmr'?'tmr':S.sheet==='tmrMenu'?'tmrMenu':S.rcpSheet?'rcpSheet':S.sheet==='cleanAdd'?'cleanAdd':S.sheet==='fodAdd'?'fodAdd':S.sheet==='slaktRel'?'slaktRel':S.sheet==='fodFam'?'fodFam':S.sheet==='presBud'?'presBud':S.sheet==='haLampa'?'haLampa':S.sheet==='haApp'?'haApp':S.sheet==='haEdit'?'haEdit':S.sheet==='haFav'?'haFav':S.sheet==='haAdd'?'haAdd':S.sheet==='habRuta'?'habRuta':S.sheet==='habSc'?'habSc':S.sheet==='taskMenu'?'taskMenu':S.sheet==='ekoMenu'?'ekoMenu':S.sheet==='evMenu'?'evMenu':S.sheet==='cleanMenu'?'cleanMenu':S.sheet==='taskEdit'?'taskEdit':S.sheet==='evEdit'?'evEdit':S.sheet==='evNew'?'evNew':S.sheet==='wxDay'?'wxDay':S.shopAdd?'shop':S.taskAdd?'task':'';
+ const k=S.cook?'cook':S.sheet==='settings'?'settings':S.sheet==='farg'?'farg':S.sheet==='vagg'?'vagg':S.sheet==='ljuskal'?'ljuskal':S.sheet==='rate'?'rate':S.sheet==='income'?'income':S.sheet==='matb'?'matb':S.sheet==='vara'?'vara':S.sheet==='cost'?'cost':S.sheet==='ov'?'ov':S.sheet==='prefs'?'prefs':S.sheet==='swap'?'swap':S.sheet==='prot'?'prot':S.sheet==='wish'?'wish':S.sheet==='shopMore'?'shopMore':S.sheet==='dess'?'dess':S.sheet==='slot'?'slot':S.sheet==='delLas'?'delLas':S.sheet==='dish'?'dish':S.sheet==='tmr'?'tmr':S.sheet==='tmrMenu'?'tmrMenu':S.rcpSheet?'rcpSheet':S.sheet==='cleanAdd'?'cleanAdd':S.sheet==='fodAdd'?'fodAdd':S.sheet==='slaktRel'?'slaktRel':S.sheet==='fodFam'?'fodFam':S.sheet==='presBud'?'presBud':S.sheet==='haLampa'?'haLampa':S.sheet==='haApp'?'haApp':S.sheet==='haEdit'?'haEdit':S.sheet==='haFav'?'haFav':S.sheet==='haAdd'?'haAdd':S.sheet==='habRuta'?'habRuta':S.sheet==='habSc'?'habSc':S.sheet==='haMedia'?'haMedia':S.sheet==='taskMenu'?'taskMenu':S.sheet==='ekoMenu'?'ekoMenu':S.sheet==='evMenu'?'evMenu':S.sheet==='cleanMenu'?'cleanMenu':S.sheet==='taskEdit'?'taskEdit':S.sheet==='evEdit'?'evEdit':S.sheet==='evNew'?'evNew':S.sheet==='wxDay'?'wxDay':S.shopAdd?'shop':S.taskAdd?'task':'';
  const prev=o.dataset.k||'';
  // Behåll markerade barn/föräldrar medan relationsbladet är öppet.
  if(k==='slaktRel'&&prev===k)return;
@@ -3630,6 +3688,7 @@ if(k==='vara'){const n=S.varaK||'',ing=S.varaTyp==='ing',R=regGet(),F=parseJ(set
  if(k==='haAdd'){o.innerHTML=haAddSheet(enter);return}
  if(k==='habRuta'){o.innerHTML=habRutaSheet(enter);return}
  if(k==='habSc'){o.innerHTML=habScSheet(enter);return}
+ if(k==='haMedia'){o.innerHTML=haMedSheet(enter);return}
  if(k==='presBud'){const P=presBud(),Y=presAr(),ty=+thisMonth().slice(0,4),SN=presSnitt(ty,P.ar),YK=presAr(ty+'-01'),nu=new Date().getMonth(),mx=Math.max(1,SN.jamn,...YK.M.map(x=>x.kr)),val=P.satt==='manad'?Y.M[0].kr:SN.jamn,
    st=(id,lab,sub,v)=>'<div class="cell pb-st"><div class="grow"><div>'+lab+'</div><div class="meta">'+sub+'</div></div><span class="stepper"><button type="button" data-act="presStep" data-id="'+id+'" data-d="-50" aria-label="Minska '+lab+'">−</button><span class="num"><b>'+v+'</b> kr</span><button type="button" data-act="presStep" data-id="'+id+'" data-d="50" aria-label="Öka '+lab+'">+</button></span></div>';
   const body='<div class="pb-hero"><div class="pb-big num">'+kr(val)+'</div><div class="pb-sub">'+(P.satt==='manad'?'till presenter i '+MON[Y.M[0].mo]:'att lägga undan varje månad')+'</div></div>'+
@@ -5733,9 +5792,33 @@ const ACT={
  habScNu(){habNamnLas();const d=S.habSc.d,E=haData().lampor||[];Object.keys(d.l).forEach(id=>{const x=E.find(e=>e.id===id);if(x)d.l[id]=habLage(x)});toast('Lampornas läge är hämtat');render()},
  habScProva(){habNamnLas();const d=S.habSc.d;habKor(null,d.typ==='egen'?{l:d.l}:d.typ==='ha'?{ha:d.ha}:{av:1})},
  habScHa(id){habNamnLas();S.habSc.d.ha=id;render()},
+ haMedOpen(id){const m=haMedia().find(x=>x.id===id),sp=m&&(haMedSpelar(m)||m.st==='paused'),k=sp&&haKanaler().find(x=>haMedKId(x)===m.kanal),ch={hog:[id]};if(k){ch.k=k.id;ch.typ=k.typ}if(sp&&m.vol!=null)ch.vol=m.vol;S.haMed=hamUtkast(m?ch:{});try{u5Tick()}catch(e){}S.sheet='haMedia';render()},
+ haMedTog(id){const m=haMedia().find(x=>x.id===id);if(!m||m.nas)return;try{u5Tick()}catch(e){}
+  if(haMedSpelar(m))return hamMedSend({media:[id],gor:'paus'},()=>{m.st='paused'});if(m.st==='paused')return hamMedSend({media:[id],gor:'fortsatt'},()=>{m.st='playing'});ACT.haMedOpen(id)},
+ haMedSkript(id){const v=(hamGet().sk||{})[id]||{},M=haMedia(),ch={skript:id,vol:v.vol!=null?v.vol:35};if(v.k&&haKanaler().some(k=>k.id===v.k)){ch.k=v.k;ch.typ=haKanaler().find(k=>k.id===v.k).typ}const hog=(v.hog||[]).filter(h=>M.some(m=>m.id===h));if(hog.length)ch.hog=hog;S.haMed=hamUtkast(ch);S.sheet='haMedia';render()},
+ haMedTyp(t){const F=S.haMed;if(!F)return;F.typ=t;const K=haKanaler().filter(k=>k.typ===t);if(!K.some(k=>k.id===F.k)&&K[0])F.k=K[0].id;render()},
+ haMedKanal(id){if(S.haMed){S.haMed.k=id;try{u5Tick()}catch(e){}render()}},
+ haMedVol(d){const F=S.haMed;if(!F)return;F.vol=Math.max(0,Math.min(100,Math.round((F.vol+ +d)/5)*5));render();hamVolLive()},
+ haMedHog(id){const F=S.haMed;if(!F)return;F.hog=F.hog.includes(id)?F.hog.filter(x=>x!==id):F.hog.concat([id]);render()},
+ haMedSpela(){const F=S.haMed,D=haData();if(!F||!D)return;const k=haKanaler().find(x=>x.id===F.k);
+  if(!k)return toast('Välj vad som ska spelas');if(!F.hog.length)return toast('Välj minst en högtalare');
+  if(F.skript)hamSet({sk:Object.assign({},hamGet().sk,{[F.skript]:{k:F.k,vol:F.vol,hog:F.hog}})});else hamSet({k:F.k,vol:F.vol,hog:F.hog});const lok=M=>M.forEach(m=>{if(F.hog.includes(m.id)){m.st='playing';m.kanal=haMedKId(k);m.vol=F.vol}});
+  if(F.skript){HA.last=F.skript;hamMedSend({scen:F.skript,var:{kanal:hamSkicka(k),volym:F.vol,hogtalare:F.hog}},lok)}
+  else hamMedSend({media:F.hog,gor:'spela',kanal:hamSkicka(k),vol:F.vol},lok);S.haMed=null;closeSheets()},
+ haMedStopp(){const L=haMedia().filter(m=>haMedSpelar(m)||m.st==='paused');if(!L.length)return;hamMedSend({media:L.map(m=>m.id),gor:'stopp'},M=>L.forEach(m=>{m.st='idle';m.kanal=null}));S.haMed=null;closeSheets()},
+ hamNy(id){const F=S.haMed||(S.haMed=hamUtkast());const k=id&&(hamGet().egna||[]).find(x=>x.id===id);
+  F.ny=k?{id:k.id,n:k.n,n0:k.n,typ:k.typ,kalla:k.sp?'sp':k.url?'url':'rb',q:k.sp?'https://open.spotify.com/'+k.sp.split(':').slice(1).join('/'):k.url||k.rb||''}:{typ:F.typ,kalla:'rb',q:'',n:''};S.sheet='haMedia';render()},
+ hamNyTyp(v){hamNyLas();S.haMed.ny.typ=v;if(v==='Spotify')S.haMed.ny.kalla='sp';render()},
+ hamNyKalla(k){hamNyLas();S.haMed.ny.kalla=k;render()},
+ hamNyAvbryt(){S.haMed.ny=null;render()},
+ hamNySpara(){hamNyLas();const F=S.haMed.ny,q=String(F.q||'').trim(),e={id:F.id||'e'+Date.now().toString(36),egen:1,n:String(F.n||'').trim().slice(0,40),typ:String(F.typ||'').trim().slice(0,20)};
+  if(F.kalla==='sp'){e.sp=hamSpUri(q);if(!e.sp)return toast('Klistra in en länk från Spotify')}else if(F.kalla==='url'){if(!/^https?:\/\/\S{4,}$/.test(q))return toast('Adressen ska börja med https://');e.url=q}else{if(!q)return toast('Skriv kanalens namn');e.rb=q.slice(0,60)}
+  if(!e.n)e.n=F.kalla==='rb'?e.rb:F.kalla==='sp'?'Spotify-lista':'Ljud';if(!e.typ)e.typ=F.kalla==='sp'?'Spotify':'Radio';
+  const L=(hamGet().egna||[]).filter(x=>x.id!==e.id).concat([e]);hamSet({egna:L});Object.assign(S.haMed,{ny:null,typ:e.typ,k:e.id});render()},
+ hamNyDel(){const F=S.haMed.ny;hamSet({egna:(hamGet().egna||[]).filter(x=>x.id!==F.id)});S.haMed.ny=null;const K=haKanaler().filter(k=>k.typ===S.haMed.typ);if(!K.some(k=>k.id===S.haMed.k)){S.haMed.k=(K[0]||haKanaler()[0]||{}).id;S.haMed.typ=(K[0]||haKanaler()[0]||{}).typ||'Radio'}render()},
  habScDel(){const D=haData(),F=S.habSc;if(!D||!F)return;const sc=habSc(D);sc[F.i]=null;habSet({sc});habScTill()},
  habScTill(){habScTill()},
- haScen(id){const D=haData();if(!D)return;HA.last=id;
+ haScen(id){const D=haData();if(!D)return;const sc0=(D.scener||[]).find(s=>s.id===id);if(sc0&&(sc0.falt||[]).length)return ACT.haMedSkript(id);HA.last=id;
   if(id==='av'){const was=D.lampor.map(x=>x.on);D.lampor.forEach(x=>{if(!x.nas)x.on=false});render();return haSend({alla:'av'},()=>D.lampor.forEach((x,i)=>x.on=was[i]))}
   if(haDemo()){const m={'scene.morgon':{'light.kok':100,'light.hall':60},'scene.kvall':{'light.vardagsrum':45,'switch.fonster':1,'light.kok':30},'scene.film':{'light.vardagsrum':10}}[id]||{};D.lampor.forEach(x=>{const v=m[x.id];x.on=!!v;if(v>1)x.b=v})}
   render();haSend({scen:id},()=>{})},
@@ -6194,7 +6277,7 @@ document.addEventListener('change',e=>{const el=e.target.closest('[data-change]'
   if(el.dataset.change==='eko'){const v=Math.max(0,Number(String(el.value).replace(',','.'))||0);updJSON('ekonomi',{},o=>{o[id]=v;return o});return}
  const f=el.dataset.change==='freq'?{freq:Number(el.value)}:el.dataset.change==='min'?{min:Number(el.value)}:{who:el.value};mutate('clean',id,f);apiPost({action:'cleanSet',id,fields:f})});
 document.addEventListener('submit',async e=>{const f=e.target.closest('[data-form]');if(!f)return;e.preventDefault();const d=Object.fromEntries(new FormData(f));
- if(f.dataset.form==='haFav'){haFavSpara(d.hafn);return}if(f.dataset.form==='haEdit'){haNamnSatt(d.hanamn);return}if(f.dataset.form==='habSc'){habScSpara(d.habn);return}
+ if(f.dataset.form==='haFav'){haFavSpara(d.hafn);return}if(f.dataset.form==='haEdit'){haNamnSatt(d.hanamn);return}if(f.dataset.form==='habSc'){habScSpara(d.habn);return}if(f.dataset.form==='haMedia'){if(S.haMed&&S.haMed.ny)ACT.hamNySpara();return}
  if(U3&&f.dataset.form==='recipeSearch'){S.u3Query=String(d.q||'').trim();document.activeElement?.blur();render();return}
  if(f.dataset.form==='setup'){S.key=String(d.key||'').trim().toLowerCase();S.error='';S.sync='busy';render();
   try{const data=await apiGet();lsSet('key',S.key);setData(data);S.sync='idle';if(!S.me)S.sheet='settings'}catch(err){S.error=err.message;S.key=''}render();return}

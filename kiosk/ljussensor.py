@@ -13,6 +13,9 @@
 #                      | {"app": id, "gor": "start", "damm": [16], "mopp": [16, 17]}  dammsuger först, moppar när roboten är hemma igen ("planstopp" hoppar över)
 #                      | {"app": id, "zon": [x0, y0, x1, y1] (kartans pixlar)}
 #                      | {"app": id, "sug"|"lage"|"vatten"|"rutt"|"prog"|"rutin"|"rot"|"dockLage": värde}   dammsugare och diskmaskin
+#   POST /ha           {"media": ["media_player.kok"], "gor": "spela", "kanal": "p4", "vol": 35} | {"media": [...], "gor": "vol"|"paus"|"fortsatt"|"stopp"}
+#                      | {"scen": "script.ensam_hemma", "var": {"kanal": "p4", "volym": 35, "hogtalare": ["media_player.kok"]}}
+#                      kanal = inbyggt id eller egen {"n": "Lugnt", "rb": "namn att söka" | "url": "https://…" | "sp": "spotify:playlist:…"}
 #   POST /ha/val       {"rumnr": 16, "rumnamn": "Kök"} namnger robotens rum | {"rumnr": 16, "stor": true} stort rum (dammsugs ensamt, töms efteråt)
 #   POST /ha/val       {"lagg": id} | {"ta": id} | {"id": id, "namn": "Taklampa", "rum": "Kök"}   ändrar tavlans lista i HA_FIL
 #   GET  /ha/vanor?id= -> inlärd ton per kvart (vardag "v", helg "h"), säker eller inte, paus
@@ -176,7 +179,7 @@ def vakthund():
 # HA_FIL: {"url": "http://127.0.0.1:8123", "token": "<långlivad token för en HA-användare som inte är admin>",
 #          "lampor": ["light.kok", "switch.fonster"], "scener": ["scene.kvall"], "givare": ["sensor.inne_temperatur"]}
 # Tjänsten frågar HA en gång i sekunden så länge tavlan visar rutan (har frågat senaste minuten).
-import urllib.request
+import urllib.request, urllib.parse
 HA = {'v': 0, 'data': None, 'fel': None, 'fragad': 0, 'cfg': None, 'mtid': None}
 HA_VILLKOR = threading.Condition()
 STYRBARA = ('light', 'switch', 'fan', 'input_boolean')
@@ -224,7 +227,12 @@ def ha_las(c):
     for e in c['givare']:
         x = alla.get(e)
         if x: givare.append({'id': e, 'n': c['namn'].get(e) or namn(e, x), 'hn': namn(e, x), 'rum': c['rum'].get(e), 'v': x.get('state'), 'u': (x.get('attributes') or {}).get('unit_of_measurement')})
-    return {'lampor': lampor, 'scener': scener, 'givare': givare, 'apparater': ha_appar(c, alla)}
+    falt = ha_skript_falt(c)
+    for s in scener:
+        f = [x for x in falt.get(s['id']) or [] if x in MEDIA_FALT]
+        if f: s['falt'] = f
+    return {'lampor': lampor, 'scener': scener, 'givare': givare, 'apparater': ha_appar(c, alla), 'media': ha_hogtalare(c, alla),
+            'kanaler': [{'id': k['id'], 'n': k['n'], 'typ': k.get('typ') or 'Radio'} for k in kanaler(c)], 'spotify': 'spotcast' in ha_tjanster(c)}
 
 # Apparater: robotdammsugare (Roborock) och diskmaskin (Home Connect). Hittas själva bland HA:s entiteter; "apparater" i
 # HA_FIL kan ange egna (vacuum.x / prefixet för diskmaskinen). Entiteternas namn är på svenska i HA, så de känns igen
@@ -437,6 +445,155 @@ def ha_app_styr(c, d):
     ha_uppdatera()
     return 200, {'ok': True, 'v': HA['v']}
 
+# Högtalare och radio: Google Home/Nest-högtalarna finns i HA som media_player (integrationen Google Cast). Tavlan får
+# bara spela kanalerna i KANALER (eller "kanaler" i HA_FIL), ändra volym, pausa och stoppa. "hogtalare" i HA_FIL
+# begränsar vilka media_player som syns; utan den syns alla. Kanalens ljudadress slås upp på väggdatorn (Sveriges
+# Radios API respektive radio-browser.info) och sparas en dag, så att en flyttad ström hittas igen av sig själv.
+KANALER = [
+    {'id': 'megapol', 'n': 'Mix Megapol', 'typ': 'Radio', 'rb': 'Mix Megapol'},
+    {'id': 'p3', 'n': 'P3', 'typ': 'Radio', 'sr': 'P3'},
+    {'id': 'nrj', 'n': 'NRJ', 'typ': 'Radio', 'rb': 'NRJ'},
+    {'id': 'p1', 'n': 'P1', 'typ': 'Radio', 'sr': 'P1'},
+    {'id': 'p4', 'n': 'P4 Jönköping', 'typ': 'Radio', 'sr': 'P4 Jönköping'},
+]
+KANAL_URL, KANAL_NU = {}, {}   # id -> (url, bild, tid);  media_player -> (kanalens id, starttid) medan den spelar
+
+def kanaler(c):
+    egna = [k for k in c.get('kanaler') or [] if isinstance(k, dict) and k.get('id') and k.get('n') and (k.get('url') or k.get('sr') or k.get('rb'))]
+    return egna or KANALER
+
+def kanal_hamta(url):
+    r = urllib.request.Request(url, headers={'User-Agent': 'Hushallstavlan/1.0'})
+    with urllib.request.urlopen(r, timeout=6) as svar: return json.loads(svar.read())
+
+SPOTIFY = re.compile(r'^spotify:(playlist|album|artist|track|show|episode):[A-Za-z0-9]{10,40}$')
+
+def kanal_fran(c, v):
+    # en inbyggd kanal (id) eller en egen från appen: {"n": namn, "url": https-adress | "rb": namn att söka | "sp": spotify-uri}
+    if isinstance(v, str): return next((k for k in kanaler(c) if k['id'] == v), None)
+    if not isinstance(v, dict): return None
+    n = str(v.get('n') or '').strip()[:60]
+    if v.get('sp') and SPOTIFY.match(str(v['sp'])): return {'id': str(v['sp']), 'n': n or 'Spotify', 'sp': str(v['sp'])}
+    if v.get('url') and re.match(r'^https?://[^\s]{4,400}$', str(v['url'])): return {'id': str(v['url']), 'n': n or 'Ljud', 'url': str(v['url'])}
+    if v.get('rb'): q = str(v['rb']).strip()[:60]; return {'id': 'rb:' + q.lower(), 'n': n or q, 'rb': q} if q else None
+    return None
+
+def kanal_url(k):
+    if k.get('url'): return k['url'], k.get('bild')
+    g = KANAL_URL.get(k['id'])
+    if g and time.time() - g[2] < 86400: return g[0], g[1]
+    url = bild = None
+    try:
+        if k.get('sr'):
+            for x in kanal_hamta('https://api.sr.se/api/v2/channels?format=json&pagination=false').get('channels') or []:
+                if x.get('name', '').lower() == k['sr'].lower():
+                    url, bild = (x.get('liveaudio') or {}).get('url'), x.get('image'); break
+        else:
+            q = urllib.parse.urlencode({'name': k['rb'], 'countrycode': k.get('land', 'SE'), 'hidebroken': 'true', 'order': 'clickcount', 'reverse': 'true', 'limit': 5})
+            L = kanal_hamta('https://all.api.radio-browser.info/json/stations/search?' + q)
+            if not L:   # inget svenskt namn som stämmer: sök i hela världen
+                L = kanal_hamta('https://all.api.radio-browser.info/json/stations/search?' + urllib.parse.urlencode({'name': k['rb'], 'hidebroken': 'true', 'order': 'clickcount', 'reverse': 'true', 'limit': 5}))
+            x = next((x for x in L if x.get('name', '').strip().lower() == k['rb'].lower()), L[0] if L else None)
+            if x: url, bild = x.get('url_resolved') or x.get('url'), x.get('favicon') or None
+    except Exception as e:
+        logg('kanal %s: %s' % (k['id'], repr(e)[:150]))
+    if not url:
+        if g: return g[0], g[1]   # gammal adress hellre än ingen
+        return None, None
+    KANAL_URL[k['id']] = (url, bild, time.time())
+    return url, bild
+
+def ha_hogtalare(c, alla):
+    egna = c.get('hogtalare')
+    ids = [e for e in (egna if egna is not None else sorted(alla)) if e.startswith('media_player.') and e in alla]
+    ut = []
+    for e in ids:
+        x = alla[e]; a = x.get('attributes') or {}; st = x.get('state')
+        if st not in ('playing', 'buffering', 'paused') and time.time() - (KANAL_NU.get(e) or ('', 0))[1] > 20: KANAL_NU.pop(e, None)
+        v = a.get('volume_level')
+        ut.append({'id': e, 'n': c['namn'].get(e) or a.get('friendly_name') or e, 'hn': a.get('friendly_name') or e, 'rum': c['rum'].get(e),
+                   'st': st, 'nas': st == 'unavailable', 'vol': round(v * 100) if isinstance(v, (int, float)) else None,
+                   'titel': a.get('media_title') or a.get('app_name'), 'kanal': (KANAL_NU.get(e) or (None,))[0], 'grupp': len(a.get('group_members') or []) > 1})
+    return ut
+
+def ha_hog_ok(c, L):
+    alla = {x['entity_id'] for x in ha_anrop(c, '/api/states')}
+    egna = c.get('hogtalare')
+    L = [str(e) for e in (L if isinstance(L, list) else [L]) if str(e).startswith('media_player.') and str(e) in alla]
+    return [e for e in L if egna is None or e in egna]
+
+def ha_media_styr(c, d):
+    hog = ha_hog_ok(c, d.get('media'))
+    if not hog: return 403, {'fel': 'högtalaren finns inte'}
+    tj = lambda s, data: ha_anrop(c, '/api/services/media_player/' + s, dict(data, entity_id=hog))
+    g = d.get('gor')
+    if d.get('vol') is not None and g in ('spela', 'vol'):
+        tj('volume_set', {'volume_level': max(0, min(100, int(d['vol']))) / 100})
+    if g == 'spela':
+        k = kanal_fran(c, d.get('kanal'))
+        if not k: return 400, {'fel': 'okänd kanal'}
+        if k.get('sp'):
+            # Spotify spelas på Google-högtalare genom Spotcast (HACS) i HA
+            if 'spotcast' not in ha_tjanster(c): return 501, {'fel': 'Spotify behöver Spotcast i Home Assistant'}
+            for e in hog:
+                ha_anrop(c, '/api/services/spotcast/start', {'entity_id': e, 'uri': k['sp'], 'force_playback': True})
+                KANAL_NU[e] = (k['id'], time.time())
+            ha_uppdatera()
+            return 200, {'ok': True, 'v': HA['v']}
+        url, bild = kanal_url(k)
+        if not url: return 502, {'fel': 'Hittar inte ' + k['n'] + ' just nu'}
+        extra = {'title': k['n'], 'metadata': {'metadataType': 3, 'title': k['n']}}
+        if bild: extra['thumb'] = bild
+        for e in hog:
+            ha_anrop(c, '/api/services/media_player/play_media', {'entity_id': e, 'media_content_id': url, 'media_content_type': 'music', 'extra': extra})
+            KANAL_NU[e] = (k['id'], time.time())
+    elif g in ('paus', 'fortsatt', 'stopp'):
+        tj({'paus': 'media_pause', 'fortsatt': 'media_play', 'stopp': 'media_stop'}[g], {})
+        if g == 'stopp':
+            for e in hog: KANAL_NU.pop(e, None)
+    elif g != 'vol': return 400, {'fel': 'gor ska vara spela, vol, paus, fortsatt eller stopp'}
+    ha_uppdatera()
+    return 200, {'ok': True, 'v': HA['v']}
+
+# Skript med fält (till exempel "Ensam hemma") får kanal, volym och högtalare från tavlan. Fälten läses från HA:s
+# tjänstelista, så tavlan vet vilka skript som vill ha dem. Bara kända fält skickas vidare, och kanalen blir en adress här.
+SKRIPT_FALT = {'t': 0, 'f': {}, 'dom': set()}
+MEDIA_FALT = ('kanal_url', 'kanal_namn', 'kanal_bild', 'spotify_uri', 'volym', 'hogtalare')
+
+def ha_tjanster(c):
+    ha_skript_falt(c)
+    return SKRIPT_FALT['dom']
+
+def ha_skript_falt(c):
+    if time.time() - SKRIPT_FALT['t'] > 60:
+        f = {}
+        try:
+            L = ha_anrop(c, '/api/services') or []
+            SKRIPT_FALT['dom'] = {x.get('domain') for x in L}
+            for dom in L:
+                if dom.get('domain') == 'script':
+                    for s, x in (dom.get('services') or {}).items():
+                        if s not in ('turn_on', 'turn_off', 'toggle', 'reload'): f['script.' + s] = sorted((x.get('fields') or {}).keys())
+        except Exception as e: logg('ha skript: ' + repr(e)[:150])
+        SKRIPT_FALT.update(t=time.time(), f=f)
+    return SKRIPT_FALT['f']
+
+def ha_skript_var(c, e, v):
+    falt = set(ha_skript_falt(c).get(e) or [])
+    ut = {}
+    if not isinstance(v, dict): return ut
+    if v.get('kanal') and 'kanal_url' in falt:
+        k = kanal_fran(c, v['kanal'])
+        if k and k.get('sp'): ut.update(spotify_uri=k['sp'], kanal_namn=k['n'])
+        elif k:
+            url, bild = kanal_url(k)
+            if url: ut.update(kanal_url=url, kanal_namn=k['n'], kanal_bild=bild or '')
+    if v.get('volym') is not None and 'volym' in falt: ut['volym'] = max(0, min(100, int(v['volym'])))
+    if v.get('hogtalare') and 'hogtalare' in falt:
+        h = ha_hog_ok(c, v['hogtalare'])
+        if h: ut['hogtalare'] = h
+    return {k: x for k, x in ut.items() if k in falt}
+
 # Dammsug följt av mopp (inte båda samtidigt: fukten fastnar annars i dammbehållaren). Läget sätts före varje körning
 # och återställs till dammsugning efteråt, så att vanlig städning alltid är dammsugning.
 PLAN = {}
@@ -585,7 +742,7 @@ def ha_val(d):
         for k in ('lampor', 'scener', 'givare'): c[k] = [x for x in c[k] if x != e]
         c['namn'].pop(e, None); c['rum'].pop(e, None)
     else:
-        if e not in c['lampor'] + c['scener'] + c['givare']: return 403, {'fel': 'enheten finns inte på tavlan'}
+        if e not in c['lampor'] + c['scener'] + c['givare'] and not e.startswith('media_player.'): return 403, {'fel': 'enheten finns inte på tavlan'}
         for k in ('namn', 'rum'):
             if k in d:
                 v = str(d[k] or '').strip()[:40]
@@ -600,10 +757,16 @@ def ha_styr(d):
     if not c: return 503, {'fel': 'inte inställt'}
     if d.get('app'):
         return ha_app_styr(c, d)
+    if d.get('media'):
+        return ha_media_styr(c, d)
     if d.get('scen'):
         e = str(d['scen'])
         if e not in c['scener']: return 403, {'fel': 'scenen är inte vald för tavlan'}
-        ha_anrop(c, '/api/services/%s/turn_on' % e.split('.')[0], {'entity_id': e})
+        data = {'entity_id': e}
+        if e.startswith('script.') and d.get('var'):
+            v = ha_skript_var(c, e, d['var'])
+            if v: data['variables'] = v
+        ha_anrop(c, '/api/services/%s/turn_on' % e.split('.')[0], data)
     elif d.get('alla') == 'av':
         for e in c['lampor']:
             if e.split('.')[0] in STYRBARA: ha_anrop(c, '/api/services/%s/turn_off' % e.split('.')[0], {'entity_id': e})

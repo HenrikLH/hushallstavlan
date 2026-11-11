@@ -1,0 +1,85 @@
+# Ensam hemma: när hundarna lämnas ensamma. Sätter volymen på högtalarna och startar radio (eller en Spotify-lista).
+# Klistra in i Home Assistant: Inställningar → Automationer och scener → Skript → Lägg till skript → Skapa nytt skript
+# → ⋮ uppe till höger → Redigera i YAML → ersätt allt med den här filen → Spara.
+# Hushållstavlan fyller i fälten (kanal, volym, högtalare). Startas skriptet på annat sätt används standardvärdena
+# under "variables": alla Google-högtalare utom tv:n, 35 % och Mix Megapol.
+alias: Ensam hemma
+description: Hundarna är ensamma. Volym 35 % och radio på högtalarna. Startas från Hushållstavlan.
+icon: mdi:dog-side
+mode: restart
+fields:
+  hogtalare:
+    name: Högtalare
+    description: Vilka högtalare som spelar. Utan val spelar alla Google-högtalare utom tv:n.
+    selector:
+      entity:
+        domain: media_player
+        multiple: true
+  kanal_url:
+    name: Kanalens adress
+    description: Ljudströmmen. Hushållstavlan fyller i den när du väljer kanal.
+    selector:
+      text: {}
+  spotify_uri:
+    name: Spotify
+    description: En Spotify-lista (spotify:playlist:…). Kräver Spotcast i Home Assistant.
+    selector:
+      text: {}
+  kanal_namn:
+    name: Kanalens namn
+    selector:
+      text: {}
+  kanal_bild:
+    name: Kanalens bild
+    selector:
+      text: {}
+  volym:
+    name: Volym
+    default: 35
+    selector:
+      number:
+        min: 0
+        max: 100
+        unit_of_measurement: "%"
+variables:
+  spelare: >-
+    {{ hogtalare if hogtalare is defined and hogtalare
+       else integration_entities('cast') | reject('search', 'tv') | list }}
+  url: "{{ kanal_url if kanal_url is defined and kanal_url else 'https://live-bauerse-fm.sharp-stream.com/mixmegapol_instream_se_mp3' }}"
+  namn: "{{ kanal_namn if kanal_namn is defined and kanal_namn else 'Mix Megapol' }}"
+  bild: "{{ kanal_bild if kanal_bild is defined else '' }}"
+  spotify: "{{ spotify_uri if spotify_uri is defined else '' }}"
+  vol: "{{ (volym if volym is defined and volym is not none else 35) | int }}"
+sequence:
+  # Spara högtalarnas volym så att Kom hem kan ställa tillbaka den
+  - action: scene.create
+    data:
+      scene_id: fore_ensam_hemma
+      snapshot_entities: "{{ spelare }}"
+  - action: media_player.volume_set
+    target:
+      entity_id: "{{ spelare }}"
+    data:
+      volume_level: "{{ vol / 100 }}"
+  - if:
+      - condition: template
+        value_template: "{{ spotify != '' }}"
+    then:
+      - repeat:
+          for_each: "{{ spelare }}"
+          sequence:
+            - action: spotcast.start
+              data:
+                entity_id: "{{ repeat.item }}"
+                uri: "{{ spotify }}"
+                force_playback: true
+    else:
+      - action: media_player.play_media
+        target:
+          entity_id: "{{ spelare }}"
+        data:
+          media_content_id: "{{ url }}"
+          media_content_type: music
+          extra:
+            title: "{{ namn }}"
+            thumb: "{{ bild }}"

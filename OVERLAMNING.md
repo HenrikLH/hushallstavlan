@@ -2,6 +2,14 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Pågår: Högtalare och radio, Ensam hemma (Claude, förslag)
+
+- Mål: styra Google-högtalarna (Stor, Liten) från Smart hem: välja mediatyp, kanal/Spotify-lista, volym, högtalare; HA-skriptet Ensam hemma (volym 35 %, radio) startas med valen. Gren `claude/project-thread-h4no38`.
+- App: brickor under Högtalare i V.hus, bladet `haMedia` (`haMedSheet`, egna kanaler `hamNySheet`), data i onskelista `{ham:1,egna,k,vol,hog,sk}`. Skript vars fält finns i HA (`falt` från /api/services) öppnar bladet i stället för att köras direkt.
+- Tjänsten: `media` och `kanaler` i GET /ha; POST `{media,gor,kanal,vol}` och `{scen,var}`. Kanal = inbyggt id eller egen `{n,rb|url|sp}`; SR/radio-browser slås upp på väggdatorn. Spotify via Spotcast (HACS) om den finns.
+- Väntar på Henrik: ok på bilderna, klistra in `kiosk/ha/ensam-hemma.yaml` och `kom-hem.yaml` i HA, "Kör" för ny tjänst på väggdatorn, Spotcast för Spotify. Standardadressen för Mix Megapol i skriptet är overifierad (används bara utanför appen).
+- Test: `verktyg/emu/hogtalare.js` (telefon/vägg/mörkt), alla-flikar telefon+vägg, smart-hem, smart-hem-ruta gröna; tjänsten mot `falsk-ha.py` (media, skriptvariabler, Spotify utan Spotcast).
+
 ## Inställningar per huvudflik (publicerad ht-v341)
 
 - Ordning: Personer · Mat, Ekonomi, Översikt, Kalender, Att göra · Utseende, Enheten, Utvecklarläge (Avancerat bytte namn). Grupper med `'|'` i `settingsGroups` → `.pref-gap`. Rutnummer I7–I10 nya, I3 borttagen.
