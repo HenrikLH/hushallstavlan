@@ -19,11 +19,11 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 - `haFavs()` sorterar kall→varm; Ändra-bladet (⋯) har Favorittoner, tryck öppnar `haFav` (namn bara i telefonen). Gren `claude/project-thread-9qfmlm`, ingen Kod.gs/tjänst.
 - Test: ny `smart-hem-tonsteg.js` (telefon, falsk tjänst; faller på main), smart-hem-ton telefon+vägg, ljusvanor, smart-hem-ruta, -rorelse gröna. `smart-hem.js` faller redan på main (light.hall).
 
-## Pågår: Högtalare-knappen och Spotify (Claude, förslag)
+## Högtalare-knappen och mediakontroller (publicerad ht-v349)
 
 - Skript med kanalfält visas som knappen Högtalare (högtalarikon); när något spelar/är pausat blir samma knapp Stäng av (stoppar alla). Gäller scenplatser i rutan (`habScT`) och Smart hem (`haScT`). Gren `claude/project-thread-h4no38`.
 - Spotify startas från mobilen (Henriks eller Cornelias konto) och castas till Stor/Liten/Alla högtalare; tavlan visar låt/artist och styr ⏮ ⏯ ⏭ och volym via Cast-högtalaren. Olika spelningar = egna låga rader i rutan (2 platser var, dra i sidled = volym via lamporna dragkod; `habSessioner`, `habKortP`). Spotify som källa i Lägg till borttagen. Spotcast borttagen ur HA igen (var aldrig aktiv). Henriks skript heter `script.ensam_hemma_2`. smart-hem.js faller även på main (favoriterna trängs undan av volymkortet).
-- Väntar: Henriks ok, sedan Pusha + Kör (tjänsten). Test: hogtalare.js, hogtalare-ruta.js (telefon/vägg), falsk-ha.
+- Ångra-gren `version-fore-mediakontroller`. Tjänsten på väggdatorn: se nedan. Test: hogtalare.js, hogtalare-ruta.js (telefon/vägg), falsk-ha.
 
 ## Högtalare och radio, Ensam hemma (publicerad ht-v342)
 
