@@ -31,7 +31,7 @@ module.exports=async(pg,h)=>{
  assert.equal(await pg.locator('main .ha-lag .mopp b').innerText(),'1','Ett rum i mopplagret');
  await pg.locator('main .ha-sv [data-act="haRobSet"][data-id="rutt:deep"]').click();await h.idle(600);
  assert.equal(await pg.locator('main .ha-sv [data-id="rutt:deep"]').getAttribute('aria-pressed'),'true','Mopprutten vald');if(!demo)assert.ok(ut.some(u=>/"rutt":"deep"/.test(u)),'Mopprutten skickad');
- assert.deepEqual(await pg.locator('main .ha-fl.fh .ha-fs').evaluateAll(E=>E.map(e=>e.classList.contains('ha-fd')?'dock':e.classList.contains('mopp')?'mopp':'damm')),['damm','dock','damm','dock','mopp'],'Tidslinjen före start: stora rummet först (valdes först), tömning, små rum, tömning, mopp');
+ assert.deepEqual(await pg.locator('main .ha-fl.fh .ha-fs').evaluateAll(E=>E.map(e=>e.classList.contains('ha-fd')?'dock':e.classList.contains('mopp')?'mopp':'damm')),['damm','dock','damm','dock','mopp','dock'],'Tidslinjen före start: stora rummet först (valdes först), tömning, små rum, tömning, mopp, dockan');
  assert.match(await pg.locator('main .ha-fl.fh .ha-fo').first().innerText(),/^1\s/,'Ordningen följer trycken');assert.equal(await pg.locator('main .ha-fl.fh .ha-fo').nth(1).locator('li').count(),2,'Små rum i ett svep');
  assert.equal(await pg.locator('main .ha-kn').count(),3,'Märken i kartan för valda rum');assert.equal(await pg.locator('main .ha-kn > i').count(),1,'Droppe på rummet som också moppas');
  await h.shot('apparater-robot');
