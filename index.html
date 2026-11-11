@@ -3182,7 +3182,7 @@ html.ny.ui5 .g5-kop summary .chev{transition:transform .2s}html.ny.ui5 .g5-kop[o
 html.ny.ui5 .g5-kop .val{color:var(--ink-3)}
 /* Smart hem (Home Assistant), förslag: tända lampor lyser gult som i Hem-appen */
 .widget.ha .wh{cursor:pointer}.widget.ha .wh .r,html.ny .widget.ha .wh .r{display:inline-flex;align-items:center;gap:6px;color:var(--ink-2);font-weight:400;font-size:15px}html.ny .widget.ha .wh .r::after{display:none}
-.ha-live{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px color-mix(in srgb,var(--green) 22%,transparent)}
+.ha-live{display:inline-block;flex:none;vertical-align:middle;margin-left:4px;width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px color-mix(in srgb,var(--green) 22%,transparent)}
 .ha-g{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}
 .ha-t,.ha-st,.ha-chip{display:flex;align-items:center;gap:10px;min-width:0;min-height:62px;padding:10px 12px 10px 10px;border:0;border-radius:var(--r5,16px);background:var(--fill);color:var(--ink);text-align:left;font:inherit;cursor:pointer;transition:transform .15s,background .2s,box-shadow .2s;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 /* Smart hem-rörelser som i Hem-appen: tryck krymper snabbt, släpp studsar tillbaka med fjäder; ändrat läge tonar och ikonen studsar */
@@ -3244,7 +3244,7 @@ form[data-form="haLampa"] .ha-ctl{flex:1;justify-content:center;padding-top:24px
 .ha-ap{grid-column:1/-1;position:relative;overflow:hidden}.ha-ap .ha-i{background:rgba(120,120,128,.16);color:var(--ink-2)}.ha-ap.on.ha-ap-robot .ha-i{background:#0A84FF;color:#fff}.ha-ap.on.ha-ap-disk .ha-i{background:#30B0C7;color:#fff}
 .ha-ap .ha-tx{flex:1}.ha-ap-p{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(120,120,128,.18)}.ha-ap-p::after{content:'';position:absolute;inset:0 auto 0 0;width:var(--p);background:#0A84FF;border-radius:0 2px 2px 0}.ha-ap-disk .ha-ap-p::after{background:#30B0C7}
 .ha-g .ha-t.ha-ap.on{background:var(--fill);box-shadow:none}.ha-g-v .ha-t.ha-ap.on{background:var(--surface)}
-/* Smart hem-rutan: fyra scener överst och favoriter under, blad för att anpassa (ht-v344) */
+/* Smart hem-rutan: fyra scener överst och favoriter under, blad för att anpassa (ht-v346) */
 .hab-h{display:flex;align-items:center;gap:8px}.hab-h .wh{flex:1;min-width:0}
 .hab-mer{flex:none;display:grid;place-items:center;width:30px;height:30px;padding:0;border:0;border-radius:50%;background:var(--fill);color:var(--ink-2);cursor:pointer;-webkit-tap-highlight-color:transparent}.hab-mer svg{width:18px;height:18px}
 /* Designskillen (hushallstavlan-apple-design): rutan har hörn 26 och kant 16, därför hörn 16 innanför (inte kapslar), 8-avstånd, text 15/13 */
@@ -3262,6 +3262,24 @@ body.wall .hab .hab-g .ha-tx{flex-direction:row;align-items:baseline;gap:6px}bod
 .hab .hab-sc .hab-tom{background:transparent;box-shadow:inset 0 0 0 1.5px var(--line);color:var(--ink-3)}.hab-tom .ha-i{background:transparent;color:var(--ink-3)}
 .hab .hab-g{margin-top:8px;gap:8px}
 .hab-inga{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin-top:8px;min-height:56px;border:0;border-radius:var(--r5,16px);background:transparent;box-shadow:inset 0 0 0 1.5px var(--line);color:var(--ink-2);font:inherit;cursor:pointer}.hab-inga svg{width:18px;height:18px}
+/* Smart hem-rutan när något spelar: gemensamt volymreglage längst ner i stället för fyra favoritplatser */
+.hab .hab-g .hab-med{grid-column:1/-1;flex-direction:column;align-items:stretch;gap:0;padding:8px 8px 0;cursor:default}
+.hab-med-h{display:flex;align-items:center;gap:8px;min-width:0}
+.hab-med-h .ha-tx{flex:1;justify-content:center;min-height:44px;border:0;background:none;padding:0;font:inherit;color:inherit;text-align:left;cursor:pointer}
+.hab-med-h .ha-n,.hab-med-h .ha-s{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hab-med .ham-pct{width:auto;font-size:inherit;color:inherit}
+.hab-pp{flex:none;display:grid;place-items:center;width:44px;height:44px;margin-right:-4px;border:0;border-radius:999px;background:none;color:var(--ink);padding:0;cursor:pointer}
+.hab-pp svg{width:22px;height:22px}
+.hab-med .ham-vol{margin:0 -4px}
+.hab-med .ham-vb svg{width:17px;height:17px}
+.hab-med .ham-bar{height:44px;background:none;border-radius:0;overflow:visible}
+.hab-med .ham-bar::before,.hab-med .ham-bar i{content:'';position:absolute;left:0;right:0;top:calc(50% - 3px);height:6px;border-radius:3px}
+.hab-med .ham-bar::before{background:color-mix(in srgb,var(--ink) 12%,transparent)}
+.hab-med .ham-bar i{inset:auto 0;top:calc(50% - 3px);transform:none;clip-path:inset(0 calc(100% - var(--p)) 0 0 round 3px);background:var(--accent);transition:clip-path .2s}
+.hab-med.spl .ha-i{background:var(--accent);color:var(--on-accent,#fff)}
+body.wall .hab .hab-med-h .ha-tx{justify-content:flex-start;align-items:center;min-height:48px}
+body.wall .hab-pp{width:48px;height:48px}
+body.wall .hab-med .ham-bar{height:48px}
 .hab-r{display:flex;align-items:center;gap:0;width:100%;text-align:left;font:inherit;color:inherit;background:none;border:0}.hab-r .grow{min-width:0}
 .hab-pm{flex:none;display:grid;place-items:center;width:24px;height:24px;margin:0 12px 0 0;padding:0;border:0;border-radius:50%;color:#fff;cursor:pointer}.hab-pm svg{width:14px;height:14px}.hab-minus{background:#FF3B30}.hab-plus{background:#34C759;margin:0 0 0 10px}
 .hab-grip{flex:none;display:grid;place-items:center;width:40px;height:40px;margin:-8px -8px -8px 6px;color:var(--ink-3);touch-action:none;cursor:grab}.hab-grip svg{width:20px;height:20px}
@@ -3483,7 +3501,7 @@ html.ny.ui5 body.wall .board .wpair .bbd-l{font-size:calc(15px*min(var(--z),1.2)
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=333"></script>
+<script src="app.js?v=335"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>

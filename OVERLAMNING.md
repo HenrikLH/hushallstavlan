@@ -2,6 +2,17 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Volymreglage i Smart hem-rutan (publicerad ht-v345)
+
+- Mål: rutan är adaptiv. När högtalare spelar (eller är pausade) ersätter ett gemensamt volymreglage fyra favoritplatser; annars vanlig layout. Gren `claude/project-thread-xrxlqt` (PR #98), ångra-gren `version-fore-smart-hem-volym`. Kortet: tunt reglage med −/+, paus/spela till höger, volym i statusraden.
+- Kod: `habSpelar`, `habMedKort`, `habFvKort` (apparater som kör > tända lampor > resten, ordningen behålls), `ACT.habVol/habMedTog/habMedOpen`; reglaget delar draghanteraren med Musik-bladet (`data-hamvol="ruta"`). CSS `.hab-med`. Ingen ändring i tjänsten eller Kod.gs (`gor:'vol'` fanns).
+- Test: `verktyg/emu/smart-hem-volym.js` (telefon/vägg/mörkt), smart-hem-ruta (uppdaterad), hogtalare, alla-flikar telefon+vägg gröna.
+
+## Smart hem: felprick i stället för streck (publicerad ht-v344)
+
+- Henrik såg ett ljusrött streck efter "N tända". Orsak: `.ha-live` (felmarkering när väggdatorns tjänst inte svarar) var inline utan `display:inline-block`, så den blev 0×radhöjd med bara skuggan. Nu en prick; ett enstaka avbrott i `haLoop` (iPhone i bakgrunden) ger nytt försök efter 2 s i stället för fel (`HA.nf`). Ångra-gren `version-fore-smart-hem-streck`.
+- Test: `verktyg/emu/smart-hem-fel.js` (LS haUrl=http://ha.test, faller på main), smart-hem-ruta, alla-flikar telefon+vägg gröna.
+
 ## Favorittoner ändrar bara tonen (publicerad ht-v343)
 
 - Henrik: ljusstyrkan ändrades när han bytte favoritton. Orsak: favoriterna sparade `b` och `haFavV` skickade den. Nu skickas bara k/hs; `b` sparas inte längre, gammalt `b` ignoreras och tas bort vid "Spara lampans ton här". Bara app.js (ingen Kod.gs/tjänst). Ångra-gren `version-fore-favoritton`.
