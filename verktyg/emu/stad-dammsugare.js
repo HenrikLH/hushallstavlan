@@ -10,7 +10,7 @@ module.exports=async(pg,h)=>{
  assert.match(await g.innerText(),/Dammsugaren/,'Genvägen syns i Städ');
  await h.shot('stad-genvag');
  // i dockan: status och antal rum som står på tur
- await pg.evaluate(()=>window.__d("(haRobot().st='charging',render(),1)"));await h.idle(600);
+ await pg.evaluate(()=>window.__d("(haRobot().st='charging',haRobot().rum.forEach(r=>{if(r.n==='Hall'||r.n==='Kök')r.sm=Date.now()/1e3}),render(),1)"));await h.idle(600);
  console.log('vilar:',(await g.innerText()).replace(/\n/g,' | '));
  await h.shot('stad-genvag-vilar');
  await pg.evaluate(()=>window.__d("(haRobot().st='segment_cleaning',render(),1)"));
