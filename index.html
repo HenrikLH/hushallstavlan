@@ -3104,6 +3104,21 @@ html.ny.ui5 .pref-body>.sh{padding-top:22px}
 html.ny.ui5 .person-list>.person-row:last-of-type{border-bottom:0}
 @keyframes u5in{from{transform:translateX(40%);opacity:0}to{transform:none;opacity:1}}
 @media (prefers-reduced-motion:reduce){html.ny.ui5 .pref-section[open]>.pref-body{animation:none}}
+/* UI 5.0: tillbakaknappen i bladets rubrik, som i iPhones Inställningar (A rund, B rund + stor rubrik, C text; förslag) */
+.pref-l{display:flex}.pref-bk{display:none}
+html.ny.ui5 form[data-form="settings"]:has(.pref-section[open]) .pref-avb{display:none}
+html.ny.ui5 form[data-form="settings"]:has(.pref-section[open]) .pref-bk{display:inline-flex;align-items:center;justify-content:center;gap:4px}
+html.ny.ui5 .sheet-head .tb.pref-bk{width:44px;padding:0;color:var(--ink)}
+html.ny.ui5 .pref-bk svg{width:11px;height:18px;margin-left:-2px}
+html.ny.ui5 .pref-bk span{display:none}
+html.ny.ui5 .pref-section[open]>summary.sh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);padding:0}
+html.ny.ui5 .pref-section[open]>.pref-body>.sh:first-child,html.ny.ui5 .pref-section[open]>.pref-body>:first-child>.sh:first-child{padding-top:12px}
+html.ny.ui5.bk-b form[data-form="settings"]:has(.pref-section[open]) .sheet-head h2{visibility:hidden}
+html.ny.ui5.bk-b .pref-section[open]>summary.sh{position:static;width:auto;height:auto;overflow:visible;clip:auto;padding:4px 16px 0}
+html.ny.ui5.bk-b .pref-section[open]>summary.sh::before{display:none}
+html.ny.ui5.bk-b .pref-section[open]>summary.sh>span{font-size:34px;line-height:41px;letter-spacing:.4px}
+html.ny.ui5.bk-c .sheet-head .tb.pref-bk{width:auto;padding:0 16px 0 12px;color:var(--accent)}
+html.ny.ui5.bk-c .pref-bk span{display:inline}
 /* UI 5.0 vy för vy */
 /* Sökfält som i iOS: grå kapsel med förstoringsglaset till vänster */
 html.ny.ui5 .rc-search-row .add-row{flex-direction:row-reverse;background:var(--fill);min-height:44px;padding:0 14px 0 6px;gap:2px}

@@ -3475,6 +3475,8 @@ function colorPicker(name,chg,id,cur,lab){
 function restoreColorStrips(o){o.querySelectorAll('[data-strip]').forEach(sp=>{const x=FARG_X[sp.dataset.strip];if(x!=null){sp.scrollLeft=x;return}const c=sp.querySelector('input:checked');if(c){const l=c.parentElement;sp.scrollLeft=l.offsetLeft-(sp.clientWidth-l.offsetWidth)/2}})}
 // Sparar formulärutkast före omritning; ett val eller en synk får inte kasta det man skrivit.
 function rememberSettings(){const f=document.querySelector('form[data-form="settings"]');if(f)S.prefDraft=Object.fromEntries(new FormData(f))}
+// UI 5.0: en öppen del i Inställningar får tillbakaknapp och sitt namn i bladets rubrik
+function prefHead(r){const h=r&&r.querySelector('form[data-form="settings"] .sheet-head h2');if(!h)return;const d=U5&&r.querySelector('.pref-section[open]>summary span');h.textContent=d?d.textContent:'Inställningar'}
 function settingsGroups(parts){return parts.filter(x=>x==='|'||x[2]).map(x=>{if(x==='|')return'<div class="pref-gap" aria-hidden="true"></div>';let[id,label,body]=x;body=hjelpFold(body,'settings-'+id);return'<details class="pref-section" data-k="pref-'+id+'"'+(S.open['pref-'+id]?' open':'')+'><summary class="sh"'+RF({personer:'I1',utseende:'I2',oversikt:'I4',enhet:'I5',avancerat:'I6',mat:'I7',attgora:'I8',ekonomi:'I9',kalender:'I10'}[id])+'><span>'+label+'</span></summary><div class="pref-body">'+body+'</div></details>'}).join('')}
 function settingsPeople(){const d=S.prefDraft||{},L=personList().slice(0,2);return'<div class="group person-list">'+L.map((p,i)=>{const n=d['p'+(i+1)]??p.label,c=d['c'+(i+1)]||personColor(i),on=!!S.open['person-'+i],key='person-'+i;
  return'<div class="person-row"><button type="button" class="person-select" data-act="me" data-id="'+esc(p.n)+'" aria-pressed="'+(S.me===p.n)+'"><span class="pdot" style="background:'+PCOL[c][isDark()?3:1]+'"></span><span class="grow">'+esc(n)+'</span>'+(S.me===p.n?'<span class="mark">'+I.tick+'</span>':'')+'</button><button type="button" class="ib person-toggle" data-act="personFold" data-id="'+i+'" aria-expanded="'+on+'" aria-controls="'+key+'" aria-label="Ändra namn och färg för '+esc(n)+'">'+I.chev+'</button></div>'+
@@ -3545,7 +3547,7 @@ function renderOverlay(){
   (DEV?sh('Smart hem')+group('<button type="button" class="cell link" data-act="haTest"><span class="grow">Testa Smart hem</span><span class="chev">'+I.chev+'</span></button>')+'<div class="foot">Låtsaslampor för att prova knappar och animationer. Inget skickas till Home Assistant.</div>':'')+
   (DEV?sh('Förhandsvisning')+group('<button type="button" class="cell link" data-act="familjOpen"><span class="grow">Testa Familj och släktträd</span><span class="meta">Förhandsvisning</span>'+chevron+'</button>')+'<div class="foot">Testa I fokus och Hela trädet med exempelpersoner. Ingenting sparas i era familjeuppgifter.</div>':'')+
    (DEV?sh('Rutnummer')+group(fieldCell('Visa rutnummer','<input type="checkbox" role="switch" class="switch" data-act="refs" aria-label="Visa rutnummer"'+(refsOn()?' checked':'')+'>'))+'<div class="foot">Varje ruta får sitt fasta nummer i hörnet, till exempel M2. Tryck på numret för att kopiera det. Gäller bara den här enheten.</div>':'')]])+'<div class="foot ver">Hushållstavlan · '+(U6?'Aura':'UI '+(U5?'5.0':U4?'4.0':U3?'3.0':UI_VER))+' · version '+esc(APP_VER)+'</div>';
-  o.innerHTML=sheetHtml('settings','Inställningar','<button class="tb strong">Spara</button>',body,enter);if(S.prefDraft){Object.entries(S.prefDraft).forEach(([k,v])=>{const f=o.querySelector('[name="'+k+'"]');if(f&&!/radio|checkbox/.test(f.type))f.value=v})}segSlide(o);restoreColorStrips(o);return}
+  o.innerHTML=sheetHtml('settings','Inställningar','<button class="tb strong">Spara</button>',body,enter,'<div class="pref-l"><button type="button" class="tb pref-avb" data-act="sheetClose">Avbryt</button><button type="button" class="tb pref-bk" data-act="prefBack" aria-label="Tillbaka till Inställningar">'+I.back+'<span>Inställningar</span></button></div>');prefHead(o);if(S.prefDraft){Object.entries(S.prefDraft).forEach(([k,v])=>{const f=o.querySelector('[name="'+k+'"]');if(f&&!/radio|checkbox/.test(f.type))f.value=v})}segSlide(o);restoreColorStrips(o);return}
  if(k==='ljuskal'){const K=KAL||{},nm=['full','mitten','lägsta'];let body='',right='<button type="button" class="tb strong" data-act="sheetClose">'+(K.step==='klar'||SMAK?'Klar':'Avbryt')+'</button>';
   if(SMAK){const i=SMAK.i,v=Math.round(SMAK.v[i]*100);
    body='<div class="kal"><div class="kal-n">'+(i+1)+' av 3</div><h3>Lampan på '+nm[i]+'</h3><p>Så här ljus blir skärmen när lampan står på '+nm[i]+'. Dra tills det känns rätt.</p></div>'+
@@ -5746,6 +5748,7 @@ function closeSheets(){S.prefDraft=null;S.evNew=null;S.fodEdit=null;S.fodFamId=n
 /* ---------- actions ---------- */
 function boxEdit(fn){const wall=wallBoardOn(),L=layout(wall,wall?boardDefault():OV_DEF());fn(L);saveLayout(wall,L);render()}
 const ACT={
+ prefBack(){const d=document.querySelector('form[data-form="settings"] .pref-section[open]>summary');if(d)d.click()},
  smileyQuick(id,el){const v=Number(el.dataset.v)||0;A.user=Date.now();saveSmiley(id,el.dataset.date,v);markCooked(id,el.dataset.date);toast(v>0?'Vad bra! Rätten kommer tillbaka lite oftare':v<0?'Noterat. Rätten kommer tillbaka mer sällan':'Tack!')},
  smileySkip(id,el){A.user=Date.now();saveSmiley(id,el.dataset.date,'x');toast('Okej, den räknas inte som lagad')},
  wakeBoard(){render()},
@@ -6226,7 +6229,7 @@ document.addEventListener('click',e=>{const el=e.target.closest('[data-act]');if
 document.addEventListener('toggle',e=>{const d=e.target;if(d&&d.dataset&&d.dataset.k&&!d.dataset.motionClosing)S.open[d.dataset.k]=d.open},true);
 // UI 5.0: Inställningarnas delar öppnas som egna sidor, en i taget, som i iPhones Inställningar
 document.addEventListener('toggle',e=>{const d=e.target;if(!U5||!d.classList||!d.classList.contains('pref-section'))return;const f=d.closest('form');if(!f)return;
- if(d.open){f.querySelectorAll('.pref-section[open]').forEach(x=>{if(x!==d){x.open=false;S.open[x.dataset.k]=false}});const b=f.querySelector('.sheet-body');if(b)b.scrollTop=0}},true);
+ if(d.open){f.querySelectorAll('.pref-section[open]').forEach(x=>{if(x!==d){x.open=false;S.open[x.dataset.k]=false}});const b=f.querySelector('.sheet-body');if(b)b.scrollTop=0}prefHead(f.parentNode)},true);
 document.addEventListener('change',e=>{const x=e.target;if(x.id==='ee-allday'||x.id==='en-allday'){const t=document.getElementById(x.id==='ee-allday'?'ee-times':'en-times');if(t)t.hidden=x.checked}});
 // Flyttas starttiden följer sluttiden med, så att blocket behåller sin längd (som i Apple Kalender)
 document.addEventListener('focusin',e=>{const x=e.target;if(x.name==='start'&&x.type==='time')x.dataset.was=x.value});
