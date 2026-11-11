@@ -13,9 +13,8 @@ module.exports=async(pg,h)=>{
  await pg.evaluate(()=>window.__d("(haRobot().st='charging',render(),1)"));await h.idle(600);
  console.log('vilar:',(await g.innerText()).replace(/\n/g,' | '));
  await h.shot('stad-genvag-vilar');
- for(const x of ['a','b','c']){await pg.evaluate(x=>window.__d("(S.robStil='"+x+"',render(),1)"),x);await h.idle(900);await h.shot('stil-'+x)}
  await pg.evaluate(()=>window.__d("(haRobot().st='segment_cleaning',render(),1)"));
- for(const x of ['a','b','c']){await pg.evaluate(x=>window.__d("(S.robStil='"+x+"',render(),1)"),x);await h.idle(900);await h.shot('stil-'+x+'-stadar')}
+ await h.idle(600);await h.shot('stad-genvag-stadar');
  await g.click();await h.idle(1500);
  assert.match(await pg.locator('main .rcp-top .back').innerText(),/Att göra/,'Tillbaka leder till Att göra');
  await h.shot('stad-robotsida');
