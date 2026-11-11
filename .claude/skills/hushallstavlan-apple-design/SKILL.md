@@ -34,7 +34,7 @@ Aldrig under 11 px. Hierarki med storlek och vikt, inte med fler färger. Inga e
 - Knappar med text (Klart, Inte nu), chips, segment, flikrad: kapsel (`999px`).
 - Blad (sheet): 34px.
 
-**Tryckytor:** minst 44×44 px på telefon, 56 på väggen. Brickor är minst 56px höga.
+**Tryckytor:** minst 44×44 px på telefon och 48 på väggen. Brickor är minst 56px höga på telefon, 48px på väggen där fler måste få plats.
 
 **Ikoner:** egna i SF Symbols-stil (inga riktiga SF Symbols, licens). Linje 1,5–2 px, rundade ändar, 24-rutnät. Storlek 17–20px i text och brickor, 22–24 i blad, 30 i flikraden på väggen. Ikonen får aldrig se tyngre ut än texten bredvid.
 
@@ -72,7 +72,7 @@ Gå igenom varje punkt och rätta innan bilderna visas för Henrik:
 5. Inga namn klipps med "…" i normalfallet (testa längsta riktiga namnet). Klipps det: minska ikon/kant inom måtten innan texten krymps.
 6. Rubriken följer grannrutornas mönster (jämför med Schema och Middag ikväll i samma skärmbild).
 7. Ljust och mörkt läge ser lika genomtänkta ut.
-8. Tryckytor ≥ 44px; väggen ≥ 56px och utan textfält.
+8. Tryckytor ≥ 44px; väggen ≥ 48px och utan textfält.
 9. Ny CSS ligger under rätt UI (`html.ny.ui5` eller rutans egen klass) och UI 2.0 ser oförändrat ut.
 10. Jämför med motsvarande Apple-app (Hem, Påminnelser, Kalender, Väder, Inställningar) och skriv i svaret vilken du utgick från.
 

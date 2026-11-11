@@ -7,7 +7,7 @@ module.exports=async(pg,h)=>{
  assert.equal(await box.locator('.hab-sc .ha-st').count(),4,'Fyra scenplatser');
  const fv=()=>box.locator('.hab-g > .ha-t');
  const plats=async()=>(await fv().evaluateAll(L=>L.map(e=>e.classList.contains('ha-ap')?2:1))).reduce((a,b)=>a+b,0);
- assert.ok(await plats()<=6,'Högst sex platser');
+ assert.ok(await plats()<=8,'Högst åtta platser');
  if(vagg){const b=await box.boundingBox(),u=await pg.locator('section[data-box="upg"]').boundingBox(),nav=await pg.locator('#nav').boundingBox();
   console.log('RUTA',Math.round(b.height),'UPG-topp',Math.round(u.y),'NAV',Math.round(nav.y));assert.ok(u.y+60<nav.y,'Uppgifter syns ovanför menyn')}
  else await box.evaluate(e=>scrollBy(0,e.getBoundingClientRect().top-90));

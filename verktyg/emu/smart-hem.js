@@ -19,9 +19,9 @@ module.exports=async(pg,h)=>{
  await pg.locator('form[data-form="haLampa"] .ha-x').click();await h.idle(900);
  assert.equal(await pg.locator('form[data-form="haLampa"]').count(),0,'Krysset stänger');
  await pg.locator('section.ha [data-act="habScen"][data-id="3"]').click();await h.idle(800);
- assert.equal(await pg.locator('section.ha .ha-t.on').count(),0,'Släck allt');
+ assert.equal(await pg.locator('section.ha .ha-t.on:not(.ha-ap)').count(),0,'Släck allt');
  await pg.locator('section.ha [data-act="habScen"][data-id="1"]').click();await h.idle(1200);
- assert.equal(await pg.locator('section.ha .ha-t.on').count(),3,'Kväll tänder tre');
+ assert.equal(await pg.locator('section.ha .ha-t.on:not(.ha-ap)').count(),3,'Kväll tänder tre');
  // håll in: styrningen med det lodräta reglaget
  await h.hold('section.ha .ha-t[data-id="light.vardagsrum"] .ha-n');await h.idle(600);
  const F='form[data-form="haLampa"]',vs=pg.locator(F+' .ha-vs[data-havs="b"]');

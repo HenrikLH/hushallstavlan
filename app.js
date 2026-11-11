@@ -1276,7 +1276,7 @@ const haScener=(D,kort)=>{const n=(D.lampor||[]).some(x=>x.on);return(D.scener||
 const haScT=s=>'<button type="button" class="ha-st'+(HA.last===s.id?' on':'')+haNy('sc:'+s.id,HA.last===s.id)+'" data-act="haScen" data-id="'+esc(s.id)+'"'+(s.id!=='av'?' data-hold-lift="haEdit"':'')+'><span class="ha-i">'+haScIk(s)+'</span><span class="ha-n">'+esc(s.n)+'</span></button>';
 // Smart hem-rutan i Översikt: fyra scener överst (egna, från Home Assistant eller Släck allt) och favoritenheter under.
 // Valen gäller hela hushållet och sparas i onskelista som {hab:1,sc:[4 platser],fv:[enhets-id]} (ingen Kod.gs). Rutan har fasta platser så att den får plats i rutnätet.
-const HAB_MAX=6,HAB_IK={sun:HAI.sun,moon:HAI.moon,film:HAI.film,bulb:HAI.bulb,star:I.sparkles,home:I.home,fork:I.fork,heart:I.heart,off:HAI.off};
+const HAB_MAX=8,HAB_IK={sun:HAI.sun,moon:HAI.moon,film:HAI.film,bulb:HAI.bulb,star:I.sparkles,home:I.home,fork:I.fork,heart:I.heart,off:HAI.off};
 const HAB_FARG={sun:'#FF9F0A',moon:'#5E5CE6',film:'#BF5AF2',bulb:'#FFB800',star:'#30B0C7',home:'#0A84FF',fork:'#34C759',heart:'#FF375F',off:'#8E8E93'},habSt=ik=>' style="--sc:'+(HAB_FARG[ik]||HAB_FARG.star)+'"';
 const HAB_NAMN=['Morgon','Dag','Kväll','Natt','Middag','Film','Mys','Städa','Borta','Släck allt'];
 const habIkNamn=n=>/släck|av$/i.test(n)?'off':/middag|mat|äta/i.test(n)?'fork':/morgon|vakna|dag|ljust|städ/i.test(n)?'sun':/kväll|natt|sov|lugn/i.test(n)?'moon':/film|tv|bio/i.test(n)?'film':/mys/i.test(n)?'heart':/borta|hem/i.test(n)?'home':'star';
