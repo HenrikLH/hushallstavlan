@@ -2,6 +2,11 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Favorittoner ändrar bara tonen (väntar på Pusha)
+
+- Henrik: ljusstyrkan ändrades när han bytte favoritton. Orsak: favoriterna sparade `b` och `haFavV` skickade den. Nu skickas bara k/hs; `b` sparas inte längre, gammalt `b` ignoreras och tas bort vid "Spara lampans ton här". Gren `claude/project-thread-9qfmlm`, bara app.js (ingen Kod.gs/tjänst).
+- Test: `smart-hem-ton.js` (ny kontroll: ljusstyrkan oförändrad, faller på main) telefon+vägg, smart-hem, smart-hem-ruta, ljusvanor, alla-flikar gröna.
+
 ## Högtalare och radio, Ensam hemma (publicerad ht-v342)
 
 - Mål: styra Google-högtalarna (Stor, Liten) från Smart hem: välja mediatyp, kanal/Spotify-lista, volym, högtalare; HA-skriptet Ensam hemma (volym 35 %, radio) startas med valen. Gren `claude/project-thread-h4no38`.

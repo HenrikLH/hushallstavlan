@@ -1435,11 +1435,11 @@ const haTonK=(x,W)=>{if(W.f&&haFargLage(x)&&x.hs&&x.hs[0]>=15&&x.hs[0]<=45){cons
 const haTonCmd=(K,W)=>{const T=haTonSk(W);K=Math.max(T.lo,Math.min(T.hi,K));if(W.k&&K>=W.kmin)return{k:Math.round(K)};const t=Math.max(0,Math.min(1,W.k?(W.kmin-K)/(W.kmin-HA_KST):(4000-K)/(4000-HA_KST)));return{hs:[Math.round(44-18*t),Math.round(W.s0+(100-W.s0)*t)]}};
 const haTonOmr=(W,K)=>{const T=haTonSk(W),z=Math.min(T.hi,Math.max(T.lo+800,2700));return lsGet('haTonHel')==='1'||K>z?{lo:T.lo,hi:T.hi,hel:1}:{lo:T.lo,hi:z,hel:0}};
 const haKTxt=K=>Math.round(K).toLocaleString('sv-SE')+' K';
-// Favoriter (ton + ev. ljusstyrka) för hela hushållet i onskelista som {haf:1,l:[{n,K,b}]} (ingen ny Kod.gs). Utan sparade gäller Vitt/Mys/Stearin.
+// Favoriter (bara ton; ljusstyrkan lämnas orörd, äldre sparat b används inte) för hela hushållet i onskelista som {haf:1,l:[{n,K}]} (ingen ny Kod.gs). Utan sparade gäller Vitt/Mys/Stearin.
 const HA_FAV0=[{n:'Vitt',K:4000},{n:'Mys',K:2700},{n:'Stearin',K:2000}];
 const haFavs=()=>{const o=parseJ(settings().onskelista,[]).find(x=>x&&x.haf);return o&&Array.isArray(o.l)?o.l.filter(f=>f&&f.n&&f.K):HA_FAV0};
 function haFavSet(fn){A.user=Date.now();updJSON('onskelista',[],a=>{const o=a.find(x=>x&&x.haf),l=fn((o&&Array.isArray(o.l)?o.l:HA_FAV0).slice()).slice(0,12);return a.filter(x=>!(x&&x.haf)).concat([{haf:1,l}])})}
-const haFavPa=(x,f,K)=>Math.abs(K-f.K)<=25&&(f.b==null||Math.abs((x.b||100)-f.b)<=3);
+const haFavPa=(x,f,K)=>Math.abs(K-f.K)<=25;
 document.addEventListener('input',e=>{const r=e.target;if(!r.dataset||!r.dataset.hat)return;HA.drag=true;const[lo,hi]=r.dataset.hat.split(',').map(Number),m=document.querySelector('[data-hav="k"]');if(m)m.textContent=haKTxt(hi+lo-+r.value)});
 document.addEventListener('change',e=>{const r=e.target;if(!r.dataset||!r.dataset.hat)return;HA.drag=false;const[lo,hi]=r.dataset.hat.split(',').map(Number),x=haLamp();if(x)haLampSkicka(x,haTonCmd(hi+lo-+r.value,haVarm(x)))});
 document.addEventListener('input',e=>{if(!e.target.dataset||!e.target.dataset.haw)return;HA.drag=true;const x=haLamp(),m=document.querySelector('[data-hav="w"]');if(x&&m)m.textContent=haVarmNamn(+e.target.value,haVarm(x))});
@@ -1653,13 +1653,13 @@ const HA_NAMN={light:['Taklampa','Golvlampa','Bordslampa','Vägglampa','Fönster
 const haAllaEnh=()=>{const D=haData()||{};return(D.lampor||[]).concat(D.scener||[],D.givare||[])};
 // Favoritens blad: namn (inte på väggen, inget tangentbord), uppdatera till lampans läge, ta bort. Ny = sparar lampans ton och ljusstyrka.
 function haFavSheet(enter){const x=haLamp(),F=S.haFav;if(!x||!F){S.sheet=null;return''}const W=haVarm(x),L=haFavs(),f=F.i>=0?L[F.i]:null;if(F.i>=0&&!f){S.sheet=null;return''}
- const K=f?f.K:haTonK(x,W),b=f?f.b:(haKan(x).dim?x.b||100:null),nm=f?f.n:'Favorit '+(L.length+1);
- const body='<div class="ha-ed-top"><span class="ha-i" style="background:'+haKFarg(K)+';color:#5A4500">'+HAI.bulb+'</span><div><div class="hl">'+esc(nm)+'</div><div class="meta">'+haKTxt(K)+(b!=null?' · '+b+' %':'')+'</div></div></div>'+
+ const K=f?f.K:haTonK(x,W),nm=f?f.n:'Favorit '+(L.length+1);
+ const body='<div class="ha-ed-top"><span class="ha-i" style="background:'+haKFarg(K)+';color:#5A4500">'+HAI.bulb+'</span><div><div class="hl">'+esc(nm)+'</div><div class="meta">'+haKTxt(K)+'</div></div></div>'+
   (wallBoardOn()?'':sh('Namn')+'<div class="group"><label class="cell"><input class="field" name="hafn" value="'+esc(nm)+'" maxlength="24" autocomplete="off" enterkeyhint="done" aria-label="Favoritens namn"></label></div>')+
-  (f?'<div style="height:14px"></div>'+group('<button type="button" class="cell link center" data-act="haFavUpd">Spara lampans läge här</button>')+'<div class="foot">'+esc(x.n)+' har nu '+haKTxt(haTonK(x,W))+(haKan(x).dim?' · '+(x.b||100)+' %':'')+'.</div><div style="height:14px"></div>'+group('<button type="button" class="cell link center red" data-act="haFavDel">Ta bort favoriten</button>'):'<div class="foot">Sparar tonen och ljusstyrkan som '+esc(x.n)+' har nu. Favoriten går att använda på alla lampor.</div>');
+  (f?'<div style="height:14px"></div>'+group('<button type="button" class="cell link center" data-act="haFavUpd">Spara lampans ton här</button>')+'<div class="foot">'+esc(x.n)+' har nu '+haKTxt(haTonK(x,W))+'.</div><div style="height:14px"></div>'+group('<button type="button" class="cell link center red" data-act="haFavDel">Ta bort favoriten</button>'):'<div class="foot">Sparar tonen som '+esc(x.n)+' har nu. Ljusstyrkan ändras inte när du väljer favoriten.</div>');
  return sheetHtml('haFav',f?'Favorit':'Ny favorit','<button type="submit" class="tb strong">Spara</button>',body,enter,'<button type="button" class="tb" data-act="haFavTill">Avbryt</button>')}
 function haFavSpara(n){const x=haLamp(),F=S.haFav;if(!x||!F)return;n=String(n||'').trim().slice(0,24);
- if(F.i<0){const W=haVarm(x),K=haTonK(x,W),b=haKan(x).dim?x.b||100:null;haFavSet(l=>l.concat([{n:n||'Favorit '+(l.length+1),K,b}]));toast('Sparad som '+(n||'favorit'))}
+ if(F.i<0){const K=haTonK(x,haVarm(x));haFavSet(l=>l.concat([{n:n||'Favorit '+(l.length+1),K}]));toast('Sparad som '+(n||'favorit'))}
  else if(n)haFavSet(l=>{if(l[F.i])l[F.i]=Object.assign({},l[F.i],{n});return l});
  S.sheet='haLampa';render()}
 function haEditSheet(enter){const x=haAllaEnh().find(e=>e.id===S.haId);if(!x){S.sheet=null;return''}const dom=x.id.split('.')[0],ar=dom==='scene'||dom==='script';
@@ -5770,10 +5770,10 @@ const ACT={
  haVanaAter(){haVanaPost({ateruppta:1},V=>{V.paus=null})},
  haVanaPaus(v){haVanaPost({pauslage:v},V=>{V.pauslage=v})},
  haTonHel(){lsSet('haTonHel',lsGet('haTonHel')==='1'?null:'1');render()},
- haFavV(i){const x=haLamp(),f=haFavs()[+i];if(!x||!f)return;const W=haVarm(x),c=haTonCmd(f.K,W);if(f.b!=null&&haKan(x).dim)c.b=f.b;haLampSkicka(x,c)},
+ haFavV(i){const x=haLamp(),f=haFavs()[+i];if(!x||!f)return;haLampSkicka(x,haTonCmd(f.K,haVarm(x)))},
  haFavNy(){const x=haLamp();if(!x)return;S.haFav={i:-1,ny:1};S.sheet='haFav';render()},
  haFavRed(i){if(!haFavs()[+i])return;S.haFav={i:+i};S.sheet='haFav';render()},
- haFavUpd(){const x=haLamp(),F=S.haFav;if(!x||!F||F.i<0)return;const K=haTonK(x,haVarm(x)),b=haKan(x).dim?x.b||100:null;haFavSet(l=>{if(l[F.i])l[F.i]=Object.assign({},l[F.i],{K,b});return l});toast('Uppdaterad');S.sheet='haLampa';render()},
+ haFavUpd(){const x=haLamp(),F=S.haFav;if(!x||!F||F.i<0)return;const K=haTonK(x,haVarm(x));haFavSet(l=>{if(l[F.i]){l[F.i]=Object.assign({},l[F.i],{K});delete l[F.i].b}return l});toast('Uppdaterad');S.sheet='haLampa';render()},
  haFavDel(){const F=S.haFav;if(!F||F.i<0)return;haFavSet(l=>l.filter((f,j)=>j!==F.i));toast('Borttagen');S.sheet='haLampa';render()},
  haFavTill(){S.sheet='haLampa';render()},
  haVarmV(v){const x=haLamp();if(x)haLampSkicka(x,haVarmCmd(+v,haVarm(x)))},
