@@ -3,7 +3,7 @@ name: Matbilder förhandsvisning
 on:
   push:
     branches: [claude/project-thread-tjhego]
-    paths: ['verktyg/matbilder-hamta.js','verktyg/emu/matbilder.js','.github/workflows/matbilder-forhandsvisning.yml','app.js','index.html']
+    paths: ['inspiration.json','verktyg/matbilder-hamta.js','verktyg/emu/matbilder.js','.github/workflows/matbilder-forhandsvisning.yml','app.js','index.html']
 permissions:
   contents: write
 jobs:
@@ -15,7 +15,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: '22'
-      - run: node verktyg/matbilder-hamta.js
+      - run: node verktyg/matbilder-hamta.js && node verktyg/matbilder-hamta.js --kolla
       - run: npm install --no-save --package-lock=false playwright@1.62.1 pngjs@7.0.0 && npx playwright install --with-deps chromium
       - name: Telefon ljust
         env: {BILDER: '1', OUT: 'ut/telefon'}

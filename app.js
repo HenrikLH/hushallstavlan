@@ -137,7 +137,7 @@ const recipeById=id=>recipeGet(id);
 /* Inspiration: recept från nätet i inspiration.json (följer med appen, inte kalkylarket).
    Hjärtat sparar som favorit och bokmärket som sparat recept i receptbanken. */
 const INSPO={list:null,busy:false};
-function inspoList(){if(!INSPO.list&&!INSPO.busy){INSPO.busy=true;fetch('inspiration.json?v=2').then(r=>r.json()).then(a=>{INSPO.list=Array.isArray(a)?a:[];render()}).catch(()=>{INSPO.busy=false})}return INSPO.list||[]}
+function inspoList(){if(!INSPO.list&&!INSPO.busy){INSPO.busy=true;fetch('inspiration.json?v=3').then(r=>r.json()).then(a=>{INSPO.list=Array.isArray(a)?a:[];render()}).catch(()=>{INSPO.busy=false})}return INSPO.list||[]}
 /* ---------- betyg, önskelista och receptbank ----------
    Sparas som JSON i fliken Inställningar (raderna betyg, onskelista och receptbank_1…7)
    via appens vanliga inställningsanrop, så Apps Script-skriptet behöver inte ändras. */
