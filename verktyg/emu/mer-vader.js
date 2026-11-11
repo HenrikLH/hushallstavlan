@@ -1,12 +1,10 @@
-// Mer väder och smarta förslag. Med låtsasdata: WXPLUS=1 node verktyg/emu/run.js verktyg/emu/mer-vader.js
+// Mer väder (smarta förslag är borttagna, ht-v350+). Med låtsasdata: WXPLUS=1 node verktyg/emu/run.js verktyg/emu/mer-vader.js
 // Utan WXPLUS nås inga av de nya källorna: då ska sidan fungera och bara Vädra/Ute visas.
 const assert=require('node:assert/strict');
 module.exports=async(pg,h)=>{const k=async s=>{await pg.locator(s).first().click();await h.idle(700)},P=!!process.env.WXPLUS,txt=s=>pg.evaluate(s=>[...document.querySelectorAll(s)].map(e=>e.textContent.trim()),s);
  await h.idle(1500);await k('#nav [data-act="nav"][data-id="oversikt"]');
  const larm=await txt('.wx-larm');console.log('larm',larm);if(P&&process.env.WXPLUS!=='2')assert.match(larm[0]||'',/Gul varning: halka/);else if(!P)assert.equal(larm.length,0);
- const fs=await txt('.fs-k b');console.log('förslag',fs);await h.shot('mv-oversikt');
- if(fs.length){const n=fs.length;await k('.fs-k [data-act="fsSen"]');assert.equal((await txt('.fs-k b')).length,n-1,'Inte nu döljer förslaget');
-  await pg.reload();await h.idle(1300);await k('#nav [data-act="nav"][data-id="oversikt"]');assert.equal((await txt('.fs-k b')).length,n-1,'döljs även efter omstart')}
+ assert.equal(await pg.locator('.fsl,.fs-k').count(),0,'inga smarta förslag i Översikt');
  await k('#nav [data-act="nav"][data-id="oversikt"]');await k('[data-act="nav"][data-id="vader"]');
  const caps=await txt('.wx-tile .wx-cap');console.log('rutor',caps.join(' | '));
  assert(caps.some(c=>/^Vädra/.test(c))&&caps.some(c=>/^Ute/.test(c)),'Vädra och Ute');

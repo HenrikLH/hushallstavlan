@@ -1833,7 +1833,7 @@ V.oversikt=function(){
  const tasksSoon=d.tasks.filter(x=>!x.done&&!(isDate(x.due)&&x.due<=t)).sort((a,b)=>(a.due||'9').localeCompare(b.due||'9')).slice(0,4);
  const hh=now.getHours(),greet=hh<5?'God natt':hh<10?'God morgon':hh<17?'Hej':hh<22?'God kväll':'God natt';
  let h=head((U6&&greet==='Hej'?'God dag':greet)+(people().includes(S.me)?', '+personLabel(S.me):''),U3?{sub:cap(dayHead(t))}:undefined);
- h+='<div class="ov">'+refAdd(heroHtml(),'Ö1')+forslagHtml();
+ h+='<div class="ov">'+refAdd(heroHtml(),'Ö1');
  const H={kal:calWidget()};
  const isT=nextDay&&nextDay.date===t;
  H.mat=widget('mat','w2',I.fork,(isT||!nextDay)?'Middag ikväll':'Nästa middag',nextDay&&!isT?esc(dateShort(nextDay.date)):'',
@@ -3950,38 +3950,6 @@ function wxLarm(W){const v=varnNu()[0];if(v)return{k:'v'+v.lv,ic:WP_IC.warn,t:VA
  if(!W)return null;const R=wxPlus(W);
  if(R.pollen&&R.pollen.lv>=3)return{k:'p',ic:WP_IC.pollen,t:R.pollen.v+' halter av pollen',b:R.pollen.sub};
  if(R.aur&&R.aur.lv>=2)return{k:'n',ic:WP_IC.aur,t:'Norrsken: '+R.aur.v.toLowerCase()+' i natt',b:R.aur.sub};return null}
-/* Smarta förslag i Översikten: ett kort i taget, svep för nästa. Byggs av det appen redan vet (matsedeln, vädret, födelsedagar, städ och uppgifter).
-   Klart döljer förslaget, Inte nu i tre timmar. Valet sparas på enheten (ht.fDone). */
-const FS_IC={fork:['#FF9500',I.fork],frost:['#007AFF','<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 13.5V5a2 2 0 1 1 4 0v8.5a4 4 0 1 1-4 0Z"/><path d="M12 15v2"/></svg>'],
- regn:['#5AC8FA','<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12a9 9 0 0 1 18 0ZM12 12v7a2 2 0 0 1-4 0"/></svg>'],
- gift:['#FF2D55','<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="8.5" width="17" height="4" rx="1"/><path d="M5 12.5V20h14v-7.5M12 8.5V20M12 8.5C10 4 6.5 5 7.5 7.5 8 8.5 12 8.5 12 8.5ZM12 8.5c2-4.5 5.5-3.5 4.5-1-.5 1-4.5 1-4.5 1Z"/></svg>'],
- stad:['#34C759',I.sparkles],task:['#AF52DE',I.list],cal:['#FF3B30',I.cal]};
-function fsDone(){const o=parseJ(lsGet('fDone'),{}),n=Date.now();Object.keys(o).forEach(k=>{const d=/(\d{4}-\d{2}-\d{2})/.exec(k);if(o[k]!==-1&&o[k]<n||d&&d[1]<addDays(today(),-3))delete o[k]});return o}
-function forslag(){const n=new Date(),hh=n.getHours(),t=today(),tm=addDays(t,1),L=[],W=wxModel(),d=D();
- // Matsedeln: middag saknas i morgon, eller något i morgondagens middag som kan behöva tina
- const md=dayOf(tm);if(hh>=12&&planDays().some(x=>x.date>=tm)&&!(md&&md.meals.length))L.push({id:'mid:'+tm,ic:'cal',t:'Ingen middag planerad i morgon',b:'Välj en rätt nu så hinner ni handla.',go:['Planera','mat']});
- if(hh>=15&&md&&md.meals.length){const FR=/(kyckling\w*|nötfärs|köttfärs|blandfärs|fläskfilé|fläskkotlett\w*|kycklingfilé\w*|laxfilé\w*|lax|torsk\w*|räkor|fisk\w*|högrevs?\w*|entrecôte|biff\w*)/i;
-  for(const m of md.meals){const r=m.recipe&&recipeById(m.recipe),ing=r?(r.groups||[]).flatMap(g=>g.items||[]).map(x=>x.n||'').join(' · '):'',k=FR.exec(ing);
-   if(k){L.push({id:'tina:'+tm+':'+(r.id||m.title),ic:'fork',t:'Ska '+k[1].toLowerCase()+' tina till i morgon?',b:'Till '+m.title.charAt(0).toLowerCase()+m.title.slice(1)+' i morgon. Lägg över den i kylen i kväll om den ligger i frysen.'});break}}}
- if(W){const H=W.all.filter(x=>x.d>n);
-  // Regn inom tre timmar när det är torrt nu
-  if(hh>=7&&hh<21&&wxTorr(W.now)){const r=H.find(x=>x.d-n<3*36e5&&(x.pr!=null?x.pr>=0.3:/rain|sleet|snow/.test(x.s||'')));if(r)L.push({id:'regn:'+t+':'+r.d.getHours(),ic:'regn',t:(/snow/.test(r.s||'')?'Snö':'Regn')+' från '+pad(r.d.getHours())+'.00',b:'Ta in tvätten eller ta med paraply.'})}
-  // Frost i natt efter en dag över noll
-  if(hh>=15&&W.now.T>1){const N=H.filter(x=>x.d-n<18*36e5&&x.d.getHours()<=9),lo=N.reduce((a,x)=>!a||x.T<a.T?x:a,null);if(lo&&lo.T<=0)L.push({id:'frost:'+t,ic:'frost',t:'Frost i natt, '+deg(lo.T).replace('-','−')+' vid '+pad(lo.d.getHours()),b:'Skrapa bilen i morgon bitti och ta in det som inte tål kyla.'})}}
- // Födelsedagar: idag, och inom en vecka när det är dags för present
- try{bdays().filter(b=>b.days===0||(b.days<=7&&b.gift)).sort((a,b)=>a.days-b.days).slice(0,2).forEach(b=>L.push({id:'fod:'+b.key+':'+b.next,ic:'gift',t:b.name+' '+bdTurns(b)+' '+(b.days===0?'idag':bdWhen(b)),b:b.days===0?'Glöm inte att gratulera.':'Dags att ordna present.',go:['Visa','fod']}))}catch(e){}
- // Städ och uppgifter som har väntat länge
- const sen=d.clean.filter(c=>c.freq>1&&c.freq<30&&!doneToday(c)&&!snoozed(c)&&ratio(c)>=2);if(sen.length)L.push({id:'stad:'+t,ic:'stad',t:sen.length===1?sen[0].name+' har väntat länge':sen.length+' sysslor har väntat länge',b:'Dubbelt så länge som de brukar.',go:['Visa','stad']});
- const ff=d.tasks.filter(x=>!x.done&&isDate(x.due)&&x.due<t);if(ff.length)L.push({id:'upg:'+t,ic:'task',t:ff.length===1?ff[0].title+' är försenad':ff.length+' uppgifter är försenade',b:'Gör dem idag eller flytta datumet.',go:['Visa','uppgifter']});
- const D0=fsDone(),nu=Date.now();return L.filter(f=>!(f.id in D0&&fsDolj(D0[f.id],nu)))}
-// Värdet i ht.fDone: tidpunkt då förslaget visas igen (Inte nu) eller -1 (Klart)
-const fsDolj=(v,nu)=>v===-1||v>nu;
-function forslagHtml(){const L=forslag();if(!L.length)return'';
- return'<div class="fsl"'+RF('Ö14')+'><div class="sh"><span>Förslag</span><span class="r">'+(L.length>1?L.length+' st':'')+'</span></div><div class="fs-sc">'+L.map(f=>{const[c,ic]=FS_IC[f.ic]||FS_IC.cal;
-  return'<div class="fs-k"><div class="fs-r"><span class="fs-ic" style="background:'+c+'">'+ic+'</span><div><b>'+esc(f.t)+'</b><span>'+esc(f.b)+'</span></div></div><div class="fs-b">'+
-   (f.go?'<button class="fs-p" data-act="fsGo" data-id="'+esc(f.id)+'" data-go="'+f.go[1]+'">'+f.go[0]+'</button>':'<button class="fs-p" data-act="fsKlart" data-id="'+esc(f.id)+'">Klart</button>')+
-   '<button class="fs-g" data-act="fsSen" data-id="'+esc(f.id)+'">Inte nu</button></div></div>'}).join('')+'</div></div>'}
-function fsSet(id,v){const o=fsDone();o[id]=v;lsSet('fDone',JSON.stringify(o))}
 function wxLarmHtml(W){const L=wxLarm(W);return L?'<button class="wx-larm wl-'+L.k+'" data-act="nav" data-id="vader"'+RF(wallBoardOn()?'T13':'Ö13')+'>'+L.ic+'<span><b>'+esc(L.t)+'</b><small>'+esc(L.b)+'</small></span></button>':''}
 // Samlad bild: nu, kommande timmar och dagar (lokal tid)
 function wxModel(){const y=EXT.yr;if(!y||!y.ts||!y.ts.length||Date.now()-y.at>12*3600000)return null;
@@ -5946,9 +5914,6 @@ const ACT={
  theme(id){S.theme=['light','dark'].includes(id)?id:'system';lsSet('theme',S.theme==='system'?null:S.theme);applyTheme(true);render()},
  uiVersion(id){if(!['2','4','5','6'].includes(id)&&!(DEV&&id==='3'))return;const f=document.querySelector('form[data-form="settings"]');if(f)S.prefDraft=Object.fromEntries(new FormData(f));U3=id==='3';U4=id==='4';U6=id==='6';U5=id==='5'||U6;lsSet('ui',U6?'6':U5?null:U4?'4':U3?'3':'2');S.arrange=false;applyNy();applyStil();applyTheme(true);document.querySelector('.nav-mini')?.classList.remove('on');document.getElementById('nav').classList.remove('mini','ut');render()},
  auraMork(id){lsSet('auraM',id==='noir'?'noir':null);applyNy();applyTheme(true);render()},
- fsKlart(id){fsSet(id,-1);render()},
- fsSen(id){fsSet(id,Date.now()+3*36e5);render();toast('Visas igen om tre timmar')},
- fsGo(id,el){fsSet(id,-1);ACT.nav(el&&el.dataset.go||'oversikt')},
  recipeSearchClear(){S.u3Query='';render()},
  dev(){motionAbort();if(motionPageAnim)motionPageAnim.cancel();DEV=!DEV;lsSet('dev',DEV?'1':null);applyStil();applyRefs();if(!DEV&&U3){U3=false;U5=true;lsSet('ui',null);applyStil();applyTheme(false)}applyNy();if(!DEV&&S.plan&&S.plan!=='auto')S.plan=null;if(!DEV&&['familj','slakt'].includes(S.view)){S.view='oversikt';lsSet('view','oversikt')}render()},
  wall(){S.wall=!S.wall;lsSet('wall',S.wall?'1':'0');fitScrollbar();hideCursor();wake();autoTheme();applyTheme(true);render();camSample()},
