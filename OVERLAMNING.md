@@ -4,7 +4,7 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 ## Smart hem-rutan: scener och favoriter (publicerad ht-v339)
 
-- Publicerad 2026-11-11 som ht-v339, ångra-gren `version-fore-smart-hem-ruta` (PR #95). Fyra scenplatser (egen/HA/Släck allt, färg per symbol `HAB_FARG`) och högst 6 favoritplatser; data i onskelista `{hab:1,sc,fv}`. Kod `hab*` i app.js, CSS `.hab-*`.
+- Publicerad 2026-11-11 som ht-v339 (ångra-gren `version-fore-smart-hem-ruta`), sedan ht-v340: 8 favoritplatser, låga brickor med läget bredvid namnet på väggen (Henrik valde B; ångra-gren `version-fore-smart-hem-8`). Fyra scenplatser (egen/HA/Släck allt, färg per symbol `HAB_FARG`); data i onskelista `{hab:1,sc,fv}`. Kod `hab*` i app.js, CSS `.hab-*`.
 - Ny skill `.claude/skills/hushallstavlan-apple-design/` med fasta mått och granskningslista; använd den för all design.
 - Test: alla-flikar telefon/vägg (med och utan haDemo), smart-hem-ruta.js gröna. CI-röktestet faller bara i oversikt-manad.js (finns på main sedan tidigare).
 
