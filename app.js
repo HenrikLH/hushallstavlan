@@ -1581,7 +1581,7 @@ function haKarta(a){const V0=S.haRobRum||[],V=S.haZon?[]:V0.length?V0:a.plan&&!a
 // samma uppdelning som väggdatorns tjänst: i den ordning rummen valdes; små rum i följd i ett svep, varje stort rum för sig (töms emellan), sist moppning
 function haRobPlan(a){const V=S.haRobRum||[],W=S.haRobV||{},damm=V.filter(id=>(W[id]||'v').includes('v')),mopp=V.filter(id=>(W[id]||'').includes('m')),stor=id=>!!((a.rum||[]).find(r=>r.id===id)||{}).stor,steg=[];
  damm.forEach(id=>{const f=steg[steg.length-1];if(!stor(id)&&f&&!f.stor)f.rum.push(id);else steg.push({typ:'damm',rum:[id],stor:stor(id)})});
- return{damm,mopp,steg:steg.map(x=>({typ:'damm',rum:x.rum})).concat(mopp.length?[{typ:'mopp',rum:mopp}]:[])}}
+ const X={};damm.forEach(id=>{const n=(S.haRobX||{})[id];if(n>1)X[id]=n});return{damm,mopp,x:X,steg:steg.map(x=>({typ:'damm',rum:x.rum})).concat(mopp.length?[{typ:'mopp',rum:mopp}]:[])}}
 // flödet: tidslinje med stegen (Vacuum, dockan, Mop, Klart); i varje steg rummen i tur och ordning, avbockade när roboten lämnat dem
 function haRumLage(pl,j,id,fh){const k=(pl.klara||[])[j]||[],R=pl.steg[j].rum,aktiv=!fh&&!pl.klar&&j===pl.i;if(!fh&&(pl.klar&&j<pl.i||j<pl.i||k.includes(id)))return'klar';if(!fh&&pl.avbr)return'ej';if(!aktiv)return'';if(pl.hemma)return'klar';if(pl.nu===id)return'nu';
  const kvar=R.filter(x=>!k.includes(x));return pl.nu==null?(kvar[0]===id?'nasta':''):(kvar.filter(x=>x!==pl.nu)[0]===id&&kvar.indexOf(pl.nu)<kvar.indexOf(id)?'nasta':'')}
@@ -1592,7 +1592,7 @@ function haFlode(a,pl,fh){const R=a.rum||[],nm=id=>esc(haRumN(a,R.find(r=>r.id==
  const status=j=>{const t=tl(j),k=(pl.klara||[])[j]||[],n=Sn[j].rum.length;if(t==='klar')return'Klar';if(t==='avbr')return'Avbruten · '+k.length+' av '+n+' rum klara';if(t==='hopp')return pl.avbr?'Inte gjort':'Hoppades över';if(fh)return(j?'Sedan':'Först')+' · '+(n>1?n+' rum i ett svep':Sn[j].typ==='damm'&&((R.find(r=>r.id===Sn[j].rum[0])||{}).stor)?'stort rum, töms efteråt':'1 rum');if(t==='vant')return'Väntar';if(dockNu(j))return'Klar';return(a.st==='paused'?'Pausad':'Rum '+Math.min(n,k.length+1)+' av '+n)};
  const LS={klar:'Klar',nu:'Städar nu',nasta:'Näst på tur',ej:'Inte städat'};
  const off=j=>Sn.slice(0,j).filter(x=>x.typ===Sn[j].typ).reduce((t,x)=>t+x.rum.length,0);
- const rumL=j=>'<ol class="ha-fo">'+Sn[j].rum.map((id,n0)=>{const n=n0+off(j);const c=haRumLage(pl,j,id,fh);return'<li class="'+c+'"><i>'+(c==='klar'?I.tick:n+1)+'</i><span>'+nm(id)+'</span>'+(LS[c]&&tl(j)!=='klar'?'<em>'+LS[c]+'</em>':'')+'</li>'}).join('')+'</ol>';
+ const rumL=j=>'<ol class="ha-fo">'+Sn[j].rum.map((id,n0)=>{const n=n0+off(j);const c=haRumLage(pl,j,id,fh);return'<li class="'+c+'"><i>'+(c==='klar'?I.tick:n+1)+'</i><span>'+nm(id)+'</span>'+(Sn[j].typ==='damm'?fh?'<button type="button" class="ha-x'+(((pl.x||{})[id]||1)>1?' on':'')+'" data-act="haRobX" data-id="'+id+'" aria-label="Antal gånger">×'+((pl.x||{})[id]||1)+'</button>':((pl.x||{})[id]>1?'<small class="ha-x">×'+pl.x[id]+'</small>':''):'')+(LS[c]&&tl(j)!=='klar'?'<em>'+LS[c]+'</em>':'')+'</li>'}).join('')+'</ol>';
  const dock=j=>{const c=dockNu(j)?'nu':!fh&&j<pl.i?'klar':!fh&&pl.avbr?'hopp':'vant';return'<div class="ha-fs ha-fd '+c+'"><i class="ha-fi">'+(c==='klar'?I.tick:HAI_APP.hem)+'</i><div class="ha-ft"><b>Dockan</b><span>'+(c==='nu'?'Tömmer':c==='klar'?'Tömd':c==='hopp'?'Inte gjort':Sn[j+1].typ==='mopp'?'Töms innan moppningen':'Töms innan nästa rum')+'</span></div></div>'};
  const stopp=!fh&&!pl.klar&&pl.i<sist?'<button type="button" class="ha-fx" data-act="haPlanStopp">Hoppa över '+(Sn.slice(pl.i+1).every(s=>s.typ==='mopp')?'moppningen':'resten')+'</button>':'';
  let h='<div class="ha-fl'+(fh?' fh':'')+'">';
@@ -1651,7 +1651,7 @@ function haAppKropp(a,sida){
    b+='<div class="ha-valt">'+(V.length?'<span>'+V.length+(V.length>1?' rum valda':' rum valt')+'</span><button type="button" data-act="haRobRum" data-id="">Rensa</button>':'<em>Tryck på rummen som ska '+(lag==='m'?'moppas':'dammsugas')+'</em>')+'</div>';
    const snabb=(k,n,alt,v)=>{const A2=alt.filter(([o,t])=>o!=null&&t&&!/custom|off/.test(o));return A2.length>1?'<div class="ha-sv"><span>'+n+'</span><div style="--n:'+A2.length+'">'+A2.map(([o,t])=>'<button type="button" data-act="haRobSet" data-id="'+k+':'+esc(o)+'" aria-pressed="'+(o===v)+'">'+t+'</button>').join('')+'</div></div>':''};
    b+=lag==='m'?snabb('rutt','Route',RUT,a.rutt)+snabb('vatten','Water',VAT,a.vatten):snabb('sug','Suction',SUG,a.sug);
-   if(P.steg.length)b+=haFlode(a,{steg:P.steg,i:-1,klara:[]},true)}
+   if(P.steg.length)b+=haFlode(a,{steg:P.steg,i:-1,klara:[],x:P.x},true)}
   if(pl&&!S.haZon&&(kor||!V.length))b+=haFlode(a,pl);
   if(!S.haZon&&!V.length)b+=haRumStatus(a)+haTank(a);
   const varn=(a.dockVarn||[]).concat(Ux.length?[Ux.length+' need attention']:[]);
@@ -5793,7 +5793,8 @@ const ACT={
  haRumStor(id){const a=haAppX();if(!a)return;const r=(a.rum||[]).find(x=>x.id===+id);if(!r)return;const was=r.stor;haValj({rumnr:r.id,rumnamn:r.n||'',stor:!was},()=>{r.stor=!was})},
  haRumNamnV(v){const a=haAppX();if(!a)return;const i=v.indexOf(':'),nr=+v.slice(0,i),n=v.slice(i+1),r=(a.rum||[]).find(x=>x.id===nr);if(!r)return;S.haRumNamn=null;haValj({rumnr:nr,rumnamn:n},()=>{r.n=n})},
  haRob(g){const a=haAppX();if(!a)return;const P=haRobPlan(a),rum=P.steg.length?P.steg[0].rum:[],was=[a.st,a.plan];a.st=g==='start'?(rum.length?'segment_cleaning':'cleaning'):g==='paus'?'paused':'returning_home';if(g==='start'&&a.pct==null)a.pct=0;
-  if(g==='start'&&rum.length){const st=P.steg;a.plan={steg:st,i:0,klara:st.map(()=>[]),nu:null};a.lage=P.damm.length?'vacuum':'mop';S.haRobRum=[];S.haRobV={}}if(g==='hem'&&a.plan&&!a.plan.klar){a.plan.steg=a.plan.steg.slice(0,a.plan.i);a.plan.klar=true}render();haSend(g==='start'&&rum.length?{app:a.id,gor:g,rum,damm:P.damm,mopp:P.mopp}:{app:a.id,gor:g,rum},()=>{[a.st,a.plan]=was})},
+  if(g==='start'&&rum.length){const st=P.steg;a.plan={steg:st,i:0,klara:st.map(()=>[]),nu:null,x:P.x};a.lage=P.damm.length?'vacuum':'mop';S.haRobRum=[];S.haRobV={};S.haRobX={}}if(g==='hem'&&a.plan&&!a.plan.klar){a.plan.steg=a.plan.steg.slice(0,a.plan.i);a.plan.klar=true}render();haSend(g==='start'&&rum.length?{app:a.id,gor:g,rum,damm:P.damm,mopp:P.mopp,x:P.x}:{app:a.id,gor:g,rum},()=>{[a.st,a.plan]=was})},
+ haRobX(id){const X=S.haRobX=S.haRobX||{},n=((X[id]||1)%3)+1;if(n>1)X[id]=n;else delete X[id];try{u5Tick()}catch(e){}render()},
  haRobV(v){const[id,k]=v.split(':'),W=S.haRobV=S.haRobV||{},o=W[id]||'v',n=o.includes(k)?o.replace(k,''):(o+k).split('').sort().reverse().join('');if(!n){ACT.haRobRum(id);delete W[id];return}W[id]=n;try{u5Tick()}catch(e){}render()},
  haPlanStopp(){const a=haAppX();if(!a||!a.plan)return;const was=a.plan;a.plan=Object.assign({},was,{steg:was.steg.slice(0,was.i+1)});render();haSend({app:a.id,gor:'planstopp'},()=>{a.plan=was})},
  haRobSet(v){const a=haAppX();if(!a)return;const i=v.indexOf(':'),k=v.slice(0,i),o=v.slice(i+1),was=a[k];a[k]=o;S.haAppDel=null;render();haSend({app:a.id,[k]:o},()=>{a[k]=was})},

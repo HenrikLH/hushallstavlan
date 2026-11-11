@@ -15,6 +15,9 @@ module.exports=async(pg,h)=>{
  await pg.locator('main [data-act="haRobDags"]').click();await h.idle(500);
  assert.match(await pg.locator('main .ha-valt').innerText(),/rum valda/,'Välj dem markerar rummen i kartan');
  assert.ok(await pg.locator('main .ha-fl.fh').count(),'Tidslinjen för de valda rummen visas');
+ await pg.locator('main .ha-fl.fh .ha-x').first().click();await h.idle(300);
+ assert.equal(await pg.locator('main .ha-fl.fh .ha-x').first().innerText(),'×2','Rummet dammsugs två gånger');
+ await pg.locator('main .ha-fl.fh').scrollIntoViewIfNeeded();await h.shot('robot-x2');
  await pg.locator('main [data-act="haRobRum"][data-id=""]').click();await h.idle(400);
  assert.equal(await pg.locator('main [data-act="haTankFylld"]').count(),0,'Ingen Påfylld-knapp när dockan själv vet om tanken är tom');
  await pg.evaluate(()=>window.__d('(()=>{const a=haAppX();a.tank.brist=null;render()})()'));await h.idle(300);
