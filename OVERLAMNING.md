@@ -2,6 +2,12 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Pågår: volymreglage i Smart hem-rutan (förslag, väntar på Henriks ok)
+
+- Mål: rutan är adaptiv. När högtalare spelar (eller är pausade) ersätter ett gemensamt volymreglage fyra favoritplatser; annars vanlig layout. Ägare Claude, gren `claude/project-thread-xrxlqt`.
+- Kod: `habSpelar`, `habMedKort`, `habFvKort` (apparater som kör > tända lampor > resten, ordningen behålls), `ACT.habVol/habMedTog/habMedOpen`; reglaget delar draghanteraren med Musik-bladet (`data-hamvol="ruta"`). CSS `.hab-med`. Ingen ändring i tjänsten eller Kod.gs (`gor:'vol'` fanns).
+- Test: `verktyg/emu/smart-hem-volym.js` (telefon/vägg/mörkt), smart-hem-ruta (uppdaterad), hogtalare, alla-flikar telefon+vägg gröna.
+
 ## Högtalare och radio, Ensam hemma (publicerad ht-v342)
 
 - Mål: styra Google-högtalarna (Stor, Liten) från Smart hem: välja mediatyp, kanal/Spotify-lista, volym, högtalare; HA-skriptet Ensam hemma (volym 35 %, radio) startas med valen. Gren `claude/project-thread-h4no38`.
