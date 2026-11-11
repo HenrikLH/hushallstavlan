@@ -2,6 +2,11 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Dammsugargenväg i Städ (förslag, väntar på Henriks ok)
+- Mål: liten genväg till dammsugarsidan i Att göra → Städ. Ägare Claude, gren `claude/project-thread-ys6yn3`.
+- `stadRob()` (ruta S12) under segmentet i alla städvyer, bara när Home Assistant har en dammsugare: ikon (blå när den städar), `haAppStat`, "n rum på tur" (`haDags`), chevron → ACT `stadRob` öppnar `V.robot` med Tillbaka "Att göra" (`S.robFran`).
+- Test `stad-dammsugare.js` (haDemo) telefon/vägg/mörkt, alla-flikar telefon+vägg gröna. Bilder /mnt/project-files/apparater/stad-genvag/. Nästa: "Pusha" → publicera.
+
 ## Smarta förslag borttagna från Översikt (publicerad ht-v351)
 
 - Henrik tyckte förslagen (Ö14) var irriterande. Hela funktionen borttagen: `forslag`/`forslagHtml`/`fsDone`, ACT `fsKlart/fsSen/fsGo`, CSS `.fsl/.fs-*`; Ö14 till borttagna. Väderlarmet (Ö13) och Vädra/Ute finns kvar. Ångra-gren `version-fore-smarta-forslag`.

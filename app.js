@@ -1688,7 +1688,7 @@ function haAppSheet(enter){const a=haAppX();if(!a){S.sheet=null;return''}
  return sheetHtml('haApp',esc(a.n),'<span class="tb"></span>',top+'<div class="ha-ap-in">'+haAppKropp(a)+'</div>',enter,'<span class="tb"></span>')}
 // dammsugaren har en egen sida (ingen lampa: kartan behöver plats); på väggen kartan till vänster och allt annat till höger
 const haRobot=()=>haApps().find(x=>x.typ==='robot'&&x.id===S.haAppId)||haApps().find(x=>x.typ==='robot');
-V.robot=function(){const a=haRobot();let h='<div class="rcp-top"><button class="back" data-act="nav" data-id="hus">'+I.back+'Smart hem</button></div>';
+V.robot=function(){const a=haRobot(),fr=S.robFran==='stad';let h='<div class="rcp-top"><button class="back" data-act="nav" data-id="'+(fr?'stad':'hus')+'">'+I.back+(fr?'Att göra':'Smart hem')+'</button></div>';
  if(!a)return h+'<div class="banner">Dammsugaren svarar inte just nu.</div>';S.haAppId=a.id;
  return h+'<div class="rob-vy'+(S.haAppSida==='inst'?' inst':'')+'"><div class="rob-hd"><span class="ha-i ha-ap-robot'+(haAppAktiv(a)?' on':'')+'">'+HAI_APP.robot+'</span><div><h1>'+esc(a.n)+'</h1><p>'+esc(haAppStat(a))+'</p></div></div><div class="rob-k">'+haKarta(a)+'</div><div class="rob-r">'+haAppKropp(a,true)+'</div></div>'};
 // Ändra en enhet utan tangentbord: namn och rum väljs bland förslag, Ta bort kräver håll in
@@ -3314,11 +3314,14 @@ const menuSel=(attrs,opts)=>'<span class="menu"><select '+attrs+'>'+opts+'</sele
 const attSeg=v=>segc('Visa','taskTab',[['lista','Uppgifter'],['stad','Städ']],v);
 V.kalender=function(){
  return head('Kalender',{tools:'<button class="ib plus" data-act="evNew" aria-label="Ny händelse">'+I.plus+'</button>'})+calView()};
+// Genväg till dammsugarens sida (S12): bara när Home Assistant har en dammsugare. Status och hur många rum som står på tur.
+function stadRob(){const a=haOn()&&haRobot();if(!a)return'';const D=haDags(a),n=new Set(D.v.concat(D.m)).size;
+ return'<div class="group stad-rob-g"'+RF('S12')+'><button type="button" class="cell link stad-rob" data-act="stadRob" data-id="'+esc(a.id)+'"><span class="ha-i'+(haAppAktiv(a)?' on':'')+'">'+HAI_APP.robot+'</span><span class="grow"><b>'+esc(a.n)+'</b><small>'+esc(haAppStat(a))+'</small></span>'+(n&&!haStadar(a)?'<span class="meta">'+n+' rum på tur</span>':'')+chevron+'</button></div>'}
 V.stad=function(){
  const cp=cleanPlan(),all=D().clean,vy=all.length?stadVy():'lista',nu=vy==='lista'?null:stadIdag(cp);
  let h=head('Att göra',{sub:vy==='ring'?cap(dateLong(today())):vy==='rutnat'?nu.minLeft+' min kvar idag':'Lite varje dag, så slipper ni storstäda'});
  h+=attSeg('stad');
- h+='<form class="add-row"'+RF('S1')+' data-form="cleanQuick" data-room=""><input class="field" name="title" placeholder="Ny syssla" aria-label="Ny syssla" autocomplete="off" enterkeyhint="done"><button type="button" class="add-go" data-act="quickGo" data-alt="cleanFocus" aria-label="Lägg till">'+I.plus+'</button></form>';
+ h+='<form class="add-row"'+RF('S1')+' data-form="cleanQuick" data-room=""><input class="field" name="title" placeholder="Ny syssla" aria-label="Ny syssla" autocomplete="off" enterkeyhint="done"><button type="button" class="add-go" data-act="quickGo" data-alt="cleanFocus" aria-label="Lägg till">'+I.plus+'</button></form>'+stadRob();
  if(!all.length)return h+'<div style="height:22px"></div>'+rgroup('S11',emptyCell('Städschemat är tomt. Lägg till sysslor under rummen nedan.'))+cleanAll(all,true);
  if(vy!=='lista')return h+(vy==='rutnat'?stadRutnat(cp,all,nu):stadRing(cp,all,nu));
  h+=orkSlider(cp.B);
@@ -5752,7 +5755,8 @@ const ACT={
  haTog(id){const x=(haData()||{lampor:[]}).lampor.find(e=>e.id===id);if(!x||x.nas)return;try{u5Tick()}catch(e){}const was=x.on;x.on=!was;if(x.on&&!x.b&&x.t==='light')x.b=null;HA.last=null;render();haSend({id,gor:'vaxla'},()=>{x.on=was})},
  haTest(){closeSheets();S.haTest=true;S.haRum=null;HA.demo=null;HA.syn={};HA.byt={};HA.last=null;S.view='hus';try{scrollTo(0,0)}catch(e){}render()},
  haRumVy(id){S.haRum=id?(id==='_'?'':id):null;try{scrollTo(0,0)}catch(e){}render()},
- haApp(id){const rob=(haApps().find(x=>x.id===id)||{}).typ==='robot';S.haAppId=id;if(rob)closeSheets();else S.sheet='haApp';S.haAppSida=null;S.haLager='v';S.haRumNamn=null;S.haAppDel=null;S.haZon=false;S.haZonR=null;try{u5Tick()}catch(e){}if(rob){ACT.nav('robot');try{scrollTo(0,0)}catch(e){}}else render()},
+ stadRob(id){ACT.haApp(id);S.robFran='stad';render()},
+ haApp(id){S.robFran=null;const rob=(haApps().find(x=>x.id===id)||{}).typ==='robot';S.haAppId=id;if(rob)closeSheets();else S.sheet='haApp';S.haAppSida=null;S.haLager='v';S.haRumNamn=null;S.haAppDel=null;S.haZon=false;S.haZonR=null;try{u5Tick()}catch(e){}if(rob){ACT.nav('robot');try{scrollTo(0,0)}catch(e){}}else render()},
  haRobRum(id){S.haRumNamn=null;if(id===''){S.haRobRum=[];S.haRobV={};return render()}const v=+id,L=S.haRobRum||[];S.haRobRum=L.includes(v)?L.filter(x=>x!==v):L.concat(v);render()},
  haKartaTryck(id,el,e){const a=haAppX(),k=HA.km;if(!a||!k||!k.ok||!e||S.haZon)return;const r=el.getBoundingClientRect(),[x0,y0,cw,ch]=k.crop,x=Math.floor((e.clientX-r.left)/r.width*cw),y=Math.floor((e.clientY-r.top)/r.height*ch);
   let j=x>=0&&y>=0&&x<cw&&y<ch?k.kl[y*cw+x]:-1,rid=j>=0?k.rum[j].id:null;if(rid==null){const X=x+x0,Y=y+y0,T=(a.rum||[]).filter(q=>q.b&&X>=q.b[0]&&X<=q.b[2]&&Y>=q.b[1]&&Y<=q.b[3]).sort((p,q)=>(p.b[2]-p.b[0])*(p.b[3]-p.b[1])-(q.b[2]-q.b[0])*(q.b[3]-q.b[1]));rid=T[0]&&T[0].id}
@@ -5855,7 +5859,7 @@ const ACT={
   if(id==='av'){const was=D.lampor.map(x=>x.on);D.lampor.forEach(x=>{if(!x.nas)x.on=false});render();return haSend({alla:'av'},()=>D.lampor.forEach((x,i)=>x.on=was[i]))}
   if(haDemo()){const m={'scene.morgon':{'light.kok':100,'light.hall':60},'scene.kvall':{'light.vardagsrum':45,'switch.fonster':1,'light.kok':30},'scene.film':{'light.vardagsrum':10}}[id]||{};D.lampor.forEach(x=>{const v=m[x.id];x.on=!!v;if(v>1)x.b=v})}
   render();haSend({scen:id},()=>{})},
- nav(id,el){if(id!=='hus'&&id!=='robot'){S.haRum=null;if(S.haTest){S.haTest=false;HA.demo=null;HA.syn={};HA.v=0;HA.retry=0}}if(RC.busy){toast('Vänta tills receptbegäran är klar.');return}if(RC.screen&&RC.edit&&RC.edit.dirty){RC.leaveTo=id;recipeLeave();S.view='mat';return}if(RC.screen)RC.screen=null;if(id!=='oversikt')arrCancel();if(normView(id)!=='ekonomi'){S.ekoOpen=false;S.pin=''}try{document.activeElement&&document.activeElement.blur()}catch(e){}id=normView(id);if(id==='fod')S.fodFromFamilj=DEV&&S.view==='familj';if(id==='uppgifter'&&S.taskTab==='stad'&&S.view!=='stad'&&el&&el.closest&&el.closest('#nav'))id='stad';if(['familj','slakt','slaktPersoner'].includes(id)&&!DEV)id='oversikt';if(id==='uppgifter'||id==='stad'){S.taskTab=id==='stad'?'stad':'lista';lsSet('taskTab',S.taskTab)}S.shopAdd=false;S.taskAdd=false;S.view=id;S.recipe=null;S.confirm=null;lsSet('view',id);try{history.replaceState(null,'','#'+id)}catch(e){}window.scrollTo(0,0);render()},
+ nav(id,el){if(id!=='robot')S.robFran=null;if(id!=='hus'&&id!=='robot'){S.haRum=null;if(S.haTest){S.haTest=false;HA.demo=null;HA.syn={};HA.v=0;HA.retry=0}}if(RC.busy){toast('Vänta tills receptbegäran är klar.');return}if(RC.screen&&RC.edit&&RC.edit.dirty){RC.leaveTo=id;recipeLeave();S.view='mat';return}if(RC.screen)RC.screen=null;if(id!=='oversikt')arrCancel();if(normView(id)!=='ekonomi'){S.ekoOpen=false;S.pin=''}try{document.activeElement&&document.activeElement.blur()}catch(e){}id=normView(id);if(id==='fod')S.fodFromFamilj=DEV&&S.view==='familj';if(id==='uppgifter'&&S.taskTab==='stad'&&S.view!=='stad'&&el&&el.closest&&el.closest('#nav'))id='stad';if(['familj','slakt','slaktPersoner'].includes(id)&&!DEV)id='oversikt';if(id==='uppgifter'||id==='stad'){S.taskTab=id==='stad'?'stad':'lista';lsSet('taskTab',S.taskTab)}S.shopAdd=false;S.taskAdd=false;S.view=id;S.recipe=null;S.confirm=null;lsSet('view',id);try{history.replaceState(null,'','#'+id)}catch(e){}window.scrollTo(0,0);render()},
  refresh(){refresh()},
  settings(){if(S.sheet!=='farg')S.prefDraft=null;S.sheet='settings';render()},
  farg(){rememberSettings();S.sheet='farg';render()},
