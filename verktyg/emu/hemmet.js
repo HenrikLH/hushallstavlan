@@ -1,5 +1,5 @@
-// Hemmet (förslag): flikraden utan Ekonomi och den nya sidan Hemmet. LS navF=A|B, hemStil=lista|brickor.
-// Kör: LS='{"navF":"A"}' node verktyg/emu/run.js verktyg/emu/hemmet.js
+// Hemmet: flikraden utan Ekonomi och sidan Hemmet med brickor.
+// Kör: node verktyg/emu/run.js verktyg/emu/hemmet.js
 module.exports=async(pg,h)=>{
  const fel=m=>{console.log('SCENARIO FAIL '+m);process.exitCode=1};
  if(await pg.locator('#nav [data-id="ekonomi"]').count())fel('Ekonomi finns kvar i flikraden');

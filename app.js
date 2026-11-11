@@ -65,11 +65,10 @@ const I={
 const I_EKO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10h18M16.5 14.5h1.5"/></svg>';
 // Inköp ligger under Mat; Ekonomi har fått dess plats i flikraden
 // Kalendern har en egen flik. Uppgifter och Städ delar fliken Att göra (Städ har vy-id stad men markerar Att göra)
-// Hemmet (förslag): Ekonomi lämnar flikraden. Fliken Hemmet samlar det man använder ibland (Smart hem, Ekonomi, Födelsedagar, Inställningar).
-// Under förhandsvisningen väljer ht.navF ordningen: A = Översikt först (Fables förslag), B = Hemmet på Ekonomis gamla plats.
+// Hemmet: Ekonomi lämnar flikraden. Fliken Hemmet samlar det man använder ibland (Smart hem, Ekonomi, Födelsedagar, Inställningar).
+// Hemmet har Ekonomis gamla plats; övriga flikar står kvar. Översikt har rutnätsikonen, huset betyder Hemmet.
 const I_OV=SV+'<rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/></svg>';
-const NAVF=lsGet('navF')==='B'?'B':'A';
-const VIEWS=NAVF==='B'?[['mat','Mat',I.fork],['hemmet','Hemmet',I.home],['oversikt','Översikt',I_OV],['kalender','Kalender',I.cal],['uppgifter','Att göra',I.list]]:[['oversikt','Översikt',I_OV],['mat','Mat',I.fork],['uppgifter','Att göra',I.list],['kalender','Kalender',I.cal],['hemmet','Hemmet',I.home]];
+const VIEWS=[['mat','Mat',I.fork],['hemmet','Hemmet',I.home],['oversikt','Översikt',I_OV],['kalender','Kalender',I.cal],['uppgifter','Att göra',I.list]];
 // sidor som öppnas från Hemmet: fliken Hemmet är markerad och bakåt leder dit de öppnades från
 const HEM_UNDER=['ekonomi','fod','familj','slakt','slaktPersoner','hus','robot'];
 const VIEW_IDS=VIEWS.map(v=>v[0]).concat(['ekonomi','vader','fod','familj','slakt','slaktPersoner','stad','varor','hus','robot']);
@@ -5109,9 +5108,8 @@ function ekoLock(){const n=(S.pin||'').length;
 // bakåt från en sida under Hemmet: dit den öppnades från (Hemmet eller Översikt)
 const hemTill=()=>S.hemFran==='oversikt'?['oversikt','Översikt']:['hemmet','Hemmet'];
 const hemTop=()=>'<div class="rcp-top"><button class="back" data-act="nav" data-id="'+hemTill()[0]+'">'+I.back+hemTill()[1]+'</button></div>';
-/* ---------- Hemmet (förslag) ---------- */
-// En sida för det man använder ibland, med läget i en rad per del. ht.hemStil väljer utseende under förhandsvisningen:
-// lista = som Apples Inställningar (standard), brickor = som Apples Hem-app.
+/* ---------- Hemmet ---------- */
+// En sida för det man använder ibland: en bricka per del med läget (som Apples Hem-app), Inställningar som rad under.
 V.hemmet=function(){const D=(haUrl()||haDemo())?haData():null,lj=D?(D.lampor||[]).filter(x=>x.t==='light'):[],nl=lj.filter(x=>x.on).length,G=D?D.givare||[]:[];
  const ovN=people().includes(S.me)?ovOpen('shared').length+ovOpen(S.me).length:0,b=bdNext(bdays())[0];
  const R=[(haUrl()||haDemo())&&['hus','Smart hem',HAI.bulb,'#FF9F0A',D?(nl?nl+(nl>1?' tända':' tänd'):'Allt släckt')+(G.length?' · '+haGiv(Object.assign({},G[0],{n:''})).trim():''):'Ingen kontakt'],
@@ -5120,8 +5118,7 @@ V.hemmet=function(){const D=(haUrl()||haDemo())?haData():null,lj=D?(D.lampor||[]
   DEV&&['familj','Familj',I.people,'#5856D6','Släktträd']].filter(Boolean);
  const ic=(c,svg)=>'<span class="hem-ic" style="background:'+c+'">'+svg+'</span>';
  let h=head('Hemmet');
- if(lsGet('hemStil')==='brickor')h+='<div class="hem-g"'+RF('H1')+'>'+R.map(([id,l,svg,c,st,obs])=>'<button type="button" class="hem-b" data-act="nav" data-id="'+id+'">'+ic(c,svg)+'<span class="hem-n">'+l+'</span><span class="hem-s'+(obs?' obs':'')+'">'+esc(st)+'</span></button>').join('')+'</div>';
- else h+=rgroup('H1',R.map(([id,l,svg,c,st,obs])=>'<button type="button" class="cell link hem-r" data-act="nav" data-id="'+id+'">'+ic(c,svg)+'<span class="grow">'+l+'</span><span class="val'+(obs?' obs':'')+'">'+esc(st)+'</span>'+chevron+'</button>').join(''));
+ h+='<div class="hem-g"'+RF('H1')+'>'+R.map(([id,l,svg,c,st,obs])=>'<button type="button" class="hem-b" data-act="nav" data-id="'+id+'">'+ic(c,svg)+'<span class="hem-n">'+l+'</span><span class="hem-s'+(obs?' obs':'')+'">'+esc(st)+'</span></button>').join('')+'</div>';
  h+=rgroup('H2','<button type="button" class="cell link hem-r" data-act="settings">'+ic('#8E8E93',I.gear)+'<span class="grow">Inställningar</span>'+chevron+'</button>');
  return h};
 V.ekonomi=function(){if(ekoLocked())return hemTop()+ekoLock();const m=S.ekoMonth||thisMonth(),c=ekoCalc(m),o=c.o;
