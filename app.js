@@ -3314,9 +3314,16 @@ const menuSel=(attrs,opts)=>'<span class="menu"><select '+attrs+'>'+opts+'</sele
 const attSeg=v=>segc('Visa','taskTab',[['lista','Uppgifter'],['stad','Städ']],v);
 V.kalender=function(){
  return head('Kalender',{tools:'<button class="ib plus" data-act="evNew" aria-label="Ny händelse">'+I.plus+'</button>'})+calView()};
-// Genväg till dammsugarens sida (S12): bara när Home Assistant har en dammsugare. Status och hur många rum som står på tur.
-function stadRob(){const a=haOn()&&haRobot();if(!a)return'';const D=haDags(a),n=new Set(D.v.concat(D.m)).size;
- return'<div class="group stad-rob-g"'+RF('S12')+'><button type="button" class="cell link stad-rob" data-act="stadRob" data-id="'+esc(a.id)+'"><span class="ha-i'+(haAppAktiv(a)?' on':'')+'">'+HAI_APP.robot+'</span><span class="grow"><b>'+esc(a.n)+'</b><small>'+esc(haAppStat(a))+'</small></span>'+(n&&!haStadar(a)?'<span class="meta">'+n+' rum på tur</span>':'')+chevron+'</button></div>'}
+// Genväg till dammsugarens sida (S12): bara när Home Assistant har en dammsugare. Förslag A illustration, B rummen, C minikarta (S.robStil, väljs bort när Henrik valt).
+function stadRobIll(a){const st=haStadar(a),v=st?a.pct:a.bat,p=v==null?0:Math.max(0,Math.min(100,Math.round(v)));
+ return'<svg class="sr-ill'+(st?' on':'')+'" viewBox="0 0 72 72" aria-hidden="true"><circle cx="36" cy="36" r="32" class="sr-sp"/><circle cx="36" cy="36" r="32" class="sr-pr" pathLength="100" stroke-dasharray="'+p+' 100" transform="rotate(-90 36 36)"/><circle cx="36" cy="36" r="24" class="sr-kr"/><path d="M19.5 41a17 17 0 0 0 33 0" class="sr-st"/><circle cx="36" cy="31" r="7" class="sr-li"/><circle cx="36" cy="31" r="2.2" class="sr-pu"/></svg>'}
+function stadRob(){const a=haOn()&&haRobot();if(!a)return'';const D=haDags(a),dg=[...new Set(D.v.concat(D.m))],n=dg.length,st=haStadar(a),stil=S.robStil||'a';
+ const ut='<button type="button" class="stad-rob-g sr-'+stil+'"'+RF('S12')+' data-act="stadRob" data-id="'+esc(a.id)+'">',chev='<span class="chev">'+I.chev+'</span>',tur=n&&!st?n+' rum på tur':st?'':'Allt är städat i tid';
+ if(stil==='a')return ut+stadRobIll(a)+'<span class="sr-t"><b>'+esc(a.n)+'</b><span>'+esc(haAppStat(a))+'</span>'+(tur?'<small>'+tur+'</small>':'')+'</span>'+chev+'</button>';
+ if(stil==='b'){const R=(a.rum||[]).filter(r=>r.iv||r.im).slice(0,6),cell=r=>{const q=haRumSt(r,'v')||haRumSt(r,'m'),c=dg.includes(r)?'dags':q?q.c:'ok';return'<span class="sr-rum '+c+'"><b>'+esc(haRumN(a,r))+'</b><small>'+(c==='dags'?'På tur':q&&q.d!=null?haDgr(q.d):'Städat')+'</small></span>'};
+  return ut+'<span class="sr-hd"><span class="ha-i'+(haAppAktiv(a)?' on':'')+'">'+HAI_APP.robot+'</span><span class="sr-t"><b>'+esc(a.n)+'</b><span>'+esc(haAppStat(a))+'</span></span>'+chev+'</span>'+(R.length?'<span class="sr-rg">'+R.map(cell).join('')+'</span>':'')+'</button>'}
+ const k=haKartaLas(a),V=dg.map(r=>r.id),img=k?'<img src="'+haKartaUrl(k,a,V)+'" alt="">':'<i class="sr-kt"></i>';
+ return ut+'<span class="sr-k">'+img+'</span><span class="sr-t"><b>'+esc(a.n)+'</b><span>'+esc(haAppStat(a))+'</span>'+(n&&!st?'<small>På tur: '+esc(dg.map(r=>haRumN(a,r)).join(', '))+'</small>':'<small>'+(st?'':'Allt är städat i tid')+'</small>')+'</span>'+chev+'</button>'}
 V.stad=function(){
  const cp=cleanPlan(),all=D().clean,vy=all.length?stadVy():'lista',nu=vy==='lista'?null:stadIdag(cp);
  let h=head('Att göra',{sub:vy==='ring'?cap(dateLong(today())):vy==='rutnat'?nu.minLeft+' min kvar idag':'Lite varje dag, så slipper ni storstäda'});

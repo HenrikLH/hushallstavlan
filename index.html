@@ -3469,10 +3469,16 @@ html.ny.ui5 body.wall .board .wpair>.widget{--z:1}
 html.ny.ui5 body.wall .board .wpair .wbig{font-size:calc(30px*var(--z));line-height:1.15}
 html.ny.ui5 body.wall .board .wpair .bbd-w{flex-basis:calc(84px*var(--z))}
 html.ny.ui5 body.wall .board .wpair .bbd-l{font-size:calc(15px*min(var(--z),1.2))}
-/* Städ: genväg till dammsugaren (S12) */
-.stad-rob{gap:12px;text-align:left}.stad-rob .grow{display:flex;flex-direction:column;min-width:0}.stad-rob .grow b{font-weight:400}.stad-rob small{font-size:13px;line-height:18px;color:var(--ink-2)}
-.stad-rob .ha-i{width:32px;height:32px;background:var(--fill);color:var(--ink-2)}.stad-rob .ha-i svg{width:20px;height:20px}.stad-rob .ha-i.on{background:#0A84FF;color:#fff}
-html.ny .stad-rob-g{margin-top:16px}html.ny.ui5 .stad-rob{min-height:60px;padding-top:8px;padding-bottom:8px}
+/* Städ: genväg till dammsugaren (S12), förslag A/B/C */
+.stad-rob-g{display:flex;align-items:center;gap:16px;width:calc(100% - 32px);margin:16px 16px 0;padding:16px;border:0;border-radius:var(--r5,22px);background:var(--surface);color:var(--ink);font:inherit;text-align:left;cursor:pointer;transition:transform .3s var(--ha-fj,ease)}.stad-rob-g:active{transform:scale(.98)}
+.stad-rob-g .chev{margin-left:auto;color:var(--ink-3);display:flex}.stad-rob-g .chev svg{width:14px;height:14px}
+.sr-t{display:flex;flex-direction:column;min-width:0;flex:1}.sr-t b{font-size:17px;line-height:22px;font-weight:600}.sr-t span{font-size:15px;line-height:20px;color:var(--ink-2)}.sr-t small{font-size:13px;line-height:18px;color:var(--ink-2);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sr-ill{width:72px;height:72px;flex:none}.sr-ill circle,.sr-ill path{fill:none;stroke-linecap:round}.sr-sp{stroke:var(--fill);stroke-width:4}.sr-pr{stroke:var(--green);stroke-width:4}.sr-ill.on .sr-pr{stroke:#0A84FF}
+.sr-kr{fill:var(--fill)!important;stroke:var(--ink-3);stroke-width:1.5}.sr-st{stroke:var(--ink-3);stroke-width:2}.sr-li{stroke:var(--ink-2);stroke-width:2}.sr-pu{fill:var(--ink-2)!important}.sr-ill.on .sr-li{stroke:#0A84FF}.sr-ill.on .sr-pu{fill:#0A84FF!important}
+.sr-b{flex-direction:column;align-items:stretch;gap:12px}.sr-hd{display:flex;align-items:center;gap:12px}.sr-hd .ha-i{width:36px;height:36px;background:var(--fill);color:var(--ink-2)}.sr-hd .ha-i.on{background:#0A84FF;color:#fff}
+.sr-rg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.sr-rum{display:flex;flex-direction:column;padding:8px 12px;border-radius:16px;background:var(--fill);min-width:0}.sr-rum b{font-size:13px;line-height:18px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sr-rum small{font-size:13px;line-height:18px;color:var(--ink-2)}.sr-rum.dags small{color:var(--orange,#C93400);font-weight:600}
+.sr-k{width:112px;height:84px;flex:none;border-radius:16px;background:var(--fill);overflow:hidden;display:grid;place-items:center}.sr-k img{width:100%;height:100%;object-fit:contain;padding:6px}
+html.wall .stad-rob-g{width:auto}
 </style>
 </head>
 <body>
