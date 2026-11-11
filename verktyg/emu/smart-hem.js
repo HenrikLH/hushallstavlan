@@ -7,6 +7,9 @@ module.exports=async(pg,h)=>{
  const vagg=!!process.env.HA||/"wall":"1"/.test(process.env.LS||'');
  await pg.locator('#nav [data-act="nav"][data-id="oversikt"]').first().click();await h.idle(process.env.HA?2500:500);
  const box=pg.locator('section.ha');assert.equal(await box.count(),1,'Smart hem-rutan ska finnas');
+ // demodatan spelar musik: då visar rutan volymkortet i stället för de släckta favoriterna (ht-v345). Stoppa först så att alla syns.
+ if(await box.locator('.hab-med').count()){await box.locator('.hab-med .ha-tx[data-act="habMedOpen"]').click();await h.idle(700);
+  await pg.locator('form[data-form="haMedia"] [data-act="haMedStopp"]').click();await h.idle(800);assert.equal(await box.locator('.hab-med').count(),0,'Musiken stoppad')}
  await box.evaluate(e=>scrollBy(0,e.getBoundingClientRect().top-90));await h.idle(400);
  await h.shot('smart-hem-1');
  const tile=id=>pg.locator('section.ha .ha-t[data-id="'+id+'"]');
