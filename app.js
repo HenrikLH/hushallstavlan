@@ -1914,7 +1914,9 @@ function dessertTillInkop(id){const r=recipeById(id);if(!r)return;const v=desser
  v.forEach((x,i)=>{const cat=katGissa(x.name);D().shop.push({id:'tmp'+Date.now()+'-'+i,done:false,name:x.name,qty:x.qty,cat,meals:['Efterrätt'],price:x.price,offer:'',source:'egen',addedBy:S.me,order:1000});apiPost({action:'shopAdd',name:x.name,qty:x.qty,cat,price:x.price==null?'':x.price})});
  render();toast(v.length?v.length+(v.length===1?' vara lagd':' varor lagda')+' i inköpslistan':'Allt står redan på inköpslistan')}
 // Miniatyr: receptets foto, annars en matsymbol
-const dishThumb=(r,t)=>{const img=r&&(r.img||imgOf(r.id));return'<span class="dr-th" aria-hidden="true">'+'<span>'+foodIcon(t,r)+'</span>'+(img?'<img src="'+esc(img)+'" alt="" loading="lazy" onerror="this.remove()">':'')+'</span>'};
+// Bild från inspirationsreceptet med samma id eller namn när rätten saknar eget foto
+const inspoImg=(id,t)=>{const L=inspoList(),n=String(t||'').replace(/^Storkok:\s*/i,'').trim().toLowerCase(),c=L.find(x=>x.id===id)||n&&L.find(x=>x.img&&x.title.replace(/^Storkok:\s*/i,'').trim().toLowerCase()===n);return c&&c.img||''};
+const dishThumb=(r,t)=>{const img=r&&(r.img||imgOf(r.id)||inspoImg(r.id,r.title||t));return'<span class="dr-th" aria-hidden="true">'+'<span>'+foodIcon(t,r)+'</span>'+(img?'<img src="'+esc(img)+'" alt="" loading="lazy" onerror="this.remove()">':'')+'</span>'};
 // Låsmarkering: strecket och hänglåset runt bilden eller runt hela raden (Inställningar → Låsa rätter)
 const LKM='<span class="lk-ring" aria-hidden="true"></span><span class="lk-bd" aria-hidden="true">'+I.lock+'</span>';
 const lkBild=(th,on)=>LASSTIL==='bild'?'<span class="lk-tw'+(on?' lk-on':'')+'" data-lk>'+th+LKM+'</span>':th;
@@ -2533,6 +2535,8 @@ function portCalc(){
  PLANP=null;
  return{P,B,MK,plats,dag,valda,korg,kassa,reserv,skTom,tomma,nMack,svinn,Q,klar:!skTom.length&&!tomma.length}}
 const portDag=d=>DAYS[(d+1)%7];
+/* Ny veckosedel med bilder (förslag): 'a' rutnät med två kort i bredd, 'b' ett stort kort i bredd, 'c' rader med större bild, 'rad' som förut */
+let MATBILD=lsGet('mbild')||'a';
 /* Generera veckosedel: portionsplaneringen fylls i med det som passar bäst, plats för plats (storkok, helg, vardagar),
    så att varje val räknas mot budgeten och de rätter som redan valts. Låsta rätter och mackor på veckosedeln ligger kvar.
    Igen ger en ny vecka: varje plats drar nya förslag (andra frön) */
@@ -2548,7 +2552,7 @@ function portAuto(igen){const W=weekTarget(),P=planState(),runda=igen?(P.runda||
 /* UI 5.0: Ny veckosedel som en Apple-vy. Stor rubrik, en sammanfattning med budget och kvällarna, och veckan som
    inset-listor (Lunchlådor, Middagar) med en rad per rätt. ⇄ fäller ut raden: portioner, andra förslag och Ta bort.
    Att köpa är en rad som fälls ut. Samma data och handlingar som portView */
-function portViewU5(){const C=portCalc(),{P,B}=C,mon=parse(P.vecka),sun=parse(addDays(P.vecka,6));
+function portViewU5(){const MB=/^[ab]$/.test(MATBILD)?MATBILD:'',grp=x=>MB?'<div class="g5-kg g5-m'+MB+'">'+x+'</div>':MATBILD==='c'?'<div class="group g5-big">'+x+'</div>':group(x),xp=x=>x?'<div class="g5-xp">'+group(x)+'</div>':'',C=portCalc(),{P,B}=C,mon=parse(P.vecka),sun=parse(addDays(P.vecka,6));
  NB.title='Ny veckosedel';NB.back=true;
  const dot=' · ',n=t=>C.dag.filter(x=>x.t===t).length,harMat=7-C.tomma.length,over=C.kassa>B,pct=Math.min(100,C.kassa/B*100);
  let h='<div class="rcp-top"><button class="back" data-act="planClose">'+I.back+'Mat</button></div><header class="head"><div class="head-row"><h1 class="lt" id="lt">Ny veckosedel</h1></div><div class="sub">Vecka '+isoWeek(mon)+' · '+mon.getDate()+(mon.getMonth()!==sun.getMonth()?' '+MON[mon.getMonth()]:'')+'–'+sun.getDate()+' '+MON[sun.getMonth()]+'</div></header>';
@@ -2563,6 +2567,10 @@ function portViewU5(){const C=portCalc(),{P,B}=C,mon=parse(P.vecka),sun=parse(ad
  // En rad per rätt. Undertext: dag, portioner, pris. ⇄ fäller ut raden
  const rad=(p,X,o)=>{const v=X.valt,r=v.r,pv=protVal(p.id,r),open=S.planOpen===p.id;
   const sub=[o.dag,v.n+' port',o.rest,kr(Math.round(v.t.kassa))].filter(Boolean).join(' · ');
+  if(MB){let k='<div class="g5-k'+(open?' open':'')+'"><button class="g5-kb" data-act="recipe" data-id="'+esc(r.id)+'"><span class="g5-ki">'+dishThumb(r,r.title)+'</span><span class="g5-kt">'+esc(cap(r.title.replace(/^Storkok:\s*/i,'')))+'</span><span class="g5-km">'+esc(sub)+'</span></button>'+
+   '<button class="g5-byt" data-act="planByt" data-id="'+p.id+'" aria-expanded="'+open+'" aria-label="Byt eller ändra '+esc(r.title)+'">'+I.swap+'</button>'+(pv?'<div class="g5-kp">'+protPills(pv,'planProt',p.id)+'</div>':'')+'</div>';
+   if(!open)return k;let x='';if(p.typ!=='storkok')x+='<div class="cell g5-x"><span class="grow">Portioner</span><div class="pl-step" role="group" aria-label="Portioner"><button data-act="portPort" data-id="'+p.id+'" data-d="-2" aria-label="Färre portioner"'+(v.minus?'':' disabled')+'>'+I.minus+'</button><span class="num">'+v.n+'</span><button data-act="portPort" data-id="'+p.id+'" data-d="2" aria-label="Fler portioner"'+(v.plus?'':' disabled')+'>'+I.plus+'</button></div></div>';
+   return k+xp(x+alt(X,p)+'<button class="cell g5-x g5-del" data-act="planUnpick" data-id="'+p.id+'"><span class="grow">Ta bort rätten</span></button>')}
   let g='<div class="cell g5-r'+(open?' open':'')+'"><button class="g5-th" data-act="recipe" data-id="'+esc(r.id)+'" aria-label="Öppna '+esc(r.title)+'">'+dishThumb(r,r.title)+'</button>'+
    '<button class="grow g5-b" data-act="recipe" data-id="'+esc(r.id)+'"><span class="title">'+esc(cap(r.title.replace(/^Storkok:\s*/i,'')))+'</span><span class="meta">'+esc(sub)+'</span></button>'+
    '<button class="g5-byt" data-act="planByt" data-id="'+p.id+'" aria-expanded="'+open+'" aria-label="Byt eller ändra '+esc(r.title)+'">'+I.swap+'</button></div>'+(pv?'<div class="cell g5-pv">'+protPills(pv,'planProt',p.id)+'</div>':'');
@@ -2571,21 +2579,28 @@ function portViewU5(){const C=portCalc(),{P,B}=C,mon=parse(P.vecka),sun=parse(ad
   g+=alt(X,p)+'<button class="cell g5-x g5-del" data-act="planUnpick" data-id="'+p.id+'"><span class="grow">Ta bort rätten</span></button>';return g};
  // Andra förslag: rader med Välj
  const alt=(X,p)=>{const L=X.val.concat(X.bonus?[X.bonus]:[]);if(!L.length)return'';
+  if(MB)return'<div class="cell g5-x g5-h">Andra förslag</div><div class="g5-kar">'+L.map(x=>{const r=x.r,stars=x.l.betyg?'★ '+starNum(x.l.s):'Ny';
+   return'<button class="g5-ka" data-act="planPick" data-id="'+esc(r.id)+'" data-k="'+p.id+'" data-n="'+x.n+'"><span class="g5-ki">'+dishThumb(r,r.title)+'</span><span class="g5-kt">'+esc(cap(r.title.replace(/^Storkok:\s*/i,'')))+'</span><span class="g5-km">'+esc(stars+' · '+kr(Math.round(x.t.kassa)))+'</span></button>'}).join('')+'</div>'+
+   (X.antalOk>L.length?'<button class="cell g5-x g5-mer" data-act="planMore" data-id="'+p.id+'"><span class="grow">Fler förslag</span><span class="meta">'+X.antalOk+' ryms</span></button>':'');
   return'<div class="cell g5-x g5-h">Andra förslag</div>'+L.map(x=>{const r=x.r,stars=x.l.betyg?'★ '+starNum(x.l.s):'Ny';
    return'<button class="cell g5-alt" data-act="planPick" data-id="'+esc(r.id)+'" data-k="'+p.id+'" data-n="'+x.n+'"><span class="g5-th">'+dishThumb(r,r.title)+'</span><span class="grow"><span class="title">'+esc(cap(r.title.replace(/^Storkok:\s*/i,'')))+'</span><span class="meta">'+esc(stars+' · '+kr(Math.round(x.t.kassa))+(p.typ!=='storkok'&&x.n>2?' · '+x.n+' port':''))+'</span></span><span class="g5-v">Välj</span></button>'}).join('')+
    (X.antalOk>L.length?'<button class="cell g5-x g5-mer" data-act="planMore" data-id="'+p.id+'"><span class="grow">Fler förslag</span><span class="meta">'+X.antalOk+' ryms</span></button>':'')};
- const tom=(p,X,namn)=>'<div class="cell g5-r g5-tom"><span class="g5-th"><span class="dr-th"><span>＋</span></span></span><span class="grow"><span class="title">Välj '+esc(namn)+'</span><span class="meta">'+(X.antal&&!X.antalOk?'Inget ryms i budgeten':'Inget valt')+'</span></span></div>'+alt(X,p);
+ const tom=(p,X,namn,ex)=>MB?'<div class="g5-k g5-ktom open"><div class="g5-kb"><span class="g5-ki"><span class="dr-th"><span>＋</span></span></span><span class="g5-kt">Välj '+esc(namn)+'</span><span class="g5-km">'+(X.antal&&!X.antalOk?'Inget ryms i budgeten':'Inget valt')+'</span></div></div>'+xp(alt(X,p)+(ex||'')):'<div class="cell g5-r g5-tom"><span class="g5-th"><span class="dr-th"><span>＋</span></span></span><span class="grow"><span class="title">Välj '+esc(namn)+'</span><span class="meta">'+(X.antal&&!X.antalOk?'Inget ryms i budgeten':'Inget valt')+'</span></span></div>'+alt(X,p);
  // Lunchlådor
  let g='';PLATSER2.filter(p=>p.typ==='storkok').forEach(p=>{const X=C.plats[p.id];g+=X.valt?rad(p,X,{dag:p.id==='sv'?'Vegetariskt':'Kött'}):tom(p,X,p.namn.toLowerCase())});
- h+=sh('Lunchlådor','Mån–fre')+group(g);
+ h+=sh('Lunchlådor','Mån–fre')+grp(g);
  // Middagar
  g='';C.dag.forEach(x=>{const p=x.p,X=C.plats[p.id],dag=cap(portDag(p.dag));
   if(x.t==='ratt'){const rest=C.dag.filter(y=>y.t==='rest'&&y.fr===p.dag).map(y=>portDag(y.p.dag));g+=rad(p,X,{dag,rest:rest.length?'rester '+lista(rest):''})}
+  else if(x.t==='rest'&&MB){const r=recipeById(P.val['d'+x.fr]);g+='<div class="g5-k g5-krest"><button class="g5-kb" data-act="recipe" data-id="'+esc(r.id)+'"><span class="g5-ki">'+dishThumb(r,r.title)+'<span class="g5-kbad">Rester</span></span><span class="g5-kt">'+esc(cap(r.title.replace(/^Storkok:\s*/i,'')))+'</span><span class="g5-km">'+esc(dag+' · rester')+'</span></button></div>'}
+  else if((x.t==='macka'||x.t==='auto')&&MB){g+='<div class="g5-k"><div class="g5-kb"><span class="g5-ki"><span class="dr-th"><span>🥪</span></span></span><span class="g5-kt">Macka</span><span class="g5-km">'+esc(dag+' · '+kr(C.MK)+(x.t==='auto'?' · ingen rätt ryms':''))+'</span></div>'+(x.t==='macka'?'<button class="g5-kv" data-act="portMacka" data-id="'+p.id+'">Välj rätt</button>':'')+'</div>'+
+    (x.fler.length?xp(x.fler.map(f=>'<button class="cell g5-x" data-act="portFler" data-id="'+f.q.id+'" data-n="'+f.n+'"><span class="grow">Laga '+f.n+' portioner '+esc(f.r.title.toLowerCase())+' i stället</span><span class="meta">'+(f.extra>0?'+'+kr(f.extra):kr(-f.extra)+' billigare')+'</span></button>').join('')):'')}
   else if(x.t==='rest'){const r=recipeById(P.val['d'+x.fr]);g+='<div class="cell g5-r g5-rest"><span class="g5-th">'+dishThumb(r,r.title)+'</span><span class="grow"><span class="title">Rester</span><span class="meta">'+esc(dag+' · '+r.title)+'</span></span></div>'}
   else if(x.t==='macka'||x.t==='auto'){g+='<div class="cell g5-r"><span class="g5-th"><span class="dr-th"><span>🥪</span></span></span><span class="grow"><span class="title">Macka</span><span class="meta">'+esc(dag+' · '+kr(C.MK)+(x.t==='auto'?' · ingen rätt ryms':''))+'</span></span>'+(x.t==='macka'?'<button class="g5-v" data-act="portMacka" data-id="'+p.id+'">Välj rätt</button>':'')+'</div>'+
     x.fler.map(f=>'<button class="cell g5-alt" data-act="portFler" data-id="'+f.q.id+'" data-n="'+f.n+'"><span class="g5-th"></span><span class="grow"><span class="meta">Laga '+f.n+' portioner '+esc(f.r.title.toLowerCase())+' i stället · '+(f.extra>0?'+'+kr(f.extra):kr(-f.extra)+' billigare')+'</span></span></button>').join('')}
+  else if(MB)g+=tom(p,X,dag.toLowerCase(),'<button class="cell g5-x" data-act="portMacka" data-id="'+p.id+'"><span class="grow">Macka den här kvällen</span><span class="meta">'+kr(C.MK)+'</span></button>')
   else g+=tom(p,X,dag.toLowerCase())+'<button class="cell g5-x" data-act="portMacka" data-id="'+p.id+'"><span class="grow">Macka den här kvällen</span><span class="meta">'+kr(C.MK)+'</span></button>'});
- h+=sh('Middagar','Mån–sön')+group(g);
+ h+=sh('Middagar','Mån–sön')+grp(g);
  // Att köpa, utfällbar
  const kop=C.korg.rad.filter(x=>x.n>0).sort((a,c)=>c.kr-a.kr),hemma=C.korg.rad.filter(x=>x.fran>0);
  if(kop.length)h+=group('<details class="g5-kop"><summary class="cell"><span class="grow">Att köpa</span><span class="meta">'+antal(kop.length,'vara','varor')+' · '+kr(C.korg.kr)+'</span>'+chevron+'</summary>'+
@@ -6448,7 +6463,7 @@ function recipeVersions(){return D().recipeStore&&D().recipeStore.versions||[]}
 function recipeRoot(id){const v=recipeVersions().find(r=>r.id===id);return v&&v._root||id}
 function recipeHead(id){const root=recipeRoot(id);return(D().recipeStore&&D().recipeStore.heads||[]).find(h=>h.root===root)}
 function recipeArchived(id){const h=recipeHead(id);return!!(h&&h.archived)}
-function recipeLegacy(id){const a=D().recipes.find(r=>r.id===id),b=bankRaw().find(r=>r.id===id),c=inspoList().find(r=>r.id===id);return a?Object.assign({},a,{img:b&&b.img||a.img||'',src:a.src||b&&b.src||c&&c.src||'',srcName:a.srcName||b&&b.srcName||c&&c.srcName||''}):b||c}
+function recipeLegacy(id){const a=D().recipes.find(r=>r.id===id),b=bankRaw().find(r=>r.id===id),c=inspoList().find(r=>r.id===id);return a?Object.assign({},a,{img:b&&b.img||a.img||c&&c.img||'',src:a.src||b&&b.src||c&&c.src||'',srcName:a.srcName||b&&b.srcName||c&&c.srcName||''}):b||c}
 function recipeGet(id){return recipeVersions().find(r=>r.id===id)||recipeLegacy(id)}
 function recipeCandidates(){const seen=new Set();return allRecipes().concat(inspoList()).map(r=>recipeLatest(r)).filter(r=>{const root=recipeRoot(r.id);if(seen.has(root)||recipeArchived(root))return false;seen.add(root);return true})}
 function recipePlanReady(r){return !r._root||!(r.groups||[]).some(g=>(g.items||[]).some(i=>i.q==null&&MV.vara(i.n)))}

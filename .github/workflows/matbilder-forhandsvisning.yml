@@ -1,0 +1,33 @@
+# Tillfälligt (tas bort före sammanslagning): hämtar matfoton och tar förhandsbilder där nätet når receptsidorna
+name: Matbilder förhandsvisning
+on:
+  push:
+    branches: [claude/project-thread-tjhego]
+    paths: ['verktyg/matbilder-hamta.js','verktyg/emu/matbilder.js','.github/workflows/matbilder-forhandsvisning.yml','app.js','index.html']
+permissions:
+  contents: write
+jobs:
+  bilder:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - run: node verktyg/matbilder-hamta.js
+      - run: npm install --no-save --package-lock=false playwright@1.62.1 pngjs@7.0.0 && npx playwright install --with-deps chromium
+      - name: Telefon ljust
+        env: {BILDER: '1', OUT: 'ut/telefon'}
+        run: node verktyg/emu/run.js verktyg/emu/matbilder.js
+      - name: Telefon mörkt
+        env: {BILDER: '1', OUT: 'ut/morkt', THEME: dark, MBLAGE: 'a'}
+        run: node verktyg/emu/run.js verktyg/emu/matbilder.js
+      - name: Väggskärm
+        env: {BILDER: '1', OUT: 'ut/vagg', LS: '{"wall":"1","me":""}', VP: 1368x912, MBLAGE: 'a,b'}
+        run: node verktyg/emu/run.js verktyg/emu/matbilder.js
+      - name: Spara på grenen forhandsvisning-matbilder
+        run: |
+          cp inspiration.json ut/
+          cd ut && git init -q -b forhandsvisning-matbilder && git add -A && git -c user.name=ci -c user.email=ci@localhost commit -qm "Förhandsbilder matbilder" 
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" forhandsvisning-matbilder
