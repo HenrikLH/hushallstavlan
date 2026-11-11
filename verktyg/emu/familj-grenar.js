@@ -19,7 +19,8 @@ module.exports=async(pg,h)=>{
  await click('[data-act="dev"]');await click('[data-act="familjOpen"]');await click('[data-act="nav"][data-id="slakt"]');
  assert.equal(await pg.locator('.fam3-node').count(),20,'Alla familjemedlemmar ska finnas på trädet');
  assert.equal(await pg.locator('.fam3-edge.bus').count(),6,'Exakt en barnbuss per familj');
- assert.ok(await pg.locator('.fam3-bridge').count()>0,'Korsningar har visuella bryggor istället för falska knutpunkter');
+ assert.equal(await pg.locator('.fam3-bridge').count(),0,'Korsningar ska ha riktiga linjeavbrott, inte övermålade bryggor');
+ assert.ok(await pg.locator('.fam3-edge.bus[d*=" M"]').count()>0,'Minst en korsande barnbuss ska delas i separata segment');
  const issues=await pg.locator('.fam3-svg').evaluate(svg=>{
   const nodes=[...svg.querySelectorAll('.fam3-node')].map(n=>{
    const p=n.getAttribute('transform').match(/translate\(([\d.]+) ([\d.]+)\)/);
@@ -32,7 +33,7 @@ module.exports=async(pg,h)=>{
    for(const cmd of part){
     const typ=cmd[0],nums=cmd.slice(1).trim().split(/\s+/).map(Number);
     const next=typ==='M'||typ==='L'?{x:nums[0],y:nums[1]}:typ==='H'?{x:nums[0],y:point?.y}:{x:point?.x,y:nums[0]};
-    if(point){if(point.x!==next.x&&point.y!==next.y)diagonal++;
+    if(point&&typ!=='M'){if(point.x!==next.x&&point.y!==next.y)diagonal++;
      for(const n of nodes){
       const loX=Math.min(point.x,next.x),hiX=Math.max(point.x,next.x),loY=Math.min(point.y,next.y),hiY=Math.max(point.y,next.y);
       if((point.x===next.x&&point.x>n.x-72&&point.x<n.x+72&&loY<n.y+33&&hiY>n.y-33)||
