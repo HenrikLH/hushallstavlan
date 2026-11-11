@@ -2,10 +2,22 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
-## Inställningar: rund tillbakaknapp i bladets rubrik (förslag, väntar på "Pusha")
+## Inställningar: rund tillbakaknapp i bladets rubrik (publicerad ht-v355)
 
-- Henrik valde A: på en undersida byts Avbryt mot en rund ‹-knapp (`.pref-bk`, `ACT.prefBack`) och delens namn står i bladets rubrik (20 pt fet, `prefHead`). Den gamla länken "‹ Inställningar" och stora rubriken borta. Bara UI 5.0. Gren `claude/project-thread-x44h4s`.
+- Henrik valde A: på en undersida byts Avbryt mot en rund ‹-knapp (`.pref-bk`, `ACT.prefBack`) och delens namn står i bladets rubrik (20 pt fet, `prefHead`). Den gamla länken "‹ Inställningar" och stora rubriken borta. Bara UI 5.0. Gren `claude/project-thread-x44h4s`, ångra-gren `version-fore-tillbakaknapp`.
 - Testskript som stängde bladet från en öppen undersida anropar nu `ACT.prefBack()` först. Test: ny `installningar-tillbaka.js` (telefon/vägg), installningar-delar, alla-flikar gröna; animationer, inkop-kollaps, ui-versioner, stad-vyer, ui5 faller likadant på main.
+
+## Matbilder i Ny veckosedel (publicerad ht-v353)
+
+- Ny veckosedel (`portViewU5`) visar rätterna som bildkort, två i bredd (fyra på väggen), eller som lista med stora bilder. Enhetsval Inställningar → Mat → Ny veckosedel (`MATBILD`, `ht.mbild`=c för lista, förval rutnät). ⇄ visar Andra förslag som bildkarusell. CSS `.g5-k*`/`.g5-big`. Ångra-gren `version-fore-matbilder`.
+- Foton: `img` i inspiration.json (100/101, länkade från receptsidorna; ICA hämtat med WebFetch eftersom ICA spärrar GitHub). `inspoImg` matchar id eller namn. Nya recept: `node verktyg/matbilder-hamta.js [--kolla]` där nätet når sajterna (inte molnet).
+- Test: `verktyg/emu/matbilder.js` (LS mbild=c för lista; BILDER=1 släpper igenom riktiga foton, fungerar bara där nätet når dem), generera-vecka, installningar-delar, alla-flikar telefon+vägg.
+
+## Hemmet ersätter Ekonomi i flikraden (publicerad ht-v352)
+
+- Henrik valde B + brickor: flikrad Mat · Hemmet · Översikt · Kalender · Att göra. Hemmet (`V.hemmet`, rutor H1/H2) har brickor för Smart hem (bara med haUrl/vägg), Ekonomi, Födelsedagar, Familj (DEV) och raden Inställningar. Undersidor (`HEM_UNDER`) markerar Hemmet; bakåt leder dit de öppnades från (`S.hemFran`, `hemTill`, `hemTop`). Översikt har rutnätsikonen `I_OV`.
+- Ångra-gren `version-fore-hemmet`. Väggdatorn uppdateras först när Henrik skriver "Kör" (laddar annars om sig själv när app.js?v ändras).
+- Test: `verktyg/emu/hemmet.js` (telefon, vägg, mörkt, uppstart view=ekonomi), alla-flikar telefon+vägg, flikrad-lins gröna.
 
 ## Smarta förslag borttagna från Översikt (publicerad ht-v351)
 
@@ -28,6 +40,11 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 - Orsak −/+: anrop gick parallellt (kunde komma fram i fel ordning) och väggdatorns äldre läge skrev över det valda innan lampan rapporterat. Nu `haKo` (ett anrop i taget per lampa, däremellan bara det senaste) och `HA.mal`/`haMalLagg` (valt läge visas i `HA_MAL` 8 s). Gäller även ljusstyrkereglaget.
 - `haFavs()` sorterar kall→varm; Ändra-bladet (⋯) har Favorittoner, tryck öppnar `haFav` (namn bara i telefonen). Gren `claude/project-thread-9qfmlm`, ingen Kod.gs/tjänst.
 - Test: ny `smart-hem-tonsteg.js` (telefon, falsk tjänst; faller på main), smart-hem-ton telefon+vägg, ljusvanor, smart-hem-ruta, -rorelse gröna. `smart-hem.js` faller redan på main (light.hall).
+
+## En högtalare åt gången, mediarad utan text (publicerad ht-v354)
+
+- Henrik valde 2026-11-11: högtalarbrickor (Stor/Liten/Alla, en åt gången, `hamHogVal`, `hamEnHog`) och mediarad B1 = Kontrollcenter-stapel utan text, Spotify med ⏮ ⏯ ⏭ ovanpå och större play (`habMedKort`, `habPlatser`). Ångra-gren `version-fore-hogtalarval`. Ingen ändring i mellanledet. Kvar: Henrik provar på väggen.
+- Test: hogtalare.js telefon/vägg och alla-flikar gröna; smart-hem.js faller som förut (även på main).
 
 ## Högtalare-knappen och mediakontroller (publicerad ht-v349)
 

@@ -3254,7 +3254,7 @@ form[data-form="haLampa"] .ha-ctl{flex:1;justify-content:center;padding-top:24px
 .ha-ap{grid-column:1/-1;position:relative;overflow:hidden}.ha-ap .ha-i{background:rgba(120,120,128,.16);color:var(--ink-2)}.ha-ap.on.ha-ap-robot .ha-i{background:#0A84FF;color:#fff}.ha-ap.on.ha-ap-disk .ha-i{background:#30B0C7;color:#fff}
 .ha-ap .ha-tx{flex:1}.ha-ap-p{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(120,120,128,.18)}.ha-ap-p::after{content:'';position:absolute;inset:0 auto 0 0;width:var(--p);background:#0A84FF;border-radius:0 2px 2px 0}.ha-ap-disk .ha-ap-p::after{background:#30B0C7}
 .ha-g .ha-t.ha-ap.on{background:var(--fill);box-shadow:none}.ha-g-v .ha-t.ha-ap.on{background:var(--surface)}
-/* Smart hem-rutan: fyra scener överst och favoriter under, blad för att anpassa (ht-v351) */
+/* Smart hem-rutan: fyra scener överst och favoriter under, blad för att anpassa (ht-v355) */
 .hab-h{display:flex;align-items:center;gap:8px}.hab-h .wh{flex:1;min-width:0}
 .hab-mer{flex:none;display:grid;place-items:center;width:30px;height:30px;padding:0;border:0;border-radius:50%;background:var(--fill);color:var(--ink-2);cursor:pointer;-webkit-tap-highlight-color:transparent}.hab-mer svg{width:18px;height:18px}
 /* Designskillen (hushallstavlan-apple-design): rutan har hörn 26 och kant 16, därför hörn 16 innanför (inte kapslar), 8-avstånd, text 15/13 */
@@ -3272,16 +3272,26 @@ body.wall .hab .hab-g .ha-tx{flex-direction:row;align-items:baseline;gap:6px}bod
 .hab .hab-sc .hab-tom{background:transparent;box-shadow:inset 0 0 0 1.5px var(--line);color:var(--ink-3)}.hab-tom .ha-i{background:transparent;color:var(--ink-3)}
 .hab .hab-g{margin-top:8px;gap:8px}
 .hab-inga{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin-top:8px;min-height:56px;border:0;border-radius:var(--r5,16px);background:transparent;box-shadow:inset 0 0 0 1.5px var(--line);color:var(--ink-2);font:inherit;cursor:pointer}.hab-inga svg{width:18px;height:18px}
-/* Smart hem-rutan när något spelar: gemensamt volymreglage längst ner i stället för fyra favoritplatser */
+/* Smart hem-rutan när något spelar: mediaraden ersätter favoritplatser (2, eller 4 med Spotify-knappar) */
 .hab .hab-g .hab-med{grid-column:1/-1;gap:4px;cursor:default}
-.hab .hab-g .hab-med.ha-dim::before{background:var(--accent);opacity:.14}
-.hab-med .ha-tx{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;min-height:44px;border:0;background:none;padding:0 0 0 4px;font:inherit;color:inherit;text-align:left;cursor:pointer}
-.hab-med .ha-n,.hab-med .ha-s{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.hab-med .ham-pct{width:auto;font-size:inherit;color:inherit}
 .hab-pp{flex:none;display:grid;place-items:center;width:44px;height:44px;border:0;border-radius:999px;background:none;color:var(--ink);padding:0;cursor:pointer}.hab-pp svg{width:22px;height:22px}
-.hab-med .hab-pp{width:40px;margin:0}.hab-med .hab-pp svg{width:20px;height:20px}.hab-med .hab-steg svg{width:18px;height:18px}
-.hab-med.spl .ha-i{background:var(--accent);color:var(--on-accent,#fff)}
 body.wall .hab-pp{width:48px;height:48px}
+/* mediaraden: bara reglage som Kontrollcenter. Spotify: ⏮ ⏯ ⏭ ovanpå stapeln med jämn luft (8px) runt om */
+.hab .hab-g .ha-t.hab-med{flex-direction:column;align-items:stretch;justify-content:center;gap:0;padding:8px}
+.hab-med .hab-kn{display:flex;justify-content:center;align-items:center;gap:32px;height:40px;margin-bottom:8px}
+.hab-med .hab-kn .hab-pp{width:44px;height:40px}.hab-med .hab-kn .hab-pp svg{width:22px;height:22px}.hab-med .hab-kn .hab-ppx svg{width:32px;height:32px}
+.hab-pp:disabled{color:var(--ink-3);cursor:default}
+.hab-bar{flex:none;position:relative;height:44px;border-radius:14px;background:var(--line);overflow:hidden;touch-action:none;cursor:pointer}
+.hab-bar i{position:absolute;inset:0;transform-origin:left;transform:scaleX(var(--p));background:var(--accent)}
+.hab-bi{position:absolute;left:12px;top:50%;margin-top:-10px;color:#fff}.hab-bi svg{width:20px;height:20px;display:block}
+body.wall .hab-bar{height:48px}
+/* högtalarval i bladet: A brickor, B segment */
+.ham-hg{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:8px;margin:0 16px}
+.ham-ht{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-height:96px;padding:12px;border:0;border-radius:16px;background:var(--surface);color:var(--ink);font:inherit;text-align:left;cursor:pointer;transition:background .2s,color .2s}
+.ham-hi{display:grid;place-items:center;width:36px;height:36px;margin-bottom:auto;border-radius:50%;background:var(--fill,var(--pill));color:var(--ink-2)}.ham-hi svg{width:22px;height:22px}
+.ham-hn{font-weight:600;font-size:15px;margin-top:8px}.ham-hs{font-size:13px;color:var(--ink-2)}
+.ham-ht.on{background:var(--accent);color:var(--on-accent,#fff)}.ham-ht.on .ham-hi{background:rgba(255,255,255,.22);color:inherit}.ham-ht.on .ham-hs{color:inherit}
+
 .hab-r{display:flex;align-items:center;gap:0;width:100%;text-align:left;font:inherit;color:inherit;background:none;border:0}.hab-r .grow{min-width:0}
 .hab-pm{flex:none;display:grid;place-items:center;width:24px;height:24px;margin:0 12px 0 0;padding:0;border:0;border-radius:50%;color:#fff;cursor:pointer}.hab-pm svg{width:14px;height:14px}.hab-minus{background:#FF3B30}.hab-plus{background:#34C759;margin:0 0 0 10px}
 .hab-grip{flex:none;display:grid;place-items:center;width:40px;height:40px;margin:-8px -8px -8px 6px;color:var(--ink-3);touch-action:none;cursor:grab}.hab-grip svg{width:20px;height:20px}
@@ -3363,6 +3373,18 @@ html.ny.ui5 .wsum-m.pris-gammal,html.ny.ui5 .foot.pris-gammal{color:var(--obs)}
 html.ny.ui5 .ovtxt{color:var(--obs)}
 html.ny.ui5 .ovs.saknas,html.ny.ui5 .ovs.andrad,html.ny.ui5 .ov-cell .ovs{background:var(--obs-bg);color:var(--obs)}
 html.ny.ui5 .cell.dr-slide .pill{background:var(--fill);color:var(--ink)}
+/* ===== Hemmet (alla UI): brickor som Hem-appen, Inställningar som rad ===== */
+.hem-ic{flex:none;display:grid;place-items:center;width:30px;height:30px;border-radius:8px;color:#fff}
+.hem-ic svg{width:19px;height:19px;stroke-width:2}
+.hem-r{min-height:52px}
+.hem-r+.hem-r::before,html.ny.ui5 .hem-r+.hem-r::before{left:62px}
+.hem-s.obs{color:var(--obs,var(--orange,#C93400))}
+.hem-g{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 16px 24px}
+.hem-b{display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-height:112px;padding:16px;border-radius:var(--r5,26px);background:var(--surface);color:var(--ink);text-align:left}
+.hem-b .hem-ic{margin-bottom:auto}
+.hem-n{font-size:17px;line-height:22px;font-weight:600;margin-top:12px}
+.hem-s{font-size:15px;line-height:20px;color:var(--ink-2)}
+@media (min-width:900px){.hem-g{grid-template-columns:repeat(4,1fr)}.hem-b{min-height:132px}}
 /* ===== Mer väder och smarta förslag (alla UI) ===== */
 /* Väder: SMHI-varning överst, nya rutor (Vädra, Ute, UV, Pollen, Norrsken) */
 .wx-varn{display:block;background:var(--surface);border-radius:var(--r5,16px);padding:12px 16px 14px;margin:0 16px 14px}
@@ -3479,6 +3501,29 @@ html.ny.ui5 body.wall .board .wpair>.widget{--z:1}
 html.ny.ui5 body.wall .board .wpair .wbig{font-size:calc(30px*var(--z));line-height:1.15}
 html.ny.ui5 body.wall .board .wpair .bbd-w{flex-basis:calc(84px*var(--z))}
 html.ny.ui5 body.wall .board .wpair .bbd-l{font-size:calc(15px*min(var(--z),1.2))}
+/* Ny veckosedel med bilder: rutnät (.g5-kg) eller lista med stora bilder (.g5-big) */
+html.ny.ui5 .g5-kg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0 16px}
+html.ny.ui5 .g5-k{position:relative;display:flex;flex-direction:column;background:var(--surface);border-radius:var(--r5,26px);overflow:hidden;min-width:0}
+html.ny.ui5 .g5-kb{display:flex;flex-direction:column;align-items:stretch;text-align:left;padding:0 0 12px;border:0;background:none;font:inherit;color:inherit;min-width:0;flex:1}
+html.ny.ui5 .g5-ki{position:relative;display:block;aspect-ratio:4/3;background:var(--fill)}
+html.ny.ui5 .g5-ki .dr-th{width:100%;height:100%;border-radius:0;font-size:56px;background:color-mix(in srgb,var(--accent) 7%,var(--fill))}
+html.ny.ui5 .g5-kt{padding:10px 12px 0;font-size:15px;line-height:20px;font-weight:600;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+html.ny.ui5 .g5-km{padding:2px 12px 0;font-size:13px;line-height:18px;color:var(--ink-3)}
+html.ny.ui5 .g5-k .g5-byt{position:absolute;top:8px;right:8px;width:36px;height:36px;background:rgba(0,0,0,.38);color:#fff;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+html.ny.ui5 .g5-k .g5-byt::after{content:'';position:absolute;inset:-4px}html.ny.ui5 .g5-k.open .g5-byt{background:var(--accent)}
+html.ny.ui5 .g5-k.open{box-shadow:inset 0 0 0 2px var(--accent)}html.ny.ui5 .g5-ktom.open{box-shadow:none}
+html.ny.ui5 .g5-kp{padding:0 12px 12px}html.ny.ui5 .g5-kp .ppl{max-width:100%}
+html.ny.ui5 .g5-kbad{position:absolute;left:8px;bottom:8px;padding:2px 8px;border-radius:999px;background:rgba(0,0,0,.5);color:#fff;font-size:13px;line-height:18px;font-weight:600}
+html.ny.ui5 .g5-krest .g5-ki .dr-th{opacity:.75}
+html.ny.ui5 .g5-ktom .g5-ki .dr-th{background:none;box-shadow:inset 0 0 0 1.5px var(--line);border-radius:var(--r5,26px) var(--r5,26px) 0 0;color:var(--accent);font-size:40px}html.ny.ui5 .g5-ktom .g5-kt{color:var(--accent)}
+html.ny.ui5 .g5-k .g5-kv{border:0;background:none;color:var(--accent);font:inherit;font-size:15px;font-weight:600;text-align:left;padding:0 12px 12px;min-height:32px}
+html.ny.ui5 .g5-xp{grid-column:1/-1}html.ny.ui5 .g5-xp>.group{margin:0}
+html.ny.ui5 .g5-kar{display:flex;gap:8px;overflow-x:auto;padding:4px 16px 12px;scroll-snap-type:x mandatory;scrollbar-width:none;background:color-mix(in srgb,var(--fill) 45%,var(--surface))}html.ny.ui5 .g5-kar::-webkit-scrollbar{display:none}
+html.ny.ui5 .g5-ka{flex:none;width:140px;display:flex;flex-direction:column;text-align:left;padding:0 0 10px;border:0;border-radius:16px;overflow:hidden;background:var(--surface);font:inherit;color:inherit;scroll-snap-align:start}
+html.ny.ui5 .g5-ka .g5-ki .dr-th{font-size:44px}html.ny.ui5 .g5-ka .g5-kt{padding:8px 10px 0}html.ny.ui5 .g5-ka .g5-km{padding:2px 10px 0}
+@media (min-width:900px){html.ny.ui5 .g5-kg{grid-template-columns:repeat(4,minmax(0,1fr))}html.ny.ui5 .g5-ka{width:180px}}
+html.ny.ui5 .g5-big .g5-r{padding-top:12px;padding-bottom:12px;gap:16px}
+html.ny.ui5 .g5-big .g5-th,html.ny.ui5 .g5-big .g5-th .dr-th{width:88px;height:88px}html.ny.ui5 .g5-big .g5-th .dr-th{border-radius:16px;font-size:44px}html.ny.ui5 .g5-big .g5-pv{padding-left:124px}
 </style>
 </head>
 <body>
@@ -3493,7 +3538,7 @@ html.ny.ui5 body.wall .board .wpair .bbd-l{font-size:calc(15px*min(var(--z),1.2)
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=340"></script>
+<script src="app.js?v=344"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>

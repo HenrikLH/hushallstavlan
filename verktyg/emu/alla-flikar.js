@@ -10,7 +10,9 @@ module.exports=async(pg,h)=>{
   await h.idle(700);
   const b=await pg.evaluate(()=>{const x=[...document.querySelectorAll('.banner')].find(y=>/Något gick fel/.test(y.textContent));return x?x.textContent:''});
   if(b)fel('(banner) '+namn+': '+b);await h.shot(namn)};
- for(const v of ['oversikt','mat','kalender','uppgifter','ekonomi'])await klick('#nav [data-act="nav"][data-id="'+v+'"]','vy-'+v);
+ for(const v of ['oversikt','mat','kalender','uppgifter','hemmet'])await klick('#nav [data-act="nav"][data-id="'+v+'"]','vy-'+v);
+ // Ekonomi ligger under Hemmet
+ await klick('#main [data-act="nav"][data-id="ekonomi"]','vy-ekonomi');await klick('#main .back[data-id="hemmet"]','tillbaka-hemmet');
  await klick('#nav [data-act="nav"][data-id="uppgifter"]','uppgifter');
  for(const t of ['stad','lista','stad'])await klick('[data-act="taskTab"][data-id="'+t+'"]','attgora-'+t);
  // Att göra i menyraden kommer ihåg att man senast var i Städ; ett tryck till går till Uppgifter
