@@ -4,8 +4,8 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 ## Pågår: Inställningar per huvudflik (Claude, förslag)
 
-- Mål: en inställningsdel per huvudflik. Ny ordning: Personer · Mat, Översikt, Att göra · Utseende, Enheten, Utvecklarläge (Ekonomi och Kalender har inga inställningar och visas inte).
-- Gren `claude/project-thread-yglded`. Flyttat: matbudget/priser/låsa → Mat (I7); städtid/Städvyn → Att göra (I8); Rörelse → Utseende; Avancerat heter Utvecklarläge. I3 borttagen. Grupper med `'|'` i `settingsGroups` → `.pref-gap`.
+- Mål: en inställningsdel per huvudflik. Ny ordning: Personer · Mat, Ekonomi, Översikt, Kalender, Att göra · Utseende, Enheten, Utvecklarläge (Henrik ville ha alla fem flikarna).
+- Gren `claude/project-thread-yglded`. Flyttat: matbudget/priser/låsa → Mat (I7); städtid/Städvyn → Att göra (I8); Ekonomi (I9): länkar Matbudget per månad + Presentbudget (bara olåst); Kalender (I10): startvy calVy + Födelsedagars visning fodMode; Rörelse → Utseende; Avancerat heter Utvecklarläge. I3 borttagen. Grupper med `'|'` i `settingsGroups` → `.pref-gap`.
 - Test: nytt `verktyg/emu/installningar-delar.js`, installningar.js (LS ui=2), alla-flikar telefon+vägg gröna. stad-vyer/animationer/smart-hem-test föll redan på main.
 - Nästa: vänta på Henriks ok och "Pusha" (version.js, ångra-gren `version-fore-installningar-delar`).
 
