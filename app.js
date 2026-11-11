@@ -5246,19 +5246,36 @@ function slaktV3Layout(B){
  });
  // At unavoidable crossings, keep the vertical branch unbroken and visibly
  // interrupt the unrelated horizontal bus. This avoids false junctions.
- const bridges=[],locations=new Set();
- const crossing=(v,h)=>{if(v.key===h.key||v.x1!==v.x2||h.y1!==h.y2)return;
+ // Cut real gaps into unrelated horizontal buses rather than painting a circle
+ // over intersections. Masks can leave misleading junctions on translucent themes.
+ const busGaps=new Map();
+ const crossing=(v,h)=>{if(v.key===h.key||v.x1!==v.x2||h.y1!==h.y2||h.kind!=='bus')return;
   const x=v.x1,y=h.y1;
   if(x>Math.min(h.x1,h.x2)+9&&x<Math.max(h.x1,h.x2)-9&&y>Math.min(v.y1,v.y2)+9&&y<Math.max(v.y1,v.y2)-9){
-   const id=Math.round(x)+'|'+Math.round(y);if(locations.has(id))return;locations.add(id);
-   bridges.push('<g class="fam3-bridge"><circle cx="'+x+'" cy="'+y+'" r="5"/><path d="M'+x+' '+(y-6)+' V'+(y+6)+'"/></g>');
+   const key=encodeURIComponent(h.key)+'@'+y;
+   if(!busGaps.has(key))busGaps.set(key,[]);
+   busGaps.get(key).push(x);
   }
  };
  for(let i=0;i<segments.length;i++)for(let j=i+1;j<segments.length;j++){
   crossing(segments[i],segments[j]);crossing(segments[j],segments[i]);
  }
+ const clearEdges=edges.map(path=>{
+  if(!path.includes('fam3-edge bus'))return path;
+  const m=path.match(/data-family="([^"]+)" d="M([\\d.]+) ([\\d.]+) H([\\d.]+)"/);
+  if(!m)return path;
+  const [,family,x0,y0,x1]=m,from=Number(x0),to=Number(x1),y=Number(y0),gaps=(busGaps.get(family+'@'+y)||[]).sort((a,b)=>a-b);
+  if(!gaps.length)return path;
+  let cursor=Math.min(from,to);const end=Math.max(from,to),pieces=[];
+  for(const x of gaps){const left=Math.max(cursor,x-7),right=Math.min(end,x+7);
+   if(left>cursor)pieces.push('M'+cursor+' '+y+' H'+left);
+   cursor=Math.max(cursor,right);
+  }
+  if(cursor<end)pieces.push('M'+cursor+' '+y+' H'+end);
+  return path.replace(/d="[^"]+"/,'d="'+pieces.join(' ')+'"');
+ });
  const height=Math.max(...[...pos.values()].map(p=>p.y))+100;
- return{pos,width,height,edges,bridges,segments,families:byFamily,units};
+ return{pos,width,height,edges:clearEdges,segments,families:byFamily,units};
 }
 function slaktNear(focus,all){const look=k=>all.find(b=>b.key===k),parents=slaktParents(focus.key).map(look).filter(Boolean),partners=slaktPartners(focus.key).map(look).filter(Boolean);const sib=new Map();slaktSiblings(focus.key).map(look).filter(Boolean).forEach(b=>sib.set(b.key,b));parents.forEach(p=>slaktChildren(p.key).filter(b=>b.key!==focus.key).forEach(b=>sib.set(b.key,b)));return{parents,partners,siblings:[...sib.values()],children:slaktChildren(focus.key)}}
 function slaktV3Markup(B,focus){
@@ -5271,7 +5288,7 @@ function slaktV3Markup(B,focus){
   return '<g class="fam3-node'+(selected?' selected':'')+(fade?' muted':'')+'" role="button" tabindex="0" data-act="slaktFocus" data-id="'+esc(b.key)+'" transform="translate('+p.x+' '+p.y+')"><rect class="fam3-card" x="-74" y="-34" width="148" height="68" rx="17"/><circle class="fam3-circle" cx="-47" cy="0" r="19"/><text class="fam3-initial" x="-47" y="6" text-anchor="middle">'+esc(b.name[0].toUpperCase())+'</text><text class="fam3-name" x="-21" y="5" text-anchor="start">'+esc(b.name.length>13?b.name.slice(0,12)+'…':b.name)+'</text></g>'}).join('');
  const near=slaktNear(focus,slaktPersons()),meta=[near.parents.length+' föräldrar',near.siblings.length+' syskon',near.children.length+' barn'].join(' · ');
  return '<div class="fam3"><div class="fam3-toolbar"><div class="fam3-toolbar-title"><strong>Släktträd</strong><small>'+B.length+' personer · '+new Set([...t.pos.values()].map(p=>p.level)).size+' generationer</small></div><div class="fam3-toolbar-buttons"><button type="button" class="fam3-tool" data-act="slaktV3Fit" aria-label="Visa hela trädet" title="Visa hela trädet">⤢</button><button type="button" class="fam3-tool" data-act="slaktV3Center" aria-label="Centrera vald" title="Centrera vald">◎</button></div></div>'+
-  '<div class="fam3-viewport" data-width="'+t.width+'" data-height="'+t.height+'" data-selected="'+esc(focus.key)+'" aria-label="Släktträd. Dra för att flytta kartan, nyp för att zooma."><svg class="fam3-svg" xmlns="http://www.w3.org/2000/svg"><g class="fam3-stage"><g class="fam3-connectors">'+nearEdges+t.bridges.join('')+'</g><g class="fam3-nodes">'+nodes+'</g></g></svg><div class="fam3-zoom"><button type="button" data-act="slaktV3Zoom" data-id="minus" aria-label="Zooma ut">−</button><span class="fam3-scale">100 %</span><button type="button" data-act="slaktV3Zoom" data-id="plus" aria-label="Zooma in">+</button></div></div>'+
+  '<div class="fam3-viewport" data-width="'+t.width+'" data-height="'+t.height+'" data-selected="'+esc(focus.key)+'" aria-label="Släktträd. Dra för att flytta kartan, nyp för att zooma."><svg class="fam3-svg" xmlns="http://www.w3.org/2000/svg"><g class="fam3-stage"><g class="fam3-connectors">'+nearEdges+'</g><g class="fam3-nodes">'+nodes+'</g></g></svg><div class="fam3-zoom"><button type="button" data-act="slaktV3Zoom" data-id="minus" aria-label="Zooma ut">−</button><span class="fam3-scale">100 %</span><button type="button" data-act="slaktV3Zoom" data-id="plus" aria-label="Zooma in">+</button></div></div>'+
   '<div class="fam3-legend">Dra för att panorera · Nyp för att zooma · Tryck på en person</div>'+
   '<div class="fam3-detail"><span class="fam3-person-circle">'+esc(focus.name.slice(0,1).toUpperCase())+'</span><span class="grow"><strong>'+esc(focus.name)+'</strong><small>'+esc(meta)+'</small></span><button type="button" class="fam3-details-edit" data-act="slaktEdit" data-id="'+esc(focus.key)+'">Relationer</button></div>'+
   '<div class="fam3-detail-actions"><button type="button" data-act="slaktVy" data-id="'+(active?'alla':'fokus')+'">'+(active?'Visa alla relationer':'Framhäv närmaste familjen')+'</button></div></div>';
