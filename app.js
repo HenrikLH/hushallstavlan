@@ -1438,7 +1438,7 @@ function habMedKort(P){const v=habVolNu(P),sp=P.some(haMedSpelar),m0=P.find(haMe
   kn=spot?'<div class="hab-kn">'+steg(0)+'<button type="button" class="hab-pp hab-ppx" data-act="habMedTog" aria-pressed="'+sp+'" aria-label="'+(sp?'Pausa':'Spela')+'">'+HAB_PP(sp)+'</button>'+steg(1)+'</div>':'',
   bar='<div class="hab-bar" data-hamvol="ruta" style="--p:'+v+'%" role="slider" aria-label="Volym, '+esc(vg)+'" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+v+'"><i></i>'+(alt!=='A'?'<span class="hab-bi">'+HAI_VOL(1)+'</span>':'<b></b>')+'</div>',
   vol=alt==='A'?'<div class="hab-vr"><button type="button" class="hab-vb" data-act="habVol" data-id="-5" aria-label="Lägre volym">'+HAI_VOL(0)+'</button>'+bar+'<button type="button" class="hab-vb" data-act="habVol" data-id="5" aria-label="Högre volym">'+HAI_VOL(1)+'</button></div>':bar;
- return'<div class="ha-t hab-med hab-m'+alt+(spot?' spot':'')+'" role="group" aria-label="Spelar på '+esc(vg)+'" data-hm="'+esc(P.map(m=>m.id).join(','))+'">'+(alt==='C'?kn+vol:kn+vol)+'</div>'}
+ return'<div class="ha-t hab-med hab-m'+alt[0]+' hab-'+alt+(spot?' spot':'')+'" role="group" aria-label="Spelar på '+esc(vg)+'" data-hm="'+esc(P.map(m=>m.id).join(','))+'">'+(alt==='C'?kn+vol:kn+vol)+'</div>'}
 // det som är igång stannar: apparater som kör går först, sedan tända lampor, sedan resten; ordningen i rutan behålls
 const habFvKort=(L,max)=>{const pr=e=>e.ap?(haAppAktiv(e.x)?0:2):e.x.on?1:2,ut=new Set();let n=0;
  L.map((e,i)=>[pr(e),i,e]).sort((a,b)=>a[0]-b[0]||a[1]-b[1]).forEach(([,,e])=>{if(n+habPl(e)<=max){ut.add(e);n+=habPl(e)}});return L.filter(e=>ut.has(e))};
