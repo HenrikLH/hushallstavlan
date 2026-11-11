@@ -3289,14 +3289,21 @@ body.wall .hab-pp{width:48px;height:48px}
 .hab-bi{position:absolute;left:12px;top:50%;margin-top:-10px;color:#fff;mix-blend-mode:normal}.hab-bi svg{width:20px;height:20px;display:block}
 .hab-mB .hab-kn{margin-bottom:6px}.hab-med>.hab-bar{flex:none}.hab .hab-g .ha-t.hab-mC.spot>.hab-bar{flex:1}
 .hab .hab-g .ha-t.hab-mC.spot{flex-direction:row;align-items:center;gap:8px}.hab-mC .hab-kn{gap:0}.hab-mC .hab-kn .hab-pp{width:40px}
-body.wall .hab-bar{height:48px}body.wall .hab-vb{width:48px;height:48px}
+body.wall .hab-bar{height:48px}
+/* S: smal Kontrollcenter. Reglaget syns 28px högt men tar emot tryck på 44 (vägg 32/48); knapparna överlappar luften */
+.hab .hab-g .ha-t.hab-mS{padding:2px 8px;min-height:0}
+.hab-mS .hab-bar::before,.hab-mS .hab-bar i{content:"";position:absolute;left:0;right:0;top:8px;bottom:8px;border-radius:10px;background:var(--line)}
+.hab-mS .hab-bar i{background:var(--accent);clip-path:inset(0 calc(100% - var(--p)) 0 0);transition:clip-path .2s}
+.hab-mS .hab-bi{left:10px;margin-top:-8px;z-index:1}.hab-mS .hab-bi svg{width:16px;height:16px}
+.hab-mS .hab-kn{margin-bottom:-8px;gap:32px}.hab-mS .hab-kn .hab-pp svg{width:18px;height:18px}.hab-mS .hab-kn .hab-ppx svg{width:22px;height:22px}
+body.wall .hab-mS .hab-bar::before,body.wall .hab-mS .hab-bar i{top:8px;bottom:8px}body.wall .hab-vb{width:48px;height:48px}
 /* högtalarval i bladet: A brickor, B segment */
 .ham-hg{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:8px;margin:0 16px}
 .ham-ht{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-height:96px;padding:12px;border:0;border-radius:16px;background:var(--surface);color:var(--ink);font:inherit;text-align:left;cursor:pointer;transition:background .2s,color .2s}
 .ham-hi{display:grid;place-items:center;width:36px;height:36px;margin-bottom:auto;border-radius:50%;background:var(--fill,var(--pill));color:var(--ink-2)}.ham-hi svg{width:22px;height:22px}
 .ham-hn{font-weight:600;font-size:15px;margin-top:8px}.ham-hs{font-size:13px;color:var(--ink-2)}
 .ham-ht.on{background:var(--accent);color:var(--on-accent,#fff)}.ham-ht.on .ham-hi{background:rgba(255,255,255,.22);color:inherit}.ham-ht.on .ham-hs{color:inherit}
-.ham-seg{margin:0 16px}
+
 .hab-r{display:flex;align-items:center;gap:0;width:100%;text-align:left;font:inherit;color:inherit;background:none;border:0}.hab-r .grow{min-width:0}
 .hab-pm{flex:none;display:grid;place-items:center;width:24px;height:24px;margin:0 12px 0 0;padding:0;border:0;border-radius:50%;color:#fff;cursor:pointer}.hab-pm svg{width:14px;height:14px}.hab-minus{background:#FF3B30}.hab-plus{background:#34C759;margin:0 0 0 10px}
 .hab-grip{flex:none;display:grid;place-items:center;width:40px;height:40px;margin:-8px -8px -8px 6px;color:var(--ink-3);touch-action:none;cursor:grab}.hab-grip svg{width:20px;height:20px}

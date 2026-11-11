@@ -1396,9 +1396,8 @@ function haMedSheet(enter){const F=S.haMed,D=haData();if(!F||!D){S.sheet=null;re
   sh('Högtalare')+hamHogVal(M.filter(m=>!m.nas),F.hog[0]);
  if(!sc&&spelar.length)body+='<div style="height:22px"></div>'+group('<button type="button" class="cell link center red" data-act="haMedStopp">Stoppa '+(spelar.length>1?'alla':esc(spelar[0].n))+'</button>');
  return sheetHtml('haMedia',sc?'Högtalare':'Musik','<button type="button" class="tb strong" data-act="haMedSpela">'+(sc?'Starta':'Spela')+'</button>',body,enter)}
-// högtalarval (ett åt gången). Förhandsvisning: ht.hamHog = A (brickor) eller B (segment)
+// högtalarval: en åt gången som brickor (Stor, Liten, Alla)
 function hamHogVal(M,cur){if(!M.length)return group(emptyCell('Inga högtalare i Home Assistant. Lägg till integrationen Google Cast.'));
- if(lsGet('hamHog')==='B')return'<div class="ham-seg">'+segc('Högtalare','haMedHog',M.map(m=>[esc(m.id),esc(hamHogNamn(m))]),cur)+'</div>';
  return'<div class="ham-hg" role="radiogroup" aria-label="Högtalare" style="--n:'+Math.min(M.length,3)+'">'+M.map(m=>{const on=m.id===cur,st=haMedSpelar(m)?'Spelar':m.st==='paused'?'Pausad':'Av';return'<button type="button" class="ham-ht'+(on?' on':'')+'" role="radio" aria-checked="'+on+'" data-act="haMedHog" data-id="'+esc(m.id)+'"><span class="ham-hi">'+(m.grupp?HAI_SPK2:HAI_SPK)+'</span><span class="ham-hn">'+esc(hamHogNamn(m))+'</span><span class="ham-hs">'+st+'</span></button>'}).join('')+'</div>'}
 const HAI_SPK2='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1.8" y="5" width="9" height="14" rx="2.6"/><circle cx="6.3" cy="13.6" r="2.2"/><rect x="13.2" y="5" width="9" height="14" rx="2.6"/><circle cx="17.7" cy="13.6" r="2.2"/></svg>';
 // ny eller ändrad egen kanal: namn, mediatyp (befintlig eller ny) och källa (radiokanal att söka, Spotify-länk eller ljudadress)
@@ -1432,7 +1431,7 @@ const habSessioner=P=>{const g=new Map();P.forEach(m=>{const k=[m.app||'',m.tite
 const habKortP=el=>{const c=el&&el.closest&&el.closest('[data-hm]');if(!c)return habSpelar();const ids=c.dataset.hm.split(',');return haMedia().filter(m=>ids.includes(m.id))};
 const HAB_STEG=n=>'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">'+(n?'<path d="M4 6.3v11.4a.9.9 0 0 0 1.4.74L13 13v4.7a.9.9 0 0 0 1.4.74l8-5.7a.9.9 0 0 0 0-1.48l-8-5.7A.9.9 0 0 0 13 6.3V11L5.4 5.56A.9.9 0 0 0 4 6.3z"/>':'<path d="M20 6.3v11.4a.9.9 0 0 1-1.4.74L11 13v4.7a.9.9 0 0 1-1.4.74l-8-5.7a.9.9 0 0 1 0-1.48l8-5.7A.9.9 0 0 1 11 6.3V11l7.6-5.44A.9.9 0 0 1 20 6.3z"/>')+'</svg>';
 // Spotify med knappar ovanpå volymen tar två rader (4 platser), bara volym en rad (2)
-const habPlatser=P=>/spotify/i.test((P.find(haMedSpelar)||P[0]).app||'')&&(lsGet('hamAlt')||'A')!=='C'?4:2;
+const habPlatser=P=>/spotify/i.test((P.find(haMedSpelar)||P[0]).app||'')&&!/[CS]/.test(lsGet('hamAlt')||'A')?4:2;
 function habMedKort(P){const v=habVolNu(P),sp=P.some(haMedSpelar),m0=P.find(haMedSpelar)||P[0],kan=m0.kan||{},spot=/spotify/i.test(m0.app||''),alt=lsGet('hamAlt')||'A',vg=P.map(m=>m.n).join(' och ');
  // bara reglage, ingen text. Spotify får ⏮ ⏯ ⏭ ovanpå volymen. Förhandsvisning: ht.hamAlt = A (tunt), B (tjockt), C (en rad)
  const steg=n=>'<button type="button" class="hab-pp hab-steg" data-act="habMedSteg" data-id="'+(n?'nasta':'forra')+'" aria-label="'+(n?'Nästa':'Föregående')+'"'+((n?kan.n:kan.f)?'':' disabled')+'>'+HAB_STEG(n)+'</button>',
