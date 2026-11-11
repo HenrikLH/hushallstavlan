@@ -65,8 +65,13 @@ const I={
 const I_EKO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10h18M16.5 14.5h1.5"/></svg>';
 // Inköp ligger under Mat; Ekonomi har fått dess plats i flikraden
 // Kalendern har en egen flik. Uppgifter och Städ delar fliken Att göra (Städ har vy-id stad men markerar Att göra)
-const VIEWS=[['mat','Mat',I.fork],['ekonomi','Ekonomi',I_EKO],['oversikt','Översikt',I.home],['kalender','Kalender',I.cal],['uppgifter','Att göra',I.list]];
-const VIEW_IDS=VIEWS.map(v=>v[0]).concat(['vader','fod','familj','slakt','slaktPersoner','stad','varor','hus','robot']);
+// Hemmet: Ekonomi lämnar flikraden. Fliken Hemmet samlar det man använder ibland (Smart hem, Ekonomi, Födelsedagar, Inställningar).
+// Hemmet har Ekonomis gamla plats; övriga flikar står kvar. Översikt har rutnätsikonen, huset betyder Hemmet.
+const I_OV=SV+'<rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/></svg>';
+const VIEWS=[['mat','Mat',I.fork],['hemmet','Hemmet',I.home],['oversikt','Översikt',I_OV],['kalender','Kalender',I.cal],['uppgifter','Att göra',I.list]];
+// sidor som öppnas från Hemmet: fliken Hemmet är markerad och bakåt leder dit de öppnades från
+const HEM_UNDER=['ekonomi','fod','familj','slakt','slaktPersoner','hus','robot'];
+const VIEW_IDS=VIEWS.map(v=>v[0]).concat(['ekonomi','vader','fod','familj','slakt','slaktPersoner','stad','varor','hus','robot']);
 const OLD_VIEWS={matsedel:'vecka',recept:'recept',inkop:'inkop'};
 
 /* ---------- state ---------- */
@@ -193,7 +198,7 @@ function addToBank(r,quiet,fav){if(!r||inBank(r.id))return false;const snap=bank
 function renderNav(nav){
  const ui=U4?'4':String(U3);if(nav.dataset.ui!==ui){nav.innerHTML='';nav.dataset.ui=ui}
  if(!nav.querySelector('.nav-pill'))nav.innerHTML='<div class="brand" aria-hidden="true">'+(U4?'Hushållstavlan':'Hemma')+'</div><div class="nav-pill" aria-hidden="true"></div>'+VIEWS.map(([id,l,ic])=>'<button data-act="nav" data-id="'+id+'">'+ic+'<span>'+(U3&&id==='oversikt'?'Idag':l)+'</span></button>').join('')+'';
- const i=VIEW_IDS.indexOf(S.view==='stad'?'uppgifter':S.view);
+ const i=VIEWS.findIndex(v=>v[0]===(S.view==='stad'?'uppgifter':HEM_UNDER.includes(S.view)?'hemmet':S.view));
  nav.querySelectorAll('button').forEach((b,j)=>j===i?b.setAttribute('aria-current','page'):b.removeAttribute('aria-current'));
  // Ekonomi ligger inte i flikraden på telefon; då visas ingen markering där
  nav.classList.toggle('none',i<0||i>=VIEWS.length);nav.style.setProperty('--i',Math.max(0,Math.min(i,VIEWS.length-1)));
@@ -321,7 +326,7 @@ addEventListener('resize',()=>navLins.stor());
   // (i Mat och Uppgifter byts först undermenyn, vid sista undermenyn fortsätter svepet till nästa flik)
   if(s.a==='x'&&!s.el&&Math.abs(dx)>80&&Math.abs(dx)>1.5*Math.abs(dy)&&inMain(s.tg)&&!document.querySelector('#overlay .sheet')){
    if(subSwipe(dx))return;
-   const i=VIEWS.findIndex(v=>v[0]===(S.view==='stad'?'uppgifter':S.view)),j=i<0?2:i+(dx<0?1:-1);if(j>=0&&j<VIEWS.length)ACT.nav(VIEWS[j][0]);return}
+   const i=VIEWS.findIndex(v=>v[0]===(S.view==='stad'?'uppgifter':HEM_UNDER.includes(S.view)?'hemmet':S.view)),j=i<0?2:i+(dx<0?1:-1);if(j>=0&&j<VIEWS.length)ACT.nav(VIEWS[j][0]);return}
   if(!s.mouse||performance.now()-s.t>80)return;
   // fortsätt glida och bromsa in mjukt
   const el=s.a==='y'?(s.el||document.scrollingElement):s.el;if(!el)return;let v=s.v,last=performance.now();
@@ -1788,7 +1793,7 @@ function haZoom(inn,klar){const o=document.getElementById('overlay'),bg=o&&o.que
 function haAv(x){if(!x||!x.on)return render();const was=x.on;x.on=false;HA.last=null;render();haSend({id:x.id,gor:'av'},()=>{x.on=was})}
 // Smart hem-vyn: alla enheter per rum, scener och givare. Plus lägger till, håll in ändrar.
 // Smart hem-vyn som Hem-appen: bakgrundsbild, statusknappar, scener, rum (rubriken öppnar rummets sida) och givare
-V.hus=function(){const D=haData(),R0=S.haRum;let h='<div class="rcp-top"><button class="back" data-act="'+(R0!=null?'haRumVy':'nav')+'" data-id="'+(R0!=null?'':'oversikt')+'">'+I.back+(R0!=null?'Smart hem':'Översikt')+'</button></div>';
+V.hus=function(){const D=haData(),R0=S.haRum;let h='<div class="rcp-top"><button class="back" data-act="'+(R0!=null?'haRumVy':'nav')+'" data-id="'+(R0!=null?'':hemTill()[0])+'">'+I.back+(R0!=null?'Smart hem':hemTill()[1])+'</button></div>';
  const E=D?D.lampor||[]:[],G=D?D.givare||[]:[];
  h+=head(R0!=null?esc(R0||'Övrigt'):'Smart hem',{sub:S.haTest?'Testläge · inget skickas till Home Assistant':D&&HA.fel&&!haDemo()?esc(HA.fel):'',tools:D?'<button type="button" class="ib" data-act="haAddOpen" aria-label="Lägg till enhet">'+I.plus+'</button>':''});
  if(!D)return h+'<div class="group"><div class="cell"><span class="grow">'+(haUrl()?'Får ingen kontakt med väggdatorn. Är Tailscale på i telefonen?':'Lägg in väggdatorns adress under Inställningar → Enheten för att styra hemmet från telefonen.')+'</span></div></div>';
@@ -5100,8 +5105,24 @@ function ekoLock(){const n=(S.pin||'').length;
  return'<div'+RF('E9')+' class="pin'+(S.pinBad?' bad':'')+'"><div class="pin-ic">'+I.lock+'</div><h2>Ekonomi är låst</h2><div class="fn">Skriv koden för att öppna</div>'+
   '<div class="pin-dots" aria-label="'+n+' av 4 siffror">'+[0,1,2,3].map(i=>'<i class="'+(i<n?'on':'')+'"></i>').join('')+'</div>'+
   '<div class="pin-pad">'+['1','2','3','4','5','6','7','8','9','','0','del'].map(k=>k===''?'<span></span>':'<button class="pin-k'+(k==='del'?' del':'')+'" data-act="pin" data-id="'+k+'" aria-label="'+(k==='del'?'Radera':k)+'">'+(k==='del'?'Radera':k)+'</button>').join('')+'</div></div>'}
-V.ekonomi=function(){if(ekoLocked())return ekoLock();const m=S.ekoMonth||thisMonth(),c=ekoCalc(m),o=c.o;
- let h=head('Ekonomi',{sub:'Fasta utgifter och fördelning',tools:'<button class="ib plus" data-act="ekoCost" data-list="shared" aria-label="Ny utgift">'+I.plus+'</button>'});
+// bakåt från en sida under Hemmet: dit den öppnades från (Hemmet eller Översikt)
+const hemTill=()=>S.hemFran==='oversikt'?['oversikt','Översikt']:['hemmet','Hemmet'];
+const hemTop=()=>'<div class="rcp-top"><button class="back" data-act="nav" data-id="'+hemTill()[0]+'">'+I.back+hemTill()[1]+'</button></div>';
+/* ---------- Hemmet ---------- */
+// En sida för det man använder ibland: en bricka per del med läget (som Apples Hem-app), Inställningar som rad under.
+V.hemmet=function(){const D=(haUrl()||haDemo())?haData():null,lj=D?(D.lampor||[]).filter(x=>x.t==='light'):[],nl=lj.filter(x=>x.on).length,G=D?D.givare||[]:[];
+ const ovN=people().includes(S.me)?ovOpen('shared').length+ovOpen(S.me).length:0,b=bdNext(bdays())[0];
+ const R=[(haUrl()||haDemo())&&['hus','Smart hem',HAI.bulb,'#FF9F0A',D?(nl?nl+(nl>1?' tända':' tänd'):'Allt släckt')+(G.length?' · '+haGiv(Object.assign({},G[0],{n:''})).trim():''):'Ingen kontakt'],
+  ['ekonomi','Ekonomi',I_EKO,'#34C759',ekoLocked()?'Låst med kod':ovN?ovN+(ovN>1?' överföringar saknas':' överföring saknas'):'Allt inlagt',ovN&&!ekoLocked()],
+  ['fod','Födelsedagar',I.cake,'#FF2D55',b?b.name.split(' ')[0]+' '+bdWhen(b):'Inga inlagda'],
+  DEV&&['familj','Familj',I.people,'#5856D6','Släktträd']].filter(Boolean);
+ const ic=(c,svg)=>'<span class="hem-ic" style="background:'+c+'">'+svg+'</span>';
+ let h=head('Hemmet');
+ h+='<div class="hem-g"'+RF('H1')+'>'+R.map(([id,l,svg,c,st,obs])=>'<button type="button" class="hem-b" data-act="nav" data-id="'+id+'">'+ic(c,svg)+'<span class="hem-n">'+l+'</span><span class="hem-s'+(obs?' obs':'')+'">'+esc(st)+'</span></button>').join('')+'</div>';
+ h+=rgroup('H2','<button type="button" class="cell link hem-r" data-act="settings">'+ic('#8E8E93',I.gear)+'<span class="grow">Inställningar</span>'+chevron+'</button>');
+ return h};
+V.ekonomi=function(){if(ekoLocked())return hemTop()+ekoLock();const m=S.ekoMonth||thisMonth(),c=ekoCalc(m),o=c.o;
+ let h=hemTop()+head('Ekonomi',{sub:'Fasta utgifter och fördelning',tools:'<button class="ib plus" data-act="ekoCost" data-list="shared" aria-label="Ny utgift">'+I.plus+'</button>'});
  h+='<div class="mswitch"'+RF('E1')+'><button class="ib" data-act="ekoMonth" data-d="-1" aria-label="Förra månaden">'+I.back+'</button><div class="hl">'+esc(cap(monthName(m)))+'</div><button class="ib flip" data-act="ekoMonth" data-d="1" aria-label="Nästa månad">'+I.back+'</button></div>';
  // Inkomst och fördelning
  const pct=x=>(x*100).toFixed(1).replace('.',',')+' %';
@@ -5433,7 +5454,7 @@ function slaktV3Zoom(factor,clientX,clientY){
  document.addEventListener('wheel',e=>{if(!e.target.closest?.('.fam3-viewport'))return;e.preventDefault();slaktV3Zoom(e.deltaY<0?1.13:1/1.13,e.clientX,e.clientY)},{passive:false});
 })();
 V.fod=function(){const ALLA=bdays(),t=parse(today()),mode=S.fodMode||'hjul';if(fodSel().length){const v=fodSel().filter(k=>k==='utan'||fodFam().some(f=>f.id===k));S.fodFilt=v.length?v.join(','):'alla'}const L=fodFilt(ALLA);
- let h='<div class="rcp-top"><button class="back" data-act="nav" data-id="'+(DEV&&S.fodFromFamilj?'familj':'oversikt')+'">'+I.back+(DEV&&S.fodFromFamilj?'Familj':'Översikt')+'</button></div>';
+ let h='<div class="rcp-top"><button class="back" data-act="nav" data-id="'+(DEV&&S.fodFromFamilj?'familj':hemTill()[0])+'">'+I.back+(DEV&&S.fodFromFamilj?'Familj':hemTill()[1])+'</button></div>';
  const fv=fodSel().map(k=>k==='utan'?'Utan familj':(fodFam().find(x=>x.id===k)||{}).n).filter(Boolean),fNamn=S.fodFilt==='pres'?'Present':fv.length>2?fv.length+' familjer':fv.join(' och ');
  // Filtret Present: en diskret rad under visningsväljaren med snittbeloppet (öppnar Presentbudget) och antalet
  const pres=S.fodFilt==='pres'&&ALLA.length,antal=(L.length<ALLA.length?L.length+' av ':'')+ALLA.length+' personer';
@@ -5553,7 +5574,7 @@ function motionPage(el,page,prev,dir){if(motionPageAnim)motionPageAnim.cancel();
 // Sidan följer fingret och sidan under syns med parallax. Vid släpp avgör farten: rörelsen projiceras som i UIKit
 // (WWDC 2018 "Designing Fluid Interfaces") och sidan fjädrar vidare med fingrets fart. Ett nytt grepp under fjädringen fångar sidan.
 var edgeBack=false,U5UNDER=null,u5BackAt=0;
-const u5Sub=x=>!!x[1]||['vader','fod','familj','slakt','slaktPersoner','hus','robot'].includes(x[0]);
+const u5Sub=x=>!!x[1]||['ekonomi','vader','fod','familj','slakt','slaktPersoner','hus','robot'].includes(x[0]);
 // Fart i px/ms över de senaste 100 ms; står fingret still innan släpp är farten noll
 const u5Fart={add(a,x){const t=performance.now();a.push([t,x]);while(a.length>2&&t-a[0][0]>100)a.shift()},
  v(a){if(!a||a.length<2)return 0;const f=a[0],l=a[a.length-1];if(performance.now()-l[0]>60)return 0;const dt=l[0]-f[0];return dt>0?(l[1]-f[1])/dt:0},
@@ -5855,7 +5876,7 @@ const ACT={
   if(id==='av'){const was=D.lampor.map(x=>x.on);D.lampor.forEach(x=>{if(!x.nas)x.on=false});render();return haSend({alla:'av'},()=>D.lampor.forEach((x,i)=>x.on=was[i]))}
   if(haDemo()){const m={'scene.morgon':{'light.kok':100,'light.hall':60},'scene.kvall':{'light.vardagsrum':45,'switch.fonster':1,'light.kok':30},'scene.film':{'light.vardagsrum':10}}[id]||{};D.lampor.forEach(x=>{const v=m[x.id];x.on=!!v;if(v>1)x.b=v})}
   render();haSend({scen:id},()=>{})},
- nav(id,el){if(id!=='hus'&&id!=='robot'){S.haRum=null;if(S.haTest){S.haTest=false;HA.demo=null;HA.syn={};HA.v=0;HA.retry=0}}if(RC.busy){toast('Vänta tills receptbegäran är klar.');return}if(RC.screen&&RC.edit&&RC.edit.dirty){RC.leaveTo=id;recipeLeave();S.view='mat';return}if(RC.screen)RC.screen=null;if(id!=='oversikt')arrCancel();if(normView(id)!=='ekonomi'){S.ekoOpen=false;S.pin=''}try{document.activeElement&&document.activeElement.blur()}catch(e){}id=normView(id);if(id==='fod')S.fodFromFamilj=DEV&&S.view==='familj';if(id==='uppgifter'&&S.taskTab==='stad'&&S.view!=='stad'&&el&&el.closest&&el.closest('#nav'))id='stad';if(['familj','slakt','slaktPersoner'].includes(id)&&!DEV)id='oversikt';if(id==='uppgifter'||id==='stad'){S.taskTab=id==='stad'?'stad':'lista';lsSet('taskTab',S.taskTab)}S.shopAdd=false;S.taskAdd=false;S.view=id;S.recipe=null;S.confirm=null;lsSet('view',id);try{history.replaceState(null,'','#'+id)}catch(e){}window.scrollTo(0,0);render()},
+ nav(id,el){if(id!=='hus'&&id!=='robot'){S.haRum=null;if(S.haTest){S.haTest=false;HA.demo=null;HA.syn={};HA.v=0;HA.retry=0}}if(RC.busy){toast('Vänta tills receptbegäran är klar.');return}if(RC.screen&&RC.edit&&RC.edit.dirty){RC.leaveTo=id;recipeLeave();S.view='mat';return}if(RC.screen)RC.screen=null;if(id!=='oversikt')arrCancel();if(normView(id)!=='ekonomi'){S.ekoOpen=false;S.pin=''}try{document.activeElement&&document.activeElement.blur()}catch(e){}id=normView(id);if(HEM_UNDER.includes(id)&&!HEM_UNDER.includes(S.view))S.hemFran=S.view==='hemmet'?'hemmet':'oversikt';if(id==='fod')S.fodFromFamilj=DEV&&S.view==='familj';if(id==='uppgifter'&&S.taskTab==='stad'&&S.view!=='stad'&&el&&el.closest&&el.closest('#nav'))id='stad';if(['familj','slakt','slaktPersoner'].includes(id)&&!DEV)id='oversikt';if(id==='uppgifter'||id==='stad'){S.taskTab=id==='stad'?'stad':'lista';lsSet('taskTab',S.taskTab)}S.shopAdd=false;S.taskAdd=false;S.view=id;S.recipe=null;S.confirm=null;lsSet('view',id);try{history.replaceState(null,'','#'+id)}catch(e){}window.scrollTo(0,0);render()},
  refresh(){refresh()},
  settings(){if(S.sheet!=='farg')S.prefDraft=null;S.sheet='settings';render()},
  farg(){rememberSettings();S.sheet='farg';render()},

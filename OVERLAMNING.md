@@ -2,6 +2,12 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Hemmet ersätter Ekonomi i flikraden (publicerad ht-v352)
+
+- Henrik valde B + brickor: flikrad Mat · Hemmet · Översikt · Kalender · Att göra. Hemmet (`V.hemmet`, rutor H1/H2) har brickor för Smart hem (bara med haUrl/vägg), Ekonomi, Födelsedagar, Familj (DEV) och raden Inställningar. Undersidor (`HEM_UNDER`) markerar Hemmet; bakåt leder dit de öppnades från (`S.hemFran`, `hemTill`, `hemTop`). Översikt har rutnätsikonen `I_OV`.
+- Ångra-gren `version-fore-hemmet`. Väggdatorn uppdateras först när Henrik skriver "Kör" (laddar annars om sig själv när app.js?v ändras).
+- Test: `verktyg/emu/hemmet.js` (telefon, vägg, mörkt, uppstart view=ekonomi), alla-flikar telefon+vägg, flikrad-lins gröna.
+
 ## Smarta förslag borttagna från Översikt (publicerad ht-v351)
 
 - Henrik tyckte förslagen (Ö14) var irriterande. Hela funktionen borttagen: `forslag`/`forslagHtml`/`fsDone`, ACT `fsKlart/fsSen/fsGo`, CSS `.fsl/.fs-*`; Ö14 till borttagna. Väderlarmet (Ö13) och Vädra/Ute finns kvar. Ångra-gren `version-fore-smarta-forslag`.
