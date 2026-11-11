@@ -2,6 +2,18 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Matbilder i Ny veckosedel (publicerad ht-v353)
+
+- Ny veckosedel (`portViewU5`) visar rätterna som bildkort, två i bredd (fyra på väggen), eller som lista med stora bilder. Enhetsval Inställningar → Mat → Ny veckosedel (`MATBILD`, `ht.mbild`=c för lista, förval rutnät). ⇄ visar Andra förslag som bildkarusell. CSS `.g5-k*`/`.g5-big`. Ångra-gren `version-fore-matbilder`.
+- Foton: `img` i inspiration.json (100/101, länkade från receptsidorna; ICA hämtat med WebFetch eftersom ICA spärrar GitHub). `inspoImg` matchar id eller namn. Nya recept: `node verktyg/matbilder-hamta.js [--kolla]` där nätet når sajterna (inte molnet).
+- Test: `verktyg/emu/matbilder.js` (LS mbild=c för lista; BILDER=1 släpper igenom riktiga foton, fungerar bara där nätet når dem), generera-vecka, installningar-delar, alla-flikar telefon+vägg.
+
+## Hemmet ersätter Ekonomi i flikraden (publicerad ht-v352)
+
+- Henrik valde B + brickor: flikrad Mat · Hemmet · Översikt · Kalender · Att göra. Hemmet (`V.hemmet`, rutor H1/H2) har brickor för Smart hem (bara med haUrl/vägg), Ekonomi, Födelsedagar, Familj (DEV) och raden Inställningar. Undersidor (`HEM_UNDER`) markerar Hemmet; bakåt leder dit de öppnades från (`S.hemFran`, `hemTill`, `hemTop`). Översikt har rutnätsikonen `I_OV`.
+- Ångra-gren `version-fore-hemmet`. Väggdatorn uppdateras först när Henrik skriver "Kör" (laddar annars om sig själv när app.js?v ändras).
+- Test: `verktyg/emu/hemmet.js` (telefon, vägg, mörkt, uppstart view=ekonomi), alla-flikar telefon+vägg, flikrad-lins gröna.
+
 ## Smarta förslag borttagna från Översikt (publicerad ht-v351)
 
 - Henrik tyckte förslagen (Ö14) var irriterande. Hela funktionen borttagen: `forslag`/`forslagHtml`/`fsDone`, ACT `fsKlart/fsSen/fsGo`, CSS `.fsl/.fs-*`; Ö14 till borttagna. Väderlarmet (Ö13) och Vädra/Ute finns kvar. Ångra-gren `version-fore-smarta-forslag`.
