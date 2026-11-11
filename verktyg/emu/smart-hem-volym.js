@@ -19,7 +19,7 @@ module.exports=async(pg,h)=>{
  assert.match(await box.locator('.hab-med .ham-pct').innerText(),/80 %/,'Dra/tryck sätter 80 %');
  // två högtalare spelar (via Musik-bladet från kortet): ett reglage för båda
  const F='form[data-form="haMedia"]';
- await kort.locator('[data-act="habMedOpen"]').click();await h.idle(700);
+ await kort.locator('.ha-tx[data-act="habMedOpen"]').click();await h.idle(700);
  assert.equal(await pg.locator(F+' .ham-h[aria-pressed="true"]').count(),1,'Stor vald');
  await pg.locator(F+' .ham-h[data-id="media_player.liten"]').click();await pg.locator(F+' .ham-k:has-text("P3")').click();
  await pg.locator(F+' [data-act="haMedSpela"]').click();await h.idle(900);
@@ -32,7 +32,7 @@ module.exports=async(pg,h)=>{
  // paus behåller kortet, tryck på namnet öppnar Musik med båda valda
  await kort.locator('[data-act="habMedTog"]').click();await h.idle(300);
  assert.equal(await kort.count(),1,'Kortet kvar när pausad');assert.match(await kort.innerText(),/Pausad/,'Pausad');
- await kort.locator('[data-act="habMedOpen"]').click();await h.idle(700);
+ await kort.locator('.ha-tx[data-act="habMedOpen"]').click();await h.idle(700);
  assert.equal(await pg.locator(F+' .ham-h[aria-pressed="true"]').count(),2,'Båda högtalarna valda');
  await pg.locator(F+' [data-act="haMedStopp"]').click();await h.idle(800);
  if(await pg.locator(F).count())await pg.keyboard.press('Escape'),await h.idle(500);

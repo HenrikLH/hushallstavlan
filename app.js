@@ -1411,9 +1411,11 @@ let hamVolT=0;function hamVolLive(){const F=S.haMed;if(!F||F.skript)return;const
 const habSpelar=()=>{const M=haMedia().filter(m=>!m.nas&&(haMedSpelar(m)||m.st==='paused')),E=M.filter(m=>!m.grupp);return E.length?E:M};
 const habVolNu=P=>{const v=P.map(m=>m.vol).filter(x=>x!=null);return v.length?Math.round(v.reduce((a,b)=>a+b,0)/v.length/5)*5:35};
 const habOch=L=>L.length<2?L.join(''):L.slice(0,-1).join(', ')+' och '+L[L.length-1];
+const HAB_PP=sp=>'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">'+(sp?'<rect x="6" y="4.5" width="4" height="15" rx="1.3"/><rect x="14" y="4.5" width="4" height="15" rx="1.3"/>':'<path d="M8 5.3v13.4a1 1 0 0 0 1.5.86l11-6.7a1 1 0 0 0 0-1.72l-11-6.7A1 1 0 0 0 8 5.3z"/>')+'</svg>';
 function habMedKort(P){const v=habVolNu(P),sp=P.some(haMedSpelar),m0=P.find(haMedSpelar)||P[0];
- return'<div class="ha-t hab-med'+(sp?' spl':'')+'" role="group" aria-label="Spelar nu"><div class="hab-med-h"><button type="button" class="ha-i" data-act="habMedTog" aria-pressed="'+sp+'" aria-label="'+(sp?'Pausa':'Spela')+'">'+HAI_SPK+'</button>'+
-  '<button type="button" class="ha-tx" data-act="habMedOpen" aria-label="Öppna Musik"><span class="ha-n">'+esc(habOch(P.map(m=>m.n)))+'</span><span class="ha-s">'+esc(haMedStat(m0))+'</span></button><span class="num ham-pct">'+v+' %</span></div>'+
+ return'<div class="ha-t hab-med'+(sp?' spl':'')+'" role="group" aria-label="Spelar nu"><div class="hab-med-h"><button type="button" class="ha-i" data-act="habMedOpen" tabindex="-1" aria-hidden="true">'+HAI_SPK+'</button>'+
+  '<button type="button" class="ha-tx" data-act="habMedOpen" aria-label="Öppna Musik"><span class="ha-n">'+esc(habOch(P.map(m=>m.n)))+'</span><span class="ha-s">'+esc(haMedStat(m0))+' · <span class="ham-pct">'+v+' %</span></span></button>'+
+  '<button type="button" class="hab-pp" data-act="habMedTog" aria-pressed="'+sp+'" aria-label="'+(sp?'Pausa':'Spela')+'">'+HAB_PP(sp)+'</button></div>'+
   '<div class="ham-vol"><button type="button" class="ham-vb" data-act="habVol" data-id="-5" aria-label="Lägre volym">'+HAI_VOL(0)+'</button><div class="ham-bar" data-hamvol="ruta" style="--p:'+v+'%" role="slider" aria-label="Volym" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+v+'"><i></i></div><button type="button" class="ham-vb" data-act="habVol" data-id="5" aria-label="Högre volym">'+HAI_VOL(1)+'</button></div></div>'}
 // det som är igång stannar: apparater som kör går först, sedan tända lampor, sedan resten; ordningen i rutan behålls
 const habFvKort=(L,max)=>{const pr=e=>e.ap?(haAppAktiv(e.x)?0:2):e.x.on?1:2,ut=new Set();let n=0;

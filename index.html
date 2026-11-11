@@ -3263,14 +3263,23 @@ body.wall .hab .hab-g .ha-tx{flex-direction:row;align-items:baseline;gap:6px}bod
 .hab .hab-g{margin-top:8px;gap:8px}
 .hab-inga{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin-top:8px;min-height:56px;border:0;border-radius:var(--r5,16px);background:transparent;box-shadow:inset 0 0 0 1.5px var(--line);color:var(--ink-2);font:inherit;cursor:pointer}.hab-inga svg{width:18px;height:18px}
 /* Smart hem-rutan när något spelar: gemensamt volymreglage längst ner i stället för fyra favoritplatser */
-.hab .hab-g .hab-med{grid-column:1/-1;flex-direction:column;align-items:stretch;gap:4px;padding:8px 10px 4px 8px;cursor:default}
+.hab .hab-g .hab-med{grid-column:1/-1;flex-direction:column;align-items:stretch;gap:0;padding:8px 8px 0;cursor:default}
 .hab-med-h{display:flex;align-items:center;gap:8px;min-width:0}
-.hab-med-h .ha-tx{flex:1;justify-content:center;min-height:32px;border:0;background:none;padding:0;font:inherit;color:inherit;text-align:left;cursor:pointer}
+.hab-med-h .ha-tx{flex:1;justify-content:center;min-height:44px;border:0;background:none;padding:0;font:inherit;color:inherit;text-align:left;cursor:pointer}
 .hab-med-h .ha-n,.hab-med-h .ha-s{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.hab-med .ham-pct{width:auto}
-body.wall .hab .hab-med-h .ha-tx{justify-content:flex-start;align-items:center}
-.hab-med .ham-bar{background:color-mix(in srgb,var(--ink) 10%,transparent)}
+.hab-med .ham-pct{width:auto;font-size:inherit;color:inherit}
+.hab-pp{flex:none;display:grid;place-items:center;width:44px;height:44px;margin-right:-4px;border:0;border-radius:999px;background:none;color:var(--ink);padding:0;cursor:pointer}
+.hab-pp svg{width:22px;height:22px}
+.hab-med .ham-vol{margin:0 -4px}
+.hab-med .ham-vb svg{width:17px;height:17px}
+.hab-med .ham-bar{height:44px;background:none;border-radius:0;overflow:visible}
+.hab-med .ham-bar::before,.hab-med .ham-bar i{content:'';position:absolute;left:0;right:0;top:calc(50% - 3px);height:6px;border-radius:3px}
+.hab-med .ham-bar::before{background:color-mix(in srgb,var(--ink) 12%,transparent)}
+.hab-med .ham-bar i{inset:auto 0;top:calc(50% - 3px);transform:none;clip-path:inset(0 calc(100% - var(--p)) 0 0 round 3px);background:var(--accent);transition:clip-path .2s}
 .hab-med.spl .ha-i{background:var(--accent);color:var(--on-accent,#fff)}
+body.wall .hab .hab-med-h .ha-tx{justify-content:flex-start;align-items:center;min-height:48px}
+body.wall .hab-pp{width:48px;height:48px}
+body.wall .hab-med .ham-bar{height:48px}
 .hab-r{display:flex;align-items:center;gap:0;width:100%;text-align:left;font:inherit;color:inherit;background:none;border:0}.hab-r .grow{min-width:0}
 .hab-pm{flex:none;display:grid;place-items:center;width:24px;height:24px;margin:0 12px 0 0;padding:0;border:0;border-radius:50%;color:#fff;cursor:pointer}.hab-pm svg{width:14px;height:14px}.hab-minus{background:#FF3B30}.hab-plus{background:#34C759;margin:0 0 0 10px}
 .hab-grip{flex:none;display:grid;place-items:center;width:40px;height:40px;margin:-8px -8px -8px 6px;color:var(--ink-3);touch-action:none;cursor:grab}.hab-grip svg{width:20px;height:20px}
