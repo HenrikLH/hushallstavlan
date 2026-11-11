@@ -5262,7 +5262,7 @@ function slaktV3Layout(B){
  }
  const clearEdges=edges.map(path=>{
   if(!path.includes('fam3-edge bus'))return path;
-  const m=path.match(/data-family="([^"]+)" d="M([\\d.]+) ([\\d.]+) H([\\d.]+)"/);
+  const m=path.match(/data-family="([^"]+)" d="M([\d.]+) ([\d.]+) H([\d.]+)"/);
   if(!m)return path;
   const [,family,x0,y0,x1]=m,from=Number(x0),to=Number(x1),y=Number(y0),gaps=(busGaps.get(family+'@'+y)||[]).sort((a,b)=>a-b);
   if(!gaps.length)return path;
