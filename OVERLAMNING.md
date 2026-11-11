@@ -2,11 +2,11 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
-## Smart hem-rutan: scener och favoriter (förslag, väntar på Henrik)
+## Smart hem-rutan: scener och favoriter (publicerad ht-v339)
 
-- Mål: rutan Ö12/T12 ska få plats i rutnätet. Fyra scenplatser överst (egen scen = valda enheters läge, scen i HA eller Släck allt; håll in = ändra) och favoriter under (högst 6 platser, apparater tar 2). Scenerna har egen färg per symbol (`HAB_FARG`, Henrik valde B). ⋯ i rubriken är en iOS-meny (Redigera rutan → bladet `habRuta`, Ny scen, Visa alla enheter). Scenbladet `habSc` är som Hem-appen: stor ikon, namn, symbolrutnät, enhetsbrickor och Prova scenen. Ingen temperatur i rubriken (Henrik har ingen innegivare). Granskad mot nya skillen `hushallstavlan-apple-design` (Henriks val: egen designskill): hörn 16 i rutan, 8-avstånd, antal tända som grå tilläggstext i stället för statusprick.
-- Ägare Claude, gren `claude/project-thread-erprdk`. Kod: `hab*` i app.js efter `haScener`, CSS `.hab-*` i index.html. Data för hushållet i onskelista `{hab:1,sc,fv}` (ingen Kod.gs, ingen tjänständring); egna scener körs i appen som vanliga `{id,gor}`-anrop.
-- Test: `smart-hem-ruta.js` (telefon, vägg, mörkt), `smart-hem.js` anpassad, alla-flikar telefon+vägg (med och utan haDemo) gröna. Bilder /mnt/project-files/smart-hem/ruta/. Nästa: Henriks ok → `node verktyg/version.js` och publicera.
+- Publicerad 2026-11-11 som ht-v339, ångra-gren `version-fore-smart-hem-ruta` (PR #95). Fyra scenplatser (egen/HA/Släck allt, färg per symbol `HAB_FARG`) och högst 6 favoritplatser; data i onskelista `{hab:1,sc,fv}`. Kod `hab*` i app.js, CSS `.hab-*`.
+- Ny skill `.claude/skills/hushallstavlan-apple-design/` med fasta mått och granskningslista; använd den för all design.
+- Test: alla-flikar telefon/vägg (med och utan haDemo), smart-hem-ruta.js gröna. CI-röktestet faller bara i oversikt-manad.js (finns på main sedan tidigare).
 
 ## Släktträd v3 (ht-v335, utvecklarläge)
 
