@@ -13,7 +13,7 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 - Henrik såg ett ljusrött streck efter "N tända". Orsak: `.ha-live` (felmarkering när väggdatorns tjänst inte svarar) var inline utan `display:inline-block`, så den blev 0×radhöjd med bara skuggan. Nu en prick; ett enstaka avbrott i `haLoop` (iPhone i bakgrunden) ger nytt försök efter 2 s i stället för fel (`HA.nf`). Ångra-gren `version-fore-smart-hem-streck`.
 - Test: `verktyg/emu/smart-hem-fel.js` (LS haUrl=http://ha.test, faller på main), smart-hem-ruta, alla-flikar telefon+vägg gröna.
 
-## Favorittoner: −/+ hoppar inte tillbaka, kall → varm, byt namn i ⋯ (väntar på Pusha)
+## Favorittoner: −/+ hoppar inte tillbaka, kall → varm, byt namn i ⋯ (publicerad ht-v347, ångra-gren `version-fore-favoritton-steg`)
 
 - Orsak −/+: anrop gick parallellt (kunde komma fram i fel ordning) och väggdatorns äldre läge skrev över det valda innan lampan rapporterat. Nu `haKo` (ett anrop i taget per lampa, däremellan bara det senaste) och `HA.mal`/`haMalLagg` (valt läge visas i `HA_MAL` 8 s). Gäller även ljusstyrkereglaget.
 - `haFavs()` sorterar kall→varm; Ändra-bladet (⋯) har Favorittoner, tryck öppnar `haFav` (namn bara i telefonen). Gren `claude/project-thread-9qfmlm`, ingen Kod.gs/tjänst.
