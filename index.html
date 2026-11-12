@@ -3646,6 +3646,13 @@ body.wall :is(.hab .hab-sc,.hus-sc) .ha-st{gap:4px;padding:8px 4px;border-radius
 .ha-sg.hus-sc-1{grid-template-columns:minmax(0,1fr)}.ha-sg.hus-sc-2{grid-template-columns:repeat(2,minmax(0,1fr))}.ha-sg.hus-sc-3{grid-template-columns:repeat(3,minmax(0,1fr))}
 /* varningen sitter på ikonen så att apparatens namn får plats */
 .ha-g-v .ha-ap .ha-ap-v{position:absolute;top:8px;left:30px;width:20px;height:20px;font-size:13px;box-shadow:0 0 0 2px var(--surface)}
+/* Scenens tidslinje: steg som kort, tunn linje emellan som i Genvägar */
+.hab-steg{overflow:visible}.hab-steg-h{gap:8px}.hab-steg-h .grow{font-weight:600}.hab-steg-i{flex:none;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--fill);color:var(--ink-2)}.hab-steg-i svg{width:17px;height:17px}.hab-steg-i.nu{background:var(--accent);color:#fff}
+.hab-steg-h .hab-steg-x{margin:0}
+.hab-tl{width:2px;height:16px;margin:0 0 0 46px;background:var(--line)}
+.hab-flytt{position:static;flex:1;min-width:0}.hab-flytt>summary{list-style:none;display:flex;flex-direction:column;min-width:0;cursor:pointer}.hab-flytt>summary::-webkit-details-marker{display:none}.hab-ljr{position:relative}
+.hab-flytt-n{display:flex;align-items:center;gap:4px}.hab-flytt-c{display:inline-grid;color:var(--ink-3);transform:rotate(90deg)}.hab-flytt-c svg{width:8px;height:13px}
+.hab-flytt .create-options{left:16px;right:auto;top:calc(100% - 8px)}.hab-flytt .create-options button{justify-content:space-between}.hab-flytt .create-options .grow{flex:1;text-align:left}
 .hus-ny>summary{list-style:none;cursor:pointer}.hus-ny>summary::-webkit-details-marker{display:none}.hus-ny .create-options button{justify-content:space-between}.hus-ny .create-options .grow{flex:1;text-align:left}
 /* Middag ikväll i UI 5.0: en rad per rätt med bild (48, hörn 12), titel 17/22, grå rad 13/18, diskret grå ▶ för att börja laga */
 html.ny.ui5 .wm5{display:flex;align-items:center;gap:12px;min-height:64px}
