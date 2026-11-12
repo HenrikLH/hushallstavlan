@@ -2601,8 +2601,8 @@ function portViewU5(){const MB=MATBILD==='a',grp=x=>MB?'<div class="g5-kg">'+x+'
  // Lunchlådor
  let g='';PLATSER2.filter(p=>p.typ==='storkok').forEach(p=>{const X=C.plats[p.id];g+=X.valt?rad(p,X,{dag:p.id==='sv'?'Vegetariskt':'Kött'}):tom(p,X,p.namn.toLowerCase())});
  h+=sh('Lunchlådor','Mån–fre')+grp(g);
- // Middagar
- g='';C.dag.forEach(x=>{const p=x.p,X=C.plats[p.id],dag=cap(portDag(p.dag));
+ // Middagar, uppdelade i vardagar (mån–tor) och helg (fre–sön)
+ const mid=L=>{let g='';L.forEach(x=>{const p=x.p,X=C.plats[p.id],dag=cap(portDag(p.dag));
   if(x.t==='ratt'){const rest=C.dag.filter(y=>y.t==='rest'&&y.fr===p.dag).map(y=>portDag(y.p.dag));g+=rad(p,X,{dag,rest:rest.length?'rester '+lista(rest):''})}
   else if(x.t==='rest'&&MB){const r=recipeById(P.val['d'+x.fr]);g+='<div class="g5-k g5-krest"><button class="g5-kb" data-act="recipe" data-id="'+esc(r.id)+'"><span class="g5-ki">'+dishThumb(r,r.title)+'<span class="g5-kbad">Rester</span></span><span class="g5-kt">'+esc(cap(r.title.replace(/^Storkok:\s*/i,'')))+'</span><span class="g5-km">'+esc(dag+' · rester')+'</span></button></div>'}
   else if((x.t==='macka'||x.t==='auto')&&MB){g+='<div class="g5-k"><div class="g5-kb"><span class="g5-ki"><span class="dr-th"><span>🥪</span></span></span><span class="g5-kt">Macka</span><span class="g5-km">'+esc(dag+' · '+kr(C.MK)+(x.t==='auto'?' · ingen rätt ryms':''))+'</span></div>'+(x.t==='macka'?'<button class="g5-kv" data-act="portMacka" data-id="'+p.id+'">Välj rätt</button>':'')+'</div>'+
@@ -2612,7 +2612,8 @@ function portViewU5(){const MB=MATBILD==='a',grp=x=>MB?'<div class="g5-kg">'+x+'
     x.fler.map(f=>'<button class="cell g5-alt" data-act="portFler" data-id="'+f.q.id+'" data-n="'+f.n+'"><span class="g5-th"></span><span class="grow"><span class="meta">Laga '+f.n+' portioner '+esc(f.r.title.toLowerCase())+' i stället · '+(f.extra>0?'+'+kr(f.extra):kr(-f.extra)+' billigare')+'</span></span></button>').join('')}
   else if(MB)g+=tom(p,X,dag.toLowerCase(),'<button class="cell g5-x" data-act="portMacka" data-id="'+p.id+'"><span class="grow">Macka den här kvällen</span><span class="meta">'+kr(C.MK)+'</span></button>')
   else g+=tom(p,X,dag.toLowerCase())+'<button class="cell g5-x" data-act="portMacka" data-id="'+p.id+'"><span class="grow">Macka den här kvällen</span><span class="meta">'+kr(C.MK)+'</span></button>'});
- h+=sh('Middagar','Mån–sön')+grp(g);
+ return g};
+ h+=sh('Vardagar','Mån–tor')+grp(mid(C.dag.filter(x=>x.p.dag<4)))+sh('Helg','Fre–sön')+grp(mid(C.dag.filter(x=>x.p.dag>=4)));
  // Att köpa, utfällbar
  const kop=C.korg.rad.filter(x=>x.n>0).sort((a,c)=>c.kr-a.kr),hemma=C.korg.rad.filter(x=>x.fran>0);
  if(kop.length)h+=group('<details class="g5-kop"><summary class="cell"><span class="grow">Att köpa</span><span class="meta">'+antal(kop.length,'vara','varor')+' · '+kr(C.korg.kr)+'</span>'+chevron+'</summary>'+
