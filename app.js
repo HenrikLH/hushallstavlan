@@ -5158,12 +5158,11 @@ function ekoLock(){const n=(S.pin||'').length;
 const hemTill=()=>S.hemFran==='oversikt'?['oversikt','Översikt']:['hemmet','Hemmet'];
 const hemTop=()=>'<div class="rcp-top"><button class="back" data-act="nav" data-id="'+hemTill()[0]+'">'+I.back+hemTill()[1]+'</button></div>';
 /* ---------- Hemmet ---------- */
-// Hemmet: i första hand hela Smart hem (alla reglage och enheter), med breda kort för Födelsedagar och Ekonomi.
+// Hemmet: i första hand hela Smart hem (alla reglage och enheter) överst, sedan korten Födelsedagar och Ekonomi.
 // Ekonomi: inkomstfördelningen som stapel med namn, andel och vad var och en sätter in. Låst på väggen.
 // Halvbreda kort bredvid varandra (vänster Födelsedagar, höger Ekonomi), därför kort innehåll.
-// Ekonomi: inkomstfördelningen som stapel med namn och andel. Låst på väggen.
+// Ekonomi: inkomstfördelningen som stapel med namn och andel (bara procent, inga belopp, så den syns även på väggen).
 function hemEko(){
- if(ekoLocked())return widget('ekonomi','hem-k',I_EKO,'Ekonomi','','<div class="wempty">Låst. Tryck för att öppna med koden.</div>');
  const c=ekoCalc(thisMonth()),ovN=people().includes(S.me)?ovOpen('shared').length+ovOpen(S.me).length:0,pct=x=>(x*100).toFixed(1).replace('.',',')+' %';
  const ov=ovN?'<div class="hem-ov hem-obs">'+ovN+(ovN>1?' överföringar saknas':' överföring saknas')+'</div>':'';
  if(!c.tot)return widget('ekonomi','hem-k',I_EKO,'Ekonomi','','<div class="wempty">Fyll i inkomsten för att se fördelningen.</div>'+ov);
@@ -5171,7 +5170,7 @@ function hemEko(){
   '<div class="splitbar" role="img" aria-label="Fördelning '+c.per.map(x=>esc(personLabel(x.p))+' '+pct(x.share)).join(', ')+'">'+c.per.map(x=>'<i class="'+pcls(x.p)+'" style="flex:'+Math.max(x.share,.0001)+'"></i>').join('')+'</div>'+
   '<div class="hem-leg">'+c.per.map(x=>'<div><span class="pdot '+pcls(x.p)+'"></span><span class="grow">'+esc(personLabel(x.p))+'</span><b class="num">'+pct(x.share)+'</b></div>').join('')+'</div>'+ov)}
 // Födelsedagar de närmaste tre veckorna; får inte alla plats (fler än hemFodMax) visas två veckor.
-const hemFodMax=()=>innerWidth>=700?4:3;
+const hemFodMax=()=>innerWidth>=700?6:3;// väggen: två spalter à tre
 function hemFod(){const L=bdNext(bdays());if(!L.length)return widget('fod','hem-k',I.cake,'Födelsedagar','','<div class="wempty">Inga inlagda.</div>');
  let K=L.filter(b=>b.days<=21);const M=hemFodMax();if(K.length>M)K=L.filter(b=>b.days<=14);
  const rad=b=>'<div class="cell hem-fr'+(b.days===0?' idag':'')+'"'+bdSt(b)+'><span class="hem-dt"><b class="num">'+b.dd+'</b><span>'+MON3[b.mo]+'</span></span><span class="grow"><span class="hem-fn">'+esc(b.name)+'</span><span class="hem-fs">'+esc(cap(bdWhen(b)))+'</span></span></div>';
@@ -5180,9 +5179,8 @@ V.hemmet=function(){if(S.haRum!=null)return V.hus();
  const D=(haUrl()||haDemo())?haData():null;
  let h=head('Hemmet',{sub:S.haTest?'Testläge · inget skickas till Home Assistant':D&&HA.fel&&!haDemo()?esc(HA.fel):'',tools:D?'<button type="button" class="ib" data-act="haAddOpen" aria-label="Lägg till enhet">'+I.plus+'</button>':''});
  const kort=()=>'<div class="widgets hem-kort"'+RF('H1')+'>'+hemFod()+hemEko()+'</div>';
- h+=kort();
  h+='<div'+RF('H3')+'>'+(D?husAlla(D):'<div class="group"><div class="cell"><span class="grow">'+(haUrl()?'Får ingen kontakt med väggdatorn. Är Tailscale på i telefonen?':'Lägg in väggdatorns adress under Inställningar → Enheten för att styra hemmet från telefonen.')+'</span></div></div>')+'</div>';
-
+ h+='<div class="ha-rh">Hushållet</div>'+kort();
  h+=rgroup('H2','<button type="button" class="cell link hem-r" data-act="settings"><span class="hem-ic" style="background:#8E8E93">'+I.gear+'</span><span class="grow">Inställningar</span>'+chevron+'</button>');
  return h};
 V.ekonomi=function(){if(ekoLocked())return hemTop()+ekoLock();const m=S.ekoMonth||thisMonth(),c=ekoCalc(m),o=c.o;

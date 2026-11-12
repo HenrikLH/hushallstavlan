@@ -3402,6 +3402,7 @@ html.ny .hem-k .hem-fl .cell+.cell::before,.hem-k .hem-fl .cell+.cell::before{di
 .hem-fn{font-size:15px;line-height:18px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hem-fs{font-size:13px;line-height:16px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hem-fr.idag .hem-fs{color:var(--accent);font-weight:600}
+@media (min-width:700px){.hem-k .hem-fl{display:grid;grid-template-rows:repeat(3,auto);grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);column-gap:16px}}
 /* ===== Mer väder och smarta förslag (alla UI) ===== */
 /* Väder: SMHI-varning överst, nya rutor (Vädra, Ute, UV, Pollen, Norrsken) */
 .wx-varn{display:block;background:var(--surface);border-radius:var(--r5,16px);padding:12px 16px 14px;margin:0 16px 14px}
