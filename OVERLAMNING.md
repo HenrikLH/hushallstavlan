@@ -3,7 +3,7 @@
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
 ## Att göra-rutan: idag + imorgon (förslag, väntar på Henrik)
-- Ö3/T8 och widgetläget visar bara dagens och sena uppgifter (bockbara) och en sektion Imorgon (ljusare). Odaterade/senare bara under Alla N. Kod `upgDag`/`upgDagHtml` (före `taskRow`), CSS `.upg-*`.
+- Ö3/T8 och widgetläget visar bara dagens och sena uppgifter (bockbara) och en sektion Imorgon (en rad, grå), kompakta rader (Henrik: Översikt ska vara kompakt). Odaterade/senare bara under Alla N. Kod `upgDag`/`upgDagHtml` (före `taskRow`), CSS `.upg-*`.
 - Ägare Claude, gren `claude/project-thread-ndr143`. Nästa: Henriks ok → publicera. Test `att-gora-idag.js` telefon/vägg, alla-flikar telefon+vägg gröna (59e0382). Bilder /mnt/project-files/att-gora-idag/.
 
 ## Dammsugarens statusbricka i Städ (publicerad ht-v356, ångra-gren `version-fore-dammsug-stad`)
