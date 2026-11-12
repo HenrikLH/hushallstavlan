@@ -877,10 +877,11 @@ function doRender(){if(motionDrag||sheetDrag||bladDrag){pendingRender=true;retur
  let page;try{page=(V[S.view]||V.oversikt)()}catch(e){console.error(e);page='<div class="banner">Något gick fel när sidan skulle visas: '+esc(e.message)+'</div>'}
  const src=keepNorm(banner+page)+'|'+S.view+'|'+addPlace();
  if(lugn&&src===m.__src){A.old=null;watchTitle();plPin();wsPin();return}
+ const rmo=m.querySelector('.rcp-meny[open]');// receptets ⋯ ska vara öppen även om sidan ritas om (t.ex. synk på väggen)
  const t=document.createElement('template');t.innerHTML=banner+page;const ny=t.content,vy=S.view+'|'+(S.recipe||'')+'|'+S.matTab+'|'+S.taskTab,samma=m.__fresh&&m.__vy===vy;
  if(lugn&&samma){morf(m,m.__fresh,ny);m.querySelectorAll(KEEP_FX).forEach(e=>{if(!e.__src)e.__src=keepNorm(e.outerHTML)})}
  else{const kv=keepFxFore(m);m.replaceChildren(ny.cloneNode(true));keepFxEfter(m,kv)}
- m.__fresh=ny;m.__src=src;m.__vy=vy;addLayout(m);if(U5)u5More(m);
+ m.__fresh=ny;m.__src=src;m.__vy=vy;addLayout(m);if(U5)u5More(m);if(rmo){const d=m.querySelector('.rcp-meny');if(d)d.open=true}
  {const w=m.querySelector('.wk-sw');if(w&&S.wkX){w.scrollLeft=S.wkX;wkMonth(w)}}
  {const w=m.querySelector('.wxC-sc');if(w)w.scrollLeft=S.wxX!=null?S.wxX:WXC_NP*WXC_SW}
  placeSky();skyFit();fitBoard();gpuLager();loopSync();
@@ -3109,10 +3110,6 @@ function rcpTop5(r){const id=esc(r.id),g=ratingOf(r.id),img=imgOf(r.id)||r.img||
  h+='<div class="rcp-cta"><button class="btn-fill" data-act="cook" data-id="'+id+'">'+I.play+'Börja laga</button>'+
   '<button class="btn-tint'+(pa?' on':'')+'" data-act="'+(des?(pa?'dessClear':'dessSet'):(pa?'weekShow':'weekAdd'))+'" data-id="'+id+'" aria-pressed="'+pa+'">'+(pa?I.tick+'På veckan':I.calPlus+'Till veckan')+'</button></div></div>';
  return h}
-// Prisets reservation som fotnot under faktarutan, i stället för ett eget block
-function rcpPrisFot(r){const p=recipePrice(r),har=Object.keys(parseJ(settings().priser,{})).length,gml=har&&prisAlder().gammal;if(!p.partial&&!gml)return'';
- const t=(p.partial?'Minst '+kr(p.amount)+' per portion, '+(p.missing?p.missing+' saknar pris':p.unquantified+' mängd'+(p.unquantified===1?'':'er')+' att granska')+'.':'')+(gml?' Butikspriserna kan vara inaktuella.':'');
- return'<div class="foot rcp-prisfot'+(gml?' pris-gammal':'')+'">'+esc(t.trim())+(p.missing?' <button type="button" class="linkbtn" data-act="varor">Välj varor</button>':'')+'</div>'}
 // Tidigast igen: stegen för −/+ i bladet (ACT.tidSteg)
 const TIDV=[1,1.5,2,3,4,6,8,12,16,26];
 function recipeDetail(r){
@@ -3124,11 +3121,9 @@ function recipeDetail(r){
  h+='<div class="chips-row">'+(isDessert(r)?'<span class="chip e">Efterrätt</span>':whoChip(effWho(r)))+(r.freezes?'<span class="chip v">Går att frysa</span>':'')+'</div><h1 class="t1" id="lt">'+esc(r.title)+'</h1>'+rcpActions(r)+'<div class="block"><button class="btn-tint" data-rc="edit" data-id="'+esc(r.id)+'">'+I.pencil+'Redigera recept</button></div>'+recipePrice(r).html+'</div>';
  const cookBtn='<div class="block"><button class="btn-fill" style="width:100%" data-act="cook" data-id="'+esc(r.id)+'">'+I.play+'Börja laga</button></div>';
  h+=cookBtn}
- const facts=[['Tid',r.min?'<span class="num">'+r.min+'</span> min':'Ej angiven']];if(portKr(r))facts.push(['Per portion',portTxt(r)]);if(r.protein){const pr=String(r.protein).replace(/\s*\/\s*port(ion)?\.?$/i,''),ph=pr.match(/^henriks?\s+(?:del\s+)?(?:ca\s+)?(.+)$/i);facts.push(['Protein',esc(ph?ph[1]:pr)])}
+ const facts=[['Tid',r.min?'<span class="num">'+r.min+'</span> min':'Ej angiven']];if(portKr(r)){const pt=portTxt(r);facts.push(['Per portion',U5&&!/^minst/i.test(pt)?'~'+pt:pt])}if(r.protein){const pr=String(r.protein).replace(/\s*\/\s*port(ion)?\.?$/i,''),ph=pr.match(/^henriks?\s+(?:del\s+)?(?:ca\s+)?(.+)$/i);facts.push(['Protein',esc(ph?ph[1]:pr)])}
  const kc=kcalOf(r.id);if(kc)facts.push(['Kalorier','<span class="num">'+kc.n+'</span> kcal']);
- if(U5&&!isDessert(r)){const sl=lastServed(r.id);facts.push(['Senast lagad',sl?esc(dateShort(sl)):'Inte än'])}
  h+='<div class="group"'+RF('M19')+' style="margin-top:16px"><div class="rcp-facts'+(facts.length>3?' f4':'')+'" style="grid-template-columns:repeat('+facts.length+',minmax(0,1fr))">'+facts.map(([l,v])=>'<div><div class="fn">'+l+'</div><div class="v">'+v+'</div></div>').join('')+'</div></div>';
- if(U5)h+=rcpPrisFot(r);
  if(r.why&&!U5)h+='<div class="group"'+RF('M24')+' style="margin-top:12px"><div class="note">'+esc(r.why)+'</div></div>';
  const praw=protRaw(r);if(praw){const on=!protOff(r.id),orig=protById(praw.id),mm=D().menu.find(m=>m.recipe===r.id&&protFromAddon(m.addon)),pa=mm&&protFromAddon(mm.addon);
   h+=sh('Valfritt protein')+rgroup('M23',on&&pa?[[pa.kn,pa.k,'p1'],[pa.vn,pa.v,'p2']].map(([n,id,c])=>{const x=protById(id);return'<div class="cell pt-row"><span class="pt-ri" aria-hidden="true">'+x.ic+'</span><div class="grow"><div class="title"><span class="chip '+c+'">'+esc(personLabel(n))+'</span> '+esc(x.namn)+'</div><div class="meta">'+esc(x.g+' g per portion. '+x.tips)+'</div></div></div>'}).join('')

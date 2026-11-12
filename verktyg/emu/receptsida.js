@@ -13,12 +13,14 @@ module.exports=async(pg,h)=>{
  assert.equal(await pg.locator('.rcp5 .block [data-rc="edit"]').count(),0,'ingen egen Redigera-knapp');
  await pg.locator('.rcp-meny summary').click();await h.idle(500);await h.shot('meny');
  await pg.locator('.rcp-meny summary').click();await h.idle(400);
- assert.equal(await pg.locator('.rcp-facts .fn',{hasText:'Senast lagad'}).count(),1,'Senast lagad i faktarutan');
+ assert.equal(await pg.locator('.rcp-facts .fn',{hasText:'Senast lagad'}).count(),0,'Senast lagad inte i faktarutan');
+ assert.match(await pg.locator('.rcp-facts').innerText(),/~\d+ kr/,'~ före priset');
  await pg.locator('.rcp-meny summary').click();await h.idle(400);
  await pg.locator('.rcp-meny [data-k="tidigast"]').click();await h.idle(800);
  const big=()=>pg.locator('.ti-step .ti-big').textContent();
  const fore=await big();await pg.locator('.ti-step [data-d="1"]').click();await h.idle(600);const efter=await big();
  console.log('Tidigast igen',fore,'→',efter);assert.notEqual(fore,efter,'+ ändrar Tidigast igen');
+ assert.equal(await pg.locator('.ti-row',{hasText:'Senast lagad'}).count(),1,'Senast lagad i bladet');
  await h.shot('tidigast');
  for(let i=0;i<12;i++){if(await pg.locator('.ti-step [data-d="1"]:disabled').count())break;await pg.locator('.ti-step [data-d="1"]').click();await h.idle(250)}
  assert.equal(await big(),'Aldrig','sista steget är Aldrig');

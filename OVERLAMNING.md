@@ -3,9 +3,9 @@
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
 ## Receptsidan i Apple-stil (förslag, väntar på "Pusha")
-- Ägare Claude, gren `claude/project-thread-o3zdk4`. Bara UI 5.0 (`rcpTop5`, `rcpPrisFot` före `recipeDetail`; CSS sist i index.html under `html.ny.ui5 .rcp5`/`.rcp-meny`). UI 2.0 oförändrat.
-- Version 2 efter Henriks svar: bildens knappar behålls (penna/foto, bokmärke, hjärta, betygsknapp med stjärnor). ⋯ har bara Redigera recept, Byt mot annan rätt, Recept hos källan, Föreslå aldrig igen. Under titeln bara Börja laga + Till veckan; ingen extra text (prisnot bara vid saknat/gammalt pris).
-- Version 3: Tidigast igen ligger i ⋯ (värdet syns i menyn) och ställs med −/+ i bladet (`tidigastHtml`, `.ti-step`, `ACT.tidSteg`, steg `TIDV` 1–26 v + Aldrig; baslinjen `frekvens[id].w` räknas om så att valt intervall gäller med dagens stjärnor). Senast lagad i faktarutan, why-texten (M24) visas inte i UI 5.0. Ingen Kod.gs-ändring.
+- Ägare Claude, gren `claude/project-thread-o3zdk4`. Bara UI 5.0 (`rcpTop5` före `recipeDetail`; CSS sist i index.html under `html.ny.ui5 .rcp5`/`.rcp-meny`). UI 2.0 oförändrat.
+- Version 2 efter Henriks svar: bildens knappar behålls (penna/foto, bokmärke, hjärta, betygsknapp med stjärnor). ⋯ har bara Redigera recept, Byt mot annan rätt, Recept hos källan, Föreslå aldrig igen. Under titeln bara Börja laga + Till veckan.
+- Version 3: Tidigast igen ligger i ⋯ (värdet syns i menyn) och ställs med −/+ i bladet (`tidigastHtml`, `.ti-step`, `ACT.tidSteg`, steg `TIDV` 1–26 v + Aldrig; baslinjen `frekvens[id].w` räknas om så att valt intervall gäller med dagens stjärnor). Senast lagad bara i Tidigast igen-bladet; priset i faktarutan som ~27 kr (minst vid saknade priser), ingen prisnot/why-text (M24) i UI 5.0. Öppen ⋯ hålls öppen vid omritning (`doRender`, `rmo`). Ingen Kod.gs-ändring.
 - Test: `receptsida.js` telefon/mörkt/vägg/UI2, alla-flikar telefon+vägg gröna.
 
 ## Översikt: bocken, Schema, Middag ikväll, Rummen (publicerad ht-v374, ångra-gren `version-fore-oversikt-atgarder`)
