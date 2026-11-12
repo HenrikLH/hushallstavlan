@@ -3328,15 +3328,15 @@ function calViewBase(){const t=today(),sel=S.calDay||t,m=S.calMonth||ymKey(sel),
  // dagens innehåll: händelser i tidsordning och uppgifter
  const d=D(),evs=d.events.filter(e=>e.date===sel).sort((a,b)=>String(a.time||'').localeCompare(String(b.time||''))),late=sel===t?d.tasks.filter(x=>!x.done&&isDate(x.due)&&x.due<t):[],
   ts=d.tasks.filter(x=>x.due===sel),meals=d.menu.filter(x=>x.date===sel);
- h+=sh(esc(cap(dayHead(sel)))+(sel===t?' <span class="acc">· Idag</span>':''),'<button class="linkbtn" data-act="evNew" data-id="'+sel+'">Lägg till</button>');
+ h+=sh(esc(cap(dayHead(sel)))+(sel===t?' <span class="acc">· Idag</span>':''),U5?'':'<button class="linkbtn" data-act="evNew" data-id="'+sel+'">Lägg till</button>');
  const evRow=e=>{const w=evPerson(e);return'<div class="cell cal-ev edit" data-act="evEdit" data-id="'+d.events.indexOf(e)+'"'+holdAt('evMenu')+' role="button" tabindex="0"><span class="bar '+(w&&people().includes(w)?pcls(w):'o')+'"></span><span class="t num">'+esc(e.time||'Heldag')+'</span><span class="grow"><span class="title">'+evTitle(e)+'</span>'+(evWho(e)?'<span class="meta">'+evWho(e)+'</span>':'')+'</span></div>'};
  const body=evs.map(evRow).join('')+late.concat(ts).map(taskRow).join('');
- h+=rgroup('U5',body||emptyCell('Inget inplanerat. Tryck på Lägg till för en händelse eller uppgift.'));
- if(meals.length)h+=sh('Mat')+rgroup('U6',meals.map(m=>mealCell(m)).join(''));
+ h+=rgroup('U5',body||emptyCell(U5?'Inget inplanerat. Tryck på + för en händelse eller uppgift.':'Inget inplanerat. Tryck på Lägg till för en händelse eller uppgift.'));
+ if(meals.length)h+=sh('Mat')+rgroup('U6',meals.map(m=>mealCell(m,null,U5?{txt:''}:null)).join(''));
  // de närmaste dagarna i listform
  const next=[];for(let i=1;i<=6;i++){const k=addDays(sel,i),n=d.events.filter(e=>e.date===k).length+d.tasks.filter(x=>x.due===k&&!x.done).length;if(n)next.push([k,n])}
  if(next.length)h+=sh('Kommande dagar')+rgroup('U7',next.map(([k,n])=>'<button class="cell link" data-act="calDay" data-id="'+k+'"><span class="grow">'+esc(cap(dayHead(k)))+'</span><span class="val num">'+n+(n===1?' sak':' saker')+'</span>'+chevron+'</button>').join(''));
- h+='<div class="foot">Händelserna kommer från Google Kalender och uppdateras var 15:e minut. Tryck på en händelse eller uppgift för att ändra den, håll in för fler val.</div>';
+ h+='<div class="foot">'+(U5?'Synkas med Google Kalender var 15:e minut.':'Händelserna kommer från Google Kalender och uppdateras var 15:e minut. Tryck på en händelse eller uppgift för att ändra den, håll in för fler val.')+'</div>';
  return h}
 /* Återkommande uppgifter: kolumnen Upprepa i Uppgifter. När en sådan bockas av flyttas datumet fram
    till nästa gång (samma uträkning som nextDue_ i Kod.gs) och uppgiften ligger kvar. */
