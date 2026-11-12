@@ -12,8 +12,8 @@ module.exports=async(pg,h)=>{
  // svep till dockan
  await pg.locator('main .ha-kortr').evaluate(e=>e.scrollTo({left:e.clientWidth+12}));await h.idle(800);
  assert.equal(await pg.locator('main .ha-kortd i').nth(1).getAttribute('class'),'on','Andra pricken markerad efter svep');
- assert.match(await pg.locator('main .ha-dkk').innerText(),/Rent vatten\s*≈ 42 %[\s\S]*Smutsvatten\s*≈ 58 %/,'Uppskattade vattennivåer');
- assert.equal(await pg.locator('main .dkk-b').count(),3,'Töm, Tvätta, Torka');
+ assert.match(await pg.locator('main .ha-dkk').innerText(),/42\s*%[\s\S]*58\s*%/,'Uppskattade vattennivåer');
+ assert.equal(await pg.locator('main .ha-dkk [data-act="haDock"]').count(),3,'Töm, Tvätta, Torka');
  await pg.evaluate(()=>window.__d('render()'));await h.idle(400);
  assert.equal(await pg.locator('main .ha-kortr').evaluate(e=>Math.round(e.scrollLeft/(e.clientWidth+12))),1,'Kortet ligger kvar efter omritning');
  await pg.evaluate(()=>scrollTo(0,0));await h.idle(300);await h.shot('robot-kort-docka');

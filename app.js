@@ -1676,24 +1676,37 @@ const HA_RUMNAMN=['Kök','Vardagsrum','Sovrum','Hall','Badrum','Kontor','Barnrum
 // Dockans bild: tankar (rent vatten blått, smutsvatten grått/orange) och roboten i dockan när den är hemma
 // svepbara kort (karta, docka) med sidprickar; läget sparas i S.haSwX så att omritning inte hoppar tillbaka
 function haSvep(K,namn){const n=Math.min(K.length-1,Math.max(0,S.haSwX|0));return'<div class="ha-kort"><div class="ha-kortr" aria-label="Kort">'+K.map((k,i)=>'<div class="ha-kortk" aria-label="'+esc(namn[i])+'">'+k+'</div>').join('')+'</div><div class="ha-kortd" aria-hidden="true">'+K.map((k,i)=>'<i'+(i===n?' class="on"':'')+'></i>').join('')+'</div></div>'}
-// dockans kort: genomskuren docka med rent vatten och smutsvatten (uppskattat), status och dockans kommandon
-function haDockKort(a){const dv=a.dockVarn||[],t=a.tank,st=a.st||'';
- const smuts=dv.some(v=>/dirty/i.test(v)),tom=t&&t.brist!=null?!!t.brist:dv.some(v=>/clean water/i.test(v)),fel=dv.filter(v=>!/dirty|clean water/i.test(v));
- const p=t?(tom?0:Math.max(0,Math.min(100,Math.round(t.pct||0)))):tom?0:null,q=p==null?null:p,d=smuts?100:q==null?null:Math.max(5,Math.min(95,100-q));
- const hemma=/charging|docked|emptying|washing|drying|idle|paused/.test(st)&&!haStadar(a)&&!/returning|docking/.test(st),tork=a.dockTork||/drying/.test(st)&&!/stopping/.test(st),tv=/wash/.test(st),tm=/emptying/.test(st);
- const txt=tm?'Tömmer dammbehållaren':tv?'Tvättar moppen':tork?'Torkar moppen'+(a.dockTorkH>0?' · '+(a.dockTorkH<1?Math.max(1,Math.round(a.dockTorkH*60))+' min':String(Math.round(a.dockTorkH*10)/10).replace('.',',')+' h')+' kvar':''):haStadar(a)?'Roboten städar':/returning|docking/.test(st)?'Roboten åker hem':st==='charging_complete'?'Roboten är laddad':st==='charging'?'Laddar roboten'+(a.bat!=null?' · '+Math.round(a.bat)+' %':''):'Roboten är hemma';
- const v=[tom&&'Fyll på rent vatten',smuts&&'Töm smutsvattnet',a.dockSil!=null&&a.dockSil<=0&&'Rengör silen',...fel.map(x=>x.replace(/^Dock error: /,''))].filter(Boolean);
- // tank: vattnet ritas som en yta som skalas i höjd (transform), så att nivån kan glida vid ändring
- const tank=(x,id,niva,c)=>'<clipPath id="'+id+'"><rect x="'+x+'" y="20" width="52" height="64" rx="9"/></clipPath><rect x="'+x+'" y="20" width="52" height="64" rx="9" class="dk-t"/><g clip-path="url(#'+id+')"><rect x="'+x+'" y="20" width="52" height="64" class="'+c+' dkk-v" style="transform:scaleY('+((niva==null?50:niva)/100)+')"/></g><rect x="'+x+'" y="20" width="52" height="64" rx="9" class="dk-tk"/><rect x="'+(x+16)+'" y="13" width="20" height="7" rx="3" class="dk-lk"/>';
- const ill='<svg class="dkk-ill'+(tm||tv||tork?' akt':'')+'" viewBox="0 0 200 176" aria-hidden="true"><rect x="34" y="6" width="132" height="146" rx="16" class="dk-k"/>'+
-  tank(42,'dkk-c1',q,'dk-rv'+(tom||q!=null&&q<15?' lag':''))+tank(106,'dkk-c2',d,'dk-sv'+(smuts?' full':''))+'<path d="M34 94h132" class="dk-ln"/>'+
-  '<rect x="60" y="102" width="80" height="34" rx="8" class="dk-t"/><path d="M70 112h60M70 119h60M70 126h40" class="dk-ln dkk-pase"/>'+
-  '<path d="M10 172 24 152h152l14 20z" class="dk-b"/>'+(hemma?'<rect x="84" y="140" width="32" height="10" rx="4" class="dk-r"/><rect x="40" y="150" width="120" height="20" rx="10" class="dk-r"/><path d="M60 160h80" class="dk-rl"/>':'')+'</svg>';
- const niv=(n,x,c,ex)=>'<div class="dkk-n"><i class="'+c+'"></i><span>'+n+'</span><b>'+(x==null?'–':x)+'</b>'+(ex||'')+'</div>';
- const kn=(id,ikon,n,on,stop)=>'<button type="button" class="dkk-b'+(on?' on':'')+'" data-act="haDock" data-id="'+(on&&stop?stop:id)+'">'+ikon+'<span>'+(on&&stop?'Stoppa':n)+'</span></button>';
- return'<div class="ha-dkk"><div class="dkk-top">'+ill+'<div class="dkk-t"><b>Dockan</b><span>'+esc(txt)+'</span>'+(v.length?'<small class="fyll">'+esc(v.join(' · '))+'</small>':'<small>Allt ser bra ut</small>')+'</div></div>'+
-  '<div class="dkk-ns">'+niv('Rent vatten',tom?'Tom':q!=null?'≈ '+q+' %':null,'rv'+(tom||q!=null&&q<15?' lag':''),t&&t.brist==null?'<button type="button" class="ha-pill" data-act="haTankFylld">Påfylld</button>':'')+niv('Smutsvatten',smuts?'Full':d!=null?'≈ '+d+' %':null,'sv'+(smuts?' full':''))+'</div>'+
-  '<div class="dkk-k">'+kn('tom',HAI_DK.tom,'Töm',tm)+kn('tvatt',HAI_DK.tvatt,'Tvätta',tv,'tvattstopp')+kn('tork',HAI_DK.tork,'Torka',tork,'torkstopp')+'</div></div>'}
+// dockans kort (Henrik: förstå läget från bilden, text bara när något ska göras). Förslag A/B/C via ht.dockStil
+function haDockLage(a){const dv=a.dockVarn||[],t=a.tank,st=a.st||'';
+ const smuts=dv.some(v=>/dirty/i.test(v)),tom=t&&t.brist!=null?!!t.brist:dv.some(v=>/clean water/i.test(v)),fel=dv.filter(v=>!/dirty|clean water/i.test(v)).map(x=>x.replace(/^Dock error: /,''));
+ const q=t?(tom?0:Math.max(0,Math.min(100,Math.round(t.pct||0)))):tom?0:null,d=smuts?100:q==null?null:Math.max(5,Math.min(95,100-q));
+ const hemma=/charging|docked|emptying|washing|drying|idle|paused/.test(st)&&!haStadar(a)&&!/returning|docking/.test(st),tork=!!(a.dockTork||/drying/.test(st)&&!/stopping/.test(st)),tv=/wash/.test(st),tm=/emptying/.test(st),sil=a.dockSil!=null&&a.dockSil<=0;
+ const gor=[tom&&'Fyll på rent vatten',smuts&&'Töm smutsvattnet',sil&&'Rengör silen',...fel].filter(Boolean);
+ return{t,q,d,tom,smuts,sil,fel,hemma,tork,tv,tm,gor,lagQ:tom||q!=null&&q<15,bat:a.bat,ladd:/charging/.test(st)&&st!=='charging_complete'}}
+// genomskuren docka: tankarna med vattennivå och procent, dammpåsen, roboten med batteri när den är hemma
+function haDockSvg(L,stor){const rv=L.lagQ?'dk-rv lag':'dk-rv',sv=L.smuts?'dk-sv full':'dk-sv',pc=(v,x)=>v==null?'':'<text x="'+x+'" y="72" class="dkx-p">'+v+'<tspan class="dkx-pp"> %</tspan></text>';
+ const tank=(x,id,niva,c,v,ikon,varn)=>'<clipPath id="'+id+'"><rect x="'+x+'" y="24" width="76" height="104" rx="14"/></clipPath><rect x="'+x+'" y="24" width="76" height="104" rx="14" class="dk-t"/><g clip-path="url(#'+id+')"><rect x="'+x+'" y="24" width="76" height="104" class="'+c+' dkk-v" style="transform:scaleY('+((niva==null?50:niva)/100)+')"/></g><rect x="'+x+'" y="24" width="76" height="104" rx="14" class="dk-tk"/>'+
+  pc(v,x+38)+'<g transform="translate('+(x+28)+' 98)" class="dkx-i">'+ikon+'</g>'+(varn?'<g transform="translate('+(x+64)+' 26)"><circle r="11" class="dkx-v"/><path d="M0-5v5M0 4.5v.5" class="dkx-vt"/></g>':'');
+ const drop='<path d="M10 2c3 3.6 5.5 6.4 5.5 9.4a5.5 5.5 0 0 1-11 0C4.5 8.4 7 5.6 10 2z"/>',smu='<path d="M10 2c3 3.6 5.5 6.4 5.5 9.4a5.5 5.5 0 0 1-11 0C4.5 8.4 7 5.6 10 2z"/><path d="M7.5 12.5h5M8.5 15h3"/>';
+ const bat=L.bat==null?0:Math.max(0,Math.min(100,L.bat));
+ return'<svg class="dkx'+(stor?' stor':'')+(L.tm?' tm':'')+(L.tv?' tv':'')+(L.tork?' tork':'')+'" viewBox="0 0 240 236" aria-hidden="true">'+
+  '<rect x="24" y="8" width="192" height="196" rx="26" class="dk-k"/>'+
+  tank(36,'dkx-c1',L.q,rv,L.tom?null:L.q,drop,L.lagQ)+tank(128,'dkx-c2',L.d,sv,L.d,smu,L.smuts)+
+  '<rect x="36" y="140" width="168" height="40" rx="12" class="dk-t"/><path d="M52 160h136" class="dkx-bag"/>'+
+  '<g class="dkx-dam">'+[70,100,130,160].map((x,i)=>'<circle cx="'+x+'" cy="172" r="2.5" style="animation-delay:'+(i*.18)+'s"/>').join('')+'</g>'+
+  (L.sil?'<g transform="translate(200 182)"><circle r="11" class="dkx-v"/><path d="M0-5v5M0 4.5v.5" class="dkx-vt"/></g>':'')+
+  '<path d="M4 232 22 206h196l18 26z" class="dk-b"/>'+
+  '<g class="dkx-tv">'+[96,120,144].map((x,i)=>'<path d="M'+x+' 190c2 3 3.5 5 3.5 7a3.5 3.5 0 0 1-7 0c0-2 1.5-4 3.5-7z" style="animation-delay:'+(i*.25)+'s"/>').join('')+'</g>'+
+  '<g class="dkx-tk">'+[100,120,140].map((x,i)=>'<path d="M'+x+' 200c-3-3 3-6 0-9s3-6 0-9" style="animation-delay:'+(i*.3)+'s"/>').join('')+'</g>'+
+  (L.hemma?'<rect x="44" y="208" width="152" height="22" rx="11" class="dk-r"/><rect x="88" y="215" width="64" height="8" rx="4" class="dkx-bt"/><rect x="88" y="215" width="'+(64*bat/100).toFixed(1)+'" height="8" rx="4" class="dkx-bf'+(bat<20?' lag':'')+'"/>'+(L.ladd?'<path d="M124 213l-5 6h4l-2 6 5-6.5h-4z" class="dkx-bl"/>':''):'')+'</svg>'}
+function haDockKnapp(L,id,ikon,n,on,stop,rund){return'<button type="button" class="'+(rund?'dkx-rb':'dkk-b')+(on?' on':'')+'" data-act="haDock" data-id="'+(on&&stop?stop:id)+'" aria-label="'+(on&&stop?'Stoppa':n)+'">'+(rund?'<i>'+ikon+'</i>':ikon)+'<span>'+(on&&stop?'Stoppa':n)+'</span></button>'}
+function haDockKort(a){const L=haDockLage(a),stil=(lsGet('dockStil')||'A').toUpperCase(),K=r=>haDockKnapp(L,'tom',HAI_DK.tom,'Töm',L.tm,null,r)+haDockKnapp(L,'tvatt',HAI_DK.tvatt,'Tvätta',L.tv,'tvattstopp',r)+haDockKnapp(L,'tork',HAI_DK.tork,'Torka',L.tork,'torkstopp',r);
+ const gor=L.gor.length?'<div class="dkx-gor">'+L.gor.map(g=>'<span>'+esc(g)+'</span>').join('')+'</div>':'',fyll=L.t&&L.t.brist==null?'<button type="button" class="ha-pill" data-act="haTankFylld">Påfylld</button>':'';
+ if(stil==='B'){const ma=(c,v,n,ikon,lag,txt)=>'<div class="dkb-m'+(lag?' lag':'')+'"><div class="dkb-g"><i class="'+c+'" style="transform:scaleY('+((v==null?0:v)/100)+')"></i><b>'+(txt!=null?txt:v==null?'–':v+'<small>%</small>')+'</b></div><span><svg viewBox="0 0 20 20" aria-hidden="true">'+ikon+'</svg>'+n+'</span></div>';
+  const drop='<path d="M10 2c3 3.6 5.5 6.4 5.5 9.4a5.5 5.5 0 0 1-11 0C4.5 8.4 7 5.6 10 2z"/>';
+  return'<div class="ha-dkk dkb">'+'<div class="dkb-ms">'+ma('rv',L.q,'Rent',drop,L.lagQ,L.tom?'Tom':null)+ma('sv',L.d,'Smuts',drop+'<path d="M7.5 12.5h5M8.5 15h3"/>',L.smuts,L.smuts?'Full':null)+ma('bt',L.bat,'Robot','<rect x="2.5" y="6" width="13" height="8" rx="2"/><path d="M17.5 9v2"/>',L.bat!=null&&L.bat<20)+'</div>'+gor+fyll+'<div class="dkx-k">'+K(true)+'</div></div>'}
+ if(stil==='C')return'<div class="ha-dkk dkc"><div class="dkc-r">'+haDockSvg(L)+'<div class="dkc-k">'+K(true)+'</div></div>'+gor+fyll+'</div>';
+ return'<div class="ha-dkk dka">'+haDockSvg(L,true)+gor+fyll+'<div class="dkx-k">'+K(true)+'</div></div>'}
 const HAI_DK={tom:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l-1.3 11.2a2 2 0 0 1-2 1.8H8.3a2 2 0 0 1-2-1.8z"/><path d="M4 8h16M9 5h6"/><path d="M12 11v6M9.5 14.5 12 17l2.5-2.5"/></svg>',
  tvatt:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5c3 3.6 5.5 6.6 5.5 9.8a5.5 5.5 0 0 1-11 0c0-3.2 2.5-6.2 5.5-9.8z"/><path d="M9.5 14a2.6 2.6 0 0 0 2.5 2.5"/></svg>',
  tork:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4c-1.5 1.6 1.5 3.4 0 5s1.5 3.4 0 5M12 4c-1.5 1.6 1.5 3.4 0 5s1.5 3.4 0 5M16 4c-1.5 1.6 1.5 3.4 0 5s1.5 3.4 0 5"/><path d="M5 19h14"/></svg>'};
