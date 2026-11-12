@@ -53,6 +53,11 @@ let PORT;
   async shot(n,full){await pg.waitForTimeout(350);await pg.screenshot({path:path.join(OUT,n+'.png'),fullPage:!!full,animations:process.env.REDUCED==='1'?'disabled':'allow'});console.log('shot',n)},
   async act(sel){const el=await pg.$(sel);if(!el){console.log('MISSING',sel);return false}await el.click();await pg.waitForTimeout(400);return true},
   async idle(ms){await pg.waitForTimeout(ms||1200)},
+  // Öppnar Inställningar och den del (.pref-section) som innehåller sel, var den än ligger just nu.
+  async pref(sel){if(!await pg.locator('form[data-form="settings"]').isVisible()){await pg.locator('[data-act="settings"]').first().click();await pg.waitForTimeout(600)}
+   const k=await pg.evaluate(s=>{const e=document.querySelector('form[data-form="settings"] '+s);const d=e&&e.closest('.pref-section');return d?d.dataset.k:''},sel);if(!k)throw new Error('Hittar inte '+sel+' i Inställningar');
+   if(!await pg.locator('[data-k="'+k+'"]').evaluate(d=>d.open)){const su=pg.locator('[data-k="'+k+'"]>summary');await su.evaluate(e=>e.scrollIntoView({block:'center'}));await su.click();await pg.waitForTimeout(600)}
+   await pg.locator(sel).first().evaluate(e=>e.scrollIntoView({block:'center'}));await pg.waitForTimeout(200)},
   async outbox(){return pg.evaluate(()=>localStorage.getItem('ht.outbox'))},
   sheet:(k)=>gas.book.sheets[k].rows,
   async hold(sel){const el=await pg.$(sel);if(!el){console.log('MISSING',sel);return}const bb=await el.boundingBox();await pg.mouse.move(bb.x+bb.width/2,bb.y+bb.height/2);await pg.mouse.down();await pg.waitForTimeout(1400);await pg.mouse.up();await pg.waitForTimeout(500)},

@@ -3,7 +3,7 @@ const assert=require('node:assert/strict'),path=require('node:path');
 module.exports=async(pg,h)=>{
  const read=s=>pg.evaluate(s=>window.__d(s),s),click=async s=>{await pg.locator(s).first().click();await h.idle(180)};
  const settings=async()=>{if(await read('S.view')==='vader')await click('main [data-act="nav"][data-id="oversikt"]');await click('[data-act="settings"]');const sec=pg.locator('[data-k="pref-oversikt"]');if(!await sec.evaluate(e=>e.open))await sec.locator('summary').click()};
- const close=()=>click('.sheet [data-act="sheetClose"]');
+ const close=async()=>{await read('ACT.prefBack&&ACT.prefBack()');await click('.sheet [data-act="sheetClose"]')};
  const nav=async()=>{if(await read('S.view')==='vader')return;await click('#nav [data-id="oversikt"]');await click('[data-act="nav"][data-id="vader"]')};
  const boot=process.env.ART||'geo';let originalGeometry;
  await settings();assert.equal(await pg.locator('[data-act="wxart"]').count(),2);await click('[data-act="wxvy"][data-id="bild"]');await click('[data-act="hundar"][data-id="bada"]');await close();

@@ -7,8 +7,7 @@ module.exports=async(pg,h)=>{
  // Förslagen som Kod.gs skriver i prisforslag finns i emulatorns data (fixtures/prisforslag.json). En rätt med en ingrediens som saknar vara
  await read(`(()=>{recipeById('insp-rotfruktsgratang-linser').groups[0].items.push({q:200,u:'g',n:'jackfrukt'});prisLadda(settings());PKR=new WeakMap();render();return 1})()`);
  assert.equal(await read("portHel(recipeById('insp-rotfruktsgratang-linser'))"),false);
- await click('[data-act="settings"]');
- const sum=pg.locator('details[data-k="pref-vardag"] > summary').first();await sum.evaluate(e=>e.scrollIntoView({block:'center'}));await sum.click();await h.idle(400);
+ await h.pref('[data-act="varor"]');
  const lank=pg.locator('[data-act="varor"]').first();await lank.evaluate(e=>e.scrollIntoView({block:'center'}));console.log('Länk:',(await lank.innerText()).replace(/\n+/g,' '));await lank.click();await h.idle(600);
  assert.equal(await read('S.view'),'varor');assert.equal(await read('S.sheet'),null);
  assert.ok(await pg.locator('[data-act="varaOpen"][data-id="jackfrukt"][data-typ="ing"]').count(),'jackfrukt ska stå under Ingredienser utan vara');

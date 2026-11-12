@@ -34,7 +34,7 @@ module.exports=async(pg,h)=>{
  for(const t of ['recept','efter']){await tab(t);await click('[data-rc="quick"]');await h.shot(t+'-filter');assert.equal(await read('recipeFilterCount()'),1);await click('[data-rc="clear"]')}
  await menu();await click('[data-rc="new"]');assert.equal(await read('RC.edit.recipe.course'),'efterrätt');await click('[data-rc="leave"]');assert.equal(await pg.locator('[data-rc="resume"]').count(),0);
  assert.equal(JSON.stringify(h.sheet('Matsedel')),original.menu);assert.equal(JSON.stringify(h.sheet('Inköp')),original.shop);
- await choose('flytande');await click('[data-act="settings"]');const details=pg.locator('[data-k="pref-utseende"]');if(!await details.evaluate(x=>x.open))await details.locator('summary').click();await pg.locator('[data-act="addPlace"]').first().scrollIntoViewIfNeeded();await h.shot('installningar');await click('[data-act="sheetClose"]',await pg.evaluate(()=>window.__d('ACT.prefBack()')));
+ await choose('flytande');await h.pref('[data-act="addPlace"]');await h.shot('installningar');await click('[data-act="sheetClose"]',await pg.evaluate(()=>window.__d('ACT.prefBack()')));
  // Befintlig editor/import/utkast/versionering och synk körs med samma verkliga meny.
  console.log('PASS PLUS: tre sparade/startade lägen; meny, tangentbord, sök/filter, lista/kalender, API-sparning och oförändrad matsedel/inköp.');
 };
