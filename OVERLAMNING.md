@@ -26,11 +26,11 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 - Foton: `img` i inspiration.json (100/101, länkade från receptsidorna; ICA hämtat med WebFetch eftersom ICA spärrar GitHub). `inspoImg` matchar id eller namn. Nya recept: `node verktyg/matbilder-hamta.js [--kolla]` där nätet når sajterna (inte molnet).
 - Test: `verktyg/emu/matbilder.js` (LS mbild=c för lista; BILDER=1 släpper igenom riktiga foton, fungerar bara där nätet når dem), generera-vecka, installningar-delar, alla-flikar telefon+vägg.
 
-## Hemmet: redesign med hela Smart hem (förslag, ej publicerat)
+## Hemmet = Smart hem + kort (publicerad ht-v360)
 
-- Hemmet (flik sedan ht-v352, ångra-gren `version-fore-hemmet`) blir i första hand Smart hem: `husAlla(D)` (utbrutet ur `V.hus`) visar alla reglage och enheter (H3). Halvbreda, lika stora kort i H1 med låga rader: Födelsedagar vänster (`hemFod`: liten datumbricka + namn + när, inga streck, 3 veckor, 2 om fler än `hemFodMax()` = 3 telefon/4 från 700 px) och Ekonomi höger (`hemEko`: stapel + andel med en decimal, inga belopp; saknade överföringar; låst på väggen). Förra versionen med belopp: gren `hemmet-backup-halva`. Inställningar H2. nav('hus') leder till Hemmet; rum öppnas i Hemmet (`S.haRum`). Gren `claude/project-thread-x400ki`, ägare Claude.
-- `ht.hemStil=A` lägger korten sist (standard B = överst). Ta bort valet före publicering om Henrik inte vill ha det.
-- Väntar på Henriks ok. Bilder /mnt/project-files/hemmet/forfinad/. Test: `verktyg/emu/hemmet.js` (även FODMANGA=1, vägg, mörkt), alla-flikar telefon+vägg gröna.
+- Fliken Hemmet (sedan ht-v352) visar hela Smart hem (`husAlla(D)`, utbrutet ur `V.hus`; H3) med två lika stora halvkort överst (H1): Födelsedagar (`hemFod`: små datumbrickor, 3 veckor, 2 om fler än `hemFodMax()` = 3 telefon/4 vägg) och Ekonomi (`hemEko`: stapel + andel med en decimal, inga belopp, saknade överföringar; låst på väggen). Inställningar H2. nav('hus') går till Hemmet; rum öppnas i Hemmet (`S.haRum`).
+- Ångra-gren `version-fore-hemmet-smart`. Version med belopp och större kort: gren `hemmet-backup-halva`. Väggdatorn uppdateras först när Henrik skriver "Kör".
+- Test: `verktyg/emu/hemmet.js` (FODMANGA=1, vägg, mörkt), alla-flikar telefon+vägg gröna efter merge med main.
 ## Smarta förslag borttagna från Översikt (publicerad ht-v351)
 
 - Henrik tyckte förslagen (Ö14) var irriterande. Hela funktionen borttagen: `forslag`/`forslagHtml`/`fsDone`, ACT `fsKlart/fsSen/fsGo`, CSS `.fsl/.fs-*`; Ö14 till borttagna. Väderlarmet (Ö13) och Vädra/Ute finns kvar. Ångra-gren `version-fore-smarta-forslag`.
