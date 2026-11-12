@@ -3679,13 +3679,6 @@ html.ny.ui5 .ck5-x{flex:none}
 html.ny.ui5 .ck5-top .segc{flex:none;width:200px}
 html.ny.ui5 .ck5-chips{display:flex;gap:8px;flex:none}
 html.ny.ui5 .ck5-chips:empty{display:none}
-html.ny.ui5 .ck5-chip{display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 16px 0 12px;border-radius:999px;background:var(--accent);color:var(--on-accent);font-size:17px;font-weight:600;font-variant-numeric:tabular-nums}
-html.ny.ui5 .ck5-chip svg{width:16px;height:16px}
-html.ny.ui5 .ck5-cl{min-width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.24);display:grid;place-items:center;font-size:13px;line-height:18px}
-html.ny.ui5 .ck5-cl:empty{display:none}
-html.ny.ui5 .ck5-chip .ck5-tl{font-size:17px;line-height:22px;font-weight:600;color:inherit}
-html.ny.ui5 .ck5-chip.pau{background:var(--accent-soft);color:var(--accent)}html.ny.ui5 .ck5-chip.pau .ck5-cl{background:var(--fill)}
-html.ny.ui5 .ck5-chip.klar{background:var(--fill);color:var(--ink)}html.ny.ui5 .ck5-chip.klar .ck5-cl{background:var(--fill)}
 html.ny.ui5 .ck5 .progress{flex:1 0 100%;margin:8px 0 0}
 html.ny.ui5 .ck5 .cook-body{display:grid;grid-template-columns:minmax(0,1fr);overflow:auto;padding:0}
 html.ny.ui5 .ck5-l{padding:0 0 24px}
@@ -3742,7 +3735,7 @@ html.ny.ui5 .ck5-pr svg{width:11px;height:18px}html.ny.ui5 .ck5-pr:disabled{back
 }
 /* Liggande (telefon på sidan, surfplatta, väggen): två spalter */
 @media (orientation:landscape),(min-width:900px){
- html.ny.ui5 .ck5 .cook-body{grid-template-columns:minmax(300px,2fr) minmax(0,3fr);overflow:hidden;padding:12px 16px 0 0;column-gap:16px}
+ html.ny.ui5 .ck5 .cook-body{grid-template-columns:minmax(300px,2fr) minmax(0,3fr);align-content:stretch;overflow:hidden;padding:12px 16px 0 0;column-gap:16px}
  html.ny.ui5 .ck5-l{overflow:auto;padding-bottom:calc(24px + var(--sab))}
  html.ny.ui5 .ck5-l>.sh:first-child{margin-top:8px}
  html.ny.ui5 .ck5-r{border-radius:var(--r5) var(--r5) 0 0}
@@ -3758,20 +3751,27 @@ html.ny.ui5 .ck5-pr svg{width:11px;height:18px}html.ny.ui5 .ck5-pr:disabled{back
  html.ny.ui5 .ck5-nav{padding:8px 24px calc(8px + var(--sab))}
  html.ny.ui5 .ck5-nav .btn-fill{height:44px}html.ny.ui5 .ck5-pr{width:44px;height:44px}
 }
-/* Tidsplan i full bredd (A) och ett steg i taget med tidsplanen under (B) */
+/* Tidsplan i full bredd */
 html.ny.ui5 .ck5 .cook-body.ck5-plan{display:block;overflow:auto;padding:12px 16px calc(24px + var(--sab))}
 html.ny.ui5 .ck5-pw{max-width:1100px;margin:0 auto}
-html.ny.ui5 .ck5-en .ck5-sl{padding:0 0 16px}
-html.ny.ui5 .ck5-big{font-size:28px;line-height:34px;font-weight:700;letter-spacing:.36px;padding:8px 24px 0;overflow-wrap:anywhere}
-html.ny.ui5 .ck5-ams{display:flex;flex-wrap:wrap;gap:8px;padding:16px 24px 0}
-html.ny.ui5 .ck5-am{display:inline-flex;align-items:baseline;gap:4px;min-height:32px;padding:5px 12px;border-radius:999px;background:var(--fill);font-size:15px;line-height:20px;box-sizing:border-box}
-html.ny.ui5 .ck5-tpw{padding:16px 8px 0}html.ny.ui5 .ck5-tpw .tp{margin:0}
-html.ny.ui5 body.wall .ck5-big{font-size:34px;line-height:41px}
-@media (orientation:landscape) and (max-height:500px){html.ny.ui5 .ck5-big{font-size:22px;line-height:28px}html.ny.ui5 .ck5-ams{padding-top:12px}}
+/* Timer som snart är klar (högst 5 min): liten grå kapsel, vinröd sista minuten, fylld när den ringer */
+html.ny.ui5 .ck5-chips{flex-wrap:wrap;justify-content:flex-end;max-width:50%}
+html.ny.ui5 :is(.ck5-chip,.ck5-stt){display:inline-flex;align-items:center;gap:4px;height:32px;padding:0 12px 0 6px;border-radius:999px;background:var(--fill);color:var(--ink);font-size:15px;line-height:20px;font-weight:600;font-variant-numeric:tabular-nums;position:relative}
+html.ny.ui5 :is(.ck5-chip,.ck5-stt)::after{content:"";position:absolute;inset:-6px 0}
+html.ny.ui5 .ck5-stt{padding:0 12px;margin:0 0 8px 48px}
+html.ny.ui5 :is(.ck5-chip,.ck5-stt) svg{width:14px;height:14px}
+html.ny.ui5 :is(.ck5-chip,.ck5-stt) .ck5-tl{font-size:15px;line-height:20px;font-weight:600;color:inherit}
+html.ny.ui5 .ck5-chip .ck5-cl{min-width:20px;height:20px;border-radius:50%;background:var(--surface);display:grid;place-items:center;font-size:13px;line-height:18px;color:var(--ink-2);margin-right:4px}
+html.ny.ui5 :is(.ck5-chip,.ck5-stt).sist{color:var(--accent)}
+html.ny.ui5 :is(.ck5-chip,.ck5-stt).pau{color:var(--ink-2)}
+html.ny.ui5 :is(.ck5-chip,.ck5-stt).klar{background:var(--accent);color:var(--on-accent)}html.ny.ui5 .ck5-chip.klar .ck5-cl{background:rgba(255,255,255,.24);color:inherit}
+html.ny.ui5 :is(.ck5-chip,.ck5-stt):not(.klar) svg{color:var(--ink-2)}
+@media (prefers-reduced-motion:no-preference){html.ny.ui5 :is(.ck5-chip,.ck5-stt){animation:ck5In .35s cubic-bezier(.3,1.4,.5,1)}}
+@keyframes ck5In{from{opacity:0;transform:scale(.8)}}
 /* Väggen: större text för att läsas på avstånd */
 html.ny.ui5 body.wall .ck5-st.on .ck5-sb{font-size:34px;--lh:41px}
 html.ny.ui5 body.wall .ck5-sb{font-size:20px;--lh:26px}
-html.ny.ui5 body.wall .ck5-chip{height:48px}html.ny.ui5 body.wall .ck5-chip .ck5-tl{font-size:20px;line-height:26px}
+html.ny.ui5 body.wall :is(.ck5-chip,.ck5-stt){height:40px;font-size:17px}html.ny.ui5 body.wall :is(.ck5-chip,.ck5-stt) .ck5-tl{font-size:17px;line-height:22px}
 html.ny.ui5 body.wall .ck5 .cook-body{grid-template-columns:minmax(360px,2fr) minmax(0,3fr)}
 </style>
 </head>

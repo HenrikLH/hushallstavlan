@@ -2,11 +2,11 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
-## Matlagningsläget: delad vy (förslag v3 A/B, väntar på Henrik)
-- Ägare Claude, gren `claude/project-thread-46nf66`. Henrik avvisade v1 (en spalt) och v2 (tidsplanen hoptryckt i vänsterspalten, ingredienser syntes inte liggande). Bara UI 5.0: `cook5()`/`ck5Mitt()` i app.js före `tidsplan`, CSS `.ck5*` sist i index.html.
-- Båda: ingredienser till vänster (bock `ACT.cookBock`, stegets i fetstil), igång-timrar som chip i rubriken (`.ck5-chip`, tpTimer data-k), tidsplanens runda stegknappar = timrar (Henriks krav). Inspiration Deglaze (liggande: ingredienser vänster, steg höger, timer i topprad), Mela, Crouton.
-- A: stegen som lista till höger, segment Steg/Tidsplan (`ACT.cookVy`, `S.cook.vy`) ger tidsplanen i full bredd. B (tillfälligt `ht.cookv=b`): ett steg i taget, mängder som kapslar, tidsplanen under steget. Ta bort varianten Henrik inte väljer.
-- Test `matlagning.js` (SHOT, VP=844x390), timerring (byter till Tidsplan i A), alla-flikar telefon gröna. Bilder /mnt/project-files/matlagning/v3/.
+## Matlagningsläget: delad vy (A vald, förslag v4 för timern, väntar på Henrik)
+- Ägare Claude, gren `claude/project-thread-46nf66`. Bara UI 5.0: `cook5()`/`ck5Mitt()` i app.js före `tidsplan`, CSS `.ck5*` sist i index.html. Henrik avvisade v1 (en spalt) och v2 (tidsplan hoptryckt till vänster); valde A i v3.
+- Ingredienser till vänster (bock `ACT.cookBock`, stegets i fetstil), stegen som lista till höger (tryck = hoppa), segment Steg/Tidsplan (`ACT.cookVy`) ger tidsplanen i full bredd. Timrar startas med tidsplanens runda stegknappar (Henriks krav).
+- Timern syns först när högst 5 min är kvar (Henrik): `ck5Syns`, `tick` ritar om när en timer passerar gränsen (`A.ck5Vis`). Liten grå kapsel, vinröd text sista minuten, fylld när den ringer. A = kapslar i rubriken (standard), B = kapsel vid sitt steg i listan (tillfälligt `ht.cookt=steg`). Ta bort varianten Henrik inte väljer.
+- Test `matlagning.js` (SHOT, VP=844x390, LS cookt), timerring, alla-flikar telefon gröna. Bilder /mnt/project-files/matlagning/v4/.
 
 ## Översikt: bocken, Schema, Middag ikväll, Rummen (publicerad ht-v374, ångra-gren `version-fore-oversikt-atgarder`)
 - Gren `claude/project-thread-2tlos6` (PR #103). Bocken i Att göra-rutan (`.ur`) ritas och raden glider ihop (`checkAnim`/`A.before` tar `.cell,.ur`; FLIP överlever dubbel omritning via `A.flipT`). Schema döljer passerade händelser idag. Middag ikväll (UI 5.0, `wMeals`, `.wm5`): rad per rätt med bild och diskret grå ▶ (Henriks val). "Hemmet"-rutan med rummen heter Rummen. Väggen: ensam halv ruta (`.wpair.solo`) tar bredden.
