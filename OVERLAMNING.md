@@ -2,6 +2,10 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Att göra-rutan: idag + imorgon (förslag, väntar på Henrik)
+- Ö3/T8 och widgetläget visar bara dagens och sena uppgifter (bockbara) och en sektion Imorgon (ljusare). Odaterade/senare bara under Alla N. Kod `upgDag`/`upgDagHtml` (före `taskRow`), CSS `.upg-*`.
+- Ägare Claude, gren `claude/project-thread-ndr143`. Nästa: Henriks ok → publicera. Test `att-gora-idag.js` telefon/vägg, alla-flikar telefon+vägg gröna (59e0382). Bilder /mnt/project-files/att-gora-idag/.
+
 ## Dammsugarens statusbricka i Städ (publicerad ht-v356, ångra-gren `version-fore-dammsug-stad`)
 - `stadRob()` (ruta S12): samlad statusbricka (Henrik ville kombinera A+B): illustration med ringar batteri (yttre, grön) och rent vatten (inre, `a.tank`), "Rum att städa" ("Dags nu"/"Om n dagar", ikon till höger i brickan; väggen: status vänster halva, 4 rum höger) = rum med `haRumSt` dags/snart som brickor med åtgärd: "Dammsug" eller "Dammsug + mopp" (mopp innebär alltid dammsugning direkt före, Henriks regel). Tryck → `V.robot` med Tillbaka "Att göra" (`S.robFran`).
 - Test `stad-dammsugare.js` (haDemo) telefon/vägg/mörkt, alla-flikar telefon+vägg gröna. Bilder /mnt/project-files/apparater/stad-genvag/samlad/.
