@@ -2,9 +2,9 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
-## Granskning C3: rättens blad (förslag, väntar på Pusha)
-- Ägare Claude, gren `claude/project-thread-jltjnw` (flyttat från davi5e 735854a). UI 5.0: Börja laga som huvudknapp, lista Portioner/Byt rätt/Visa recept, Ta bort håll in; prisnoten en gång ovanför receptlistan (`recipePriceNote`, `recipePrice().kort`).
-- Kvar i granskningen: B Idag-ruta, C1/C2/C4, D, E, H, I, J, K, L, M. Test: `rattens-blad.js`, alla-flikar telefon+vägg gröna (7c74a91).
+## Granskning C3: rättens blad (publicerad ht-v363, ångra-gren `version-fore-rattens-blad`)
+- UI 5.0: Börja laga som huvudknapp, lista Portioner/Byt rätt/Visa recept, Ta bort håll in; prisnoten en gång ovanför receptlistan (`recipePriceNote`, `recipePrice().kort`). Gren `claude/project-thread-jltjnw`.
+- Kvar i granskningen (docs/granskning-2026-11): B Idag-ruta, C1/C2/C4, D, E, H, I, J, K, L, M. Test: `rattens-blad.js`, alla-flikar telefon+vägg gröna.
 
 ## Dammsugaren: rumsintervall och dockans kort (publicerad ht-v361, ångra-gren `version-fore-dammsug-docka`)
 - Ägare Claude, gren `claude/project-thread-ys6yn3`. Håll in ett rum (Rummen på dammsugarsidan, alla rum visas nu, eller rumsbrickan i Städ S12) → blad `robRum` (ACT `robRum`/`robRumValj`): −/+ dammsuga/moppa var n dagar (`haRumIv`), Stort rum, Städa rummet.
