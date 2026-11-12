@@ -9,7 +9,8 @@ module.exports=async(pg,h)=>{
  await pg.locator('main .ha-karta img').waitFor({timeout:8000});
  const R=JSON.parse(await pg.evaluate(()=>window.__d('JSON.stringify({crop:HA.km.crop,rum:HA.km.rum.map(r=>({id:r.id,cx:r.cx,cy:r.cy}))})')));
  const tryck=async id=>{const r=R.rum.find(q=>q.id===id),b=await pg.locator('main .ha-karta img').boundingBox();await pg.mouse.click(b.x+(r.cx-R.crop[0])/R.crop[2]*b.width,b.y+(r.cy-R.crop[1])/R.crop[3]*b.height);await h.idle(500)};
- const [,r2,r3,r4]=R.rum.map(r=>r.id);
+ // tre små rum som ryms i en omgång (under TOM_M2 tillsammans, inget stort rum), annars är hemkomsten bara slutet på första omgången
+ const [r2,r3,r4]=JSON.parse(await pg.evaluate(()=>window.__d('JSON.stringify(haAppX().rum.filter(r=>!r.stor).sort((x,y)=>(x.m2||0)-(y.m2||0)).slice(0,3).map(r=>r.id))')));
  const omgang=async(stoppa)=>{
   await tryck(r2);await tryck(r3);await tryck(r4);
   await pg.locator('main [data-act="haLager"][data-id="m"]').click();await h.idle(300);await tryck(r2);await pg.locator('main [data-act="haLager"][data-id="v"]').click();await h.idle(300);
@@ -20,13 +21,14 @@ module.exports=async(pg,h)=>{
   if(stoppa){await post('/yttre/rum/'+r4);await h.idle(6000)}
   if(stoppa){await post('/yttre/stopp');await h.idle(6000)}
   await post('/yttre/hemma');
-  await pg.waitForFunction(()=>document.querySelector('main .ha-fslut.avbr'),null,{timeout:30000});
+  await pg.waitForFunction(k=>{const b=document.querySelector('main [data-act="haAppSida"][data-id="hist"] b');return b&&b.textContent.startsWith(k)},'Avbruten',{timeout:30000});await pg.locator('main [data-act="haAppSida"][data-id="hist"]').click();await h.idle(600);
   const t=await pg.locator('main .ha-fl').innerText();
   assert.match(t,stoppa?/Avbruten · 2 av 3 rum klara/:/Avbruten · 1 av 3 rum klara/,'Bara rummen som roboten lämnade räknas som klara');
   assert.equal(await pg.locator('main .ha-fo li.ej').count(),stoppa?2:3,'Ej städade rum markeras (även moppningen)');
   assert.doesNotMatch(t,/Läget går tillbaka|^Klart$/m,'Inget "Klart"');
   await h.idle(7000);const L=(await logg()).slice(n0);
   assert.ok(!L.some(x=>x[2].option==='mop'),'Moppningen startar inte efter en avbruten dammsugning');
+  await pg.locator('main .ha-bak').click();await h.idle(400);
   return t};
  // 1: roboten skickas hem utan paus (rum 3 aldrig besökt)
  await omgang(false);await h.shot('robot-avbruten');
