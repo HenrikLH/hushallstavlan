@@ -23,6 +23,10 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 - Ägare Claude, gren `claude/project-thread-ys6yn3`. `stadRob()` stängde inte sin `<div class="stad-rob-g">`, så hela Städ hamnade i ett kort. Rättat; `stad-dammsugare.js` larmar om städinnehåll hamnar i brickan.
 - Henrik godkände Ring-vyn men inte Lista: `stadVy()` ger nu `ring` som standard, `lista`/`rutnat` sparas uttryckligen (`ht.stadVy`). Test stad-vyer, stad-dammsugare, alla-flikar telefon+vägg gröna.
 
+## Dammsugarbrickan i Städ: symboler och laddning (publicerad ht-v371, ångra-gren `version-fore-dammsug-laddning`)
+- `stadRob`/`stadRobIll`: en rad med ringprickar "Batteri n %"/"Vatten n %" (prick = ringens färg), "Laddar" döljs vid charging/docked/charging_complete; tom/låg tank = orange kapsel "Tanken tom"/"Lite vatten" (egen orange `--sr-or/--sr-ort`, ej röd). Vid laddning (`haLaddar`): grön blixt i textraden som andas (`.sr-bz`) och partiklar som dras in mot batteriringen (`.sr-pk`, 9 st, bara transform/opacity, fas via negativ delay). Ringarna fylls vid första visning (`.sr-ill.in`). Allt av med Rörelse av/reducerad rörelse.
+- Henrik valde "reserv" (större, lugnare partiklar); snabbare variant finns i commit på grenen före ht-v371. Test stad-dammsugare/robot-status/apparater, alla-flikar telefon+vägg+mörkt gröna.
+
 ## Dammsugarsidans Starta/Hem (publicerad ht-v365, ångra-gren `version-fore-starta-glas`)
 - `.rob-vy .ha-bar` (UI5, CSS sist i index.html): glas i `::before` (mask + blur, knapparna påverkas inte) ända ner till skärmkanten; vid krympt pillermeny (`html.nav-piller:has(#nav.mini)`) glider raden ner med bara `transform` (0 layout i animationen, mätt). Test apparater/robot-status/robot-rum-docka, alla-flikar telefon+vägg gröna.
 

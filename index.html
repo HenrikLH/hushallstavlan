@@ -3257,7 +3257,7 @@ form[data-form="haLampa"] .ha-ctl{flex:1;justify-content:center;padding-top:24px
 .ha-ap{grid-column:1/-1;position:relative;overflow:hidden}.ha-ap .ha-i{background:rgba(120,120,128,.16);color:var(--ink-2)}.ha-ap.on.ha-ap-robot .ha-i{background:#0A84FF;color:#fff}.ha-ap.on.ha-ap-disk .ha-i{background:#30B0C7;color:#fff}
 .ha-ap .ha-tx{flex:1}.ha-ap-p{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(120,120,128,.18)}.ha-ap-p::after{content:'';position:absolute;inset:0 auto 0 0;width:var(--p);background:#0A84FF;border-radius:0 2px 2px 0}.ha-ap-disk .ha-ap-p::after{background:#30B0C7}
 .ha-g .ha-t.ha-ap.on{background:var(--fill);box-shadow:none}.ha-g-v .ha-t.ha-ap.on{background:var(--surface)}
-/* Smart hem-rutan: fyra scener överst och favoriter under, blad för att anpassa (ht-v370) */
+/* Smart hem-rutan: fyra scener överst och favoriter under, blad för att anpassa (ht-v371) */
 .hab-h{display:flex;align-items:center;gap:8px}.hab-h .wh{flex:1;min-width:0}
 .hab-mer{flex:none;display:grid;place-items:center;width:30px;height:30px;padding:0;border:0;border-radius:50%;background:var(--fill);color:var(--ink-2);cursor:pointer;-webkit-tap-highlight-color:transparent}.hab-mer svg{width:18px;height:18px}
 /* Designskillen (hushallstavlan-apple-design): rutan har hörn 26 och kant 16, därför hörn 16 innanför (inte kapslar), 8-avstånd, text 15/13 */
@@ -3600,6 +3600,33 @@ html.ny.ui5 .rob-vy .ha-bar{bottom:0;padding-bottom:calc(var(--tabbar) + var(--t
 html.ny.ui5 .rob-vy .ha-bar::before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(color-mix(in srgb,var(--bg) 0%,transparent),color-mix(in srgb,var(--bg) 82%,transparent) 30%);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);-webkit-mask-image:linear-gradient(transparent,#000 22%);mask-image:linear-gradient(transparent,#000 22%)}
 html.ny.ui5.nav-piller:has(#nav.mini) .rob-vy .ha-bar{transform:translate3d(0,calc(var(--tabbar) + var(--tabgap) + 6px - 34px),0)}
 @media (prefers-reduced-motion:reduce){html.ny.ui5 .rob-vy .ha-bar{transition:none}}
+/* Dammsugarbrickan: ringförklaring, tom tank som varning */
+.sr-lg{width:10px;height:10px;flex:none;border-radius:50%;border:3px solid var(--green);box-sizing:border-box}
+.sr-lg.v{border-color:#32ADE6}
+.stad-rob-g{--sr-or:#E07000;--sr-ort:#A04A00}
+@media (prefers-color-scheme: dark){html.ny.ui5:not([data-theme="light"]) .stad-rob-g{--sr-or:var(--orange);--sr-ort:var(--orange)}}
+html.ny.ui5[data-theme="dark"] .stad-rob-g{--sr-or:var(--orange);--sr-ort:var(--orange)}
+.sr-lg.lag{border-color:var(--sr-or)}
+.stad-rob-g .sr-bat.lag,.stad-rob-g .sr-vat.lag{stroke:var(--sr-or)}
+.sr-bz{display:inline-flex;width:14px;height:14px;align-items:center;justify-content:center;flex:none}
+.sr-m .sr-bz svg{width:12px;height:12px;fill:var(--green)}
+.sr-bz.an{animation:srLadd 3.6s ease-in-out infinite;will-change:transform,opacity}
+@keyframes srLadd{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.82)}}
+@media (prefers-reduced-motion:reduce){.sr-bz.an{animation:none}}
+.sr-ill{overflow:visible}
+.sr-kap{display:inline-flex;align-items:center;height:24px;padding:0 12px;border-radius:12px;background:color-mix(in srgb,var(--sr-or) 16%,transparent);color:var(--sr-ort);font-size:13px;font-weight:600}
+/* Dammsugarbrickan: ringarna fylls när kortet visas, ljus glider längs batteriringen vid laddning (HTML-lager, bara transform/opacity) */
+.sr-ill.in .sr-bat,.sr-ill.in .sr-vat{animation:srIn 1s cubic-bezier(.2,.8,.2,1) var(--d,0ms) both}
+.sr-ill.in .sr-vat{animation-delay:calc(var(--d,0ms) + 120ms)}
+@keyframes srIn{from{stroke-dasharray:0 100}}
+.sr-iw{position:relative;display:flex;flex:none;width:80px;height:80px}
+.sr-pk{position:absolute;inset:0;pointer-events:none}
+.sr-pk>i{position:absolute;left:50%;top:50%;width:0;height:0}
+.sr-pk b{position:absolute;left:-2px;top:-2px;width:4px;height:4px;border-radius:50%;background:var(--green);box-shadow:0 0 4px color-mix(in srgb,var(--green) 80%,transparent);opacity:0;animation:srPart 1.5s cubic-bezier(.55,0,.85,.45) infinite;will-change:transform,opacity}
+.sr-pk>i:nth-child(3n+1) b{animation-duration:1.8s}
+.sr-pk>i:nth-child(3n+2) b{animation-duration:1.3s}
+@keyframes srPart{0%{transform:translateY(-58px) scale(.5);opacity:0}25%{opacity:.85}88%{transform:translateY(-39px) scale(1);opacity:.85}100%{transform:translateY(-37px) scale(.3);opacity:0}}
+@media (prefers-reduced-motion:reduce){.sr-ill.in .sr-bat,.sr-ill.in .sr-vat{animation:none}.sr-pk{display:none}}
 /* Hemmet: scenerna fyra i rad som i Smart hem-rutan, apparaterna i samma bredd som övriga brickor, plus = ny scen eller enhet */
 .ha-sg.hus-sc{margin:0 16px 6px}.hus-sc .ha-st{background:var(--surface)}.hus-sc .ha-st.hab-tom{background:transparent}.hus-sc .ha-st.hab-tom .ha-i{background:var(--fill);color:var(--ink-2)}
 @media(min-width:700px){.hus-sc{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}}
@@ -3632,7 +3659,7 @@ body.wall :is(.hab .hab-sc,.hus-sc) .ha-st{gap:4px;padding:8px 4px;border-radius
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=370"></script>
+<script src="app.js?v=371"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
