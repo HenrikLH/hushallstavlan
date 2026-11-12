@@ -4891,11 +4891,12 @@ function nBana(sx){const a=sx.parentNode.querySelector(':scope>.arc'),p=a&&a.que
 function nPol(sx,M,P){const hr=sx.parentNode;if(!hr.classList.contains('nh-pol')||!M)return;const g=[],e=(x,y,a,b)=>g.push([x,y,a,b]),B=nBana(sx),f=v=>Math.round(v),oy=sx.offsetTop;
  // pölen ligger kvar där månen har varit: ett spår längs banan från öster fram till månen (störst vid månen), och bara lite framför den
  if(B){let tm=0,dm=1e9;for(let t=0;t<=Math.PI;t+=.02){const q=B(t),d=Math.hypot(q.x-M.x,q.y-M.y);if(d<dm){dm=d;tm=t}}
-  const t0=Math.max(.06,tm-1.7),n=Math.max(1,Math.round((tm-t0)/.13));
-  for(let k=0;k<=n;k++){const u=k/n,q=B(t0+(tm-t0)*u);e(q.x+(k%2?5:-4),q.y+(k%2?14:6),34+50*u,28+36*u)}
-  [.14,.28].forEach((d,k)=>{const q=B(tm+d);e(q.x,q.y+8,58-k*18,46-k*14)})}
- e(M.x,M.y+4,92,74);
- if(P){const R=P.rc+44;e(P.x,P.y,R+12,R+6);e(P.x+R*.4,P.y-R*.3,R*.6,R*.5);[.33,.67].forEach(t=>e(M.x+(P.x-M.x)*t,M.y+(P.y-M.y)*t+5,62,50))}
+  // kometsvans: bred vid månen och allt smalare bakåt, så att man ser att månen drar natten med sig
+  const t0=Math.max(.03,tm-2.1),n=Math.max(1,Math.round((tm-t0)/.05));
+  for(let k=0;k<=n;k++){const u=k/n,q=B(t0+(tm-t0)*u),w=Math.pow(u,1.7);e(q.x,q.y+4+8*w,14+86*w,12+62*w)}
+  const q=B(tm+.1);e(q.x,q.y+6,62,50)}
+ e(M.x,M.y+4,96,76);
+ if(P){const R=P.rc+38;e(P.x,P.y,R+6,R);e((M.x+P.x)/2,(M.y+P.y)/2+4,48,40)}
  // stjärnorna syns bara i pölen
  sx.style.setProperty('--npm',g.map(([x,y,a,b])=>'radial-gradient('+f(a*.85)+'px '+f(b*.85)+'px at '+f(x)+'px '+f(y)+'px,#000 0 40%,rgba(0,0,0,.5) 70%,transparent)').join(','));
  // trädet drar till sig natten: en dold form bakom kronan, så att pölen sträcker sig mot den och flyter ihop med en brygga när de är nära (skuggblåsa)
