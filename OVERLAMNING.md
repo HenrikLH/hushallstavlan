@@ -2,7 +2,7 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
-## Smart hem: scen ritar om rutan en gång (förslag, väntar på "Pusha")
+## Smart hem: scen ritar om rutan en gång (publicerad ht-v358, ångra-gren `version-fore-scen-omritning`)
 - Orsak: väggdatorns tjänst läser HA varje sekund och lamporna i en scen rapporterar en i taget, så rutan ritades om per lampa (1 → 2 → 3 → 4 tända). Nu samlar `haRitaSnart` svaren (ritar efter 1,3 s tystnad, senast 3,5 s). Egna scener och Släck allt visas direkt och hålls via `HA.mal` (`haMalSatt`, släpps när lampan rapporterat). `haSend` ritar bara när sista anropet är klart. Ingen ändring i tjänsten eller Kod.gs.
 - Gren `claude/project-thread-vbhjv9`. Test: ny `smart-hem-scen-omritning.js` (faller på main), smart-hem-tonsteg/-fel/-ruta/-ton/-rorelse, alla-flikar telefon+vägg gröna; smart-hem-volym faller likadant på main.
 
