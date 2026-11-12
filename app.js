@@ -1039,8 +1039,8 @@ const XW={
   const row=x=>{const lt=isDate(x.due)&&x.due<=X.t;return'<div class="xr">'+xck('taskToggle',x.id,x.title)+'<span class="grow one">'+esc(x.title)+'</span>'+(x.due?'<span class="xchip'+(lt?' red':'')+'">'+esc(x.due===X.t?'Idag':isDate(x.due)&&x.due<X.t?'Sen':dateShort(x.due))+'</span>':'')+'</div>'};
   const ovr=X.ovs.map(o=>'<div class="xr" data-act="ovGo" data-id="'+esc(o.l+'|'+o.c.id)+'"><span class="xwarn">!</span><span class="grow"><span class="one">'+(ovState(o.c)==='andrad'?'Uppdatera':'Lägg in')+' stående överföring</span><span class="xs mu one">'+esc(o.c.name)+'</span></span></div>').join('');
   if(z==='s')return xh('uppgifter',I.list,'Att göra')+'<div class="xbig num">'+n+'</div><div class="sp"></div>'+(n?'<div class="t one">'+esc(X.open[0].title)+'</div>'+(late?'<div class="xs red b">'+late+' idag eller sen'+(late>1?'a':'')+'</div>':'<div class="xs mu">&nbsp;</div>'):'<div class="xs mu">Inget att göra</div>');
-  const L=X.open.slice(0,z==='m'?3:7);
-  return xh('uppgifter',I.list,'Att göra',all)+((L.length||ovr)?'<div class="xrows">'+(z==='l'?ovr:'')+L.map(row).join('')+'</div>':xempty('Inget att göra just nu.'))},
+  const tm=addDays(X.t,1),k=z==='m'?3:7,L=X.open.filter(x=>isDate(x.due)&&x.due<=X.t).slice(0,k),M=X.open.filter(x=>x.due===tm).slice(0,Math.max(1,Math.min(3,k-L.length)));
+  return xh('uppgifter',I.list,'Att göra',all)+((L.length||(z==='l'&&ovr))?'<div class="xrows">'+(z==='l'?ovr:'')+L.map(row).join('')+'</div>':xempty('Inget kvar idag.'))+(M.length?'<div class="xsub">Imorgon</div><div class="xrows">'+M.map(row).join('')+'</div>':'')},
  mat(z,X){const nd=X.nextDay,isT=nd&&nd.date===X.t,lbl=!nd||isT?'Middag ikväll':'Middag '+dateShort(nd.date);
   if(!nd)return xh('mat',I.fork,'Middag')+xempty('Ingen matsedel inlagd än.');
   const ms=nd.meals,r0=ms[0].recipe&&recipeById(ms[0].recipe),img=r0&&(r0.img||imgOf(r0.id));
@@ -1223,7 +1223,6 @@ function wallBoard(){
  const nextDay=(td&&td.meals.length)?td:days.find(x=>x.date>t&&x.meals.length),isT=nextDay&&nextDay.date===t;
  const left=d.shop.filter(i=>!i.done);
  const clean=[...cp.routines.filter(x=>!doneToday(x)),...cp.todo].slice(0,4),doneN=cp.routines.filter(doneToday).length+cp.doneRot.length,totN=cp.routines.length+cp.doneRot.length+cp.todo.length;
- const tasks=d.tasks.filter(x=>!x.done).sort((a,b)=>(a.due||'9').localeCompare(b.due||'9')).slice(0,7);
  const popDone=A.cleanOpen&&!clean.length;A.cleanOpen=clean.length>0;
  const H={};
  H.kal=calWidget();
@@ -1234,7 +1233,7 @@ function wallBoard(){
   '<div class="thin bprog"><i style="width:'+(totN?Math.round(doneN/totN*100):0)+'%"></i></div>'+
   (clean.length?'<div class="wl">'+clean.map(x=>'<div class="cell ck" data-act="cleanToggle" data-id="'+esc(x.id)+'"><input type="checkbox" class="check" data-act="cleanToggle" data-id="'+esc(x.id)+'" aria-label="'+esc(x.title)+'"><span class="grow">'+esc(x.title)+'</span><span class="val num">'+x.min+' min</span></div>').join('')+'</div>':'<div class="bdone'+(popDone?' pop':'')+'">'+I.tick+'Allt är gjort idag</div>')+
   '<div class="wk-sub">Hemmet</div><div class="brooms">'+roomHealth().map(r=>'<div class="'+healthCls(r.score)+'"><span>'+esc(r.room)+'</span><i><b style="width:'+Math.round(r.score*100)+'%"></b></i></div>').join('')+'</div>');
- H.upg=widget('uppgifter','btasks',I.list,'Uppgifter',d.tasks.filter(x=>!x.done).length+' kvar',tasks.length?'<div class="wl">'+tasks.map(taskRow).join('')+'</div>':'<div class="wempty">Inget att göra.</div>');
+ H.upg=widget('uppgifter','btasks',I.list,'Uppgifter',d.tasks.filter(x=>!x.done).length+' kvar',upgDagHtml(upgDag()));
  if(U3&&!d.clean.length)H.stad=widget('stad','bclean',I.sparkles,'Städ idag','','<div class="u3-empty"><p>Inga rutiner tillagda än.</p><button class="btn-tint" data-act="nav" data-id="stad">'+I.plus+'Lägg till rutin</button></div>');
  if(haOn(true))H.hus=haBox(true);
  const L=layout(true,boardDefault());
@@ -1848,8 +1847,6 @@ V.oversikt=function(){
  const nextDay=(td&&td.meals.length)?td:days.find(d=>d.date>t&&d.meals.length);
  const cp=cleanPlan(),d=D();
  const left=d.shop.filter(i=>!i.done);
- const tasksNow=d.tasks.filter(x=>!x.done&&isDate(x.due)&&x.due<=t).sort((a,b)=>a.due.localeCompare(b.due));
- const tasksSoon=d.tasks.filter(x=>!x.done&&!(isDate(x.due)&&x.due<=t)).sort((a,b)=>(a.due||'9').localeCompare(b.due||'9')).slice(0,4);
  const hh=now.getHours(),greet=hh<5?'God natt':hh<10?'God morgon':hh<17?'Hej':hh<22?'God kväll':'God natt';
  let h=head((U6&&greet==='Hej'?'God dag':greet)+(people().includes(S.me)?', '+personLabel(S.me):''),U3?{sub:cap(dayHead(t))}:undefined);
  h+='<div class="ov">'+refAdd(heroHtml(),'Ö1');
@@ -1861,14 +1858,15 @@ V.oversikt=function(){
  H.stad=widget('stad','',I.sparkles,'Städ','','<div class="wbig">'+nv('w-clean',doneN)+'<small>/'+totN+'</small></div><div class="sub">'+nv('w-min',cp.minLeft)+' min kvar</div><div class="thin"><i style="width:'+(totN?Math.round(doneN/totN*100):0)+'%"></i></div>');
  if(U3&&!d.clean.length)H.stad=widget('stad','',I.sparkles,'Städ','','<div class="u3-empty"><p>Inga rutiner tillagda än.</p><button class="btn-tint" data-act="nav" data-id="stad">Lägg till rutin</button></div>');
  H.inkop=widget('inkop','',I.basket,'Inköp','','<div class="wbig">'+nv('w-shop',left.length)+'</div><div class="sub">kvar · ca '+nv('w-shopkr',shopCost(left),'kr')+'</div>');
- const tl=tasksNow.concat(tasksSoon).slice(0,5);
  {// Att göra med bockar och de stående överföringar som saknas
   const ovs=!people().includes(S.me)?[]:[['shared',ovOpen('shared')],[S.me,ovOpen(S.me)]].flatMap(([l,a])=>a.map(c=>({l,c})));
   const ovRows=ovs.map(x=>'<div class="cell ck ov-cell" data-act="ovGo" data-id="'+esc(x.l+'|'+x.c.id)+'" role="link" tabindex="0"><span class="ovs tap saknas" data-act="ovDone" data-id="'+esc(x.c.id)+'" data-list="'+esc(x.l)+'" role="button" tabindex="0" aria-label="Bekräfta att den är inlagd">!</span><div class="grow"><div class="title">'+(ovState(x.c)==='andrad'?'Uppdatera':'Lägg in')+' stående överföring</div><div class="meta"><span>'+esc(x.c.name)+'</span></div></div>'+chevron+'</div>').join('');
   // UI 5.0: flera saknade överföringar blir en rad som leder till Ekonomi (inte en rad per utgift)
   const ovEn=U5&&ovs.length>1?'<div class="cell ck ov-cell ov-sum" data-act="nav" data-id="ekonomi" role="link" tabindex="0"><span class="ovs saknas" aria-hidden="true">!</span><div class="grow"><div class="title">'+ovs.length+' utgifter saknar stående överföring</div><div class="meta"><span>Lägg in dem i banken och bocka av i Ekonomi</span></div></div>'+chevron+'</div>':'';
   const all=d.tasks.filter(x=>!x.done).length;
-  if(U5&&!S.arrange&&!ovs.length&&!tl.length){}else H.upg=widget('uppgifter','w2',I.list,'Att göra',all?'Alla '+all:'',(ovRows||tl.length)?'<div class="wl">'+(ovEn||ovRows)+tl.map(taskRow).join('')+'</div>':'<div class="wempty">Inget att göra just nu.</div>')}
+  // bara det som ska göras idag (och sena) går att bocka, imorgon visas under
+  const U=upgDag();
+  if(U5&&!S.arrange&&!ovs.length&&!U.idag.length&&!U.imorgon.length){}else H.upg=widget('uppgifter','w2',I.list,'Att göra',all?'Alla '+all:'',upgDagHtml(U,ovEn||ovRows))}
  const rh0=roomHealth(),rhB=rh0.filter(r=>r.score<.85),rh=U5&&!S.arrange?rhB:rh0;// UI 5.0: bara rum som behöver något
  if(!U5||S.arrange||rh.length)H.hem=widget('stad','w2',I.home,'Hemmet',U5&&rh0.length>rhB.length?(rh0.length-rhB.length)+' fint':'',rh.length?'<div class="wl">'+rh.map(healthRow).join('')+'</div>':'<div class="wempty">Städschemat är tomt.</div>');
  H.imorgon=tm&&!(U5&&!S.arrange&&!tm.events.length&&!tm.meals.length)?widget('mat','w2',I.cal,'Imorgon',esc(dateShort(tm.date)),(eventsHtml(tm)||(U5&&tm.meals.length?'':'<div class="wempty">Inga händelser.</div>'))+(tm.meals.length?wMeals(tm):'')):'';
@@ -3334,6 +3332,12 @@ const taskDelQ=rp=>rp?'<div class="cell"><span class="grow">Uppgiften upprepas '
  '<div class="cell"><span class="grow">Ta bort uppgiften?</span><button type="button" class="tb red strong" data-act="taskDel" data-id="all">Ja, ta bort</button><button type="button" class="tb" data-act="confirmNo">Avbryt</button></div>';
 const evDelQ=e=>{const rec=String(e.flags||'').includes('r'),cal=e.source==='kalender';return rec?'<div class="cell"><span class="grow">Händelsen upprepas. Vad vill du ta bort?</span></div><button type="button" class="cell link center red" data-act="evDel" data-id="once">Bara den här gången</button><button type="button" class="cell link center red" data-act="evDel" data-id="all">Alla gånger</button><button type="button" class="cell link center" data-act="confirmNo">Avbryt</button>':
  '<div class="cell"><span class="grow">Ta bort händelsen'+(cal?' ur Google Kalender':'')+'?</span><button type="button" class="tb red strong" data-act="evDel" data-id="all">Ja, ta bort</button><button type="button" class="tb" data-act="confirmNo">Avbryt</button></div>'};
+// Att göra-rutan: dagens uppgifter (även sena) och morgondagens
+function upgDag(){const t=today(),tm=addDays(t,1),o=D().tasks.filter(x=>!x.done);return{idag:o.filter(x=>isDate(x.due)&&x.due<=t).sort((a,b)=>a.due.localeCompare(b.due)),imorgon:o.filter(x=>x.due===tm)}}
+function upgDagHtml(U,pre){const t=today(),tm=U.imorgon.length,ID=U.idag.slice(0,8),M=U.imorgon.slice(0,3),fler=tm-M.length;
+ const r=x=>'<div class="ur"><input type="checkbox" class="check" data-act="taskToggle" data-id="'+esc(x.id)+'" aria-label="'+esc(x.title)+'"><span class="t">'+esc(x.title)+'</span>'+(x.due<t?'<span class="d red">'+esc(dateShort(x.due))+'</span>':x.who?'<span class="d">'+esc(personLabel(x.who))+'</span>':'')+'</div>';
+ return'<div class="upg-c">'+(pre?'<div class="wl">'+pre+'</div>':'')+(ID.length?ID.map(r).join(''):pre?'':'<div class="upg-tom">'+I.tick+'Inget kvar idag</div>')+
+  (tm?'<div class="upg-lbl">Imorgon</div><div class="ur tm"><span class="t">'+M.map(x=>esc(x.title)).join(' · ')+(fler>0?' +'+fler:'')+'</span></div>':'')+'</div>'}
 function taskRow(x){const t=today(),late=isDate(x.due)&&x.due<t&&!x.done;
  const meta=(x.due?'<span'+(late?' class="red"':'')+'>'+esc(x.due===t?'Idag':dateShort(x.due))+'</span>':'')+(repName(x.repeat)?'<span class="chip">↻ '+esc(repName(x.repeat))+'</span>':'')+(x.who?personChip(x.who):'')+(x.note?'<span>'+esc(x.note)+'</span>':'');
  const sw=U5&&S.view==='uppgifter'&&!wallBoardOn();return(sw?'<div class="dr-wrap cs">'+swDel('taskSwDel',x.id,x.title):'')+'<div class="cell '+(sw?'dr-slide ':'')+'ck'+(x.done?' done':'')+'"'+(S.view==='uppgifter'?holdAt('taskMenu',x.id):'')+'><input type="checkbox" class="check" data-act="taskToggle" data-id="'+esc(x.id)+'" aria-label="'+esc(x.title)+'"'+(x.done?' checked':'')+'><div class="grow'+(S.view==='uppgifter'?' edit" data-act="taskEdit" data-id="'+esc(x.id)+'" role="button" tabindex="0" aria-label="Ändra '+esc(x.title)+'"':'"')+'><div class="title">'+esc(x.title)+'</div>'+(meta?'<div class="meta">'+meta+'</div>':'')+'</div></div>'+(sw?'</div>':'')}
