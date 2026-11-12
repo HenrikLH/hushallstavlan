@@ -15,6 +15,7 @@ module.exports=async(pg,h)=>{
  await pg.locator('main [data-act="haRobDags"]').click();await h.idle(500);
  assert.match(await pg.locator('main .ha-valt').innerText(),/rum valda/,'Välj dem markerar rummen i kartan');
  assert.ok(await pg.locator('main .ha-fl.fh').count(),'Tidslinjen för de valda rummen visas');
+ await pg.locator('main .ha-fl.fh').scrollIntoViewIfNeeded();await pg.evaluate(()=>scrollBy(0,-180));await h.idle(300);await h.shot('robot-valj-dem');
  await pg.locator('main .ha-fl.fh li.ha-xr').first().click();await h.idle(300);
  assert.match(await pg.locator('main .ha-fl.fh li.ha-xr').first().innerText(),/×2/,'Rummet dammsugs två gånger (namn ×2)');
  await pg.locator('main .ha-fl.fh li.ha-xr').nth(1).click();await h.idle(300);
