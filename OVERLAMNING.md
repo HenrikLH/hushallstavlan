@@ -4,6 +4,7 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 ## Dammsugaren: rumsintervall och dockans kort (förslag, väntar på "Pusha")
 - Ägare Claude, gren `claude/project-thread-ys6yn3`. Håll in ett rum (Rummen på dammsugarsidan, alla rum visas nu, eller rumsbrickan i Städ S12) → blad `robRum` (ACT `robRum`/`robRumValj`): −/+ dammsuga/moppa var n dagar (`haRumIv`), Stort rum, Städa rummet.
+- HA-genomgång 2026-11-12 (läst på Surfacen): dockan ger bara binära tankgivare (rent/smutsigt vatten), dockningsfel, tömningsläge, mopptorkning + tid kvar, silens tid kvar; ingen nivå för dammpåse eller robotens dammbehållare → Empty bin borttaget, procent för rent vatten är tjänstens uppskattning. Mopptorkningens tid kvar visas inte än (kräver tjänständring).
 - Dockan har eget kort på dammsugarsidan (`haDockHd` bild med tankar + roboten när den är hemma, status från `a.st`, rent vatten/smutsvatten, Empty bin/Wash mop/Auto-empty). Flyttat från Inställningar; `haTank` används inte längre där.
 - Test: `robot-rum-docka.js`, `robot-status.js`, `apparater.js`, `stad-dammsugare.js` (demo) och alla-flikar telefon+vägg gröna. Bilder /mnt/project-files/apparater/rum-och-docka/.
 

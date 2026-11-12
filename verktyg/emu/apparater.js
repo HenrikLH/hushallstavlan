@@ -62,10 +62,10 @@ module.exports=async(pg,h)=>{
  await pg.locator('main [data-act="haAppDel"][data-id="sug"]').click();await h.idle(400);
  await h.shot('apparater-robot-nedre');
  await pg.locator('main [data-act="haAppSida"][data-id=""]').first().click();await h.idle(500);
- assert.match(await pg.locator('main .ha-dock').innerText(),/Dockan[\s\S]*Empty bin[\s\S]*Wash mop/,'Dockans kort med knappar finns på dammsugarsidan');
+ assert.match(await pg.locator('main .ha-dock').innerText(),/Dockan[\s\S]*Smutsvatten[\s\S]*Wash mop/,'Dockans kort med knappar finns på dammsugarsidan');
  assert.doesNotMatch(await pg.locator('main').innerHTML(),/Vacuum &amp; Mop<\/span>/,'Vacuum & Mop går inte att välja');
- await pg.locator('main [data-act="haDock"][data-id="tom"]').evaluate(e=>e.scrollIntoView({block:'center'}));await pg.locator('main [data-act="haDock"][data-id="tom"]').click();await h.idle(500);
- if(!demo)assert.ok(ut.some(u=>/"gor":"tom"/.test(u)),'Tömning skickad');
+ await pg.locator('main [data-act="haDock"][data-id="tvatt"]').evaluate(e=>e.scrollIntoView({block:'center'}));await pg.locator('main [data-act="haDock"][data-id="tvatt"]').click();await h.idle(500);
+ if(!demo)assert.ok(ut.some(u=>/"gor":"tvatt"/.test(u)),'Mopptvätt skickad');
  // zonstädning: rita en rektangel i kartan (pausa först om roboten städar)
  if(await pg.locator('main [data-act="haRob"][data-id="paus"]').count()){await pg.locator('main [data-act="haRob"][data-id="paus"]').click();await h.idle(1500)}
  await pg.locator('main [data-act="haZon"]').first().click();await h.idle(500);

@@ -9,7 +9,7 @@ module.exports=async(pg,h)=>{
  const st=pg.locator('main .ha-rst');await st.waitFor({timeout:5000});
  assert.match(await st.innerText(),/att dammsuga/,'Sammanfattning av rum som är dags');
  assert.ok(await st.locator('.ha-rst-r b.dags').count()>0,'Rum som är försenade markeras');
- assert.match(await pg.locator('main .ha-dock').innerText(),/Rent vatten\s*≈ 42 %[\s\S]*moppning/,'Tanken visas');
+ assert.match(await pg.locator('main .ha-dock').innerText(),/Rent vatten\s*OK · ≈ 42 % kvar/,'Tanken visas');
  await st.scrollIntoViewIfNeeded();await pg.evaluate(()=>scrollBy(0,140));await h.idle(300);await h.shot('robot-status');
  await pg.evaluate(()=>scrollTo(0,document.body.scrollHeight));await h.idle(300);await h.shot('robot-tank');
  await pg.locator('main [data-act="haRobDags"]').click();await h.idle(500);
