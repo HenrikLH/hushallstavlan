@@ -62,7 +62,7 @@ module.exports=async(pg,h)=>{
  await pg.locator('main [data-act="haAppDel"][data-id="sug"]').click();await h.idle(400);
  await h.shot('apparater-robot-nedre');
  await pg.locator('main [data-act="haAppSida"][data-id=""]').first().click();await h.idle(500);
- assert.match(await pg.locator('main .ha-dkk').innerText(),/Dockan[\s\S]*Smutsvatten[\s\S]*Tvätta/,'Dockans kort med knappar finns på dammsugarsidan');await pg.locator('main .ha-kortr').evaluate(e=>e.scrollTo({left:e.clientWidth+12}));await h.idle(700);
+ assert.match(await pg.locator('main .ha-dkk').innerText(),/Töm[\s\S]*Tvätta[\s\S]*Torka/,'Dockans kort med knappar finns på dammsugarsidan');await pg.locator('main .ha-kortr').evaluate(e=>e.scrollTo({left:e.clientWidth+12}));await h.idle(700);
  assert.doesNotMatch(await pg.locator('main').innerHTML(),/Vacuum &amp; Mop<\/span>/,'Vacuum & Mop går inte att välja');
  await pg.locator('main [data-act="haDock"][data-id="tvatt"]').evaluate(e=>e.scrollIntoView({block:'center'}));await pg.locator('main [data-act="haDock"][data-id="tvatt"]').click();await h.idle(500);
  if(!demo)assert.ok(ut.some(u=>/"gor":"tvatt"/.test(u)),'Mopptvätt skickad');

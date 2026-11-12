@@ -1676,7 +1676,7 @@ const HA_RUMNAMN=['Kök','Vardagsrum','Sovrum','Hall','Badrum','Kontor','Barnrum
 // Dockans bild: tankar (rent vatten blått, smutsvatten grått/orange) och roboten i dockan när den är hemma
 // svepbara kort (karta, docka) med sidprickar; läget sparas i S.haSwX så att omritning inte hoppar tillbaka
 function haSvep(K,namn){const n=Math.min(K.length-1,Math.max(0,S.haSwX|0));return'<div class="ha-kort"><div class="ha-kortr" aria-label="Kort">'+K.map((k,i)=>'<div class="ha-kortk" aria-label="'+esc(namn[i])+'">'+k+'</div>').join('')+'</div><div class="ha-kortd" aria-hidden="true">'+K.map((k,i)=>'<i'+(i===n?' class="on"':'')+'></i>').join('')+'</div></div>'}
-// dockans kort (Henrik: förstå läget från bilden, text bara när något ska göras). Förslag A/B/C via ht.dockStil
+// dockans kort (Henrik valde A: stor genomskuren docka; läget syns i bilden, text bara när något ska göras)
 function haDockLage(a){const dv=a.dockVarn||[],t=a.tank,st=a.st||'';
  const smuts=dv.some(v=>/dirty/i.test(v)),tom=t&&t.brist!=null?!!t.brist:dv.some(v=>/clean water/i.test(v)),fel=dv.filter(v=>!/dirty|clean water/i.test(v)).map(x=>x.replace(/^Dock error: /,''));
  const q=t?(tom?0:Math.max(0,Math.min(100,Math.round(t.pct||0)))):tom?0:null,d=smuts?100:q==null?null:Math.max(5,Math.min(95,100-q));
@@ -1700,13 +1700,9 @@ function haDockSvg(L,stor){const rv=L.lagQ?'dk-rv lag':'dk-rv',sv=L.smuts?'dk-sv
   '<g class="dkx-tk">'+[100,120,140].map((x,i)=>'<path d="M'+x+' 200c-3-3 3-6 0-9s3-6 0-9" style="animation-delay:'+(i*.3)+'s"/>').join('')+'</g>'+
   (L.hemma?'<rect x="44" y="208" width="152" height="22" rx="11" class="dk-r"/><rect x="88" y="215" width="64" height="8" rx="4" class="dkx-bt"/><rect x="88" y="215" width="'+(64*bat/100).toFixed(1)+'" height="8" rx="4" class="dkx-bf'+(bat<20?' lag':'')+'"/>'+(L.ladd?'<path d="M124 213l-5 6h4l-2 6 5-6.5h-4z" class="dkx-bl"/>':''):'')+'</svg>'}
 function haDockKnapp(L,id,ikon,n,on,stop,rund){return'<button type="button" class="'+(rund?'dkx-rb':'dkk-b')+(on?' on':'')+'" data-act="haDock" data-id="'+(on&&stop?stop:id)+'" aria-label="'+(on&&stop?'Stoppa':n)+'">'+(rund?'<i>'+ikon+'</i>':ikon)+'<span>'+(on&&stop?'Stoppa':n)+'</span></button>'}
-function haDockKort(a){const L=haDockLage(a),stil=(lsGet('dockStil')||'A').toUpperCase(),K=r=>haDockKnapp(L,'tom',HAI_DK.tom,'Töm',L.tm,null,r)+haDockKnapp(L,'tvatt',HAI_DK.tvatt,'Tvätta',L.tv,'tvattstopp',r)+haDockKnapp(L,'tork',HAI_DK.tork,'Torka',L.tork,'torkstopp',r);
+function haDockKort(a){const L=haDockLage(a),K=haDockKnapp(L,'tom',HAI_DK.tom,'Töm',L.tm,null,1)+haDockKnapp(L,'tvatt',HAI_DK.tvatt,'Tvätta',L.tv,'tvattstopp',1)+haDockKnapp(L,'tork',HAI_DK.tork,'Torka',L.tork,'torkstopp',1);
  const gor=L.gor.length?'<div class="dkx-gor">'+L.gor.map(g=>'<span>'+esc(g)+'</span>').join('')+'</div>':'',fyll=L.t&&L.t.brist==null?'<button type="button" class="ha-pill" data-act="haTankFylld">Påfylld</button>':'';
- if(stil==='B'){const ma=(c,v,n,ikon,lag,txt)=>'<div class="dkb-m'+(lag?' lag':'')+'"><div class="dkb-g"><i class="'+c+'" style="transform:scaleY('+((v==null?0:v)/100)+')"></i><b>'+(txt!=null?txt:v==null?'–':v+'<small>%</small>')+'</b></div><span><svg viewBox="0 0 20 20" aria-hidden="true">'+ikon+'</svg>'+n+'</span></div>';
-  const drop='<path d="M10 2c3 3.6 5.5 6.4 5.5 9.4a5.5 5.5 0 0 1-11 0C4.5 8.4 7 5.6 10 2z"/>';
-  return'<div class="ha-dkk dkb">'+'<div class="dkb-ms">'+ma('rv',L.q,'Rent',drop,L.lagQ,L.tom?'Tom':null)+ma('sv',L.d,'Smuts',drop+'<path d="M7.5 12.5h5M8.5 15h3"/>',L.smuts,L.smuts?'Full':null)+ma('bt',L.bat,'Robot','<rect x="2.5" y="6" width="13" height="8" rx="2"/><path d="M17.5 9v2"/>',L.bat!=null&&L.bat<20)+'</div>'+gor+fyll+'<div class="dkx-k">'+K(true)+'</div></div>'}
- if(stil==='C')return'<div class="ha-dkk dkc"><div class="dkc-r">'+haDockSvg(L)+'<div class="dkc-k">'+K(true)+'</div></div>'+gor+fyll+'</div>';
- return'<div class="ha-dkk dka">'+haDockSvg(L,true)+gor+fyll+'<div class="dkx-k">'+K(true)+'</div></div>'}
+ return'<div class="ha-dkk dka">'+haDockSvg(L,true)+gor+fyll+'<div class="dkx-k">'+K+'</div></div>'}
 const HAI_DK={tom:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l-1.3 11.2a2 2 0 0 1-2 1.8H8.3a2 2 0 0 1-2-1.8z"/><path d="M4 8h16M9 5h6"/><path d="M12 11v6M9.5 14.5 12 17l2.5-2.5"/></svg>',
  tvatt:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5c3 3.6 5.5 6.6 5.5 9.8a5.5 5.5 0 0 1-11 0c0-3.2 2.5-6.2 5.5-9.8z"/><path d="M9.5 14a2.6 2.6 0 0 0 2.5 2.5"/></svg>',
  tork:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4c-1.5 1.6 1.5 3.4 0 5s1.5 3.4 0 5M12 4c-1.5 1.6 1.5 3.4 0 5s1.5 3.4 0 5M16 4c-1.5 1.6 1.5 3.4 0 5s1.5 3.4 0 5"/><path d="M5 19h14"/></svg>'};
