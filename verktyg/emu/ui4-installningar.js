@@ -31,7 +31,7 @@ module.exports=async(pg,h)=>{
   await pg.reload();await h.idle(1500);assert.equal(await read('U4'),true);await navCheck(width+' omstart');
  }
  // Kontrollera alla flikar med andra inställningar än standard, efter omstart.
- for(const v of ['oversikt','mat','uppgifter','stad','ekonomi']){await click('#nav [data-id="'+v+'"]');assert.equal(await read('S.view'),v)}
+ for(const v of ['oversikt','mat','uppgifter','kalender','hemmet']){await click('#nav [data-id="'+v+'"]');assert.equal(await read('S.view'),v)}
  await settings();
  const colors=await pg.locator('.sheet').evaluate(e=>({back:getComputedStyle(e).backgroundColor,panel:getComputedStyle(e.querySelector('.sheet-panel')).backgroundColor}));
  assert.match(colors.back,/rgba\(/,'Dialogens bakgrund ska vara genomskinlig');assert.notEqual(colors.back,colors.panel);

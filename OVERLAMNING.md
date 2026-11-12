@@ -2,6 +2,16 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Att göra-rutan: idag + imorgon (publicerad, ångra-gren `version-fore-att-gora-idag`)
+- Ö3/T8 och widgetläget: bara dagens och sena uppgifter (bockbara, kompakta rader) och Imorgon som en grå rad. Odaterade/senare bara under Alla N. Henrik: Översikt ska vara kompakt, inget vitt tomrum på väggen (T8 krymper till innehållet). Kod `upgDag`/`upgDagHtml`, CSS `.upg-*`.
+- Test `att-gora-idag.js` telefon/vägg, alla-flikar telefon+vägg gröna.
+## Röktestet grönt igen (2026-11-12, PR #100 + #101, bara testfiler)
+- Röktestet (emu.yml) var rött på alla PR:er sedan 10 nov p.g.a. inaktuella tester. Nytt hjälpverktyg `h.pref(sel)` i `verktyg/emu/run.js` öppnar den del av Inställningar där en inställning ligger just nu; använd det i stället för fasta `pref-<del>`. Ekonomi nås via Hemmet, Städ via Att göra; fäll ut `.nav-mini.on` före klick i flikraden. CI-körning 258 grön i alla 16 lägen.
+
+## Smart hem: scen ritar om rutan en gång (publicerad ht-v358, ångra-gren `version-fore-scen-omritning`)
+- Orsak: väggdatorns tjänst läser HA varje sekund och lamporna i en scen rapporterar en i taget, så rutan ritades om per lampa (1 → 2 → 3 → 4 tända). Nu samlar `haRitaSnart` svaren (ritar efter 1,3 s tystnad, senast 3,5 s). Egna scener och Släck allt visas direkt och hålls via `HA.mal` (`haMalSatt`, släpps när lampan rapporterat). `haSend` ritar bara när sista anropet är klart. Ingen ändring i tjänsten eller Kod.gs.
+- Gren `claude/project-thread-vbhjv9`. Test: ny `smart-hem-scen-omritning.js` (faller på main), smart-hem-tonsteg/-fel/-ruta/-ton/-rorelse, alla-flikar telefon+vägg gröna; smart-hem-volym faller likadant på main.
+
 ## Dammsugarens statusbricka i Städ (publicerad ht-v356, ångra-gren `version-fore-dammsug-stad`)
 - `stadRob()` (ruta S12): samlad statusbricka (Henrik ville kombinera A+B): illustration med ringar batteri (yttre, grön) och rent vatten (inre, `a.tank`), "Rum att städa" ("Dags nu"/"Om n dagar", ikon till höger i brickan; väggen: status vänster halva, 4 rum höger) = rum med `haRumSt` dags/snart som brickor med åtgärd: "Dammsug" eller "Dammsug + mopp" (mopp innebär alltid dammsugning direkt före, Henriks regel). Tryck → `V.robot` med Tillbaka "Att göra" (`S.robFran`).
 - Test `stad-dammsugare.js` (haDemo) telefon/vägg/mörkt, alla-flikar telefon+vägg gröna. Bilder /mnt/project-files/apparater/stad-genvag/samlad/.
@@ -10,9 +20,9 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 - Henrik valde A: på en undersida byts Avbryt mot en rund ‹-knapp (`.pref-bk`, `ACT.prefBack`) och delens namn står i bladets rubrik (20 pt fet, `prefHead`). Den gamla länken "‹ Inställningar" och stora rubriken borta. Bara UI 5.0. Gren `claude/project-thread-x44h4s`, ångra-gren `version-fore-tillbakaknapp`.
 - Testskript som stängde bladet från en öppen undersida anropar nu `ACT.prefBack()` först. Test: ny `installningar-tillbaka.js` (telefon/vägg), installningar-delar, alla-flikar gröna; animationer, inkop-kollaps, ui-versioner, stad-vyer, ui5 faller likadant på main.
 
-## Matbilder i Ny veckosedel (publicerad ht-v353)
+## Matbilder i Ny veckosedel (publicerad ht-v353, Vardagar/Helg ht-v357)
 
-- Ny veckosedel (`portViewU5`) visar rätterna som bildkort, två i bredd (fyra på väggen), eller som lista med stora bilder. Enhetsval Inställningar → Mat → Ny veckosedel (`MATBILD`, `ht.mbild`=c för lista, förval rutnät). ⇄ visar Andra förslag som bildkarusell. CSS `.g5-k*`/`.g5-big`. Ångra-gren `version-fore-matbilder`.
+- Ny veckosedel (`portViewU5`) visar rätterna som bildkort, två i bredd (fyra på väggen), eller som lista med stora bilder. Enhetsval Inställningar → Mat → Ny veckosedel (`MATBILD`, `ht.mbild`=c för lista, förval rutnät). ⇄ visar Andra förslag som bildkarusell. CSS `.g5-k*`/`.g5-big`. Middagarna delade i Vardagar (mån–tor) och Helg (fre–sön); ensamt kort i full bredd på telefon (`:nth-child(odd of .g5-k)`). Ångra-grenar `version-fore-matbilder`, `version-fore-vardag-helg`.
 - Foton: `img` i inspiration.json (100/101, länkade från receptsidorna; ICA hämtat med WebFetch eftersom ICA spärrar GitHub). `inspoImg` matchar id eller namn. Nya recept: `node verktyg/matbilder-hamta.js [--kolla]` där nätet når sajterna (inte molnet).
 - Test: `verktyg/emu/matbilder.js` (LS mbild=c för lista; BILDER=1 släpper igenom riktiga foton, fungerar bara där nätet når dem), generera-vecka, installningar-delar, alla-flikar telefon+vägg.
 

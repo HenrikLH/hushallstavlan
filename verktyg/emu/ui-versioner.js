@@ -3,7 +3,7 @@ const assert=require('node:assert/strict');
 module.exports=async(pg,h)=>{
  await require('./alla-flikar')(pg,h);
  await require('./installningar')(pg,h);
- const click=async(s)=>{const el=pg.locator(s).first();if(!await el.isVisible())await pg.locator('.pref-section').filter({has:el}).locator('summary').click();await el.click();await h.idle(450)};
+ const click=async(s)=>{const el=pg.locator(s).first();if(s.startsWith('#nav')&&await pg.locator('.nav-mini.on').isVisible()){await pg.locator('.nav-mini.on').click();await h.idle(600)}if(!await el.isVisible())await pg.locator('.pref-section').filter({has:el}).locator('summary').click();await el.click();await h.idle(450)};
  const read=s=>pg.evaluate(s=>window.__d(s),s);
  const start=await read('U3');
  const klass=()=>pg.locator('html').evaluate(x=>x.classList.contains('ui3'));
@@ -55,7 +55,7 @@ module.exports=async(pg,h)=>{
  await pg.locator('form[data-form="cleanQuick"] input').first().fill('UI-test damma');await pg.locator('form[data-form="cleanQuick"] input').first().press('Enter');await h.idle(1400);await h.waitFlush();
  await click('#nav [data-act="nav"][data-id="uppgifter"]');await click('[data-act="taskTab"][data-id="stad"]');
  assert.ok(await read('D().clean.some(x=>x.title==="UI-test damma")'),'Städrutin ska sparas');await h.shot('stad-med-rutin');
- await click('#nav [data-act="nav"][data-id="ekonomi"]');
+ await click('#nav [data-act="nav"][data-id="hemmet"]');await click('#main [data-act="nav"][data-id="ekonomi"]');
  if(await read('ekoLocked()'))for(const k of String(await read('EKO_PIN')))await click('[data-act="pin"][data-id="'+k+'"]');
  assert.equal(await read('ekoLocked()'),false);assert.ok(await pg.locator('[data-act="ekoIncome"]').count());await h.shot('ekonomi-oppen');
  // Födelsedagar saknas i ögonblicksbilden: lägg testdata bara i låtsasarket.

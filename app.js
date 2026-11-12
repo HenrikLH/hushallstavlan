@@ -1039,8 +1039,8 @@ const XW={
   const row=x=>{const lt=isDate(x.due)&&x.due<=X.t;return'<div class="xr">'+xck('taskToggle',x.id,x.title)+'<span class="grow one">'+esc(x.title)+'</span>'+(x.due?'<span class="xchip'+(lt?' red':'')+'">'+esc(x.due===X.t?'Idag':isDate(x.due)&&x.due<X.t?'Sen':dateShort(x.due))+'</span>':'')+'</div>'};
   const ovr=X.ovs.map(o=>'<div class="xr" data-act="ovGo" data-id="'+esc(o.l+'|'+o.c.id)+'"><span class="xwarn">!</span><span class="grow"><span class="one">'+(ovState(o.c)==='andrad'?'Uppdatera':'Lägg in')+' stående överföring</span><span class="xs mu one">'+esc(o.c.name)+'</span></span></div>').join('');
   if(z==='s')return xh('uppgifter',I.list,'Att göra')+'<div class="xbig num">'+n+'</div><div class="sp"></div>'+(n?'<div class="t one">'+esc(X.open[0].title)+'</div>'+(late?'<div class="xs red b">'+late+' idag eller sen'+(late>1?'a':'')+'</div>':'<div class="xs mu">&nbsp;</div>'):'<div class="xs mu">Inget att göra</div>');
-  const L=X.open.slice(0,z==='m'?3:7);
-  return xh('uppgifter',I.list,'Att göra',all)+((L.length||ovr)?'<div class="xrows">'+(z==='l'?ovr:'')+L.map(row).join('')+'</div>':xempty('Inget att göra just nu.'))},
+  const tm=addDays(X.t,1),k=z==='m'?3:7,L=X.open.filter(x=>isDate(x.due)&&x.due<=X.t).slice(0,k),M=X.open.filter(x=>x.due===tm).slice(0,Math.max(1,Math.min(3,k-L.length)));
+  return xh('uppgifter',I.list,'Att göra',all)+((L.length||(z==='l'&&ovr))?'<div class="xrows">'+(z==='l'?ovr:'')+L.map(row).join('')+'</div>':xempty('Inget kvar idag.'))+(M.length?'<div class="xsub">Imorgon</div><div class="xrows">'+M.map(row).join('')+'</div>':'')},
  mat(z,X){const nd=X.nextDay,isT=nd&&nd.date===X.t,lbl=!nd||isT?'Middag ikväll':'Middag '+dateShort(nd.date);
   if(!nd)return xh('mat',I.fork,'Middag')+xempty('Ingen matsedel inlagd än.');
   const ms=nd.meals,r0=ms[0].recipe&&recipeById(ms[0].recipe),img=r0&&(r0.img||imgOf(r0.id));
@@ -1223,7 +1223,6 @@ function wallBoard(){
  const nextDay=(td&&td.meals.length)?td:days.find(x=>x.date>t&&x.meals.length),isT=nextDay&&nextDay.date===t;
  const left=d.shop.filter(i=>!i.done);
  const clean=[...cp.routines.filter(x=>!doneToday(x)),...cp.todo].slice(0,4),doneN=cp.routines.filter(doneToday).length+cp.doneRot.length,totN=cp.routines.length+cp.doneRot.length+cp.todo.length;
- const tasks=d.tasks.filter(x=>!x.done).sort((a,b)=>(a.due||'9').localeCompare(b.due||'9')).slice(0,7);
  const popDone=A.cleanOpen&&!clean.length;A.cleanOpen=clean.length>0;
  const H={};
  H.kal=calWidget();
@@ -1234,7 +1233,7 @@ function wallBoard(){
   '<div class="thin bprog"><i style="width:'+(totN?Math.round(doneN/totN*100):0)+'%"></i></div>'+
   (clean.length?'<div class="wl">'+clean.map(x=>'<div class="cell ck" data-act="cleanToggle" data-id="'+esc(x.id)+'"><input type="checkbox" class="check" data-act="cleanToggle" data-id="'+esc(x.id)+'" aria-label="'+esc(x.title)+'"><span class="grow">'+esc(x.title)+'</span><span class="val num">'+x.min+' min</span></div>').join('')+'</div>':'<div class="bdone'+(popDone?' pop':'')+'">'+I.tick+'Allt är gjort idag</div>')+
   '<div class="wk-sub">Hemmet</div><div class="brooms">'+roomHealth().map(r=>'<div class="'+healthCls(r.score)+'"><span>'+esc(r.room)+'</span><i><b style="width:'+Math.round(r.score*100)+'%"></b></i></div>').join('')+'</div>');
- H.upg=widget('uppgifter','btasks',I.list,'Uppgifter',d.tasks.filter(x=>!x.done).length+' kvar',tasks.length?'<div class="wl">'+tasks.map(taskRow).join('')+'</div>':'<div class="wempty">Inget att göra.</div>');
+ H.upg=widget('uppgifter','btasks',I.list,'Uppgifter',d.tasks.filter(x=>!x.done).length+' kvar',upgDagHtml(upgDag()));
  if(U3&&!d.clean.length)H.stad=widget('stad','bclean',I.sparkles,'Städ idag','','<div class="u3-empty"><p>Inga rutiner tillagda än.</p><button class="btn-tint" data-act="nav" data-id="stad">'+I.plus+'Lägg till rutin</button></div>');
  if(haOn(true))H.hus=haBox(true);
  const L=layout(true,boardDefault());
@@ -1350,9 +1349,9 @@ function habScSpara(n){const F=S.habSc,D=haData();if(!F||!D)return;const d=F.d;i
  const sc=habSc(D);sc[F.i]=s;habSet({sc});habScTill()}
 function habScTill(){const b=S.habSc&&S.habSc.back;S.habSc=null;if(b)S.sheet='habRuta';else closeSheets();render()}
 function habKor(i,s0){const D=haData(),s=s0||D&&habSc(D)[+i];if(!s)return;if(s.av)return ACT.haScen('av');if(s.ha)return ACT.haScen(s.ha);
- HA.last=null;const E=D.lampor||[];Object.keys(s.l||{}).forEach(id=>{const x=E.find(e=>e.id===id),v=s.l[id];if(!x||x.nas)return;const was=JSON.stringify(x),undo=()=>Object.assign(x,JSON.parse(was));
-  if(!v.on){x.on=false;return haSend({id,gor:'av'},undo)}const ch={};if(v.b!=null&&haKan(x).dim)ch.b=v.b;if(v.k!=null)ch.k=v.k;if(v.hs)ch.hs=v.hs;
-  x.on=true;if(ch.b!=null)x.b=ch.b;if(ch.k!=null){x.k=ch.k;x.lage='color_temp'}if(ch.hs){x.hs=ch.hs;x.lage='hs'}haSend(Object.assign({id,gor:'pa'},ch),undo)});render()}
+ HA.last=null;const E=D.lampor||[];Object.keys(s.l||{}).forEach(id=>{const x=E.find(e=>e.id===id),v=s.l[id];if(!x||x.nas)return;const was=JSON.stringify(x),undo=()=>{if(HA.mal)delete HA.mal[id];Object.assign(x,JSON.parse(was))};
+  if(!v.on){x.on=false;haMalSatt(x,{on:false});return haSend({id,gor:'av'},undo)}const ch={};if(v.b!=null&&haKan(x).dim)ch.b=v.b;if(v.k!=null)ch.k=v.k;if(v.hs)ch.hs=v.hs;
+  const m={on:true};if(ch.b!=null)m.b=ch.b;if(ch.k!=null){m.k=ch.k;m.lage='color_temp'}if(ch.hs){m.hs=ch.hs;m.lage='hs'}Object.assign(x,m);haMalSatt(x,m);haSend(Object.assign({id,gor:'pa'},ch),undo)});render()}
 // dra i greppet: raden följer fingret och byter plats med grannarna, ordningen läses från listan när man släpper
 (()=>{let d=null;
  document.addEventListener('pointerdown',e=>{const g=e.target.closest('.hab-grip');if(!g||e.button>0)return;const r=g.closest('.hab-r'),l=r&&r.parentNode;if(!r)return;e.preventDefault();
@@ -1751,7 +1750,7 @@ function haLampSkicka(x,ch){if(!x)return;const was=JSON.stringify(x),m={on:true}
 const HA_MAL=8000;
 function haKo(id,body,undo){const Q=HA.ko||(HA.ko={});if(Q[id]){const n=Object.assign({},Q[id].n,body);if(body.k!=null)delete n.hs;if(body.hs)delete n.k;Q[id].n=n;return}Q[id]={};
  const kor=b=>haSend(b,undo).then(()=>{const M=HA.mal&&HA.mal[id];if(M)M.t=Date.now();const n=Q[id].n;if(n){Q[id].n=null;return kor(n)}delete Q[id]});kor(body)}
-const haMalLagg=j=>{const M=HA.mal;if(!M)return;(j.lampor||[]).forEach(l=>{const v=M[l.id];if(!v)return;if(Date.now()-v.t<HA_MAL||HA.ko&&HA.ko[l.id])Object.assign(l,v.m);else delete M[l.id]})};
+const haMalLagg=j=>{const M=HA.mal;if(!M)return;(j.lampor||[]).forEach(l=>{const v=M[l.id];if(!v)return;if(v.f&&l.on===v.m.on){delete M[l.id];return}if(Date.now()-v.t<HA_MAL||HA.ko&&HA.ko[l.id])Object.assign(l,v.m);else delete M[l.id]})};
 // det lodräta reglaget: drag relativt där fingret började (hoppar inte vid tryck), 0 % släcker, tryck utan drag tänder/släcker
 (()=>{let d=null;const st=v=>{const el=document.querySelector('[data-hav="s"]');if(el)el.textContent=v?v+' %':'Av'};
  document.addEventListener('pointerdown',e=>{const el=e.target.closest('.ha-vs');if(!el||e.button>0)return;e.preventDefault();d={el,y:e.clientY,v0:parseFloat(el.style.getPropertyValue('--p'))||0,v:null,h:el.getBoundingClientRect().height,id:e.pointerId};try{el.setPointerCapture(e.pointerId)}catch(_){}HA.drag=true;el.classList.add('tag')});
@@ -1827,15 +1826,22 @@ async function haLoop(){if(HA.busy||haDemo()||!haUrl()||Date.now()<HA.retry)retu
    if(!j.lampor){HA.d=null;HA.retry=Date.now()+300000;render();break}// inte inställt: fråga igen om fem minuter
    haMalLagg(j);
    const ch=JSON.stringify([j.lampor,j.scener,j.givare,j.apparater,j.media,j.kanaler,j.fel])!==JSON.stringify(HA.d&&[HA.d.lampor,HA.d.scener,HA.d.givare,HA.d.apparater,HA.d.media,HA.d.kanaler,HA.fel]);
-   HA.d=j;HA.v=j.v;HA.fel=j.fel;HA.nf=0;if(ch&&!HA.pend&&!HA.drag)render()}}
+   HA.d=j;HA.v=j.v;HA.fel=j.fel;HA.nf=0;if(ch)haRitaSnart()}}
  catch(e){// ett enstaka avbrott (t.ex. när iPhone lägger appen i bakgrunden) är inget fel: försök igen strax
   HA.nf=(HA.nf||0)+1;if(HA.d&&HA.nf<2)HA.retry=Date.now()+2000;else{HA.fel='Väggdatorns tjänst svarar inte';HA.retry=Date.now()+(HA.d?15000:300000);if(HA.d)render()}}
  HA.busy=false}
 setInterval(haLoop,5000);setTimeout(haLoop,1500);
+// En scen tänder lamporna en i taget och väggdatorn läser av Home Assistant en gång i sekunden, så scenen kommer i flera svar.
+// Samla dem till en omritning: rita när det varit tyst en stund (HA_TYST), dock senast HA_SAML efter första ändringen.
+const HA_TYST=1300,HA_SAML=3500;
+function haRitaSnart(){const nu=Date.now();clearTimeout(HA.rt);if(!HA.r0)HA.r0=nu;HA.rt=setTimeout(haRitaNu,Math.max(0,Math.min(HA_TYST,HA.r0+HA_SAML-nu)))}
+function haRitaNu(){clearTimeout(HA.rt);HA.r0=0;if(!HA.pend&&!HA.drag)render()}
+// Det appen själv ändrat (scen, Släck allt) visas direkt och står kvar tills lamporna hunnit rapportera (HA.mal, samma som tonen).
+const haMalSatt=(x,m)=>{const M=HA.mal||(HA.mal={});M[x.id]={t:Date.now(),f:1,m:Object.assign({},m)}};// f: släpps så fort lampan rapporterat på/av, så att en ändring utifrån syns
 async function haSend(body,undo){if(haDemo())return;HA.pend=(HA.pend||0)+1;
  try{const r=await fetch(haUrl(),{method:'POST',body:JSON.stringify(body)});if(!r.ok)throw 0}
  catch(e){undo();toast('Kunde inte nå Home Assistant');render()}
- HA.pend--;render()}
+ if(!--HA.pend)haRitaNu()}
 V.oversikt=function(){
  if(wallBoardOn())return wallBoard();
  if(expOn())return ovX();
@@ -1844,8 +1850,6 @@ V.oversikt=function(){
  const nextDay=(td&&td.meals.length)?td:days.find(d=>d.date>t&&d.meals.length);
  const cp=cleanPlan(),d=D();
  const left=d.shop.filter(i=>!i.done);
- const tasksNow=d.tasks.filter(x=>!x.done&&isDate(x.due)&&x.due<=t).sort((a,b)=>a.due.localeCompare(b.due));
- const tasksSoon=d.tasks.filter(x=>!x.done&&!(isDate(x.due)&&x.due<=t)).sort((a,b)=>(a.due||'9').localeCompare(b.due||'9')).slice(0,4);
  const hh=now.getHours(),greet=hh<5?'God natt':hh<10?'God morgon':hh<17?'Hej':hh<22?'God kväll':'God natt';
  let h=head((U6&&greet==='Hej'?'God dag':greet)+(people().includes(S.me)?', '+personLabel(S.me):''),U3?{sub:cap(dayHead(t))}:undefined);
  h+='<div class="ov">'+refAdd(heroHtml(),'Ö1');
@@ -1857,14 +1861,15 @@ V.oversikt=function(){
  H.stad=widget('stad','',I.sparkles,'Städ','','<div class="wbig">'+nv('w-clean',doneN)+'<small>/'+totN+'</small></div><div class="sub">'+nv('w-min',cp.minLeft)+' min kvar</div><div class="thin"><i style="width:'+(totN?Math.round(doneN/totN*100):0)+'%"></i></div>');
  if(U3&&!d.clean.length)H.stad=widget('stad','',I.sparkles,'Städ','','<div class="u3-empty"><p>Inga rutiner tillagda än.</p><button class="btn-tint" data-act="nav" data-id="stad">Lägg till rutin</button></div>');
  H.inkop=widget('inkop','',I.basket,'Inköp','','<div class="wbig">'+nv('w-shop',left.length)+'</div><div class="sub">kvar · ca '+nv('w-shopkr',shopCost(left),'kr')+'</div>');
- const tl=tasksNow.concat(tasksSoon).slice(0,5);
  {// Att göra med bockar och de stående överföringar som saknas
   const ovs=!people().includes(S.me)?[]:[['shared',ovOpen('shared')],[S.me,ovOpen(S.me)]].flatMap(([l,a])=>a.map(c=>({l,c})));
   const ovRows=ovs.map(x=>'<div class="cell ck ov-cell" data-act="ovGo" data-id="'+esc(x.l+'|'+x.c.id)+'" role="link" tabindex="0"><span class="ovs tap saknas" data-act="ovDone" data-id="'+esc(x.c.id)+'" data-list="'+esc(x.l)+'" role="button" tabindex="0" aria-label="Bekräfta att den är inlagd">!</span><div class="grow"><div class="title">'+(ovState(x.c)==='andrad'?'Uppdatera':'Lägg in')+' stående överföring</div><div class="meta"><span>'+esc(x.c.name)+'</span></div></div>'+chevron+'</div>').join('');
   // UI 5.0: flera saknade överföringar blir en rad som leder till Ekonomi (inte en rad per utgift)
   const ovEn=U5&&ovs.length>1?'<div class="cell ck ov-cell ov-sum" data-act="nav" data-id="ekonomi" role="link" tabindex="0"><span class="ovs saknas" aria-hidden="true">!</span><div class="grow"><div class="title">'+ovs.length+' utgifter saknar stående överföring</div><div class="meta"><span>Lägg in dem i banken och bocka av i Ekonomi</span></div></div>'+chevron+'</div>':'';
   const all=d.tasks.filter(x=>!x.done).length;
-  if(U5&&!S.arrange&&!ovs.length&&!tl.length){}else H.upg=widget('uppgifter','w2',I.list,'Att göra',all?'Alla '+all:'',(ovRows||tl.length)?'<div class="wl">'+(ovEn||ovRows)+tl.map(taskRow).join('')+'</div>':'<div class="wempty">Inget att göra just nu.</div>')}
+  // bara det som ska göras idag (och sena) går att bocka, imorgon visas under
+  const U=upgDag();
+  if(U5&&!S.arrange&&!ovs.length&&!U.idag.length&&!U.imorgon.length){}else H.upg=widget('uppgifter','w2',I.list,'Att göra',all?'Alla '+all:'',upgDagHtml(U,ovEn||ovRows))}
  const rh0=roomHealth(),rhB=rh0.filter(r=>r.score<.85),rh=U5&&!S.arrange?rhB:rh0;// UI 5.0: bara rum som behöver något
  if(!U5||S.arrange||rh.length)H.hem=widget('stad','w2',I.home,'Hemmet',U5&&rh0.length>rhB.length?(rh0.length-rhB.length)+' fint':'',rh.length?'<div class="wl">'+rh.map(healthRow).join('')+'</div>':'<div class="wempty">Städschemat är tomt.</div>');
  H.imorgon=tm&&!(U5&&!S.arrange&&!tm.events.length&&!tm.meals.length)?widget('mat','w2',I.cal,'Imorgon',esc(dateShort(tm.date)),(eventsHtml(tm)||(U5&&tm.meals.length?'':'<div class="wempty">Inga händelser.</div>'))+(tm.meals.length?wMeals(tm):'')):'';
@@ -2604,8 +2609,8 @@ function portViewU5(){const MB=MATBILD==='a',grp=x=>MB?'<div class="g5-kg">'+x+'
  // Lunchlådor
  let g='';PLATSER2.filter(p=>p.typ==='storkok').forEach(p=>{const X=C.plats[p.id];g+=X.valt?rad(p,X,{dag:p.id==='sv'?'Vegetariskt':'Kött'}):tom(p,X,p.namn.toLowerCase())});
  h+=sh('Lunchlådor','Mån–fre')+grp(g);
- // Middagar
- g='';C.dag.forEach(x=>{const p=x.p,X=C.plats[p.id],dag=cap(portDag(p.dag));
+ // Middagar, uppdelade i vardagar (mån–tor) och helg (fre–sön)
+ const mid=L=>{let g='';L.forEach(x=>{const p=x.p,X=C.plats[p.id],dag=cap(portDag(p.dag));
   if(x.t==='ratt'){const rest=C.dag.filter(y=>y.t==='rest'&&y.fr===p.dag).map(y=>portDag(y.p.dag));g+=rad(p,X,{dag,rest:rest.length?'rester '+lista(rest):''})}
   else if(x.t==='rest'&&MB){const r=recipeById(P.val['d'+x.fr]);g+='<div class="g5-k g5-krest"><button class="g5-kb" data-act="recipe" data-id="'+esc(r.id)+'"><span class="g5-ki">'+dishThumb(r,r.title)+'<span class="g5-kbad">Rester</span></span><span class="g5-kt">'+esc(cap(r.title.replace(/^Storkok:\s*/i,'')))+'</span><span class="g5-km">'+esc(dag+' · rester')+'</span></button></div>'}
   else if((x.t==='macka'||x.t==='auto')&&MB){g+='<div class="g5-k"><div class="g5-kb"><span class="g5-ki"><span class="dr-th"><span>🥪</span></span></span><span class="g5-kt">Macka</span><span class="g5-km">'+esc(dag+' · '+kr(C.MK)+(x.t==='auto'?' · ingen rätt ryms':''))+'</span></div>'+(x.t==='macka'?'<button class="g5-kv" data-act="portMacka" data-id="'+p.id+'">Välj rätt</button>':'')+'</div>'+
@@ -2615,7 +2620,8 @@ function portViewU5(){const MB=MATBILD==='a',grp=x=>MB?'<div class="g5-kg">'+x+'
     x.fler.map(f=>'<button class="cell g5-alt" data-act="portFler" data-id="'+f.q.id+'" data-n="'+f.n+'"><span class="g5-th"></span><span class="grow"><span class="meta">Laga '+f.n+' portioner '+esc(f.r.title.toLowerCase())+' i stället · '+(f.extra>0?'+'+kr(f.extra):kr(-f.extra)+' billigare')+'</span></span></button>').join('')}
   else if(MB)g+=tom(p,X,dag.toLowerCase(),'<button class="cell g5-x" data-act="portMacka" data-id="'+p.id+'"><span class="grow">Macka den här kvällen</span><span class="meta">'+kr(C.MK)+'</span></button>')
   else g+=tom(p,X,dag.toLowerCase())+'<button class="cell g5-x" data-act="portMacka" data-id="'+p.id+'"><span class="grow">Macka den här kvällen</span><span class="meta">'+kr(C.MK)+'</span></button>'});
- h+=sh('Middagar','Mån–sön')+grp(g);
+ return g};
+ h+=sh('Vardagar','Mån–tor')+grp(mid(C.dag.filter(x=>x.p.dag<4)))+sh('Helg','Fre–sön')+grp(mid(C.dag.filter(x=>x.p.dag>=4)));
  // Att köpa, utfällbar
  const kop=C.korg.rad.filter(x=>x.n>0).sort((a,c)=>c.kr-a.kr),hemma=C.korg.rad.filter(x=>x.fran>0);
  if(kop.length)h+=group('<details class="g5-kop"><summary class="cell"><span class="grow">Att köpa</span><span class="meta">'+antal(kop.length,'vara','varor')+' · '+kr(C.korg.kr)+'</span>'+chevron+'</summary>'+
@@ -3329,6 +3335,12 @@ const taskDelQ=rp=>rp?'<div class="cell"><span class="grow">Uppgiften upprepas '
  '<div class="cell"><span class="grow">Ta bort uppgiften?</span><button type="button" class="tb red strong" data-act="taskDel" data-id="all">Ja, ta bort</button><button type="button" class="tb" data-act="confirmNo">Avbryt</button></div>';
 const evDelQ=e=>{const rec=String(e.flags||'').includes('r'),cal=e.source==='kalender';return rec?'<div class="cell"><span class="grow">Händelsen upprepas. Vad vill du ta bort?</span></div><button type="button" class="cell link center red" data-act="evDel" data-id="once">Bara den här gången</button><button type="button" class="cell link center red" data-act="evDel" data-id="all">Alla gånger</button><button type="button" class="cell link center" data-act="confirmNo">Avbryt</button>':
  '<div class="cell"><span class="grow">Ta bort händelsen'+(cal?' ur Google Kalender':'')+'?</span><button type="button" class="tb red strong" data-act="evDel" data-id="all">Ja, ta bort</button><button type="button" class="tb" data-act="confirmNo">Avbryt</button></div>'};
+// Att göra-rutan: dagens uppgifter (även sena) och morgondagens
+function upgDag(){const t=today(),tm=addDays(t,1),o=D().tasks.filter(x=>!x.done);return{idag:o.filter(x=>isDate(x.due)&&x.due<=t).sort((a,b)=>a.due.localeCompare(b.due)),imorgon:o.filter(x=>x.due===tm)}}
+function upgDagHtml(U,pre){const t=today(),tm=U.imorgon.length,ID=U.idag.slice(0,8),M=U.imorgon.slice(0,3),fler=tm-M.length;
+ const r=x=>'<div class="ur"><input type="checkbox" class="check" data-act="taskToggle" data-id="'+esc(x.id)+'" aria-label="'+esc(x.title)+'"><span class="t">'+esc(x.title)+'</span>'+(x.due<t?'<span class="d red">'+esc(dateShort(x.due))+'</span>':x.who?'<span class="d">'+esc(personLabel(x.who))+'</span>':'')+'</div>';
+ return'<div class="upg-c">'+(pre?'<div class="wl">'+pre+'</div>':'')+(ID.length?ID.map(r).join(''):pre?'':'<div class="upg-tom">'+I.tick+'Inget kvar idag</div>')+
+  (tm?'<div class="upg-lbl">Imorgon</div><div class="ur tm"><span class="t">'+M.map(x=>esc(x.title)).join(' · ')+(fler>0?' +'+fler:'')+'</span></div>':'')+'</div>'}
 function taskRow(x){const t=today(),late=isDate(x.due)&&x.due<t&&!x.done;
  const meta=(x.due?'<span'+(late?' class="red"':'')+'>'+esc(x.due===t?'Idag':dateShort(x.due))+'</span>':'')+(repName(x.repeat)?'<span class="chip">↻ '+esc(repName(x.repeat))+'</span>':'')+(x.who?personChip(x.who):'')+(x.note?'<span>'+esc(x.note)+'</span>':'');
  const sw=U5&&S.view==='uppgifter'&&!wallBoardOn();return(sw?'<div class="dr-wrap cs">'+swDel('taskSwDel',x.id,x.title):'')+'<div class="cell '+(sw?'dr-slide ':'')+'ck'+(x.done?' done':'')+'"'+(S.view==='uppgifter'?holdAt('taskMenu',x.id):'')+'><input type="checkbox" class="check" data-act="taskToggle" data-id="'+esc(x.id)+'" aria-label="'+esc(x.title)+'"'+(x.done?' checked':'')+'><div class="grow'+(S.view==='uppgifter'?' edit" data-act="taskEdit" data-id="'+esc(x.id)+'" role="button" tabindex="0" aria-label="Ändra '+esc(x.title)+'"':'"')+'><div class="title">'+esc(x.title)+'</div>'+(meta?'<div class="meta">'+meta+'</div>':'')+'</div></div>'+(sw?'</div>':'')}
@@ -5927,7 +5939,7 @@ const ACT={
  habScDel(){const D=haData(),F=S.habSc;if(!D||!F)return;const sc=habSc(D);sc[F.i]=null;habSet({sc});habScTill()},
  habScTill(){habScTill()},
  haScen(id){const D=haData();if(!D)return;const sc0=(D.scener||[]).find(s=>s.id===id);if(sc0&&(sc0.falt||[]).length){try{u5Tick()}catch(e){}return haMedIgang()?ACT.haMedStopp():ACT.haMedSkript(id)}HA.last=id;
-  if(id==='av'){const was=D.lampor.map(x=>x.on);D.lampor.forEach(x=>{if(!x.nas)x.on=false});render();return haSend({alla:'av'},()=>D.lampor.forEach((x,i)=>x.on=was[i]))}
+  if(id==='av'){const was=D.lampor.map(x=>x.on);D.lampor.forEach(x=>{if(!x.nas&&x.on){x.on=false;haMalSatt(x,{on:false})}});render();return haSend({alla:'av'},()=>D.lampor.forEach((x,i)=>{x.on=was[i];if(HA.mal)delete HA.mal[x.id]}))}
   if(haDemo()){const m={'scene.morgon':{'light.kok':100,'light.hall':60},'scene.kvall':{'light.vardagsrum':45,'switch.fonster':1,'light.kok':30},'scene.film':{'light.vardagsrum':10}}[id]||{};D.lampor.forEach(x=>{const v=m[x.id];x.on=!!v;if(v>1)x.b=v})}
   render();haSend({scen:id},()=>{})},
  nav(id,el){if(id==='hus')id='hemmet';if(id!=='robot')S.robFran=null;if(id!=='hus'&&id!=='robot'&&!(id==='hemmet'&&S.view==='robot')){S.haRum=null;if(S.haTest){S.haTest=false;HA.demo=null;HA.syn={};HA.v=0;HA.retry=0}}if(RC.busy){toast('Vänta tills receptbegäran är klar.');return}if(RC.screen&&RC.edit&&RC.edit.dirty){RC.leaveTo=id;recipeLeave();S.view='mat';return}if(RC.screen)RC.screen=null;if(id!=='oversikt')arrCancel();if(normView(id)!=='ekonomi'){S.ekoOpen=false;S.pin=''}try{document.activeElement&&document.activeElement.blur()}catch(e){}id=normView(id);if(HEM_UNDER.includes(id)&&!HEM_UNDER.includes(S.view))S.hemFran=S.view==='hemmet'?'hemmet':'oversikt';if(id==='fod')S.fodFromFamilj=DEV&&S.view==='familj';if(id==='uppgifter'&&S.taskTab==='stad'&&S.view!=='stad'&&el&&el.closest&&el.closest('#nav'))id='stad';if(['familj','slakt','slaktPersoner'].includes(id)&&!DEV)id='oversikt';if(id==='uppgifter'||id==='stad'){S.taskTab=id==='stad'?'stad':'lista';lsSet('taskTab',S.taskTab)}S.shopAdd=false;S.taskAdd=false;S.view=id;S.recipe=null;S.confirm=null;lsSet('view',id);try{history.replaceState(null,'','#'+id)}catch(e){}window.scrollTo(0,0);render()},

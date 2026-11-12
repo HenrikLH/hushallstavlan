@@ -2117,6 +2117,9 @@ html.ny .widget:not(.w2):not(.calw) .wh .r::after{display:none}
 html.ny .wbig{font-size:28px}
 html.ny .wk-sub{color:var(--ink);font-size:17px;line-height:22px;font-weight:650}
 html.ny #cal-rows>.wk-sub{display:none}
+html.ny body.wall .btasks>.upg-c{margin:4px 0 0!important}
+html.ny.ui5 body.wall .board:not(.arranging) .bcol[data-col]>.btasks:last-child{flex:0 1 auto}
+.upg-c .ur{display:flex;align-items:center;gap:10px;min-height:36px;border-top:.5px solid var(--line)}.upg-c .ur:first-child,.upg-c .wl+.ur,.upg-c .upg-lbl+.ur{border-top:0}.upg-c .ur .check{width:36px;height:36px;margin:-4px -6px -4px -7px}.upg-c .ur .t{flex:1;min-width:0;font-size:15px;line-height:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.upg-c .ur .d{flex:none;font-size:13px;color:var(--ink-2)}.upg-c .ur .d.red{color:var(--red)}.upg-c .ur.tm{min-height:22px}.upg-c .ur.tm .t{font-size:14px;color:var(--ink-2)}.upg-lbl{font-size:13px;line-height:18px;font-weight:600;color:var(--ink-2);margin-top:8px}.upg-tom{display:flex;align-items:center;gap:6px;font-size:15px;color:var(--ink-2);min-height:32px}.upg-tom svg{width:18px;height:18px;color:var(--green,#34c759)}
 html.ny .wk-d .wd{font-size:12px;line-height:15px}
 html.ny .wk-d .n{width:34px;height:34px;font-size:19px}
 html.ny .wk-day{margin-top:6px;padding-top:4px}
@@ -3254,7 +3257,7 @@ form[data-form="haLampa"] .ha-ctl{flex:1;justify-content:center;padding-top:24px
 .ha-ap{grid-column:1/-1;position:relative;overflow:hidden}.ha-ap .ha-i{background:rgba(120,120,128,.16);color:var(--ink-2)}.ha-ap.on.ha-ap-robot .ha-i{background:#0A84FF;color:#fff}.ha-ap.on.ha-ap-disk .ha-i{background:#30B0C7;color:#fff}
 .ha-ap .ha-tx{flex:1}.ha-ap-p{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(120,120,128,.18)}.ha-ap-p::after{content:'';position:absolute;inset:0 auto 0 0;width:var(--p);background:#0A84FF;border-radius:0 2px 2px 0}.ha-ap-disk .ha-ap-p::after{background:#30B0C7}
 .ha-g .ha-t.ha-ap.on{background:var(--fill);box-shadow:none}.ha-g-v .ha-t.ha-ap.on{background:var(--surface)}
-/* Smart hem-rutan: fyra scener överst och favoriter under, blad för att anpassa (ht-v356) */
+/* Smart hem-rutan: fyra scener överst och favoriter under, blad för att anpassa (ht-v359) */
 .hab-h{display:flex;align-items:center;gap:8px}.hab-h .wh{flex:1;min-width:0}
 .hab-mer{flex:none;display:grid;place-items:center;width:30px;height:30px;padding:0;border:0;border-radius:50%;background:var(--fill);color:var(--ink-2);cursor:pointer;-webkit-tap-highlight-color:transparent}.hab-mer svg{width:18px;height:18px}
 /* Designskillen (hushallstavlan-apple-design): rutan har hörn 26 och kant 16, därför hörn 16 innanför (inte kapslar), 8-avstånd, text 15/13 */
@@ -3550,6 +3553,8 @@ html.ny.ui5 .g5-xp{grid-column:1/-1}html.ny.ui5 .g5-xp>.group{margin:0}
 html.ny.ui5 .g5-kar{display:flex;gap:8px;overflow-x:auto;padding:4px 16px 12px;scroll-snap-type:x mandatory;scrollbar-width:none;background:color-mix(in srgb,var(--fill) 45%,var(--surface))}html.ny.ui5 .g5-kar::-webkit-scrollbar{display:none}
 html.ny.ui5 .g5-ka{flex:none;width:140px;display:flex;flex-direction:column;text-align:left;padding:0 0 10px;border:0;border-radius:16px;overflow:hidden;background:var(--surface);font:inherit;color:inherit;scroll-snap-align:start}
 html.ny.ui5 .g5-ka .g5-ki .dr-th{font-size:44px}html.ny.ui5 .g5-ka .g5-kt{padding:8px 10px 0}html.ny.ui5 .g5-ka .g5-km{padding:2px 10px 0}
+html.ny.ui5 .g5-kg+.group{margin-top:24px}
+@media (max-width:899px){html.ny.ui5 .g5-kg>.g5-k:nth-last-child(1 of .g5-k):nth-child(odd of .g5-k){grid-column:1/-1}html.ny.ui5 .g5-kg>.g5-k:nth-last-child(1 of .g5-k):nth-child(odd of .g5-k) .g5-ki{aspect-ratio:2/1}}
 @media (min-width:900px){html.ny.ui5 .g5-kg{grid-template-columns:repeat(4,minmax(0,1fr))}html.ny.ui5 .g5-ka{width:180px}}
 html.ny.ui5 .g5-big .g5-r{padding-top:12px;padding-bottom:12px;gap:16px}
 html.ny.ui5 .g5-big .g5-th,html.ny.ui5 .g5-big .g5-th .dr-th{width:88px;height:88px}html.ny.ui5 .g5-big .g5-th .dr-th{border-radius:16px;font-size:44px}html.ny.ui5 .g5-big .g5-pv{padding-left:124px}
@@ -3567,7 +3572,7 @@ html.ny.ui5 .g5-big .g5-th,html.ny.ui5 .g5-big .g5-th .dr-th{width:88px;height:8
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=345"></script>
+<script src="app.js?v=348"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>

@@ -3,8 +3,8 @@ const assert=require('node:assert/strict');
 module.exports=async(pg,h)=>{
  await pg.emulateMedia({reducedMotion:'no-preference'});
  const read=s=>pg.evaluate(s=>window.__d(s),s),click=async s=>{await pg.locator(s).first().click();await h.idle(320)};
- const nav=async v=>{await click('#nav [data-id="'+v+'"]');await h.idle(550)};
- const developer=async()=>{await click('[data-act="settings"]');const section=pg.locator('[data-k="pref-avancerat"]');if(!await section.evaluate(e=>e.open))await section.locator('summary').click();await h.idle(300)};
+ const nav=async v=>{if(await pg.locator('.nav-mini.on').isVisible())await click('.nav-mini.on');if(!await pg.locator('#nav [data-id="'+v+'"]').count()){await click('#nav [data-id="hemmet"]');await click('#main [data-act="nav"][data-id="'+v+'"]')}else await click('#nav [data-id="'+v+'"]');await h.idle(550)};
+ const developer=async()=>{await h.pref('[data-act="dev"]');await h.idle(300)};
  assert.equal(await read('motionOn()'),true,'Animationer är på som standard utan krav på Utvecklarläge');await pg.reload();await h.idle(1600);assert.equal(await read('motionOn()'),true,'Standardanimationer fungerar från uppstart');
  // Kontrollera mellantillståndet medan fingret fortfarande hålls nere, inte bara slutläget.
  const sky=()=>pg.locator('.hero>.arc.b').evaluateAll(es=>es.filter(e=>getComputedStyle(e).display!=='none').map(e=>{const h=e.closest('.hero').getBoundingClientRect();return[e,e.querySelector('.sky-b')].flatMap(n=>{const r=n.getBoundingClientRect();return[r.x-h.x,r.y-h.y,r.width,r.height]})}));
@@ -72,7 +72,7 @@ module.exports=async(pg,h)=>{
   await pg.locator('[data-motion-grip="weather"]').press('ArrowUp');await h.idle(1000);
   const strip=pg.locator('.ovx .bwx-h');await strip.evaluate(e=>e.scrollLeft=120);assert(await strip.evaluate(e=>e.scrollLeft)>0,'Timremsans sidscroll kvar');
  }
- await pg.locator('#nav [data-id="mat"]').click();await pg.waitForTimeout(80);
+ if(await pg.locator('.nav-mini.on').isVisible()){await pg.locator('.nav-mini.on').click();await h.idle(650)}await pg.locator('#nav [data-id="mat"]').click();await pg.waitForTimeout(80);
  const pageMotion=await read('({count:motionPageAnim.animations.length,duration:motionPageAnim.animations[0].effect.getTiming().duration,frames:motionPageAnim.animations[0].effect.getKeyframes(),moving:motionPageAnim.animations.some(a=>getComputedStyle(a.effect.target).transform!=="none"),menuMoves:motionPageAnim.animations.some(a=>a.effect.target.matches(".head,.segc,.subseg"))})');
  // UI 5.0 tonar flikbyten som iOS i stället för att skjuta innehållet i sidled
  if(await read('U5')){assert(pageMotion.count>0,'Flikbytet tonas in');assert.equal(pageMotion.duration,180);assert.equal(+pageMotion.frames[0].opacity,.25)}
@@ -81,8 +81,9 @@ module.exports=async(pg,h)=>{
  const thumb=pg.locator('.segc[aria-label="Visa"] .seg-thumb');const mid=await thumb.evaluate(e=>({x:new DOMMatrix(getComputedStyle(e).transform).m41,width:e.getBoundingClientRect().width,opacity:getComputedStyle(e).opacity}));assert(mid.x>2&&mid.x<mid.width-2&&Number(mid.opacity)>0,'Valmarkeringen syns mellan sina ändlägen');assert(await thumb.evaluate(e=>e.getAnimations().some(a=>a.playState==='running'&&a.effect.getTiming().duration===300)),'Menyvalets förflyttning pågår och går att se');await h.idle(500);
  await nav('uppgifter');await click('#nav [data-act="nav"][data-id="kalender"]');await h.idle(500);
  const date=await read('S.calDay||today()');
- for(const mode of ['dag','vecka','manad','dag']){const label=pg.locator('.motion-date-label'),before=await label.boundingBox(),text=await label.textContent();await pg.locator('[data-act="calVy"][data-id="'+mode+'"]').click();await pg.waitForTimeout(80);const after=await label.boundingBox();assert(Math.abs(before.y-after.y)<1&&Math.abs(before.x-after.x)<1,'Datumets referens står kvar '+JSON.stringify({before,after,mode}));assert.equal(await label.textContent(),text);assert(await pg.locator('.motion-calendar').evaluate(e=>getComputedStyle(e).transform!=='none'),'Kalenderinnehållets övergång syns');await h.idle(500);assert.equal(await read('S.calDay||today()'),date);assert.equal(await read('S.calVy'),mode)}
- await nav('stad');const detail=pg.locator('details[data-k]').first();
+ // Datumets referens (.motion-date-label) finns bara där kalendern har kvar den gemensamma datumraden
+ if(await pg.locator('.motion-date-label').count())for(const mode of ['dag','vecka','manad','dag']){const label=pg.locator('.motion-date-label'),before=await label.boundingBox(),text=await label.textContent();await pg.locator('[data-act="calVy"][data-id="'+mode+'"]').click();await pg.waitForTimeout(80);const after=await label.boundingBox();assert(Math.abs(before.y-after.y)<1&&Math.abs(before.x-after.x)<1,'Datumets referens står kvar '+JSON.stringify({before,after,mode}));assert.equal(await label.textContent(),text);assert(await pg.locator('.motion-calendar').evaluate(e=>getComputedStyle(e).transform!=='none'),'Kalenderinnehållets övergång syns');await h.idle(500);assert.equal(await read('S.calDay||today()'),date);assert.equal(await read('S.calVy'),mode)}
+ await nav('uppgifter');if(await pg.locator('main [data-act="taskTab"][data-id="stad"]').count())await click('main [data-act="taskTab"][data-id="stad"]');const detail=pg.locator('details[data-k]').first();
  if(await detail.count()){
   const key=await detail.getAttribute('data-k');await detail.locator('summary').click();await h.idle(550);const open=await detail.evaluate(e=>e.open);
   await pg.reload();await h.idle(1600); // samma funktion fungerar även efter omstart
@@ -95,14 +96,14 @@ module.exports=async(pg,h)=>{
  await fold.click();await h.idle(550);assert.equal(await fold.getAttribute('aria-expanded'),'true');assert.equal(await fold.textContent(),total);assert(await pg.locator('[data-act="ekoCost"]').count()>0);
  await fold.click();const curve=await fold.evaluate(e=>{const b=e.nextElementSibling,a=b.getAnimations()[0],timing=a.effect.getTiming();a.pause();const heights=[0,48,240,432,480].map(t=>{a.currentTime=t;return b.getBoundingClientRect().height});a.play();return{timing,heights}});const H=curve.heights;
  assert.equal(curve.timing.duration,480);assert.equal(curve.timing.easing.replace(/\s/g,''),'cubic-bezier(0.65,0,0.35,1)');assert(H[0]-H[1]<H[0]*.05&&H[2]>H[0]*.4&&H[2]<H[0]*.6&&H[3]<H[0]*.05,'Den verkliga expansionen accelererar och bromsar');await h.idle(550);await fold.click();await h.idle(550);
- await click('[data-act="settings"]');const pref=pg.locator('[data-k="pref-avancerat"]');if(!await pref.evaluate(e=>e.open))await pref.locator('summary').click();await h.idle(550);
+ await h.pref('[data-act="motion"]');
  const panel=pg.locator('[data-form="settings"]'),panelTop=await panel.evaluate(e=>e.getBoundingClientRect().top);
  // UI 5.0 öppnar en del i taget som egen sida (prövas i ui5.js), så fäll-ut-kontrollen gäller bara övriga
  if(!await read('U5'))for(const k of ['personer','mat','attgora']){const d=pg.locator('[data-k="pref-'+k+'"]');if(await d.evaluate(e=>e.open))continue;await d.locator('summary').scrollIntoViewIfNeeded();const y=await d.evaluate(e=>e.getBoundingClientRect().top);await d.locator('summary').click();await pg.waitForTimeout(120);assert(Math.abs((await panel.evaluate(e=>e.getBoundingClientRect().top))-panelTop)<1,'Inställningsbladets överkant är förankrad');assert(Math.abs((await d.evaluate(e=>e.getBoundingClientRect().top))-y)<1,'Sektionen expanderar nedåt');await h.idle(500)}
  await click('[data-act="motion"]');assert.equal(await read('MOTION'),false);
  await click('[data-act="sheetClose"]',await pg.evaluate(()=>window.__d('ACT.prefBack()')));await pg.reload();await h.idle(1800);assert.equal(await read('MOTION'),false);assert.equal(await pg.locator('[data-motion-grip]').count(),0);
  await nav('mat');await click('[data-act="matTab"][data-id="vecka"]');await h.idle(500);assert.equal(await pg.locator('#main').evaluate(e=>e.getAnimations().filter(a=>a.playState==='running').length),0);
- await click('[data-act="settings"]');const pref2=pg.locator('[data-k="pref-avancerat"]');if(!await pref2.evaluate(e=>e.open))await pref2.locator('summary').click();await h.idle(550);await click('[data-act="motion"]');await click('[data-act="sheetClose"]',await pg.evaluate(()=>window.__d('ACT.prefBack()')));assert.equal(await read('MOTION'),true);
+ await h.pref('[data-act="motion"]');await click('[data-act="motion"]');await click('[data-act="sheetClose"]',await pg.evaluate(()=>window.__d('ACT.prefBack()')));assert.equal(await read('MOTION'),true);
  await pg.emulateMedia({reducedMotion:'reduce'});await click('[data-motion-grip="budget"]');assert.equal(await read('S.wsumOpen'),true);
  assert.equal(await pg.locator('#week-budget-details').evaluate(e=>e.getAnimations().length),0);
  assert(await pg.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'Ingen horisontell sidscroll');
