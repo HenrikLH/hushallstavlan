@@ -198,11 +198,11 @@ def ha_cfg():
     except FileNotFoundError:
         HA['cfg'] = HA['mtid'] = None; return None
 
-def ha_anrop(c, vag, data=None):
+def ha_anrop(c, vag, data=None, tid=5):
     r = urllib.request.Request(c['url'].rstrip('/') + vag, method='POST' if data is not None else 'GET',
                                data=json.dumps(data).encode() if data is not None else None,
                                headers={'Authorization': 'Bearer ' + c['token'], 'Content-Type': 'application/json'})
-    with urllib.request.urlopen(r, timeout=5) as svar:
+    with urllib.request.urlopen(r, timeout=tid) as svar:
         return json.loads(svar.read() or b'null')
 
 def ha_las(c):
@@ -354,6 +354,8 @@ def ha_robot(c, alla, e):
                     x0, y0 = f(q['x0'], q['y0']); x1, y1 = f(q['x1'], q['y1'])
                     rum['b'] = [round(min(x0, x1)), round(min(y0, y1)), round(max(x0, x1)), round(max(y0, y1))]
                 r['rum'].append(rum)
+            dp = c.get('dockpos')
+            if f and dp: r['dockPx'] = [round(v) for v in f(dp[0], dp[1])]   # dockans plats i kartbilden (för en effektiv rumsordning)
         except Exception as ex:
             logg('ha karta: ' + repr(ex)[:200])
     return r
@@ -414,11 +416,18 @@ def ha_app_styr(c, d):
                 steg = []   # i den ordning rummen valdes: små rum i följd blir en omgång, ett stort rum en egen
                 # ×2/×3 per rum: Roborock har bara ett antal per körning, så ett sådant rum får en egen omgång
                 X = {int(k): max(1, min(3, int(v))) for k, v in (d.get('x') or {}).items() if str(k).isdigit() and str(v).isdigit()}
+                # en omgång samlar rum tills ett stort rum är med eller ytan når TOM_M2: då töms behållaren (små rum före ett stort följer med i dess omgång)
+                M2 = {x['id']: x.get('m2') or 0 for x in a['rum']}; oppen, yta = False, 0
                 for x in damm:
                     n = X.get(x, 1)
-                    if x not in stor and n == 1 and steg and not steg[-1].get('stor') and steg[-1].get('x', 1) == 1: steg[-1]['rum'].append(x)
-                    else: steg.append({'typ': 'damm', 'rum': [x], 'stor': x in stor, 'x': n})
-                steg = [dict({'typ': 'damm', 'rum': t['rum']}, **({'x': t['x']} if t.get('x', 1) > 1 else {})) for t in steg] + [{'typ': 'mopp', 'rum': mopp}] * bool(mopp)
+                    if n > 1: steg.append({'typ': 'damm', 'rum': [x], 'x': n}); oppen = False; continue
+                    if oppen: steg[-1]['rum'].append(x)
+                    else: steg.append({'typ': 'damm', 'rum': [x]}); yta = 0
+                    yta += M2.get(x, 0); oppen = not (x in stor or yta >= TOM_M2)
+                # en liten sista omgång följer med den förra i stället för att ge en egen tömning
+                if len(steg) > 1 and not steg[-1].get('x') and not steg[-2].get('x') and not set(steg[-1]['rum']) & stor and sum(M2.get(x, 0) for x in steg[-1]['rum']) < TOM_M2 / 2:
+                    steg[-2]['rum'] += steg.pop()['rum']
+                steg = steg + [{'typ': 'mopp', 'rum': mopp}] * bool(mopp)
                 PLAN[e] = {'steg': steg, 'i': 0, 'klara': [[] for _ in steg], 'nu': None, 'sett': False, 'tid': time.time(), 'hemma': None, 'klar': None}
                 PLAN[e]['val'] = {'sug': a.get('sug'), 'vatten': a.get('vatten'), 'rutt': a.get('rutt')}
                 ha_plan_kor(c, a, 'vacuum' if damm else 'mop', steg[0]['rum'], PLAN[e]['val'], steg[0].get('x', 1))
@@ -643,6 +652,8 @@ def ha_skript_var(c, e, v):
         if h: ut['hogtalare'] = h
     return {k: x for k, x in ut.items() if k in falt}
 
+TOM_M2 = 20   # m² dammsugna rum innan behållaren töms (stora rum töms alltid efter)
+
 # Dammsug följt av mopp (inte båda samtidigt: fukten fastnar annars i dammbehållaren). Läget sätts före varje körning
 # och återställs till dammsugning efteråt, så att vanlig städning alltid är dammsugning.
 PLAN = {}
@@ -759,6 +770,7 @@ def ha_tank(c, h, m2=0, vatten=None):
 
 # alla körningar (även från Roborock-appen): rummen roboten lämnar räknas som städade, moppad yta dras från tanken
 FOLJ = {}
+nu_t = time.time
 def ha_folj():
     c = ha_cfg()
     if not c: return
@@ -779,7 +791,17 @@ def ha_folj():
                 if f['nu'] is not None and not planen: ha_stadat(c, [f['nu']], f['lage']); c = ha_cfg()
                 f['nu'] = rid
         elif vst in ('idle', 'paused') and f['kor']: f['paus'] = True
-        elif vst == 'docked' and f['kor']:
+        if vst == 'docked' and nu_t() - (c.get('dockpos_t') or 0) > 86400:   # dockans plats: robotens position när den står i dockan (en gång per dygn)
+            try:
+                svar = ha_anrop(c, '/api/services/roborock/get_vacuum_current_position?return_response', {'entity_id': e}, 25) or {}
+                pos = (svar.get('service_response') or {}).get(e) or {}
+                if isinstance(pos.get('x'), (int, float)) and isinstance(pos.get('y'), (int, float)):
+                    c = json.loads(json.dumps(c)); c.update(dockpos=[pos['x'], pos['y']], dockpos_t=int(nu_t())); ha_spara(c); c = ha_cfg()
+                else: c = json.loads(json.dumps(c)); c['dockpos_t'] = int(nu_t()); ha_spara(c); c = ha_cfg()
+            except Exception as ex:
+                # roboten svarar långsamt när den sover: försök igen om tio minuter
+                logg('ha dockans plats: ' + repr(ex)[:150]); c = json.loads(json.dumps(c)); c['dockpos_t'] = int(nu_t()) - 86400 + 600; ha_spara(c); c = ha_cfg()
+        if vst == 'docked' and f['kor']:
             f['kor'] = False
             if not planen and not f['paus'] and not (e in PLAN and PLAN[e].get('avbr')): ha_stadat(c, [f['nu']], f['lage']); c = ha_cfg()
             if f['lage'] in ('mop', 'vac_and_mop'):
