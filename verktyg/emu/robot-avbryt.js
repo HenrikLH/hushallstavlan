@@ -9,7 +9,8 @@ module.exports=async(pg,h)=>{
  await pg.locator('main .ha-karta img').waitFor({timeout:8000});
  const R=JSON.parse(await pg.evaluate(()=>window.__d('JSON.stringify({crop:HA.km.crop,rum:HA.km.rum.map(r=>({id:r.id,cx:r.cx,cy:r.cy}))})')));
  const tryck=async id=>{const r=R.rum.find(q=>q.id===id),b=await pg.locator('main .ha-karta img').boundingBox();await pg.mouse.click(b.x+(r.cx-R.crop[0])/R.crop[2]*b.width,b.y+(r.cy-R.crop[1])/R.crop[3]*b.height);await h.idle(500)};
- const [,r2,r3,r4]=R.rum.map(r=>r.id);
+ // tre små rum som ryms i en omgång (under TOM_M2 tillsammans, inget stort rum), annars är hemkomsten bara slutet på första omgången
+ const [r2,r3,r4]=JSON.parse(await pg.evaluate(()=>window.__d('JSON.stringify(haAppX().rum.filter(r=>!r.stor).sort((x,y)=>(x.m2||0)-(y.m2||0)).slice(0,3).map(r=>r.id))')));
  const omgang=async(stoppa)=>{
   await tryck(r2);await tryck(r3);await tryck(r4);
   await pg.locator('main [data-act="haLager"][data-id="m"]').click();await h.idle(300);await tryck(r2);await pg.locator('main [data-act="haLager"][data-id="v"]').click();await h.idle(300);
