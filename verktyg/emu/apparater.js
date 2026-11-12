@@ -51,7 +51,7 @@ module.exports=async(pg,h)=>{
   L=await logg();assert.ok(L.filter(x=>x[2].option==='deep').length>=2,'Rutten sätts igen när moppningen börjar');
   await pg.waitForFunction(()=>document.querySelector('main .ha-fs.nu.mopp'),null,{timeout:20000});
   await hemma();
-  await pg.waitForFunction(()=>document.querySelector('main .ha-fslut.klar'),null,{timeout:60000});await h.shot('apparater-plan-klar');
+  await pg.waitForFunction(k=>{const b=document.querySelector('main [data-act="haAppSida"][data-id="hist"] b');return b&&b.textContent.startsWith(k)},'Klar',{timeout:60000});await pg.locator('main [data-act="haAppSida"][data-id="hist"]').click();await h.idle(600);await h.shot('apparater-plan-klar');
   L=await logg();assert.equal(L.filter(x=>x[2].option).pop()[2].option,'vacuum','Läget tillbaka till dammsugning')}
  else{assert.ok(await pg.locator('main .ha-fs.nu.damm').count(),'Planen syns');
   await pg.evaluate(()=>window.__d('(()=>{const a=haAppX();a.plan.klara[0]=a.plan.steg[0].rum.slice();a.plan.i=1;a.plan.nu=a.plan.steg[1].rum[0];a.pct=55;render()})()'));await h.idle(400);await h.shot('apparater-plan');

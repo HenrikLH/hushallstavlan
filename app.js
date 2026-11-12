@@ -1700,6 +1700,12 @@ function haAppKropp(a,sida){
   b+='<div class="ha-gl">'+((a.rutiner||[]).length?rad('rut','Routines',a.rutiner.length+'','<div class="ha-gnot">From the Roborock app.</div>'+a.rutiner.map(r=>'<button type="button" class="ha-gv" data-act="haRutin" data-id="'+esc(r.id)+'"><span>'+esc(r.n)+'</span><i>'+HAI_APP.play+'</i></button>').join('')):'')+
    rad('rum','Rooms',R.some(r=>!r.n)?'Name them':R.length+'',R.map(r=>'<button type="button" class="ha-gv'+(S.haRumNamn===r.id?' ut':'')+'" data-act="haRumNamn" data-id="'+r.id+'"><span>'+esc(haRumN(a,r))+(r.stor?'<small>Töm efteråt</small>':'')+'</span><i>'+I.chev+'</i></button>'+(S.haRumNamn===r.id?'<div class="ha-namnval">'+HA_RUMNAMN.map(n=>'<button type="button" class="'+(r.n===n?'on':'')+'" data-act="haRumNamnV" data-id="'+r.id+':'+n+'">'+n+'</button>').join('')+'</div><button type="button" class="ha-gv ha-stor" data-act="haRumStor" data-id="'+r.id+'" aria-pressed="'+!!r.stor+'"><span>Töm efter rummet</span>'+(r.stor?'<i>'+I.tick+'</i>':'')+'</button>'+[['v','Dammsuga var'],['m','Moppa var']].map(([x,t])=>{const v=r['i'+x]||0;return'<div class="ha-gv ha-iv"><span>'+t+'</span><button type="button" data-act="haRumIv" data-id="'+r.id+':'+x+':-1" aria-label="Färre dagar"'+(v?'':' disabled')+'>−</button><b>'+(v?v+' d':'Av')+'</b><button type="button" data-act="haRumIv" data-id="'+r.id+':'+x+':1" aria-label="Fler dagar"'+(v>=60?' disabled':'')+'>+</button></div>'}).join(''):'')).join(''),R.some(r=>!r.n))+
    (U.length?rad('und','Maintenance',Ux.length?Ux.length+' need attention':'All good',U.map(u=>'<div class="ha-und-r"><span>'+u.n+'</span><i style="--p:'+Math.max(0,Math.min(100,Math.round(100*u.h/u.max)))+'%"'+(u.h/u.max<.15?' class="lag"':'')+'></i><b'+(u.h<=0?' class="fyll"':'')+'>'+(u.h<=0?u.gor+' now':Math.round(u.h)+' h')+'</b></div>').join(''),Ux.length):'')+'</div>';
+  }else if(S.haAppSida==='hist'){b+='<button type="button" class="ha-bak" data-act="haAppSida" data-id="">'+I.back+'<span>Tillbaka</span></button>';
+   // historik: senaste körningens tidslinje och när varje rum senast städades (det som används mest ligger på huvudsidan)
+   const sen=(r,x)=>{const t=r['s'+x];return t?haDgr((Date.now()/1e3-t)/86400):'Aldrig'};
+   b+='<div class="ha-sh">Senaste körningen</div>'+(pl&&!kor?haFlode(a,pl):'<div class="ha-gl"><div class="ha-gr"><span>'+(kor?'Pågår nu, syns på dammsugarens sida':'Ingen körning sparad')+'</span></div></div>');
+   const RS=R.slice().sort((x,y)=>Math.max(y.sv||0,y.sm||0)-Math.max(x.sv||0,x.sm||0));
+   if(RS.length)b+='<div class="ha-sh">Rummen</div><div class="ha-gl">'+RS.map(r=>'<div class="ha-gr ha-hr"><span>'+esc(haRumN(a,r))+'</span><b>Dammsugat '+sen(r,'v').toLowerCase()+' · moppat '+sen(r,'m').toLowerCase()+'</b></div>').join('')+'</div>';
   }else{
   if(!sida)b+=haKarta(a);
   // lager: välj Vacuum eller Mop och tryck på rummen i kartan; rutten under visar ordningen innan start
@@ -1709,7 +1715,7 @@ function haAppKropp(a,sida){
    const snabb=(k,n,alt,v)=>{const A2=alt.filter(([o,t])=>o!=null&&t&&!/custom|off/.test(o));return A2.length>1?'<div class="ha-sv"><span>'+n+'</span><div style="--n:'+A2.length+'">'+A2.map(([o,t])=>'<button type="button" data-act="haRobSet" data-id="'+k+':'+esc(o)+'" aria-pressed="'+(o===v)+'">'+t+'</button>').join('')+'</div></div>':''};
    b+=lag==='m'?snabb('rutt','Route',RUT,a.rutt)+snabb('vatten','Water',VAT,a.vatten):snabb('sug','Suction',SUG,a.sug);
    if(P.steg.length)b+=haFlode(a,{steg:P.steg,i:-1,klara:[],x:P.x,xm:P.xm,rm:P.rm},true)}
-  if(pl&&!S.haZon&&(kor||!V.length))b+=haFlode(a,pl);
+  if(kor&&!S.haZon)b+=haFlode(a,pl);
   if(!S.haZon&&!V.length)b+=haRumStatus(a);
   // dockan: egen bild med status, vattentankarna och dockans val (flyttat från Inställningar)
   if(a.dock&&!S.haZon){const DL=(a.dockLageAlt||[]).filter(o=>o!=='unknown').map(o=>[o,{smart:'Smart',light:'Light',balanced:'Balanced',max:'Max'}[o]||o]),dv=a.dockVarn||[],t=a.tank;
@@ -1723,6 +1729,7 @@ function haAppKropp(a,sida){
     (DL.length?rad('dockLage','Auto-empty',namn(DL,a.dockLage),val('dockLage',DL,a.dockLage)):'')+'<div class="ha-rst-f">Dockan säger bara om tankarna är tomma eller fulla. Procenten räknas fram från hur mycket som moppats sedan påfyllning.</div></div>'}
   const varn=Ux.length?[Ux.length+' need attention']:[];
   b+='<div class="ha-gl">'+(varn.length?'<button type="button" class="ha-gr" data-act="haAppSida" data-id="inst"><span>'+esc(varn[0])+(varn.length>1?' +'+(varn.length-1):'')+'</span><b class="fyll">Visa</b><i>'+I.chev+'</i></button>':'')+
+   '<button type="button" class="ha-gr" data-act="haAppSida" data-id="hist"><span>Historik</span><b>'+(pl&&!kor?(pl.avbr?'Avbruten':'Klar')+(typeof pl.klar==='number'?' '+new Date(pl.klar*1e3).toTimeString().slice(0,5):''):'')+'</b><i>'+I.chev+'</i></button>'+
    '<button type="button" class="ha-gr" data-act="haAppSida" data-id="inst"><span>Inställningar</span><b>'+[a.lage!=='mop'&&namn(SUG,a.sug)].filter(x=>x&&x!=='–').join(' · ')+'</b><i>'+I.chev+'</i></button></div>';
   b+='<div class="ha-ap-info">'+(st&&(a.yta!=null||a.min!=null)?[a.yta!=null&&String(a.yta).replace('.',',')+' m²',a.min!=null&&Math.round(a.min)+' min',a.bat!=null&&'batteri '+Math.round(a.bat)+' %'].filter(Boolean).join(' · '):a.senast?'Senast städat '+haNar(a.senast).toLowerCase():'')+'</div>';
   // fast rad längst ner: en stor knapp för det som går att göra nu, och Åk hem

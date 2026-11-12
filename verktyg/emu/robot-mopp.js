@@ -25,7 +25,7 @@ module.exports=async(pg,h)=>{
  assert.ok(await vanta(L=>L.some(seg([r1],2))),'Första rummet moppas två gånger');
  await hemma();assert.ok(await vanta(L=>L.some(seg([r2],1))),'Sedan rummet med Deep');
  let L=await logg();const i=L.findIndex(seg([r2],1));assert.ok(L.slice(0,i).some(x=>x[2].option==='deep'),'Deep sätts före omgången');
- await hemma();await pg.waitForFunction(()=>document.querySelector('main .ha-fslut.klar'),null,{timeout:60000});
+ await hemma();await pg.waitForFunction(k=>{const b=document.querySelector('main [data-act="haAppSida"][data-id="hist"] b');return b&&b.textContent.startsWith(k)},'Klar',{timeout:60000});await pg.locator('main [data-act="haAppSida"][data-id="hist"]').click();await h.idle(600);
  L=await logg();assert.equal(L.filter(x=>x[2].entity_id==='select.dammsugare_mopplage').pop()[2].option,'standard','Moppläget tillbaka efteråt');
  await h.shot('robot-mopp-klar');
 };
