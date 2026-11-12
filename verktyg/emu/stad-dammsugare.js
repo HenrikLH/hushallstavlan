@@ -8,6 +8,7 @@ module.exports=async(pg,h)=>{
  await h.idle(900);
  const g=pg.locator('main .stad-rob-g');await g.waitFor({timeout:5000});
  assert.match(await g.innerText(),/Dammsugaren/,'Genvägen syns i Städ');
+ assert.ok(await pg.evaluate(()=>!document.querySelector('main .stad-rob-g .segc, main .stad-rob-g .cell, main .stad-rob-g .rob-g')),'Städrutorna ligger utanför dammsugarbrickan');
  await h.shot('stad-genvag');
  // i dockan: status och antal rum som står på tur
  await pg.evaluate(()=>window.__d("(haRobot().st='charging',haRobot().rum.forEach(r=>{if(r.n==='Hall'||r.n==='Kök')r.sm=Date.now()/1e3}),render(),1)"));await h.idle(600);
