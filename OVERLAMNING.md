@@ -4,7 +4,7 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 ## Receptsidan i Apple-stil (förslag, väntar på "Pusha")
 - Ägare Claude, gren `claude/project-thread-o3zdk4`. Bara UI 5.0 (`rcpTop5`, `rcpPrisFot`, `rcpPlan5` före `recipeDetail`; CSS sist i index.html under `html.ny.ui5 .rcp5`/`.rcp-meny`). UI 2.0 oförändrat.
-- Rubrikrad: Tillbaka, hjärta (favorit) och ⋯ (Redigera recept, Byt/Lägg till foto, Byt mot annan rätt, Spara i receptbanken, Recept hos källan, Ta bort fotot, Föreslå aldrig igen). Ren bild, betyg under titeln, Börja laga + Till veckan, prisnot som fotnot.
+- Version 2 efter Henriks svar: bildens knappar behålls (penna/foto, bokmärke, hjärta, betygsknapp med stjärnor). ⋯ har bara Redigera recept, Byt mot annan rätt, Recept hos källan, Föreslå aldrig igen. Under titeln bara Börja laga + Till veckan; ingen extra text (prisnot bara vid saknat/gammalt pris).
 - Planering (M28): Tidigast igen med −/+ (`ACT.tidSteg`, steg `TIDV` 1–26 v + Aldrig): baslinjen `frekvens[id].w` räknas om så att valt intervall gäller med dagens stjärnor. Ingen Kod.gs-ändring. Matlagningsläget (Börja laga-flödet) görs i en annan tråd.
 - Test: `receptsida.js` telefon/mörkt/vägg/UI2, alla-flikar telefon+vägg gröna.
 
