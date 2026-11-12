@@ -3097,6 +3097,7 @@ function rcpTop5(r){const id=esc(r.id),g=ratingOf(r.id),img=imgOf(r.id)||r.img||
  const src=r.src?'<a class="rcp-mi" role="menuitem" href="'+esc(r.src)+'" target="_blank" rel="noopener"><span>Recept hos '+esc(r.srcName||'källan')+'</span>'+SV+'<path d="M14 4h6v6M20 4l-9 9M18 14v4.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10"/></svg></a>':'';
  const meny='<details class="create-menu u5-menu rcp-meny"><summary class="u5-dots" aria-label="Fler val för receptet">'+I.dots+'</summary><div class="create-options" role="menu" aria-label="Receptet">'+
   it('edit','Redigera recept',I.pencil)+
+  (des?'':'<button type="button" role="menuitem" data-act="rcpSheet" data-id="'+id+'" data-k="tidigast"><span>Tidigast igen</span><span class="rcp-mv">'+(baseOf(r.id)===0?'Aldrig':matLage(r.id).paus?'Pausad':String(matLage(r.id).w).replace('.',',')+' v')+'</span></button>')+
   (des?it('dessShop','Lägg i inköpslistan',I.basket):'')+
   (vi>=0?it('rcpByt','Byt mot en annan rätt',I.swap,'',{id:vi}):'')+
   src+'<div class="fm-sep"></div>'+
@@ -3112,13 +3113,8 @@ function rcpTop5(r){const id=esc(r.id),g=ratingOf(r.id),img=imgOf(r.id)||r.img||
 function rcpPrisFot(r){const p=recipePrice(r),har=Object.keys(parseJ(settings().priser,{})).length,gml=har&&prisAlder().gammal;if(!p.partial&&!gml)return'';
  const t=(p.partial?'Minst '+kr(p.amount)+' per portion, '+(p.missing?p.missing+' saknar pris':p.unquantified+' mängd'+(p.unquantified===1?'':'er')+' att granska')+'.':'')+(gml?' Butikspriserna kan vara inaktuella.':'');
  return'<div class="foot rcp-prisfot'+(gml?' pris-gammal':'')+'">'+esc(t.trim())+(p.missing?' <button type="button" class="linkbtn" data-act="varor">Välj varor</button>':'')+'</div>'}
-// Planering: Tidigast igen med −/+ och när rätten lagades senast
+// Tidigast igen: stegen för −/+ i bladet (ACT.tidSteg)
 const TIDV=[1,1.5,2,3,4,6,8,12,16,26];
-function rcpPlan5(r){if(isDessert(r))return'';const id=esc(r.id),l=matLage(r.id),ald=baseOf(r.id)===0,ny=!l.harBas&&!l.betyg;
- const v=ald?'Aldrig':veckor(l.w),fot=ald?'':l.paus?'Pausad: '+l.paus.toLowerCase()+'.':l.tidigastDatum&&!l.redo?'Kan föreslås igen från '+dateShort(l.tidigastDatum)+'.':'';
- return sh('Planering')+rgroup('M28','<div class="cell"><button type="button" class="grow rcp-ti" data-act="rcpSheet" data-id="'+id+'" data-k="tidigast"><span class="title">Tidigast igen</span>'+SV+'<circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 7.6v.1"/></svg></button><span class="stepper"><button data-act="tidSteg" data-id="'+id+'" data-d="-1" aria-label="Tätare"'+(!ald&&l.w<=TIDV[0]?' disabled':'')+'>−</button><span>'+v+'</span><button data-act="tidSteg" data-id="'+id+'" data-d="1" aria-label="Glesare"'+(ald?' disabled':'')+'>+</button></span></div>'+
-  '<div class="cell"><div class="grow"><div class="title">Senast lagad</div></div><span class="rcp-val">'+(l.senast?esc(dateShort(l.senast))+(l.n>1?' · '+l.n+' gånger':''):'Inte än')+'</span></div>')+
-  (fot?'<div class="foot">'+esc(fot)+'</div>':'')}
 function recipeDetail(r){
  const{p,f}=scaled(r);
  const pv=protNu(r),rr=pv?protRecipe(r,pv):r,ST=kvSteps(r,pv),act=Math.min(S.step[r.id]||0,ST.length-1),actHits=stepIngredients(rr,{t:stegText(ST[act])});
@@ -3130,9 +3126,10 @@ function recipeDetail(r){
  h+=cookBtn}
  const facts=[['Tid',r.min?'<span class="num">'+r.min+'</span> min':'Ej angiven']];if(portKr(r))facts.push(['Per portion',portTxt(r)]);if(r.protein){const pr=String(r.protein).replace(/\s*\/\s*port(ion)?\.?$/i,''),ph=pr.match(/^henriks?\s+(?:del\s+)?(?:ca\s+)?(.+)$/i);facts.push(['Protein',esc(ph?ph[1]:pr)])}
  const kc=kcalOf(r.id);if(kc)facts.push(['Kalorier','<span class="num">'+kc.n+'</span> kcal']);
+ if(U5&&!isDessert(r)){const sl=lastServed(r.id);facts.push(['Senast lagad',sl?esc(dateShort(sl)):'Inte än'])}
  h+='<div class="group"'+RF('M19')+' style="margin-top:16px"><div class="rcp-facts'+(facts.length>3?' f4':'')+'" style="grid-template-columns:repeat('+facts.length+',minmax(0,1fr))">'+facts.map(([l,v])=>'<div><div class="fn">'+l+'</div><div class="v">'+v+'</div></div>').join('')+'</div></div>';
- if(U5)h+=rcpPrisFot(r)+rcpPlan5(r);
- if(r.why)h+='<div class="group"'+RF('M24')+' style="margin-top:12px"><div class="note">'+esc(r.why)+'</div></div>';
+ if(U5)h+=rcpPrisFot(r);
+ if(r.why&&!U5)h+='<div class="group"'+RF('M24')+' style="margin-top:12px"><div class="note">'+esc(r.why)+'</div></div>';
  const praw=protRaw(r);if(praw){const on=!protOff(r.id),orig=protById(praw.id),mm=D().menu.find(m=>m.recipe===r.id&&protFromAddon(m.addon)),pa=mm&&protFromAddon(mm.addon);
   h+=sh('Valfritt protein')+rgroup('M23',on&&pa?[[pa.kn,pa.k,'p1'],[pa.vn,pa.v,'p2']].map(([n,id,c])=>{const x=protById(id);return'<div class="cell pt-row"><span class="pt-ri" aria-hidden="true">'+x.ic+'</span><div class="grow"><div class="title"><span class="chip '+c+'">'+esc(personLabel(n))+'</span> '+esc(x.namn)+'</div><div class="meta">'+esc(x.g+' g per portion. '+x.tips)+'</div></div></div>'}).join('')
    :'<div class="cell"><div class="grow"><div class="meta" style="color:var(--ink)">'+(on?'Receptet har '+esc(orig.namn.toLowerCase())+'. När veckan planeras väljer var och en sitt protein, och resten av rätten lagas en gång.':'Avstängt. Rätten lagas med '+esc(orig.namn.toLowerCase())+' som i receptet.')+'</div></div></div>')+
@@ -3226,7 +3223,8 @@ function rcpActions(r){const l=matLage(r.id),pa=paVeckan(r.id);
 function tidigastHtml(r){const l=matLage(r.id),b=baseOf(r.id),def=MP.grundintervall(r);
  const row=(k,v)=>'<div class="ti-row"><span>'+k+'</span><b>'+v+'</b></div>';
  const ny=!l.harBas&&!l.betyg;
- let h='<div class="ti-big">'+(l.paus?'Pausad':ny?'Inte satt än':veckor(l.w))+'</div><div class="ti-sub">'+(l.paus?esc(l.paus):ny?'Väljs när ni betygsätter rätten första gången':l.redo?'Kan föreslås nu':'Kan föreslås från '+esc(dateShort(l.tidigastDatum)))+'</div>';
+ const ald=b===0,big=U5?'<div class="ti-step"><button type="button" data-act="tidSteg" data-id="'+esc(r.id)+'" data-d="-1" aria-label="Tätare"'+(!ald&&l.w<=TIDV[0]?' disabled':'')+'>−</button><div class="ti-big">'+(ald?'Aldrig':veckor(l.w))+'</div><button type="button" data-act="tidSteg" data-id="'+esc(r.id)+'" data-d="1" aria-label="Glesare"'+(ald?' disabled':'')+'>+</button></div>':'<div class="ti-big">'+(l.paus?'Pausad':ny?'Inte satt än':veckor(l.w))+'</div>';
+ let h=big+'<div class="ti-sub">'+(l.paus?esc(l.paus):ny&&!U5?'Väljs när ni betygsätter rätten första gången':l.redo?'Kan föreslås nu':'Kan föreslås från '+esc(dateShort(l.tidigastDatum)))+'</div>';
  h+='<div class="ti-rows">'+
   row('Baslinje',b!=null?(b===0?'Aldrig':veckor(Math.round(b*10)/10)):'Förval '+veckor(def))+
   row('Stjärnor',l.betyg?starNum(l.s):'Inget betyg än')+
