@@ -2,6 +2,11 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Dammsugaren: rumsintervall och dockans kort (förslag, väntar på "Pusha")
+- Ägare Claude, gren `claude/project-thread-ys6yn3`. Håll in ett rum (Rummen på dammsugarsidan, alla rum visas nu, eller rumsbrickan i Städ S12) → blad `robRum` (ACT `robRum`/`robRumValj`): −/+ dammsuga/moppa var n dagar (`haRumIv`), Stort rum, Städa rummet.
+- Dockan har eget kort på dammsugarsidan (`haDockHd` bild med tankar + roboten när den är hemma, status från `a.st`, rent vatten/smutsvatten, Empty bin/Wash mop/Auto-empty). Flyttat från Inställningar; `haTank` används inte längre där.
+- Test: `robot-rum-docka.js`, `robot-status.js`, `apparater.js`, `stad-dammsugare.js` (demo) och alla-flikar telefon+vägg gröna. Bilder /mnt/project-files/apparater/rum-och-docka/.
+
 ## Dammsugarens statusbricka i Städ (publicerad ht-v356, ångra-gren `version-fore-dammsug-stad`)
 - `stadRob()` (ruta S12): samlad statusbricka (Henrik ville kombinera A+B): illustration med ringar batteri (yttre, grön) och rent vatten (inre, `a.tank`), "Rum att städa" ("Dags nu"/"Om n dagar", ikon till höger i brickan; väggen: status vänster halva, 4 rum höger) = rum med `haRumSt` dags/snart som brickor med åtgärd: "Dammsug" eller "Dammsug + mopp" (mopp innebär alltid dammsugning direkt före, Henriks regel). Tryck → `V.robot` med Tillbaka "Att göra" (`S.robFran`).
 - Test `stad-dammsugare.js` (haDemo) telefon/vägg/mörkt, alla-flikar telefon+vägg gröna. Bilder /mnt/project-files/apparater/stad-genvag/samlad/.

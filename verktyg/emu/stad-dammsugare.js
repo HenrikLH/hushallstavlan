@@ -20,7 +20,7 @@ module.exports=async(pg,h)=>{
  await h.shot('stad-robotsida');
  await pg.locator('main .rcp-top .back').click();await h.idle(1200);
  await pg.locator('main .stad-rob-g').waitFor({timeout:5000});
- if(!wall){await pg.locator('#nav [data-id="oversikt"]').click();await h.idle(800);await pg.locator('main [data-act="nav"][data-id="hus"]').first().click();await h.idle(1000);
+ if(!wall){await pg.evaluate(()=>scrollTo(0,0));await h.idle(600);await pg.locator('#nav [data-id="oversikt"]').click();await h.idle(800);await pg.locator('main [data-act="nav"][data-id="hus"]').first().click();await h.idle(1000);
   await pg.locator('main .ha-ap[data-id="vacuum.dammsugare"]').click();await h.idle(1200);
   assert.match(await pg.locator('main .rcp-top .back').innerText(),/Smart hem/,'Från Smart hem leder tillbaka dit');}
 };
