@@ -3592,6 +3592,8 @@ html.ny.ui5.nav-piller:has(#nav.mini) .rob-vy .ha-bar{transform:translate3d(0,ca
 .ha-sg.hus-sc{margin:0 16px 6px}.hus-sc .ha-st{background:var(--surface)}.hus-sc .ha-st.hab-tom{background:transparent}.hus-sc .ha-st.hab-tom .ha-i{background:var(--fill);color:var(--ink-2)}
 @media(min-width:700px){.hus-sc{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}}
 .ha-g-v .ha-ap{grid-column:auto}.ha-g-v .ha-ap .ha-n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ha-g-v .ha-ap .ha-tx{min-width:0}
+/* Hemmet: förloppet som ring runt ikonen (Henrik: stapeln i kanten kapades av hörnen i halv bredd) */
+.ha-g-v .ha-ap-p{display:none}.ha-g-v .ha-ap .ha-i{position:relative;overflow:visible}.ha-g-v .ha-ap.on[style*="--p"] .ha-i::after{content:'';position:absolute;inset:-5px;border-radius:50%;background:conic-gradient(var(--rc,#0A84FF) var(--p),rgba(120,120,128,.22) 0);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2.5px));mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2.5px))}.ha-g-v .ha-ap-disk .ha-i{--rc:#30B0C7}
 .ha-g-v .ha-t.ha-ap.on{color:var(--ink)}.ha-g-v .ha-t.ha-ap.on .ha-s{color:var(--ink-2)}
 .hus-ny>summary{list-style:none;cursor:pointer}.hus-ny>summary::-webkit-details-marker{display:none}.hus-ny .create-options button{justify-content:space-between}.hus-ny .create-options .grow{flex:1;text-align:left}
 </style>

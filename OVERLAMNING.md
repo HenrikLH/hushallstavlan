@@ -4,7 +4,7 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 ## Hemmet: egna scener, apparater i halv bredd, mest ändrade först (förslag, väntar på Henrik)
 - Ägare Claude, gren `claude/project-thread-zk9a41`. Plus i Hemmet/Smart hem är en meny (`husPlus`): Ny scen (`ACT.habScNy`, samma scenblad som rutan) eller Lägg till enhet. Egna scener = `habScAlla` (onskelista `{hab:1,sc}`; de fyra första är rutans platser, fler läggs efter). Hemmet visar scenerna fyra i rad (`husScener`, CSS `.hus-sc`).
-- Mest ändrade först: `haAnv` räknar egna ändringar per enhet (haTog/haLampSkicka, max en per minut och lampa, halveras på 30 dagar) i `ht.haAnv` per enhet (telefon och vägg lär sig var för sig); rum och lampor sorteras efter det. Apparater: `.ha-g-v .ha-ap{grid-column:auto}`; mörkt läge visade inte apparatens namn (rättat).
+- Mest ändrade först: `haAnv` räknar egna ändringar per enhet (haTog/haLampSkicka, max en per minut och lampa, halveras på 30 dagar) i `ht.haAnv` per enhet (telefon och vägg lär sig var för sig); rum och lampor sorteras efter det. Apparater: `.ha-g-v .ha-ap{grid-column:auto}`, förloppet som ring runt ikonen i Hemmet (förslag B, stapeln kapades); mörkt läge visade inte apparatens namn (rättat).
 - Test: ny `hemmet-scener.js` telefon/vägg/mörkt, hemmet, smart-hem-ruta, alla-flikar telefon+vägg gröna. Bilder /mnt/project-files/smart-hem/hemmet-scener/.
 
 ## Granskning C3: rättens blad (publicerad ht-v363, ångra-gren `version-fore-rattens-blad`)
