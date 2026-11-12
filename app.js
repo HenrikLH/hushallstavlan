@@ -1349,9 +1349,9 @@ function habScSpara(n){const F=S.habSc,D=haData();if(!F||!D)return;const d=F.d;i
  const sc=habSc(D);sc[F.i]=s;habSet({sc});habScTill()}
 function habScTill(){const b=S.habSc&&S.habSc.back;S.habSc=null;if(b)S.sheet='habRuta';else closeSheets();render()}
 function habKor(i,s0){const D=haData(),s=s0||D&&habSc(D)[+i];if(!s)return;if(s.av)return ACT.haScen('av');if(s.ha)return ACT.haScen(s.ha);
- HA.last=null;const E=D.lampor||[];Object.keys(s.l||{}).forEach(id=>{const x=E.find(e=>e.id===id),v=s.l[id];if(!x||x.nas)return;const was=JSON.stringify(x),undo=()=>Object.assign(x,JSON.parse(was));
-  if(!v.on){x.on=false;return haSend({id,gor:'av'},undo)}const ch={};if(v.b!=null&&haKan(x).dim)ch.b=v.b;if(v.k!=null)ch.k=v.k;if(v.hs)ch.hs=v.hs;
-  x.on=true;if(ch.b!=null)x.b=ch.b;if(ch.k!=null){x.k=ch.k;x.lage='color_temp'}if(ch.hs){x.hs=ch.hs;x.lage='hs'}haSend(Object.assign({id,gor:'pa'},ch),undo)});render()}
+ HA.last=null;const E=D.lampor||[];Object.keys(s.l||{}).forEach(id=>{const x=E.find(e=>e.id===id),v=s.l[id];if(!x||x.nas)return;const was=JSON.stringify(x),undo=()=>{if(HA.mal)delete HA.mal[id];Object.assign(x,JSON.parse(was))};
+  if(!v.on){x.on=false;haMalSatt(x,{on:false});return haSend({id,gor:'av'},undo)}const ch={};if(v.b!=null&&haKan(x).dim)ch.b=v.b;if(v.k!=null)ch.k=v.k;if(v.hs)ch.hs=v.hs;
+  const m={on:true};if(ch.b!=null)m.b=ch.b;if(ch.k!=null){m.k=ch.k;m.lage='color_temp'}if(ch.hs){m.hs=ch.hs;m.lage='hs'}Object.assign(x,m);haMalSatt(x,m);haSend(Object.assign({id,gor:'pa'},ch),undo)});render()}
 // dra i greppet: raden följer fingret och byter plats med grannarna, ordningen läses från listan när man släpper
 (()=>{let d=null;
  document.addEventListener('pointerdown',e=>{const g=e.target.closest('.hab-grip');if(!g||e.button>0)return;const r=g.closest('.hab-r'),l=r&&r.parentNode;if(!r)return;e.preventDefault();
@@ -1750,7 +1750,7 @@ function haLampSkicka(x,ch){if(!x)return;const was=JSON.stringify(x),m={on:true}
 const HA_MAL=8000;
 function haKo(id,body,undo){const Q=HA.ko||(HA.ko={});if(Q[id]){const n=Object.assign({},Q[id].n,body);if(body.k!=null)delete n.hs;if(body.hs)delete n.k;Q[id].n=n;return}Q[id]={};
  const kor=b=>haSend(b,undo).then(()=>{const M=HA.mal&&HA.mal[id];if(M)M.t=Date.now();const n=Q[id].n;if(n){Q[id].n=null;return kor(n)}delete Q[id]});kor(body)}
-const haMalLagg=j=>{const M=HA.mal;if(!M)return;(j.lampor||[]).forEach(l=>{const v=M[l.id];if(!v)return;if(Date.now()-v.t<HA_MAL||HA.ko&&HA.ko[l.id])Object.assign(l,v.m);else delete M[l.id]})};
+const haMalLagg=j=>{const M=HA.mal;if(!M)return;(j.lampor||[]).forEach(l=>{const v=M[l.id];if(!v)return;if(v.f&&l.on===v.m.on){delete M[l.id];return}if(Date.now()-v.t<HA_MAL||HA.ko&&HA.ko[l.id])Object.assign(l,v.m);else delete M[l.id]})};
 // det lodräta reglaget: drag relativt där fingret började (hoppar inte vid tryck), 0 % släcker, tryck utan drag tänder/släcker
 (()=>{let d=null;const st=v=>{const el=document.querySelector('[data-hav="s"]');if(el)el.textContent=v?v+' %':'Av'};
  document.addEventListener('pointerdown',e=>{const el=e.target.closest('.ha-vs');if(!el||e.button>0)return;e.preventDefault();d={el,y:e.clientY,v0:parseFloat(el.style.getPropertyValue('--p'))||0,v:null,h:el.getBoundingClientRect().height,id:e.pointerId};try{el.setPointerCapture(e.pointerId)}catch(_){}HA.drag=true;el.classList.add('tag')});
@@ -1823,15 +1823,22 @@ async function haLoop(){if(HA.busy||haDemo()||!haUrl()||Date.now()<HA.retry)retu
    if(!j.lampor){HA.d=null;HA.retry=Date.now()+300000;render();break}// inte inställt: fråga igen om fem minuter
    haMalLagg(j);
    const ch=JSON.stringify([j.lampor,j.scener,j.givare,j.apparater,j.media,j.kanaler,j.fel])!==JSON.stringify(HA.d&&[HA.d.lampor,HA.d.scener,HA.d.givare,HA.d.apparater,HA.d.media,HA.d.kanaler,HA.fel]);
-   HA.d=j;HA.v=j.v;HA.fel=j.fel;HA.nf=0;if(ch&&!HA.pend&&!HA.drag)render()}}
+   HA.d=j;HA.v=j.v;HA.fel=j.fel;HA.nf=0;if(ch)haRitaSnart()}}
  catch(e){// ett enstaka avbrott (t.ex. när iPhone lägger appen i bakgrunden) är inget fel: försök igen strax
   HA.nf=(HA.nf||0)+1;if(HA.d&&HA.nf<2)HA.retry=Date.now()+2000;else{HA.fel='Väggdatorns tjänst svarar inte';HA.retry=Date.now()+(HA.d?15000:300000);if(HA.d)render()}}
  HA.busy=false}
 setInterval(haLoop,5000);setTimeout(haLoop,1500);
+// En scen tänder lamporna en i taget och väggdatorn läser av Home Assistant en gång i sekunden, så scenen kommer i flera svar.
+// Samla dem till en omritning: rita när det varit tyst en stund (HA_TYST), dock senast HA_SAML efter första ändringen.
+const HA_TYST=1300,HA_SAML=3500;
+function haRitaSnart(){const nu=Date.now();clearTimeout(HA.rt);if(!HA.r0)HA.r0=nu;HA.rt=setTimeout(haRitaNu,Math.max(0,Math.min(HA_TYST,HA.r0+HA_SAML-nu)))}
+function haRitaNu(){clearTimeout(HA.rt);HA.r0=0;if(!HA.pend&&!HA.drag)render()}
+// Det appen själv ändrat (scen, Släck allt) visas direkt och står kvar tills lamporna hunnit rapportera (HA.mal, samma som tonen).
+const haMalSatt=(x,m)=>{const M=HA.mal||(HA.mal={});M[x.id]={t:Date.now(),f:1,m:Object.assign({},m)}};// f: släpps så fort lampan rapporterat på/av, så att en ändring utifrån syns
 async function haSend(body,undo){if(haDemo())return;HA.pend=(HA.pend||0)+1;
  try{const r=await fetch(haUrl(),{method:'POST',body:JSON.stringify(body)});if(!r.ok)throw 0}
  catch(e){undo();toast('Kunde inte nå Home Assistant');render()}
- HA.pend--;render()}
+ if(!--HA.pend)haRitaNu()}
 V.oversikt=function(){
  if(wallBoardOn())return wallBoard();
  if(expOn())return ovX();
@@ -5914,7 +5921,7 @@ const ACT={
  habScDel(){const D=haData(),F=S.habSc;if(!D||!F)return;const sc=habSc(D);sc[F.i]=null;habSet({sc});habScTill()},
  habScTill(){habScTill()},
  haScen(id){const D=haData();if(!D)return;const sc0=(D.scener||[]).find(s=>s.id===id);if(sc0&&(sc0.falt||[]).length){try{u5Tick()}catch(e){}return haMedIgang()?ACT.haMedStopp():ACT.haMedSkript(id)}HA.last=id;
-  if(id==='av'){const was=D.lampor.map(x=>x.on);D.lampor.forEach(x=>{if(!x.nas)x.on=false});render();return haSend({alla:'av'},()=>D.lampor.forEach((x,i)=>x.on=was[i]))}
+  if(id==='av'){const was=D.lampor.map(x=>x.on);D.lampor.forEach(x=>{if(!x.nas&&x.on){x.on=false;haMalSatt(x,{on:false})}});render();return haSend({alla:'av'},()=>D.lampor.forEach((x,i)=>{x.on=was[i];if(HA.mal)delete HA.mal[x.id]}))}
   if(haDemo()){const m={'scene.morgon':{'light.kok':100,'light.hall':60},'scene.kvall':{'light.vardagsrum':45,'switch.fonster':1,'light.kok':30},'scene.film':{'light.vardagsrum':10}}[id]||{};D.lampor.forEach(x=>{const v=m[x.id];x.on=!!v;if(v>1)x.b=v})}
   render();haSend({scen:id},()=>{})},
  nav(id,el){if(id!=='robot')S.robFran=null;if(id!=='hus'&&id!=='robot'){S.haRum=null;if(S.haTest){S.haTest=false;HA.demo=null;HA.syn={};HA.v=0;HA.retry=0}}if(RC.busy){toast('Vänta tills receptbegäran är klar.');return}if(RC.screen&&RC.edit&&RC.edit.dirty){RC.leaveTo=id;recipeLeave();S.view='mat';return}if(RC.screen)RC.screen=null;if(id!=='oversikt')arrCancel();if(normView(id)!=='ekonomi'){S.ekoOpen=false;S.pin=''}try{document.activeElement&&document.activeElement.blur()}catch(e){}id=normView(id);if(HEM_UNDER.includes(id)&&!HEM_UNDER.includes(S.view))S.hemFran=S.view==='hemmet'?'hemmet':'oversikt';if(id==='fod')S.fodFromFamilj=DEV&&S.view==='familj';if(id==='uppgifter'&&S.taskTab==='stad'&&S.view!=='stad'&&el&&el.closest&&el.closest('#nav'))id='stad';if(['familj','slakt','slaktPersoner'].includes(id)&&!DEV)id='oversikt';if(id==='uppgifter'||id==='stad'){S.taskTab=id==='stad'?'stad':'lista';lsSet('taskTab',S.taskTab)}S.shopAdd=false;S.taskAdd=false;S.view=id;S.recipe=null;S.confirm=null;lsSet('view',id);try{history.replaceState(null,'','#'+id)}catch(e){}window.scrollTo(0,0);render()},
