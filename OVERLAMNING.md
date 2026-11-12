@@ -2,6 +2,11 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Hemmet: egna scener, apparater i halv bredd, mest ändrade först (förslag, väntar på Henrik)
+- Ägare Claude, gren `claude/project-thread-zk9a41`. Plus i Hemmet/Smart hem är en meny (`husPlus`): Ny scen (`ACT.habScNy`, samma scenblad som rutan) eller Lägg till enhet. Egna scener = `habScAlla` (onskelista `{hab:1,sc}`; de fyra första är rutans platser, fler läggs efter). Hemmet visar scenerna fyra i rad (`husScener`, CSS `.hus-sc`).
+- Mest ändrade först: `haAnv` räknar egna ändringar per enhet (haTog/haLampSkicka, max en per minut och lampa, halveras på 30 dagar) i `ht.haAnv` per enhet (telefon och vägg lär sig var för sig); rum och lampor sorteras efter det. Apparater: `.ha-g-v .ha-ap{grid-column:auto}`; mörkt läge visade inte apparatens namn (rättat).
+- Test: ny `hemmet-scener.js` telefon/vägg/mörkt, hemmet, smart-hem-ruta, alla-flikar telefon+vägg gröna. Bilder /mnt/project-files/smart-hem/hemmet-scener/.
+
 ## Granskning C3: rättens blad (publicerad ht-v363, ångra-gren `version-fore-rattens-blad`)
 - UI 5.0: Börja laga som huvudknapp, lista Portioner/Byt rätt/Visa recept, Ta bort håll in; prisnoten en gång ovanför receptlistan (`recipePriceNote`, `recipePrice().kort`). Gren `claude/project-thread-jltjnw`.
 - Kvar i granskningen (docs/granskning-2026-11): B Idag-ruta, C1/C2/C4, D, E, H, I, J, K, L, M. Test: `rattens-blad.js`, alla-flikar telefon+vägg gröna.

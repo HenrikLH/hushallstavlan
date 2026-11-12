@@ -3261,18 +3261,18 @@ form[data-form="haLampa"] .ha-ctl{flex:1;justify-content:center;padding-top:24px
 .hab-h{display:flex;align-items:center;gap:8px}.hab-h .wh{flex:1;min-width:0}
 .hab-mer{flex:none;display:grid;place-items:center;width:30px;height:30px;padding:0;border:0;border-radius:50%;background:var(--fill);color:var(--ink-2);cursor:pointer;-webkit-tap-highlight-color:transparent}.hab-mer svg{width:18px;height:18px}
 /* Designskillen (hushallstavlan-apple-design): rutan har hörn 26 och kant 16, därför hörn 16 innanför (inte kapslar), 8-avstånd, text 15/13 */
-.hab .hab-sc{margin:12px 0 0;gap:8px}.hab .hab-sc .ha-st{min-width:0;gap:6px;padding:10px 4px 9px;border-radius:16px}.hab .hab-sc .ha-n{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:600;letter-spacing:-.08px}
-.hab .hab-sc .ha-st .ha-i{width:30px;height:30px;background:var(--sc,var(--accent));color:#fff}.hab .hab-sc .ha-st .ha-i svg{width:17px;height:17px}
+:is(.hab .hab-sc,.hus-sc){margin:12px 0 0;gap:8px}:is(.hab .hab-sc,.hus-sc) .ha-st{min-width:0;gap:6px;padding:10px 4px 9px;border-radius:16px}:is(.hab .hab-sc,.hus-sc) .ha-n{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:600;letter-spacing:-.08px}
+:is(.hab .hab-sc,.hus-sc) .ha-st .ha-i{width:30px;height:30px;background:var(--sc,var(--accent));color:#fff}:is(.hab .hab-sc,.hus-sc) .ha-st .ha-i svg{width:17px;height:17px}
 .hab .hab-g .ha-t{border-radius:16px;min-height:56px;gap:8px;padding:8px 10px 8px 8px}.hab .hab-g .ha-t .ha-i{width:32px;height:32px}.hab .hab-g .ha-t .ha-i svg{width:18px;height:18px}
 .hab .hab-g .ha-t.on{background:#FFF4CC}.hab .hab-g .ha-t.ha-dim::before{opacity:.42}.hab .hab-g .ha-n{letter-spacing:-.24px}
 html.ny.ui5 .hab .hab-h .wh>span:not(.r){white-space:nowrap}
 /* Väggen: låga brickor med läget bredvid namnet, så att åtta platser får plats i samma höjd (Henrik: tomt utrymme i brickorna) */
 body.wall .hab .hab-g .ha-t{min-height:48px;padding:8px 10px 8px 8px}body.wall .hab .hab-g .ha-t .ha-i{width:30px;height:30px}body.wall .hab .hab-g .ha-t .ha-i svg{width:17px;height:17px}
 body.wall .hab .hab-g .ha-tx{flex-direction:row;align-items:baseline;gap:6px}body.wall .hab .hab-g .ha-n{min-width:0}body.wall .hab .hab-g .ha-s{flex:none}
-.hab .hab-sc .ha-st.on{background:color-mix(in srgb,var(--sc) 22%,var(--surface));color:var(--ink)}.hab .hab-sc .ha-st.on .ha-i{background:var(--sc);color:#fff}
+:is(.hab .hab-sc,.hus-sc) .ha-st.on{background:color-mix(in srgb,var(--sc) 22%,var(--surface));color:var(--ink)}:is(.hab .hab-sc,.hus-sc) .ha-st.on .ha-i{background:var(--sc);color:#fff}
 .hab-h{position:relative}.hab-menu{position:static}.hab-menu>summary{list-style:none}.hab-menu>summary::-webkit-details-marker{display:none}.hab-menu[open] .hab-mer{background:var(--line)}
 .hab-menu .create-options{right:0;top:calc(100% + 6px)}.hab-menu .create-options button{justify-content:space-between}.hab-menu .create-options .grow{flex:1;text-align:left}
-.hab .hab-sc .hab-tom{background:transparent;box-shadow:inset 0 0 0 1.5px var(--line);color:var(--ink-3)}.hab-tom .ha-i{background:transparent;color:var(--ink-3)}
+:is(.hab .hab-sc,.hus-sc) .hab-tom{background:transparent;box-shadow:inset 0 0 0 1.5px var(--line);color:var(--ink-3)}.hab-tom .ha-i{background:transparent;color:var(--ink-3)}
 .hab .hab-g{margin-top:8px;gap:8px}
 .hab-inga{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin-top:8px;min-height:56px;border:0;border-radius:var(--r5,16px);background:transparent;box-shadow:inset 0 0 0 1.5px var(--line);color:var(--ink-2);font:inherit;cursor:pointer}.hab-inga svg{width:18px;height:18px}
 /* Smart hem-rutan när något spelar: mediaraden ersätter favoritplatser (2, eller 4 med Spotify-knappar) */
@@ -3588,6 +3588,12 @@ html.ny.ui5 .rob-vy .ha-bar{bottom:0;padding-bottom:calc(var(--tabbar) + var(--t
 html.ny.ui5 .rob-vy .ha-bar::before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(color-mix(in srgb,var(--bg) 0%,transparent),color-mix(in srgb,var(--bg) 82%,transparent) 30%);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);-webkit-mask-image:linear-gradient(transparent,#000 22%);mask-image:linear-gradient(transparent,#000 22%)}
 html.ny.ui5.nav-piller:has(#nav.mini) .rob-vy .ha-bar{transform:translate3d(0,calc(var(--tabbar) + var(--tabgap) + 6px - 34px),0)}
 @media (prefers-reduced-motion:reduce){html.ny.ui5 .rob-vy .ha-bar{transition:none}}
+/* Hemmet: scenerna fyra i rad som i Smart hem-rutan, apparaterna i samma bredd som övriga brickor, plus = ny scen eller enhet */
+.ha-sg.hus-sc{margin:0 16px 6px}.hus-sc .ha-st{background:var(--surface)}.hus-sc .ha-st.hab-tom{background:transparent}.hus-sc .ha-st.hab-tom .ha-i{background:var(--fill);color:var(--ink-2)}
+@media(min-width:700px){.hus-sc{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}}
+.ha-g-v .ha-ap{grid-column:auto}.ha-g-v .ha-ap .ha-n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ha-g-v .ha-ap .ha-tx{min-width:0}
+.ha-g-v .ha-t.ha-ap.on{color:var(--ink)}.ha-g-v .ha-t.ha-ap.on .ha-s{color:var(--ink-2)}
+.hus-ny>summary{list-style:none;cursor:pointer}.hus-ny>summary::-webkit-details-marker{display:none}.hus-ny .create-options button{justify-content:space-between}.hus-ny .create-options .grow{flex:1;text-align:left}
 </style>
 </head>
 <body>
