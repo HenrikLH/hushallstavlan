@@ -198,11 +198,11 @@ def ha_cfg():
     except FileNotFoundError:
         HA['cfg'] = HA['mtid'] = None; return None
 
-def ha_anrop(c, vag, data=None):
+def ha_anrop(c, vag, data=None, tid=5):
     r = urllib.request.Request(c['url'].rstrip('/') + vag, method='POST' if data is not None else 'GET',
                                data=json.dumps(data).encode() if data is not None else None,
                                headers={'Authorization': 'Bearer ' + c['token'], 'Content-Type': 'application/json'})
-    with urllib.request.urlopen(r, timeout=5) as svar:
+    with urllib.request.urlopen(r, timeout=tid) as svar:
         return json.loads(svar.read() or b'null')
 
 def ha_las(c):
@@ -793,13 +793,14 @@ def ha_folj():
         elif vst in ('idle', 'paused') and f['kor']: f['paus'] = True
         if vst == 'docked' and nu_t() - (c.get('dockpos_t') or 0) > 86400:   # dockans plats: robotens position när den står i dockan (en gång per dygn)
             try:
-                svar = ha_anrop(c, '/api/services/roborock/get_vacuum_current_position?return_response', {'entity_id': e}) or {}
+                svar = ha_anrop(c, '/api/services/roborock/get_vacuum_current_position?return_response', {'entity_id': e}, 25) or {}
                 pos = (svar.get('service_response') or {}).get(e) or {}
                 if isinstance(pos.get('x'), (int, float)) and isinstance(pos.get('y'), (int, float)):
                     c = json.loads(json.dumps(c)); c.update(dockpos=[pos['x'], pos['y']], dockpos_t=int(nu_t())); ha_spara(c); c = ha_cfg()
                 else: c = json.loads(json.dumps(c)); c['dockpos_t'] = int(nu_t()); ha_spara(c); c = ha_cfg()
             except Exception as ex:
-                logg('ha dockans plats: ' + repr(ex)[:150]); c = json.loads(json.dumps(c)); c['dockpos_t'] = int(nu_t()); ha_spara(c); c = ha_cfg()
+                # roboten svarar långsamt när den sover: försök igen om tio minuter
+                logg('ha dockans plats: ' + repr(ex)[:150]); c = json.loads(json.dumps(c)); c['dockpos_t'] = int(nu_t()) - 86400 + 600; ha_spara(c); c = ha_cfg()
         if vst == 'docked' and f['kor']:
             f['kor'] = False
             if not planen and not f['paus'] and not (e in PLAN and PLAN[e].get('avbr')): ha_stadat(c, [f['nu']], f['lage']); c = ha_cfg()
