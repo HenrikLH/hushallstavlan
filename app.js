@@ -5150,21 +5150,22 @@ const hemTop=()=>'<div class="rcp-top"><button class="back" data-act="nav" data-
 // ht.hemStil väljer under förhandsvisningen: B = korten överst (standard), A = korten sist.
 const hemB=()=>lsGet('hemStil')!=='A';
 // Ekonomi: inkomstfördelningen som stapel med namn, andel och vad var och en sätter in. Låst på väggen.
-function hemEko(){const m=thisMonth(),hr=esc(cap(monthName(m)));
- if(ekoLocked())return widget('ekonomi','w2 hem-k',I_EKO,'Ekonomi',hr,'<div class="wempty">Låst på den här skärmen. Tryck för att öppna med koden.</div>');
- const c=ekoCalc(m),ovN=people().includes(S.me)?ovOpen('shared').length+ovOpen(S.me).length:0,pct=x=>Math.round(x*100)+' %';
- const ov=ovN?'<div class="hem-ov hem-obs">'+ovN+(ovN>1?' stående överföringar saknas':' stående överföring saknas')+'</div>':'';
- if(!c.tot)return widget('ekonomi','w2 hem-k',I_EKO,'Ekonomi',hr,'<div class="wempty">Fyll i inkomsten för att se fördelningen.</div>'+ov);
- return widget('ekonomi','w2 hem-k',I_EKO,'Ekonomi',hr+(c.own?'':' · som '+esc(monthName(c.src))),
+// Halvbreda kort bredvid varandra (vänster Födelsedagar, höger Ekonomi), därför kort innehåll.
+// Ekonomi: inkomstfördelningen som stapel med namn och andel. Låst på väggen.
+function hemEko(){
+ if(ekoLocked())return widget('ekonomi','hem-k',I_EKO,'Ekonomi','','<div class="wempty">Låst. Tryck för att öppna med koden.</div>');
+ const c=ekoCalc(thisMonth()),ovN=people().includes(S.me)?ovOpen('shared').length+ovOpen(S.me).length:0,pct=x=>Math.round(x*100)+' %';
+ const ov=ovN?'<div class="hem-ov hem-obs">'+ovN+(ovN>1?' överföringar saknas':' överföring saknas')+'</div>':'';
+ if(!c.tot)return widget('ekonomi','hem-k',I_EKO,'Ekonomi','','<div class="wempty">Fyll i inkomsten för att se fördelningen.</div>'+ov);
+ return widget('ekonomi','hem-k',I_EKO,'Ekonomi','',
   '<div class="splitbar" role="img" aria-label="Fördelning '+c.per.map(x=>esc(personLabel(x.p))+' '+pct(x.share)).join(', ')+'">'+c.per.map(x=>'<i class="'+pcls(x.p)+'" style="flex:'+Math.max(x.share,.0001)+'"></i>').join('')+'</div>'+
-  '<div class="hem-leg">'+c.per.map(x=>'<div><span class="hem-ln"><span class="pdot '+pcls(x.p)+'"></span>'+esc(personLabel(x.p))+'</span><b class="num">'+pct(x.share)+'</b><span class="hem-ls num">Sätter in '+kr(x.sum)+'</span></div>').join('')+'</div>'+ov)}
-// Födelsedagar de närmaste tre veckorna; får inte alla plats (fler än fem, åtta i två spalter på bred skärm) visas två veckor.
-const hemFodMax=()=>innerWidth>=700?8:5;
-function hemFod(){const L=bdNext(bdays());if(!L.length)return widget('fod','w2 hem-k',I.cake,'Födelsedagar','','<div class="wempty">Inga födelsedagar inlagda.</div>');
- let dgr=21,K=L.filter(b=>b.days<=21);const HEM_FOD_MAX=hemFodMax();if(K.length>HEM_FOD_MAX){dgr=14;K=L.filter(b=>b.days<=14)}
- const rad=b=>'<div class="cell hem-fr'+(b.days===0?' idag':'')+'"'+bdSt(b)+'><span class="hem-dt"><b class="num">'+b.dd+'</b><span>'+MON3[b.mo]+'</span></span><span class="grow"><span class="hem-fn">'+esc(b.name)+'</span><span class="hem-fs">'+esc(cap(bdTurns(b)))+'</span></span><span class="val">'+esc(cap(bdWhen(b)))+'</span></div>';
- const n=L[0];
- return widget('fod','w2 hem-k',I.cake,'Födelsedagar',K.length?(dgr===21?'3 veckor':'2 veckor'):'',K.length?'<div class="wl hem-fl">'+K.slice(0,HEM_FOD_MAX).map(rad).join('')+'</div>'+(K.length>HEM_FOD_MAX?'<div class="hem-ov">och '+(K.length-HEM_FOD_MAX)+' till</div>':''):'<div class="wl hem-fl">'+rad(n)+'</div><div class="hem-ov">Ingen fyller år de närmaste tre veckorna.</div>')}
+  '<div class="hem-leg">'+c.per.map(x=>'<div><span class="pdot '+pcls(x.p)+'"></span><span class="grow"><span class="hem-fn">'+esc(personLabel(x.p))+'</span><span class="hem-fs num">'+kr(x.sum)+'</span></span><b class="num">'+pct(x.share)+'</b></div>').join('')+'</div>'+ov)}
+// Födelsedagar de närmaste tre veckorna; får inte alla plats (fler än hemFodMax) visas två veckor.
+const hemFodMax=()=>innerWidth>=700?5:4;
+function hemFod(){const L=bdNext(bdays());if(!L.length)return widget('fod','hem-k',I.cake,'Födelsedagar','','<div class="wempty">Inga inlagda.</div>');
+ let K=L.filter(b=>b.days<=21);const M=hemFodMax();if(K.length>M)K=L.filter(b=>b.days<=14);
+ const rad=b=>'<div class="cell hem-fr'+(b.days===0?' idag':'')+'"'+bdSt(b)+'><span class="hem-dt"><b class="num">'+b.dd+'</b><span>'+MON3[b.mo]+'</span></span><span class="grow"><span class="hem-fn">'+esc(b.name)+'</span><span class="hem-fs">'+esc(cap(bdWhen(b)))+'</span></span></div>';
+ return widget('fod','hem-k',I.cake,'Födelsedagar','','<div class="wl hem-fl">'+(K.length?K:[L[0]]).slice(0,M).map(rad).join('')+'</div>'+(K.length>M?'<div class="hem-ov">och '+(K.length-M)+' till</div>':''))}
 V.hemmet=function(){if(S.haRum!=null)return V.hus();
  const D=(haUrl()||haDemo())?haData():null;
  let h=head('Hemmet',{sub:S.haTest?'Testläge · inget skickas till Home Assistant':D&&HA.fel&&!haDemo()?esc(HA.fel):'',tools:D?'<button type="button" class="ib" data-act="haAddOpen" aria-label="Lägg till enhet">'+I.plus+'</button>':''});
