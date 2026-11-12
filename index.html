@@ -3594,6 +3594,15 @@ html.ny.ui5 .rob-vy .ha-bar{bottom:0;padding-bottom:calc(var(--tabbar) + var(--t
 html.ny.ui5 .rob-vy .ha-bar::before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(color-mix(in srgb,var(--bg) 0%,transparent),color-mix(in srgb,var(--bg) 82%,transparent) 30%);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);-webkit-mask-image:linear-gradient(transparent,#000 22%);mask-image:linear-gradient(transparent,#000 22%)}
 html.ny.ui5.nav-piller:has(#nav.mini) .rob-vy .ha-bar{transform:translate3d(0,calc(var(--tabbar) + var(--tabgap) + 6px - 34px),0)}
 @media (prefers-reduced-motion:reduce){html.ny.ui5 .rob-vy .ha-bar{transition:none}}
+/* Dammsugarbrickan: ringförklaring, tom tank som varning */
+.sr-sp.tom{stroke:color-mix(in srgb,var(--orange) 45%,transparent)}
+.sr-lg{width:10px;height:10px;flex:none;border-radius:50%;border:3px solid var(--green);box-sizing:border-box}
+.sr-lg.v{border-color:#32ADE6}
+.sr-lg.lag,.sr-lg.tom{border-color:var(--orange)}
+.sr-m.sr-varn{color:var(--orange);font-weight:600}
+.sr-pt{font-size:17px;font-weight:700;letter-spacing:-.4px;fill:var(--ink);text-anchor:middle;dominant-baseline:central;font-variant-numeric:tabular-nums}
+.sr-pt tspan{font-size:10px;font-weight:600;fill:var(--ink-2)}
+.sr-kap{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:12px;background:color-mix(in srgb,var(--orange) 16%,transparent);color:var(--orange);font-size:13px;font-weight:600}
 </style>
 </head>
 <body>
