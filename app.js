@@ -1634,20 +1634,16 @@ function haKartaNr(a,k){const P=haRobPlan(a),pl=a.plan&&!a.plan.klar&&(a.plan.st
 function haRumSt(r,x){const iv=r['i'+x];if(!iv)return null;const t=r['s'+x],d=t?(Date.now()/1e3-t)/86400:null;return{d,iv,c:d!=null&&d<iv*.75?'ok':d!=null&&d<iv?'snart':'dags'}}
 const haDgr=d=>d==null?'Aldrig':d<1?'Idag':d<2?'Igår':Math.floor(d)+' d';
 function haDags(a){const R=a.rum||[],f=x=>R.filter(r=>{const q=haRumSt(r,x);return q&&q.c==='dags'});return{v:f('v'),m:f('m')}}
-// Rummen på dammsugarsidan: när varje rum ska dammsugas/moppas nästa gång. Håll in ett rum → bladet robRum. Förslag A rader, B kolumner, C brickor (S.rumStil, väljs bort när Henrik valt)
-function haRumStatus(a){const R=a.rum||[];if(!R.length)return'';const D=haDags(a),n=new Set(D.v.concat(D.m)).size,stil=S.rumStil||'a';
- const nas=(r,x)=>{const q=haRumSt(r,x);if(!q)return null;const k=q.d==null?0:Math.ceil(q.iv-q.d);return{c:q.c,k,t:q.c==='dags'||k<=0?'Dags nu':k===1?'I morgon':'Om '+k+' dagar',kt:q.c==='dags'||k<=0?'Nu':k+' d'}};
+// Rummen på dammsugarsidan: en rad per rum (Henrik valde A + kapslarna), kapslarna visar när rummet dammsugs/moppas nästa gång. Håll in ett rum → bladet robRum.
+function haRumStatus(a){const R=a.rum||[];if(!R.length)return'';const D=haDags(a),n=new Set(D.v.concat(D.m)).size;
+ const nas=(r,x)=>{const q=haRumSt(r,x);if(!q)return null;const k=q.d==null?0:Math.ceil(q.iv-q.d),idag=q.c==='dags'||k<=0;return{c:idag?'dags':q.c,k:idag?0:k,kt:idag?'Idag':k===1?'I morgon':k+' d'}};
  const prio=r=>Math.min(...['v','m'].map(x=>{const q=nas(r,x);return q?q.k:99}));
- const L=R.slice().sort((x,y)=>prio(x)-prio(y));
  const sum=[D.v.length&&D.v.length+' att dammsuga',D.m.length&&D.m.length+' att moppa'].filter(Boolean).join(' · ')||'Allt är städat i tid';
- const hd='<div class="ha-rst-h"><span><b>Rummen</b><small'+(n?' class="dags"':'')+'>'+sum+'</small></span>'+(n&&!haStadar(a)?'<button type="button" data-act="haRobDags">Välj dem</button>':'')+'</div>',ft='<div class="ha-rst-f">Håll in ett rum för att ändra hur ofta det dammsugs och moppas.</div>';
- const hl=r=>' data-hold-lift="robRum" data-id="'+r.id+'"';
- if(stil==='a')return'<div class="ha-gl ha-rst rs-a">'+hd+L.map(r=>{const v=nas(r,'v'),m=nas(r,'m'),dg=[v,m].some(q=>q&&q.c==='dags'),del=[v&&HAI_K.damm+'<span>'+v.t+'</span>',m&&HAI_K.mopp+'<span>'+m.t+'</span>'].filter(Boolean);
-   return'<div class="rs-r"'+hl(r)+'><span class="rs-n"><b>'+esc(haRumN(a,r))+'</b><small>'+(del.length?del.join('<i>·</i>'):'Ingen påminnelse')+'</small></span>'+(dg?'<em>Dags</em>':'')+'</div>'}).join('')+ft+'</div>';
- if(stil==='b'){const cel=(q,x)=>q?'<span class="rs-c'+(q.c==='dags'?' dags':'')+'">'+q.kt+'</span>':'<span class="rs-c av">–</span>';
-  return'<div class="ha-gl ha-rst rs-b">'+hd+'<div class="rs-r rs-th"><span class="rs-n"></span><span class="rs-c">'+HAI_K.damm+'Dammsug</span><span class="rs-c">'+HAI_K.mopp+'Mopp</span></div>'+L.map(r=>'<div class="rs-r"'+hl(r)+'><span class="rs-n">'+esc(haRumN(a,r))+'</span>'+cel(nas(r,'v'),'v')+cel(nas(r,'m'),'m')+'</div>').join('')+ft+'</div>'}
- return'<div class="ha-gl ha-rst rs-c3">'+hd+'<div class="rs-g">'+L.map(r=>{const v=nas(r,'v'),m=nas(r,'m'),q=[v,m].filter(Boolean).sort((x,y)=>x.k-y.k)[0],mo=m&&(!v||m.k<=v.k+0)&&m.c!=='ok';
-   return'<div class="sr-rum'+(q&&q.c==='dags'?' dags':'')+(mo?' m':'')+'"'+hl(r)+'><span class="sr-rt"><b>'+esc(haRumN(a,r))+'</b><span>'+(q?(mo?'Dammsug + mopp':'Dammsug'):'Ingen påminnelse')+'</span><small>'+(q?q.t:'')+'</small></span>'+(mo?HAI_K.mopp:HAI_K.damm)+'</div>'}).join('')+'</div>'+ft+'</div>'}
+ const kap=(q,x)=>'<span class="rs-k'+(q?' '+q.c:' av')+'">'+HAI_K[x==='v'?'damm':'mopp']+(q?q.kt:'–')+'</span>';
+ return'<div class="ha-gl ha-rst rs-a"><div class="ha-rst-h"><span><b>Rummen</b><small'+(n?' class="dags"':'')+'>'+sum+'</small></span>'+(n&&!haStadar(a)?'<button type="button" data-act="haRobDags">Välj dem</button>':'')+'</div>'+
+  R.slice().sort((x,y)=>prio(x)-prio(y)).map(r=>{const v=nas(r,'v'),m=nas(r,'m'),dv=v&&v.c==='dags',dm=m&&m.c==='dags';
+   return'<div class="rs-r" data-hold-lift="robRum" data-id="'+r.id+'"><span class="rs-n"><b>'+esc(haRumN(a,r))+'</b><small>'+(dm?'Dammsug och mopp idag':dv?'Dammsug idag':v||m?'Inget idag':'Ingen påminnelse')+'</small></span>'+kap(v,'v')+kap(m,'m')+'</div>'}).join('')+
+  '<div class="ha-rst-f">Kapslarna visar när rummet ska dammsugas och moppas nästa gång. Håll in ett rum för att ändra hur ofta.</div></div>'}
 // rent vatten i dockan: uppskattat från moppad yta sedan påfyllning (lär sig hur långt en tank räcker när dockan säger att den är tom)
 function haTank(a){const t=a.tank;if(!t)return'';const p=t.brist?0:Math.max(0,Math.min(100,t.pct||0)),kvar=Math.max(0,(t.kap||0)-(t.m2||0)),gg=t.senast>3?Math.floor(kvar/t.senast):null,c=p<15?'dags':p<35?'snart':'ok';
  return'<div class="ha-gl ha-tank"><div class="ha-tk '+c+'" style="--q:'+(p/100)+'"><i></i></div><div class="ha-tt"><b>'+(t.brist?'Tanken är tom':'Rent vatten ≈ '+p+' %')+'</b><span>'+(t.brist?'Fyll på tanken i dockan':gg!=null?'Räcker ca '+gg+' moppning'+(gg===1?'':'ar')+' till':'Räcker ca '+Math.round(kvar)+' m² till')+'</span><small>'+Math.round(t.m2||0)+' m² moppat'+(t.fylld?' sedan '+new Date(t.fylld*1e3).toLocaleDateString('sv-SE',{day:'numeric',month:'short'}):'')+(t.lart?'':' · uppskattat')+'</small></div>'+(t.brist==null?'<button type="button" data-act="haTankFylld">Påfylld</button>':'')+'</div>'}
