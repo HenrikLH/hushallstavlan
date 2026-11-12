@@ -2,11 +2,22 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
-## Dammsugaren: rumsintervall och dockans kort (förslag, väntar på "Pusha")
+## Dammsugaren: rumsintervall och dockans kort (publicerad ht-v361, ångra-gren `version-fore-dammsug-docka`)
 - Ägare Claude, gren `claude/project-thread-ys6yn3`. Håll in ett rum (Rummen på dammsugarsidan, alla rum visas nu, eller rumsbrickan i Städ S12) → blad `robRum` (ACT `robRum`/`robRumValj`): −/+ dammsuga/moppa var n dagar (`haRumIv`), Stort rum, Städa rummet.
 - HA-genomgång 2026-11-12 (läst på Surfacen): dockan ger bara binära tankgivare (rent/smutsigt vatten), dockningsfel, tömningsläge, mopptorkning + tid kvar, silens tid kvar; ingen nivå för dammpåse eller robotens dammbehållare → Empty bin borttaget, procent för rent vatten är tjänstens uppskattning. Mopptorkningens tid kvar visas inte än (kräver tjänständring).
 - Dockan har eget kort på dammsugarsidan (`haDockHd` bild med tankar + roboten när den är hemma, status från `a.st`, rent vatten/smutsvatten, Empty bin/Wash mop/Auto-empty). Flyttat från Inställningar; `haTank` används inte längre där.
+- Rummen: rader med kapslar (Henrik valde A + gamla kapslarna), kapseln visar nästa gång (Idag/I morgon/n d). Tjänsten (ljussensor.py) ger `dockTork`, `dockTorkH` och `dockSil`; installerad på väggdatorn efter "Kör".
 - Test: `robot-rum-docka.js`, `robot-status.js`, `apparater.js`, `stad-dammsugare.js` (demo) och alla-flikar telefon+vägg gröna. Bilder /mnt/project-files/apparater/rum-och-docka/.
+
+## Att göra-rutan: idag + imorgon (publicerad, ångra-gren `version-fore-att-gora-idag`)
+- Ö3/T8 och widgetläget: bara dagens och sena uppgifter (bockbara, kompakta rader) och Imorgon som en grå rad. Odaterade/senare bara under Alla N. Henrik: Översikt ska vara kompakt, inget vitt tomrum på väggen (T8 krymper till innehållet). Kod `upgDag`/`upgDagHtml`, CSS `.upg-*`.
+- Test `att-gora-idag.js` telefon/vägg, alla-flikar telefon+vägg gröna.
+## Röktestet grönt igen (2026-11-12, PR #100 + #101, bara testfiler)
+- Röktestet (emu.yml) var rött på alla PR:er sedan 10 nov p.g.a. inaktuella tester. Nytt hjälpverktyg `h.pref(sel)` i `verktyg/emu/run.js` öppnar den del av Inställningar där en inställning ligger just nu; använd det i stället för fasta `pref-<del>`. Ekonomi nås via Hemmet, Städ via Att göra; fäll ut `.nav-mini.on` före klick i flikraden. CI-körning 258 grön i alla 16 lägen.
+
+## Smart hem: scen ritar om rutan en gång (publicerad ht-v358, ångra-gren `version-fore-scen-omritning`)
+- Orsak: väggdatorns tjänst läser HA varje sekund och lamporna i en scen rapporterar en i taget, så rutan ritades om per lampa (1 → 2 → 3 → 4 tända). Nu samlar `haRitaSnart` svaren (ritar efter 1,3 s tystnad, senast 3,5 s). Egna scener och Släck allt visas direkt och hålls via `HA.mal` (`haMalSatt`, släpps när lampan rapporterat). `haSend` ritar bara när sista anropet är klart. Ingen ändring i tjänsten eller Kod.gs.
+- Gren `claude/project-thread-vbhjv9`. Test: ny `smart-hem-scen-omritning.js` (faller på main), smart-hem-tonsteg/-fel/-ruta/-ton/-rorelse, alla-flikar telefon+vägg gröna; smart-hem-volym faller likadant på main.
 
 ## Dammsugarens statusbricka i Städ (publicerad ht-v356, ångra-gren `version-fore-dammsug-stad`)
 - `stadRob()` (ruta S12): samlad statusbricka (Henrik ville kombinera A+B): illustration med ringar batteri (yttre, grön) och rent vatten (inre, `a.tank`), "Rum att städa" ("Dags nu"/"Om n dagar", ikon till höger i brickan; väggen: status vänster halva, 4 rum höger) = rum med `haRumSt` dags/snart som brickor med åtgärd: "Dammsug" eller "Dammsug + mopp" (mopp innebär alltid dammsugning direkt före, Henriks regel). Tryck → `V.robot` med Tillbaka "Att göra" (`S.robFran`).
@@ -22,12 +33,11 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 - Foton: `img` i inspiration.json (100/101, länkade från receptsidorna; ICA hämtat med WebFetch eftersom ICA spärrar GitHub). `inspoImg` matchar id eller namn. Nya recept: `node verktyg/matbilder-hamta.js [--kolla]` där nätet når sajterna (inte molnet).
 - Test: `verktyg/emu/matbilder.js` (LS mbild=c för lista; BILDER=1 släpper igenom riktiga foton, fungerar bara där nätet når dem), generera-vecka, installningar-delar, alla-flikar telefon+vägg.
 
-## Hemmet ersätter Ekonomi i flikraden (publicerad ht-v352)
+## Hemmet = Smart hem + kort (publicerad ht-v360)
 
-- Henrik valde B + brickor: flikrad Mat · Hemmet · Översikt · Kalender · Att göra. Hemmet (`V.hemmet`, rutor H1/H2) har brickor för Smart hem (bara med haUrl/vägg), Ekonomi, Födelsedagar, Familj (DEV) och raden Inställningar. Undersidor (`HEM_UNDER`) markerar Hemmet; bakåt leder dit de öppnades från (`S.hemFran`, `hemTill`, `hemTop`). Översikt har rutnätsikonen `I_OV`.
-- Ångra-gren `version-fore-hemmet`. Väggdatorn uppdateras först när Henrik skriver "Kör" (laddar annars om sig själv när app.js?v ändras).
-- Test: `verktyg/emu/hemmet.js` (telefon, vägg, mörkt, uppstart view=ekonomi), alla-flikar telefon+vägg, flikrad-lins gröna.
-
+- Fliken Hemmet (sedan ht-v352) visar hela Smart hem (`husAlla(D)`, utbrutet ur `V.hus`; H3) med två lika stora halvkort överst (H1): Födelsedagar (`hemFod`: små datumbrickor, 3 veckor, 2 om fler än `hemFodMax()` = 3 telefon/4 vägg) och Ekonomi (`hemEko`: stapel + andel med en decimal, inga belopp, saknade överföringar; låst på väggen). Inställningar H2. nav('hus') går till Hemmet; rum öppnas i Hemmet (`S.haRum`).
+- Ångra-gren `version-fore-hemmet-smart`. Version med belopp och större kort: gren `hemmet-backup-halva`. Väggdatorn uppdateras först när Henrik skriver "Kör".
+- Test: `verktyg/emu/hemmet.js` (FODMANGA=1, vägg, mörkt), alla-flikar telefon+vägg gröna efter merge med main.
 ## Smarta förslag borttagna från Översikt (publicerad ht-v351)
 
 - Henrik tyckte förslagen (Ö14) var irriterande. Hela funktionen borttagen: `forslag`/`forslagHtml`/`fsDone`, ACT `fsKlart/fsSen/fsGo`, CSS `.fsl/.fs-*`; Ö14 till borttagna. Väderlarmet (Ö13) och Vädra/Ute finns kvar. Ångra-gren `version-fore-smarta-forslag`.

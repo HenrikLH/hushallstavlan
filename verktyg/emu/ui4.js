@@ -8,7 +8,7 @@ module.exports=async(pg,h)=>{
  const keys=['accent','segstil','flikrad','ovLayoutNy','wallLayoutNy'];
  const before=await pg.evaluate(keys=>keys.map(k=>localStorage.getItem('ht.'+k)),keys);
  const original=String(await read('settings().matbudget')||'');
- await click('.pref-section[data-k="pref-vardag"]>summary');await pg.locator('[name="budget"]').fill('1234');
+ await click('.pref-section[data-k="pref-mat"]>summary');await pg.locator('[name="budget"]').fill('1234');
  await click('[data-act="uiVersion"][data-id="2"]');assert.equal(await read('U4'),false);
  assert.equal(await pg.locator('[name="budget"]').inputValue(),'1234');
  await click('[data-act="uiVersion"][data-id="4"]');assert.equal(await read('U4'),true);
@@ -23,7 +23,7 @@ module.exports=async(pg,h)=>{
  await pg.locator('label').filter({has:pg.locator('input[data-change="accent"][value="teal"]')}).first().click();await h.idle(500);assert.equal(await read('accentPref()'),'teal');
  assert.equal(await pg.evaluate(()=>localStorage.getItem('ht.accent')),before[0]);
  await click('[data-act="sheetClose"]');
- for(const v of ['oversikt','mat','uppgifter','stad','ekonomi']){
+ for(const v of ['oversikt','mat','uppgifter','kalender','hemmet']){
   await click('#nav [data-id="'+v+'"]');
   assert.equal(await read('S.view'),v);assert.equal(await pg.locator('.banner').filter({hasText:'Något gick fel'}).count(),0);
   const overflow=await pg.evaluate(()=>document.documentElement.scrollWidth-innerWidth);assert.ok(overflow<=1,v+' har horisontell överströmning: '+overflow);

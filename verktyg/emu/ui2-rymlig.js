@@ -7,7 +7,7 @@ module.exports=async(pg,h)=>{
  const settings=async()=>{await click('[data-act="settings"]');await section('utseende')};
  const dimensions=()=>pg.locator('.segc').first().evaluate(e=>{const s=getComputedStyle(e);return[s.height,s.padding,s.borderRadius]});
  assert.equal(await read('RYMLIG'),false);await click('#nav [data-id="uppgifter"]');const original=await dimensions();
- await settings();await section('vardag');await pg.locator('[name="budget"]').fill('1234');await section('utseende');await click('[data-act="rymlig"]');assert.equal(await pg.locator('[name="budget"]').inputValue(),'1234');
+ await settings();await section('mat');await pg.locator('[name="budget"]').fill('1234');await section('utseende');await click('[data-act="rymlig"]');assert.equal(await pg.locator('[name="budget"]').inputValue(),'1234');
  await click('[data-act="sheetClose"]');assert.equal(await read('RYMLIG'),true);
  const radii=[];
  for(const form of ['standard','kapsel','klassisk']){

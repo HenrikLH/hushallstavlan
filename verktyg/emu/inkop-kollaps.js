@@ -20,7 +20,7 @@ module.exports=async(pg,h)=>{
  await pg.locator(firstSel).press('Space');await h.idle(550);assert.equal(await pg.locator(firstSel).getAttribute('aria-expanded'),'false');await h.shot('inkop-kollapsad');
  await pg.reload();await h.idle(1800);assert.equal(await pg.locator('[data-act="shopFold"][aria-expanded="false"]').count(),0,'Ny session börjar med synliga avdelningar');
  await h.shot('inkop-alla-avdelningar');
- await click('[data-act="settings"]');const advanced=pg.locator('[data-k="pref-avancerat"]');if(!await advanced.evaluate(e=>e.open))await advanced.locator('summary').click();await h.idle(550);
+ await h.pref('[data-act="motion"]');
  if(await read('MOTION'))await click('[data-act="motion"]');await click('[data-act="sheetClose"]',await pg.evaluate(()=>window.__d('ACT.prefBack()')));
  await pg.locator('[data-act="shopFold"]').first().click();assert(await pg.locator('[data-act="shopFold"]').first().evaluate(e=>e.nextElementSibling.hidden),'Fungerar med animationer av');
  assert(await pg.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));

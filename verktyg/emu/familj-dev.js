@@ -8,7 +8,7 @@ module.exports=async(pg,h)=>{
  const origWishes=JSON.parse(row('onskelista')?.[1]||'[]'),other=origWishes.filter(x=>!x.fod);
  setRow('onskelista',JSON.stringify(other));
  await pg.reload();await h.idle(1400);
- const click=async s=>{await pg.locator(s).first().click();await h.idle(380)},main=()=>pg.locator('main').innerText();
+ const click=async s=>{if(s.startsWith('#nav')&&await pg.locator('.nav-mini.on').isVisible()){await pg.locator('.nav-mini.on').click();await h.idle(600)}await pg.locator(s).first().click();await h.idle(380)},main=()=>pg.locator('main').innerText();
  assert.equal(await pg.locator('[data-act="familjOpen"]').count(),0,'Familj syns inte utanför DEV');
  await click('[data-act="settings"]');
  if(!(await pg.locator('details[data-k="pref-avancerat"]').evaluate(x=>x.open)))await click('details[data-k="pref-avancerat"] > summary');
