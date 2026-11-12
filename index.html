@@ -3378,11 +3378,30 @@ html.ny.ui5 .cell.dr-slide .pill{background:var(--fill);color:var(--ink)}
 .hem-ic svg{width:19px;height:19px;stroke-width:2}
 .hem-r{min-height:52px}
 #H2,[data-ref="H2"]{margin-top:24px}
-.hem-kort{margin:0 16px 8px}
-.hem-kort.liten{margin:8px 16px 16px}
-.hem-big{font-size:22px;line-height:28px;font-weight:700;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hem-kort{margin:8px 16px 16px}
 .hem-obs{color:var(--obs,var(--orange,#C93400))}
-.hem-k .wl .cell .val{font-size:15px}
+.hem-ov{margin-top:12px;font-size:15px;line-height:20px;color:var(--ink-2)}
+.hem-ov.hem-obs{color:var(--obs,var(--orange,#C93400))}
+.hem-k .splitbar{margin-top:12px}
+.hem-leg{display:flex;justify-content:space-between;gap:16px;margin-top:12px}
+.hem-leg>div{display:flex;flex-direction:column;gap:2px;min-width:0}
+.hem-leg>div:last-child{text-align:right;align-items:flex-end}
+.hem-ln{display:flex;align-items:center;gap:8px;font-size:15px;line-height:20px;color:var(--ink-2)}
+.hem-leg b{font-size:22px;line-height:28px;font-weight:700}
+.hem-ls{font-size:13px;line-height:18px;color:var(--ink-2)}
+.hem-fl{margin-top:4px}
+.hem-k .hem-fl .cell.hem-fr{gap:12px;padding:8px 0;min-height:56px}
+html.ny .hem-k .hem-fl .cell+.cell::before,.hem-k .hem-fl .cell+.cell::before{left:52px}
+.hem-ln .pdot{margin:0}
+.hem-dt{flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px;background:var(--bd-soft,var(--fill));color:var(--bd-ink,var(--ink))}
+.hem-dt b{font-size:17px;line-height:20px;font-weight:700}
+.hem-dt span{font-size:11px;line-height:13px;font-weight:500}
+.hem-fr .grow{display:flex;flex-direction:column;min-width:0}
+.hem-fn{font-size:17px;line-height:22px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hem-fs{font-size:13px;line-height:18px;color:var(--ink-2)}
+.hem-fr .val{font-size:15px;color:var(--ink-2)}
+.hem-fr.idag .val{color:var(--accent);font-weight:600}
+@media (min-width:700px){.hem-k .hem-fl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:32px}html.ny .hem-k .hem-fl .cell:nth-child(2)::before,.hem-k .hem-fl .cell:nth-child(2)::before{display:none}}
 /* ===== Mer väder och smarta förslag (alla UI) ===== */
 /* Väder: SMHI-varning överst, nya rutor (Vädra, Ute, UV, Pollen, Norrsken) */
 .wx-varn{display:block;background:var(--surface);border-radius:var(--r5,16px);padding:12px 16px 14px;margin:0 16px 14px}

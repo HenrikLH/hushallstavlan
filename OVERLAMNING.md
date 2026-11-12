@@ -18,9 +18,9 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 ## Hemmet: redesign med hela Smart hem (förslag, ej publicerat)
 
-- Hemmet (flik sedan ht-v352, ångra-gren `version-fore-hemmet`) blir i första hand Smart hem: `husAlla(D)` (utbrutet ur `V.hus`) visar alla reglage och enheter (H3); kort för Födelsedagar (`hemFod`, återanvänder `wallBd`) och Ekonomi (`hemEko`, låst på väggen) i H1; Inställningar H2. nav('hus') leder till Hemmet; rum öppnas i Hemmet (`S.haRum`). Gren `claude/project-thread-x400ki`, ägare Claude.
-- Förhandsval `ht.hemStil`: A (standard) = stora kort sist under "Hushållet", B = små kort överst. Ta bort valet som inte väljs före publicering.
-- Väntar på Henriks val. Bilder /mnt/project-files/hemmet/redesign/. Test: `verktyg/emu/hemmet.js` (A/B, vägg), alla-flikar telefon+vägg gröna.
+- Hemmet (flik sedan ht-v352, ångra-gren `version-fore-hemmet`) blir i första hand Smart hem: `husAlla(D)` (utbrutet ur `V.hus`) visar alla reglage och enheter (H3). Breda kort i H1: Födelsedagar (`hemFod`: 3 veckor, 2 om fler än `hemFodMax()` = 5, 8 i två spalter från 700 px) och Ekonomi (`hemEko`: fördelningsstapel, andel och "Sätter in", saknade överföringar; låst utan belopp på väggen). Inställningar H2. nav('hus') leder till Hemmet; rum öppnas i Hemmet (`S.haRum`). Gren `claude/project-thread-x400ki`, ägare Claude.
+- `ht.hemStil=A` lägger korten sist (standard B = överst). Ta bort valet före publicering om Henrik inte vill ha det.
+- Väntar på Henriks ok. Bilder /mnt/project-files/hemmet/redesign2/. Test: `verktyg/emu/hemmet.js` (även FODMANGA=1, vägg, mörkt), alla-flikar telefon+vägg gröna.
 ## Smarta förslag borttagna från Översikt (publicerad ht-v351)
 
 - Henrik tyckte förslagen (Ö14) var irriterande. Hela funktionen borttagen: `forslag`/`forslagHtml`/`fsDone`, ACT `fsKlart/fsSen/fsGo`, CSS `.fsl/.fs-*`; Ö14 till borttagna. Väderlarmet (Ö13) och Vädra/Ute finns kvar. Ångra-gren `version-fore-smarta-forslag`.
