@@ -3616,10 +3616,10 @@ html.ny.ui5[data-theme="dark"] .stad-rob-g{--sr-or:var(--orange);--sr-ort:var(--
 .sr-iw{position:relative;display:flex;flex:none;width:80px;height:80px}
 .sr-pk{position:absolute;inset:0;pointer-events:none}
 .sr-pk>i{position:absolute;left:50%;top:50%;width:0;height:0}
-.sr-pk b{position:absolute;left:-1.25px;top:-1.25px;width:2.5px;height:2.5px;border-radius:50%;background:var(--green);box-shadow:0 0 3px color-mix(in srgb,var(--green) 80%,transparent);opacity:0;animation:srPart 1.3s linear infinite;will-change:transform,opacity}
-.sr-pk>i:nth-child(3n+1) b{animation-duration:1.5s}
-.sr-pk>i:nth-child(3n+2) b{animation-duration:1.1s}
-@keyframes srPart{0%{transform:translateY(-60px);opacity:0}45%{transform:translateY(-58px);opacity:0;animation-timing-function:cubic-bezier(.8,0,1,.7)}55%{opacity:.9}92%{transform:translateY(-39px) scaleY(2.2);opacity:.9}100%{transform:translateY(-37px) scale(.3);opacity:0}}
+.sr-pk b{position:absolute;left:-2px;top:-2px;width:4px;height:4px;border-radius:50%;background:var(--green);box-shadow:0 0 4px color-mix(in srgb,var(--green) 80%,transparent);opacity:0;animation:srPart 1.5s cubic-bezier(.55,0,.85,.45) infinite;will-change:transform,opacity}
+.sr-pk>i:nth-child(3n+1) b{animation-duration:1.8s}
+.sr-pk>i:nth-child(3n+2) b{animation-duration:1.3s}
+@keyframes srPart{0%{transform:translateY(-58px) scale(.5);opacity:0}25%{opacity:.85}88%{transform:translateY(-39px) scale(1);opacity:.85}100%{transform:translateY(-37px) scale(.3);opacity:0}}
 @media (prefers-reduced-motion:reduce){.sr-ill.in .sr-bat,.sr-ill.in .sr-vat{animation:none}.sr-pk{display:none}}
 </style>
 </head>
