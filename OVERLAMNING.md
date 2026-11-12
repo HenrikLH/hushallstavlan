@@ -10,6 +10,9 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 - Ägare Claude, gren `claude/project-thread-ys6yn3`. `stadRob()` stängde inte sin `<div class="stad-rob-g">`, så hela Städ hamnade i ett kort. Rättat; `stad-dammsugare.js` larmar om städinnehåll hamnar i brickan.
 - Henrik godkände Ring-vyn men inte Lista: `stadVy()` ger nu `ring` som standard, `lista`/`rutnat` sparas uttryckligen (`ht.stadVy`). Test stad-vyer, stad-dammsugare, alla-flikar telefon+vägg gröna.
 
+## Dammsugarsidans Starta/Hem (publicerad ht-v365, ångra-gren `version-fore-starta-glas`)
+- `.rob-vy .ha-bar` (UI5, CSS sist i index.html): glas i `::before` (mask + blur, knapparna påverkas inte) ända ner till skärmkanten; vid krympt pillermeny (`html.nav-piller:has(#nav.mini)`) glider raden ner med bara `transform` (0 layout i animationen, mätt). Test apparater/robot-status/robot-rum-docka, alla-flikar telefon+vägg gröna.
+
 ## Dammsugaren: rumsintervall och dockans kort (publicerad ht-v361, ångra-gren `version-fore-dammsug-docka`)
 - Ägare Claude, gren `claude/project-thread-ys6yn3`. Håll in ett rum (Rummen på dammsugarsidan, alla rum visas nu, eller rumsbrickan i Städ S12) → blad `robRum` (ACT `robRum`/`robRumValj`): −/+ dammsuga/moppa var n dagar (`haRumIv`), Stort rum, Städa rummet.
 - HA-genomgång 2026-11-12 (läst på Surfacen): dockan ger bara binära tankgivare (rent/smutsigt vatten), dockningsfel, tömningsläge, mopptorkning + tid kvar, silens tid kvar; ingen nivå för dammpåse eller robotens dammbehållare → Empty bin borttaget, procent för rent vatten är tjänstens uppskattning. Mopptorkningens tid kvar visas inte än (kräver tjänständring).
