@@ -6,6 +6,10 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 - UI 5.0: Börja laga som huvudknapp, lista Portioner/Byt rätt/Visa recept, Ta bort håll in; prisnoten en gång ovanför receptlistan (`recipePriceNote`, `recipePrice().kort`). Gren `claude/project-thread-jltjnw`.
 - Kvar i granskningen (docs/granskning-2026-11): B Idag-ruta, C1/C2/C4, D, E, H, I, J, K, L, M. Test: `rattens-blad.js`, alla-flikar telefon+vägg gröna.
 
+## Städ: egna kort och Ring som standard (publicerad ht-v364, ångra-gren `version-fore-stad-ring`)
+- Ägare Claude, gren `claude/project-thread-ys6yn3`. `stadRob()` stängde inte sin `<div class="stad-rob-g">`, så hela Städ hamnade i ett kort. Rättat; `stad-dammsugare.js` larmar om städinnehåll hamnar i brickan.
+- Henrik godkände Ring-vyn men inte Lista: `stadVy()` ger nu `ring` som standard, `lista`/`rutnat` sparas uttryckligen (`ht.stadVy`). Test stad-vyer, stad-dammsugare, alla-flikar telefon+vägg gröna.
+
 ## Dammsugaren: rumsintervall och dockans kort (publicerad ht-v361, ångra-gren `version-fore-dammsug-docka`)
 - Ägare Claude, gren `claude/project-thread-ys6yn3`. Håll in ett rum (Rummen på dammsugarsidan, alla rum visas nu, eller rumsbrickan i Städ S12) → blad `robRum` (ACT `robRum`/`robRumValj`): −/+ dammsuga/moppa var n dagar (`haRumIv`), Stort rum, Städa rummet.
 - HA-genomgång 2026-11-12 (läst på Surfacen): dockan ger bara binära tankgivare (rent/smutsigt vatten), dockningsfel, tömningsläge, mopptorkning + tid kvar, silens tid kvar; ingen nivå för dammpåse eller robotens dammbehållare → Empty bin borttaget, procent för rent vatten är tjänstens uppskattning. Mopptorkningens tid kvar visas inte än (kräver tjänständring).
