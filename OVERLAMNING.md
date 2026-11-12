@@ -2,6 +2,9 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Hemmet fyller bredden (publicerad ht-v372, ångra-gren `version-fore-hemmet-bredd`)
+- Gren `claude/project-thread-zk9a41`. Statusbrickorna (`.ha-chips-v`) delar raden lika, 1–3 scener fördelas jämnt (`hus-sc-N`), apparatens varning sitter på ikonen så namnet inte klipps. Test `hemmet-bredd.js` telefon/vägg/mörkt, hemmet-scener gröna.
+
 ## Scenbladet: ljusstyrka per lampa + mindre scener på väggen (publicerad ht-v370, ångra-gren `version-fore-scen-ljusstyrka`)
 - Ägare Claude, gren `claude/project-thread-zk9a41`. `habScSheet` har "Läge i scenen": −/+ i steg om 10 % (`ACT.habScB`) och brytare På/Av (`ACT.habScPa`) per vald lampa. Väggen: mindre scenbrickor (ikon 24, höjd 58 i stället för 75, CSS `body.wall :is(.hab .hab-sc,.hus-sc)`). Test `scen-ljusstyrka.js` telefon/vägg/mörkt, alla-flikar telefon+vägg, smart-hem-ruta, hemmet-scener gröna.
 

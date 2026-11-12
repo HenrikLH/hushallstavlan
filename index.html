@@ -3257,7 +3257,7 @@ form[data-form="haLampa"] .ha-ctl{flex:1;justify-content:center;padding-top:24px
 .ha-ap{grid-column:1/-1;position:relative;overflow:hidden}.ha-ap .ha-i{background:rgba(120,120,128,.16);color:var(--ink-2)}.ha-ap.on.ha-ap-robot .ha-i{background:#0A84FF;color:#fff}.ha-ap.on.ha-ap-disk .ha-i{background:#30B0C7;color:#fff}
 .ha-ap .ha-tx{flex:1}.ha-ap-p{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(120,120,128,.18)}.ha-ap-p::after{content:'';position:absolute;inset:0 auto 0 0;width:var(--p);background:#0A84FF;border-radius:0 2px 2px 0}.ha-ap-disk .ha-ap-p::after{background:#30B0C7}
 .ha-g .ha-t.ha-ap.on{background:var(--fill);box-shadow:none}.ha-g-v .ha-t.ha-ap.on{background:var(--surface)}
-/* Smart hem-rutan: fyra scener överst och favoriter under, blad för att anpassa (ht-v371) */
+/* Smart hem-rutan: fyra scener överst och favoriter under, blad för att anpassa (ht-v372) */
 .hab-h{display:flex;align-items:center;gap:8px}.hab-h .wh{flex:1;min-width:0}
 .hab-mer{flex:none;display:grid;place-items:center;width:30px;height:30px;padding:0;border:0;border-radius:50%;background:var(--fill);color:var(--ink-2);cursor:pointer;-webkit-tap-highlight-color:transparent}.hab-mer svg{width:18px;height:18px}
 /* Designskillen (hushallstavlan-apple-design): rutan har hörn 26 och kant 16, därför hörn 16 innanför (inte kapslar), 8-avstånd, text 15/13 */
@@ -3641,6 +3641,11 @@ html.ny.ui5[data-theme="dark"] .stad-rob-g{--sr-or:var(--orange);--sr-ort:var(--
 .hab-ljr{gap:8px}.hab-ljr .grow{display:flex;flex-direction:column;min-width:0}.hab-ljr .meta{font-size:13px;color:var(--ink-2)}.hab-ljv{min-width:48px;text-align:center;font-variant-numeric:tabular-nums;font-weight:600}.hab-stp{flex:none;display:grid;place-items:center;width:44px;height:44px;padding:0;border:0;border-radius:50%;background:var(--fill);color:var(--ink);cursor:pointer}.hab-stp svg{width:17px;height:17px}.hab-stp:disabled{opacity:.35;cursor:default}body.wall .hab-stp{width:48px;height:48px}.hab-ljsw{margin-left:8px}
 /* Väggen: mindre scenbrickor (Henrik: symbolerna tog mycket plats) */
 body.wall :is(.hab .hab-sc,.hus-sc) .ha-st{gap:4px;padding:8px 4px;border-radius:16px}body.wall :is(.hab .hab-sc,.hus-sc) .ha-st .ha-i{width:24px;height:24px}body.wall :is(.hab .hab-sc,.hus-sc) .ha-st .ha-i svg{width:17px;height:17px}body.wall :is(.hab .hab-sc,.hus-sc) .ha-n{font-size:13px;line-height:18px}
+/* Hemmet fyller bredden: statusbrickorna delar raden lika, 1–3 scener fördelas jämnt (Henrik: luckor ser ut som saknade enheter) */
+.ha-chips-v .ha-chip{flex:1 1 0}.ha-chips-v .ha-chip .ha-tx{min-width:0}
+.ha-sg.hus-sc-1{grid-template-columns:minmax(0,1fr)}.ha-sg.hus-sc-2{grid-template-columns:repeat(2,minmax(0,1fr))}.ha-sg.hus-sc-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+/* varningen sitter på ikonen så att apparatens namn får plats */
+.ha-g-v .ha-ap .ha-ap-v{position:absolute;top:8px;left:30px;width:20px;height:20px;font-size:13px;box-shadow:0 0 0 2px var(--surface)}
 .hus-ny>summary{list-style:none;cursor:pointer}.hus-ny>summary::-webkit-details-marker{display:none}.hus-ny .create-options button{justify-content:space-between}.hus-ny .create-options .grow{flex:1;text-align:left}
 </style>
 </head>
@@ -3656,7 +3661,7 @@ body.wall :is(.hab .hab-sc,.hus-sc) .ha-st{gap:4px;padding:8px 4px;border-radius
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=371"></script>
+<script src="app.js?v=372"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
