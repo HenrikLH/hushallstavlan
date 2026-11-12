@@ -3355,21 +3355,21 @@ function calViewBase(){const t=today(),sel=S.calDay||t,m=S.calMonth||ymKey(sel),
  h+='<div class="group cal"'+RF('U4')+'><div class="cal-wd" aria-hidden="true">'+['M','T','O','T','F','L','S'].map(x=>'<span>'+x+'</span>').join('')+'</div><div class="cal-grid" role="grid">';
  for(let i=0;i<42;i++){const d=new Date(start);d.setDate(start.getDate()+i);const k=ymd(d),inM=d.getMonth()===mo-1;if(i===35&&!inM)break;
   const dots=calDots(k),wd=(d.getDay()+6)%7;
-  h+='<button class="cal-d'+(inM?'':' out')+(k===t?' today':'')+(k===sel?' sel':'')+(wd>4?' we':'')+'" data-act="calDay" data-id="'+k+'" aria-label="'+esc(dateLong(k))+(dots.length?', '+dots.length+' saker':'')+'"'+(k===sel?' aria-current="date"':'')+'>'+
+  h+='<button class="cal-d'+(inM?'':' out')+(k===t?' today':'')+(k===sel?' sel':'')+(wd>4?' we':'')+(wd>4||helgdag(k)?' rod':'')+'" data-act="calDay" data-id="'+k+'" aria-label="'+esc(dateLong(k))+(dots.length?', '+dots.length+' saker':'')+'"'+(k===sel?' aria-current="date"':'')+'>'+
    '<span class="n num">'+d.getDate()+'</span><span class="dots">'+dots.map(c=>'<i class="'+c+'"></i>').join('')+'</span></button>'}
  h+='</div></div>';
  // dagens innehåll: händelser i tidsordning och uppgifter
  const d=D(),evs=d.events.filter(e=>e.date===sel).sort((a,b)=>String(a.time||'').localeCompare(String(b.time||''))),late=sel===t?d.tasks.filter(x=>!x.done&&isDate(x.due)&&x.due<t):[],
   ts=d.tasks.filter(x=>x.due===sel),meals=d.menu.filter(x=>x.date===sel);
- h+=sh(esc(cap(dayHead(sel)))+(sel===t?' <span class="acc">· Idag</span>':''),'<button class="linkbtn" data-act="evNew" data-id="'+sel+'">Lägg till</button>');
+ h+=sh(esc(cap(dayHead(sel)))+(sel===t?' <span class="acc">· Idag</span>':''),U5?'':'<button class="linkbtn" data-act="evNew" data-id="'+sel+'">Lägg till</button>');
  const evRow=e=>{const w=evPerson(e);return'<div class="cell cal-ev edit" data-act="evEdit" data-id="'+d.events.indexOf(e)+'"'+holdAt('evMenu')+' role="button" tabindex="0"><span class="bar '+(w&&people().includes(w)?pcls(w):'o')+'"></span><span class="t num">'+esc(e.time||'Heldag')+'</span><span class="grow"><span class="title">'+evTitle(e)+'</span>'+(evWho(e)?'<span class="meta">'+evWho(e)+'</span>':'')+'</span></div>'};
  const body=evs.map(evRow).join('')+late.concat(ts).map(taskRow).join('');
- h+=rgroup('U5',body||emptyCell('Inget inplanerat. Tryck på Lägg till för en händelse eller uppgift.'));
- if(meals.length)h+=sh('Mat')+rgroup('U6',meals.map(m=>mealCell(m)).join(''));
+ h+=rgroup('U5',body||emptyCell(U5?'Inget inplanerat. Tryck på + för en händelse eller uppgift.':'Inget inplanerat. Tryck på Lägg till för en händelse eller uppgift.'));
+ if(meals.length)h+=sh('Mat')+rgroup('U6',meals.map(m=>mealCell(m,null,U5?{txt:''}:null)).join(''));
  // de närmaste dagarna i listform
  const next=[];for(let i=1;i<=6;i++){const k=addDays(sel,i),n=d.events.filter(e=>e.date===k).length+d.tasks.filter(x=>x.due===k&&!x.done).length;if(n)next.push([k,n])}
  if(next.length)h+=sh('Kommande dagar')+rgroup('U7',next.map(([k,n])=>'<button class="cell link" data-act="calDay" data-id="'+k+'"><span class="grow">'+esc(cap(dayHead(k)))+'</span><span class="val num">'+n+(n===1?' sak':' saker')+'</span>'+chevron+'</button>').join(''));
- h+='<div class="foot">Händelserna kommer från Google Kalender och uppdateras var 15:e minut. Tryck på en händelse eller uppgift för att ändra den, håll in för fler val.</div>';
+ h+='<div class="foot">'+(U5?'Synkas med Google Kalender var 15:e minut.':'Händelserna kommer från Google Kalender och uppdateras var 15:e minut. Tryck på en händelse eller uppgift för att ändra den, håll in för fler val.')+'</div>';
  return h}
 /* Återkommande uppgifter: kolumnen Upprepa i Uppgifter. När en sådan bockas av flyttas datumet fram
    till nästa gång (samma uträkning som nextDue_ i Kod.gs) och uppgiften ligger kvar. */
@@ -4385,6 +4385,9 @@ function nightFrac(now,P){const d=ymd(now),a=sunTimes(d,P.lat,P.lon);if(!a)retur
    med påskliljor runt påsk, löv på hösten och snö som ligger kvar tills det töar. */
 function easterDay(y){const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,
  i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),n=h+l-7*m+114;return y+'-'+pad(Math.floor(n/31))+'-'+pad(n%31+1)}
+// Svenska helgdagar (röda dagar utöver söndagar). Ger namnet eller ''
+function helgdag(k){const y=+k.slice(0,4),md=k.slice(5),e=easterDay(y),lor=(m,d0)=>{for(let d=d0;d<d0+7;d++){const x=new Date(y,m-1,d);if(x.getDay()===6)return ymd(x)}};
+ return({'01-01':'Nyårsdagen','01-06':'Trettondedag jul','05-01':'Första maj','06-06':'Nationaldagen','12-25':'Juldagen','12-26':'Annandag jul'})[md]||({[addDays(e,-2)]:'Långfredagen',[e]:'Påskdagen',[addDays(e,1)]:'Annandag påsk',[addDays(e,39)]:'Kristi himmelsfärd',[addDays(e,49)]:'Pingstdagen',[lor(6,20)]:'Midsommardagen',[lor(10,31)]:'Alla helgons dag'})[k]||''}
 function grassSeason(t){const mo=+t.slice(5,7),e=easterDay(+t.slice(0,4));
  if(t>=addDays(e,-9)&&t<=addDays(e,3))return'easter';   // från veckan före palmsöndagen till efter annandagen
  return mo===12||mo<=2?'winter':mo===3?'early':mo<=5?'spring':mo<=8?'summer':mo===9?'autumn1':mo===10?'autumn2':'autumn3'}

@@ -3257,7 +3257,7 @@ form[data-form="haLampa"] .ha-ctl{flex:1;justify-content:center;padding-top:24px
 .ha-ap{grid-column:1/-1;position:relative;overflow:hidden}.ha-ap .ha-i{background:rgba(120,120,128,.16);color:var(--ink-2)}.ha-ap.on.ha-ap-robot .ha-i{background:#0A84FF;color:#fff}.ha-ap.on.ha-ap-disk .ha-i{background:#30B0C7;color:#fff}
 .ha-ap .ha-tx{flex:1}.ha-ap-p{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(120,120,128,.18)}.ha-ap-p::after{content:'';position:absolute;inset:0 auto 0 0;width:var(--p);background:#0A84FF;border-radius:0 2px 2px 0}.ha-ap-disk .ha-ap-p::after{background:#30B0C7}
 .ha-g .ha-t.ha-ap.on{background:var(--fill);box-shadow:none}.ha-g-v .ha-t.ha-ap.on{background:var(--surface)}
-/* Smart hem-rutan: fyra scener överst och favoriter under, blad för att anpassa (ht-v366) */
+/* Smart hem-rutan: fyra scener överst och favoriter under, blad för att anpassa (ht-v368) */
 .hab-h{display:flex;align-items:center;gap:8px}.hab-h .wh{flex:1;min-width:0}
 .hab-mer{flex:none;display:grid;place-items:center;width:30px;height:30px;padding:0;border:0;border-radius:50%;background:var(--fill);color:var(--ink-2);cursor:pointer;-webkit-tap-highlight-color:transparent}.hab-mer svg{width:18px;height:18px}
 /* Designskillen (hushallstavlan-apple-design): rutan har hörn 26 och kant 16, därför hörn 16 innanför (inte kapslar), 8-avstånd, text 15/13 */
@@ -3409,6 +3409,12 @@ html.ny.ui5 .dm-foot{text-align:center;padding-bottom:8px}
 html.ny.ui5 .rc-prisnot{padding:0 20px 10px;font-size:13px;line-height:18px;color:var(--ink-2)}
 html.ny.ui5 .rc-prisnot.bad{color:var(--obs)}
 html.ny.ui5 .bank .rc-price small{color:var(--obs)}
+/* UI 5.0 · Datumcirklar: proportionella siffror så att 1:an inte får tom plats till vänster och talet ser förskjutet ut i cirkeln (iPhone, SF Pro) */
+html.ny.ui5 :is(.wk-d .n,.cal-d .n,.cv-d .n){font-variant-numeric:proportional-nums}
+/* UI 5.0 · Kalender (granskning E): röda dagar (helger + svenska helgdagar, helgdag()) i accentfärgen; andra månaders dagar gråa */
+html.ny.ui5 .cal-d.we:not(.out):not(.today):not(.sel) .n{color:var(--ink)}
+html.ny.ui5 .cal-d.rod:not(.out):not(.today):not(.sel) .n{color:var(--accent)}
+html.ny.ui5 .cal-wd span:nth-child(n+6){color:var(--accent)}
 /* ===== Mer väder och smarta förslag (alla UI) ===== */
 /* Väder: SMHI-varning överst, nya rutor (Vädra, Ute, UV, Pollen, Norrsken) */
 .wx-varn{display:block;background:var(--surface);border-radius:var(--r5,16px);padding:12px 16px 14px;margin:0 16px 14px}
@@ -3612,7 +3618,7 @@ html.ny.ui5.nav-piller:has(#nav.mini) .rob-vy .ha-bar{transform:translate3d(0,ca
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=355"></script>
+<script src="app.js?v=368"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>

@@ -33,8 +33,8 @@ const swL=fs.readFileSync(path.join(ROT,'sw.js'),'utf8'),ixL=fs.readFileSync(pat
 const swM=main('sw.js'),ixM=main('index.html');
 const nyttNr=(re)=>Math.max(tal(swL,re),tal(ixL,re),tal(swM,re),tal(ixM,re))+1;
 const byt={};
-byt.ver=nyttNr(/ht-v(\d+)/g);
-byt['app.js']=nyttNr(/app\.js\?v=(\d+)/g);
+// Ett nummer: app.js?v= följer ht-v så att Inställningar visar samma version som alla pratar om
+byt.ver=byt['app.js']=Math.max(nyttNr(/ht-v(\d+)/g),nyttNr(/app\.js\?v=(\d+)/g));
 for(const f of HJALP){
   let andrad=false;try{andrad=sh('git diff --name-only origin/main -- '+f)!==''}catch(e){}
   const re=new RegExp(f.replace('.','\\.')+'\\?v=(\\d+)','g'),har=Math.max(tal(swL,re),tal(ixL,re)),mainNr=Math.max(tal(swM,re),tal(ixM,re));
