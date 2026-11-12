@@ -2,6 +2,11 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Översikt: genomgång och första åtgärder (förslag, ej publicerat)
+- Ägare Claude, gren `claude/project-thread-2tlos6`. Bocken i Att göra-rutan (`.ur`-rader) ritas nu och raden glider ihop (`checkAnim`/`A.before` tar `.cell,.ur`; FLIP överlever dubbel omritning via `A.flipT`). Schema döljer passerade händelser idag (`calDayRows`). Middag ikväll i UI 5.0: rad per rätt med bild och ▶ Börja laga (`wMeals`, CSS `.wm5`). "Hemmet"-rutan med rummen heter Rummen. Väggen: ensam halv ruta (`.wpair.solo`) tar hela bredden.
+- Ej gjort: samla Imorgon (krockar med Henriks val ht-v359), timremsan "Nu", gemensamma rörelsekurvor, delade element (View Transitions).
+- Test: ny `oversikt-bocka.js` telefon/vägg, alla-flikar telefon+vägg, att-gora-idag, animationer, hemmet gröna; stad-vyer faller likadant på main. Väntar på "Pusha".
+
 ## Hemmet fyller bredden (publicerad ht-v372, ångra-gren `version-fore-hemmet-bredd`)
 - Gren `claude/project-thread-zk9a41`. Statusbrickorna (`.ha-chips-v`) delar raden lika, 1–3 scener fördelas jämnt (`hus-sc-N`), apparatens varning sitter på ikonen så namnet inte klipps. Test `hemmet-bredd.js` telefon/vägg/mörkt, hemmet-scener gröna.
 
