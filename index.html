@@ -3671,11 +3671,22 @@ html.ny.ui5 body.wall .wm5-go,body.wall html.ny.ui5 .wm5-go{width:48px;height:48
 .bcol .wpair.solo>.widget>*{margin:0!important}
 /* Matlagningsläget UI 5.0 (M27, cook5): två spalter i liggande läge (timrar + ingredienser | steg). Mått enligt hushallstavlan-apple-design */
 html.ny.ui5 .cook.ck5{padding:var(--sat) var(--sar) 0 var(--sal)}
-html.ny.ui5 .ck5-top{display:grid;grid-template-columns:44px minmax(0,1fr);align-items:center;column-gap:12px;padding:8px 16px 0}
+html.ny.ui5 .ck5-top{display:flex;flex-wrap:wrap;align-items:center;column-gap:12px;padding:8px 16px 0}
 html.ny.ui5 .ck5-x{width:44px;height:44px;border-radius:50%;background:var(--fill);color:var(--ink-2);display:grid;place-items:center}
 html.ny.ui5 .ck5-x svg{width:14px;height:14px;stroke-width:2.4}
-html.ny.ui5 .ck5-h{font-size:17px;line-height:22px;font-weight:600;min-width:0;overflow-wrap:anywhere}
-html.ny.ui5 .ck5 .progress{grid-column:1/-1;margin:8px 0 0}
+html.ny.ui5 .ck5-h{flex:1;font-size:17px;line-height:22px;font-weight:600;min-width:0;overflow-wrap:anywhere}
+html.ny.ui5 .ck5-x{flex:none}
+html.ny.ui5 .ck5-top .segc{flex:none;width:200px}
+html.ny.ui5 .ck5-chips{display:flex;gap:8px;flex:none}
+html.ny.ui5 .ck5-chips:empty{display:none}
+html.ny.ui5 .ck5-chip{display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 16px 0 12px;border-radius:999px;background:var(--accent);color:var(--on-accent);font-size:17px;font-weight:600;font-variant-numeric:tabular-nums}
+html.ny.ui5 .ck5-chip svg{width:16px;height:16px}
+html.ny.ui5 .ck5-cl{min-width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.24);display:grid;place-items:center;font-size:13px;line-height:18px}
+html.ny.ui5 .ck5-cl:empty{display:none}
+html.ny.ui5 .ck5-chip .ck5-tl{font-size:17px;line-height:22px;font-weight:600;color:inherit}
+html.ny.ui5 .ck5-chip.pau{background:var(--accent-soft);color:var(--accent)}html.ny.ui5 .ck5-chip.pau .ck5-cl{background:var(--fill)}
+html.ny.ui5 .ck5-chip.klar{background:var(--fill);color:var(--ink)}html.ny.ui5 .ck5-chip.klar .ck5-cl{background:var(--fill)}
+html.ny.ui5 .ck5 .progress{flex:1 0 100%;margin:8px 0 0}
 html.ny.ui5 .ck5 .cook-body{display:grid;grid-template-columns:minmax(0,1fr);overflow:auto;padding:0}
 html.ny.ui5 .ck5-l{padding:0 0 24px}
 html.ny.ui5 .ck5 .sh{margin-top:20px}
@@ -3738,19 +3749,29 @@ html.ny.ui5 .ck5-pr svg{width:11px;height:18px}html.ny.ui5 .ck5-pr:disabled{back
 }
 /* Låg skärm (telefon på sidan): tätare */
 @media (orientation:landscape) and (max-height:500px){
- html.ny.ui5 .ck5-top{grid-template-columns:44px minmax(0,1fr) minmax(0,1.2fr);padding-top:4px}
- html.ny.ui5 .ck5-h{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
- html.ny.ui5 .ck5 .progress{grid-column:3;margin:0}
+ html.ny.ui5 .ck5-top{padding-top:4px}
+ html.ny.ui5 .ck5-h{font-size:15px;line-height:20px}
+ html.ny.ui5 .ck5 .progress{margin-top:4px}
  html.ny.ui5 .ck5 .cook-body{padding-top:8px}
  html.ny.ui5 .ck5-rh{padding-top:12px}
  html.ny.ui5 .ck5-st.on .ck5-sb{font-size:22px;--lh:28px}
  html.ny.ui5 .ck5-nav{padding:8px 24px calc(8px + var(--sab))}
  html.ny.ui5 .ck5-nav .btn-fill{height:44px}html.ny.ui5 .ck5-pr{width:44px;height:44px}
 }
+/* Tidsplan i full bredd (A) och ett steg i taget med tidsplanen under (B) */
+html.ny.ui5 .ck5 .cook-body.ck5-plan{display:block;overflow:auto;padding:12px 16px calc(24px + var(--sab))}
+html.ny.ui5 .ck5-pw{max-width:1100px;margin:0 auto}
+html.ny.ui5 .ck5-en .ck5-sl{padding:0 0 16px}
+html.ny.ui5 .ck5-big{font-size:28px;line-height:34px;font-weight:700;letter-spacing:.36px;padding:8px 24px 0;overflow-wrap:anywhere}
+html.ny.ui5 .ck5-ams{display:flex;flex-wrap:wrap;gap:8px;padding:16px 24px 0}
+html.ny.ui5 .ck5-am{display:inline-flex;align-items:baseline;gap:4px;min-height:32px;padding:5px 12px;border-radius:999px;background:var(--fill);font-size:15px;line-height:20px;box-sizing:border-box}
+html.ny.ui5 .ck5-tpw{padding:16px 8px 0}html.ny.ui5 .ck5-tpw .tp{margin:0}
+html.ny.ui5 body.wall .ck5-big{font-size:34px;line-height:41px}
+@media (orientation:landscape) and (max-height:500px){html.ny.ui5 .ck5-big{font-size:22px;line-height:28px}html.ny.ui5 .ck5-ams{padding-top:12px}}
 /* Väggen: större text för att läsas på avstånd */
 html.ny.ui5 body.wall .ck5-st.on .ck5-sb{font-size:34px;--lh:41px}
 html.ny.ui5 body.wall .ck5-sb{font-size:20px;--lh:26px}
-html.ny.ui5 body.wall .ck5-tl{font-size:34px;line-height:41px}
+html.ny.ui5 body.wall .ck5-chip{height:48px}html.ny.ui5 body.wall .ck5-chip .ck5-tl{font-size:20px;line-height:26px}
 html.ny.ui5 body.wall .ck5 .cook-body{grid-template-columns:minmax(360px,2fr) minmax(0,3fr)}
 </style>
 </head>

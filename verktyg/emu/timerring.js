@@ -2,7 +2,7 @@
 module.exports=async(pg,h)=>{const c=async s=>{await pg.locator(s).first().click();await h.idle(500)};
  const ok=(v,t)=>{if(!v)throw new Error(t);console.log('OK',t)};const d=x=>pg.evaluate(x=>window.__d(x),x);
  const no=n=>'.cook .tp-r:nth-child('+n+') .no';
- await c('[data-act="nav"][data-id="mat"]');await c('[data-act="matTab"][data-id="vecka"]');await c('.bt .bq[data-act="recipe"]');await c('[data-act="cook"]');
+ await c('[data-act="nav"][data-id="mat"]');await c('[data-act="matTab"][data-id="vecka"]');await c('.bt .bq[data-act="recipe"]');await c('[data-act="cook"]');if(await pg.locator('[data-act="cookVy"][data-id="plan"]').count())await c('[data-act="cookVy"][data-id="plan"]');
  ok(!await pg.locator('.td,.td-c').count(),'inga timerkort');
  await c('.cook .tp-r:nth-child(2) .tp-t');
  ok(await pg.locator(no(2)+' .trg').count()===1,'ring runt steg 2');

@@ -2330,19 +2330,24 @@ const stegText=x=>[x.t,x.k,x.v].filter(Boolean).join(' ');
 /* Tidsplan: stegen på en tidslinje. Steg med timer som sköter sig själva (koka, ugn, rosta, vila) låter nästa steg börja under tiden.
    Steg utan timer får en uppskattad tid efter textens längd. "De sista minuterna" läggs i slutet av steget före och sista steget börjar när allt är klart. */
 const PASSIV=/\b(kok|sjud|puttra|rosta|ugn|bak|grädda|gratinera|låt|vila|marinera|jäs|svalna|tina|blötlägg|kyl)/i,AKTIV=/\b(stek|fräs|bryn|vispa|rör hela)/i;
-// Matlagningsläget i UI 5.0 (M27), två spalter i liggande läge: tidsplanen (stegknapparna är timrar) och ingredienser till vänster,
-// alla steg till höger med det aktuella stort i mitten. Tryck på ett steg hoppar dit, tryck på en ingrediens bockar av den. Stående telefon: stegen överst
-function cook5(r,rr,ST,i,s,f,hits,pv,dir,grew,tp,klar){const n=ST.length,sist=i===n-1,bock=S.cook.bock||{},{p}=scaled(r);
+// Matlagningsläget i UI 5.0 (M27), delad vy i liggande läge som Deglaze/Mela: ingredienserna (bockbara) till vänster, instruktionen till höger.
+// Igång-timrar syns alltid i rubrikraden (tryck = paus/fortsätt). Tidsplanens runda stegknappar är timrarna.
+// A (standard): stegen i en lista, Tidsplan som egen flik i full bredd. B (ht.cookv=b): ett steg i taget med tidsplanen under
+function cook5(r,rr,ST,i,s,f,hits,pv,dir,grew,tp,klar){const n=ST.length,sist=i===n-1,bock=S.cook.bock||{},{p}=scaled(r),B=lsGet('cookv')==='b',plan=!B&&S.cook.vy==='plan';
+ const chips=S.timers.filter(x=>x.rid===r.id).sort((a,b)=>tmKvar(a)-tmKvar(b)).map(t=>{const ms=tmKvar(t),klr=t.ring||ms<=0,pau=!klr&&t.p!=null;
+  return'<button type="button" class="ck5-chip'+(klr?' klar':pau?' pau':'')+'" data-act="tpTimer" data-id="'+esc(r.id)+'" data-k="'+t.k+'" aria-label="'+esc(t.label)+(klr?', klar, tryck för att ta bort':pau?', pausad':', tryck för paus')+'">'+(klr?I.tick:pau?I.play:I.pause)+'<span class="ck5-cl">'+esc(t.si!=null?String(t.si+1):'')+'</span><b class="ck5-tl"'+(klr||pau?'':' data-end="'+t.end+'"')+'>'+(klr?'Klart':tpKvar(ms))+'</b></button>'}).join('');
  let k=0;const ing=(rr.groups||[]).map(g=>(g.title?'<div class="ck5-gt">'+esc(g.title)+'</div>':'')+g.items.map(it=>{const j=k++,on=bock[j],hit=hits.includes(it);return'<button type="button" class="ck5-i'+(on?' on':'')+(hit?' hit':'')+'" data-act="cookBock" data-i="'+j+'" aria-pressed="'+(on?'true':'false')+'"><span class="ck5-c">'+(on?I.tick:'')+'</span><span class="n">'+esc(it.n)+'</span><span class="q">'+esc(qtyText(it,f))+'</span></button>'}).join('')).join('');
- const vanster='<div class="ck5-l">'+tp+sh('Ingredienser',p+' portioner')+group(ing)+'</div>';
- const steg=ST.map((x,j)=>{const on=j===i;
-  return'<div class="ck5-st'+(on?' on':j<i?' gj':'')+'"'+(on?' aria-current="step"':'')+'><button type="button" class="ck5-sb" data-act="cookTo" data-i="'+j+'"><span class="ck5-no">'+(j<i?I.tick:j+1)+'</span><span class="ck5-t">'+esc(x.t||stegText(x))+'</span></button>'+(on&&pv?kvLanes(x,pv):'')+'</div>'}).join('');
- const hoger='<div class="ck5-r"><div class="ck5-rh"><b>Steg '+(i+1)+' av '+n+'</b></div><div class="ck5-sl'+dir+'">'+steg+'</div>'+
-  '<div class="ck5-nav"><button type="button" class="ck5-pr" data-act="cookStep" data-d="-1"'+(i===0?' disabled':'')+' aria-label="Förra steget">'+I.back+'</button>'+(sist?'<button type="button" class="btn-fill" data-act="cookDone" data-id="'+esc(r.id)+'">Klart – betygsätt</button>':'<button type="button" class="btn-fill" data-act="cookStep" data-d="1">Nästa steg</button>')+'</div></div>';
- return'<div class="cook ck5"'+RF('M27')+' role="dialog" aria-modal="true" aria-label="Matlagningsläge">'+
-  '<div class="ck5-top"><button type="button" class="ck5-x" data-act="cookClose" aria-label="Stäng matlagningsläget">'+I.x+'</button><div class="ck5-h">'+esc(r.title)+'</div>'+
-  '<div class="progress" aria-hidden="true">'+ST.map((_,k)=>'<i class="'+(k<=i?'on':'')+(grew&&k===i?' just':'')+'"></i>').join('')+'</div></div>'+
-  '<div class="cook-body">'+vanster+hoger+'</div></div>'+
+ const vanster='<div class="ck5-l">'+sh('Ingredienser',p+' portioner')+group(ing)+'</div>';
+ const nav='<div class="ck5-nav"><button type="button" class="ck5-pr" data-act="cookStep" data-d="-1"'+(i===0?' disabled':'')+' aria-label="Förra steget">'+I.back+'</button>'+(sist?'<button type="button" class="btn-fill" data-act="cookDone" data-id="'+esc(r.id)+'">Klart – betygsätt</button>':'<button type="button" class="btn-fill" data-act="cookStep" data-d="1">Nästa steg</button>')+'</div>';
+ let hoger;
+ if(B){const t=stegText(s),amt=hits.map(it=>{const q=stegQ(t,it,f);return'<span class="ck5-am">'+(q?'<b>'+esc(q)+'</b> ':'')+esc(it.n)+'</span>'}).join('');
+  hoger='<div class="ck5-r ck5-en"><div class="ck5-sl'+dir+'"><div class="ck5-rh"><b>Steg '+(i+1)+' av '+n+'</b></div><p class="ck5-big">'+esc(s.t||t)+'</p>'+(pv?kvLanes(s,pv):'')+(amt?'<div class="ck5-ams">'+amt+'</div>':'')+'<div class="ck5-tpw">'+tp+'</div></div>'+nav+'</div>'}
+ else{const steg=ST.map((x,j)=>{const on=j===i;return'<div class="ck5-st'+(on?' on':j<i?' gj':'')+'"'+(on?' aria-current="step"':'')+'><button type="button" class="ck5-sb" data-act="cookTo" data-i="'+j+'"><span class="ck5-no">'+(j<i?I.tick:j+1)+'</span><span class="ck5-t">'+esc(x.t||stegText(x))+'</span></button>'+(on&&pv?kvLanes(x,pv):'')+'</div>'}).join('');
+  hoger='<div class="ck5-r"><div class="ck5-rh"><b>Steg '+(i+1)+' av '+n+'</b></div><div class="ck5-sl'+dir+'">'+steg+'</div>'+nav+'</div>'}
+ const kropp=plan?'<div class="cook-body ck5-plan"><div class="ck5-pw">'+tp+'</div></div>':'<div class="cook-body">'+vanster+hoger+'</div>';
+ return'<div class="cook ck5'+(B?' ck5-b':'')+'"'+RF('M27')+' role="dialog" aria-modal="true" aria-label="Matlagningsläge">'+
+  '<div class="ck5-top"><button type="button" class="ck5-x" data-act="cookClose" aria-label="Stäng matlagningsläget">'+I.x+'</button><div class="ck5-h">'+esc(r.title)+'</div><div class="ck5-chips">'+chips+'</div>'+(B?'':segc('Visa','cookVy',[['steg','Steg'],['plan','Tidsplan']],plan?'plan':'steg'))+
+  '<div class="progress" aria-hidden="true">'+ST.map((_,k)=>'<i class="'+(k<=i?'on':'')+(grew&&k===i?' just':'')+'"></i>').join('')+'</div></div>'+kropp+'</div>'+
   (S.sheet==='tmr'?tmrSheet(A.cSh==='tmr'?'':' enter'):S.sheet==='tmrMenu'?tmMenu(A.cSh==='tmrMenu'?'':' enter'):'')}
 // Håll aktuellt steg i mitten av högerspalten
 function ck5Mitt(snabb){const l=document.querySelector('.ck5-sl'),c=l&&l.querySelector('.ck5-st.on');if(!c)return;const m=c.offsetTop-l.clientHeight/2+c.offsetHeight/2;l.scrollTo({top:Math.max(0,m),behavior:snabb||!MOTION?'auto':'smooth'})}
@@ -6250,6 +6255,7 @@ const ACT={
   if(wishes().some(x=>x.id===id))updJSON('onskelista',[],a=>a.filter(x=>x.id!==id));
   const onMenu=D().menu.some(m=>m.recipe===id&&m.date>=today());
   S.recipe=null;render();toast(onMenu?'Receptet föreslås inte igen. Det står kvar på veckans meny, tryck Byt där för att byta ut det.':'Receptet är borttaget och föreslås inte igen')},
+ cookVy(id){S.cook.vy=id;render()},
  cookBock(id,el){const b=S.cook.bock=S.cook.bock||{},j=el.dataset.i;b[j]=!b[j];render()},
  cookClose(){A.ck5i=null;S.cook=null;A.cookStep=null;wake();render()},
  timer(id,el){unlockAudio();const m=Number(el.dataset.min);S.timers.push({k:Math.random().toString(36).slice(2),label:el.dataset.label||'Timer',end:Date.now()+m*60000,ring:false,rid:id||'',si:el.dataset.i==null?-1:Number(el.dataset.i),dur:m*60000});tick();if(id)render();toast('Timer: '+m+' min')},
