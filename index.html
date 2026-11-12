@@ -3409,6 +3409,8 @@ html.ny.ui5 .dm-foot{text-align:center;padding-bottom:8px}
 html.ny.ui5 .rc-prisnot{padding:0 20px 10px;font-size:13px;line-height:18px;color:var(--ink-2)}
 html.ny.ui5 .rc-prisnot.bad{color:var(--obs)}
 html.ny.ui5 .bank .rc-price small{color:var(--obs)}
+/* UI 5.0 · Datumcirklar: proportionella siffror så att 1:an inte får tom plats till vänster och talet ser förskjutet ut i cirkeln (iPhone, SF Pro) */
+html.ny.ui5 :is(.wk-d .n,.cal-d .n,.cv-d .n){font-variant-numeric:proportional-nums}
 /* UI 5.0 · Kalender (granskning E): röda dagar (helger + svenska helgdagar, helgdag()) i accentfärgen; andra månaders dagar gråa */
 html.ny.ui5 .cal-d.we:not(.out):not(.today):not(.sel) .n{color:var(--ink)}
 html.ny.ui5 .cal-d.rod:not(.out):not(.today):not(.sel) .n{color:var(--accent)}
