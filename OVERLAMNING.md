@@ -2,6 +2,13 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Dammsugaren: rumsintervall och dockans kort (publicerad ht-v361, ångra-gren `version-fore-dammsug-docka`)
+- Ägare Claude, gren `claude/project-thread-ys6yn3`. Håll in ett rum (Rummen på dammsugarsidan, alla rum visas nu, eller rumsbrickan i Städ S12) → blad `robRum` (ACT `robRum`/`robRumValj`): −/+ dammsuga/moppa var n dagar (`haRumIv`), Stort rum, Städa rummet.
+- HA-genomgång 2026-11-12 (läst på Surfacen): dockan ger bara binära tankgivare (rent/smutsigt vatten), dockningsfel, tömningsläge, mopptorkning + tid kvar, silens tid kvar; ingen nivå för dammpåse eller robotens dammbehållare → Empty bin borttaget, procent för rent vatten är tjänstens uppskattning. Mopptorkningens tid kvar visas inte än (kräver tjänständring).
+- Dockan har eget kort på dammsugarsidan (`haDockHd` bild med tankar + roboten när den är hemma, status från `a.st`, rent vatten/smutsvatten, Empty bin/Wash mop/Auto-empty). Flyttat från Inställningar; `haTank` används inte längre där.
+- Rummen: rader med kapslar (Henrik valde A + gamla kapslarna), kapseln visar nästa gång (Idag/I morgon/n d). Tjänsten (ljussensor.py) ger `dockTork`, `dockTorkH` och `dockSil`; installerad på väggdatorn efter "Kör".
+- Test: `robot-rum-docka.js`, `robot-status.js`, `apparater.js`, `stad-dammsugare.js` (demo) och alla-flikar telefon+vägg gröna. Bilder /mnt/project-files/apparater/rum-och-docka/.
+
 ## Att göra-rutan: idag + imorgon (publicerad, ångra-gren `version-fore-att-gora-idag`)
 - Ö3/T8 och widgetläget: bara dagens och sena uppgifter (bockbara, kompakta rader) och Imorgon som en grå rad. Odaterade/senare bara under Alla N. Henrik: Översikt ska vara kompakt, inget vitt tomrum på väggen (T8 krymper till innehållet). Kod `upgDag`/`upgDagHtml`, CSS `.upg-*`.
 - Test `att-gora-idag.js` telefon/vägg, alla-flikar telefon+vägg gröna.
