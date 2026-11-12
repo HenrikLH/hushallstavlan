@@ -321,6 +321,14 @@ def ha_robot(c, alla, e):
     r['dockVarn'] = [en(e2, x) for e2, x in sorted(D.items()) if e2.startswith('binary_sensor.') and x.get('state') == 'on' and A(x).get('device_class') == 'problem']
     r['dockVarn'] += ['Dock error: ' + x['state'].replace('_', ' ') for e2, x in sorted(D.items()) if e2.startswith('sensor.') and A(x).get('device_class') == 'enum' and x.get('state') not in (None, 'ok', 'none', 'unknown', 'unavailable', 'no_error', 'idle')]
     r['dock'] = bool(D)
+    # mopptorkning (pågår + timmar kvar) och dockans sil (timmar kvar till byte, negativt = försenat)
+    tal = lambda x: ha_tal(x.get('state'))
+    tk = next((x for e2, x in sorted(D.items()) if e2.startswith('binary_sensor.') and re.search(r'tork|dry', e2)), None)
+    if tk and tk.get('state') in ('on', 'off'): r['dockTork'] = tk['state'] == 'on'
+    th = next((x for e2, x in sorted(D.items()) if e2.startswith('sensor.') and re.search(r'tork|dry', e2)), None)
+    if th and tal(th) is not None: r['dockTorkH'] = tal(th)
+    sil = next((x for e2, x in sorted(D.items()) if e2.startswith('sensor.') and re.search(r'sil|strainer', e2)), None)
+    if sil and tal(sil) is not None: r['dockSil'] = tal(sil)
     # dockans egen givare för rent vatten (tom = på); går den från tom till inte tom är tanken påfylld
     rv = [x for e2, x in sorted(D.items()) if e2.startswith('binary_sensor.') and re.search(r'rent|clean_water|water_shortage|vattenbrist', e2) and x.get('state') in ('on', 'off')]
     if rv: r['vbrist'] = any(x['state'] == 'on' for x in rv)
