@@ -3645,7 +3645,7 @@ body.wall :is(.hab .hab-sc,.hus-sc) .ha-st{gap:4px;padding:8px 4px;border-radius
 /* varningen sitter på ikonen så att apparatens namn får plats */
 .ha-g-v .ha-ap .ha-ap-v{position:absolute;top:8px;left:30px;width:20px;height:20px;font-size:13px;box-shadow:0 0 0 2px var(--surface)}
 .hus-ny>summary{list-style:none;cursor:pointer}.hus-ny>summary::-webkit-details-marker{display:none}.hus-ny .create-options button{justify-content:space-between}.hus-ny .create-options .grow{flex:1;text-align:left}
-/* Middag ikväll i UI 5.0: en rad per rätt med bild (48, hörn 12), titel 17/22, grå rad 13/18, ▶ för att börja laga */
+/* Middag ikväll i UI 5.0: en rad per rätt med bild (48, hörn 12), titel 17/22, grå rad 13/18, diskret grå ▶ för att börja laga */
 html.ny.ui5 .wm5{display:flex;align-items:center;gap:12px;min-height:64px}
 html.ny.ui5 .wm5+.wm5{border-top:.5px solid var(--line)}
 html.ny.ui5 .wm5-b{display:flex;align-items:center;gap:12px;flex:1;min-width:0;padding:8px 0;text-align:left;color:inherit;background:none;border:0;font:inherit}
@@ -3656,8 +3656,8 @@ html.ny.ui5 .wm5-m .chip{font-size:13px;padding:0;background:none;color:var(--in
 html.ny.ui5 .wm5-m>span+span::before{content:'·';margin-right:8px}
 html.ny.ui5 .wm5-m>span:last-child{overflow:hidden;text-overflow:ellipsis;min-width:0}
 html.ny.ui5 .wm5-m>span{flex:none}html.ny.ui5 .wm5-m>span:last-child{flex:0 1 auto}
-html.ny.ui5 .wm5-go{flex:none;width:44px;height:44px;border-radius:50%;border:0;background:var(--fill);color:var(--accent);display:flex;align-items:center;justify-content:center}
-html.ny.ui5 .wm5-go svg{width:17px;height:17px;margin-left:2px}
+html.ny.ui5 .wm5-go{flex:none;width:44px;height:44px;margin-right:-12px;border-radius:50%;border:0;background:none;color:var(--ink-3);display:flex;align-items:center;justify-content:center}
+html.ny.ui5 .wm5-go svg{width:13px;height:13px;margin-left:1px}
 html.ny.ui5 .wm5-go:active{transform:scale(.92)}
 html.ny.ui5 body.wall .wm5-go,body.wall html.ny.ui5 .wm5-go{width:48px;height:48px}
 /* Väggen: en ensam halv ruta (t.ex. Inköp när Födelsedagar saknas) tar hela spaltens bredd: siffran till vänster, texten bredvid, i stället för en tom yta bredvid */
