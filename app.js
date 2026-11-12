@@ -1834,12 +1834,11 @@ V.hus=function(){const D=haData(),R0=S.haRum;let h='<div class="rcp-top"><button
  return h+husAlla(D)};
 // Hela Smart hem utan rubrik: statusknappar, scener, apparater, högtalare, rum och givare (Smart hem-sidan och Hemmet)
 const haGivRader=(L,R0)=>L.length?'<div class="ha-rh">Givare</div>'+group(L.map(x=>'<div class="cell" data-hold-lift="haEdit" data-id="'+esc(x.id)+'"><span class="ha-i sm">'+HAI.temp+'</span><span class="grow">'+esc(x.n)+(x.rum&&R0==null?'<span class="meta"> · '+esc(x.rum)+'</span>':'')+'</span><span class="num">'+esc(haGiv(Object.assign({},x,{n:''})).trim())+'</span></div>').join('')):'';
-// Hemmets scener som rutans brickor, fyra i rad: egna scener (rutans fyra först), Home Assistants övriga, Släck allt och Ny scen sist
+// Hemmets scener som rutans brickor, fyra i rad: egna scener (rutans fyra först), Home Assistants övriga, och Släck allt (nya scener görs med plus)
 function husScener(D){const L=habScAlla(D),har=new Set(L.filter(Boolean).map(s=>s.ha)),av=L.some(s=>s&&s.av);
  const haT=s=>{const mk=(s.falt||[]).length,ig=mk&&haMedIgang(),on=mk?ig:HA.last===s.id,ik=s.id==='av'?'off':habIkNamn(s.n),n=mk?haHogNamn(ig):s.n,ny=haNy('sc:'+s.id,on);
   return'<button type="button" class="ha-st hab-st'+(on?' on':'')+(ny?ny+';'+habSt(ik).slice(8):'"'+habSt(ik))+' data-act="haScen" data-id="'+esc(s.id)+'"'+(s.id!=='av'?' data-hold-lift="haEdit"':'')+'><span class="ha-i">'+(mk?ig?HAI_SPK_AV:HAI_SPK:HAB_IK[ik])+'</span><span class="ha-n">'+esc(n)+'</span></button>'};
- return L.map((s,i)=>s?habScT(s,i,D):'').join('')+(D.scener||[]).filter(s=>!har.has(s.id)).map(haT).join('')+(av?'':haT({id:'av',n:'Släck allt'}))+
-  '<button type="button" class="ha-st hab-st hab-tom" data-act="habScNy"><span class="ha-i">'+I.plus+'</span><span class="ha-n">Ny scen</span></button>'}
+ return L.map((s,i)=>s?habScT(s,i,D):'').join('')+(D.scener||[]).filter(s=>!har.has(s.id)).map(haT).join('')+(av?'':haT({id:'av',n:'Släck allt'}))}
 // Mest ändrade enheter högst upp (den här enheten): varje egen ändring ger en poäng som halveras på 30 dagar. Scener räknas inte.
 const haAnvL=()=>{try{return JSON.parse(lsGet('haAnv')||'{}')||{}}catch(e){return{}}};
 const haAnvP=(o,id)=>{const v=o[id];return v?v[0]*Math.pow(.5,(Date.now()-v[1])/2592e6):0};

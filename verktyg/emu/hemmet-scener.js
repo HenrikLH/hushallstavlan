@@ -21,6 +21,7 @@ module.exports=async(pg,h)=>{
  await flik('oversikt');await h.idle(500);await flik('hemmet');await h.idle(800);
  const efter=await forst();console.log('rum efter',efter.join(', '),'ändrad lampa',namn);
  if(fore.length>1&&efter[0]===fore[0])fel('mest ändrade rummet kom inte först');
+ if(await pg.locator('#main .hus-sc .hab-tom').count())fel('tom plats för ny scen finns kvar');
  // plus: meny med Ny scen
  await pg.click('#main .hus-ny>summary');await h.idle(300);await h.shot('hemmet-plus');
  await pg.click('#main .hus-ny [data-act="habScNy"]');await h.idle(600);
@@ -29,7 +30,7 @@ module.exports=async(pg,h)=>{
  const nya=await pg.locator('#main .hus-sc .ha-st').allInnerTexts();console.log('scener nu',nya.map(s=>s.trim()).join(', '));
  if(!nya.some(s=>s.includes(wall?'Scen 5':'Läsa')))fel('nya scenen syns inte');
  // fyll rutans platser och lägg till en scen till: den ska hamna efter de fyra
- for(let i=0;i<3;i++){await pg.click('#main .hus-sc [data-act="habScNy"]');await h.idle(500);if(!wall)await pg.fill('#overlay input[name="habn"]','Extra '+i);await pg.click('#overlay button[type="submit"]');await h.idle(700)}
+ for(let i=0;i<3;i++){await pg.click('#main .hus-ny>summary');await h.idle(300);await pg.click('#main .hus-ny [data-act="habScNy"]');await h.idle(500);if(!wall)await pg.fill('#overlay input[name="habn"]','Extra '+i);await pg.click('#overlay button[type="submit"]');await h.idle(700)}
  const alla=await pg.locator('#main .hus-sc .ha-st').allInnerTexts();console.log('alla',alla.map(s=>s.trim()).join(', '));
  if(!alla.some(s=>s.includes(wall?'Scen 8':'Extra 2')))fel('scen nummer fem+ syns inte i Hemmet');
  await pg.evaluate(()=>scrollTo(0,0));await h.shot('hemmet-scener');
