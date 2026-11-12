@@ -51,7 +51,7 @@ module.exports=async(pg,h)=>{
   L=await logg();assert.ok(L.filter(x=>x[2].option==='deep').length>=2,'Rutten sätts igen när moppningen börjar');
   await pg.waitForFunction(()=>document.querySelector('main .ha-fs.nu.mopp'),null,{timeout:20000});
   await hemma();
-  await pg.waitForFunction(k=>{const b=document.querySelector('main [data-act="haAppSida"][data-id="hist"] b');return b&&b.textContent.startsWith(k)},'Klar',{timeout:60000});await pg.locator('main [data-act="haAppSida"][data-id="hist"]').click();await h.idle(600);await h.shot('apparater-plan-klar');await pg.locator('main .ha-bak').click();await h.idle(500);
+  await pg.waitForFunction(k=>{const b=document.querySelector('main .ha-fk .ha-fkh b');return b&&b.textContent.includes(k)},'klar',{timeout:60000});await pg.evaluate(()=>window.__d('S.haFlUt||ACT.haFlUt()'));await h.idle(900);await h.shot('apparater-plan-klar');
   L=await logg();assert.equal(L.filter(x=>x[2].option).pop()[2].option,'vacuum','Läget tillbaka till dammsugning')}
  else{assert.ok(await pg.locator('main .ha-fs.nu.damm').count(),'Planen syns');
   await pg.evaluate(()=>window.__d('(()=>{const a=haAppX();a.plan.klara[0]=a.plan.steg[0].rum.slice();a.plan.i=1;a.plan.nu=a.plan.steg[1].rum[0];a.pct=55;render()})()'));await h.idle(400);await h.shot('apparater-plan');
@@ -62,7 +62,7 @@ module.exports=async(pg,h)=>{
  await pg.locator('main [data-act="haAppDel"][data-id="sug"]').click();await h.idle(400);
  await h.shot('apparater-robot-nedre');
  await pg.locator('main [data-act="haAppSida"][data-id=""]').first().click();await h.idle(500);
- assert.match(await pg.locator('main .ha-dock').innerText(),/Dockan[\s\S]*Smutsvatten[\s\S]*Wash mop/,'Dockans kort med knappar finns på dammsugarsidan');
+ assert.match(await pg.locator('main .ha-dkk').innerText(),/Dockan[\s\S]*Smutsvatten[\s\S]*Tvätta/,'Dockans kort med knappar finns på dammsugarsidan');await pg.locator('main .ha-kortr').evaluate(e=>e.scrollTo({left:e.clientWidth+12}));await h.idle(700);
  assert.doesNotMatch(await pg.locator('main').innerHTML(),/Vacuum &amp; Mop<\/span>/,'Vacuum & Mop går inte att välja');
  await pg.locator('main [data-act="haDock"][data-id="tvatt"]').evaluate(e=>e.scrollIntoView({block:'center'}));await pg.locator('main [data-act="haDock"][data-id="tvatt"]').click();await h.idle(500);
  if(!demo)assert.ok(ut.some(u=>/"gor":"tvatt"/.test(u)),'Mopptvätt skickad');

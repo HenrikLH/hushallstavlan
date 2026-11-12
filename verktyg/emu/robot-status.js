@@ -9,7 +9,7 @@ module.exports=async(pg,h)=>{
  const st=pg.locator('main .ha-rst');await st.waitFor({timeout:5000});
  assert.match(await st.innerText(),/att dammsuga/,'Sammanfattning av rum som är dags');
  assert.ok(await st.locator('.rs-k.dags').count()>0,'Rum som är försenade markeras');
- assert.match(await pg.locator('main .ha-dock').innerText(),/Rent vatten\s*OK · ≈ 42 % kvar/,'Tanken visas');
+ assert.match(await pg.locator('main .ha-dkk').innerText(),/Rent vatten\s*≈ 42 %/,'Tanken visas');
  await st.scrollIntoViewIfNeeded();await pg.evaluate(()=>scrollBy(0,140));await h.idle(300);await h.shot('robot-status');
  await pg.evaluate(()=>scrollTo(0,document.body.scrollHeight));await h.idle(300);await h.shot('robot-tank');
  await pg.locator('main [data-act="haRobDags"]').click();await h.idle(500);
@@ -26,7 +26,7 @@ module.exports=async(pg,h)=>{
  assert.equal(await pg.locator('main [data-act="haTankFylld"]').count(),0,'Ingen Påfylld-knapp när dockan själv vet om tanken är tom');
  await pg.evaluate(()=>window.__d('(()=>{const a=haAppX();a.tank.brist=null;render()})()'));await h.idle(300);
  await pg.locator('main [data-act="haTankFylld"]').click();await h.idle(400);
- assert.match(await pg.locator('main .ha-dock').innerText(),/100 %/,'Påfylld nollställer tanken');
+ assert.match(await pg.locator('main .ha-dkk').innerText(),/100 %/,'Påfylld nollställer tanken');
  await pg.locator('main [data-act="haAppSida"][data-id="inst"]').last().click();await h.idle(500);
  await pg.locator('main [data-act="haAppDel"][data-id="rum"]').click();await h.idle(400);
  const id=await pg.locator('main [data-act="haRumNamn"]').first().getAttribute('data-id');

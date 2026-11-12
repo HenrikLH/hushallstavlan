@@ -446,6 +446,8 @@ def ha_app_styr(c, d):
         elif g == 'paus': tj('vacuum', 'pause', {'entity_id': e})
         elif g in ('tom', 'tvatt', 'tvattstopp'):
             tj('vacuum', 'send_command', {'entity_id': e, 'command': {'tom': 'app_start_collect_dust', 'tvatt': 'app_start_wash', 'tvattstopp': 'app_stop_wash'}[g]})
+        elif g in ('tork', 'torkstopp'):   # mopptorkning i dockan (Roborocks app_set_dryer_status, overifierat via HA)
+            tj('vacuum', 'send_command', {'entity_id': e, 'command': 'app_set_dryer_status', 'params': {'status': 1 if g == 'tork' else 0}})
         elif d.get('zon'):
             # zonen kommer i kartbildens pixlar; räknas om till robotens koordinater med samma kalibrering som rummen
             k = ha_karta_info(alla, e.split('.', 1)[1]); cal = (k.get('attributes') or {}).get('calibration_points') if k else None

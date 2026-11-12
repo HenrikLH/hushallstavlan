@@ -882,6 +882,7 @@ function doRender(){if(motionDrag||sheetDrag||bladDrag){pendingRender=true;retur
  else{const kv=keepFxFore(m);m.replaceChildren(ny.cloneNode(true));keepFxEfter(m,kv)}
  m.__fresh=ny;m.__src=src;m.__vy=vy;addLayout(m);if(U5)u5More(m);
  {const w=m.querySelector('.wk-sw');if(w&&S.wkX){w.scrollLeft=S.wkX;wkMonth(w)}}
+ {const w=m.querySelector('.ha-kortr');if(w&&S.haSwX&&Math.round(w.scrollLeft/(w.clientWidth+12))!==S.haSwX)w.scrollLeft=S.haSwX*(w.clientWidth+12)}
  {const w=m.querySelector('.wxC-sc');if(w)w.scrollLeft=S.wxX!=null?S.wxX:WXC_NP*WXC_SW}
  placeSky();skyFit();fitBoard();gpuLager();loopSync();
  watchTitle();plPin();wsPin();vvFix();
@@ -1673,6 +1674,29 @@ function haTank(a){const t=a.tank;if(!t)return'';const p=t.brist?0:Math.max(0,Ma
  return'<div class="ha-gl ha-tank"><div class="ha-tk '+c+'" style="--q:'+(p/100)+'"><i></i></div><div class="ha-tt"><b>'+(t.brist?'Tanken är tom':'Rent vatten ≈ '+p+' %')+'</b><span>'+(t.brist?'Fyll på tanken i dockan':gg!=null?'Räcker ca '+gg+' moppning'+(gg===1?'':'ar')+' till':'Räcker ca '+Math.round(kvar)+' m² till')+'</span><small>'+Math.round(t.m2||0)+' m² moppat'+(t.fylld?' sedan '+new Date(t.fylld*1e3).toLocaleDateString('sv-SE',{day:'numeric',month:'short'}):'')+(t.lart?'':' · uppskattat')+'</small></div>'+(t.brist==null?'<button type="button" data-act="haTankFylld">Påfylld</button>':'')+'</div>'}
 const HA_RUMNAMN=['Kök','Vardagsrum','Sovrum','Hall','Badrum','Kontor','Barnrum','Matplats','Klädkammare','Tvättstuga','Arbetsrum','Gästrum'];
 // Dockans bild: tankar (rent vatten blått, smutsvatten grått/orange) och roboten i dockan när den är hemma
+// svepbara kort (karta, docka) med sidprickar; läget sparas i S.haSwX så att omritning inte hoppar tillbaka
+function haSvep(K,namn){const n=Math.min(K.length-1,Math.max(0,S.haSwX|0));return'<div class="ha-kort"><div class="ha-kortr" aria-label="Kort">'+K.map((k,i)=>'<div class="ha-kortk" aria-label="'+esc(namn[i])+'">'+k+'</div>').join('')+'</div><div class="ha-kortd" aria-hidden="true">'+K.map((k,i)=>'<i'+(i===n?' class="on"':'')+'></i>').join('')+'</div></div>'}
+// dockans kort: genomskuren docka med rent vatten och smutsvatten (uppskattat), status och dockans kommandon
+function haDockKort(a){const dv=a.dockVarn||[],t=a.tank,st=a.st||'';
+ const smuts=dv.some(v=>/dirty/i.test(v)),tom=t&&t.brist!=null?!!t.brist:dv.some(v=>/clean water/i.test(v)),fel=dv.filter(v=>!/dirty|clean water/i.test(v));
+ const p=t?(tom?0:Math.max(0,Math.min(100,Math.round(t.pct||0)))):tom?0:null,q=p==null?null:p,d=smuts?100:q==null?null:Math.max(5,Math.min(95,100-q));
+ const hemma=/charging|docked|emptying|washing|drying|idle|paused/.test(st)&&!haStadar(a)&&!/returning|docking/.test(st),tork=a.dockTork||/drying/.test(st)&&!/stopping/.test(st),tv=/wash/.test(st),tm=/emptying/.test(st);
+ const txt=tm?'Tömmer dammbehållaren':tv?'Tvättar moppen':tork?'Torkar moppen'+(a.dockTorkH>0?' · '+(a.dockTorkH<1?Math.max(1,Math.round(a.dockTorkH*60))+' min':String(Math.round(a.dockTorkH*10)/10).replace('.',',')+' h')+' kvar':''):haStadar(a)?'Roboten städar':/returning|docking/.test(st)?'Roboten åker hem':st==='charging_complete'?'Roboten är laddad':st==='charging'?'Laddar roboten'+(a.bat!=null?' · '+Math.round(a.bat)+' %':''):'Roboten är hemma';
+ const v=[tom&&'Fyll på rent vatten',smuts&&'Töm smutsvattnet',a.dockSil!=null&&a.dockSil<=0&&'Rengör silen',...fel.map(x=>x.replace(/^Dock error: /,''))].filter(Boolean);
+ // tank: vattnet ritas som en yta som skalas i höjd (transform), så att nivån kan glida vid ändring
+ const tank=(x,id,niva,c)=>'<clipPath id="'+id+'"><rect x="'+x+'" y="20" width="52" height="64" rx="9"/></clipPath><rect x="'+x+'" y="20" width="52" height="64" rx="9" class="dk-t"/><g clip-path="url(#'+id+')"><rect x="'+x+'" y="20" width="52" height="64" class="'+c+' dkk-v" style="transform:scaleY('+((niva==null?50:niva)/100)+')"/></g><rect x="'+x+'" y="20" width="52" height="64" rx="9" class="dk-tk"/><rect x="'+(x+16)+'" y="13" width="20" height="7" rx="3" class="dk-lk"/>';
+ const ill='<svg class="dkk-ill'+(tm||tv||tork?' akt':'')+'" viewBox="0 0 200 176" aria-hidden="true"><rect x="34" y="6" width="132" height="146" rx="16" class="dk-k"/>'+
+  tank(42,'dkk-c1',q,'dk-rv'+(tom||q!=null&&q<15?' lag':''))+tank(106,'dkk-c2',d,'dk-sv'+(smuts?' full':''))+'<path d="M34 94h132" class="dk-ln"/>'+
+  '<rect x="60" y="102" width="80" height="34" rx="8" class="dk-t"/><path d="M70 112h60M70 119h60M70 126h40" class="dk-ln dkk-pase"/>'+
+  '<path d="M10 172 24 152h152l14 20z" class="dk-b"/>'+(hemma?'<rect x="84" y="140" width="32" height="10" rx="4" class="dk-r"/><rect x="40" y="150" width="120" height="20" rx="10" class="dk-r"/><path d="M60 160h80" class="dk-rl"/>':'')+'</svg>';
+ const niv=(n,x,c,ex)=>'<div class="dkk-n"><i class="'+c+'"></i><span>'+n+'</span><b>'+(x==null?'–':x)+'</b>'+(ex||'')+'</div>';
+ const kn=(id,ikon,n,on,stop)=>'<button type="button" class="dkk-b'+(on?' on':'')+'" data-act="haDock" data-id="'+(on&&stop?stop:id)+'">'+ikon+'<span>'+(on&&stop?'Stoppa':n)+'</span></button>';
+ return'<div class="ha-dkk"><div class="dkk-top">'+ill+'<div class="dkk-t"><b>Dockan</b><span>'+esc(txt)+'</span>'+(v.length?'<small class="fyll">'+esc(v.join(' · '))+'</small>':'<small>Allt ser bra ut</small>')+'</div></div>'+
+  '<div class="dkk-ns">'+niv('Rent vatten',tom?'Tom':q!=null?'≈ '+q+' %':null,'rv'+(tom||q!=null&&q<15?' lag':''),t&&t.brist==null?'<button type="button" class="ha-pill" data-act="haTankFylld">Påfylld</button>':'')+niv('Smutsvatten',smuts?'Full':d!=null?'≈ '+d+' %':null,'sv'+(smuts?' full':''))+'</div>'+
+  '<div class="dkk-k">'+kn('tom',HAI_DK.tom,'Töm',tm)+kn('tvatt',HAI_DK.tvatt,'Tvätta',tv,'tvattstopp')+kn('tork',HAI_DK.tork,'Torka',tork,'torkstopp')+'</div></div>'}
+const HAI_DK={tom:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l-1.3 11.2a2 2 0 0 1-2 1.8H8.3a2 2 0 0 1-2-1.8z"/><path d="M4 8h16M9 5h6"/><path d="M12 11v6M9.5 14.5 12 17l2.5-2.5"/></svg>',
+ tvatt:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5c3 3.6 5.5 6.6 5.5 9.8a5.5 5.5 0 0 1-11 0c0-3.2 2.5-6.2 5.5-9.8z"/><path d="M9.5 14a2.6 2.6 0 0 0 2.5 2.5"/></svg>',
+ tork:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4c-1.5 1.6 1.5 3.4 0 5s1.5 3.4 0 5M12 4c-1.5 1.6 1.5 3.4 0 5s1.5 3.4 0 5M16 4c-1.5 1.6 1.5 3.4 0 5s1.5 3.4 0 5"/><path d="M5 19h14"/></svg>'};
 function haDockHd(a,p,smuts,tom,fel){const st=a.st||'',hemma=/charging|docked|emptying|washing|drying|idle|paused/.test(st)&&!haStadar(a)&&!/returning|docking/.test(st),q=p==null?60:p,ys=60-34*q/100;
  const tork=a.dockTork||/drying/.test(st)&&!/stopping/.test(st),txt=/emptying/.test(st)?'Tömmer dammbehållaren':/wash/.test(st)?'Tvättar moppen':tork?'Torkar moppen'+(a.dockTorkH>0?' · '+(a.dockTorkH<1?Math.max(1,Math.round(a.dockTorkH*60))+' min':String(Math.round(a.dockTorkH*10)/10).replace('.',',')+' h')+' kvar':''):haStadar(a)?'Roboten städar':/returning|docking/.test(st)?'Roboten åker hem':st==='charging_complete'?'Roboten är laddad':st==='charging'?'Laddar roboten'+(a.bat!=null?' · '+Math.round(a.bat)+' %':''):'Roboten är hemma';
  const v=[tom&&'Fyll på rent vatten',smuts&&'Töm smutsvattnet',fel.length&&'Dockan behöver hjälp'].filter(Boolean),akt=/emptying|wash|drying/.test(st)||!!a.dockTork;
@@ -1697,17 +1721,12 @@ function haAppKropp(a,sida){
   if(S.haAppSida==='inst'){b+='<button type="button" class="ha-bak" data-act="haAppSida" data-id="">'+I.back+'<span>Tillbaka</span></button>';
   b+='<div class="ha-gl">'+rad('lage','Mode',a.lage==='vac_and_mop'?'Vacuum & Mop':namn(LAGE,a.lage),val('lage',LAGE,a.lage)+(a.lage==='custom'?'<div class="ha-gnot">Custom = the per-room settings in the Roborock app.</div>':''))+
    (a.lage!=='mop'?rad('sug','Suction',namn(SUG,a.sug),val('sug',SUG,a.sug)):'')+(a.lage!=='vacuum'?rad('vatten','Water flow',namn(VAT.filter(x=>x[1]),a.vatten)==='–'&&/custom/.test(a.vatten||'')?'Custom':namn(VAT.filter(x=>x[1]),a.vatten),val('vatten',VAT.filter(x=>x[1]),a.vatten)):'')+((a.ruttAlt||[]).length?rad('rutt','Mop route',namn(RUT,a.rutt),val('rutt',RUT,a.rutt)):'')+'</div>';
+  {const DL=(a.dockLageAlt||[]).filter(o=>o!=='unknown').map(o=>[o,{smart:'Smart',light:'Light',balanced:'Balanced',max:'Max'}[o]||o]);if(DL.length)b+='<div class="ha-gl">'+rad('dockLage','Auto-empty',namn(DL,a.dockLage),val('dockLage',DL,a.dockLage))+'</div>'}
   b+='<div class="ha-gl">'+((a.rutiner||[]).length?rad('rut','Routines',a.rutiner.length+'','<div class="ha-gnot">From the Roborock app.</div>'+a.rutiner.map(r=>'<button type="button" class="ha-gv" data-act="haRutin" data-id="'+esc(r.id)+'"><span>'+esc(r.n)+'</span><i>'+HAI_APP.play+'</i></button>').join('')):'')+
    rad('rum','Rooms',R.some(r=>!r.n)?'Name them':R.length+'',R.map(r=>'<button type="button" class="ha-gv'+(S.haRumNamn===r.id?' ut':'')+'" data-act="haRumNamn" data-id="'+r.id+'"><span>'+esc(haRumN(a,r))+(r.stor?'<small>Töm efteråt</small>':'')+'</span><i>'+I.chev+'</i></button>'+(S.haRumNamn===r.id?'<div class="ha-namnval">'+HA_RUMNAMN.map(n=>'<button type="button" class="'+(r.n===n?'on':'')+'" data-act="haRumNamnV" data-id="'+r.id+':'+n+'">'+n+'</button>').join('')+'</div><button type="button" class="ha-gv ha-stor" data-act="haRumStor" data-id="'+r.id+'" aria-pressed="'+!!r.stor+'"><span>Töm efter rummet</span>'+(r.stor?'<i>'+I.tick+'</i>':'')+'</button>'+[['v','Dammsuga var'],['m','Moppa var']].map(([x,t])=>{const v=r['i'+x]||0;return'<div class="ha-gv ha-iv"><span>'+t+'</span><button type="button" data-act="haRumIv" data-id="'+r.id+':'+x+':-1" aria-label="Färre dagar"'+(v?'':' disabled')+'>−</button><b>'+(v?v+' d':'Av')+'</b><button type="button" data-act="haRumIv" data-id="'+r.id+':'+x+':1" aria-label="Fler dagar"'+(v>=60?' disabled':'')+'>+</button></div>'}).join(''):'')).join(''),R.some(r=>!r.n))+
    (U.length?rad('und','Maintenance',Ux.length?Ux.length+' need attention':'All good',U.map(u=>'<div class="ha-und-r"><span>'+u.n+'</span><i style="--p:'+Math.max(0,Math.min(100,Math.round(100*u.h/u.max)))+'%"'+(u.h/u.max<.15?' class="lag"':'')+'></i><b'+(u.h<=0?' class="fyll"':'')+'>'+(u.h<=0?u.gor+' now':Math.round(u.h)+' h')+'</b></div>').join(''),Ux.length):'')+'</div>';
-  }else if(S.haAppSida==='hist'){b+='<button type="button" class="ha-bak" data-act="haAppSida" data-id="">'+I.back+'<span>Tillbaka</span></button>';
-   // historik: senaste körningens tidslinje och när varje rum senast städades (det som används mest ligger på huvudsidan)
-   const sen=(r,x)=>{const t=r['s'+x];return t?haDgr((Date.now()/1e3-t)/86400):'Aldrig'};
-   b+='<div class="ha-sh">Senaste körningen</div>'+(pl&&!kor?haFlode(a,pl):'<div class="ha-gl"><div class="ha-gr"><span>'+(kor?'Pågår nu, syns på dammsugarens sida':'Ingen körning sparad')+'</span></div></div>');
-   const RS=R.slice().sort((x,y)=>Math.max(y.sv||0,y.sm||0)-Math.max(x.sv||0,x.sm||0));
-   if(RS.length)b+='<div class="ha-sh">Rummen</div><div class="ha-gl">'+RS.map(r=>'<div class="ha-gr ha-hr"><span>'+esc(haRumN(a,r))+'</span><b>Dammsugat '+sen(r,'v').toLowerCase()+' · moppat '+sen(r,'m').toLowerCase()+'</b></div>').join('')+'</div>';
   }else{
-  if(!sida)b+=haKarta(a);
+  if(!sida)b+=a.dock&&!S.haZon?haSvep([haKarta(a),haDockKort(a)],['Karta','Dockan']):haKarta(a);
   // lager: välj Vacuum eller Mop och tryck på rummen i kartan; rutten under visar ordningen innan start
   if(S.haZon)b+='<div class="ha-valt"><span>'+(S.haZonR?'Zon ritad':'Dra i kartan för att rita en zon')+'</span><button type="button" data-act="haZon">Avbryt</button></div>';
   else if(!kor&&!st){b+='<div class="ha-lag">'+[['v','damm','Vacuum',P.damm.length],['m','mopp','Mop',P.mopp.length]].map(([k,c,n,ant])=>'<button type="button" class="'+c+(lag===k?' on':'')+'" data-act="haLager" data-id="'+k+'" aria-pressed="'+(lag===k)+'">'+HAI_K[c]+'<span>'+n+'</span>'+(ant?'<b>'+ant+'</b>':'')+'</button>').join('')+'</div>';
@@ -1716,20 +1735,12 @@ function haAppKropp(a,sida){
    b+=lag==='m'?snabb('rutt','Route',RUT,a.rutt)+snabb('vatten','Water',VAT,a.vatten):snabb('sug','Suction',SUG,a.sug);
    if(P.steg.length)b+=haFlode(a,{steg:P.steg,i:-1,klara:[],x:P.x,xm:P.xm,rm:P.rm},true)}
   if(kor&&!S.haZon)b+=haFlode(a,pl);
+  // färdig eller avbruten körning: hopfälld rad, fälls ut med tidslinjen
+  else if(pl&&!S.haZon&&!V.length){const ut=S.haFlFran!=null?S.haFlFran:!!S.haFlUt,kl=typeof pl.klar==='number'?new Date(pl.klar*1e3).toTimeString().slice(0,5):'',n=[...new Set(pl.steg.flatMap(s=>s.rum))].length;
+   b+='<div class="ha-fk'+(ut?' ut':'')+(pl.avbr?' avbr':'')+(MOTION?' an':'')+'"><button type="button" class="ha-fkh" data-act="haFlUt" aria-expanded="'+ut+'"><i class="ha-fki">'+(pl.avbr?'!':I.tick)+'</i><span><b>'+(pl.avbr?'Städningen avbröts':'Städningen är klar')+'</b><small>'+[kl,n+(n===1?' rum':' rum')].filter(Boolean).join(' · ')+'</small></span><i class="ha-fkc">'+I.chev+'</i></button><div class="ha-fkb"><div>'+haFlode(a,pl)+'</div></div></div>'}
   if(!S.haZon&&!V.length)b+=haRumStatus(a);
-  // dockan: egen bild med status, vattentankarna och dockans val (flyttat från Inställningar)
-  if(a.dock&&!S.haZon){const DL=(a.dockLageAlt||[]).filter(o=>o!=='unknown').map(o=>[o,{smart:'Smart',light:'Light',balanced:'Balanced',max:'Max'}[o]||o]),dv=a.dockVarn||[],t=a.tank;
-   const smuts=dv.some(v=>/dirty/i.test(v)),tom=t&&t.brist!=null?!!t.brist:dv.some(v=>/clean water/i.test(v)),fel=dv.filter(v=>!/dirty|clean water/i.test(v)),p=t?(tom?0:Math.max(0,Math.min(100,Math.round(t.pct||0)))):tom?0:null;
-   const kvar=t?Math.max(0,(t.kap||0)-(t.m2||0)):0,gg=t&&t.senast>3?Math.floor(kvar/t.senast):null;
-   b+='<div class="ha-gl ha-dock">'+haDockHd(a,p,smuts,tom,fel)+
-    '<div class="ha-gr ha-dk-r"><span>Rent vatten</span><b'+(tom||p!=null&&p<15?' class="fyll"':'')+'>'+(tom?'Tom, fyll på':p!=null?'OK · ≈ '+p+' % kvar':'OK')+'</b>'+(t&&t.brist==null?'<button type="button" class="ha-pill" data-act="haTankFylld">Påfylld</button>':'')+'</div>'+
-    '<div class="ha-gr ha-dk-r"><span>Smutsvatten</span><b'+(smuts?' class="fyll"':'')+'>'+(smuts?'Fullt, töm':'OK')+'</b></div>'+
-    fel.map(v=>'<div class="ha-gr ha-dk-r"><span>Fel</span><b class="fyll">'+esc(v.replace(/^Dock error: /,''))+'</b></div>').join('')+
-    (a.dockSil!=null?'<div class="ha-gr ha-dk-r"><span>Silen</span><b'+(a.dockSil<=0?' class="fyll"':'')+'>'+(a.dockSil<=0?'Rengör nu':Math.round(a.dockSil)+' h kvar')+'</b></div>':'')+'<button type="button" class="ha-gr" data-act="haDock" data-id="tvatt"><span>Wash mop</span><b class="gor">Wash now</b></button>'+
-    (DL.length?rad('dockLage','Auto-empty',namn(DL,a.dockLage),val('dockLage',DL,a.dockLage)):'')+'<div class="ha-rst-f">Dockan säger bara om tankarna är tomma eller fulla. Procenten räknas fram från hur mycket som moppats sedan påfyllning.</div></div>'}
   const varn=Ux.length?[Ux.length+' need attention']:[];
   b+='<div class="ha-gl">'+(varn.length?'<button type="button" class="ha-gr" data-act="haAppSida" data-id="inst"><span>'+esc(varn[0])+(varn.length>1?' +'+(varn.length-1):'')+'</span><b class="fyll">Visa</b><i>'+I.chev+'</i></button>':'')+
-   '<button type="button" class="ha-gr" data-act="haAppSida" data-id="hist"><span>Historik</span><b>'+(pl&&!kor?(pl.avbr?'Avbruten':'Klar')+(typeof pl.klar==='number'?' '+new Date(pl.klar*1e3).toTimeString().slice(0,5):''):'')+'</b><i>'+I.chev+'</i></button>'+
    '<button type="button" class="ha-gr" data-act="haAppSida" data-id="inst"><span>Inställningar</span><b>'+[a.lage!=='mop'&&namn(SUG,a.sug)].filter(x=>x&&x!=='–').join(' · ')+'</b><i>'+I.chev+'</i></button></div>';
   b+='<div class="ha-ap-info">'+(st&&(a.yta!=null||a.min!=null)?[a.yta!=null&&String(a.yta).replace('.',',')+' m²',a.min!=null&&Math.round(a.min)+' min',a.bat!=null&&'batteri '+Math.round(a.bat)+' %'].filter(Boolean).join(' · '):a.senast?'Senast städat '+haNar(a.senast).toLowerCase():'')+'</div>';
   // fast rad längst ner: en stor knapp för det som går att göra nu, och Åk hem
@@ -1752,7 +1763,7 @@ function haAppSheet(enter){const a=haAppX();if(!a){S.sheet=null;return''}
 const haRobot=()=>haApps().find(x=>x.typ==='robot'&&x.id===S.haAppId)||haApps().find(x=>x.typ==='robot');
 V.robot=function(){const a=haRobot(),fr=S.robFran==='stad';let h='<div class="rcp-top"><button class="back" data-act="nav" data-id="'+(fr?'stad':'hemmet')+'">'+I.back+(fr?'Att göra':'Hemmet')+'</button></div>';
  if(!a)return h+'<div class="banner">Dammsugaren svarar inte just nu.</div>';S.haAppId=a.id;
- return h+'<div class="rob-vy'+(S.haAppSida==='inst'?' inst':'')+'"><div class="rob-hd"><span class="ha-i ha-ap-robot'+(haAppAktiv(a)?' on':'')+'">'+HAI_APP.robot+'</span><div><h1>'+esc(a.n)+'</h1><p>'+esc(haAppStat(a))+'</p></div></div><div class="rob-k">'+haKarta(a)+'</div><div class="rob-r">'+haAppKropp(a,true)+'</div></div>'};
+ return h+'<div class="rob-vy'+(S.haAppSida==='inst'?' inst':'')+'"><div class="rob-hd"><span class="ha-i ha-ap-robot'+(haAppAktiv(a)?' on':'')+'">'+HAI_APP.robot+'</span><div><h1>'+esc(a.n)+'</h1><p>'+esc(haAppStat(a))+'</p></div></div><div class="rob-k">'+(a.dock&&!S.haZon&&S.haAppSida!=='inst'?haSvep([haKarta(a),haDockKort(a)],['Karta','Dockan']):haKarta(a))+'</div><div class="rob-r">'+haAppKropp(a,true)+'</div></div>'};
 // Ändra en enhet utan tangentbord: namn och rum väljs bland förslag, Ta bort kräver håll in
 const HA_RUM=['Kök','Vardagsrum','Sovrum','Hall','Badrum','Kontor','Barnrum','Ute'];
 const HA_NAMN={light:['Taklampa','Golvlampa','Bordslampa','Vägglampa','Fönsterlampa','Spotlights','Lampslinga','Vitrinskåp'],switch:['Uttag','Fönsterlampa','Lampslinga','Fläkt','Kaffebryggare'],fan:['Fläkt','Golvfläkt','Takfläkt']};
@@ -5939,7 +5950,7 @@ const ACT={
  haZon(){S.haZon=!S.haZon;S.haZonR=null;S.haRobRum=[];S.haAppDel=null;render()},
  haZonStada(){const a=haAppX();if(!a||!S.haZonR)return;const z=S.haZonR.slice(),was=a.st;a.st='zoned_cleaning';S.haZon=false;S.haZonR=null;render();toast('Städar zonen');haSend({app:a.id,zon:[Math.min(z[0],z[2]),Math.min(z[1],z[3]),Math.max(z[0],z[2]),Math.max(z[1],z[3])]},()=>{a.st=was})},
  haRot(){const a=haAppX();if(!a||!(a.rotAlt||[]).length)return;const L=a.rotAlt,n=L[(L.indexOf(a.rot)+1)%L.length],was=a.rot;a.rot=n;HA.km=null;render();haSend({app:a.id,rot:n},()=>{a.rot=was})},
- haDock(g){const a=haAppX();if(!a)return;toast(g==='tom'?'Tömmer dammbehållaren':'Tvättar moppen');haSend({app:a.id,gor:g},()=>{})},
+ haDock(g){const a=haAppX();if(!a)return;toast({tom:'Tömmer dammbehållaren',tvatt:'Tvättar moppen',tvattstopp:'Tvätten stoppas',tork:'Torkar moppen',torkstopp:'Torkningen stoppas'}[g]||'Skickat');haSend({app:a.id,gor:g},()=>{})},
  haAppDel(k){S.haAppDel=S.haAppDel===k?null:k;S.haRumNamn=null;render()},
  haRumIv(id){const[r0,x,d]=String(id).split(':'),a=haAppX();if(!a)return;const r=(a.rum||[]).find(q=>q.id===+r0);if(!r)return;const was=r['i'+x]||0,v=Math.max(0,Math.min(60,was+(+d)));if(v===was)return;
   clearTimeout(S.haIvT);r['i'+x]=v;render();S.haIvT=setTimeout(()=>haValj({rumnr:r.id,rumnamn:r.n||'',intervall:{v:r.iv||0,m:r.im||0}},()=>{}),700)},
@@ -5949,6 +5960,7 @@ const ACT={
  haRumNamnV(v){const a=haAppX();if(!a)return;const i=v.indexOf(':'),nr=+v.slice(0,i),n=v.slice(i+1),r=(a.rum||[]).find(x=>x.id===nr);if(!r)return;S.haRumNamn=null;haValj({rumnr:nr,rumnamn:n},()=>{r.n=n})},
  haRob(g){const a=haAppX();if(!a)return;const P=haRobPlan(a),rum=P.steg.length?P.steg[0].rum:[],was=[a.st,a.plan];a.st=g==='start'?(rum.length?'segment_cleaning':'cleaning'):g==='paus'?'paused':'returning_home';if(g==='start'&&a.pct==null)a.pct=0;
   if(g==='start'&&rum.length){const st=P.steg;a.plan={steg:st,i:0,klara:st.map(()=>[]),nu:null,x:P.x};a.lage=P.damm.length?'vacuum':'mop';S.haRobRum=[];S.haRobV={};S.haRobX={};S.haRobXm={}}if(g==='hem'&&a.plan&&!a.plan.klar){a.plan.steg=a.plan.steg.slice(0,a.plan.i);a.plan.klar=true}render();haSend(g==='start'&&rum.length?{app:a.id,gor:g,rum,damm:P.damm,mopp:P.mopp,x:P.x,xm:P.xm,rm:P.rm}:{app:a.id,gor:g,rum},()=>{[a.st,a.plan]=was})},
+ haFlUt(){S.haFlFran=!!S.haFlUt;S.haFlUt=!S.haFlUt;render();requestAnimationFrame(()=>requestAnimationFrame(()=>{S.haFlFran=null;document.querySelectorAll('.ha-fk').forEach(e=>{e.classList.toggle('ut',S.haFlUt);const b=e.querySelector('.ha-fkh');if(b)b.setAttribute('aria-expanded',S.haFlUt)})}))},
  haRobXm(v){ACT.haRobX(v,'haRobXm')},
  haRobX(v,k){k=typeof k==='string'?k:'haRobX';const[id,d]=String(v).split(':'),X=S[k]=S[k]||{},n=Math.max(1,Math.min(3,d[0]==='='?+d.slice(1)||1:(X[id]||1)+(+d||1)));if(n>1)X[id]=n;else delete X[id];try{u5Tick()}catch(e){}render()},
  haRobV(v){const[id,k]=v.split(':'),W=S.haRobV=S.haRobV||{},o=W[id]||'v',n=o.includes(k)?o.replace(k,''):(o+k).split('').sort().reverse().join('');if(!n){ACT.haRobRum(id);delete W[id];return}W[id]=n;try{u5Tick()}catch(e){}render()},
@@ -6463,7 +6475,7 @@ document.addEventListener('click',e=>{const el=e.target.closest('.dr-slide');if(
  if(SWP.moved){SWP.moved=false;e.stopPropagation();e.preventDefault();return}
  if(el.classList.contains('open')||el.classList.contains('openl')){e.stopPropagation();e.preventDefault();swpSet(el,0,true)}},true);
 // Dagraden i kalenderrutan minns var man svepte, så att den inte hoppar tillbaka när sidan ritas om
-document.addEventListener('scroll',e=>{const t=e.target;if(t&&t.classList&&t.classList.contains('wk-sw')){S.wkX=t.scrollLeft;wkMonth(t)}if(t&&t.classList&&t.classList.contains('wxC-sc'))S.wxX=t.scrollLeft;},true);
+document.addEventListener('scroll',e=>{const t=e.target;if(t&&t.classList&&t.classList.contains('wk-sw')){S.wkX=t.scrollLeft;wkMonth(t)}if(t&&t.classList&&t.classList.contains('wxC-sc'))S.wxX=t.scrollLeft;if(t&&t.classList&&t.classList.contains('ha-kortr')){const n=Math.round(t.scrollLeft/(t.clientWidth+12));if(n!==S.haSwX){S.haSwX=n;t.parentNode.querySelectorAll('.ha-kortd i').forEach((d,i)=>d.classList.toggle('on',i===n))}}},true);
 // Månaden bredvid Schema följer de dagar som syns i raden
 function wkMonth(w){const ds=w.querySelectorAll('.wk-d'),mo=w.closest('.calw')&&w.closest('.calw').querySelector('.wk-mo');if(!ds.length||!mo)return;
  const i=Math.min(ds.length-1,Math.round(w.scrollLeft/ds[0].offsetWidth)+3),k=ds[i].dataset.id;if(isDate(k))mo.textContent=MON[parse(k).getMonth()]}

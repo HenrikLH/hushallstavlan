@@ -6,5 +6,5 @@ module.exports=async(pg,h)=>{
  if(!await pg.locator('#overlay .rr-iv').count())throw new Error('bladet öppnades inte från Städ');await h.shot('stad-rum');
  await pg.locator('#overlay [data-act="sheetClose"]').click();await h.idle(700);
  await pg.evaluate(()=>window.__d("(S.haAppId='vacuum.dammsugare',Object.assign(haRobot(),{st:'charging',dockTork:true,dockTorkH:1.5}),ACT.nav('robot'),1)"));await h.idle(1800);
- await pg.locator('main .ha-dock').evaluate(e=>e.scrollIntoView({block:'center'}));await h.idle(600);await h.shot('dock');
- const dt=await pg.locator('main .ha-dock').innerText();if(!/Torkar moppen · 1,5 h kvar/.test(dt)||!/Silen\s*Rengör nu/.test(dt))throw new Error('Dockans torkning/sil saknas: '+dt)};
+ await pg.locator('main .ha-kortr').evaluate(e=>e.scrollTo({left:e.clientWidth+12}));await h.idle(600);await h.shot('dock');
+ const dt=await pg.locator('main .ha-dkk').innerText();if(!/Torkar moppen · 1,5 h kvar/.test(dt)||!/Rengör silen/.test(dt))throw new Error('Dockans torkning/sil saknas: '+dt)};
