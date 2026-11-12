@@ -16,9 +16,9 @@ module.exports=async(pg,h)=>{
  assert.match(await pg.locator('main .ha-valt').innerText(),/rum valda/,'Välj dem markerar rummen i kartan');
  assert.ok(await pg.locator('main .ha-fl.fh').count(),'Tidslinjen för de valda rummen visas');
  await pg.locator('main .ha-fl.fh').scrollIntoViewIfNeeded();await pg.evaluate(()=>scrollBy(0,-180));await h.idle(300);await h.shot('robot-valj-dem');
- await pg.locator('main .ha-fl.fh li.ha-xr').first().locator('[data-act="haRobX"]').last().click();await h.idle(300);
- assert.match(await pg.locator('main .ha-fl.fh li.ha-xr').first().innerText(),/×2/,'Rummet dammsugs två gånger (namn ×2)');
- await pg.locator('main .ha-fl.fh li.ha-xr').nth(1).locator('[data-act="haRobX"]').last().click();await h.idle(300);
+ await pg.locator('main .ha-fl.fh li.ha-xr').first().locator('[data-act="haRobX"][data-id$=":=2"]').click();await h.idle(300);
+ assert.equal(await pg.locator('main .ha-fl.fh li.ha-xr').first().locator('.ha-xs .on').innerText(),'×2','×2 är markerat');
+ await pg.locator('main .ha-fl.fh li.ha-xr').nth(1).locator('[data-act="haRobX"][data-id$=":=3"]').click();await h.idle(300);
  assert.ok(await pg.locator('main .ha-fl.fh .ha-fs.damm').count()>=2,'×2-rum får egen omgång');
  assert.match(await pg.locator('main .ha-fl.fh').innerText(),/Tömning[\s\S]*Dockan$/,'Tömning mellan omgångarna och dockan sist');
  await pg.locator('main .ha-fl.fh').scrollIntoViewIfNeeded();await h.shot('robot-x2');
@@ -38,8 +38,8 @@ module.exports=async(pg,h)=>{
  assert.doesNotMatch(await pg.locator('main').innerHTML(),/undefined|NaN/,'Inget odefinierat');
  // rummets blad (håll in ett rum): byt namn, inga förklaringstexter eller Städa-knapp
  await pg.evaluate(()=>window.__d('(()=>{const a=haAppX();ACT.robRum(a.rum[0].id)})()'));await h.idle(900);
- await pg.locator('.rr-namn [data-id$=":Kontor"]').click();await h.idle(600);
- assert.match(await pg.locator('.sheet .dm-hd .title').first().innerText(),/Kontor/,'Rummet bytte namn i bladet');
+ await pg.fill('.sheet [name="rrnamn"]','Lekrum');await pg.press('.sheet [name="rrnamn"]','Enter');await h.idle(600);
+ assert.match(await pg.locator('.sheet .dm-hd .title').first().innerText(),/Lekrum/,'Rummet bytte namn i bladet');
  assert.equal(await pg.locator('.sheet .foot').count(),0,'Inga förklarande texter');assert.equal(await pg.locator('[data-act="robRumValj"]').count(),0,'Ingen Städa rummet-knapp');
  await h.shot('robot-rumsblad');
 };
