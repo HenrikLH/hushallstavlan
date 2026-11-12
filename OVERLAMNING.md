@@ -2,6 +2,11 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Matlagningsläget i Apple-stil (förslag, väntar på Henriks val A/B)
+- Ägare Claude, gren `claude/project-thread-46nf66`. Bara UI 5.0: `cook5()` (app.js, före `tidsplan`), CSS `.ck5*` sist i index.html. Rund × (cookClose), "Steg n av N" + receptnamn, stegtext 28 (vägg 34), timerknapp i steget (`.ck5-tm`, tpTimer, tid i `.ck5-tl` som tick uppdaterar), "Till det här steget", Tidsplan, Alla ingredienser (namn vänster, mängd grå höger), glasrad med ‹ och Nästa steg.
+- B (tillfälligt `ht.cookv=b`): "Sedan"-kort med nästa steg och tidsplanen hopfälld (`ACT.cookTp`). Ta bort den variant Henrik inte väljer.
+- Test `matlagning.js` (SHOT=prefix), timerring, alla-flikar telefon gröna. Bilder /mnt/project-files/matlagning/.
+
 ## Översikt: bocken, Schema, Middag ikväll, Rummen (publicerad ht-v374, ångra-gren `version-fore-oversikt-atgarder`)
 - Gren `claude/project-thread-2tlos6` (PR #103). Bocken i Att göra-rutan (`.ur`) ritas och raden glider ihop (`checkAnim`/`A.before` tar `.cell,.ur`; FLIP överlever dubbel omritning via `A.flipT`). Schema döljer passerade händelser idag. Middag ikväll (UI 5.0, `wMeals`, `.wm5`): rad per rätt med bild och diskret grå ▶ (Henriks val). "Hemmet"-rutan med rummen heter Rummen. Väggen: ensam halv ruta (`.wpair.solo`) tar bredden.
 - Kvar från genomgången: timremsan "Nu", gemensamma rörelsekurvor, delade element (View Transitions). Imorgon i Att göra behålls (Henriks val ht-v359).
