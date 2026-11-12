@@ -3322,7 +3322,7 @@ function calViewBase(){const t=today(),sel=S.calDay||t,m=S.calMonth||ymKey(sel),
  h+='<div class="group cal"'+RF('U4')+'><div class="cal-wd" aria-hidden="true">'+['M','T','O','T','F','L','S'].map(x=>'<span>'+x+'</span>').join('')+'</div><div class="cal-grid" role="grid">';
  for(let i=0;i<42;i++){const d=new Date(start);d.setDate(start.getDate()+i);const k=ymd(d),inM=d.getMonth()===mo-1;if(i===35&&!inM)break;
   const dots=calDots(k),wd=(d.getDay()+6)%7;
-  h+='<button class="cal-d'+(inM?'':' out')+(k===t?' today':'')+(k===sel?' sel':'')+(wd>4?' we':'')+'" data-act="calDay" data-id="'+k+'" aria-label="'+esc(dateLong(k))+(dots.length?', '+dots.length+' saker':'')+'"'+(k===sel?' aria-current="date"':'')+'>'+
+  h+='<button class="cal-d'+(inM?'':' out')+(k===t?' today':'')+(k===sel?' sel':'')+(wd>4?' we':'')+(wd>4||helgdag(k)?' rod':'')+'" data-act="calDay" data-id="'+k+'" aria-label="'+esc(dateLong(k))+(dots.length?', '+dots.length+' saker':'')+'"'+(k===sel?' aria-current="date"':'')+'>'+
    '<span class="n num">'+d.getDate()+'</span><span class="dots">'+dots.map(c=>'<i class="'+c+'"></i>').join('')+'</span></button>'}
  h+='</div></div>';
  // dagens innehåll: händelser i tidsordning och uppgifter
@@ -4351,6 +4351,9 @@ function nightFrac(now,P){const d=ymd(now),a=sunTimes(d,P.lat,P.lon);if(!a)retur
    med påskliljor runt påsk, löv på hösten och snö som ligger kvar tills det töar. */
 function easterDay(y){const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,
  i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),n=h+l-7*m+114;return y+'-'+pad(Math.floor(n/31))+'-'+pad(n%31+1)}
+// Svenska helgdagar (röda dagar utöver söndagar). Ger namnet eller ''
+function helgdag(k){const y=+k.slice(0,4),md=k.slice(5),e=easterDay(y),lor=(m,d0)=>{for(let d=d0;d<d0+7;d++){const x=new Date(y,m-1,d);if(x.getDay()===6)return ymd(x)}};
+ return({'01-01':'Nyårsdagen','01-06':'Trettondedag jul','05-01':'Första maj','06-06':'Nationaldagen','12-25':'Juldagen','12-26':'Annandag jul'})[md]||({[addDays(e,-2)]:'Långfredagen',[e]:'Påskdagen',[addDays(e,1)]:'Annandag påsk',[addDays(e,39)]:'Kristi himmelsfärd',[addDays(e,49)]:'Pingstdagen',[lor(6,20)]:'Midsommardagen',[lor(10,31)]:'Alla helgons dag'})[k]||''}
 function grassSeason(t){const mo=+t.slice(5,7),e=easterDay(+t.slice(0,4));
  if(t>=addDays(e,-9)&&t<=addDays(e,3))return'easter';   // från veckan före palmsöndagen till efter annandagen
  return mo===12||mo<=2?'winter':mo===3?'early':mo<=5?'spring':mo<=8?'summer':mo===9?'autumn1':mo===10?'autumn2':'autumn3'}
