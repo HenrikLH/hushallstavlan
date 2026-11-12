@@ -1398,15 +1398,15 @@ html.ny .chip.e::before{content:"";width:8px;height:8px;border-radius:50%;flex:n
 @keyframes pageRight{from{opacity:0;transform:translateX(28px)}}
 @keyframes pageLeft{from{opacity:0;transform:translateX(-28px)}}
 /* Bocka av */
-.cell.checking .check::before{animation:checkPop .38s cubic-bezier(.3,1.6,.5,1)}
-.cell.checking .check::after{animation:tickDraw .3s ease-out}
-.cell.checking .grow{transition:opacity .3s;opacity:.55}
-.cell.unchecking .check::before{animation:checkPop .25s ease-out}
+:is(.cell,.ur).checking .check::before{animation:checkPop .38s cubic-bezier(.3,1.6,.5,1)}
+:is(.cell,.ur).checking .check::after{animation:tickDraw .3s ease-out}
+.cell.checking .grow,.ur.checking .t{transition:opacity .3s;opacity:.55}
+:is(.cell,.ur).unchecking .check::before{animation:checkPop .25s ease-out}
 @keyframes checkPop{0%{transform:scale(.7)}60%{transform:scale(1.18)}100%{transform:scale(1)}}
 @keyframes tickDraw{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
 .cell.appear{animation:rowIn .45s cubic-bezier(.2,.9,.25,1)}
 @keyframes rowIn{from{opacity:0;transform:translateY(-8px) scale(.98);background:var(--accent-soft)}60%{background:var(--accent-soft)}}
-.cell.leaving{overflow:hidden;transition:height .28s ease,opacity .2s ease,padding .28s ease;height:0!important;padding-top:0!important;padding-bottom:0!important;opacity:0}
+:is(.cell,.ur).leaving{overflow:hidden;min-height:0!important;transition:height .28s ease,opacity .2s ease,padding .28s ease;height:0!important;padding-top:0!important;padding-bottom:0!important;opacity:0}
 /* Staplar och översiktens rutor */
 .thin>i,.cap>i{transition:width .8s cubic-bezier(.2,.8,.2,1)}
 .widget.upd{animation:wUpd .9s ease}

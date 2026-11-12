@@ -5644,8 +5644,8 @@ const calm=()=>{try{return matchMedia('(prefers-reduced-motion: reduce)').matche
 const nv=(k,v,f)=>'<span class="nv" data-n="'+k+'" data-v="'+(Math.round(Number(v)*100)/100)+'" data-f="'+(f||'n')+'">'+(f==='kr'?kr(v):Math.round(v))+'</span>';
 const rowKey=el=>el.dataset.act+':'+el.dataset.id;
 const A={page:'',keys:null,rects:null,nums:{},bars:{},segs:{},done:null,user:0,cookStep:null,widgets:null,
- before(m){this.rects=null;if(U5){this.old=[...m.childNodes];this.oldY=this.sy!=null?this.sy:scrollY;this.top=m.getBoundingClientRect().top+scrollY}
-  if(this.flip){this.rects={};m.querySelectorAll('.cell input.check').forEach(b=>{const r=b.closest('.cell').getBoundingClientRect();if(r.height)this.rects[rowKey(b)]=r.top});this.flip=false}
+ before(m){if(!(this.rects&&Date.now()-this.flipT<200))this.rects=null;if(U5){this.old=[...m.childNodes];this.oldY=this.sy!=null?this.sy:scrollY;this.top=m.getBoundingClientRect().top+scrollY}
+  if(this.flip){this.rects={};m.querySelectorAll(':is(.cell,.ur) input.check').forEach(b=>{const r=b.closest('.cell,.ur').getBoundingClientRect();if(r.height)this.rects[rowKey(b)]=r.top});this.flip=false;this.flipT=Date.now()}
   this.widgets=S.view==='oversikt'?[...m.querySelectorAll('.widget')].map(w=>w.innerHTML):null},
  after(m){const page=S.view+'|'+(S.recipe||'')+'|'+(S.view==='mat'?S.matTab:S.view==='uppgifter'?S.taskTab:''),newPage=page!==this.page,prev=this.page;this.page=page;
   const keys=new Set([...m.querySelectorAll('.cell input.check')].map(rowKey));
@@ -5653,7 +5653,7 @@ const A={page:'',keys:null,rects:null,nums:{},bars:{},segs:{},done:null,user:0,c
   if(!calm()){
    if(!newPage){
     // Rader som flyttat sig glider till sin nya plats
-    if(this.rects)m.querySelectorAll('.cell input.check').forEach(b=>{const old=this.rects[rowKey(b)];if(old==null)return;const row=b.closest('.cell'),dy=old-row.getBoundingClientRect().top;
+    if(this.rects)m.querySelectorAll(':is(.cell,.ur) input.check').forEach(b=>{const old=this.rects[rowKey(b)];if(old==null)return;const row=b.closest('.cell,.ur'),dy=old-row.getBoundingClientRect().top;
      if(Math.abs(dy)>2&&row.animate)row.animate([{transform:'translateY('+dy+'px)'},{transform:'none'}],{duration:U3?240:420,easing:'cubic-bezier(.2,.9,.25,1)'})});
     // Nya rader fälls ut, men inte när en tillfällig rad får sitt riktiga id från kalkylarket
     if(this.keys&&![...this.keys].some(k=>/:tmp/.test(k))){const fresh=[...keys].filter(k=>!this.keys.has(k));
@@ -5682,12 +5682,12 @@ const A={page:'',keys:null,rects:null,nums:{},bars:{},segs:{},done:null,user:0,c
   if(msg){toast(msg);confetti()}}};
 autoTheme.ok=true;
 function checkAnim(id,done,then){A.user=Date.now();
- const box=[...document.querySelectorAll('.cell input.check')].find(b=>b.dataset.id===id),row=box&&box.closest('.cell');
+ const box=[...document.querySelectorAll(':is(.cell,.ur) input.check')].find(b=>b.dataset.id===id),row=box&&box.closest('.cell,.ur');
  if(!row||calm()){A.flip=true;then();return}
  // Klicket på kryssrutan avbryts (appen ritar om den själv), så bocken sätts först i nästa bildruta
  requestAnimationFrame(()=>{box.checked=done;row.classList.add(done?'checking':'unchecking')});
  // på väggtavlan glider en avbockad städsyssla ut, och nästa flyttar upp
- const out=done&&row.closest('.board .bclean');if(out)setTimeout(()=>{row.style.height=row.offsetHeight+'px';void row.offsetHeight;row.classList.add('leaving')},380);
+ const out=done&&row.closest('.board .bclean,.upg-c');if(out)setTimeout(()=>{row.style.height=row.offsetHeight+'px';void row.offsetHeight;row.classList.add('leaving')},380);
  setTimeout(()=>{A.flip=true;then()},U3?(out?480:done?180:120):out?700:done?400:180)}
 function leaveAnim(act,items,then){A.user=Date.now();const ids=new Set(items.map(i=>i.id));
  const rows=[...document.querySelectorAll('.cell input.check[data-act="'+act+'"]')].filter(b=>ids.has(b.dataset.id)).map(b=>b.closest('.cell'));
