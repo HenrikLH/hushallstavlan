@@ -12,6 +12,10 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 - Gren `claude/project-thread-2tlos6` (PR #103). Bocken i Att göra-rutan (`.ur`) ritas och raden glider ihop (`checkAnim`/`A.before` tar `.cell,.ur`; FLIP överlever dubbel omritning via `A.flipT`). Schema döljer passerade händelser idag. Middag ikväll (UI 5.0, `wMeals`, `.wm5`): rad per rätt med bild och diskret grå ▶ (Henriks val). "Hemmet"-rutan med rummen heter Rummen. Väggen: ensam halv ruta (`.wpair.solo`) tar bredden.
 - Kvar från genomgången: timremsan "Nu", gemensamma rörelsekurvor, delade element (View Transitions). Imorgon i Att göra behålls (Henriks val ht-v359).
 - Test: `oversikt-bocka.js`, alla-flikar telefon+vägg gröna. CI: `matsedel-gester.js` faller på main också (letar `.dm-g` i rättens blad efter C3).
+## Scenens tidslinje: steg med fördröjning (publicerad ht-v375, ångra-gren `version-fore-scen-tidslinje`)
+- Gren `claude/project-thread-zk9a41`. Egen scen kan ha steg `s.st=[{m,l}]` utöver `s.l` (Direkt). Bladet: `habTidslinje` (Lägg till steg, −/+ minuter ur `HAB_MIN`, tryck på lampans namn = meny Flytta till). Körning `habSenare`: tjänsten tar `{nyckel:'scen',senare:[{om,steg}]}` (`ha_senare` i ljussensor.py, Timer per steg; ny scen/Ångra avbryter). Äldre tjänst svarar 403 → enheten kör stegen själv medan appen är öppen.
+- Väggdatorns tjänst måste uppdateras ("Kör") för att stegen ska bli av när telefonen låses. Test `scen-tidslinje.js` telefon/vägg, alla-flikar telefon+vägg gröna.
+
 ## Hemmet fyller bredden (publicerad ht-v372, ångra-gren `version-fore-hemmet-bredd`)
 - Gren `claude/project-thread-zk9a41`. Statusbrickorna (`.ha-chips-v`) delar raden lika, 1–3 scener fördelas jämnt (`hus-sc-N`), apparatens varning sitter på ikonen så namnet inte klipps. Test `hemmet-bredd.js` telefon/vägg/mörkt, hemmet-scener gröna.
 
