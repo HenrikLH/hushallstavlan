@@ -2330,17 +2330,14 @@ const stegText=x=>[x.t,x.k,x.v].filter(Boolean).join(' ');
 /* Tidsplan: stegen på en tidslinje. Steg med timer som sköter sig själva (koka, ugn, rosta, vila) låter nästa steg börja under tiden.
    Steg utan timer får en uppskattad tid efter textens längd. "De sista minuterna" läggs i slutet av steget före och sista steget börjar när allt är klart. */
 const PASSIV=/\b(kok|sjud|puttra|rosta|ugn|bak|grädda|gratinera|låt|vila|marinera|jäs|svalna|tina|blötlägg|kyl)/i,AKTIV=/\b(stek|fräs|bryn|vispa|rör hela)/i;
-// Matlagningsläget i UI 5.0 (M27), två spalter som Paprika/Mela/NYT Cooking i liggande läge: timrar och ingredienser till vänster,
+// Matlagningsläget i UI 5.0 (M27), två spalter i liggande läge: tidsplanen (stegknapparna är timrar) och ingredienser till vänster,
 // alla steg till höger med det aktuella stort i mitten. Tryck på ett steg hoppar dit, tryck på en ingrediens bockar av den. Stående telefon: stegen överst
 function cook5(r,rr,ST,i,s,f,hits,pv,dir,grew,tp,klar){const n=ST.length,sist=i===n-1,bock=S.cook.bock||{},{p}=scaled(r);
- const tms=S.timers.filter(x=>x.rid===r.id).sort((a,b)=>tmKvar(a)-tmKvar(b));
- const tmRad=t=>{const ms=tmKvar(t),klr=t.ring||ms<=0,pau=!klr&&t.p!=null;return'<div class="ck5-tr'+(klr?' klar':pau?' pau':'')+'"><span class="ck5-tn">'+esc(t.si!=null?'Steg '+(t.si+1):'Egen timer')+'<small>'+(klr?'Klart':pau?'Pausad':'kvar')+'</small></span><b class="ck5-tl"'+(klr||pau?'':' data-end="'+t.end+'"')+'>'+(klr?'0:00':tpKvar(ms))+'</b><button type="button" class="ck5-tb" data-act="tpTimer" data-id="'+esc(r.id)+'" data-k="'+t.k+'" aria-label="'+(klr?'Ta bort':pau?'Fortsätt':'Pausa')+'">'+(klr?I.x:pau?I.play:I.pause)+'</button></div>'};
- const timrar=sh('Timrar')+group(tms.map(tmRad).join('')+'<button type="button" class="cell ck5-ny" data-act="egenTimer" data-id="'+esc(r.id)+'">'+I.plus+'<span>Egen timer</span></button>');
  let k=0;const ing=(rr.groups||[]).map(g=>(g.title?'<div class="ck5-gt">'+esc(g.title)+'</div>':'')+g.items.map(it=>{const j=k++,on=bock[j],hit=hits.includes(it);return'<button type="button" class="ck5-i'+(on?' on':'')+(hit?' hit':'')+'" data-act="cookBock" data-i="'+j+'" aria-pressed="'+(on?'true':'false')+'"><span class="ck5-c">'+(on?I.tick:'')+'</span><span class="n">'+esc(it.n)+'</span><span class="q">'+esc(qtyText(it,f))+'</span></button>'}).join('')).join('');
- const vanster='<div class="ck5-l">'+timrar+sh('Ingredienser',p+' portioner')+group(ing)+sh('Tidsplan')+tp+'</div>';
- const steg=ST.map((x,j)=>{const on=j===i,min=Number(x.timer)||0,tm=S.timers.find(t=>t.rid===r.id&&t.si===j);
-  return'<div class="ck5-st'+(on?' on':j<i?' gj':'')+'"'+(on?' aria-current="step"':'')+'><button type="button" class="ck5-sb" data-act="cookTo" data-i="'+j+'"><span class="ck5-no">'+(j<i?I.tick:j+1)+'</span><span class="ck5-t">'+esc(x.t||stegText(x))+'</span></button>'+(on&&pv?kvLanes(x,pv):'')+(on&&min&&!tm?'<button type="button" class="ck5-tm" data-act="tpTimer" data-id="'+esc(r.id)+'" data-i="'+j+'" data-min="'+min+'">'+I.clock+'<span>Starta timer '+tmrTxt(min)+'</span></button>':'')+'</div>'}).join('');
- const hoger='<div class="ck5-r"><div class="ck5-rh"><b>Steg '+(i+1)+' av '+n+'</b><span>'+esc(klar.replace(/^ · k/,'K'))+'</span></div><div class="ck5-sl'+dir+'">'+steg+'</div>'+
+ const vanster='<div class="ck5-l">'+tp+sh('Ingredienser',p+' portioner')+group(ing)+'</div>';
+ const steg=ST.map((x,j)=>{const on=j===i;
+  return'<div class="ck5-st'+(on?' on':j<i?' gj':'')+'"'+(on?' aria-current="step"':'')+'><button type="button" class="ck5-sb" data-act="cookTo" data-i="'+j+'"><span class="ck5-no">'+(j<i?I.tick:j+1)+'</span><span class="ck5-t">'+esc(x.t||stegText(x))+'</span></button>'+(on&&pv?kvLanes(x,pv):'')+'</div>'}).join('');
+ const hoger='<div class="ck5-r"><div class="ck5-rh"><b>Steg '+(i+1)+' av '+n+'</b></div><div class="ck5-sl'+dir+'">'+steg+'</div>'+
   '<div class="ck5-nav"><button type="button" class="ck5-pr" data-act="cookStep" data-d="-1"'+(i===0?' disabled':'')+' aria-label="Förra steget">'+I.back+'</button>'+(sist?'<button type="button" class="btn-fill" data-act="cookDone" data-id="'+esc(r.id)+'">Klart – betygsätt</button>':'<button type="button" class="btn-fill" data-act="cookStep" data-d="1">Nästa steg</button>')+'</div></div>';
  return'<div class="cook ck5"'+RF('M27')+' role="dialog" aria-modal="true" aria-label="Matlagningsläge">'+
   '<div class="ck5-top"><button type="button" class="ck5-x" data-act="cookClose" aria-label="Stäng matlagningsläget">'+I.x+'</button><div class="ck5-h">'+esc(r.title)+'</div>'+

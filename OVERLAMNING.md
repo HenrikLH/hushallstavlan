@@ -4,7 +4,7 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 ## Matlagningsläget i två spalter (förslag v2, väntar på Henrik)
 - Ägare Claude, gren `claude/project-thread-46nf66`. Henrik avvisade v1 (en spalt, A/B) och vill ha liggande läge: vänster timrar + ingredienser, höger instruktion. Bara UI 5.0: `cook5()`/`ck5Mitt()` (app.js, före `tidsplan`), CSS `.ck5*` sist i index.html.
-- Vänster: Timrar (alla receptets timrar, paus/fortsätt, Egen timer), Ingredienser med bock (`ACT.cookBock`, `S.cook.bock`, stegets i fetstil), Tidsplan. Höger: alla steg, aktuellt stort och centrerat, tryck = hoppa (`cookTo`), Starta timer i steget, ‹ + Nästa steg. Stående telefon: stegen överst, resten under.
+- Vänster: Tidsplanen (runda stegknappar = timrar, Henriks val), Ingredienser med bock (`ACT.cookBock`, `S.cook.bock`, stegets i fetstil). Höger: alla steg, aktuellt stort och centrerat, tryck = hoppa (`cookTo`), ‹ + Nästa steg. Stående telefon: stegen överst, resten under.
 - Test `matlagning.js` (SHOT=prefix, VP=844x390 liggande), timerring, alla-flikar telefon+vägg gröna. Bilder /mnt/project-files/matlagning/.
 
 ## Översikt: bocken, Schema, Middag ikväll, Rummen (publicerad ht-v374, ångra-gren `version-fore-oversikt-atgarder`)
