@@ -2330,6 +2330,21 @@ const stegText=x=>[x.t,x.k,x.v].filter(Boolean).join(' ');
 /* Tidsplan: stegen på en tidslinje. Steg med timer som sköter sig själva (koka, ugn, rosta, vila) låter nästa steg börja under tiden.
    Steg utan timer får en uppskattad tid efter textens längd. "De sista minuterna" läggs i slutet av steget före och sista steget börjar när allt är klart. */
 const PASSIV=/\b(kok|sjud|puttra|rosta|ugn|bak|grädda|gratinera|låt|vila|marinera|jäs|svalna|tina|blötlägg|kyl)/i,AKTIV=/\b(stek|fräs|bryn|vispa|rör hela)/i;
+// Matlagningsläget i UI 5.0 (M27): steget stort överst, det steget behöver under, tidsplan och alla ingredienser sist. Förra/Nästa i en glasrad längst ner
+const ck5Rad=(n,q)=>'<div class="ck5-i"><span class="n">'+esc(n)+'</span>'+(q?'<span class="q">'+esc(q)+'</span>':'')+'</div>';
+function cook5(r,rr,ST,i,s,f,hits,pv,dir,grew,tp,klar){const n=ST.length,t=stegText(s),sist=i===n-1,B=lsGet('cookv')==='b';
+ const tm=S.timers.find(x=>x.rid===r.id&&x.si===i),min=Number(s.timer)||0,ms=tm?tmKvar(tm):0,run=tm&&!tm.ring&&ms>0,pau=run&&tm.p!=null;
+ const tmBtn=min||tm?'<button type="button" class="ck5-tm'+(run?' run':'')+(tm&&!run?' klar':'')+'" data-act="tpTimer" data-id="'+esc(r.id)+'" data-i="'+i+'" data-min="'+min+'">'+(run?(pau?I.play:I.pause)+'<b class="ck5-tl"'+(pau?'':' data-end="'+tm.end+'"')+'>'+tpKvar(ms)+'</b>'+(pau?'<span class="ck5-s">Pausad</span>':'<span class="ck5-s">kvar</span>'):tm?I.tick+'<span>Klart</span><span class="ck5-s">Tryck för att ta bort</span>':I.clock+'<span>Timer '+tmrTxt(min)+'</span>')+'</button>':'';
+ const all=[];(rr.groups||[]).forEach(g=>g.items.forEach(it=>all.push(it)));
+ const beh=hits.length?sh('Till det här steget')+group(hits.map(it=>ck5Rad(it.n,stegQ(t,it,f))).join('')):'';
+ const nx=!sist&&B?'<button type="button" class="ck5-nx" data-act="cookStep" data-d="1"><span class="ck5-s">Sedan</span><span class="ck5-nt">'+esc(stegText(ST[i+1]))+'</span>'+I.chev+'</button>':'';
+ const tps=B&&!S.cookTp?sh('Tidsplan')+group('<button type="button" class="cell ck5-tps" data-act="cookTp"><span class="grow">Klart ca '+esc(klar.replace(/^ · klart ca /,''))+'</span>'+I.chev+'</button>'):sh('Tidsplan')+tp;
+ return'<div class="cook ck5'+(B?' ck5-b':'')+'"'+RF('M27')+' role="dialog" aria-modal="true" aria-label="Matlagningsläge">'+
+  '<div class="ck5-top"><button type="button" class="ck5-x" data-act="cookClose" aria-label="Stäng matlagningsläget">'+I.x+'</button><div class="ck5-h"><b>Steg '+(i+1)+' av '+n+'</b><span>'+esc(r.title)+'</span></div><span class="ck5-x ph" aria-hidden="true"></span></div>'+
+  '<div class="progress" aria-hidden="true">'+ST.map((_,k)=>'<i class="'+(k<=i?'on':'')+(grew&&k===i?' just':'')+'"></i>').join('')+'</div>'+
+  '<div class="cook-body'+dir+'"><div class="col">'+(s.t?'<p class="cook-text">'+esc(s.t)+'</p>':'')+(pv?kvLanes(s,pv):'')+tmBtn+nx+beh+'</div><div class="col">'+tps+sh('Alla ingredienser')+group(all.map(it=>ck5Rad(it.n,qtyText(it,f))).join(''))+'</div></div>'+
+  '<div class="ck5-nav"><button type="button" class="ck5-pr" data-act="cookStep" data-d="-1"'+(i===0?' disabled':'')+' aria-label="Förra steget">'+I.back+'</button>'+(sist?'<button type="button" class="btn-fill" data-act="cookDone" data-id="'+esc(r.id)+'">Klart – betygsätt</button>':'<button type="button" class="btn-fill" data-act="cookStep" data-d="1">Nästa steg</button>')+'</div></div>'+
+  (S.sheet==='tmr'?tmrSheet(A.cSh==='tmr'?'':' enter'):S.sheet==='tmrMenu'?tmMenu(A.cSh==='tmrMenu'?'':' enter'):'')}
 function tidsplan(ST){const R=[];let cur=0,end=0;
  ST.forEach((s,i)=>{const t=stegText(s),tm=Number(s.timer)||0,d=tm||Math.max(2,Math.min(8,Math.round(t.split(/\s+/).length/6))),pas=!!tm&&PASSIV.test(t)&&!AKTIV.test(t),p=R[i-1];let a=cur;
   if(p&&/sista minut/i.test(t))a=Math.max(p.a,p.b-d);else if(p&&/\b(samtidigt|under tiden|medan)\b/i.test(t))a=p.a;else{if(i&&i===ST.length-1)a=Math.max(cur,end);cur=a+(pas?Math.min(3,d):d)}
@@ -3647,6 +3662,7 @@ function renderOverlay(){
    tp=tpHtml(r,ST,{start,cur:i,now:nm-start,cook:1});klar=' · klart ca '+tpKl(start+Math.max(tot,1))}
   // Behåll läget i steget och i timerraden när samma steg ritas om (tryck på en timer)
   const ob=!dir&&o.querySelector('.cook-body'),y=ob?ob.scrollTop:0;
+  if(U5){o.innerHTML=cook5(r,rr,ST,i,s,f,hits,pv,dir,grew,tp,klar);A.cSh=S.sheet;if(y){const nb=o.querySelector('.cook-body');if(nb)nb.scrollTop=y}return}
   o.innerHTML='<div class="cook"'+RF('M27')+' role="dialog" aria-modal="true" aria-label="Matlagningsläge"><div class="cook-top"><span></span><div class="fn">Steg '+(i+1)+' av '+n+klar+'</div><button class="tb strong" data-act="cookClose">Klar</button></div><div class="cook-name">'+esc(r.title)+'</div>'+
   '<div class="progress" aria-hidden="true">'+ST.map((_,k)=>'<i class="'+(k<=i?'on':'')+(grew&&k===i?' just':'')+'"></i>').join('')+'</div>'+
   '<div class="cook-body'+dir+'"><div class="col">'+(s.t?'<p class="cook-text">'+esc(s.t)+'</p>':'')+(pv?kvLanes(s,pv):'')+tp+'</div><div class="col">'+sh('Ingredienser')+ingSorted(rr,f,hits,stegText(s))+'</div></div>'+
@@ -6233,7 +6249,8 @@ const ACT={
   if(wishes().some(x=>x.id===id))updJSON('onskelista',[],a=>a.filter(x=>x.id!==id));
   const onMenu=D().menu.some(m=>m.recipe===id&&m.date>=today());
   S.recipe=null;render();toast(onMenu?'Receptet föreslås inte igen. Det står kvar på veckans meny, tryck Byt där för att byta ut det.':'Receptet är borttaget och föreslås inte igen')},
- cookClose(){S.cook=null;A.cookStep=null;wake();render()},
+ cookTp(){S.cookTp=1;render()},
+ cookClose(){S.cookTp=0;S.cook=null;A.cookStep=null;wake();render()},
  timer(id,el){unlockAudio();const m=Number(el.dataset.min);S.timers.push({k:Math.random().toString(36).slice(2),label:el.dataset.label||'Timer',end:Date.now()+m*60000,ring:false,rid:id||'',si:el.dataset.i==null?-1:Number(el.dataset.i),dur:m*60000});tick();if(id)render();toast('Timer: '+m+' min')},
  timerStop(id){S.timers=S.timers.filter(t=>t.k!==id);tick();render()},
  tpTimer(id,el){unlockAudio();const k=el.dataset.k,i=Number(el.dataset.i),t=k?S.timers.find(x=>x.k===k):S.timers.find(x=>x.rid===id&&x.si===i);
@@ -6814,7 +6831,7 @@ function tick(){
   if(c.dataset.v!==txt){flipClock(c,txt);const cr=document.getElementById('cal-rows');if(cr)cr.innerHTML=calDayRows(cr.dataset.d)}}
  const ni=document.querySelector('.night-in');if(ni){const h=String(new Date().getHours());if(ni.dataset.h!==h){ni.dataset.h=h;ni.style.transform=nightPos()}}
  document.querySelectorAll('.trg-f[data-end]').forEach(x=>{const ms=Number(x.dataset.end)-Date.now(),d=Number(x.dataset.dur)||1;x.setAttribute('stroke-dashoffset',(100-Math.max(0,Math.min(1,ms/d))*100).toFixed(2));});trTick();
- document.querySelectorAll('.tpl b[data-end]').forEach(x=>{const ms=Number(x.dataset.end)-Date.now();x.textContent=ms>0?tpKvar(ms):'Klart!'});
+ document.querySelectorAll('.tpl b[data-end],.ck5-tl[data-end]').forEach(x=>{const ms=Number(x.dataset.end)-Date.now();x.textContent=ms>0?tpKvar(ms):'Klart!'});
  const box=document.getElementById('timers');
  box.innerHTML=S.timers.map(t=>{const ms=tmKvar(t);if(ms<=0&&!t.ring){t.ring=true;beep();try{navigator.vibrate&&navigator.vibrate([300,150,300])}catch(e){}}const s=Math.max(0,Math.ceil(ms/1000));
   // Timern syns i korten när de är på skärmen (alltid i kokläget); annars här i hörnet
