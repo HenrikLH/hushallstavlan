@@ -427,10 +427,17 @@ def ha_app_styr(c, d):
                 # en liten sista omgång följer med den förra i stället för att ge en egen tömning
                 if len(steg) > 1 and not steg[-1].get('x') and not steg[-2].get('x') and not set(steg[-1]['rum']) & stor and sum(M2.get(x, 0) for x in steg[-1]['rum']) < TOM_M2 / 2:
                     steg[-2]['rum'] += steg.pop()['rum']
-                steg = steg + [{'typ': 'mopp', 'rum': mopp}] * bool(mopp)
+                # moppning: rum med samma antal gånger och moppläge (rutt) i samma omgång, i valordning; dockan tvättar moppen emellan
+                XM = {int(k): max(1, min(3, int(v))) for k, v in (d.get('xm') or {}).items() if str(k).isdigit() and str(v).isdigit()}
+                RM = {int(k): v for k, v in (d.get('rm') or {}).items() if str(k).isdigit() and v in (a.get('ruttAlt') or [])}
+                for x in mopp:
+                    k = (XM.get(x, 1), RM.get(x))
+                    s0 = next((s1 for s1 in steg if s1['typ'] == 'mopp' and (s1.get('x', 1), s1.get('rutt')) == k), None)
+                    if s0: s0['rum'].append(x)
+                    else: steg.append(dict({'typ': 'mopp', 'rum': [x]}, **({'x': k[0]} if k[0] > 1 else {}), **({'rutt': k[1]} if k[1] else {})))
                 PLAN[e] = {'steg': steg, 'i': 0, 'klara': [[] for _ in steg], 'nu': None, 'sett': False, 'tid': time.time(), 'hemma': None, 'klar': None}
                 PLAN[e]['val'] = {'sug': a.get('sug'), 'vatten': a.get('vatten'), 'rutt': a.get('rutt')}
-                ha_plan_kor(c, a, 'vacuum' if damm else 'mop', steg[0]['rum'], PLAN[e]['val'], steg[0].get('x', 1))
+                ha_plan_kor(c, a, 'vacuum' if damm else 'mop', steg[0]['rum'], PLAN[e]['val'], steg[0].get('x', 1), steg[0].get('rutt'))
             elif rum or damm or mopp: ha_plan_kor(c, a, None, rum or damm or mopp)
             else: tj('vacuum', 'start', {'entity_id': e})
         elif g == 'planstopp':   # hoppa över resten efter steget som pågår
@@ -657,7 +664,7 @@ TOM_M2 = 20   # m² dammsugna rum innan behållaren töms (stora rum töms allti
 # Dammsug följt av mopp (inte båda samtidigt: fukten fastnar annars i dammbehållaren). Läget sätts före varje körning
 # och återställs till dammsugning efteråt, så att vanlig städning alltid är dammsugning.
 PLAN = {}
-def ha_plan_kor(c, a, lage, rum, val=None, ggr=1):
+def ha_plan_kor(c, a, lage, rum, val=None, ggr=1, rutt=None):
     tj = lambda dom, s, data: ha_anrop(c, '/api/services/%s/%s' % (dom, s), data)
     if lage and a.get('lage') != lage:
         tj('select', 'select_option', {'entity_id': a['lageId'], 'option': lage}); time.sleep(2)
@@ -668,6 +675,9 @@ def ha_plan_kor(c, a, lage, rum, val=None, ggr=1):
             if v.get('vatten') in a['vattenAlt'] and v['vatten'] != 'off': tj('select', 'select_option', {'entity_id': a['vattenId'], 'option': v['vatten']})
             if v.get('rutt') in a['ruttAlt']: tj('select', 'select_option', {'entity_id': a['ruttId'], 'option': v['rutt']})
         if v: time.sleep(1)
+    # moppläge per omgång (rum med eget läge); återställs när planen är klar
+    if lage == 'mop' and rutt and rutt in (a.get('ruttAlt') or []):
+        tj('select', 'select_option', {'entity_id': a['ruttId'], 'option': rutt}); time.sleep(1)
     tj('vacuum', 'send_command', {'entity_id': a['id'], 'command': 'app_segment_clean', 'params': [{'segments': rum, 'repeat': ggr}]})
 
 def ha_plan_stopp(e):
@@ -681,6 +691,13 @@ def ha_plan_avbruten(c, e, a, varfor):
     logg('ha: plan avbruten i steg %d (%s), klara %s' % (p['i'], varfor, p['klara'][p['i']]))
     p['avbr'], p['nu'], p['hemma'], p['klar'] = True, None, None, time.time()
     if a and a.get('lage') not in (None, 'vacuum'): ha_anrop(c, '/api/services/select/select_option', {'entity_id': a['lageId'], 'option': 'vacuum'})
+    ha_plan_rutt_tillbaka(c, a, p)
+
+def ha_plan_rutt_tillbaka(c, a, p):
+    # rum med eget moppläge: sätt tillbaka rutten som gällde när planen startade
+    r = (p.get('val') or {}).get('rutt')
+    if a and r and any(s.get('rutt') for s in p['steg']) and r in (a.get('ruttAlt') or []) and a.get('rutt') != r:
+        ha_anrop(c, '/api/services/select/select_option', {'entity_id': a['ruttId'], 'option': r})
 
 def ha_plan_rum(a, v):
     # nuvarande rum: segmentnumret eller namnet (HA:s eller tavlans)
@@ -733,10 +750,11 @@ def ha_plan():
             if p['i'] + 1 < len(p['steg']):
                 p['i'] += 1; n = p['steg'][p['i']]
                 logg('ha: steg %d klart, %s %s' % (p['i'], n['typ'], n['rum']))
-                ha_plan_kor(c, a, 'mop' if n['typ'] == 'mopp' else 'vacuum', n['rum'], p.get('val'), n.get('x', 1)); p.update(sett=False, tid=nu, hemma=None, sedda=[], pct=None, paus=False)
+                ha_plan_kor(c, a, 'mop' if n['typ'] == 'mopp' else 'vacuum', n['rum'], p.get('val'), n.get('x', 1), n.get('rutt') or (p.get('val') or {}).get('rutt') if n['typ'] == 'mopp' else None); p.update(sett=False, tid=nu, hemma=None, sedda=[], pct=None, paus=False)
             else:
                 p['i'] += 1; p['klar'] = nu
                 if a.get('lage') != 'vacuum': ha_anrop(c, '/api/services/select/select_option', {'entity_id': a['lageId'], 'option': 'vacuum'})
+                ha_plan_rutt_tillbaka(c, a, p)
     ha_uppdatera()
 
 # när varje rum senast dammsögs/moppades (för påminnelser i appen) och hur mycket som moppats sedan tanken fylldes
