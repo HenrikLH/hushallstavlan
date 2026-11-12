@@ -3003,13 +3003,14 @@ html.ny.ui5 .nav button[aria-current="page"]{color:var(--accent)}
 html.ny.ui5 body:not(.wall) .hero.has-sky>.skyfx{-webkit-mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent),linear-gradient(90deg,transparent 0 44%,#000 62%),linear-gradient(180deg,transparent 0 46px,#000 92px);mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent),linear-gradient(90deg,transparent 0 44%,#000 62%),linear-gradient(180deg,transparent 0 46px,#000 92px);-webkit-mask-composite:source-in,source-over;mask-composite:intersect,add}
 .hero>.npol{display:none}
 /* natthimlen i ljust läge (Inställningar → Översikt → Natthimmel, NATTHIM): pöl runt månen (nPol), mörkt nattkort eller blå kvällston. Bara Översiktens hjälte i telefonen på natten */
+.npol>.npg{position:absolute;left:0;top:0}
 .npol .npk{position:absolute;margin:-2px 0 0 -2px;border-radius:50%;background:#1E2649;opacity:0;animation:npk 7s ease-out infinite}
 @keyframes npk{0%{transform:translate(0,0) scale(1);opacity:0}20%{opacity:.85}100%{transform:translate(var(--dx),var(--dy)) scale(.5);opacity:0}}
 @media (prefers-reduced-motion:reduce){.npol .npk{animation:none;opacity:.45}}
 @media (prefers-color-scheme: light){:root:not([data-theme="dark"]) body:not(.wall) .hero.natt.nh-pol{--sky-star:#FFFFFF;--sky-moon:#EEF1FA}}
 :root[data-theme="light"] body:not(.wall) .hero.natt.nh-pol{--sky-star:#FFFFFF;--sky-moon:#EEF1FA}
-@media (prefers-color-scheme: light){:root:not([data-theme="dark"]) body:not(.wall) .hero.natt.nh-pol>.npol{display:block;position:absolute;inset:0;z-index:-2;pointer-events:none;border-radius:inherit;overflow:hidden;background:var(--np)}}
-:root[data-theme="light"] body:not(.wall) .hero.natt.nh-pol>.npol{display:block;position:absolute;inset:0;z-index:-2;pointer-events:none;border-radius:inherit;overflow:hidden;background:var(--np)}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]) body:not(.wall) .hero.natt.nh-pol>.npol{display:block;position:absolute;inset:0;z-index:-2;pointer-events:none;border-radius:inherit;overflow:hidden}}
+:root[data-theme="light"] body:not(.wall) .hero.natt.nh-pol>.npol{display:block;position:absolute;inset:0;z-index:-2;pointer-events:none;border-radius:inherit;overflow:hidden}
 @media (prefers-color-scheme: light){:root:not([data-theme="dark"]) body:not(.wall) .hero.natt.nh-pol>.skyfx{color:#fff;-webkit-mask-image:var(--npm,none)!important;mask-image:var(--npm,none)!important;-webkit-mask-composite:source-over!important;mask-composite:add!important}}
 :root[data-theme="light"] body:not(.wall) .hero.natt.nh-pol>.skyfx{color:#fff;-webkit-mask-image:var(--npm,none)!important;mask-image:var(--npm,none)!important;-webkit-mask-composite:source-over!important;mask-composite:add!important}
 @media (prefers-color-scheme: light){:root:not([data-theme="dark"]) body:not(.wall) .hero.natt.nh-pol .skyfx .st{box-shadow:none}}

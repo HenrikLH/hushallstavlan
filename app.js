@@ -4888,19 +4888,29 @@ function skyFit1(sx){const pole=sx.querySelector('.pole');
 // månens bana i himlens koordinater (samma ellipsbåge som .arc ritar): punkt vid vinkeln t (0 = öster/vänster, π = väster/höger)
 function nBana(sx){const a=sx.parentNode.querySelector(':scope>.arc'),p=a&&a.querySelector('path.trk');if(!p)return null;const L=sx.getBoundingClientRect(),A=a.getBoundingClientRect(),ry=+(p.getAttribute('d').match(/A50 ([\d.]+)/)||[0,50])[1];
  return t=>({x:A.left-L.left+A.width*(50-50*Math.cos(t))/100,y:A.top-L.top+A.height*(100-ry*Math.sin(t))/100})}
-function nPol(sx,M,P){const hr=sx.parentNode;if(!hr.classList.contains('nh-pol')||!M)return;const g=[],e=(x,y,a,b)=>g.push([x,y,a,b]),B=nBana(sx),f=v=>Math.round(v);
- // pölen ligger utdragen längs månens bana: störst runt månen, mindre och mjukare åt båda hållen
+function nPol(sx,M,P){const hr=sx.parentNode;if(!hr.classList.contains('nh-pol')||!M)return;const g=[],e=(x,y,a,b)=>g.push([x,y,a,b]),B=nBana(sx),f=v=>Math.round(v),oy=sx.offsetTop;
+ // pölen ligger kvar där månen har varit: ett spår längs banan från öster fram till månen (störst vid månen), och bara lite framför den
  if(B){let tm=0,dm=1e9;for(let t=0;t<=Math.PI;t+=.02){const q=B(t),d=Math.hypot(q.x-M.x,q.y-M.y);if(d<dm){dm=d;tm=t}}
-  for(let k=-4;k<=4;k++){const w=1-Math.abs(k)/5,q=k?B(tm+k*.17):M;e(q.x+(k%2?6:0),q.y+(k%2?6:12),36+62*w,26+40*w)}}
- else{e(M.x,M.y,96,80)}
- if(P){const R=P.rc+40;e(P.x,P.y,R+10,R+4);e(P.x+R*.4,P.y-R*.3,R*.6,R*.5);[.33,.67].forEach(t=>e(M.x+(P.x-M.x)*t,M.y+(P.y-M.y)*t+5,58,48))}
- // lång utfasning: tät kärna, sedan en mjuk kant som tonar ut över halva ellipsen
- const gr=(dy,c)=>g.map(([x,y,a,b])=>'radial-gradient('+f(a)+'px '+f(b)+'px at '+f(x)+'px '+f(y+dy)+'px,rgba('+c+',.94) 0 16%,rgba('+c+',.55) 50%,rgba('+c+',.16) 78%,rgba('+c+',0))').join(',');
- hr.style.setProperty('--np',gr(sx.offsetTop,'25,32,64'));sx.style.setProperty('--npm',gr(0,'0,0,0'));
+  const t0=Math.max(.06,tm-1.7),n=Math.max(1,Math.round((tm-t0)/.13));
+  for(let k=0;k<=n;k++){const u=k/n,q=B(t0+(tm-t0)*u);e(q.x+(k%2?5:-4),q.y+(k%2?14:6),34+50*u,28+36*u)}
+  [.14,.28].forEach((d,k)=>{const q=B(tm+d);e(q.x,q.y+8,58-k*18,46-k*14)})}
+ e(M.x,M.y+4,92,74);
+ if(P){const R=P.rc+44;e(P.x,P.y,R+12,R+6);e(P.x+R*.4,P.y-R*.3,R*.6,R*.5);[.33,.67].forEach(t=>e(M.x+(P.x-M.x)*t,M.y+(P.y-M.y)*t+5,62,50))}
+ // stjärnorna syns bara i pölen
+ sx.style.setProperty('--npm',g.map(([x,y,a,b])=>'radial-gradient('+f(a*.85)+'px '+f(b*.85)+'px at '+f(x)+'px '+f(y)+'px,#000 0 40%,rgba(0,0,0,.5) 70%,transparent)').join(','));
+ // trädet drar till sig natten: en dold form bakom kronan, så att pölen sträcker sig mot den och flyter ihop med en brygga när de är nära (skuggblåsa)
+ const at=[],bd=hr.querySelector('.gs .bd');if(bd){const r=bd.getBoundingClientRect(),H=hr.getBoundingClientRect(),cx=r.left-H.left+r.width*.222,cy=r.top-H.top+r.height*.41,cr=r.width*.11;at.push([cx,cy-oy,cr*1.05,cr],[cx-2,cy-oy+cr*1.5,cr*.3,cr*.9])}
+ const np=hr.querySelector(':scope>.npol');if(!np)return;const W=hr.clientWidth,Hh=hr.clientHeight,el=(L,c)=>L.map(([x,y,a,b])=>'<ellipse cx="'+f(x)+'" cy="'+f(y+oy)+'" rx="'+f(a*.8)+'" ry="'+f(b*.8)+'"/>').join('');
+ // texten (klockan, datum, väderläget) står kvar på vitt: natten viker undan mjukt runt den
+ const H0=hr.getBoundingClientRect(),tx=[...hr.querySelectorAll(':scope>.hero-l>*,:scope>.hero-wx>:not(.gs)')].map(e=>{const q=document.createRange();q.selectNodeContents(e);return q.getBoundingClientRect()}).filter(r=>r.height&&r.top-H0.top<Hh*.45).map(r=>'<rect x="'+f(r.left-H0.left-6)+'" y="'+f(r.top-H0.top-4)+'" width="'+f(r.width+12)+'" height="'+f(r.height+8)+'" rx="10"/>').join('');
+ // formerna suddas, skärps till en sammanhängande pöl (så att närliggande former flyter ihop) och suddas igen för mjuka kanter; en bredare, svag slöja ger lång utfasning
+ let h='<svg class="npg" width="'+W+'" height="'+Hh+'" viewBox="0 0 '+W+' '+Hh+'"><defs><filter id="npgo" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="13"/><feColorMatrix values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 20 -8"/><feGaussianBlur stdDeviation="9"/></filter><filter id="npgs" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="24"/></filter></defs>'+
+  '<mask id="npgm" maskUnits="userSpaceOnUse" x="0" y="0" width="'+W+'" height="'+Hh+'"><rect width="'+W+'" height="'+Hh+'" fill="#fff"/><g filter="url(#npgt)">'+tx+'</g></mask><filter id="npgt" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="11"/></filter>'+
+  '<g mask="url(#npgm)"><g fill="#1D2549" opacity=".42" filter="url(#npgs)">'+el(g)+'</g><g fill="#182040" filter="url(#npgo)">'+el(g)+el(at)+'</g></g></svg>';
  // nattpartiklar som läcker ut från kanten och tonar bort (bara transform/opacity)
- const np=hr.querySelector(':scope>.npol');if(!np)return;const rnd=k=>{const x=Math.sin(k*127.1+3.7)*43758.5453;return x-Math.floor(x)},T=(performance.timeOrigin||0)/1e3+performance.now()/1e3;let h='';
+ const rnd=k=>{const x=Math.sin(k*127.1+3.7)*43758.5453;return x-Math.floor(x)},T=(performance.timeOrigin||0)/1e3+performance.now()/1e3;
  for(let k=0;k<40;k++){const[x,y,a,b]=g[Math.floor(rnd(k)*g.length)],v=rnd(k+50)*Math.PI*2,r=.6+rnd(k+90)*.3,d=5+rnd(k+130)*6,z=2+rnd(k+170)*3;
-  h+='<i class="npk" style="left:'+f(x+Math.cos(v)*a*r)+'px;top:'+f(y+sx.offsetTop+Math.sin(v)*b*r)+'px;width:'+z.toFixed(1)+'px;height:'+z.toFixed(1)+'px;--dx:'+f(Math.cos(v)*(14+rnd(k+210)*26))+'px;--dy:'+f(Math.sin(v)*(10+rnd(k+250)*18)-6)+'px;animation-duration:'+d.toFixed(1)+'s;animation-delay:-'+(T%d).toFixed(1)+'s"></i>'}
+  h+='<i class="npk" style="left:'+f(x+Math.cos(v)*a*r)+'px;top:'+f(y+oy+Math.sin(v)*b*r)+'px;width:'+z.toFixed(1)+'px;height:'+z.toFixed(1)+'px;--dx:'+f(Math.cos(v)*(14+rnd(k+210)*26))+'px;--dy:'+f(Math.sin(v)*(10+rnd(k+250)*18)-6)+'px;animation-duration:'+d.toFixed(1)+'s;animation-delay:-'+(T%d).toFixed(1)+'s"></i>'}
  np.innerHTML=h}
 // molnens färg på himlen: tonen följer nederbörden och ljuset. Solens eget moln får samma färg som de andra
 function skyTon(sc){const wet=/^(drizzle|rain|sleet)$/.test(sc.type),snow=sc.type==='snow',lv=sc.lv,warmL=sc.phase==='dawn'||sc.phase==='golden';
