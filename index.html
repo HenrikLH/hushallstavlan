@@ -3583,6 +3583,11 @@ html.ny.ui5 .g5-big .g5-th,html.ny.ui5 .g5-big .g5-th .dr-th{width:88px;height:8
 .rs-k{flex:none;min-width:76px;height:30px;display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:0 10px;border-radius:999px;background:color-mix(in srgb,var(--ri,#fff) 7%,transparent);font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;color:color-mix(in srgb,var(--ri,#fff) 60%,transparent)}.rs-k svg{width:14px;height:14px;flex:none}
 .rs-k.dags{background:color-mix(in srgb,#FF9500 18%,transparent);color:#C93400}.rs-k.av{color:color-mix(in srgb,var(--ri,#fff) 30%,transparent)}
 :root[data-theme="dark"] .rs-k.dags{color:var(--orange)}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .rs-k.dags{color:var(--orange)}}
+/* Dammsugarsidan: Starta/Hem tonar ut listan i glas ända ner, och glider ner med den krympta menyn (bara transform = grafikkretsen) */
+html.ny.ui5 .rob-vy .ha-bar{bottom:0;padding-bottom:calc(var(--tabbar) + var(--tabgap) + 6px);background:none;transition:transform .55s cubic-bezier(.3,.9,.3,1);will-change:transform}
+html.ny.ui5 .rob-vy .ha-bar::before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(color-mix(in srgb,var(--bg) 0%,transparent),color-mix(in srgb,var(--bg) 82%,transparent) 30%);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);-webkit-mask-image:linear-gradient(transparent,#000 22%);mask-image:linear-gradient(transparent,#000 22%)}
+html.ny.ui5.nav-piller:has(#nav.mini) .rob-vy .ha-bar{transform:translate3d(0,calc(var(--tabbar) + var(--tabgap) + 6px - 34px),0)}
+@media (prefers-reduced-motion:reduce){html.ny.ui5 .rob-vy .ha-bar{transition:none}}
 </style>
 </head>
 <body>
