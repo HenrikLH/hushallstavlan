@@ -14,9 +14,9 @@ module.exports=async(pg,h)=>{
  assert.equal(await read("portHel(recipeById('linssoppa'))"),true);
  await click('[data-act="matTab"][data-id="vecka"]');
  if(await pg.locator('[data-act="recipe"][data-id="'+id+'"]').count())await click('[data-act="recipe"][data-id="'+id+'"]');
- const t=await pg.locator('.rc-price').first().innerText().catch(()=>'');console.log('Recept:',t.replace(/\n+/g,' | '));
+ const t=await pg.locator('.rc-price,.rcp-prisfot').first().innerText().catch(()=>'');console.log('Recept:',t.replace(/\n+/g,' | '));
  assert.match(t,/Minst/);assert.match(t,/kan vara inaktuella/);
- await pg.locator('.rc-price').first().evaluate(el=>el.scrollIntoView({block:'center'}));await h.idle(300);
+ await pg.locator('.rc-price,.rcp-prisfot').first().evaluate(el=>el.scrollIntoView({block:'center'}));await h.idle(300);
  await h.shot((process.env.SHOT||'priser')+'-recept');
  console.log('PASS priser-tillit');
 };

@@ -3114,10 +3114,10 @@ function rcpTop5(r){const id=esc(r.id),g=ratingOf(r.id),img=imgOf(r.id)||r.img||
   '<button class="btn-tint'+(pa?' on':'')+'" data-act="'+(des?(pa?'dessClear':'dessSet'):(pa?'weekShow':'weekAdd'))+'" data-id="'+id+'" aria-pressed="'+pa+'">'+(pa?I.tick+'På veckan':I.calPlus+'Till veckan')+'</button></div></div>';
  return h}
 // Prisets reservation som fotnot under faktarutan, i stället för ett eget block
-function rcpPrisFot(r){const p=recipePrice(r),prices=parseJ(settings().priser,{}),a=prisAlder(),log=parseJ(settings().prislogg,{});
- const t=p.partial?'Priset är ett minimum: '+[p.missing?p.missing+' ingrediens'+(p.missing===1?'':'er')+' saknar pris':'',p.unquantified?p.unquantified+' mängd'+(p.unquantified===1?'':'er')+' behöver granskas':''].filter(Boolean).join(', ')+'.':
-  p.estimated||!Object.keys(prices).length?'Priset är uppskattat från baspriser.':'Ungefärligt pris från '+(log.butik||'butikens')+' priser'+(a.datum?' '+a.datum.slice(0,10):'')+'.';
- return'<div class="foot">'+esc(t)+(p.missing?' <button type="button" class="linkbtn" data-act="varor">Välj varor</button>':'')+'</div>'}
+function rcpPrisFot(r){const p=recipePrice(r),prices=parseJ(settings().priser,{}),a=prisAlder(),log=parseJ(settings().prislogg,{}),har=Object.keys(prices).length;
+ const t=(p.partial?'Minst '+kr(p.amount)+' per portion: '+[p.missing?p.missing+' ingrediens'+(p.missing===1?'':'er')+' saknar pris':'',p.unquantified?p.unquantified+' mängd'+(p.unquantified===1?'':'er')+' behöver granskas':''].filter(Boolean).join(', ')+'. ':'')+
+  (!har?'Priset är uppskattat från baspriser.':p.estimated?'Delvis uppskattat från baspriser.':'Ungefärligt pris från '+(log.butik||'butikens')+' priser'+(a.datum?' '+a.datum.slice(0,10):'')+'.')+(har&&a.gammal?' Butikspriserna kan vara inaktuella.':'');
+ return'<div class="foot rcp-prisfot'+(har&&a.gammal?' pris-gammal':'')+'">'+esc(t)+(p.missing?' <button type="button" class="linkbtn" data-act="varor">Välj varor</button>':'')+'</div>'}
 // Planering: Tidigast igen med −/+ och när rätten lagades senast
 const TIDV=[1,1.5,2,3,4,6,8,12,16,26];
 function rcpPlan5(r){if(isDessert(r))return'';const id=esc(r.id),l=matLage(r.id),ald=baseOf(r.id)===0,ny=!l.harBas&&!l.betyg;
