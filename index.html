@@ -3254,7 +3254,7 @@ form[data-form="haLampa"] .ha-ctl{flex:1;justify-content:center;padding-top:24px
 .ha-ap{grid-column:1/-1;position:relative;overflow:hidden}.ha-ap .ha-i{background:rgba(120,120,128,.16);color:var(--ink-2)}.ha-ap.on.ha-ap-robot .ha-i{background:#0A84FF;color:#fff}.ha-ap.on.ha-ap-disk .ha-i{background:#30B0C7;color:#fff}
 .ha-ap .ha-tx{flex:1}.ha-ap-p{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(120,120,128,.18)}.ha-ap-p::after{content:'';position:absolute;inset:0 auto 0 0;width:var(--p);background:#0A84FF;border-radius:0 2px 2px 0}.ha-ap-disk .ha-ap-p::after{background:#30B0C7}
 .ha-g .ha-t.ha-ap.on{background:var(--fill);box-shadow:none}.ha-g-v .ha-t.ha-ap.on{background:var(--surface)}
-/* Smart hem-rutan: fyra scener överst och favoriter under, blad för att anpassa (ht-v355) */
+/* Smart hem-rutan: fyra scener överst och favoriter under, blad för att anpassa (ht-v356) */
 .hab-h{display:flex;align-items:center;gap:8px}.hab-h .wh{flex:1;min-width:0}
 .hab-mer{flex:none;display:grid;place-items:center;width:30px;height:30px;padding:0;border:0;border-radius:50%;background:var(--fill);color:var(--ink-2);cursor:pointer;-webkit-tap-highlight-color:transparent}.hab-mer svg{width:18px;height:18px}
 /* Designskillen (hushallstavlan-apple-design): rutan har hörn 26 och kant 16, därför hörn 16 innanför (inte kapslar), 8-avstånd, text 15/13 */
@@ -3501,6 +3501,21 @@ html.ny.ui5 body.wall .board .wpair>.widget{--z:1}
 html.ny.ui5 body.wall .board .wpair .wbig{font-size:calc(30px*var(--z));line-height:1.15}
 html.ny.ui5 body.wall .board .wpair .bbd-w{flex-basis:calc(84px*var(--z))}
 html.ny.ui5 body.wall .board .wpair .bbd-l{font-size:calc(15px*min(var(--z),1.2))}
+/* Städ: dammsugarens statusbricka (S12) */
+.stad-rob-g{display:flex;flex-direction:column;gap:12px;width:calc(100% - 32px);margin:16px 16px 0;padding:16px;border:0;border-radius:var(--r5,22px);background:var(--surface);color:var(--ink);font:inherit;text-align:left;cursor:pointer;transition:transform .3s var(--ha-fj,ease)}.stad-rob-g:active{transform:scale(.98)}
+.sr-hd{display:flex;align-items:center;gap:16px}.sr-hd .chev{margin-left:auto;color:var(--ink-3);display:flex}.sr-hd .chev svg{width:14px;height:14px}
+.sr-t{display:flex;flex-direction:column;min-width:0;flex:1}.sr-t b{font-size:17px;line-height:22px;font-weight:600}.sr-t>span{font-size:15px;line-height:20px;color:var(--ink-2)}
+.sr-ms{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:4px}.sr-m{display:inline-flex;align-items:center;gap:4px;font-size:13px;line-height:18px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.sr-m svg{width:14px;height:14px;flex:none}.sr-ib{color:var(--green)}.sr-iv{color:#32ADE6}.sr-m svg.lag{color:var(--orange)}
+.sr-ill{width:80px;height:80px;flex:none}.sr-ill circle,.sr-ill path{fill:none;stroke-linecap:round}.sr-sp{stroke:var(--fill);stroke-width:6}.sr-bat{stroke:var(--green);stroke-width:6}.sr-vat{stroke:#32ADE6;stroke-width:6}.sr-bat.lag,.sr-vat.lag{stroke:var(--orange)}
+.sr-kr{fill:var(--fill)!important;stroke:var(--ink-3);stroke-width:1.5}.sr-st{stroke:var(--ink-3);stroke-width:2}.sr-li{stroke:var(--ink-2);stroke-width:2}.sr-pu{fill:var(--ink-2)!important}.sr-ill.on .sr-li{stroke:#0A84FF}.sr-ill.on .sr-pu{fill:#0A84FF!important}
+.sr-rh{font-size:13px;line-height:18px;color:var(--ink-2);font-weight:600}
+.sr-rd{display:flex;flex-direction:column;gap:8px}.sr-rg{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.sr-rum{display:flex;align-items:flex-start;gap:8px;padding:8px 12px;border-radius:16px;background:var(--fill);min-width:0}.sr-rt{display:flex;flex-direction:column;min-width:0;flex:1}
+.sr-rt b{font-size:15px;line-height:20px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sr-rt span{font-size:13px;line-height:18px;color:var(--ink)}.sr-rt small{font-size:13px;line-height:18px;color:var(--ink-2)}
+.sr-rum>svg{width:18px;height:18px;flex:none;margin-top:1px;color:var(--ink-2)}.sr-rum.m>svg{color:#32ADE6}.sr-rum.dags small{color:#C93400;font-weight:600}
+:root[data-theme="dark"] .sr-rum.dags small{color:var(--orange)}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .sr-rum.dags small{color:var(--orange)}}
+body.wall .stad-rob-g{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:center}body.wall .sr-hd{align-self:center}
 /* Ny veckosedel med bilder: rutnät (.g5-kg) eller lista med stora bilder (.g5-big) */
 html.ny.ui5 .g5-kg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0 16px}
 html.ny.ui5 .g5-k{position:relative;display:flex;flex-direction:column;background:var(--surface);border-radius:var(--r5,26px);overflow:hidden;min-width:0}
@@ -3540,7 +3555,7 @@ html.ny.ui5 .g5-big .g5-th,html.ny.ui5 .g5-big .g5-th .dr-th{width:88px;height:8
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=344"></script>
+<script src="app.js?v=345"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>

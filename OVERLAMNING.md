@@ -2,6 +2,9 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Dammsugarens statusbricka i Städ (publicerad ht-v356, ångra-gren `version-fore-dammsug-stad`)
+- `stadRob()` (ruta S12): samlad statusbricka (Henrik ville kombinera A+B): illustration med ringar batteri (yttre, grön) och rent vatten (inre, `a.tank`), "Rum att städa" ("Dags nu"/"Om n dagar", ikon till höger i brickan; väggen: status vänster halva, 4 rum höger) = rum med `haRumSt` dags/snart som brickor med åtgärd: "Dammsug" eller "Dammsug + mopp" (mopp innebär alltid dammsugning direkt före, Henriks regel). Tryck → `V.robot` med Tillbaka "Att göra" (`S.robFran`).
+- Test `stad-dammsugare.js` (haDemo) telefon/vägg/mörkt, alla-flikar telefon+vägg gröna. Bilder /mnt/project-files/apparater/stad-genvag/samlad/.
 ## Inställningar: rund tillbakaknapp i bladets rubrik (publicerad ht-v355)
 
 - Henrik valde A: på en undersida byts Avbryt mot en rund ‹-knapp (`.pref-bk`, `ACT.prefBack`) och delens namn står i bladets rubrik (20 pt fet, `prefHead`). Den gamla länken "‹ Inställningar" och stora rubriken borta. Bara UI 5.0. Gren `claude/project-thread-x44h4s`, ångra-gren `version-fore-tillbakaknapp`.
