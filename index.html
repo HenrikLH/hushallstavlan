@@ -3383,19 +3383,22 @@ html.ny.ui5 .cell.dr-slide .pill{background:var(--fill);color:var(--ink)}
 .hem-ov{margin-top:8px;font-size:13px;line-height:18px;color:var(--ink-2)}
 .hem-ov.hem-obs{color:var(--obs,var(--orange,#C93400))}
 .hem-k{min-width:0}
-.hem-k .splitbar{margin-top:4px}
-.hem-leg{display:flex;flex-direction:column;margin-top:4px}
-.hem-leg>div{display:flex;align-items:center;gap:8px;min-height:32px;font-size:15px;line-height:20px;min-width:0}
-.hem-leg>div+div{border-top:.5px solid var(--line)}
-.hem-leg .pdot{margin:0;flex:none}
-.hem-leg .grow{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hem-k .splitbar{margin-top:4px;height:8px;border-radius:4px}
+.hem-leg{display:flex;flex-direction:column;gap:4px;margin-top:12px}
+.hem-leg>div{display:flex;align-items:center;gap:8px;min-height:24px;font-size:15px;line-height:20px;min-width:0}
+.hem-leg .pdot{margin:0;flex:none;width:8px;height:8px}
+.hem-leg .grow{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink-2)}
 .hem-leg b{font-size:15px;line-height:20px;font-weight:600}
+.hem-fl{gap:8px;margin-top:4px}
 .hem-k .hem-fl .cell.hem-fr{gap:8px;padding:0;min-height:32px}
-html.ny .hem-k .hem-fl .cell+.cell::before,.hem-k .hem-fl .cell+.cell::before{left:0}
-.hem-dt{flex:none;width:48px;font-size:13px;line-height:18px;font-weight:600;color:var(--bd-ink,var(--ink-2))}
-.hem-fn{font-size:15px;line-height:20px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-.hem-nr{flex:none;font-size:13px;line-height:18px;color:var(--ink-2)}
-.hem-fr.idag .hem-nr{color:var(--accent);font-weight:600}
+html.ny .hem-k .hem-fl .cell+.cell::before,.hem-k .hem-fl .cell+.cell::before{display:none}
+.hem-dt{flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;background:var(--bd-soft,var(--fill));color:var(--bd-ink,var(--ink))}
+.hem-dt b{font-size:13px;line-height:14px;font-weight:700}
+.hem-dt span{font-size:11px;line-height:12px;font-weight:500}
+.hem-fr .grow{display:flex;flex-direction:column;min-width:0}
+.hem-fn{font-size:15px;line-height:18px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hem-fs{font-size:13px;line-height:16px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hem-fr.idag .hem-fs{color:var(--accent);font-weight:600}
 /* ===== Mer väder och smarta förslag (alla UI) ===== */
 /* Väder: SMHI-varning överst, nya rutor (Vädra, Ute, UV, Pollen, Norrsken) */
 .wx-varn{display:block;background:var(--surface);border-radius:var(--r5,16px);padding:12px 16px 14px;margin:0 16px 14px}

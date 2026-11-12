@@ -5161,11 +5161,10 @@ function hemEko(){
   '<div class="splitbar" role="img" aria-label="Fördelning '+c.per.map(x=>esc(personLabel(x.p))+' '+pct(x.share)).join(', ')+'">'+c.per.map(x=>'<i class="'+pcls(x.p)+'" style="flex:'+Math.max(x.share,.0001)+'"></i>').join('')+'</div>'+
   '<div class="hem-leg">'+c.per.map(x=>'<div><span class="pdot '+pcls(x.p)+'"></span><span class="grow">'+esc(personLabel(x.p))+'</span><b class="num">'+pct(x.share)+'</b></div>').join('')+'</div>'+ov)}
 // Födelsedagar de närmaste tre veckorna; får inte alla plats (fler än hemFodMax) visas två veckor.
-const hemFodMax=()=>innerWidth>=700?5:4;
+const hemFodMax=()=>innerWidth>=700?4:3;
 function hemFod(){const L=bdNext(bdays());if(!L.length)return widget('fod','hem-k',I.cake,'Födelsedagar','','<div class="wempty">Inga inlagda.</div>');
  let K=L.filter(b=>b.days<=21);const M=hemFodMax();if(K.length>M)K=L.filter(b=>b.days<=14);
- const nar=b=>b.days===0?'Idag':b.days===1?'1 d':b.days+' d';
- const rad=b=>'<div class="cell hem-fr'+(b.days===0?' idag':'')+'"'+bdSt(b)+' aria-label="'+esc(b.name)+', '+esc(bdWhen(b))+'"><span class="hem-dt num">'+b.dd+' '+MON3[b.mo]+'</span><span class="grow hem-fn">'+esc(b.name)+'</span><span class="hem-nr num">'+nar(b)+'</span></div>';
+ const rad=b=>'<div class="cell hem-fr'+(b.days===0?' idag':'')+'"'+bdSt(b)+'><span class="hem-dt"><b class="num">'+b.dd+'</b><span>'+MON3[b.mo]+'</span></span><span class="grow"><span class="hem-fn">'+esc(b.name)+'</span><span class="hem-fs">'+esc(cap(bdWhen(b)))+'</span></span></div>';
  return widget('fod','hem-k',I.cake,'Födelsedagar','','<div class="wl hem-fl">'+(K.length?K:[L[0]]).slice(0,M).map(rad).join('')+'</div>')}
 V.hemmet=function(){if(S.haRum!=null)return V.hus();
  const D=(haUrl()||haDemo())?haData():null;
