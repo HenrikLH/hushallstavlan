@@ -3,7 +3,7 @@
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
 ## Scenbladet: ljusstyrka per lampa (förslag, väntar på Henrik)
-- Ägare Claude, gren `claude/project-thread-zk9a41`. `habScSheet` har "Läge i scenen": −/+ i steg om 10 % (`ACT.habScB`) och brytare På/Av (`ACT.habScPa`) per vald lampa. Test `scen-ljusstyrka.js` telefon/vägg/mörkt, smart-hem-ruta, hemmet-scener gröna.
+- Ägare Claude, gren `claude/project-thread-zk9a41`. `habScSheet` har "Läge i scenen": −/+ i steg om 10 % (`ACT.habScB`) och brytare På/Av (`ACT.habScPa`) per vald lampa. Väggen: mindre scenbrickor (ikon 24, höjd 58 i stället för 75, CSS `body.wall :is(.hab .hab-sc,.hus-sc)`). Test `scen-ljusstyrka.js` telefon/vägg/mörkt, alla-flikar telefon+vägg, smart-hem-ruta, hemmet-scener gröna.
 
 ## Hemmet: egna scener, Ordna, Ångra, apparater i halv bredd, mest ändrade först (publicerad ht-v368, ångra-gren `version-fore-hemmet-scener`)
 - Ägare Claude, gren `claude/project-thread-zk9a41`. Plus i Hemmet/Smart hem är en meny (`husPlus`): Ny scen (`ACT.habScNy`, samma scenblad som rutan) eller Lägg till enhet. Egna scener = `habScAlla` (onskelista `{hab:1,sc}`; de fyra första är rutans platser, fler läggs efter). Hemmet visar scenerna fyra i rad (`husScener`, CSS `.hus-sc`).
