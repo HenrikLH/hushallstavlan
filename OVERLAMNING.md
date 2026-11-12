@@ -2,9 +2,10 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
-## Granskning C3: rättens blad (publicerad ht-v363, ångra-gren `version-fore-rattens-blad`)
-- UI 5.0: Börja laga som huvudknapp, lista Portioner/Byt rätt/Visa recept, Ta bort håll in; prisnoten en gång ovanför receptlistan (`recipePriceNote`, `recipePrice().kort`). Gren `claude/project-thread-jltjnw`.
-- Kvar i granskningen (docs/granskning-2026-11): B Idag-ruta, C1/C2/C4, D, E, H, I, J, K, L, M. Test: `rattens-blad.js`, alla-flikar telefon+vägg gröna.
+## Granskning C3 + E + L (publicerad ht-v363 resp. ht-v367, ångra-grenar `version-fore-rattens-blad`, `version-fore-kalender-roda`)
+- C3: rättens blad med Börja laga, prisnoten en gång ovanför receptlistan. E (UI 5.0): röda dagar = lör/sön + svenska helgdagar (`helgdag(k)`, klass `.cal-d.rod`) i accentfärgen (Henriks val), ingen Lägg till-länk (plus räcker), ingen veckodag på maten, kort fotrad. Datumcirklar med proportionella siffror (Henrik såg 12 förskjutet på iPhone, ej verifierat i Chromium).
+- L: `verktyg/version.js` sätter nu app.js?v= = ht-v-numret, så Inställningar visar samma version.
+- Kvar i granskningen (docs/granskning-2026-11): B Idag-ruta, C1/C2/C4, D, H, I, J, K, L (OVERLAMNING-längd, AGENTS-storlekar), M. Test: `kalender-granskning.js`, `kalender-roda.js`, `rattens-blad.js`, alla-flikar telefon+vägg gröna.
 
 ## Städ: egna kort och Ring som standard (publicerad ht-v364, ångra-gren `version-fore-stad-ring`)
 - Ägare Claude, gren `claude/project-thread-ys6yn3`. `stadRob()` stängde inte sin `<div class="stad-rob-g">`, så hela Städ hamnade i ett kort. Rättat; `stad-dammsugare.js` larmar om städinnehåll hamnar i brickan.
