@@ -36,4 +36,10 @@ module.exports=async(pg,h)=>{
  assert.equal(parseInt(await iv.locator('b').innerText()),parseInt(fore)+1,'Intervallet ökar med +');
  await iv.scrollIntoViewIfNeeded();await h.shot('robot-intervall');
  assert.doesNotMatch(await pg.locator('main').innerHTML(),/undefined|NaN/,'Inget odefinierat');
+ // rummets blad (håll in ett rum): byt namn, inga förklaringstexter eller Städa-knapp
+ await pg.evaluate(()=>window.__d('(()=>{const a=haAppX();ACT.robRum(a.rum[0].id)})()'));await h.idle(900);
+ await pg.locator('.rr-namn [data-id$=":Kontor"]').click();await h.idle(600);
+ assert.match(await pg.locator('.sheet .dm-hd .title').first().innerText(),/Kontor/,'Rummet bytte namn i bladet');
+ assert.equal(await pg.locator('.sheet .foot').count(),0,'Inga förklarande texter');assert.equal(await pg.locator('[data-act="robRumValj"]').count(),0,'Ingen Städa rummet-knapp');
+ await h.shot('robot-rumsblad');
 };
