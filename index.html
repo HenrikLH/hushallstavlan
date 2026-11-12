@@ -3604,7 +3604,7 @@ html.ny.ui5[data-theme="dark"] .stad-rob-g{--sr-or:var(--orange);--sr-ort:var(--
 .stad-rob-g .sr-bat.lag,.stad-rob-g .sr-vat.lag{stroke:var(--sr-or)}
 .sr-bz{display:inline-flex;width:14px;height:14px;align-items:center;justify-content:center;flex:none}
 .sr-m .sr-bz svg{width:12px;height:12px;fill:var(--green)}
-.sr-bz.an{animation:srLadd 2.4s ease-in-out infinite;will-change:transform,opacity}
+.sr-bz.an{animation:srLadd 3.6s ease-in-out infinite;will-change:transform,opacity}
 @keyframes srLadd{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.82)}}
 @media (prefers-reduced-motion:reduce){.sr-bz.an{animation:none}}
 .sr-ill{overflow:visible}
@@ -3614,12 +3614,9 @@ html.ny.ui5[data-theme="dark"] .stad-rob-g{--sr-or:var(--orange);--sr-ort:var(--
 .sr-ill.in .sr-vat{animation-delay:calc(var(--d,0ms) + 120ms)}
 @keyframes srIn{from{stroke-dasharray:0 100}}
 .sr-iw{position:relative;display:flex;flex:none;width:80px;height:80px}
-.sr-tp{position:absolute;inset:0;pointer-events:none}
-.sr-tp>i{position:absolute;left:50%;top:-1px;width:10px;height:10px;margin-left:-5px;border-radius:50%;background:var(--green);box-shadow:0 0 8px 2px color-mix(in srgb,var(--green) 70%,transparent);animation:srPuls 2.4s ease-in-out infinite;will-change:transform,opacity}
-@keyframes srPuls{0%,100%{transform:scale(.6);opacity:0}45%{transform:scale(1.25);opacity:1}70%{transform:scale(1);opacity:.7}}
-.sr-vg{position:absolute;inset:1px;border-radius:50%;border:3px solid var(--green);pointer-events:none;animation:srVag 2.4s cubic-bezier(.2,.7,.3,1) infinite;will-change:transform,opacity}
-@keyframes srVag{0%{transform:scale(.92);opacity:0}15%{opacity:.7}100%{transform:scale(1.22);opacity:0}}
-@media (prefers-reduced-motion:reduce){.sr-ill.in .sr-bat,.sr-ill.in .sr-vat{animation:none}.sr-tp,.sr-vg{display:none}}
+.sr-vg{position:absolute;inset:1px;border-radius:50%;border:2px solid var(--green);pointer-events:none;animation:srVag 3.6s cubic-bezier(.25,.6,.3,1) infinite;will-change:transform,opacity}
+@keyframes srVag{0%{transform:scale(.94);opacity:0}20%{opacity:.35}100%{transform:scale(1.14);opacity:0}}
+@media (prefers-reduced-motion:reduce){.sr-ill.in .sr-bat,.sr-ill.in .sr-vat{animation:none}.sr-vg{display:none}}
 </style>
 </head>
 <body>
