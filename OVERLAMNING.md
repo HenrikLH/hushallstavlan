@@ -16,12 +16,11 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 - Foton: `img` i inspiration.json (100/101, länkade från receptsidorna; ICA hämtat med WebFetch eftersom ICA spärrar GitHub). `inspoImg` matchar id eller namn. Nya recept: `node verktyg/matbilder-hamta.js [--kolla]` där nätet når sajterna (inte molnet).
 - Test: `verktyg/emu/matbilder.js` (LS mbild=c för lista; BILDER=1 släpper igenom riktiga foton, fungerar bara där nätet når dem), generera-vecka, installningar-delar, alla-flikar telefon+vägg.
 
-## Hemmet ersätter Ekonomi i flikraden (publicerad ht-v352)
+## Hemmet: redesign med hela Smart hem (förslag, ej publicerat)
 
-- Henrik valde B + brickor: flikrad Mat · Hemmet · Översikt · Kalender · Att göra. Hemmet (`V.hemmet`, rutor H1/H2) har brickor för Smart hem (bara med haUrl/vägg), Ekonomi, Födelsedagar, Familj (DEV) och raden Inställningar. Undersidor (`HEM_UNDER`) markerar Hemmet; bakåt leder dit de öppnades från (`S.hemFran`, `hemTill`, `hemTop`). Översikt har rutnätsikonen `I_OV`.
-- Ångra-gren `version-fore-hemmet`. Väggdatorn uppdateras först när Henrik skriver "Kör" (laddar annars om sig själv när app.js?v ändras).
-- Test: `verktyg/emu/hemmet.js` (telefon, vägg, mörkt, uppstart view=ekonomi), alla-flikar telefon+vägg, flikrad-lins gröna.
-
+- Hemmet (flik sedan ht-v352, ångra-gren `version-fore-hemmet`) blir i första hand Smart hem: `husAlla(D)` (utbrutet ur `V.hus`) visar alla reglage och enheter (H3); kort för Födelsedagar (`hemFod`, återanvänder `wallBd`) och Ekonomi (`hemEko`, låst på väggen) i H1; Inställningar H2. nav('hus') leder till Hemmet; rum öppnas i Hemmet (`S.haRum`). Gren `claude/project-thread-x400ki`, ägare Claude.
+- Förhandsval `ht.hemStil`: A (standard) = stora kort sist under "Hushållet", B = små kort överst. Ta bort valet som inte väljs före publicering.
+- Väntar på Henriks val. Bilder /mnt/project-files/hemmet/redesign/. Test: `verktyg/emu/hemmet.js` (A/B, vägg), alla-flikar telefon+vägg gröna.
 ## Smarta förslag borttagna från Översikt (publicerad ht-v351)
 
 - Henrik tyckte förslagen (Ö14) var irriterande. Hela funktionen borttagen: `forslag`/`forslagHtml`/`fsDone`, ACT `fsKlart/fsSen/fsGo`, CSS `.fsl/.fs-*`; Ö14 till borttagna. Väderlarmet (Ö13) och Vädra/Ute finns kvar. Ångra-gren `version-fore-smarta-forslag`.

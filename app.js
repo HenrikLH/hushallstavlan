@@ -1700,7 +1700,7 @@ function haAppSheet(enter){const a=haAppX();if(!a){S.sheet=null;return''}
  return sheetHtml('haApp',esc(a.n),'<span class="tb"></span>',top+'<div class="ha-ap-in">'+haAppKropp(a)+'</div>',enter,'<span class="tb"></span>')}
 // dammsugaren har en egen sida (ingen lampa: kartan behöver plats); på väggen kartan till vänster och allt annat till höger
 const haRobot=()=>haApps().find(x=>x.typ==='robot'&&x.id===S.haAppId)||haApps().find(x=>x.typ==='robot');
-V.robot=function(){const a=haRobot(),fr=S.robFran==='stad';let h='<div class="rcp-top"><button class="back" data-act="nav" data-id="'+(fr?'stad':'hus')+'">'+I.back+(fr?'Att göra':'Smart hem')+'</button></div>';
+V.robot=function(){const a=haRobot(),fr=S.robFran==='stad';let h='<div class="rcp-top"><button class="back" data-act="nav" data-id="'+(fr?'stad':'hemmet')+'">'+I.back+(fr?'Att göra':'Hemmet')+'</button></div>';
  if(!a)return h+'<div class="banner">Dammsugaren svarar inte just nu.</div>';S.haAppId=a.id;
  return h+'<div class="rob-vy'+(S.haAppSida==='inst'?' inst':'')+'"><div class="rob-hd"><span class="ha-i ha-ap-robot'+(haAppAktiv(a)?' on':'')+'">'+HAI_APP.robot+'</span><div><h1>'+esc(a.n)+'</h1><p>'+esc(haAppStat(a))+'</p></div></div><div class="rob-k">'+haKarta(a)+'</div><div class="rob-r">'+haAppKropp(a,true)+'</div></div>'};
 // Ändra en enhet utan tangentbord: namn och rum väljs bland förslag, Ta bort kräver håll in
@@ -1800,12 +1800,15 @@ function haZoom(inn,klar){const o=document.getElementById('overlay'),bg=o&&o.que
 function haAv(x){if(!x||!x.on)return render();const was=x.on;x.on=false;HA.last=null;render();haSend({id:x.id,gor:'av'},()=>{x.on=was})}
 // Smart hem-vyn: alla enheter per rum, scener och givare. Plus lägger till, håll in ändrar.
 // Smart hem-vyn som Hem-appen: bakgrundsbild, statusknappar, scener, rum (rubriken öppnar rummets sida) och givare
-V.hus=function(){const D=haData(),R0=S.haRum;let h='<div class="rcp-top"><button class="back" data-act="'+(R0!=null?'haRumVy':'nav')+'" data-id="'+(R0!=null?'':hemTill()[0])+'">'+I.back+(R0!=null?'Smart hem':hemTill()[1])+'</button></div>';
+V.hus=function(){const D=haData(),R0=S.haRum;let h='<div class="rcp-top"><button class="back" data-act="'+(R0!=null?'haRumVy':'nav')+'" data-id="'+(R0!=null?'':hemTill()[0])+'">'+I.back+(R0!=null?(S.view==='hemmet'?'Hemmet':'Smart hem'):hemTill()[1])+'</button></div>';
  const E=D?D.lampor||[]:[],G=D?D.givare||[]:[];
  h+=head(R0!=null?esc(R0||'Övrigt'):'Smart hem',{sub:S.haTest?'Testläge · inget skickas till Home Assistant':D&&HA.fel&&!haDemo()?esc(HA.fel):'',tools:D?'<button type="button" class="ib" data-act="haAddOpen" aria-label="Lägg till enhet">'+I.plus+'</button>':''});
  if(!D)return h+'<div class="group"><div class="cell"><span class="grow">'+(haUrl()?'Får ingen kontakt med väggdatorn. Är Tailscale på i telefonen?':'Lägg in väggdatorns adress under Inställningar → Enheten för att styra hemmet från telefonen.')+'</span></div></div>';
- const giv=L=>L.length?'<div class="ha-rh">Givare</div>'+group(L.map(x=>'<div class="cell" data-hold-lift="haEdit" data-id="'+esc(x.id)+'"><span class="ha-i sm">'+HAI.temp+'</span><span class="grow">'+esc(x.n)+(x.rum&&R0==null?'<span class="meta"> · '+esc(x.rum)+'</span>':'')+'</span><span class="num">'+esc(haGiv(Object.assign({},x,{n:''})).trim())+'</span></div>').join('')):'';
- if(R0!=null){const R=E.filter(x=>(x.rum||'')===R0);return h+'<div class="ha-rum-in"><div class="ha-g ha-g-v">'+R.map(haTile).join('')+'</div>'+giv(G.filter(x=>(x.rum||'')===R0))+'</div>'}
+ if(R0!=null){const R=E.filter(x=>(x.rum||'')===R0);return h+'<div class="ha-rum-in"><div class="ha-g ha-g-v">'+R.map(haTile).join('')+'</div>'+haGivRader(G.filter(x=>(x.rum||'')===R0),R0)+'</div>'}
+ return h+husAlla(D)};
+// Hela Smart hem utan rubrik: statusknappar, scener, apparater, högtalare, rum och givare (Smart hem-sidan och Hemmet)
+const haGivRader=(L,R0)=>L.length?'<div class="ha-rh">Givare</div>'+group(L.map(x=>'<div class="cell" data-hold-lift="haEdit" data-id="'+esc(x.id)+'"><span class="ha-i sm">'+HAI.temp+'</span><span class="grow">'+esc(x.n)+(x.rum&&R0==null?'<span class="meta"> · '+esc(x.rum)+'</span>':'')+'</span><span class="num">'+esc(haGiv(Object.assign({},x,{n:''})).trim())+'</span></div>').join('')):'';
+function husAlla(D){let h='';const E=D.lampor||[],G=D.givare||[];
  const lj=E.filter(x=>x.t==='light'),ut=E.filter(x=>x.t!=='light'),nl=lj.filter(x=>x.on).length,nu=ut.filter(x=>x.on).length;
  const chip=(ik,n,s,on,st)=>'<div class="ha-chip'+(on?' on':'')+'"><span class="ha-i"'+(st||'')+'>'+ik+'</span><span class="ha-tx"><span class="ha-n">'+n+'</span><span class="ha-s">'+s+'</span></span></div>';
  h+='<div class="ha-chips-v">'+(G.length?chip(HAI.temp,'Klimat',esc(haGiv(G[0])),0,' style="background:#FF9F0A;color:#fff"'):'')+(lj.length?chip(HAI.bulb,'Ljus',nl?nl+(nl>1?' tända':' tänd'):'Allt släckt',nl):'')+(ut.length?chip(HAI.plug,'Uttag',nu?nu+' på':'Alla av',nu):'')+'</div>';
@@ -1816,7 +1819,7 @@ V.hus=function(){const D=haData(),R0=S.haRum;let h='<div class="rcp-top"><button
  const rum=HA_RUM.filter(r=>E.some(x=>x.rum===r)).concat(E.some(x=>x.rum&&!HA_RUM.includes(x.rum))?[...new Set(E.filter(x=>x.rum&&!HA_RUM.includes(x.rum)).map(x=>x.rum))]:[]).concat(E.some(x=>!x.rum)?['']:[]);
  rum.forEach(r=>{const R=E.filter(x=>(x.rum||'')===r);h+='<button type="button" class="ha-rh ha-rh-k" data-act="haRumVy" data-id="'+esc(r||'_')+'">'+esc(r||'Övrigt')+'<span class="chev">'+I.chev+'</span></button><div class="ha-g ha-g-v">'+R.map(haTile).join('')+'</div>'});
  if(!E.length)h+='<div class="group"><div class="cell"><span class="grow">Inga enheter på tavlan än.</span><button type="button" class="pill" data-act="haAddOpen">'+I.plus+'Lägg till</button></div></div>';
- return h+giv(G)};
+ return h+haGivRader(G,null)}
 // lång väntan mot tjänsten: svarar direkt första gången, sedan när något ändras (eller efter 25 s)
 async function haLoop(){if(HA.busy||haDemo()||!haUrl()||Date.now()<HA.retry)return;HA.busy=true;const bas=haUrl();
  try{while(haUrl()===bas&&(wallBoardOn()||document.visibilityState==='visible')){const ac=new AbortController(),t=setTimeout(()=>ac.abort(),40000);
@@ -5143,17 +5146,26 @@ function ekoLock(){const n=(S.pin||'').length;
 const hemTill=()=>S.hemFran==='oversikt'?['oversikt','Översikt']:['hemmet','Hemmet'];
 const hemTop=()=>'<div class="rcp-top"><button class="back" data-act="nav" data-id="'+hemTill()[0]+'">'+I.back+hemTill()[1]+'</button></div>';
 /* ---------- Hemmet ---------- */
-// En sida för det man använder ibland: en bricka per del med läget (som Apples Hem-app), Inställningar som rad under.
-V.hemmet=function(){const D=(haUrl()||haDemo())?haData():null,lj=D?(D.lampor||[]).filter(x=>x.t==='light'):[],nl=lj.filter(x=>x.on).length,G=D?D.givare||[]:[];
- const ovN=people().includes(S.me)?ovOpen('shared').length+ovOpen(S.me).length:0,b=bdNext(bdays())[0];
- const R=[(haUrl()||haDemo())&&['hus','Smart hem',HAI.bulb,'#FF9F0A',D?(nl?nl+(nl>1?' tända':' tänd'):'Allt släckt')+(G.length?' · '+haGiv(Object.assign({},G[0],{n:''})).trim():''):'Ingen kontakt'],
-  ['ekonomi','Ekonomi',I_EKO,'#34C759',ekoLocked()?'Låst med kod':ovN?ovN+(ovN>1?' överföringar saknas':' överföring saknas'):'Allt inlagt',ovN&&!ekoLocked()],
-  ['fod','Födelsedagar',I.cake,'#FF2D55',b?b.name.split(' ')[0]+' '+bdWhen(b):'Inga inlagda'],
-  DEV&&['familj','Familj',I.people,'#5856D6','Släktträd']].filter(Boolean);
- const ic=(c,svg)=>'<span class="hem-ic" style="background:'+c+'">'+svg+'</span>';
- let h=head('Hemmet');
- h+='<div class="hem-g"'+RF('H1')+'>'+R.map(([id,l,svg,c,st,obs])=>'<button type="button" class="hem-b" data-act="nav" data-id="'+id+'">'+ic(c,svg)+'<span class="hem-n">'+l+'</span><span class="hem-s'+(obs?' obs':'')+'">'+esc(st)+'</span></button>').join('')+'</div>';
- h+=rgroup('H2','<button type="button" class="cell link hem-r" data-act="settings">'+ic('#8E8E93',I.gear)+'<span class="grow">Inställningar</span>'+chevron+'</button>');
+// Hemmet: i första hand hela Smart hem (alla reglage och enheter), med korta kort för Födelsedagar och Ekonomi.
+// ht.hemStil väljer under förhandsvisningen: A = korten sist i stort format, B = små kort överst.
+const hemB=()=>lsGet('hemStil')==='B';
+function hemEko(liten){const lock=ekoLocked(),ovN=people().includes(S.me)?ovOpen('shared').length+ovOpen(S.me).length:0,c=ekoCalc(thisMonth()),me=c.per.find(x=>x.p===S.me);
+ const ov=ovN?'<span class="hem-obs">'+ovN+(ovN>1?' överföringar saknas':' överföring saknas')+'</span>':people().includes(S.me)?'Överföringarna är inlagda':'';
+ if(liten)return widget('ekonomi','hem-k',I_EKO,'Ekonomi','',lock?'<div class="hem-big">Låst</div><div class="sub">Öppna med koden</div>':'<div class="hem-big num">'+(me&&c.tot?kr(me.left):'–')+'</div><div class="sub">'+(me&&c.tot?'kvar efter fasta':'Ingen inkomst ifylld')+'</div>'+(ovN?'<div class="sub hem-obs">'+ovN+' saknas</div>':''));
+ if(lock)return widget('ekonomi','w2 hem-k',I_EKO,'Ekonomi',esc(cap(monthName(thisMonth()))),'<div class="wl"><div class="cell"><span class="grow">Låst på den här skärmen</span><span class="val">Öppna med koden</span></div></div>');
+ const rad=(t,v)=>'<div class="cell"><span class="grow">'+t+'</span><span class="val num">'+v+'</span></div>';
+ return widget('ekonomi','w2 hem-k',I_EKO,'Ekonomi',esc(cap(monthName(thisMonth()))),'<div class="wl">'+rad('Fasta utgifter',kr(Math.round(c.shared+c.per.reduce((a,x)=>a+x.own,0))))+(me&&c.tot?rad('Kvar efter fasta, '+esc(personLabel(S.me)),kr(me.left)):rad('Inkomst',c.tot?kr(c.tot):'Inte ifylld'))+(ov?'<div class="cell"><span class="grow">'+ov+'</span></div>':'')+'</div>')}
+function hemFod(liten){const L=bdays();if(!L.length)return widget('fod',liten?'hem-k':'w2 hem-k',I.cake,'Födelsedagar','','<div class="wempty">Inga födelsedagar inlagda.</div>');
+ if(!liten)return wallBd().replace('class="widget bbd','class="widget w2 bbd hem-k');
+ const b=bdNext(L)[0];return widget('fod','hem-k',I.cake,'Födelsedagar','','<div class="hem-big">'+esc(b.name.split(' ')[0])+'</div><div class="sub">'+esc(cap(bdTurns(b)))+' '+esc(bdWhen(b))+'</div>')}
+V.hemmet=function(){if(S.haRum!=null)return V.hus();
+ const D=(haUrl()||haDemo())?haData():null;
+ let h=head('Hemmet',{sub:S.haTest?'Testläge · inget skickas till Home Assistant':D&&HA.fel&&!haDemo()?esc(HA.fel):'',tools:D?'<button type="button" class="ib" data-act="haAddOpen" aria-label="Lägg till enhet">'+I.plus+'</button>':''});
+ const kort=liten=>'<div class="widgets hem-kort'+(liten?' liten':'')+'"'+RF('H1')+'>'+hemFod(liten)+hemEko(liten)+'</div>';
+ if(hemB())h+=kort(true);
+ h+='<div'+RF('H3')+'>'+(D?husAlla(D):'<div class="group"><div class="cell"><span class="grow">'+(haUrl()?'Får ingen kontakt med väggdatorn. Är Tailscale på i telefonen?':'Lägg in väggdatorns adress under Inställningar → Enheten för att styra hemmet från telefonen.')+'</span></div></div>')+'</div>';
+ if(!hemB())h+='<div class="ha-rh">Hushållet</div>'+kort(false);
+ h+=rgroup('H2','<button type="button" class="cell link hem-r" data-act="settings"><span class="hem-ic" style="background:#8E8E93">'+I.gear+'</span><span class="grow">Inställningar</span>'+chevron+'</button>');
  return h};
 V.ekonomi=function(){if(ekoLocked())return hemTop()+ekoLock();const m=S.ekoMonth||thisMonth(),c=ekoCalc(m),o=c.o;
  let h=hemTop()+head('Ekonomi',{sub:'Fasta utgifter och fördelning',tools:'<button class="ib plus" data-act="ekoCost" data-list="shared" aria-label="Ny utgift">'+I.plus+'</button>'});
@@ -5912,7 +5924,7 @@ const ACT={
   if(id==='av'){const was=D.lampor.map(x=>x.on);D.lampor.forEach(x=>{if(!x.nas)x.on=false});render();return haSend({alla:'av'},()=>D.lampor.forEach((x,i)=>x.on=was[i]))}
   if(haDemo()){const m={'scene.morgon':{'light.kok':100,'light.hall':60},'scene.kvall':{'light.vardagsrum':45,'switch.fonster':1,'light.kok':30},'scene.film':{'light.vardagsrum':10}}[id]||{};D.lampor.forEach(x=>{const v=m[x.id];x.on=!!v;if(v>1)x.b=v})}
   render();haSend({scen:id},()=>{})},
- nav(id,el){if(id!=='robot')S.robFran=null;if(id!=='hus'&&id!=='robot'){S.haRum=null;if(S.haTest){S.haTest=false;HA.demo=null;HA.syn={};HA.v=0;HA.retry=0}}if(RC.busy){toast('Vänta tills receptbegäran är klar.');return}if(RC.screen&&RC.edit&&RC.edit.dirty){RC.leaveTo=id;recipeLeave();S.view='mat';return}if(RC.screen)RC.screen=null;if(id!=='oversikt')arrCancel();if(normView(id)!=='ekonomi'){S.ekoOpen=false;S.pin=''}try{document.activeElement&&document.activeElement.blur()}catch(e){}id=normView(id);if(HEM_UNDER.includes(id)&&!HEM_UNDER.includes(S.view))S.hemFran=S.view==='hemmet'?'hemmet':'oversikt';if(id==='fod')S.fodFromFamilj=DEV&&S.view==='familj';if(id==='uppgifter'&&S.taskTab==='stad'&&S.view!=='stad'&&el&&el.closest&&el.closest('#nav'))id='stad';if(['familj','slakt','slaktPersoner'].includes(id)&&!DEV)id='oversikt';if(id==='uppgifter'||id==='stad'){S.taskTab=id==='stad'?'stad':'lista';lsSet('taskTab',S.taskTab)}S.shopAdd=false;S.taskAdd=false;S.view=id;S.recipe=null;S.confirm=null;lsSet('view',id);try{history.replaceState(null,'','#'+id)}catch(e){}window.scrollTo(0,0);render()},
+ nav(id,el){if(id==='hus')id='hemmet';if(id!=='robot')S.robFran=null;if(id!=='hus'&&id!=='robot'&&!(id==='hemmet'&&S.view==='robot')){S.haRum=null;if(S.haTest){S.haTest=false;HA.demo=null;HA.syn={};HA.v=0;HA.retry=0}}if(RC.busy){toast('Vänta tills receptbegäran är klar.');return}if(RC.screen&&RC.edit&&RC.edit.dirty){RC.leaveTo=id;recipeLeave();S.view='mat';return}if(RC.screen)RC.screen=null;if(id!=='oversikt')arrCancel();if(normView(id)!=='ekonomi'){S.ekoOpen=false;S.pin=''}try{document.activeElement&&document.activeElement.blur()}catch(e){}id=normView(id);if(HEM_UNDER.includes(id)&&!HEM_UNDER.includes(S.view))S.hemFran=S.view==='hemmet'?'hemmet':'oversikt';if(id==='fod')S.fodFromFamilj=DEV&&S.view==='familj';if(id==='uppgifter'&&S.taskTab==='stad'&&S.view!=='stad'&&el&&el.closest&&el.closest('#nav'))id='stad';if(['familj','slakt','slaktPersoner'].includes(id)&&!DEV)id='oversikt';if(id==='uppgifter'||id==='stad'){S.taskTab=id==='stad'?'stad':'lista';lsSet('taskTab',S.taskTab)}S.shopAdd=false;S.taskAdd=false;S.view=id;S.recipe=null;S.confirm=null;lsSet('view',id);try{history.replaceState(null,'','#'+id)}catch(e){}window.scrollTo(0,0);render()},
  refresh(){refresh()},
  settings(){if(S.sheet!=='farg')S.prefDraft=null;S.sheet='settings';render()},
  farg(){rememberSettings();S.sheet='farg';render()},
