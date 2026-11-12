@@ -33,10 +33,10 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 - Foton: `img` i inspiration.json (100/101, länkade från receptsidorna; ICA hämtat med WebFetch eftersom ICA spärrar GitHub). `inspoImg` matchar id eller namn. Nya recept: `node verktyg/matbilder-hamta.js [--kolla]` där nätet når sajterna (inte molnet).
 - Test: `verktyg/emu/matbilder.js` (LS mbild=c för lista; BILDER=1 släpper igenom riktiga foton, fungerar bara där nätet når dem), generera-vecka, installningar-delar, alla-flikar telefon+vägg.
 
-## Hemmet = Smart hem + kort (publicerad ht-v360)
+## Hemmet = Smart hem + kort (publicerad ht-v360, Smart hem överst ht-v362)
 
-- Fliken Hemmet (sedan ht-v352) visar hela Smart hem överst (`husAlla(D)`, utbrutet ur `V.hus`; H3), sedan "Hushållet" med två lika stora halvkort (H1): Födelsedagar (`hemFod`: små datumbrickor, 3 veckor, 2 om fler än `hemFodMax()` = 3 telefon/6 i två spalter från 700 px) och Ekonomi (`hemEko`: stapel + andel med en decimal, inga belopp, syns även på väggen; saknade överföringar). Förslag på gren efter ht-v360: Smart hem överst, fördelning på väggen. Inställningar H2. nav('hus') går till Hemmet; rum öppnas i Hemmet (`S.haRum`).
-- Ångra-gren `version-fore-hemmet-smart`. Version med belopp och större kort: gren `hemmet-backup-halva`. Väggdatorn uppdateras först när Henrik skriver "Kör".
+- Fliken Hemmet (sedan ht-v352) visar hela Smart hem överst (`husAlla(D)`, utbrutet ur `V.hus`; H3), sedan "Hushållet" med två lika stora halvkort (H1): Födelsedagar (`hemFod`: små datumbrickor, 3 veckor, 2 om fler än `hemFodMax()` = 3 telefon/6 i två spalter från 700 px) och Ekonomi (`hemEko`: stapel + andel med en decimal, inga belopp, syns även på väggen; saknade överföringar). Inställningar H2. nav('hus') går till Hemmet; rum öppnas i Hemmet (`S.haRum`).
+- Ångra-grenar `version-fore-hemmet-smart`, `version-fore-hemmet-smart-overst`. Version med belopp och större kort: gren `hemmet-backup-halva`. Väggdatorn uppdateras först när Henrik skriver "Kör".
 - Test: `verktyg/emu/hemmet.js` (FODMANGA=1, vägg, mörkt), alla-flikar telefon+vägg gröna efter merge med main.
 ## Smarta förslag borttagna från Översikt (publicerad ht-v351)
 
