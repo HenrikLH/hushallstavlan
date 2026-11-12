@@ -3088,24 +3088,62 @@ function stepIngredients(r,step){
  const out=pick(henrikStep);
  return(!out.length&&hasH&&!henrikStep)?pick(true):out}
 window.__htStepIngredients=stepIngredients;
+/* UI 5.0: receptsidans topp som en Apple-sida. Rubrikraden har Tillbaka, hjärtat (favorit) och ⋯ med allt som sällan behövs
+   (redigera, foto, receptbanken, byt, föreslå aldrig). Bilden är ren, betyget står under titeln, och Börja laga och veckosedeln
+   är sidans två knappar. Tidigast igen ställs med −/+ under Planering (rcpPlan5). */
+function rcpTop5(r){const id=esc(r.id),g=ratingOf(r.id),img=imgOf(r.id)||r.img||'',busy=S.photoBusy===r.id,des=isDessert(r),pa=des?weekDessert()===r:paVeckan(r.id),vi=des?-1:veckoIdx(r.id),fav=isFav(r.id),
+ it=(a,txt,ic,cl,x)=>'<button type="button" role="menuitem"'+(cl?' class="'+cl+'"':'')+' data-'+(a==='edit'?'rc="edit"':'act="'+a+'"')+' data-id="'+(x&&x.id!=null?x.id:id)+'"'+(x&&x.k?' data-k="'+x.k+'"':'')+'><span>'+txt+'</span>'+ic+'</button>';
+ // Originalreceptet ligger också i menyn, som en länk
+ const src=r.src?'<a class="rcp-mi" role="menuitem" href="'+esc(r.src)+'" target="_blank" rel="noopener"><span>Recept hos '+esc(r.srcName||'källan')+'</span>'+SV+'<path d="M14 4h6v6M20 4l-9 9M18 14v4.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10"/></svg></a>':'';
+ const meny='<details class="create-menu u5-menu rcp-meny"><summary class="u5-dots" aria-label="Fler val för receptet">'+I.dots+'</summary><div class="create-options" role="menu" aria-label="Receptet">'+
+  it('edit','Redigera recept',I.pencil)+
+  '<label class="rcp-mi photo-pick" role="menuitem"><span>'+(img?'Byt foto':'Lägg till foto')+'</span>'+I.camera+'<input type="file" accept="image/*" data-change="photo" data-id="'+id+'"'+(S.photoBusy?' disabled':'')+'></label>'+
+  (des?it('dessShop','Lägg i inköpslistan',I.basket):'')+
+  (vi>=0?it('rcpByt','Byt mot en annan rätt',I.swap,'',{id:vi}):'')+
+  (recipeHead(r.id)?'':it('bankToggle',inBank(r.id)?'Ta bort ur receptbanken':'Spara i receptbanken',inBank(r.id)?I.bookmarkOn:I.bookmark))+
+  src+'<div class="fm-sep"></div>'+
+  (img?it('rcpSheet','Ta bort fotot',I.trash,'red',{k:'fotoBort'}):'')+
+  (des?'':it('rcpSheet','Föreslå aldrig igen',I.x,'red',{k:'aldrig'}))+'</div></details>';
+ let h='<div class="rcp-top rcp5"'+RF('M29')+'><div class="rcp-bar"><button class="back" data-act="recipeBack">'+I.back+'Mat</button><span class="grow"></span>'+
+  '<button type="button" class="u5-dots rcp-fav'+(fav?' on':'')+'" data-act="favToggle" data-id="'+id+'" aria-pressed="'+fav+'" aria-label="'+(fav?'Favorit. Tryck för att ta bort':'Gör till favorit')+'">'+(fav?I.heartOn:I.heart)+'</button>'+meny+'</div>';
+ if(img||busy)h+='<div class="rcp-photo">'+(img?'<img src="'+esc(img)+'" alt="'+esc(r.title)+'">':'')+(busy?'<span class="rp-gl rp-busy">Laddar upp…</span>':'')+'</div>';
+ h+='<div class="chips-row">'+(des?'<span class="chip e">Efterrätt</span>':whoChip(effWho(r)))+(r.freezes?'<span class="chip v">Går att frysa</span>':'')+'</div><h1 class="t1" id="lt">'+esc(r.title)+'</h1>';
+ h+='<button type="button" class="rcp-rate" data-act="rate" data-id="'+id+'">'+(g?'<span class="st">'+starsTxt(matLage(r.id).s)+'</span><span><b class="num">'+starNum(matLage(r.id).s)+'</b> · '+g.people.length+' betyg</span>':'<span class="st o">☆☆☆☆☆</span><span>Betygsätt</span>')+chevron+'</button>';
+ if(r.why)h+='<p class="rcp-why">'+esc(r.why)+'</p>';
+ h+='<div class="rcp-cta"><button class="btn-fill" data-act="cook" data-id="'+id+'">'+I.play+'Börja laga</button>'+
+  '<button class="btn-tint'+(pa?' on':'')+'" data-act="'+(des?(pa?'dessClear':'dessSet'):(pa?'weekShow':'weekAdd'))+'" data-id="'+id+'" aria-pressed="'+pa+'">'+(pa?I.tick+'På veckan':I.calPlus+'Till veckan')+'</button></div></div>';
+ return h}
+// Prisets reservation som fotnot under faktarutan, i stället för ett eget block
+function rcpPrisFot(r){const p=recipePrice(r),prices=parseJ(settings().priser,{}),a=prisAlder(),log=parseJ(settings().prislogg,{});
+ const t=p.partial?'Priset är ett minimum: '+[p.missing?p.missing+' ingrediens'+(p.missing===1?'':'er')+' saknar pris':'',p.unquantified?p.unquantified+' mängd'+(p.unquantified===1?'':'er')+' behöver granskas':''].filter(Boolean).join(', ')+'.':
+  p.estimated||!Object.keys(prices).length?'Priset är uppskattat från baspriser.':'Ungefärligt pris från '+(log.butik||'butikens')+' priser'+(a.datum?' '+a.datum.slice(0,10):'')+'.';
+ return'<div class="foot">'+esc(t)+(p.missing?' <button type="button" class="linkbtn" data-act="varor">Välj varor</button>':'')+'</div>'}
+// Planering: Tidigast igen med −/+ och när rätten lagades senast
+const TIDV=[1,1.5,2,3,4,6,8,12,16,26];
+function rcpPlan5(r){if(isDessert(r))return'';const id=esc(r.id),l=matLage(r.id),ald=baseOf(r.id)===0,ny=!l.harBas&&!l.betyg;
+ const v=ald?'Aldrig':veckor(l.w),fot=ald?'Rätten föreslås inte. Tryck − för att ta tillbaka den.':l.paus?'Pausad: '+l.paus.toLowerCase()+'.':l.tidigastDatum?(l.redo?'Kan föreslås nu.':'Kan föreslås igen från '+dateShort(l.tidigastDatum)+'.'):ny?'Förval för rättens typ.':'';
+ return sh('Planering')+rgroup('M28','<div class="cell"><div class="grow"><div class="title">Tidigast igen</div></div><span class="stepper"><button data-act="tidSteg" data-id="'+id+'" data-d="-1" aria-label="Tätare"'+(!ald&&l.w<=TIDV[0]?' disabled':'')+'>−</button><span>'+v+'</span><button data-act="tidSteg" data-id="'+id+'" data-d="1" aria-label="Glesare"'+(ald?' disabled':'')+'>+</button></span></div>'+
+  '<div class="cell"><div class="grow"><div class="title">Senast lagad</div></div><span class="rcp-val">'+(l.senast?esc(dateShort(l.senast))+(l.n>1?' · '+l.n+' gånger':''):'Inte än')+'</span></div>')+
+  '<div class="foot">'+esc(fot+' Bra betyg kortar tiden, sämre förlänger den.')+' <button type="button" class="linkbtn" data-act="rcpSheet" data-id="'+id+'" data-k="tidigast">Så räknas det</button></div>'}
 function recipeDetail(r){
  const{p,f}=scaled(r);
  const pv=protNu(r),rr=pv?protRecipe(r,pv):r,ST=kvSteps(r,pv),act=Math.min(S.step[r.id]||0,ST.length-1),actHits=stepIngredients(rr,{t:stegText(ST[act])});
  NB.title=r.title;NB.back=true;
- let h='<div class="rcp-top"><button class="back" data-act="recipeBack">'+I.back+'Mat</button>';
+ let h;if(U5)h=rcpTop5(r);else{h='<div class="rcp-top"><button class="back" data-act="recipeBack">'+I.back+'Mat</button>';
  h+=rcpPhoto(r);
  h+='<div class="chips-row">'+(isDessert(r)?'<span class="chip e">Efterrätt</span>':whoChip(effWho(r)))+(r.freezes?'<span class="chip v">Går att frysa</span>':'')+'</div><h1 class="t1" id="lt">'+esc(r.title)+'</h1>'+rcpActions(r)+'<div class="block"><button class="btn-tint" data-rc="edit" data-id="'+esc(r.id)+'">'+I.pencil+'Redigera recept</button></div>'+recipePrice(r).html+'</div>';
  const cookBtn='<div class="block"><button class="btn-fill" style="width:100%" data-act="cook" data-id="'+esc(r.id)+'">'+I.play+'Börja laga</button></div>';
- h+=cookBtn;
+ h+=cookBtn}
  const facts=[['Tid',r.min?'<span class="num">'+r.min+'</span> min':'Ej angiven']];if(portKr(r))facts.push(['Per portion',portTxt(r)]);if(r.protein){const pr=String(r.protein).replace(/\s*\/\s*port(ion)?\.?$/i,''),ph=pr.match(/^henriks?\s+(?:del\s+)?(?:ca\s+)?(.+)$/i);facts.push(['Protein',esc(ph?ph[1]:pr)])}
  const kc=kcalOf(r.id);if(kc)facts.push(['Kalorier','<span class="num">'+kc.n+'</span> kcal']);
  h+='<div class="group"'+RF('M19')+' style="margin-top:16px"><div class="rcp-facts'+(facts.length>3?' f4':'')+'" style="grid-template-columns:repeat('+facts.length+',minmax(0,1fr))">'+facts.map(([l,v])=>'<div><div class="fn">'+l+'</div><div class="v">'+v+'</div></div>').join('')+'</div></div>';
- if(r.why)h+='<div class="group"'+RF('M24')+' style="margin-top:12px"><div class="note">'+esc(r.why)+'</div></div>';
+ if(U5)h+=rcpPrisFot(r)+rcpPlan5(r);
+ if(r.why&&!U5)h+='<div class="group"'+RF('M24')+' style="margin-top:12px"><div class="note">'+esc(r.why)+'</div></div>';
  const praw=protRaw(r);if(praw){const on=!protOff(r.id),orig=protById(praw.id),mm=D().menu.find(m=>m.recipe===r.id&&protFromAddon(m.addon)),pa=mm&&protFromAddon(mm.addon);
   h+=sh('Valfritt protein')+rgroup('M23',on&&pa?[[pa.kn,pa.k,'p1'],[pa.vn,pa.v,'p2']].map(([n,id,c])=>{const x=protById(id);return'<div class="cell pt-row"><span class="pt-ri" aria-hidden="true">'+x.ic+'</span><div class="grow"><div class="title"><span class="chip '+c+'">'+esc(personLabel(n))+'</span> '+esc(x.namn)+'</div><div class="meta">'+esc(x.g+' g per portion. '+x.tips)+'</div></div></div>'}).join('')
    :'<div class="cell"><div class="grow"><div class="meta" style="color:var(--ink)">'+(on?'Receptet har '+esc(orig.namn.toLowerCase())+'. När veckan planeras väljer var och en sitt protein, och resten av rätten lagas en gång.':'Avstängt. Rätten lagas med '+esc(orig.namn.toLowerCase())+' som i receptet.')+'</div></div></div>')+
    '<div class="foot"><button class="linkbtn" data-act="protToggle" data-id="'+esc(r.id)+'">'+(on?'Stäng av för den här rätten':'Slå på valfritt protein')+'</button></div>'}
- if(r.src)h+='<div class="foot"><a href="'+esc(r.src)+'" target="_blank" rel="noopener" style="color:var(--accent)">Inspiration från '+esc(r.srcName||'nätet')+'</a></div>';
+ if(r.src&&!U5)h+='<div class="foot"><a href="'+esc(r.src)+'" target="_blank" rel="noopener" style="color:var(--accent)">Inspiration från '+esc(r.srcName||'nätet')+'</a></div>';
  h+='<div class="recipe"><div class="col">';
  h+='<div class="sh with-ctl"><span>Ingredienser</span><span class="stepper"><button data-act="scale" data-id="'+esc(r.id)+'" data-d="-1" aria-label="Färre portioner">−</button><span><b>'+p+'</b> port</span><button data-act="scale" data-id="'+esc(r.id)+'" data-d="1" aria-label="Fler portioner">+</button></span></div>';
  h+=refAdd(ingList(rr,f,actHits),'M20')+'<div class="foot">Markerat: det som behövs i steg '+(act+1)+'.</div>';
@@ -3196,7 +3234,7 @@ function tidigastHtml(r){const l=matLage(r.id),b=baseOf(r.id),def=MP.grundinterv
  const ny=!l.harBas&&!l.betyg;
  let h='<div class="ti-big">'+(l.paus?'Pausad':ny?'Inte satt än':veckor(l.w))+'</div><div class="ti-sub">'+(l.paus?esc(l.paus):ny?'Väljs när ni betygsätter rätten första gången':l.redo?'Kan föreslås nu':'Kan föreslås från '+esc(dateShort(l.tidigastDatum)))+'</div>';
  h+='<div class="ti-rows">'+
-  row('Baslinje',b!=null?(b===0?'Aldrig':veckor(b)):'Förval '+veckor(def))+
+  row('Baslinje',b!=null?(b===0?'Aldrig':veckor(Math.round(b*10)/10)):'Förval '+veckor(def))+
   row('Stjärnor',l.betyg?starNum(l.s):'Inget betyg än')+
   (smileysOf(r.id).length?row('Smileys',SMIL.map(([v,e])=>e+' '+smileysOf(r.id).filter(x=>x[1]===v).length).join(' · ')):'')+
   (l.harBas||l.betyg?row('Favorit',isFav(r.id)?'Ja, 20 % tätare':'Nej'):'')+
@@ -3210,12 +3248,14 @@ function rcpSheetHtml(enter){const x=S.rcpSheet,r=recipeById(x.id);if(!r)return'
  if(x.k==='photo')items='<label class="it photo-pick">'+I.camera+'Byt foto<input type="file" accept="image/*" data-change="photo" data-id="'+id+'"></label>'+
   (x.confirm?'<button class="it red strong" data-act="photoRemove" data-id="'+id+'">'+I.trash+'Ja, ta bort fotot</button>':'<button class="it red" data-act="rcpConfirm">'+I.trash+'Ta bort fotot</button>');
  else if(x.k==='tidigast'){head='<b>Tidigast igen</b><br>'+esc(r.title)+tidigastHtml(r)}
+ else if(x.k==='fotoBort'){head='Ta bort fotot för '+esc(r.title)+'?';items='<button class="it red strong" data-act="photoRemove" data-id="'+id+'">'+I.trash+'Ta bort fotot</button>'}
+ else if(x.k==='aldrig'){head=(recipeHead(r.id)?'Rätten föreslås aldrig igen men finns kvar i receptbanken.':'Rätten tas bort ur receptbanken och föreslås aldrig igen.');items='<button class="it red strong" data-act="deleteRecipe" data-id="'+id+'">'+I.trash+'Föreslå aldrig igen</button>'}
  else if(x.k==='unbank'){head='Ta bort '+esc(r.title)+' ur receptbanken? Fotot tas också bort.';items='<button class="it red strong" data-act="bankToggle" data-id="'+id+'">'+I.bookmark+'Ta bort ur receptbanken</button>'}
  else{if(last){const l=matLage(r.id);head+='<br>Senast lagad '+esc(dateShort(last))+(l.tidigastDatum&&!l.paus?' · tidigast igen '+esc(dateShort(l.tidigastDatum)):'')}
   const vi=veckoIdx(r.id);
   items=(vi>=0?'<button class="it" data-act="rcpByt" data-id="'+vi+'">'+I.swap+'Byt mot en annan rätt</button>':'')+(inBank(r.id)?'<button class="it" data-act="bankToggle" data-id="'+id+'">'+I.bookmark+'Ta bort ur receptbanken</button>':'<button class="it" data-act="bankToggle" data-id="'+id+'">'+I.bookmark+'Spara i receptbanken</button>')+
   (x.confirm?'<div class="ttl">'+(recipeHead(r.id)?'Receptet föreslås aldrig igen men finns kvar i receptbanken.':'Receptet tas bort ur receptbanken och föreslås aldrig igen.')+'</div><button class="it red strong" data-act="deleteRecipe" data-id="'+id+'">'+I.trash+'Ja, föreslå aldrig igen</button>':'<button class="it red" data-act="rcpConfirm">'+I.trash+'Föreslå aldrig igen</button>')}
- return'<div class="asheet'+enter+'" data-act="sheetBg"><div class="as-panel" role="dialog" aria-modal="true" aria-label="'+(x.k==='photo'?'Foto':x.k==='tidigast'?'Tidigast igen':x.k==='unbank'?'Ta bort ur receptbanken':'Mer')+'"><div class="grp"><div class="ttl">'+head+'</div>'+items+'</div><div class="grp"><button class="it strong" data-act="sheetClose">'+(x.k==='tidigast'?'Stäng':'Avbryt')+'</button></div></div></div>'}
+ return'<div class="asheet'+enter+'" data-act="sheetBg"><div class="as-panel" role="dialog" aria-modal="true" aria-label="'+(x.k==='photo'||x.k==='fotoBort'?'Foto':x.k==='aldrig'?'Föreslå aldrig igen':x.k==='tidigast'?'Tidigast igen':x.k==='unbank'?'Ta bort ur receptbanken':'Mer')+'"><div class="grp"><div class="ttl">'+head+'</div>'+items+'</div><div class="grp"><button class="it strong" data-act="sheetClose">'+(x.k==='tidigast'?'Stäng':'Avbryt')+'</button></div></div></div>'}
 /* Matfoton: bilden förminskas i telefonen, laddas upp till Drive via Apps Script och
    adressen sparas på receptet i receptbanken (receptet sparas där om det inte redan finns) */
 const imgOf=id=>{const v=recipeVersions().find(x=>x.id===id);if(v)return v.img||'';const b=bankRaw().find(x=>x.id===id);return b&&b.img||''};
@@ -6212,7 +6252,11 @@ const ACT={
  pickNow(id){S.psel=id;ACT.pickGo()},
  swapTo(id){const r=recipeById(id);if(r)doSwap(r)},
  rcpByt(i){closeSheets();S.recipe=null;S.view='mat';lsSet('view','mat');S.matTab='vecka';lsSet('matTab','vecka');ACT.swap(i)},
- rcpSheet(id,el){S.rcpSheet={id,k:el.dataset.k};render()},
+ rcpSheet(id,el){document.querySelectorAll('.create-menu[open]').forEach(x=>x.open=false);S.rcpSheet={id,k:el.dataset.k};render()},
+ // Tidigast igen −/+: baslinjen räknas om så att intervallet blir det valda med dagens stjärnor; efter 26 veckor kommer Aldrig
+ tidSteg(id,el){const r=recipeById(id);if(!r)return;const l=matLage(id),ald=baseOf(id)===0,T=TIDV;const up=Number(el.dataset.d)>0;let i;
+  if(ald)i=up?T.length:T.length-1;else if(up){i=T.findIndex(x=>x>l.w+.01);if(i<0)i=T.length}else{i=-1;T.forEach((x,j)=>{if(x<l.w-.01)i=j});if(i<0)return}const f=Math.pow(2,(3.5-l.s)/1.5)*(isFav(id)?.8:1),w=i===T.length?0:Math.round(T[i]/f*1000)/1000;
+  A.user=Date.now();updJSON('frekvens',{},o=>{const x=o[id]=o[id]||{};x.w=w;x.d=today();if(!x.t)x.t=r.title;return o});render()},
  rcpConfirm(){if(S.rcpSheet){S.rcpSheet.confirm=true;render()}},
  bankToggle(id){const r=recipeById(id);if(!r)return;const sure=S.rcpSheet&&S.rcpSheet.k==='unbank';S.rcpSheet=null;
   if(!inBank(id)){addToBank(r,true);toast('Sparat i receptbanken');render();return}

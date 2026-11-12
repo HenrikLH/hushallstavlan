@@ -2,6 +2,12 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Receptsidan i Apple-stil (förslag, väntar på "Pusha")
+- Ägare Claude, gren `claude/project-thread-o3zdk4`. Bara UI 5.0 (`rcpTop5`, `rcpPrisFot`, `rcpPlan5` före `recipeDetail`; CSS sist i index.html under `html.ny.ui5 .rcp5`/`.rcp-meny`). UI 2.0 oförändrat.
+- Rubrikrad: Tillbaka, hjärta (favorit) och ⋯ (Redigera recept, Byt/Lägg till foto, Byt mot annan rätt, Spara i receptbanken, Recept hos källan, Ta bort fotot, Föreslå aldrig igen). Ren bild, betyg under titeln, Börja laga + Till veckan, prisnot som fotnot.
+- Planering (M28): Tidigast igen med −/+ (`ACT.tidSteg`, steg `TIDV` 1–26 v + Aldrig): baslinjen `frekvens[id].w` räknas om så att valt intervall gäller med dagens stjärnor. Ingen Kod.gs-ändring. Matlagningsläget (Börja laga-flödet) görs i en annan tråd.
+- Test: `receptsida.js` telefon/mörkt/vägg/UI2, alla-flikar telefon+vägg gröna.
+
 ## Översikt: bocken, Schema, Middag ikväll, Rummen (publicerad ht-v374, ångra-gren `version-fore-oversikt-atgarder`)
 - Gren `claude/project-thread-2tlos6` (PR #103). Bocken i Att göra-rutan (`.ur`) ritas och raden glider ihop (`checkAnim`/`A.before` tar `.cell,.ur`; FLIP överlever dubbel omritning via `A.flipT`). Schema döljer passerade händelser idag. Middag ikväll (UI 5.0, `wMeals`, `.wm5`): rad per rätt med bild och diskret grå ▶ (Henriks val). "Hemmet"-rutan med rummen heter Rummen. Väggen: ensam halv ruta (`.wpair.solo`) tar bredden.
 - Kvar från genomgången: timremsan "Nu", gemensamma rörelsekurvor, delade element (View Transitions). Imorgon i Att göra behålls (Henriks val ht-v359).
