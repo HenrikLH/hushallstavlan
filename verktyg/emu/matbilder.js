@@ -14,6 +14,8 @@ module.exports=async(pg,h)=>{
  for(const m of lagen){await read("(MATBILD='"+m+"',S.planOpen=null,render(),1)");await h.idle(800);
   const y=await pg.evaluate(()=>{const e=[...document.querySelectorAll('.sh')].find(x=>/Lunchlådor/.test(x.textContent));return e?e.getBoundingClientRect().top+scrollY-110:0});
   await pg.evaluate(y=>scrollTo(0,y),y);await h.idle(400);await h.shot('mb-'+m);
+  assert.deepEqual(await pg.locator('.sh>span:first-child').allTextContents().then(a=>a.filter(t=>/Lunchlådor|Vardagar|Helg/.test(t))),['Lunchlådor','Vardagar','Helg'],'tre delar');
+  await pg.evaluate(()=>{const e=document.querySelector('.g5-kop');if(e)scrollTo(0,e.getBoundingClientRect().top+scrollY-500)});await h.idle(300);await h.shot('mb-'+m+'-slut');
   if(m!=='c')assert(await pg.locator('.g5-k').count()>=7,'kort i läge '+m);
   if(m==='a'){await read("(S.planOpen='d4',render(),1)");await h.idle(600);
    const y2=await pg.evaluate(()=>{const e=document.querySelector('.g5-k.open');return e?e.getBoundingClientRect().top+scrollY-110:0});await pg.evaluate(y=>scrollTo(0,y),y2);await h.idle(400);await h.shot('mb-'+m+'-byt');

@@ -14,9 +14,9 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 - Henrik valde A: på en undersida byts Avbryt mot en rund ‹-knapp (`.pref-bk`, `ACT.prefBack`) och delens namn står i bladets rubrik (20 pt fet, `prefHead`). Den gamla länken "‹ Inställningar" och stora rubriken borta. Bara UI 5.0. Gren `claude/project-thread-x44h4s`, ångra-gren `version-fore-tillbakaknapp`.
 - Testskript som stängde bladet från en öppen undersida anropar nu `ACT.prefBack()` först. Test: ny `installningar-tillbaka.js` (telefon/vägg), installningar-delar, alla-flikar gröna; animationer, inkop-kollaps, ui-versioner, stad-vyer, ui5 faller likadant på main.
 
-## Matbilder i Ny veckosedel (publicerad ht-v353)
+## Matbilder i Ny veckosedel (publicerad ht-v353, Vardagar/Helg ht-v357)
 
-- Ny veckosedel (`portViewU5`) visar rätterna som bildkort, två i bredd (fyra på väggen), eller som lista med stora bilder. Enhetsval Inställningar → Mat → Ny veckosedel (`MATBILD`, `ht.mbild`=c för lista, förval rutnät). ⇄ visar Andra förslag som bildkarusell. CSS `.g5-k*`/`.g5-big`. Ångra-gren `version-fore-matbilder`.
+- Ny veckosedel (`portViewU5`) visar rätterna som bildkort, två i bredd (fyra på väggen), eller som lista med stora bilder. Enhetsval Inställningar → Mat → Ny veckosedel (`MATBILD`, `ht.mbild`=c för lista, förval rutnät). ⇄ visar Andra förslag som bildkarusell. CSS `.g5-k*`/`.g5-big`. Middagarna delade i Vardagar (mån–tor) och Helg (fre–sön); ensamt kort i full bredd på telefon (`:nth-child(odd of .g5-k)`). Ångra-grenar `version-fore-matbilder`, `version-fore-vardag-helg`.
 - Foton: `img` i inspiration.json (100/101, länkade från receptsidorna; ICA hämtat med WebFetch eftersom ICA spärrar GitHub). `inspoImg` matchar id eller namn. Nya recept: `node verktyg/matbilder-hamta.js [--kolla]` där nätet når sajterna (inte molnet).
 - Test: `verktyg/emu/matbilder.js` (LS mbild=c för lista; BILDER=1 släpper igenom riktiga foton, fungerar bara där nätet når dem), generera-vecka, installningar-delar, alla-flikar telefon+vägg.
 
