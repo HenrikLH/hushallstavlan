@@ -2,7 +2,7 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
-## Hemmet fyller bredden (förslag, väntar på Henrik)
+## Hemmet fyller bredden (publicerad ht-v372, ångra-gren `version-fore-hemmet-bredd`)
 - Gren `claude/project-thread-zk9a41`. Statusbrickorna (`.ha-chips-v`) delar raden lika, 1–3 scener fördelas jämnt (`hus-sc-N`), apparatens varning sitter på ikonen så namnet inte klipps. Test `hemmet-bredd.js` telefon/vägg/mörkt, hemmet-scener gröna.
 
 ## Scenbladet: ljusstyrka per lampa + mindre scener på väggen (publicerad ht-v370, ångra-gren `version-fore-scen-ljusstyrka`)
