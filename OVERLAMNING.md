@@ -5,6 +5,9 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 ## Att göra-rutan: idag + imorgon (publicerad, ångra-gren `version-fore-att-gora-idag`)
 - Ö3/T8 och widgetläget: bara dagens och sena uppgifter (bockbara, kompakta rader) och Imorgon som en grå rad. Odaterade/senare bara under Alla N. Henrik: Översikt ska vara kompakt, inget vitt tomrum på väggen (T8 krymper till innehållet). Kod `upgDag`/`upgDagHtml`, CSS `.upg-*`.
 - Test `att-gora-idag.js` telefon/vägg, alla-flikar telefon+vägg gröna.
+## Röktestet grönt igen (2026-11-12, PR #100 + #101, bara testfiler)
+- Röktestet (emu.yml) var rött på alla PR:er sedan 10 nov p.g.a. inaktuella tester. Nytt hjälpverktyg `h.pref(sel)` i `verktyg/emu/run.js` öppnar den del av Inställningar där en inställning ligger just nu; använd det i stället för fasta `pref-<del>`. Ekonomi nås via Hemmet, Städ via Att göra; fäll ut `.nav-mini.on` före klick i flikraden. CI-körning 258 grön i alla 16 lägen.
+
 ## Smart hem: scen ritar om rutan en gång (publicerad ht-v358, ångra-gren `version-fore-scen-omritning`)
 - Orsak: väggdatorns tjänst läser HA varje sekund och lamporna i en scen rapporterar en i taget, så rutan ritades om per lampa (1 → 2 → 3 → 4 tända). Nu samlar `haRitaSnart` svaren (ritar efter 1,3 s tystnad, senast 3,5 s). Egna scener och Släck allt visas direkt och hålls via `HA.mal` (`haMalSatt`, släpps när lampan rapporterat). `haSend` ritar bara när sista anropet är klart. Ingen ändring i tjänsten eller Kod.gs.
 - Gren `claude/project-thread-vbhjv9`. Test: ny `smart-hem-scen-omritning.js` (faller på main), smart-hem-tonsteg/-fel/-ruta/-ton/-rorelse, alla-flikar telefon+vägg gröna; smart-hem-volym faller likadant på main.
