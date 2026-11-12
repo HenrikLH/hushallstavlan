@@ -3602,9 +3602,11 @@ html.ny.ui5.nav-piller:has(#nav.mini) .rob-vy .ha-bar{transform:translate3d(0,ca
 html.ny.ui5[data-theme="dark"] .stad-rob-g{--sr-or:var(--orange);--sr-ort:var(--orange)}
 .sr-lg.lag{border-color:var(--sr-or)}
 .stad-rob-g .sr-bat.lag,.stad-rob-g .sr-vat.lag{stroke:var(--sr-or)}
-.sr-ill path.sr-bl{fill:#fff;stroke:none}
-.sr-ill.ld .sr-bat{stroke-width:8}
-.sr-m svg.sr-blt{width:12px;height:12px;fill:var(--green)}
+.sr-bz{display:inline-flex;width:14px;height:14px;align-items:center;justify-content:center;flex:none}
+.sr-m .sr-bz svg{width:12px;height:12px;fill:var(--green)}
+.sr-bz.an{animation:srLadd 2.4s ease-in-out infinite;will-change:transform,opacity}
+@keyframes srLadd{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.82)}}
+@media (prefers-reduced-motion:reduce){.sr-bz.an{animation:none}}
 .sr-ill{overflow:visible}
 .sr-kap{display:inline-flex;align-items:center;height:24px;padding:0 12px;border-radius:12px;background:color-mix(in srgb,var(--sr-or) 16%,transparent);color:var(--sr-ort);font-size:13px;font-weight:600}
 </style>
