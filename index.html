@@ -3609,6 +3609,14 @@ html.ny.ui5[data-theme="dark"] .stad-rob-g{--sr-or:var(--orange);--sr-ort:var(--
 @media (prefers-reduced-motion:reduce){.sr-bz.an{animation:none}}
 .sr-ill{overflow:visible}
 .sr-kap{display:inline-flex;align-items:center;height:24px;padding:0 12px;border-radius:12px;background:color-mix(in srgb,var(--sr-or) 16%,transparent);color:var(--sr-ort);font-size:13px;font-weight:600}
+/* Dammsugarbrickan: ringarna fylls när kortet visas, ljus glider längs batteriringen vid laddning (HTML-lager, bara transform/opacity) */
+.sr-ill.in .sr-bat,.sr-ill.in .sr-vat{animation:srIn 1s cubic-bezier(.2,.8,.2,1) var(--d,0ms) both}
+.sr-ill.in .sr-vat{animation-delay:calc(var(--d,0ms) + 120ms)}
+@keyframes srIn{from{stroke-dasharray:0 100}}
+.sr-iw{position:relative;display:flex;flex:none;width:80px;height:80px}
+.sr-gl{position:absolute;inset:0;border-radius:50%;pointer-events:none;background:conic-gradient(from -40deg,transparent 0deg,rgba(255,255,255,.85) 38deg,transparent 40deg);-webkit-mask:radial-gradient(circle closest-side,transparent 82.5%,#000 83%,#000 97%,transparent 97.5%);mask:radial-gradient(circle closest-side,transparent 82.5%,#000 83%,#000 97%,transparent 97.5%);animation:srGlid 2.8s cubic-bezier(.45,0,.25,1) infinite;will-change:transform,opacity}
+@keyframes srGlid{0%{transform:rotate(0deg);opacity:0}15%{opacity:1}80%{opacity:1}100%{transform:rotate(var(--a));opacity:0}}
+@media (prefers-reduced-motion:reduce){.sr-ill.in .sr-bat,.sr-ill.in .sr-vat,.sr-gl{animation:none}.sr-gl{display:none}}
 </style>
 </head>
 <body>
