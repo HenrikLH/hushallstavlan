@@ -5,13 +5,15 @@ module.exports=async(pg,h)=>{
  const vagg=/"wall":"1"/.test(process.env.LS||'');
  await pg.locator('#nav [data-act="nav"][data-id="oversikt"]').first().click();await h.idle(600);
  await pg.locator('section.ha [data-act="nav"][data-id="hus"]').first().click();await h.idle(700);
- const t=pg.locator('.ha-med');assert.equal(await t.count(),2,'Två högtalare');
+ const t=pg.locator('.ha-med');assert.equal(await t.count(),3,'Stor, Liten och Alla högtalare');
  assert.match(await t.first().innerText(),/Dancing Queen – ABBA/,'Stor spelar Spotify från mobilen');
  await t.first().evaluate(e=>scrollBy(0,e.getBoundingClientRect().top-200));await h.idle(300);await h.shot('hog-1-brickor');
  // tryck på den tysta högtalaren: bladet öppnas med den vald
  await t.nth(1).locator('.ha-n').click();await h.idle(800);
  const F='form[data-form="haMedia"]';assert.equal(await pg.locator(F).count(),1,'Bladet öppnas');
- assert.equal(await pg.locator(F+' .ham-h[aria-pressed="true"]').count(),1,'Bara Liten vald');
+ assert.equal(await pg.locator(F+' .ham-ht').count(),3,'Tre högtalarbrickor');assert.match(await pg.locator(F+' .ham-ht[aria-checked="true"]').innerText(),/Liten/,'Liten vald');
+ await pg.locator(F+' .ham-ht:has-text("Alla")').click();await h.idle(200);await pg.locator(F+' .ham-ht:has-text("Liten")').click();await h.idle(200);
+ assert.equal(await pg.locator(F+' .ham-ht[aria-checked="true"]').count(),1,'Bara en högtalare åt gången');
  await pg.locator(F+' .ham-k:has-text("P3")').click();await h.idle(300);
  await pg.locator(F+' [data-act="haMedVol"][data-id="-5"]').click();await h.idle(300);
  assert.match(await pg.locator(F+' .ham-pct').innerText(),/30 %/,'Volym 35 → 30');
@@ -39,13 +41,13 @@ module.exports=async(pg,h)=>{
  // Översikten: två olika spelningar (Spotify på Stor, P3 på Liten) blir två kort med egna knappar
  await pg.locator('.rcp-top .back').click();await h.idle(700);
  const K=pg.locator('section.ha .hab-med');assert.equal(await K.count(),2,'Två kort');
- assert.match(await K.first().innerText(),/Dancing Queen/,'Spotify-kortet');assert.equal(await K.first().locator('.hab-steg').count(),2,'Föregående och nästa');
- assert.equal(await K.nth(1).locator('.hab-steg').count(),0,'Radio utan nästa');
+ assert.equal((await K.first().innerText()).trim(),'','Ingen text i mediaraden');assert.equal(await K.first().locator('.hab-steg').count(),2,'Spotify: föregående och nästa');assert.equal(await K.first().locator('.hab-ppx').count(),1,'Spotify: play/paus');
+ assert.equal(await K.nth(1).locator('.hab-kn').count(),0,'Radio: bara volym');
  await K.first().evaluate(e=>scrollBy(0,e.getBoundingClientRect().top-300));await h.idle(300);await h.shot('hog-8-tva-kort');
- assert.ok((await pg.locator('section.ha .hab-g > .ha-t:not(.hab-med)').count())>=2,'Lamporna får plats bredvid');
- const r=await K.nth(1).boundingBox(),y=r.y+r.height/2,x=r.x+r.width*.45;
+ assert.ok((await pg.locator('section.ha .hab-g > .ha-t:not(.hab-med)').count())>=1,'Andra brickor får plats bredvid');
+ const vn=i=>K.nth(i).locator('.hab-bar').getAttribute('aria-valuenow'),r=await K.nth(1).locator('.hab-bar').boundingBox(),y=r.y+r.height/2,x=r.x+r.width*.45;
  await pg.mouse.move(x,y);await pg.mouse.down();for(let i=1;i<=10;i++){await pg.mouse.move(x+i*r.width*.02,y);await h.idle(16)}await pg.mouse.up();await h.idle(700);
- assert.ok(+(await K.nth(1).innerText()).match(/(\d+) %/)[1]>=40,'Dra åt höger höjer Litens volym');assert.match(await K.first().innerText(),/35 %/,'Stor orörd');
+ assert.ok(+(await vn(1))>=40,'Dra åt höger höjer Litens volym');assert.equal(await vn(0),'35','Stor orörd');
  await K.first().locator('[data-act="habMedSteg"][data-id="nasta"]').click();await h.idle(300);
  await pg.locator('section.ha [data-act="nav"][data-id="hus"]').first().click();await h.idle(700);
  // ikonen pausar

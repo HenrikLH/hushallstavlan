@@ -20,9 +20,9 @@ module.exports=async(pg,h)=>{
  await click('[data-act="uiVersion"][data-id="'+(start?'3':'2')+'"]');assert.equal(await klass(),start);
  assert.deepEqual(await pg.evaluate(()=>['segstil','flikrad','ovLayoutNy','wallLayoutNy'].map(k=>localStorage.getItem('ht.'+k))),prefs);
  // Avbryt lämnar hushållsdata orörda; gränssnittsvalet sparas per enhet direkt.
- await click('[data-act="sheetClose"]');await pg.reload();await h.idle(1600);assert.equal(await klass(),start);
+ await click('[data-act="sheetClose"]',await pg.evaluate(()=>window.__d('ACT.prefBack()')));await pg.reload();await h.idle(1600);assert.equal(await klass(),start);
  assert.equal(String(await read('settings().matbudget')||''),original);
- await click('[data-act="settings"]');await click('[data-act="addPlace"][data-id="rad"]');await click('[data-act="sheetClose"]');
+ await click('[data-act="settings"]');await click('[data-act="addPlace"][data-id="rad"]');await click('[data-act="sheetClose"]',await pg.evaluate(()=>window.__d('ACT.prefBack()')));
  await click('#nav [data-act="nav"][data-id="uppgifter"]');
  await click('[data-act="taskTab"][data-id="lista"]');
  const task='UI-test uppgift';await pg.locator('form[data-form="taskQuick"] input').fill(task);await pg.locator('form[data-form="taskQuick"] input').press('Enter');await h.idle(1800);await h.waitFlush();
@@ -44,7 +44,7 @@ module.exports=async(pg,h)=>{
  await click('#nav [data-act="nav"][data-id="mat"]');
  const item=await read('D().shop.find(x=>x.name==="UI-test äpplen")');assert.ok(item);
  await click('input[data-act="shopToggle"][data-id="'+item.id+'"]');await h.idle(1200);await h.waitFlush();assert.equal(await read('D().shop.find(x=>x.name==="UI-test äpplen").done'),true);
- if(start){await click('[data-act="shopMore"]');assert.ok(await pg.locator('[data-act="shopMoreImp"]').isVisible());await click('[data-act="sheetClose"]')}
+ if(start){await click('[data-act="shopMore"]');assert.ok(await pg.locator('[data-act="shopMoreImp"]').isVisible());await click('[data-act="sheetClose"]',await pg.evaluate(()=>window.__d('ACT.prefBack()')))}
  await click('[data-act="matTab"][data-id="recept"]');
  if(start){await pg.locator('form[data-rcform="search"] input').fill('finnsinte123');await pg.locator('form[data-rcform="search"] input').press('Enter');await h.idle(500);assert.equal(await pg.locator('.bank [data-act="recipe"]').count(),0);await h.shot('receptsok-tomt');await click('[data-rc="clear"]');assert.equal(await pg.locator('form[data-rcform="search"] input').inputValue(),'')}
  await click('main [data-act="recipe"]');await h.shot('recept');

@@ -84,7 +84,7 @@ module.exports=async(pg,h)=>{
  await pg.locator('input[name="slParent"][value="Ella|08-29"]').check();
  await click('form[data-form="slaktRel"] .tb.strong');
  assert.equal(await pg.locator('form[data-form="slaktRel"]').count(),1,'Cirkulär relation avvisas');
- await click('[data-act="sheetClose"]');
+ await click('[data-act="sheetClose"]',await pg.evaluate(()=>window.__d('ACT.prefBack()')));
  const unchanged=JSON.stringify(birthdays);
  assert.equal(row('fodelsedagar')[1],unchanged,'Födelsedagar är helt oförändrade');
  await pg.reload();await h.idle(1200);

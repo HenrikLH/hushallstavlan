@@ -15,7 +15,7 @@ module.exports=async(pg,h)=>{
  if(!/^macka:/.test(lk))assert(Object.values(JSON.parse(c1.val)).includes(lk),'låst rätt ligger kvar');
  await h.shot('gv-1-genererad');await pg.evaluate(()=>scrollTo(0,1400));await h.shot('gv-2-ned');
  // UI 5.0: ⇄ fäller ut raden, Välj byter rätten
- if(await read('U5')){const f=await read('planState().val.d4');await click('.g5-byt[data-id="d4"]');assert.equal(await pg.locator('.g5-r.open').count(),1);await click('.g5-alt[data-k="d4"]');assert.notEqual(await read('planState().val.d4'),f,'Välj byter fredagens rätt')}
+ if(await read('U5')){const f=await read('planState().val.d4');await click('.g5-byt[data-id="d4"]');assert.equal(await pg.locator('.g5-r.open,.g5-k.open').count(),1);await click('.g5-alt[data-k="d4"],.g5-ka[data-k="d4"]');assert.notEqual(await read('planState().val.d4'),f,'Välj byter fredagens rätt')}
  await click('[data-act="genIgen"]');const c2=await C();console.log(c2);assert(c2.klar);assert.notEqual(c2.val,c1.val,'Generera igen ger annat');
  await pg.evaluate(()=>scrollTo(0,document.body.scrollHeight));await click('[data-act="portSend"]');
  assert.equal(await read('S.plan'),false);await h.waitFlush();await pg.reload();await h.idle(2000);

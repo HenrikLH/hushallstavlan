@@ -8,12 +8,12 @@ gas.book.sheets['Städ'].rows.push(
 module.exports=async(pg,h)=>{
  const click=async s=>{await pg.locator(s).first().click();await h.idle(400)},read=s=>pg.evaluate(s=>window.__d(s),s),quick='form[data-form="cleanQuick"][data-room=""]';
  await click('#nav [data-act="nav"][data-id="uppgifter"]');await click('[data-act="taskTab"][data-id="stad"]');
- const original=await read('JSON.stringify(D().clean)'),choose=async mode=>{await click('[data-act="settings"]');if(!await pg.locator('[data-k="pref-utseende"]').evaluate(x=>x.open))await click('[data-k="pref-utseende"]>summary');await click('[data-act="addPlace"][data-id="'+mode+'"]');await click('[data-act="sheetClose"]')};
+ const original=await read('JSON.stringify(D().clean)'),choose=async mode=>{await click('[data-act="settings"]');if(!await pg.locator('[data-k="pref-utseende"]').evaluate(x=>x.open))await click('[data-k="pref-utseende"]>summary');await click('[data-act="addPlace"][data-id="'+mode+'"]');await click('[data-act="sheetClose"]',await pg.evaluate(()=>window.__d('ACT.prefBack()')))};
  for(const mode of ['profil','flytande','rad']){
   await choose(mode);await pg.reload();await h.idle(1300);assert.equal(await read('addPlace()'),mode);
   assert.equal(await pg.locator(quick).count(),mode==='profil'?0:1);assert.equal(await pg.locator('.head [data-act="cleanAdd"]').count(),mode==='profil'?1:0);assert.equal(await read('JSON.stringify(D().clean)'),original);
   await h.shot('stad-'+mode);
-  if(mode==='profil'){const p=await pg.locator('.head .create-plus').boundingBox(),tools=await pg.locator('.head .tools').boundingBox();assert(p.width>=44&&p.height>=44);assert(Math.abs(p.y-tools.y)<16);await click('.head [data-act="cleanAdd"]');assert(await pg.locator('#clean-title').isVisible());await h.shot('stad-ny-syssla');await pg.locator('#clean-title').fill('Avbryt detta utkast');await click('[data-act="sheetClose"]');assert.equal(await read('JSON.stringify(D().clean)'),original)}
+  if(mode==='profil'){const p=await pg.locator('.head .create-plus').boundingBox(),tools=await pg.locator('.head .tools').boundingBox();assert(p.width>=44&&p.height>=44);assert(Math.abs(p.y-tools.y)<16);await click('.head [data-act="cleanAdd"]');assert(await pg.locator('#clean-title').isVisible());await h.shot('stad-ny-syssla');await pg.locator('#clean-title').fill('Avbryt detta utkast');await click('[data-act="sheetClose"]',await pg.evaluate(()=>window.__d('ACT.prefBack()')));assert.equal(await read('JSON.stringify(D().clean)'),original)}
   else{await click(quick+' .add-go');assert(await pg.locator(quick+' input').evaluate(x=>x===document.activeElement));await pg.locator(quick+' input').blur()}
  }
  await choose('profil');await click('.head [data-act="cleanAdd"]');await pg.locator('#clean-title').fill('Dammtorka testhyllan');await pg.locator('form[data-form="cleanQuick"] .sheet-head button.strong').click();await h.idle(600);await h.waitFlush();

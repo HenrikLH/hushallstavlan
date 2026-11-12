@@ -4,7 +4,7 @@ module.exports=async(pg,h)=>{const click=async s=>{await pg.locator(s).first().c
  await click('#nav [data-act="nav"][data-id="uppgifter"]');await click('[data-act="taskTab"][data-id="stad"]');
  for(const vy of (process.env.VY||'rutnat,ring').split(',')){
   await click('[data-act="settings"]');if(!await pg.locator('[data-k="pref-attgora"]').evaluate(x=>x.open))await click('[data-k="pref-attgora"]>summary');
-  await click('[data-act="stadVy"][data-id="'+vy+'"]');await click('[data-act="sheetClose"]');
+  await click('[data-act="stadVy"][data-id="'+vy+'"]');await click('[data-act="sheetClose"]',await pg.evaluate(()=>window.__d('ACT.prefBack()')));
   await pg.reload();await h.idle(1300);assert.equal(await read('stadVy()'),vy);
   assert(await pg.locator(vy==='rutnat'?'.sx-grid':'.sx-hero').count());
   const W=await pg.evaluate(()=>innerWidth),Hh=await pg.evaluate(()=>document.documentElement.scrollHeight);await pg.setViewportSize({width:W,height:Math.max(844,Hh)});await h.idle(300);
