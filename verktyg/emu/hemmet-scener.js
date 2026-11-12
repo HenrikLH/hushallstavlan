@@ -34,4 +34,22 @@ module.exports=async(pg,h)=>{
  const alla=await pg.locator('#main .hus-sc .ha-st').allInnerTexts();console.log('alla',alla.map(s=>s.trim()).join(', '));
  if(!alla.some(s=>s.includes(wall?'Scen 8':'Extra 2')))fel('scen nummer fem+ syns inte i Hemmet');
  await pg.evaluate(()=>scrollTo(0,0));await h.shot('hemmet-scener');
+ // Ångra: scenen sparar läget före, knappen blir Ångra och återställer
+ const lf=await pg.evaluate(()=>JSON.stringify([...document.querySelectorAll('#main .ha-g-v .ha-t:not(.ha-ap):not(.ha-med)')].map(e=>e.dataset.id+':'+e.classList.contains('on')).sort()));
+ await pg.locator('#main .hus-sc .ha-st',{hasText:'Släck allt'}).click();await h.idle(600);
+ if(!await pg.locator('#main .hus-sc .hab-angra').count())fel('Ångra-knappen syns inte efter scenen');
+ const mitt=await pg.evaluate(()=>[...document.querySelectorAll('#main .ha-g-v .ha-t.on:not(.ha-ap):not(.ha-med)')].length);console.log('tända efter Släck allt',mitt);
+ await h.shot('hemmet-angra');
+ await pg.click('#main .hus-sc .hab-angra');await h.idle(800);
+ const ater=await pg.evaluate(()=>JSON.stringify([...document.querySelectorAll('#main .ha-g-v .ha-t:not(.ha-ap):not(.ha-med)')].map(e=>e.dataset.id+':'+e.classList.contains('on')).sort()));
+ if(ater!==lf)fel("Ångra återställde inte: "+lf+' → '+ater);if(await pg.locator('#main .hus-sc .hab-angra').count())fel('Ångra finns kvar');
+ // Ordna: flytta sista scenen först
+ await pg.click('#main .hus-ny>summary');await h.idle(300);await pg.click('#main .hus-ny [data-act="habOrdOpen"]');await h.idle(600);
+ const rr=pg.locator('#overlay .hab-lista .hab-r');const n=await rr.count();const sist=await rr.nth(n-2).locator('.hab-ordn').innerText();
+ const gg=rr.nth(n-2).locator('.hab-grip'),bb=await gg.boundingBox(),b0=await rr.nth(0).boundingBox();
+ await pg.mouse.move(bb.x+bb.width/2,bb.y+bb.height/2);await pg.mouse.down();for(let k=1;k<=12;k++){await pg.mouse.move(bb.x+bb.width/2,bb.y+bb.height/2-(bb.y-b0.y+10)*k/12);await h.idle(30)}await pg.mouse.up();await h.idle(400);
+ await h.shot('hemmet-ordna');
+ await pg.click('#overlay [data-act="habOrdKlar"]');await h.idle(800);
+ const forsta=await pg.locator('#main .hus-sc .ha-st').first().innerText();console.log('flyttad',sist.split('\n')[0],'först nu',forsta.trim());
+ if(!sist.startsWith(forsta.trim()))fel('ordningen sparades inte');
 };

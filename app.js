@@ -1306,12 +1306,12 @@ const habScPa=(s,D)=>{if(!s)return false;if(s.ha)return HA.last===s.ha;if(s.av)r
  return!!ks.length&&ks.every(id=>{const x=E.find(e=>e.id===id),v=s.l[id];if(!x||x.nas)return true;if(!v.on)return!x.on;if(!x.on)return false;
   return!(v.b!=null&&x.b!=null&&Math.abs(x.b-v.b)>3)&&!(v.k!=null&&x.k!=null&&x.lage==='color_temp'&&Math.abs(x.k-v.k)>60)})};
 const habScTyp=s=>!s?'Tom plats':s.av?'Släcker allt':s.ha?'Home Assistant':Object.keys(s.l||{}).length+' enheter';
-const habScT=(s,i,D)=>{if(!s)return'<button type="button" class="ha-st hab-st hab-tom" data-act="habScRed" data-id="'+i+'"><span class="ha-i">'+I.plus+'</span><span class="ha-n">Ny scen</span></button>';
+const habScT=(s,i,D)=>{if(s&&haAngraPa('hab:'+i))return haAngraT();if(!s)return'<button type="button" class="ha-st hab-st hab-tom" data-act="habScRed" data-id="'+i+'"><span class="ha-i">'+I.plus+'</span><span class="ha-n">Ny scen</span></button>';
  const mk=s.ha&&haMedSk(s.ha,D),ig=mk&&haMedIgang(),on=mk?ig:habScPa(s,D),ny=haNy('hab:'+i,on),n=mk?haHogNamn(ig):s.n;return'<button type="button" class="ha-st hab-st'+(on?' on':'')+(ny?ny+';'+habSt(s.ik,s.f).slice(8):'"'+habSt(s.ik,s.f))+' data-act="habScen" data-id="'+i+'" data-hold-lift="habScRed" aria-label="'+esc(mk&&ig?'Stäng av högtalarna':n)+', håll in för att ändra"><span class="ha-i">'+(mk?ig?HAI_SPK_AV:HAI_SPK:HAB_IK[s.ik]||HAB_IK.star)+'</span><span class="ha-n">'+esc(n)+'</span></button>'};
 function haBox(wall){const D=haData();if(!D)return'';const E=D.lampor||[],n=E.filter(x=>x.on).length,P=habSpelar(),SS=habSessioner(P),fv=P.length?habFvKort(habFv(D),Math.max(0,HAB_MAX-SS.reduce((n,Q)=>n+habPlatser(Q),0))):habFv(D),sc=habSc(D),ny=sc.indexOf(null);
  const it=(act,id,txt,ic)=>'<button type="button" role="menuitem" data-act="'+act+'" data-id="'+id+'"><span class="grow">'+txt+'</span>'+ic+'</button>';
  return'<section class="widget'+(wall?' bhus':' w2')+' ha hab"><div class="hab-h"><button type="button" class="wh" data-act="nav" data-id="hus">'+I.home+'<span>Smart hem <span class="wk-mo">'+(n?n+(n>1?' tända':' tänd'):'allt släckt')+'</span>'+(HA.fel&&!haDemo()?' <i class="ha-live fel" title="'+esc(HA.fel)+'"></i>':'')+'</span></button>'+
-  '<details class="create-menu hab-menu"><summary class="hab-mer" aria-label="Anpassa Smart hem-rutan">'+I.dots+'</summary><div class="create-options" role="menu" aria-label="Smart hem-rutan">'+it('habOpen','','Redigera rutan',I.pencil)+(ny>=0?it('habScRed',ny,'Ny scen',I.plus):'')+it('nav','hus','Visa alla enheter',I.home)+'</div></details></div>'+
+  '<details class="create-menu hab-menu"><summary class="hab-mer" aria-label="Anpassa Smart hem-rutan">'+I.dots+'</summary><div class="create-options" role="menu" aria-label="Smart hem-rutan">'+it('habOpen','','Redigera rutan',I.pencil)+it('habOrdOpen','','Ordna scener',HAB_GRIP)+(ny>=0?it('habScRed',ny,'Ny scen',I.plus):'')+it('nav','hus','Visa alla enheter',I.home)+'</div></details></div>'+
   '<div class="ha-sg ha-sg-k hab-sc">'+sc.map((s,i)=>habScT(s,i,D)).join('')+'</div>'+
   (fv.length||P.length?'<div class="ha-g hab-g">'+fv.map(e=>e.ap?haAppTile(e.x):haTile(e.x)).join('')+SS.map(habMedKort).join('')+'</div>':'<button type="button" class="hab-inga" data-act="habOpen">'+I.plus+'Välj favoriter</button>')+'</section>'}
 function habRad(e,hoger,vanster){const x=e.x;return'<div class="cell hab-r" data-id="'+esc(e.id)+'">'+(vanster||'')+'<span class="ha-i sm'+(!e.ap&&x.on?' hab-pa':'')+'">'+(e.ap?HAI_APP[x.typ]||HAI.plug:haIk(x))+'</span><span class="grow">'+esc(x.n)+'<span class="meta">'+esc(e.ap?'Apparat':x.rum||'Övrigt')+'</span></span>'+(hoger||'')+'</div>'}
@@ -1325,6 +1325,14 @@ function habRutaSheet(enter){const D=haData(),F=S.habD;if(!D||!F){S.sheet=null;r
   '<div class="foot">Dra i ≡ för att ändra ordning. Dammsugare och diskmaskin tar en hel rad (två platser).</div>'+
   (ut.length?sh('Lägg till')+rum.map(r=>'<div class="hab-rub">'+esc(r||'Övrigt')+'</div>'+group(ut.filter(e=>!e.ap&&(e.x.rum||'')===r).map(e=>habRad(e,plus(e))).join(''))).join('')+(ut.some(e=>e.ap)?'<div class="hab-rub">Apparater</div>'+group(ut.filter(e=>e.ap).map(e=>habRad(e,plus(e))).join('')):''):'');
  return sheetHtml('habRuta','Smart hem-rutan','<button type="button" class="tb strong" data-act="habKlar">Klar</button>',body,enter,'<button type="button" class="tb" data-act="sheetClose">Avbryt</button>')}
+// Ordna scenerna: dra i greppet, de fyra första visas i Översikt. Tryck på en scen för att ändra den. Sparas med Klar.
+function habOrdSheet(enter){const D=haData(),F=S.habOrd;if(!D||!F){S.sheet=null;return''}const m=new Map(habScLista(D).map(e=>[habOrdId(e),e]));
+ const L=F.ids.map(id=>m.get(id)).filter(Boolean);
+ const rad=(e,j)=>'<div class="cell hab-r" data-id="'+esc(habOrdId(e))+'"><span class="ha-i sm hab-ordi"'+habSt(e.s.ik,e.s.f)+'>'+(HAB_IK[e.s.ik]||HAB_IK.star)+'</span><button type="button" class="grow hab-ordn" data-act="habOrdRed" data-id="'+esc(habOrdId(e))+'">'+esc(e.s.n)+'<span class="meta">'+(j<4?'I Översikt':habScTyp(e.s))+'</span></button><span class="hab-grip" aria-label="Dra för att flytta">'+HAB_GRIP+'</span></div>';
+ const body='<div class="foot">Dra i ≡ för att byta plats. De fyra första visas i Smart hem-rutan i Översikt, alla visas i Hemmet.</div><div class="group hab-lista" data-ord="sc">'+L.map(rad).join('')+'</div>'+
+  '<div style="height:18px"></div>'+group('<button type="button" class="cell link center" data-act="habScNy">Ny scen</button>');
+ return sheetHtml('habOrd','Scener','<button type="button" class="tb strong" data-act="habOrdKlar">Klar</button>',body,enter,'<button type="button" class="tb" data-act="sheetClose">Avbryt</button>')}
+const habOrdId=e=>e.i!=null?'i'+e.i:e.s.av?'av':'ha:'+e.s.ha;
 const HAB_GRIP='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 8h14M5 12h14M5 16h14"/></svg>';
 // En scen: namn och symbol, sedan vad den gör. Egen scen = valda enheters läge (ställ in lamporna och tryck Hämta läget nu).
 function habScSheet(enter){const D=haData(),F=S.habSc;if(!D||!F){S.sheet=null;return''}const d=F.d,E=D.lampor||[],wall=wallBoardOn();
@@ -1363,7 +1371,7 @@ function habKor(i,s0){const D=haData(),s=s0||D&&habScAlla(D)[+i];if(!s)return;if
   if(dy<-d.h/2&&p){d.l.insertBefore(d.r,p);d.y0-=d.h;dy+=d.h;u5Tick()}else if(dy>d.h/2&&n){d.l.insertBefore(n,d.r);d.y0+=d.h;dy-=d.h;u5Tick()}
   d.r.style.transform='translateY('+dy+'px)'});
  const slut=e=>{if(!d||e.pointerId!==d.id)return;const D=d;d=null;D.r.classList.remove('hab-drar');D.r.style.transform='';
-  if(S.habD)S.habD.fv=[...D.l.querySelectorAll('.hab-r')].map(x=>x.dataset.id);render()};
+  const ids=[...D.l.querySelectorAll('.hab-r')].map(x=>x.dataset.id);if(D.l.dataset.ord==='sc'){if(S.habOrd)S.habOrd.ids=ids}else if(S.habD)S.habD.fv=ids;render()};
  document.addEventListener('pointerup',slut);document.addEventListener('pointercancel',slut);
  document.addEventListener('touchmove',e=>{if(d&&e.cancelable)e.preventDefault()},{passive:false})})();
 /* Högtalare och radio: Google-högtalarna (Google Cast i HA) via väggdatorns tjänst. Bladet haMedia väljer mediatyp, kanal, volym och högtalare;
@@ -1825,7 +1833,7 @@ function haAv(x){if(!x||!x.on)return render();const was=x.on;x.on=false;HA.last=
 // Smart hem-vyn: alla enheter per rum, scener och givare. Plus lägger till, håll in ändrar.
 // Smart hem-vyn som Hem-appen: bakgrundsbild, statusknappar, scener, rum (rubriken öppnar rummets sida) och givare
 // Plus i Hemmet och Smart hem: ny scen eller ny enhet
-const husPlus=()=>'<details class="create-menu u5-menu hus-ny"><summary class="create-plus" aria-label="Lägg till">'+I.plus+'</summary><div class="create-options" role="menu" aria-label="Lägg till"><button type="button" role="menuitem" data-act="habScNy"><span class="grow">Ny scen</span>'+I.sparkles+'</button><button type="button" role="menuitem" data-act="haAddOpen"><span class="grow">Lägg till enhet</span>'+I.plus+'</button></div></details>';
+const husPlus=()=>'<details class="create-menu u5-menu hus-ny"><summary class="create-plus" aria-label="Lägg till">'+I.plus+'</summary><div class="create-options" role="menu" aria-label="Lägg till"><button type="button" role="menuitem" data-act="habScNy"><span class="grow">Ny scen</span>'+I.sparkles+'</button><button type="button" role="menuitem" data-act="habOrdOpen"><span class="grow">Ordna scener</span>'+HAB_GRIP+'</button><button type="button" role="menuitem" data-act="haAddOpen"><span class="grow">Lägg till enhet</span>'+I.plus+'</button></div></details>';
 V.hus=function(){const D=haData(),R0=S.haRum;let h='<div class="rcp-top"><button class="back" data-act="'+(R0!=null?'haRumVy':'nav')+'" data-id="'+(R0!=null?'':hemTill()[0])+'">'+I.back+(R0!=null?(S.view==='hemmet'?'Hemmet':'Smart hem'):hemTill()[1])+'</button></div>';
  const E=D?D.lampor||[]:[],G=D?D.givare||[]:[];
  h+=head(R0!=null?esc(R0||'Övrigt'):'Smart hem',{sub:S.haTest?'Testläge · inget skickas till Home Assistant':D&&HA.fel&&!haDemo()?esc(HA.fel):'',tools:D?husPlus():''});
@@ -1835,10 +1843,18 @@ V.hus=function(){const D=haData(),R0=S.haRum;let h='<div class="rcp-top"><button
 // Hela Smart hem utan rubrik: statusknappar, scener, apparater, högtalare, rum och givare (Smart hem-sidan och Hemmet)
 const haGivRader=(L,R0)=>L.length?'<div class="ha-rh">Givare</div>'+group(L.map(x=>'<div class="cell" data-hold-lift="haEdit" data-id="'+esc(x.id)+'"><span class="ha-i sm">'+HAI.temp+'</span><span class="grow">'+esc(x.n)+(x.rum&&R0==null?'<span class="meta"> · '+esc(x.rum)+'</span>':'')+'</span><span class="num">'+esc(haGiv(Object.assign({},x,{n:''})).trim())+'</span></div>').join('')):'';
 // Hemmets scener som rutans brickor, fyra i rad: egna scener (rutans fyra först), Home Assistants övriga, och Släck allt (nya scener görs med plus)
-function husScener(D){const L=habScAlla(D),har=new Set(L.filter(Boolean).map(s=>s.ha)),av=L.some(s=>s&&s.av);
- const haT=s=>{const mk=(s.falt||[]).length,ig=mk&&haMedIgang(),on=mk?ig:HA.last===s.id,ik=s.id==='av'?'off':habIkNamn(s.n),n=mk?haHogNamn(ig):s.n,ny=haNy('sc:'+s.id,on);
-  return'<button type="button" class="ha-st hab-st'+(on?' on':'')+(ny?ny+';'+habSt(ik).slice(8):'"'+habSt(ik))+' data-act="haScen" data-id="'+esc(s.id)+'"'+(s.id!=='av'?' data-hold-lift="haEdit"':'')+'><span class="ha-i">'+(mk?ig?HAI_SPK_AV:HAI_SPK:HAB_IK[ik])+'</span><span class="ha-n">'+esc(n)+'</span></button>'};
- return L.map((s,i)=>s?habScT(s,i,D):'').join('')+(D.scener||[]).filter(s=>!har.has(s.id)).map(haT).join('')+(av?'':haT({id:'av',n:'Släck allt'}))}
+function husScener(D){
+ const haT=s=>{if(haAngraPa('sc:'+s.id))return haAngraT();const mk=(s.falt||[]).length,ig=mk&&haMedIgang(),on=mk?ig:HA.last===s.id,ik=s.id==='av'?'off':habIkNamn(s.n),n=mk?haHogNamn(ig):s.n,ny=haNy('sc:'+s.id,on);
+  return'<button type="button" class="ha-st hab-st'+(on?' on':'')+(ny?ny+';'+habSt(ik).slice(8):'"'+habSt(ik))+' data-act="husScen" data-id="'+esc(s.id)+'"'+(s.id!=='av'?' data-hold-lift="haEdit"':'')+'><span class="ha-i">'+(mk?ig?HAI_SPK_AV:HAI_SPK:HAB_IK[ik])+'</span><span class="ha-n">'+esc(n)+'</span></button>'};
+ return habScLista(D).map(e=>e.i!=null?habScT(e.s,e.i,D):haT(e.s.av?{id:'av',n:'Släck allt'}:Object.assign({},(D.scener||[]).find(x=>x.id===e.s.ha)))).join('')}
+// Ångra en scen: läget för alla lampor sparas innan scenen körs, och scenens knapp blir Ångra i 15 minuter (eller tills nästa scen)
+const HA_ANGRA_MS=9e5;
+function haAngraSpara(k){const D=haData();if(!D)return;const l={};(D.lampor||[]).forEach(x=>{if(!x.nas)l[x.id]=habLage(x)});HA.angra={k,l,t:Date.now()};clearTimeout(HA.angraT);HA.angraT=setTimeout(()=>{HA.angra=null;render()},HA_ANGRA_MS)}
+const haAngraPa=k=>!!(HA.angra&&HA.angra.k===k&&Date.now()-HA.angra.t<HA_ANGRA_MS);
+const haAngraT=()=>'<button type="button" class="ha-st hab-st hab-angra" style="--sc:#8E8E93" data-act="haAngra" aria-label="Ångra scenen, återställ hur det var"><span class="ha-i">'+IA.undo+'</span><span class="ha-n">Ångra</span></button>';
+// Alla scener i ordning för Ordna-bladet och Hemmet: egna (sparade), sedan Home Assistants som inte finns bland dem, sist Släck allt
+function habScLista(D){const L=habScAlla(D),har=new Set(L.filter(Boolean).map(s=>s.ha)),u=[];L.forEach((s,i)=>{if(s)u.push({s,i})});
+ (D.scener||[]).filter(s=>!har.has(s.id)).forEach(s=>u.push({s:{n:s.n,ik:habIkNamn(s.n),ha:s.id}}));if(!L.some(s=>s&&s.av))u.push({s:{n:'Släck allt',ik:'off',av:1}});return u}
 // Mest ändrade enheter högst upp (den här enheten): varje egen ändring ger en poäng som halveras på 30 dagar. Scener räknas inte.
 const haAnvL=()=>{try{return JSON.parse(lsGet('haAnv')||'{}')||{}}catch(e){return{}}};
 const haAnvP=(o,id)=>{const v=o[id];return v?v[0]*Math.pow(.5,(Date.now()-v[1])/2592e6):0};
@@ -3590,7 +3606,7 @@ function overlayKeepScroll(){const o=document.getElementById('overlay'),k=o.data
  const nb=o.querySelector('.sheet-body');if(y&&k&&o.dataset.k===k&&nb&&nb!==b)nb.scrollTop=y}
 function renderOverlay(){
  const o=document.getElementById('overlay');
- const k=S.cook?'cook':S.sheet==='settings'?'settings':S.sheet==='farg'?'farg':S.sheet==='vagg'?'vagg':S.sheet==='ljuskal'?'ljuskal':S.sheet==='rate'?'rate':S.sheet==='income'?'income':S.sheet==='matb'?'matb':S.sheet==='vara'?'vara':S.sheet==='cost'?'cost':S.sheet==='ov'?'ov':S.sheet==='prefs'?'prefs':S.sheet==='swap'?'swap':S.sheet==='prot'?'prot':S.sheet==='wish'?'wish':S.sheet==='shopMore'?'shopMore':S.sheet==='dess'?'dess':S.sheet==='slot'?'slot':S.sheet==='delLas'?'delLas':S.sheet==='dish'?'dish':S.sheet==='tmr'?'tmr':S.sheet==='tmrMenu'?'tmrMenu':S.rcpSheet?'rcpSheet':S.sheet==='cleanAdd'?'cleanAdd':S.sheet==='fodAdd'?'fodAdd':S.sheet==='slaktRel'?'slaktRel':S.sheet==='fodFam'?'fodFam':S.sheet==='presBud'?'presBud':S.sheet==='haLampa'?'haLampa':S.sheet==='haApp'?'haApp':S.sheet==='haEdit'?'haEdit':S.sheet==='haFav'?'haFav':S.sheet==='haAdd'?'haAdd':S.sheet==='habRuta'?'habRuta':S.sheet==='habSc'?'habSc':S.sheet==='haMedia'?'haMedia':S.sheet==='taskMenu'?'taskMenu':S.sheet==='ekoMenu'?'ekoMenu':S.sheet==='evMenu'?'evMenu':S.sheet==='cleanMenu'?'cleanMenu':S.sheet==='robRum'?'robRum':S.sheet==='taskEdit'?'taskEdit':S.sheet==='evEdit'?'evEdit':S.sheet==='evNew'?'evNew':S.sheet==='wxDay'?'wxDay':S.shopAdd?'shop':S.taskAdd?'task':'';
+ const k=S.cook?'cook':S.sheet==='settings'?'settings':S.sheet==='farg'?'farg':S.sheet==='vagg'?'vagg':S.sheet==='ljuskal'?'ljuskal':S.sheet==='rate'?'rate':S.sheet==='income'?'income':S.sheet==='matb'?'matb':S.sheet==='vara'?'vara':S.sheet==='cost'?'cost':S.sheet==='ov'?'ov':S.sheet==='prefs'?'prefs':S.sheet==='swap'?'swap':S.sheet==='prot'?'prot':S.sheet==='wish'?'wish':S.sheet==='shopMore'?'shopMore':S.sheet==='dess'?'dess':S.sheet==='slot'?'slot':S.sheet==='delLas'?'delLas':S.sheet==='dish'?'dish':S.sheet==='tmr'?'tmr':S.sheet==='tmrMenu'?'tmrMenu':S.rcpSheet?'rcpSheet':S.sheet==='cleanAdd'?'cleanAdd':S.sheet==='fodAdd'?'fodAdd':S.sheet==='slaktRel'?'slaktRel':S.sheet==='fodFam'?'fodFam':S.sheet==='presBud'?'presBud':S.sheet==='haLampa'?'haLampa':S.sheet==='haApp'?'haApp':S.sheet==='haEdit'?'haEdit':S.sheet==='haFav'?'haFav':S.sheet==='haAdd'?'haAdd':S.sheet==='habRuta'?'habRuta':S.sheet==='habSc'?'habSc':S.sheet==='habOrd'?'habOrd':S.sheet==='haMedia'?'haMedia':S.sheet==='taskMenu'?'taskMenu':S.sheet==='ekoMenu'?'ekoMenu':S.sheet==='evMenu'?'evMenu':S.sheet==='cleanMenu'?'cleanMenu':S.sheet==='robRum'?'robRum':S.sheet==='taskEdit'?'taskEdit':S.sheet==='evEdit'?'evEdit':S.sheet==='evNew'?'evNew':S.sheet==='wxDay'?'wxDay':S.shopAdd?'shop':S.taskAdd?'task':'';
  const prev=o.dataset.k||'';
  // Behåll markerade barn/föräldrar medan relationsbladet är öppet.
  if(k==='slaktRel'&&prev===k)return;
@@ -3836,6 +3852,7 @@ if(k==='vara'){const n=S.varaK||'',ing=S.varaTyp==='ing',R=regGet(),F=parseJ(set
  if(k==='haAdd'){o.innerHTML=haAddSheet(enter);return}
  if(k==='habRuta'){o.innerHTML=habRutaSheet(enter);return}
  if(k==='habSc'){o.innerHTML=habScSheet(enter);return}
+ if(k==='habOrd'){o.innerHTML=habOrdSheet(enter);return}
  if(k==='haMedia'){o.innerHTML=haMedSheet(enter);return}
  if(k==='presBud'){const P=presBud(),Y=presAr(),ty=+thisMonth().slice(0,4),SN=presSnitt(ty,P.ar),YK=presAr(ty+'-01'),nu=new Date().getMonth(),mx=Math.max(1,SN.jamn,...YK.M.map(x=>x.kr)),val=P.satt==='manad'?Y.M[0].kr:SN.jamn,
    st=(id,lab,sub,v)=>'<div class="cell pb-st"><div class="grow"><div>'+lab+'</div><div class="meta">'+sub+'</div></div><span class="stepper"><button type="button" data-act="presStep" data-id="'+id+'" data-d="-50" aria-label="Minska '+lab+'">−</button><span class="num"><b>'+v+'</b> kr</span><button type="button" data-act="presStep" data-id="'+id+'" data-d="50" aria-label="Öka '+lab+'">+</button></span></div>';
@@ -5939,7 +5956,14 @@ const ACT={
  haFavTill(){S.sheet=S.haFav&&S.haFav.fr||'haLampa';render()},
  haVarmV(v){const x=haLamp();if(x)haLampSkicka(x,haVarmCmd(+v,haVarm(x)))},
  haFarg(v){const D=haData(),x=D&&D.lampor.find(l=>l.id===S.haId),[h,m]=String(v).split(',').map(Number);haLampSkicka(x,{hs:[h,m]})},
- habScen(i){habKor(i)},
+ habScen(i){const D=haData(),s=D&&habScAlla(D)[+i];if(s&&!(s.ha&&haMedSk(s.ha,D)))haAngraSpara('hab:'+i);habKor(i)},
+ husScen(id){if(!haMedSk(id))haAngraSpara('sc:'+id);ACT.haScen(id)},
+ haAngra(){const a=HA.angra;if(!a)return;HA.angra=null;clearTimeout(HA.angraT);try{u5Tick()}catch(e){}habKor(null,{l:a.l});toast('Återställt som innan scenen')},
+ habOrdOpen(){document.querySelectorAll('.create-menu[open]').forEach(x=>x.open=false);const D=haData();if(!D)return;S.habOrd={ids:habScLista(D).map(habOrdId)};S.sheet='habOrd';render()},
+ habOrdKlar(){const D=haData(),F=S.habOrd;if(!D||!F)return;const m=new Map(habScLista(D).map(e=>[habOrdId(e),e.s])),sc=F.ids.map(id=>m.get(id)).filter(Boolean);habSet({sc});S.habOrd=null;closeSheets();render()},
+ habOrdRed(id){const D=haData(),F=S.habOrd;if(!D||!F)return;if(id[0]==='i')return ACT.habScRed(+id.slice(1));
+  // en scen från Home Assistant eller Släck allt sparas först i ordningen, sedan kan den ändras
+  ACT.habOrdKlar();const i=habScAlla(D).findIndex(s=>s&&(id==='av'?s.av:s.ha===id.slice(3)));if(i>=0)ACT.habScRed(i)},
  habOpen(){document.querySelectorAll('.create-menu[open]').forEach(x=>x.open=false);const D=haData();if(!D)return;S.habD={fv:habFv(D).map(e=>e.id)};S.sheet='habRuta';render()},
  habKlar(){const F=S.habD;if(F)habSet({fv:F.fv});S.habD=null;closeSheets();render()},
  habFvDel(id){const F=S.habD;if(!F)return;F.fv=F.fv.filter(x=>x!==id);render()},
