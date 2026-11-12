@@ -3612,6 +3612,11 @@ html.ny.ui5.nav-piller:has(#nav.mini) .rob-vy .ha-bar{transform:translate3d(0,ca
 .hab-ljr{gap:8px}.hab-ljr .grow{display:flex;flex-direction:column;min-width:0}.hab-ljr .meta{font-size:13px;color:var(--ink-2)}.hab-ljv{min-width:48px;text-align:center;font-variant-numeric:tabular-nums;font-weight:600}.hab-stp{flex:none;display:grid;place-items:center;width:44px;height:44px;padding:0;border:0;border-radius:50%;background:var(--fill);color:var(--ink);cursor:pointer}.hab-stp svg{width:17px;height:17px}.hab-stp:disabled{opacity:.35;cursor:default}body.wall .hab-stp{width:48px;height:48px}.hab-ljsw{margin-left:8px}
 /* Väggen: mindre scenbrickor (Henrik: symbolerna tog mycket plats) */
 body.wall :is(.hab .hab-sc,.hus-sc) .ha-st{gap:4px;padding:8px 4px;border-radius:16px}body.wall :is(.hab .hab-sc,.hus-sc) .ha-st .ha-i{width:24px;height:24px}body.wall :is(.hab .hab-sc,.hus-sc) .ha-st .ha-i svg{width:17px;height:17px}body.wall :is(.hab .hab-sc,.hus-sc) .ha-n{font-size:13px;line-height:18px}
+/* Hemmet fyller bredden: statusbrickorna delar raden lika, 1–3 scener fördelas jämnt (Henrik: luckor ser ut som saknade enheter) */
+.ha-chips-v .ha-chip{flex:1 1 0}.ha-chips-v .ha-chip .ha-tx{min-width:0}
+.ha-sg.hus-sc-1{grid-template-columns:minmax(0,1fr)}.ha-sg.hus-sc-2{grid-template-columns:repeat(2,minmax(0,1fr))}.ha-sg.hus-sc-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+/* varningen sitter på ikonen så att apparatens namn får plats */
+.ha-g-v .ha-ap .ha-ap-v{position:absolute;top:8px;left:30px;width:20px;height:20px;font-size:13px;box-shadow:0 0 0 2px var(--surface)}
 .hus-ny>summary{list-style:none;cursor:pointer}.hus-ny>summary::-webkit-details-marker{display:none}.hus-ny .create-options button{justify-content:space-between}.hus-ny .create-options .grow{flex:1;text-align:left}
 </style>
 </head>
