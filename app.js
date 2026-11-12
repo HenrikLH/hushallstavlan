@@ -1345,7 +1345,11 @@ function habScSheet(enter){const D=haData(),F=S.habSc;if(!D||!F){S.sheet=null;re
  if(d.typ==='egen'){const n=Object.keys(d.l).length;
   body+=sh('Enheter',n?n+' i scenen':'')+'<div class="hab-acc">'+E.map(x=>{const v=d.l[x.id],pa=v&&v.on;return'<button type="button" class="hab-at'+(v?' med':'')+(pa?' pa':'')+'" data-act="habScVal" data-id="'+esc(x.id)+'" aria-pressed="'+!!v+'"><span class="ha-i">'+haIk(x)+'</span><span class="hab-sctx"><span class="ha-n">'+esc(x.n)+'</span><span class="ha-s">'+(v?habLageTxt(v):'Ingår inte')+'</span></span>'+ck(!!v)+'</button>'}).join('')+'</div>'+
    (E.length?'':group(emptyCell('Inga enheter på tavlan.')))+
-   '<div class="foot">Tryck på en enhet för att ta med den i scenen eller inte.</div><div style="height:18px"></div>'+group('<button type="button" class="cell link center" data-act="habScNu">Hämta läget nu</button><button type="button" class="cell link center" data-act="habScProva">Prova scenen</button>')+
+   '<div class="foot">Tryck på en enhet för att ta med den i scenen eller inte.</div>'+
+   (n?sh('Läge i scenen')+group(E.filter(x=>d.l[x.id]).map(x=>{const v=d.l[x.id],dim=haKan(x).dim&&v.on;return'<div class="cell hab-ljr"><span class="grow">'+esc(x.n)+'<span class="meta">'+(dim?(v.k?haKTxt(v.k):v.hs?'Färg':'Tänd'):habLageTxt(v))+'</span></span>'+
+    (dim?'<button type="button" class="hab-stp" data-act="habScB" data-id="'+esc(x.id)+'|-10" aria-label="Svagare"'+((v.b||100)<=10?' disabled':'')+'>'+IA.minus+'</button><span class="hab-ljv">'+(v.b||100)+' %</span><button type="button" class="hab-stp" data-act="habScB" data-id="'+esc(x.id)+'|10" aria-label="Starkare"'+((v.b||100)>=100?' disabled':'')+'>'+I.plus+'</button>':'')+
+    '<input type="checkbox" role="switch" class="switch hab-ljsw" data-act="habScPa" data-id="'+esc(x.id)+'"'+(v.on?' checked':'')+' aria-label="'+esc(x.n)+' tänd i scenen"></div>'}).join(''))+'<div class="foot">Ställ ljusstyrkan med − och + och slå av lampor som ska vara släckta.</div>':'')+
+   '<div style="height:18px"></div>'+group('<button type="button" class="cell link center" data-act="habScNu">Hämta läget nu</button><button type="button" class="cell link center" data-act="habScProva">Prova scenen</button>')+
    '<div class="foot"><b>Hämta läget nu</b> sparar hur de valda lamporna lyser just nu: på eller av, ljusstyrka och ton. Ställ först lamporna som du vill ha dem, i Smart hem eller med strömbrytarna. <b>Prova scenen</b> tänder lamporna så som scenen är inställd, utan att spara.</div>'}
  else if(d.typ==='ha')body+=sh('Scen i Home Assistant')+group((D.scener||[]).map(s=>'<button type="button" class="cell hab-r" data-act="habScHa" data-id="'+esc(s.id)+'">'+ck(d.ha===s.id)+'<span class="grow">'+esc(s.n)+'</span></button>').join('')||emptyCell('Inga scener på tavlan. Lägg till dem med plus i Smart hem.'));
  else body+='<div class="foot">Släcker alla lampor och uttag på tavlan.</div>';
@@ -5981,6 +5985,8 @@ const ACT={
  habScVal(id){habNamnLas();const d=S.habSc.d,x=(haData().lampor||[]).find(e=>e.id===id);if(d.l[id])delete d.l[id];else if(x)d.l[id]=habLage(x);render()},
  habScNu(){habNamnLas();const d=S.habSc.d,E=haData().lampor||[];Object.keys(d.l).forEach(id=>{const x=E.find(e=>e.id===id);if(x)d.l[id]=habLage(x)});toast('Lampornas läge är hämtat');render()},
  habScProva(){habNamnLas();const d=S.habSc.d;habKor(null,d.typ==='egen'?{l:d.l}:d.typ==='ha'?{ha:d.ha}:{av:1})},
+ habScB(arg){habNamnLas();const k=String(arg).lastIndexOf('|'),id=arg.slice(0,k),dd=+arg.slice(k+1),v=S.habSc&&S.habSc.d.l[id];if(!v)return;v.on=1;v.b=Math.max(10,Math.min(100,Math.round(((v.b||100)+dd)/10)*10));try{u5Tick()}catch(e){}render()},
+ habScPa(id){habNamnLas();const v=S.habSc&&S.habSc.d.l[id],x=(haData().lampor||[]).find(e=>e.id===id);if(!v)return;if(v.on){S.habSc.d.l[id]={on:0}}else{v.on=1;if(x&&haKan(x).dim)v.b=v.b||100}render()},
  habScHa(id){habNamnLas();S.habSc.d.ha=id;render()},
  haMedOpen(id){const m=haMedia().find(x=>x.id===id),sp=m&&(haMedSpelar(m)||m.st==='paused'),k=sp&&haKanaler().find(x=>haMedKId(x)===m.kanal),ch={hog:[id]};if(k){ch.k=k.id;ch.typ=k.typ}if(sp&&m.vol!=null)ch.vol=m.vol;S.haMed=hamUtkast(m?ch:{});try{u5Tick()}catch(e){}S.sheet='haMedia';render()},
  habVol(d,el){const P=habKortP(el);if(!P.length)return;try{u5Tick()}catch(e){}habVolSkicka(Math.max(0,Math.min(100,habVolNu(P)+ +d)),P)},
