@@ -1,4 +1,4 @@
-// Hemmet: Smart hem med alla reglage och kort för Födelsedagar och Ekonomi. LS hemStil=A lägger korten sist.
+// Hemmet: Smart hem med alla reglage och kort för Födelsedagar och Ekonomi.
 // Kör: LS='{"haDemo":"1","me":"Henrik"}' node verktyg/emu/run.js verktyg/emu/hemmet.js
 module.exports=async(pg,h)=>{
  const fel=m=>{console.log('SCENARIO FAIL '+m);process.exitCode=1};

@@ -5147,8 +5147,6 @@ const hemTill=()=>S.hemFran==='oversikt'?['oversikt','Översikt']:['hemmet','Hem
 const hemTop=()=>'<div class="rcp-top"><button class="back" data-act="nav" data-id="'+hemTill()[0]+'">'+I.back+hemTill()[1]+'</button></div>';
 /* ---------- Hemmet ---------- */
 // Hemmet: i första hand hela Smart hem (alla reglage och enheter), med breda kort för Födelsedagar och Ekonomi.
-// ht.hemStil väljer under förhandsvisningen: B = korten överst (standard), A = korten sist.
-const hemB=()=>lsGet('hemStil')!=='A';
 // Ekonomi: inkomstfördelningen som stapel med namn, andel och vad var och en sätter in. Låst på väggen.
 // Halvbreda kort bredvid varandra (vänster Födelsedagar, höger Ekonomi), därför kort innehåll.
 // Ekonomi: inkomstfördelningen som stapel med namn och andel. Låst på väggen.
@@ -5170,9 +5168,9 @@ V.hemmet=function(){if(S.haRum!=null)return V.hus();
  const D=(haUrl()||haDemo())?haData():null;
  let h=head('Hemmet',{sub:S.haTest?'Testläge · inget skickas till Home Assistant':D&&HA.fel&&!haDemo()?esc(HA.fel):'',tools:D?'<button type="button" class="ib" data-act="haAddOpen" aria-label="Lägg till enhet">'+I.plus+'</button>':''});
  const kort=()=>'<div class="widgets hem-kort"'+RF('H1')+'>'+hemFod()+hemEko()+'</div>';
- if(hemB())h+=kort();
+ h+=kort();
  h+='<div'+RF('H3')+'>'+(D?husAlla(D):'<div class="group"><div class="cell"><span class="grow">'+(haUrl()?'Får ingen kontakt med väggdatorn. Är Tailscale på i telefonen?':'Lägg in väggdatorns adress under Inställningar → Enheten för att styra hemmet från telefonen.')+'</span></div></div>')+'</div>';
- if(!hemB())h+='<div class="ha-rh">Hushållet</div>'+kort();
+
  h+=rgroup('H2','<button type="button" class="cell link hem-r" data-act="settings"><span class="hem-ic" style="background:#8E8E93">'+I.gear+'</span><span class="grow">Inställningar</span>'+chevron+'</button>');
  return h};
 V.ekonomi=function(){if(ekoLocked())return hemTop()+ekoLock();const m=S.ekoMonth||thisMonth(),c=ekoCalc(m),o=c.o;
