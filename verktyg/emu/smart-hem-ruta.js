@@ -51,7 +51,10 @@ module.exports=async(pg,h)=>{
  assert.doesNotMatch(await box.locator('.hab-h').innerText(),/°/,'Ingen temperatur');
  // köret: scenen sparades när allt var släckt; tänd köket, kör scenen = köket släcks igen
  await box.locator('[data-act="habScen"][data-id="0"]').click();await h.idle(400);
- assert.ok(await box.locator('.hab-sc .ha-st').first().evaluate(e=>e.classList.contains('on')),'Scenen är aktiv');
+ // efter en scen blir knappen Ångra (läget före sparas); Ångra tar tillbaka knappen
+ assert.ok(await box.locator('.hab-sc .ha-st').first().evaluate(e=>e.classList.contains('hab-angra')),'Scenen blev Ångra');
+ await box.locator('.hab-sc .hab-angra').click();await h.idle(400);
+ assert.equal(await box.locator('.hab-sc .hab-angra').count(),0,'Ångra borta efter tryck');
  // håll in en scen öppnar bladet direkt
  await h.hold('section.ha [data-act="habScen"][data-id="1"]');await h.idle(700);
  assert.equal(await pg.locator(SC).count(),1,'Håll in öppnar scenen');

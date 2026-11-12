@@ -3257,22 +3257,22 @@ form[data-form="haLampa"] .ha-ctl{flex:1;justify-content:center;padding-top:24px
 .ha-ap{grid-column:1/-1;position:relative;overflow:hidden}.ha-ap .ha-i{background:rgba(120,120,128,.16);color:var(--ink-2)}.ha-ap.on.ha-ap-robot .ha-i{background:#0A84FF;color:#fff}.ha-ap.on.ha-ap-disk .ha-i{background:#30B0C7;color:#fff}
 .ha-ap .ha-tx{flex:1}.ha-ap-p{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(120,120,128,.18)}.ha-ap-p::after{content:'';position:absolute;inset:0 auto 0 0;width:var(--p);background:#0A84FF;border-radius:0 2px 2px 0}.ha-ap-disk .ha-ap-p::after{background:#30B0C7}
 .ha-g .ha-t.ha-ap.on{background:var(--fill);box-shadow:none}.ha-g-v .ha-t.ha-ap.on{background:var(--surface)}
-/* Smart hem-rutan: fyra scener överst och favoriter under, blad för att anpassa (ht-v367) */
+/* Smart hem-rutan: fyra scener överst och favoriter under, blad för att anpassa (ht-v368) */
 .hab-h{display:flex;align-items:center;gap:8px}.hab-h .wh{flex:1;min-width:0}
 .hab-mer{flex:none;display:grid;place-items:center;width:30px;height:30px;padding:0;border:0;border-radius:50%;background:var(--fill);color:var(--ink-2);cursor:pointer;-webkit-tap-highlight-color:transparent}.hab-mer svg{width:18px;height:18px}
 /* Designskillen (hushallstavlan-apple-design): rutan har hörn 26 och kant 16, därför hörn 16 innanför (inte kapslar), 8-avstånd, text 15/13 */
-.hab .hab-sc{margin:12px 0 0;gap:8px}.hab .hab-sc .ha-st{min-width:0;gap:6px;padding:10px 4px 9px;border-radius:16px}.hab .hab-sc .ha-n{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:600;letter-spacing:-.08px}
-.hab .hab-sc .ha-st .ha-i{width:30px;height:30px;background:var(--sc,var(--accent));color:#fff}.hab .hab-sc .ha-st .ha-i svg{width:17px;height:17px}
+:is(.hab .hab-sc,.hus-sc){margin:12px 0 0;gap:8px}:is(.hab .hab-sc,.hus-sc) .ha-st{min-width:0;gap:6px;padding:10px 4px 9px;border-radius:16px}:is(.hab .hab-sc,.hus-sc) .ha-n{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:600;letter-spacing:-.08px}
+:is(.hab .hab-sc,.hus-sc) .ha-st .ha-i{width:30px;height:30px;background:var(--sc,var(--accent));color:#fff}:is(.hab .hab-sc,.hus-sc) .ha-st .ha-i svg{width:17px;height:17px}
 .hab .hab-g .ha-t{border-radius:16px;min-height:56px;gap:8px;padding:8px 10px 8px 8px}.hab .hab-g .ha-t .ha-i{width:32px;height:32px}.hab .hab-g .ha-t .ha-i svg{width:18px;height:18px}
 .hab .hab-g .ha-t.on{background:#FFF4CC}.hab .hab-g .ha-t.ha-dim::before{opacity:.42}.hab .hab-g .ha-n{letter-spacing:-.24px}
 html.ny.ui5 .hab .hab-h .wh>span:not(.r){white-space:nowrap}
 /* Väggen: låga brickor med läget bredvid namnet, så att åtta platser får plats i samma höjd (Henrik: tomt utrymme i brickorna) */
 body.wall .hab .hab-g .ha-t{min-height:48px;padding:8px 10px 8px 8px}body.wall .hab .hab-g .ha-t .ha-i{width:30px;height:30px}body.wall .hab .hab-g .ha-t .ha-i svg{width:17px;height:17px}
 body.wall .hab .hab-g .ha-tx{flex-direction:row;align-items:baseline;gap:6px}body.wall .hab .hab-g .ha-n{min-width:0}body.wall .hab .hab-g .ha-s{flex:none}
-.hab .hab-sc .ha-st.on{background:color-mix(in srgb,var(--sc) 22%,var(--surface));color:var(--ink)}.hab .hab-sc .ha-st.on .ha-i{background:var(--sc);color:#fff}
+:is(.hab .hab-sc,.hus-sc) .ha-st.on{background:color-mix(in srgb,var(--sc) 22%,var(--surface));color:var(--ink)}:is(.hab .hab-sc,.hus-sc) .ha-st.on .ha-i{background:var(--sc);color:#fff}
 .hab-h{position:relative}.hab-menu{position:static}.hab-menu>summary{list-style:none}.hab-menu>summary::-webkit-details-marker{display:none}.hab-menu[open] .hab-mer{background:var(--line)}
 .hab-menu .create-options{right:0;top:calc(100% + 6px)}.hab-menu .create-options button{justify-content:space-between}.hab-menu .create-options .grow{flex:1;text-align:left}
-.hab .hab-sc .hab-tom{background:transparent;box-shadow:inset 0 0 0 1.5px var(--line);color:var(--ink-3)}.hab-tom .ha-i{background:transparent;color:var(--ink-3)}
+:is(.hab .hab-sc,.hus-sc) .hab-tom{background:transparent;box-shadow:inset 0 0 0 1.5px var(--line);color:var(--ink-3)}.hab-tom .ha-i{background:transparent;color:var(--ink-3)}
 .hab .hab-g{margin-top:8px;gap:8px}
 .hab-inga{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin-top:8px;min-height:56px;border:0;border-radius:var(--r5,16px);background:transparent;box-shadow:inset 0 0 0 1.5px var(--line);color:var(--ink-2);font:inherit;cursor:pointer}.hab-inga svg{width:18px;height:18px}
 /* Smart hem-rutan när något spelar: mediaraden ersätter favoritplatser (2, eller 4 med Spotify-knappar) */
@@ -3600,6 +3600,16 @@ html.ny.ui5 .rob-vy .ha-bar{bottom:0;padding-bottom:calc(var(--tabbar) + var(--t
 html.ny.ui5 .rob-vy .ha-bar::before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(color-mix(in srgb,var(--bg) 0%,transparent),color-mix(in srgb,var(--bg) 82%,transparent) 30%);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);-webkit-mask-image:linear-gradient(transparent,#000 22%);mask-image:linear-gradient(transparent,#000 22%)}
 html.ny.ui5.nav-piller:has(#nav.mini) .rob-vy .ha-bar{transform:translate3d(0,calc(var(--tabbar) + var(--tabgap) + 6px - 34px),0)}
 @media (prefers-reduced-motion:reduce){html.ny.ui5 .rob-vy .ha-bar{transition:none}}
+/* Hemmet: scenerna fyra i rad som i Smart hem-rutan, apparaterna i samma bredd som övriga brickor, plus = ny scen eller enhet */
+.ha-sg.hus-sc{margin:0 16px 6px}.hus-sc .ha-st{background:var(--surface)}.hus-sc .ha-st.hab-tom{background:transparent}.hus-sc .ha-st.hab-tom .ha-i{background:var(--fill);color:var(--ink-2)}
+@media(min-width:700px){.hus-sc{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}}
+.ha-g-v .ha-ap{grid-column:auto}.ha-g-v .ha-ap .ha-n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ha-g-v .ha-ap .ha-tx{min-width:0}
+/* Hemmet: förloppet som ring runt ikonen (Henrik: stapeln i kanten kapades av hörnen i halv bredd) */
+.ha-g-v .ha-ap-p{display:none}.ha-g-v .ha-ap .ha-i{position:relative;overflow:visible}.ha-g-v .ha-ap.on[style*="--p"] .ha-i::after{content:'';position:absolute;inset:-5px;border-radius:50%;background:conic-gradient(var(--rc,#0A84FF) var(--p),rgba(120,120,128,.22) 0);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2.5px));mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2.5px))}.ha-g-v .ha-ap-disk .ha-i{--rc:#30B0C7}
+.ha-g-v .ha-t.ha-ap.on{color:var(--ink)}.ha-g-v .ha-t.ha-ap.on .ha-s{color:var(--ink-2)}
+.hab-ordi{background:var(--sc)!important;color:#fff!important}.hab-ordn{display:flex;flex-direction:column;align-items:flex-start;gap:1px;min-width:0;padding:0;border:0;background:none;font:inherit;color:var(--ink);text-align:left;cursor:pointer}.hab-ordn .meta{font-size:13px;color:var(--ink-2)}
+:is(.hab .hab-sc,.hus-sc) .ha-st.hab-angra{background:color-mix(in srgb,var(--ink) 8%,var(--surface))}
+.hus-ny>summary{list-style:none;cursor:pointer}.hus-ny>summary::-webkit-details-marker{display:none}.hus-ny .create-options button{justify-content:space-between}.hus-ny .create-options .grow{flex:1;text-align:left}
 </style>
 </head>
 <body>
@@ -3614,7 +3624,7 @@ html.ny.ui5.nav-piller:has(#nav.mini) .rob-vy .ha-bar{transform:translate3d(0,ca
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=367"></script>
+<script src="app.js?v=368"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
