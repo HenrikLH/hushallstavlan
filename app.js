@@ -4875,12 +4875,21 @@ function skyFit1(sx){const pole=sx.querySelector('.pole');
   if(t<M.y+ex&&t+h>M.y-ex){const up=M.y-ex-h-4,dn=M.y+ex+4,lo=L.height*.5-h,r=(i*.618)%1;
    if(up>=0&&(r<.5||dn>lo))c.style.top=Math.round(r*2%1*up)+'px';else if(dn<=lo)c.style.top=Math.round(dn+r*(lo-dn))+'px'}})}
  skyHoles(sx,L,M&&{x:M.x,y:M.y,r:mr.height*.42});
- if(!pole)return;
+ if(!pole)return nPol(sx,M);
  const H=34,MR=22;let best=null;
  // stjärnbilden står högt på himlen (Henriks önskan), men aldrig under månen
- for(const rc of[40,32,24])for(let y=Math.round(rc+H+4);y<=L.height*.6;y+=5)for(let x=rc+H+8;x<=L.width-rc-H-8;x+=6){const d=M?Math.hypot(x-M.x,y-M.y):999,ok=d>rc+H+MR?2e4:d<rc-H-MR?1e4:0;
-  const sc=(ok||d)+rc*20-Math.abs(x-L.width*.55)*.3-y*2;if(!best||sc>best.sc)best={sc,x,y,rc}}
- if(!best)return;pole.style.left=best.x+'px';pole.style.top=best.y+'px';pole.style.setProperty('--rc',best.rc+'px')}
+ // ljust läge på natten (nattpölen, nPol): stjärnbilden står tätt intill månen och under texten, så att pölen blir liten och följer månen
+ const np=M&&sx.parentNode.classList.contains('natt')&&getComputedStyle(sx.parentNode.querySelector(':scope>.npol')||sx).display==='block',tb=np?Math.max(0,...[...sx.parentNode.querySelectorAll(':scope>.hero-l>*,:scope>.hero-wx>:not(.gs)')].map(e=>e.getBoundingClientRect()).filter(r=>r.height&&r.top<L.top+L.height*.5).map(r=>r.bottom-L.top)):0;
+ for(const rc of[40,32,24])for(let y=Math.round(Math.max(rc+H+4,np?tb+rc+H-14:0));y<=L.height*(np?.62:.6);y+=5)for(let x=rc+H+8;x<=L.width-rc-H-8;x+=6){const d=M?Math.hypot(x-M.x,y-M.y):999,ok=d>rc+H+MR?2e4:d<rc-H-MR?1e4:0;
+  const sc=np?(d>rc+H+MR?2e4:0)-rc*12-Math.abs(d-(rc+H+MR+4))*4-Math.abs(y-M.y)*1.5-Math.abs(x-L.width*.5)*.4:(ok||d)+rc*20-Math.abs(x-L.width*.55)*.3-y*2;if(!best||sc>best.sc)best={sc,x,y,rc}}
+ if(!best)return nPol(sx,M);pole.style.left=best.x+'px';pole.style.top=best.y+'px';pole.style.setProperty('--rc',best.rc+'px');nPol(sx,M,best)}
+// ljust läge på natten (Översikt i telefonen): en mjuk pöl av natthimmel runt månen och stjärnbildens cirkel, i stället för ett mörkt kort. Pölen är några mjuka ellipser som
+// flyter ihop (inga hårda kanter); samma form maskar stjärnorna så att de bara syns i pölen. CSS visar den bara i ljust läge, i mörkt läge syns hela himlen som förut
+function nPol(sx,M,P){const hr=sx.parentNode;if(!hr.classList.contains('natt')||!M)return;const g=[],e=(x,y,a,b)=>g.push([x,y,a,b]);
+ e(M.x,M.y,66,54);e(M.x-22,M.y+16,46,36);e(M.x+18,M.y-8,40,34);
+ if(P){const R=P.rc+36;e(P.x,P.y,R+6,R);e(P.x+R*.4,P.y-R*.3,R*.5,R*.45);[.33,.67].forEach(t=>e(M.x+(P.x-M.x)*t,M.y+(P.y-M.y)*t+5,50,42))}
+ const gr=(dy,c0,c1)=>g.map(([x,y,a,b])=>'radial-gradient('+Math.round(a)+'px '+Math.round(b)+'px at '+Math.round(x)+'px '+Math.round(y+dy)+'px,'+c0+' 0 52%,'+c1+')').join(',');
+ hr.style.setProperty('--np',gr(sx.offsetTop,'rgba(25,32,64,.95)','rgba(25,32,64,0)'));sx.style.setProperty('--npm',gr(0,'#000','transparent'))}
 // molnens färg på himlen: tonen följer nederbörden och ljuset. Solens eget moln får samma färg som de andra
 function skyTon(sc){const wet=/^(drizzle|rain|sleet)$/.test(sc.type),snow=sc.type==='snow',lv=sc.lv,warmL=sc.phase==='dawn'||sc.phase==='golden';
  const sky=wet||snow||sc.thunder?(/^(clear|fair)$/.test(sc.sky)?'partly':sc.sky):sc.sky;
@@ -4957,7 +4966,7 @@ function heroHtml(){const n=new Date(),t=today(),dy=EXT.day&&EXT.day.date===t?EX
  (ny?[so,nd]:[nd,so]).filter(Boolean).forEach(f=>facts.push(f));
  // telefonen: bilden breder ut sig under vänsterspalten, så sol- och namnsdagsraden står under bilden i stället för bakom marken
  const lo=ny&&wx&&!U3&&!U4,fh=lo?'<div class="hero-fot"><div class="hero-facts">'+facts.slice().sort((a,b)=>a.length-b.length).map(f=>'<span>'+esc(f)+'</span>').join('')+'</div>'+(tipT?'<button class="fig-tip" data-act="nav" data-id="vader">'+esc(tipT)+'</button>':'')+'</div>':'<div class="hero-facts">'+facts.map(f=>'<span>'+esc(f)+'</span>').join('')+'</div>';
- return'<section class="hero'+wxArtClass()+(wx?' has-wx':'')+(W&&grassOn()&&grassV()==='b'&&heroSky()?' has-sky':'')+'">'+(W?(grassOn()?(grassV()==='b'?(heroSky()?skyFx(W):'')+arcHtml(W,'b'):''):skyHtml(W)):'')+'<div class="hero-l"><div class="clock num" id="clock">'+pad(hh)+':'+pad(n.getMinutes())+'</div><div class="hero-date">'+esc(cap(dayHead(t)))+'</div>'+(ny?'<div class="hero-date">Vecka '+isoWeek(n)+'</div>':'')+
+ return'<section class="hero'+wxArtClass()+(wx?' has-wx':'')+(W&&grassOn()&&grassV()==='b'&&heroSky()?' has-sky'+(wxScene(W).dark?' natt':''):'')+'">'+(W?(grassOn()?(grassV()==='b'?(heroSky()?'<div class="npol" aria-hidden="true"></div>'+skyFx(W):'')+arcHtml(W,'b'):''):skyHtml(W)):'')+'<div class="hero-l"><div class="clock num" id="clock">'+pad(hh)+':'+pad(n.getMinutes())+'</div><div class="hero-date">'+esc(cap(dayHead(t)))+'</div>'+(ny?'<div class="hero-date">Vecka '+isoWeek(n)+'</div>':'')+
   '<div class="hero-greet">'+greet+(S.me?', '+esc(personLabel(S.me)):'')+'!</div>'+(lo?'':fh+(wallBoardOn()?'':wxLarmHtml(W)))+'</div>'+wx+(lo?wxLarmHtml(W)+fh:'')+(W&&!wallBoardOn()?ovWx(W):'')+'</section>'}
 async function loadExt(){const t=today();let changed=await loadWx();if(await loadPast())changed=true;if(await loadWxPlus())changed=true;
  if(!EXT.day||EXT.day.date!==t){try{const[y,mo,d]=t.split('-');
