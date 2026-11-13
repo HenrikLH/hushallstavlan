@@ -3295,7 +3295,7 @@ form[data-form="haLampa"] .ha-ctl{flex:1;justify-content:center;padding-top:24px
 .ha-ap{grid-column:1/-1;position:relative;overflow:hidden}.ha-ap .ha-i{background:rgba(120,120,128,.16);color:var(--ink-2)}.ha-ap.on.ha-ap-robot .ha-i{background:#0A84FF;color:#fff}.ha-ap.on.ha-ap-disk .ha-i{background:#30B0C7;color:#fff}
 .ha-ap .ha-tx{flex:1}.ha-ap-p{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(120,120,128,.18)}.ha-ap-p::after{content:'';position:absolute;inset:0 auto 0 0;width:var(--p);background:#0A84FF;border-radius:0 2px 2px 0}.ha-ap-disk .ha-ap-p::after{background:#30B0C7}
 .ha-g .ha-t.ha-ap.on{background:var(--fill);box-shadow:none}.ha-g-v .ha-t.ha-ap.on{background:var(--surface)}
-/* Smart hem-rutan: fyra scener överst och favoriter under, blad för att anpassa (ht-v374) */
+/* Smart hem-rutan: fyra scener överst och favoriter under, blad för att anpassa (ht-v376) */
 .hab-h{display:flex;align-items:center;gap:8px}.hab-h .wh{flex:1;min-width:0}
 .hab-mer{flex:none;display:grid;place-items:center;width:30px;height:30px;padding:0;border:0;border-radius:50%;background:var(--fill);color:var(--ink-2);cursor:pointer;-webkit-tap-highlight-color:transparent}.hab-mer svg{width:18px;height:18px}
 /* Designskillen (hushallstavlan-apple-design): rutan har hörn 26 och kant 16, därför hörn 16 innanför (inte kapslar), 8-avstånd, text 15/13 */
@@ -3684,6 +3684,13 @@ body.wall :is(.hab .hab-sc,.hus-sc) .ha-st{gap:4px;padding:8px 4px;border-radius
 .ha-sg.hus-sc-1{grid-template-columns:minmax(0,1fr)}.ha-sg.hus-sc-2{grid-template-columns:repeat(2,minmax(0,1fr))}.ha-sg.hus-sc-3{grid-template-columns:repeat(3,minmax(0,1fr))}
 /* varningen sitter på ikonen så att apparatens namn får plats */
 .ha-g-v .ha-ap .ha-ap-v{position:absolute;top:8px;left:30px;width:20px;height:20px;font-size:13px;box-shadow:0 0 0 2px var(--surface)}
+/* Scenens tidslinje: steg som kort, tunn linje emellan som i Genvägar */
+.hab-steg{overflow:visible}.hab-steg-h{gap:8px}.hab-steg-h .grow{font-weight:600}.hab-steg-i{flex:none;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--fill);color:var(--ink-2)}.hab-steg-i svg{width:17px;height:17px}.hab-steg-i.nu{background:var(--accent);color:#fff}
+.hab-steg-h .hab-steg-x{margin:0}
+.hab-tl{width:2px;height:16px;margin:0 0 0 46px;background:var(--line)}
+.hab-flytt{position:static;flex:1;min-width:0}.hab-flytt>summary{list-style:none;display:flex;flex-direction:column;min-width:0;cursor:pointer}.hab-flytt>summary::-webkit-details-marker{display:none}.hab-ljr{position:relative}
+.hab-flytt-n{display:flex;align-items:center;gap:4px}.hab-flytt-c{display:inline-grid;color:var(--ink-3);transform:rotate(90deg)}.hab-flytt-c svg{width:8px;height:13px}
+.hab-flytt .create-options{left:16px;right:auto;top:calc(100% - 8px)}.hab-flytt .create-options button{justify-content:space-between}.hab-flytt .create-options .grow{flex:1;text-align:left}
 .hus-ny>summary{list-style:none;cursor:pointer}.hus-ny>summary::-webkit-details-marker{display:none}.hus-ny .create-options button{justify-content:space-between}.hus-ny .create-options .grow{flex:1;text-align:left}
 /* Middag ikväll i UI 5.0: en rad per rätt med bild (48, hörn 12), titel 17/22, grå rad 13/18, diskret grå ▶ för att börja laga */
 html.ny.ui5 .wm5{display:flex;align-items:center;gap:12px;min-height:64px}
@@ -3707,6 +3714,42 @@ html.ny.ui5 body.wall .wm5-go,body.wall html.ny.ui5 .wm5-go{width:48px;height:48
 .bcol .wpair.solo>.widget>.wh{grid-column:1/-1}
 .bcol .wpair.solo>.widget>.wbig{grid-row:span 2}
 .bcol .wpair.solo>.widget>*{margin:0!important}
+/* Receptsidan i UI 5.0 (M29): rubrikrad med hjärta och ⋯, ren bild, betyg under titeln, två knappar, Planering med −/+ (M28) */
+html.ny.ui5 .rcp5 .rcp-bar{position:relative;display:flex;align-items:center;gap:8px;min-height:44px}
+html.ny.ui5 .rcp5 .rcp-bar .back{margin:0}
+html.ny.ui5 .rcp5 .rcp-fav.on{background:var(--glass);color:var(--accent);border-color:var(--glass-line)}
+html.ny.ui5 .rcp5 .rcp-fav svg{width:22px;height:22px}
+html.ny.ui5 .rcp-meny .create-options{right:0;top:calc(100% + 8px)}
+html.ny.ui5 .rcp-meny .rcp-mi{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:44px;padding:11px 16px;font-size:17px;line-height:22px;letter-spacing:-.41px;color:var(--ink);border-top:.5px solid var(--line)}
+html.ny.ui5 .rcp-meny .rcp-mi svg{width:20px;height:20px}
+html.ny.ui5 .rcp-meny a.rcp-mi{text-decoration:none}
+html.ny.ui5 .rcp-meny .rcp-mi:active{background:var(--fill)}
+html.ny.ui5 .rcp-meny .create-options svg{width:20px;height:20px}
+html.ny.ui5 .rcp-meny .fm-sep{height:8px;background:var(--fill)}
+html.ny.ui5 .rcp-meny .fm-sep+button{border-top:0}
+html.ny.ui5 .rcp5 .rcp-photo{width:100%;margin:8px 0 0;border-radius:var(--r5);aspect-ratio:3/2;max-height:40vh}
+html.ny.ui5 .rcp5 .chips-row{margin:16px 0 4px}
+html.ny.ui5 .rcp5 .t1{margin:0}
+html.ny.ui5 .rcp-rate{display:inline-flex;align-items:center;gap:8px;min-height:44px;font-size:15px;line-height:20px;color:var(--ink-2)}
+html.ny.ui5 .rcp-rate .st{color:#FF9F0A;letter-spacing:1px}
+html.ny.ui5 .rcp-rate .st.o{color:var(--ink-3)}
+html.ny.ui5 .rcp-rate b{font-weight:600;color:var(--ink)}
+html.ny.ui5 .rcp-rate .chev{color:var(--ink-3)}
+html.ny.ui5 .rcp-why{margin:0 0 4px;font-size:15px;line-height:20px;color:var(--ink-2)}
+html.ny.ui5 .rcp-cta{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0 0}
+html.ny.ui5 .rcp-cta button{height:50px;border-radius:999px;padding:0 16px;white-space:nowrap}
+html.ny.ui5 .rcp-cta .btn-tint.on{background:var(--fill);color:var(--ink)}
+html.ny.ui5 .rcp-cta .btn-tint.on svg{color:var(--accent)}
+html.ny.ui5 .rcp-ti{display:flex;align-items:center;gap:8px;text-align:left;color:var(--ink);min-height:44px}
+html.ny.ui5 .rcp-ti svg{width:17px;height:17px;color:var(--ink-3);flex:none}
+html.ny.ui5 .rcp-meny .rcp-mv{color:var(--ink-2)}
+html.ny.ui5 .ti-step{display:flex;align-items:center;justify-content:center;gap:24px;margin-top:8px}
+html.ny.ui5 .ti-step .ti-big{margin:0;min-width:140px}
+html.ny.ui5 .ti-step button{width:44px;height:44px;border-radius:50%;background:var(--fill);color:var(--accent);font-size:24px;line-height:1;display:grid;place-items:center}
+html.ny.ui5 .ti-step button:disabled{color:var(--ink-3)}
+html.ny.ui5 .rcp-val{font-size:17px;line-height:22px;color:var(--ink-2);white-space:nowrap}
+html.ny.ui5 .stepper button:disabled{color:var(--ink-3)}
+html.ny.ui5 .rcp5~.foot .linkbtn,html.ny.ui5 .foot .linkbtn{color:var(--accent);font-size:inherit}
 </style>
 </head>
 <body>
@@ -3721,7 +3764,7 @@ html.ny.ui5 body.wall .wm5-go,body.wall html.ny.ui5 .wm5-go{width:48px;height:48
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=374"></script>
+<script src="app.js?v=376"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
