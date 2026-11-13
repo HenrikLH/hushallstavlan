@@ -3458,9 +3458,11 @@ html.ny.ui5 .bank .rc-price small{color:var(--obs)}
 /* UI 5.0 · Idag-rutan (granskning B): uppgifterna under dagens händelser i Schema-rutan */
 html.ny.ui5 .idag .upg-c{margin:0}
 html.ny #cal-rows .idag>.wk-sub{display:none}
+html.ny.ui5 .idag-alla{display:flex;align-items:center;gap:8px;width:100%;min-height:40px;margin-top:4px;padding:0;border-top:.5px solid var(--line);font-size:15px;line-height:20px;color:var(--ink-2);text-align:left}
+html.ny.ui5 .idag-alla>svg:first-child{width:18px;height:18px;flex:none}
+html.ny.ui5 .idag-alla .n{color:var(--accent);font-weight:600}
+html.ny.ui5 .idag-alla .chev{display:flex;color:var(--ink-3)}html.ny.ui5 .idag-alla .chev svg{width:14px;height:14px}
 html.ny.ui5 .idag .evs+.upg-c .ur:first-child{border-top:.5px solid var(--line)}
-html.ny.ui5 .idag-h{font-size:13px;line-height:18px;font-weight:600;color:var(--ink-2);padding:10px 0 2px}
-html.ny.ui5 .idag-b .upg-c .ur:first-child{border-top:0}
 /* UI 5.0 · Datumcirklar: proportionella siffror så att 1:an inte får tom plats till vänster och talet ser förskjutet ut i cirkeln (iPhone, SF Pro) */
 html.ny.ui5 :is(.wk-d .n,.cal-d .n,.cv-d .n){font-variant-numeric:proportional-nums}
 /* UI 5.0 · Kalender (granskning E): röda dagar (helger + svenska helgdagar, helgdag()) i accentfärgen; andra månaders dagar gråa */

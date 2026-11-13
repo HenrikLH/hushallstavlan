@@ -3350,14 +3350,14 @@ function calDots(date){const d=D(),evs=d.events.filter(e=>e.date===date),ts=d.ta
 // Översiktens kalenderruta: veckoremsa där man väljer dag, och den dagens händelser med start- och sluttid
 // Födelsedagar i kalendern ("Leah fyller 12 år") visas som en påminnelse överst i stället för som en heldagsrad
 const isBdEv=e=>!e.time&&/ fyller( \d+)? år$/.test(String(e.title||''));
-// UI 5.0 (granskning B): Schema och Att göra i en ruta. Dagens händelser, sedan uppgifterna att bocka (sena först), Imorgon som en grå rad.
-// IDAG_VAR: A = en lista utan rubriker, B = rubrikerna Schema och Att göra i samma kort (förslag, väljs bort när Henrik bestämt)
-const IDAG=()=>U5&&!S.arrange,IDAG_VAR=()=>lsGet('idagVar')||'A';
+// UI 5.0 (granskning B, Henrik valde A): Schema och Att göra i en ruta. Dagens händelser, sedan uppgifterna att bocka (sena först),
+// Imorgon som en grå rad och sist raden Att göra · Alla N som leder till Att göra (ersätter den egna rutan)
+const IDAG=()=>U5&&!S.arrange;
 function idagRows(sel){const ev=calDayRows(sel);if(!IDAG())return ev;const t=today(),o=D().tasks.filter(x=>!x.done);
- const U=sel===t?upgDag():{idag:o.filter(x=>x.due===sel),imorgon:[]};if(!U.idag.length&&!U.imorgon.length)return ev;
- const tom=/<div class="wempty">[^<]*<\/div>$/.test(ev),evs=tom?ev.replace(/<div class="wempty">[^<]*<\/div>$/,''):ev,B=IDAG_VAR()==='B';
- const tk=upgDagHtml(U,'',true);
- return'<div class="idag'+(B?' idag-b':'')+'">'+(B&&!tom?'<div class="idag-h">Kalender</div>':'')+evs+(B&&U.idag.length?'<div class="idag-h">Att göra</div>':'')+tk+'</div>'}
+ const U=sel===t?upgDag():{idag:o.filter(x=>x.due===sel),imorgon:[]};if(!o.length)return ev;
+ const tom=!!(U.idag.length||U.imorgon.length)&&/<div class="wempty">[^<]*<\/div>$/.test(ev),evs=tom?ev.replace(/<div class="wempty">[^<]*<\/div>$/,''):ev;
+ const alla='<button type="button" class="idag-alla" data-act="nav" data-id="uppgifter">'+I.list+'<span class="grow">Att göra</span><span class="n">Alla '+o.length+'</span>'+chevron+'</button>';
+ return'<div class="idag">'+evs+(U.idag.length||U.imorgon.length?upgDagHtml(U,'',true):'')+alla+'</div>'}
 function calDayRows(sel){const d=D(),t=today();
  const all=d.events.filter(e=>e.date===sel).sort((a,b)=>String(a.time||'').localeCompare(String(b.time||'')));
  const bds=all.filter(isBdEv),evs0=all.filter(e=>!isBdEv(e)),st=sel===t?evStates(evs0):new Map(),evs=evs0.filter(e=>(st.get(e)||{}).st!=='past');
