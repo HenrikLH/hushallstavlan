@@ -2600,6 +2600,8 @@ html.ny:not(.ui3) .pref-section .segc button[aria-pressed=true]{color:#1D1C1A}
 .pref-body>.sh{padding-top:16px}
 .pref-body>.group{margin-left:12px;margin-right:12px}
 .pref-body>.person-list{margin:0 12px}
+/* Två rutor i följd i Inställningar (även med en dold förklaring emellan) får luft, så de inte går ihop */
+.pref-body>:is(.group,.seg-wrap,.person-list)+:is(.group,.seg-wrap),.pref-body>:is(.group,.seg-wrap,.person-list)+.foot.hid+:is(.group,.seg-wrap){margin-top:20px}
 .person-row{display:flex;align-items:center;border-bottom:.5px solid var(--line)}
 .person-select{display:flex;align-items:center;gap:12px;flex:1;min-width:0;min-height:56px;padding:12px 16px;text-align:left}
 .person-select .grow{overflow-wrap:anywhere}
