@@ -2,10 +2,10 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
-## Inställningar: luft mellan rutor och nya namn (förslag, väntar på Henriks "Pusha")
+## Inställningar: luft mellan rutor och nya namn (publicerad ht-v383, ångra-gren `version-fore-installningar-namn`)
 - Ägare Claude, gren `claude/project-thread-yqdfhp`. CSS i `index.html` efter `.pref-body>.person-list`: två rutor i följd (även med dold förklaring emellan) får 20 px. Översikt: brytaren för rutstorlek fick egen rubrik Storlek.
 - Nya namn (rubriker, rader och svepmenyernas val) bara i inställningsbladet (`renderOverlay`, `k===settings`) och toasten för `ACT.exp`; lagrade värden (`ui`, `natthimmel`, `addPlace` …) oförändrade.
-- Test `verktyg/emu/installningar-luft.js` (mäter glapp, SHOT/HJ/LONG) grön i telefon/vägg/mörkt och UI 2/4/Aura; installningar-delar/-tillbaka gröna.
+- Test `verktyg/emu/installningar-luft.js` (mäter glapp och klippta val, SHOT/HJ/LONG) grön; alla-flikar telefon+vägg gröna; i telefon/vägg/mörkt och UI 2/4/Aura; installningar-delar/-tillbaka gröna.
 
 ## Natthimmel i ljust läge (publicerad ht-v377, ångra-gren `version-fore-nattpol`)
 - Gren `claude/project-thread-kfdn2j`. Översiktens hjälte i telefonen på natten i ljust läge: `NATTHIM` (ls `ht.natthimmel`, Inställningar → Översikt → Natthimmel i ljust läge: Vanlig/Pöl/Nattkort/Kvällston, Pöl standard). Hjälten får klasserna `natt nh-<val>`; CSS bara i ljust läge (efter UI5-skyfx-regeln i index.html).
