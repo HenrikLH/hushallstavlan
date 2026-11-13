@@ -199,7 +199,11 @@ function renderNav(nav){
  const ui=U4?'4':String(U3);if(nav.dataset.ui!==ui){nav.innerHTML='';nav.dataset.ui=ui}
  if(!nav.querySelector('.nav-pill'))nav.innerHTML='<div class="brand" aria-hidden="true">'+(U4?'Hushållstavlan':'Hemma')+'</div><div class="nav-pill" aria-hidden="true"></div>'+VIEWS.map(([id,l,ic])=>'<button data-act="nav" data-id="'+id+'">'+ic+'<span>'+(U3&&id==='oversikt'?'Idag':l)+'</span></button>').join('')+'';
  const i=VIEWS.findIndex(v=>v[0]===(S.view==='stad'?'uppgifter':HEM_UNDER.includes(S.view)?'hemmet':S.view));
- nav.querySelectorAll('button').forEach((b,j)=>j===i?b.setAttribute('aria-current','page'):b.removeAttribute('aria-current'));
+ nav.querySelectorAll('button[data-act="nav"]').forEach((b,j)=>j===i?b.setAttribute('aria-current','page'):b.removeAttribute('aria-current'));
+ // väggskärmen: menyn som sidofält till vänster, ihopfälld (bara ikoner) eller utfälld (ikoner och namn)
+ const so=sidoOn(),tg=nav.querySelector('.nav-tog');nav.classList.toggle('sido',so);nav.classList.toggle('sido-ut',so&&VSIDO);
+ if(so&&!tg)nav.insertAdjacentHTML('afterbegin','<button type="button" class="nav-tog" data-act="sidoFall" aria-label="Visa eller dölj namnen i menyn">'+I_SIDO+'</button>');else if(!so&&tg)tg.remove();
+ if(so)nav.querySelector('.nav-tog').setAttribute('aria-expanded',VSIDO?'true':'false');
  // Ekonomi ligger inte i flikraden på telefon; då visas ingen markering där
  nav.classList.toggle('none',i<0||i>=VIEWS.length);nav.style.setProperty('--i',Math.max(0,Math.min(i,VIEWS.length-1)));
  navLins.till(nav,Math.max(0,Math.min(i,VIEWS.length-1)),i<0||i>=VIEWS.length);
@@ -241,7 +245,7 @@ const navLins=(()=>{const L={p:null,v:0,t:0,R:.4,D:.8,s:0,sv:0,ts:0,raf:0,last:0
   a.onfinish=()=>{if(L.an&&L.an.a===a){L.an=null;rita()}}};
  return{
   // från renderNav: flytta till fliken i (eller rensa när UI 5.0 inte används)
-  till(nav,i,dold){L.nav=nav;const pl=pill();if(!U5){if(L.p!=null){nav.classList.remove('fj','lyft');if(pl){pl.style.transform='';pl.style.scale=''}cancelAnimationFrame(L.raf);L.raf=0;L.p=null}return}
+  till(nav,i,dold){L.nav=nav;const pl=pill();if(!U5||sidoOn()){if(L.p!=null){nav.classList.remove('fj','lyft');if(pl){pl.style.transform='';pl.style.scale=''}cancelAnimationFrame(L.raf);L.raf=0;L.p=null}return}
    nav.classList.add('fj');if(L.dragar)return;if(L.an&&L.an.f.length&&Math.abs(L.p-i)<1e-6)return;fang();L.t=i;L.R=.42;L.D=.78;if(L.p==null||dold||(pl&&!pl.style.transform)){L.p=i;L.v=0;L.w=0;rita();return}if(Math.abs(L.p-i)>.01&&!lugn())glid(i);else if(L.p!==i)kor()},
   // fingret trycker: linsen lyfts där den är
   lyft(nav){L.nav=nav;fang();if(L.p==null)return;L.ts=1;nav.classList.add('lyft');kor()},
@@ -257,7 +261,7 @@ addEventListener('resize',()=>navLins.stor());
  const lins=x=>{const pl=nav.querySelector('.nav-pill'),r=nav.getBoundingClientRect(),w=pl?pl.offsetWidth:r.width/VIEWS.length,l=pl?pl.offsetLeft:4;
   return{w,f:Math.min(Math.max((x-r.left-l-w/2)/w,-.18),VIEWS.length-1+.18)}};
  const over=j=>nav.querySelectorAll('button').forEach((b,k)=>b.classList.toggle('over',k===j));
- nav.addEventListener('pointerdown',e=>{if(e.button>0||nav.classList.contains('mini')||U4&&matchMedia('(min-width:900px)').matches)return;st={x0:e.clientX,id:e.pointerId,moved:false,a:[],j:-1};
+ nav.addEventListener('pointerdown',e=>{if(e.button>0||nav.classList.contains('mini')||sidoOn()||U4&&matchMedia('(min-width:900px)').matches)return;st={x0:e.clientX,id:e.pointerId,moved:false,a:[],j:-1};
   if(U5&&!nav.classList.contains('none'))navLins.lyft(nav)});
  nav.addEventListener('pointermove',e=>{if(!st||e.pointerId!==st.id)return;
   if(U5&&!nav.classList.contains('none')){const q=lins(e.clientX);u5Fart.add(st.a,q.f*q.w);
@@ -277,6 +281,9 @@ addEventListener('resize',()=>navLins.stor());
   if(go&&VIEWS[j][0]!==S.view)ACT.nav(VIEWS[j][0])};
  nav.addEventListener('pointerup',e=>end(e,true));nav.addEventListener('pointercancel',e=>end(e,false));
  nav.addEventListener('click',e=>{if(skip){e.stopPropagation();e.preventDefault()}},true)})();
+// Utfällt sidofält över innehållet: fälls ihop av ett tryck på en flik eller utanför menyn
+document.addEventListener('click',e=>{if(!VSIDO||VSIDOL!=='over'||!sidoOn()||e.target.closest('.nav-tog'))return;
+ const flik=e.target.closest('#nav button[data-act="nav"]');if(!flik&&e.target.closest('#nav'))return;VSIDO=false;if(!flik){e.preventDefault();e.stopPropagation()}render()},true);
 // Svävande menyrad på telefon: krymper till en rund knapp nere till vänster när man scrollar nedåt,
 // växer ut igen när man scrollar uppåt, når toppen eller trycker på knappen.
 // Piller: samma kapsel krymper till ett litet piller med bara ikonerna, halvt nedanför skärmkanten (bara CSS).
@@ -856,7 +863,7 @@ function morf(live,a,b){const lk=[...live.childNodes].filter(x=>!(x.nodeType===1
   morf(l,x,y)}}
 function doRender(){if(motionDrag||sheetDrag||bladDrag){pendingRender=true;return}applyPersonColors();applyAccent();
  if(!S.key||!S.data)document.getElementById('create-dock')?.remove();
- document.body.classList.toggle('wall',S.wall);document.body.classList.toggle('is-night',S.view==='oversikt'&&nightOn());document.body.dataset.view=S.view;
+ document.body.classList.toggle('wall',S.wall);document.body.classList.toggle('sido',sidoOn());document.body.classList.toggle('sido-ut',sidoOn()&&VSIDO);document.body.classList.toggle('sido-over',VSIDOL==='over');document.body.classList.toggle('is-night',S.view==='oversikt'&&nightOn());document.body.dataset.view=S.view;
  document.body.classList.toggle('cook-open',!!S.cook);
  const nav=document.getElementById('nav'),m=document.getElementById('main');
  NB={title:'',back:false};
@@ -3047,6 +3054,11 @@ window.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('
 applyRefs();
 // menyväljarens och flikradens utseende i UI 2.0, valt per enhet i Inställningar
 // Var inställningsknappen sitter på väggskärmen: i menyraden, egen knapp nere till höger eller rubrikrad överst
+// Väggskärmen (UI 5.0): menyn som sidofält till vänster (standard) eller längst ner; sidofältet ihopfällt eller utfällt. Per enhet.
+// Utfällt sidofält: 'over' (standard) lägger sig över innehållet och fälls ihop när man väljer en flik eller trycker utanför; 'skjut' flyttar innehållet och stannar utfällt.
+let VMENY=lsGet('vaggmeny')==='vanster'?'vanster':'nere',VSIDOL=lsGet('vaggsidolage')==='skjut'?'skjut':'over',VSIDO=VSIDOL==='skjut'&&lsGet('vaggsido')==='ut';
+function sidoOn(){return !!S.wall&&U5&&!U6&&VMENY==='vanster'}
+const I_SIDO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="3.5"/><path d="M9.5 4.5v15"/><path d="M5.6 8.5h1.6M5.6 11h1.6"/></svg>';
 let VKNAPP=['knapp','rubrik'].includes(lsGet('vaggknapp'))?lsGet('vaggknapp'):'meny';
 let SEGSTIL=['kapsel','klassisk'].includes(lsGet('segstil'))?lsGet('segstil'):'standard',FLIKRAD=['glas','piller'].includes(lsGet('flikrad'))?lsGet('flikrad'):'fast',KRYMP5=['piller','av'].includes(lsGet('krymp5'))?lsGet('krymp5'):'knapp';/* UI 5.0: menyraden vid scroll nedåt (rund knapp, piller eller ligger kvar) */
 let MOTION=lsGet('motion')!=='0';
@@ -3975,7 +3987,7 @@ function renderOverlay(){
    ['enhet','Enheten',sh('Skärm')+group(fieldCell('Väggskärm','<input type="checkbox" role="switch" class="switch" data-act="wall" aria-label="Väggskärm"'+(S.wall?' checked':'')+'>')+
    (S.wall?'<button type="button" class="cell link" data-act="vagg"><span class="grow">Nattläge</span><span class="meta">'+esc((!NATT.on?'Av':NATT.sol?'Solnedgång–soluppgång':nattTid(NATT.a)+'–'+nattTid(NATT.b))+(CAM.on?' · kamera':''))+'</span>'+chevron+'</button>':'')+statusHtml())+
   (!wallBoardOn()?sh('Smart hem')+group(fieldCell('Adress','<input class="field r" name="haurl" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="https://….ts.net" value="'+esc(lsGet('haUrl')||'')+'" style="max-width:220px">'))+'<div class="foot">Med Tailscale på telefonen kan du styra hemmets lampor och uttag härifrån, hemma och borta. Adressen får du från väggdatorn.</div>':'')+
-  (topic?sh('Notiser')+group('<div class="cell"><span class="grow copy">'+esc(topic)+'</span><button type="button" class="pill" data-act="copy" data-id="'+esc(topic)+'">Kopiera</button></div>')+'<div class="foot">Installera appen ntfy och prenumerera på det här ämnet. Använd servern ntfy.sh.</div>':'')+(S.wall?sh('Inställningsknappen')+'<div class="seg-wrap">'+segc('Inställningsknappen','vaggknapp',[['meny','I menyraden'],['knapp','Egen knapp'],['rubrik','Överst']],VKNAPP)+'</div><div class="foot">I menyraden sitter cirkeln längst till höger i menyn. Egen knapp är en rund knapp nere till höger. Överst lägger en rad överst med cirkeln till höger, som på telefonen. Gäller bara den här enheten.</div>':'')+sh('Konto')+group('<button type="button" class="cell link center red" data-act="logout">Logga ut</button>')],
+  (topic?sh('Notiser')+group('<div class="cell"><span class="grow copy">'+esc(topic)+'</span><button type="button" class="pill" data-act="copy" data-id="'+esc(topic)+'">Kopiera</button></div>')+'<div class="foot">Installera appen ntfy och prenumerera på det här ämnet. Använd servern ntfy.sh.</div>':'')+(S.wall&&U5&&!U6?sh('Menyn')+'<div class="seg-wrap">'+segc('Menyn','vaggmeny',[['nere','Längst ner'],['vanster','Till vänster']],VMENY)+'</div><div class="foot">Till vänster ger mer plats på höjden. Knappen överst i menyn visar eller döljer namnen. Gäller bara den här enheten.</div>'+(VMENY==='vanster'?sh('Utfälld meny')+'<div class="seg-wrap">'+segc('Utfälld meny','vaggsidolage',[['over','Över innehållet'],['skjut','Flyttar innehållet']],VSIDOL)+'</div><div class="foot">Över innehållet fälls ihop när du valt en flik. Flyttar innehållet stannar utfälld.</div>':''):'')+(S.wall?sh('Inställningsknappen')+'<div class="seg-wrap">'+segc('Inställningsknappen','vaggknapp',[['meny','I menyraden'],['knapp','Egen knapp'],['rubrik','Överst']],VKNAPP)+'</div><div class="foot">I menyraden sitter cirkeln längst till höger i menyn. Egen knapp är en rund knapp nere till höger. Överst lägger en rad överst med cirkeln till höger, som på telefonen. Gäller bara den här enheten.</div>':'')+sh('Konto')+group('<button type="button" class="cell link center red" data-act="logout">Logga ut</button>')],
    ['avancerat','Utvecklarläge',group(fieldCell('Utvecklarläge','<input type="checkbox" role="switch" class="switch" data-act="dev" aria-label="Utvecklarläge"'+(DEV?' checked':'')+'>'))+'<div class="foot">Visar menyer som inte är färdiga, just nu Planera nästa vecka och Planera med portioner. Gäller bara den här enheten.</div>'+
   (DEV?sh('Smart hem')+group('<button type="button" class="cell link" data-act="haTest"><span class="grow">Låtsaslampor</span><span class="chev">'+I.chev+'</span></button>')+'<div class="foot">Låtsaslampor för att prova knappar och animationer. Inget skickas till Home Assistant.</div>':'')+
   (DEV?sh('Förhandsvisning')+group('<button type="button" class="cell link" data-act="familjOpen"><span class="grow">Testa Familj och släktträd</span><span class="meta">Förhandsvisning</span>'+chevron+'</button>')+'<div class="foot">Testa I fokus och Hela trädet med exempelpersoner. Ingenting sparas i era familjeuppgifter.</div>':'')+
@@ -6420,6 +6432,9 @@ const ACT={
  motion(){rememberSettings();motionAbort();if(motionPageAnim)motionPageAnim.cancel();MOTION=!MOTION;lsSet('motion',MOTION?null:'0');applyStil();render()},
  rymlig(){rememberSettings();RYMLIG=!RYMLIG;lsSet('rymlig',RYMLIG?'1':null);applyStil();render()},
  segstil(id){SEGSTIL=['kapsel','klassisk'].includes(id)?id:'standard';lsSet('segstil',SEGSTIL==='standard'?null:SEGSTIL);applyStil();render()},
+ vaggmeny(id){VMENY=id==='nere'?'nere':'vanster';lsSet('vaggmeny',VMENY==='vanster'?'vanster':null);render()},
+ vaggsidolage(id){VSIDOL=id==='skjut'?'skjut':'over';lsSet('vaggsidolage',VSIDOL==='skjut'?'skjut':null);VSIDO=VSIDOL==='skjut'&&lsGet('vaggsido')==='ut';render()},
+ sidoFall(){VSIDO=!VSIDO;if(VSIDOL==='skjut')lsSet('vaggsido',VSIDO?'ut':null);render()},
  vaggknapp(id){VKNAPP=['knapp','rubrik'].includes(id)?id:'meny';lsSet('vaggknapp',VKNAPP==='meny'?null:VKNAPP);render()},
  krymp5(id){KRYMP5=['piller','av'].includes(id)?id:'knapp';lsSet('krymp5',KRYMP5==='knapp'?null:KRYMP5);applyStil();render()},
  flikrad(id){FLIKRAD=['glas','piller'].includes(id)?id:'fast';lsSet('flikrad',FLIKRAD==='fast'?null:FLIKRAD);applyStil();render()},
