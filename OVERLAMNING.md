@@ -38,8 +38,9 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 - Ångra: `haAngraSpara` sparar alla lampors läge innan en scen körs (`ACT.habScen`/`husScen`), knappen blir Ångra i 15 min (`haAngraPa`, `ACT.haAngra`, per enhet). Ordna scener (`habOrdSheet`, plus-menyn och rutans meny): alla scener, dra i ≡, de fyra första i Översikt; HA-scener och Släck allt sparas då in i `sc`.
 - Test: ny `hemmet-scener.js` telefon/vägg/mörkt, hemmet, smart-hem-ruta, alla-flikar telefon+vägg gröna. Bilder /mnt/project-files/smart-hem/hemmet-scener/.
 
-## Expertgranskning (docs/granskning-2026-11): publicerat C3 ht-v363, E+L ht-v367, B Idag-ruta ht-v380
+## Expertgranskning (docs/granskning-2026-11): publicerat C3 ht-v363, E+L ht-v367, B Idag-ruta ht-v380, väggen ht-v381
 - B (ht-v380, ångra-gren `version-fore-idag-ruta`): i UI 5.0 visar Schema-rutan (Ö2/T3, `idagRows`) dagens händelser, raden Att göra · Alla N som rubrik (Henrik), uppgifterna att bocka och Imorgon. Egna Att göra-rutan (Ö3/T8) visas bara för ekonomiraden. Väggen: Städ idag krymper som sista ruta. Test `oversikt-idag.js`, `att-gora-idag.js`.
+- Väggen (ht-v381, ångra-gren `version-fore-vagg-plats`): Henrik valde B. Engångsflytt `wallFlytt` (ls `wallFlytt`) flyttar Födelsedagar under Schema och Smart hem efter Städ, gömmer Middag och Inköp (`WALL_GOM`). `fitBoard5`: Schema behåller minst tre rader, "Visa N till ›" är en knapp, en ruta som ändå inte får plats kortas med Visa mer (`.fit-klipp`). Test `vagg-plats.js` (KRAV=1).
 - E: röda dagar (lör/sön + `helgdag(k)`) i accent, ingen Lägg till-länk. L: `version.js` sätter app.js?v= = ht-v. Datumcirklar med proportionella siffror.
 - Kvar: C1/C2/C4, D, H, I, J, K, L (OVERLAMNING-längd, AGENTS-storlekar), M. Alla-flikar telefon+vägg gröna.
 

@@ -10,14 +10,15 @@ module.exports=async(pg,h)=>{
  const wall=await read('wallBoardOn()');
  await pg.locator('#nav [data-act="nav"][data-id="oversikt"]').first().click();await h.idle(800);
  const box=pg.locator('[data-box="kal"]').first();await box.evaluate(el=>el.scrollIntoView({block:'center'}));await h.idle(400);
- const txt=await box.innerText();
+ // väggen kan dölja rader som inte får plats (Visa N till), därför textContent där
+ const txt=wall?await box.evaluate(e=>e.textContent):await box.innerText();
  for(const s of['Byta däck','Betala hyran','Ringa vårdcentralen','Imorgon','Hämta paket','Vattna blommorna'])assert.ok(txt.includes(s),'saknas: '+s);
  for(const s of['Boka frisör','Rensa förrådet'])assert.ok(!txt.includes(s),'ska inte synas: '+s);
  assert.ok(txt.indexOf('Ringa vårdcentralen')<txt.indexOf('Imorgon')&&txt.indexOf('Imorgon')<txt.indexOf('Hämta paket'),'Idag ska stå före Imorgon');
  await h.shot('att-gora');
  // bocka av dagens: raden försvinner, imorgon står kvar
  for(const id of['a1','a2','a3']){await pg.locator('[data-box="kal"] [data-act="taskToggle"][data-id="'+id+'"]').first().click();await h.idle(600)}
- await h.idle(1500);const t2=await pg.locator('[data-box="kal"]').first().innerText();
+ await h.idle(1500);const t2=await pg.locator('[data-box="kal"]').first().evaluate(e=>e.textContent);
  assert.ok(!t2.includes('Byta däck')&&t2.includes('Hämta paket'),'efter bockning: '+t2);assert.equal(await read('S.view'),'oversikt','bocken ska inte öppna kalendern');assert.equal(await pg.locator('[data-box="upg"]').count(),0,'ingen egen Att göra-ruta');
  await pg.locator('[data-box="kal"]').first().evaluate(el=>el.scrollIntoView({block:'center'}));await h.shot('klart-idag');
 };
