@@ -883,6 +883,7 @@ function doRender(){if(motionDrag||sheetDrag||bladDrag){pendingRender=true;retur
  else{const kv=keepFxFore(m);m.replaceChildren(ny.cloneNode(true));keepFxEfter(m,kv)}
  m.__fresh=ny;m.__src=src;m.__vy=vy;addLayout(m);if(U5)u5More(m);if(rmo){const d=m.querySelector('.rcp-meny');if(d)d.open=true}
  {const w=m.querySelector('.wk-sw');if(w&&S.wkX){w.scrollLeft=S.wkX;wkMonth(w)}}
+ {const w=m.querySelector('.ha-kortr');if(w&&S.haSwX&&Math.round(w.scrollLeft/(w.clientWidth+12))!==S.haSwX)w.scrollLeft=S.haSwX*(w.clientWidth+12)}
  {const w=m.querySelector('.wxC-sc');if(w)w.scrollLeft=S.wxX!=null?S.wxX:WXC_NP*WXC_SW}
  placeSky();skyFit();fitBoard();gpuLager();loopSync();
  watchTitle();plPin();wsPin();vvFix();
@@ -1690,6 +1691,38 @@ function haTank(a){const t=a.tank;if(!t)return'';const p=t.brist?0:Math.max(0,Ma
  return'<div class="ha-gl ha-tank"><div class="ha-tk '+c+'" style="--q:'+(p/100)+'"><i></i></div><div class="ha-tt"><b>'+(t.brist?'Tanken är tom':'Rent vatten ≈ '+p+' %')+'</b><span>'+(t.brist?'Fyll på tanken i dockan':gg!=null?'Räcker ca '+gg+' moppning'+(gg===1?'':'ar')+' till':'Räcker ca '+Math.round(kvar)+' m² till')+'</span><small>'+Math.round(t.m2||0)+' m² moppat'+(t.fylld?' sedan '+new Date(t.fylld*1e3).toLocaleDateString('sv-SE',{day:'numeric',month:'short'}):'')+(t.lart?'':' · uppskattat')+'</small></div>'+(t.brist==null?'<button type="button" data-act="haTankFylld">Påfylld</button>':'')+'</div>'}
 const HA_RUMNAMN=['Kök','Vardagsrum','Sovrum','Hall','Badrum','Kontor','Barnrum','Matplats','Klädkammare','Tvättstuga','Arbetsrum','Gästrum'];
 // Dockans bild: tankar (rent vatten blått, smutsvatten grått/orange) och roboten i dockan när den är hemma
+// svepbara kort (karta, docka) med sidprickar; läget sparas i S.haSwX så att omritning inte hoppar tillbaka
+function haSvep(K,namn){const n=Math.min(K.length-1,Math.max(0,S.haSwX|0));return'<div class="ha-kort"><div class="ha-kortr" aria-label="Kort">'+K.map((k,i)=>'<div class="ha-kortk" aria-label="'+esc(namn[i])+'">'+k+'</div>').join('')+'</div><div class="ha-kortd" aria-hidden="true">'+K.map((k,i)=>'<i'+(i===n?' class="on"':'')+'></i>').join('')+'</div></div>'}
+// dockans kort (Henrik valde A: stor genomskuren docka; läget syns i bilden, text bara när något ska göras)
+function haDockLage(a){const dv=a.dockVarn||[],t=a.tank,st=a.st||'';
+ const smuts=dv.some(v=>/dirty/i.test(v)),tom=t&&t.brist!=null?!!t.brist:dv.some(v=>/clean water/i.test(v)),fel=dv.filter(v=>!/dirty|clean water/i.test(v)).map(x=>x.replace(/^Dock error: /,''));
+ const q=t?(tom?0:Math.max(0,Math.min(100,Math.round(t.pct||0)))):tom?0:null,d=smuts?100:q==null?null:Math.max(5,Math.min(95,100-q));
+ const hemma=/charging|docked|emptying|washing|drying|idle|paused/.test(st)&&!haStadar(a)&&!/returning|docking/.test(st),tork=!!(a.dockTork||/drying/.test(st)&&!/stopping/.test(st)),tv=/wash/.test(st),tm=/emptying/.test(st),sil=a.dockSil!=null&&a.dockSil<=0;
+ const gor=[tom&&'Fyll på rent vatten',smuts&&'Töm smutsvattnet',sil&&'Rengör silen',...fel].filter(Boolean);
+ return{t,q,d,tom,smuts,sil,fel,hemma,tork,tv,tm,gor,lagQ:tom||q!=null&&q<15,bat:a.bat,ladd:/charging/.test(st)&&st!=='charging_complete'}}
+// genomskuren docka: tankarna med vattennivå och procent, dammpåsen, roboten med batteri när den är hemma
+function haDockSvg(L,stor){const rv=L.lagQ?'dk-rv lag':'dk-rv',sv=L.smuts?'dk-sv full':'dk-sv',pc=(v,x)=>v==null?'':'<text x="'+x+'" y="72" class="dkx-p">'+v+'<tspan class="dkx-pp"> %</tspan></text>';
+ const tank=(x,id,niva,c,v,ikon,varn)=>'<clipPath id="'+id+'"><rect x="'+x+'" y="24" width="76" height="104" rx="14"/></clipPath><rect x="'+x+'" y="24" width="76" height="104" rx="14" class="dk-t"/><g clip-path="url(#'+id+')"><rect x="'+x+'" y="24" width="76" height="104" class="'+c+' dkk-v" style="transform:scaleY('+((niva==null?50:niva)/100)+')"/></g><rect x="'+x+'" y="24" width="76" height="104" rx="14" class="dk-tk"/>'+
+  pc(v,x+38)+'<g transform="translate('+(x+28)+' 98)" class="dkx-i">'+ikon+'</g>'+(varn?'<g transform="translate('+(x+64)+' 26)"><circle r="11" class="dkx-v"/><path d="M0-5v5M0 4.5v.5" class="dkx-vt"/></g>':'');
+ const drop='<path d="M10 2c3 3.6 5.5 6.4 5.5 9.4a5.5 5.5 0 0 1-11 0C4.5 8.4 7 5.6 10 2z"/>',smu='<path d="M10 2c3 3.6 5.5 6.4 5.5 9.4a5.5 5.5 0 0 1-11 0C4.5 8.4 7 5.6 10 2z"/><path d="M7.5 12.5h5M8.5 15h3"/>';
+ const bat=L.bat==null?0:Math.max(0,Math.min(100,L.bat));
+ return'<svg class="dkx'+(stor?' stor':'')+(L.tm?' tm':'')+(L.tv?' tv':'')+(L.tork?' tork':'')+'" viewBox="0 0 240 236" aria-hidden="true">'+
+  '<rect x="24" y="8" width="192" height="196" rx="26" class="dk-k"/>'+
+  tank(36,'dkx-c1',L.q,rv,L.tom?null:L.q,drop,L.lagQ)+tank(128,'dkx-c2',L.d,sv,L.d,smu,L.smuts)+
+  '<rect x="36" y="140" width="168" height="40" rx="12" class="dk-t"/><path d="M52 160h136" class="dkx-bag"/>'+
+  '<g class="dkx-dam">'+[70,100,130,160].map((x,i)=>'<circle cx="'+x+'" cy="172" r="2.5" style="animation-delay:'+(i*.18)+'s"/>').join('')+'</g>'+
+  (L.sil?'<g transform="translate(200 182)"><circle r="11" class="dkx-v"/><path d="M0-5v5M0 4.5v.5" class="dkx-vt"/></g>':'')+
+  '<path d="M4 232 22 206h196l18 26z" class="dk-b"/>'+
+  '<g class="dkx-tv">'+[96,120,144].map((x,i)=>'<path d="M'+x+' 190c2 3 3.5 5 3.5 7a3.5 3.5 0 0 1-7 0c0-2 1.5-4 3.5-7z" style="animation-delay:'+(i*.25)+'s"/>').join('')+'</g>'+
+  '<g class="dkx-tk">'+[100,120,140].map((x,i)=>'<path d="M'+x+' 200c-3-3 3-6 0-9s3-6 0-9" style="animation-delay:'+(i*.3)+'s"/>').join('')+'</g>'+
+  (L.hemma?'<rect x="44" y="208" width="152" height="22" rx="11" class="dk-r"/><rect x="88" y="215" width="64" height="8" rx="4" class="dkx-bt"/><rect x="88" y="215" width="'+(64*bat/100).toFixed(1)+'" height="8" rx="4" class="dkx-bf'+(bat<20?' lag':'')+'"/>'+(L.ladd?'<path d="M124 213l-5 6h4l-2 6 5-6.5h-4z" class="dkx-bl"/>':''):'')+'</svg>'}
+function haDockKnapp(L,id,ikon,n,on,stop,rund){return'<button type="button" class="'+(rund?'dkx-rb':'dkk-b')+(on?' on':'')+'" data-act="haDock" data-id="'+(on&&stop?stop:id)+'" aria-label="'+(on&&stop?'Stoppa':n)+'">'+(rund?'<i>'+ikon+'</i>':ikon)+'<span>'+(on&&stop?'Stoppa':n)+'</span></button>'}
+function haDockKort(a){const L=haDockLage(a),K=haDockKnapp(L,'tom',HAI_DK.tom,'Töm',L.tm,null,1)+haDockKnapp(L,'tvatt',HAI_DK.tvatt,'Tvätta',L.tv,'tvattstopp',1)+haDockKnapp(L,'tork',HAI_DK.tork,'Torka',L.tork,'torkstopp',1);
+ const gor=L.gor.length?'<div class="dkx-gor">'+L.gor.map(g=>'<span>'+esc(g)+'</span>').join('')+'</div>':'',fyll=L.t&&L.t.brist==null?'<button type="button" class="ha-pill" data-act="haTankFylld">Påfylld</button>':'';
+ return'<div class="ha-dkk dka">'+haDockSvg(L,true)+gor+fyll+'<div class="dkx-k">'+K+'</div></div>'}
+const HAI_DK={tom:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l-1.3 11.2a2 2 0 0 1-2 1.8H8.3a2 2 0 0 1-2-1.8z"/><path d="M4 8h16M9 5h6"/><path d="M12 11v6M9.5 14.5 12 17l2.5-2.5"/></svg>',
+ tvatt:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5c3 3.6 5.5 6.6 5.5 9.8a5.5 5.5 0 0 1-11 0c0-3.2 2.5-6.2 5.5-9.8z"/><path d="M9.5 14a2.6 2.6 0 0 0 2.5 2.5"/></svg>',
+ tork:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4c-1.5 1.6 1.5 3.4 0 5s1.5 3.4 0 5M12 4c-1.5 1.6 1.5 3.4 0 5s1.5 3.4 0 5M16 4c-1.5 1.6 1.5 3.4 0 5s1.5 3.4 0 5"/><path d="M5 19h14"/></svg>'};
 function haDockHd(a,p,smuts,tom,fel){const st=a.st||'',hemma=/charging|docked|emptying|washing|drying|idle|paused/.test(st)&&!haStadar(a)&&!/returning|docking/.test(st),q=p==null?60:p,ys=60-34*q/100;
  const tork=a.dockTork||/drying/.test(st)&&!/stopping/.test(st),txt=/emptying/.test(st)?'Tömmer dammbehållaren':/wash/.test(st)?'Tvättar moppen':tork?'Torkar moppen'+(a.dockTorkH>0?' · '+(a.dockTorkH<1?Math.max(1,Math.round(a.dockTorkH*60))+' min':String(Math.round(a.dockTorkH*10)/10).replace('.',',')+' h')+' kvar':''):haStadar(a)?'Roboten städar':/returning|docking/.test(st)?'Roboten åker hem':st==='charging_complete'?'Roboten är laddad':st==='charging'?'Laddar roboten'+(a.bat!=null?' · '+Math.round(a.bat)+' %':''):'Roboten är hemma';
  const v=[tom&&'Fyll på rent vatten',smuts&&'Töm smutsvattnet',fel.length&&'Dockan behöver hjälp'].filter(Boolean),akt=/emptying|wash|drying/.test(st)||!!a.dockTork;
@@ -1714,17 +1747,12 @@ function haAppKropp(a,sida){
   if(S.haAppSida==='inst'){b+='<button type="button" class="ha-bak" data-act="haAppSida" data-id="">'+I.back+'<span>Tillbaka</span></button>';
   b+='<div class="ha-gl">'+rad('lage','Mode',a.lage==='vac_and_mop'?'Vacuum & Mop':namn(LAGE,a.lage),val('lage',LAGE,a.lage)+(a.lage==='custom'?'<div class="ha-gnot">Custom = the per-room settings in the Roborock app.</div>':''))+
    (a.lage!=='mop'?rad('sug','Suction',namn(SUG,a.sug),val('sug',SUG,a.sug)):'')+(a.lage!=='vacuum'?rad('vatten','Water flow',namn(VAT.filter(x=>x[1]),a.vatten)==='–'&&/custom/.test(a.vatten||'')?'Custom':namn(VAT.filter(x=>x[1]),a.vatten),val('vatten',VAT.filter(x=>x[1]),a.vatten)):'')+((a.ruttAlt||[]).length?rad('rutt','Mop route',namn(RUT,a.rutt),val('rutt',RUT,a.rutt)):'')+'</div>';
+  {const DL=(a.dockLageAlt||[]).filter(o=>o!=='unknown').map(o=>[o,{smart:'Smart',light:'Light',balanced:'Balanced',max:'Max'}[o]||o]);if(DL.length)b+='<div class="ha-gl">'+rad('dockLage','Auto-empty',namn(DL,a.dockLage),val('dockLage',DL,a.dockLage))+'</div>'}
   b+='<div class="ha-gl">'+((a.rutiner||[]).length?rad('rut','Routines',a.rutiner.length+'','<div class="ha-gnot">From the Roborock app.</div>'+a.rutiner.map(r=>'<button type="button" class="ha-gv" data-act="haRutin" data-id="'+esc(r.id)+'"><span>'+esc(r.n)+'</span><i>'+HAI_APP.play+'</i></button>').join('')):'')+
    rad('rum','Rooms',R.some(r=>!r.n)?'Name them':R.length+'',R.map(r=>'<button type="button" class="ha-gv'+(S.haRumNamn===r.id?' ut':'')+'" data-act="haRumNamn" data-id="'+r.id+'"><span>'+esc(haRumN(a,r))+(r.stor?'<small>Töm efteråt</small>':'')+'</span><i>'+I.chev+'</i></button>'+(S.haRumNamn===r.id?'<div class="ha-namnval">'+HA_RUMNAMN.map(n=>'<button type="button" class="'+(r.n===n?'on':'')+'" data-act="haRumNamnV" data-id="'+r.id+':'+n+'">'+n+'</button>').join('')+'</div><button type="button" class="ha-gv ha-stor" data-act="haRumStor" data-id="'+r.id+'" aria-pressed="'+!!r.stor+'"><span>Töm efter rummet</span>'+(r.stor?'<i>'+I.tick+'</i>':'')+'</button>'+[['v','Dammsuga var'],['m','Moppa var']].map(([x,t])=>{const v=r['i'+x]||0;return'<div class="ha-gv ha-iv"><span>'+t+'</span><button type="button" data-act="haRumIv" data-id="'+r.id+':'+x+':-1" aria-label="Färre dagar"'+(v?'':' disabled')+'>−</button><b>'+(v?v+' d':'Av')+'</b><button type="button" data-act="haRumIv" data-id="'+r.id+':'+x+':1" aria-label="Fler dagar"'+(v>=60?' disabled':'')+'>+</button></div>'}).join(''):'')).join(''),R.some(r=>!r.n))+
    (U.length?rad('und','Maintenance',Ux.length?Ux.length+' need attention':'All good',U.map(u=>'<div class="ha-und-r"><span>'+u.n+'</span><i style="--p:'+Math.max(0,Math.min(100,Math.round(100*u.h/u.max)))+'%"'+(u.h/u.max<.15?' class="lag"':'')+'></i><b'+(u.h<=0?' class="fyll"':'')+'>'+(u.h<=0?u.gor+' now':Math.round(u.h)+' h')+'</b></div>').join(''),Ux.length):'')+'</div>';
-  }else if(S.haAppSida==='hist'){b+='<button type="button" class="ha-bak" data-act="haAppSida" data-id="">'+I.back+'<span>Tillbaka</span></button>';
-   // historik: senaste körningens tidslinje och när varje rum senast städades (det som används mest ligger på huvudsidan)
-   const sen=(r,x)=>{const t=r['s'+x];return t?haDgr((Date.now()/1e3-t)/86400):'Aldrig'};
-   b+='<div class="ha-sh">Senaste körningen</div>'+(pl&&!kor?haFlode(a,pl):'<div class="ha-gl"><div class="ha-gr"><span>'+(kor?'Pågår nu, syns på dammsugarens sida':'Ingen körning sparad')+'</span></div></div>');
-   const RS=R.slice().sort((x,y)=>Math.max(y.sv||0,y.sm||0)-Math.max(x.sv||0,x.sm||0));
-   if(RS.length)b+='<div class="ha-sh">Rummen</div><div class="ha-gl">'+RS.map(r=>'<div class="ha-gr ha-hr"><span>'+esc(haRumN(a,r))+'</span><b>Dammsugat '+sen(r,'v').toLowerCase()+' · moppat '+sen(r,'m').toLowerCase()+'</b></div>').join('')+'</div>';
   }else{
-  if(!sida)b+=haKarta(a);
+  if(!sida)b+=a.dock&&!S.haZon?haSvep([haKarta(a),haDockKort(a)],['Karta','Dockan']):haKarta(a);
   // lager: välj Vacuum eller Mop och tryck på rummen i kartan; rutten under visar ordningen innan start
   if(S.haZon)b+='<div class="ha-valt"><span>'+(S.haZonR?'Zon ritad':'Dra i kartan för att rita en zon')+'</span><button type="button" data-act="haZon">Avbryt</button></div>';
   else if(!kor&&!st){b+='<div class="ha-lag">'+[['v','damm','Vacuum',P.damm.length],['m','mopp','Mop',P.mopp.length]].map(([k,c,n,ant])=>'<button type="button" class="'+c+(lag===k?' on':'')+'" data-act="haLager" data-id="'+k+'" aria-pressed="'+(lag===k)+'">'+HAI_K[c]+'<span>'+n+'</span>'+(ant?'<b>'+ant+'</b>':'')+'</button>').join('')+'</div>';
@@ -1733,20 +1761,12 @@ function haAppKropp(a,sida){
    b+=lag==='m'?snabb('rutt','Route',RUT,a.rutt)+snabb('vatten','Water',VAT,a.vatten):snabb('sug','Suction',SUG,a.sug);
    if(P.steg.length)b+=haFlode(a,{steg:P.steg,i:-1,klara:[],x:P.x,xm:P.xm,rm:P.rm},true)}
   if(kor&&!S.haZon)b+=haFlode(a,pl);
+  // färdig eller avbruten körning: hopfälld rad, fälls ut med tidslinjen
+  else if(pl&&!S.haZon&&!V.length){const ut=S.haFlFran!=null?S.haFlFran:!!S.haFlUt,kl=typeof pl.klar==='number'?new Date(pl.klar*1e3).toTimeString().slice(0,5):'',n=[...new Set(pl.steg.flatMap(s=>s.rum))].length;
+   b+='<div class="ha-fk'+(ut?' ut':'')+(pl.avbr?' avbr':'')+(MOTION?' an':'')+'"><button type="button" class="ha-fkh" data-act="haFlUt" aria-expanded="'+ut+'"><i class="ha-fki">'+(pl.avbr?'!':I.tick)+'</i><span><b>'+(pl.avbr?'Städningen avbröts':'Städningen är klar')+'</b><small>'+[kl,n+(n===1?' rum':' rum')].filter(Boolean).join(' · ')+'</small></span><i class="ha-fkc">'+I.chev+'</i></button><div class="ha-fkb"><div>'+haFlode(a,pl)+'</div></div></div>'}
   if(!S.haZon&&!V.length)b+=haRumStatus(a);
-  // dockan: egen bild med status, vattentankarna och dockans val (flyttat från Inställningar)
-  if(a.dock&&!S.haZon){const DL=(a.dockLageAlt||[]).filter(o=>o!=='unknown').map(o=>[o,{smart:'Smart',light:'Light',balanced:'Balanced',max:'Max'}[o]||o]),dv=a.dockVarn||[],t=a.tank;
-   const smuts=dv.some(v=>/dirty/i.test(v)),tom=t&&t.brist!=null?!!t.brist:dv.some(v=>/clean water/i.test(v)),fel=dv.filter(v=>!/dirty|clean water/i.test(v)),p=t?(tom?0:Math.max(0,Math.min(100,Math.round(t.pct||0)))):tom?0:null;
-   const kvar=t?Math.max(0,(t.kap||0)-(t.m2||0)):0,gg=t&&t.senast>3?Math.floor(kvar/t.senast):null;
-   b+='<div class="ha-gl ha-dock">'+haDockHd(a,p,smuts,tom,fel)+
-    '<div class="ha-gr ha-dk-r"><span>Rent vatten</span><b'+(tom||p!=null&&p<15?' class="fyll"':'')+'>'+(tom?'Tom, fyll på':p!=null?'OK · ≈ '+p+' % kvar':'OK')+'</b>'+(t&&t.brist==null?'<button type="button" class="ha-pill" data-act="haTankFylld">Påfylld</button>':'')+'</div>'+
-    '<div class="ha-gr ha-dk-r"><span>Smutsvatten</span><b'+(smuts?' class="fyll"':'')+'>'+(smuts?'Fullt, töm':'OK')+'</b></div>'+
-    fel.map(v=>'<div class="ha-gr ha-dk-r"><span>Fel</span><b class="fyll">'+esc(v.replace(/^Dock error: /,''))+'</b></div>').join('')+
-    (a.dockSil!=null?'<div class="ha-gr ha-dk-r"><span>Silen</span><b'+(a.dockSil<=0?' class="fyll"':'')+'>'+(a.dockSil<=0?'Rengör nu':Math.round(a.dockSil)+' h kvar')+'</b></div>':'')+'<button type="button" class="ha-gr" data-act="haDock" data-id="tvatt"><span>Wash mop</span><b class="gor">Wash now</b></button>'+
-    (DL.length?rad('dockLage','Auto-empty',namn(DL,a.dockLage),val('dockLage',DL,a.dockLage)):'')+'<div class="ha-rst-f">Dockan säger bara om tankarna är tomma eller fulla. Procenten räknas fram från hur mycket som moppats sedan påfyllning.</div></div>'}
   const varn=Ux.length?[Ux.length+' need attention']:[];
   b+='<div class="ha-gl">'+(varn.length?'<button type="button" class="ha-gr" data-act="haAppSida" data-id="inst"><span>'+esc(varn[0])+(varn.length>1?' +'+(varn.length-1):'')+'</span><b class="fyll">Visa</b><i>'+I.chev+'</i></button>':'')+
-   '<button type="button" class="ha-gr" data-act="haAppSida" data-id="hist"><span>Historik</span><b>'+(pl&&!kor?(pl.avbr?'Avbruten':'Klar')+(typeof pl.klar==='number'?' '+new Date(pl.klar*1e3).toTimeString().slice(0,5):''):'')+'</b><i>'+I.chev+'</i></button>'+
    '<button type="button" class="ha-gr" data-act="haAppSida" data-id="inst"><span>Inställningar</span><b>'+[a.lage!=='mop'&&namn(SUG,a.sug)].filter(x=>x&&x!=='–').join(' · ')+'</b><i>'+I.chev+'</i></button></div>';
   b+='<div class="ha-ap-info">'+(st&&(a.yta!=null||a.min!=null)?[a.yta!=null&&String(a.yta).replace('.',',')+' m²',a.min!=null&&Math.round(a.min)+' min',a.bat!=null&&'batteri '+Math.round(a.bat)+' %'].filter(Boolean).join(' · '):a.senast?'Senast städat '+haNar(a.senast).toLowerCase():'')+'</div>';
   // fast rad längst ner: en stor knapp för det som går att göra nu, och Åk hem
@@ -1769,7 +1789,7 @@ function haAppSheet(enter){const a=haAppX();if(!a){S.sheet=null;return''}
 const haRobot=()=>haApps().find(x=>x.typ==='robot'&&x.id===S.haAppId)||haApps().find(x=>x.typ==='robot');
 V.robot=function(){const a=haRobot(),fr=S.robFran==='stad';let h='<div class="rcp-top"><button class="back" data-act="nav" data-id="'+(fr?'stad':'hemmet')+'">'+I.back+(fr?'Att göra':'Hemmet')+'</button></div>';
  if(!a)return h+'<div class="banner">Dammsugaren svarar inte just nu.</div>';S.haAppId=a.id;
- return h+'<div class="rob-vy'+(S.haAppSida==='inst'?' inst':'')+'"><div class="rob-hd"><span class="ha-i ha-ap-robot'+(haAppAktiv(a)?' on':'')+'">'+HAI_APP.robot+'</span><div><h1>'+esc(a.n)+'</h1><p>'+esc(haAppStat(a))+'</p></div></div><div class="rob-k">'+haKarta(a)+'</div><div class="rob-r">'+haAppKropp(a,true)+'</div></div>'};
+ return h+'<div class="rob-vy'+(S.haAppSida==='inst'?' inst':'')+'"><div class="rob-hd"><span class="ha-i ha-ap-robot'+(haAppAktiv(a)?' on':'')+'">'+HAI_APP.robot+'</span><div><h1>'+esc(a.n)+'</h1><p>'+esc(haAppStat(a))+'</p></div></div><div class="rob-k">'+(a.dock&&!S.haZon&&S.haAppSida!=='inst'?haSvep([haKarta(a),haDockKort(a)],['Karta','Dockan']):haKarta(a))+'</div><div class="rob-r">'+haAppKropp(a,true)+'</div></div>'};
 // Ändra en enhet utan tangentbord: namn och rum väljs bland förslag, Ta bort kräver håll in
 const HA_RUM=['Kök','Vardagsrum','Sovrum','Hall','Badrum','Kontor','Barnrum','Ute'];
 const HA_NAMN={light:['Taklampa','Golvlampa','Bordslampa','Vägglampa','Fönsterlampa','Spotlights','Lampslinga','Vitrinskåp'],switch:['Uttag','Fönsterlampa','Lampslinga','Fläkt','Kaffebryggare'],fan:['Fläkt','Golvfläkt','Takfläkt']};
@@ -3734,7 +3754,7 @@ function renderOverlay(){
    ['mat','Mat',sh('Veckans matbudget')+group(fieldCell('Mat/vecka, kr','<input class="field r" id="set-budget" name="budget" inputmode="numeric" value="'+esc(st.matbudget||'')+'" style="max-width:110px">'))+'<div class="foot">Vad maten på veckosedeln får kosta. Gäller hela hushållet.</div>'+sh('Priser')+group('<button type="button" class="cell link" data-act="varor"><span class="grow">Varor och priser</span>'+(varaGranska()?'<span class="val">'+varaGranska()+' att granska</span>':'')+chevron+'</button>')+'<div class="foot">Välj vilken produkt hos Willys varje vara ska ha och vad nya ingredienser räknas som.</div>'+sh('Låsa rätter')+'<div class="seg-wrap">'+segc('Låsa rätter','lasstil',[['rad','Runt rätten'],['bild','Runt bilden']],LASSTIL)+'</div><div class="foot">'+'Tryck på låset för att låsa en rätt. Håll in rätten för att ändra den.'+' Föreslå en ny vecka behåller låsta rätter. Gäller bara den här enheten.</div>'+sh('Ny veckosedel')+'<div class="seg-wrap">'+segc('Ny veckosedel','mbild',[['a','Rutnät'],['c','Lista']],MATBILD)+'</div><div class="foot">Hur rätterna visas när du planerar veckan: bildkort två i bredd eller en lista med stora bilder. Gäller bara den här enheten.</div>'+(DEV?sh('Förslag i Planera med portioner')+'<div class="seg-wrap">'+segc('Förslag i Planera med portioner','flStyle',[['karusell','Stort kort'],['lista','Lista']],FL_STYLE)+'</div>':'')],
    ['ekonomi','Ekonomi',ekoLocked()?'<div class="foot">Ekonomi är låst på den här skärmen. Välj vem du är under Personer, eller öppna Ekonomi med koden, för att ändra budgetarna.</div>':sh('Budgetar')+group('<button type="button" class="cell link" data-act="ekoMat"><span class="grow">Matbudget per månad</span>'+(matBudget(thisMonth())?'<span class="meta">'+esc(matBudget(thisMonth()).b)+' kr</span>':'')+chevron+'</button><button type="button" class="cell link" data-act="presBud"><span class="grow">Presentbudget</span>'+chevron+'</button>')+'<div class="foot">Matbudgeten per månad används i Ekonomi för att fördela kostnaden. Veckans matbudget finns under Mat. Presentbudgeten gäller födelsedagspresenter. Gäller hela hushållet.</div>'],
    ['oversikt','Översikt',sh('Rutorna')+group('<button type="button" class="cell link" data-act="arrange"><span class="grow">Ändra ordning på rutorna</span>'+chevron+'</button>'+(prevGet(layoutKey(S.wall))?'<button type="button" class="cell link" data-act="boxPrev"><span class="grow">Gå tillbaka till föregående layout</span>'+chevron+'</button>':''))+'<div class="foot">Gäller bara den här enheten. Du kan också hålla fingret på en ruta en stund.</div>'+group(fieldCell('Widgets i olika storlekar','<input type="checkbox" role="switch" class="switch" data-act="exp" aria-label="Widgets i olika storlekar"'+(expOn()?' checked':'')+'>'))+'<div class="foot">Rutorna kan vara Liten, Mellan eller Stor och visar mer ju större de är. Dra i hörnknappen i Ändra ordning. Av ger de vanliga rutorna, som du gör halva eller hela genom att dra i hörnet.</div>'+
-  sh('Vädervyn')+'<div class="seg-wrap">'+segc('Vädervyn','wxvy',[['kurva','Dagskurva'],['bild','Bild med hundar']],WXVY)+'</div><div class="foot">Dagskurvan visar temperaturen de närmaste 24 timmarna. Gäller bara den här enheten.</div>'+sh('Vädret under hundarna')+'<div class="seg-wrap">'+segc('Vädret under hundarna','ovwx',[['tim','Timme för timme'],['graf','Med graf']],OVWX)+'</div><div class="foot">'+(motionOn()?'Dra handtaget under timmarna nedåt för grafen, uppåt för att fälla ihop. Du kan också trycka på handtaget.':'Håll in timmarna i Översikt för att visa eller dölja grafen.')+' Gäller bara den här enheten.</div>'+sh('Bildstil')+'<div class="seg-wrap">'+segc('Bildstil','wxart',WX_ART,WXART)+'</div><div class="foot">Geometrisk har tydliga färgplan, inspirerade av Kurzgesagt. Alla stilar följer samma väder, årstider och himmel. Gäller bilden i Väder och Översikt på den här enheten.</div>'+sh('Hundar i bilden')+'<div class="seg-wrap">'+segc('Hundar i bilden','hundar',[['vaxla','Växla'],['bada','Båda'],['brun','Bruna'],['svart','Svarta']],HUNDAR)+'</div><div class="foot">Växla byter var tredje timme. Du kan också trycka på hundarna i Väder för att byta. Gäller bara den här enheten.</div>'],
+  sh('Vädervyn')+'<div class="seg-wrap">'+segc('Vädervyn','wxvy',[['kurva','Dagskurva'],['bild','Bild med hundar']],WXVY)+'</div><div class="foot">Dagskurvan visar temperaturen de närmaste 24 timmarna. Gäller bara den här enheten.</div>'+(!wallBoardOn()&&!U3?sh('Natthimmel i ljust läge')+'<div class="seg-wrap">'+segc('Natthimmel i ljust läge','natthimmel',[['vanlig','Vanlig'],['pol','Pöl'],['kort','Nattkort'],['kvall','Kvällston']],NATTHIM)+'</div><div class="foot">Hur stjärnor och måne syns i Översikten på natten när telefonen är i ljust läge. Pöl: natten tränger in runt månen. Nattkort: hela rutan blir mörk. Kvällston: ljusblå himmel. Gäller bara den här enheten.</div>':'')+sh('Vädret under hundarna')+'<div class="seg-wrap">'+segc('Vädret under hundarna','ovwx',[['tim','Timme för timme'],['graf','Med graf']],OVWX)+'</div><div class="foot">'+(motionOn()?'Dra handtaget under timmarna nedåt för grafen, uppåt för att fälla ihop. Du kan också trycka på handtaget.':'Håll in timmarna i Översikt för att visa eller dölja grafen.')+' Gäller bara den här enheten.</div>'+sh('Bildstil')+'<div class="seg-wrap">'+segc('Bildstil','wxart',WX_ART,WXART)+'</div><div class="foot">Geometrisk har tydliga färgplan, inspirerade av Kurzgesagt. Alla stilar följer samma väder, årstider och himmel. Gäller bilden i Väder och Översikt på den här enheten.</div>'+sh('Hundar i bilden')+'<div class="seg-wrap">'+segc('Hundar i bilden','hundar',[['vaxla','Växla'],['bada','Båda'],['brun','Bruna'],['svart','Svarta']],HUNDAR)+'</div><div class="foot">Växla byter var tredje timme. Du kan också trycka på hundarna i Väder för att byta. Gäller bara den här enheten.</div>'],
    ['kalender','Kalender',sh('Kalendern öppnas i')+'<div class="seg-wrap">'+segc('Kalendern öppnas i','calVy',[['dag','Dag'],['vecka','Vecka'],['manad','Månad']],S.calVy)+'</div><div class="foot">Ändras också när du byter vy i kalendern. Händelser från Google Kalender hämtas var 15:e minut. Gäller bara den här enheten.</div>'+sh('Födelsedagar')+'<div class="seg-wrap">'+segc('Födelsedagar','fodMode',[['hjul','Årshjul'],['manad','Månader'],['lista','Tidslinje']],S.fodMode||'hjul')+'</div><div class="foot">Hur sidan Födelsedagar visas. Födelsedagarna syns också i kalendern. Gäller bara den här enheten.</div>'],
    ['attgora','Att göra',sh('Städtid per dag')+group(fieldCell('Vardag, min','<input class="field r" id="set-wd" name="wd" inputmode="numeric" value="'+esc(st.stadtid_vardag||20)+'" style="max-width:110px">')+fieldCell('Helg, min','<input class="field r" id="set-we" name="we" inputmode="numeric" value="'+esc(st.stadtid_helg||40)+'" style="max-width:110px">'))+'<div class="foot">Hur många minuter städ ni orkar en vardag och en helgdag. Städ fördelar sysslorna efter det. Gäller hela hushållet.</div>'+sh('Städvyn')+'<div class="seg-wrap">'+segc('Städvyn','stadVy',[['ring','Ring'],['rutnat','Rutnät'],['lista','Lista']],stadVy())+'</div><div class="foot">Ring visar minuterna kvar som en ring och dagens sysslor i en lugn lista. Rutnät visar dagens sysslor som rutor du trycker på. Lista visar allt som förut. Gäller bara den här enheten.</div>'],
    '|',
@@ -4949,12 +4969,44 @@ function skyFit1(sx){const pole=sx.querySelector('.pole');
   if(t<M.y+ex&&t+h>M.y-ex){const up=M.y-ex-h-4,dn=M.y+ex+4,lo=L.height*.5-h,r=(i*.618)%1;
    if(up>=0&&(r<.5||dn>lo))c.style.top=Math.round(r*2%1*up)+'px';else if(dn<=lo)c.style.top=Math.round(dn+r*(lo-dn))+'px'}})}
  skyHoles(sx,L,M&&{x:M.x,y:M.y,r:mr.height*.42});
- if(!pole)return;
+ if(!pole)return nPol(sx,M);
  const H=34,MR=22;let best=null;
  // stjärnbilden står högt på himlen (Henriks önskan), men aldrig under månen
- for(const rc of[40,32,24])for(let y=Math.round(rc+H+4);y<=L.height*.6;y+=5)for(let x=rc+H+8;x<=L.width-rc-H-8;x+=6){const d=M?Math.hypot(x-M.x,y-M.y):999,ok=d>rc+H+MR?2e4:d<rc-H-MR?1e4:0;
-  const sc=(ok||d)+rc*20-Math.abs(x-L.width*.55)*.3-y*2;if(!best||sc>best.sc)best={sc,x,y,rc}}
- if(!best)return;pole.style.left=best.x+'px';pole.style.top=best.y+'px';pole.style.setProperty('--rc',best.rc+'px')}
+ // ljust läge på natten (nattpölen, nPol): stjärnbilden står tätt intill månen och under texten, så att pölen blir liten och följer månen
+ const np=M&&sx.parentNode.classList.contains('nh-pol')&&getComputedStyle(sx.parentNode.querySelector(':scope>.npol')||sx).display==='block',nb0=np&&nBana(sx),nb=nb0&&Array.from({length:31},(_,i)=>nb0(i*Math.PI/30)),tb=np?Math.max(0,...[...sx.parentNode.querySelectorAll(':scope>.hero-l>*,:scope>.hero-wx>:not(.gs)')].map(e=>e.getBoundingClientRect()).filter(r=>r.height&&r.top<L.top+L.height*.5).map(r=>r.bottom-L.top)):0;
+ for(const rc of[40,32,24])for(let y=Math.round(Math.max(rc+H+4,np?tb+rc+H-14:0));y<=L.height*(np?.62:.6);y+=5)for(let x=rc+H+8;x<=L.width-rc-H-8;x+=6){const d=M?Math.hypot(x-M.x,y-M.y):999,ok=d>rc+H+MR?2e4:d<rc-H-MR?1e4:0;
+  const sc=np?(d>rc+H+MR?2e4:0)-rc*12-Math.abs(d-(rc+H+MR+4))*3-(nb?Math.min(...nb.map(q=>Math.hypot(q.x-x,q.y-y)))*2:Math.abs(y-M.y)*1.5)-Math.abs(x-L.width*.5)*.3:(ok||d)+rc*20-Math.abs(x-L.width*.55)*.3-y*2;if(!best||sc>best.sc)best={sc,x,y,rc}}
+ if(!best)return nPol(sx,M);pole.style.left=best.x+'px';pole.style.top=best.y+'px';pole.style.setProperty('--rc',best.rc+'px');nPol(sx,M,best)}
+// ljust läge på natten (Översikt i telefonen): en mjuk pöl av natthimmel runt månen och stjärnbildens cirkel, i stället för ett mörkt kort. Pölen är några mjuka ellipser som
+// flyter ihop (inga hårda kanter); samma form maskar stjärnorna så att de bara syns i pölen. CSS visar den bara i ljust läge, i mörkt läge syns hela himlen som förut
+// månens bana i himlens koordinater (samma ellipsbåge som .arc ritar): punkt vid vinkeln t (0 = öster/vänster, π = väster/höger)
+function nBana(sx){const a=sx.parentNode.querySelector(':scope>.arc'),p=a&&a.querySelector('path.trk');if(!p)return null;const L=sx.getBoundingClientRect(),A=a.getBoundingClientRect(),ry=+(p.getAttribute('d').match(/A50 ([\d.]+)/)||[0,50])[1];
+ return t=>({x:A.left-L.left+A.width*(50-50*Math.cos(t))/100,y:A.top-L.top+A.height*(100-ry*Math.sin(t))/100})}
+function nPol(sx,M,P){const hr=sx.parentNode;if(!hr.classList.contains('nh-pol')||!M)return;const g=[],e=(x,y,a,b)=>g.push([x,y,a,b]),B=nBana(sx),f=v=>Math.round(v),oy=sx.offsetTop;
+ // pölen ligger kvar där månen har varit: ett spår längs banan från öster fram till månen (störst vid månen), och bara lite framför den
+ if(B){let tm=0,dm=1e9;for(let t=0;t<=Math.PI;t+=.02){const q=B(t),d=Math.hypot(q.x-M.x,q.y-M.y);if(d<dm){dm=d;tm=t}}
+  // kometsvans: bred vid månen och allt smalare bakåt, så att man ser att månen drar natten med sig
+  const t0=Math.max(.03,tm-2.1),n=Math.max(1,Math.round((tm-t0)/.05));
+  for(let k=0;k<=n;k++){const u=k/n,q=B(t0+(tm-t0)*u),w=Math.pow(u,1.7);e(q.x,q.y+4+8*w,14+86*w,12+62*w)}
+  const q=B(tm+.1);e(q.x,q.y+6,62,50)}
+ e(M.x,M.y+4,96,76);
+ if(P){const R=P.rc+38;e(P.x,P.y,R+6,R);e((M.x+P.x)/2,(M.y+P.y)/2+4,48,40)}
+ // stjärnorna syns bara i pölen
+ sx.style.setProperty('--npm',g.map(([x,y,a,b])=>'radial-gradient('+f(a*.85)+'px '+f(b*.85)+'px at '+f(x)+'px '+f(y)+'px,#000 0 40%,rgba(0,0,0,.5) 70%,transparent)').join(','));
+ // trädet drar till sig natten: en dold form bakom kronan, så att pölen sträcker sig mot den och flyter ihop med en brygga när de är nära (skuggblåsa)
+ const at=[],bd=hr.querySelector('.gs .bd');if(bd){const r=bd.getBoundingClientRect(),H=hr.getBoundingClientRect(),cx=r.left-H.left+r.width*.222,cy=r.top-H.top+r.height*.41,cr=r.width*.11;at.push([cx,cy-oy,cr*1.05,cr],[cx-2,cy-oy+cr*1.5,cr*.3,cr*.9])}
+ const np=hr.querySelector(':scope>.npol');if(!np)return;const W=hr.clientWidth,Hh=hr.clientHeight,el=(L,c)=>L.map(([x,y,a,b])=>'<ellipse cx="'+f(x)+'" cy="'+f(y+oy)+'" rx="'+f(a*.8)+'" ry="'+f(b*.8)+'"/>').join('');
+ // texten (klockan, datum, väderläget) står kvar på vitt: natten viker undan mjukt runt den
+ const H0=hr.getBoundingClientRect(),tx=[...hr.querySelectorAll(':scope>.hero-l>*,:scope>.hero-wx>:not(.gs)')].map(e=>{const q=document.createRange();q.selectNodeContents(e);return q.getBoundingClientRect()}).filter(r=>r.height&&r.top-H0.top<Hh*.45).map(r=>'<rect x="'+f(r.left-H0.left-6)+'" y="'+f(r.top-H0.top-4)+'" width="'+f(r.width+12)+'" height="'+f(r.height+8)+'" rx="10"/>').join('');
+ // formerna suddas, skärps till en sammanhängande pöl (så att närliggande former flyter ihop) och suddas igen för mjuka kanter; en bredare, svag slöja ger lång utfasning
+ let h='<svg class="npg" width="'+W+'" height="'+Hh+'" viewBox="0 0 '+W+' '+Hh+'"><defs><filter id="npgo" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="13"/><feColorMatrix values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 20 -8"/><feGaussianBlur stdDeviation="9"/></filter><filter id="npgs" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="24"/></filter></defs>'+
+  '<mask id="npgm" maskUnits="userSpaceOnUse" x="0" y="0" width="'+W+'" height="'+Hh+'"><rect width="'+W+'" height="'+Hh+'" fill="#fff"/><g filter="url(#npgt)">'+tx+'</g></mask><filter id="npgt" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="11"/></filter>'+
+  '<g mask="url(#npgm)"><g fill="#1D2549" opacity=".42" filter="url(#npgs)">'+el(g)+'</g><g fill="#182040" filter="url(#npgo)">'+el(g)+el(at)+'</g></g></svg>';
+ // nattpartiklar som läcker ut från kanten och tonar bort (bara transform/opacity)
+ const rnd=k=>{const x=Math.sin(k*127.1+3.7)*43758.5453;return x-Math.floor(x)},T=(performance.timeOrigin||0)/1e3+performance.now()/1e3;
+ for(let k=0;k<40;k++){const[x,y,a,b]=g[Math.floor(rnd(k)*g.length)],v=rnd(k+50)*Math.PI*2,r=.6+rnd(k+90)*.3,d=5+rnd(k+130)*6,z=2+rnd(k+170)*3;
+  h+='<i class="npk" style="left:'+f(x+Math.cos(v)*a*r)+'px;top:'+f(y+oy+Math.sin(v)*b*r)+'px;width:'+z.toFixed(1)+'px;height:'+z.toFixed(1)+'px;--dx:'+f(Math.cos(v)*(14+rnd(k+210)*26))+'px;--dy:'+f(Math.sin(v)*(10+rnd(k+250)*18)-6)+'px;animation-duration:'+d.toFixed(1)+'s;animation-delay:-'+(T%d).toFixed(1)+'s"></i>'}
+ np.innerHTML=h}
 // molnens färg på himlen: tonen följer nederbörden och ljuset. Solens eget moln får samma färg som de andra
 function skyTon(sc){const wet=/^(drizzle|rain|sleet)$/.test(sc.type),snow=sc.type==='snow',lv=sc.lv,warmL=sc.phase==='dawn'||sc.phase==='golden';
  const sky=wet||snow||sc.thunder?(/^(clear|fair)$/.test(sc.sky)?'partly':sc.sky):sc.sky;
@@ -5031,7 +5083,7 @@ function heroHtml(){const n=new Date(),t=today(),dy=EXT.day&&EXT.day.date===t?EX
  (ny?[so,nd]:[nd,so]).filter(Boolean).forEach(f=>facts.push(f));
  // telefonen: bilden breder ut sig under vänsterspalten, så sol- och namnsdagsraden står under bilden i stället för bakom marken
  const lo=ny&&wx&&!U3&&!U4,fh=lo?'<div class="hero-fot"><div class="hero-facts">'+facts.slice().sort((a,b)=>a.length-b.length).map(f=>'<span>'+esc(f)+'</span>').join('')+'</div>'+(tipT?'<button class="fig-tip" data-act="nav" data-id="vader">'+esc(tipT)+'</button>':'')+'</div>':'<div class="hero-facts">'+facts.map(f=>'<span>'+esc(f)+'</span>').join('')+'</div>';
- return'<section class="hero'+wxArtClass()+(wx?' has-wx':'')+(W&&grassOn()&&grassV()==='b'&&heroSky()?' has-sky':'')+'">'+(W?(grassOn()?(grassV()==='b'?(heroSky()?skyFx(W):'')+arcHtml(W,'b'):''):skyHtml(W)):'')+'<div class="hero-l"><div class="clock num" id="clock">'+pad(hh)+':'+pad(n.getMinutes())+'</div><div class="hero-date">'+esc(cap(dayHead(t)))+'</div>'+(ny?'<div class="hero-date">Vecka '+isoWeek(n)+'</div>':'')+
+ return'<section class="hero'+wxArtClass()+(wx?' has-wx':'')+(W&&grassOn()&&grassV()==='b'&&heroSky()?' has-sky'+(wxScene(W).dark?' natt nh-'+NATTHIM:''):'')+'">'+(W?(grassOn()?(grassV()==='b'?(heroSky()?'<div class="npol" aria-hidden="true"></div>'+skyFx(W):'')+arcHtml(W,'b'):''):skyHtml(W)):'')+'<div class="hero-l"><div class="clock num" id="clock">'+pad(hh)+':'+pad(n.getMinutes())+'</div><div class="hero-date">'+esc(cap(dayHead(t)))+'</div>'+(ny?'<div class="hero-date">Vecka '+isoWeek(n)+'</div>':'')+
   '<div class="hero-greet">'+greet+(S.me?', '+esc(personLabel(S.me)):'')+'!</div>'+(lo?'':fh+(wallBoardOn()?'':wxLarmHtml(W)))+'</div>'+wx+(lo?wxLarmHtml(W)+fh:'')+(W&&!wallBoardOn()?ovWx(W):'')+'</section>'}
 async function loadExt(){const t=today();let changed=await loadWx();if(await loadPast())changed=true;if(await loadWxPlus())changed=true;
  if(!EXT.day||EXT.day.date!==t){try{const[y,mo,d]=t.split('-');
@@ -5060,6 +5112,8 @@ function windDir(d){return['nordlig','nordostlig','ostlig','sydostlig','sydlig',
 function feels(T,w){return(T<=10&&w>1.3)?13.12+0.6215*T-11.37*Math.pow(w*3.6,0.16)+0.3965*T*Math.pow(w*3.6,0.16):T}
 /* Vädervyn utan hundar (val i Inställningar, ls ht.wxvy): dagens temperaturkurva i stället för bilden */
 let WXVY=lsGet('wxvy')==='bild'?'bild':'kurva';
+// natthimlen i Översikten i ljust läge (per enhet): vanlig, pöl runt månen (standard), mörkt nattkort eller blå kvällston
+let NATTHIM=['vanlig','kort','kvall'].includes(lsGet('natthimmel'))?lsGet('natthimmel'):'pol';
 // Hur en låst rätt visas på veckosedeln: streck runt hela rätten (rad) eller runt bilden (bild). Gäller den här enheten
 let LASSTIL=lsGet('lasstil')==='bild'?'bild':'rad';
 // UI 2.0 med dagskurvan: ikonen står i Nu-kolumnen, så här står bara väderläget i text
@@ -6018,7 +6072,7 @@ const ACT={
  haZon(){S.haZon=!S.haZon;S.haZonR=null;S.haRobRum=[];S.haAppDel=null;render()},
  haZonStada(){const a=haAppX();if(!a||!S.haZonR)return;const z=S.haZonR.slice(),was=a.st;a.st='zoned_cleaning';S.haZon=false;S.haZonR=null;render();toast('Städar zonen');haSend({app:a.id,zon:[Math.min(z[0],z[2]),Math.min(z[1],z[3]),Math.max(z[0],z[2]),Math.max(z[1],z[3])]},()=>{a.st=was})},
  haRot(){const a=haAppX();if(!a||!(a.rotAlt||[]).length)return;const L=a.rotAlt,n=L[(L.indexOf(a.rot)+1)%L.length],was=a.rot;a.rot=n;HA.km=null;render();haSend({app:a.id,rot:n},()=>{a.rot=was})},
- haDock(g){const a=haAppX();if(!a)return;toast(g==='tom'?'Tömmer dammbehållaren':'Tvättar moppen');haSend({app:a.id,gor:g},()=>{})},
+ haDock(g){const a=haAppX();if(!a)return;toast({tom:'Tömmer dammbehållaren',tvatt:'Tvättar moppen',tvattstopp:'Tvätten stoppas',tork:'Torkar moppen',torkstopp:'Torkningen stoppas'}[g]||'Skickat');haSend({app:a.id,gor:g},()=>{})},
  haAppDel(k){S.haAppDel=S.haAppDel===k?null:k;S.haRumNamn=null;render()},
  haRumIv(id){const[r0,x,d]=String(id).split(':'),a=haAppX();if(!a)return;const r=(a.rum||[]).find(q=>q.id===+r0);if(!r)return;const was=r['i'+x]||0,v=Math.max(0,Math.min(60,was+(+d)));if(v===was)return;
   clearTimeout(S.haIvT);r['i'+x]=v;render();S.haIvT=setTimeout(()=>haValj({rumnr:r.id,rumnamn:r.n||'',intervall:{v:r.iv||0,m:r.im||0}},()=>{}),700)},
@@ -6028,6 +6082,7 @@ const ACT={
  haRumNamnV(v){const a=haAppX();if(!a)return;const i=v.indexOf(':'),nr=+v.slice(0,i),n=v.slice(i+1),r=(a.rum||[]).find(x=>x.id===nr);if(!r)return;S.haRumNamn=null;haValj({rumnr:nr,rumnamn:n},()=>{r.n=n})},
  haRob(g){const a=haAppX();if(!a)return;const P=haRobPlan(a),rum=P.steg.length?P.steg[0].rum:[],was=[a.st,a.plan];a.st=g==='start'?(rum.length?'segment_cleaning':'cleaning'):g==='paus'?'paused':'returning_home';if(g==='start'&&a.pct==null)a.pct=0;
   if(g==='start'&&rum.length){const st=P.steg;a.plan={steg:st,i:0,klara:st.map(()=>[]),nu:null,x:P.x};a.lage=P.damm.length?'vacuum':'mop';S.haRobRum=[];S.haRobV={};S.haRobX={};S.haRobXm={}}if(g==='hem'&&a.plan&&!a.plan.klar){a.plan.steg=a.plan.steg.slice(0,a.plan.i);a.plan.klar=true}render();haSend(g==='start'&&rum.length?{app:a.id,gor:g,rum,damm:P.damm,mopp:P.mopp,x:P.x,xm:P.xm,rm:P.rm}:{app:a.id,gor:g,rum},()=>{[a.st,a.plan]=was})},
+ haFlUt(){S.haFlFran=!!S.haFlUt;S.haFlUt=!S.haFlUt;render();requestAnimationFrame(()=>requestAnimationFrame(()=>{S.haFlFran=null;document.querySelectorAll('.ha-fk').forEach(e=>{e.classList.toggle('ut',S.haFlUt);const b=e.querySelector('.ha-fkh');if(b)b.setAttribute('aria-expanded',S.haFlUt)})}))},
  haRobXm(v){ACT.haRobX(v,'haRobXm')},
  haRobX(v,k){k=typeof k==='string'?k:'haRobX';const[id,d]=String(v).split(':'),X=S[k]=S[k]||{},n=Math.max(1,Math.min(3,d[0]==='='?+d.slice(1)||1:(X[id]||1)+(+d||1)));if(n>1)X[id]=n;else delete X[id];try{u5Tick()}catch(e){}render()},
  haRobV(v){const[id,k]=v.split(':'),W=S.haRobV=S.haRobV||{},o=W[id]||'v',n=o.includes(k)?o.replace(k,''):(o+k).split('').sort().reverse().join('');if(!n){ACT.haRobRum(id);delete W[id];return}W[id]=n;try{u5Tick()}catch(e){}render()},
@@ -6152,6 +6207,7 @@ const ACT={
  ovwx(id){OVWX=id==='graf'?'graf':'tim';lsSet('ovwx',OVWX==='graf'?'graf':null);render()},
  wxart(id){WXART=WX_ART.some(([k])=>k===id)?id:'original';lsSet('wxart',WXART==='original'?null:WXART);render()},
  wxvy(id){WXVY=id==='bild'?'bild':'kurva';lsSet('wxvy',WXVY==='bild'?'bild':null);render()},
+ natthimmel(id){NATTHIM=['vanlig','kort','kvall'].includes(id)?id:'pol';lsSet('natthimmel',NATTHIM==='pol'?null:NATTHIM);render()},
  hundar(id){HUNDAR=['bada','brun','svart'].includes(id)?id:'vaxla';lsSet('hundar',HUNDAR==='vaxla'?null:HUNDAR);S.wxVar=null;render()},
  accMin(){ACT.accent(accentPref()==='min'?accentKey():'min')},
  accent(id){if(U4){const k=id==='min'||colOk(id)?id:'lavendel';lsSet('accent4',k==='lavendel'?null:k)}else{ACCENT=id==='min'||colOk(id)?id:'vinrod';lsSet('accent',ACCENT==='vinrod'?null:ACCENT)}render()},
@@ -6553,7 +6609,7 @@ document.addEventListener('click',e=>{const el=e.target.closest('.dr-slide');if(
  if(SWP.moved){SWP.moved=false;e.stopPropagation();e.preventDefault();return}
  if(el.classList.contains('open')||el.classList.contains('openl')){e.stopPropagation();e.preventDefault();swpSet(el,0,true)}},true);
 // Dagraden i kalenderrutan minns var man svepte, så att den inte hoppar tillbaka när sidan ritas om
-document.addEventListener('scroll',e=>{const t=e.target;if(t&&t.classList&&t.classList.contains('wk-sw')){S.wkX=t.scrollLeft;wkMonth(t)}if(t&&t.classList&&t.classList.contains('wxC-sc'))S.wxX=t.scrollLeft;},true);
+document.addEventListener('scroll',e=>{const t=e.target;if(t&&t.classList&&t.classList.contains('wk-sw')){S.wkX=t.scrollLeft;wkMonth(t)}if(t&&t.classList&&t.classList.contains('wxC-sc'))S.wxX=t.scrollLeft;if(t&&t.classList&&t.classList.contains('ha-kortr')){const n=Math.round(t.scrollLeft/(t.clientWidth+12));if(n!==S.haSwX){S.haSwX=n;t.parentNode.querySelectorAll('.ha-kortd i').forEach((d,i)=>d.classList.toggle('on',i===n))}}},true);
 // Månaden bredvid Schema följer de dagar som syns i raden
 function wkMonth(w){const ds=w.querySelectorAll('.wk-d'),mo=w.closest('.calw')&&w.closest('.calw').querySelector('.wk-mo');if(!ds.length||!mo)return;
  const i=Math.min(ds.length-1,Math.round(w.scrollLeft/ds[0].offsetWidth)+3),k=ds[i].dataset.id;if(isDate(k))mo.textContent=MON[parse(k).getMonth()]}
