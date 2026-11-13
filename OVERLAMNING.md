@@ -2,6 +2,11 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Natthimmel i ljust läge (publicerad ht-v377, ångra-gren `version-fore-nattpol`)
+- Gren `claude/project-thread-kfdn2j`. Översiktens hjälte i telefonen på natten i ljust läge: `NATTHIM` (ls `ht.natthimmel`, Inställningar → Översikt → Natthimmel i ljust läge: Vanlig/Pöl/Nattkort/Kvällston, Pöl standard). Hjälten får klasserna `natt nh-<val>`; CSS bara i ljust läge (efter UI5-skyfx-regeln i index.html).
+- Pöl (`nPol`, `nBana`): SVG med goo-filter, kometsvans längs månens bana (bred vid månen), dold form bakom trädkronan så att natten drar sig mot trädet, mask runt texten, partiklar `.npk` (bara transform/opacity). Stjärnorna maskas till pölen (`--npm`). skyFit lägger stjärnbilden intill månen nära banan i pölläget. Stjärnbildens namn döljs i pölläget.
+- Test `verktyg/emu/stjarnhimmel.js` (NOW mellan 18–26 okt, WXSYM=clearsky_night, LS natthimmel, INST=1 provar valet), alla-flikar telefon+vägg gröna.
+
 ## Receptsidan i Apple-stil (publicerad ht-v376, ångra-gren `version-fore-receptsida`)
 - Ägare Claude, gren `claude/project-thread-o3zdk4`. Bara UI 5.0 (`rcpTop5` före `recipeDetail`; CSS sist i index.html under `html.ny.ui5 .rcp5`/`.rcp-meny`). UI 2.0 oförändrat.
 - Version 2 efter Henriks svar: bildens knappar behålls (penna/foto, bokmärke, hjärta, betygsknapp med stjärnor). ⋯ har bara Redigera recept, Byt mot annan rätt, Recept hos källan, Föreslå aldrig igen. Under titeln bara Börja laga + Till veckan.

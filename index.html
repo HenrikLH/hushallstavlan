@@ -3001,6 +3001,44 @@ html.ny.ui5 .nav button[aria-current="page"]{color:var(--accent)}
 @media (min-width:900px){html.ny.ui5 .nav button{font-size:11px;line-height:13px}}
 /* Väderkortet: molnen glesnar bakom datum och vecka så att texten går att läsa, som i Apples väderapp */
 html.ny.ui5 body:not(.wall) .hero.has-sky>.skyfx{-webkit-mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent),linear-gradient(90deg,transparent 0 44%,#000 62%),linear-gradient(180deg,transparent 0 46px,#000 92px);mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent),linear-gradient(90deg,transparent 0 44%,#000 62%),linear-gradient(180deg,transparent 0 46px,#000 92px);-webkit-mask-composite:source-in,source-over;mask-composite:intersect,add}
+.hero>.npol{display:none}
+/* natthimlen i ljust läge (Inställningar → Översikt → Natthimmel, NATTHIM): pöl runt månen (nPol), mörkt nattkort eller blå kvällston. Bara Översiktens hjälte i telefonen på natten */
+.npol>.npg{position:absolute;left:0;top:0}
+.npol .npk{position:absolute;margin:-2px 0 0 -2px;border-radius:50%;background:#1E2649;opacity:0;animation:npk 7s ease-out infinite}
+@keyframes npk{0%{transform:translate(0,0) scale(1);opacity:0}20%{opacity:.85}100%{transform:translate(var(--dx),var(--dy)) scale(.5);opacity:0}}
+@media (prefers-reduced-motion:reduce){.npol .npk{animation:none;opacity:.45}}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]) body:not(.wall) .hero.natt.nh-pol{--sky-star:#FFFFFF;--sky-moon:#EEF1FA}}
+:root[data-theme="light"] body:not(.wall) .hero.natt.nh-pol{--sky-star:#FFFFFF;--sky-moon:#EEF1FA}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]) body:not(.wall) .hero.natt.nh-pol>.npol{display:block;position:absolute;inset:0;z-index:-2;pointer-events:none;border-radius:inherit;overflow:hidden}}
+:root[data-theme="light"] body:not(.wall) .hero.natt.nh-pol>.npol{display:block;position:absolute;inset:0;z-index:-2;pointer-events:none;border-radius:inherit;overflow:hidden}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]) body:not(.wall) .hero.natt.nh-pol>.skyfx{color:#fff;-webkit-mask-image:var(--npm,none)!important;mask-image:var(--npm,none)!important;-webkit-mask-composite:source-over!important;mask-composite:add!important}}
+:root[data-theme="light"] body:not(.wall) .hero.natt.nh-pol>.skyfx{color:#fff;-webkit-mask-image:var(--npm,none)!important;mask-image:var(--npm,none)!important;-webkit-mask-composite:source-over!important;mask-composite:add!important}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]) body:not(.wall) .hero.natt.nh-pol .skyfx .st{box-shadow:none}}
+:root[data-theme="light"] body:not(.wall) .hero.natt.nh-pol .skyfx .st{box-shadow:none}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]) body:not(.wall) .hero.natt.nh-pol .skyfx .st.b{box-shadow:0 0 5px 1px currentColor}}
+:root[data-theme="light"] body:not(.wall) .hero.natt.nh-pol .skyfx .st.b{box-shadow:0 0 5px 1px currentColor}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]) body:not(.wall) .hero.natt.nh-pol .stjb circle{stroke:none}}
+:root[data-theme="light"] body:not(.wall) .hero.natt.nh-pol .stjb circle{stroke:none}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]) body:not(.wall) .hero.natt.nh-pol .skyfx .stjn{display:none}}
+:root[data-theme="light"] body:not(.wall) .hero.natt.nh-pol .skyfx .stjn{display:none}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]) body:not(.wall) .hero.natt.nh-kort{background:linear-gradient(180deg,#141A33 0%,#1E2747 55%,#273152 100%)!important;--ink:#FFFFFF;--ink-2:rgba(235,235,245,.66);--ink-3:rgba(235,235,245,.32);--line:rgba(255,255,255,.16);--sky-star:#FFFFFF;--sky-moon:#EEF1FA;color:#fff;color-scheme:dark}}
+:root[data-theme="light"] body:not(.wall) .hero.natt.nh-kort{background:linear-gradient(180deg,#141A33 0%,#1E2747 55%,#273152 100%)!important;--ink:#FFFFFF;--ink-2:rgba(235,235,245,.66);--ink-3:rgba(235,235,245,.32);--line:rgba(255,255,255,.16);--sky-star:#FFFFFF;--sky-moon:#EEF1FA;color:#fff;color-scheme:dark}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]) body:not(.wall) .hero.natt.nh-kort :is(.clock,.hero-date,.fn){color:inherit}}
+:root[data-theme="light"] body:not(.wall) .hero.natt.nh-kort :is(.clock,.hero-date,.fn){color:inherit}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]) body:not(.wall) .hero.natt.nh-kvall{background:linear-gradient(180deg,#C9D3EE 0%,#DCE3F4 40%,var(--surface) 78%)!important;--sky-star:#3C4878;--sky-moon:#FFF6D6}}
+:root[data-theme="light"] body:not(.wall) .hero.natt.nh-kvall{background:linear-gradient(180deg,#C9D3EE 0%,#DCE3F4 40%,var(--surface) 78%)!important;--sky-star:#3C4878;--sky-moon:#FFF6D6}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]) body:not(.wall) .hero.natt.nh-kvall .skyfx .st{box-shadow:none}}
+:root[data-theme="light"] body:not(.wall) .hero.natt.nh-kvall .skyfx .st{box-shadow:none}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]) body:not(.wall) .hero.natt.nh-kvall .skyfx .st.b{box-shadow:0 0 4px 1px rgba(255,255,255,.9)}}
+:root[data-theme="light"] body:not(.wall) .hero.natt.nh-kvall .skyfx .st.b{box-shadow:0 0 4px 1px rgba(255,255,255,.9)}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]) body:not(.wall) .hero.natt.nh-kvall .stjb line{stroke-opacity:.55}}
+:root[data-theme="light"] body:not(.wall) .hero.natt.nh-kvall .stjb line{stroke-opacity:.55}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]) body:not(.wall) .hero.natt.nh-kvall .stjb circle{stroke:#fff;stroke-width:1}}
+:root[data-theme="light"] body:not(.wall) .hero.natt.nh-kvall .stjb circle{stroke:#fff;stroke-width:1}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]) body:not(.wall) .hero.natt.nh-kvall .skyfx .stjn{opacity:.8}}
+:root[data-theme="light"] body:not(.wall) .hero.natt.nh-kvall .skyfx .stjn{opacity:.8}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]) body:not(.wall) .hero.natt.nh-kvall .sky-moon svg{filter:drop-shadow(0 0 .6px rgba(120,100,40,.7))}}
+:root[data-theme="light"] body:not(.wall) .hero.natt.nh-kvall .sky-moon svg{filter:drop-shadow(0 0 .6px rgba(120,100,40,.7))}
 /* Väggtavlan läses på avstånd och styrs med fingret: större glasmeny */
 html.ny.ui5.nav-glas body.wall{--tabbar:76px}
 html.ny.ui5.nav-glas body.wall,html.ny.ui5.nav-glas body.wall .nav{--navw:min(880px,calc(100vw - 40px))}
