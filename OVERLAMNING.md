@@ -12,7 +12,7 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 - Version 2 efter Henriks svar: bildens knappar behålls (penna/foto, bokmärke, hjärta, betygsknapp med stjärnor). ⋯ har bara Redigera recept, Byt mot annan rätt, Recept hos källan, Föreslå aldrig igen. Under titeln bara Börja laga + Till veckan.
 - Version 3: Tidigast igen ligger i ⋯ (värdet syns i menyn) och ställs med −/+ i bladet (`tidigastHtml`, `.ti-step`, `ACT.tidSteg`, steg `TIDV` 1–26 v + Aldrig; baslinjen `frekvens[id].w` räknas om så att valt intervall gäller med dagens stjärnor). Senast lagad bara i Tidigast igen-bladet; priset i faktarutan som ~27 kr (minst vid saknade priser), ingen prisnot/why-text (M24) i UI 5.0. Öppen ⋯ hålls öppen vid omritning (`doRender`, `rmo`). Ingen Kod.gs-ändring.
 - Test: `receptsida.js` telefon/mörkt/vägg, alla-flikar telefon+vägg gröna efter merge av main. CI: `matsedel-gester.js` faller som på main (`.dm-g`).
-## Matlagningsläget: delad vy (publicerad ht-v377, ångra-gren `version-fore-matlagning`)
+## Matlagningsläget: delad vy (publicerad ht-v379, ångra-gren `version-fore-matlagning`)
 - Gren `claude/project-thread-46nf66`. Bara UI 5.0: `cook5()`/`ck5Mitt()` i app.js före `tidsplan`, CSS `.ck5*` sist i index.html. Inspiration Deglaze/Mela (liggande: ingredienser vänster, steg höger).
 - Ingredienser till vänster (bock `ACT.cookBock`, stegets i fetstil), stegen som lista till höger (tryck = hoppa), segment Steg/Tidsplan (`ACT.cookVy`) ger tidsplanen i full bredd; dess runda stegknappar är timrarna (Henriks krav). Stående telefon: stegen överst.
 - Timern syns först när högst 5 min är kvar (Henrik): liten grå kapsel i rubriken (`ck5Syns`, `tick` ritar om vid gränsen via `A.ck5Vis`), vinröd sista minuten, fylld när den ringer.
