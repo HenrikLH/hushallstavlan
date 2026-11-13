@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict'),gas=require('./gas');
 gas.ctx.setupRecipes();
 module.exports=async(pg,h)=>{
- const click=async s=>{if(/\[data-rc="(?:new|import)"\]/.test(s)&&!await pg.locator(s).first().isVisible()&&await pg.locator('.create-menu>summary').count())await pg.locator('.create-menu>summary').click();await pg.locator(s).first().click();await h.idle(400)};
+ const click=async s=>{{const m=s==='[data-rc="edit"]'?'.rcp-meny>summary':'.create-menu>summary';if(/\[data-rc="(?:new|import|edit)"\]/.test(s)&&!await pg.locator(s).first().isVisible()&&await pg.locator(m).count())await pg.locator(m).first().click()}await pg.locator(s).first().click();await h.idle(400)};
  const unchanged=JSON.stringify([h.sheet('Matsedel'),h.sheet('Inköp')]);let imports=0,saves=0,lose=false;const requests=[];
  h.gas.ctx.UrlFetchApp.fetch=()=>({getResponseCode:()=>200,getContentText:()=>'<script type="application/ld+json">'+JSON.stringify(require('./fixtures/recept.json'))+'</script>',getAllHeaders:()=>({})});
  await pg.route('**/script.google.com/**',async route=>{const req=route.request();if(req.method()!=='POST')return route.fallback();const text=req.postData(),body=JSON.parse(text);if(!['recipeSave','recipeImport'].includes(body.action))return route.fallback();

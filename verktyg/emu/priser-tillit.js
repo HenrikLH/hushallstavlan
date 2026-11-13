@@ -14,9 +14,11 @@ module.exports=async(pg,h)=>{
  assert.equal(await read("portHel(recipeById('linssoppa'))"),true);
  await click('[data-act="matTab"][data-id="vecka"]');
  if(await pg.locator('[data-act="recipe"][data-id="'+id+'"]').count())await click('[data-act="recipe"][data-id="'+id+'"]');
- const t=await pg.locator('.rc-price').first().innerText().catch(()=>'');console.log('Recept:',t.replace(/\n+/g,' | '));
- assert.match(t,/Minst/);assert.match(t,/kan vara inaktuella/);
- await pg.locator('.rc-price').first().evaluate(el=>el.scrollIntoView({block:'center'}));await h.idle(300);
+ // UI 5.0: priset står bara i faktarutan (~ eller minst), utan reservationstext (Henriks val)
+ if(await pg.locator('.rcp5').count()){const f=await pg.locator('.rcp-facts').innerText();console.log('Recept:',f.replace(/\n+/g,' | '));assert.match(f,/minst/i);assert.equal(await pg.locator('.rc-price').count(),0)}
+ else{const t=await pg.locator('.rc-price').first().innerText().catch(()=>'');console.log('Recept:',t.replace(/\n+/g,' | '));
+ assert.match(t,/Minst/);assert.match(t,/kan vara inaktuella/)}
+ await pg.locator('.rc-price,.rcp-facts').first().evaluate(el=>el.scrollIntoView({block:'center'}));await h.idle(300);
  await h.shot((process.env.SHOT||'priser')+'-recept');
  console.log('PASS priser-tillit');
 };

@@ -931,6 +931,27 @@ def ha_val(d):
     ha_uppdatera()
     return 200, {'ok': True, 'v': HA['v']}
 
+# Scenens senare steg (appens tidslinje): {"nyckel": "scen", "senare": [{"om": sekunder, "steg": [{"id", "gor", "b", "k", "hs"}]}]}.
+# Tjänsten väntar och kör stegen själv, så de blir av även om telefonen låses. Samma nyckel igen (nästa scen, Ångra med tom lista) avbryter väntande steg.
+SENARE = {'lock': threading.Lock(), 't': {}}
+
+def ha_senare(d):
+    nyckel = str(d.get('nyckel') or 'scen')[:20]
+    with SENARE['lock']:
+        for t in SENARE['t'].pop(nyckel, []): t.cancel()
+        L = []
+        for x in (d.get('senare') or [])[:8]:
+            if not isinstance(x, dict): continue
+            om = max(1, min(4 * 3600, int(x.get('om') or 0)))
+            steg = [s for s in (x.get('steg') or [])[:20] if isinstance(s, dict) and s.get('id')]
+            def kor(steg=steg):
+                for s in steg:
+                    try: ha_styr({k: s.get(k) for k in ('id', 'gor', 'b', 'k', 'hs')})
+                    except Exception as e: logg('senare: ' + repr(e)[:120])
+            t = threading.Timer(om, kor); t.daemon = True; t.start(); L.append(t)
+        if L: SENARE['t'][nyckel] = L
+    return 200, {'ok': True, 'v': HA['v']}
+
 def ha_styr(d):
     c = ha_cfg()
     if not c: return 503, {'fel': 'inte inställt'}
@@ -938,6 +959,8 @@ def ha_styr(d):
         return ha_app_styr(c, d)
     if d.get('media'):
         return ha_media_styr(c, d)
+    if 'senare' in d:
+        return ha_senare(d)
     if d.get('scen'):
         e = str(d['scen'])
         if e not in c['scener']: return 403, {'fel': 'scenen är inte vald för tavlan'}
@@ -1393,7 +1416,7 @@ class H(http.server.BaseHTTPRequestHandler):
                 return self.svara(403, {'fel': 'bara tavlan får styra hemmet'})
             try:
                 n = int(self.headers.get('Content-Length') or 0)
-                kod, svar = {'/ha/val': ha_val, '/ha/vanor': vanor_post}.get(self.path.split('?')[0], ha_styr)(json.loads(self.rfile.read(min(n, 1000)) or b'{}'))
+                kod, svar = {'/ha/val': ha_val, '/ha/vanor': vanor_post}.get(self.path.split('?')[0], ha_styr)(json.loads(self.rfile.read(min(n, 8000)) or b'{}'))
             except Exception as e:
                 logg('ha: ' + repr(e)[:200]); kod, svar = 502, {'fel': 'Home Assistant svarade inte'}
             return self.svara(kod, svar)

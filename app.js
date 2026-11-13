@@ -877,10 +877,11 @@ function doRender(){if(motionDrag||sheetDrag||bladDrag){pendingRender=true;retur
  let page;try{page=(V[S.view]||V.oversikt)()}catch(e){console.error(e);page='<div class="banner">Något gick fel när sidan skulle visas: '+esc(e.message)+'</div>'}
  const src=keepNorm(banner+page)+'|'+S.view+'|'+addPlace();
  if(lugn&&src===m.__src){A.old=null;watchTitle();plPin();wsPin();return}
+ const rmo=m.querySelector('.rcp-meny[open]');// receptets ⋯ ska vara öppen även om sidan ritas om (t.ex. synk på väggen)
  const t=document.createElement('template');t.innerHTML=banner+page;const ny=t.content,vy=S.view+'|'+(S.recipe||'')+'|'+S.matTab+'|'+S.taskTab,samma=m.__fresh&&m.__vy===vy;
  if(lugn&&samma){morf(m,m.__fresh,ny);m.querySelectorAll(KEEP_FX).forEach(e=>{if(!e.__src)e.__src=keepNorm(e.outerHTML)})}
  else{const kv=keepFxFore(m);m.replaceChildren(ny.cloneNode(true));keepFxEfter(m,kv)}
- m.__fresh=ny;m.__src=src;m.__vy=vy;addLayout(m);if(U5)u5More(m);
+ m.__fresh=ny;m.__src=src;m.__vy=vy;addLayout(m);if(U5)u5More(m);if(rmo){const d=m.querySelector('.rcp-meny');if(d)d.open=true}
  {const w=m.querySelector('.wk-sw');if(w&&S.wkX){w.scrollLeft=S.wkX;wkMonth(w)}}
  {const w=m.querySelector('.ha-kortr');if(w&&S.haSwX&&Math.round(w.scrollLeft/(w.clientWidth+12))!==S.haSwX)w.scrollLeft=S.haSwX*(w.clientWidth+12)}
  {const w=m.querySelector('.wxC-sc');if(w)w.scrollLeft=S.wxX!=null?S.wxX:WXC_NP*WXC_SW}
@@ -949,7 +950,7 @@ function widget(id,cls,icon,label,right,body){return'<section class="widget'+(cl
    Som hemskärmen i en mobil: håll fingret på en ruta tills rutorna börjar vicka, dra den dit du vill
    så viker de andra undan. − döljer en ruta och hörnknappen växlar mellan halv och hel bredd.
    Ordningen sparas per enhet, så telefonen och väggskärmen kan se olika ut. Bilden med klockan ligger alltid först. */
-const BOX={kal:'Kalender',mat:'Middag',stad:'Städ',inkop:'Inköp',upg:'Uppgifter',hem:'Hemmet',fod:'Födelsedagar',imorgon:'Imorgon',hus:'Smart hem'};
+const BOX={kal:'Kalender',mat:'Middag',stad:'Städ',inkop:'Inköp',upg:'Uppgifter',hem:'Rummen',fod:'Födelsedagar',imorgon:'Imorgon',hus:'Smart hem'};
 // vilka rutor som får vara halv bredd, och vilka som är det från början
 const SIZES={ov:{can:['mat','stad','inkop','upg','hem','fod','imorgon'],half:['stad','inkop']},wall:{can:['mat','inkop','fod'],half:['inkop','fod']}};
 const SV2='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
@@ -976,7 +977,7 @@ function boxify(id,html,wall,L){if(!html)return'';
 // Telefonen: rutorna ligger i ett rutnät med två spalter. Väggen: två halva rutor i rad delar rad.
 function boxRow(list,wall,html,L){let out='',i=0;const n=list.length,H=id=>L.size[id]==='h';
  while(i<n){const a=list[i],b=list[i+1];
-  if(wall&&H(a)){const two=b&&H(b);out+='<div class="wpair"'+(two&&!(a==='inkop'&&b==='fod')?' style="grid-template-columns:1fr 1fr"':'')+'>'+boxify(a,html[a],wall,L)+(two?boxify(b,html[b],wall,L):'<div></div>')+'</div>';i+=two?2:1;continue}
+  if(wall&&H(a)){const two=b&&H(b);out+='<div class="wpair'+(two?'':' solo')+'"'+(two&&!(a==='inkop'&&b==='fod')?' style="grid-template-columns:1fr 1fr"':'')+'>'+boxify(a,html[a],wall,L)+(two?boxify(b,html[b],wall,L):'')+'</div>';i+=two?2:1;continue}
   out+=boxify(a,html[a],wall,L);i++}
  return out}
 // Ändra-läget är ett utkast: ändringarna syns direkt men sparas först med Klar. Avbryt (eller att lämna Översikt) lägger tillbaka den gamla ordningen.
@@ -1065,10 +1066,10 @@ const XW={
   const g={};X.left.forEach(i=>{(g[i.cat||'Övrigt']=g[i.cat||'Övrigt']||[]).push(i)});let c=0,h='';
   for(const k of Object.keys(g)){const L=g[k].slice(0,6-c);if(!L.length)break;c+=L.length;h+='<div class="xsub">'+esc(k)+'</div><div class="xrows">'+L.map(row).join('')+'</div>'}
   return xh('inkop',I.basket,'Inköp',n+' kvar · '+cost)+h},
- hem(z,X){const R=X.rooms;if(!R.length)return xh('stad',I.home,'Hemmet')+xempty('Städschemat är tomt.');
-  if(z==='s')return xh('stad',I.home,'Hemmet')+'<div class="xmidt one">'+esc(R[0].room)+'</div><div class="xs b hw '+healthCls(R[0].score)+'">'+healthWord(R[0].score)+'</div><div class="sp"></div>'+R.slice(0,3).map(r=>xbar(r.score,5)).join('');
-  if(z==='m')return xh('stad',I.home,'Hemmet')+'<div class="xgrid2">'+R.slice(0,4).map(r=>'<div><div class="xs b one">'+esc(r.room)+'</div>'+xbar(r.score,4)+'<div class="xs mu">'+healthWord(r.score)+'</div></div>').join('')+'</div>';
-  return xh('stad',I.home,'Hemmet')+'<div class="xrows">'+R.slice(0,7).map(r=>'<div class="xr"><span class="grow"><span class="xs b">'+esc(r.room)+'</span>'+xbar(r.score,4)+'</span><span class="xs mu xw90">'+healthWord(r.score)+'</span></div>').join('')+'</div>'},
+ hem(z,X){const R=X.rooms;if(!R.length)return xh('stad',I.home,'Rummen')+xempty('Städschemat är tomt.');
+  if(z==='s')return xh('stad',I.home,'Rummen')+'<div class="xmidt one">'+esc(R[0].room)+'</div><div class="xs b hw '+healthCls(R[0].score)+'">'+healthWord(R[0].score)+'</div><div class="sp"></div>'+R.slice(0,3).map(r=>xbar(r.score,5)).join('');
+  if(z==='m')return xh('stad',I.home,'Rummen')+'<div class="xgrid2">'+R.slice(0,4).map(r=>'<div><div class="xs b one">'+esc(r.room)+'</div>'+xbar(r.score,4)+'<div class="xs mu">'+healthWord(r.score)+'</div></div>').join('')+'</div>';
+  return xh('stad',I.home,'Rummen')+'<div class="xrows">'+R.slice(0,7).map(r=>'<div class="xr"><span class="grow"><span class="xs b">'+esc(r.room)+'</span>'+xbar(r.score,4)+'</span><span class="xs mu xw90">'+healthWord(r.score)+'</span></div>').join('')+'</div>'},
  imorgon(z,X){const E=X.evs(X.tm),day=dayOf(X.tm),ms=day?day.meals:[],f=X.wtm,wd=cap(DAYS[parse(X.tm).getDay()]);
   const wx=f?'<span class="xwx">'+symInfo(f.sym)[0]+'</span><span class="xmidt num">'+deg(f.max)+'</span>':'';
   if(z==='s')return xh(X.tm,I.cal,'Imorgon','','calOpen')+'<div class="xwxrow">'+wx+'</div><div class="sp"></div>'+(E[0]?'<div class="xs mu num">'+esc(evT(E[0])||'Heldag')+'</div><div class="t one">'+esc(E[0].title)+'</div>':ms[0]?'<div class="xs mu">Middag</div><div class="t one">'+esc(ms[0].title)+'</div>':'<div class="xs mu">'+wd+' · inget inplanerat</div>');
@@ -1233,7 +1234,7 @@ function wallBoard(){
  H.stad=widget('stad','bclean',I.sparkles,'Städ idag',nv('stadN',doneN)+'/'+totN,
   '<div class="thin bprog"><i style="width:'+(totN?Math.round(doneN/totN*100):0)+'%"></i></div>'+
   (clean.length?'<div class="wl">'+clean.map(x=>'<div class="cell ck" data-act="cleanToggle" data-id="'+esc(x.id)+'"><input type="checkbox" class="check" data-act="cleanToggle" data-id="'+esc(x.id)+'" aria-label="'+esc(x.title)+'"><span class="grow">'+esc(x.title)+'</span><span class="val num">'+x.min+' min</span></div>').join('')+'</div>':'<div class="bdone'+(popDone?' pop':'')+'">'+I.tick+'Allt är gjort idag</div>')+
-  '<div class="wk-sub">Hemmet</div><div class="brooms">'+roomHealth().map(r=>'<div class="'+healthCls(r.score)+'"><span>'+esc(r.room)+'</span><i><b style="width:'+Math.round(r.score*100)+'%"></b></i></div>').join('')+'</div>');
+  '<div class="wk-sub">Rummen</div><div class="brooms">'+roomHealth().map(r=>'<div class="'+healthCls(r.score)+'"><span>'+esc(r.room)+'</span><i><b style="width:'+Math.round(r.score*100)+'%"></b></i></div>').join('')+'</div>');
  H.upg=widget('uppgifter','btasks',I.list,'Uppgifter',d.tasks.filter(x=>!x.done).length+' kvar',upgDagHtml(upgDag()));
  if(U3&&!d.clean.length)H.stad=widget('stad','bclean',I.sparkles,'Städ idag','','<div class="u3-empty"><p>Inga rutiner tillagda än.</p><button class="btn-tint" data-act="nav" data-id="stad">'+I.plus+'Lägg till rutin</button></div>');
  if(haOn(true))H.hus=haBox(true);
@@ -1347,9 +1348,7 @@ function habScSheet(enter){const D=haData(),F=S.habSc;if(!D||!F){S.sheet=null;re
   body+=sh('Enheter',n?n+' i scenen':'')+'<div class="hab-acc">'+E.map(x=>{const v=d.l[x.id],pa=v&&v.on;return'<button type="button" class="hab-at'+(v?' med':'')+(pa?' pa':'')+'" data-act="habScVal" data-id="'+esc(x.id)+'" aria-pressed="'+!!v+'"><span class="ha-i">'+haIk(x)+'</span><span class="hab-sctx"><span class="ha-n">'+esc(x.n)+'</span><span class="ha-s">'+(v?habLageTxt(v):'Ingår inte')+'</span></span>'+ck(!!v)+'</button>'}).join('')+'</div>'+
    (E.length?'':group(emptyCell('Inga enheter på tavlan.')))+
    '<div class="foot">Tryck på en enhet för att ta med den i scenen eller inte.</div>'+
-   (n?sh('Läge i scenen')+group(E.filter(x=>d.l[x.id]).map(x=>{const v=d.l[x.id],dim=haKan(x).dim&&v.on;return'<div class="cell hab-ljr"><span class="grow">'+esc(x.n)+'<span class="meta">'+(dim?(v.k?haKTxt(v.k):v.hs?'Färg':'Tänd'):habLageTxt(v))+'</span></span>'+
-    (dim?'<button type="button" class="hab-stp" data-act="habScB" data-id="'+esc(x.id)+'|-10" aria-label="Svagare"'+((v.b||100)<=10?' disabled':'')+'>'+IA.minus+'</button><span class="hab-ljv">'+(v.b||100)+' %</span><button type="button" class="hab-stp" data-act="habScB" data-id="'+esc(x.id)+'|10" aria-label="Starkare"'+((v.b||100)>=100?' disabled':'')+'>'+I.plus+'</button>':'')+
-    '<input type="checkbox" role="switch" class="switch hab-ljsw" data-act="habScPa" data-id="'+esc(x.id)+'"'+(v.on?' checked':'')+' aria-label="'+esc(x.n)+' tänd i scenen"></div>'}).join(''))+'<div class="foot">Ställ ljusstyrkan med − och + och slå av lampor som ska vara släckta.</div>':'')+
+   (n?habTidslinje(d,E):'')+
    '<div style="height:18px"></div>'+group('<button type="button" class="cell link center" data-act="habScNu">Hämta läget nu</button><button type="button" class="cell link center" data-act="habScProva">Prova scenen</button>')+
    '<div class="foot"><b>Hämta läget nu</b> sparar hur de valda lamporna lyser just nu: på eller av, ljusstyrka och ton. Ställ först lamporna som du vill ha dem, i Smart hem eller med strömbrytarna. <b>Prova scenen</b> tänder lamporna så som scenen är inställd, utan att spara.</div>'}
  else if(d.typ==='ha')body+=sh('Scen i Home Assistant')+group((D.scener||[]).map(s=>'<button type="button" class="cell hab-r" data-act="habScHa" data-id="'+esc(s.id)+'">'+ck(d.ha===s.id)+'<span class="grow">'+esc(s.n)+'</span></button>').join('')||emptyCell('Inga scener på tavlan. Lägg till dem med plus i Smart hem.'));
@@ -1357,13 +1356,31 @@ function habScSheet(enter){const D=haData(),F=S.habSc;if(!D||!F){S.sheet=null;re
  if(F.fanns)body+='<div style="height:22px"></div>'+group('<button type="button" class="cell link center red" data-act="habScDel">Ta bort scenen</button>');
  return sheetHtml('habSc',F.fanns?'Ändra scen':'Ny scen','<button type="submit" class="tb strong">Klar</button>',body,enter,'<button type="button" class="tb" data-act="habScTill">Avbryt</button>')}
 // namnfältet läses före varje omritning så att det man skrivit inte försvinner när man trycker på något annat i bladet
+// Scenens tidslinje: Direkt och steg efter n minuter. Varje vald lampa ligger i ett steg (d.t[id], 0 = Direkt) med sitt läge.
+const HAB_MIN=[1,2,3,5,10,15,20,30,45,60],habMinTxt=m=>m<60?m+' min':'1 tim';
+const HAB_KLOCKA='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>';
+const HAB_BLIXT='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 3L5 13.5h6L10.5 21 19 10h-6z"/></svg>';
+function habTidslinje(d,E){const T=d.st||[],steg=id=>{const k=d.t&&d.t[id]||0;return k>T.length?0:k},namn=k=>k?'Efter '+habMinTxt(T[k-1].m):'Direkt';
+ const rad=x=>{const v=d.l[x.id],dim=haKan(x).dim&&v.on,k=steg(x.id);
+  const meny=T.length?'<details class="create-menu hab-flytt"><summary class="grow hab-flytt-s" aria-label="Flytta '+esc(x.n)+' till ett annat steg"><span class="hab-flytt-n">'+esc(x.n)+'<span class="hab-flytt-c">'+I.chev+'</span></span><span class="meta">'+(dim?(v.k?haKTxt(v.k):v.hs?'Färg':'Tänd'):habLageTxt(v))+'</span></summary><div class="create-options" role="menu" aria-label="Flytta till">'+
+   [0].concat(T.map((_,j)=>j+1)).map(j=>'<button type="button" role="menuitem" data-act="habScFlytt" data-id="'+esc(x.id)+'|'+j+'"><span class="grow">'+namn(j)+'</span>'+(j===k?I.tick:'')+'</button>').join('')+'<button type="button" role="menuitem" data-act="habScFlytt" data-id="'+esc(x.id)+'|ny"><span class="grow">Nytt steg</span>'+I.plus+'</button></div></details>'
+   :'<span class="grow">'+esc(x.n)+'<span class="meta">'+(dim?(v.k?haKTxt(v.k):v.hs?'Färg':'Tänd'):habLageTxt(v))+'</span></span>';
+  return'<div class="cell hab-ljr">'+meny+(dim?'<button type="button" class="hab-stp" data-act="habScB" data-id="'+esc(x.id)+'|-10" aria-label="Svagare"'+((v.b||100)<=10?' disabled':'')+'>'+IA.minus+'</button><span class="hab-ljv">'+(v.b||100)+' %</span><button type="button" class="hab-stp" data-act="habScB" data-id="'+esc(x.id)+'|10" aria-label="Starkare"'+((v.b||100)>=100?' disabled':'')+'>'+I.plus+'</button>':'')+
+   '<input type="checkbox" role="switch" class="switch hab-ljsw" data-act="habScPa" data-id="'+esc(x.id)+'"'+(v.on?' checked':'')+' aria-label="'+esc(x.n)+' tänd i scenen"></div>'};
+ let h=sh('Tidslinje');
+ for(let k=0;k<=T.length;k++){const L=E.filter(x=>d.l[x.id]&&steg(x.id)===k),m=k?T[k-1].m:0,mi=HAB_MIN.indexOf(m);
+  h+=(k?'<div class="hab-tl" aria-hidden="true"></div>':'')+'<div class="group hab-steg"><div class="cell hab-steg-h">'+(k?'<button type="button" class="hab-pm hab-minus hab-steg-x" data-act="habScStegDel" data-id="'+k+'" aria-label="Ta bort steget">'+IA.minus+'</button>':'')+'<span class="hab-steg-i'+(k?'':' nu')+'">'+(k?HAB_KLOCKA:HAB_BLIXT)+'</span><span class="grow">'+namn(k)+'</span>'+
+   (k?'<button type="button" class="hab-stp" data-act="habScStegM" data-id="'+k+'|-1" aria-label="Tidigare"'+(mi<=0?' disabled':'')+'>'+IA.minus+'</button><button type="button" class="hab-stp" data-act="habScStegM" data-id="'+k+'|1" aria-label="Senare"'+(mi>=HAB_MIN.length-1?' disabled':'')+'>'+I.plus+'</button>':'')+'</div>'+
+   (L.length?L.map(rad).join(''):'<div class="cell"><span class="grow meta">Inga lampor här än. Tryck på en lampas namn och välj '+namn(k)+'.</span></div>')+'</div>'}
+ return h+'<div style="height:8px"></div>'+group('<button type="button" class="cell link center" data-act="habScStegNy">Lägg till steg</button>')+
+  '<div class="foot">Ställ ljusstyrkan med − och + och slå av lampor som ska vara släckta. Med steg händer resten efter en stund, till exempel släcks sovrummet fem minuter efter resten av huset. Tryck på en lampas namn för att flytta den mellan stegen.</div>'}
 const habNamnLas=()=>{const f=document.querySelector('#overlay [name="habn"]');if(f&&S.habSc)S.habSc.d.n=f.value};
 function habScSpara(n){const F=S.habSc,D=haData();if(!F||!D)return;const d=F.d;if(n!=null)d.n=String(n).trim().slice(0,20);
  if(d.typ==='egen'&&!Object.keys(d.l).length)return toast('Välj minst en enhet');if(d.typ==='ha'&&!d.ha)return toast('Välj en scen');
- const s={n:d.n||(d.typ==='av'?'Släck allt':'Scen '+(F.i+1)),ik:d.ik};if(d.f)s.f=d.f;if(d.typ==='egen')s.l=d.l;else if(d.typ==='ha')s.ha=d.ha;else s.av=1;
+ const s={n:d.n||(d.typ==='av'?'Släck allt':'Scen '+(F.i+1)),ik:d.ik};if(d.f)s.f=d.f;if(d.typ==='egen'){const T=d.st||[],k=id=>{const j=d.t&&d.t[id]||0;return j>T.length?0:j};s.l={};const st=T.map(x=>({m:x.m,l:{}}));Object.keys(d.l).forEach(id=>{const j=k(id);(j?st[j-1].l:s.l)[id]=d.l[id]});const S2=st.filter(x=>Object.keys(x.l).length).sort((a,b)=>a.m-b.m);if(S2.length)s.st=S2}else if(d.typ==='ha')s.ha=d.ha;else s.av=1;
  const sc=habScAlla(D);sc[F.i]=s;habSet({sc});habScTill()}
 function habScTill(){const b=S.habSc&&S.habSc.back;S.habSc=null;if(b)S.sheet='habRuta';else closeSheets();render()}
-function habKor(i,s0){const D=haData(),s=s0||D&&habScAlla(D)[+i];if(!s)return;if(s.av)return ACT.haScen('av');if(s.ha)return ACT.haScen(s.ha);
+function habKor(i,s0,inre){const D=haData(),s=s0||D&&habScAlla(D)[+i];if(!s)return;if(!inre)habSenare(s.st);if(s.av)return ACT.haScen('av');if(s.ha)return ACT.haScen(s.ha);
  HA.last=null;const E=D.lampor||[];Object.keys(s.l||{}).forEach(id=>{const x=E.find(e=>e.id===id),v=s.l[id];if(!x||x.nas)return;const was=JSON.stringify(x),undo=()=>{if(HA.mal)delete HA.mal[id];Object.assign(x,JSON.parse(was))};
   if(!v.on){x.on=false;haMalSatt(x,{on:false});return haSend({id,gor:'av'},undo)}const ch={};if(v.b!=null&&haKan(x).dim)ch.b=v.b;if(v.k!=null)ch.k=v.k;if(v.hs)ch.hs=v.hs;
   const m={on:true};if(ch.b!=null)m.b=ch.b;if(ch.k!=null){m.k=ch.k;m.lage='color_temp'}if(ch.hs){m.hs=ch.hs;m.lage='hs'}Object.assign(x,m);haMalSatt(x,m);haSend(Object.assign({id,gor:'pa'},ch),undo)});render()}
@@ -1885,6 +1902,14 @@ function husScener(D){
  const haT=s=>{if(haAngraPa('sc:'+s.id))return haAngraT();const mk=(s.falt||[]).length,ig=mk&&haMedIgang(),on=mk?ig:HA.last===s.id,ik=s.id==='av'?'off':habIkNamn(s.n),n=mk?haHogNamn(ig):s.n,ny=haNy('sc:'+s.id,on);
   return'<button type="button" class="ha-st hab-st'+(on?' on':'')+(ny?ny+';'+habSt(ik).slice(8):'"'+habSt(ik))+' data-act="husScen" data-id="'+esc(s.id)+'"'+(s.id!=='av'?' data-hold-lift="haEdit"':'')+'><span class="ha-i">'+(mk?ig?HAI_SPK_AV:HAI_SPK:HAB_IK[ik])+'</span><span class="ha-n">'+esc(n)+'</span></button>'};
  return habScLista(D).map(e=>e.i!=null?habScT(e.s,e.i,D):haT(e.s.av?{id:'av',n:'Släck allt'}:Object.assign({},(D.scener||[]).find(x=>x.id===e.s.ha)))).join('')}
+// Scenens senare steg: väggdatorns tjänst kör dem (fungerar även om telefonen låses). En äldre tjänst känner inte till dem,
+// då kör den här enheten stegen själv så länge appen är öppen. Nästa scen eller Ångra avbryter väntande steg.
+function habSenareCmd(l){return Object.keys(l||{}).map(id=>{const v=l[id];if(!v.on)return{id,gor:'av'};const c={id,gor:'pa'};if(v.b!=null)c.b=v.b;if(v.k!=null)c.k=v.k;else if(v.hs)c.hs=v.hs;return c})}
+function habSenareHar(st){(HA.senT||[]).forEach(clearTimeout);HA.senT=(st||[]).map(x=>setTimeout(()=>habKor(null,{l:x.l},1),x.m*6e4))}
+async function habSenare(st){st=(st||[]).filter(x=>x&&x.m>0&&Object.keys(x.l||{}).length);(HA.senT||[]).forEach(clearTimeout);HA.senT=[];
+ if(!st.length){if(HA.senV){HA.senV=0;if(!haDemo())fetch(haUrl(),{method:'POST',body:JSON.stringify({senare:[],nyckel:'scen'})}).catch(()=>{})}return}
+ HA.senV=1;toast('Nästa steg om '+habMinTxt(st[0].m));if(haDemo())return habSenareHar(st);
+ try{const r=await fetch(haUrl(),{method:'POST',body:JSON.stringify({nyckel:'scen',senare:st.map(x=>({om:x.m*60,steg:habSenareCmd(x.l)}))})});if(!r.ok)throw 0}catch(e){habSenareHar(st)}}
 // Ångra en scen: läget för alla lampor sparas innan scenen körs, och scenens knapp blir Ångra i 15 minuter (eller tills nästa scen)
 const HA_ANGRA_MS=9e5;
 function haAngraSpara(k){const D=haData();if(!D)return;const l={};(D.lampor||[]).forEach(x=>{if(!x.nas)l[x.id]=habLage(x)});HA.angra={k,l,t:Date.now()};clearTimeout(HA.angraT);HA.angraT=setTimeout(()=>{HA.angra=null;render()},HA_ANGRA_MS)}
@@ -1962,7 +1987,7 @@ V.oversikt=function(){
   const U=upgDag();
   if(U5&&!S.arrange&&!ovs.length&&!U.idag.length&&!U.imorgon.length){}else H.upg=widget('uppgifter','w2',I.list,'Att göra',all?'Alla '+all:'',upgDagHtml(U,ovEn||ovRows))}
  const rh0=roomHealth(),rhB=rh0.filter(r=>r.score<.85),rh=U5&&!S.arrange?rhB:rh0;// UI 5.0: bara rum som behöver något
- if(!U5||S.arrange||rh.length)H.hem=widget('stad','w2',I.home,'Hemmet',U5&&rh0.length>rhB.length?(rh0.length-rhB.length)+' fint':'',rh.length?'<div class="wl">'+rh.map(healthRow).join('')+'</div>':'<div class="wempty">Städschemat är tomt.</div>');
+ if(!U5||S.arrange||rh.length)H.hem=widget('stad','w2',I.home,'Rummen',U5&&rh0.length>rhB.length?(rh0.length-rhB.length)+' fint':'',rh.length?'<div class="wl">'+rh.map(healthRow).join('')+'</div>':'<div class="wempty">Städschemat är tomt.</div>');
  H.imorgon=tm&&!(U5&&!S.arrange&&!tm.events.length&&!tm.meals.length)?widget('mat','w2',I.cal,'Imorgon',esc(dateShort(tm.date)),(eventsHtml(tm)||(U5&&tm.meals.length?'':'<div class="wempty">Inga händelser.</div>'))+(tm.meals.length?wMeals(tm):'')):'';
  H.fod=wallBd();
  if(haOn(false))H.hus=haBox(false);
@@ -1970,7 +1995,11 @@ V.oversikt=function(){
  return h+'<div class="widgets'+(S.arrange?' arranging':'')+'">'+boxRow(L.cols[0].filter(id=>H[id]),false,H,L)+'</div>'+(S.arrange?'<p class="arr-intro">Håll kvar och dra en ruta dit du vill ha den. Dra i hörnknappen för att göra den halv eller hel. − döljer rutan. Gäller bara den här enheten.</p>':smileyCard())+'</div>'+arrangeFoot(L,false)};
 // utan egen ordning ligger födelsedagarna näst sist
 const OV_DEF=()=>U3?[['mat','upg','kal','inkop','stad','fod','hem','imorgon','hus']]:[['kal','hus','upg','mat','stad','inkop','fod','hem','imorgon']];
-function wMeals(d){if(U3)return(d.meals||[]).map(m=>{const r=m.recipe&&recipeById(m.recipe),go=r?'button':'div';return'<div class="u3-dinner"><'+go+' class="u3-meal"'+(r?' data-act="recipe" data-id="'+esc(r.id)+'"':'')+'>'+dishThumb(r,m.title)+'<span class="grow"><span class="chips-row">'+whoChip(m.who)+'</span><span class="hl">'+esc(m.title)+'</span>'+(m.addon?'<span class="meta">'+esc(m.addon)+'</span>':'')+(r&&r.min?'<span class="meta">'+r.min+' min'+(portKr(r)?' · '+portTxt(r)+'/port':'')+'</span>':'')+'</span></'+go+'>'+(r&&r.steps&&r.steps.length?'<button class="btn-fill" data-act="cook" data-id="'+esc(r.id)+'">'+I.play+'Börja laga</button>':'')+'</div>'}).join('');return(d.meals||[]).map(m=>{const r=m.recipe&&recipeById(m.recipe);const tag=r?'button':'div';
+function wMeals(d){if(U5&&!U3)return(d.meals||[]).map(m=>{const r=m.recipe&&recipeById(m.recipe),go=r?'button':'div',kr0=r&&portKr(r);
+  // UI 5.0: en rad per rätt med bild, som Påminnelser/Musik: titel, och vem + pris + tillbehör på en grå rad. ▶ öppnar matlagningsläget direkt.
+  return'<div class="wm5"><'+go+' class="wm5-b"'+(r?' data-act="recipe" data-id="'+esc(r.id)+'"':'')+'>'+dishThumb(r,m.title)+'<span class="grow"><span class="wm5-t">'+esc(cap(m.title.replace(/^Storkok:\s*/i,'')))+'</span><span class="wm5-m">'+whoChip(m.who)+(kr0?'<span>'+portTxt(r)+'/port</span>':'')+(m.addon?'<span>+ '+esc(m.addon)+'</span>':'')+'</span></span></'+go+'>'+
+   (r&&r.steps&&r.steps.length?'<button type="button" class="wm5-go" data-act="cook" data-id="'+esc(r.id)+'" aria-label="Börja laga '+esc(m.title)+'">'+I.play+'</button>':'')+'</div>'}).join('');
+ if(U3)return(d.meals||[]).map(m=>{const r=m.recipe&&recipeById(m.recipe),go=r?'button':'div';return'<div class="u3-dinner"><'+go+' class="u3-meal"'+(r?' data-act="recipe" data-id="'+esc(r.id)+'"':'')+'>'+dishThumb(r,m.title)+'<span class="grow"><span class="chips-row">'+whoChip(m.who)+'</span><span class="hl">'+esc(m.title)+'</span>'+(m.addon?'<span class="meta">'+esc(m.addon)+'</span>':'')+(r&&r.min?'<span class="meta">'+r.min+' min'+(portKr(r)?' · '+portTxt(r)+'/port':'')+'</span>':'')+'</span></'+go+'>'+(r&&r.steps&&r.steps.length?'<button class="btn-fill" data-act="cook" data-id="'+esc(r.id)+'">'+I.play+'Börja laga</button>':'')+'</div>'}).join('');return(d.meals||[]).map(m=>{const r=m.recipe&&recipeById(m.recipe);const tag=r?'button':'div';
  return'<'+tag+' class="wmeal"'+(r?' data-act="recipe" data-id="'+esc(m.recipe)+'"':'')+'><div class="top">'+whoChip(m.who)+(r&&portKr(r)?'<span class="val">'+portTxt(r)+'/port</span>':'')+'</div><div class="hl title">'+esc(m.title)+'</div>'+(m.addon?'<div class="sub">+ Kött: '+esc(m.addon)+'</div>':'')+'</'+tag+'>'}).join('')}
 const healthRow=r=>'<div class="cell room"><div class="grow"><div>'+esc(r.room)+'</div><div class="cap '+healthCls(r.score)+'"><i style="width:'+Math.round(r.score*100)+'%"></i></div></div><span class="hw '+healthCls(r.score)+'">'+healthWord(r.score)+'</span></div>';
 function eventsHtml(d){if(!d||!d.events.length)return'';return'<div class="evs">'+d.events.map(e=>'<div class="ev"><span class="t">'+esc(e.time||'Heldag')+'</span><span>'+esc(e.title)+evWho(e)+'</span></div>').join('')+'</div>'}
@@ -3104,24 +3133,47 @@ function stepIngredients(r,step){
  const out=pick(henrikStep);
  return(!out.length&&hasH&&!henrikStep)?pick(true):out}
 window.__htStepIngredients=stepIngredients;
+/* UI 5.0: receptsidans topp som en Apple-sida. Rubrikraden har Tillbaka, hjärtat (favorit) och ⋯ med allt som sällan behövs
+   (redigera, foto, receptbanken, byt, föreslå aldrig). Bilden är ren, betyget står under titeln, och Börja laga och veckosedeln
+   är sidans två knappar. Tidigast igen ställs med −/+ under Planering (rcpPlan5). */
+function rcpTop5(r){const id=esc(r.id),g=ratingOf(r.id),img=imgOf(r.id)||r.img||'',busy=S.photoBusy===r.id,des=isDessert(r),pa=des?weekDessert()===r:paVeckan(r.id),vi=des?-1:veckoIdx(r.id),fav=isFav(r.id),
+ it=(a,txt,ic,cl,x)=>'<button type="button" role="menuitem"'+(cl?' class="'+cl+'"':'')+' data-'+(a==='edit'?'rc="edit"':'act="'+a+'"')+' data-id="'+(x&&x.id!=null?x.id:id)+'"'+(x&&x.k?' data-k="'+x.k+'"':'')+'><span>'+txt+'</span>'+ic+'</button>';
+ // Originalreceptet ligger också i menyn, som en länk
+ const src=r.src?'<a class="rcp-mi" role="menuitem" href="'+esc(r.src)+'" target="_blank" rel="noopener"><span>Recept hos '+esc(r.srcName||'källan')+'</span>'+SV+'<path d="M14 4h6v6M20 4l-9 9M18 14v4.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10"/></svg></a>':'';
+ const meny='<details class="create-menu u5-menu rcp-meny"><summary class="u5-dots" aria-label="Fler val för receptet">'+I.dots+'</summary><div class="create-options" role="menu" aria-label="Receptet">'+
+  it('edit','Redigera recept',I.pencil)+
+  (des?'':'<button type="button" role="menuitem" data-act="rcpSheet" data-id="'+id+'" data-k="tidigast"><span>Tidigast igen</span><span class="rcp-mv">'+(baseOf(r.id)===0?'Aldrig':matLage(r.id).paus?'Pausad':String(matLage(r.id).w).replace('.',',')+' v')+'</span></button>')+
+  (des?it('dessShop','Lägg i inköpslistan',I.basket):'')+
+  (vi>=0?it('rcpByt','Byt mot en annan rätt',I.swap,'',{id:vi}):'')+
+  src+'<div class="fm-sep"></div>'+
+  (des?'':it('rcpSheet','Föreslå aldrig igen',I.x,'red',{k:'aldrig'}))+'</div></details>';
+ let h='<div class="rcp-top rcp5"'+RF('M29')+'><div class="rcp-bar"><button class="back" data-act="recipeBack">'+I.back+'Mat</button><span class="grow"></span>'+
+  meny+'</div>';
+ h+=rcpPhoto(r);
+ h+='<div class="chips-row">'+(des?'<span class="chip e">Efterrätt</span>':whoChip(effWho(r)))+(r.freezes?'<span class="chip v">Går att frysa</span>':'')+'</div><h1 class="t1" id="lt">'+esc(r.title)+'</h1>';
+ h+='<div class="rcp-cta"><button class="btn-fill" data-act="cook" data-id="'+id+'">'+I.play+'Börja laga</button>'+
+  '<button class="btn-tint'+(pa?' on':'')+'" data-act="'+(des?(pa?'dessClear':'dessSet'):(pa?'weekShow':'weekAdd'))+'" data-id="'+id+'" aria-pressed="'+pa+'">'+(pa?I.tick+'På veckan':I.calPlus+'Till veckan')+'</button></div></div>';
+ return h}
+// Tidigast igen: stegen för −/+ i bladet (ACT.tidSteg)
+const TIDV=[1,1.5,2,3,4,6,8,12,16,26];
 function recipeDetail(r){
  const{p,f}=scaled(r);
  const pv=protNu(r),rr=pv?protRecipe(r,pv):r,ST=kvSteps(r,pv),act=Math.min(S.step[r.id]||0,ST.length-1),actHits=stepIngredients(rr,{t:stegText(ST[act])});
  NB.title=r.title;NB.back=true;
- let h='<div class="rcp-top"><button class="back" data-act="recipeBack">'+I.back+'Mat</button>';
+ let h;if(U5)h=rcpTop5(r);else{h='<div class="rcp-top"><button class="back" data-act="recipeBack">'+I.back+'Mat</button>';
  h+=rcpPhoto(r);
  h+='<div class="chips-row">'+(isDessert(r)?'<span class="chip e">Efterrätt</span>':whoChip(effWho(r)))+(r.freezes?'<span class="chip v">Går att frysa</span>':'')+'</div><h1 class="t1" id="lt">'+esc(r.title)+'</h1>'+rcpActions(r)+'<div class="block"><button class="btn-tint" data-rc="edit" data-id="'+esc(r.id)+'">'+I.pencil+'Redigera recept</button></div>'+recipePrice(r).html+'</div>';
  const cookBtn='<div class="block"><button class="btn-fill" style="width:100%" data-act="cook" data-id="'+esc(r.id)+'">'+I.play+'Börja laga</button></div>';
- h+=cookBtn;
- const facts=[['Tid',r.min?'<span class="num">'+r.min+'</span> min':'Ej angiven']];if(portKr(r))facts.push(['Per portion',portTxt(r)]);if(r.protein){const pr=String(r.protein).replace(/\s*\/\s*port(ion)?\.?$/i,''),ph=pr.match(/^henriks?\s+(?:del\s+)?(?:ca\s+)?(.+)$/i);facts.push(['Protein',esc(ph?ph[1]:pr)])}
+ h+=cookBtn}
+ const facts=[['Tid',r.min?'<span class="num">'+r.min+'</span> min':'Ej angiven']];if(portKr(r)){const pt=portTxt(r);facts.push(['Per portion',U5&&!/^minst/i.test(pt)?'~'+pt:pt])}if(r.protein){const pr=String(r.protein).replace(/\s*\/\s*port(ion)?\.?$/i,''),ph=pr.match(/^henriks?\s+(?:del\s+)?(?:ca\s+)?(.+)$/i);facts.push(['Protein',esc(ph?ph[1]:pr)])}
  const kc=kcalOf(r.id);if(kc)facts.push(['Kalorier','<span class="num">'+kc.n+'</span> kcal']);
  h+='<div class="group"'+RF('M19')+' style="margin-top:16px"><div class="rcp-facts'+(facts.length>3?' f4':'')+'" style="grid-template-columns:repeat('+facts.length+',minmax(0,1fr))">'+facts.map(([l,v])=>'<div><div class="fn">'+l+'</div><div class="v">'+v+'</div></div>').join('')+'</div></div>';
- if(r.why)h+='<div class="group"'+RF('M24')+' style="margin-top:12px"><div class="note">'+esc(r.why)+'</div></div>';
+ if(r.why&&!U5)h+='<div class="group"'+RF('M24')+' style="margin-top:12px"><div class="note">'+esc(r.why)+'</div></div>';
  const praw=protRaw(r);if(praw){const on=!protOff(r.id),orig=protById(praw.id),mm=D().menu.find(m=>m.recipe===r.id&&protFromAddon(m.addon)),pa=mm&&protFromAddon(mm.addon);
   h+=sh('Valfritt protein')+rgroup('M23',on&&pa?[[pa.kn,pa.k,'p1'],[pa.vn,pa.v,'p2']].map(([n,id,c])=>{const x=protById(id);return'<div class="cell pt-row"><span class="pt-ri" aria-hidden="true">'+x.ic+'</span><div class="grow"><div class="title"><span class="chip '+c+'">'+esc(personLabel(n))+'</span> '+esc(x.namn)+'</div><div class="meta">'+esc(x.g+' g per portion. '+x.tips)+'</div></div></div>'}).join('')
    :'<div class="cell"><div class="grow"><div class="meta" style="color:var(--ink)">'+(on?'Receptet har '+esc(orig.namn.toLowerCase())+'. När veckan planeras väljer var och en sitt protein, och resten av rätten lagas en gång.':'Avstängt. Rätten lagas med '+esc(orig.namn.toLowerCase())+' som i receptet.')+'</div></div></div>')+
    '<div class="foot"><button class="linkbtn" data-act="protToggle" data-id="'+esc(r.id)+'">'+(on?'Stäng av för den här rätten':'Slå på valfritt protein')+'</button></div>'}
- if(r.src)h+='<div class="foot"><a href="'+esc(r.src)+'" target="_blank" rel="noopener" style="color:var(--accent)">Inspiration från '+esc(r.srcName||'nätet')+'</a></div>';
+ if(r.src&&!U5)h+='<div class="foot"><a href="'+esc(r.src)+'" target="_blank" rel="noopener" style="color:var(--accent)">Inspiration från '+esc(r.srcName||'nätet')+'</a></div>';
  h+='<div class="recipe"><div class="col">';
  h+='<div class="sh with-ctl"><span>Ingredienser</span><span class="stepper"><button data-act="scale" data-id="'+esc(r.id)+'" data-d="-1" aria-label="Färre portioner">−</button><span><b>'+p+'</b> port</span><button data-act="scale" data-id="'+esc(r.id)+'" data-d="1" aria-label="Fler portioner">+</button></span></div>';
  h+=refAdd(ingList(rr,f,actHits),'M20')+'<div class="foot">Markerat: det som behövs i steg '+(act+1)+'.</div>';
@@ -3210,9 +3262,10 @@ function rcpActions(r){const l=matLage(r.id),pa=paVeckan(r.id);
 function tidigastHtml(r){const l=matLage(r.id),b=baseOf(r.id),def=MP.grundintervall(r);
  const row=(k,v)=>'<div class="ti-row"><span>'+k+'</span><b>'+v+'</b></div>';
  const ny=!l.harBas&&!l.betyg;
- let h='<div class="ti-big">'+(l.paus?'Pausad':ny?'Inte satt än':veckor(l.w))+'</div><div class="ti-sub">'+(l.paus?esc(l.paus):ny?'Väljs när ni betygsätter rätten första gången':l.redo?'Kan föreslås nu':'Kan föreslås från '+esc(dateShort(l.tidigastDatum)))+'</div>';
+ const ald=b===0,big=U5?'<div class="ti-step"><button type="button" data-act="tidSteg" data-id="'+esc(r.id)+'" data-d="-1" aria-label="Tätare"'+(!ald&&l.w<=TIDV[0]?' disabled':'')+'>−</button><div class="ti-big">'+(ald?'Aldrig':veckor(l.w))+'</div><button type="button" data-act="tidSteg" data-id="'+esc(r.id)+'" data-d="1" aria-label="Glesare"'+(ald?' disabled':'')+'>+</button></div>':'<div class="ti-big">'+(l.paus?'Pausad':ny?'Inte satt än':veckor(l.w))+'</div>';
+ let h=big+'<div class="ti-sub">'+(l.paus?esc(l.paus):ny&&!U5?'Väljs när ni betygsätter rätten första gången':l.redo?'Kan föreslås nu':'Kan föreslås från '+esc(dateShort(l.tidigastDatum)))+'</div>';
  h+='<div class="ti-rows">'+
-  row('Baslinje',b!=null?(b===0?'Aldrig':veckor(b)):'Förval '+veckor(def))+
+  row('Baslinje',b!=null?(b===0?'Aldrig':veckor(Math.round(b*10)/10)):'Förval '+veckor(def))+
   row('Stjärnor',l.betyg?starNum(l.s):'Inget betyg än')+
   (smileysOf(r.id).length?row('Smileys',SMIL.map(([v,e])=>e+' '+smileysOf(r.id).filter(x=>x[1]===v).length).join(' · ')):'')+
   (l.harBas||l.betyg?row('Favorit',isFav(r.id)?'Ja, 20 % tätare':'Nej'):'')+
@@ -3226,12 +3279,14 @@ function rcpSheetHtml(enter){const x=S.rcpSheet,r=recipeById(x.id);if(!r)return'
  if(x.k==='photo')items='<label class="it photo-pick">'+I.camera+'Byt foto<input type="file" accept="image/*" data-change="photo" data-id="'+id+'"></label>'+
   (x.confirm?'<button class="it red strong" data-act="photoRemove" data-id="'+id+'">'+I.trash+'Ja, ta bort fotot</button>':'<button class="it red" data-act="rcpConfirm">'+I.trash+'Ta bort fotot</button>');
  else if(x.k==='tidigast'){head='<b>Tidigast igen</b><br>'+esc(r.title)+tidigastHtml(r)}
+ else if(x.k==='fotoBort'){head='Ta bort fotot för '+esc(r.title)+'?';items='<button class="it red strong" data-act="photoRemove" data-id="'+id+'">'+I.trash+'Ta bort fotot</button>'}
+ else if(x.k==='aldrig'){head=(recipeHead(r.id)?'Rätten föreslås aldrig igen men finns kvar i receptbanken.':'Rätten tas bort ur receptbanken och föreslås aldrig igen.');items='<button class="it red strong" data-act="deleteRecipe" data-id="'+id+'">'+I.trash+'Föreslå aldrig igen</button>'}
  else if(x.k==='unbank'){head='Ta bort '+esc(r.title)+' ur receptbanken? Fotot tas också bort.';items='<button class="it red strong" data-act="bankToggle" data-id="'+id+'">'+I.bookmark+'Ta bort ur receptbanken</button>'}
  else{if(last){const l=matLage(r.id);head+='<br>Senast lagad '+esc(dateShort(last))+(l.tidigastDatum&&!l.paus?' · tidigast igen '+esc(dateShort(l.tidigastDatum)):'')}
   const vi=veckoIdx(r.id);
   items=(vi>=0?'<button class="it" data-act="rcpByt" data-id="'+vi+'">'+I.swap+'Byt mot en annan rätt</button>':'')+(inBank(r.id)?'<button class="it" data-act="bankToggle" data-id="'+id+'">'+I.bookmark+'Ta bort ur receptbanken</button>':'<button class="it" data-act="bankToggle" data-id="'+id+'">'+I.bookmark+'Spara i receptbanken</button>')+
   (x.confirm?'<div class="ttl">'+(recipeHead(r.id)?'Receptet föreslås aldrig igen men finns kvar i receptbanken.':'Receptet tas bort ur receptbanken och föreslås aldrig igen.')+'</div><button class="it red strong" data-act="deleteRecipe" data-id="'+id+'">'+I.trash+'Ja, föreslå aldrig igen</button>':'<button class="it red" data-act="rcpConfirm">'+I.trash+'Föreslå aldrig igen</button>')}
- return'<div class="asheet'+enter+'" data-act="sheetBg"><div class="as-panel" role="dialog" aria-modal="true" aria-label="'+(x.k==='photo'?'Foto':x.k==='tidigast'?'Tidigast igen':x.k==='unbank'?'Ta bort ur receptbanken':'Mer')+'"><div class="grp"><div class="ttl">'+head+'</div>'+items+'</div><div class="grp"><button class="it strong" data-act="sheetClose">'+(x.k==='tidigast'?'Stäng':'Avbryt')+'</button></div></div></div>'}
+ return'<div class="asheet'+enter+'" data-act="sheetBg"><div class="as-panel" role="dialog" aria-modal="true" aria-label="'+(x.k==='photo'||x.k==='fotoBort'?'Foto':x.k==='aldrig'?'Föreslå aldrig igen':x.k==='tidigast'?'Tidigast igen':x.k==='unbank'?'Ta bort ur receptbanken':'Mer')+'"><div class="grp"><div class="ttl">'+head+'</div>'+items+'</div><div class="grp"><button class="it strong" data-act="sheetClose">'+(x.k==='tidigast'?'Stäng':'Avbryt')+'</button></div></div></div>'}
 /* Matfoton: bilden förminskas i telefonen, laddas upp till Drive via Apps Script och
    adressen sparas på receptet i receptbanken (receptet sparas där om det inte redan finns) */
 const imgOf=id=>{const v=recipeVersions().find(x=>x.id===id);if(v)return v.img||'';const b=bankRaw().find(x=>x.id===id);return b&&b.img||''};
@@ -3275,9 +3330,10 @@ function calDots(date){const d=D(),evs=d.events.filter(e=>e.date===date),ts=d.ta
 const isBdEv=e=>!e.time&&/ fyller( \d+)? år$/.test(String(e.title||''));
 function calDayRows(sel){const d=D(),t=today();
  const all=d.events.filter(e=>e.date===sel).sort((a,b)=>String(a.time||'').localeCompare(String(b.time||'')));
- const bds=all.filter(isBdEv),evs=all.filter(e=>!isBdEv(e)),st=sel===t?evStates(evs):new Map();
+ const bds=all.filter(isBdEv),evs0=all.filter(e=>!isBdEv(e)),st=sel===t?evStates(evs0):new Map(),evs=evs0.filter(e=>(st.get(e)||{}).st!=='past');
  const rem=bds.map(e=>'<div class="bd-remind">'+I.cake+'<span>'+esc(e.title)+(sel===t?' idag':'')+'</span></div>').join('');
- if(!evs.length)return rem+(bds.length?'':'<div class="wempty">Inget i kalendern '+(sel===t?'idag':'den här dagen')+'.</div>');
+ // passerade händelser idag visas inte (som Kalender-widgeten i iOS); hela dagen finns ett tryck bort
+ if(!evs.length)return rem+(bds.length&&!evs0.length?'':'<div class="wempty">'+(evs0.length?'Inget mer i kalendern idag.':'Inget i kalendern '+(sel===t?'idag':'den här dagen')+'.')+'</div>');
  const head=rem+'<div class="wk-sub">Schema</div>',who=e=>evWho(e);
  // det som pågår får en tunn förloppsstapel under titeln
  return head+'<div class="evs">'+evs.map(e=>{const x=st.get(e)||{};
@@ -3514,7 +3570,7 @@ function stadRing(cp,all,nu){const R=36,C=2*Math.PI*R,p=nu.minAll?(nu.minAll-nu.
  h+='<div class="sx-lab">Idag</div>'+rgroup('S4',nu.list.length?nu.list.map(t=>{const d=doneToday(t);
   return cleanSw(t,'<div class="cell ck'+(d?' done':'')+'"'+holdAt('cleanMenu',t.id)+'><input type="checkbox" class="check" data-act="cleanToggle" data-id="'+esc(t.id)+'" aria-label="'+esc(t.title)+'"'+(d?' checked':'')+'><div class="grow"><div class="title">'+esc(t.title)+'</div><div class="meta">'+[esc(t.room),t.min+' min',t.freq<=1?'↻':'',d&&t.doneBy?'klart av '+esc(personLabel(t.doneBy)):'',sxLate(t)?'<span class="sx-late">försenat</span>':''].filter(Boolean).join(' · ')+'</div></div></div>')}).join(''):emptyCell('Inget mer behöver göras idag.'))+'<div class="foot">Håll in en syssla för I morgon och fler val, svep åt vänster för att ta bort.</div>';
  const mr=s=>{const r=13,c=2*Math.PI*r;return'<svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><circle cx="17" cy="17" r="'+r+'" fill="none" stroke="var(--fill)" stroke-width="5"/><circle cx="17" cy="17" r="'+r+'" fill="none" stroke="'+healthCol(s)+'" stroke-width="5" stroke-linecap="round" stroke-dasharray="'+(c*Math.min(1,s)).toFixed(1)+' '+c.toFixed(1)+'"/></svg>'};
- h+='<div class="sx-lab">Hemmet</div><div class="sx-ringar"'+RF('S7')+'>'+roomHealth().map(r=>'<div aria-label="'+esc(r.room+': '+healthWord(r.score))+'">'+mr(r.score)+esc(r.room)+'</div>').join('')+'</div>';
+ h+='<div class="sx-lab">Rummen</div><div class="sx-ringar"'+RF('S7')+'>'+roomHealth().map(r=>'<div aria-label="'+esc(r.room+': '+healthWord(r.score))+'">'+mr(r.score)+esc(r.room)+'</div>').join('')+'</div>';
  return h+'<div class="sx-lab"></div>'+sxMer(cp,all)}
 // Alla sysslor rum för rum. Under varje rum finns samma lägg till-rad som i Inköp och Uppgifter
 // Intervall, tid och vem för en syssla. Används i Alla sysslor och i bladet när man håller in
@@ -5671,8 +5727,8 @@ const calm=()=>{try{return matchMedia('(prefers-reduced-motion: reduce)').matche
 const nv=(k,v,f)=>'<span class="nv" data-n="'+k+'" data-v="'+(Math.round(Number(v)*100)/100)+'" data-f="'+(f||'n')+'">'+(f==='kr'?kr(v):Math.round(v))+'</span>';
 const rowKey=el=>el.dataset.act+':'+el.dataset.id;
 const A={page:'',keys:null,rects:null,nums:{},bars:{},segs:{},done:null,user:0,cookStep:null,widgets:null,
- before(m){this.rects=null;if(U5){this.old=[...m.childNodes];this.oldY=this.sy!=null?this.sy:scrollY;this.top=m.getBoundingClientRect().top+scrollY}
-  if(this.flip){this.rects={};m.querySelectorAll('.cell input.check').forEach(b=>{const r=b.closest('.cell').getBoundingClientRect();if(r.height)this.rects[rowKey(b)]=r.top});this.flip=false}
+ before(m){if(!(this.rects&&Date.now()-this.flipT<200))this.rects=null;if(U5){this.old=[...m.childNodes];this.oldY=this.sy!=null?this.sy:scrollY;this.top=m.getBoundingClientRect().top+scrollY}
+  if(this.flip){this.rects={};m.querySelectorAll(':is(.cell,.ur) input.check').forEach(b=>{const r=b.closest('.cell,.ur').getBoundingClientRect();if(r.height)this.rects[rowKey(b)]=r.top});this.flip=false;this.flipT=Date.now()}
   this.widgets=S.view==='oversikt'?[...m.querySelectorAll('.widget')].map(w=>w.innerHTML):null},
  after(m){const page=S.view+'|'+(S.recipe||'')+'|'+(S.view==='mat'?S.matTab:S.view==='uppgifter'?S.taskTab:''),newPage=page!==this.page,prev=this.page;this.page=page;
   const keys=new Set([...m.querySelectorAll('.cell input.check')].map(rowKey));
@@ -5680,7 +5736,7 @@ const A={page:'',keys:null,rects:null,nums:{},bars:{},segs:{},done:null,user:0,c
   if(!calm()){
    if(!newPage){
     // Rader som flyttat sig glider till sin nya plats
-    if(this.rects)m.querySelectorAll('.cell input.check').forEach(b=>{const old=this.rects[rowKey(b)];if(old==null)return;const row=b.closest('.cell'),dy=old-row.getBoundingClientRect().top;
+    if(this.rects)m.querySelectorAll(':is(.cell,.ur) input.check').forEach(b=>{const old=this.rects[rowKey(b)];if(old==null)return;const row=b.closest('.cell,.ur'),dy=old-row.getBoundingClientRect().top;
      if(Math.abs(dy)>2&&row.animate)row.animate([{transform:'translateY('+dy+'px)'},{transform:'none'}],{duration:U3?240:420,easing:'cubic-bezier(.2,.9,.25,1)'})});
     // Nya rader fälls ut, men inte när en tillfällig rad får sitt riktiga id från kalkylarket
     if(this.keys&&![...this.keys].some(k=>/:tmp/.test(k))){const fresh=[...keys].filter(k=>!this.keys.has(k));
@@ -5709,12 +5765,12 @@ const A={page:'',keys:null,rects:null,nums:{},bars:{},segs:{},done:null,user:0,c
   if(msg){toast(msg);confetti()}}};
 autoTheme.ok=true;
 function checkAnim(id,done,then){A.user=Date.now();
- const box=[...document.querySelectorAll('.cell input.check')].find(b=>b.dataset.id===id),row=box&&box.closest('.cell');
+ const box=[...document.querySelectorAll(':is(.cell,.ur) input.check')].find(b=>b.dataset.id===id),row=box&&box.closest('.cell,.ur');
  if(!row||calm()){A.flip=true;then();return}
  // Klicket på kryssrutan avbryts (appen ritar om den själv), så bocken sätts först i nästa bildruta
  requestAnimationFrame(()=>{box.checked=done;row.classList.add(done?'checking':'unchecking')});
  // på väggtavlan glider en avbockad städsyssla ut, och nästa flyttar upp
- const out=done&&row.closest('.board .bclean');if(out)setTimeout(()=>{row.style.height=row.offsetHeight+'px';void row.offsetHeight;row.classList.add('leaving')},380);
+ const out=done&&row.closest('.board .bclean,.upg-c');if(out)setTimeout(()=>{row.style.height=row.offsetHeight+'px';void row.offsetHeight;row.classList.add('leaving')},380);
  setTimeout(()=>{A.flip=true;then()},U3?(out?480:done?180:120):out?700:done?400:180)}
 function leaveAnim(act,items,then){A.user=Date.now();const ids=new Set(items.map(i=>i.id));
  const rows=[...document.querySelectorAll('.cell input.check[data-act="'+act+'"]')].filter(b=>ids.has(b.dataset.id)).map(b=>b.closest('.cell'));
@@ -6004,7 +6060,7 @@ const ACT={
  haFarg(v){const D=haData(),x=D&&D.lampor.find(l=>l.id===S.haId),[h,m]=String(v).split(',').map(Number);haLampSkicka(x,{hs:[h,m]})},
  habScen(i){const D=haData(),s=D&&habScAlla(D)[+i];if(s&&!(s.ha&&haMedSk(s.ha,D)))haAngraSpara('hab:'+i);habKor(i)},
  husScen(id){if(!haMedSk(id))haAngraSpara('sc:'+id);ACT.haScen(id)},
- haAngra(){const a=HA.angra;if(!a)return;HA.angra=null;clearTimeout(HA.angraT);try{u5Tick()}catch(e){}habKor(null,{l:a.l});toast('Återställt som innan scenen')},
+ haAngra(){const a=HA.angra;if(!a)return;HA.angra=null;habSenare(null);clearTimeout(HA.angraT);try{u5Tick()}catch(e){}habKor(null,{l:a.l});toast('Återställt som innan scenen')},
  habOrdOpen(){document.querySelectorAll('.create-menu[open]').forEach(x=>x.open=false);const D=haData();if(!D)return;S.habOrd={ids:habScLista(D).map(habOrdId)};S.sheet='habOrd';render()},
  habOrdKlar(){const D=haData(),F=S.habOrd;if(!D||!F)return;const m=new Map(habScLista(D).map(e=>[habOrdId(e),e.s])),sc=F.ids.map(id=>m.get(id)).filter(Boolean);habSet({sc});S.habOrd=null;closeSheets();render()},
  habOrdRed(id){const D=haData(),F=S.habOrd;if(!D||!F)return;if(id[0]==='i')return ACT.habScRed(+id.slice(1));
@@ -6016,16 +6072,21 @@ const ACT={
  habFvAdd(id){const F=S.habD,D=haData();if(!F||!D)return;const L=habFv(D,F.fv.concat([id]));if(!L.some(e=>e.id===id))return toast('Rutan är full');F.fv=L.map(e=>e.id);render()},
  habScNy(){const D=haData();if(!D)return;const L=habScAlla(D),i=L.indexOf(null);ACT.habScRed(i<0?L.length:i)},
  habScRed(i){document.querySelectorAll('.create-menu[open]').forEach(x=>x.open=false);const D=haData();if(!D)return;i=+i;const s=habScAlla(D)[i],l={};if(s&&s.l)Object.keys(s.l).forEach(k=>l[k]=Object.assign({},s.l[k]));else if(!s)(D.lampor||[]).forEach(x=>{if(!x.nas)l[x.id]=habLage(x)});
-  S.habSc={i,fanns:!!s,back:S.sheet==='habRuta'?1:0,d:{n:s?s.n:'',ik:s?s.ik||'star':'star',f:s&&s.f||'',typ:!s||s.l?'egen':s.ha?'ha':'av',l,ha:s&&s.ha||''}};S.sheet='habSc';render()},
+  const t={},st=s&&Array.isArray(s.st)?s.st.map(x=>({m:x.m})):[];if(s&&s.st)s.st.forEach((x,k)=>Object.keys(x.l||{}).forEach(id=>{l[id]=Object.assign({},x.l[id]);t[id]=k+1}));
+  S.habSc={i,fanns:!!s,back:S.sheet==='habRuta'?1:0,d:{n:s?s.n:'',ik:s?s.ik||'star':'star',f:s&&s.f||'',typ:!s||s.l?'egen':s.ha?'ha':'av',l,t,st,ha:s&&s.ha||''}};S.sheet='habSc';render()},
  habScNamn(v){habNamnLas();S.habSc.d.n=v;S.habSc.d.ik=habIkNamn(v);if(v==='Släck allt')S.habSc.d.typ='av';render()},
  habScIk(k){habNamnLas();S.habSc.d.ik=k;render()},
  habScF(c){habNamnLas();S.habSc.d.f=c;render()},
  habScTyp(k){habNamnLas();const d=S.habSc.d;d.typ=k;if(k==='av'&&!d.n){d.n='Släck allt';d.ik='off'}if(k==='egen'&&!Object.keys(d.l).length)(haData().lampor||[]).forEach(x=>{if(!x.nas)d.l[x.id]=habLage(x)});render()},
  habScVal(id){habNamnLas();const d=S.habSc.d,x=(haData().lampor||[]).find(e=>e.id===id);if(d.l[id])delete d.l[id];else if(x)d.l[id]=habLage(x);render()},
  habScNu(){habNamnLas();const d=S.habSc.d,E=haData().lampor||[];Object.keys(d.l).forEach(id=>{const x=E.find(e=>e.id===id);if(x)d.l[id]=habLage(x)});toast('Lampornas läge är hämtat');render()},
- habScProva(){habNamnLas();const d=S.habSc.d;habKor(null,d.typ==='egen'?{l:d.l}:d.typ==='ha'?{ha:d.ha}:{av:1})},
+ habScProva(){habNamnLas();const d=S.habSc.d;if(d.typ!=='egen')return habKor(null,d.typ==='ha'?{ha:d.ha}:{av:1});const T=d.st||[],s0={l:{}},st=T.map(x=>({m:x.m,l:{}}));Object.keys(d.l).forEach(id=>{const j=d.t&&d.t[id]||0;(j&&j<=T.length?st[j-1].l:s0.l)[id]=d.l[id]});s0.st=st.filter(x=>Object.keys(x.l).length);habKor(null,s0)},
  habScB(arg){habNamnLas();const k=String(arg).lastIndexOf('|'),id=arg.slice(0,k),dd=+arg.slice(k+1),v=S.habSc&&S.habSc.d.l[id];if(!v)return;v.on=1;v.b=Math.max(10,Math.min(100,Math.round(((v.b||100)+dd)/10)*10));try{u5Tick()}catch(e){}render()},
  habScPa(id){habNamnLas();const v=S.habSc&&S.habSc.d.l[id],x=(haData().lampor||[]).find(e=>e.id===id);if(!v)return;if(v.on){S.habSc.d.l[id]={on:0}}else{v.on=1;if(x&&haKan(x).dim)v.b=v.b||100}render()},
+ habScStegNy(id){habNamnLas();const d=S.habSc.d;d.st=d.st||[];d.t=d.t||{};const sist=d.st.length?d.st[d.st.length-1].m:0;d.st.push({m:sist?HAB_MIN.find(m=>m>sist)||60:5});if(id)d.t[id]=d.st.length;render()},
+ habScStegM(arg){habNamnLas();const[k,dd]=String(arg).split('|').map(Number),x=S.habSc.d.st[k-1];if(!x)return;const i=Math.max(0,HAB_MIN.indexOf(x.m));x.m=HAB_MIN[Math.max(0,Math.min(HAB_MIN.length-1,i+dd))];try{u5Tick()}catch(e){}render()},
+ habScStegDel(k){habNamnLas();k=+k;const d=S.habSc.d;Object.keys(d.t||{}).forEach(id=>{if(d.t[id]===k)d.t[id]=0;else if(d.t[id]>k)d.t[id]--});d.st.splice(k-1,1);render()},
+ habScFlytt(arg){habNamnLas();document.querySelectorAll('.create-menu[open]').forEach(x=>x.open=false);const k=String(arg).lastIndexOf('|'),id=arg.slice(0,k),j=arg.slice(k+1);if(j==='ny')return ACT.habScStegNy(id);S.habSc.d.t[id]=+j;render()},
  habScHa(id){habNamnLas();S.habSc.d.ha=id;render()},
  haMedOpen(id){const m=haMedia().find(x=>x.id===id),sp=m&&(haMedSpelar(m)||m.st==='paused'),k=sp&&haKanaler().find(x=>haMedKId(x)===m.kanal),ch={hog:[id]};if(k){ch.k=k.id;ch.typ=k.typ}if(sp&&m.vol!=null)ch.vol=m.vol;S.haMed=hamUtkast(m?ch:{});try{u5Tick()}catch(e){}S.sheet='haMedia';render()},
  habVol(d,el){const P=habKortP(el);if(!P.length)return;try{u5Tick()}catch(e){}habVolSkicka(Math.max(0,Math.min(100,habVolNu(P)+ +d)),P)},
@@ -6228,7 +6289,11 @@ const ACT={
  pickNow(id){S.psel=id;ACT.pickGo()},
  swapTo(id){const r=recipeById(id);if(r)doSwap(r)},
  rcpByt(i){closeSheets();S.recipe=null;S.view='mat';lsSet('view','mat');S.matTab='vecka';lsSet('matTab','vecka');ACT.swap(i)},
- rcpSheet(id,el){S.rcpSheet={id,k:el.dataset.k};render()},
+ rcpSheet(id,el){document.querySelectorAll('.create-menu[open]').forEach(x=>x.open=false);S.rcpSheet={id,k:el.dataset.k};render()},
+ // Tidigast igen −/+: baslinjen räknas om så att intervallet blir det valda med dagens stjärnor; efter 26 veckor kommer Aldrig
+ tidSteg(id,el){const r=recipeById(id);if(!r)return;const l=matLage(id),ald=baseOf(id)===0,T=TIDV;const up=Number(el.dataset.d)>0;let i;
+  if(ald)i=up?T.length:T.length-1;else if(up){i=T.findIndex(x=>x>l.w+.01);if(i<0)i=T.length}else{i=-1;T.forEach((x,j)=>{if(x<l.w-.01)i=j});if(i<0)return}const f=Math.pow(2,(3.5-l.s)/1.5)*(isFav(id)?.8:1),w=i===T.length?0:Math.round(T[i]/f*1000)/1000;
+  A.user=Date.now();updJSON('frekvens',{},o=>{const x=o[id]=o[id]||{};x.w=w;x.d=today();if(!x.t)x.t=r.title;return o});render()},
  rcpConfirm(){if(S.rcpSheet){S.rcpSheet.confirm=true;render()}},
  bankToggle(id){const r=recipeById(id);if(!r)return;const sure=S.rcpSheet&&S.rcpSheet.k==='unbank';S.rcpSheet=null;
   if(!inBank(id)){addToBank(r,true);toast('Sparat i receptbanken');render();return}
