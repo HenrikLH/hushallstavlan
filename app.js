@@ -1235,7 +1235,7 @@ function wallBoard(){
   '<div class="thin bprog"><i style="width:'+(totN?Math.round(doneN/totN*100):0)+'%"></i></div>'+
   (clean.length?'<div class="wl">'+clean.map(x=>'<div class="cell ck" data-act="cleanToggle" data-id="'+esc(x.id)+'"><input type="checkbox" class="check" data-act="cleanToggle" data-id="'+esc(x.id)+'" aria-label="'+esc(x.title)+'"><span class="grow">'+esc(x.title)+'</span><span class="val num">'+x.min+' min</span></div>').join('')+'</div>':'<div class="bdone'+(popDone?' pop':'')+'">'+I.tick+'Allt är gjort idag</div>')+
   '<div class="wk-sub">Rummen</div><div class="brooms">'+roomHealth().map(r=>'<div class="'+healthCls(r.score)+'"><span>'+esc(r.room)+'</span><i><b style="width:'+Math.round(r.score*100)+'%"></b></i></div>').join('')+'</div>');
- H.upg=widget('uppgifter','btasks',I.list,'Uppgifter',d.tasks.filter(x=>!x.done).length+' kvar',upgDagHtml(upgDag()));
+ if(!IDAG())H.upg=widget('uppgifter','btasks',I.list,'Uppgifter',d.tasks.filter(x=>!x.done).length+' kvar',upgDagHtml(upgDag()));
  if(U3&&!d.clean.length)H.stad=widget('stad','bclean',I.sparkles,'Städ idag','','<div class="u3-empty"><p>Inga rutiner tillagda än.</p><button class="btn-tint" data-act="nav" data-id="stad">'+I.plus+'Lägg till rutin</button></div>');
  if(haOn(true))H.hus=haBox(true);
  const L=layout(true,boardDefault());
@@ -1990,7 +1990,7 @@ V.oversikt=function(){
   const all=d.tasks.filter(x=>!x.done).length;
   // bara det som ska göras idag (och sena) går att bocka, imorgon visas under
   const U=upgDag();
-  if(U5&&!S.arrange&&!ovs.length&&!U.idag.length&&!U.imorgon.length){}else H.upg=widget('uppgifter','w2',I.list,'Att göra',all?'Alla '+all:'',upgDagHtml(U,ovEn||ovRows))}
+  if(U5&&!S.arrange&&!ovs.length&&(IDAG()||!U.idag.length&&!U.imorgon.length)){}else H.upg=widget('uppgifter','w2',I.list,'Att göra',all?'Alla '+all:'',upgDagHtml(IDAG()?{idag:[],imorgon:[]}:U,ovEn||ovRows))}
  const rh0=roomHealth(),rhB=rh0.filter(r=>r.score<.85),rh=U5&&!S.arrange?rhB:rh0;// UI 5.0: bara rum som behöver något
  if(!U5||S.arrange||rh.length)H.hem=widget('stad','w2',I.home,'Rummen',U5&&rh0.length>rhB.length?(rh0.length-rhB.length)+' fint':'',rh.length?'<div class="wl">'+rh.map(healthRow).join('')+'</div>':'<div class="wempty">Städschemat är tomt.</div>');
  H.imorgon=tm&&!(U5&&!S.arrange&&!tm.events.length&&!tm.meals.length)?widget('mat','w2',I.cal,'Imorgon',esc(dateShort(tm.date)),(eventsHtml(tm)||(U5&&tm.meals.length?'':'<div class="wempty">Inga händelser.</div>'))+(tm.meals.length?wMeals(tm):'')):'';
@@ -3355,6 +3355,14 @@ function calDots(date){const d=D(),evs=d.events.filter(e=>e.date===date),ts=d.ta
 // Översiktens kalenderruta: veckoremsa där man väljer dag, och den dagens händelser med start- och sluttid
 // Födelsedagar i kalendern ("Leah fyller 12 år") visas som en påminnelse överst i stället för som en heldagsrad
 const isBdEv=e=>!e.time&&/ fyller( \d+)? år$/.test(String(e.title||''));
+// UI 5.0 (granskning B, Henrik valde A): Schema och Att göra i en ruta. Dagens händelser, sedan uppgifterna att bocka (sena först),
+// raden Att göra · Alla N står över uppgifterna som rubrik (Henrik), Imorgon som en grå rad sist
+const IDAG=()=>U5&&!S.arrange;
+function idagRows(sel){const ev=calDayRows(sel);if(!IDAG())return ev;const t=today(),o=D().tasks.filter(x=>!x.done);
+ const U=sel===t?upgDag():{idag:o.filter(x=>x.due===sel),imorgon:[]};if(!o.length)return ev;
+ const tom=!!(U.idag.length||U.imorgon.length)&&/<div class="wempty">[^<]*<\/div>$/.test(ev),evs=tom?ev.replace(/<div class="wempty">[^<]*<\/div>$/,''):ev;
+ const alla='<button type="button" class="idag-alla" data-act="nav" data-id="uppgifter">'+I.list+'<span class="grow">Att göra</span><span class="n">Alla '+o.length+'</span>'+chevron+'</button>';
+ return'<div class="idag">'+evs+alla+(U.idag.length||U.imorgon.length?upgDagHtml(U,'',true):'')+'</div>'}
 function calDayRows(sel){const d=D(),t=today();
  const all=d.events.filter(e=>e.date===sel).sort((a,b)=>String(a.time||'').localeCompare(String(b.time||'')));
  const bds=all.filter(isBdEv),evs0=all.filter(e=>!isBdEv(e)),st=sel===t?evStates(evs0):new Map(),evs=evs0.filter(e=>(st.get(e)||{}).st!=='past');
@@ -3377,13 +3385,13 @@ function calWidget(){const t=today(),wk=[],N=wallBoardOn()?7:28;let base=t;if(!w
  if(!wallBoardOn())return ovCalWidget(sel,strip);
  return'<section class="widget w2 calw"><button class="wh" data-act="calOpen" data-id="'+sel+'" style="width:100%">'+I.cal+'<span>Schema'+(N>7?' <span class="wk-mo">'+esc(MON[parse(t).getMonth()])+'</span>':'')+'</span><span class="r lnk">Kalender</span></button>'+strip+
   // schemadelen öppnar kalendern på vald dag
-  '<div class="wk-day"><div id="cal-rows" class="wk-link" data-d="'+sel+'" data-act="calOpen" data-id="'+sel+'" role="link" tabindex="0" aria-label="Schema, öppna kalendern">'+calDayRows(sel)+'</div></div></section>'}
+  '<div class="wk-day"><div id="cal-rows" class="wk-link" data-d="'+sel+'" data-act="calOpen" data-id="'+sel+'" role="link" tabindex="0" aria-label="Schema, öppna kalendern">'+idagRows(sel)+'</div></div></section>'}
 // Ö2: samma datumval och schema i båda lägena. Månaden öppnas i samma ruta.
 function ovCalWidget(sel,strip){const ym=S.ovCalMonth||sel.slice(0,7),first=ym+'-01',d=parse(first),start=addDays(first,-((d.getDay()+6)%7)),count=Math.ceil((((d.getDay()+6)%7)+new Date(d.getFullYear(),d.getMonth()+1,0).getDate())/7)*7;
  let month='<div class="ovcal-toolbar"><button type="button" class="ib" data-act="ovMonth" data-id="-1" aria-label="Föregående månad">'+I.back+'</button><b>'+esc(cap(MON[d.getMonth()]))+' '+d.getFullYear()+'</b><button type="button" class="ib" data-act="ovMonth" data-id="1" aria-label="Nästa månad">'+I.chev+'</button></div><div class="ovcal-grid">'+['M','T','O','T','F','L','S'].map(x=>'<span class="ovcal-wd" aria-hidden="true">'+x+'</span>').join('');
  for(let i=0;i<count;i++){const k=addDays(start,i),dt=parse(k),dots=calDots(k);month+='<button type="button" class="wk-d'+(k===today()?' today':'')+(k===sel?' sel':'')+(k.slice(0,7)!==ym?' outside':'')+'" data-act="ovDay" data-id="'+k+'" aria-pressed="'+(k===sel)+'" aria-label="'+esc(dateLong(k))+(dots.length?', '+dots.length+' saker':'')+'"><span class="n num">'+dt.getDate()+'</span><span class="dots">'+dots.map(c=>'<i class="'+c+'"></i>').join('')+'</span></button>'}
  month+='</div>';const open=!!S.ovCalOpen;
- return'<section class="widget w2 calw ovcal'+(open?' expanded':'')+'"><button class="wh" data-act="calOpen" data-id="'+sel+'" style="width:100%">'+I.cal+'<span>Schema <span class="wk-mo">'+esc(MON[parse(sel).getMonth()])+'</span></span><span class="r lnk">Kalender</span></button><div class="ovcal-frame" id="overview-calendar"><div class="ovcal-week"'+(open?' inert aria-hidden="true"':'')+'>'+strip+'</div><div class="ovcal-month"'+(!open?' inert aria-hidden="true"':'')+'>'+month+'</div></div>'+motionGrip('calendar','overview-calendar',open)+'<div class="wk-day"><div id="cal-rows" class="wk-link" data-d="'+sel+'" data-act="calOpen" data-id="'+sel+'" role="link" tabindex="0" aria-label="Schema, öppna kalendern">'+calDayRows(sel)+'</div></div></section>'}
+ return'<section class="widget w2 calw ovcal'+(open?' expanded':'')+'"><button class="wh" data-act="calOpen" data-id="'+sel+'" style="width:100%">'+I.cal+'<span>Schema <span class="wk-mo">'+esc(MON[parse(sel).getMonth()])+'</span></span><span class="r lnk">Kalender</span></button><div class="ovcal-frame" id="overview-calendar"><div class="ovcal-week"'+(open?' inert aria-hidden="true"':'')+'>'+strip+'</div><div class="ovcal-month"'+(!open?' inert aria-hidden="true"':'')+'>'+month+'</div></div>'+motionGrip('calendar','overview-calendar',open)+'<div class="wk-day"><div id="cal-rows" class="wk-link" data-d="'+sel+'" data-act="calOpen" data-id="'+sel+'" role="link" tabindex="0" aria-label="Schema, öppna kalendern">'+idagRows(sel)+'</div></div></section>'}
 function motionCalendarBegin(el){if(el._calMotion){cancelAnimationFrame(el._calMotion.raf);return el._calMotion}const frame=el.querySelector('.ovcal-frame'),week=el.querySelector('.ovcal-week'),month=el.querySelector('.ovcal-month'),open=!!S.ovCalOpen;if(open){const strip=week.querySelector('.wk'),buttons=[...strip.children],i=buttons.findIndex(b=>b.getAttribute('aria-pressed')==='true');if(i>=0)strip.scrollLeft=buttons[Math.floor(i/7)*7].offsetLeft-buttons[0].offsetLeft}el.classList.remove('expanded');const h0=motionHeight(frame);el.classList.add('expanded');const h1=motionHeight(frame),animations=[];el.classList.add('cal-drag');
  const add=(e,k)=>{const a=e.animate(k,{duration:1000,easing:'linear',fill:'both'});a.pause();animations.push(a)};add(frame,[{height:h0+'px'},{height:h1+'px'}]);add(week,[{opacity:1},{opacity:0}]);add(month,[{opacity:0,transform:'translateY(-20px)'},{opacity:1,transform:'none'}]);
  const m=el._calMotion={p:open?1:0,range:Math.max(1,h1-h0),raf:0,set(p){this.p=Math.max(0,Math.min(1,p));animations.forEach(a=>a.currentTime=this.p*1000);week.inert=this.p>=.5;month.inert=this.p<.5},finish(op){cancelAnimationFrame(this.raf);animations.forEach(a=>a.cancel());el.classList.toggle('expanded',op);week.inert=op;month.inert=!op;week.setAttribute('aria-hidden',String(op));month.setAttribute('aria-hidden',String(!op));delete el._calMotion;el.classList.remove('cal-drag');motionGripState(el.querySelector('.motion-grip'),op)}};m.set(m.p);return m}
@@ -3511,9 +3519,9 @@ const evDelQ=e=>{const rec=String(e.flags||'').includes('r'),cal=e.source==='kal
  '<div class="cell"><span class="grow">Ta bort händelsen'+(cal?' ur Google Kalender':'')+'?</span><button type="button" class="tb red strong" data-act="evDel" data-id="all">Ja, ta bort</button><button type="button" class="tb" data-act="confirmNo">Avbryt</button></div>'};
 // Att göra-rutan: dagens uppgifter (även sena) och morgondagens
 function upgDag(){const t=today(),tm=addDays(t,1),o=D().tasks.filter(x=>!x.done);return{idag:o.filter(x=>isDate(x.due)&&x.due<=t).sort((a,b)=>a.due.localeCompare(b.due)),imorgon:o.filter(x=>x.due===tm)}}
-function upgDagHtml(U,pre){const t=today(),tm=U.imorgon.length,ID=U.idag.slice(0,8),M=U.imorgon.slice(0,3),fler=tm-M.length;
+function upgDagHtml(U,pre,iRuta){const t=today(),tm=U.imorgon.length,ID=U.idag.slice(0,8),M=U.imorgon.slice(0,3),fler=tm-M.length;
  const r=x=>'<div class="ur"><input type="checkbox" class="check" data-act="taskToggle" data-id="'+esc(x.id)+'" aria-label="'+esc(x.title)+'"><span class="t">'+esc(x.title)+'</span>'+(x.due<t?'<span class="d red">'+esc(dateShort(x.due))+'</span>':x.who?'<span class="d">'+esc(personLabel(x.who))+'</span>':'')+'</div>';
- return'<div class="upg-c">'+(pre?'<div class="wl">'+pre+'</div>':'')+(ID.length?ID.map(r).join(''):pre?'':'<div class="upg-tom">'+I.tick+'Inget kvar idag</div>')+
+ return'<div class="upg-c">'+(pre?'<div class="wl">'+pre+'</div>':'')+(ID.length?ID.map(r).join(''):pre||iRuta?'':'<div class="upg-tom">'+I.tick+'Inget kvar idag</div>')+
   (tm?'<div class="upg-lbl">Imorgon</div><div class="ur tm"><span class="t">'+M.map(x=>esc(x.title)).join(' · ')+(fler>0?' +'+fler:'')+'</span></div>':'')+'</div>'}
 function taskRow(x){const t=today(),late=isDate(x.due)&&x.due<t&&!x.done;
  const meta=(x.due?'<span'+(late?' class="red"':'')+'>'+esc(x.due===t?'Idag':dateShort(x.due))+'</span>':'')+(repName(x.repeat)?'<span class="chip">↻ '+esc(repName(x.repeat))+'</span>':'')+(x.who?personChip(x.who):'')+(x.note?'<span>'+esc(x.note)+'</span>':'');
@@ -6957,7 +6965,7 @@ let actx=null;function unlockAudio(){try{actx=actx||new(window.AudioContext||win
 function beep(){if(!actx)return;try{for(let i=0;i<3;i++){const o=actx.createOscillator(),g=actx.createGain();o.frequency.value=880;o.connect(g);g.connect(actx.destination);const t=actx.currentTime+i*.35;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.3,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+.25);o.start(t);o.stop(t+.3)}}catch(e){}}
 function tick(){
  const c=document.getElementById('clock');if(c){const n=new Date(),txt=pad(n.getHours())+':'+pad(n.getMinutes());
-  if(c.dataset.v!==txt){flipClock(c,txt);const cr=document.getElementById('cal-rows');if(cr)cr.innerHTML=calDayRows(cr.dataset.d)}}
+  if(c.dataset.v!==txt){flipClock(c,txt);const cr=document.getElementById('cal-rows');if(cr)cr.innerHTML=idagRows(cr.dataset.d)}}
  const ni=document.querySelector('.night-in');if(ni){const h=String(new Date().getHours());if(ni.dataset.h!==h){ni.dataset.h=h;ni.style.transform=nightPos()}}
  document.querySelectorAll('.trg-f[data-end]').forEach(x=>{const ms=Number(x.dataset.end)-Date.now(),d=Number(x.dataset.dur)||1;x.setAttribute('stroke-dashoffset',(100-Math.max(0,Math.min(1,ms/d))*100).toFixed(2));});trTick();
  if(S.cook&&U5&&A.ck5Vis!=null&&S.timers.filter(t=>t.rid===S.cook.id&&ck5Syns(t)).sort((a,b)=>tmKvar(a)-tmKvar(b)).map(t=>t.k).join()!==A.ck5Vis)render();

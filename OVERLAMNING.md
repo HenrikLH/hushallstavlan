@@ -38,10 +38,10 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 - Ångra: `haAngraSpara` sparar alla lampors läge innan en scen körs (`ACT.habScen`/`husScen`), knappen blir Ångra i 15 min (`haAngraPa`, `ACT.haAngra`, per enhet). Ordna scener (`habOrdSheet`, plus-menyn och rutans meny): alla scener, dra i ≡, de fyra första i Översikt; HA-scener och Släck allt sparas då in i `sc`.
 - Test: ny `hemmet-scener.js` telefon/vägg/mörkt, hemmet, smart-hem-ruta, alla-flikar telefon+vägg gröna. Bilder /mnt/project-files/smart-hem/hemmet-scener/.
 
-## Granskning C3 + E + L (publicerad ht-v363 resp. ht-v367, ångra-grenar `version-fore-rattens-blad`, `version-fore-kalender-roda`)
-- C3: rättens blad med Börja laga, prisnoten en gång ovanför receptlistan. E (UI 5.0): röda dagar = lör/sön + svenska helgdagar (`helgdag(k)`, klass `.cal-d.rod`) i accentfärgen (Henriks val), ingen Lägg till-länk (plus räcker), ingen veckodag på maten, kort fotrad. Datumcirklar med proportionella siffror (Henrik såg 12 förskjutet på iPhone, ej verifierat i Chromium).
-- L: `verktyg/version.js` sätter nu app.js?v= = ht-v-numret, så Inställningar visar samma version.
-- Kvar i granskningen (docs/granskning-2026-11): B Idag-ruta, C1/C2/C4, D, H, I, J, K, L (OVERLAMNING-längd, AGENTS-storlekar), M. Test: `kalender-granskning.js`, `kalender-roda.js`, `rattens-blad.js`, alla-flikar telefon+vägg gröna.
+## Expertgranskning (docs/granskning-2026-11): publicerat C3 ht-v363, E+L ht-v367, B Idag-ruta ht-v380
+- B (ht-v380, ångra-gren `version-fore-idag-ruta`): i UI 5.0 visar Schema-rutan (Ö2/T3, `idagRows`) dagens händelser, raden Att göra · Alla N som rubrik (Henrik), uppgifterna att bocka och Imorgon. Egna Att göra-rutan (Ö3/T8) visas bara för ekonomiraden. Väggen: Städ idag krymper som sista ruta. Test `oversikt-idag.js`, `att-gora-idag.js`.
+- E: röda dagar (lör/sön + `helgdag(k)`) i accent, ingen Lägg till-länk. L: `version.js` sätter app.js?v= = ht-v. Datumcirklar med proportionella siffror.
+- Kvar: C1/C2/C4, D, H, I, J, K, L (OVERLAMNING-längd, AGENTS-storlekar), M. Alla-flikar telefon+vägg gröna.
 
 ## Städ: egna kort och Ring som standard (publicerad ht-v364, ångra-gren `version-fore-stad-ring`)
 - Ägare Claude, gren `claude/project-thread-ys6yn3`. `stadRob()` stängde inte sin `<div class="stad-rob-g">`, så hela Städ hamnade i ett kort. Rättat; `stad-dammsugare.js` larmar om städinnehåll hamnar i brickan.
