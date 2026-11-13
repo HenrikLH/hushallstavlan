@@ -1360,10 +1360,8 @@ function ovNyTel(v){const t=today();let h=onHead();
  if(v==='a')h+='<div class="ov onx onx-a">'+onWxBox()+onIdag(true)+onMiddag()+onPar(onInkop(),onStadHalf())+onFodRad()+(haOn(false)?haBox(false):'')+'</div>';
  if(v==='b')h+='<div class="ov onx onx-b">'+onNu()+onTl()+(onChips({stad:1})?sh('Hemma just nu')+onChips({stad:1,cls:'g2'}):'')+'</div>';
  if(v==='c')h+='<div class="ov onx onx-c">'+onChips({wx:1,stad:1,cls:'rad'})+(haOn(false)?haBox(false):'')+onIdag(false)+onMiddag()+onFodRad()+'</div>';
- if(v==='e'){const hh=new Date().getHours(),gr=hh<5?'God natt':hh<10?'God morgon':hh<17?'Hej':hh<22?'God kväll':'God natt';
-  h=head(gr+(people().includes(S.me)?', '+personLabel(S.me):''))+'<div class="ov onx onx-b onx-e">'+onChips({stad:1,cls:'rad'})+refAdd(heroHtml(),'Ö1')+(haOn(false)?haBox(false):'')+onNu()+onSchemaB()+onMiddag()+onFodRad()+'</div>'}
- if(v==='f'){const hh=new Date().getHours(),gr=hh<5?'God natt':hh<10?'God morgon':hh<17?'Hej':hh<22?'God kväll':'God natt';
-  h=head(gr+(people().includes(S.me)?', '+personLabel(S.me):''))+'<div class="ov onx onx-c onx-f">'+refAdd(heroHtml(),'Ö1')+onChips({stad:1,cls:'rad'})+(haOn(false)?haBox(false):'')+calWidget()+onMiddag()+onFodRad()+'</div>'}
+ if(v==='e')h+='<div class="ov onx onx-b">'+onWxK()+onNu()+onSchemaB()+(onChips({stad:1})?sh('Hemma just nu')+onChips({stad:1,cls:'g2'}):'')+'</div>';
+ if(v==='f')h+='<div class="ov onx onx-c onx-f">'+onChips({stad:1,cls:'rad'})+onWxK()+(haOn(false)?haBox(false):'')+calWidget()+onMiddag()+onFodRad()+'</div>';
  if(v==='d')h+='<div class="ov onx onx-d"><div class="on-grid">'+onWidgetsD()+'</div></div>';
  return h+smileyCard()}
 /* D i telefonen: widgetar i två storlekar, som på hemskärmen */
