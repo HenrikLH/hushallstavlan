@@ -392,7 +392,7 @@ html:has(#overlay .sheet),html:has(#overlay .cook){overflow:hidden;overscroll-be
 .cook-top{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;min-height:44px;padding:0 8px}
 .cook-top .fn{text-align:center}
 .cook-top>:last-child{justify-self:end}
-.cook-name{text-align:center;padding:0 16px;font-size:17px;line-height:22px;font-weight:600;overflow-wrap:anywhere}
+.cook-name{text-align:center;padding:0 16px;font-size:17px;line-height:22px;font-weight:600;overflow-wrap:break-word;-webkit-hyphens:auto;hyphens:auto}
 .progress{display:flex;gap:4px;margin:10px 16px 0}
 .progress i{flex:1;height:4px;border-radius:2px;background:var(--fill)}
 .progress i.on{background:var(--accent)}
@@ -4173,6 +4173,106 @@ html.ny.ui5 body.wall.sido .corner-me{width:64px;height:64px}
 html.ny.ui5 body.wall.sido:has(.board) .arr-foot{left:calc(var(--sidew) + 16px);bottom:24px}
 @media (prefers-reduced-motion:no-preference){html.ny.ui5 body.wall .nav.sido-ut button[data-act="nav"] span{animation:sidoIn .3s ease both}}
 @keyframes sidoIn{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:none}}
+/* Tavla 2 (väggen, ny översikt g): glasrutor */
+html.ny.ui5 .og{--og-g:rgba(255,255,255,.58);--og-g2:rgba(255,255,255,.72);--og-e:rgba(255,255,255,.8);--og-ln:rgba(11,18,32,.08);--og-f:rgba(11,18,32,.06);--og-i2:rgba(11,18,32,.6);--og-or:#F08228;--og-bl:#3D8BFF;--og-gr:#27A05A;
+ display:grid;grid-template-columns:repeat(12,minmax(0,1fr));grid-template-rows:268px minmax(0,1fr);gap:16px;height:calc(100vh / 1.0588 - var(--tabbar) - var(--tabgap) - 30px);padding:16px;box-sizing:border-box;color:var(--ink)}
+html.ny.ui5[data-theme="dark"] .og{--og-g:rgba(255,255,255,.09);--og-g2:rgba(255,255,255,.13);--og-e:rgba(255,255,255,.16);--og-ln:rgba(255,255,255,.1);--og-f:rgba(255,255,255,.08);--og-i2:rgba(247,248,251,.66);--og-bl:#8ECBFF}
+@media (prefers-color-scheme: dark){html.ny.ui5:not([data-theme="light"]) .og{--og-g:rgba(255,255,255,.09);--og-g2:rgba(255,255,255,.13);--og-e:rgba(255,255,255,.16);--og-ln:rgba(255,255,255,.1);--og-f:rgba(255,255,255,.08);--og-i2:rgba(247,248,251,.66);--og-bl:#8ECBFF}}
+html.ny.ui5 body.wall:has(.og){background:radial-gradient(60% 70% at 85% 10%,#FFE2C6 0%,rgba(255,226,198,0) 60%),radial-gradient(70% 80% at 10% 90%,#C9DBFF 0%,rgba(201,219,255,0) 60%),linear-gradient(160deg,#E7EEFB 0%,#F4EEF4 55%,#F6E9E1 100%) fixed}
+html.ny.ui5[data-theme="dark"] body.wall:has(.og){background:radial-gradient(55% 60% at 88% 8%,rgba(255,138,101,.45) 0%,rgba(255,138,101,0) 60%),radial-gradient(60% 70% at 70% 100%,rgba(122,92,255,.4) 0%,rgba(122,92,255,0) 60%),radial-gradient(60% 70% at 0% 40%,rgba(40,120,200,.4) 0%,rgba(40,120,200,0) 60%),linear-gradient(170deg,#0E1630 0%,#1A1638 50%,#26163A 100%) fixed}
+@media (prefers-color-scheme: dark){html.ny.ui5:not([data-theme="light"]) body.wall:has(.og){background:radial-gradient(55% 60% at 88% 8%,rgba(255,138,101,.45) 0%,rgba(255,138,101,0) 60%),radial-gradient(60% 70% at 70% 100%,rgba(122,92,255,.4) 0%,rgba(122,92,255,0) 60%),radial-gradient(60% 70% at 0% 40%,rgba(40,120,200,.4) 0%,rgba(40,120,200,0) 60%),linear-gradient(170deg,#0E1630 0%,#1A1638 50%,#26163A 100%) fixed}}
+html.ny.ui5 .og-c{background:var(--og-g);-webkit-backdrop-filter:blur(28px) saturate(160%);backdrop-filter:blur(28px) saturate(160%);border:1px solid var(--og-e);border-radius:32px;padding:20px 22px;min-height:0;min-width:0;overflow:hidden;position:relative;box-shadow:none;margin:0}
+html.ny.ui5 .og-lab{display:flex;align-items:center;gap:8px;font-size:13px;line-height:18px;font-weight:600;color:var(--og-i2);min-height:30px}
+html.ny.ui5 .og-r{margin-left:auto;height:30px;padding:0 12px;border-radius:999px;background:var(--og-f);color:var(--ink);font-family:inherit;font-size:13px;line-height:30px;font-weight:600;border:0}
+html.ny.ui5 .og-tom{display:flex;align-items:center;gap:8px;font-size:15px;color:var(--og-i2);padding:8px 4px}
+html.ny.ui5 .og-tom svg{width:20px;height:20px;flex:none}
+/* klocka */
+html.ny.ui5 .og-kl{grid-column:1/4;display:flex;flex-direction:column;justify-content:space-between}
+html.ny.ui5 .og-tid{font-size:92px;line-height:.95;font-weight:200;letter-spacing:-5px;margin-left:-4px}
+html.ny.ui5 .og-dat{font-size:20px;line-height:26px;font-weight:600}
+html.ny.ui5 .og-dat span{display:block;font-size:15px;line-height:20px;font-weight:500;color:var(--og-i2)}
+/* väder */
+html.ny.ui5 .og-wx{grid-column:4/10;display:grid;grid-template-columns:212px minmax(0,1fr);gap:20px;cursor:pointer}
+html.ny.ui5 .og-wl{display:flex;flex-direction:column;min-width:0}
+html.ny.ui5 .og-deg{font-size:80px;line-height:.95;font-weight:200;letter-spacing:-4px}
+html.ny.ui5 .og-cond{font-size:20px;line-height:26px;font-weight:600;margin-top:6px}
+html.ny.ui5 .og-hl{font-size:13px;line-height:18px;color:var(--og-i2);font-weight:500}
+html.ny.ui5 .og-al{margin-top:auto;display:flex;gap:8px;align-items:flex-start;font-size:13px;line-height:18px;font-weight:500;padding:10px 12px;border-radius:16px;background:var(--og-f)}
+html.ny.ui5 .og-al.wet{background:linear-gradient(135deg,rgba(80,160,255,.24),rgba(80,160,255,.08));border:1px solid rgba(80,160,255,.3)}
+html.ny.ui5 .og-al>svg,html.ny.ui5 .og-ali{width:18px;height:18px;flex:none;color:var(--og-bl);font-size:16px;line-height:18px}
+html.ny.ui5 .og-al b{display:block;font-weight:700}
+html.ny.ui5 .og-al span{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+html.ny.ui5 .og-wg{display:flex;flex-direction:column;min-width:0;min-height:0}
+html.ny.ui5 .og-graf{flex:1;width:100%;min-height:0;overflow:visible}
+html.ny.ui5 .og-ga{fill:rgba(240,130,40,.16)}
+html.ny.ui5 .og-gl{fill:none;stroke:var(--og-or);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke}
+html.ny.ui5 .og-gc{fill:#fff;stroke:var(--og-or);stroke-width:2.5}
+html.ny.ui5 .og-gr{fill:var(--og-bl);opacity:.7}
+html.ny.ui5 .og-graf text{text-anchor:middle;font-size:11px;font-weight:600;fill:var(--og-i2)}
+html.ny.ui5 .og-graf .og-gt{fill:var(--ink);font-size:12px;font-weight:700}
+html.ny.ui5 .og-graf .og-gm{fill:var(--og-bl);font-size:10px}
+html.ny.ui5 .og-dd{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:8px}
+html.ny.ui5 .og-dd span{display:flex;align-items:center;gap:6px;height:36px;padding:0 10px;white-space:nowrap;border-radius:14px;background:var(--og-f);font-size:13px;font-weight:600}
+html.ny.ui5 .og-dd i{font-style:normal;font-size:20px;line-height:1;display:flex}
+html.ny.ui5 .og-dd em{font-style:normal;color:var(--og-i2);font-weight:500;margin-left:auto}
+/* härnäst */
+html.ny.ui5 .og-nu{grid-column:10/13;display:flex;flex-direction:column;cursor:pointer;--t:39,160,90}
+html.ny.ui5 .og-nu.tone-acc{--t:194,48,79}html.ny.ui5 .og-nu.tone-or{--t:240,130,40}html.ny.ui5 .og-nu.tone-ind{--t:94,92,230}html.ny.ui5 .og-nu.tone-bl{--t:61,139,255}
+html.ny.ui5 .og-nu{background:linear-gradient(150deg,rgba(var(--t),.26),rgba(var(--t),.05)),var(--og-g)}
+html.ny.ui5 .og-dot{width:8px;height:8px;border-radius:50%;background:rgb(var(--t))}
+html.ny.ui5 .og-big{font-size:56px;line-height:1;font-weight:300;letter-spacing:-2px;margin-top:8px}
+html.ny.ui5 .og-big small{font-size:20px;letter-spacing:0;font-weight:500;color:var(--og-i2);margin-left:6px}
+html.ny.ui5 .og-nuh{font-size:20px;line-height:26px;font-weight:700;margin-top:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+html.ny.ui5 .og-nuh.st{font-size:28px;line-height:34px;margin-top:12px}
+html.ny.ui5 .og-nus{font-size:15px;line-height:20px;color:var(--og-i2);font-weight:500;margin-top:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+html.ny.ui5 .og-nx{margin-top:auto;display:flex;align-items:center;gap:12px;padding:12px 0 0;border:0;border-top:1px solid var(--og-ln);background:none;color:var(--ink);text-align:left;font:inherit;width:100%}
+html.ny.ui5 .og-nx i{width:32px;height:32px;border-radius:50%;background:rgba(240,130,40,.2);display:grid;place-items:center;color:var(--og-or);flex:none}
+html.ny.ui5 .og-nx i svg{width:16px;height:16px}
+html.ny.ui5 .og-nx b{font-size:15px;line-height:20px;font-weight:600;min-width:0}
+html.ny.ui5 .og-nx b span{display:block;font-weight:500;color:var(--og-i2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* tre dagar */
+html.ny.ui5 .og-sch{grid-column:1/6;display:flex;flex-direction:column}
+html.ny.ui5 .og-dagar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;flex:1;margin-top:12px;min-height:0}
+html.ny.ui5 .og-dg{display:flex;flex-direction:column;gap:8px;min-width:0;min-height:0;overflow:auto;scrollbar-width:none}
+html.ny.ui5 .og-dg h3{font-size:15px;line-height:20px;font-weight:700;display:flex;align-items:baseline;gap:6px;padding:0 4px 4px;margin:0}
+html.ny.ui5 .og-dg h3 span{font-size:13px;font-weight:500;color:var(--og-i2)}
+html.ny.ui5 .og-dg.i h3{color:var(--accent)}
+html.ny.ui5 .og-e{flex:none;border-radius:18px;padding:10px 12px 10px 14px;background:var(--og-g2);border:1px solid var(--og-e);position:relative;cursor:pointer;min-width:0}
+html.ny.ui5 .og-e:before{content:"";position:absolute;left:0;top:14px;bottom:14px;width:4px;border-radius:0 3px 3px 0;background:var(--c,var(--accent))}
+html.ny.ui5 .og-e b{display:block;font-size:15px;line-height:20px;font-weight:600;overflow-wrap:break-word;-webkit-hyphens:auto;hyphens:auto}
+html.ny.ui5 .og-e small{display:block;font-size:13px;line-height:17px;color:var(--og-i2);font-weight:500}
+html.ny.ui5 .og-tm{display:flex;flex-wrap:wrap;align-items:center;gap:2px 6px;font-size:13px;line-height:18px;font-weight:700;color:var(--og-i2);margin-bottom:2px}
+html.ny.ui5 .og-e.forbi{opacity:.45}
+html.ny.ui5 .og-e.nu{border:2px solid var(--accent);padding:9px 11px 9px 13px}
+html.ny.ui5 .og-e.mat{--c:var(--og-or);background:linear-gradient(135deg,rgba(240,130,40,.18),rgba(240,130,40,.06));border-color:rgba(240,130,40,.3)}
+html.ny.ui5 .og-e.bd{background:var(--accent-soft);border-color:transparent}
+html.ny.ui5 .og-e.bd b{display:flex;align-items:center;gap:6px}
+html.ny.ui5 .og-e.bd svg{width:16px;height:16px;flex:none;color:var(--accent)}
+html.ny.ui5 .og-pill{white-space:nowrap;font-size:11px;line-height:18px;font-weight:700;padding:0 8px;border-radius:999px;background:var(--accent);color:#fff}
+/* hemmet: samma brickor som Smart hem, i glas */
+html.ny.ui5 .og-hus{grid-column:6/10;display:flex;flex-direction:column;gap:12px;overflow:auto;scrollbar-width:none}
+html.ny.ui5 .og-hus>.wh{margin:0;padding:0;min-height:30px;font-size:13px;font-weight:600;color:var(--og-i2)}
+html.ny.ui5 .og-hus>.wh .lnk{height:30px;padding:0 12px;border-radius:999px;background:var(--og-f);color:var(--ink);font-size:13px;font-weight:600;display:inline-flex;align-items:center}
+html.ny.ui5 .og-hus .ha-st,html.ny.ui5 .og-hus .hab-med{background:var(--og-g2);border:1px solid var(--og-e);box-shadow:none}
+/* att göra */
+html.ny.ui5 .og-gora{grid-column:10/13;display:flex;flex-direction:column}
+html.ny.ui5 .og-tb{display:flex;gap:6px;margin-top:12px}
+html.ny.ui5 .og-tb button{height:36px;padding:0 14px;border-radius:999px;border:0;display:flex;align-items:center;gap:6px;font-family:inherit;font-size:13px;line-height:36px;font-weight:600;background:var(--og-f);color:var(--og-i2)}
+html.ny.ui5 .og-tb button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+html.ny.ui5 .og-dd span>i>*{width:22px;height:22px;font-size:20px}
+html.ny.ui5 .og-tb em{font-style:normal;opacity:.65}
+html.ny.ui5 .og-tl{margin-top:10px;display:flex;flex-direction:column;gap:8px;min-height:0;overflow:auto;scrollbar-width:none}
+html.ny.ui5 .og-ti{flex:none;display:flex;align-items:center;gap:12px;padding:12px;border-radius:18px;background:var(--og-g2);border:1px solid var(--og-e)}
+html.ny.ui5 .og-ti .check{flex:none}
+html.ny.ui5 .og-ti b{font-size:15px;font-weight:600;flex:1;line-height:20px;min-width:0}
+html.ny.ui5 .og-ti small{display:block;font-size:13px;font-weight:500;color:var(--og-i2)}
+html.ny.ui5 .og-ti small.red{color:var(--red,#E5484D)}
+html.ny.ui5 .og-klar{display:flex;align-items:center;gap:8px;padding:12px 4px;font-size:15px;font-weight:600;color:var(--og-gr)}
+html.ny.ui5 .og-klar svg{width:20px;height:20px}
+html.ny.ui5 .og-ft{margin-top:auto;padding-top:10px;font-size:13px;line-height:18px;font-weight:600;color:var(--og-i2)}
+html.ny.ui5 .og-prog{display:flex;align-items:center;gap:12px}
+html.ny.ui5 .og-prog i{flex:1;height:6px;border-radius:3px;background:var(--og-f);overflow:hidden}
+html.ny.ui5 .og-prog i b{display:block;height:100%;background:linear-gradient(90deg,#27A05A,#7BD88F)}
 </style>
 </head>
 <body>
