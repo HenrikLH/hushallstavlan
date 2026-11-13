@@ -2,6 +2,13 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Ny översikt A–D bakom Utvecklarläge (förslag, ej publicerad)
+- Ägare Claude, gren `claude/project-thread-7ys0ku` (utkast-PR). Henrik bad om alla fyra spåren från researchen som val under Inställningar → Utvecklarläge → Ny översikt (Av/A/B/C/D, ls `ht.ovny`). `ovNy()` är tomt utanför DEV/UI5 (och i UI2/3/4/6, ordna-läget), då är allt som förut.
+- Kod: avsnittet efter `boardDefault` i app.js (`on*`-hjälpare, `ovNyTel` telefon, `wallNyBoard` vägg, `wallVila` T14, `wallDagar` T15), krokar i `V.oversikt` och `wallBoard`; ACT `ovny`, `onWk`, `onPers`. CSS sist i index.html (`.onx`, `.on-*`, `.onv`, `.ond`).
+- Spår: A förfinad (datum som rubrik, Idag+Imorgon i ett kort), B Nu-kort + tidslinje, C statusbrickor först, D telefon som widgetar och väggen med villäge (efter 2 min) + fyra dagskolumner med personfilter.
+- Nästa: Henrik provar och väljer; sedan tas valt spår vidare (eventuellt som standard). Ingen Kod.gs-ändring.
+- Test: `verktyg/emu/ny-oversikt.js` (LS ovny a–d, telefon+vägg, ljust+mörkt), alla-flikar telefon+vägg gröna utan utvecklarläge.
+
 ## Natthimmel i ljust läge (publicerad ht-v377, ångra-gren `version-fore-nattpol`)
 - Gren `claude/project-thread-kfdn2j`. Översiktens hjälte i telefonen på natten i ljust läge: `NATTHIM` (ls `ht.natthimmel`, Inställningar → Översikt → Natthimmel i ljust läge: Vanlig/Pöl/Nattkort/Kvällston, Pöl standard). Hjälten får klasserna `natt nh-<val>`; CSS bara i ljust läge (efter UI5-skyfx-regeln i index.html).
 - Pöl (`nPol`, `nBana`): SVG med goo-filter, kometsvans längs månens bana (bred vid månen), dold form bakom trädkronan så att natten drar sig mot trädet, mask runt texten, partiklar `.npk` (bara transform/opacity). Stjärnorna maskas till pölen (`--npm`). skyFit lägger stjärnbilden intill månen nära banan i pölläget. Stjärnbildens namn döljs i pölläget.

@@ -4093,10 +4093,10 @@ html.ny.ui5 .ond-hel .bd{color:var(--accent);background:var(--accent-soft)}html.
 html.ny.ui5 .ond-g{position:relative;flex:1;min-height:0;margin-top:8px}
 html.ny.ui5 .ond-l{position:absolute;left:0;right:0;border-top:.5px solid var(--line)}
 html.ny.ui5 .ond-l span{position:absolute;left:-28px;top:-9px;font-size:11px;line-height:13px;font-weight:500;font-style:normal;color:var(--ink-2)}
-html.ny.ui5 .ond-b{position:absolute;left:0;right:0;min-height:28px;overflow:hidden;padding:4px 8px;border-left:3px solid var(--accent);border-radius:4px 8px 8px 4px;background:var(--accent-soft);font-size:15px;line-height:20px;font-weight:600;cursor:pointer}
+html.ny.ui5 .ond-b{position:absolute;z-index:1;left:0;right:0;min-height:28px;overflow:hidden;padding:4px 8px;border-left:3px solid var(--accent);border-radius:4px 8px 8px 4px;background:linear-gradient(var(--accent-soft),var(--accent-soft)),var(--card);font-size:15px;line-height:20px;font-weight:600;cursor:pointer}
 html.ny.ui5 .ond-b .num{font-weight:400;color:var(--ink-2)}
-html.ny.ui5 .ond-b.p1{border-color:var(--p1);background:var(--p1-soft)}html.ny.ui5 .ond-b.p2{border-color:var(--p2);background:var(--p2-soft)}
-html.ny.ui5 .ond-b.mat{display:flex;align-items:center;gap:4px;border-color:var(--orange);background:var(--on-or-bg);color:var(--orange);font-size:13px;line-height:18px}
+html.ny.ui5 .ond-b.p1{border-color:var(--p1);background:linear-gradient(var(--p1-soft),var(--p1-soft)),var(--surface)}html.ny.ui5 .ond-b.p2{border-color:var(--p2);background:linear-gradient(var(--p2-soft),var(--p2-soft)),var(--surface)}
+html.ny.ui5 .ond-b.mat{display:flex;align-items:center;gap:4px;border-color:var(--orange);background:linear-gradient(var(--on-or-bg),var(--on-or-bg)),var(--surface);color:var(--orange);font-size:13px;line-height:18px}
 html.ny.ui5 .ond-b.mat svg{width:14px;height:14px;flex:none}html.ny.ui5 .ond-b.mat span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 html.ny.ui5 .ond-nu{position:absolute;left:-4px;right:0;border-top:2px solid var(--accent);z-index:2}
 html.ny.ui5 .ond-nu:before{content:"";position:absolute;left:-4px;top:-5px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
@@ -4105,6 +4105,12 @@ html.ny.ui5 .ond-sida .upg-c .ur:first-child{border-top:0}
 html.ny.ui5 .on-lista{font-size:15px;line-height:22px;margin-top:4px}
 html.ny.ui5 .ond .on-chip{min-height:52px}
 html.ny.ui5 .wh .on-vk::after{display:none}
+html.ny.ui5 .onx .wh .r,html.ny.ui5 .onx .wh .lnk,html.ny.ui5 .ond .wh .r{color:var(--accent)}
+html.ny.ui5 body.wall .board.onx:not(.arranging) .bcol[data-col]>.bmeal:last-child{flex:0 1 auto}
+
+.board.onx:not(.arranging) .bcol[data-col]>section:first-child:has(~.bmeal:last-child){flex:1 1 auto}
+html.ny.ui5 .ond .wh{font-size:20px;line-height:26px;font-weight:700;color:var(--ink)}
+html.ny.ui5 .ond .wh .r{margin-left:auto;font-size:15px;font-weight:600}
 </style>
 </head>
 <body>

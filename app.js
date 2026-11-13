@@ -1329,7 +1329,7 @@ function onChips(o){o=o||{};const L=[],H=haOn(false)&&haData(),X=onWx(),left=D()
  if(o.wx&&X)c('<span class="on-emo">'+X.ic+'</span>','gr0',deg(X.T),X.sp?'Regn '+pad(X.sp.a):cap(X.tx),'nav','vader');
  if(H){const n=(H.lampor||[]).filter(x=>x.on).length;c(HAI.bulb,n?'ye':'gr0',n?n+(n>1?' lampor':' lampa'):'Lampor',n?(n>1?'tända':'tänd'):'Allt släckt','nav','hus');
   (H.apparater||[]).filter(haAppAktiv).slice(0,2).forEach(a=>c(HAI_APP[a.typ]||HAI.plug,'bl',a.n,haAppStat(a),'haApp',a.id))}
- if(left.length)c(I.basket,'gr0','Inköp',left.length+(left.length>1?' varor':' vara'),'nav','inkop');
+ if(left.length&&!o.ejInkop)c(I.basket,'gr0','Inköp',left.length+(left.length>1?' varor':' vara'),'nav','inkop');
  if(o.stad&&st.length)c(I.sparkles,'gr','Städ',cp.minLeft+' min','nav','stad');
  const b=bdNext(bdays())[0];if(b&&b.days<=7)c(I.cake,'acc',b.name+(b.age!=null?' '+b.age:''),b.days===0?'idag':b.days===1?'i morgon':DAYS[parse(b.next).getDay()],'nav','fod');
  return L.length?'<div class="on-chips'+(o.cls?' '+o.cls:'')+'">'+L.join('')+'</div>':''}
@@ -1359,7 +1359,7 @@ function ovNyTel(v){const t=today();let h=onHead();
 function onWidgetsD(){const X=onWx(),N=onNuData(),U=upgDag(),M=onMat(today()),left=D().shop.filter(i=>!i.done),o=D().tasks.filter(x=>!x.done);let h='';
  if(X)h+='<section class="widget on-w s on-wxs" data-act="nav" data-id="vader"><div class="on-deg num">'+deg(X.T)+'</div><div class="on-sub">'+esc(cap(X.tx))+(X.sp?' · <span class="on-rain">regn '+pad(X.sp.a)+'–'+pad(X.sp.b)+'</span>':'')+'</div><div class="on-fig" aria-hidden="true">'+figSvg(wxScene(X.W),{bare:1,patch:1})+'</div></section>';
  h+='<section class="widget on-w s on-nus tone-'+N.tone+'" data-act="'+N.act+'" data-id="'+esc(N.id)+'"><span class="on-k">'+esc(N.k)+'</span><span class="on-h">'+esc(N.h)+'</span>'+(N.s?'<span class="on-sub">'+esc(N.s)+'</span>':'')+'</section>';
- h+='<section class="widget on-w m" data-act="nav" data-id="uppgifter"><div class="wh"><span>Att göra</span>'+(o.length?'<span class="r lnk">Alla '+o.length+'</span>':'')+'</div>'+(U.idag.length?upgDagHtml({idag:U.idag.slice(0,3),imorgon:U.imorgon},'',true):'<div class="upg-tom">'+I.tick+'Inget kvar idag</div>')+'</section>';
+ h+='<section class="widget w2 on-w m" data-act="nav" data-id="uppgifter"><div class="wh"><span>Att göra</span>'+(o.length?'<span class="r lnk">Alla '+o.length+'</span>':'')+'</div>'+(U.idag.length?upgDagHtml({idag:U.idag.slice(0,3),imorgon:U.imorgon},'',true):'<div class="upg-tom">'+I.tick+'Inget kvar idag</div>')+'</section>';
  if(M)h+='<section class="widget on-w s on-ms" data-act="'+(M.r?'recipe':'nav')+'" data-id="'+esc(M.r?M.r.id:'mat')+'"><span class="on-k or">'+I.fork+onKl(M.start)+'</span><span class="on-mth">'+dishThumb(M.r,M.m.title)+'</span><span class="on-rt">'+esc(cap(M.m.title.replace(/^Storkok:\s*/i,'')))+'</span></section>';
  h+='<section class="widget on-w s" data-act="nav" data-id="inkop"><div class="on-hl">'+I.basket+'<span>Inköp</span></div><div class="on-big num">'+left.length+'</div><div class="on-sub">'+(left.length?(left.length>1?'varor':'vara')+' · ca '+kr(shopCost(left)):'Listan är tom')+'</div></section>';
  if(!M){const cp=cleanPlan(),L=[...cp.routines.filter(x=>!doneToday(x)),...cp.todo];h+='<section class="widget on-w s" data-act="nav" data-id="stad"><div class="on-hl">'+I.sparkles+'<span>Städ</span></div>'+(L.length?'<div class="on-st">'+esc(L[0].title)+'</div><div class="on-sub">'+cp.minLeft+' min kvar</div>':'<div class="on-st ok">Allt klart</div>')+'</section>'}
@@ -1370,9 +1370,9 @@ const vilaOn=()=>S.wall&&ovNy()==='d'&&!S.sheet&&Date.now()-(A.touch||0)>120000;
 function wallNyBoard(v){if(v==='d')return vilaOn()?wallVila():wallDagar();
  const hero='<div class="bcol bhero">'+refAdd(heroHtml(),'T1')+refAdd(wallWx(),'T2')+'</div>',hh=new Date().getHours(),col=(i,x)=>'<div class="bcol" data-col="'+i+'">'+x+'</div>';
  const hus=haOn(true)?haBox(true).replace('<section ','<section data-box="hus" '):'',fod=wallBd().replace('<section ','<section data-box="fod" ');
- if(v==='a')return'<div class="board onx onx-a">'+hero+col(0,onIdag(false)+fod)+col(1,(hh>=14?onMiddag():onImorgon())+onStadWall()+hus)+'</div>';
+ if(v==='a')return'<div class="board onx onx-a">'+hero+col(0,onIdag(false)+onMiddag()+fod)+col(1,onStadWall()+(hus||onImorgon()))+'</div>';
  if(v==='b')return'<div class="board onx onx-b"><div class="bcol bhero">'+refAdd(heroHtml(),'T1')+onNu('on-nuw')+'</div>'+col(0,onTl())+col(1,onChips({stad:1,cls:'kol'})+hus)+'</div>';
- return'<div class="board onx onx-c"><div class="bcol bhero">'+refAdd(heroHtml(),'T1')+onChips({stad:1,cls:'g2'})+'</div>'+col(0,onIdag(false)+onMiddag())+col(1,hus+fod)+'</div>'}
+ return'<div class="board onx onx-c"><div class="bcol bhero">'+refAdd(heroHtml(),'T1')+onChips({stad:1,cls:'g2'})+'</div>'+col(0,onIdag(false)+onMiddag()+fod)+col(1,hus||onImorgon())+'</div>'}
 function onStadWall(){const cp=cleanPlan(),L=[...cp.routines.filter(x=>!doneToday(x)),...cp.todo].slice(0,4),dn=cp.routines.filter(doneToday).length+cp.doneRot.length,tot=cp.routines.length+cp.doneRot.length+cp.todo.length;if(!tot)return'';
  return widget('stad','bclean',I.sparkles,'Städ idag',dn+' av '+tot,L.length?'<div class="wl">'+L.map(x=>'<div class="cell ck" data-act="cleanToggle" data-id="'+esc(x.id)+'"><input type="checkbox" class="check" data-act="cleanToggle" data-id="'+esc(x.id)+'" aria-label="'+esc(x.title)+'"><span class="grow">'+esc(x.title)+'</span><span class="val num">'+x.min+' min</span></div>').join('')+'</div>':'<div class="bdone">'+I.tick+'Allt är gjort idag</div>').replace('<section ','<section data-box="stad" ')}
 // D, villäget: läsbart från bordet. Klocka, väder och tre rader i stor text; ett tryck visar tavlan.
@@ -1405,9 +1405,9 @@ function wallDagar(){const t=today(),P=people(),f=S.onPers&&P.includes(S.onPers)
  const seg='<div class="segc ond-seg" role="group" aria-label="Visa" style="--n:'+(P.length+1)+';--i:'+(f?P.indexOf(f)+1:0)+'"><i class="seg-thumb" aria-hidden="true"></i>'+['',...P].map(p=>'<button type="button" data-act="onPers" data-id="'+esc(p)+'" aria-pressed="'+(p===f)+'">'+(p?'<i class="ond-dot" style="background:var(--'+pcls(p)+')"></i>'+esc(personLabel(p)):'Alla')+'</button>').join('')+'</div>';
  return'<div class="ond"'+RF('T15')+'><div class="ond-top"><div class="ond-kl num" id="clock">'+pad(n.getHours())+':'+pad(n.getMinutes())+'</div><div class="ond-sub">'+esc(cap(dayHead(t)))+(X?' · '+deg(X.T)+' '+esc(X.tx)+(X.sp?' · regn '+pad(X.sp.a)+'–'+pad(X.sp.b):''):'')+'</div>'+seg+'</div>'+
   '<div class="ond-dagar">'+[0,1,2,3].map(i=>col(addDays(t,i),i)).join('')+'<div class="ond-sida">'+
-   '<section class="widget" data-act="nav" data-id="uppgifter"><div class="wh"><span>Att göra</span><span class="r lnk">'+(o.length?'Alla '+o.length:'')+'</span></div>'+(U.idag.length?upgDagHtml({idag:U.idag.slice(0,4),imorgon:[]},'',true):'<div class="upg-tom">'+I.tick+'Inget kvar idag</div>')+'</section>'+
-   (left.length?'<section class="widget" data-act="nav" data-id="inkop"><div class="wh"><span>Inköp <span class="wk-mo">'+left.length+' · ca '+kr(shopCost(left))+'</span></span></div><div class="on-lista">'+left.slice(0,8).map(i=>esc(i.name||i.title||'')).filter(Boolean).join(' · ')+(left.length>8?' …':'')+'</div></section>':'')+
-   onChips({cls:'kol'})+'</div></div></div>'}
+   '<section class="widget w2" data-act="nav" data-id="uppgifter"><div class="wh"><span>Att göra</span><span class="r lnk">'+(o.length?'Alla '+o.length:'')+'</span></div>'+(U.idag.length?upgDagHtml({idag:U.idag.slice(0,4),imorgon:[]},'',true):'<div class="upg-tom">'+I.tick+'Inget kvar idag</div>')+'</section>'+
+   (left.length?'<section class="widget w2" data-act="nav" data-id="inkop"><div class="wh"><span>Inköp <span class="wk-mo">'+left.length+' · ca '+kr(shopCost(left))+'</span></span></div><div class="on-lista">'+left.slice(0,8).map(i=>esc(i.name||i.title||'')).filter(Boolean).join(' · ')+(left.length>8?' …':'')+'</div></section>':'')+
+   onChips({cls:'kol',ejInkop:1})+'</div></div></div>'}
 /* ---------- Smart hem (Home Assistant), bara på väggskärmen ----------
    Väggdatorns lokala tjänst (kiosk/ljussensor.py, /ha) håller HA-nyckeln och släpper bara igenom valda lampor, scener och
    givare. Appen frågar med lång väntan (?v=N svarar först vid en ändring), så rutan följer med inom en sekund när någon
