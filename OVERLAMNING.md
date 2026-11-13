@@ -6,7 +6,7 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 - Ägare Claude, gren `claude/project-thread-yfjs8a`. Mål: 3D-karta över hemmet med smarta enheter där de står. Bakom Utvecklarläge: Hemmet → Hemmet i 3D (rutor H4/H5, vy `hem3d`, kod `h3d*`/`V.hem3d` efter `V.robot`).
 - Modellen byggs ur dammsugarens karta (`HA.km.kl`, rum per pixel): 10 cm-celler, golv per rum, väggar där golv saknas inom 20 cm, dörrar = där två rum möts. Skala ur rummens `m2`. Ortografisk canvas, enheter som knappar ovanpå.
 - Enheternas platser för hushållet i onskelista `{h3d:1,p:{id:[x,y]}}` (kartbildens pixlar); utan plats: mitt i rummet med samma namn, roboten vid `dockPx`.
-- Nästa: Henriks planritning/mått/foton för fönster, dörrar, möbler; enhetshöjd (taklampa), riktig kartbild från roboten okontrollerad (väggdatorn ej nåbar 13/11).
+- Henriks rättade planritning (godkänd 13/11) läses från onskelista `{h3d:1,plan:[{id,n,p}],skala}` (kartbildens pixlar, 12,5 mm/px) → `h3dPlanModell` med raka väggar och öppningar; utan plan används robotkartan. Planen ligger INTE i repot (publikt); kopia i projektfilerna hem3d/verktyg/plan.json (celler à 10 cm, ×8 = px). Nästa: spara planen i arket (Henriks ok), placera enheter, fråga om den grå zonen mellan kök/sovrum.
 - Test `verktyg/emu/hem3d.js` (LS haDemo+dev), telefon ljust/mörkt + vägg; alla-flikar telefon+vägg gröna.
 
 ## Väggen: menyn som sidofält till vänster (publicerad ht-v387, ångra-gren `version-fore-vagg-sidomeny`)

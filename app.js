@@ -1985,10 +1985,29 @@ const h3dGet=()=>parseJ(settings().onskelista,[]).find(x=>x&&x.h3d)||{};
 function h3dSet(ch){A.user=Date.now();updJSON('onskelista',[],a=>{const o=a.find(x=>x&&x.h3d)||{};return a.filter(x=>!(x&&x.h3d)).concat([Object.assign({},o,ch,{h3d:1})])})}
 const h3dCam=()=>S.h3c||(S.h3c={yaw:-.45,pit:.82,zoom:1,px:0,py:0});
 const h3dHog=()=>lsGet('h3dVagg')==='hel'?2.4:1.1;
+const h3dSkala=(a,k)=>{const R=a.rum||[],sk=k.rum.map(r=>{const q=R.find(x=>x.id===r.id);return q&&q.m2?Math.sqrt(q.m2/.75/Math.max(1,(r.b[2]-r.b[0])*(r.b[3]-r.b[1]))):0}).filter(v=>v>0).sort((p,q)=>p-q);return sk.length?sk[sk.length>>1]:.05};
+// rumsfärg ur robotens karta, ljusare (golvet)
+const h3dFarg=(k,id,mork)=>{const r=k.rum.find(x=>x.id===id),f=r&&r.f||[200,200,200],b=mork?[44,44,46]:[255,255,255],t=mork?.62:.72;return'rgb('+f.map((v,i)=>Math.round(v*(1-t)+b[i]*t)).join(',')+')'};
+const h3dIn=(P,x,y)=>{let c=false;for(let i=0,j=P.length-1;i<P.length;j=i++){const[xi,yi]=P[i],[xj,yj]=P[j];if((yi>y)!==(yj>y)&&x<(xj-xi)*(y-yi)/(yj-yi)+xi)c=!c}return c};
+/* Rättad planritning (Henriks): {h3d:1,plan:[{id,n,p:[[x,y]…]}]} i kartbildens pixlar. Raka väggar längs rummens kanter;
+   där ett annat rum ligger direkt intill är det en öppning, annars en vägg som fyller glipan mot nästa rum (högst 45 cm) eller 20 cm ytterväggen. */
+function h3dPlanModell(a,k,plan){const key='plan|'+JSON.stringify(plan)+'|'+k.src;if(H3.m&&H3.m.key===key)return H3.m;
+ const s=+h3dGet().skala||h3dSkala(a,k),X=[],Y=[];plan.forEach(r=>r.p.forEach(([x,y])=>{X.push(x);Y.push(y)}));
+ const cx=(Math.min(...X)+Math.max(...X))/2,cy=(Math.min(...Y)+Math.max(...Y))/2,ox=-cx*s,oy=-cy*s,W=([x,y])=>[x*s+ox,y*s+oy];
+ const rum=plan.map(r=>{const p=r.p.map(W);let A=0,gx=0,gy=0;p.forEach((q,i)=>{const o=p[(i+1)%p.length],c=q[0]*o[1]-o[0]*q[1];A+=c;gx+=(q[0]+o[0])*c;gy+=(q[1]+o[1])*c});return{id:r.id,n:r.n,p,A:A/2,cx:gx/(3*A),cy:gy/(3*A)}});
+ const iRum=(x,y,u)=>rum.some(r=>r!==u&&h3dIn(r.p,x,y)),vq=[];
+ rum.forEach(r=>{const P=r.p,sg=r.A>0?1:-1;P.forEach((q,i)=>{const o=P[(i+1)%P.length],dx=o[0]-q[0],dy=o[1]-q[1],L=Math.hypot(dx,dy);if(L<.01)return;const ux=dx/L,uy=dy/L,nx=uy*sg,ny=-ux*sg,st=Math.max(1,Math.round(L/.05));
+  let run=null;const klar=()=>{if(!run)return;const t=run.t,a0=run.a-(run.a<1e-6?t:0),a1=run.b+(run.b>L-1e-6?t:0),p=(f,d)=>[q[0]+ux*f+nx*d,q[1]+uy*f+ny*d];vq.push([p(a0,0),p(a1,0),p(a1,t),p(a0,t)]);run=null};
+  for(let j=0;j<st;j++){const f=(j+.5)*L/st,mx=q[0]+ux*f,my=q[1]+uy*f;if(iRum(mx+nx*.04,my+ny*.04,r)){klar();continue}
+   let t=.2;for(let d=.05;d<=.45;d+=.05)if(iRum(mx+nx*d,my+ny*d,r)){t=d/2;break}
+   if(run&&Math.abs(run.t-t)<.01)run.b=(j+1)*L/st;else{klar();run={a:j*L/st,b:(j+1)*L/st,t}}}
+  klar()})});
+ const ex=Math.max(Math.max(...X)-Math.min(...X),Math.max(...Y)-Math.min(...Y))*s;
+ return H3.m={key,plan:1,s,x0:0,y0:0,ox,oy,rum,vq,mitt:[0,0],rad:Math.hypot(Math.max(...X)-Math.min(...X),Math.max(...Y)-Math.min(...Y))*s/2*.92,
+  rumPx:rum.map(r=>({id:r.id,n:r.n,cx:(r.cx-ox)/s,cy:(r.cy-oy)/s}))}}
 function h3dModell(a,k){const key=k.src+'|'+k.crop.join(',');if(H3.m&&H3.m.key===key)return H3.m;
  const[x0,y0,cw,ch]=k.crop,R=a.rum||[],n=k.rum.length;
- const sk=k.rum.map(r=>{const q=R.find(x=>x.id===r.id);return q&&q.m2?Math.sqrt(q.m2/.75/Math.max(1,(r.b[2]-r.b[0])*(r.b[3]-r.b[1]))):0}).filter(v=>v>0).sort((p,q)=>p-q);
- const s=sk.length?sk[sk.length>>1]:.05,c=Math.max(1,Math.round(.1/s)),gw=Math.ceil(cw/c),gh=Math.ceil(ch/c),N=gw*gh,L=new Int8Array(N).fill(-1);
+ const s=h3dSkala(a,k),c=Math.max(1,Math.round(.1/s)),gw=Math.ceil(cw/c),gh=Math.ceil(ch/c),N=gw*gh,L=new Int8Array(N).fill(-1);
  // en cell ≈ 10 cm: det vanligaste rummet i cellen (vid lika vinner vägg, så tunna väggar finns kvar)
  for(let gy=0;gy<gh;gy++)for(let gx=0;gx<gw;gx++){const cnt=new Int32Array(n+1);for(let y=gy*c;y<Math.min(ch,gy*c+c);y++)for(let x=gx*c;x<Math.min(cw,gx*c+c);x++)cnt[k.kl[y*cw+x]+1]++;let b=0;for(let j=1;j<=n;j++)if(cnt[j]>cnt[b])b=j;L[gy*gw+gx]=b-1}
  // små hinder mitt i ett rum (bordsben, roboten på kartan) blir golv
@@ -2003,7 +2022,9 @@ function h3dModell(a,k){const key=k.src+'|'+k.crop.join(',');if(H3.m&&H3.m.key==
   for(let yy=y;yy<y+h;yy++)for(let d=0;d<w;d++)an[yy*gw+x+d]=1;box.push([x,y,x+w,y+h])}
  let bx0=gw,by0=gh,bx1=0,by1=0;for(let y=0;y<gh;y++)for(let x=0;x<gw;x++)if(L[y*gw+x]>=0){bx0=Math.min(bx0,x);by0=Math.min(by0,y);bx1=Math.max(bx1,x+1);by1=Math.max(by1,y+1)}
  const F=6,fc=document.createElement('canvas');fc.width=gw*F;fc.height=gh*F;const ox=-cw/2*s,oy=-ch/2*s,cs=c*s;
- return H3.m={key,s,c,gw,gh,L,box,fc,F,x0,y0,cw,ch,tema:'',ox,oy,mitt:[ox+(bx0+bx1)/2*cs,oy+(by0+by1)/2*cs],rad:Math.hypot(bx1-bx0,by1-by0)/2*cs}}
+ const vq=box.map(([a0,b0,a1,b1])=>[[ox+a0*cs,oy+b0*cs],[ox+a1*cs,oy+b0*cs],[ox+a1*cs,oy+b1*cs],[ox+a0*cs,oy+b1*cs]]);
+ return H3.m={key,s,c,gw,gh,L,box,vq,fc,F,x0,y0,cw,ch,tema:'',ox,oy,mitt:[ox+(bx0+bx1)/2*cs,oy+(by0+by1)/2*cs],rad:Math.hypot(bx1-bx0,by1-by0)/2*cs,
+  rumPx:k.rum.map(r=>{const q=R.find(x=>x.id===r.id);return{id:r.id,n:q?haRumN(a,q):'',cx:r.cx,cy:r.cy}})}}
 function h3dGolv(M,k,mork){const t=mork+'|'+(M.namn||[]).map(x=>x[0]).join();if(M.tema===t)return;M.tema=t;const g=M.fc.getContext('2d'),F=M.F;g.clearRect(0,0,M.fc.width,M.fc.height);
  const fa=k.rum.map(r=>{const f=r.f||[200,200,200],b=mork?[44,44,46]:[255,255,255],t=mork?.62:.72;return'rgb('+f.map((v,i)=>Math.round(v*(1-t)+b[i]*t)).join(',')+')'});
  for(let y=0;y<M.gh;y++)for(let x=0;x<M.gw;x++){const j=M.L[y*M.gw+x];if(j<0)continue;g.fillStyle=fa[j];g.fillRect(x*F,y*F,F,F)}
@@ -2021,7 +2042,7 @@ function h3dEnh(a,k,M){const D=haData()||{},sp=h3dGet().p||{},R=a.rum||[],ut=[],
  const E=(D.lampor||[]).map(x=>({x,id:x.id,n:x.n,ik:haIk(x),on:!!x.on,act:'haLampa',rum:x.rum,st:haIkSt(x)}))
   .concat((D.media||[]).filter(m=>!m.grupp).map(m=>({x:m,id:m.id,n:m.n,ik:HAI_SPK,on:haMedSpelar(m),act:'haMedOpen',rum:m.rum})),
    (D.apparater||[]).map(x=>({x,id:x.id,n:x.n,ik:HAI_APP[x.typ]||HAI.plug,on:haAppAktiv(x),act:'haApp',rum:x.rum,ap:x})));
- const rumAv=n=>{if(!n)return null;const j=k.rum.findIndex(r=>{const q=R.find(x=>x.id===r.id);return q&&haRumN(a,q).toLowerCase()===String(n).toLowerCase()});return j<0?null:k.rum[j]};
+ const rumAv=n=>{if(!n)return null;const q=(M.rumPx||[]).find(r=>{const x=R.find(y=>y.id===r.id);return String(M.plan||!x?r.n:haRumN(a,x)).toLowerCase()===String(n).toLowerCase()});return q||null};
  E.forEach(e=>{const p=sp[e.id];if(Array.isArray(p)&&p.length===2){e.p=p;return}
   if(e.ap&&e.ap.typ==='robot'&&e.ap.dockPx){e.p=e.ap.dockPx;e.auto=1;return}
   const r=rumAv(e.rum);if(!r){ut.push(e);return}const l=per[r.id]||(per[r.id]=[]);l.push(e);e.auto=1;e.r=r});
@@ -2029,12 +2050,12 @@ function h3dEnh(a,k,M){const D=haData()||{},sp=h3dGet().p||{},R=a.rum||[],ut=[],
  return{alla:E.filter(e=>e.p),ut}}
 V.hem3d=function(){const bak='<div class="rcp-top"><button class="back" data-act="nav" data-id="hemmet">'+I.back+'Hemmet</button></div>';
  const D=(haUrl()||haDemo())?haData():null,a=D&&(D.apparater||[]).find(x=>x.typ==='robot'&&x.karta);
- let h=bak+head('Hemmet i 3D',{sub:'Första grova modellen, byggd ur dammsugarens karta'});
+ let h=bak+head('Hemmet i 3D',{sub:Array.isArray(h3dGet().plan)?'Byggd ur er planritning':'Första grova modellen, byggd ur dammsugarens karta'});
  if(!a)return h+'<div class="banner">Modellen byggs ur dammsugarens karta. '+(D?'Dammsugaren har ingen karta än.':'Slå på Testa Smart hem under Utvecklarläge för att prova med låtsasdata.')+'</div>';
  const k=haKartaLas(a);if(!k)return h+'<div class="h3d tom">'+(HA.km&&HA.km.fel?'Kartan gick inte att hämta':'Hämtar kartan …')+'</div>';
- const M=h3dModell(a,k),{alla,ut}=h3dEnh(a,k,M),fl=!!S.h3Flytta,C=h3dCam(),top=C.pit>1.5;
+ const pl=h3dGet().plan,M=Array.isArray(pl)&&pl.length?h3dPlanModell(a,k,pl):h3dModell(a,k),{alla,ut}=h3dEnh(a,k,M),fl=!!S.h3Flytta,C=h3dCam(),top=C.pit>1.5;
  const pin=e=>'<button type="button" class="h3d-p'+(e.on?' on':'')+(e.ap?' ap':'')+'" data-p="'+e.p.join(',')+'" data-id="'+esc(e.id)+'"'+(fl?'':' data-act="'+e.act+'"')+' aria-label="'+esc(e.n)+'"><span class="ha-i"'+(e.on?e.st||'':'')+'>'+e.ik+'</span><span class="h3d-n">'+esc(e.n)+'</span></button>';
- M.namn=k.rum.map(r=>{const q=(a.rum||[]).find(x=>x.id===r.id);return q?[haRumN(a,q),r.cx,r.cy]:null}).filter(Boolean);
+ M.namn=(M.rumPx||[]).map(r=>{const q=(a.rum||[]).find(x=>x.id===r.id);return[M.plan||!q?r.n:haRumN(a,q),r.cx,r.cy]});
  h+='<div class="h3d'+(fl?' fl':'')+'"'+RF('H5')+'><canvas aria-hidden="true"></canvas><div class="h3d-lag">'+alla.map(pin).join('')+'</div>'+
   '<div class="h3d-kn"><button type="button" class="pill'+(top?' on':'')+'" data-act="h3dTopp" aria-pressed="'+top+'">Ovanifrån</button><button type="button" class="pill'+(lsGet('h3dVagg')==='hel'?' on':'')+'" data-act="h3dVagg">Höga väggar</button><button type="button" class="pill'+(fl?' on':'')+'" data-act="h3dFlytta" aria-pressed="'+fl+'">'+(fl?'Klar':'Flytta enheter')+'</button></div></div>';
  h+='<p class="h3d-tips">'+(fl?'Dra en enhet dit den står. Platsen sparas för hela hushållet.':'Dra för att vrida, nyp för att zooma. Tryck på en enhet för att styra den.')+'</p>';
@@ -2042,16 +2063,21 @@ V.hem3d=function(){const bak='<div class="rcp-top"><button class="back" data-act
  return h};
 function h3dRita(){H3.raf=0;const el=document.querySelector('.h3d');if(!el||!H3.m)return;const cv=el.querySelector('canvas'),M=H3.m,k=HA.km;if(!cv||!k||!k.ok)return;
  const dpr=Math.min(2,devicePixelRatio||1),w=el.clientWidth,h=el.clientHeight;if(cv.width!==Math.round(w*dpr)||cv.height!==Math.round(h*dpr)){cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr)}
- const g=cv.getContext('2d'),P=h3dProj(M,el),mork=isDark(),H=h3dHog(),cs=M.c*M.s;h3dGolv(M,k,mork);
+ const g=cv.getContext('2d'),P=h3dProj(M,el),mork=isDark(),H=h3dHog();
  g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,cv.width,cv.height);
- // golvet: plan yta, därför räcker en affin avbildning av golvbilden
- const p0=P(M.ox,M.oy,0),pu=P(M.ox+cs/M.F,M.oy,0),pv=P(M.ox,M.oy+cs/M.F,0);
- g.setTransform(dpr*(pu[0]-p0[0]),dpr*(pu[1]-p0[1]),dpr*(pv[0]-p0[0]),dpr*(pv[1]-p0[1]),dpr*p0[0],dpr*p0[1]);g.imageSmoothingEnabled=true;g.drawImage(M.fc,0,0);
+ // golvet: plan yta, därför räcker en affin avbildning (golvbilden, eller planritningens rum i meter)
+ if(M.plan){const p0=P(0,0,0),pu=P(1,0,0),pv=P(0,1,0);g.setTransform(dpr*(pu[0]-p0[0]),dpr*(pu[1]-p0[1]),dpr*(pv[0]-p0[0]),dpr*(pv[1]-p0[1]),dpr*p0[0],dpr*p0[1]);
+  M.rum.forEach(r=>{g.beginPath();r.p.forEach((q,i)=>i?g.lineTo(q[0],q[1]):g.moveTo(q[0],q[1]));g.closePath();g.fillStyle=g.strokeStyle=h3dFarg(k,r.id,mork);g.lineWidth=.03;g.fill();g.stroke()});
+  g.font='600 34px -apple-system,system-ui,sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillStyle=mork?'rgba(235,235,245,.5)':'rgba(60,60,67,.5)';
+  (M.namn||[]).forEach(([t,X,Y])=>{const[wx,wy]=h3dV(M,X,Y);g.save();g.translate(wx,wy);g.scale(.01,.01);g.fillText(t,0,0);g.restore()})}
+ else{const cs=M.c*M.s;h3dGolv(M,k,mork);const p0=P(M.ox,M.oy,0),pu=P(M.ox+cs/M.F,M.oy,0),pv=P(M.ox,M.oy+cs/M.F,0);
+  g.setTransform(dpr*(pu[0]-p0[0]),dpr*(pu[1]-p0[1]),dpr*(pv[0]-p0[0]),dpr*(pv[1]-p0[1]),dpr*p0[0],dpr*p0[1]);g.imageSmoothingEnabled=true;g.drawImage(M.fc,0,0)}
  g.setTransform(dpr,0,0,dpr,0,0);g.lineJoin='round';
  // väggarnas sidor bakifrån och fram, ovansidorna sist (de skyms aldrig av en lika hög vägg)
- const sid=[],tak=[],ljus=[-.55,-.8],X=v=>M.ox+v*cs,Y=v=>M.oy+v*cs;
- M.box.forEach(([a0,b0,a1,b1])=>{const x0=X(a0),y0=Y(b0),x1=X(a1),y1=Y(b1),hor=[[x0,y0],[x1,y0],[x1,y1],[x0,y1]];
-  [[0,1,0,-1],[1,2,1,0],[2,3,0,1],[3,0,-1,0]].forEach(([i,j,nx,ny])=>{if(nx*P.sy+ny*P.cy<=.001||P.sp>.999)return;const A0=hor[i],B0=hor[j],q=[P(A0[0],A0[1],0),P(B0[0],B0[1],0),P(B0[0],B0[1],H),P(A0[0],A0[1],H)];
+ const sid=[],tak=[],ljus=[-.55,-.8];
+ M.vq.forEach(hor=>{const mx=(hor[0][0]+hor[2][0])/2,my=(hor[0][1]+hor[2][1])/2;
+  hor.forEach((A0,i)=>{const B0=hor[(i+1)%4],dx=B0[0]-A0[0],dy=B0[1]-A0[1],L=Math.hypot(dx,dy)||1;let nx=dy/L,ny=-dx/L;if(nx*((A0[0]+B0[0])/2-mx)+ny*((A0[1]+B0[1])/2-my)<0){nx=-nx;ny=-ny}
+   if(nx*P.sy+ny*P.cy<=.001||P.sp>.999)return;const q=[P(A0[0],A0[1],0),P(B0[0],B0[1],0),P(B0[0],B0[1],H),P(A0[0],A0[1],H)];
    sid.push({q,d:(q[0][2]+q[1][2])/2,l:.5+.5*Math.max(0,-(nx*ljus[0]+ny*ljus[1]))})});
   tak.push(hor.map(p=>P(p[0],p[1],H)))});
  sid.sort((p,q)=>p.d-q.d);const ytan=(q,f)=>{g.beginPath();g.moveTo(q[0][0],q[0][1]);for(let i=1;i<q.length;i++)g.lineTo(q[i][0],q[i][1]);g.closePath();g.fillStyle=g.strokeStyle=f;g.fill();g.lineWidth=.8;g.stroke()};
