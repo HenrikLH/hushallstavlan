@@ -956,7 +956,11 @@ const SIZES={ov:{can:['mat','stad','inkop','upg','hem','fod','imorgon'],half:['s
 const SV2='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
 const IA={minus:SV2+'<path d="M6 12h12"/></svg>',grow:SV2+'<path d="M14 4h6v6M10 20H4v-6M20 4l-6.5 6.5M4 20l6.5-6.5"/></svg>',shrink:SV2+'<path d="M20 10h-6V4M4 14h6v6M14 10l6-6M10 14l-6 6"/></svg>',undo:SV2+'<path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>'};
 let PREVIEW=null,DRAG_ID=null;// medan en ruta dras ritas tavlan med den tillfälliga ordningen
-function layout(wall,def){if(PREVIEW&&PREVIEW.wall===wall)return PREVIEW.L;if(expOn())return layoutX(wall);
+// Engångsflytt (ht-v381): när Att göra flyttade in i Schema blev vänstra väggspalten för hög. Inköp och Födelsedagar (Henrik) och Smart hem flyttas till högra spalten
+function wallFlytt(){if(lsGet('wallFlytt')==='1')return;lsSet('wallFlytt','1');const k='wallLayoutNy';let o=null;try{o=JSON.parse(lsGet(k)||'null')}catch(e){}
+ if(!o||!Array.isArray(o.cols)||o.cols.length<2)return;const fl=['inkop','fod','hus'].filter(id=>o.cols[0].includes(id));if(!fl.length)return;
+ o.cols[0]=o.cols[0].filter(id=>!fl.includes(id));const c=o.cols[1],i=c.indexOf('stad');c.splice(i<0?c.length:i+1,0,...fl);lsSet(k,JSON.stringify(o))}
+function layout(wall,def){if(PREVIEW&&PREVIEW.wall===wall)return PREVIEW.L;if(expOn())return layoutX(wall);if(wall&&U5)wallFlytt();
  const k=(wall?'wallLayout':'ovLayout')+(U4?'4':U3?'3':'Ny'),Z=SIZES[wall?'wall':'ov'];let o=null;try{o=JSON.parse(lsGet(k)||(U4?lsGet((wall?'wallLayout':'ovLayout')+'Ny'):null)||'null')}catch(e){}
  const known=new Set(def.flat()),hidden=(o&&Array.isArray(o.hidden)?o.hidden:[]).filter(x=>known.has(x));
  let cols=o&&Array.isArray(o.cols)&&o.cols.length===def.length?o.cols.map(c=>c.filter(x=>known.has(x))):def.map(c=>c.slice());
@@ -4806,15 +4810,22 @@ let FIT_T=0;function fitBoard(){if(U5){fitBoard5();clearTimeout(FIT_T);FIT_T=set
  [...l.children].forEach(c=>c.hidden=false);[...l.children].forEach(c=>{if(c.getBoundingClientRect().bottom>box)c.hidden=true})})}
 // rutor som ritas om på egen hand (schemats minuttext, Smart hem) mäts om via en MutationObserver på spalterna
 let FIT_MO=null,FIT_R=0;
+const fitNav=w=>{const id=w&&w.dataset.box;return({kal:'kalender',upg:'uppgifter',mat:'mat',stad:'stad',inkop:'inkop',fod:'fod',hus:'hus',imorgon:'kalender'})[id]||'kalender'};
 function fitBoard5(){const B=document.querySelector('.board:not(.arranging)');if(FIT_MO)FIT_MO.disconnect();if(!B)return;
- B.querySelectorAll('.fit-dold').forEach(e=>e.classList.remove('fit-dold'));B.querySelectorAll('.fit-mer').forEach(e=>e.remove());B.querySelectorAll('.wpair>.widget').forEach(w=>w.style.removeProperty('--z'));
- B.querySelectorAll('.bcol[data-col]').forEach(col=>{const X=[...col.querySelectorAll(':scope>.widget')].map(w=>({w,r:[...w.querySelectorAll('.evs>.ev,:scope>.wmeal,.wl>.cell,.brooms>div')],n:0,m:null}));// passerade händelser försvinner tyst, övriga räknas i "+N till"
+ B.querySelectorAll('.fit-dold').forEach(e=>e.classList.remove('fit-dold'));B.querySelectorAll('.fit-mer,.fit-visa').forEach(e=>e.remove());B.querySelectorAll('.fit-klipp').forEach(e=>{e.classList.remove('fit-klipp');e.style.removeProperty('max-height')});B.querySelectorAll('.wpair>.widget').forEach(w=>w.style.removeProperty('--z'));
+ B.querySelectorAll('.bcol[data-col]').forEach(col=>{const X=[...col.querySelectorAll(':scope>.widget')].map(w=>({w,r:[...w.querySelectorAll('.evs>.ev,:scope>.wmeal,.wl>.cell,.brooms>div,.upg-c>.ur')],n:0,m:null}));// passerade händelser försvinner tyst, övriga räknas i "+N till"
 
   for(let k=0;k<80&&col.scrollHeight>col.clientHeight+1;k++){const vis=x=>x.r.filter(r=>!r.classList.contains('fit-dold')),C=X.filter(x=>vis(x).length);if(!C.length)break;
    // passerade händelser går först, sedan en rad från den högsta rutan som har fler än en rad kvar; kvällens middag kortas sist
-   let b=C.find(x=>vis(x).some(r=>r.classList.contains('past')));if(!b){const ej=C.filter(x=>!x.w.classList.contains('bmeal')),M=ej.filter(x=>vis(x).length>1);b=(M.length?M:ej.length?ej:C).reduce((a,x)=>x.w.offsetHeight>a.w.offsetHeight?x:a)}
+   let b=C.find(x=>vis(x).some(r=>r.classList.contains('past')));if(!b){const ej=C.filter(x=>!x.w.classList.contains('bmeal')),M=ej.filter(x=>vis(x).length>(x.w.matches('.calw')?3:1)),mm=C.filter(x=>x.w.classList.contains('bmeal')&&vis(x).length>1);
+   // varje ruta behåller några rader (Schema minst tre); räcker det inte kortas sista rutan i spalten med Visa mer nedan
+   if(!M.length&&!mm.length)break;b=(M.length?M:mm).reduce((a,x)=>x.w.offsetHeight>a.w.offsetHeight?x:a)}
    const v=vis(b),r=v.find(r=>r.classList.contains('past'))||v[v.length-1];r.classList.add('fit-dold');if(r.classList.contains('past'))continue;b.n++;
-   if(!b.m){b.m=document.createElement('div');b.m.className='fit-mer';r.parentNode.appendChild(b.m)}b.m.textContent='+'+b.n+' till'}})
+   if(!b.m){b.m=document.createElement('button');b.m.type='button';b.m.className='fit-mer';b.m.dataset.act='nav';r.parentNode.appendChild(b.m)}
+   b.m.dataset.id=r.classList.contains('ur')?'uppgifter':fitNav(b.w);b.m.textContent='Visa '+b.n+' till ›'}
+  // Räcker det ändå inte (rutor utan rader, som Smart hem): sista rutan kortas till spalten och får Visa mer i stället för att hamna utanför
+  const over=col.scrollHeight-col.clientHeight;if(over>1){const w=[...col.querySelectorAll(':scope>.widget,:scope>.wpair')].pop();if(w){w.classList.add('fit-klipp');w.style.maxHeight=Math.max(80,w.offsetHeight-over)+'px';
+   const v=document.createElement('button');v.type='button';v.className='fit-visa';v.dataset.act='nav';v.dataset.id=fitNav(w.matches('.widget')?w:w.querySelector('.widget'));v.textContent='Visa mer';w.appendChild(v)}}})
  // Inköp och Födelsedagar som fått mer höjd än de behöver: siffran och årshjulet växer (--z, högst 1,8) så länge allt får plats
  B.querySelectorAll('.bcol[data-col] .wpair>.widget').forEach(w=>{let z=1;const H0=w.offsetHeight,col=w.closest('.bcol'),l=w.querySelector('.bbd-l'),ok=()=>w.offsetHeight<=H0+1&&col.scrollHeight<=col.clientHeight+1&&(!l||l.clientWidth>=130);
   for(const t of [1.8,1.6,1.45,1.3,1.2,1.1]){w.style.setProperty('--z',t);if(ok()){z=t;break}}if(z===1)w.style.removeProperty('--z')});

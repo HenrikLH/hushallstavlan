@@ -3578,7 +3578,10 @@ html.ny.ui5 body.wall .board:not(.arranging) .bcol[data-col]>*{flex:0 0 auto;min
 html.ny.ui5 body.wall .board .bcol[data-col]>:last-child{flex-grow:1}
 .board .fit-dold{display:none!important}
 html.ny .board .ev.fit-dold+.ev{border-top:0}
-html.ny.ui5 .board .fit-mer{font-size:13px;line-height:18px;color:var(--ink-2);padding:6px 0 0}
+html.ny.ui5 .board .fit-mer{display:block;font-size:15px;line-height:20px;font-weight:600;color:var(--accent);padding:8px 0 2px;text-align:left}
+html.ny.ui5 .board .fit-klipp{position:relative;overflow:hidden}
+html.ny.ui5 .board .upg-lbl:has(+.ur.fit-dold){display:none}
+html.ny.ui5 .board .fit-visa{position:absolute;left:0;right:0;bottom:0;padding:28px 16px 12px;font-size:15px;line-height:20px;font-weight:600;color:var(--accent);text-align:center;background:linear-gradient(to bottom,transparent,var(--surface) 55%);border-radius:0 0 inherit inherit}
 /* Innehållet står mitt i rutan när rutan är högre än innehållet (lika mycket luft över och under), rubriken stannar uppe */
 html.ny.ui5 body.wall .board:not(.arranging) .bcol[data-col] :is(.bmeal,.bclean,.btasks,.wpair>.widget)>.wh~:not(.bprog,.fit-mer):nth-child(2),html.ny.ui5 body.wall .board:not(.arranging) .bcol[data-col] .bclean>.bprog+*{margin-top:auto}
 html.ny.ui5 body.wall .board:not(.arranging) .bcol[data-col] :is(.bmeal,.bclean,.btasks,.wpair>.widget)>:last-child{margin-bottom:auto}
