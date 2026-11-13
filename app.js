@@ -1363,8 +1363,9 @@ function onWidgetsD(){const X=onWx(),N=onNuData(),U=upgDag(),M=onMat(today()),le
  if(M)h+='<section class="widget on-w s on-ms" data-act="'+(M.r?'recipe':'nav')+'" data-id="'+esc(M.r?M.r.id:'mat')+'"><span class="on-k or">'+I.fork+onKl(M.start)+'</span><span class="on-mth">'+dishThumb(M.r,M.m.title)+'</span><span class="on-rt">'+esc(cap(M.m.title.replace(/^Storkok:\s*/i,'')))+'</span></section>';
  h+='<section class="widget on-w s" data-act="nav" data-id="inkop"><div class="on-hl">'+I.basket+'<span>Inköp</span></div><div class="on-big num">'+left.length+'</div><div class="on-sub">'+(left.length?(left.length>1?'varor':'vara')+' · ca '+kr(shopCost(left)):'Listan är tom')+'</div></section>';
  if(!M){const cp=cleanPlan(),L=[...cp.routines.filter(x=>!doneToday(x)),...cp.todo];h+='<section class="widget on-w s" data-act="nav" data-id="stad"><div class="on-hl">'+I.sparkles+'<span>Städ</span></div>'+(L.length?'<div class="on-st">'+esc(L[0].title)+'</div><div class="on-sub">'+cp.minLeft+' min kvar</div>':'<div class="on-st ok">Allt klart</div>')+'</section>'}
- if(haOn(false))h+='<div class="on-w m on-hab">'+haBox(false)+'</div>';
+ if(haOn(false))h+=onHemKort('g2','on-w m');
  return h}
+function onHemKort(k,c){const ch=onChips({cls:k,ejInkop:1});return ch?'<section class="widget w2 on-hd '+(c||'')+'"><div class="wh"><span>Hemmet</span><span class="r lnk" data-act="nav" data-id="hus">Alla</span></div>'+ch+'</section>':''}
 /* Väggen */
 const vilaOn=()=>S.wall&&ovNy()==='d'&&!S.sheet&&Date.now()-(A.touch||0)>120000;
 function wallNyBoard(v){if(v==='d')return vilaOn()?wallVila():wallDagar();
@@ -1407,7 +1408,7 @@ function wallDagar(){const t=today(),P=people(),f=S.onPers&&P.includes(S.onPers)
   '<div class="ond-dagar">'+[0,1,2,3].map(i=>col(addDays(t,i),i)).join('')+'<div class="ond-sida">'+
    '<section class="widget w2" data-act="nav" data-id="uppgifter"><div class="wh"><span>Att göra</span><span class="r lnk">'+(o.length?'Alla '+o.length:'')+'</span></div>'+(U.idag.length?upgDagHtml({idag:U.idag.slice(0,4),imorgon:[]},'',true):'<div class="upg-tom">'+I.tick+'Inget kvar idag</div>')+'</section>'+
    (left.length?'<section class="widget w2" data-act="nav" data-id="inkop"><div class="wh"><span>Inköp <span class="wk-mo">'+left.length+' · ca '+kr(shopCost(left))+'</span></span></div><div class="on-lista">'+left.slice(0,8).map(i=>esc(i.name||i.title||'')).filter(Boolean).join(' · ')+(left.length>8?' …':'')+'</div></section>':'')+
-   onChips({cls:'kol',ejInkop:1})+'</div></div></div>'}
+   onHemKort('kol')+'</div></div></div>'}
 /* ---------- Smart hem (Home Assistant), bara på väggskärmen ----------
    Väggdatorns lokala tjänst (kiosk/ljussensor.py, /ha) håller HA-nyckeln och släpper bara igenom valda lampor, scener och
    givare. Appen frågar med lång väntan (?v=N svarar först vid en ändring), så rutan följer med inom en sekund när någon
