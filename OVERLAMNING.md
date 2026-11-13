@@ -2,9 +2,9 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
-## Väggen: menyn som sidofält till vänster (förslag, väntar på Henriks val A/B)
-- Ägare Claude, gren `claude/project-thread-eeh8sq`. Bara UI 5.0 på väggen (`sidoOn()`: S.wall, U5, inte Aura). Inställningar → Menyn: Till vänster (standard)/Längst ner (ls `vaggmeny`). Knappen överst fäller ut namnen (`ACT.sidoFall`, `I_SIDO`).
-- Utfällt: B `over` (standard) lägger sig över och fälls ihop vid flikval/tryck utanför; A `skjut` (ls `vaggsidolage=skjut`, inget val i appen än) flyttar innehållet och sparas (ls `vaggsido`). Ta bort den som Henrik inte väljer.
+## Väggen: menyn som sidofält till vänster (publicerad, ångra-gren `version-fore-vagg-sidomeny`)
+- Ägare Claude, gren `claude/project-thread-eeh8sq`. Bara UI 5.0 på väggen (`sidoOn()`: S.wall, U5, inte Aura). Inställningar → Menyn: Längst ner (standard)/Till vänster (ls `vaggmeny=vanster`), Henriks val 13/11: ett alternativ, inte standard. Knappen överst fäller ut namnen (`ACT.sidoFall`, `I_SIDO`).
+- Utfällt: B `over` (standard) lägger sig över och fälls ihop vid flikval/tryck utanför; A `skjut` (Utfälld meny → Flyttar innehållet, ls `vaggsidolage=skjut`) flyttar innehållet och sparas (ls `vaggsido`).
 - Sidofältet sätter `--tabbar:0`/`--tabgap:16px` på `body.wall.sido`, så rutnät som räknar höjd från flikraden (`.board`, `.ond` i Ny översikt D) får höjden automatiskt; `body` får `padding-left:var(--sidew)`.
 - Test `verktyg/emu/sidomeny.js` (vägg, ljust/mörkt, båda lägena), alla-flikar telefon+vägg gröna.
 

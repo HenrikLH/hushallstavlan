@@ -1,4 +1,4 @@
-// Väggskärmens sidomeny (LS vaggsidolage=skjut för utfällt som flyttar innehållet): LS='{"wall":"1","me":""}' VP=1368x912 node verktyg/emu/run.js verktyg/emu/sidomeny.js
+// Väggskärmens sidomeny (LS vaggmeny=vanster; vaggsidolage=skjut för utfällt som flyttar innehållet): LS='{"wall":"1","me":""}' VP=1368x912 node verktyg/emu/run.js verktyg/emu/sidomeny.js
 module.exports=async(pg,h)=>{await h.idle(2000);
  const kol=async n=>{const r=await pg.evaluate(()=>{const n=document.getElementById('nav'),b=n.getBoundingClientRect(),m=document.getElementById('main').getBoundingClientRect();return{sido:n.classList.contains('sido'),ut:n.classList.contains('sido-ut'),nav:[b.x,b.y,b.width,b.height].map(Math.round),mainX:Math.round(m.x),btn:[...n.querySelectorAll('button[data-act="nav"]')].map(x=>x.getAttribute('aria-current')?'*'+x.textContent:x.textContent).join(',')}});console.log(n,JSON.stringify(r));return r};
  let r=await kol('start');if(!r.sido)throw new Error('ingen sidomeny');
