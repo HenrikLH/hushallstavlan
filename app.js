@@ -1414,10 +1414,32 @@ function wallDagar(){const t=today(),P=people(),f=S.onPers&&P.includes(S.onPers)
  const U=upgDag(),left=D().shop.filter(i=>!i.done),o=D().tasks.filter(x=>!x.done);
  const seg='<div class="segc ond-seg" role="group" aria-label="Visa" style="--n:'+(P.length+1)+';--i:'+(f?P.indexOf(f)+1:0)+'"><i class="seg-thumb" aria-hidden="true"></i>'+['',...P].map(p=>'<button type="button" data-act="onPers" data-id="'+esc(p)+'" aria-pressed="'+(p===f)+'">'+(p?'<i class="ond-dot" style="background:var(--'+pcls(p)+')"></i>'+esc(personLabel(p)):'Alla')+'</button>').join('')+'</div>';
  return'<div class="ond"'+RF('T15')+'><div class="ond-top"><div class="ond-kl num" id="clock">'+pad(n.getHours())+':'+pad(n.getMinutes())+'</div><div class="ond-sub">'+esc(cap(dayHead(t)))+(X?' · '+deg(X.T)+' '+esc(X.tx)+(X.sp?' · regn '+pad(X.sp.a)+'–'+pad(X.sp.b):''):'')+'</div>'+seg+'</div>'+
-  '<div class="ond-dagar">'+[0,1,2,3].map(i=>col(addDays(t,i),i)).join('')+'<div class="ond-sida">'+
+  wallDagarSida(col)+'</div>'}
+// Tavlans sidokolumn, tre förslag (utvecklarläge, ht.ovd): A fast, B relevansen styr, C idag i fokus
+let OVDV=lsGet('ovd')||'';
+function onGoraWall(n){const t=today(),U=upgDag(),o=D().tasks.filter(x=>!x.done),cp=cleanPlan(),L=[...cp.routines.filter(x=>!doneToday(x)),...cp.todo];
+ const ID=U.idag.slice(0,n),SL=L.slice(0,Math.max(2,n-ID.length)),fler=U.idag.length-ID.length+L.length-SL.length;
+ if(!ID.length&&!SL.length)return'<section class="widget w2 ond-gora klar"><div class="bdone">'+I.tick+'Allt är gjort idag</div>'+(U.imorgon.length?'<div class="on-sub">Imorgon: '+U.imorgon.slice(0,3).map(x=>esc(x.title)).join(' · ')+'</div>':'')+'</section>';
+ const sr=x=>'<div class="ur"><input type="checkbox" class="check" data-act="cleanToggle" data-id="'+esc(x.id)+'" aria-label="'+esc(x.title)+'"><span class="t">'+esc(x.title)+'</span><span class="d">'+x.min+' min</span></div>';
+ return'<section class="widget w2 ond-gora"><div class="wh"><span>Att göra idag</span><button type="button" class="r lnk" data-act="nav" data-id="uppgifter">'+(o.length?'Alla '+o.length:'Alla')+'</button></div>'+
+  (ID.length?'<div class="sh ond-band">Uppgifter</div>'+upgDagHtml({idag:ID,imorgon:[]},'',true):'')+
+  (SL.length?'<div class="sh ond-band">Städ <span class="ond-bs">'+cp.minLeft+' min kvar</span></div><div class="upg-c">'+SL.map(sr).join('')+'</div>':'')+
+  (fler>0?'<button type="button" class="ond-fler" data-act="nav" data-id="uppgifter">+'+fler+' till</button>':'')+'</section>'}
+function onInkopWall(){const left=D().shop.filter(i=>!i.done);if(!left.length)return'';
+ return'<section class="widget w2" data-act="nav" data-id="inkop"><div class="wh"><span>Inköp <span class="wk-mo">'+left.length+' · ca '+kr(shopCost(left))+'</span></span></div><div class="on-lista">'+left.slice(0,8).map(i=>esc(i.name||i.title||'')).filter(Boolean).join(' · ')+(left.length>8?' …':'')+'</div></section>'}
+const onHusWall=()=>haOn(true)?haBox(true).replace('<section class="widget','<section data-box="hus" class="widget w2'):'';
+function wallDagarSida(col){const t=today(),v=/^[abc]$/.test(OVDV)&&DEV?OVDV:'',hh=new Date().getHours();
+ if(!v){const U=upgDag(),o=D().tasks.filter(x=>!x.done);return'<div class="ond-dagar">'+[0,1,2,3].map(i=>col(addDays(t,i),i)).join('')+'<div class="ond-sida">'+
    '<section class="widget w2" data-act="nav" data-id="uppgifter"><div class="wh"><span>Att göra</span><span class="r lnk">'+(o.length?'Alla '+o.length:'')+'</span></div>'+(U.idag.length?upgDagHtml({idag:U.idag.slice(0,4),imorgon:[]},'',true):'<div class="upg-tom">'+I.tick+'Inget kvar idag</div>')+'</section>'+
-   (left.length?'<section class="widget w2" data-act="nav" data-id="inkop"><div class="wh"><span>Inköp <span class="wk-mo">'+left.length+' · ca '+kr(shopCost(left))+'</span></span></div><div class="on-lista">'+left.slice(0,8).map(i=>esc(i.name||i.title||'')).filter(Boolean).join(' · ')+(left.length>8?' …':'')+'</div></section>':'')+
-   onHemKort('kol')+'</div></div></div>'}
+   onInkopWall()+onHemKort('kol')+'</div></div>'}
+ const sida=x=>'<div class="ond-sida">'+x+'</div>';
+ if(v==='a')return'<div class="ond-dagar ond-va">'+[0,1].map(i=>col(addDays(t,i),i)).join('')+sida(onWxK()+onGoraWall(5)+onInkopWall())+sida(onHusWall())+'</div>';
+ if(v==='c')return'<div class="ond-dagar ond-vc">'+col(t,0)+sida(onGoraWall(8)+onImorgon()+onInkopWall())+sida(onWxK()+onHusWall())+'</div>';
+ // B: det som är aktuellt just nu kommer först; tomma kort visas inte, dagar utan något tas bort
+ const H=haOn(true)&&haData(),aktiv=H&&((H.lampor||[]).some(x=>x.on)||(H.apparater||[]).some(haAppAktiv)||habSpelar().length),U=upgDag(),L=cleanPlan(),kvar=U.idag.length+L.routines.filter(x=>!doneToday(x)).length+L.todo.length;
+ const K=[{h:onHusWall(),p:hh>=17||hh<6?9:aktiv?6:4},{h:onGoraWall(6),p:kvar?(hh<17?8:5)+(U.idag.some(x=>x.due<t)?2:0):1},{h:onWxK(),p:7},{h:onInkopWall(),p:3}].filter(x=>x.h).sort((a,b)=>b.p-a.p);
+ const hus=K.findIndex(x=>/data-box="hus"/.test(x.h)),A2=K.filter((x,i)=>i!==hus),dag=[1,2].filter(i=>D().events.some(e=>e.date===addDays(t,i)&&!isBdEv(e))||onMat(addDays(t,i)));
+ return'<div class="ond-dagar ond-vb" style="--dn:'+(1+Math.min(1,dag.length))+'">'+col(t,0)+(dag.length?col(addDays(t,dag[0]),dag[0]):'')+(hus>=0&&hus<2?sida(K[hus].h)+sida(A2.map(x=>x.h).join('')):sida(A2.map(x=>x.h).join(''))+(hus>=0?sida(K[hus].h):''))+'</div>'}
 /* ---------- Smart hem (Home Assistant), bara på väggskärmen ----------
    Väggdatorns lokala tjänst (kiosk/ljussensor.py, /ha) håller HA-nyckeln och släpper bara igenom valda lampor, scener och
    givare. Appen frågar med lång väntan (?v=N svarar först vid en ändring), så rutan följer med inom en sekund när någon
@@ -3957,7 +3979,7 @@ function renderOverlay(){
    ['avancerat','Utvecklarläge',group(fieldCell('Utvecklarläge','<input type="checkbox" role="switch" class="switch" data-act="dev" aria-label="Utvecklarläge"'+(DEV?' checked':'')+'>'))+'<div class="foot">Visar menyer som inte är färdiga, just nu Planera nästa vecka och Planera med portioner. Gäller bara den här enheten.</div>'+
   (DEV?sh('Smart hem')+group('<button type="button" class="cell link" data-act="haTest"><span class="grow">Låtsaslampor</span><span class="chev">'+I.chev+'</span></button>')+'<div class="foot">Låtsaslampor för att prova knappar och animationer. Inget skickas till Home Assistant.</div>':'')+
   (DEV?sh('Förhandsvisning')+group('<button type="button" class="cell link" data-act="familjOpen"><span class="grow">Testa Familj och släktträd</span><span class="meta">Förhandsvisning</span>'+chevron+'</button>')+'<div class="foot">Testa I fokus och Hela trädet med exempelpersoner. Ingenting sparas i era familjeuppgifter.</div>':'')+
-   (DEV&&U5&&!U6?sh('Ny översikt')+'<div class="seg-wrap">'+segc('Ny översikt','ovny',[['','Av'],['a','A'],['b','B'],['c','C'],['d','D'],['e','B2'],['f','C2']],OVNY)+'</div><div class="foot">Prova spåren för en ny Översikt: A Förfina, B Dagen, C Hemmet i en blick, D Tavla med villäge, B2 Dagen med veckoraden och vädret, C2 Hemmet med vanliga vädret och schemat. Av visar Översikten som vanligt. Gäller bara den här enheten.</div>':'')+
+   (DEV&&U5&&!U6?sh('Ny översikt')+'<div class="seg-wrap">'+segc('Ny översikt','ovny',[['','Av'],['a','A'],['b','B'],['c','C'],['d','D'],['e','B2'],['f','C2']],OVNY)+'</div>'+(OVNY==='d'?'<div class="seg-wrap">'+segc('Väggtavlan i D','ovd',[['','Nu'],['a','A Fast'],['b','B Aktuellt'],['c','C Idag']],OVDV)+'</div>':'')+'<div class="foot">Prova spåren för en ny Översikt: A Förfina, B Dagen, C Hemmet i en blick, D Tavla med villäge, B2 Dagen med veckoraden och vädret, C2 Hemmet med vanliga vädret och schemat. Av visar Översikten som vanligt. Gäller bara den här enheten.</div>':'')+
    (DEV?sh('Rutnummer')+group(fieldCell('Visa rutnummer','<input type="checkbox" role="switch" class="switch" data-act="refs" aria-label="Visa rutnummer"'+(refsOn()?' checked':'')+'>'))+'<div class="foot">Varje ruta får sitt fasta nummer i hörnet, till exempel M2. Tryck på numret för att kopiera det. Gäller bara den här enheten.</div>':'')]])+'<div class="foot ver">Hushållstavlan · '+(U6?'Aura':'UI '+(U5?'5.0':U4?'4.0':U3?'3.0':UI_VER))+' · version '+esc(APP_VER)+'</div>';
   o.innerHTML=sheetHtml('settings','Inställningar','<button class="tb strong">Spara</button>',body,enter,'<div class="pref-l"><button type="button" class="tb pref-avb" data-act="sheetClose">Avbryt</button><button type="button" class="tb pref-bk" data-act="prefBack" aria-label="Tillbaka till Inställningar">'+I.back+'<span>Inställningar</span></button></div>');prefHead(o);if(S.prefDraft){Object.entries(S.prefDraft).forEach(([k,v])=>{const f=o.querySelector('[name="'+k+'"]');if(f&&!/radio|checkbox/.test(f.type))f.value=v})}segSlide(o);restoreColorStrips(o);return}
  if(k==='ljuskal'){const K=KAL||{},nm=['full','mitten','lägsta'];let body='',right='<button type="button" class="tb strong" data-act="sheetClose">'+(K.step==='klar'||SMAK?'Klar':'Avbryt')+'</button>';
@@ -6248,6 +6270,7 @@ const ACT={
  smileyQuick(id,el){const v=Number(el.dataset.v)||0;A.user=Date.now();saveSmiley(id,el.dataset.date,v);markCooked(id,el.dataset.date);toast(v>0?'Vad bra! Rätten kommer tillbaka lite oftare':v<0?'Noterat. Rätten kommer tillbaka mer sällan':'Tack!')},
  smileySkip(id,el){A.user=Date.now();saveSmiley(id,el.dataset.date,'x');toast('Okej, den räknas inte som lagad')},
  wakeBoard(){render()},
+ ovd(id){OVDV=/^[abc]$/.test(id)?id:'';lsSet('ovd',OVDV||null);A.touch=Date.now();render()},
  ovny(id){OVNY=/^[abcdef]$/.test(id)?id:'';lsSet('ovny',OVNY||null);A.touch=Date.now();render()},
  onWk(){S.onWk=!S.onWk;render()},
  onPers(id){S.onPers=id||'';A.touch=Date.now();render()},
