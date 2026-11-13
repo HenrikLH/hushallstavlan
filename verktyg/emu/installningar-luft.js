@@ -8,7 +8,7 @@ module.exports=async(pg,h)=>{
   const nm=e=>e.tagName.toLowerCase()+'.'+[...e.classList].join('.')+(e.dataset.k?'['+e.dataset.k+']':'')+' "'+(e.textContent||'').trim().slice(0,28)+'"';
   const out=[];const body=document.querySelector('#overlay .sheet-body');
   const scan=p=>{const k=[...p.children].filter(vis);for(let i=1;i<k.length;i++){const a=k[i-1],b=k[i];if(!(box(a)&&box(b)))continue;const g=Math.round(b.getBoundingClientRect().top-a.getBoundingClientRect().bottom);if(g<8)out.push(g+'px  '+nm(a)+'  →  '+nm(b))}};
-  body.querySelectorAll('.pref-body,form,.sheet-body,.sheet-body>*').forEach(scan);return out});
+  body.querySelectorAll('.pref-body,form,.sheet-body,.sheet-body>*').forEach(scan);body.querySelectorAll('.pref-section[open] .segc button').forEach(b=>{if(b.scrollWidth>b.clientWidth+1)out.push('klipps: '+b.textContent)});return out});
  const all=[];const hj=async()=>{if(!process.env.HJ)return;const q=pg.locator('#overlay .pref-section[open] .sh-hj:not(.open)');for(let i=0;i<12&&await q.count();i++){await q.first().click();await h.idle(150)}};
  all.push(['lista',await mat()]);if(process.env.SHOT)await h.shot('inst-lista');
  for(const k of await pg.locator('.pref-section').evaluateAll(a=>a.map(x=>x.dataset.k.slice(5)))){

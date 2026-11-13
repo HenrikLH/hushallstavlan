@@ -4,7 +4,7 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 ## Inställningar: luft mellan rutor och nya namn (förslag, väntar på Henriks "Pusha")
 - Ägare Claude, gren `claude/project-thread-yqdfhp`. CSS i `index.html` efter `.pref-body>.person-list`: två rutor i följd (även med dold förklaring emellan) får 20 px. Översikt: brytaren för rutstorlek fick egen rubrik Storlek.
-- Nya namn bara i inställningsbladet (`renderOverlay`, `k==='settings'`) och toasten för `ACT.exp`; inga lagrade nycklar ändrade.
+- Nya namn (rubriker, rader och svepmenyernas val) bara i inställningsbladet (`renderOverlay`, `k===settings`) och toasten för `ACT.exp`; lagrade värden (`ui`, `natthimmel`, `addPlace` …) oförändrade.
 - Test `verktyg/emu/installningar-luft.js` (mäter glapp, SHOT/HJ/LONG) grön i telefon/vägg/mörkt och UI 2/4/Aura; installningar-delar/-tillbaka gröna.
 
 ## Natthimmel i ljust läge (publicerad ht-v377, ångra-gren `version-fore-nattpol`)
