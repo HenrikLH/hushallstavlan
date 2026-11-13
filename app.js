@@ -956,15 +956,18 @@ const SIZES={ov:{can:['mat','stad','inkop','upg','hem','fod','imorgon'],half:['s
 const SV2='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
 const IA={minus:SV2+'<path d="M6 12h12"/></svg>',grow:SV2+'<path d="M14 4h6v6M10 20H4v-6M20 4l-6.5 6.5M4 20l6.5-6.5"/></svg>',shrink:SV2+'<path d="M20 10h-6V4M4 14h6v6M14 10l6-6M10 14l-6 6"/></svg>',undo:SV2+'<path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>'};
 let PREVIEW=null,DRAG_ID=null;// medan en ruta dras ritas tavlan med den tillfälliga ordningen
-// Engångsflytt (ht-v381): när Att göra flyttade in i Schema blev vänstra väggspalten för hög. Inköp och Födelsedagar (Henrik) och Smart hem flyttas till högra spalten
+// Engångsflytt (ht-v381): när Att göra flyttade in i Schema blev vänstra väggspalten för hög. Födelsedagar och Smart hem flyttas till högra spalten,
+// Inköp och Middag ikväll göms på väggen (Henrik: behövs inte på översiktsskärmen; kan visas igen under Ändra ordning)
+const WALL_GOM=['mat','inkop'];
 function wallFlytt(){if(lsGet('wallFlytt')==='1')return;lsSet('wallFlytt','1');const k='wallLayoutNy';let o=null;try{o=JSON.parse(lsGet(k)||'null')}catch(e){}
- if(!o||!Array.isArray(o.cols)||o.cols.length<2)return;const fl=['inkop','fod','hus'].filter(id=>o.cols[0].includes(id));if(!fl.length)return;
- o.cols[0]=o.cols[0].filter(id=>!fl.includes(id));const c=o.cols[1],i=c.indexOf('stad');c.splice(i<0?c.length:i+1,0,...fl);lsSet(k,JSON.stringify(o))}
+ if(!o||!Array.isArray(o.cols)||o.cols.length<2)return;const fl=['fod','hus'].filter(id=>o.cols[0].includes(id));
+ o.cols=o.cols.map(c=>c.filter(id=>!fl.includes(id)));const c=o.cols[1],i=c.indexOf('stad');c.splice(i<0?c.length:i+1,0,...fl);
+ o.hidden=[...new Set((o.hidden||[]).concat(WALL_GOM))];lsSet(k,JSON.stringify(o))}
 function layout(wall,def){if(PREVIEW&&PREVIEW.wall===wall)return PREVIEW.L;if(expOn())return layoutX(wall);if(wall&&U5)wallFlytt();
  const k=(wall?'wallLayout':'ovLayout')+(U4?'4':U3?'3':'Ny'),Z=SIZES[wall?'wall':'ov'];let o=null;try{o=JSON.parse(lsGet(k)||(U4?lsGet((wall?'wallLayout':'ovLayout')+'Ny'):null)||'null')}catch(e){}
- const known=new Set(def.flat()),hidden=(o&&Array.isArray(o.hidden)?o.hidden:[]).filter(x=>known.has(x));
+ const known=new Set(def.flat()),hidden=(o&&Array.isArray(o.hidden)?o.hidden:wall&&U5&&!U4&&!U3?WALL_GOM:[]).filter(x=>known.has(x));
  let cols=o&&Array.isArray(o.cols)&&o.cols.length===def.length?o.cols.map(c=>c.filter(x=>known.has(x))):def.map(c=>c.slice());
- const seen=new Set(cols.flat().concat(hidden));def.forEach((c,i)=>c.forEach(x=>{if(!seen.has(x))cols[i].push(x)}));// nya rutor hamnar på sin vanliga plats
+ const seen=new Set(cols.flat().concat(hidden));def.forEach((c,i)=>c.forEach(x=>{if(!seen.has(x))cols[i].push(x)}));cols=cols.map(c=>c.filter(x=>!hidden.includes(x)));// nya rutor hamnar på sin vanliga plats
  const size={};known.forEach(id=>{const v=o&&o.size&&o.size[id];size[id]=Z.can.includes(id)&&(v?v==='h':Z.half.includes(id))?'h':'f'});
  return{cols,hidden,size}}
 function saveLayout(wall,L){lsSet((wall?'wallLayout':'ovLayout')+(expOn()?'X':U4?'4':U3?'3':'Ny'),L?JSON.stringify({cols:L.cols,hidden:L.hidden,size:L.size}):null)}
@@ -1247,7 +1250,7 @@ function wallBoard(){
  h+='<div class="bcol bhero">'+refAdd(heroHtml(),'T1')+refAdd(wallWx(),'T2')+'</div>';
  L.cols.forEach((c,ci)=>{h+='<div class="bcol" data-col="'+ci+'">'+boxRow(c.filter(id=>H[id]),true,H,L)+'</div>'});
  return h+'</div>'+arrangeFoot(L,true)}
-const WALL_DEF=[['kal','mat','inkop','fod'],['hus','stad','upg']];
+const WALL_DEF=[['kal','mat','inkop'],['stad','fod','hus','upg']];// Middag och Inköp göms från början i UI 5.0 (WALL_GOM)
 const boardDefault=()=>U3?[['kal','mat'],['upg','inkop','fod','stad']]:WALL_DEF;
 /* ---------- Smart hem (Home Assistant), bara på väggskärmen ----------
    Väggdatorns lokala tjänst (kiosk/ljussensor.py, /ha) håller HA-nyckeln och släpper bara igenom valda lampor, scener och

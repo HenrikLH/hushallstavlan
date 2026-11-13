@@ -2,6 +2,7 @@
 const assert=require('node:assert/strict');
 module.exports=async(pg,h)=>{
  const read=s=>pg.evaluate(s=>window.__d(s),s);
+ const st=h.sheet('Inställningar'),fr=st.find(x=>x[0]==='fodelsedagar'),fv=JSON.stringify([{namn:'Leah',datum:'11-18',ar:2014},{namn:'Morfar',datum:'11-25',ar:1946},{namn:'Anna',datum:'11-30',ar:1990},{namn:'Erik',datum:'12-05',ar:1988}]);if(fr)fr[1]=fv;else st.push(['fodelsedagar',fv]);
  const t=await read('today()'),tm=await read('addDays(today(),1)'),sen=await read('addDays(today(),-1)');
  const g=h.gas.ctx,C=require('vm').runInContext('CALENDARS',g);require('vm').runInContext('today_=function(){return '+JSON.stringify(t)+'}',g);
  const at=(k,x)=>g.Utilities.parseDate(k+' '+x,'Europe/Stockholm','yyyy-MM-dd HH:mm');
