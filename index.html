@@ -3931,6 +3931,180 @@ html.ny.ui5 body.wall .ck5 .cook-body{grid-template-columns:minmax(360px,2fr) mi
 .dkl-f.bus{stroke:#0A84FF}.dkl-f.lag{stroke:var(--orange,#FF9500)}
 .dkl-bl{fill:#30D158}
 .dkr-borta{fill:none;stroke:color-mix(in srgb,var(--ri,#fff) 30%,transparent);stroke-width:1.5;stroke-dasharray:5 5}
+/* ===== Ny översikt (utvecklarläge, ht.ovny = a|b|c|d). Bara html.ny.ui5 och klasserna .onx/.onv/.ond, så att den vanliga Översikten är orörd.
+   Mått från hushallstavlan-apple-design: rutor 26 px hörn och 16 px kant, brickor 16 px hörn, 12 px mellan rutor, 8 px mellan brickor. */
+html.ny.ui5{--on-ye:#9A6B00;--on-ye-bg:rgba(255,204,0,.22);--on-bl:#0A6CD6;--on-bl-bg:rgba(10,132,255,.13);--on-ind:#5856D6;--on-ind-bg:rgba(88,86,214,.13);--on-or-bg:rgba(255,149,0,.15);--on-gr-bg:rgba(52,199,89,.15)}
+@media (prefers-color-scheme: dark){html.ny.ui5:not([data-theme="light"]){--on-ye:#FFD60A;--on-ye-bg:rgba(255,214,10,.2);--on-bl:#64B5FF;--on-bl-bg:rgba(10,132,255,.24);--on-ind:#8E8CFF;--on-ind-bg:rgba(94,92,230,.26);--on-or-bg:rgba(255,159,10,.2);--on-gr-bg:rgba(48,209,88,.2)}}
+html.ny.ui5[data-theme="dark"]{--on-ye:#FFD60A;--on-ye-bg:rgba(255,214,10,.2);--on-bl:#64B5FF;--on-bl-bg:rgba(10,132,255,.24);--on-ind:#8E8CFF;--on-ind-bg:rgba(94,92,230,.26);--on-or-bg:rgba(255,159,10,.2);--on-gr-bg:rgba(48,209,88,.2)}
+html.ny.ui5 .ov.onx{display:flex;flex-direction:column;gap:12px;margin:8px 16px 0;columns:auto}
+html.ny.ui5 .ov.onx>*{margin:0;break-inside:auto}
+html.ny.ui5 .onx .widget,html.ny.ui5 .ond .widget{padding:16px;border-radius:var(--r5)}
+html.ny.ui5 .onx>.sh{margin:8px 4px -4px}
+/* rubrikrad: titel till vänster, länk eller Vecka-knappen till höger */
+html.ny.ui5 .onx .on-wh,html.ny.ui5 .ond .wh{display:flex;align-items:center;gap:8px;margin:-8px 0 4px;min-height:44px}
+html.ny.ui5 .on-wt{padding:0;font:inherit;font-size:20px;line-height:26px;font-weight:700;color:var(--ink);text-align:left;letter-spacing:-.3px}
+html.ny.ui5 .on-wh .r{margin-left:auto}
+html.ny.ui5 .on-vk{display:inline-flex;align-items:center;gap:4px;min-height:44px;padding:0;font-size:15px;line-height:20px;font-weight:600;color:var(--accent)}
+html.ny.ui5 .on-ch{display:flex}html.ny.ui5 .on-ch svg{width:13px;height:13px;transform:rotate(90deg);transition:transform .25s}html.ny.ui5 .on-ch.up svg{transform:rotate(-90deg)}
+html.ny.ui5 .on-idag .wk-sub,html.ny.ui5 .on-idag .wk-day{display:none}
+html.ny.ui5 .on-wk{margin:0 0 8px;padding-bottom:8px;border-bottom:.5px solid var(--line)}
+html.ny.ui5 .on-idag .upg-lbl{margin-top:8px;padding-top:8px;border-top:.5px solid var(--line)}
+html.ny.ui5 .on-idag .ur.tm{cursor:pointer}
+html.ny.ui5 .on-sub{display:block;font-size:15px;line-height:20px;color:var(--ink-2)}
+html.ny.ui5 .on-rain{display:inline-flex;align-items:center;gap:4px;color:var(--orange);font-weight:600}
+html.ny.ui5 .on-rain svg{width:16px;height:16px;flex:none}
+/* A: väderrutan, halva hjältens höjd */
+html.ny.ui5 .on-wx{padding:16px 16px 8px;overflow:hidden}
+html.ny.ui5 .on-wx-top{display:flex;min-height:132px;position:relative}
+html.ny.ui5 .on-wx-t{display:flex;flex-direction:column;gap:2px;position:relative;z-index:1;min-width:0}
+html.ny.ui5 .on-deg{font-size:34px;line-height:41px;font-weight:700;letter-spacing:-.4px}
+html.ny.ui5 .on-wx .on-sub{font-size:15px}
+html.ny.ui5 .on-wx .on-rain,html.ny.ui5 .on-dry{font-size:15px;line-height:20px;margin-top:4px}
+html.ny.ui5 .on-dry{color:var(--ink-2);max-width:170px}
+html.ny.ui5 .on-fig{position:absolute;right:-16px;bottom:-4px;width:62%;height:150px;pointer-events:none}
+html.ny.ui5 .on-fig svg{position:absolute;right:0;bottom:0;width:100%;height:100%}
+html.ny.ui5 .on-wx .bwx-h{margin-top:8px;padding-top:8px;border-top:.5px solid var(--line)}
+/* Inköp och Städ som halva rutor */
+html.ny.ui5 .on-par{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+html.ny.ui5 .on-half{display:flex;flex-direction:column;min-height:120px}
+html.ny.ui5 .on-hl{display:flex;align-items:center;gap:4px;font-size:13px;line-height:18px;font-weight:600;color:var(--ink-2)}
+html.ny.ui5 .on-hl svg{width:16px;height:16px;flex:none}
+html.ny.ui5 .on-big{font-size:34px;line-height:41px;font-weight:700;margin-top:8px}
+html.ny.ui5 .on-big small{font-size:15px;font-weight:400;color:var(--ink-2);letter-spacing:0}
+html.ny.ui5 .on-half .on-sub,html.ny.ui5 .on-w .on-sub{font-size:13px;line-height:18px;margin-top:auto}
+html.ny.ui5 .on-st{font-size:17px;line-height:22px;font-weight:600;margin-top:8px}
+html.ny.ui5 .on-st.ok{color:var(--green)}
+/* rad-ruta (födelsedag inom en vecka) */
+html.ny.ui5 .on-rad{display:flex;align-items:center;gap:12px;min-height:64px;padding:12px 16px!important}
+html.ny.ui5 .on-rad .grow{display:flex;flex-direction:column;min-width:0}
+html.ny.ui5 .on-rt{font-size:15px;line-height:20px;font-weight:600}
+html.ny.ui5 .on-rad .on-sub{font-size:13px;line-height:18px}
+html.ny.ui5 .on-rad .chev{display:flex;color:var(--ink-3)}html.ny.ui5 .on-rad .chev svg{width:14px;height:14px}
+/* små ikonplattor i ton */
+html.ny.ui5 .on-pl{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;flex:none;background:var(--fill);color:var(--ink-2)}
+html.ny.ui5 .on-pl svg{width:18px;height:18px}
+html.ny.ui5 .on-pl.acc{background:var(--accent-soft);color:var(--accent)}html.ny.ui5 .on-pl.ye{background:var(--on-ye-bg);color:var(--on-ye)}html.ny.ui5 .on-pl.bl{background:var(--on-bl-bg);color:var(--on-bl)}html.ny.ui5 .on-pl.gr{background:var(--on-gr-bg);color:var(--green)}
+html.ny.ui5 .on-emo{font-size:17px;line-height:1}
+/* Nu-kortet */
+html.ny.ui5 .tone-acc{--tone:var(--accent);--tone-bg:var(--accent-soft)}html.ny.ui5 .tone-or{--tone:var(--orange);--tone-bg:var(--on-or-bg)}html.ny.ui5 .tone-ind{--tone:var(--on-ind);--tone-bg:var(--on-ind-bg)}html.ny.ui5 .tone-gr{--tone:var(--green);--tone-bg:var(--on-gr-bg)}html.ny.ui5 .tone-bl{--tone:var(--on-bl);--tone-bg:var(--on-bl-bg)}
+html.ny.ui5 .on-nu-r{display:flex;align-items:center;gap:12px}
+html.ny.ui5 .on-nu-ic{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;flex:none;background:var(--tone-bg);color:var(--tone)}
+html.ny.ui5 .on-nu-ic svg{width:22px;height:22px}
+html.ny.ui5 .on-nu-th .dr-th{width:44px;height:44px;border-radius:12px;font-size:22px}
+html.ny.ui5 .on-nu .grow{display:flex;flex-direction:column;min-width:0}
+html.ny.ui5 .on-k{display:block;font-size:13px;line-height:18px;font-weight:600;color:var(--tone,var(--accent))}
+html.ny.ui5 .on-h{display:block;font-size:20px;line-height:26px;font-weight:700;letter-spacing:-.3px}
+html.ny.ui5 .on-pb{height:4px;border-radius:2px;background:var(--fill);margin-top:12px;overflow:hidden}
+html.ny.ui5 .on-pb i{display:block;height:100%;border-radius:2px;background:var(--tone)}
+/* statusbrickor */
+html.ny.ui5 .on-chips{display:grid;gap:8px}
+html.ny.ui5 .on-chips.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+html.ny.ui5 .on-chips.rad{display:flex;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:0 16px;scroll-padding:0 16px}
+html.ny.ui5 .on-chips.rad::-webkit-scrollbar{display:none}
+html.ny.ui5 .on-chips.rad .on-chip{flex:none}
+html.ny.ui5 .on-chip{display:flex;align-items:center;gap:8px;min-height:56px;padding:8px 12px 8px 8px;border-radius:16px;background:var(--surface);text-align:left;min-width:0;color:var(--ink)}
+html.ny.ui5 .on-ct{display:flex;flex-direction:column;min-width:0}
+html.ny.ui5 .on-ct b{font-size:15px;line-height:20px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.ny.ui5 .on-ct i{font-style:normal;font-size:13px;line-height:18px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* B: tidslinjen */
+html.ny.ui5 .on-tl{position:relative;padding-left:64px}
+html.ny.ui5 .on-tl:before{content:"";position:absolute;left:51px;top:16px;bottom:16px;width:2px;border-radius:1px;background:var(--fill)}
+html.ny.ui5 .on-ti{position:relative;padding:8px 0;min-height:44px}
+html.ny.ui5 .on-ti:before{content:"";position:absolute;left:-17px;top:14px;width:10px;height:10px;border-radius:50%;background:var(--ink-3);box-shadow:0 0 0 3px var(--surface)}
+html.ny.ui5 .on-tm{position:absolute;left:-64px;top:9px;width:40px;text-align:right;font-size:15px;line-height:20px;color:var(--ink-2)}
+html.ny.ui5 .on-ti>b{display:block;font-size:17px;line-height:22px;font-weight:600}
+html.ny.ui5 .on-ti .on-sub{font-size:15px}
+html.ny.ui5 .on-ti .on-sub .chip{display:none}
+html.ny.ui5 .on-ti.on-nu0{min-height:36px}
+html.ny.ui5 .on-ti.on-nu0:before,html.ny.ui5 .on-ti.pag:before{background:var(--accent)}
+html.ny.ui5 .on-ti.on-nu0 .on-tm,html.ny.ui5 .on-ti.on-nu0>b{color:var(--accent);font-weight:700;font-size:15px;line-height:20px}
+html.ny.ui5 .on-ti.wx:before{background:var(--orange)}
+html.ny.ui5 .on-ti.wx>b{display:flex;align-items:center;gap:4px}
+html.ny.ui5 .on-g{font-weight:400;font-size:15px;color:var(--ink-2)}
+html.ny.ui5 .on-ti .upg-c{margin-top:4px}
+html.ny.ui5 .on-ti .upg-c .ur:first-child{border-top:0}
+html.ny.ui5 .on-mr{display:flex;align-items:center;gap:12px}
+html.ny.ui5 .on-mb{display:flex;align-items:center;gap:12px;flex:1;min-width:0;padding:0;text-align:left;color:var(--ink)}
+html.ny.ui5 .on-mb .dr-th{width:44px;height:44px;border-radius:12px;font-size:22px;flex:none}
+html.ny.ui5 .on-mb .grow{display:flex;flex-direction:column;min-width:0}
+html.ny.ui5 .on-mb b{font-size:17px;line-height:22px;font-weight:600}
+html.ny.ui5 .on-imr{display:flex;align-items:center;gap:12px;width:100%;min-height:56px;margin-top:8px;padding:12px 0 0;border-top:.5px solid var(--line);text-align:left;color:var(--ink)}
+html.ny.ui5 .on-imr .grow{display:flex;flex-direction:column;min-width:0}
+html.ny.ui5 .on-imr b{font-size:15px;line-height:20px;font-weight:600}
+html.ny.ui5 .on-imr .on-sub{font-size:13px;line-height:18px}
+html.ny.ui5 .on-imr .chev{display:flex;color:var(--ink-3)}html.ny.ui5 .on-imr .chev svg{width:14px;height:14px}
+/* D i telefonen: widgetar i två storlekar */
+html.ny.ui5 .on-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+html.ny.ui5 .on-w.s{display:flex;flex-direction:column;height:164px;overflow:hidden;position:relative}
+html.ny.ui5 .on-w.m{grid-column:span 2}
+html.ny.ui5 .on-w .wh{display:flex;align-items:center;margin:-8px 0 0;min-height:44px;font-size:17px;line-height:22px;font-weight:700;color:var(--ink)}
+html.ny.ui5 .on-w .wh .r{margin-left:auto;font-size:15px;font-weight:600}
+html.ny.ui5 .on-w .upg-c .ur:first-child{border-top:0}
+html.ny.ui5 .on-wxs .on-sub{margin-top:0;position:relative;z-index:1}
+html.ny.ui5 .on-wxs .on-fig{right:-8px;bottom:-4px;width:100%;height:92px}
+html.ny.ui5 .on-nus .on-h{font-size:17px;line-height:22px;margin-top:4px}
+html.ny.ui5 .on-nus .on-sub{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-top:4px}
+html.ny.ui5 .on-ms .on-k{display:flex;align-items:center;gap:4px;color:var(--orange)}html.ny.ui5 .on-ms .on-k svg{width:16px;height:16px}
+html.ny.ui5 .on-mth{display:block;margin:8px 0}
+html.ny.ui5 .on-mth .dr-th{width:100%;height:64px;border-radius:12px;font-size:28px}
+html.ny.ui5 .on-ms .on-rt{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+html.ny.ui5 .on-hab>.widget{margin:0}
+/* Väggen: samma tavla och mått som vanligt, Nu-kortet och brickorna i spalterna */
+html.ny.ui5 body.wall .board.onx .bcol>.on-chips{flex:0 0 auto}
+html.ny.ui5 body.wall .board.onx .on-nu{flex:0 0 auto}
+html.ny.ui5 body.wall .board.onx .on-chip{min-height:64px;padding:12px 16px 12px 12px}
+html.ny.ui5 body.wall .board.onx .on-chip .on-pl{width:40px;height:40px}html.ny.ui5 body.wall .board.onx .on-chip .on-pl svg{width:22px;height:22px}
+html.ny.ui5 body.wall .board.onx .on-ct b{font-size:17px;line-height:22px}html.ny.ui5 body.wall .board.onx .on-ct i{font-size:15px;line-height:20px}
+html.ny.ui5 body.wall .board.onx .on-dag{overflow:hidden}
+html.ny.ui5 body.wall .board.onx .on-tl:before{left:51px}
+/* D, villäget: läsbart på 3–4 meter (större än telefonens textskala med avsikt) */
+html.ny.ui5 .onv{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:24px;height:calc(100vh / 1.0588 - var(--tabbar) - var(--tabgap) - 30px);padding:24px 32px 0;box-sizing:border-box;cursor:pointer}
+html.ny.ui5 .onv-l{display:flex;flex-direction:column;min-width:0}
+html.ny.ui5 .onv-klocka{font-size:168px;line-height:.95;font-weight:700;letter-spacing:-6px}
+html.ny.ui5 .onv-dag{font-size:34px;line-height:41px;color:var(--ink-2);margin-top:12px}
+html.ny.ui5 .onv-wx{display:flex;align-items:center;gap:16px;margin-top:24px}
+html.ny.ui5 .onv-ic{font-size:56px;line-height:1}
+html.ny.ui5 .onv-deg{font-size:72px;line-height:1;font-weight:700;letter-spacing:-2px}
+html.ny.ui5 .onv-wx .on-rain,html.ny.ui5 .onv-tx{font-size:28px;line-height:34px}html.ny.ui5 .onv-tx{color:var(--ink-2)}
+html.ny.ui5 .onv-wx .on-rain svg{width:28px;height:28px}
+html.ny.ui5 .onv-rader{margin-top:auto;display:flex;flex-direction:column;gap:12px;padding-bottom:16px}
+html.ny.ui5 .onv-r{display:flex;align-items:center;gap:16px;min-height:72px;padding:16px 24px;border-radius:var(--r5);background:var(--surface);font-size:28px;line-height:34px;min-width:0}
+html.ny.ui5 .onv-r b{font-weight:600;white-space:nowrap}
+html.ny.ui5 .onv-r span:last-child{color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+html.ny.ui5 .onv-ri{display:flex;color:var(--accent);flex:none}html.ny.ui5 .onv-ri svg{width:30px;height:30px}
+html.ny.ui5 .onv-fig{position:relative;min-width:0}
+html.ny.ui5 .onv-fig svg{position:absolute;right:-32px;bottom:0;width:calc(100% + 32px);height:100%}
+/* D, tavlan: fyra dagar med händelser på sina klockslag */
+html.ny.ui5 .ond{display:flex;flex-direction:column;gap:12px;height:calc(100vh / 1.0588 - var(--tabbar) - var(--tabgap) - 30px);padding:16px 16px 0;box-sizing:border-box}
+html.ny.ui5 .ond-top{display:flex;align-items:center;gap:16px;flex:none}
+html.ny.ui5 .ond-kl{font-size:48px;line-height:52px;font-weight:700;letter-spacing:-1.5px}
+html.ny.ui5 .ond-sub{font-size:17px;line-height:22px;color:var(--ink-2)}
+html.ny.ui5 .ond-seg{margin-left:auto;width:auto;min-width:360px;flex:none}
+html.ny.ui5 .ond-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px}
+html.ny.ui5 .ond-dagar{flex:1;min-height:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) minmax(0,300px);gap:12px;padding-bottom:12px}
+html.ny.ui5 .ond-c{display:flex;flex-direction:column;min-height:0;padding:12px 12px 16px!important}
+html.ny.ui5 .ond-c.idag{padding-left:40px!important}
+html.ny.ui5 .ond-h{display:flex;align-items:baseline;gap:6px;min-height:44px;padding:0;text-align:left;color:var(--ink);font-size:20px;line-height:26px}
+html.ny.ui5 .ond-h b{font-weight:700}html.ny.ui5 .ond-h span{font-size:17px;color:var(--ink-2)}
+html.ny.ui5 .ond-c.idag .ond-h b{color:var(--accent)}
+html.ny.ui5 .ond-hel{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px}
+html.ny.ui5 .ond-hel span{display:inline-flex;align-items:center;gap:4px;font-size:13px;line-height:18px;font-weight:600;padding:4px 8px;border-radius:999px;background:var(--fill)}
+html.ny.ui5 .ond-hel .bd{color:var(--accent);background:var(--accent-soft)}html.ny.ui5 .ond-hel svg{width:14px;height:14px}
+html.ny.ui5 .ond-g{position:relative;flex:1;min-height:0;margin-top:8px}
+html.ny.ui5 .ond-l{position:absolute;left:0;right:0;border-top:.5px solid var(--line)}
+html.ny.ui5 .ond-l span{position:absolute;left:-28px;top:-9px;font-size:11px;line-height:13px;font-weight:500;font-style:normal;color:var(--ink-2)}
+html.ny.ui5 .ond-b{position:absolute;left:0;right:0;min-height:28px;overflow:hidden;padding:4px 8px;border-left:3px solid var(--accent);border-radius:4px 8px 8px 4px;background:var(--accent-soft);font-size:15px;line-height:20px;font-weight:600;cursor:pointer}
+html.ny.ui5 .ond-b .num{font-weight:400;color:var(--ink-2)}
+html.ny.ui5 .ond-b.p1{border-color:var(--p1);background:var(--p1-soft)}html.ny.ui5 .ond-b.p2{border-color:var(--p2);background:var(--p2-soft)}
+html.ny.ui5 .ond-b.mat{display:flex;align-items:center;gap:4px;border-color:var(--orange);background:var(--on-or-bg);color:var(--orange);font-size:13px;line-height:18px}
+html.ny.ui5 .ond-b.mat svg{width:14px;height:14px;flex:none}html.ny.ui5 .ond-b.mat span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.ny.ui5 .ond-nu{position:absolute;left:-4px;right:0;border-top:2px solid var(--accent);z-index:2}
+html.ny.ui5 .ond-nu:before{content:"";position:absolute;left:-4px;top:-5px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+html.ny.ui5 .ond-sida{display:flex;flex-direction:column;gap:12px;min-height:0;overflow:hidden}
+html.ny.ui5 .ond-sida .upg-c .ur:first-child{border-top:0}
+html.ny.ui5 .on-lista{font-size:15px;line-height:22px;margin-top:4px}
+html.ny.ui5 .ond .on-chip{min-height:52px}
+html.ny.ui5 .wh .on-vk::after{display:none}
 </style>
 </head>
 <body>
