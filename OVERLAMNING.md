@@ -2,7 +2,7 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
-## Ny översikt A–D, B2, C2 bakom Utvecklarläge (publicerad ht-v385, ångra-gren `version-fore-ny-oversikt-2`)
+## Ny översikt A–D, B2, C2 bakom Utvecklarläge (publicerad ht-v386, ångra-gren `version-fore-ny-oversikt-3`)
 - Ägare Claude, gren `claude/project-thread-7ys0ku`. Inställningar → Utvecklarläge → Ny översikt (Av/A/B/C/D/B2/C2, ls `ht.ovny` a–f). `ovNy()` är tomt utanför DEV/UI5 (och i UI2/3/4/6, ordna-läget), då är allt som förut.
 - Kod: avsnittet efter `boardDefault` i app.js (`on*`-hjälpare, `ovNyTel` telefon, `wallNyBoard` vägg (e→b, f→c), `wallVila` T14, `wallDagar` T15), krokar i `V.oversikt`/`wallBoard`; ACT `ovny`, `onWk`, `onPers`. CSS sist i index.html (`.onx`, `.on-*`, `.onv`, `.ond`).
 - Henrik 13/11: C klart bäst på telefon men saknade vädret med timremsan/handtaget och Schema med veckoraden → C2 (`f`, Henrik valde den 13/11: brickor, `onWxK` (B2:s väder), Smart hem, calWidget). Gillar tidslinjen men Att göra saknar tid → B2 (`e`: `onWxK` kompakt väder med `ovWx`-remsa och grafhandtag, Nu-kort, `onSchemaB` = calWidget där idag blir `onTl({bare:1})` + Att göra-lista under). Bad om dem som nya alternativ, gamla B/C kvar.
