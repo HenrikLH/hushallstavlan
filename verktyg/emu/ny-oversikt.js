@@ -15,6 +15,8 @@ module.exports=async(pg,h)=>{
  const N=process.env.NAMN||'ny';
  if(process.env.KLASSISK!=='1'&&!await pg.locator('.onx,.onv,.ond').count())throw new Error('ingen ny översikt');
  await h.shot(N+'-1',!await read('wallBoardOn()'));
+ if(process.env.DBG)console.log('DBG',await read(process.env.DBG));
+ if(process.env.GRIP){for(const s of ['.on-wxk .motion-grip','.ovcal .motion-grip']){if(await pg.locator(s).count()){await pg.locator(s).first().click();await h.idle(1200)}}await h.shot(N+'-grip',true)}
  if(await read('wallBoardOn()')){if(await read('ovNy()')==='d'){await pg.evaluate(()=>window.__d('(A.touch=1,render(),1)'));await h.idle(800);await h.shot(N+'-vila')}if(await pg.locator('.onv').count()){await pg.locator('.onv').click();await h.idle(900);if(!await pg.locator('.ond').count())throw new Error('tavlan visas inte efter tryck');await h.shot(N+'-2')}}
  
 };

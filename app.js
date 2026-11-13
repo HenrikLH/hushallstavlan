@@ -1279,6 +1279,13 @@ const onLampor=()=>{const H=haOn(false)&&haData();return H?(H.lampor||[]).filter
 function onHead(){const hh=new Date().getHours(),g=hh<5?'God natt':hh<10?'God morgon':hh<17?'Hej':hh<22?'God kväll':'God natt';
  const d=parse(today());return head(cap(DAYS[d.getDay()])+' '+d.getDate()+' '+MON[d.getMonth()].slice(0,3),{eyebrow:esc(g+(people().includes(S.me)?', '+personLabel(S.me):''))})}
 /* Väderrutan i A: temperatur och regn till vänster, hundarna till höger, timmarna under. Halva höjden mot hjälten. */
+// B: kompakt väder (ikon, grader, H/L) med timremsan och handtaget från vanliga översikten
+function onWxK(){const X=onWx();if(!X)return'';
+ return'<section class="widget w2 on-wxk"'+RF('Ö1')+'><button type="button" class="on-wxk-top" data-act="nav" data-id="vader"><span class="on-wxk-ic" aria-hidden="true">'+X.ic+'</span><span class="on-deg num">'+deg(X.T)+'</span><span class="on-wxk-s"><b>'+esc(cap(X.tx))+'</b><i class="num">H '+deg(X.hi)+' · L '+deg(X.lo)+'</i></span>'+(X.R.wet?'<span class="on-rain">'+UMB+esc(X.sp?pad(X.sp.a)+'–'+pad(X.sp.b):'Regn')+'</span>':'')+'</button>'+ovWx(X.W)+'</section>'}
+// B: Schema med veckoraden; idag blir en tidslinje med bara det som har en tid, Att göra som lista under
+function onSchemaB(){const t=today(),c=calWidget(),sel=isDate(S.ovDay)?S.ovDay:t;if(sel!==t)return c;const i=c.lastIndexOf('<div class="wk-day">');if(i<0)return c;
+ const o=D().tasks.filter(x=>!x.done),U=upgDag(),upg=o.length?'<div class="idag on-upgb"><button type="button" class="idag-alla" data-act="nav" data-id="uppgifter">'+I.list+'<span class="grow">Att göra</span><span class="n">Alla '+o.length+'</span>'+chevron+'</button>'+(U.idag.length||U.imorgon.length?upgDagHtml(U,'',true):'')+'</div>':'';
+ return c.slice(0,i)+'<div class="wk-day on-schb">'+onTl({bare:1})+upg+'</div></section>'}
 function onWxBox(){const X=onWx();if(!X)return'';
  const rain=X.R.wet?'<span class="on-rain">'+UMB+esc(X.sp?'Regn '+pad(X.sp.a)+'–'+pad(X.sp.b):'Regn idag')+'</span>':'<span class="on-dry">'+esc(X.tip)+'</span>';
  return'<section class="widget w2 on-wx"'+RF('Ö1')+' data-act="nav" data-id="vader"><div class="on-wx-top"><div class="on-wx-t"><div class="on-deg num">'+deg(X.T)+'</div><div class="on-sub">'+esc(X.tx)+' · H '+deg(X.hi)+' L '+deg(X.lo)+'</div>'+rain+'</div>'+
@@ -1334,13 +1341,13 @@ function onChips(o){o=o||{};const L=[],H=haOn(false)&&haData(),X=onWx(),left=D()
  const b=bdNext(bdays())[0];if(b&&b.days<=7)c(I.cake,'acc',b.name+(b.age!=null?' '+b.age:''),b.days===0?'idag':b.days===1?'i morgon':DAYS[parse(b.next).getDay()],'nav','fod');
  return L.length?'<div class="on-chips'+(o.cls?' '+o.cls:'')+'">'+L.join('')+'</div>':''}
 /* Tidslinjen (B): händelser, uppgifter, regn och middagen på sina klockslag, med Nu-markören överst */
-function onTl(){const t=today(),n=new Date(),m=n.getHours()*60+n.getMinutes(),E=onEv(t),U=upgDag(),X=onWx(),M=onMat(t),it=[];
+function onTl(p){p=p||{};const t=today(),n=new Date(),m=n.getHours()*60+n.getMinutes(),E=onEv(t),U=upgDag(),X=onWx(),M=onMat(t),it=[];
  it.push({s:m,o:0,h:'<div class="on-ti on-nu0"><span class="on-tm num">'+onKl(m)+'</span><b>Nu</b></div>'});
- if(U.idag.length)it.push({s:m,o:1,h:'<div class="on-ti"><span class="on-tm"></span><b>Att göra <span class="on-g">· '+U.idag.length+' kvar</span></b>'+upgDagHtml({idag:U.idag,imorgon:[]},'',true)+'</div>'});
+ if(U.idag.length&&!p.bare)it.push({s:m,o:1,h:'<div class="on-ti"><span class="on-tm"></span><b>Att göra <span class="on-g">· '+U.idag.length+' kvar</span></b>'+upgDagHtml({idag:U.idag,imorgon:[]},'',true)+'</div>'});
  E.forEach(o=>{const e=o.e;it.push({s:o.s==null?-1:o.s,o:2,h:'<div class="on-ti'+(o.x.st==='now'?' pag':'')+'" data-act="calOpen" data-id="'+t+'"><span class="on-tm num">'+esc(o.s==null?'Heldag':onStart(e))+'</span><b>'+evTitle(e)+'</b><span class="on-sub">'+[(evParts(e).name||evPerson(e))?personLabel(evParts(e).name||evPerson(e)):'',/[–-]/.test(e.time||'')?'till '+String(e.time).split(/\s*[–-]\s*/)[1]:''].filter(Boolean).join(' · ')+(o.x.st==='now'?' · '+o.x.left+' kvar':o.x.st==='next'?' · om '+o.x.inn:'')+'</span></div>'})});
  if(X&&X.sp&&X.sp.a*60>=m-60)it.push({s:Math.max(m,X.sp.a*60),o:2,h:'<div class="on-ti wx" data-act="nav" data-id="vader"><span class="on-tm num">'+pad(X.sp.a)+'.00</span><b class="on-rain">'+UMB+'Regn till '+pad(X.sp.b)+'</b></div>'});
  if(M&&M.start+75>m){const r=M.r,ck=r&&r.steps&&r.steps.length;it.push({s:M.start,o:2,h:'<div class="on-ti mat"><span class="on-tm num">'+onKl(M.start)+'</span><div class="on-mr"><button type="button" class="on-mb"'+(r?' data-act="recipe" data-id="'+esc(r.id)+'"':' data-act="nav" data-id="mat"')+'>'+dishThumb(r,M.m.title)+'<span class="grow"><b>Laga middag</b><span class="on-sub">'+esc(cap(M.m.title.replace(/^Storkok:\s*/i,'')))+(r&&r.min?' · '+r.min+' min':'')+'</span></span></button>'+(ck?'<button type="button" class="wm5-go" data-act="cook" data-id="'+esc(r.id)+'" aria-label="Börja laga">'+I.play+'</button>':'')+'</div></div>'})}
- it.sort((a,b)=>a.s-b.s||a.o-b.o);
+ it.sort((a,b)=>a.s-b.s||a.o-b.o);if(p.bare)return'<div class="on-tl">'+it.map(x=>x.h).join('')+'</div>';
  const tm=addDays(t,1),tE=onEv(tm).map(x=>x.e),im=tE.map(e=>(onStart(e)?onStart(e)+' ':'')+evParts(e).title).concat(U.imorgon.map(x=>x.title));
  return'<section class="widget w2 on-dag" data-box="kal"><div class="wh on-wh"><button type="button" class="on-wt" data-act="calOpen" data-id="'+t+'">Idag</button><button type="button" class="r lnk" data-act="calOpen" data-id="'+t+'">Kalender</button></div><div class="on-tl">'+it.map(x=>x.h).join('')+'</div>'+
   (im.length?'<button type="button" class="on-imr" data-act="calOpen" data-id="'+tm+'"><span class="grow"><b>I morgon, '+esc(DAYS[parse(tm).getDay()])+'</b><span class="on-sub">'+im.slice(0,3).map(esc).join(' · ')+(im.length>3?' +'+(im.length-3):'')+'</span></span>'+chevron+'</button>':'')+'</section>'}
@@ -1351,7 +1358,7 @@ function onImorgon(){const tm=addDays(today(),1),E=onEv(tm),U=upgDag();if(!E.len
 /* Telefonen */
 function ovNyTel(v){const t=today();let h=onHead();
  if(v==='a')h+='<div class="ov onx onx-a">'+onWxBox()+onIdag(true)+onMiddag()+onPar(onInkop(),onStadHalf())+onFodRad()+(haOn(false)?haBox(false):'')+'</div>';
- if(v==='b')h+='<div class="ov onx onx-b">'+onNu()+onTl()+(onChips({stad:1})?sh('Hemma just nu')+onChips({stad:1,cls:'g2'}):'')+'</div>';
+ if(v==='b')h+='<div class="ov onx onx-b">'+onWxK()+onNu()+onSchemaB()+(onChips({stad:1})?sh('Hemma just nu')+onChips({stad:1,cls:'g2'}):'')+'</div>';
  if(v==='c'){const hh=new Date().getHours(),gr=hh<5?'God natt':hh<10?'God morgon':hh<17?'Hej':hh<22?'God kväll':'God natt';
   h=head(gr+(people().includes(S.me)?', '+personLabel(S.me):''))+'<div class="ov onx onx-c">'+refAdd(heroHtml(),'Ö1')+onChips({stad:1,cls:'rad'})+(haOn(false)?haBox(false):'')+calWidget()+onMiddag()+onFodRad()+'</div>'}
  if(v==='d')h+='<div class="ov onx onx-d"><div class="on-grid">'+onWidgetsD()+'</div></div>';
