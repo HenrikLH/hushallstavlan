@@ -1716,10 +1716,10 @@ function haDockSvg(L,stor){const rv=L.lagQ?'dk-rv lag':'dk-rv',sv=L.smuts?'dk-sv
   '<rect x="60" y="160" width="120" height="22" rx="11" class="dk-t"/><path d="M74 171h92" class="dkx-bag"/>'+
   '<g class="dkx-dam">'+[84,106,128,150].map((x,i)=>'<circle cx="'+x+'" cy="171" r="2.5" style="animation-delay:'+(i*.18)+'s"/>').join('')+'</g>'+
   (L.sil?varn(182,180):'')+
-  '<rect x="90" y="190" width="60" height="18" rx="7" class="dk-sl"/>'+
-  (L.hemma?'<rect x="100" y="190" width="40" height="14" rx="6" class="dk-r"/><rect x="18" y="198" width="204" height="34" rx="17" class="dk-r"/><path d="M66 215h108" class="dkl-t"/><path d="M66 215h108" class="dkl-f '+lj+'" pathLength="100" stroke-dasharray="'+(upptagen?100:Math.max(1,bat))+' 100"/>'+(L.ladd?'<path d="M48 207l-6 8h4.6l-2 7 6.4-8.5h-4.6z" class="dkl-bl"/>':'')
-   :'<rect x="18" y="198" width="204" height="34" rx="17" class="dkr-borta"/>')+'<g class="dkx-tv">'+[108,120,132].map((x,i)=>'<path d="M'+x+' 180c2 3 3.5 5 3.5 7a3.5 3.5 0 0 1-7 0c0-2 1.5-4 3.5-7z" style="animation-delay:'+(i*.25)+'s"/>').join('')+'</g>'+
-  '<g class="dkx-tk">'+[110,120,130].map((x,i)=>'<path d="M'+x+' 202c-3-3 3-6 0-9s3-6 0-9" style="animation-delay:'+(i*.3)+'s"/>').join('')+'</g>'+
+  '<rect x="88" y="184" width="64" height="18" rx="7" class="dk-sl"/>'+
+  (L.hemma?'<rect x="98" y="180" width="44" height="16" rx="7" class="dk-r"/><rect x="16" y="188" width="208" height="44" rx="22" class="dk-r"/><path d="M68 210h104" class="dkl-t"/><path d="M68 210h104" class="dkl-f '+lj+'" pathLength="100" stroke-dasharray="'+(upptagen?100:Math.max(1,bat))+' 100"/>'+(L.ladd?'<path d="M50 202l-6 8h4.6l-2 7 6.4-8.5h-4.6z" class="dkl-bl"/>':'')
+   :'<rect x="16" y="188" width="208" height="44" rx="22" class="dkr-borta"/>')+'<g class="dkx-tv">'+[108,120,132].map((x,i)=>'<path d="M'+x+' 168c2 3 3.5 5 3.5 7a3.5 3.5 0 0 1-7 0c0-2 1.5-4 3.5-7z" style="animation-delay:'+(i*.25)+'s"/>').join('')+'</g>'+
+  '<g class="dkx-tk">'+[110,120,130].map((x,i)=>'<path d="M'+x+' 194c-3-3 3-6 0-9s3-6 0-9" style="animation-delay:'+(i*.3)+'s"/>').join('')+'</g>'+
   '</svg>'}
 function haDockKnapp(L,id,ikon,n,on,stop,rund){return'<button type="button" class="'+(rund?'dkx-rb':'dkk-b')+(on?' on':'')+'" data-act="haDock" data-id="'+(on&&stop?stop:id)+'" aria-label="'+(on&&stop?'Stoppa':n)+'">'+(rund?'<i>'+ikon+'</i>':ikon)+'<span>'+(on&&stop?'Stoppa':n)+'</span></button>'}
 function haDockKort(a){const L=haDockLage(a),K=haDockKnapp(L,'tom',HAI_DK.tom,'Töm',L.tm,null,1)+haDockKnapp(L,'tvatt',HAI_DK.tvatt,'Tvätta',L.tv,'tvattstopp',1)+haDockKnapp(L,'tork',HAI_DK.tork,'Torka',L.tork,'torkstopp',1);
