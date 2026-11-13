@@ -2,6 +2,12 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Väggen: menyn som sidofält till vänster (förslag, väntar på Henriks val A/B)
+- Ägare Claude, gren `claude/project-thread-eeh8sq`. Bara UI 5.0 på väggen (`sidoOn()`: S.wall, U5, inte Aura). Inställningar → Menyn: Till vänster (standard)/Längst ner (ls `vaggmeny`). Knappen överst fäller ut namnen (`ACT.sidoFall`, `I_SIDO`).
+- Utfällt: B `over` (standard) lägger sig över och fälls ihop vid flikval/tryck utanför; A `skjut` (ls `vaggsidolage=skjut`, inget val i appen än) flyttar innehållet och sparas (ls `vaggsido`). Ta bort den som Henrik inte väljer.
+- Sidofältet sätter `--tabbar:0`/`--tabgap:16px` på `body.wall.sido`, så rutnät som räknar höjd från flikraden (`.board`, `.ond` i Ny översikt D) får höjden automatiskt; `body` får `padding-left:var(--sidew)`.
+- Test `verktyg/emu/sidomeny.js` (vägg, ljust/mörkt, båda lägena), alla-flikar telefon+vägg gröna.
+
 ## Ny översikt A–D, B2, C2 bakom Utvecklarläge (publicerad ht-v386, ångra-gren `version-fore-ny-oversikt-3`)
 - Ägare Claude, gren `claude/project-thread-7ys0ku`. Inställningar → Utvecklarläge → Ny översikt (Av/A/B/C/D/B2/C2, ls `ht.ovny` a–f). `ovNy()` är tomt utanför DEV/UI5 (och i UI2/3/4/6, ordna-läget), då är allt som förut.
 - Kod: avsnittet efter `boardDefault` i app.js (`on*`-hjälpare, `ovNyTel` telefon, `wallNyBoard` vägg (e→b, f→c), `wallVila` T14, `wallDagar` T15), krokar i `V.oversikt`/`wallBoard`; ACT `ovny`, `onWk`, `onPers`. CSS sist i index.html (`.onx`, `.on-*`, `.onv`, `.ond`).

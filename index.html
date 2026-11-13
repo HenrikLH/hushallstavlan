@@ -4128,6 +4128,29 @@ html.ny.ui5 .on-wxk{flex-direction:column;align-items:stretch}
 html.ny.ui5 .on-wxk .ovx{margin:4px 0 0;min-width:0;width:100%}
 html.ny.ui5 .on-schb .on-tl{margin-top:4px}
 html.ny.ui5 .on-schb .on-upgb{margin-top:4px}
+/* Väggskärmen: menyn som sidofält till vänster (Inställningar → Menyn, ls vaggmeny/vaggsido). Ihopfällt 80 px med ikoner, utfällt 232 px med namn. Förebild: sidofältet i iPadOS (Hem, Musik) och Home Assistant. */
+html.ny.ui5 body.wall.sido{--tabbar:0px;--tabgap:16px;--sidew:104px;padding-left:var(--sidew)}
+html.ny.ui5 body.wall.sido.sido-ut:not(.sido-over){--sidew:256px}
+html.ny.ui5 body.wall.sido-over .nav.sido.sido-ut{box-shadow:0 20px 60px rgba(0,0,0,.22),0 2px 6px rgba(0,0,0,.08)}
+html.ny.ui5 body.wall .nav.sido{left:calc(12px + var(--sal));right:auto;top:calc(12px + var(--sat));bottom:12px;width:80px;height:auto;margin-left:0;transform:none;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:4px;padding:12px;border-radius:28px}
+html.ny.ui5 body.wall .nav.sido.sido-ut{width:232px}
+html.ny.ui5 body.wall .nav.sido .nav-pill{display:none}
+html.ny.ui5 body.wall .nav.sido :is(button[data-act="nav"],.nav-tog){flex:none;flex-direction:row;justify-content:flex-start;gap:12px;height:56px;padding:0 13px;border-radius:16px;font-size:17px;line-height:22px;font-weight:600;letter-spacing:-.4px;color:var(--ink-2);transition:background-color .2s,color .2s,transform .3s var(--ha-fj,cubic-bezier(.3,1.3,.5,1))}
+html.ny.ui5 body.wall .nav.sido :is(button[data-act="nav"],.nav-tog) svg{flex:none;width:30px;height:30px}
+html.ny.ui5 body.wall .nav.sido button[data-act="nav"] span{white-space:nowrap;overflow:hidden}
+html.ny.ui5 body.wall .nav.sido:not(.sido-ut) button[data-act="nav"] span{display:none}
+html.ny.ui5 body.wall .nav.sido button[aria-current="page"]{background:var(--pill);color:var(--accent)}
+html.ny.ui5 body.wall .nav.sido :is(button[data-act="nav"],.nav-tog):active{transform:scale(.94)}
+html.ny.ui5 body.wall .nav.sido .nav-tog{margin-bottom:8px;color:var(--ink-2)}
+html.ny.ui5 body.wall .nav.sido .nav-tog svg{width:26px;height:26px;margin:0 2px}
+html.ny.ui5 body.wall .nav.sido.har-me{padding-right:12px}
+html.ny.ui5 body.wall .nav.sido.har-me .nav-me{position:static;margin-top:auto;flex-direction:column;align-items:flex-start;gap:12px;padding-left:4px}
+html.ny.ui5 body.wall .nav.sido.har-me .nav-me .ib{width:48px!important;height:48px!important}
+html.ny.ui5 body.wall .nav.sido.har-me .nav-me i{width:calc(100% - 4px);height:.5px;margin-left:-4px}
+html.ny.ui5 body.wall.sido .corner-me{width:64px;height:64px}
+html.ny.ui5 body.wall.sido:has(.board) .arr-foot{left:calc(var(--sidew) + 16px);bottom:24px}
+@media (prefers-reduced-motion:no-preference){html.ny.ui5 body.wall .nav.sido-ut button[data-act="nav"] span{animation:sidoIn .3s ease both}}
+@keyframes sidoIn{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:none}}
 </style>
 </head>
 <body>
