@@ -2,16 +2,25 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
-## Matlagningsläget: delad vy (A vald, förslag v4 för timern, väntar på Henrik)
-- Ägare Claude, gren `claude/project-thread-46nf66`. Bara UI 5.0: `cook5()`/`ck5Mitt()` i app.js före `tidsplan`, CSS `.ck5*` sist i index.html. Henrik avvisade v1 (en spalt) och v2 (tidsplan hoptryckt till vänster); valde A i v3.
-- Ingredienser till vänster (bock `ACT.cookBock`, stegets i fetstil), stegen som lista till höger (tryck = hoppa), segment Steg/Tidsplan (`ACT.cookVy`) ger tidsplanen i full bredd. Timrar startas med tidsplanens runda stegknappar (Henriks krav).
-- Timern syns först när högst 5 min är kvar (Henrik): `ck5Syns`, `tick` ritar om när en timer passerar gränsen (`A.ck5Vis`). Liten grå kapsel, vinröd text sista minuten, fylld när den ringer. A = kapslar i rubriken (standard), B = kapsel vid sitt steg i listan (tillfälligt `ht.cookt=steg`). Ta bort varianten Henrik inte väljer.
-- Test `matlagning.js` (SHOT, VP=844x390, LS cookt), timerring, alla-flikar telefon gröna. Bilder /mnt/project-files/matlagning/v4/.
+## Receptsidan i Apple-stil (publicerad ht-v376, ångra-gren `version-fore-receptsida`)
+- Ägare Claude, gren `claude/project-thread-o3zdk4`. Bara UI 5.0 (`rcpTop5` före `recipeDetail`; CSS sist i index.html under `html.ny.ui5 .rcp5`/`.rcp-meny`). UI 2.0 oförändrat.
+- Version 2 efter Henriks svar: bildens knappar behålls (penna/foto, bokmärke, hjärta, betygsknapp med stjärnor). ⋯ har bara Redigera recept, Byt mot annan rätt, Recept hos källan, Föreslå aldrig igen. Under titeln bara Börja laga + Till veckan.
+- Version 3: Tidigast igen ligger i ⋯ (värdet syns i menyn) och ställs med −/+ i bladet (`tidigastHtml`, `.ti-step`, `ACT.tidSteg`, steg `TIDV` 1–26 v + Aldrig; baslinjen `frekvens[id].w` räknas om så att valt intervall gäller med dagens stjärnor). Senast lagad bara i Tidigast igen-bladet; priset i faktarutan som ~27 kr (minst vid saknade priser), ingen prisnot/why-text (M24) i UI 5.0. Öppen ⋯ hålls öppen vid omritning (`doRender`, `rmo`). Ingen Kod.gs-ändring.
+- Test: `receptsida.js` telefon/mörkt/vägg, alla-flikar telefon+vägg gröna efter merge av main. CI: `matsedel-gester.js` faller som på main (`.dm-g`).
+## Matlagningsläget: delad vy (publicerad ht-v377, ångra-gren `version-fore-matlagning`)
+- Gren `claude/project-thread-46nf66`. Bara UI 5.0: `cook5()`/`ck5Mitt()` i app.js före `tidsplan`, CSS `.ck5*` sist i index.html. Inspiration Deglaze/Mela (liggande: ingredienser vänster, steg höger).
+- Ingredienser till vänster (bock `ACT.cookBock`, stegets i fetstil), stegen som lista till höger (tryck = hoppa), segment Steg/Tidsplan (`ACT.cookVy`) ger tidsplanen i full bredd; dess runda stegknappar är timrarna (Henriks krav). Stående telefon: stegen överst.
+- Timern syns först när högst 5 min är kvar (Henrik): liten grå kapsel i rubriken (`ck5Syns`, `tick` ritar om vid gränsen via `A.ck5Vis`), vinröd sista minuten, fylld när den ringer.
+- Test `matlagning.js` (SHOT, VP=844x390), timerring, alla-flikar telefon+vägg.
 
 ## Översikt: bocken, Schema, Middag ikväll, Rummen (publicerad ht-v374, ångra-gren `version-fore-oversikt-atgarder`)
 - Gren `claude/project-thread-2tlos6` (PR #103). Bocken i Att göra-rutan (`.ur`) ritas och raden glider ihop (`checkAnim`/`A.before` tar `.cell,.ur`; FLIP överlever dubbel omritning via `A.flipT`). Schema döljer passerade händelser idag. Middag ikväll (UI 5.0, `wMeals`, `.wm5`): rad per rätt med bild och diskret grå ▶ (Henriks val). "Hemmet"-rutan med rummen heter Rummen. Väggen: ensam halv ruta (`.wpair.solo`) tar bredden.
 - Kvar från genomgången: timremsan "Nu", gemensamma rörelsekurvor, delade element (View Transitions). Imorgon i Att göra behålls (Henriks val ht-v359).
 - Test: `oversikt-bocka.js`, alla-flikar telefon+vägg gröna. CI: `matsedel-gester.js` faller på main också (letar `.dm-g` i rättens blad efter C3).
+## Scenens tidslinje: steg med fördröjning (publicerad ht-v375, ångra-gren `version-fore-scen-tidslinje`)
+- Gren `claude/project-thread-zk9a41`. Egen scen kan ha steg `s.st=[{m,l}]` utöver `s.l` (Direkt). Bladet: `habTidslinje` (Lägg till steg, −/+ minuter ur `HAB_MIN`, tryck på lampans namn = meny Flytta till). Körning `habSenare`: tjänsten tar `{nyckel:'scen',senare:[{om,steg}]}` (`ha_senare` i ljussensor.py, Timer per steg; ny scen/Ångra avbryter). Äldre tjänst svarar 403 → enheten kör stegen själv medan appen är öppen.
+- Väggdatorns tjänst måste uppdateras ("Kör") för att stegen ska bli av när telefonen låses. Test `scen-tidslinje.js` telefon/vägg, alla-flikar telefon+vägg gröna.
+
 ## Hemmet fyller bredden (publicerad ht-v372, ångra-gren `version-fore-hemmet-bredd`)
 - Gren `claude/project-thread-zk9a41`. Statusbrickorna (`.ha-chips-v`) delar raden lika, 1–3 scener fördelas jämnt (`hus-sc-N`), apparatens varning sitter på ikonen så namnet inte klipps. Test `hemmet-bredd.js` telefon/vägg/mörkt, hemmet-scener gröna.
 
