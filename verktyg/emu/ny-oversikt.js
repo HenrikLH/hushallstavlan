@@ -13,7 +13,7 @@ module.exports=async(pg,h)=>{
  if(await pg.locator('.nav-mini.on').isVisible())await pg.locator('.nav-mini.on').click();
  await pg.locator('#nav [data-act="nav"][data-id="oversikt"]').first().click();await h.idle(1200);
  const N=process.env.NAMN||'ny';
- if(!await pg.locator('.onx,.onv,.ond').count())throw new Error('ingen ny översikt');
+ if(process.env.KLASSISK!=='1'&&!await pg.locator('.onx,.onv,.ond').count())throw new Error('ingen ny översikt');
  await h.shot(N+'-1',!await read('wallBoardOn()'));
  if(await read('wallBoardOn()')){if(await read('ovNy()')==='d'){await pg.evaluate(()=>window.__d('(A.touch=1,render(),1)'));await h.idle(800);await h.shot(N+'-vila')}if(await pg.locator('.onv').count()){await pg.locator('.onv').click();await h.idle(900);if(!await pg.locator('.ond').count())throw new Error('tavlan visas inte efter tryck');await h.shot(N+'-2')}}
  
