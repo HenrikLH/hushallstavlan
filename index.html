@@ -2118,7 +2118,7 @@ html.ny .wbig{font-size:28px}
 html.ny .wk-sub{color:var(--ink);font-size:17px;line-height:22px;font-weight:650}
 html.ny #cal-rows>.wk-sub{display:none}
 html.ny body.wall .btasks>.upg-c{margin:4px 0 0!important}
-html.ny.ui5 body.wall .board:not(.arranging) .bcol[data-col]>.btasks:last-child{flex:0 1 auto}
+html.ny.ui5 body.wall .board:not(.arranging) .bcol[data-col]>:is(.btasks,.bclean):last-child{flex:0 1 auto}
 .upg-c .ur{display:flex;align-items:center;gap:10px;min-height:36px;border-top:.5px solid var(--line)}.upg-c .ur:first-child,.upg-c .wl+.ur,.upg-c .upg-lbl+.ur{border-top:0}.upg-c .ur .check{width:36px;height:36px;margin:-4px -6px -4px -7px}.upg-c .ur .t{flex:1;min-width:0;font-size:15px;line-height:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.upg-c .ur .d{flex:none;font-size:13px;color:var(--ink-2)}.upg-c .ur .d.red{color:var(--red)}.upg-c .ur.tm{min-height:22px}.upg-c .ur.tm .t{font-size:14px;color:var(--ink-2)}.upg-lbl{font-size:13px;line-height:18px;font-weight:600;color:var(--ink-2);margin-top:8px}.upg-tom{display:flex;align-items:center;gap:6px;font-size:15px;color:var(--ink-2);min-height:32px}.upg-tom svg{width:18px;height:18px;color:var(--green,#34c759)}
 html.ny .wk-d .wd{font-size:12px;line-height:15px}
 html.ny .wk-d .n{width:34px;height:34px;font-size:19px}
@@ -3455,6 +3455,12 @@ html.ny.ui5 .dm-foot{text-align:center;padding-bottom:8px}
 html.ny.ui5 .rc-prisnot{padding:0 20px 10px;font-size:13px;line-height:18px;color:var(--ink-2)}
 html.ny.ui5 .rc-prisnot.bad{color:var(--obs)}
 html.ny.ui5 .bank .rc-price small{color:var(--obs)}
+/* UI 5.0 · Idag-rutan (granskning B): uppgifterna under dagens händelser i Schema-rutan */
+html.ny.ui5 .idag .upg-c{margin:0}
+html.ny #cal-rows .idag>.wk-sub{display:none}
+html.ny.ui5 .idag .evs+.upg-c .ur:first-child{border-top:.5px solid var(--line)}
+html.ny.ui5 .idag-h{font-size:13px;line-height:18px;font-weight:600;color:var(--ink-2);padding:10px 0 2px}
+html.ny.ui5 .idag-b .upg-c .ur:first-child{border-top:0}
 /* UI 5.0 · Datumcirklar: proportionella siffror så att 1:an inte får tom plats till vänster och talet ser förskjutet ut i cirkeln (iPhone, SF Pro) */
 html.ny.ui5 :is(.wk-d .n,.cal-d .n,.cv-d .n){font-variant-numeric:proportional-nums}
 /* UI 5.0 · Kalender (granskning E): röda dagar (helger + svenska helgdagar, helgdag()) i accentfärgen; andra månaders dagar gråa */
