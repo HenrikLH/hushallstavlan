@@ -3911,17 +3911,14 @@ html.ny.ui5 body.wall .ck5-st.on .ck5-sb{font-size:34px;--lh:41px}
 html.ny.ui5 body.wall .ck5-sb{font-size:20px;--lh:26px}
 html.ny.ui5 body.wall .ck5-chip{height:40px;font-size:17px}html.ny.ui5 body.wall .ck5-chip .ck5-tl{font-size:17px;line-height:22px}
 html.ny.ui5 body.wall .ck5 .cook-body{grid-template-columns:minmax(360px,2fr) minmax(0,3fr)}
-/* Dockan: roboten i samma perspektiv som golvet (oval topp, sidokant, lidartorn, ljuslist = batteri) */
-.dkr-sk{fill:color-mix(in srgb,var(--ri,#fff) 10%,transparent)}
-.dkr-sd{fill:color-mix(in srgb,var(--ri,#fff) 16%,var(--surface,#fff));stroke:color-mix(in srgb,var(--ri,#fff) 40%,transparent);stroke-width:1.25}
-.dkr-tp{fill:var(--surface,#fff);stroke:color-mix(in srgb,var(--ri,#fff) 40%,transparent);stroke-width:1.25}
-.dkr-sm{fill:none;stroke:color-mix(in srgb,var(--ri,#fff) 14%,transparent);stroke-width:1}
-.dkr-ls{fill:color-mix(in srgb,var(--ri,#fff) 22%,var(--surface,#fff));stroke:color-mix(in srgb,var(--ri,#fff) 40%,transparent);stroke-width:1.25}
-.dkr-lt{fill:var(--surface,#fff);stroke:color-mix(in srgb,var(--ri,#fff) 40%,transparent);stroke-width:1.25}
-.dkr .dkr-led{fill:none;stroke-width:3;stroke-linecap:round}
-.dkr .dkx-bt.dkr-led{stroke:color-mix(in srgb,var(--ri,#fff) 14%,transparent)}
-.dkr .dkx-bf.dkr-led{stroke:#30D158}.dkr .dkx-bf.dkr-led.lag{stroke:var(--orange,#FF9500)}
-.dkr .dkx-bl{fill:#30D158;stroke:none}
+/* Dockan framifrån (som den äldsta bilden): färgade tankhandtag, glasreflex, dockningsfack, roboten med statuslist */
+.dkh.rv{fill:#32ADE6}.dkh.sv{fill:color-mix(in srgb,var(--ri,#fff) 40%,transparent)}
+.dk-sl{fill:color-mix(in srgb,var(--ri,#fff) 22%,transparent)}
+.dkl-t{fill:none;stroke:color-mix(in srgb,var(--ri,#fff) 12%,transparent);stroke-width:4;stroke-linecap:round}
+.dkl-f{fill:none;stroke:#30D158;stroke-width:4;stroke-linecap:round;transition:stroke-dasharray .8s cubic-bezier(.2,.8,.2,1)}
+.dkl-f.bus{stroke:#0A84FF}.dkl-f.lag{stroke:var(--orange,#FF9500)}
+.dkl-bl{fill:#30D158}
+.dkr-borta{fill:none;stroke:color-mix(in srgb,var(--ri,#fff) 30%,transparent);stroke-width:1.5;stroke-dasharray:5 5}
 </style>
 </head>
 <body>

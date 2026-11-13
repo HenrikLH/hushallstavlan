@@ -1701,21 +1701,26 @@ function haDockLage(a){const dv=a.dockVarn||[],t=a.tank,st=a.st||'';
  const gor=[tom&&'Fyll på rent vatten',smuts&&'Töm smutsvattnet',sil&&'Rengör silen',...fel].filter(Boolean);
  return{t,q,d,tom,smuts,sil,fel,hemma,tork,tv,tm,gor,lagQ:tom||q!=null&&q<15,bat:a.bat,ladd:/charging/.test(st)&&st!=='charging_complete'}}
 // genomskuren docka: tankarna med vattennivå och procent, dammpåsen, roboten med batteri när den är hemma
-function haDockSvg(L,stor){const rv=L.lagQ?'dk-rv lag':'dk-rv',sv=L.smuts?'dk-sv full':'dk-sv',pc=(v,x)=>v==null?'':'<text x="'+x+'" y="72" class="dkx-p">'+v+'<tspan class="dkx-pp"> %</tspan></text>';
- const tank=(x,id,niva,c,v,ikon,varn)=>'<clipPath id="'+id+'"><rect x="'+x+'" y="24" width="76" height="104" rx="14"/></clipPath><rect x="'+x+'" y="24" width="76" height="104" rx="14" class="dk-t"/><g clip-path="url(#'+id+')"><rect x="'+x+'" y="24" width="76" height="104" class="'+c+' dkk-v" style="transform:scaleY('+((niva==null?50:niva)/100)+')"/></g><rect x="'+x+'" y="24" width="76" height="104" rx="14" class="dk-tk"/>'+
-  pc(v,x+38)+'<g transform="translate('+(x+28)+' 98)" class="dkx-i">'+ikon+'</g>'+(varn?'<g transform="translate('+(x+64)+' 26)"><circle r="11" class="dkx-v"/><path d="M0-5v5M0 4.5v.5" class="dkx-vt"/></g>':'');
+function haDockSvg(L,stor){const rv=L.lagQ?'dk-rv lag':'dk-rv',sv=L.smuts?'dk-sv full':'dk-sv',pc=(v,x)=>v==null?'':'<text x="'+x+'" y="80" class="dkx-p">'+v+'<tspan class="dkx-pp"> %</tspan></text>';
+ // framifrån som den äldsta bilden: tankar med färgade handtag (blått = rent, grått = smutsigt), dammpåsen, dockningsfacket och den runda roboten med statuslist
+ const varn=(x,y)=>'<g transform="translate('+x+' '+y+')"><circle r="11" class="dkx-v"/><path d="M0-5v5M0 4.5v.5" class="dkx-vt"/></g>';
+ const tank=(x,id,niva,c,v,ikon,h,vr)=>'<rect x="'+(x+15)+'" y="22" width="32" height="10" rx="5" class="dkh '+h+'"/><clipPath id="'+id+'"><rect x="'+x+'" y="34" width="62" height="106" rx="14"/></clipPath><rect x="'+x+'" y="34" width="62" height="106" rx="14" class="dk-t"/><g clip-path="url(#'+id+')"><rect x="'+x+'" y="34" width="62" height="106" class="'+c+' dkk-v" style="transform:scaleY('+((niva==null?50:niva)/100)+')"/></g><rect x="'+x+'" y="34" width="62" height="106" rx="14" class="dk-tk"/>'+
+  pc(v,x+31)+'<g transform="translate('+(x+21)+' 106)" class="dkx-i">'+ikon+'</g>'+(vr?varn(x+56,27):'');
  const drop='<path d="M10 2c3 3.6 5.5 6.4 5.5 9.4a5.5 5.5 0 0 1-11 0C4.5 8.4 7 5.6 10 2z"/>',smu='<path d="M10 2c3 3.6 5.5 6.4 5.5 9.4a5.5 5.5 0 0 1-11 0C4.5 8.4 7 5.6 10 2z"/><path d="M7.5 12.5h5M8.5 15h3"/>';
- const bat=L.bat==null?0:Math.max(0,Math.min(100,L.bat));
+ const bat=L.bat==null?0:Math.max(0,Math.min(100,L.bat)),upptagen=L.tv||L.tm||L.tork,lj=upptagen?'bus':bat<20?'lag':'ok';
  return'<svg class="dkx'+(stor?' stor':'')+(L.tm?' tm':'')+(L.tv?' tv':'')+(L.tork?' tork':'')+'" viewBox="0 0 240 236" aria-hidden="true">'+
-  '<rect x="24" y="8" width="192" height="196" rx="26" class="dk-k"/>'+
-  tank(36,'dkx-c1',L.q,rv,L.tom?null:L.q,drop,L.lagQ)+tank(128,'dkx-c2',L.d,sv,L.d,smu,L.smuts)+
-  '<rect x="36" y="140" width="168" height="40" rx="12" class="dk-t"/><path d="M52 160h136" class="dkx-bag"/>'+
-  '<g class="dkx-dam">'+[70,100,130,160].map((x,i)=>'<circle cx="'+x+'" cy="172" r="2.5" style="animation-delay:'+(i*.18)+'s"/>').join('')+'</g>'+
-  (L.sil?'<g transform="translate(200 182)"><circle r="11" class="dkx-v"/><path d="M0-5v5M0 4.5v.5" class="dkx-vt"/></g>':'')+
-  '<path d="M4 232 22 206h196l18 26z" class="dk-b"/>'+
-  '<g class="dkx-tv">'+[96,120,144].map((x,i)=>'<path d="M'+x+' 190c2 3 3.5 5 3.5 7a3.5 3.5 0 0 1-7 0c0-2 1.5-4 3.5-7z" style="animation-delay:'+(i*.25)+'s"/>').join('')+'</g>'+
-  '<g class="dkx-tk">'+[100,120,140].map((x,i)=>'<path d="M'+x+' 200c-3-3 3-6 0-9s3-6 0-9" style="animation-delay:'+(i*.3)+'s"/>').join('')+'</g>'+
-  (L.hemma?'<g class="dkr"><ellipse cx="120" cy="229" rx="80" ry="6" class="dkr-sk"/><path d="M48 203v15a72 13 0 0 0 144 0v-15z" class="dkr-sd"/><ellipse cx="120" cy="203" rx="72" ry="13" class="dkr-tp"/><path d="M62 207a58 9 0 0 0 116 0" class="dkr-sm"/><path d="M104 191v9a16 4.5 0 0 0 32 0v-9z" class="dkr-ls"/><ellipse cx="120" cy="191" rx="16" ry="4.5" class="dkr-lt"/><path d="M88 224q32 3.2 64 0" class="dkx-bt dkr-led"/><path d="M88 224q32 3.2 64 0" class="dkx-bf dkr-led'+(bat<20?' lag':'')+'" pathLength="100" stroke-dasharray="'+bat+' 100"/>'+(L.ladd?'<path d="M123 203l-6 7h4.4l-2 6 6.2-7.4h-4.4z" class="dkx-bl"/>':'')+'</g>':'')+'</svg>'}
+  '<path d="M6 234 26 214h188l20 20z" class="dk-b"/>'+
+  '<rect x="44" y="12" width="152" height="196" rx="22" class="dk-k"/>'+
+  tank(54,'dkx-c1',L.q,rv,L.tom?null:L.q,drop,'rv',L.lagQ)+tank(124,'dkx-c2',L.d,sv,L.d,smu,'sv',L.smuts)+
+  '<path d="M44 152h152" class="dk-ln"/>'+
+  '<rect x="60" y="160" width="120" height="22" rx="11" class="dk-t"/><path d="M74 171h92" class="dkx-bag"/>'+
+  '<g class="dkx-dam">'+[84,106,128,150].map((x,i)=>'<circle cx="'+x+'" cy="171" r="2.5" style="animation-delay:'+(i*.18)+'s"/>').join('')+'</g>'+
+  (L.sil?varn(182,180):'')+
+  '<rect x="90" y="190" width="60" height="18" rx="7" class="dk-sl"/>'+
+  (L.hemma?'<rect x="100" y="190" width="40" height="14" rx="6" class="dk-r"/><rect x="18" y="198" width="204" height="34" rx="17" class="dk-r"/><path d="M66 215h108" class="dkl-t"/><path d="M66 215h108" class="dkl-f '+lj+'" pathLength="100" stroke-dasharray="'+(upptagen?100:Math.max(1,bat))+' 100"/>'+(L.ladd?'<path d="M48 207l-6 8h4.6l-2 7 6.4-8.5h-4.6z" class="dkl-bl"/>':'')
+   :'<rect x="18" y="198" width="204" height="34" rx="17" class="dkr-borta"/>')+'<g class="dkx-tv">'+[108,120,132].map((x,i)=>'<path d="M'+x+' 180c2 3 3.5 5 3.5 7a3.5 3.5 0 0 1-7 0c0-2 1.5-4 3.5-7z" style="animation-delay:'+(i*.25)+'s"/>').join('')+'</g>'+
+  '<g class="dkx-tk">'+[110,120,130].map((x,i)=>'<path d="M'+x+' 202c-3-3 3-6 0-9s3-6 0-9" style="animation-delay:'+(i*.3)+'s"/>').join('')+'</g>'+
+  '</svg>'}
 function haDockKnapp(L,id,ikon,n,on,stop,rund){return'<button type="button" class="'+(rund?'dkx-rb':'dkk-b')+(on?' on':'')+'" data-act="haDock" data-id="'+(on&&stop?stop:id)+'" aria-label="'+(on&&stop?'Stoppa':n)+'">'+(rund?'<i>'+ikon+'</i>':ikon)+'<span>'+(on&&stop?'Stoppa':n)+'</span></button>'}
 function haDockKort(a){const L=haDockLage(a),K=haDockKnapp(L,'tom',HAI_DK.tom,'Töm',L.tm,null,1)+haDockKnapp(L,'tvatt',HAI_DK.tvatt,'Tvätta',L.tv,'tvattstopp',1)+haDockKnapp(L,'tork',HAI_DK.tork,'Torka',L.tork,'torkstopp',1);
  const gor=L.gor.length?'<div class="dkx-gor">'+L.gor.map(g=>'<span>'+esc(g)+'</span>').join('')+'</div>':'',fyll=L.t&&L.t.brist==null?'<button type="button" class="ha-pill" data-act="haTankFylld">Påfylld</button>':'';
