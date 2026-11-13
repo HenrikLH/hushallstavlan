@@ -48,7 +48,7 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 - Ägare Claude, gren `claude/project-thread-ys6yn3`. `stadRob()` stängde inte sin `<div class="stad-rob-g">`, så hela Städ hamnade i ett kort. Rättat; `stad-dammsugare.js` larmar om städinnehåll hamnar i brickan.
 - Henrik godkände Ring-vyn men inte Lista: `stadVy()` ger nu `ring` som standard, `lista`/`rutnat` sparas uttryckligen (`ht.stadVy`). Test stad-vyer, stad-dammsugare, alla-flikar telefon+vägg gröna.
 
-## Dockans bild framifrån (publicerad ht-v381, ångra-gren `version-fore-dockbild-framifran`)
+## Dockans bild framifrån (publicerad ht-v382, ångra-gren `version-fore-dockbild`)
 - `haDockSvg` ritad framifrån som den äldsta bilden (ht-v361, Henrik gillar den och vill se den i varje jämförelse): färgade tankhandtag (`.dkh.rv` blått/`.sv` grått), dockningsfack `.dk-sl`, rund robot i samma proportion mot dockan som äldsta (170×38 mot dockans 152), statuslist `.dkl-f` = batteri (grön, blå `bus` vid tvätt/tork/tömning, orange lågt), blixt vid laddning, streckad kontur `.dkr-borta` när roboten är ute. 3D-perspektivroboten förkastad (för tunn/tjock). Test robot-dockkort/apparater/robot-status/robot-rum-docka/stad-dammsugare, alla-flikar telefon+vägg gröna.
 
 ## Dammsugarbrickan i Städ: symboler och laddning (publicerad ht-v371, ångra-gren `version-fore-dammsug-laddning`)
