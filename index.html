@@ -4508,7 +4508,13 @@ html.ny.ui5.skog{--sk-sjo:#6F8F9C}
 html.ny.ui5.skog .sr-vat{stroke:var(--sk-sjo)}html.ny.ui5.skog .sr-lg.v{border-color:var(--sk-sjo)}html.ny.ui5.skog .sr-iv,html.ny.ui5.skog .sr-rum.m>svg{color:var(--sk-sjo)}
 html.ny.ui5.skog .sr-ill.on .sr-li{stroke:var(--sk-amb)}html.ny.ui5.skog .sr-ill.on .sr-pu{fill:var(--sk-amb)!important}
 /* Pilar i Översiktens kort: grå och lika stora som i listorna */
-html.ny.ui5.skog :is(.ot-wxk,.ot-lnk) svg{color:var(--ink-3);stroke:currentColor}
+html.ny.ui5.skog .ot-wxk svg{color:var(--ink-3);stroke:currentColor}
+/* Accenten syns igen (Henrik 14/11: "nu har jag ingen färg"): vald flik i menyn skogsgrön, vald del i väljarna ljusgrön, länkar gröna */
+html.ny.ui5.skog .ot-lnk{color:var(--accent)}html.ny.ui5.skog .ot-lnk svg{color:var(--accent);stroke:currentColor;opacity:1}
+html.ny.ui5.skog body.wall.t3 .nav.sido button[aria-current="page"]{background:var(--sk-gron);color:#fff}
+html.ny.ui5.skog .segc:not(.subseg .segc) .seg-thumb,html.ny.ui5.skog .ot-flik>i{background:var(--sk-gronl);box-shadow:none}
+html.ny.ui5.skog :is(.ot-dseg,.wxC-k) button[aria-pressed="true"]{background:var(--sk-gronl);box-shadow:none}
+html.ny.ui5.skog .subseg .segc .seg-thumb{background:var(--surface);box-shadow:var(--sk-tskugga)}
 /* Dimrade lampor i ljust läge: varm bärnsten som resten av "tänt", inte citrongult */
 html.ny.ui5.skog .ha-t.ha-dim::before{background:#F3CF8A;opacity:.55}
 /* Bockar: rundade rutor som fylls gröna; brytare gröna */
@@ -4521,8 +4527,8 @@ html.ny.ui5.skog .switch:checked{background:var(--sk-gron)}
 html.ny.ui5.skog :is(.wk-d.on .n,.cal-today,.today-dot){background:var(--sk-gron);color:#fff}
 /* Flikraden: skogsgrön, ljusa ikoner, vald flik ljusare (som väggens sidomeny) */
 html.ny.ui5.skog .nav:not(.sido){background:var(--sk-meny);border:0;border-top:0;box-shadow:0 10px 30px rgba(20,30,25,.25);-webkit-backdrop-filter:none;backdrop-filter:none}
-html.ny.ui5.skog .nav:not(.sido) .nav-pill{background:rgba(255,255,255,.16)}
-html.ny.ui5.skog .nav.fj.lyft .nav-pill{background:rgba(255,255,255,.26)}
+html.ny.ui5.skog .nav:not(.sido) .nav-pill{background:var(--sk-gron)}
+html.ny.ui5.skog .nav.fj.lyft .nav-pill{background:#7FAA6A}
 html.ny.ui5.skog .nav:not(.sido) button{color:rgba(240,245,240,.7)}
 html.ny.ui5.skog .nav:not(.sido) button[aria-current="page"],html.ny.ui5.skog .nav.fj.drag button.over{color:#fff}
 html.ny.ui5.skog .nav-mini{background:var(--sk-meny);color:#fff;border:0}
