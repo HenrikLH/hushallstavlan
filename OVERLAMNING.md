@@ -2,6 +2,10 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Skog: granskning av väggskärmen (förslag, väntar på Pusha)
+- Ägare Claude, gren `claude/project-thread-tpd0u6`. Väggen i Skog: tom plats i veckan lika stor som en rätt (`.bt:has(.bq.e)`), scenraden på Översikt tonar ut i kanten (`.ot-sc` mask), tända lampor i mörkt läge dämpad bärnsten. Kanterna mätta i alla flikar: helbredd 44 px, listvyer centrerad spalt 834 px.
+- Test: alla-flikar vägg ljust/mörkt Skog + Apple vägg + Skog telefon gröna. Bild /mnt/project-files/skog-hela-appen/granskning/vaggskarm-efter.png.
+
 ## Skog: rester och UI-granskning (publicerad ht-v393, ångra-gren `version-fore-skog-granskning`)
 - Ägare Claude, gren `claude/project-thread-tpd0u6`. Skog: väljarna i Inställningar linjerar med korten, rubrikernas högerkant 36 px som texten i korten, kalenderns månadsrubrik in 20 px, rummen på Översikt delar bredden, diskmaskinens ring bärnsten, utvecklarlistan T2. Alla UI 5.0: matlagningsläget på smal telefon (titel egen rad, väljare under) och `ck5Mitt` visar ett långt steg från början.
 - Test: alla-flikar Skog telefon ljust/mörkt + vägg, Apple, Aura, matlagning.js, tavla-designval.js gröna. Bild /mnt/project-files/skog-hela-appen/granskning/.

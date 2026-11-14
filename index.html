@@ -4503,6 +4503,9 @@ html.ny.ui5.skog :is(.hab .hab-sc,.hus-sc) .ha-st.on .ha-i{background:transparen
 html.ny.ui5.skog .hab-stor{background:var(--sk-gron);box-shadow:0 8px 24px rgba(74,124,70,.3)}
 html.ny.ui5.skog :is(.ha-t.on,.hab .hab-g .ha-t.on){background:#F7EAD0;color:#1F2723}
 html.ny.ui5.skog .ha-t.on .ha-s{color:rgba(31,39,35,.68)}
+/* Mörkt läge: tänt som dämpad bärnsten, inte en ljus platta som bländar på väggen på kvällen */
+html.ny.ui5.skog[data-theme="dark"] :is(.ha-t.on,.hab .hab-g .ha-t.on){background:rgba(227,154,30,.16);color:var(--ink)}html.ny.ui5.skog[data-theme="dark"] .ha-t.on .ha-s{color:var(--ink-2)}html.ny.ui5.skog[data-theme="dark"] .ha-t.ha-dim::before{background:rgba(227,154,30,.32);opacity:1}
+@media (prefers-color-scheme: dark){html.ny.ui5.skog:not([data-theme="light"]) :is(.ha-t.on,.hab .hab-g .ha-t.on){background:rgba(227,154,30,.16);color:var(--ink)}html.ny.ui5.skog:not([data-theme="light"]) .ha-t.on .ha-s{color:var(--ink-2)}html.ny.ui5.skog:not([data-theme="light"]) .ha-t.ha-dim::before{background:rgba(227,154,30,.32);opacity:1}}
 html.ny.ui5.skog :is(.ha-t.on,.ha-chip.on) .ha-i{background:var(--sk-amb);color:#fff}
 html.ny.ui5.skog .ha-chips-v .ha-chip:not(.on) .ha-i{background:var(--fill)!important;color:var(--ink)!important}
 html.ny.ui5.skog .ha-chips-v .ha-chip.on .ha-i{background:var(--sk-amb)!important;color:#fff!important}
@@ -4522,6 +4525,9 @@ html.ny.ui5.skog .sh{padding-right:36px}
 html.ny.ui5.skog .cal-head{padding-left:20px}
 html.ny.ui5.skog .ot-t .ot-ik{flex:1 0 66px}
 html.ny.ui5.skog .ha-g-v .ha-ap-disk .ha-i{--rc:var(--sk-amb)}
+/* Väggen: en tom plats i veckan blir lika stor som en rätt i stället för att fylla hela raden; scenraden tonar ut i kanten när den går att svepa */
+html.ny.ui5.skog body.wall .bt:has(.bq.e){flex:0 0 calc(50% - 5px)}
+html.ny.ui5.skog .ot-sc{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 44px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 44px),transparent)}
 /* Blad: samma sand som sidan, knapparna i rubriken som ljusa kort */
 html.ny.ui5.skog .sheet-panel{background:var(--bg)}
 html.ny.ui5.skog .sheet-head .tb{background:var(--surface);border:1px solid var(--sk-kb)}
