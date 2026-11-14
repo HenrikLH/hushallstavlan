@@ -4405,7 +4405,7 @@ html.ny.ui5 body.wall.t3 .nav.sido .brand{color:#fff}
 html.ny.ui5 .ot-t{display:flex;flex-direction:column;gap:12px;padding:0 16px 12px}
 html.ny.ui5 .ot-t .ot-head{position:relative;overflow:hidden;margin:0 -16px;padding:4px 16px 14px;color:var(--ot-ink)}
 html.ny.ui5 .ot-t .ot-head>.ot-land{position:absolute;right:0;top:0;width:78%;height:100%;opacity:.7;-webkit-mask-image:linear-gradient(90deg,transparent,#000 55%);mask-image:linear-gradient(90deg,transparent,#000 55%)}
-html.ny.ui5 .ot-t .ot-head>:not(.ot-land){position:relative}html.ny.ui5 .ot-t .ot-l3{display:none}
+html.ny.ui5 .ot-t .ot-head>:not(.ot-land,.ot-frost){position:relative}html.ny.ui5 .ot-t .ot-l3{display:none}
 html.ny.ui5 .ot-t .ot-brand{gap:10px}html.ny.ui5 .ot-t .ot-bi svg{width:26px;height:26px}html.ny.ui5 .ot-t .ot-brand b{font-size:20px;line-height:26px;letter-spacing:-.3px}
 html.ny.ui5 .ot-t .ot-me{margin-left:auto}
 html.ny.ui5 .ot-t .ot-kl{margin-top:14px;font-size:48px;line-height:52px;font-weight:600;letter-spacing:-1.5px}
@@ -4575,6 +4575,19 @@ html.ny.ui5.skog .sheet-head .tb{background:var(--surface);border:1px solid var(
 html.ny.ui5.skog .sheet-head .tb.strong{background:var(--accent);border-color:transparent}
 /* Matlagningsläget på smal telefon: väljaren Steg/Tidsplan får en egen rad så att rättens namn inte bryts ett ord per rad */
 @media (max-width:520px){html.ny.ui5 .ck5-top .segc{flex:1 1 100%;width:auto;margin:8px 0 0}html.ny.ui5 .ck5-top .ck5-h{flex-basis:calc(100% - 56px)}html.ny.ui5 .ck5-top .ck5-chips:not(:empty){margin:8px 0 0 56px}}
+/* Skog, telefonen: skogen ligger stilla bakom Översikten, klar upptill och frostas gradvis nerifrån (förslag 14/11). Frosten är fem lager backdrop-filter med ökande oskärpa, var och en maskad från en lägre höjd, och en slöja som tonar mot sidans sand. */
+html.ny.ui5 .ot-t{position:relative;isolation:isolate}
+html.ny.ui5 .ot-t .ot-head{overflow:visible;display:flex;flex-direction:column;min-height:214px;box-sizing:border-box;color:#fff;text-shadow:0 1px 14px rgba(20,30,26,.32)}
+html.ny.ui5 .ot-t .ot-head>.ot-land,html.ny.ui5 .ot-t .ot-frost{position:fixed;left:0;top:-80px;right:auto;width:100vw;height:500px;opacity:1;z-index:-1;pointer-events:none;-webkit-mask-image:none;mask-image:none}
+html.ny.ui5 .ot-t .ot-l3{display:inline;opacity:.82}html.ny.ui5 .ot-t .ot-head>.ot-kl{margin-top:auto}html.ny.ui5 .ot-t .ot-dat{color:rgba(255,255,255,.92)}html.ny.ui5 .ot-t .ot-head .ot-bi{color:#fff}
+html.ny.ui5 .ot-frost>i{position:absolute;inset:0}
+html.ny.ui5 .ot-frost>i:nth-child(1){-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);-webkit-mask-image:linear-gradient(180deg,transparent 58%,#000 68%);mask-image:linear-gradient(180deg,transparent 58%,#000 68%)}
+html.ny.ui5 .ot-frost>i:nth-child(2){-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px);-webkit-mask-image:linear-gradient(180deg,transparent 63%,#000 76%);mask-image:linear-gradient(180deg,transparent 63%,#000 76%)}
+html.ny.ui5 .ot-frost>i:nth-child(3){-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);-webkit-mask-image:linear-gradient(180deg,transparent 69%,#000 84%);mask-image:linear-gradient(180deg,transparent 69%,#000 84%)}
+html.ny.ui5 .ot-frost>i:nth-child(4){-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);-webkit-mask-image:linear-gradient(180deg,transparent 75%,#000 93%);mask-image:linear-gradient(180deg,transparent 75%,#000 93%)}
+html.ny.ui5 .ot-frost>i:nth-child(5){background:linear-gradient(180deg,transparent 62%,rgba(236,231,222,.3) 76%,rgba(236,231,222,.8) 92%,#ECE7DE)}
+html.ny.ui5[data-theme="dark"] .ot-frost>i:nth-child(5){background:linear-gradient(180deg,transparent 62%,rgba(18,23,21,.3) 76%,rgba(18,23,21,.8) 92%,#121715)}
+@media (prefers-color-scheme: dark){html.ny.ui5:not([data-theme="light"]) .ot-frost>i:nth-child(5){background:linear-gradient(180deg,transparent 62%,rgba(18,23,21,.3) 76%,rgba(18,23,21,.8) 92%,#121715)}}
 </style>
 </head>
 <body>
