@@ -406,6 +406,11 @@ def ha_app_styr(c, d):
     if a['typ'] == 'robot':
         e = a['id']
         if g == 'start':
+            # appens förval (Max sugkraft, moppläget Custom) sätts före starten och blir det planen återställer till
+            if d.get('sug') in a['sugAlt'] and d['sug'] not in ('off', a.get('sug')):
+                tj('vacuum', 'set_fan_speed', {'entity_id': e, 'fan_speed': d['sug']}); a['sug'] = d['sug']
+            if a.get('ruttId') and d.get('rutt') in (a.get('ruttAlt') or []) and d['rutt'] != a.get('rutt'):
+                tj('select', 'select_option', {'entity_id': a['ruttId'], 'option': d['rutt']}); a['rutt'] = d['rutt']
             ok = lambda L: [int(x) for x in L or [] if any(r['id'] == int(x) for r in a['rum'])]
             rum, damm, mopp = ok(d.get('rum')), ok(d.get('damm')), ok(d.get('mopp'))
             if rum or damm or mopp: PLAN.pop(e, None)

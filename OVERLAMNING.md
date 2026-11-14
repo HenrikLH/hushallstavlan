@@ -2,6 +2,13 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Dammsugarsidan: Skog, Max och Custom som förval, moppläge per rum (förslag, ej publicerat)
+- Ägare Claude, gren `claude/project-thread-j9rebe`. Henrik 14/11: Skog-accent på dammsugarvyn, Max sugkraft som standard, moppläget Custom som standard om det går, snyggare val av Standard/Deep/Deep+ per rum.
+- `haStd(a,k)`: förval Max (sug) och Custom (rutt, annars Standard) om roboten har dem; snabbvalen Suction/Route sätter `S.haRobVal` (gäller bara nästa start, `ACT.haRobVal`). Start skickar `sug`/`rutt` först som egna anrop (gammal tjänst) och med starten (ny tjänst sätter dem i `ha_app_styr` och planen återställer till dem). Per rum: segment `.ha-rs` (`haRuttVal`, `ACT.haRobRm`, ls `haRumRutt`) i stället för rullista; samma läge som förvalet ger ingen egen omgång.
+- Skog-CSS sist i index.html: dammsugning `--sk-damm` grön, moppning `--sk-mopp` sjöblå, tömning/docka bärnsten, klart grönt, länkar i accenten.
+- Overifierat: att Qrevo:n har `custom` i HA:s mop_mode (falsk HA har det; saknas det blir förvalet Standard). Tjänsten på Surfacen behöver Henriks "Kör" (appen fungerar utan).
+- Test: robot-skog.js (ny), robot-mopp/robot-avbryt/robot-rutt mot falsk HA, apparater/robot-status/robot-dockkort/robot-rum-docka/stad-dammsugare demo, alla-flikar Skog telefon+vägg gröna. apparater.js mot falsk HA faller även på main (dockkortet).
+
 ## Skog: grönt tillbaka (publicerad ht-v396, ångra-gren `version-fore-skog-gront`)
 - Henrik 14/11: "Jag vill ha grön som accentfärg men nu har jag ingen färg". Vald flik i menyn skogsgrön (telefon och vägg), valt läge i väljarna ljusgrönt, `.ot-lnk` grön. Neutralisera inte accenten i Skog vid granskningar. Test: alla-flikar Skog telefon + vägg vänstermeny.
 
