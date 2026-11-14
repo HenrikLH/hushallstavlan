@@ -4577,6 +4577,19 @@ html.ny.ui5.skog .sheet-head .tb{background:var(--surface);border:1px solid var(
 html.ny.ui5.skog .sheet-head .tb.strong{background:var(--accent);border-color:transparent}
 /* Matlagningsläget på smal telefon: väljaren Steg/Tidsplan får en egen rad så att rättens namn inte bryts ett ord per rad */
 @media (max-width:520px){html.ny.ui5 .ck5-top .segc{flex:1 1 100%;width:auto;margin:8px 0 0}html.ny.ui5 .ck5-top .ck5-h{flex-basis:calc(100% - 56px)}html.ny.ui5 .ck5-top .ck5-chips:not(:empty){margin:8px 0 0 56px}}
+/* Skog: Form på knappar och rutor (ls segstil: standard=Mjuk, kapsel=Rund, klassisk=Stram) */
+html.ny.ui5.skog.sk-rund{--r5:30px}
+html.ny.ui5.skog.sk-rund body.wall{--r5:32px}
+html.ny.ui5.skog.sk-rund .bq{border-radius:24px}
+html.ny.ui5.skog.sk-rund :is(.ot-dseg,.ot-flik,.wxC-k),html.ny.ui5.skog.sk-rund :is(.ot-dseg,.wxC-k) button,html.ny.ui5.skog.sk-rund .ot-flik>i{border-radius:999px}
+html.ny.ui5.skog.sk-rund .check::before{border-radius:50%}
+html.ny.ui5.skog.sk-stram{--r5:10px}
+html.ny.ui5.skog.sk-stram body.wall{--r5:12px}
+html.ny.ui5.skog.sk-stram .bq{border-radius:6px}
+html.ny.ui5.skog.sk-stram :is(.segc,.ot-dseg,.ot-flik,.wxC-k){border-radius:10px}
+html.ny.ui5.skog.sk-stram :is(.segc .seg-thumb,.segc button,.ot-dseg button,.wxC-k button,.ot-flik>i){border-radius:8px}
+html.ny.ui5.skog.sk-stram :is(.btn-fill,.btn-tint,.sh-btn,.pill,.tb,.add-row .add-go){border-radius:10px}
+html.ny.ui5.skog.sk-stram .check::before{border-radius:5px}
 </style>
 </head>
 <body>
