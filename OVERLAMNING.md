@@ -2,7 +2,7 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
-## Skog: onödiga inställningar borttagna (förslag, väntar på Pusha)
+## Skog: onödiga inställningar borttagna (publicerad ht-v395, ångra-gren `version-fore-skog-installningar`)
 - Ägare Claude, gren `claude/project-thread-tpd0u6`. Henrik 14/11: ta bort inställningar som inte behövs med Skog. Varje val provades i Skog (DOM jämförd före/efter). Dolda när `skogVal()` (ls ui tom/5 och ovny=h): Färgval/accent (Skog låser accent till skog, Ljust/Mörkt direkt i Utseende), Flytta rutorna/Återställ (visade gamla Översikten), Rutor i tre storlekar, Natthimmel, Timmarna under bilden, Väderbildens stil/Hundarna när Vädersidan är Kurva på telefon, Ny översikt i utvecklarläget. För alla: Aura i mörkt läge borttagen, Design-texten omskriven.
 - Behållna (påverkar Skog): Vädersidan, Plusknappen, Menyraden när du scrollar, Låsta rätter (Generera veckosedel), Planera veckan som, kalender/födelsedagar, väggens meny och inställningsknapp.
 - Test: alla-flikar Skog telefon (med sparad vinröd), Skog vägg + vänstermeny, Apple; tavla-designval.js grön. Bilder /mnt/project-files/skog-installningar/.
