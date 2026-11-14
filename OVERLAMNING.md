@@ -2,11 +2,24 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
-## Väggtavlan visar det aktuella (förslag, gren `claude/project-thread-ckaljv`)
-- Ägare Claude. Henrik 14/11: det som är relevant för hemmet ska synas på väggtavlan. Koll: regnet fanns redan i Skogs väderkort (T21); högtalarreglaget fanns bara i Apple/Tavla 2, inte i Skog.
-- Gjort (Skog, väggen): `otMed()` i Smart hem (T19) visar "Spelar på …" + `habMedKort` (volym, Spotify-knappar) när något spelar/är pausat; rummen blir då en rad med ikon+namn (`.ot-hus.spelar`). Väderkortet: SMHI-varning före regnet; "Regn resten av dagen" i st.f. "kl. 24".
-- Nästa: Henrik godkänner bilden (/mnt/project-files/vagg-aktuellt/) och väljer fler inslag ur förslagen i tråden. Ingen Kod.gs-ändring.
-- Test: `verktyg/emu/tavla3-aktuellt.js` (vägg ljust/mörkt, med och utan WXPLUS), alla-flikar Skog vägg + telefon gröna.
+## Väggtavlan visar det aktuella (publicerad ht-v400, ångra-gren `version-fore-vagg-aktuellt`)
+- Ägare Claude, gren `claude/project-thread-ckaljv`, PR #110. Bara Skog på väggen (`wallT3`). Henrik 14/11 valde 1, 2, 3 och 5 ur förslagen.
+- Smart hem (T19): `otMed()` volym/Spotify när något spelar; `otNotis(H,max)` "Just nu": maskin klar (Klar-knapp, kvitto per enhet i ls `otKvitt`), robotdammsugaren städar/fel, efter 22 "N lampor tända · Släck allt". Högst 2 rader, 1 när något spelar (då döljs Scener). Rummen kompakta (`.ot-hus.spelar`).
+- Väderkortet (T21): SMHI-varning > regn > `otWxExtra` (frost i natt efter 15 / minusgrader före 9, pollen, norrsken via `wxLarm`).
+- Ej byggt: 4 (tina middagen). Test `verktyg/emu/tavla3-aktuellt.js` (NOW, WXT, WXPR, WXPLUS), alla-flikar Skog vägg/telefon + Apple vägg gröna. CI: ui4/ui5/installningar faller även på main (borttagna designval).
+
+## Inställningar: Hemmet, Födelsedagar och Form i Skog (publicerad ht-v399, ångra-gren `version-fore-installningar-form`)
+- Ägare Claude, gren `claude/project-thread-ueql78`, PR #109. Inställningarnas delar: Mat, Hemmet, Översikt, Kalender, Att göra, Ekonomi, Födelsedagar (I11, I12). Smart hem-adressen i Hemmet; Visas som + Presentbudget i Födelsedagar. Översikt har rutnätsikon.
+- Skog: Utseende → Form på knappar och rutor = Mjuk (standard)/Rund/Stram, återanvänder ls `segstil` (standard/kapsel/klassisk) → `html.sk-rund`/`sk-stram`; CSS sist i index.html (`--r5`, `.bq`, segment, knappar, bockar).
+- Test: installningar.js + installningar-delar.js, alla-flikar Skog mörkt Stram + telefon/vägg gröna. CI: UI2–5-jobben faller redan på main (borttagna designval).
+
+## Ändra befintliga scener (publicerad ht-v397, ångra-gren `version-fore-scener-andra`)
+- Ägare Claude. Henrik 14/11: "Jag vill kunna redigera redan gjorda scener". Egna scener gick redan att ändra med håll in; scener från Home Assistant och Släck allt i Hemmet öppnade bara namn/rum-bladet. Nu öppnar håll in samma scenblad för alla (`husScRed`, sparas på sin plats först vid Klar; Ta bort = ta bort från tavlan). Plusmenyn och rutans meny: "Ändra scener" (penna) i stället för "Ordna scener".
+- Test: `verktyg/emu/scen-andra.js` telefon + vägg, smart-hem-ruta, scen-tidslinje, alla-flikar telefon + vägg. `hemmet-scener.js` fallerar redan på main ("fyra i rad", raden har nu fem). UI2–5-jobben i emu.yml fallerar redan på main (klickar borttagna Klassisk / dold Form-inställning), behöver uppdateras.
+
+## Skog: frostad skogsbakgrund i telefonen (publicerad ht-v398, ångra-gren `version-fore-skog-frost`)
+- Henrik 14/11: skogen överst på Översikt ska ligga i bakgrunden, klar upptill och frostas nerifrån och upp, rutorna ovanpå. `otHead(tel)` ger `otLand(1)` (xMaxYMid) + `.ot-frost` (fem lager: backdrop-filter 2/5/10/20 px med masker + sandslöja). CSS sist i index.html. Skogen står fast (position:fixed) när man scrollar; klocka/text vita. Bara telefonen i Skog, väggen orörd.
+- Test: alla-flikar Skog telefon + vägg gröna, `verktyg/emu/skog-frost.js` (T3DEMO=1, ljust/mörkt). Bilder /mnt/project-files/skog-frost/.
 
 ## Skog: grönt tillbaka (publicerad ht-v396, ångra-gren `version-fore-skog-gront`)
 - Henrik 14/11: "Jag vill ha grön som accentfärg men nu har jag ingen färg". Vald flik i menyn skogsgrön (telefon och vägg), valt läge i väljarna ljusgrönt, `.ot-lnk` grön. Neutralisera inte accenten i Skog vid granskningar. Test: alla-flikar Skog telefon + vägg vänstermeny.
