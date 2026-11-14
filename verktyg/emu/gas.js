@@ -29,7 +29,11 @@ function makeBook(init){
   deleteRow:r=>{if(s.maxRows-1<=s.frozen)throw new Error('Det går inte att ta bort alla rader som inte är frysta.');s.rows.splice(r-1,1);s.maxRows--},
   insertRowsAfter:(a,n)=>{s.maxRows+=n}});
  return {sheets,getSheetByName:n=>sheets[n]?api(sheets[n]):null,insertSheet:n=>{if(sheets[n])throw new Error('Fliken finns redan');sheets[n]={name:n,rows:[],maxRows:50,frozen:1};return api(sheets[n])}}}
-const book=makeBook(require('./data.js'));
+// T3DEMO=1 (med NOW): exempelhändelser och uppgifter som i Henriks bild för Tavla 3-bilder
+const t3demo=d=>{if(!process.env.T3DEMO)return d;d=JSON.parse(JSON.stringify(d));const t0=new Date((process.env.NOW||new Date().toISOString()).slice(0,10)+'T12:00:00Z'),a=n=>new Date(t0.getTime()+n*864e5).toISOString().slice(0,10);
+ [[0,'09:00','Handla'],[0,'11:30','Fotbollsträning'],[0,'14:30','Besök av morfar'],[1,'10:00','Planera veckan'],[1,'13:00','Träning'],[1,'17:30','Middag hos Anna'],[2,'07:00','Arbete'],[2,'15:30','Utvecklingssamtal'],[2,'19:00','Tvättstugan']].forEach(([n,t,x],i)=>d['Händelser'].push([a(n),t,x,'','','t3d'+i,'']));
+ ['Dammsug köket','Byt sängkläder','Rensa återvinningen'].forEach((x,i)=>d['Uppgifter'].push(['',x,a(0),'','','t3t'+i,'','']));return d};
+const book=makeBook(t3demo(require('./data.js')));
 const props={HUSHALLSKOD:'x',NTFY_TOPIC:''};
 let lockHeld=false;const cache={};
 const pad=n=>String(n).padStart(2,'0');

@@ -5,7 +5,7 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 ## Tavla 3 efter Henriks bild (förslag, inte på main)
 - Ägare Claude, gren `claude/project-thread-onlzlz`, PR #108. Utvecklarläge → Ny översikt → Tavla 3 (ls `ovny=h`). Väggen `wallT3`, telefonen `telT3` (avatar i bannern). Delar: `otHead` T17 (låg banner, landskap `otLand` efter solhöjd), `otSchema` T18 (tre dagar som tidslinjer sida vid sida, telefonen sveper), `otHus` T19 (rum: `otRum`, bladet `otRumSheet`/S.sheet `otRum`), `otGora` T20 (växlare Att göra/Städ, `ACT.otFlik`). CSS `.ot*` sist i index.html.
 - Runda 2 (Henrik 14/11): lägre banner, Att göra+Städ i en ruta, tidslinje, Smart hem per rum. Lampor följer HA-rummet; apparater/högtalare får rum via onskelista `{hab:1,arum:{id:rum}}` (`ACT.otArum`, disk→Kök som start). Ingen Kod.gs.
-- Runda 3: väggen har Schema till vänster (två rader högt, tid ovanför titeln), Att göra/Städ uppe till höger och Smart hem under. Telefonen oförändrad.
+- Runda 4 (Henriks nya bild 14/11): sjölandskap bakom tavlan, glaskort, skogsgrönt, Dagens middag (T22), väderkort (T21), Att göra & städa i en lista, rummens brytare (`ACT.otRumTog`), sidomenyn grön när `body.t3`. Riktlinjer och färger: `design/tavla3.md`. Bilddata: `T3DEMO=1` i emulatorn.
 - Grön accent bara inom `.ot`; fråga om accent står öppen. Test: `tavla3.js` (rumbladet, växlaren), `ny-oversikt.js`, alla-flikar vägg+telefon med `ovny=h` gröna. CI: `matsedel-gester.js` faller som på main.
 
 ## Väggen: menyn som sidofält till vänster (publicerad ht-v387, ångra-gren `version-fore-vagg-sidomeny`)
