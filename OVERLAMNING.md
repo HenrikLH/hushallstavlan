@@ -2,10 +2,18 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
-## Inställningar: Hemmet och Födelsedagar (förslag, väntar på "Pusha")
-- Ägare Claude, gren `claude/project-thread-ueql78`. Henrik 14/11: inställningarna speglar huvudflikarna, behåll Ekonomi men lägg till Hemmet och Födelsedagar. Ordning: Mat, Hemmet, Översikt, Kalender, Att göra, Ekonomi, Födelsedagar (I11, I12). Smart hem-adressen flyttad från Enheten till Hemmet; Födelsedagar visas som (från Kalender) och Presentbudget (från Ekonomi) till Födelsedagar. Översiktens ikon i inställningarna = rutnät som i flikraden.
-- Hörnradien ("Form på knappar och rutor", `segstil`) fanns bara i Klassisk (UI 2.0), aldrig i Apple/Skog; ingen CSS för den i UI 5.0. Väntar på Henrik om den ska byggas för Skog.
-- Test: installningar-delar.js (uppdaterad) telefon + vägg, installningar-luft.js Skog mörkt, alla-flikar telefon + vägg gröna. Bild /mnt/project-files/installningar-hemmet-fod/forslag.png.
+## Inställningar: Hemmet, Födelsedagar och Form i Skog (publicerad ht-v399, ångra-gren `version-fore-installningar-form`)
+- Ägare Claude, gren `claude/project-thread-ueql78`, PR #109. Inställningarnas delar: Mat, Hemmet, Översikt, Kalender, Att göra, Ekonomi, Födelsedagar (I11, I12). Smart hem-adressen i Hemmet; Visas som + Presentbudget i Födelsedagar. Översikt har rutnätsikon.
+- Skog: Utseende → Form på knappar och rutor = Mjuk (standard)/Rund/Stram, återanvänder ls `segstil` (standard/kapsel/klassisk) → `html.sk-rund`/`sk-stram`; CSS sist i index.html (`--r5`, `.bq`, segment, knappar, bockar).
+- Test: installningar.js + installningar-delar.js, alla-flikar Skog mörkt Stram + telefon/vägg gröna. CI: UI2–5-jobben faller redan på main (borttagna designval).
+
+## Ändra befintliga scener (publicerad ht-v397, ångra-gren `version-fore-scener-andra`)
+- Ägare Claude. Henrik 14/11: "Jag vill kunna redigera redan gjorda scener". Egna scener gick redan att ändra med håll in; scener från Home Assistant och Släck allt i Hemmet öppnade bara namn/rum-bladet. Nu öppnar håll in samma scenblad för alla (`husScRed`, sparas på sin plats först vid Klar; Ta bort = ta bort från tavlan). Plusmenyn och rutans meny: "Ändra scener" (penna) i stället för "Ordna scener".
+- Test: `verktyg/emu/scen-andra.js` telefon + vägg, smart-hem-ruta, scen-tidslinje, alla-flikar telefon + vägg. `hemmet-scener.js` fallerar redan på main ("fyra i rad", raden har nu fem). UI2–5-jobben i emu.yml fallerar redan på main (klickar borttagna Klassisk / dold Form-inställning), behöver uppdateras.
+
+## Skog: frostad skogsbakgrund i telefonen (publicerad ht-v398, ångra-gren `version-fore-skog-frost`)
+- Henrik 14/11: skogen överst på Översikt ska ligga i bakgrunden, klar upptill och frostas nerifrån och upp, rutorna ovanpå. `otHead(tel)` ger `otLand(1)` (xMaxYMid) + `.ot-frost` (fem lager: backdrop-filter 2/5/10/20 px med masker + sandslöja). CSS sist i index.html. Skogen står fast (position:fixed) när man scrollar; klocka/text vita. Bara telefonen i Skog, väggen orörd.
+- Test: alla-flikar Skog telefon + vägg gröna, `verktyg/emu/skog-frost.js` (T3DEMO=1, ljust/mörkt). Bilder /mnt/project-files/skog-frost/.
 
 ## Skog: grönt tillbaka (publicerad ht-v396, ångra-gren `version-fore-skog-gront`)
 - Henrik 14/11: "Jag vill ha grön som accentfärg men nu har jag ingen färg". Vald flik i menyn skogsgrön (telefon och vägg), valt läge i väljarna ljusgrönt, `.ot-lnk` grön. Neutralisera inte accenten i Skog vid granskningar. Test: alla-flikar Skog telefon + vägg vänstermeny.
