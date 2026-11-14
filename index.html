@@ -4169,6 +4169,9 @@ html.ny.ui5 body.wall .nav.sido.har-me{padding-right:12px}
 html.ny.ui5 body.wall .nav.sido.har-me .nav-me{position:static;margin-top:auto;flex-direction:column;align-items:flex-start;gap:12px;padding-left:4px}
 html.ny.ui5 body.wall .nav.sido.har-me .nav-me .ib{width:48px!important;height:48px!important}
 html.ny.ui5 body.wall .nav.sido.har-me .nav-me i{width:calc(100% - 4px);height:.5px;margin-left:-4px}
+/* Ihopfälld sidomeny: knappen överst och profilknappen längst ner mitt i spalten, som flikarnas ikoner (Henrik 14/11) */
+html.ny.ui5 body.wall .nav.sido:not(.sido-ut) .nav-tog{justify-content:center;padding:0}html.ny.ui5 body.wall .nav.sido:not(.sido-ut) .nav-tog svg{margin:0}
+html.ny.ui5 body.wall .nav.sido.har-me:not(.sido-ut) .nav-me{align-items:center;padding-left:0}html.ny.ui5 body.wall .nav.sido.har-me:not(.sido-ut) .nav-me i{width:100%;margin-left:0}
 html.ny.ui5 body.wall.sido .corner-me{width:64px;height:64px}
 html.ny.ui5 body.wall.sido:has(.board) .arr-foot{left:calc(var(--sidew) + 16px);bottom:24px}
 @media (prefers-reduced-motion:no-preference){html.ny.ui5 body.wall .nav.sido-ut button[data-act="nav"] span{animation:sidoIn .3s ease both}}
