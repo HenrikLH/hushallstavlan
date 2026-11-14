@@ -2,6 +2,10 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Skog: andra, hårdare UI-granskningen (förslag, väntar på Pusha)
+- Ägare Claude, gren `claude/project-thread-tpd0u6`. Henrik 14/11: inställningsmenyn höll inte måttet. Rättat: varje rad i Inställningar var ett eget kort (`.pref-section` låg i Skogs kortregel), nu en grupp = ett kort. Segmentväljare i en stil (mörkare spår, vit tumme, mörkgrön text) för `.segc`, `.ot-dseg`, `.ot-flik`, `.wxC-k`; andra nivån (`.subseg`) lättare. Undersidornas rubriker 14 px dämpade, kort utan skugga. Personer: Gemensam skärm i linje. Kalenderveckan tätare. Hemmet: fem scener på en rad (alla UI 5.0). Robotkortet gråblått/bärnsten, dimrade lampor bärnsten, grå pilar på Översikt, väderrubriken som andra kortrubriker.
+- Test: alla-flikar Skog telefon ljust/mörkt, vägg ljust, vägg mörkt + vänstermeny, Apple, Aura; tavla-designval.js och sidomeny.js gröna. Bilder /mnt/project-files/skog-hela-appen/granskning2/.
+
 ## Skog: granskning av väggskärmen (förslag, väntar på Pusha)
 - Ägare Claude, gren `claude/project-thread-tpd0u6`. Väggen i Skog: tom plats i veckan lika stor som en rätt (`.bt:has(.bq.e)`), scenraden på Översikt tonar ut i kanten (`.ot-sc` mask), tända lampor i mörkt läge dämpad bärnsten. Menyn till vänster (Skog, ihopfälld): `--sidew:112px` + 8 px höger så att luften är 25 px på båda sidor. Kanterna mätta i alla flikar: helbredd 44 px, listvyer centrerad spalt 834 px.
 - Test: alla-flikar vägg ljust/mörkt Skog + Apple vägg + Skog telefon gröna. Bild /mnt/project-files/skog-hela-appen/granskning/vaggskarm-efter.png.

@@ -4467,17 +4467,50 @@ html.ny.ui5.skog[data-theme="dark"]{
 html.ny.ui5.skog body{background:var(--bg)}
 html.ny.ui5.skog body::before{content:"";position:fixed;inset:0 0 auto;height:340px;z-index:-1;pointer-events:none;background:linear-gradient(180deg,var(--sk-h1),var(--sk-h2))}
 /* Kort: ljusa, 1 px ljus kant, mjuk skugga, hörn 20 (väggen 24) */
-html.ny.ui5.skog :is(.group,.pref-section,.add-row,.wcard,.ws-card,.widget),html.ny.ui5.skog body:not(.wall) .ov>.hero{background:var(--surface);border:1px solid var(--sk-kb);box-shadow:var(--sk-skugga)}
-html.ny.ui5.skog :is(.group,.pref-section,.add-row,.wcard,.ws-card,.widget){border-radius:var(--r5)}
+html.ny.ui5.skog :is(.group,.add-row,.wcard,.ws-card,.widget),html.ny.ui5.skog body:not(.wall) .ov>.hero{background:var(--surface);border:1px solid var(--sk-kb);box-shadow:var(--sk-skugga)}
+html.ny.ui5.skog :is(.group,.add-row,.wcard,.ws-card,.widget){border-radius:var(--r5)}
 html.ny.ui5.skog body.wall{--r5:24px}
 /* Rubriker: kortrubriker i fet text, inte versaler */
 html.ny.ui5.skog .sh{text-transform:none;font-size:17px;line-height:22px;font-weight:700;letter-spacing:-.2px;color:var(--ink)}
 html.ny.ui5.skog .sh .r,html.ny.ui5.skog .sh .acc,html.ny.ui5.skog .sh a,html.ny.ui5.skog .sh button{font-size:15px;font-weight:500;color:var(--ink-2)}
 html.ny.ui5.skog .widget .wh{font-weight:700;color:var(--ink)}
 /* Segmentväljare: sandband som botten, salviagrönt för valt läge med mörkgrön text */
-html.ny.ui5.skog .segc{background:var(--sk-band)}
-html.ny.ui5.skog .segc .seg-thumb{background:var(--sk-idag);box-shadow:0 1px 2px rgba(30,40,30,.08)}
-html.ny.ui5.skog .segc button[aria-pressed="true"]{color:var(--sk-gron2);font-weight:600}
+/* Segmentväljare (granskning 2: sand på sand syntes knappt). En stil överallt, som iOS: mörkare spår än ytan under, vit tumme med skugga,
+   valt läge i mörkgrönt. Gäller .segc, Schemas dagväljare, Att göra/Städ i Översikt och 3 h/1 h i vädret. Andra nivån (Inspiration/Mina recept/Efterrätter)
+   är lättare: inget spår, vald flik som ljusgrönt piller. */
+html.ny.ui5.skog{--sk-spar:rgba(31,39,35,.075);--sk-tumme:#FFFFFF;--sk-tskugga:0 1px 3px rgba(30,40,30,.14),0 0 0 .5px rgba(30,40,30,.06)}
+html.ny.ui5.skog[data-theme="dark"]{--sk-spar:rgba(255,255,255,.08);--sk-tumme:#36423C;--sk-tskugga:0 1px 3px rgba(0,0,0,.4)}
+@media (prefers-color-scheme: dark){html.ny.ui5.skog:not([data-theme="light"]){--sk-spar:rgba(255,255,255,.08);--sk-tumme:#36423C;--sk-tskugga:0 1px 3px rgba(0,0,0,.4)}}
+html.ny.ui5.skog :is(.segc,.ot-dseg,.ot-flik,.wxC-k){background:var(--sk-spar)}
+html.ny.ui5.skog .segc .seg-thumb,html.ny.ui5.skog .ot-flik>i{background:var(--sk-tumme);box-shadow:var(--sk-tskugga)}
+html.ny.ui5.skog :is(.ot-dseg,.wxC-k) button[aria-pressed="true"]{background:var(--sk-tumme);box-shadow:var(--sk-tskugga);color:var(--sk-gron2);font-weight:600}
+html.ny.ui5.skog :is(.segc button[aria-pressed="true"],.ot-flik button[aria-selected="true"]){color:var(--sk-gron2);font-weight:600}
+html.ny.ui5.skog .subseg .segc{background:transparent}
+html.ny.ui5.skog .subseg .segc .seg-thumb{background:var(--sk-gronl);box-shadow:none}
+html.ny.ui5.skog .subseg .segc button{font-weight:500;color:var(--ink-2)}
+/* Rubriker inne i Inställningarnas undersidor: lågmälda etiketter över grupperna, inte fetstil i kortrubrikens storlek */
+html.ny.ui5.skog .pref-body .group{box-shadow:none}
+html.ny.ui5.skog .pref-body .sh{font-size:14px;line-height:18px;font-weight:600;letter-spacing:0;color:var(--ink-2)}
+html.ny.ui5.skog .pref-body .sh .hj-ch{color:var(--ink-3);transform:scale(.8)}
+html.ny.ui5.skog .pref-body .sh.open .hj-ch{transform:scale(.8) rotate(90deg)}
+/* Personer: Gemensam skärm i linje med namnen (tom ring i stället för personfärg); pilarna grå som i resten av listorna */
+html.ny.ui5.skog .person-list>.cell.link{padding-left:16px}html.ny.ui5.skog .person-list>.cell.link::before{content:"";flex:none;width:9px;height:9px;border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--ink-3);margin-right:6px}
+html.ny.ui5.skog .person-toggle{color:var(--ink-3)}
+/* Kalenderns vecka: dagrubrik i radstorlek, inte en sidrubrik per dag */
+html.ny.ui5.skog .cv-band{font-size:17px}
+html.ny.ui5.skog .cv-band .chev svg{width:12px;height:12px}html.ny.ui5.skog .cv-band+.cv-tom{min-height:0;padding:0 20px 14px}
+/* Hemmets scener: fem scener på en rad i stället för fyra plus en ensam */
+html.ny.ui5 .hus-sc:has(>:nth-child(5):last-child){grid-template-columns:repeat(5,minmax(0,1fr))}
+/* Väder: rubriken över 9-dagarsprognosen som övriga kortrubriker */
+html.ny.ui5.skog .wx-card>.wx-cap{font-size:15px;font-weight:700;color:var(--ink)}html.ny.ui5.skog .wx-card>.wx-cap svg{color:var(--sk-gron)}
+/* Städroboten: vatten och mopp i sjöns gråblå i stället för systemblått; lampan när den städar i bärnsten */
+html.ny.ui5.skog{--sk-sjo:#6F8F9C}
+html.ny.ui5.skog .sr-vat{stroke:var(--sk-sjo)}html.ny.ui5.skog .sr-lg.v{border-color:var(--sk-sjo)}html.ny.ui5.skog .sr-iv,html.ny.ui5.skog .sr-rum.m>svg{color:var(--sk-sjo)}
+html.ny.ui5.skog .sr-ill.on .sr-li{stroke:var(--sk-amb)}html.ny.ui5.skog .sr-ill.on .sr-pu{fill:var(--sk-amb)!important}
+/* Pilar i Översiktens kort: grå och lika stora som i listorna */
+html.ny.ui5.skog :is(.ot-wxk,.ot-lnk) svg{color:var(--ink-3);stroke:currentColor}
+/* Dimrade lampor i ljust läge: varm bärnsten som resten av "tänt", inte citrongult */
+html.ny.ui5.skog .ha-t.ha-dim::before{background:#F3CF8A;opacity:.55}
 /* Bockar: rundade rutor som fylls gröna; brytare gröna */
 html.ny.ui5.skog .check::before{border-radius:7px;width:24px;height:24px;border-color:rgba(31,39,35,.28)}
 html.ny.ui5.skog[data-theme="dark"] .check::before{border-color:rgba(237,241,236,.3)}
