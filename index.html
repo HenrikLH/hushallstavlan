@@ -4496,6 +4496,25 @@ html.ny.ui5.skog .nav-mini{background:var(--sk-meny);color:#fff;border:0}
 html.ny.ui5.skog .navbar{background:var(--bar)}
 /* Inställningarnas ikoner: samma skogsgröna ruta för alla delar (inga egna färger) */
 html.ny.ui5.skog .pref-section[data-k]>summary.sh{--ic:#4A7C46}
+/* Hemmet: scenerna neutrala, vald scen ljusgrön; tänt och igång i bärnsten; statusbrickor neutrala tills något är på */
+html.ny.ui5.skog :is(.hab .hab-sc,.hus-sc) .ha-st .ha-i{background:transparent;color:var(--ink)}
+html.ny.ui5.skog :is(.hab .hab-sc,.hus-sc) .ha-st.on{background:var(--sk-gronl);color:var(--sk-gron2)}
+html.ny.ui5.skog :is(.hab .hab-sc,.hus-sc) .ha-st.on .ha-i{background:transparent;color:var(--sk-gron2)}
+html.ny.ui5.skog .hab-stor{background:var(--sk-gron);box-shadow:0 8px 24px rgba(74,124,70,.3)}
+html.ny.ui5.skog :is(.ha-t.on,.hab .hab-g .ha-t.on){background:#F7EAD0;color:#1F2723}
+html.ny.ui5.skog .ha-t.on .ha-s{color:rgba(31,39,35,.68)}
+html.ny.ui5.skog :is(.ha-t.on,.ha-chip.on) .ha-i{background:var(--sk-amb);color:#fff}
+html.ny.ui5.skog .ha-chips-v .ha-chip:not(.on) .ha-i{background:var(--fill)!important;color:var(--ink)!important}
+html.ny.ui5.skog .ha-chips-v .ha-chip.on .ha-i{background:var(--sk-amb)!important;color:#fff!important}
+html.ny.ui5.skog :is(.ha-ap.on.ha-ap-robot,.ha-ap.on.ha-ap-disk) .ha-i,html.ny.ui5.skog .ha-top .ha-i:is(.ha-ap-robot,.ha-ap-disk).on{background:var(--sk-amb);color:#fff}
+html.ny.ui5.skog :is(.ha-ap-p,.ha-ap-disk .ha-ap-p)::after{background:var(--sk-amb)}
+html.ny.ui5.skog .ha-g-v .ha-ap.on{--rc:var(--sk-amb)!important}
+html.ny.ui5.skog .ha-ap-k.prim,html.ny.ui5.skog form[data-form="haApp"] .ha-ring~.ha-ap-ks .ha-ap-k.prim{background:var(--sk-gron)}
+/* Valda filter och valda dagar: mörkgrönt i stället för svart */
+html.ny.ui5.skog :is(.fchips button[aria-pressed="true"],.rc-toolbar .pill[aria-pressed=true],.cal-d.sel .n,.wk-d.sel .n,.pin-dots i.on){background:var(--sk-gron2);border-color:var(--sk-gron2);color:#fff}
+html.ny.ui5.skog[data-theme="dark"] :is(.fchips button[aria-pressed="true"],.rc-toolbar .pill[aria-pressed=true],.cal-d.sel .n,.wk-d.sel .n,.pin-dots i.on){color:#1B221F}
+@media (prefers-color-scheme: dark){html.ny.ui5.skog:not([data-theme="light"]) :is(.fchips button[aria-pressed="true"],.rc-toolbar .pill[aria-pressed=true],.cal-d.sel .n,.wk-d.sel .n,.pin-dots i.on){color:#1B221F}}
+html.ny.ui5.skog .fchips button:not([aria-pressed="true"]){background:var(--surface);border:1px solid var(--sk-kb)}
 /* Blad: samma sand som sidan, knapparna i rubriken som ljusa kort */
 html.ny.ui5.skog .sheet-panel{background:var(--bg)}
 html.ny.ui5.skog .sheet-head .tb{background:var(--surface);border:1px solid var(--sk-kb)}
