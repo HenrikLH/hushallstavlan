@@ -2,6 +2,11 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Tavla 2 och 3 som designval (förslag, väntar på Henriks ok)
+- Ägare Claude, gren `claude/project-thread-tpd0u6`. Henrik 14/11: "Lägg tavla 1 och 2 som designval under design, ta bort klassisk och ateljé"; tolkat som Tavla 2 (`ovny=g`) och Tavla 3 (`ovny=h`), fråga ställd.
+- Design-segmentet: (Test i DEV) / Apple / Aura / Tavla 2 / Tavla 3. `ACT.uiVersion` g/h sätter `ht.ui` till Apple och `ht.ovny`; Apple/Aura rensar `ovny`. `ovNy()` släpper g/h utan utvecklarläge. `ht.ui=2/4` flyttas till Apple vid start; UI2/UI4-kod och CSS ligger kvar (kan städas bort).
+- Test `verktyg/emu/tavla-designval.js` (LS ui=4/2, telefon+vägg), alla-flikar telefon (ovny=g) + vägg (ovny=h) utan PAGEERROR.
+
 ## Tavla 3 efter Henriks bild (publicerad ht-v389, ångra-gren `version-fore-tavla3`)
 - Ägare Claude, gren `claude/project-thread-onlzlz`, PR #108 (ihopslagen). Bakom Utvecklarläge; nästa steg vid Henriks ord: stilen till resten av appen enligt `design/tavla3.md` avsnitt 7. Utvecklarläge → Ny översikt → Tavla 3 (ls `ovny=h`). Väggen `wallT3`, telefonen `telT3` (avatar i bannern). Delar: `otHead` T17 (låg banner, landskap `otLand` efter solhöjd), `otSchema` T18 (tre dagar som tidslinjer sida vid sida, telefonen sveper), `otHus` T19 (rum: `otRum`, bladet `otRumSheet`/S.sheet `otRum`), `otGora` T20 (växlare Att göra/Städ, `ACT.otFlik`). CSS `.ot*` sist i index.html.
 - Runda 4 (Henriks nya bild 14/11): sjölandskap bakom tavlan, glaskort, skogsgrönt, Dagens middag (T22), väderkort (T21), Att göra & städa i en lista, rummens brytare (`ACT.otRumTog`), sidomenyn grön när `body.t3`. Riktlinjer och färger: `design/tavla3.md`. Bilddata: `T3DEMO=1` i emulatorn.
