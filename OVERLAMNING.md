@@ -2,6 +2,11 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Inställningar: Hemmet och Födelsedagar (förslag, väntar på "Pusha")
+- Ägare Claude, gren `claude/project-thread-ueql78`. Henrik 14/11: inställningarna speglar huvudflikarna, behåll Ekonomi men lägg till Hemmet och Födelsedagar. Ordning: Mat, Hemmet, Översikt, Kalender, Att göra, Ekonomi, Födelsedagar (I11, I12). Smart hem-adressen flyttad från Enheten till Hemmet; Födelsedagar visas som (från Kalender) och Presentbudget (från Ekonomi) till Födelsedagar. Översiktens ikon i inställningarna = rutnät som i flikraden.
+- Hörnradien ("Form på knappar och rutor", `segstil`) fanns bara i Klassisk (UI 2.0), aldrig i Apple/Skog; ingen CSS för den i UI 5.0. Väntar på Henrik om den ska byggas för Skog.
+- Test: installningar-delar.js (uppdaterad) telefon + vägg, installningar-luft.js Skog mörkt, alla-flikar telefon + vägg gröna. Bild /mnt/project-files/installningar-hemmet-fod/forslag.png.
+
 ## Skog: grönt tillbaka (publicerad ht-v396, ångra-gren `version-fore-skog-gront`)
 - Henrik 14/11: "Jag vill ha grön som accentfärg men nu har jag ingen färg". Vald flik i menyn skogsgrön (telefon och vägg), valt läge i väljarna ljusgrönt, `.ot-lnk` grön. Neutralisera inte accenten i Skog vid granskningar. Test: alla-flikar Skog telefon + vägg vänstermeny.
 
