@@ -864,7 +864,7 @@ function morf(live,a,b){const lk=[...live.childNodes].filter(x=>!(x.nodeType===1
   morf(l,x,y)}}
 function doRender(){if(motionDrag||sheetDrag||bladDrag){pendingRender=true;return}applyPersonColors();applyAccent();
  if(!S.key||!S.data)document.getElementById('create-dock')?.remove();
- document.body.classList.toggle('wall',S.wall);document.body.classList.toggle('t3',ovNy()==='h');document.body.classList.toggle('sido',sidoOn());document.body.classList.toggle('sido-ut',sidoOn()&&VSIDO);document.body.classList.toggle('sido-over',VSIDOL==='over');document.body.classList.toggle('is-night',S.view==='oversikt'&&nightOn());document.body.dataset.view=S.view;
+ document.body.classList.toggle('wall',S.wall);document.body.classList.toggle('t3',ovNy()==='h'||document.documentElement.classList.contains('skog'));document.body.classList.toggle('sido',sidoOn());document.body.classList.toggle('sido-ut',sidoOn()&&VSIDO);document.body.classList.toggle('sido-over',VSIDOL==='over');document.body.classList.toggle('is-night',S.view==='oversikt'&&nightOn());document.body.dataset.view=S.view;
  document.body.classList.toggle('cook-open',!!S.cook);
  const nav=document.getElementById('nav'),m=document.getElementById('main');
  NB={title:'',back:false};
@@ -3163,7 +3163,7 @@ const APP_VER=((document.querySelector('script[src*="app.js?v="]')||{}).src||'')
 let U3=DEV&&lsGet('ui')==='3',U4=lsGet('ui')==='4',U5=!['2','3','4'].includes(lsGet('ui'));
 // Aura (ht.ui=6): UI 5.0:s funktioner med ett eget utseende (kräm och brons, mjuka kort, Manrope), inspirerat av Aura 2.0 (github.com/sundqvist80/aura-2, MIT). Mörkt läge: marin (standard) eller noir (ht.auraM=noir)
 let U6=lsGet('ui')==='6';
-function applyNy(){document.documentElement.classList.add('ny');document.documentElement.classList.toggle('ui3',U3);document.documentElement.classList.toggle('ui4',U4);document.documentElement.classList.toggle('ui5',U5);const c=document.documentElement.classList;c.toggle('aura',U6);c.toggle('aura-noir',U6&&lsGet('auraM')==='noir');
+function applyNy(){document.documentElement.classList.add('ny');document.documentElement.classList.toggle('ui3',U3);document.documentElement.classList.toggle('ui4',U4);document.documentElement.classList.toggle('ui5',U5);const c=document.documentElement.classList;c.toggle('aura',U6);c.toggle('skog',U5&&!U3&&!U6&&lsGet('ovny')==='h');c.toggle('aura-noir',U6&&lsGet('auraM')==='noir');
  if(U6&&!document.getElementById('aura-font')){const l=document.createElement('link');l.id='aura-font';l.rel='stylesheet';l.href='https://fonts.googleapis.com/css2?family=Manrope:wght@300..800&display=swap';document.head.appendChild(l)}}
 applyNy();
 // Visa rutnummer (utvecklarläget): ett märke i hörnet på varje ruta med data-ref. Tryck på märket kopierar numret och rutans rubrik
@@ -6412,7 +6412,7 @@ const ACT={
  otDag(id){S.otDag=+id||0;render()},otFlik(id,el){const v=id==='stad'?'stad':'gora',f=el&&el.closest&&el.closest('.ot-flik');if(S.otFlik===v&&f)return;S.otFlik=v;if(f&&MOTION&&!matchMedia('(prefers-reduced-motion:reduce)').matches){f.style.setProperty('--i',v==='stad'?1:0);f.querySelectorAll('button').forEach(b=>b.setAttribute('aria-selected',b.dataset.id===v));setTimeout(render,240)}else render()},
  otRum(id){S.otRum=id||'';S.otRumRed=0;S.sheet='otRum';render()},otRumRed(){S.otRumRed=1;render()},
  otArum(id,el){const r=el&&el.dataset?el.dataset.r||'':'',o=Object.assign({},(habGet()||{}).arum||{});o[id]=r;habSet({arum:o});render()},
- ovny(id){OVNY=/^[abcdefgh]$/.test(id)?id:'';lsSet('ovny',OVNY||null);A.touch=Date.now();render()},
+ ovny(id){OVNY=/^[abcdefgh]$/.test(id)?id:'';lsSet('ovny',OVNY||null);applyNy();A.touch=Date.now();render()},
  onWk(){S.onWk=!S.onWk;render()},
  onPers(id){S.onPers=id||'';A.touch=Date.now();render()},
  ogFlik(id){S.ogFlik=id==='stad'?'stad':'';A.touch=Date.now();render()},

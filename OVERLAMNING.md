@@ -2,6 +2,11 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Skog-stilen i hela appen (förslag, väntar på Henriks ok)
+- Ägare Claude, gren `claude/project-thread-tpd0u6`. Henrik 14/11: "Gå igenom alla menyer i HELA appen och applicera de nya design guidelines för tavla 3". Gäller bara när designvalet Skog är valt: `html.skog` (applyNy: U5, inte Aura/UI3, `ht.ovny=h`), CSS sist i index.html under `html.ny.ui5.skog`. Body får `t3` även utanför Översikt (grön sidomeny på väggen).
+- Tokens ur `design/tavla3.md`: sand `--bg`, ljusa kort med ljus kant och mjuk skugga, kortrubriker (`.sh`) feta utan versaler, segment med sandband och salviagrön markör, gröna rundade bockar/brytare, idag grönt, grön flikrad (`--sk-meny`), inställningarnas ikoner gröna. Ljust och mörkt.
+- Test: alla-flikar telefon ljust/mörkt + vägg med `ovny=h`, Aura (ui=6), `tavla-designval.js` gröna. Bilder /mnt/project-files/skog-hela-appen/.
+
 ## Tavla 2 och Skog (Tavla 3) som designval (publicerad ht-v391; namnet Skog väntar på Pusha, ångra-gren `version-fore-tavla-designval`)
 - Ägare Claude, gren `claude/project-thread-tpd0u6`. Henrik 14/11: "Lägg tavla 1 och 2 som designval under design, ta bort klassisk och ateljé"; tolkat som Tavla 2 (`ovny=g`) och Tavla 3 (`ovny=h`).
 - Design-segmentet: (Test i DEV) / Apple / Aura / Tavla 2 / Tavla 3. `ACT.uiVersion` g/h sätter `ht.ui` till Apple och `ht.ovny`; Apple/Aura rensar `ovny`. `ovNy()` släpper g/h utan utvecklarläge. `ht.ui=2/4` flyttas till Apple vid start; UI2/UI4-kod och CSS ligger kvar (kan städas bort).

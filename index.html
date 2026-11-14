@@ -4440,6 +4440,66 @@ html.ny.ui5 .ot-ik em{font-style:normal;font-size:12px;line-height:15px;color:va
 html.ny.ui5 .ot-t .ot-pr{flex-direction:row;align-items:center;gap:10px;font-size:14px}html.ny.ui5 .ot-t .ot-pr i{width:70px;height:6px}
 html.ny.ui5 .ot-t .ot-gora .ot-lnk{margin-left:0;padding-left:4px}
 html.ny.ui5 .ot-t .ot-ti{padding:4px 0;gap:12px}html.ny.ui5 .ot-t .ot-ti b{font-size:16px;line-height:22px}html.ny.ui5 .ot-t .ot-ti>i{width:22px;height:22px}
+/* Skog (designval, tidigare Tavla 3, ht.ovny=h): riktlinjerna i design/tavla3.md över hela appen. Varm sand, ljusa kort, skogsgrönt som enda accent,
+   bärnsten för "igång", orange bara för varningar. Bara under html.ny.ui5.skog; Apple och Aura påverkas inte. */
+html.ny.ui5.skog{
+ --bg:#ECE7DE;--surface:#FAF8F4;--surface-raised:#FFFFFF;--fill:rgba(31,39,35,.07);--track:#E2DDD3;--pill:#EFEBE3;--seg-on:#E4E8D8;--lins:rgba(255,255,255,.7);
+ --ink:#1F2723;--ink-2:#69706B;--ink-3:rgba(31,39,35,.32);--line:rgba(31,39,35,.12);
+ --green:#4A7C46;--orange:#C9531F;--red:#D0453A;--veg-ink:#4A7C46;--meat-ink:#7A5C38;
+ --bar:rgba(236,231,222,.84);--glass:rgba(248,246,241,.86);--glass-line:rgba(255,255,255,.7);
+ --sk-gron:#6E9A5A;--sk-gron2:#2F5D3A;--sk-gronl:#D5E3CB;--sk-band:#EFEBE3;--sk-idag:#E4E8D8;--sk-amb:#E39A1E;--sk-ora:#F26B3A;--sk-kb:rgba(255,255,255,.7);
+ --sk-skugga:0 1px 2px rgba(30,40,30,.05),0 12px 32px rgba(30,40,30,.08);--sk-meny:#2C3C38;--sk-h1:#DCE2DA;--sk-h2:#ECE7DE;--r5:20px}
+@media (prefers-color-scheme: dark){html.ny.ui5.skog:not([data-theme="light"]){
+ --bg:#121715;--surface:#1B221F;--surface-raised:#232B27;--fill:rgba(255,255,255,.08);--track:#2C3531;--pill:rgba(255,255,255,.07);--seg-on:rgba(141,187,119,.24);--lins:rgba(255,255,255,.16);
+ --ink:#EDF1EC;--ink-2:#A2AAA4;--ink-3:rgba(237,241,236,.32);--line:rgba(255,255,255,.13);
+ --green:#8DBB77;--orange:#F26B3A;--red:#FF6B5E;--veg-ink:#8DBB77;--meat-ink:#C9A57A;
+ --bar:rgba(18,23,21,.84);--glass:rgba(27,34,31,.84);--glass-line:rgba(255,255,255,.07);
+ --sk-gron:#8DBB77;--sk-gron2:#CFE5C2;--sk-gronl:rgba(141,187,119,.24);--sk-band:rgba(255,255,255,.07);--sk-idag:rgba(141,187,119,.2);--sk-kb:rgba(255,255,255,.07);
+ --sk-skugga:0 1px 2px rgba(0,0,0,.3),0 14px 34px rgba(0,0,0,.35);--sk-meny:#24332E;--sk-h1:#1C2622;--sk-h2:#121715}}
+html.ny.ui5.skog[data-theme="dark"]{
+ --bg:#121715;--surface:#1B221F;--surface-raised:#232B27;--fill:rgba(255,255,255,.08);--track:#2C3531;--pill:rgba(255,255,255,.07);--seg-on:rgba(141,187,119,.24);--lins:rgba(255,255,255,.16);
+ --ink:#EDF1EC;--ink-2:#A2AAA4;--ink-3:rgba(237,241,236,.32);--line:rgba(255,255,255,.13);
+ --green:#8DBB77;--orange:#F26B3A;--red:#FF6B5E;--veg-ink:#8DBB77;--meat-ink:#C9A57A;
+ --bar:rgba(18,23,21,.84);--glass:rgba(27,34,31,.84);--glass-line:rgba(255,255,255,.07);
+ --sk-gron:#8DBB77;--sk-gron2:#CFE5C2;--sk-gronl:rgba(141,187,119,.24);--sk-band:rgba(255,255,255,.07);--sk-idag:rgba(141,187,119,.2);--sk-kb:rgba(255,255,255,.07);
+ --sk-skugga:0 1px 2px rgba(0,0,0,.3),0 14px 34px rgba(0,0,0,.35);--sk-meny:#24332E;--sk-h1:#1C2622;--sk-h2:#121715}
+/* Sidan: sand med ett dis av skog och sjö högst upp, stilla (ingen oskärpa, väggdatorn orkar) */
+html.ny.ui5.skog body{background:var(--bg)}
+html.ny.ui5.skog body::before{content:"";position:fixed;inset:0 0 auto;height:340px;z-index:-1;pointer-events:none;background:linear-gradient(180deg,var(--sk-h1),var(--sk-h2))}
+/* Kort: ljusa, 1 px ljus kant, mjuk skugga, hörn 20 (väggen 24) */
+html.ny.ui5.skog :is(.group,.pref-section,.add-row,.wcard,.ws-card,.widget),html.ny.ui5.skog body:not(.wall) .ov>.hero{background:var(--surface);border:1px solid var(--sk-kb);box-shadow:var(--sk-skugga)}
+html.ny.ui5.skog :is(.group,.pref-section,.add-row,.wcard,.ws-card,.widget){border-radius:var(--r5)}
+html.ny.ui5.skog body.wall{--r5:24px}
+/* Rubriker: kortrubriker i fet text, inte versaler */
+html.ny.ui5.skog .sh{text-transform:none;font-size:17px;line-height:22px;font-weight:700;letter-spacing:-.2px;color:var(--ink)}
+html.ny.ui5.skog .sh .r,html.ny.ui5.skog .sh .acc,html.ny.ui5.skog .sh a,html.ny.ui5.skog .sh button{font-size:15px;font-weight:500;color:var(--ink-2)}
+html.ny.ui5.skog .widget .wh{font-weight:700;color:var(--ink)}
+/* Segmentväljare: sandband som botten, salviagrönt för valt läge med mörkgrön text */
+html.ny.ui5.skog .segc{background:var(--sk-band)}
+html.ny.ui5.skog .segc .seg-thumb{background:var(--sk-idag);box-shadow:0 1px 2px rgba(30,40,30,.08)}
+html.ny.ui5.skog .segc button[aria-pressed="true"]{color:var(--sk-gron2);font-weight:600}
+/* Bockar: rundade rutor som fylls gröna; brytare gröna */
+html.ny.ui5.skog .check::before{border-radius:7px;width:24px;height:24px;border-color:rgba(31,39,35,.28)}
+html.ny.ui5.skog[data-theme="dark"] .check::before{border-color:rgba(237,241,236,.3)}
+html.ny.ui5.skog .check:checked::before{background:var(--sk-gron);border-color:var(--sk-gron)}
+html.ny.ui5.skog .check:checked::after{border-color:#fff}
+html.ny.ui5.skog .switch:checked{background:var(--sk-gron)}
+/* Idag i kalendrar och veckorader */
+html.ny.ui5.skog :is(.wk-d.on .n,.cal-today,.today-dot){background:var(--sk-gron);color:#fff}
+/* Flikraden: skogsgrön, ljusa ikoner, vald flik ljusare (som väggens sidomeny) */
+html.ny.ui5.skog .nav:not(.sido){background:var(--sk-meny);border:0;border-top:0;box-shadow:0 10px 30px rgba(20,30,25,.25);-webkit-backdrop-filter:none;backdrop-filter:none}
+html.ny.ui5.skog .nav:not(.sido) .nav-pill{background:rgba(255,255,255,.16)}
+html.ny.ui5.skog .nav.fj.lyft .nav-pill{background:rgba(255,255,255,.26)}
+html.ny.ui5.skog .nav:not(.sido) button{color:rgba(240,245,240,.7)}
+html.ny.ui5.skog .nav:not(.sido) button[aria-current="page"],html.ny.ui5.skog .nav.fj.drag button.over{color:#fff}
+html.ny.ui5.skog .nav-mini{background:var(--sk-meny);color:#fff;border:0}
+html.ny.ui5.skog .navbar{background:var(--bar)}
+/* Inställningarnas ikoner: samma skogsgröna ruta för alla delar (inga egna färger) */
+html.ny.ui5.skog .pref-section[data-k]>summary.sh{--ic:#4A7C46}
+/* Blad: samma sand som sidan, knapparna i rubriken som ljusa kort */
+html.ny.ui5.skog .sheet-panel{background:var(--bg)}
+html.ny.ui5.skog .sheet-head .tb{background:var(--surface);border:1px solid var(--sk-kb)}
+html.ny.ui5.skog .sheet-head .tb.strong{background:var(--accent);border-color:transparent}
 </style>
 </head>
 <body>
