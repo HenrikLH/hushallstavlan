@@ -126,12 +126,13 @@ function applyPersonColors(){const ks=[0,1].map(personColor),key=ks.join();if(ke
  el.textContent=':root{'+v(false)+'}@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){'+v(true)+'}}:root[data-theme="dark"]{'+v(true)+'}'}
 /* Accentfärgen (Inställningar → Färgval) gäller bara den här enheten: en av användarfärgerna eller "min färg",
    som följer färgen för den som använder enheten. Skogsgrön är standard sedan Tavla 3 (Henrik 14/11), vinröd ett val. */
-let ACCENT=lsGet('accent')||'skog';
+let ACCENT=lsGet('accent')||'';
+const accDef=()=>U5?'skog':'vinrod';   // UI 2.0 behåller vinröd så att dess utseende inte ändras
 const FARG_OPEN={},FARG_X={};
 function setPcol(i,key){const L=personList().slice(0,2);while(L.length<2)L.push({n:['Henrik','Cornelia'][L.length],c:''});if(!colOk(key))return;L[i].c=key;
  const v=personSetting(L);settings().personer=v;render();apiPost({action:'setting',k:'personer',v})}   // vilka tonrader som är utfällda i Färgval (2 = fälls ut just nu)
-const accentPref=()=>U4?(lsGet('accent4')||'lavendel'):ACCENT;
-const accentKey=()=>{const a=accentPref();if(a==='min'){const i=people().indexOf(S.me);return i>=0?personColor(i):'skog'}return colOk(a)?a:'skog'};
+const accentPref=()=>U4?(lsGet('accent4')||'lavendel'):ACCENT||accDef();
+const accentKey=()=>{const a=accentPref();if(a==='min'){const i=people().indexOf(S.me);return i>=0?personColor(i):accDef()}return colOk(a)?a:accDef()};
 let accKey='';
 function applyAccent(){const k=accentKey(),ak=k+'|'+U4;if(ak===accKey)return;accKey=ak;let el=document.getElementById('acc');
  if(k==='vinrod'&&!U4){if(el)el.remove();return}
@@ -4161,7 +4162,7 @@ function renderOverlay(){
   o.innerHTML=sheetHtml('vagg','Nattläge','<button type="button" class="tb strong" data-act="sheetClose">Klar</button>',hjelpFold(body,'vagg'),enter,'<button type="button" class="back" data-act="settings">'+I.back+'Inställningar</button>');segSlide(o);return}
  if(k==='farg'){const mi=people().indexOf(S.me);if(enter)[FARG_OPEN,FARG_X].forEach(o=>Object.keys(o).forEach(k=>delete o[k]));
   Object.keys(FARG_OPEN).forEach(k=>{if(FARG_OPEN[k]===2)FARG_OPEN[k]=1});
-  const accName=accentPref()==='min'?'Min färg ('+PCOL[accentKey()][0].toLowerCase()+')':PCOL[accentKey()][0]+(accentKey()==='skog'?' (standard)':'');
+  const accName=accentPref()==='min'?'Min färg ('+PCOL[accentKey()][0].toLowerCase()+')':PCOL[accentKey()][0]+(accentKey()===accDef()?' (standard)':'');
   const body=sh('Ljust eller mörkt')+'<div class="seg-wrap">'+segc('Ljust eller mörkt','theme',[['system','System'],['light','Ljust'],['dark','Mörkt']],S.theme)+'</div>'+
    sh('Accentfärg')+group('<div class="cell"><span class="grow">Knappar och länkar</span><span class="meta" data-name="acc">'+esc(accName)+'</span></div>'+
     (accentPref()==='min'?'':colorPicker('acc','accent',null,accentKey(),'Accentfärg'))+
@@ -6573,7 +6574,7 @@ const ACT={
  natthimmel(id){NATTHIM=['vanlig','kort','kvall'].includes(id)?id:'pol';lsSet('natthimmel',NATTHIM==='pol'?null:NATTHIM);render()},
  hundar(id){HUNDAR=['bada','brun','svart'].includes(id)?id:'vaxla';lsSet('hundar',HUNDAR==='vaxla'?null:HUNDAR);S.wxVar=null;render()},
  accMin(){ACT.accent(accentPref()==='min'?accentKey():'min')},
- accent(id){if(U4){const k=id==='min'||colOk(id)?id:'lavendel';lsSet('accent4',k==='lavendel'?null:k)}else{ACCENT=id==='min'||colOk(id)?id:'skog';lsSet('accent',ACCENT==='skog'?null:ACCENT)}render()},
+ accent(id){if(U4){const k=id==='min'||colOk(id)?id:'lavendel';lsSet('accent4',k==='lavendel'?null:k)}else{ACCENT=id==='min'||colOk(id)?id:accDef();lsSet('accent',ACCENT===accDef()?null:ACCENT);if(!lsGet('accent'))ACCENT=''}render()},
  arrange(){closeSheets();arrOn();ACT.nav('oversikt')},
  arrangeDone(){const ch=arrChanged();if(ch)lsSet(ARR0.k+'Prev',JSON.stringify({v:ARR0.v}));ARR0=null;S.arrange=false;S.xsz=null;render();
   if(ch){const u=document.getElementById('undo');u.querySelector('.ud-t').textContent='Den nya ordningen är sparad';const b=u.querySelector('.ud-b');b.dataset.act='boxPrev';b.textContent='Ångra';u.hidden=false;clearTimeout(ACT.boxPrev.t);ACT.boxPrev.t=setTimeout(()=>{if(b.dataset.act==='boxPrev')undoHide()},6000)}},
