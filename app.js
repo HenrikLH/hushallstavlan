@@ -1518,15 +1518,16 @@ function otHead(tel){const n=new Date(),t=today(),d=parse(t),hh=n.getHours(),dy=
 /* Schema: tre dagar som listor med prick och tid. Idag har salviagrön rubrik och gröna prickar, övriga dagar neutrala */
 function otSchema(tel){const t=today(),n=new Date(),dg=Math.max(0,Math.min(2,+S.otDag||0));
  const dag=i=>{const k=addDays(t,i),dt=parse(k),A=D().events.filter(e=>e.date===k),bd=A.filter(isBdEv),E=A.filter(e=>!isBdEv(e)).sort((a,b)=>String(a.time||'').localeCompare(String(b.time||''))),st=i?new Map():evStates(E);
-  const rad=(cls,tm,tit,act,id,lbl)=>'<div class="ot-te'+cls+'" data-act="'+act+'" data-id="'+esc(id)+'"'+(lbl?' title="'+esc(lbl)+'"':'')+'><i></i><span class="ot-tm num">'+tm+'</span><b>'+tit+'</b></div>';
+  const rad=(cls,tm,tit,act,id,lbl,x)=>'<div class="ot-te'+cls+'" data-act="'+act+'" data-id="'+esc(id)+'"'+(lbl?' title="'+esc(lbl)+'"':'')+'><i></i><span class="ot-tm num">'+tm+'</span><span class="ot-tt"><b>'+tit+'</b>'+(x||'')+'</span></div>';
   const L=bd.map(e=>rad(' bd',I.cake,esc(e.title),'nav','fod','Födelsedag')).concat(E.filter(e=>(st.get(e)||{}).st!=='past').map(e=>{const x=st.get(e)||{},w=evParts(e).name||evPerson(e),tm=String(e.time||'').replace(/\s*[–-].*$/,'');
-   return rad(x.st==='now'?' nu':'',esc(tm||'Heldag'),evTitle(e),'calOpen',k,w?personLabel(w):'')}));
+   const sl=(/[–-]\s*(\d{1,2}[.:]\d{2})/.exec(e.time||'')||[])[1],pb=x.st==='now'&&x.p!=null?'<span class="ot-pb"><i><b style="width:'+Math.max(3,Math.round(x.p*100))+'%"></b></i><small class="num">'+esc(x.left)+' kvar</small></span>':'';
+   return rad(x.st==='now'?' nu':'',esc(tm||'Heldag')+(sl&&tm?'<small>'+esc(sl)+'</small>':''),evTitle(e),'calOpen',k,w?personLabel(w):'',pb)}));
   const max=tel?6:5,nm=!i?'Idag':i===1?'Imorgon':cap(DAYS[dt.getDay()]);
   return'<div class="ot-dg'+(i?'':' idag')+'"><h3>'+nm+' <span class="num">'+(i<2?cap(DAYS[dt.getDay()].slice(0,3))+' ':'')+dt.getDate()+' '+MON[dt.getMonth()].slice(0,3)+'</span></h3><div class="ot-tl2">'+
    (L.slice(0,max).join('')||'<div class="ot-tom">Inget inplanerat</div>')+(L.length>max?'<div class="ot-mer">+'+(L.length-max)+' till</div>':'')+'</div></div>'};
- const hd='<div class="ot-h"><span class="ot-hi">'+I.cal+'</span><b>Schema</b><span class="ot-h2">'+(tel?'3 dagar':'kommande 3 dagar')+'</span><button type="button" class="ot-lnk" data-act="nav" data-id="kalender">'+(tel?'Visa alla':'Visa kalender')+I.chev+'</button></div>';
+ const hd='<div class="ot-h"><span class="ot-hi">'+I.cal+'</span><b>Schema</b><span class="ot-h2">'+(tel?'3 dagar':'kommande 3 dagar')+'</span><button type="button" class="ot-lnk" data-act="nav" data-id="kalender" aria-label="Visa kalender">'+I.chev+'</button></div>';
  if(tel){const nm=i=>!i?'Idag':i===1?'Imorgon':cap(DAYS[parse(addDays(t,i)).getDay()].slice(0,3));
-  return'<section class="ot-c ot-sch"'+RF('T18')+'>'+hd+'<div class="ot-dseg" role="group" aria-label="Dag">'+[0,1,2].map(i=>'<button type="button" data-act="otDag" data-id="'+i+'" aria-pressed="'+(i===dg)+'">'+nm(i)+'</button>').join('')+'</div>'+dag(dg).replace(/<h3>.*?<\/h3>/,'')+'</section>'}
+  return'<section class="ot-c ot-sch"'+RF('T18')+'>'+hd+'<div class="ot-dseg" role="group" aria-label="Dag" data-seg="otDag" style="--i:'+dg+'"><i aria-hidden="true"></i>'+[0,1,2].map(i=>'<button type="button" data-act="otDag" data-id="'+i+'" aria-pressed="'+(i===dg)+'">'+nm(i)+'</button>').join('')+'</div>'+dag(dg).replace(/<h3>.*?<\/h3>/,'')+'</section>'}
  return'<section class="ot-c ot-sch"'+RF('T18')+'>'+hd+'<div class="ot-dagar">'+[0,1,2].map(dag).join('')+'</div></section>'}
 /* Smart hem per rum: lampor efter rummet i Home Assistant, apparater och högtalare efter eget val (onskelista {hab:1,arum}) */
 const OT_ARUM0={disk:'Kök',tvatt:'Badrum',tork:'Badrum'};
@@ -1541,13 +1542,13 @@ function otHus(tel){const hd=x=>'<div class="ot-h"><span class="ot-hi">'+I.home+
  const st=x=>{const on=x.L.filter(l=>l.on).length,ak=x.A.filter(haAppAktiv),sp=x.M.filter(haMedSpelar);return{on,ak,sp,ic:ak.length?HAI.fan:sp.length?HAI_SPK:HAI.bulb,txt:[ak.length?(ak[0].typ==='robot'?haStadar(ak[0])?'Städar':'På väg hem':{disk:'Diskar',tvatt:'Tvättar',tork:'Torkar'}[ak[0].typ]||'Igång'):'',sp.length?'Spelar':'',x.L.length?on?on+' av '+x.L.length+' på':'Släckt':''].filter(Boolean)[0]||''}};
  const R=otRum(H);
  const akt=(H.lampor||[]).filter(x=>x.on).length+(H.apparater||[]).filter(haAppAktiv).length+(H.media||[]).filter(m=>!m.grupp&&haMedSpelar(m)).length;
- const ak=akt?akt+(akt>1?' enheter aktiva':' enhet aktiv'):'Allt avstängt';
+ const ak=akt?akt+(akt>1?' enheter aktiva':' enhet aktiv'):'Allt avstängt',sc=husScener(H);
  if(tel)return'<section class="ot-c ot-hus"'+RF('T19')+'>'+hd('<span class="ot-h2">'+esc(ak)+'</span>')+'<div class="ot-ikr">'+R.map(x=>{const s=st(x),p=s.on||s.ak.length||s.sp.length;
-  return'<button type="button" class="ot-ik'+(p?' on':'')+'" data-act="otRum" data-id="'+esc(x.r)+'" aria-label="'+esc((x.n||x.r)+', '+s.txt)+'"><span>'+s.ic+'</span><em>'+esc(x.n||x.r)+'</em></button>'}).join('')+'</div></section>';
+  return'<button type="button" class="ot-ik'+(p?' on':'')+'" data-act="otRum" data-id="'+esc(x.r)+'" aria-label="'+esc((x.n||x.r)+', '+s.txt)+'"><span>'+s.ic+'</span><em>'+esc(x.n||x.r)+'</em></button>'}).join('')+'</div>'+(sc?'<div class="ot-sc">'+sc+'</div>':'')+'</section>';
  const ruta=x=>{const s=st(x),p=s.on||s.ak.length||s.sp.length;
   return'<div class="ot-ti3'+(p?' on':'')+'" data-rum="'+esc(x.r)+'"><button type="button" class="ot-tb" data-act="otRum" data-id="'+esc(x.r)+'"><span class="ot-si">'+s.ic+'</span><b>'+esc(x.n||x.r)+'</b><span>'+esc(s.txt)+'</span></button></div>'};
 
- return'<section class="ot-c ot-hus"'+RF('T19')+'>'+hd('<span class="ot-h2">'+esc(ak)+'</span>')+'<div class="ot-rums">'+R.map(ruta).join('')+'</div><div class="ot-scl">Scener</div><div class="ot-sc">'+husScener(H)+'</div></section>'}
+ return'<section class="ot-c ot-hus"'+RF('T19')+'>'+hd('<span class="ot-h2">'+esc(ak)+'</span>')+'<div class="ot-rums">'+R.map(ruta).join('')+'</div>'+(sc?'<div class="ot-scl">Scener</div><div class="ot-sc">'+sc+'</div>':'')+'</section>'}
 function otRumSheet(enter){const H=haData(),r=S.otRum;if(!H||r==null){S.sheet=null;return''}const x=otRum(H).find(z=>z.r===r)||{r,L:[],A:[],M:[]};
  if(!r){x.A=(H.apparater||[]).filter(a=>!otArum(a));x.M=(H.media||[]).filter(m=>!m.grupp&&!otArum(m))}
  const enh=x.A.length+x.M.length,an=(H.apparater||[]).concat((H.media||[]).filter(m=>!m.grupp)).filter(a=>r&&otArum(a)!==r);
@@ -1559,7 +1560,7 @@ function otRumSheet(enter){const H=haData(),r=S.otRum;if(!H||r==null){S.sheet=nu
   (!x.L.length&&!enh?'<div class="foot">Inget i rummet ännu.</div>':'')+(S.otRumRed?'<div class="foot">Lamporna följer rummen i Home Assistant (ändras under håll in på lampan). Apparater och högtalare väljer du här.</div>':'');
  return sheetHtml('otRum',esc(r||'Övrigt'),'<button type="button" class="tb strong" data-act="sheetClose">Klar</button>',body,enter,'<span class="tb"></span>')}
 /* Att göra och Städ: två kort på väggen, ett kort med glidande växlare på telefonen */
-function otGora(tel){const t=today(),U=upgDag(),cp=cleanPlan(),ST=[...cp.routines,...cp.doneRot,...cp.todo],dn=ST.filter(doneToday).length,tot=ST.length,max=tel?5:7;
+function otGora(tel){const t=today(),U=upgDag(),cp=cleanPlan(),ST=[...cp.routines,...cp.doneRot,...cp.todo],dn=ST.filter(doneToday).length,tot=ST.length,fod=!tel&&bdays().length>0,max=tel?5:fod?3:7;
  const rad=(act,x,sub,red,klar)=>'<label class="ot-ti'+(klar?' klar':'')+'"><input type="checkbox" class="ot-cb" data-act="'+act+'" data-id="'+esc(x.id)+'"'+(klar?' checked':'')+'><i aria-hidden="true">'+I.tick+'</i><b>'+esc(x.title)+'</b>'+(sub?'<small'+(red?' class="red"':'')+'>'+esc(sub)+'</small>':'')+'</label>';
  const gL=U.idag.map(x=>rad('taskToggle',x,x.due<t?'Sedan '+dateShort(x.due):x.who?personLabel(x.who):'',x.due<t)),gN=U.idag.length;
  const sL=[...ST.filter(x=>!doneToday(x)).map(x=>rad('cleanToggle',x,x.min?x.min+' min':'')),...ST.filter(doneToday).map(x=>rad('cleanToggle',x,'',0,1))];
@@ -1568,12 +1569,16 @@ function otGora(tel){const t=today(),U=upgDag(),cp=cleanPlan(),ST=[...cp.routine
  const sPr=tot?'<span class="ot-pr"><span class="num">'+dn+' av '+tot+' klara</span><i><b style="width:'+Math.round(dn/tot*100)+'%"></b></i></span>':'';
  const gPr='<span class="ot-pr"><span class="num">'+(gN?gN+' kvar idag':'Allt klart')+'</span></span>';
  if(!tel)return'<section class="ot-c ot-gora"'+RF('T20')+'><div class="ot-h"><span class="ot-hi ot-ok">'+I.tick+'</span><b>Att göra</b>'+gPr+'<button type="button" class="ot-lnk" data-act="nav" data-id="uppgifter" aria-label="Visa alla">'+I.chev+'</button></div>'+lista(gL,'Inget kvar idag')+imo+'</section>'+
-  '<section class="ot-c ot-stad"'+RF('T22')+'><div class="ot-h"><span class="ot-hi">'+I.sparkles+'</span><b>Städ</b>'+sPr+'<button type="button" class="ot-lnk" data-act="nav" data-id="stad" aria-label="Visa städ">'+I.chev+'</button></div>'+lista(sL,'Inget städ idag')+(tot&&cp.minLeft?'<div class="ot-ft">'+cp.minLeft+' min kvar idag</div>':'')+'</section>';
+  '<section class="ot-c ot-stad"'+RF('T22')+'><div class="ot-h"><span class="ot-hi">'+I.sparkles+'</span><b>Städ</b>'+sPr+'<button type="button" class="ot-lnk" data-act="nav" data-id="stad" aria-label="Visa städ">'+I.chev+'</button></div>'+lista(sL,'Inget städ idag')+(tot&&cp.minLeft&&!fod?'<div class="ot-ft">'+cp.minLeft+' min kvar idag</div>':'')+'</section>';
  const f=S.otFlik||(gN||!tot?'gora':'stad'),st=f==='stad';
- return'<section class="ot-c ot-gora"'+RF('T20')+'><div class="ot-flik" role="tablist" style="--i:'+(st?1:0)+'"><i aria-hidden="true"></i><button type="button" role="tab" data-act="otFlik" data-id="gora" aria-selected="'+!st+'">Att göra<em class="num">'+gN+'</em></button><button type="button" role="tab" data-act="otFlik" data-id="stad" aria-selected="'+st+'">Städ<em class="num">'+(tot?dn+'/'+tot:'0')+'</em></button></div>'+
+ return'<section class="ot-c ot-gora"'+RF('T20')+'><div class="ot-flik" role="tablist" aria-label="Att göra eller städ" data-seg="otFlik" style="--i:'+(st?1:0)+'"><i aria-hidden="true"></i><button type="button" role="tab" data-act="otFlik" data-id="gora" aria-selected="'+!st+'">Att göra<em class="num">'+gN+'</em></button><button type="button" role="tab" data-act="otFlik" data-id="stad" aria-selected="'+st+'">Städ<em class="num">'+(tot?dn+'/'+tot:'0')+'</em></button></div>'+
   (st?(tot?'<span class="ot-pr ot-prt"><i><b style="width:'+Math.round(dn/tot*100)+'%"></b></i><span class="num">'+(cp.minLeft?cp.minLeft+' min kvar':'Klart för idag')+'</span></span>':'')+lista(sL,'Inget städ idag'):lista(gL,'Inget kvar idag')+imo)+'</section>'}
-function wallT3(){return'<div class="ot ot-v ot-'+otFas()+'">'+otLand()+otHead(false)+otWx(false)+otSchema(false)+otHus(false)+otGora(false)+'</div>'}
-function telT3(){return'<div class="ot ot-t ot-'+otFas()+'">'+otHead(true)+otWx(true)+otSchema(true)+otHus(true)+otGora(true)+'</div>'}
+/* Födelsedagar: de närmaste med initial i personens färg, idag och imorgon i grönt */
+function otFod(tel){const B=bdNext(bdays()).slice(0,3);if(!B.length)return'';
+ return'<section class="ot-c ot-fod"'+RF('T23')+'><div class="ot-h"><span class="ot-hi">'+I.cake+'</span><b>Födelsedagar</b><button type="button" class="ot-lnk" data-act="nav" data-id="fod" aria-label="Alla födelsedagar">'+I.chev+'</button></div><div class="ot-fl">'+
+  B.map(b=>'<button type="button" class="ot-fr'+(b.days<2?' snart':'')+'" data-act="nav" data-id="fod"'+bdSt(b)+'><span class="ot-fa">'+esc(b.name.charAt(0).toUpperCase())+'</span><span class="ot-ft2"><b>'+esc(b.name)+'</b><small>'+esc(cap(bdTurns(b)))+' · '+b.dd+' '+MON3[b.mo]+'</small></span><em>'+esc(cap(bdWhen(b)))+'</em></button>').join('')+'</div></section>'}
+function wallT3(){return'<div class="ot ot-v ot-'+otFas()+'">'+otLand()+otHead(false)+otWx(false)+otSchema(false)+otHus(false)+otGora(false)+otFod(false)+'</div>'}
+function telT3(){return'<div class="ot ot-t ot-'+otFas()+'">'+otHead(true)+otWx(true)+otSchema(true)+otHus(true)+otGora(true)+otFod(true)+'</div>'}
 /* ---------- Smart hem (Home Assistant), bara på väggskärmen ----------
    Väggdatorns lokala tjänst (kiosk/ljussensor.py, /ha) håller HA-nyckeln och släpper bara igenom valda lampor, scener och
    givare. Appen frågar med lång väntan (?v=N svarar först vid en ändring), så rutan följer med inom en sekund när någon
@@ -6191,9 +6196,16 @@ function leaveAnim(act,items,then){A.user=Date.now();const ids=new Set(items.map
  const rows=[...document.querySelectorAll('.cell input.check[data-act="'+act+'"]')].filter(b=>ids.has(b.dataset.id)).map(b=>b.closest('.cell'));
  if(!rows.length||calm()){then();return}
  rows.forEach(r=>{r.style.height=r.offsetHeight+'px';void r.offsetHeight;r.classList.add('leaving')});setTimeout(then,300)}
-function segSlide(root){root.querySelectorAll('.segc[data-seg]').forEach(sg=>{const k=sg.dataset.seg+':'+sg.getAttribute('aria-label'),i=Number(getComputedStyle(sg).getPropertyValue('--i'))||0,old=A.segs[k];A.segs[k]=i;
- const th=sg.querySelector('.seg-thumb');if(old==null||old===i||calm()||!th||!th.animate)return;
+function segSlide(root){root.querySelectorAll('.segc[data-seg],.ot-dseg[data-seg],.ot-flik[data-seg]').forEach(sg=>{const k=sg.dataset.seg+':'+sg.getAttribute('aria-label'),i=Number(getComputedStyle(sg).getPropertyValue('--i'))||0,old=A.segs[k];A.segs[k]=i;
+ const th=sg.querySelector(':scope>i');if(old==null||old===i||calm()||!th||!th.animate)return;
+ if(U5){segStretch(th,old,i);return}
  th.animate([{transform:'translateX('+old*100+'%)'},{transform:'translateX('+i*100+'%)'}],{duration:motionOn()?300:U3?200:380,easing:motionOn()?MOTION_EASE:U3?'cubic-bezier(.2,.8,.2,1)':'cubic-bezier(.3,1.25,.5,1)'})})}
+// UI 5.0: markeringen sträcks först fram över den nya knappen och dras sedan bort från den gamla (som en droppe).
+// Främre kanten leder, bakre följer efter; båda bromsar mjukt. Bredd och läge räknas i px så hörnen behåller sin rundning.
+function segStretch(th,a,b){const w=th.getBoundingClientRect().width;if(!w)return;const n=24,d=b>a?1:-1,
+ lead=t=>{t=Math.min(1,t/.62);return 1-Math.pow(1-t,3)},trail=t=>{t=Math.max(0,Math.min(1,(t-.22)/.78));return t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2},
+ K=[];for(let j=0;j<=n;j++){const t=j/n,f=a+(b-a)*lead(t),r=a+(b-a)*trail(t),L=Math.min(f,r),R=Math.max(f,r)+1;K.push({transform:'translateX('+(L*w).toFixed(2)+'px)',width:((R-L)*w).toFixed(2)+'px'})}
+ th.animate(K,{duration:Math.min(640,440+Math.abs(b-a)*80),easing:'linear'})}
 // Rörelse i testläget: direkt manipulation under drag, mjuk sättning först efter släpp.
 const MOTION_EASE='cubic-bezier(.65,0,.35,1)';
 let motionDrag=null,motionPageAnim=null,motionCal=null;
@@ -6411,7 +6423,7 @@ const ACT={
  smileyQuick(id,el){const v=Number(el.dataset.v)||0;A.user=Date.now();saveSmiley(id,el.dataset.date,v);markCooked(id,el.dataset.date);toast(v>0?'Vad bra! Rätten kommer tillbaka lite oftare':v<0?'Noterat. Rätten kommer tillbaka mer sällan':'Tack!')},
  smileySkip(id,el){A.user=Date.now();saveSmiley(id,el.dataset.date,'x');toast('Okej, den räknas inte som lagad')},
  wakeBoard(){render()},
- otDag(id){S.otDag=+id||0;render()},otFlik(id,el){const v=id==='stad'?'stad':'gora',f=el&&el.closest&&el.closest('.ot-flik');if(S.otFlik===v&&f)return;S.otFlik=v;if(f&&MOTION&&!matchMedia('(prefers-reduced-motion:reduce)').matches){f.style.setProperty('--i',v==='stad'?1:0);f.querySelectorAll('button').forEach(b=>b.setAttribute('aria-selected',b.dataset.id===v));setTimeout(render,240)}else render()},
+ otDag(id){S.otDag=+id||0;render()},otFlik(id){const v=id==='stad'?'stad':'gora';if(S.otFlik===v)return;S.otFlik=v;render()},
  otRum(id){S.otRum=id||'';S.otRumRed=0;S.sheet='otRum';render()},otRumRed(){S.otRumRed=1;render()},
  otArum(id,el){const r=el&&el.dataset?el.dataset.r||'':'',o=Object.assign({},(habGet()||{}).arum||{});o[id]=r;habSet({arum:o});render()},
  ovny(id){OVNY=/^[abcdefgh]$/.test(id)?id:'';lsSet('ovny',OVNY||null);applyNy();A.touch=Date.now();render()},

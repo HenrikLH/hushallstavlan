@@ -4575,6 +4575,40 @@ html.ny.ui5.skog .sheet-head .tb{background:var(--surface);border:1px solid var(
 html.ny.ui5.skog .sheet-head .tb.strong{background:var(--accent);border-color:transparent}
 /* Matlagningsläget på smal telefon: väljaren Steg/Tidsplan får en egen rad så att rättens namn inte bryts ett ord per rad */
 @media (max-width:520px){html.ny.ui5 .ck5-top .segc{flex:1 1 100%;width:auto;margin:8px 0 0}html.ny.ui5 .ck5-top .ck5-h{flex-basis:calc(100% - 56px)}html.ny.ui5 .ck5-top .ck5-chips:not(:empty){margin:8px 0 0 56px}}
+/* Översikten i Skog 14/11: dagväljaren med egen tumme som sträcks (segStretch), tid start/slut, förloppsstapel på pågående händelser,
+   luftigare Att göra/Städ, scener på telefonen och Födelsedagar */
+html.ny.ui5 .ot-dseg{position:relative;gap:0}
+html.ny.ui5 .ot-dseg>i{position:absolute;left:3px;top:3px;bottom:3px;width:calc((100% - 6px) / 3);border-radius:9px;background:var(--ot-ruta-h,#fff);box-shadow:0 1px 3px rgba(30,40,30,.12);transform:translateX(calc(var(--i,0) * 100%));pointer-events:none}
+html.ny.ui5.skog .ot-dseg>i{background:var(--sk-gronl);box-shadow:none}
+html.ny.ui5 .ot-dseg button{position:relative;transition:color .2s}
+html.ny.ui5.ny .ot-dseg button[aria-pressed="true"]{background:none;box-shadow:none}
+html.ny.ui5 .ot-tm small{display:block;font-size:13px;line-height:17px;font-weight:500;color:var(--ot-i2)}
+html.ny.ui5 .ot-tt{display:flex;flex-direction:column;min-width:0}
+html.ny.ui5 .ot-pb{display:flex;align-items:center;gap:8px;margin-top:6px}
+html.ny.ui5 .ot-pb>i{flex:1;max-width:150px;height:5px;border-radius:999px;background:var(--ot-linje);overflow:hidden}
+html.ny.ui5 .ot-te .ot-pb>i>b{display:block;height:100%;border-radius:inherit;background:var(--ot-gron)}
+html.ny.ui5 .ot-pb small{flex:none;font-size:13px;line-height:17px;font-weight:600;color:var(--ot-gron2)}
+html.ny.ui5 .ot-ti{padding:8px 0}
+html.ny.ui5 .ot-ti+.ot-ti:before,html.ny.ui5 .ot-fr+.ot-fr:before{content:"";position:absolute;left:38px;right:0;top:0;height:1px;background:var(--ot-linje);opacity:.7}
+html.ny.ui5 .ot-t .ot-ti{padding:11px 0;gap:14px}html.ny.ui5 .ot-t .ot-ti+.ot-ti:before{left:36px}
+html.ny.ui5 .ot-t .ot-flik{margin-bottom:6px}html.ny.ui5 .ot-t .ot-prt{margin:4px 0 6px}
+html.ny.ui5 .ot-t .ot-ft{margin-top:8px}
+html.ny.ui5 .ot-t .ot-sc{margin:14px -16px 0;padding:0 16px 2px}html.ny.ui5 .ot-t .ot-sc .ha-st{height:42px;padding:0 16px 0 12px}html.ny.ui5 .ot-t .ot-sc .ha-n{font-size:15px}
+html.ny.ui5 .ot-fl{display:flex;flex-direction:column;min-height:0;overflow:hidden}
+html.ny.ui5 .ot-fr{position:relative;display:flex;align-items:center;gap:12px;width:100%;padding:9px 0;border:0;background:none;color:var(--ot-ink);font:inherit;text-align:left;cursor:pointer}
+html.ny.ui5 .ot-fr+.ot-fr:before{left:48px}
+html.ny.ui5 .ot-fa{display:grid;place-items:center;width:36px;height:36px;flex:none;border-radius:50%;background:var(--bd-soft,var(--ot-gronl));color:var(--bd-ink,var(--ot-gron2));font-size:16px;font-weight:700}
+html.ny.ui5 .ot-ft2{flex:1;min-width:0;display:flex;flex-direction:column}
+html.ny.ui5 .ot-ft2 b{font-size:16px;line-height:21px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.ny.ui5 .ot-ft2 small{font-size:13px;line-height:17px;color:var(--ot-i2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.ny.ui5 .ot-fr em{flex:none;font-style:normal;font-size:14px;color:var(--ot-i2)}html.ny.ui5 .ot-fr.snart em{color:var(--ot-gron2);font-weight:600}
+html.ny.ui5 .ot-v:has(>.ot-fod){grid-template-columns:repeat(3,minmax(0,1fr)) minmax(0,1.2fr);grid-template-areas:"h h h w" "s s s u" "g st f u"}
+html.ny.ui5 .ot-v>.ot-fod{grid-area:f}
+html.ny.ui5 .ot-v:has(>.ot-fod){grid-template-rows:176px minmax(0,1.04fr) minmax(0,.96fr)}
+html.ny.ui5 .ot-v:has(>.ot-fod) .ot-gora .ot-pr{display:none}
+html.ny.ui5 .ot-v:has(>.ot-fod) .ot-stad .ot-pr{font-size:15px;gap:6px}html.ny.ui5 .ot-v:has(>.ot-fod) .ot-stad .ot-pr i{width:84px}
+html.ny.ui5 .ot-v .ot-te{padding:5px 0 5px 20px}html.ny.ui5 .ot-v .ot-te>i{top:11px}
+html.ny.ui5 .ot-v .ot-fr{padding:5px 0}html.ny.ui5 .ot-v .ot-fa{width:32px;height:32px;font-size:15px}html.ny.ui5 .ot-v .ot-fr+.ot-fr:before{left:44px}
 </style>
 </head>
 <body>
