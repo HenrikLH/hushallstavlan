@@ -2,6 +2,10 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Skog: rester och UI-granskning (förslag, väntar på Pusha)
+- Ägare Claude, gren `claude/project-thread-tpd0u6`. Skog: väljarna i Inställningar linjerar med korten, rubrikernas högerkant 36 px som texten i korten, kalenderns månadsrubrik in 20 px, rummen på Översikt delar bredden, diskmaskinens ring bärnsten, utvecklarlistan T2. Alla UI 5.0: matlagningsläget på smal telefon (titel egen rad, väljare under) och `ck5Mitt` visar ett långt steg från början.
+- Test: alla-flikar Skog telefon ljust/mörkt + vägg, Apple, Aura, matlagning.js, tavla-designval.js gröna. Bild /mnt/project-files/skog-hela-appen/granskning/.
+
 ## Skog-stilen i hela appen (publicerad ht-v392, ångra-gren `version-fore-skog`)
 - Ägare Claude, gren `claude/project-thread-tpd0u6`. Henrik 14/11: "Gå igenom alla menyer i HELA appen och applicera de nya design guidelines för tavla 3". Gäller bara när designvalet Skog är valt: `html.skog` (applyNy: U5, inte Aura/UI3, `ht.ovny=h`), CSS sist i index.html under `html.ny.ui5.skog`. Body får `t3` även utanför Översikt (grön sidomeny på väggen).
 - Tokens ur `design/tavla3.md`: sand `--bg`, ljusa kort med ljus kant och mjuk skugga, kortrubriker (`.sh`) feta utan versaler, segment med sandband och salviagrön markör, gröna rundade bockar/brytare, idag grönt, grön flikrad (`--sk-meny`), inställningarnas ikoner gröna. Ljust och mörkt.

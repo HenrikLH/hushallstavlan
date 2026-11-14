@@ -4515,10 +4515,19 @@ html.ny.ui5.skog :is(.fchips button[aria-pressed="true"],.rc-toolbar .pill[aria-
 html.ny.ui5.skog[data-theme="dark"] :is(.fchips button[aria-pressed="true"],.rc-toolbar .pill[aria-pressed=true],.cal-d.sel .n,.wk-d.sel .n,.pin-dots i.on){color:#1B221F}
 @media (prefers-color-scheme: dark){html.ny.ui5.skog:not([data-theme="light"]) :is(.fchips button[aria-pressed="true"],.rc-toolbar .pill[aria-pressed=true],.cal-d.sel .n,.wk-d.sel .n,.pin-dots i.on){color:#1B221F}}
 html.ny.ui5.skog .fchips button:not([aria-pressed="true"]){background:var(--surface);border:1px solid var(--sk-kb)}
+/* Granskning: väljarna i inställningarna linjerar med korten (16 px), inte 32 px in; rummen på Översikt delar bredden; diskmaskinens ring i bärnsten */
+html.ny.ui5.skog .pref-body>.seg-wrap .segc{margin-left:0;margin-right:0}
+/* Rubriker linjerar med kortens text på båda sidor (36 px), även månadsrubriken i kalendern */
+html.ny.ui5.skog .sh{padding-right:36px}
+html.ny.ui5.skog .cal-head{padding-left:20px}
+html.ny.ui5.skog .ot-t .ot-ik{flex:1 0 66px}
+html.ny.ui5.skog .ha-g-v .ha-ap-disk .ha-i{--rc:var(--sk-amb)}
 /* Blad: samma sand som sidan, knapparna i rubriken som ljusa kort */
 html.ny.ui5.skog .sheet-panel{background:var(--bg)}
 html.ny.ui5.skog .sheet-head .tb{background:var(--surface);border:1px solid var(--sk-kb)}
 html.ny.ui5.skog .sheet-head .tb.strong{background:var(--accent);border-color:transparent}
+/* Matlagningsläget på smal telefon: väljaren Steg/Tidsplan får en egen rad så att rättens namn inte bryts ett ord per rad */
+@media (max-width:520px){html.ny.ui5 .ck5-top .segc{flex:1 1 100%;width:auto;margin:8px 0 0}html.ny.ui5 .ck5-top .ck5-h{flex-basis:calc(100% - 56px)}html.ny.ui5 .ck5-top .ck5-chips:not(:empty){margin:8px 0 0 56px}}
 </style>
 </head>
 <body>
