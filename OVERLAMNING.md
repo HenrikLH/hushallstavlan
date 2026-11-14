@@ -2,6 +2,10 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Ändra befintliga scener (förslag, gren `claude/project-thread-xzhxfs`)
+- Ägare Claude. Henrik 14/11: "Jag vill kunna redigera redan gjorda scener". Egna scener gick redan att ändra med håll in; scener från Home Assistant och Släck allt i Hemmet öppnade bara namn/rum-bladet. Nu öppnar håll in samma scenblad för alla (`husScRed`, sparas på sin plats först vid Klar; Ta bort = ta bort från tavlan). Plusmenyn och rutans meny: "Ändra scener" (penna) i stället för "Ordna scener".
+- Test: `verktyg/emu/scen-andra.js` telefon + vägg, smart-hem-ruta, scen-tidslinje, alla-flikar telefon + vägg. `hemmet-scener.js` fallerar redan på main ("fyra i rad", raden har nu fem). Väntar på Henriks ok.
+
 ## Skog: grönt tillbaka (publicerad ht-v396, ångra-gren `version-fore-skog-gront`)
 - Henrik 14/11: "Jag vill ha grön som accentfärg men nu har jag ingen färg". Vald flik i menyn skogsgrön (telefon och vägg), valt läge i väljarna ljusgrönt, `.ot-lnk` grön. Neutralisera inte accenten i Skog vid granskningar. Test: alla-flikar Skog telefon + vägg vänstermeny.
 
