@@ -4528,6 +4528,8 @@ html.ny.ui5.skog .ha-g-v .ha-ap-disk .ha-i{--rc:var(--sk-amb)}
 /* Väggen: en tom plats i veckan blir lika stor som en rätt i stället för att fylla hela raden; scenraden tonar ut i kanten när den går att svepa */
 html.ny.ui5.skog body.wall .bt:has(.bq.e){flex:0 0 calc(50% - 5px)}
 html.ny.ui5.skog .ot-sc{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 44px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 44px),transparent)}
+/* Väggen med menyn till vänster: lika stor luft mellan menyn och korten som mot högerkanten (25 px) */
+html.ny.ui5.skog body.wall.sido.t3:not(.sido-ut){--sidew:112px;padding-right:8px}
 /* Blad: samma sand som sidan, knapparna i rubriken som ljusa kort */
 html.ny.ui5.skog .sheet-panel{background:var(--bg)}
 html.ny.ui5.skog .sheet-head .tb{background:var(--surface);border:1px solid var(--sk-kb)}
