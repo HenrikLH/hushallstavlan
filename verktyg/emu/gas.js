@@ -34,7 +34,7 @@ const t3demo=d=>{if(!process.env.T3DEMO)return d;d=JSON.parse(JSON.stringify(d))
  [[0,'09:00','Handla'],[0,'11:30–13:00','Fotbollsträning'],[0,'14:30–16:00','Besök av morfar'],[1,'10:00','Planera veckan'],[1,'13:00–14:30','Träning'],[1,'17:30','Middag hos Anna'],[2,'07:00','Arbete'],[2,'15:30','Utvecklingssamtal'],[2,'19:00','Tvättstugan']].forEach(([n,t,x],i)=>d['Händelser'].push([a(n),t,x,'','','t3d'+i,'']));
  ['Dammsug köket','Byt sängkläder','Rensa återvinningen'].forEach((x,i)=>d['Uppgifter'].push(['',x,a(0),'','','t3t'+i,'','']));
  [['Kök','Töm diskmaskinen',1,5,0],['Vardagsrum','Plocka undan',1,10,0],['Kök','Torka bänkar',1,5,1],['Badrum','Byt handdukar',7,5,8],['Hall','Dammsug hallen',7,10,9]].forEach(([r,x,f,m,l],i)=>d['Städ'].push(['t3s'+i,r,x,f,m,a(-l),'','','','','','',i]));
- const md=n=>a(n).slice(5),fr=(d['Inställningar']||[]).find(x=>x[0]==='fodelsedagar');if(fr)fr[1]=JSON.stringify([{namn:'Morfar Sven',datum:md(1),ar:1950},{namn:'Anna',datum:md(5),ar:1992},{namn:'Elsa',datum:md(19),ar:2019},{namn:'Johan',datum:md(40),ar:1988}]);return d};
+ const md=n=>a(n).slice(5),fr=(d['Inställningar']||[]).find(x=>x[0]==='fodelsedagar');if(fr)fr[1]=JSON.stringify([{namn:'Morfar Sven',datum:md(1),ar:1951},{namn:'Anna',datum:md(5),ar:1992},{namn:'Elsa',datum:md(19),ar:2019},{namn:'Johan',datum:md(40),ar:1988}]);return d};
 const book=makeBook(t3demo(require('./data.js')));
 const props={HUSHALLSKOD:'x',NTFY_TOPIC:''};
 let lockHeld=false;const cache={};

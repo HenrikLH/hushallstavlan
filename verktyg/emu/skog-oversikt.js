@@ -3,7 +3,7 @@ module.exports=async(pg,h)=>{await h.idle(1800);const N=process.env.NAMN||'skog'
  if(await pg.locator('.nav-mini.on').isVisible())await pg.locator('.nav-mini.on').click();
  await pg.locator('#nav [data-act="nav"][data-id="oversikt"]').first().click();await h.idle(1200);
  if(!await pg.locator('.ot').count())throw new Error('ingen Skog-översikt');
- for(const k of['.ot-sch','.ot-gora','.ot-fod'])if(!await pg.locator(k).count())throw new Error('saknas '+k);
+ for(const k of['.ot-sch','.ot-gora','.ot-fv'])if(!await pg.locator(k).count())throw new Error('saknas '+k);
  if(await pg.locator('.ot-sch .ot-lnk').innerText()!=='')throw new Error('"Visa alla" står kvar');
  if(!await pg.locator('.ot-te.nu .ot-pb').count())throw new Error('ingen förloppsstapel på pågående händelse');
  await h.shot(N+'-start',true);

@@ -3,8 +3,8 @@
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
 ## Skog: översikten förbättrad (förslag, väntar på Henrik)
-- Ägare Claude, gren `claude/project-thread-93qvwv`. Henrik 14/11: scener i Smart hem på telefonen, förloppsstapel + sluttid i Schema, mer luft i Att göra/Städ, bara pilen i Schemas länk, Födelsedagar (T23, `otFod`), sträckanimation i väljarna (`segStretch` i `segSlide`, gäller alla `.segc` i UI5 + `.ot-dseg`/`.ot-flik`).
-- Väggen med Födelsedagar: fyra kolumner (Att göra | Städ | Födelsedagar under Schema, Smart hem till höger), max 3 rader per kort.
+- Ägare Claude, gren `claude/project-thread-93qvwv`, PR #111. Henrik 14/11: scener i Smart hem på telefonen, förloppsstapel + sluttid i Schema, mer luft i Att göra/Städ, bara pilen i Schemas länk, födelsedagsvarning (T23), sträckanimation i väljarna (`segStretch` i `segSlide`, gäller alla `.segc` i UI5 + `.ot-dseg`/`.ot-flik`).
+- Henrik 14/11: Födelsedagar-kortet tog för mycket plats, borttaget. I stället födelsedagsvarning 14 dagar innan (`otFodVarn`, ls `ht.fodv` a/b/c, standard a): A rad i väderkortet som regnvarningen, B egen remsa/glasbricka i toppen, C överst i Schema med nedräkningsring. Väntar på hans val; ta sedan bort de andra.
 - Test: `skog-oversikt.js` (T3DEMO=1 NOW=…12:10, nu med sluttider och födelsedagar i gas.js), alla-flikar Skog telefon/vägg + Apple utan fel. Bilder /mnt/project-files/skog-oversikt/.
 
 ## Skog: grönt tillbaka (publicerad ht-v396, ångra-gren `version-fore-skog-gront`)
