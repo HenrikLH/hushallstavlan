@@ -4371,6 +4371,16 @@ html.ny.ui5 .ot-mh{display:flex;align-items:baseline;gap:8px;min-width:0;white-s
 /* när något spelar blir rummen en rad med ikon och namn, så att reglaget får plats */
 html.ny.ui5 .ot-hus.spelar .ot-tb{flex-direction:row;align-items:center;gap:10px;padding:0 14px}html.ny.ui5 .ot-hus.spelar .ot-si{margin:0}html.ny.ui5 .ot-hus.spelar .ot-si svg{width:26px;height:26px}
 html.ny.ui5 .ot-hus.spelar .ot-tb b{padding:0;flex:1 1 auto;min-width:0;font-size:17px}html.ny.ui5 .ot-hus.spelar .ot-tb b+span{display:none}
+/* Just nu i Smart hem: klar maskin, robotdammsugaren, läggdags */
+html.ny.ui5 .ot-nts{flex:none;display:flex;flex-direction:column;gap:8px;margin:-4px 0 12px}
+html.ny.ui5 .ot-nt{display:flex;align-items:center;gap:8px;min-height:56px;padding:0 8px 0 0;border-radius:16px;background:var(--ot-ruta);border:1px solid var(--ot-kb)}
+html.ny.ui5 .ot-ntb{flex:1;min-width:0;display:flex;align-items:center;gap:12px;align-self:stretch;padding:0 4px 0 12px;border:0;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer;border-radius:inherit}
+html.ny.ui5 .ot-nti{flex:none;display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:var(--ot-band);color:var(--ot-ink)}html.ny.ui5 .ot-nti svg{width:20px;height:20px}
+html.ny.ui5 .ot-nt.klar .ot-nti{background:var(--ot-gronl);color:var(--ot-gron2)}html.ny.ui5 .ot-nt.fel .ot-nti{background:rgba(217,58,43,.16);color:#D93A2B}
+html.ny.ui5 .ot-ntt{min-width:0;display:flex;flex-direction:column}html.ny.ui5 .ot-ntt b{font-size:17px;line-height:22px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}html.ny.ui5 .ot-ntt small{font-size:15px;line-height:19px;color:var(--ot-i2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.ny.ui5 .ot-ntk{flex:none;height:40px;padding:0 16px;border:0;border-radius:999px;background:var(--accent);color:#fff;font:inherit;font-size:16px;font-weight:600;cursor:pointer}
+html.ny.ui5[data-theme="dark"] .ot-ntk{color:#14201A}@media (prefers-color-scheme: dark){html.ny.ui5:not([data-theme="light"]) .ot-ntk{color:#14201A}}
+html.ny.ui5 .ot-wv.ot-wx-frost>i{color:#4F8FD6}html.ny.ui5 .ot-wv.ot-wx-pollen>i{color:#C9A227}html.ny.ui5 .ot-wv.ot-wx-norr>i{color:#5FBF8F}
 html.ny.ui5 .ot-med{flex:none}html.ny.ui5 .ot-med .hab-g{margin-top:0}
 html.ny.ui5 .ot-med .ha-t.hab-med{background:var(--ot-ruta);border:1px solid var(--ot-kb);box-shadow:0 1px 2px rgba(30,40,30,.04);border-radius:18px;color:var(--ot-ink)}
 html.ny.ui5 .ot-med .hab-pp{color:var(--ot-ink)}html.ny.ui5 .ot-med .hab-pp:disabled{color:var(--ot-i2)}

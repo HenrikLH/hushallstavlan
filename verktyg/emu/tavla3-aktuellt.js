@@ -16,6 +16,17 @@ module.exports=async(pg,h)=>{await h.idle(1800);
  await pg.locator('.ot-med [data-act="habMedTog"]').click();await h.idle(400);
  // WXPLUS=1 ger en gul SMHI-varning (halka) som ska gå före regnet; annars ska regnet synas (WXSYM=rain WXPR=0.8)
  const w2=(await pg.locator('.ot-wxk').innerText()).replace(/\s+/g,' ');
- if(process.env.WXPLUS){if(!/Gul varning: halka/.test(w2))throw new Error('varningen syns inte: '+w2);await h.shot('t3-varning')}
+ if(process.env.WXPLUS==='1'){if(!/Gul varning: halka/.test(w2))throw new Error('varningen syns inte: '+w2);await h.shot('t3-varning')}
  else if(+process.env.WXPR&&!/Regn nu|Regn resten|Regn väntas|Regn kl|paraply/i.test(w2))throw new Error('regnet syns inte: '+w2);
+ // Just nu: diskmaskinen klar (Klar tar bort raden), robotdammsugaren städar (demo), läggdags efter 22 med tända lampor
+ const rd=x=>pg.evaluate(x=>window.__d(x),x);
+ if(await rd("new Date().getHours()")<22&&!/Dammsugaren: städar/.test(await pg.locator('.ot-nts').innerText()))throw new Error('robotraden saknas');
+ await rd('(haData().apparater.find(a=>a.typ==="disk").st="finished",render(),1)');await h.idle(500);
+ if(!/Diskmaskinen är klar/.test(await pg.locator('.ot-nts').innerText()))throw new Error('disk klar saknas');
+ await h.shot('t3-notis');
+ await pg.locator('.ot-nt.klar [data-act="otKvitt"]').click();await h.idle(500);
+ if(/Diskmaskinen är klar/.test(await pg.locator('.ot-nts').innerText()))throw new Error('Klar tog inte bort raden');
+ if(await rd("new Date().getHours()")>=22){const t=await pg.locator('.ot-nts').innerText();if(!/tänd/.test(t))throw new Error('läggdags saknas: '+t);await h.shot('t3-laggdags')}
+ // WXT=-2 utan regn: frost i väderkortet
+ if(+process.env.WXT<=0&&!+process.env.WXPR){const w=await pg.locator('.ot-wxk').innerText();if(!/Frost i natt|Minusgrader/.test(w))throw new Error('frosten syns inte: '+w)}
 };
