@@ -32,7 +32,8 @@ function makeBook(init){
 // T3DEMO=1 (med NOW): exempelhändelser och uppgifter som i Henriks bild för Tavla 3-bilder
 const t3demo=d=>{if(!process.env.T3DEMO)return d;d=JSON.parse(JSON.stringify(d));const t0=new Date((process.env.NOW||new Date().toISOString()).slice(0,10)+'T12:00:00Z'),a=n=>new Date(t0.getTime()+n*864e5).toISOString().slice(0,10);
  [[0,'09:00','Handla'],[0,'11:30','Fotbollsträning'],[0,'14:30','Besök av morfar'],[1,'10:00','Planera veckan'],[1,'13:00','Träning'],[1,'17:30','Middag hos Anna'],[2,'07:00','Arbete'],[2,'15:30','Utvecklingssamtal'],[2,'19:00','Tvättstugan']].forEach(([n,t,x],i)=>d['Händelser'].push([a(n),t,x,'','','t3d'+i,'']));
- ['Dammsug köket','Byt sängkläder','Rensa återvinningen'].forEach((x,i)=>d['Uppgifter'].push(['',x,a(0),'','','t3t'+i,'','']));return d};
+ ['Dammsug köket','Byt sängkläder','Rensa återvinningen'].forEach((x,i)=>d['Uppgifter'].push(['',x,a(0),'','','t3t'+i,'','']));
+ [['Kök','Töm diskmaskinen',1,5,0],['Vardagsrum','Plocka undan',1,10,0],['Kök','Torka bänkar',1,5,1],['Badrum','Byt handdukar',7,5,8],['Hall','Dammsug hallen',7,10,9]].forEach(([r,x,f,m,l],i)=>d['Städ'].push(['t3s'+i,r,x,f,m,a(-l),'','','','','','',i]));return d};
 const book=makeBook(t3demo(require('./data.js')));
 const props={HUSHALLSKOD:'x',NTFY_TOPIC:''};
 let lockHeld=false;const cache={};

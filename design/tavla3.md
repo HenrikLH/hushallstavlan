@@ -24,8 +24,9 @@ Färgerna är uppmätta i bilden och avrundade till ett fast schema. I koden lig
 | Linje | `--ot-linje` | `rgba(31,39,35,.12)` | Tidslinjens streck, tom förloppsstapel |
 | Skogsgrön (accent) | `--ot-gron` | `#6E9A5A` | Idags prickar, bockade rutor, förlopp, påslagen brytare |
 | Mörk grön | `--ot-gron2` | `#2F5D3A` | Text/ikon på grön yta |
-| Ljusgrön | `--ot-gronl` | `#D5E3CB` | Vald scen |
-| Bärnsten | `--ot-amb` | `#E39A1E` | Tänd lampa, aktiv apparat, innetemperatur, födelsedag |
+| Ljusgrön | `--ot-gronl` | `#D5E3CB` | Vald scen (ikonen och texten mörkgröna) |
+| Appens accent | `--accent` | `#4A7C46` (mörkt `#A6CF92`) | Skog: standard i hela appen sedan 14/11 (flikraden, knappar, länkar). Vinröd finns kvar som val under Färgval |
+| Bärnsten | `--ot-amb` | `#E39A1E` | Tänd lampa, aktiv apparat, födelsedag |
 | Varning | `--ot-ora` | `#F26B3A` | Utropstecknet för regn och väderlarm |
 | Väderkort | `--ot-wx` | `rgba(40,52,48,.6)` + oskärpa 20 px | Mörkt glas, vit text |
 | Sidomeny | – | `#2C3C38` | Väggens meny; vald flik `rgba(255,255,255,.16)` |
@@ -43,6 +44,7 @@ Ritas med SVG (`otLand()`), inget foto. Himmel `--s1 → --s2 → --s3`, sol/dis
 ### Regler för färg
 
 - Grönt betyder "klart, på eller idag". Inga andra accentfärger i korten.
+- Scenernas ikoner är neutrala (textfärg), den valda scenen ljusgrön. Inga egna färger per scen.
 - Bärnsten betyder "något är igång" (lampa, maskin). Orange bara för varningar.
 - Dagarna i Schema skiljs åt med band, inte färger. Idag är salviagrönt, övriga dagar neutrala.
 - Personfärger visas inte i korten. Vem det gäller syns när man håller över eller öppnar händelsen.
@@ -67,7 +69,6 @@ Systemtypsnittet (SF Pro / Inter-liknande), siffror med `num` (tabellsiffror).
 - Kort: hörn 24 px (telefon 20), luft 18 × 20 px (telefon 14 × 16), mellanrum 16 px (telefon 12), mjuk skugga.
 - Rutor i kort: hörn 18 px, 1 px ljus kant.
 - Knappar som piller (scener, väljare): helt rundade, höjd 48 px på väggen.
-- Brytare: 52 × 32 px, grön när på.
 - Bockrutor: 24 px, hörn 6, fylls gröna med vit bock när klara; klar rad blir genomstruken och dämpad.
 - Ikoner: linjeikoner 1,8–1,9 i streck, 28–34 px i rubriker på väggen.
 - Minsta tryckyta 44 px. Väggen har inget tangentbord: bara tryck, −/+ och reglage.
@@ -77,20 +78,19 @@ Systemtypsnittet (SF Pro / Inter-liknande), siffror med `num` (tabellsiffror).
 1. **Toppen (vägg):** husikon + Hushållstavlan + hälsning/namnsdag, under det klockan, ett tunt vitt streck, datum och vecka. Vit text med svag skugga direkt på landskapet, inget kort.
 2. **Väderkortet:** mörkt glas uppe till höger. Ikon, temperatur, varning (orange utropstecken + rubrik + råd) och sju timmar. Utan varning visas väderläget och H/L.
 3. **Schema:** tre dagkolumner med rubrikband, tid och titel per rad, prick och tunn linje. Passerade händelser döljs. Max fem rader per dag, sedan "+N till". Telefonen visar en dag i taget med väljaren Idag / Imorgon / dag.
-4. **Smart hem:** "N enheter aktiva" i rubriken. En ruta per rum (ikon, namn, status, brytare för rummets lampor) och Innetemp. Tryck på rummet öppnar rummets blad med lampor och enheter. Scener som piller under. Telefonen visar rummen som ikonknappar.
-5. **Dagens middag:** bild, namn, när den är klar och tid. Tryck öppnar receptet.
-6. **Att göra & städa:** dagens uppgifter och dagens städ i en lista, "N av M klara" med grön stapel.
-7. **Sidomenyn (vägg):** skogsgrön, ikon med namn under, vald flik ljusare.
+4. **Smart hem:** "N enheter aktiva" i rubriken. En ruta per rum (ikon, namn, status), inga brytare på rutorna (en brytare skulle släcka allt i rummet). Trycket på ett rum zoomar ut rutan till en större vy med rummets lampor och reglage (dra i sidled för ljusstyrka), tryck utanför så krymper den tillbaka. Enheter flyttas mellan rum under "Ändra enheter i rummet". Scener som piller under. Telefonen visar rummen som ikonknappar.
+5. **Att göra** och **Städ:** två kort på väggen; Städ har "N av M klara" med grön stapel. Telefonen har ett kort med en glidande växlare Att göra / Städ.
+6. **Sidomenyn (vägg):** skogsgrön, ikon med namn under, vald flik ljusare.
 
 ## 6. Väggens rutnät
 
 ```
 "topp  topp  väder"
 "schema schema smart"
-"middag göra smart"
+"göra  städ  smart"
 ```
 
-Kolumner 0,8 / 1 / 0,92, rader 200 px / 1,12 / 0,88. Väderkortet sträcker sig 160 px in över mittkolumnen.
+Tre lika breda kolumner, rader 200 px / 1 / 1. Väderkortet sträcker sig 160 px in över mittkolumnen.
 
 ## 7. Att föra över stilen till resten av appen
 

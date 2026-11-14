@@ -4279,9 +4279,9 @@ html.ny.ui5 .ot{--ot-ink:#1F2723;--ot-i2:#69706B;--ot-glas:rgba(248,246,241,.86)
  --s1:#8C9C96;--s2:#C8C7BB;--s3:#E4DACB;--sj:#B3BAB1;--sj2:#ECE7DE;--sol:#FFE3BC;--l1:#869790;--l2:#566960;--l3:#3A4A43;color:var(--ot-ink)}
 html.ny.ui5 .ot.ot-gry,html.ny.ui5 .ot.ot-kvall{--s1:#8E95A6;--s2:#D3BFB0;--s3:#EDCFAE;--sj:#BDB3A6;--sol:#FFD29A}
 html.ny.ui5 .ot.ot-natt{--s1:#1B2533;--s2:#33404B;--s3:#4A5459;--sj:#3C4748;--sj2:#5F625E;--sol:#8A97A8;--l1:#2C3A36;--l2:#1E2925;--l3:#141C19}
-html.ny.ui5[data-theme="dark"] .ot{--ot-ink:#EDF1EC;--ot-i2:#A2AAA4;--ot-glas:rgba(27,34,31,.84);--ot-kb:rgba(255,255,255,.07);--ot-ruta:rgba(255,255,255,.06);--ot-band:rgba(255,255,255,.07);--ot-idag:rgba(141,187,119,.2);--ot-linje:rgba(255,255,255,.13);
+html.ny.ui5[data-theme="dark"] .ot{--ot-ink:#EDF1EC;--ot-ruta-h:rgba(255,255,255,.14);--ot-i2:#A2AAA4;--ot-glas:rgba(27,34,31,.84);--ot-kb:rgba(255,255,255,.07);--ot-ruta:rgba(255,255,255,.06);--ot-band:rgba(255,255,255,.07);--ot-idag:rgba(141,187,119,.2);--ot-linje:rgba(255,255,255,.13);
  --ot-gron:#8DBB77;--ot-gron2:#C2E0B2;--ot-gronl:rgba(141,187,119,.24);--ot-wx:rgba(12,18,16,.58);--ot-skugga:0 12px 32px rgba(0,0,0,.3);--s1:#18212C;--s2:#2A3640;--s3:#3A4547;--sj:#2E3A3B;--sj2:#121715;--sol:#62717E;--l1:#24302D;--l2:#18211E;--l3:#0F1613}
-@media (prefers-color-scheme: dark){html.ny.ui5:not([data-theme="light"]) .ot{--ot-ink:#EDF1EC;--ot-i2:#A2AAA4;--ot-glas:rgba(27,34,31,.84);--ot-kb:rgba(255,255,255,.07);--ot-ruta:rgba(255,255,255,.06);--ot-band:rgba(255,255,255,.07);--ot-idag:rgba(141,187,119,.2);--ot-linje:rgba(255,255,255,.13);
+@media (prefers-color-scheme: dark){html.ny.ui5:not([data-theme="light"]) .ot{--ot-ink:#EDF1EC;--ot-ruta-h:rgba(255,255,255,.14);--ot-i2:#A2AAA4;--ot-glas:rgba(27,34,31,.84);--ot-kb:rgba(255,255,255,.07);--ot-ruta:rgba(255,255,255,.06);--ot-band:rgba(255,255,255,.07);--ot-idag:rgba(141,187,119,.2);--ot-linje:rgba(255,255,255,.13);
  --ot-gron:#8DBB77;--ot-gron2:#C2E0B2;--ot-gronl:rgba(141,187,119,.24);--ot-wx:rgba(12,18,16,.58);--ot-skugga:0 12px 32px rgba(0,0,0,.3);--s1:#18212C;--s2:#2A3640;--s3:#3A4547;--sj:#2E3A3B;--sj2:#121715;--sol:#62717E;--l1:#24302D;--l2:#18211E;--l3:#0F1613}}
 html.ny.ui5 body:has(.ot){background:#ECE7DE}
 html.ny.ui5[data-theme="dark"] body:has(.ot){background:#121715}
@@ -4303,9 +4303,9 @@ html.ny.ui5 .ot-lnk{margin-left:auto;display:inline-flex;align-items:center;gap:
 html.ny.ui5 .ot-lnk svg{width:18px;height:18px;opacity:.7}
 html.ny.ui5 .ot-tom{display:flex;align-items:center;gap:8px;font-size:16px;color:var(--ot-i2);padding:6px 0}html.ny.ui5 .ot-tom svg{width:20px;height:20px;flex:none}
 /* väggen: rutnät */
-html.ny.ui5 .ot-v{position:relative;isolation:isolate;display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1fr) minmax(0,.92fr);grid-template-rows:200px minmax(0,1.12fr) minmax(0,.88fr);grid-template-areas:"h h w" "s s u" "m g u";gap:16px;height:calc(100vh / 1.0588 - var(--tabbar) - var(--tabgap) - 30px);padding:16px;box-sizing:border-box}
+html.ny.ui5 .ot-v{position:relative;isolation:isolate;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr);grid-template-rows:200px minmax(0,1fr) minmax(0,1fr);grid-template-areas:"h h w" "s s u" "g st u";gap:16px;height:calc(100vh / 1.0588 - var(--tabbar) - var(--tabgap) - 30px);padding:16px;box-sizing:border-box}
 html.ny.ui5 .ot-v>.ot-land{position:fixed;left:0;top:0;width:100vw;height:68vh;z-index:-1;-webkit-mask-image:linear-gradient(180deg,#000 55%,transparent);mask-image:linear-gradient(180deg,#000 55%,transparent)}
-html.ny.ui5 .ot-v>.ot-head{grid-area:h}html.ny.ui5 .ot-v>.ot-wxk{grid-area:w;margin-left:-160px}html.ny.ui5 .ot-v>.ot-sch{grid-area:s}html.ny.ui5 .ot-v>.ot-hus{grid-area:u}html.ny.ui5 .ot-v>.ot-mid{grid-area:m}html.ny.ui5 .ot-v>.ot-gora{grid-area:g}
+html.ny.ui5 .ot-v>.ot-head{grid-area:h}html.ny.ui5 .ot-v>.ot-wxk{grid-area:w;margin-left:-160px}html.ny.ui5 .ot-v>.ot-sch{grid-area:s}html.ny.ui5 .ot-v>.ot-hus{grid-area:u}html.ny.ui5 .ot-v>.ot-gora{grid-area:g}html.ny.ui5 .ot-v>.ot-stad{grid-area:st}
 /* väggen: namn, klocka, datum */
 html.ny.ui5 .ot-v .ot-head{display:flex;flex-direction:column;justify-content:space-between;padding:10px 8px 6px;color:#fff;text-shadow:0 1px 12px rgba(20,30,26,.35)}
 html.ny.ui5 .ot-brand{display:flex;align-items:center;gap:14px;min-width:0}
@@ -4356,30 +4356,29 @@ html.ny.ui5 .ot-rums{flex:1;min-height:0;display:grid;grid-template-columns:repe
 html.ny.ui5 .ot-ti3{position:relative;min-width:0;min-height:0;border-radius:18px;background:var(--ot-ruta);border:1px solid var(--ot-kb);box-shadow:0 1px 2px rgba(30,40,30,.04)}
 html.ny.ui5 .ot-tb{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;height:100%;padding:14px 16px;border:0;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer;box-sizing:border-box;border-radius:inherit}
 html.ny.ui5 .ot-si{margin-bottom:auto;color:var(--ot-i2)}html.ny.ui5 .ot-si svg{width:30px;height:30px}
-html.ny.ui5 .ot-ti3.on .ot-si,html.ny.ui5 .ot-ti3.temp .ot-si{color:var(--ot-amb)}
+html.ny.ui5 .ot-ti3.on .ot-si{color:var(--ot-amb)}
 html.ny.ui5 .ot-tb>*{flex:none}html.ny.ui5 .ot-tb b{font-size:19px;line-height:24px;font-weight:600;padding-top:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 html.ny.ui5 .ot-tb b+span{font-size:16px;line-height:21px;color:var(--ot-i2)}
-html.ny.ui5 .ot-sw{position:absolute;top:12px;right:12px;width:52px;height:32px;padding:0;border:0;border-radius:999px;background:rgba(120,124,118,.28);cursor:pointer;transition:background .2s}
-html.ny.ui5 .ot-sw i{position:absolute;left:2px;top:2px;width:28px;height:28px;border-radius:50%;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.18);transition:transform .2s}
-html.ny.ui5 .ot-sw[aria-checked="true"]{background:var(--ot-gron)}html.ny.ui5 .ot-sw[aria-checked="true"] i{transform:translateX(20px)}
 html.ny.ui5 .ot-scl{flex:none;margin:16px 0 10px;font-size:19px;line-height:24px;font-weight:600}
 html.ny.ui5 .ot-sc{flex:none;display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;margin:0 -20px;padding:0 20px 2px}
 html.ny.ui5 .ot-sc .ha-st{flex:none;display:inline-flex;flex-direction:row;align-items:center;gap:8px;width:auto;height:48px;min-height:0;padding:0 18px 0 14px;border-radius:999px;background:var(--ot-ruta);border:1px solid var(--ot-kb);box-shadow:0 1px 2px rgba(30,40,30,.05);color:var(--ot-ink)}
 html.ny.ui5 .ot-sc .ha-st.on{background:var(--ot-gronl);border-color:transparent}
-html.ny.ui5 .ot-sc .ha-i{width:24px;height:24px;margin:0;background:none!important;box-shadow:none!important}html.ny.ui5 .ot-sc .ha-i svg{width:22px;height:22px}
+html.ny.ui5 .ot-sc .ha-i{width:24px;height:24px;margin:0;background:none!important;box-shadow:none!important;color:var(--ot-ink)!important}html.ny.ui5 .ot-sc .ha-st.on .ha-i{color:var(--ot-gron2)!important}html.ny.ui5 .ot-sc .ha-st.on{color:var(--ot-gron2)}html.ny.ui5 .ot-sc .ha-i svg{width:22px;height:22px}
 html.ny.ui5 .ot-sc .ha-n{font-size:16px;line-height:20px;font-weight:500;white-space:nowrap}
-/* Dagens middag */
-html.ny.ui5 .ot-md{flex:1;min-height:0;display:flex;align-items:center;gap:16px;width:100%;padding:0;border:0;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer}
-html.ny.ui5 .ot-md .dr-th{width:40%;max-width:170px;height:100%;max-height:130px;min-height:80px;flex:none;border-radius:16px;font-size:44px}
-html.ny.ui5 .ot-mt{flex:1;min-width:0}html.ny.ui5 .ot-mt b{overflow-wrap:anywhere;-webkit-hyphens:auto;hyphens:auto;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;font-size:21px;line-height:26px;font-weight:600}
-html.ny.ui5 .ot-mt small{display:block;margin-top:4px;font-size:15px;color:var(--ot-i2)}
-html.ny.ui5 .ot-md>svg{width:20px;height:20px;opacity:.6;flex:none}
-/* Att göra & städa */
+/* Att göra och Städ */
+html.ny.ui5 .ot-ft{flex:none;margin-top:auto;padding-top:8px;font-size:15px;line-height:20px;color:var(--ot-i2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.ny.ui5 .ot-flik{position:relative;flex:none;display:grid;grid-template-columns:1fr 1fr;padding:3px;margin-bottom:10px;border-radius:12px;background:var(--ot-band)}
+html.ny.ui5 .ot-flik>i{position:absolute;left:3px;top:3px;bottom:3px;width:calc(50% - 3px);border-radius:9px;background:var(--ot-ruta-h,#fff);box-shadow:0 1px 3px rgba(30,40,30,.12),0 0 0 .5px rgba(30,40,30,.06);transform:translateX(calc(var(--i,0) * 100%));transition:transform .38s cubic-bezier(.3,1.3,.5,1)}
+html.ny.ui5 .ot-flik button{position:relative;display:flex;align-items:center;justify-content:center;gap:6px;height:36px;border:0;background:none;color:var(--ot-i2);font:inherit;font-size:15px;font-weight:600;cursor:pointer;transition:color .2s}
+html.ny.ui5 .ot-flik button[aria-selected="true"]{color:var(--ot-ink)}
+html.ny.ui5 .ot-flik em{font-style:normal;font-size:13px;font-weight:500;color:var(--ot-i2)}
+html.ny.ui5 .ot-prt{flex-direction:row!important;align-items:center;margin:0 0 8px!important;gap:10px!important;font-size:14px!important;color:var(--ot-i2)}html.ny.ui5 .ot-prt i{flex:1;width:auto!important}
+@media (prefers-reduced-motion:reduce){html.ny.ui5 .ot-flik>i{transition:none}}
 html.ny.ui5 .ot-pr{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:8px;font-size:17px;line-height:20px;white-space:nowrap}
 html.ny.ui5 .ot-pr i{display:block;width:128px;height:8px;border-radius:999px;background:var(--ot-linje);overflow:hidden}
 html.ny.ui5 .ot-pr i b{display:block;height:100%;border-radius:inherit;background:var(--ot-gron)}
 html.ny.ui5 .ot-tl{flex:1;min-height:0;overflow:hidden}
-html.ny.ui5 .ot-ti{position:relative;display:flex;align-items:center;gap:14px;padding:5px 0;cursor:pointer;min-width:0}
+html.ny.ui5 .ot-ti{position:relative;display:flex;align-items:center;gap:14px;padding:3px 0;cursor:pointer;min-width:0}
 html.ny.ui5 .ot-cb{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
 html.ny.ui5 .ot-ti>i{display:grid;place-items:center;width:24px;height:24px;flex:none;box-sizing:border-box;border:2px solid rgba(110,116,110,.45);border-radius:6px;background:var(--ot-ruta);color:#fff}
 html.ny.ui5 .ot-ti>i svg{width:16px;height:16px;stroke-width:3;opacity:0}
@@ -4388,6 +4387,11 @@ html.ny.ui5 .ot-cb:focus-visible+i{outline:2px solid var(--ot-gron);outline-offs
 html.ny.ui5 .ot-ti b{flex:1;min-width:0;font-size:18px;line-height:24px;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 html.ny.ui5 .ot-ti.klar b{text-decoration:line-through;color:var(--ot-i2)}
 html.ny.ui5 .ot-ti small{flex:none;font-size:15px;color:var(--ot-i2)}html.ny.ui5 .ot-ti small.red{color:#D2483C}
+/* rummet zoomar ut ur sin ruta (haZoom) */
+html.ny.ui5 .sheet.ot-zoom .sheet-panel{width:min(860px,calc(100vw - 48px));max-height:calc(100vh - 64px);border-radius:32px}
+html.ny.ui5 body.wall .sheet.ot-zoom .sheet-panel{width:min(980px,calc(100vw - 180px))}
+html.ny.ui5 .sheet.ot-zoom .ha-g-v{grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+html.ny.ui5 .sheet.ot-zoom .ha-t{font-size:17px;min-height:84px;border-radius:20px;padding:12px 16px 12px 12px;gap:12px}html.ny.ui5 .sheet.ot-zoom .ha-t .ha-i{width:46px;height:46px}html.ny.ui5 .sheet.ot-zoom .ha-t .ha-i svg{width:24px;height:24px}
 /* väggens sidomeny i skogsgrönt när Tavla 3 är vald */
 html.ny.ui5 body.wall.sido.t3{--sidew:120px}
 html.ny.ui5 body.wall.t3 .nav.sido{left:0;top:0;bottom:0;width:104px;border-radius:0;padding:16px 12px;background:#2C3C38;border:0;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none}
