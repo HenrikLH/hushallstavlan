@@ -4,7 +4,7 @@ module.exports=async(pg,h)=>{
  const read=s=>pg.evaluate(s=>window.__d(s),s),click=async s=>{const el=pg.locator(s).first();if(!await el.isVisible()){const d=pg.locator('.pref-section').filter({has:el});if(await d.count())await d.locator('summary').click()}await el.click();await h.idle(400)};
  const orig=await read('({people:personList(),me:S.me,accent:ACCENT,theme:S.theme})'),ids=orig.people.map(x=>x.n),label='Alex, Test: 🧪';
  if(!await pg.locator('form[data-form="settings"]').isVisible()){await pg.locator('[data-act="settings"]').first().click();await h.idle(500)}
- assert.deepEqual(await pg.locator('.pref-section>summary span').allTextContents(),['Personer','Mat','Ekonomi','Översikt','Kalender','Att göra','Utseende','Enheten','Utvecklarläge']);
+ assert.deepEqual(await pg.locator('.pref-section>summary span').allTextContents(),['Personer','Mat','Hemmet','Översikt','Kalender','Att göra','Ekonomi','Födelsedagar','Utseende','Enheten','Utvecklarläge']);
  for(const [name,section] of [['budget','mat'],['wd','attgora'],['p1','personer']])assert.equal(await pg.locator('[name="'+name+'"]').evaluate(x=>x.closest('.pref-section').dataset.k),'pref-'+section);
  // Kategorier får inte dölja UI 2.0:s reglage eller hjälptexternas utfällning.
  const appearance=pg.locator('.pref-section[data-k="pref-utseende"]');
