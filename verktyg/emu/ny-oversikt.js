@@ -13,7 +13,7 @@ module.exports=async(pg,h)=>{
  if(await pg.locator('.nav-mini.on').isVisible())await pg.locator('.nav-mini.on').click();
  await pg.locator('#nav [data-act="nav"][data-id="oversikt"]').first().click();await h.idle(1200);
  const N=process.env.NAMN||'ny';
- if(process.env.KLASSISK!=='1'&&!await pg.locator('.onx,.onv,.ond,.og').count())throw new Error('ingen ny översikt');
+ if(process.env.KLASSISK!=='1'&&!await pg.locator('.onx,.onv,.ond,.og,.ot').count())throw new Error('ingen ny översikt');
  await h.shot(N+'-1',!await read('wallBoardOn()'));
  if(process.env.DBG)console.log('DBG',await read(process.env.DBG));
  if(process.env.GRIP){for(const s of ['.on-wxk .motion-grip','.ovcal .motion-grip']){if(await pg.locator(s).count()){await pg.locator(s).first().click();await h.idle(1200)}}await h.shot(N+'-grip',true)}
