@@ -2,6 +2,10 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Menyknapp, kryssrutor och omritning i Inställningar (förslag, väntar på "Pusha")
+- Ägare Claude, gren `claude/project-thread-qnvsb4`. Henrik 14/11: (1) vald flik i Skog: ljus salvia `#DCE8D2` med skogsgrön ikon `#2F5D3A` (telefon och väggens sidomeny). (2) Inställningar ritades om vid varje render (synk var 30:e s, Smart hem, väder, sparstatus): bladet byggdes om och den öppna delen gled in igen (`u5in`). Nu hoppas samma HTML över (`o.__sH`) och en ändrad omritning avslutar animationen direkt. (3) Kryssrutornas ram i Skog hade bara mörk variant för manuellt Mörkt, inte systemets; nu `var(--ink-3)`.
+- Test: `installningar-omritning.js` (ny), alla-flikar Skog telefon ljust/mörkt + vägg, Apple telefon, tavla-designval, installningar-delar/-tillbaka/-luft, anvandarfarger gröna. `installningar.js` faller även på main (hittar inte "Form på knappar och rutor").
+
 ## Skog: grönt tillbaka (publicerad ht-v396, ångra-gren `version-fore-skog-gront`)
 - Henrik 14/11: "Jag vill ha grön som accentfärg men nu har jag ingen färg". Vald flik i menyn skogsgrön (telefon och vägg), valt läge i väljarna ljusgrönt, `.ot-lnk` grön. Neutralisera inte accenten i Skog vid granskningar. Test: alla-flikar Skog telefon + vägg vänstermeny.
 
