@@ -9,7 +9,7 @@ module.exports=async(pg,h)=>{
  const [r1,r2]=JSON.parse(await pg.evaluate(()=>window.__d('JSON.stringify(haAppX().rum.slice(0,2).map(r=>r.id))')));
  await pg.evaluate(([a,b,d])=>window.__d('(()=>{const x=haAppX();if(!'+d+'){x.st="charging";x.plan=null}S.haRobRum=['+a+','+b+'];S.haRobV={'+a+':"m",'+b+':"m"};render()})()'),[r1,r2]);await h.idle(500);
  await pg.locator('main .ha-fl.fh [data-act="haRobXm"][data-id="'+r1+':=2"]').click();await h.idle(300);
- await pg.locator('main .ha-fl.fh select[data-harm="'+r2+'"]').selectOption('deep');await h.idle(400);
+ await pg.locator('main .ha-fl.fh .ha-rs [data-id="'+r2+':deep"]').click();await h.idle(400);
  const titlar=await pg.locator('main .ha-fl.fh .ha-fs.mopp .ha-ft > b').allInnerTexts();
  assert.deepEqual(titlar,['Mop','Mop · Deep'],'Två moppomgångar: ×2 och Deep för sig');
  assert.match(await pg.locator('main .ha-fl.fh').innerText(),/Tvätt av moppen/,'Moppen tvättas mellan omgångarna');
@@ -24,8 +24,8 @@ module.exports=async(pg,h)=>{
  await pg.locator('main [data-act="haRob"][data-id="start"]').click();await h.idle(1200);
  assert.ok(await vanta(L=>L.some(seg([r1],2))),'Första rummet moppas två gånger');
  await hemma();assert.ok(await vanta(L=>L.some(seg([r2],1))),'Sedan rummet med Deep');
- let L=await logg();const i=L.findIndex(seg([r2],1));assert.ok(L.slice(0,i).some(x=>x[2].option==='deep'),'Deep sätts före omgången');
+ let L=await logg();assert.ok(L.some(x=>x[2].fan_speed==='max'),'Max sugkraft sätts vid start');const i=L.findIndex(seg([r2],1));assert.ok(L.slice(0,i).some(x=>x[2].option==='deep'),'Deep sätts före omgången');
  await hemma();await pg.waitForFunction(k=>{const b=document.querySelector('main .ha-fk .ha-fkh b');return b&&b.textContent.includes(k)},'klar',{timeout:60000});await pg.evaluate(()=>window.__d('S.haFlUt||ACT.haFlUt()'));await h.idle(900);
- L=await logg();assert.equal(L.filter(x=>x[2].entity_id==='select.dammsugare_mopplage').pop()[2].option,'standard','Moppläget tillbaka efteråt');
+ L=await logg();assert.equal(L.filter(x=>x[2].entity_id==='select.dammsugare_mopplage').pop()[2].option,'custom','Moppläget tillbaka till förvalet Custom efteråt');
  await h.shot('robot-mopp-klar');
 };
