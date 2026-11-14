@@ -1505,10 +1505,17 @@ function otLand(tel){let s=7;const r=()=>(s=s*16807%2147483647)/2147483647,gran=
   '<path class="ot-l3" d="'+skog(1330,1600,470,90,170,8)+'"/><path class="ot-l3" d="M1300 470 C1420 452 1520 448 1600 450 V600 H1300Z"/></svg>'}
 const OT_VARN='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="currentColor"/><path d="M12 7v6" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/><circle cx="12" cy="16.8" r="1.4" fill="#fff"/></svg>';
 function otWx(tel){const X=onWx();if(!X)return'';const P=WX_POS(),hh=new Date().getHours();
- const rt=X.R.wet?(X.sp?(X.sp.a<=hh?'Regn nu, till ca kl. '+pad(X.sp.b):X.sp.a-hh<=3?'Regn väntas om '+(X.sp.a-hh)+' timm'+(X.sp.a-hh>1?'ar':'e'):'Regn kl. '+pad(X.sp.a)+'–'+pad(X.sp.b)):X.R.txt.split(' · ')[0]):'';
- const v=rt?'<span class="ot-wv varn"><i>'+OT_VARN+'</i><span><b>'+esc(rt)+'</b><small>'+esc(X.tip||'Ta med paraply')+'</small></span></span>':'<span class="ot-wv"><span><b>'+esc(cap(X.tx))+'</b><small>'+esc(X.tip||P.name+' · H '+deg(X.hi)+' L '+deg(X.lo))+'</small></span></span>';
+ const rt=X.R.wet?(X.sp?(X.sp.a<=hh?(X.sp.b>=24?'Regn resten av dagen':'Regn nu, till ca kl. '+pad(X.sp.b)):X.sp.a-hh<=3?'Regn väntas om '+(X.sp.a-hh)+' timm'+(X.sp.a-hh>1?'ar':'e'):'Regn kl. '+pad(X.sp.a)+'–'+pad(X.sp.b)):X.R.txt.split(' · ')[0]):'';
+ const vn=varnNu()[0],ex=vn||rt?null:otWxExtra(X),v=ex?'<span class="ot-wv varn ot-wx-'+ex.k+'"><i>'+ex.ic+'</i><span><b>'+esc(ex.t)+'</b><small>'+esc(ex.b)+'</small></span></span>':vn?'<span class="ot-wv varn wv'+vn.lv+'"><i>'+OT_VARN+'</i><span><b>'+esc(VARN_NAMN[vn.lv]+' varning: '+vn.ev.toLowerCase())+'</b><small>'+esc('SMHI · '+varnTid(vn))+'</small></span></span>':rt?'<span class="ot-wv varn"><i>'+OT_VARN+'</i><span><b>'+esc(rt)+'</b><small>'+esc(X.tip||'Ta med paraply')+'</small></span></span>':'<span class="ot-wv"><span><b>'+esc(cap(X.tx))+'</b><small>'+esc(X.tip||P.name+' · H '+deg(X.hi)+' L '+deg(X.lo))+'</small></span></span>';
  return'<button type="button" class="ot-wxk" data-act="nav" data-id="vader"'+(tel?'':RF('T21'))+'><span class="ot-wt"><span class="ot-ic">'+wxIco(X.W.hours[0]||{s:X.W.now.s})+'</span><span class="ot-deg num">'+deg(X.T)+'</span>'+v+I.chev+'</span>'+
   '<span class="ot-tim">'+X.W.hours.slice(0,tel?6:7).map((x,i)=>'<span><em>'+(i?pad(x.d.getHours()):'Nu')+'</em><i>'+wxIco(x)+'</i><b class="num">'+Math.round(x.T)+'°</b></span>').join('')+'</span></button>'}
+// väderkortets rad när det inte regnar och SMHI inte varnar: frost i natt/nu, mycket pollen, chans för norrsken
+function otWxExtra(X){const n=new Date(),hh=n.getHours(),H=(X.W.all||X.W.hours);
+ if(hh>=15||hh<9){const slut=new Date(n.getFullYear(),n.getMonth(),n.getDate()+(hh>=15?1:0),9),L=H.filter(x=>x.d>=n&&x.d<=slut),mn=L.length?Math.min(...L.map(x=>x.T)):99;
+  if(hh<9&&X.T<=0)return{k:'frost',ic:FROST_IC,t:'Minusgrader ute, '+deg(X.T),b:'Skrapa bilrutan och se upp för halka'};
+  if(hh>=15&&mn<=0)return{k:'frost',ic:FROST_IC,t:'Frost i natt, ner mot '+deg(mn),b:'Skrapa bilrutan i morgon bitti'}}
+ const L=wxLarm(X.W);return L&&L.k!=='v1'&&L.k!=='v2'&&L.k!=='v3'?{k:L.k==='p'?'pollen':'norr',ic:L.ic,t:L.t,b:L.b}:null}
+const FROST_IC='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7M9 4l3 2 3-2M9 20l3-2 3 2M3.6 10.6l3.4-.6-.9-3.3M20.4 13.4l-3.4.6.9 3.3M3.6 13.4l3.4.6-.9 3.3M20.4 10.6l-3.4-.6.9-3.3"/></svg>';
 function otHead(tel){const n=new Date(),t=today(),d=parse(t),hh=n.getHours(),dy=EXT.day&&EXT.day.date===t?EXT.day:null;
  const g=hh<5?'God natt':hh<10?'God morgon':hh<17?'Hej':hh<22?'God kväll':'God natt',sub=[g+(people().includes(S.me)?', '+personLabel(S.me):''),dy&&dy.holiday?dy.holiday:dy&&dy.names&&dy.names.length?'Namnsdag '+dy.names.join(', '):''].filter(Boolean).join(' · ');
  const dat=cap(DAYS[d.getDay()])+' '+d.getDate()+' '+MON[d.getMonth()].slice(0,3),kl='<div class="ot-kl num" id="clock">'+pad(hh)+':'+pad(n.getMinutes())+'</div>';
@@ -1547,7 +1554,22 @@ function otHus(tel){const hd=x=>'<div class="ot-h"><span class="ot-hi">'+I.home+
  const ruta=x=>{const s=st(x),p=s.on||s.ak.length||s.sp.length;
   return'<div class="ot-ti3'+(p?' on':'')+'" data-rum="'+esc(x.r)+'"><button type="button" class="ot-tb" data-act="otRum" data-id="'+esc(x.r)+'"><span class="ot-si">'+s.ic+'</span><b>'+esc(x.n||x.r)+'</b><span>'+esc(s.txt)+'</span></button></div>'};
 
- return'<section class="ot-c ot-hus"'+RF('T19')+'>'+hd('<span class="ot-h2">'+esc(ak)+'</span>')+'<div class="ot-rums">'+R.map(ruta).join('')+'</div><div class="ot-scl">Scener</div><div class="ot-sc">'+husScener(H)+'</div></section>'}
+ const med=otMed(),nt=otNotis(H,med?1:2);
+ return'<section class="ot-c ot-hus'+(med||nt?' spelar':'')+'"'+RF('T19')+'>'+hd('<span class="ot-h2">'+esc(ak)+'</span>')+nt+'<div class="ot-rums">'+R.map(ruta).join('')+'</div>'+med+(med&&nt?'':'<div class="ot-scl">Scener</div><div class="ot-sc">'+husScener(H)+'</div>')+'</section>'}
+/* Just nu i Smart hem (väggen, Skog): diskmaskin/tvätt klar tills någon trycker Klar eller den startas igen, robotdammsugaren när den
+   städar eller behöver hjälp, och efter kl. 22 Släck allt om lampor är tända. Högst två rader; kvitteringen sparas per enhet (ht.otKvitt). */
+const otKvitt=a=>a.id+'|'+(a.slut||a.st);
+function otNotis(H,max){const hh=new Date().getHours(),kv=lsGet('otKvitt')||'',L=[];
+ const rad=(ic,cls,t,sub,act,id,knapp,kact,kid)=>'<div class="ot-nt'+cls+'"><button type="button" class="ot-ntb" data-act="'+act+'" data-id="'+esc(id)+'"><span class="ot-nti">'+ic+'</span><span class="ot-ntt"><b>'+esc(t)+'</b>'+(sub?'<small>'+esc(sub)+'</small>':'')+'</span></button>'+(knapp?'<button type="button" class="ot-ntk" data-act="'+kact+'" data-id="'+esc(kid)+'">'+esc(knapp)+'</button>':'')+'</div>';
+ (H.apparater||[]).forEach(a=>{
+  if(a.typ!=='robot'&&a.st==='finished'&&!kv.split(',').includes(otKvitt(a)))L.push(rad(HAI_APP[a.typ]||HAI.plug,' klar',cap(a.n||'Maskinen')+' är klar',{disk:'Dags att plocka ur',tvatt:'Häng tvätten',tork:'Ta ur tvätten'}[a.typ]||'Dags att tömma','haApp',a.id,'Klar','otKvitt',otKvitt(a)));
+  else if(a.typ==='robot'&&(haAppAktiv(a)||/error/.test(a.st||'')))L.push(rad(HAI_APP.robot,/error/.test(a.st||'')?' fel':'',cap(a.n||'Robotdammsugaren')+': '+haRobSt(a).toLowerCase(),haStadar(a)&&a.pct!=null?Math.round(a.pct)+' % klart':'','haApp',a.id))});
+ const ton=(H.lampor||[]).filter(x=>x.on&&!x.nas).length;
+ if((hh>=22||hh<4)&&ton)L.push(rad(HAI.moon,' kvall',ton+(ton>1?' lampor tända':' lampa tänd'),'Dags att släcka?','nav','hus','Släck allt','haScen','av'));
+ const pr=x=>x.includes(' klar"')?2:x.includes(' kvall"')?1:0;L.sort((a,b)=>pr(b)-pr(a));return L.length?'<div class="ot-nts">'+L.slice(0,max).join('')+'</div>':''}
+// när en högtalare spelar (eller är pausad): volym och Spotify-knappar direkt i rutan, under rummen
+function otMed(){const SS=habSessioner(habSpelar()).slice(0,1);if(!SS.length)return'';const P=SS[0],m=P.find(haMedSpelar)||P[0],t=[m.titel,m.artist].filter(Boolean).join(' · ');
+ return'<div class="ot-scl ot-mh">'+(P.some(haMedSpelar)?'Spelar':'Pausad')+' på '+esc(P.map(x=>x.n).join(' och '))+(t?'<small>'+esc(t)+'</small>':'')+'</div><div class="hab ot-med"><div class="ha-g hab-g">'+habMedKort(P)+'</div></div>'}
 function otRumSheet(enter){const H=haData(),r=S.otRum;if(!H||r==null){S.sheet=null;return''}const x=otRum(H).find(z=>z.r===r)||{r,L:[],A:[],M:[]};
  if(!r){x.A=(H.apparater||[]).filter(a=>!otArum(a));x.M=(H.media||[]).filter(m=>!m.grupp&&!otArum(m))}
  const enh=x.A.length+x.M.length,an=(H.apparater||[]).concat((H.media||[]).filter(m=>!m.grupp)).filter(a=>r&&otArum(a)!==r);
@@ -6418,7 +6440,7 @@ const ACT={
  smileySkip(id,el){A.user=Date.now();saveSmiley(id,el.dataset.date,'x');toast('Okej, den räknas inte som lagad')},
  wakeBoard(){render()},
  otDag(id){S.otDag=+id||0;render()},otFlik(id,el){const v=id==='stad'?'stad':'gora',f=el&&el.closest&&el.closest('.ot-flik');if(S.otFlik===v&&f)return;S.otFlik=v;if(f&&MOTION&&!matchMedia('(prefers-reduced-motion:reduce)').matches){f.style.setProperty('--i',v==='stad'?1:0);f.querySelectorAll('button').forEach(b=>b.setAttribute('aria-selected',b.dataset.id===v));setTimeout(render,240)}else render()},
- otRum(id){S.otRum=id||'';S.otRumRed=0;S.sheet='otRum';render()},otRumRed(){S.otRumRed=1;render()},
+ otKvitt(id){const L=(lsGet('otKvitt')||'').split(',').filter(Boolean).slice(-9);L.push(id);lsSet('otKvitt',L.join(','));render()},otRum(id){S.otRum=id||'';S.otRumRed=0;S.sheet='otRum';render()},otRumRed(){S.otRumRed=1;render()},
  otArum(id,el){const r=el&&el.dataset?el.dataset.r||'':'',o=Object.assign({},(habGet()||{}).arum||{});o[id]=r;habSet({arum:o});render()},
  ovny(id){OVNY=/^[abcdefgh]$/.test(id)?id:'';lsSet('ovny',OVNY||null);applyNy();A.touch=Date.now();render()},
  onWk(){S.onWk=!S.onWk;render()},

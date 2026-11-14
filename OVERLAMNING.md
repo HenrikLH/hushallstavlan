@@ -2,9 +2,15 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
-## Menyknapp, kryssrutor och omritning i Inställningar (publicerad ht-v400, ångra-gren `version-fore-meny-kryss`)
+## Menyknapp, kryssrutor och omritning i Inställningar (publicerad ht-v401, ångra-gren `version-fore-meny-kryss`)
 - Ägare Claude, gren `claude/project-thread-qnvsb4`. Henrik 14/11: (1) vald flik i Skog: ljus salvia `#DCE8D2` med skogsgrön ikon `#2F5D3A` (telefon och väggens sidomeny). (2) Inställningar ritades om vid varje render (synk var 30:e s, Smart hem, väder, sparstatus): bladet byggdes om och den öppna delen gled in igen (`u5in`). Nu hoppas samma HTML över (`o.__sH`) och en ändrad omritning avslutar animationen direkt. (3) Kryssrutornas ram i Skog hade bara mörk variant för manuellt Mörkt, inte systemets; nu `var(--ink-3)`.
 - Test: `installningar-omritning.js` (ny), alla-flikar Skog telefon ljust/mörkt + vägg, Apple telefon, tavla-designval, installningar-delar/-tillbaka/-luft, anvandarfarger gröna. Väggens ihopfällda sidomeny: knappen överst och profilknappen centrerade (alla UI 5.0).
+
+## Väggtavlan visar det aktuella (publicerad ht-v400, ångra-gren `version-fore-vagg-aktuellt`)
+- Ägare Claude, gren `claude/project-thread-ckaljv`, PR #110. Bara Skog på väggen (`wallT3`). Henrik 14/11 valde 1, 2, 3 och 5 ur förslagen.
+- Smart hem (T19): `otMed()` volym/Spotify när något spelar; `otNotis(H,max)` "Just nu": maskin klar (Klar-knapp, kvitto per enhet i ls `otKvitt`), robotdammsugaren städar/fel, efter 22 "N lampor tända · Släck allt". Högst 2 rader, 1 när något spelar (då döljs Scener). Rummen kompakta (`.ot-hus.spelar`).
+- Väderkortet (T21): SMHI-varning > regn > `otWxExtra` (frost i natt efter 15 / minusgrader före 9, pollen, norrsken via `wxLarm`).
+- Ej byggt: 4 (tina middagen). Test `verktyg/emu/tavla3-aktuellt.js` (NOW, WXT, WXPR, WXPLUS), alla-flikar Skog vägg/telefon + Apple vägg gröna. CI: ui4/ui5/installningar faller även på main (borttagna designval).
 
 ## Inställningar: Hemmet, Födelsedagar och Form i Skog (publicerad ht-v399, ångra-gren `version-fore-installningar-form`)
 - Ägare Claude, gren `claude/project-thread-ueql78`, PR #109. Inställningarnas delar: Mat, Hemmet, Översikt, Kalender, Att göra, Ekonomi, Födelsedagar (I11, I12). Smart hem-adressen i Hemmet; Visas som + Presentbudget i Födelsedagar. Översikt har rutnätsikon.
