@@ -2,6 +2,11 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Skog: översikten förbättrad (förslag, väntar på Henrik)
+- Ägare Claude, gren `claude/project-thread-93qvwv`. Henrik 14/11: scener i Smart hem på telefonen, förloppsstapel + sluttid i Schema, mer luft i Att göra/Städ, bara pilen i Schemas länk, Födelsedagar (T23, `otFod`), sträckanimation i väljarna (`segStretch` i `segSlide`, gäller alla `.segc` i UI5 + `.ot-dseg`/`.ot-flik`).
+- Väggen med Födelsedagar: fyra kolumner (Att göra | Städ | Födelsedagar under Schema, Smart hem till höger), max 3 rader per kort.
+- Test: `skog-oversikt.js` (T3DEMO=1 NOW=…12:10, nu med sluttider och födelsedagar i gas.js), alla-flikar Skog telefon/vägg + Apple utan fel. Bilder /mnt/project-files/skog-oversikt/.
+
 ## Skog: grönt tillbaka (publicerad ht-v396, ångra-gren `version-fore-skog-gront`)
 - Henrik 14/11: "Jag vill ha grön som accentfärg men nu har jag ingen färg". Vald flik i menyn skogsgrön (telefon och vägg), valt läge i väljarna ljusgrönt, `.ot-lnk` grön. Neutralisera inte accenten i Skog vid granskningar. Test: alla-flikar Skog telefon + vägg vänstermeny.
 

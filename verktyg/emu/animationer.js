@@ -78,7 +78,10 @@ module.exports=async(pg,h)=>{
  if(await read('U5')){assert(pageMotion.count>0,'Flikbytet tonas in');assert.equal(pageMotion.duration,180);assert.equal(+pageMotion.frames[0].opacity,.25)}
  else{assert(pageMotion.count>0&&pageMotion.moving,'Sidbytet syns i det renderade innehållet');assert.equal(pageMotion.duration,460);assert(/80px/.test(pageMotion.frames[0].transform));assert.equal(pageMotion.menuMoves,false)}
  await h.idle(650);await pg.locator('[data-act="matTab"][data-id="inkop"]').click();await pg.waitForTimeout(200);
- const thumb=pg.locator('.segc[aria-label="Visa"] .seg-thumb');const mid=await thumb.evaluate(e=>({x:new DOMMatrix(getComputedStyle(e).transform).m41,width:e.getBoundingClientRect().width,opacity:getComputedStyle(e).opacity}));assert(mid.x>2&&mid.x<mid.width-2&&Number(mid.opacity)>0,'Valmarkeringen syns mellan sina ändlägen');assert(await thumb.evaluate(e=>e.getAnimations().some(a=>a.playState==='running'&&a.effect.getTiming().duration===300)),'Menyvalets förflyttning pågår och går att se');await h.idle(500);
+ const thumb=pg.locator('.segc[aria-label="Visa"] .seg-thumb');const mid=await thumb.evaluate(e=>({x:new DOMMatrix(getComputedStyle(e).transform).m41,width:e.getBoundingClientRect().width,bas:e.parentNode.getBoundingClientRect().width/(Number(getComputedStyle(e.parentNode).getPropertyValue('--n'))||2),opacity:getComputedStyle(e).opacity}));
+ // UI 5.0: markeringen sträcks över båda knapparna (segStretch) i stället för att glida i sin egen bredd
+ if(await read('U5')){assert(mid.width>mid.bas*1.2&&Number(mid.opacity)>0,'Valmarkeringen sträcks mellan sina ändlägen');assert(await thumb.evaluate(e=>e.getAnimations().some(a=>a.playState==='running'&&a.effect.getTiming().duration>=440)),'Menyvalets sträckning pågår och går att se')}
+ else{assert(mid.x>2&&mid.x<mid.width-2&&Number(mid.opacity)>0,'Valmarkeringen syns mellan sina ändlägen');assert(await thumb.evaluate(e=>e.getAnimations().some(a=>a.playState==='running'&&a.effect.getTiming().duration===300)),'Menyvalets förflyttning pågår och går att se')}await h.idle(500);
  await nav('uppgifter');await click('#nav [data-act="nav"][data-id="kalender"]');await h.idle(500);
  const date=await read('S.calDay||today()');
  // Datumets referens (.motion-date-label) finns bara där kalendern har kvar den gemensamma datumraden
