@@ -2,8 +2,8 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
-## Tavla 2 och 3 som designval (förslag, väntar på Henriks ok)
-- Ägare Claude, gren `claude/project-thread-tpd0u6`. Henrik 14/11: "Lägg tavla 1 och 2 som designval under design, ta bort klassisk och ateljé"; tolkat som Tavla 2 (`ovny=g`) och Tavla 3 (`ovny=h`), fråga ställd.
+## Tavla 2 och 3 som designval (publicerad ht-v391, ångra-gren `version-fore-tavla-designval`)
+- Ägare Claude, gren `claude/project-thread-tpd0u6`. Henrik 14/11: "Lägg tavla 1 och 2 som designval under design, ta bort klassisk och ateljé"; tolkat som Tavla 2 (`ovny=g`) och Tavla 3 (`ovny=h`).
 - Design-segmentet: (Test i DEV) / Apple / Aura / Tavla 2 / Tavla 3. `ACT.uiVersion` g/h sätter `ht.ui` till Apple och `ht.ovny`; Apple/Aura rensar `ovny`. `ovNy()` släpper g/h utan utvecklarläge. `ht.ui=2/4` flyttas till Apple vid start; UI2/UI4-kod och CSS ligger kvar (kan städas bort).
 - Test `verktyg/emu/tavla-designval.js` (LS ui=4/2, telefon+vägg), alla-flikar telefon (ovny=g) + vägg (ovny=h) utan PAGEERROR.
 
