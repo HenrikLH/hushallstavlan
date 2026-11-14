@@ -1,4 +1,4 @@
-# Designriktlinjer: Tavla 3 ("Skog och sjö")
+# Designriktlinjer: Skog (tidigare Tavla 3, "Skog och sjö")
 
 Underlag: Henriks bild 14/11 2026 (väggtavla + telefon). Byggt som Tavla 3 (Utvecklarläge → Ny översikt → Tavla 3, `ovny=h`). Gäller allt som byggs i den nya stilen, och är grunden när stilen förs över till resten av appen.
 
