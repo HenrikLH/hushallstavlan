@@ -6,6 +6,10 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 - Ägare Claude. Henrik 14/11: "Jag vill kunna redigera redan gjorda scener". Egna scener gick redan att ändra med håll in; scener från Home Assistant och Släck allt i Hemmet öppnade bara namn/rum-bladet. Nu öppnar håll in samma scenblad för alla (`husScRed`, sparas på sin plats först vid Klar; Ta bort = ta bort från tavlan). Plusmenyn och rutans meny: "Ändra scener" (penna) i stället för "Ordna scener".
 - Test: `verktyg/emu/scen-andra.js` telefon + vägg, smart-hem-ruta, scen-tidslinje, alla-flikar telefon + vägg. `hemmet-scener.js` fallerar redan på main ("fyra i rad", raden har nu fem). UI2–5-jobben i emu.yml fallerar redan på main (klickar borttagna Klassisk / dold Form-inställning), behöver uppdateras.
 
+## Skog: frostad skogsbakgrund i telefonen (publicerad ht-v398, ångra-gren `version-fore-skog-frost`)
+- Henrik 14/11: skogen överst på Översikt ska ligga i bakgrunden, klar upptill och frostas nerifrån och upp, rutorna ovanpå. `otHead(tel)` ger `otLand(1)` (xMaxYMid) + `.ot-frost` (fem lager: backdrop-filter 2/5/10/20 px med masker + sandslöja). CSS sist i index.html. Skogen står fast (position:fixed) när man scrollar; klocka/text vita. Bara telefonen i Skog, väggen orörd.
+- Test: alla-flikar Skog telefon + vägg gröna, `verktyg/emu/skog-frost.js` (T3DEMO=1, ljust/mörkt). Bilder /mnt/project-files/skog-frost/.
+
 ## Skog: grönt tillbaka (publicerad ht-v396, ångra-gren `version-fore-skog-gront`)
 - Henrik 14/11: "Jag vill ha grön som accentfärg men nu har jag ingen färg". Vald flik i menyn skogsgrön (telefon och vägg), valt läge i väljarna ljusgrönt, `.ot-lnk` grön. Neutralisera inte accenten i Skog vid granskningar. Test: alla-flikar Skog telefon + vägg vänstermeny.
 
