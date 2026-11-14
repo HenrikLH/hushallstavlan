@@ -1547,7 +1547,7 @@ function otGora(tel){const t=today(),U=upgDag(),cp=cleanPlan(),ST=[...cp.routine
  else{L=[...ST.filter(x=>!doneToday(x)).map(x=>rad('cleanToggle',x,x.min+' min')),...ST.filter(doneToday).map(x=>rad('cleanToggle',x,'',0,1))].slice(0,tel?6:8).join('')||'<div class="ot-tom">'+I.tick+'Inget städ idag</div>';
   side=tot?'<div class="ot-prog"><span class="num"><b>'+dn+' av '+tot+'</b> klara</span><i><b style="width:'+Math.round(dn/tot*100)+'%"></b></i><span class="num">'+(cp.minLeft?cp.minLeft+' min kvar':'Klart för idag')+'</span></div>':''}
  return'<section class="ot-c ot-gora"'+RF('T20')+'><div class="ot-h"><span class="ot-hi">'+I.sparkles+'</span><div class="ot-seg">'+fl('gora','Att göra',U.idag.length)+fl('stad','Städ',tot?dn+'/'+tot:'')+'</div><button type="button" class="ot-lnk" data-act="nav" data-id="'+(f==='stad'?'stad':'uppgifter')+'">Visa alla'+I.chev+'</button></div><div class="ot-gb"><div class="ot-tl">'+L+'</div>'+side+'</div>'+ft+'</section>'}
-function wallT3(){return'<div class="ot ot-v">'+otHead(false)+otSchema(false)+otHus(false)+otGora(false)+'</div>'}
+function wallT3(){return'<div class="ot ot-v">'+otHead(false)+otSchema(false)+otGora(false)+otHus(false)+'</div>'}
 function telT3(){return'<div class="ot ot-t">'+otHead(true)+otSchema(true)+otGora(true)+otHus(true)+'</div>'}
 /* ---------- Smart hem (Home Assistant), bara på väggskärmen ----------
    Väggdatorns lokala tjänst (kiosk/ljussensor.py, /ha) håller HA-nyckeln och släpper bara igenom valda lampor, scener och
