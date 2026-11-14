@@ -1505,8 +1505,8 @@ function otLand(){let s=7;const r=()=>(s=s*16807%2147483647)/2147483647,gran=(x,
   '<path class="ot-l3" d="'+skog(1330,1600,470,90,170,8)+'"/><path class="ot-l3" d="M1300 470 C1420 452 1520 448 1600 450 V600 H1300Z"/></svg>'}
 const OT_VARN='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="currentColor"/><path d="M12 7v6" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/><circle cx="12" cy="16.8" r="1.4" fill="#fff"/></svg>';
 function otWx(tel){const X=onWx();if(!X)return'';const P=WX_POS(),hh=new Date().getHours();
- const rt=X.R.wet?(X.sp?(X.sp.a<=hh?'Regn nu, till ca kl. '+pad(X.sp.b):X.sp.a-hh<=3?'Regn väntas om '+(X.sp.a-hh)+' timm'+(X.sp.a-hh>1?'ar':'e'):'Regn kl. '+pad(X.sp.a)+'–'+pad(X.sp.b)):X.R.txt.split(' · ')[0]):'';
- const v=rt?'<span class="ot-wv varn"><i>'+OT_VARN+'</i><span><b>'+esc(rt)+'</b><small>'+esc(X.tip||'Ta med paraply')+'</small></span></span>':'<span class="ot-wv"><span><b>'+esc(cap(X.tx))+'</b><small>'+esc(X.tip||P.name+' · H '+deg(X.hi)+' L '+deg(X.lo))+'</small></span></span>';
+ const rt=X.R.wet?(X.sp?(X.sp.a<=hh?(X.sp.b>=24?'Regn resten av dagen':'Regn nu, till ca kl. '+pad(X.sp.b)):X.sp.a-hh<=3?'Regn väntas om '+(X.sp.a-hh)+' timm'+(X.sp.a-hh>1?'ar':'e'):'Regn kl. '+pad(X.sp.a)+'–'+pad(X.sp.b)):X.R.txt.split(' · ')[0]):'';
+ const vn=varnNu()[0],v=vn?'<span class="ot-wv varn wv'+vn.lv+'"><i>'+OT_VARN+'</i><span><b>'+esc(VARN_NAMN[vn.lv]+' varning: '+vn.ev.toLowerCase())+'</b><small>'+esc('SMHI · '+varnTid(vn))+'</small></span></span>':rt?'<span class="ot-wv varn"><i>'+OT_VARN+'</i><span><b>'+esc(rt)+'</b><small>'+esc(X.tip||'Ta med paraply')+'</small></span></span>':'<span class="ot-wv"><span><b>'+esc(cap(X.tx))+'</b><small>'+esc(X.tip||P.name+' · H '+deg(X.hi)+' L '+deg(X.lo))+'</small></span></span>';
  return'<button type="button" class="ot-wxk" data-act="nav" data-id="vader"'+(tel?'':RF('T21'))+'><span class="ot-wt"><span class="ot-ic">'+wxIco(X.W.hours[0]||{s:X.W.now.s})+'</span><span class="ot-deg num">'+deg(X.T)+'</span>'+v+I.chev+'</span>'+
   '<span class="ot-tim">'+X.W.hours.slice(0,tel?6:7).map((x,i)=>'<span><em>'+(i?pad(x.d.getHours()):'Nu')+'</em><i>'+wxIco(x)+'</i><b class="num">'+Math.round(x.T)+'°</b></span>').join('')+'</span></button>'}
 function otHead(tel){const n=new Date(),t=today(),d=parse(t),hh=n.getHours(),dy=EXT.day&&EXT.day.date===t?EXT.day:null;
@@ -1547,7 +1547,11 @@ function otHus(tel){const hd=x=>'<div class="ot-h"><span class="ot-hi">'+I.home+
  const ruta=x=>{const s=st(x),p=s.on||s.ak.length||s.sp.length;
   return'<div class="ot-ti3'+(p?' on':'')+'" data-rum="'+esc(x.r)+'"><button type="button" class="ot-tb" data-act="otRum" data-id="'+esc(x.r)+'"><span class="ot-si">'+s.ic+'</span><b>'+esc(x.n||x.r)+'</b><span>'+esc(s.txt)+'</span></button></div>'};
 
- return'<section class="ot-c ot-hus"'+RF('T19')+'>'+hd('<span class="ot-h2">'+esc(ak)+'</span>')+'<div class="ot-rums">'+R.map(ruta).join('')+'</div><div class="ot-scl">Scener</div><div class="ot-sc">'+husScener(H)+'</div></section>'}
+ const med=otMed();
+ return'<section class="ot-c ot-hus'+(med?' spelar':'')+'"'+RF('T19')+'>'+hd('<span class="ot-h2">'+esc(ak)+'</span>')+'<div class="ot-rums">'+R.map(ruta).join('')+'</div>'+med+'<div class="ot-scl">Scener</div><div class="ot-sc">'+husScener(H)+'</div></section>'}
+// när en högtalare spelar (eller är pausad): volym och Spotify-knappar direkt i rutan, under rummen
+function otMed(){const SS=habSessioner(habSpelar()).slice(0,1);if(!SS.length)return'';const P=SS[0],m=P.find(haMedSpelar)||P[0],t=[m.titel,m.artist].filter(Boolean).join(' · ');
+ return'<div class="ot-scl ot-mh">'+(P.some(haMedSpelar)?'Spelar':'Pausad')+' på '+esc(P.map(x=>x.n).join(' och '))+(t?'<small>'+esc(t)+'</small>':'')+'</div><div class="hab ot-med"><div class="ha-g hab-g">'+habMedKort(P)+'</div></div>'}
 function otRumSheet(enter){const H=haData(),r=S.otRum;if(!H||r==null){S.sheet=null;return''}const x=otRum(H).find(z=>z.r===r)||{r,L:[],A:[],M:[]};
  if(!r){x.A=(H.apparater||[]).filter(a=>!otArum(a));x.M=(H.media||[]).filter(m=>!m.grupp&&!otArum(m))}
  const enh=x.A.length+x.M.length,an=(H.apparater||[]).concat((H.media||[]).filter(m=>!m.grupp)).filter(a=>r&&otArum(a)!==r);

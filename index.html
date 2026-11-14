@@ -4328,6 +4328,7 @@ html.ny.ui5 .ot-wv b{display:block;font-size:19px;line-height:24px;font-weight:6
 html.ny.ui5 .ot-wv small{display:block;font-size:16px;line-height:21px;opacity:.85}
 html.ny.ui5 .ot-wv b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}html.ny.ui5 .ot-wv small{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 html.ny.ui5 .ot-wv>span{min-width:0}
+html.ny.ui5 .ot-wv.wv2>i{color:#E8772E}html.ny.ui5 .ot-wv.wv3>i{color:#D93A2B}
 html.ny.ui5 .ot-tim{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);text-align:center}
 html.ny.ui5 .ot-tim>span{display:flex;flex-direction:column;align-items:center;gap:2px}
 html.ny.ui5 .ot-tim em{font-style:normal;font-size:15px;line-height:20px;opacity:.85}
@@ -4365,6 +4366,16 @@ html.ny.ui5 .ot-sc .ha-st{flex:none;display:inline-flex;flex-direction:row;align
 html.ny.ui5 .ot-sc .ha-st.on{background:var(--ot-gronl);border-color:transparent}
 html.ny.ui5 .ot-sc .ha-i{width:24px;height:24px;margin:0;background:none!important;box-shadow:none!important;color:var(--ot-ink)!important}html.ny.ui5 .ot-sc .ha-st.on .ha-i{color:var(--ot-gron2)!important}html.ny.ui5 .ot-sc .ha-st.on{color:var(--ot-gron2)}html.ny.ui5 .ot-sc .ha-i svg{width:22px;height:22px}
 html.ny.ui5 .ot-sc .ha-n{font-size:16px;line-height:20px;font-weight:500;white-space:nowrap}
+/* Tavla 3: högtalaren som spelar, under rummen */
+html.ny.ui5 .ot-mh{display:flex;align-items:baseline;gap:8px;min-width:0;white-space:nowrap}html.ny.ui5 .ot-mh small{min-width:0;overflow:hidden;text-overflow:ellipsis;font-size:16px;font-weight:400;color:var(--ot-i2)}
+/* när något spelar blir rummen en rad med ikon och namn, så att reglaget får plats */
+html.ny.ui5 .ot-hus.spelar .ot-tb{flex-direction:row;align-items:center;gap:10px;padding:0 14px}html.ny.ui5 .ot-hus.spelar .ot-si{margin:0}html.ny.ui5 .ot-hus.spelar .ot-si svg{width:26px;height:26px}
+html.ny.ui5 .ot-hus.spelar .ot-tb b{padding:0;flex:1 1 auto;min-width:0;font-size:17px}html.ny.ui5 .ot-hus.spelar .ot-tb b+span{display:none}
+html.ny.ui5 .ot-med{flex:none}html.ny.ui5 .ot-med .hab-g{margin-top:0}
+html.ny.ui5 .ot-med .ha-t.hab-med{background:var(--ot-ruta);border:1px solid var(--ot-kb);box-shadow:0 1px 2px rgba(30,40,30,.04);border-radius:18px;color:var(--ot-ink)}
+html.ny.ui5 .ot-med .hab-pp{color:var(--ot-ink)}html.ny.ui5 .ot-med .hab-pp:disabled{color:var(--ot-i2)}
+html.ny.ui5 .ot-med .hab-bar{background:var(--ot-band)}html.ny.ui5[data-theme="dark"] .ot-med .hab-bar{background:rgba(255,255,255,.1)}
+@media (prefers-color-scheme: dark){html.ny.ui5:not([data-theme="light"]) .ot-med .hab-bar{background:rgba(255,255,255,.1)}}
 /* Att göra och Städ */
 html.ny.ui5 .ot-ft{flex:none;margin-top:auto;padding-top:8px;font-size:15px;line-height:20px;color:var(--ot-i2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 html.ny.ui5 .ot-flik{position:relative;flex:none;display:grid;grid-template-columns:1fr 1fr;padding:3px;margin-bottom:10px;border-radius:12px;background:var(--ot-band)}

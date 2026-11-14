@@ -2,6 +2,12 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Väggtavlan visar det aktuella (förslag, gren `claude/project-thread-ckaljv`)
+- Ägare Claude. Henrik 14/11: det som är relevant för hemmet ska synas på väggtavlan. Koll: regnet fanns redan i Skogs väderkort (T21); högtalarreglaget fanns bara i Apple/Tavla 2, inte i Skog.
+- Gjort (Skog, väggen): `otMed()` i Smart hem (T19) visar "Spelar på …" + `habMedKort` (volym, Spotify-knappar) när något spelar/är pausat; rummen blir då en rad med ikon+namn (`.ot-hus.spelar`). Väderkortet: SMHI-varning före regnet; "Regn resten av dagen" i st.f. "kl. 24".
+- Nästa: Henrik godkänner bilden (/mnt/project-files/vagg-aktuellt/) och väljer fler inslag ur förslagen i tråden. Ingen Kod.gs-ändring.
+- Test: `verktyg/emu/tavla3-aktuellt.js` (vägg ljust/mörkt, med och utan WXPLUS), alla-flikar Skog vägg + telefon gröna.
+
 ## Skog: grönt tillbaka (publicerad ht-v396, ångra-gren `version-fore-skog-gront`)
 - Henrik 14/11: "Jag vill ha grön som accentfärg men nu har jag ingen färg". Vald flik i menyn skogsgrön (telefon och vägg), valt läge i väljarna ljusgrönt, `.ot-lnk` grön. Neutralisera inte accenten i Skog vid granskningar. Test: alla-flikar Skog telefon + vägg vänstermeny.
 
