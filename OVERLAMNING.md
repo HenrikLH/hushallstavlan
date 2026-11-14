@@ -2,12 +2,11 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
-## Tavla 3 efter Henriks bild (förslag, inte på main)
-- Ägare Claude, gren `claude/project-thread-onlzlz`, PR #108. Utvecklarläge → Ny översikt → Tavla 3 (ls `ovny=h`). Väggen `wallT3`, telefonen `telT3` (avatar i bannern). Delar: `otHead` T17 (låg banner, landskap `otLand` efter solhöjd), `otSchema` T18 (tre dagar som tidslinjer sida vid sida, telefonen sveper), `otHus` T19 (rum: `otRum`, bladet `otRumSheet`/S.sheet `otRum`), `otGora` T20 (växlare Att göra/Städ, `ACT.otFlik`). CSS `.ot*` sist i index.html.
-- Runda 2 (Henrik 14/11): lägre banner, Att göra+Städ i en ruta, tidslinje, Smart hem per rum. Lampor följer HA-rummet; apparater/högtalare får rum via onskelista `{hab:1,arum:{id:rum}}` (`ACT.otArum`, disk→Kök som start). Ingen Kod.gs.
+## Tavla 3 efter Henriks bild (publicerad ht-v389, ångra-gren `version-fore-tavla3`)
+- Ägare Claude, gren `claude/project-thread-onlzlz`, PR #108 (ihopslagen). Bakom Utvecklarläge; nästa steg vid Henriks ord: stilen till resten av appen enligt `design/tavla3.md` avsnitt 7. Utvecklarläge → Ny översikt → Tavla 3 (ls `ovny=h`). Väggen `wallT3`, telefonen `telT3` (avatar i bannern). Delar: `otHead` T17 (låg banner, landskap `otLand` efter solhöjd), `otSchema` T18 (tre dagar som tidslinjer sida vid sida, telefonen sveper), `otHus` T19 (rum: `otRum`, bladet `otRumSheet`/S.sheet `otRum`), `otGora` T20 (växlare Att göra/Städ, `ACT.otFlik`). CSS `.ot*` sist i index.html.
 - Runda 4 (Henriks nya bild 14/11): sjölandskap bakom tavlan, glaskort, skogsgrönt, Dagens middag (T22), väderkort (T21), Att göra & städa i en lista, rummens brytare (`ACT.otRumTog`), sidomenyn grön när `body.t3`. Riktlinjer och färger: `design/tavla3.md`. Bilddata: `T3DEMO=1` i emulatorn.
 - Runda 5: Dagens middag, rummens brytare, Övrigt och Innetemp borttagna; Att göra + Städ (T22) som två kort på väggen, växlare `.ot-flik` på telefonen; rummet zoomar ut med `haZoom(inn,klar,tEl)`; scenerna neutrala. **Skog (`#4A7C46`) är standardaccent i hela appen** (`ACCENT` default `skog`, vinröd ett val).
-- Grön accent bara inom `.ot`; fråga om accent står öppen. Test: `tavla3.js` (rumbladet, växlaren), `ny-oversikt.js`, alla-flikar vägg+telefon med `ovny=h` gröna. CI: `matsedel-gester.js` faller som på main.
+- Skogsgrön accent gäller hela appen sedan ht-v389 (även utan Utvecklarläge). Test på 5e825b9: `tavla3.js` (zoom, växlare), `ny-oversikt.js`, alla-flikar vägg+telefon (med och utan `ovny=h`) gröna. CI: `matsedel-gester.js` faller som på main (känt).
 
 ## Väggen: menyn som sidofält till vänster (publicerad ht-v387, ångra-gren `version-fore-vagg-sidomeny`)
 - Ägare Claude, gren `claude/project-thread-eeh8sq`. Bara UI 5.0 på väggen (`sidoOn()`: S.wall, U5, inte Aura). Inställningar → Menyn: Längst ner (standard)/Till vänster (ls `vaggmeny=vanster`), Henriks val 13/11: ett alternativ, inte standard. Knappen överst fäller ut namnen (`ACT.sidoFall`, `I_SIDO`).
