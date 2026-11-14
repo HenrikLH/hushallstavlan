@@ -2,6 +2,11 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Skog: onödiga inställningar borttagna (förslag, väntar på Pusha)
+- Ägare Claude, gren `claude/project-thread-tpd0u6`. Henrik 14/11: ta bort inställningar som inte behövs med Skog. Varje val provades i Skog (DOM jämförd före/efter). Dolda när `skogVal()` (ls ui tom/5 och ovny=h): Färgval/accent (Skog låser accent till skog, Ljust/Mörkt direkt i Utseende), Flytta rutorna/Återställ (visade gamla Översikten), Rutor i tre storlekar, Natthimmel, Timmarna under bilden, Väderbildens stil/Hundarna när Vädersidan är Kurva på telefon, Ny översikt i utvecklarläget. För alla: Aura i mörkt läge borttagen, Design-texten omskriven.
+- Behållna (påverkar Skog): Vädersidan, Plusknappen, Menyraden när du scrollar, Låsta rätter (Generera veckosedel), Planera veckan som, kalender/födelsedagar, väggens meny och inställningsknapp.
+- Test: alla-flikar Skog telefon (med sparad vinröd), Skog vägg + vänstermeny, Apple; tavla-designval.js grön. Bilder /mnt/project-files/skog-installningar/.
+
 ## Skog: andra, hårdare UI-granskningen + Aura borttagen (publicerad ht-v394, ångra-gren `version-fore-skog-granskning2`)
 - Ägare Claude, gren `claude/project-thread-tpd0u6`. Henrik 14/11: inställningsmenyn höll inte måttet. Rättat: varje rad i Inställningar var ett eget kort (`.pref-section` låg i Skogs kortregel), nu en grupp = ett kort. Segmentväljare i en stil (mörkare spår, vit tumme, mörkgrön text) för `.segc`, `.ot-dseg`, `.ot-flik`, `.wxC-k`; andra nivån (`.subseg`) lättare. Undersidornas rubriker 14 px dämpade, kort utan skugga. Personer: Gemensam skärm i linje. Kalenderveckan tätare. Hemmet: fem scener på en rad (alla UI 5.0). Robotkortet gråblått/bärnsten, dimrade lampor bärnsten, grå pilar på Översikt, väderrubriken som andra kortrubriker.
 - Test: alla-flikar Skog telefon ljust/mörkt, vägg ljust, vägg mörkt + vänstermeny, Apple, Aura; tavla-designval.js och sidomeny.js gröna. Bilder /mnt/project-files/skog-hela-appen/granskning2/.
