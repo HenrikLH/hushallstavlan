@@ -9,7 +9,7 @@ module.exports=async(pg,h)=>{
  assert.equal(await pg.locator('main .ot-nu .ot-ntp').count(),0,'Inget förlopp i Just nu');
  await hus.scrollIntoViewIfNeeded();await h.shot('smart-hem');
  if(process.env.LS.includes('"wall"'))return;
- await pg.locator('#nav [data-id="hemmet"]').click();await h.idle(1200);
+ await pg.evaluate(()=>scrollTo(0,0));await h.idle(600);await pg.locator('#nav [data-id="hemmet"]').click();await h.idle(1200);
  await pg.locator('main .ha-ap[data-id="vacuum.dammsugare"]').click();await h.idle(1500);
  const R=JSON.parse(await pg.evaluate(()=>window.__d('JSON.stringify(haAppX().rum.slice(0,2).map(r=>r.id))')));
  // bara moppning: håll in krävs

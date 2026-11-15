@@ -2,17 +2,22 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Skog: jämn luft på väggskärmen + mindre rumsknappar (publicerad ht-v405, ångra-gren `version-fore-vagg-avstand`)
+- Ägare Claude, gren `claude/project-thread-156e2m`, PR #115. Henrik 15/11: avstånden mellan rutor, skärmkanter och andra UI-element på väggen var olika (sidomeny: 25 px kanter, 17 mellan rutor, 55 mot nederkanten; menyrad nere: 44 kanter, 43 mot menyraden). Nu 21 px överallt på Översikt (rutor, kanter, sidomeny, menyraden och dess avstånd till nederkanten, väderkortets topp, Just nu-rutan). Rummen i Smart hem är kompakta rader (ikon + namn + status, 60 px) även när inget spelar. CSS sist i index.html (`html.ny.ui5.skog body.wall`).
+- Förloppsstapel och moppspärr görs i dammsugartråden, inte här.
+- Test: `verktyg/emu/vagg-avstand.js` (skriver ut måtten; PLAY=0 stänger av media), alla-flikar Skog vägg sidomeny/nere ljust/mörkt, telefon Skog, Apple vägg gröna. Bilder /mnt/project-files/vagg-avstand/.
+
 ## Skog: översikten förbättrad (publicerad ht-v403, ångra-gren `version-fore-skog-oversikt`)
 - Ägare Claude, gren `claude/project-thread-93qvwv`, PR #111. Henrik 14/11: scener i Smart hem på telefonen, förloppsstapel + sluttid i Schema, mer luft i Att göra/Städ, bara pilen i Schemas länk, sträckanimation i väljarna (`segStretch` i `segSlide`, alla `.segc` i UI5 + `.ot-dseg`/`.ot-flik`).
 - Födelsedagskortet tog för mycket plats; Henrik valde en samlad "Just nu"-ruta (`otJustNu`, T23): födelsedagar 14 dagar innan (köp present, `otFodNt`) + otNotis-raderna (maskin klar, robot, Släck allt) som flyttats ur Smart hem. Telefon: kort under toppen; vägg: glasruta i toppen. Vädervarningar stannar i väderkortet. Henrik 15/11: födelsedagen i Just nu bara dagen innan/på dagen (+ en gång dag 14 om present); presenten blir en egen uppgift "Köp present – Namn" överst i Att göra (Uppgifter-fliken + översikten) från 14 dagar innan, belopp via `presKr`, bockad sparas som `kp` i fod-objektet i onskelista (`presUpg`, `ACT.presKopt`). Test `presentuppgift.js`.
 - Test: `skog-oversikt.js` (T3DEMO=1 NOW=…12:10; gas.js har sluttider och födelsedagar), alla-flikar Skog telefon/vägg + Apple. Bilder /mnt/project-files/skog-oversikt/.
 
 
-## Förlopp i Just nu och håll in för bara moppning (förslag, ej publicerat)
-- Ägare Claude, gren `claude/project-thread-j9rebe`. Henrik 15/11: förloppsstapel när diskmaskinen och dammsugaren kör; moppning utan dammsugning före ska kräva håll in.
-- `otNotis`: robot (`haRobPct`: hela planen, klara omgångar + pågående) och maskiner som kör får rad med `.ot-ntp`; väggen visar text och stapel på en rad (`.ot-ntr`) så att två rader inte täcker datumet.
-- `haMoppUtanDamm(a,P)`: mopprum som inte dammsugs i samma körning eller dammsugits (`r.sv`) senaste 2 h → Starta byts mot `.ha-hold` (`data-hold="haRobMopp"`). `#toast` har `pointer-events:none` (toasten täckte knappen).
-- Test: `robot-hall-mopp.js` (ny) telefon ljust/mörkt + vägg. Bilder /mnt/project-files/apparater/forlopp-mopp/.
+## Förlopp i Smart hem-rutan och håll in för bara moppning (publicerad ht-v406, ångra-gren `version-fore-forlopp-mopp`, PR #114)
+- Ägare Claude, gren `claude/project-thread-j9rebe`. Henrik 15/11: förloppsstapel när diskmaskinen och dammsugaren kör, i Smart hem-rutan (T19); moppning utan dammsugning före ska kräva håll in.
+- `otNotis(H,max,lista,gar)`: `gar=1` ger bara det som kör (robot via `haRobPct`, hela planen; maskiner `a.pct`) och används i `otHus` (telefon och vägg); Just nu visar bara klart/fel/lampor efter 22. Väggen: text + stapel på en rad (`.ot-v .ot-hus .ot-ntr`).
+- `haMoppUtanDamm(a,P)`: mopprum som inte dammsugs i samma körning eller dammsugits (`r.sv`) senaste 2 h → Starta byts mot `.ha-hold` (`data-hold="haRobMopp"`). `#toast` har `pointer-events:none`.
+- Test: `robot-hall-mopp.js` (telefon + vägg) och alla-flikar telefon/vägg gröna på ht-v406.
 
 ## Dammsugarsidan: Skog, Max som förval, vattenflödet låst på Custom, moppläge per rum (publicerad ht-v402, ångra-gren `version-fore-dammsug-skog`, PR #113)
 - Ägare Claude, gren `claude/project-thread-j9rebe`. Henrik 14/11: Skog-accent, Max sugkraft som standard, vattenflödet alltid Roborocks Custom (`custom_water_flow`, eget reglage under Low för trägolvet; nivån ställs i Roborock-appen), Route kvar, snyggare Standard/Deep/Deep+ per rum.

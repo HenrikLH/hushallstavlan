@@ -3299,7 +3299,7 @@ form[data-form="haLampa"] .ha-ctl{flex:1;justify-content:center;padding-top:24px
 .ha-ap{grid-column:1/-1;position:relative;overflow:hidden}.ha-ap .ha-i{background:rgba(120,120,128,.16);color:var(--ink-2)}.ha-ap.on.ha-ap-robot .ha-i{background:#0A84FF;color:#fff}.ha-ap.on.ha-ap-disk .ha-i{background:#30B0C7;color:#fff}
 .ha-ap .ha-tx{flex:1}.ha-ap-p{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(120,120,128,.18)}.ha-ap-p::after{content:'';position:absolute;inset:0 auto 0 0;width:var(--p);background:#0A84FF;border-radius:0 2px 2px 0}.ha-ap-disk .ha-ap-p::after{background:#30B0C7}
 .ha-g .ha-t.ha-ap.on{background:var(--fill);box-shadow:none}.ha-g-v .ha-t.ha-ap.on{background:var(--surface)}
-/* Smart hem-rutan: fyra scener överst och favoriter under, blad för att anpassa (ht-v404) */
+/* Smart hem-rutan: fyra scener överst och favoriter under, blad för att anpassa (ht-v406) */
 .hab-h{display:flex;align-items:center;gap:8px}.hab-h .wh{flex:1;min-width:0}
 .hab-mer{flex:none;display:grid;place-items:center;width:30px;height:30px;padding:0;border:0;border-radius:50%;background:var(--fill);color:var(--ink-2);cursor:pointer;-webkit-tap-highlight-color:transparent}.hab-mer svg{width:18px;height:18px}
 /* Designskillen (hushallstavlan-apple-design): rutan har hörn 26 och kant 16, därför hörn 16 innanför (inte kapslar), 8-avstånd, text 15/13 */
@@ -4694,7 +4694,7 @@ html.ny.ui5.skog[data-theme="dark"] :is(.ha-sv button[aria-pressed="true"],.ha-r
 @media (prefers-color-scheme:dark){html.ny.ui5.skog:not([data-theme="light"]) :is(.ha-sv button[aria-pressed="true"],.ha-rs button.on,.ha-xs button.on){color:var(--ink)}}
 html.ny.ui5.skog :is(.ha-rs,.ha-xs,.ha-sv>div){background:var(--sk-spar)}
 html.ny.ui5.skog :is(.ha-rs button.on,.ha-xs button.on,.ha-sv button[aria-pressed="true"]){background:var(--sk-tumme);box-shadow:var(--sk-tskugga)}
-/* Just nu: förloppsstapel när diskmaskinen eller dammsugaren kör (Henrik 15/11) */
+/* Smart hem: förloppsstapel när diskmaskinen eller dammsugaren kör (Henrik 15/11) */
 html.ny.ui5 .ot-ntb .ot-ntt:has(.ot-ntp){flex:1;padding:4px 0 8px}
 html.ny.ui5 .ot-ntp{display:block;height:6px;margin:7px 0 2px;border-radius:999px;background:var(--ot-linje,rgba(31,39,35,.1));overflow:hidden}
 html.ny.ui5 .ot-ntp b{display:block;height:100%;border-radius:inherit;background:var(--ot-gron,var(--accent));transition:width .6s cubic-bezier(.3,.9,.3,1)}
@@ -4714,6 +4714,16 @@ html.ny.ui5 .ot-v .ot-hus .ot-ntr .ot-ntp{flex:1;min-width:40px;margin:0}
 .ha-bk.ha-hold.holding .sh-fill{transform:scaleX(1);transition:transform 1s linear}
 html.ny.ui5.skog .ha-bk.ha-hold{background:color-mix(in srgb,var(--sk-amb) 22%,var(--ri,#fff))}
 html.ny.ui5.skog .ha-bk.ha-hold .sh-fill{background:color-mix(in srgb,var(--sk-amb) 50%,transparent)}
+/* Skog på väggen: samma luft mellan rutorna som mot skärmkanterna, sidomenyn och menyraden (20 px i main = 21 px på skärmen); rummen i Smart hem kompakta */
+html.ny.ui5.skog body.wall:not(.sido){--tabgap:21px}
+html.ny.ui5.skog body.wall[data-view=oversikt] .wrap{max-width:none}html.ny.ui5.skog body.wall:has(.ot-v) main{padding-bottom:0}
+html.ny.ui5.skog body.wall .ot-v{gap:20px;padding:10px 20px 0;height:calc((100vh - var(--tabbar) - var(--tabgap)) / 1.0588 - 10px - 20px)}
+html.ny.ui5.skog body.wall.sido .ot-v{height:calc(100vh / 1.0588 - 10px - 20px)}html.ny.ui5.skog body.wall.sido.t3:not(.sido-ut) .ot-v{padding-left:calc(20px - 8px / 1.0588);padding-right:calc(20px - 8px / 1.0588)}
+html.ny.ui5.skog body.wall .ot-v>.ot-nu{margin-right:160px}html.ny.ui5.skog body.wall.sido .ot-v>.ot-nu{width:262px}
+html.ny.ui5.skog body.wall .ot-hus .ot-rums{flex:0 1 auto;grid-auto-rows:minmax(44px,60px);gap:10px}
+html.ny.ui5.skog body.wall .ot-hus .ot-tb{display:grid;grid-template-columns:auto minmax(0,1fr);align-content:center;column-gap:10px;row-gap:0;padding:0 12px}
+html.ny.ui5.skog body.wall .ot-hus .ot-si{grid-row:1/3;margin:0}html.ny.ui5.skog body.wall .ot-hus .ot-si svg{width:24px;height:24px}
+html.ny.ui5.skog body.wall .ot-hus .ot-tb b{padding:0;font-size:17px;line-height:22px;align-self:center}html.ny.ui5.skog body.wall .ot-hus .ot-tb b+span{font-size:14px;line-height:18px}html.ny.ui5.skog body.wall .ot-hus.spelar .ot-si{grid-row:auto}
 </style>
 </head>
 <body>
@@ -4728,7 +4738,7 @@ html.ny.ui5.skog .ha-bk.ha-hold .sh-fill{background:color-mix(in srgb,var(--sk-a
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=404"></script>
+<script src="app.js?v=406"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
