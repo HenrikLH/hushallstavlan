@@ -4,6 +4,8 @@ Gemensam grund för Codex och Claude Code (via `CLAUDE.md`). Läs hela filen och
 
 **Rutiner som skills:** stegen för att ta över, förhandsvisa och publicera ligger i `.claude/skills/hushallstavlan-ta-over/`, `hushallstavlan-forhandsvisa/` och `hushallstavlan-publicera/` (`SKILL.md`). All design (rutor, blad, listor, ikoner) följer de fasta måtten och granskningslistan i `hushallstavlan-apple-design/`. Claude Code läser dem automatiskt när de behövs; Codex och andra agenter läser filen när avsnittet nedan hänvisar dit. Ändra rutinen i skill-filen, inte på två ställen.
 
+**Googles modern-web-guidance** (plugin, påslaget i `.claude/settings.json`; Codex kan installera samma från GoogleChrome/modern-web-guidance): använd den bara när en ny webbfunktion, prestanda eller tillgänglighet berörs, inte vid varje ändring (den säger själv "alltid först", men det kostar tokens). Webbläsare som ska stödjas: Safari på iPhone och Chromium på väggskärmen. Funktioner som inte är Baseline i båda kräver reserv eller får tyst utebli.
+
 Om något här säger emot det Henrik skriver till dig gäller Henriks ord. Uppdatera då filen i samma ändring så att nästa agent vet.
 
 ---

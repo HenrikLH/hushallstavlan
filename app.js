@@ -153,7 +153,8 @@ const parseJ=(s,d)=>{try{const v=JSON.parse(s);return v==null?d:v}catch(e){retur
 const BANK_ROWS=()=>Object.keys(settings()).filter(k=>/^receptbank_\d+$/.test(k)).sort((a,b)=>Number(a.split('_')[1])-Number(b.split('_')[1]));
 function bankRaw(){const seen=new Set(),out=[];BANK_ROWS().forEach(k=>parseJ(settings()[k],[]).forEach(x=>{if(x&&x.id&&!seen.has(x.id)){seen.add(x.id);out.push(x)}}));return out}
 function bankList(){return recipeLibrary(true)}
-const inBank=id=>bankList().some(x=>recipeRoot(x.id)===recipeRoot(id));
+// Receptkorten frågar en gång var: rötterna i banken räknas om bara när banken eller receptversionerna ändrats (annars tolkades hela banken om för varje kort)
+const inBank=id=>{const st=D().recipeStore||{},k=BANK_ROWS().map(r=>settings()[r]).join('\n')+'|'+(st.versions||[]).length+'|'+(st.heads||[]).map(h=>h.id+(h.archived?'a':'')).join();if(inBank.k!==k){inBank.k=k;inBank.s=new Set(bankList().map(x=>recipeRoot(x.id)))}return inBank.s.has(recipeRoot(id))};
 const isFav=id=>bankRaw().some(x=>recipeRoot(x.id)===recipeRoot(id)&&x.fav);
 // Kalorier per portion: raden kcal i Inställningar, {receptId: kcal}; en lista [kcal, …] läses som första värdet. Fylls av veckoplaneringen.
 function kcalOf(id){const v=parseJ(settings().kcal,{})[recipeRoot(id)];if(v==null||v==='')return null;const n=Number(Array.isArray(v)?v[0]:v);return n>0?{n:Math.round(n)}:null}
