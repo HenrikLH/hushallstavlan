@@ -2,12 +2,34 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
-## Dammsugarsidan: Skog, Max som förval, vattenflödet låst på Custom, moppläge per rum (förslag, PR #113)
+## Dammsugarsidan: Skog, Max som förval, vattenflödet låst på Custom, moppläge per rum (publicerad ht-v402, ångra-gren `version-fore-dammsug-skog`, PR #113)
 - Ägare Claude, gren `claude/project-thread-j9rebe`. Henrik 14/11: Skog-accent, Max sugkraft som standard, vattenflödet alltid Roborocks Custom (`custom_water_flow`, eget reglage under Low för trägolvet; nivån ställs i Roborock-appen), Route kvar, snyggare Standard/Deep/Deep+ per rum.
 - `haStd(a,k)`: sug Max (snabbvalet gäller bara nästa start, `S.haRobVal`), vatten låst `custom_water_flow` (Water-valet dolt i snabbval och inställningar), rutt = robotens/valt. Start skickar sug/rutt/vatten först som egna anrop (gammal tjänst) och med starten (ny tjänst sätter dem i `ha_app_styr`; planen återställer till dem). Per rum: segment `.ha-rs` (`haRuttVal`, `ACT.haRobRm`, ls `haRumRutt`).
 - Skog-CSS sist i index.html: dammsugning `--sk-damm` grön, moppning `--sk-mopp` sjöblå, tömning/docka bärnsten, klart grönt.
 - Overifierat på riktig robot att `custom_water_flow` är Roborocks Custom-reglage. Tjänsten på Surfacen behöver Henriks "Kör" (appen fungerar utan).
 - Test: robot-skog.js (ny), robot-mopp mot falsk HA, apparater demo, alla-flikar Skog telefon+vägg gröna. CI faller på `uiVersion` id 2 (Klassisk borttagen på main, inte denna PR). apparater.js mot falsk HA faller även på main.
+## Menyknapp, kryssrutor och omritning i Inställningar (publicerad ht-v401, ångra-gren `version-fore-meny-kryss`)
+- Ägare Claude, gren `claude/project-thread-qnvsb4`. Henrik 14/11: (1) vald flik i Skog: ljus salvia `#DCE8D2` med skogsgrön ikon `#2F5D3A` (telefon och väggens sidomeny). (2) Inställningar ritades om vid varje render (synk var 30:e s, Smart hem, väder, sparstatus): bladet byggdes om och den öppna delen gled in igen (`u5in`). Nu hoppas samma HTML över (`o.__sH`) och en ändrad omritning avslutar animationen direkt. (3) Kryssrutornas ram i Skog hade bara mörk variant för manuellt Mörkt, inte systemets; nu `var(--ink-3)`.
+- Test: `installningar-omritning.js` (ny), alla-flikar Skog telefon ljust/mörkt + vägg, Apple telefon, tavla-designval, installningar-delar/-tillbaka/-luft, anvandarfarger gröna. Väggens ihopfällda sidomeny: knappen överst och profilknappen centrerade (alla UI 5.0).
+
+## Väggtavlan visar det aktuella (publicerad ht-v400, ångra-gren `version-fore-vagg-aktuellt`)
+- Ägare Claude, gren `claude/project-thread-ckaljv`, PR #110. Bara Skog på väggen (`wallT3`). Henrik 14/11 valde 1, 2, 3 och 5 ur förslagen.
+- Smart hem (T19): `otMed()` volym/Spotify när något spelar; `otNotis(H,max)` "Just nu": maskin klar (Klar-knapp, kvitto per enhet i ls `otKvitt`), robotdammsugaren städar/fel, efter 22 "N lampor tända · Släck allt". Högst 2 rader, 1 när något spelar (då döljs Scener). Rummen kompakta (`.ot-hus.spelar`).
+- Väderkortet (T21): SMHI-varning > regn > `otWxExtra` (frost i natt efter 15 / minusgrader före 9, pollen, norrsken via `wxLarm`).
+- Ej byggt: 4 (tina middagen). Test `verktyg/emu/tavla3-aktuellt.js` (NOW, WXT, WXPR, WXPLUS), alla-flikar Skog vägg/telefon + Apple vägg gröna. CI: ui4/ui5/installningar faller även på main (borttagna designval).
+
+## Inställningar: Hemmet, Födelsedagar och Form i Skog (publicerad ht-v399, ångra-gren `version-fore-installningar-form`)
+- Ägare Claude, gren `claude/project-thread-ueql78`, PR #109. Inställningarnas delar: Mat, Hemmet, Översikt, Kalender, Att göra, Ekonomi, Födelsedagar (I11, I12). Smart hem-adressen i Hemmet; Visas som + Presentbudget i Födelsedagar. Översikt har rutnätsikon.
+- Skog: Utseende → Form på knappar och rutor = Mjuk (standard)/Rund/Stram, återanvänder ls `segstil` (standard/kapsel/klassisk) → `html.sk-rund`/`sk-stram`; CSS sist i index.html (`--r5`, `.bq`, segment, knappar, bockar).
+- Test: installningar.js + installningar-delar.js, alla-flikar Skog mörkt Stram + telefon/vägg gröna. CI: UI2–5-jobben faller redan på main (borttagna designval).
+
+## Ändra befintliga scener (publicerad ht-v397, ångra-gren `version-fore-scener-andra`)
+- Ägare Claude. Henrik 14/11: "Jag vill kunna redigera redan gjorda scener". Egna scener gick redan att ändra med håll in; scener från Home Assistant och Släck allt i Hemmet öppnade bara namn/rum-bladet. Nu öppnar håll in samma scenblad för alla (`husScRed`, sparas på sin plats först vid Klar; Ta bort = ta bort från tavlan). Plusmenyn och rutans meny: "Ändra scener" (penna) i stället för "Ordna scener".
+- Test: `verktyg/emu/scen-andra.js` telefon + vägg, smart-hem-ruta, scen-tidslinje, alla-flikar telefon + vägg. `hemmet-scener.js` fallerar redan på main ("fyra i rad", raden har nu fem). UI2–5-jobben i emu.yml fallerar redan på main (klickar borttagna Klassisk / dold Form-inställning), behöver uppdateras.
+
+## Skog: frostad skogsbakgrund i telefonen (publicerad ht-v398, ångra-gren `version-fore-skog-frost`)
+- Henrik 14/11: skogen överst på Översikt ska ligga i bakgrunden, klar upptill och frostas nerifrån och upp, rutorna ovanpå. `otHead(tel)` ger `otLand(1)` (xMaxYMid) + `.ot-frost` (fem lager: backdrop-filter 2/5/10/20 px med masker + sandslöja). CSS sist i index.html. Skogen står fast (position:fixed) när man scrollar; klocka/text vita. Bara telefonen i Skog, väggen orörd.
+- Test: alla-flikar Skog telefon + vägg gröna, `verktyg/emu/skog-frost.js` (T3DEMO=1, ljust/mörkt). Bilder /mnt/project-files/skog-frost/.
 
 ## Skog: grönt tillbaka (publicerad ht-v396, ångra-gren `version-fore-skog-gront`)
 - Henrik 14/11: "Jag vill ha grön som accentfärg men nu har jag ingen färg". Vald flik i menyn skogsgrön (telefon och vägg), valt läge i väljarna ljusgrönt, `.ot-lnk` grön. Neutralisera inte accenten i Skog vid granskningar. Test: alla-flikar Skog telefon + vägg vänstermeny.
