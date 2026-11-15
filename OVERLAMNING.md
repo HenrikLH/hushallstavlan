@@ -4,7 +4,7 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 ## Skog: översikten förbättrad (förslag, väntar på Henrik)
 - Ägare Claude, gren `claude/project-thread-93qvwv`, PR #111. Henrik 14/11: scener i Smart hem på telefonen, förloppsstapel + sluttid i Schema, mer luft i Att göra/Städ, bara pilen i Schemas länk, sträckanimation i väljarna (`segStretch` i `segSlide`, alla `.segc` i UI5 + `.ot-dseg`/`.ot-flik`).
-- Födelsedagskortet tog för mycket plats; Henrik valde en samlad "Just nu"-ruta (`otJustNu`, T23): födelsedagar 14 dagar innan (köp present, `otFodNt`) + otNotis-raderna (maskin klar, robot, Släck allt) som flyttats ur Smart hem. Telefon: kort under toppen; vägg: glasruta i toppen. Vädervarningar stannar i väderkortet.
+- Födelsedagskortet tog för mycket plats; Henrik valde en samlad "Just nu"-ruta (`otJustNu`, T23): födelsedagar 14 dagar innan (köp present, `otFodNt`) + otNotis-raderna (maskin klar, robot, Släck allt) som flyttats ur Smart hem. Telefon: kort under toppen; vägg: glasruta i toppen. Vädervarningar stannar i väderkortet. Henrik 15/11: födelsedagen i Just nu bara dagen innan/på dagen (+ en gång dag 14 om present); presenten blir en egen uppgift "Köp present – Namn" överst i Att göra (Uppgifter-fliken + översikten) från 14 dagar innan, belopp via `presKr`, bockad sparas som `kp` i fod-objektet i onskelista (`presUpg`, `ACT.presKopt`). Test `presentuppgift.js`.
 - Test: `skog-oversikt.js` (T3DEMO=1 NOW=…12:10; gas.js har sluttider och födelsedagar), alla-flikar Skog telefon/vägg + Apple. Bilder /mnt/project-files/skog-oversikt/.
 
 ## Menyknapp, kryssrutor och omritning i Inställningar (publicerad ht-v401, ångra-gren `version-fore-meny-kryss`)

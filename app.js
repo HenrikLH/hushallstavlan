@@ -1584,7 +1584,7 @@ function otRumSheet(enter){const H=haData(),r=S.otRum;if(!H||r==null){S.sheet=nu
 /* Att göra och Städ: två kort på väggen, ett kort med glidande växlare på telefonen */
 function otGora(tel){const t=today(),U=upgDag(),cp=cleanPlan(),ST=[...cp.routines,...cp.doneRot,...cp.todo],dn=ST.filter(doneToday).length,tot=ST.length,max=tel?5:7;
  const rad=(act,x,sub,red,klar)=>'<label class="ot-ti'+(klar?' klar':'')+'"><input type="checkbox" class="ot-cb" data-act="'+act+'" data-id="'+esc(x.id)+'"'+(klar?' checked':'')+'><i aria-hidden="true">'+I.tick+'</i><b>'+esc(x.title)+'</b>'+(sub?'<small'+(red?' class="red"':'')+'>'+esc(sub)+'</small>':'')+'</label>';
- const gL=U.idag.map(x=>rad('taskToggle',x,x.due<t?'Sedan '+dateShort(x.due):x.who?personLabel(x.who):'',x.due<t)),gN=U.idag.length;
+ const PU=presUpg(),gL=PU.map(x=>rad('presKopt',x,kr(x.kr))).concat(U.idag.map(x=>rad('taskToggle',x,x.due<t?'Sedan '+dateShort(x.due):x.who?personLabel(x.who):'',x.due<t))),gN=U.idag.length+PU.length;
  const sL=[...ST.filter(x=>!doneToday(x)).map(x=>rad('cleanToggle',x,x.min?x.min+' min':'')),...ST.filter(doneToday).map(x=>rad('cleanToggle',x,'',0,1))];
  const lista=(L,tom)=>'<div class="ot-tl">'+(L.slice(0,max).join('')||'<div class="ot-tom">'+I.tick+tom+'</div>')+(L.length>max?'<div class="ot-mer">+'+(L.length-max)+' till</div>':'')+'</div>';
  const imo=U.imorgon.length?'<div class="ot-ft">Imorgon: '+U.imorgon.slice(0,3).map(x=>esc(x.title)).join(' · ')+'</div>':'';
@@ -1599,8 +1599,8 @@ function otGora(tel){const t=today(),U=upgDag(),cp=cleanPlan(),ST=[...cp.routine
    (köp present), maskin klar, robotdammsugaren och Släck allt efter kl. 22. Telefonen: kort under toppen. Väggen: glasruta i toppen.
    Raderna byggs av otNotis (Smart hem-delen) och otFodNt; vädervarningar stannar i väderkortet. */
 const OT_GAVA='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="8" width="17" height="4" rx="1"/><path d="M5 12v7.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V12M12 8v12.5"/><path d="M12 8C10.5 4.5 7 4.3 7 6.3 7 8 10 8 12 8zM12 8c1.5-3.5 5-3.7 5-1.7C17 8 14 8 12 8z"/></svg>';
-function otFodNt(){const P=presBud();return bdNext(bdays()).filter(b=>b.days<=14).map(b=>{const nar=b.days===0?'idag':b.days===1?'imorgon':b.days<7?'på '+DAYS[parse(b.next).getDay()]:'om '+b.days+' dagar';
- return{pr:b.days<2?3:0,h:'<div class="ot-nt fod'+(b.days<2?' nu':'')+'"'+bdSt(b)+'><button type="button" class="ot-ntb" data-act="nav" data-id="fod"><span class="ot-nti">'+(b.days===0?I.cake:OT_GAVA)+'</span><span class="ot-ntt"><b>'+esc(b.name+' '+(b.age!=null?'fyller '+b.age:'fyller år')+' '+nar)+'</b><small>'+esc(b.days===0?'Grattis!':b.gift?'Köp present, ca '+presKr(b.age,P)+' kr':b.dd+' '+MON3[b.mo])+'</small></span></button></div>'}})}
+function otFodNt(){const P=presBud();return bdNext(bdays()).filter(b=>b.days<=1||b.days===14&&b.gift).map(b=>{const nar=b.days===0?'idag':b.days===1?'imorgon':b.days<7?'på '+DAYS[parse(b.next).getDay()]:'om '+b.days+' dagar';
+ return{pr:b.days<2?3:0,h:'<div class="ot-nt fod'+(b.days<2?' nu':'')+'"'+bdSt(b)+'><button type="button" class="ot-ntb" data-act="nav" data-id="fod"><span class="ot-nti">'+(b.days===0?I.cake:OT_GAVA)+'</span><span class="ot-ntt"><b>'+esc(b.name+' '+(b.age!=null?'fyller '+b.age:'fyller år')+' '+nar)+'</b><small>'+esc(b.days===0?'Grattis!':b.gift&&b.days===14?'Köp present för '+presKr(b.age,P)+' kr, ligger i Att göra':b.dd+' '+MON3[b.mo])+'</small></span></button></div>'}})}
 function otJustNu(tel){const H=haOn(!tel)&&haData(),L=(H?otNotis(H,9,1):[]).concat(otFodNt()).sort((a,b)=>b.pr-a.pr),max=tel?3:2;if(!L.length)return'';
  return'<section class="ot-c ot-nu"'+RF('T23')+'>'+(tel?'<div class="ot-nuh">Just nu</div>':'')+'<div class="ot-nts">'+L.slice(0,max).map(x=>x.h).join('')+'</div>'+(L.length>max?'<button type="button" class="ot-numer" data-act="nav" data-id="fod">+'+(L.length-max)+' till</button>':'')+'</section>'}
 function wallT3(){return'<div class="ot ot-v ot-'+otFas()+'">'+otLand()+otHead(false)+otJustNu(false)+otWx(false)+otSchema(false)+otHus(false)+otGora(false)+'</div>'}
@@ -3706,8 +3706,8 @@ V.uppgifter=function(){
  let h=head('Att göra',{sub:open.length?open.length+' uppgifter kvar':'Inget kvar att göra',tools:plus})+attSeg('lista');
  h+='<form class="add-row"'+RF('U1')+' data-form="taskQuick"><input class="field" name="title" placeholder="Ny uppgift" aria-label="Ny uppgift" autocomplete="off" enterkeyhint="done"><button type="button" class="add-go" data-act="quickGo" data-alt="taskAdd" aria-label="Lägg till">'+I.plus+'</button></form>';
  h+='<div class="split"><div class="col">';
- const td=g.filter(([,xs])=>xs.length).map(([l,xs])=>gh(l,xs.length,l==='Försenade'?'red':'')+xs.map(taskRow).join('')).join('');if(td)h+='<div class="g-one">'+rgroup('U2',td)+'</div>';
- if(!open.length)h+='<div style="height:22px"></div>'+rgroup('U11',emptyCell('Inget att göra just nu.'));
+ const PU=presUpg(),td=(PU.length?gh('Presenter',PU.length)+PU.map(presUpgRow).join(''):'')+g.filter(([,xs])=>xs.length).map(([l,xs])=>gh(l,xs.length,l==='Försenade'?'red':'')+xs.map(taskRow).join('')).join('');if(td)h+='<div class="g-one">'+rgroup('U2',td)+'</div>';
+ if(!open.length&&!PU.length)h+='<div style="height:22px"></div>'+rgroup('U11',emptyCell('Inget att göra just nu.'));
  h+='</div><div class="col">';
  if(done.length)h+='<details data-k="done"'+(S.open.done||S.confirm==='clearTasks'?' open':'')+'><summary class="sh"><span>Klara ('+done.length+')</span></summary>'+rgroup('U3',done.map(taskRow).join(''))+
   '<div class="pills" style="padding:12px 16px 0 24px">'+(S.confirm==='clearTasks'?'<span class="sub">Ta bort alla klara?</span><button class="tb red strong" data-act="clearTasksYes">Ja, ta bort</button><button class="tb" data-act="confirmNo">Avbryt</button>':'<button class="tb red" data-act="clearTasks">Rensa klara</button>')+'</div></details>';
@@ -3885,6 +3885,11 @@ const taskDelQ=rp=>rp?'<div class="cell"><span class="grow">Uppgiften upprepas '
 const evDelQ=e=>{const rec=String(e.flags||'').includes('r'),cal=e.source==='kalender';return rec?'<div class="cell"><span class="grow">Händelsen upprepas. Vad vill du ta bort?</span></div><button type="button" class="cell link center red" data-act="evDel" data-id="once">Bara den här gången</button><button type="button" class="cell link center red" data-act="evDel" data-id="all">Alla gånger</button><button type="button" class="cell link center" data-act="confirmNo">Avbryt</button>':
  '<div class="cell"><span class="grow">Ta bort händelsen'+(cal?' ur Google Kalender':'')+'?</span><button type="button" class="tb red strong" data-act="evDel" data-id="all">Ja, ta bort</button><button type="button" class="tb" data-act="confirmNo">Avbryt</button></div>'};
 // Att göra-rutan: dagens uppgifter (även sena) och morgondagens
+/* Presenter (Henrik 15/11): 14 dagar innan en födelsedag med present blir det en egen uppgift "Köp present – Namn" överst i Att göra.
+   Beloppet följer presentreglerna (presKr). Bockad sparas som kp['namn|MM-DD|år'] i födelsedagsobjektet i onskelista, ingen Kod.gs-ändring. */
+const presNyck=b=>b.key+'|'+b.next.slice(0,4);
+function presUpg(){const K=fodEgna().kp,P=presBud();return bdNext(bdays()).filter(b=>b.gift&&b.days<=14&&!K[presNyck(b)]).map(b=>({id:presNyck(b),title:'Köp present – '+b.name,kr:presKr(b.age,P),nar:b.days===0?'Fyller år idag':cap(bdTurns(b))+' '+(b.days===1?'imorgon':b.days<7?'på '+DAYS[parse(b.next).getDay()]:'om '+b.days+' dagar'),b}))}
+function presUpgRow(x){return'<div class="cell ck pres"><input type="checkbox" class="check" data-act="presKopt" data-id="'+esc(x.id)+'" aria-label="'+esc(x.title)+'"><div class="grow"><div class="title">'+esc(x.title)+'</div><div class="meta"><span class="num">'+kr(x.kr)+'</span><span>'+esc(x.nar)+'</span></div></div></div>'}
 function upgDag(){const t=today(),tm=addDays(t,1),o=D().tasks.filter(x=>!x.done);return{idag:o.filter(x=>isDate(x.due)&&x.due<=t).sort((a,b)=>a.due.localeCompare(b.due)),imorgon:o.filter(x=>x.due===tm)}}
 function upgDagHtml(U,pre,iRuta){const t=today(),tm=U.imorgon.length,ID=U.idag.slice(0,8),M=U.imorgon.slice(0,3),fler=tm-M.length;
  const r=x=>'<div class="ur"><input type="checkbox" class="check" data-act="taskToggle" data-id="'+esc(x.id)+'" aria-label="'+esc(x.title)+'"><span class="t">'+esc(x.title)+'</span>'+(x.due<t?'<span class="d red">'+esc(dateShort(x.due))+'</span>':x.who?'<span class="d">'+esc(personLabel(x.who))+'</span>':'')+'</div>';
@@ -5846,9 +5851,9 @@ const MON3=['jan','feb','mar','apr','maj','jun','jul','aug','sep','okt','nov','d
 function bdKey(x){const m=/^(\d{1,2})-(\d{1,2})$/.exec(String(x&&x.datum||''));return m&&x.namn?String(x.namn).trim()+'|'+pad(m[1])+'-'+pad(m[2]):''}
 /* Familjer i samma objekt: fam:[{id,n,c}] (namn, färg), fm:{'namn|MM-DD':familjens id}, pr:{'namn|MM-DD':1|0} = present alltid/aldrig (saknas = automatiskt) */
 const fodOb=v=>v&&typeof v==='object'&&!Array.isArray(v)?v:{};
-function fodEgna(){const o=parseJ(settings().onskelista,[]).find(x=>x&&x.fod)||{};return{add:Array.isArray(o.add)?o.add:[],del:Array.isArray(o.del)?o.del:[],col:fodOb(o.col),fam:Array.isArray(o.fam)?o.fam.filter(f=>f&&f.id):[],fm:fodOb(o.fm),pr:fodOb(o.pr),pb:fodOb(o.pb),sr:fodOb(o.sr)}}
-function setFodEgna(fn){A.user=Date.now();updJSON('onskelista',[],a=>{const o=a.find(x=>x&&x.fod)||{},e={add:(o.add||[]).slice(),del:(o.del||[]).slice(),col:Object.assign({},o.col),fam:(Array.isArray(o.fam)?o.fam:[]).map(f=>Object.assign({},f)),fm:Object.assign({},fodOb(o.fm)),pr:Object.assign({},fodOb(o.pr)),pb:Object.assign({},fodOb(o.pb)),sr:Object.assign({},fodOb(o.sr))},n=Object.assign(e,fn(e)),k=x=>Object.keys(x).length;
- return a.filter(x=>!(x&&x.fod)).concat(n.add.length||n.del.length||k(n.col)||n.fam.length||k(n.fm)||k(n.pr)||k(n.pb)||k(n.sr)?[{fod:1,add:n.add,del:n.del,col:n.col,fam:n.fam,fm:n.fm,pr:n.pr,pb:n.pb,sr:n.sr}]:[])})}
+function fodEgna(){const o=parseJ(settings().onskelista,[]).find(x=>x&&x.fod)||{};return{add:Array.isArray(o.add)?o.add:[],del:Array.isArray(o.del)?o.del:[],col:fodOb(o.col),fam:Array.isArray(o.fam)?o.fam.filter(f=>f&&f.id):[],fm:fodOb(o.fm),pr:fodOb(o.pr),pb:fodOb(o.pb),sr:fodOb(o.sr),kp:fodOb(o.kp)}}
+function setFodEgna(fn){A.user=Date.now();updJSON('onskelista',[],a=>{const o=a.find(x=>x&&x.fod)||{},e={add:(o.add||[]).slice(),del:(o.del||[]).slice(),col:Object.assign({},o.col),fam:(Array.isArray(o.fam)?o.fam:[]).map(f=>Object.assign({},f)),fm:Object.assign({},fodOb(o.fm)),pr:Object.assign({},fodOb(o.pr)),pb:Object.assign({},fodOb(o.pb)),sr:Object.assign({},fodOb(o.sr)),kp:Object.assign({},fodOb(o.kp))},n=Object.assign(e,fn(e)),k=x=>Object.keys(x).length;
+ return a.filter(x=>!(x&&x.fod)).concat(n.add.length||n.del.length||k(n.col)||n.fam.length||k(n.fm)||k(n.pr)||k(n.pb)||k(n.sr)||k(n.kp)?[{fod:1,add:n.add,del:n.del,col:n.col,fam:n.fam,fm:n.fm,pr:n.pr,pb:n.pb,sr:n.sr,kp:n.kp}]:[])})}
 // Present: jämna år (0 och 5) och alla barn till och med 18, om födelseåret är känt. Går att ändra per person (alltid/aldrig)
 const bdGiftAuto=age=>age!=null&&(age%5===0||age<=18);
 const fodFam=()=>fodEgna().fam;
@@ -6455,6 +6460,7 @@ const ACT={
  smileyQuick(id,el){const v=Number(el.dataset.v)||0;A.user=Date.now();saveSmiley(id,el.dataset.date,v);markCooked(id,el.dataset.date);toast(v>0?'Vad bra! Rätten kommer tillbaka lite oftare':v<0?'Noterat. Rätten kommer tillbaka mer sällan':'Tack!')},
  smileySkip(id,el){A.user=Date.now();saveSmiley(id,el.dataset.date,'x');toast('Okej, den räknas inte som lagad')},
  wakeBoard(){render()},
+ presKopt(id){if(!id)return;A.user=Date.now();setFodEgna(e=>{const k=Object.assign({},e.kp);Object.keys(k).forEach(x=>{if(+x.slice(-4)<+today().slice(0,4))delete k[x]});k[id]=1;e.kp=k;return e});toast('Bra, presenten är köpt');render()},
  otDag(id){S.otDag=+id||0;render()},otFlik(id){const v=id==='stad'?'stad':'gora';if(S.otFlik===v)return;S.otFlik=v;render()},
  otKvitt(id){const L=(lsGet('otKvitt')||'').split(',').filter(Boolean).slice(-9);L.push(id);lsSet('otKvitt',L.join(','));render()},otRum(id){S.otRum=id||'';S.otRumRed=0;S.sheet='otRum';render()},otRumRed(){S.otRumRed=1;render()},
  otArum(id,el){const r=el&&el.dataset?el.dataset.r||'':'',o=Object.assign({},(habGet()||{}).arum||{});o[id]=r;habSet({arum:o});render()},
