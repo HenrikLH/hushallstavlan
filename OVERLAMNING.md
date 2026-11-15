@@ -2,6 +2,11 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Skog: jämn luft på väggskärmen + mindre rumsknappar (förslag, väntar på "Pusha")
+- Ägare Claude, gren `claude/project-thread-156e2m`. Henrik 15/11: avstånden mellan rutor, skärmkanter och andra UI-element på väggen var olika (sidomeny: 25 px kanter, 17 mellan rutor, 55 mot nederkanten; menyrad nere: 44 kanter, 43 mot menyraden). Nu 21 px överallt på Översikt (rutor, kanter, sidomeny, menyraden och dess avstånd till nederkanten, väderkortets topp, Just nu-rutan). Rummen i Smart hem är kompakta rader (ikon + namn + status, 60 px) även när inget spelar. CSS sist i index.html (`html.ny.ui5.skog body.wall`).
+- Förloppsstapel och moppspärr görs i dammsugartråden, inte här.
+- Test: `verktyg/emu/vagg-avstand.js` (skriver ut måtten; PLAY=0 stänger av media), alla-flikar Skog vägg sidomeny/nere ljust/mörkt, telefon Skog, Apple vägg gröna. Bilder /mnt/project-files/vagg-avstand/.
+
 ## Skog: översikten förbättrad (publicerad ht-v403, ångra-gren `version-fore-skog-oversikt`)
 - Ägare Claude, gren `claude/project-thread-93qvwv`, PR #111. Henrik 14/11: scener i Smart hem på telefonen, förloppsstapel + sluttid i Schema, mer luft i Att göra/Städ, bara pilen i Schemas länk, sträckanimation i väljarna (`segStretch` i `segSlide`, alla `.segc` i UI5 + `.ot-dseg`/`.ot-flik`).
 - Födelsedagskortet tog för mycket plats; Henrik valde en samlad "Just nu"-ruta (`otJustNu`, T23): födelsedagar 14 dagar innan (köp present, `otFodNt`) + otNotis-raderna (maskin klar, robot, Släck allt) som flyttats ur Smart hem. Telefon: kort under toppen; vägg: glasruta i toppen. Vädervarningar stannar i väderkortet. Henrik 15/11: födelsedagen i Just nu bara dagen innan/på dagen (+ en gång dag 14 om present); presenten blir en egen uppgift "Köp present – Namn" överst i Att göra (Uppgifter-fliken + översikten) från 14 dagar innan, belopp via `presKr`, bockad sparas som `kp` i fod-objektet i onskelista (`presUpg`, `ACT.presKopt`). Test `presentuppgift.js`.
