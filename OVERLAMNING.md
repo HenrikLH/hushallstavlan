@@ -2,11 +2,18 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
-## Skog: översikten förbättrad (förslag, väntar på Henrik)
+## Skog: översikten förbättrad (publicerad ht-v403, ångra-gren `version-fore-skog-oversikt`)
 - Ägare Claude, gren `claude/project-thread-93qvwv`, PR #111. Henrik 14/11: scener i Smart hem på telefonen, förloppsstapel + sluttid i Schema, mer luft i Att göra/Städ, bara pilen i Schemas länk, sträckanimation i väljarna (`segStretch` i `segSlide`, alla `.segc` i UI5 + `.ot-dseg`/`.ot-flik`).
 - Födelsedagskortet tog för mycket plats; Henrik valde en samlad "Just nu"-ruta (`otJustNu`, T23): födelsedagar 14 dagar innan (köp present, `otFodNt`) + otNotis-raderna (maskin klar, robot, Släck allt) som flyttats ur Smart hem. Telefon: kort under toppen; vägg: glasruta i toppen. Vädervarningar stannar i väderkortet. Henrik 15/11: födelsedagen i Just nu bara dagen innan/på dagen (+ en gång dag 14 om present); presenten blir en egen uppgift "Köp present – Namn" överst i Att göra (Uppgifter-fliken + översikten) från 14 dagar innan, belopp via `presKr`, bockad sparas som `kp` i fod-objektet i onskelista (`presUpg`, `ACT.presKopt`). Test `presentuppgift.js`.
 - Test: `skog-oversikt.js` (T3DEMO=1 NOW=…12:10; gas.js har sluttider och födelsedagar), alla-flikar Skog telefon/vägg + Apple. Bilder /mnt/project-files/skog-oversikt/.
 
+
+## Dammsugarsidan: Skog, Max som förval, vattenflödet låst på Custom, moppläge per rum (publicerad ht-v402, ångra-gren `version-fore-dammsug-skog`, PR #113)
+- Ägare Claude, gren `claude/project-thread-j9rebe`. Henrik 14/11: Skog-accent, Max sugkraft som standard, vattenflödet alltid Roborocks Custom (`custom_water_flow`, eget reglage under Low för trägolvet; nivån ställs i Roborock-appen), Route kvar, snyggare Standard/Deep/Deep+ per rum.
+- `haStd(a,k)`: sug Max (snabbvalet gäller bara nästa start, `S.haRobVal`), vatten låst `custom_water_flow` (Water-valet dolt i snabbval och inställningar), rutt = robotens/valt. Start skickar sug/rutt/vatten först som egna anrop (gammal tjänst) och med starten (ny tjänst sätter dem i `ha_app_styr`; planen återställer till dem). Per rum: segment `.ha-rs` (`haRuttVal`, `ACT.haRobRm`, ls `haRumRutt`).
+- Skog-CSS sist i index.html: dammsugning `--sk-damm` grön, moppning `--sk-mopp` sjöblå, tömning/docka bärnsten, klart grönt.
+- Overifierat på riktig robot att `custom_water_flow` är Roborocks Custom-reglage. Tjänsten på Surfacen behöver Henriks "Kör" (appen fungerar utan).
+- Test: robot-skog.js (ny), robot-mopp mot falsk HA, apparater demo, alla-flikar Skog telefon+vägg gröna. CI faller på `uiVersion` id 2 (Klassisk borttagen på main, inte denna PR). apparater.js mot falsk HA faller även på main.
 ## Menyknapp, kryssrutor och omritning i Inställningar (publicerad ht-v401, ångra-gren `version-fore-meny-kryss`)
 - Ägare Claude, gren `claude/project-thread-qnvsb4`. Henrik 14/11: (1) vald flik i Skog: ljus salvia `#DCE8D2` med skogsgrön ikon `#2F5D3A` (telefon och väggens sidomeny). (2) Inställningar ritades om vid varje render (synk var 30:e s, Smart hem, väder, sparstatus): bladet byggdes om och den öppna delen gled in igen (`u5in`). Nu hoppas samma HTML över (`o.__sH`) och en ändrad omritning avslutar animationen direkt. (3) Kryssrutornas ram i Skog hade bara mörk variant för manuellt Mörkt, inte systemets; nu `var(--ink-3)`.
 - Test: `installningar-omritning.js` (ny), alla-flikar Skog telefon ljust/mörkt + vägg, Apple telefon, tavla-designval, installningar-delar/-tillbaka/-luft, anvandarfarger gröna. Väggens ihopfällda sidomeny: knappen överst och profilknappen centrerade (alla UI 5.0).

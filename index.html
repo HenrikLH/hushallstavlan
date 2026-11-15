@@ -3299,7 +3299,7 @@ form[data-form="haLampa"] .ha-ctl{flex:1;justify-content:center;padding-top:24px
 .ha-ap{grid-column:1/-1;position:relative;overflow:hidden}.ha-ap .ha-i{background:rgba(120,120,128,.16);color:var(--ink-2)}.ha-ap.on.ha-ap-robot .ha-i{background:#0A84FF;color:#fff}.ha-ap.on.ha-ap-disk .ha-i{background:#30B0C7;color:#fff}
 .ha-ap .ha-tx{flex:1}.ha-ap-p{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(120,120,128,.18)}.ha-ap-p::after{content:'';position:absolute;inset:0 auto 0 0;width:var(--p);background:#0A84FF;border-radius:0 2px 2px 0}.ha-ap-disk .ha-ap-p::after{background:#30B0C7}
 .ha-g .ha-t.ha-ap.on{background:var(--fill);box-shadow:none}.ha-g-v .ha-t.ha-ap.on{background:var(--surface)}
-/* Smart hem-rutan: fyra scener överst och favoriter under, blad för att anpassa (ht-v401) */
+/* Smart hem-rutan: fyra scener överst och favoriter under, blad för att anpassa (ht-v403) */
 .hab-h{display:flex;align-items:center;gap:8px}.hab-h .wh{flex:1;min-width:0}
 .hab-mer{flex:none;display:grid;place-items:center;width:30px;height:30px;padding:0;border:0;border-radius:50%;background:var(--fill);color:var(--ink-2);cursor:pointer;-webkit-tap-highlight-color:transparent}.hab-mer svg{width:18px;height:18px}
 /* Designskillen (hushallstavlan-apple-design): rutan har hörn 26 och kant 16, därför hörn 16 innanför (inte kapslar), 8-avstånd, text 15/13 */
@@ -4660,6 +4660,40 @@ html.ny.ui5 .ot-v>.ot-nu{grid-area:h;justify-self:end;align-self:start;width:300
 html.ny.ui5 .ot-v>.ot-nu .ot-ntt small{color:rgba(255,255,255,.78)}html.ny.ui5 .ot-v>.ot-nu .ot-nt+.ot-nt:before{background:rgba(255,255,255,.18)}
 html.ny.ui5 .ot-v>.ot-nu .ot-nti{background:rgba(255,255,255,.16);color:#fff}html.ny.ui5 .ot-v>.ot-nu .ot-numer{color:#fff;opacity:.8}
 html.ny.ui5 .ot-v>.ot-nu .ot-ntt b{font-size:16px;line-height:21px}html.ny.ui5 .ot-v>.ot-nu .ot-ntt small{font-size:13px;line-height:17px}html.ny.ui5 .ot-v>.ot-nu .ot-nt{min-height:46px}html.ny.ui5 .ot-v>.ot-nu .ot-numer{display:none}html.ny.ui5 .ot-v>.ot-nu .ot-ntk{height:32px;padding:0 12px;font-size:14px}
+/* Dammsugaren: moppläge per rum som segment under rummet (ersätter rullistan) */
+.ha-fo li.ha-rr{flex-wrap:wrap;row-gap:6px;padding-bottom:4px}
+.ha-rs{flex:1 1 100%;display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:2px;margin-left:32px;padding:3px;border-radius:10px;background:color-mix(in srgb,var(--ri,#fff) 9%,transparent)}
+.ha-rs button{display:grid;place-items:center;text-align:center;min-width:0;height:28px;padding:0 2px;border:0;border-radius:7px;background:none;color:color-mix(in srgb,var(--ri,#fff) 55%,transparent);font:inherit;font-size:13px;font-weight:500;white-space:nowrap;cursor:pointer;transition:background-color .2s,color .2s}
+.ha-rs button.on{background:var(--surface-raised,rgba(255,255,255,.26));color:var(--ri,#fff);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+/* Skog på dammsugarsidan: dammsugning skogsgrön, moppning sjöblå, dockan bärnsten, klart grönt, länkar i accenten */
+html.ny.ui5.skog{--sk-damm:#4A7C46;--sk-mopp:#5B8796}
+html.ny.ui5.skog[data-theme="dark"]{--sk-damm:#5E9152;--sk-mopp:#6E98A8}
+@media (prefers-color-scheme:dark){html.ny.ui5.skog:not([data-theme="light"]){--sk-damm:#5E9152;--sk-mopp:#6E98A8}}
+html.ny.ui5.skog .rob-vy{--rl:var(--accent)}
+html.ny.ui5.skog :is(.ha-fl .damm,.ha-kn.damm){--fc:var(--sk-damm)}
+html.ny.ui5.skog :is(.ha-fl .mopp,.ha-kn.mopp){--fc:var(--sk-mopp)}
+html.ny.ui5.skog .ha-fd{--fc:var(--sk-amb)}
+html.ny.ui5.skog :is(.ha-fs.klar .ha-fi,.ha-fo li.klar i){background:var(--sk-gron)}
+html.ny.ui5.skog .ha-fo li.klar+li::before{background:var(--sk-gron)}
+html.ny.ui5.skog :is(.ha-fs.avbr .ha-fi){background:var(--sk-amb)}
+html.ny.ui5.skog .ha-fo li.ej em{color:var(--sk-ora)}
+html.ny.ui5.skog .ha-lag .damm.on{background:var(--sk-damm)}
+html.ny.ui5.skog .ha-lag .mopp.on{background:var(--sk-mopp)}
+html.ny.ui5.skog .ha-kn>i{background:var(--sk-mopp)}
+html.ny.ui5.skog .rob-hd .ha-i.on{background:var(--sk-amb)}
+html.ny.ui5.skog .ha-pill[aria-pressed="true"]{background:var(--sk-damm)}
+html.ny.ui5.skog .ha-rumval button.namn{box-shadow:0 0 0 2px var(--accent) inset}
+html.ny.ui5.skog .ha-zr{border-color:var(--sk-damm);background:color-mix(in srgb,var(--sk-damm) 22%,transparent)}
+html.ny.ui5.skog .ha-tk i{background:linear-gradient(color-mix(in srgb,var(--sk-mopp) 60%,#fff),var(--sk-mopp))}
+html.ny.ui5.skog :is(.dk-rv,.dkh.rv,.dkx-tv path){fill:var(--sk-mopp)}
+html.ny.ui5.skog :is(.dk-rv.lag,.dk-sv.full){fill:var(--sk-amb)}
+html.ny.ui5.skog :is(.dkl-f.bus,.ha-dk-ill.akt .dk-rl){stroke:var(--sk-damm)}
+html.ny.ui5.skog .dkx-rb.on i{background:var(--sk-damm)}
+html.ny.ui5.skog :is(.ha-sv button[aria-pressed="true"],.ha-rs button.on,.ha-xs button.on){color:var(--sk-gron2)}
+html.ny.ui5.skog[data-theme="dark"] :is(.ha-sv button[aria-pressed="true"],.ha-rs button.on,.ha-xs button.on){color:var(--ink)}
+@media (prefers-color-scheme:dark){html.ny.ui5.skog:not([data-theme="light"]) :is(.ha-sv button[aria-pressed="true"],.ha-rs button.on,.ha-xs button.on){color:var(--ink)}}
+html.ny.ui5.skog :is(.ha-rs,.ha-xs,.ha-sv>div){background:var(--sk-spar)}
+html.ny.ui5.skog :is(.ha-rs button.on,.ha-xs button.on,.ha-sv button[aria-pressed="true"]){background:var(--sk-tumme);box-shadow:var(--sk-tskugga)}
 </style>
 </head>
 <body>
@@ -4674,7 +4708,7 @@ html.ny.ui5 .ot-v>.ot-nu .ot-ntt b{font-size:16px;line-height:21px}html.ny.ui5 .
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=401"></script>
+<script src="app.js?v=403"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
