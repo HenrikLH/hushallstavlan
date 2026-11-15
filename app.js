@@ -1560,11 +1560,14 @@ function otHus(tel){const hd=x=>'<div class="ot-h"><span class="ot-hi">'+I.home+
 /* Just nu i Smart hem (väggen, Skog): diskmaskin/tvätt klar tills någon trycker Klar eller den startas igen, robotdammsugaren när den
    städar eller behöver hjälp, och efter kl. 22 Släck allt om lampor är tända. Högst två rader; kvitteringen sparas per enhet (ht.otKvitt). */
 const otKvitt=a=>a.id+'|'+(a.slut||a.st);
+// robotens förlopp för hela körningen: klara omgångar plus den som pågår
+function haRobPct(a){const pl=a.plan,n=pl&&!pl.klar&&(pl.steg||[]).length,q=Math.min(100,Math.max(0,a.pct||0));return n>1?Math.round((Math.min(pl.i,n-1)+q/100)/n*100):a.pct!=null?Math.round(q):null}
 function otNotis(H,max,lista){const hh=new Date().getHours(),kv=lsGet('otKvitt')||'',L=[];
- const rad=(ic,cls,t,sub,act,id,knapp,kact,kid)=>'<div class="ot-nt'+cls+'"><button type="button" class="ot-ntb" data-act="'+act+'" data-id="'+esc(id)+'"><span class="ot-nti">'+ic+'</span><span class="ot-ntt"><b>'+esc(t)+'</b>'+(sub?'<small>'+esc(sub)+'</small>':'')+'</span></button>'+(knapp?'<button type="button" class="ot-ntk" data-act="'+kact+'" data-id="'+esc(kid)+'">'+esc(knapp)+'</button>':'')+'</div>';
+ const rad=(ic,cls,t,sub,act,id,knapp,kact,kid,p)=>'<div class="ot-nt'+cls+'"><button type="button" class="ot-ntb" data-act="'+act+'" data-id="'+esc(id)+'"><span class="ot-nti">'+ic+'</span><span class="ot-ntt"><b>'+esc(t)+'</b>'+(p!=null?'<span class="ot-ntr">'+(sub?'<small>'+esc(sub)+'</small>':'')+'<i class="ot-ntp" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+p+'"><b style="width:'+p+'%"></b></i></span>':sub?'<small>'+esc(sub)+'</small>':'')+'</span></button>'+(knapp?'<button type="button" class="ot-ntk" data-act="'+kact+'" data-id="'+esc(kid)+'">'+esc(knapp)+'</button>':'')+'</div>';
  (H.apparater||[]).forEach(a=>{
   if(a.typ!=='robot'&&a.st==='finished'&&!kv.split(',').includes(otKvitt(a)))L.push(rad(HAI_APP[a.typ]||HAI.plug,' klar',cap(a.n||'Maskinen')+' är klar',{disk:'Dags att plocka ur',tvatt:'Häng tvätten',tork:'Ta ur tvätten'}[a.typ]||'Dags att tömma','haApp',a.id,'Klar','otKvitt',otKvitt(a)));
-  else if(a.typ==='robot'&&(haAppAktiv(a)||/error/.test(a.st||'')))L.push(rad(HAI_APP.robot,/error/.test(a.st||'')?' fel':'',cap(a.n||'Robotdammsugaren')+': '+haRobSt(a).toLowerCase(),haStadar(a)&&a.pct!=null?Math.round(a.pct)+' % klart':'','haApp',a.id))});
+  else if(a.typ==='robot'&&(haAppAktiv(a)||/error/.test(a.st||''))){const p=haStadar(a)?haRobPct(a):null;L.push(rad(HAI_APP.robot,/error/.test(a.st||'')?' fel':' gar',cap(a.n||'Robotdammsugaren')+': '+haRobSt(a).toLowerCase(),p!=null?p+' % klart'+(a.plan&&a.plan.steg&&a.plan.steg.length>1&&!a.plan.klar?' · steg '+Math.min(a.plan.steg.length,a.plan.i+1)+' av '+a.plan.steg.length:''):'','haApp',a.id,'','','',p))}
+  else if(a.typ!=='robot'&&/run|pause/.test(a.st||'')){const k=haKvar(a),p=a.pct!=null?Math.round(a.pct):null;L.push(rad(HAI_APP[a.typ]||HAI.plug,' gar',cap(a.n||'Maskinen')+': '+(a.st==='pause'?'pausad':{disk:'diskar',tvatt:'tvättar',tork:'torkar'}[a.typ]||'igång'),[a.slut&&k!=null&&'Klar '+haKl(a.slut),k!=null&&k+' min kvar'].filter(Boolean).join(' · '),'haApp',a.id,'','','',p))}});
  const ton=(H.lampor||[]).filter(x=>x.on&&!x.nas).length;
  if((hh>=22||hh<4)&&ton)L.push(rad(HAI.moon,' kvall',ton+(ton>1?' lampor tända':' lampa tänd'),'Dags att släcka?','nav','hus','Släck allt','haScen','av'));
  const pr=x=>x.includes(' klar"')?2:x.includes(' kvall"')?1:0;L.sort((a,b)=>pr(b)-pr(a));if(lista)return L.map(h=>({pr:pr(h),h}));return L.length?'<div class="ot-nts">'+L.slice(0,max).join('')+'</div>':''}
@@ -2003,6 +2006,7 @@ function haRobPlan(a){const V=S.haRobRum||[],W=S.haRobV||{},damm=V.filter(id=>(W
  const ms=[];mopp.forEach(id=>{const k=(XM[id]||1)+'|'+(RM[id]||''),s=ms.find(y=>y.k===k);if(s)s.rum.push(id);else ms.push(Object.assign({k,typ:'mopp',rum:[id]},XM[id]?{x:XM[id]}:{},RM[id]?{rutt:RM[id]}:{}))});
  return{damm,mopp,x:X,xm:XM,rm:RM,steg:steg.map(x=>Object.assign({typ:'damm',rum:x.rum},x.x?{x:x.x}:{})).concat(ms.map(({k,...s})=>s))}}
 // moppläge per rum (sparas på enheten): {rumnr: 'deep'}
+function haMoppUtanDamm(a,P){const nu=Date.now()/1e3;return P.mopp.filter(id=>{if(P.damm.includes(id))return false;const r=(a.rum||[]).find(x=>x.id===id)||{};return!(r.sv&&nu-r.sv<7200)})}
 function haRumMl(){try{return JSON.parse(lsGet('haRumRutt')||'{}')||{}}catch(e){return{}}}
 // förval vid start: Max sugkraft och moppläget Custom (Roborock-appens inställning per rum); ett val i snabbvalen gäller bara nästa start
 // vattenflödet är alltid Custom (Roborocks eget reglage under Low, för trägolvet; Henrik 14/11) och kan inte ändras här
@@ -2141,7 +2145,9 @@ function haAppKropp(a,sida){
   // fast rad längst ner: en stor knapp för det som går att göra nu, och Åk hem
   const stor=(ik,n,act,id,av,sub)=>'<button type="button" class="ha-bk" data-act="'+act+'" data-id="'+(id||'')+'"'+(av?' disabled':'')+'>'+ik+'<span>'+n+(sub?'<small>'+sub+'</small>':'')+'</span></button>';
   const sub=V.length?[P.damm.length&&P.damm.length+' Vacuum',P.mopp.length&&P.mopp.length+' Mop'].filter(Boolean).join(' · '):'';
-  b+='<div class="ha-bar">'+(S.haZon?(st?stor(HAI_APP.paus,'Pausa','haRob','paus'):stor(HAI_APP.play,'Städa zon','haZonStada','',!S.haZonR)):st?stor(HAI_APP.paus,'Pausa','haRob','paus'):stor(HAI_APP.play,V.length?(P.damm.length?'Starta':'Moppa'):a.st==='paused'?'Fortsätt':'Städa allt','haRob','start',false,sub))+
+  // moppning av rum som inte dammsugs först (i samma körning eller de senaste två timmarna) kräver håll in (Henrik 15/11)
+  const oD=haMoppUtanDamm(a,P),hall=()=>'<button type="button" class="ha-bk ha-hold" data-hold="haRobMopp" data-id="start" aria-label="Håll in för att moppa utan att dammsuga först"><i class="sh-fill"></i>'+HAI_APP.play+'<span>Håll in för att moppa<small>'+(oD.length===P.mopp.length&&!P.damm.length?'Utan dammsugning före':oD.length+(oD.length>1?' rum dammsugs inte före':' rum dammsugs inte före'))+'</small></span></button>';
+  b+='<div class="ha-bar">'+(S.haZon?(st?stor(HAI_APP.paus,'Pausa','haRob','paus'):stor(HAI_APP.play,'Städa zon','haZonStada','',!S.haZonR)):st?stor(HAI_APP.paus,'Pausa','haRob','paus'):V.length&&oD.length?hall():stor(HAI_APP.play,V.length?(P.damm.length?'Starta':'Moppa'):a.st==='paused'?'Fortsätt':'Städa allt','haRob','start',false,sub))+
    '<button type="button" class="ha-bh" data-act="haRob" data-id="hem" aria-label="Åk hem"'+(hemma?' disabled':'')+'>'+HAI_APP.hem+'</button></div>'}}
  else{const kor=/run|pause|delayedstart/.test(a.st||''),k=haKvar(a),R=54,O=2*Math.PI*R,p=kor?(a.pct||0):a.st==='finished'?100:0,kan=a.fjarr&&a.dorr!=='open';
   b+='<div class="ha-ring"><svg viewBox="0 0 128 128"><circle cx="64" cy="64" r="'+R+'"/><circle class="p" cx="64" cy="64" r="'+R+'" stroke-dasharray="'+O+'" stroke-dashoffset="'+(O*(1-p/100))+'"/></svg><div><b>'+(kor&&k!=null?k+'<small> min</small>':a.st==='finished'?'Klar':esc(a.prog||'–'))+'</b><span>'+(kor&&a.slut?'klar '+haKl(a.slut):kor?'':esc(HA_DISK_ST[a.st]||''))+'</span></div></div>';
@@ -6509,6 +6515,7 @@ const ACT={
   if(g==='start'&&rum.length){const st=P.steg;a.plan={steg:st,i:0,klara:st.map(()=>[]),nu:null,x:P.x};a.lage=P.damm.length?'vacuum':'mop';S.haRobRum=[];S.haRobV={};S.haRobX={};S.haRobXm={}}if(g==='hem'&&a.plan&&!a.plan.klar){a.plan.steg=a.plan.steg.slice(0,a.plan.i);a.plan.klar=true}const B=g==='start'&&rum.length?{app:a.id,gor:g,rum,damm:P.damm,mopp:P.mopp,x:P.x,xm:P.xm,rm:P.rm}:{app:a.id,gor:g,rum},fore=[];
   if(g==='start'){['sug','rutt','vatten'].forEach(k=>{const v=haStd(a,k);if(!v||!((k==='sug'?a.sugAlt:k==='vatten'?a.vattenAlt:a.ruttAlt)||[]).includes(v))return;B[k]=v;if(v!==a[k])fore.push({app:a.id,[k]:v});a[k]=v});S.haRobVal={}}
   render();(async()=>{for(const f of fore)await haSend(f,()=>{});haSend(B,()=>{[a.st,a.plan]=was})})()},
+ haRobMopp(){ACT.haRob('start')},
  haRobVal(v){const i=v.indexOf(':');S.haRobVal=Object.assign({},S.haRobVal,{[v.slice(0,i)]:v.slice(i+1)});render()},
  haRobRm(v){const a=haAppX();if(!a)return;const i=v.indexOf(':'),id=v.slice(0,i),o=v.slice(i+1),m=haRumMl();if(o===haStd(a,'rutt'))delete m[id];else m[id]=o;lsSet('haRumRutt',JSON.stringify(m));try{u5Tick()}catch(e){}render()},
  haFlUt(){S.haFlFran=!!S.haFlUt;S.haFlUt=!S.haFlUt;render();requestAnimationFrame(()=>requestAnimationFrame(()=>{S.haFlFran=null;document.querySelectorAll('.ha-fk').forEach(e=>{e.classList.toggle('ut',S.haFlUt);const b=e.querySelector('.ha-fkh');if(b)b.setAttribute('aria-expanded',S.haFlUt)})}))},
@@ -6954,7 +6961,7 @@ const ACT={
   el.classList.add('holding');h={el,x:e.clientX,y:e.clientY,t:setTimeout(()=>{const a=el.dataset.hold;stop();fired=Date.now();try{navigator.vibrate&&navigator.vibrate(15)}catch(x){}ACT[a]&&ACT[a](el.dataset.id)},T)}});
  document.addEventListener('pointermove',e=>{if(h&&Math.hypot(e.clientX-h.x,e.clientY-h.y)>12)stop()});
  ['pointerup','pointercancel','scroll'].forEach(k=>document.addEventListener(k,stop,true));
- document.addEventListener('click',e=>{const el=e.target.closest('[data-hold]');if(el&&Date.now()-fired>800)toast('Håll in knappen för att '+({shopEmptyYes:'tömma listan',weekDelYes:'bekräfta',dishDelHold:'ta bort rätten',haDelHold:'ta bort enheten',ekoDelHold:'ta bort utgiften',fodDelHold:'ta bort födelsedagen',shopImportYes:'uppdatera varorna'}[el.dataset.hold]||'bekräfta'))});
+ document.addEventListener('click',e=>{const el=e.target.closest('[data-hold]');if(el&&Date.now()-fired>800)toast('Håll in knappen för att '+({shopEmptyYes:'tömma listan',weekDelYes:'bekräfta',dishDelHold:'ta bort rätten',haDelHold:'ta bort enheten',ekoDelHold:'ta bort utgiften',fodDelHold:'ta bort födelsedagen',shopImportYes:'uppdatera varorna',haRobMopp:'moppa utan att dammsuga först'}[el.dataset.hold]||'bekräfta'))});
  document.addEventListener('contextmenu',e=>{if(e.target.closest('[data-hold]'))e.preventDefault()})})();
 /* Håll in = lyft: det man håller i växer sakta (4 % på 0,8 s) med en mjuk skugga och åtgärden körs när det nått fram.
    Släpper eller flyttar man fingret glider det tillbaka. hlOn/hlOff används av alla håll-in-gester med lyft (ändra, lås, ordna rutor, klockan) */

@@ -4694,6 +4694,26 @@ html.ny.ui5.skog[data-theme="dark"] :is(.ha-sv button[aria-pressed="true"],.ha-r
 @media (prefers-color-scheme:dark){html.ny.ui5.skog:not([data-theme="light"]) :is(.ha-sv button[aria-pressed="true"],.ha-rs button.on,.ha-xs button.on){color:var(--ink)}}
 html.ny.ui5.skog :is(.ha-rs,.ha-xs,.ha-sv>div){background:var(--sk-spar)}
 html.ny.ui5.skog :is(.ha-rs button.on,.ha-xs button.on,.ha-sv button[aria-pressed="true"]){background:var(--sk-tumme);box-shadow:var(--sk-tskugga)}
+/* Just nu: förloppsstapel när diskmaskinen eller dammsugaren kör (Henrik 15/11) */
+html.ny.ui5 .ot-ntb .ot-ntt:has(.ot-ntp){flex:1;padding:4px 0 8px}
+html.ny.ui5 .ot-ntp{display:block;height:6px;margin:7px 0 2px;border-radius:999px;background:var(--ot-linje,rgba(31,39,35,.1));overflow:hidden}
+html.ny.ui5 .ot-ntp b{display:block;height:100%;border-radius:inherit;background:var(--ot-gron,var(--accent));transition:width .6s cubic-bezier(.3,.9,.3,1)}
+html.ny.ui5 .ot-ntr{display:flex;flex-direction:column;min-width:0}
+html.ny.ui5 .ot-v>.ot-nu .ot-ntt:has(.ot-ntp){padding:0}
+html.ny.ui5 .ot-v>.ot-nu .ot-ntr{flex-direction:row;align-items:center;gap:10px}
+html.ny.ui5 .ot-v>.ot-nu .ot-ntr small{flex:none}
+html.ny.ui5 .ot-v>.ot-nu .ot-ntr .ot-ntp{flex:1;min-width:40px;margin:0}
+html.ny.ui5 .ot-v>.ot-nu .ot-ntp{background:rgba(255,255,255,.26)}
+html.ny.ui5 .ot-v>.ot-nu .ot-ntp b{background:#fff}
+/* toasten är bara text: den får inte fånga trycket på knappen under (t.ex. håll in efter ett vanligt tryck) */
+#toast{pointer-events:none}
+/* Dammsugaren: håll in för att moppa utan dammsugning före */
+.ha-bk.ha-hold{position:relative;overflow:hidden;background:color-mix(in srgb,var(--orange,#FF9500) 18%,var(--ri,#fff));color:var(--rinv,#1C1C1E)}
+.ha-bk.ha-hold>*:not(.sh-fill){position:relative}
+.ha-bk.ha-hold .sh-fill{background:color-mix(in srgb,var(--orange,#FF9500) 45%,transparent)}
+.ha-bk.ha-hold.holding .sh-fill{transform:scaleX(1);transition:transform 1s linear}
+html.ny.ui5.skog .ha-bk.ha-hold{background:color-mix(in srgb,var(--sk-amb) 22%,var(--ri,#fff))}
+html.ny.ui5.skog .ha-bk.ha-hold .sh-fill{background:color-mix(in srgb,var(--sk-amb) 50%,transparent)}
 </style>
 </head>
 <body>

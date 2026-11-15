@@ -8,6 +8,12 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 - Test: `skog-oversikt.js` (T3DEMO=1 NOW=…12:10; gas.js har sluttider och födelsedagar), alla-flikar Skog telefon/vägg + Apple. Bilder /mnt/project-files/skog-oversikt/.
 
 
+## Förlopp i Just nu och håll in för bara moppning (förslag, ej publicerat)
+- Ägare Claude, gren `claude/project-thread-j9rebe`. Henrik 15/11: förloppsstapel när diskmaskinen och dammsugaren kör; moppning utan dammsugning före ska kräva håll in.
+- `otNotis`: robot (`haRobPct`: hela planen, klara omgångar + pågående) och maskiner som kör får rad med `.ot-ntp`; väggen visar text och stapel på en rad (`.ot-ntr`) så att två rader inte täcker datumet.
+- `haMoppUtanDamm(a,P)`: mopprum som inte dammsugs i samma körning eller dammsugits (`r.sv`) senaste 2 h → Starta byts mot `.ha-hold` (`data-hold="haRobMopp"`). `#toast` har `pointer-events:none` (toasten täckte knappen).
+- Test: `robot-hall-mopp.js` (ny) telefon ljust/mörkt + vägg. Bilder /mnt/project-files/apparater/forlopp-mopp/.
+
 ## Dammsugarsidan: Skog, Max som förval, vattenflödet låst på Custom, moppläge per rum (publicerad ht-v402, ångra-gren `version-fore-dammsug-skog`, PR #113)
 - Ägare Claude, gren `claude/project-thread-j9rebe`. Henrik 14/11: Skog-accent, Max sugkraft som standard, vattenflödet alltid Roborocks Custom (`custom_water_flow`, eget reglage under Low för trägolvet; nivån ställs i Roborock-appen), Route kvar, snyggare Standard/Deep/Deep+ per rum.
 - `haStd(a,k)`: sug Max (snabbvalet gäller bara nästa start, `S.haRobVal`), vatten låst `custom_water_flow` (Water-valet dolt i snabbval och inställningar), rutt = robotens/valt. Start skickar sug/rutt/vatten först som egna anrop (gammal tjänst) och med starten (ny tjänst sätter dem i `ha_app_styr`; planen återställer till dem). Per rum: segment `.ha-rs` (`haRuttVal`, `ACT.haRobRm`, ls `haRumRutt`).
