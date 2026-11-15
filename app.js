@@ -1550,25 +1550,27 @@ function otHus(tel){const hd=x=>'<div class="ot-h"><span class="ot-hi">'+I.home+
  const R=otRum(H);
  const akt=(H.lampor||[]).filter(x=>x.on).length+(H.apparater||[]).filter(haAppAktiv).length+(H.media||[]).filter(m=>!m.grupp&&haMedSpelar(m)).length;
  const ak=akt?akt+(akt>1?' enheter aktiva':' enhet aktiv'):'Allt avstängt',sc=husScener(H,1),hog=otHogRuta(H,tel);
- if(tel)return'<section class="ot-c ot-hus"'+RF('T19')+'>'+hd('<span class="ot-h2">'+esc(ak)+'</span>')+'<div class="ot-ikr">'+R.map(x=>{const s=st(x),p=s.on||s.ak.length||s.sp.length;
+ if(tel)return'<section class="ot-c ot-hus"'+RF('T19')+'>'+hd('<span class="ot-h2">'+esc(ak)+'</span>')+otNotis(H,3,0,1)+'<div class="ot-ikr">'+R.map(x=>{const s=st(x),p=s.on||s.ak.length||s.sp.length;
   return'<button type="button" class="ot-ik'+(p?' on':'')+'" data-act="otRum" data-id="'+esc(x.r)+'" aria-label="'+esc((x.n||x.r)+', '+s.txt)+'"><span>'+s.ic+'</span><em>'+esc(x.n||x.r)+'</em></button>'}).join('')+hog+'</div>'+(sc?'<div class="ot-sc">'+sc+'</div>':'')+'</section>';
  const ruta=x=>{const s=st(x),p=s.on||s.ak.length||s.sp.length;
   return'<div class="ot-ti3'+(p?' on':'')+'" data-rum="'+esc(x.r)+'"><button type="button" class="ot-tb" data-act="otRum" data-id="'+esc(x.r)+'"><span class="ot-si">'+s.ic+'</span><b>'+esc(x.n||x.r)+'</b><span>'+esc(s.txt)+'</span></button></div>'};
 
- const med=otMed(),nt='';
+ const med=otMed(),nt=otNotis(H,3,0,1);
  return'<section class="ot-c ot-hus'+(med||nt?' spelar':'')+'"'+RF('T19')+'>'+hd('<span class="ot-h2">'+esc(ak)+'</span>')+nt+'<div class="ot-rums">'+R.map(ruta).join('')+hog+'</div>'+med+(med&&nt?'':'<div class="ot-scl">Scener</div><div class="ot-sc">'+sc+'</div>')+'</section>'}
 /* Just nu i Smart hem (väggen, Skog): diskmaskin/tvätt klar tills någon trycker Klar eller den startas igen, robotdammsugaren när den
    städar eller behöver hjälp, och efter kl. 22 Släck allt om lampor är tända. Högst två rader; kvitteringen sparas per enhet (ht.otKvitt). */
 const otKvitt=a=>a.id+'|'+(a.slut||a.st);
 // robotens förlopp för hela körningen: klara omgångar plus den som pågår
 function haRobPct(a){const pl=a.plan,n=pl&&!pl.klar&&(pl.steg||[]).length,q=Math.min(100,Math.max(0,a.pct||0));return n>1?Math.round((Math.min(pl.i,n-1)+q/100)/n*100):a.pct!=null?Math.round(q):null}
-function otNotis(H,max,lista){const hh=new Date().getHours(),kv=lsGet('otKvitt')||'',L=[];
+function otNotis(H,max,lista,gar){const hh=new Date().getHours(),kv=lsGet('otKvitt')||'',L=[];
  const rad=(ic,cls,t,sub,act,id,knapp,kact,kid,p)=>'<div class="ot-nt'+cls+'"><button type="button" class="ot-ntb" data-act="'+act+'" data-id="'+esc(id)+'"><span class="ot-nti">'+ic+'</span><span class="ot-ntt"><b>'+esc(t)+'</b>'+(p!=null?'<span class="ot-ntr">'+(sub?'<small>'+esc(sub)+'</small>':'')+'<i class="ot-ntp" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+p+'"><b style="width:'+p+'%"></b></i></span>':sub?'<small>'+esc(sub)+'</small>':'')+'</span></button>'+(knapp?'<button type="button" class="ot-ntk" data-act="'+kact+'" data-id="'+esc(kid)+'">'+esc(knapp)+'</button>':'')+'</div>';
  (H.apparater||[]).forEach(a=>{
+  // gar: bara det som kör (med förlopp), visas i Smart hem-rutan (Henrik 15/11); annars det som är klart eller fel, för Just nu
+  const kor=a.typ==='robot'?haAppAktiv(a)&&!/error/.test(a.st||''):/run|pause/.test(a.st||'');if(!!gar!==kor)return;
   if(a.typ!=='robot'&&a.st==='finished'&&!kv.split(',').includes(otKvitt(a)))L.push(rad(HAI_APP[a.typ]||HAI.plug,' klar',cap(a.n||'Maskinen')+' är klar',{disk:'Dags att plocka ur',tvatt:'Häng tvätten',tork:'Ta ur tvätten'}[a.typ]||'Dags att tömma','haApp',a.id,'Klar','otKvitt',otKvitt(a)));
   else if(a.typ==='robot'&&(haAppAktiv(a)||/error/.test(a.st||''))){const p=haStadar(a)?haRobPct(a):null;L.push(rad(HAI_APP.robot,/error/.test(a.st||'')?' fel':' gar',cap(a.n||'Robotdammsugaren')+': '+haRobSt(a).toLowerCase(),p!=null?p+' % klart'+(a.plan&&a.plan.steg&&a.plan.steg.length>1&&!a.plan.klar?' · steg '+Math.min(a.plan.steg.length,a.plan.i+1)+' av '+a.plan.steg.length:''):'','haApp',a.id,'','','',p))}
   else if(a.typ!=='robot'&&/run|pause/.test(a.st||'')){const k=haKvar(a),p=a.pct!=null?Math.round(a.pct):null;L.push(rad(HAI_APP[a.typ]||HAI.plug,' gar',cap(a.n||'Maskinen')+': '+(a.st==='pause'?'pausad':{disk:'diskar',tvatt:'tvättar',tork:'torkar'}[a.typ]||'igång'),[a.slut&&k!=null&&'Klar '+haKl(a.slut),k!=null&&k+' min kvar'].filter(Boolean).join(' · '),'haApp',a.id,'','','',p))}});
- const ton=(H.lampor||[]).filter(x=>x.on&&!x.nas).length;
+ const ton=gar?0:(H.lampor||[]).filter(x=>x.on&&!x.nas).length;
  if((hh>=22||hh<4)&&ton)L.push(rad(HAI.moon,' kvall',ton+(ton>1?' lampor tända':' lampa tänd'),'Dags att släcka?','nav','hus','Släck allt','haScen','av'));
  const pr=x=>x.includes(' klar"')?2:x.includes(' kvall"')?1:0;L.sort((a,b)=>pr(b)-pr(a));if(lista)return L.map(h=>({pr:pr(h),h}));return L.length?'<div class="ot-nts">'+L.slice(0,max).join('')+'</div>':''}
 // när en högtalare spelar (eller är pausad): volym och Spotify-knappar direkt i rutan, under rummen
