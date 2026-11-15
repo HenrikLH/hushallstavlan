@@ -1549,14 +1549,14 @@ function otHus(tel){const hd=x=>'<div class="ot-h"><span class="ot-hi">'+I.home+
  const st=x=>{const on=x.L.filter(l=>l.on).length,ak=x.A.filter(haAppAktiv),sp=x.M.filter(haMedSpelar);return{on,ak,sp,ic:ak.length?HAI.fan:sp.length?HAI_SPK:HAI.bulb,txt:[ak.length?(ak[0].typ==='robot'?haStadar(ak[0])?'Städar':'På väg hem':{disk:'Diskar',tvatt:'Tvättar',tork:'Torkar'}[ak[0].typ]||'Igång'):'',sp.length?'Spelar':'',x.L.length?on?on+' av '+x.L.length+' på':'Släckt':''].filter(Boolean)[0]||''}};
  const R=otRum(H);
  const akt=(H.lampor||[]).filter(x=>x.on).length+(H.apparater||[]).filter(haAppAktiv).length+(H.media||[]).filter(m=>!m.grupp&&haMedSpelar(m)).length;
- const ak=akt?akt+(akt>1?' enheter aktiva':' enhet aktiv'):'Allt avstängt',sc=husScener(H);
+ const ak=akt?akt+(akt>1?' enheter aktiva':' enhet aktiv'):'Allt avstängt',sc=husScener(H,1),hog=otHogRuta(H,tel);
  if(tel)return'<section class="ot-c ot-hus"'+RF('T19')+'>'+hd('<span class="ot-h2">'+esc(ak)+'</span>')+'<div class="ot-ikr">'+R.map(x=>{const s=st(x),p=s.on||s.ak.length||s.sp.length;
-  return'<button type="button" class="ot-ik'+(p?' on':'')+'" data-act="otRum" data-id="'+esc(x.r)+'" aria-label="'+esc((x.n||x.r)+', '+s.txt)+'"><span>'+s.ic+'</span><em>'+esc(x.n||x.r)+'</em></button>'}).join('')+'</div>'+(sc?'<div class="ot-sc">'+sc+'</div>':'')+'</section>';
+  return'<button type="button" class="ot-ik'+(p?' on':'')+'" data-act="otRum" data-id="'+esc(x.r)+'" aria-label="'+esc((x.n||x.r)+', '+s.txt)+'"><span>'+s.ic+'</span><em>'+esc(x.n||x.r)+'</em></button>'}).join('')+hog+'</div>'+(sc?'<div class="ot-sc">'+sc+'</div>':'')+'</section>';
  const ruta=x=>{const s=st(x),p=s.on||s.ak.length||s.sp.length;
   return'<div class="ot-ti3'+(p?' on':'')+'" data-rum="'+esc(x.r)+'"><button type="button" class="ot-tb" data-act="otRum" data-id="'+esc(x.r)+'"><span class="ot-si">'+s.ic+'</span><b>'+esc(x.n||x.r)+'</b><span>'+esc(s.txt)+'</span></button></div>'};
 
  const med=otMed(),nt='';
- return'<section class="ot-c ot-hus'+(med||nt?' spelar':'')+'"'+RF('T19')+'>'+hd('<span class="ot-h2">'+esc(ak)+'</span>')+nt+'<div class="ot-rums">'+R.map(ruta).join('')+'</div>'+med+(med&&nt?'':'<div class="ot-scl">Scener</div><div class="ot-sc">'+husScener(H)+'</div>')+'</section>'}
+ return'<section class="ot-c ot-hus'+(med||nt?' spelar':'')+'"'+RF('T19')+'>'+hd('<span class="ot-h2">'+esc(ak)+'</span>')+nt+'<div class="ot-rums">'+R.map(ruta).join('')+hog+'</div>'+med+(med&&nt?'':'<div class="ot-scl">Scener</div><div class="ot-sc">'+sc+'</div>')+'</section>'}
 /* Just nu i Smart hem (väggen, Skog): diskmaskin/tvätt klar tills någon trycker Klar eller den startas igen, robotdammsugaren när den
    städar eller behöver hjälp, och efter kl. 22 Släck allt om lampor är tända. Högst två rader; kvitteringen sparas per enhet (ht.otKvitt). */
 const otKvitt=a=>a.id+'|'+(a.slut||a.st);
@@ -2267,10 +2267,16 @@ V.hus=function(){const D=haData(),R0=S.haRum;let h='<div class="rcp-top"><button
 // Hela Smart hem utan rubrik: statusknappar, scener, apparater, högtalare, rum och givare (Smart hem-sidan och Hemmet)
 const haGivRader=(L,R0)=>L.length?'<div class="ha-rh">Givare</div>'+group(L.map(x=>'<div class="cell" data-hold-lift="haEdit" data-id="'+esc(x.id)+'"><span class="ha-i sm">'+HAI.temp+'</span><span class="grow">'+esc(x.n)+(x.rum&&R0==null?'<span class="meta"> · '+esc(x.rum)+'</span>':'')+'</span><span class="num">'+esc(haGiv(Object.assign({},x,{n:''})).trim())+'</span></div>').join('')):'';
 // Hemmets scener som rutans brickor, fyra i rad: egna scener (rutans fyra först), Home Assistants övriga, och Släck allt (nya scener görs med plus)
-function husScener(D){
+function husScener(D,utanHog){
  const haT=s=>{if(haAngraPa('sc:'+s.id))return haAngraT();const mk=(s.falt||[]).length,ig=mk&&haMedIgang(),on=mk?ig:HA.last===s.id,ik=s.id==='av'?'off':habIkNamn(s.n),n=mk?haHogNamn(ig):s.n,ny=haNy('sc:'+s.id,on);
   return'<button type="button" class="ha-st hab-st'+(on?' on':'')+(ny?ny+';'+habSt(ik).slice(8):'"'+habSt(ik))+' data-act="husScen" data-id="'+esc(s.id)+'" data-hold-lift="husScRed" aria-label="'+esc(n)+', håll in för att ändra"><span class="ha-i">'+(mk?ig?HAI_SPK_AV:HAI_SPK:HAB_IK[ik])+'</span><span class="ha-n">'+esc(n)+'</span></button>'};
- return habScLista(D).map(e=>e.i!=null?habScT(e.s,e.i,D):haT(e.s.av?{id:'av',n:'Släck allt'}:Object.assign({},(D.scener||[]).find(x=>x.id===e.s.ha)))).join('')}
+ return habScLista(D).filter(e=>!utanHog||!husHogSc(D,e)).map(e=>e.i!=null?habScT(e.s,e.i,D):haT(e.s.av?{id:'av',n:'Släck allt'}:Object.assign({},(D.scener||[]).find(x=>x.id===e.s.ha)))).join('')}
+// scenen som styr högtalarna (Home Assistant-skript med fält, t.ex. Ensam hemma); i Skogs översikt är den en ruta bland rummen
+const husHogSc=(D,e)=>{const x=e.s&&e.s.ha&&(D.scener||[]).find(z=>z.id===e.s.ha);return!!(x&&(x.falt||[]).length)};
+function otHogRuta(H,tel){const e=habScLista(H).find(e=>husHogSc(H,e));if(!e)return'';const ig=haMedIgang(),P=habSpelar(),n=ig&&P.length?P.map(m=>m.n).join(' och '):'',id=e.i!=null?'':e.s.ha;
+ const act=e.i!=null?'data-act="habScen" data-id="'+e.i+'"':'data-act="husScen" data-id="'+esc(id)+'" data-hold-lift="husScRed"',txt=ig?(P.some(haMedSpelar)?'Spelar':'Pausad')+(n?' på '+n:''):'Av';
+ if(tel)return'<button type="button" class="ot-ik'+(ig?' on':'')+'" '+act+' aria-label="Högtalare, '+esc(txt)+'"><span>'+HAI_SPK+'</span><em>Högtalare</em></button>';
+ return'<div class="ot-ti3'+(ig?' on':'')+'"><button type="button" class="ot-tb" '+act+' aria-label="Högtalare, '+esc(txt)+'"><span class="ot-si">'+HAI_SPK+'</span><b>Högtalare</b><span>'+esc(txt)+'</span></button></div>'}
 // Scenens senare steg: väggdatorns tjänst kör dem (fungerar även om telefonen låses). En äldre tjänst känner inte till dem,
 // då kör den här enheten stegen själv så länge appen är öppen. Nästa scen eller Ångra avbryter väntande steg.
 function habSenareCmd(l){return Object.keys(l||{}).map(id=>{const v=l[id];if(!v.on)return{id,gor:'av'};const c={id,gor:'pa'};if(v.b!=null)c.b=v.b;if(v.k!=null)c.k=v.k;else if(v.hs)c.hs=v.hs;return c})}

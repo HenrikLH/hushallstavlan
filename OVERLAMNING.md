@@ -18,6 +18,9 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 - Ägare Claude, gren `claude/project-thread-qnvsb4`. Henrik 14/11: (1) vald flik i Skog: ljus salvia `#DCE8D2` med skogsgrön ikon `#2F5D3A` (telefon och väggens sidomeny). (2) Inställningar ritades om vid varje render (synk var 30:e s, Smart hem, väder, sparstatus): bladet byggdes om och den öppna delen gled in igen (`u5in`). Nu hoppas samma HTML över (`o.__sH`) och en ändrad omritning avslutar animationen direkt. (3) Kryssrutornas ram i Skog hade bara mörk variant för manuellt Mörkt, inte systemets; nu `var(--ink-3)`.
 - Test: `installningar-omritning.js` (ny), alla-flikar Skog telefon ljust/mörkt + vägg, Apple telefon, tavla-designval, installningar-delar/-tillbaka/-luft, anvandarfarger gröna. Väggens ihopfällda sidomeny: knappen överst och profilknappen centrerade (alla UI 5.0).
 
+## Skog: Högtalare som ruta bland rummen (publicerad, ångra-gren `version-fore-hogtalare-rum`)
+- Henrik 15/11: scenen Högtalare (HA-skript med fält, `husHogSc`) flyttad ur Scener till rummen i Skogs Smart hem, vägg och telefon (`otHogRuta`, `husScener(D,1)`). Tryck = starta/stäng av som scenen, håll in = ändra. Hemmet oförändrat. Test `verktyg/emu/hogtalare-rum.js`.
+
 ## Väggtavlan visar det aktuella (publicerad ht-v400, ångra-gren `version-fore-vagg-aktuellt`)
 - Ägare Claude, gren `claude/project-thread-ckaljv`, PR #110. Bara Skog på väggen (`wallT3`). Henrik 14/11 valde 1, 2, 3 och 5 ur förslagen.
 - Smart hem (T19): `otMed()` volym/Spotify när något spelar; `otNotis(H,max)` "Just nu": maskin klar (Klar-knapp, kvitto per enhet i ls `otKvitt`), robotdammsugaren städar/fel, efter 22 "N lampor tända · Släck allt". Högst 2 rader, 1 när något spelar (då döljs Scener). Rummen kompakta (`.ot-hus.spelar`).
