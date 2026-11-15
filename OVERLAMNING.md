@@ -2,8 +2,8 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
-## Skog: jämn luft på väggskärmen + mindre rumsknappar (förslag, väntar på "Pusha")
-- Ägare Claude, gren `claude/project-thread-156e2m`. Henrik 15/11: avstånden mellan rutor, skärmkanter och andra UI-element på väggen var olika (sidomeny: 25 px kanter, 17 mellan rutor, 55 mot nederkanten; menyrad nere: 44 kanter, 43 mot menyraden). Nu 21 px överallt på Översikt (rutor, kanter, sidomeny, menyraden och dess avstånd till nederkanten, väderkortets topp, Just nu-rutan). Rummen i Smart hem är kompakta rader (ikon + namn + status, 60 px) även när inget spelar. CSS sist i index.html (`html.ny.ui5.skog body.wall`).
+## Skog: jämn luft på väggskärmen + mindre rumsknappar (publicerad ht-v405, ångra-gren `version-fore-vagg-avstand`)
+- Ägare Claude, gren `claude/project-thread-156e2m`, PR #115. Henrik 15/11: avstånden mellan rutor, skärmkanter och andra UI-element på väggen var olika (sidomeny: 25 px kanter, 17 mellan rutor, 55 mot nederkanten; menyrad nere: 44 kanter, 43 mot menyraden). Nu 21 px överallt på Översikt (rutor, kanter, sidomeny, menyraden och dess avstånd till nederkanten, väderkortets topp, Just nu-rutan). Rummen i Smart hem är kompakta rader (ikon + namn + status, 60 px) även när inget spelar. CSS sist i index.html (`html.ny.ui5.skog body.wall`).
 - Förloppsstapel och moppspärr görs i dammsugartråden, inte här.
 - Test: `verktyg/emu/vagg-avstand.js` (skriver ut måtten; PLAY=0 stänger av media), alla-flikar Skog vägg sidomeny/nere ljust/mörkt, telefon Skog, Apple vägg gröna. Bilder /mnt/project-files/vagg-avstand/.
 
