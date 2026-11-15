@@ -1,0 +1,32 @@
+# Fireplace: slår på TVn, ställer in volymen och spelar brasvideon på YouTube från början.
+# Klistra in i Home Assistant: Inställningar → Automationer och scener → Skript → Lägg till skript → Skapa nytt skript
+# → ⋮ uppe till höger → Redigera i YAML → ersätt allt med den här filen → Spara.
+# Lägg sedan till skriptet på tavlan (Smart hem → + → Lägg till enhet → Fireplace), så blir det en scen.
+# Skriptet har inga fält med flit: tavlan visar skript med fält som Högtalare-rutan i stället för som scen.
+alias: Fireplace
+description: Brasan på TVn. Startar TVn, sätter volymen och spelar videon från början. Startas från Hushållstavlan.
+icon: mdi:fireplace
+mode: restart
+variables:
+  video: mSX3OyW9Rao
+  # Volymen i procent. Byt till den nivå TVn brukar ha när brasan går.
+  vol: 25
+  # Den Chromecast som har "tv" i namnet. Skriv till exempel [media_player.tv_2] om fel enhet väljs.
+  spelare: "{{ (integration_entities('cast') | select('search', 'tv') | list)[:1] }}"
+sequence:
+  # Chromecasten väcker TVn via HDMI-CEC när den slås på
+  - action: media_player.turn_on
+    target:
+      entity_id: "{{ spelare }}"
+  - delay: "00:00:05"
+  - action: media_player.volume_set
+    target:
+      entity_id: "{{ spelare }}"
+    data:
+      volume_level: "{{ vol / 100 }}"
+  - action: media_player.play_media
+    target:
+      entity_id: "{{ spelare }}"
+    data:
+      media_content_type: cast
+      media_content_id: '{"app_name": "youtube", "media_id": "{{ video }}"}'
