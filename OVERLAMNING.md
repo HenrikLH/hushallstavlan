@@ -2,11 +2,11 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
-## Googles modern-web-guidance + snabbare Recept-flik (PR, väntar på "Pusha")
+## Googles modern-web-guidance + snabbare Recept-flik (publicerad ht-v407, ångra-gren `version-fore-recept-snabb`, PR #117)
 - Ägare Claude, gren `claude/project-thread-dt5nhs`. Henrik 15/11: utvärdera pluginet och gå igenom appen mot det. Pluginet påslaget i `.claude/settings.json`, regel i AGENTS.md (bara vid ny webbfunktion/prestanda/tillgänglighet).
 - Genomgång: blad (egna, inte `<dialog>`; byte ger ingen synlig vinst), tillgänglighet/formulär (inputmode, etiketter, alt bra), mörkt läge (`color-scheme` rätt) – inget att ändra. Recept-fliken var långsam: `inBank` tolkade hela receptbanken per kort (nu cache) och ~90 kort ritades direkt (nu `content-visibility:auto` från kort 7). Ca 600 → 400 ms vid 4× strypt CPU.
 - Kvar som idé: `loopSync` kör `document.getAnimations()` vid varje omritning (~40 ms vid 4×).
-- Test: alla-flikar telefon + vägg (Skog), recept-ui gröna; bankToggle beter sig som på main.
+- Test: alla-flikar telefon + vägg (Skog), recept-ui gröna på cac83f3; bankToggle som på main. CI: UI 2–5-jobben faller även på main (borttagna designval).
 
 ## Skog: jämn luft på väggskärmen + mindre rumsknappar (publicerad ht-v405, ångra-gren `version-fore-vagg-avstand`)
 - Ägare Claude, gren `claude/project-thread-156e2m`, PR #115. Henrik 15/11: avstånden mellan rutor, skärmkanter och andra UI-element på väggen var olika (sidomeny: 25 px kanter, 17 mellan rutor, 55 mot nederkanten; menyrad nere: 44 kanter, 43 mot menyraden). Nu 21 px överallt på Översikt (rutor, kanter, sidomeny, menyraden och dess avstånd till nederkanten, väderkortets topp, Just nu-rutan). Rummen i Smart hem är kompakta rader (ikon + namn + status, 60 px) även när inget spelar. CSS sist i index.html (`html.ny.ui5.skog body.wall`).
