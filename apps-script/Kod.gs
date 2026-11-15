@@ -1112,23 +1112,50 @@ function recipeRecover_() {
   const s=recipeSheet_('journal');if(s){let rows=recipeRows_('journal');while(rows.length>100&&rows[0][1]==='done'){delRow_(s,2);rows.shift();}}
 }
 /* Import: bara tillåtna publika HTTPS-värdar; ingen HTML eller JavaScript körs. */
-const RECIPE_HOSTS=['www.ica.se','ica.se','www.koket.se','koket.se','www.arla.se','arla.se','www.coop.se','coop.se'];
 function recipeSourceKey_(s) { const m=/^(https?):\/\/([^/?#]+)([^?#]*)(?:\?([^#]*))?/i.exec(String(s||'').trim());if(!m)return'';const q=(m[4]||'').split('&').filter(function(p){return p&&!/^(utm_[^=]*|fbclid|gclid)=/i.test(p);}).sort().join('&');return m[1].toLowerCase()+'://'+m[2].toLowerCase().replace(/^www\./,'')+(m[3]||'/').replace(/\/$/,'')+(q?'?'+q:''); }
 function recipeTextCell_(v) { return typeof v==='string'&&/^\s*=/.test(v)?"'"+v:v; }
 function recipeMaterialize_(menu) { const have=readTab_('recipes').map(function(r){return r.id;}),versions=recipeStore_().versions;menu.forEach(function(m){if(!m.recipe||have.indexOf(m.recipe)>=0)return;const r=versions.filter(function(v){return v.id===m.recipe;})[0];if(!r){if(/^rv-/.test(m.recipe))throw new Error('En planerad receptversion saknas.');return;}const legacy=JSON.parse(JSON.stringify(r));legacy.steps=legacy.steps.map(function(s){return {t:[s.t,s.k?'Kött: '+s.k:'',s.v?'Vegetariskt: '+s.v:''].filter(Boolean).join(' '),timer:s.timer};});sheet_('recipes').appendRow(recipeRow_(legacy).map(recipeTextCell_));have.push(m.recipe);}); }
 function recipeImportUrl_(url) {
-  url=String(url||'').trim();const m=/^https:\/\/([a-z0-9.-]+)(\/[^\s<>"\\]*)?$/i.exec(url);
-  if(!m||RECIPE_HOSTS.indexOf(m[1].toLowerCase())<0||url.length>2000)throw new Error('Länkimport stöder tills vidare ICA, Köket, Arla och Coop. Klistra annars in recepttexten.');return url;
+  url=String(url||'').trim();const m=/^https:\/\/([a-z0-9-]+(?:\.[a-z0-9-]+)+)(\/[^\s<>"\\]*)?$/i.exec(url),host=m?m[1].toLowerCase():'';
+  if(!m||!/\.[a-z]{2,}$/.test(host)||/(^|\.)(localhost|local|internal)$/.test(host)||url.length>2000)throw new Error('Länken kunde inte läsas. Kontrollera att den börjar med https://, eller klistra in recepttexten.');return url;
 }
-function recipeImport_(raw) {
-  let url=recipeImportUrl_(raw),res;
-  const p=props_(),now=Date.now(),last=Number(p.getProperty('RECIPE_IMPORT_AT')||0);if(now-last<5000)throw new Error('Vänta fem sekunder före nästa hämtning.');p.setProperty('RECIPE_IMPORT_AT',String(now));
-  for(let i=0;i<4;i++){res=UrlFetchApp.fetch(url,{followRedirects:false,muteHttpExceptions:true,validateHttpsCertificates:true});const code=res.getResponseCode();if(code>=300&&code<400){const hdr=res.getAllHeaders(),loc=hdr.Location||hdr.location;if(!loc)throw new Error('Omdirigeringen saknar adress.');const host=/^(https:\/\/[^/]+)/i.exec(url)[1];url=recipeImportUrl_(String(loc).charAt(0)==='/'?host+loc:String(loc));continue;}if(code!==200)throw new Error('Sidan kunde inte läsas. Klistra in recepttexten i stället.');break;}
+// Hämtar en sida utan att följa omdirigeringar blint: varje ny adress kontrolleras igen
+function recipeImportHamta_(url) {
+  let res;
+  for(let i=0;i<5;i++){res=UrlFetchApp.fetch(url,{followRedirects:false,muteHttpExceptions:true,validateHttpsCertificates:true,headers:{'Accept-Language':'sv-SE,sv;q=0.9,en;q=0.8'}});const code=res.getResponseCode();if(code>=300&&code<400){const hdr=res.getAllHeaders(),loc=hdr.Location||hdr.location;if(!loc)throw new Error('Omdirigeringen saknar adress.');const host=/^(https:\/\/[^/]+)/i.exec(url)[1];url=recipeImportUrl_(String(loc).charAt(0)==='/'?host+loc:String(loc));continue;}if(code!==200)throw new Error('Sidan kunde inte läsas. Klistra in recepttexten i stället.');break;}
   if(!res||res.getResponseCode()!==200)throw new Error('För många omdirigeringar. Klistra in recepttexten.');
-  const html=res.getContentText();if(html.length>1500000)throw new Error('Sidan är för stor. Klistra in recepttexten.');
+  const html=res.getContentText();if(html.length>3000000)throw new Error('Sidan är för stor. Klistra in recepttexten.');return {url:url,html:html};
+}
+function recipeMeta_(html,name) {
+  const re=new RegExp('<meta\\b[^>]*(?:property|name)\\s*=\\s*["\']'+name.replace(/[.:]/g,'\\$&')+'["\'][^>]*>','i'),tag=re.exec(html);if(!tag)return'';const c=/\bcontent\s*=\s*("([^"]*)"|'([^']*)')/i.exec(tag[0]);if(!c)return'';
+  return String(c[2]!=null?c[2]:c[3]).replace(/&#(\d+);/g,function(_,n){return String.fromCharCode(Number(n));}).replace(/&#x([0-9a-f]+);/gi,function(_,n){return String.fromCharCode(parseInt(n,16));}).replace(/&quot;/g,'"').replace(/&#39;|&apos;/g,"'").replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&').trim();
+}
+// Text i stället för receptdata (TikTok, YouTube, Instagram och sidor utan receptdata). Appen tolkar texten till ett utkast.
+function recipeTextCand_(o) { return {text:String(o.text||'').slice(0,20000),title:String(o.title||'').slice(0,200),img:/^https:\/\//.test(o.img||'')?String(o.img).slice(0,2000):'',src:o.src,kind:o.kind||'sida'}; }
+function recipeImport_(raw) {
+  let url=recipeImportUrl_(raw);
+  const p=props_(),now=Date.now(),last=Number(p.getProperty('RECIPE_IMPORT_AT')||0);if(now-last<5000)throw new Error('Vänta fem sekunder före nästa hämtning.');p.setProperty('RECIPE_IMPORT_AT',String(now));
+  const host=/^https:\/\/([^/]+)/i.exec(url)[1].toLowerCase();
+  // TikTok: bildtexten och omslagsbilden via TikToks öppna oEmbed (korta vm./vt.-länkar löses upp först)
+  if(/(^|\.)tiktok\.com$/.test(host)){
+    if(!/\/video\/|\/photo\//.test(url))try{url=recipeImportHamta_(url).url;}catch(e){}
+    const o=UrlFetchApp.fetch('https://www.tiktok.com/oembed?url='+encodeURIComponent(url),{muteHttpExceptions:true});if(o.getResponseCode()!==200)throw new Error('TikTok svarade inte. Klistra in bildtexten i stället.');
+    const j=JSON.parse(o.getContentText());if(!j.title)throw new Error('Videon saknar bildtext. Står receptet bara i videon får du skriva in det.');
+    return [recipeTextCand_({text:j.title,img:j.thumbnail_url,src:url,kind:'tiktok'})];
+  }
+  const sida=recipeImportHamta_(url),html=sida.html;url=sida.url;
+  // YouTube: beskrivningen står i sidans spelardata
+  if(/(^|\.)(youtube\.com|youtu\.be)$/.test(host)){
+    const d=/"shortDescription":"((?:[^"\\]|\\.)*)"/.exec(html);let text='';try{text=d?JSON.parse('"'+d[1]+'"'):'';}catch(e){}
+    if(!text)text=recipeMeta_(html,'og:description');
+    return [recipeTextCand_({title:recipeMeta_(html,'og:title'),text:text,img:recipeMeta_(html,'og:image'),src:url,kind:'youtube'})];
+  }
   const out=[],re=/<script\b[^>]*type\s*=\s*["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script\s*>/gi;let m;
   function walk(x,depth){if(!x||depth>20||out.length>=8)return;if(Array.isArray(x)){x.forEach(function(y){walk(y,depth+1);});return;}if(typeof x!=='object')return;const types=Array.isArray(x['@type'])?x['@type']:[x['@type']];if(types.indexOf('Recipe')>=0)out.push({raw:x,src:url});if(x['@graph'])walk(x['@graph'],depth+1);if(x.mainEntity)walk(x.mainEntity,depth+1);if(x.itemListElement)walk(x.itemListElement,depth+1);if(x.item)walk(x.item,depth+1);}
   while((m=re.exec(html))){if(m[1].length>300000)continue;try{walk(JSON.parse(m[1]),0);}catch(e){}}
-  if(!out.length)throw new Error('Inget läsbart recept hittades. Klistra in recepttexten.');
-  if(JSON.stringify(out).length>300000)throw new Error('Receptinformationen är för stor. Klistra in recepttexten.');return out;
+  if(out.length){if(JSON.stringify(out).length>300000)throw new Error('Receptinformationen är för stor. Klistra in recepttexten.');return out;}
+  // Ingen receptdata (Instagram, bloggar): sidans beskrivning blir text att granska
+  let text=recipeMeta_(html,'og:description')||recipeMeta_(html,'description');const ig=/^[^:]{0,200}:\s*["“](.*)["”]\.?$/.exec(text);if(/(^|\.)instagram\.com$/.test(host)&&ig)text=ig[1];
+  if(text.length<20)throw new Error('Inget läsbart recept hittades. Klistra in recepttexten.');
+  return [recipeTextCand_({title:recipeMeta_(html,'og:title'),text:text,img:recipeMeta_(html,'og:image'),src:url,kind:/(^|\.)instagram\.com$/.test(host)?'instagram':'sida'})];
 }

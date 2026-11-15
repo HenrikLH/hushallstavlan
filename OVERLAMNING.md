@@ -2,6 +2,13 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Importera recept från delad länk (förslag, ej publicerat)
+- Ägare Claude, gren `claude/project-thread-ezemg7`. Henrik 15/11: dela/klistra in en länk (TikTok, receptsajter, YouTube, Instagram) och få in ett recept.
+- **Väntar på Henrik: ny `apps-script/Kod.gs`** (klistras in från dator + ny distribution). `recipeImport_` tar nu alla https-sajter (inte IP/localhost/port), TikTok via oEmbed (bildtext + omslag, korta vm.-länkar löses upp), YouTube via `shortDescription`, annars `og:description` (Instagram). Text-kandidater `{text,title,img,src,kind}`. Gamla Kod.gs: bara ICA/Köket/Arla/Coop fungerar, felet säger "klistra in recepttexten".
+- App: `recipeParseText(text,o)` tolkar bildtexter (rubriker på samma rad, punkter, numrerade steg, hashtaggar bort, portioner/min), `recipeFromCand`, bild från receptdata, Klistra in länk (`recipeKlistra`), delning `recipeDelat` (manifest `share_target` → `?delat_text=`, även `?recept=`). iPhone kan inte ta emot delningar till en hemskärmsapp: Kopiera länk + Klistra in.
+- Ej byggt: AI-tolkning (kräver API-nyckel i Apps Scripts egenskaper), recept som bara sägs i videon.
+- Test: `recept-dela.js` (ny), `recept-server.js`, recept-ui/-reliability/-legacy-ui, alla-flikar telefon + vägg.
+
 ## Skog: jämn luft på väggskärmen + mindre rumsknappar (publicerad ht-v405, ångra-gren `version-fore-vagg-avstand`)
 - Ägare Claude, gren `claude/project-thread-156e2m`, PR #115. Henrik 15/11: avstånden mellan rutor, skärmkanter och andra UI-element på väggen var olika (sidomeny: 25 px kanter, 17 mellan rutor, 55 mot nederkanten; menyrad nere: 44 kanter, 43 mot menyraden). Nu 21 px överallt på Översikt (rutor, kanter, sidomeny, menyraden och dess avstånd till nederkanten, väderkortets topp, Just nu-rutan). Rummen i Smart hem är kompakta rader (ikon + namn + status, 60 px) även när inget spelar. CSS sist i index.html (`html.ny.ui5.skog body.wall`).
 - Förloppsstapel och moppspärr görs i dammsugartråden, inte här.
