@@ -1,32 +1,50 @@
 # Fireplace: slår på TVn, ställer in volymen och spelar brasvideon på YouTube från början.
-# Klistra in i Home Assistant: Inställningar → Automationer och scener → Skript → Lägg till skript → Skapa nytt skript
-# → ⋮ uppe till höger → Redigera i YAML → ersätt allt med den här filen → Spara.
+# Klistra in i Home Assistant: Inställningar → Automationer och scener → Skript → Fireplace → ⋮ uppe till höger
+# → Redigera i YAML → ersätt allt med den här filen → Spara.
 # Lägg sedan till skriptet på tavlan (Smart hem → + → Lägg till enhet → Fireplace), så blir det en scen.
 # Skriptet har inga fält med flit: tavlan visar skript med fält som Högtalare-rutan i stället för som scen.
+# TVn är en Google TV i HA:s Android TV Remote-koppling (media_player.tv). Den kan inte ta emot en exakt volym,
+# bara volym upp/ned, så skriptet stegar fram till rätt nivå. Videon öppnas som länk i TVns YouTube-app.
 alias: Fireplace
 description: Brasan på TVn. Startar TVn, sätter volymen och spelar videon från början. Startas från Hushållstavlan.
 icon: mdi:fireplace
 mode: restart
 variables:
-  video: mSX3OyW9Rao
+  tv: media_player.tv
+  video: https://www.youtube.com/watch?v=mSX3OyW9Rao
   # Volymen i procent. Byt till den nivå TVn brukar ha när brasan går.
   vol: 25
-  # Den Chromecast som har "tv" i namnet. Skriv till exempel [media_player.tv_2] om fel enhet väljs.
-  spelare: "{{ (integration_entities('cast') | select('search', 'tv') | list)[:1] }}"
 sequence:
-  # Chromecasten väcker TVn via HDMI-CEC när den slås på
-  - action: media_player.turn_on
-    target:
-      entity_id: "{{ spelare }}"
-  - delay: "00:00:05"
-  - action: media_player.volume_set
-    target:
-      entity_id: "{{ spelare }}"
-    data:
-      volume_level: "{{ vol / 100 }}"
+  - if:
+      - condition: template
+        value_template: "{{ not is_state(tv, 'on') }}"
+    then:
+      - action: media_player.turn_on
+        target:
+          entity_id: "{{ tv }}"
+      - wait_template: "{{ is_state(tv, 'on') }}"
+        timeout: "00:00:20"
+      - delay: "00:00:03"
   - action: media_player.play_media
     target:
-      entity_id: "{{ spelare }}"
+      entity_id: "{{ tv }}"
     data:
-      media_content_type: cast
-      media_content_id: '{"app_name": "youtube", "media_id": "{{ video }}"}'
+      media_content_type: url
+      media_content_id: "{{ video }}"
+  - delay: "00:00:02"
+  # Stega volymen upp eller ned tills den når målet (högst 60 steg)
+  - variables:
+      mal: "{{ vol / 100 }}"
+      upp: "{{ (state_attr(tv, 'volume_level') or 0) < mal }}"
+  - repeat:
+      while:
+        - condition: template
+          value_template: >-
+            {% set v = state_attr(tv, 'volume_level') %}
+            {{ v is number and repeat.index <= 60 and ((v < mal - 0.005) if upp else (v > mal + 0.005)) }}
+      sequence:
+        - action: "media_player.volume_{{ 'up' if upp else 'down' }}"
+          target:
+            entity_id: "{{ tv }}"
+        - delay:
+            milliseconds: 400
