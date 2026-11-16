@@ -19,8 +19,8 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 - Test: `skog-oversikt.js` (T3DEMO=1 NOW=…12:10; gas.js har sluttider och födelsedagar), alla-flikar Skog telefon/vägg + Apple. Bilder /mnt/project-files/skog-oversikt/.
 
 
-## Karta | Dockan i dammsugarvyn (förslag A byggt, ej publicerat)
-- Ägare Claude, gren `claude/project-thread-j9rebe`. Henrik 16/11 hittade inte dockkortet (andra svepsidan). `haSvep` har segmentet `.ha-kseg` i stället för prickar; `ACT.haSvepTill` bläddrar, scroll-lyssnaren markerar valt. Test `robot-dockval.js` telefon + vägg gröna. Väntar på Henriks val (A/B/C) och "Pusha".
+## Karta | Dockan i dammsugarvyn (publicerad ht-v409, ångra-gren `version-fore-karta-dockan`)
+- Ägare Claude, gren `claude/project-thread-j9rebe`. Henrik 16/11 hittade inte dockkortet (andra svepsidan). `haSvep` har segmentet `.ha-kseg` i stället för prickar; `ACT.haSvepTill` bläddrar, scroll-lyssnaren markerar valt. Test `robot-dockval.js` telefon + vägg gröna. Henrik valde A.
 
 ## Fördröjd start av dammsugaren (publicerad ht-v408, ångra-gren `version-fore-fordrojd-start`)
 - Ägare Claude, gren `claude/project-thread-j9rebe`. Henrik 16/11: timervredet från Egen timer med snabbval 3/5/10 min; klockknapp mellan Starta och Hem.
