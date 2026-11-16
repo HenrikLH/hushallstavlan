@@ -19,6 +19,10 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 - Test: `skog-oversikt.js` (T3DEMO=1 NOW=…12:10; gas.js har sluttider och födelsedagar), alla-flikar Skog telefon/vägg + Apple. Bilder /mnt/project-files/skog-oversikt/.
 
 
+## Väggens dammsugarvy i tre delar (förslag, ej publicerat)
+- Ägare Claude, gren `claude/project-thread-j9rebe`. Henrik 16/11 valde 1: på väggen (`wallBoardOn()`, `.rob-vy.vagg3`) kartan överst och dockan underst till vänster (`.rob-km`/`.rob-kd`, fast höjd, sticky), val/rum/Starta till höger. Telefonen behåller Karta | Dockan. Kartan skalas via `--kar` på `.ha-kw`.
+- Test `robot-vagg3.js` vägg ljust/mörkt + telefon, alla-flikar telefon/vägg gröna. Väntar på "Pusha".
+
 ## Karta | Dockan i dammsugarvyn (publicerad ht-v409, ångra-gren `version-fore-karta-dockan`)
 - Ägare Claude, gren `claude/project-thread-j9rebe`. Henrik 16/11 hittade inte dockkortet (andra svepsidan). `haSvep` har segmentet `.ha-kseg` i stället för prickar; `ACT.haSvepTill` bläddrar, scroll-lyssnaren markerar valt. Test `robot-dockval.js` telefon + vägg gröna. Henrik valde A.
 
