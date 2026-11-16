@@ -334,6 +334,7 @@ def ha_robot(c, alla, e):
     if rv: r['vbrist'] = any(x['state'] == 'on' for x in rv)
     if any(e2.startswith('sensor.') and x.get('state') in ('water_empty', 'clean_water_tank_empty') for e2, x in D.items()): r['vbrist'] = True
     if 'mop' in r['lageAlt']: r['tank'] = ha_tank_info(c, r['vbrist'])
+    v0 = VANTA.get(e); r['vantar'] = {'t': v0['t'], 'n': v0['n'], 'rum': v0['rum']} if v0 else 0   # 0 = tjänsten kan fördröja start
     if e in PLAN:
         q = PLAN[e]; r['plan'] = {'steg': q['steg'], 'i': q['i'], 'klara': q['klara'], 'nu': q['nu'], 'hemma': not q.get('avbr') and (bool(q['hemma']) or (q['sett'] and v.get('state') == 'docked')), 'klar': bool(q['klar']), 'avbr': bool(q.get('avbr'))}
     k = ha_karta_info(alla, p)
@@ -405,6 +406,22 @@ def ha_app_styr(c, d):
     g = d.get('gor')
     if a['typ'] == 'robot':
         e = a['id']
+        # fördröjd start (Henrik 16/11): väggdatorn väntar, så starten blir av även om telefonen låses; ny start, Hem eller omstopp avbryter
+        if g in ('start', 'hem', 'paus', 'omstopp', 'omnu') or d.get('zon'):
+            v0 = VANTA.pop(e, None)
+            if v0: v0['tm'].cancel()
+            if g == 'omnu' and v0: return ha_app_styr(c, v0['d'])
+        if g in ('omstopp', 'omnu'): return 200, {'ok': True, 'v': HA['v']}
+        if g == 'start' and str(d.get('om') or '').isdigit() and int(d['om']) > 0:
+            om = max(10, min(4 * 3600, int(d['om']))); d2 = {k: v for k, v in d.items() if k != 'om'}
+            def kor():
+                if VANTA.get(e, {}).get('tm') is not t: return
+                VANTA.pop(e, None)
+                try: ha_app_styr(ha_cfg(), d2)
+                except Exception as x: logg('fördröjd start: ' + repr(x)[:120])
+            t = threading.Timer(om, kor); t.daemon = True
+            VANTA[e] = {'t': time.time() + om, 'tm': t, 'd': d2, 'n': om, 'rum': list(dict.fromkeys(int(x) for x in (d.get('rum') or []) + (d.get('damm') or []) + (d.get('mopp') or []) if str(x).isdigit()))}; t.start()
+            return 200, {'ok': True, 'v': HA['v']}
         if g == 'start':
             # appens förval (Max sugkraft, vald rutt) sätts före starten och blir det planen återställer till
             if d.get('sug') in a['sugAlt'] and d['sug'] not in ('off', a.get('sug')):
@@ -674,6 +691,7 @@ TOM_M2 = 20   # m² dammsugna rum innan behållaren töms (stora rum töms allti
 # Dammsug följt av mopp (inte båda samtidigt: fukten fastnar annars i dammbehållaren). Läget sätts före varje körning
 # och återställs till dammsugning efteråt, så att vanlig städning alltid är dammsugning.
 PLAN = {}
+VANTA = {}   # fördröjda starter per robot: {'t': när, 'tm': Timer, 'rum': [...]}
 def ha_plan_kor(c, a, lage, rum, val=None, ggr=1, rutt=None):
     tj = lambda dom, s, data: ha_anrop(c, '/api/services/%s/%s' % (dom, s), data)
     if lage and a.get('lage') != lage:

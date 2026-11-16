@@ -19,6 +19,12 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 - Test: `skog-oversikt.js` (T3DEMO=1 NOW=…12:10; gas.js har sluttider och födelsedagar), alla-flikar Skog telefon/vägg + Apple. Bilder /mnt/project-files/skog-oversikt/.
 
 
+## Fördröjd start av dammsugaren (förslag, ej publicerat)
+- Ägare Claude, gren `claude/project-thread-j9rebe`. Henrik 16/11: timervredet från Egen timer med snabbval 3/5/10 min; klockknapp mellan Starta och Hem.
+- Klient: `haRobOm` öppnar `tmrSheet` med `S.tmr.rob`, `haRobOmStart` → `haRob('start')` med `om` sekunder (`S.haOmSek`). Nedräkning `haOmRad` i bladet, rad i Smart hem (`otNotis` gar), `data-omt` uppdateras varje sekund. Avbryt `omstopp`, Starta nu `omnu`.
+- Tjänsten (`kiosk/ljussensor.py`, `VANTA`): väntar med `threading.Timer`, rapporterar `vantar` (0 = stöd finns). Klockknappen syns bara när tjänsten rapporterar `vantar`, alltså efter installation på Surfacen (Henriks "Kör").
+- Test: `robot-fordrojd.js` telefon + vägg, alla-flikar telefon/vägg gröna; tjänsten provad mot falsk-ha (start om, omstopp, omnu).
+
 ## Förlopp i Smart hem-rutan och håll in för bara moppning (publicerad ht-v406, ångra-gren `version-fore-forlopp-mopp`, PR #114)
 - Ägare Claude, gren `claude/project-thread-j9rebe`. Henrik 15/11: förloppsstapel när diskmaskinen och dammsugaren kör, i Smart hem-rutan (T19); moppning utan dammsugning före ska kräva håll in.
 - `otNotis(H,max,lista,gar)`: `gar=1` ger bara det som kör (robot via `haRobPct`, hela planen; maskiner `a.pct`) och används i `otHus` (telefon och vägg); Just nu visar bara klart/fel/lampor efter 22. Väggen: text + stapel på en rad (`.ot-v .ot-hus .ot-ntr`).
