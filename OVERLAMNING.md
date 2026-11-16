@@ -22,7 +22,7 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 ## Fördröjd start av dammsugaren (publicerad ht-v408, ångra-gren `version-fore-fordrojd-start`)
 - Ägare Claude, gren `claude/project-thread-j9rebe`. Henrik 16/11: timervredet från Egen timer med snabbval 3/5/10 min; klockknapp mellan Starta och Hem.
 - Klient: `haRobOm` öppnar `tmrSheet` med `S.tmr.rob`, `haRobOmStart` → `haRob('start')` med `om` sekunder (`S.haOmSek`). Nedräkning `haOmRad` i bladet, rad i Smart hem (`otNotis` gar), `data-omt` uppdateras varje sekund. Avbryt `omstopp`, Starta nu `omnu`.
-- Tjänsten (`kiosk/ljussensor.py`, `VANTA`): väntar med `threading.Timer`, rapporterar `vantar` (0 = stöd finns). Klockknappen syns bara när tjänsten rapporterar `vantar`, alltså efter installation på Surfacen (Henriks "Kör").
+- Tjänsten (`kiosk/ljussensor.py`, `VANTA`): väntar med `threading.Timer`, rapporterar `vantar` (0 = stöd finns). Klockknappen syns bara när tjänsten rapporterar `vantar`. Tjänsten installerad på Surfacen 16/11 (~/.local/bin/ljussensor.py, kopia .fore-fordrojd).
 - Test: `robot-fordrojd.js` telefon + vägg, alla-flikar telefon/vägg gröna; tjänsten provad mot falsk-ha (start om, omstopp, omnu).
 
 ## Förlopp i Smart hem-rutan och håll in för bara moppning (publicerad ht-v406, ångra-gren `version-fore-forlopp-mopp`, PR #114)
@@ -35,7 +35,7 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 - Ägare Claude, gren `claude/project-thread-j9rebe`. Henrik 14/11: Skog-accent, Max sugkraft som standard, vattenflödet alltid Roborocks Custom (`custom_water_flow`, eget reglage under Low för trägolvet; nivån ställs i Roborock-appen), Route kvar, snyggare Standard/Deep/Deep+ per rum.
 - `haStd(a,k)`: sug Max (snabbvalet gäller bara nästa start, `S.haRobVal`), vatten låst `custom_water_flow` (Water-valet dolt i snabbval och inställningar), rutt = robotens/valt. Start skickar sug/rutt/vatten först som egna anrop (gammal tjänst) och med starten (ny tjänst sätter dem i `ha_app_styr`; planen återställer till dem). Per rum: segment `.ha-rs` (`haRuttVal`, `ACT.haRobRm`, ls `haRumRutt`).
 - Skog-CSS sist i index.html: dammsugning `--sk-damm` grön, moppning `--sk-mopp` sjöblå, tömning/docka bärnsten, klart grönt.
-- Overifierat på riktig robot att `custom_water_flow` är Roborocks Custom-reglage. Tjänsten på Surfacen behöver Henriks "Kör" (appen fungerar utan).
+- Overifierat på riktig robot att `custom_water_flow` är Roborocks Custom-reglage. Tjänsten installerad på Surfacen 16/11.
 - Test: robot-skog.js (ny), robot-mopp mot falsk HA, apparater demo, alla-flikar Skog telefon+vägg gröna. CI faller på `uiVersion` id 2 (Klassisk borttagen på main, inte denna PR). apparater.js mot falsk HA faller även på main.
 ## Menyknapp, kryssrutor och omritning i Inställningar (publicerad ht-v401, ångra-gren `version-fore-meny-kryss`)
 - Ägare Claude, gren `claude/project-thread-qnvsb4`. Henrik 14/11: (1) vald flik i Skog: ljus salvia `#DCE8D2` med skogsgrön ikon `#2F5D3A` (telefon och väggens sidomeny). (2) Inställningar ritades om vid varje render (synk var 30:e s, Smart hem, väder, sparstatus): bladet byggdes om och den öppna delen gled in igen (`u5in`). Nu hoppas samma HTML över (`o.__sH`) och en ändrad omritning avslutar animationen direkt. (3) Kryssrutornas ram i Skog hade bara mörk variant för manuellt Mörkt, inte systemets; nu `var(--ink-3)`.
