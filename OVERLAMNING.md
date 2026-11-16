@@ -19,7 +19,7 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 - Test: `skog-oversikt.js` (T3DEMO=1 NOW=…12:10; gas.js har sluttider och födelsedagar), alla-flikar Skog telefon/vägg + Apple. Bilder /mnt/project-files/skog-oversikt/.
 
 
-## Fördröjd start av dammsugaren (förslag, ej publicerat)
+## Fördröjd start av dammsugaren (publicerad ht-v408, ångra-gren `version-fore-fordrojd-start`)
 - Ägare Claude, gren `claude/project-thread-j9rebe`. Henrik 16/11: timervredet från Egen timer med snabbval 3/5/10 min; klockknapp mellan Starta och Hem.
 - Klient: `haRobOm` öppnar `tmrSheet` med `S.tmr.rob`, `haRobOmStart` → `haRob('start')` med `om` sekunder (`S.haOmSek`). Nedräkning `haOmRad` i bladet, rad i Smart hem (`otNotis` gar), `data-omt` uppdateras varje sekund. Avbryt `omstopp`, Starta nu `omnu`.
 - Tjänsten (`kiosk/ljussensor.py`, `VANTA`): väntar med `threading.Timer`, rapporterar `vantar` (0 = stöd finns). Klockknappen syns bara när tjänsten rapporterar `vantar`, alltså efter installation på Surfacen (Henriks "Kör").
