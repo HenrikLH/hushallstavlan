@@ -4739,6 +4739,13 @@ html.ny .bcard:nth-child(n+7){content-visibility:auto;contain-intrinsic-size:aut
 .ha-omk.av{display:grid;place-items:center;width:44px;padding:0}.ha-omk.av svg{width:18px;height:18px}
 .ha-omk.nu{background:var(--sk-gron,var(--accent));color:#fff}
 .ot-nt [data-omt]{font-variant-numeric:tabular-nums}
+/* dammsugarvyn: Karta | Dockan (ersätter sidprickarna) */
+.ha-kseg{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:2px;padding:3px;border-radius:12px;background:color-mix(in srgb,var(--ri,#fff) 9%,transparent)}
+.ha-kseg button{display:grid;place-items:center;height:34px;padding:0;border:0;border-radius:9px;background:none;color:color-mix(in srgb,var(--ri,#fff) 60%,transparent);font:inherit;font-size:15px;font-weight:500;cursor:pointer;transition:background-color .2s,color .2s}
+.ha-kseg button[aria-selected="true"]{background:var(--surface-raised,rgba(255,255,255,.26));color:var(--ri,#fff);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+html.ny.ui5.skog .ha-kseg button[aria-selected="true"]{background:var(--sk-tumme);box-shadow:var(--sk-tskugga);color:var(--sk-gron2)}
+html.ny.ui5.skog[data-theme="dark"] .ha-kseg button[aria-selected="true"]{color:var(--ink)}
+@media (prefers-color-scheme:dark){html.ny.ui5.skog:not([data-theme="light"]) .ha-kseg button[aria-selected="true"]{color:var(--ink)}}
 </style>
 </head>
 <body>

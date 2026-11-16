@@ -2074,7 +2074,8 @@ function haTank(a){const t=a.tank;if(!t)return'';const p=t.brist?0:Math.max(0,Ma
 const HA_RUMNAMN=['Kök','Vardagsrum','Sovrum','Hall','Badrum','Kontor','Barnrum','Matplats','Klädkammare','Tvättstuga','Arbetsrum','Gästrum'];
 // Dockans bild: tankar (rent vatten blått, smutsvatten grått/orange) och roboten i dockan när den är hemma
 // svepbara kort (karta, docka) med sidprickar; läget sparas i S.haSwX så att omritning inte hoppar tillbaka
-function haSvep(K,namn){const n=Math.min(K.length-1,Math.max(0,S.haSwX|0));return'<div class="ha-kort"><div class="ha-kortr" aria-label="Kort">'+K.map((k,i)=>'<div class="ha-kortk" aria-label="'+esc(namn[i])+'">'+k+'</div>').join('')+'</div><div class="ha-kortd" aria-hidden="true">'+K.map((k,i)=>'<i'+(i===n?' class="on"':'')+'></i>').join('')+'</div></div>'}
+// Karta | Dockan som segment ovanför i stället för sidprickar (Henrik 16/11: dockan var svår att hitta); svep fungerar som förut
+function haSvep(K,namn){const n=Math.min(K.length-1,Math.max(0,S.haSwX|0));return'<div class="ha-kort"><div class="ha-kseg" role="tablist" style="--n:'+K.length+'">'+namn.map((t,i)=>'<button type="button" role="tab" data-act="haSvepTill" data-id="'+i+'" aria-selected="'+(i===n)+'">'+esc(t)+'</button>').join('')+'</div><div class="ha-kortr" aria-label="Kort">'+K.map((k,i)=>'<div class="ha-kortk" aria-label="'+esc(namn[i])+'">'+k+'</div>').join('')+'</div></div>'}
 // dockans kort (Henrik valde A: stor genomskuren docka; läget syns i bilden, text bara när något ska göras)
 function haDockLage(a){const dv=a.dockVarn||[],t=a.tank,st=a.st||'';
  const smuts=dv.some(v=>/dirty/i.test(v)),tom=t&&t.brist!=null?!!t.brist:dv.some(v=>/clean water/i.test(v)),fel=dv.filter(v=>!/dirty|clean water/i.test(v)).map(x=>x.replace(/^Dock error: /,''));
@@ -6539,6 +6540,7 @@ const ACT={
   if(om){[a.st,a.plan]=was;B.om=om;a.vantar={t:Date.now()/1e3+om,n:om,rum:[...new Set([].concat(P.damm||[],P.mopp||[],rum))]}}
   render();(async()=>{for(const f of fore)await haSend(f,()=>{});haSend(B,()=>{[a.st,a.plan]=was;if(om)a.vantar=0})})()},
  haRobMopp(){ACT.haRob('start')},
+ haSvepTill(id,el){const w=el&&el.closest('.ha-kort'),r=w&&w.querySelector('.ha-kortr');if(!r)return;r.scrollTo({left:(+id||0)*(r.clientWidth+12),behavior:MOTION?'smooth':'auto'})},
  haRobOm(){S.tmr={rob:1,min:Number(lsGet('robOm'))||5};S.sheet='tmr';render()},
  haRobOmStart(){const m=S.tmr.min;lsSet('robOm',m);S.sheet=null;S.haOmSek=m*60;ACT.haRob('start')},
  haRobOmStopp(id){const a=haApps().find(x=>x.id===id)||haAppX();if(!a||!a.vantar)return;const was=a.vantar;a.vantar=0;render();haSend({app:a.id,gor:'omstopp'},()=>{a.vantar=was;render()})},
@@ -7078,7 +7080,7 @@ document.addEventListener('click',e=>{const el=e.target.closest('.dr-slide');if(
  if(SWP.moved){SWP.moved=false;e.stopPropagation();e.preventDefault();return}
  if(el.classList.contains('open')||el.classList.contains('openl')){e.stopPropagation();e.preventDefault();swpSet(el,0,true)}},true);
 // Dagraden i kalenderrutan minns var man svepte, så att den inte hoppar tillbaka när sidan ritas om
-document.addEventListener('scroll',e=>{const t=e.target;if(t&&t.classList&&t.classList.contains('wk-sw')){S.wkX=t.scrollLeft;wkMonth(t)}if(t&&t.classList&&t.classList.contains('wxC-sc'))S.wxX=t.scrollLeft;if(t&&t.classList&&t.classList.contains('ha-kortr')){const n=Math.round(t.scrollLeft/(t.clientWidth+12));if(n!==S.haSwX){S.haSwX=n;t.parentNode.querySelectorAll('.ha-kortd i').forEach((d,i)=>d.classList.toggle('on',i===n))}}},true);
+document.addEventListener('scroll',e=>{const t=e.target;if(t&&t.classList&&t.classList.contains('wk-sw')){S.wkX=t.scrollLeft;wkMonth(t)}if(t&&t.classList&&t.classList.contains('wxC-sc'))S.wxX=t.scrollLeft;if(t&&t.classList&&t.classList.contains('ha-kortr')){const n=Math.round(t.scrollLeft/(t.clientWidth+12));if(n!==S.haSwX){S.haSwX=n;t.parentNode.querySelectorAll('.ha-kseg button').forEach((d,i)=>d.setAttribute('aria-selected',i===n))}}},true);
 // Månaden bredvid Schema följer de dagar som syns i raden
 function wkMonth(w){const ds=w.querySelectorAll('.wk-d'),mo=w.closest('.calw')&&w.closest('.calw').querySelector('.wk-mo');if(!ds.length||!mo)return;
  const i=Math.min(ds.length-1,Math.round(w.scrollLeft/ds[0].offsetWidth)+3),k=ds[i].dataset.id;if(isDate(k))mo.textContent=MON[parse(k).getMonth()]}
