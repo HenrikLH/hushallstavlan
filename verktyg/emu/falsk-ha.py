@@ -17,7 +17,7 @@ S = {
  'fan.golvflakt': ['off', {'friendly_name': 'Golvfläkt'}],
  'switch.diskmaskin_barnlas': ['off', {'friendly_name': 'Diskmaskin Barnlås'}],
  'sensor.ute': ['6.1', {'friendly_name': 'Ute', 'unit_of_measurement': '°C', 'device_class': 'temperature'}],
- 'light.vagglampa': ['off', {'friendly_name': 'Vägglampa', 'supported_color_modes': ['color_temp'], 'color_mode': 'color_temp', 'min_color_temp_kelvin': 2202, 'max_color_temp_kelvin': 4000}],
+ 'light.kajplats_2': ['off', {'friendly_name': 'Vägglampa', 'supported_color_modes': ['color_temp'], 'color_mode': 'color_temp', 'min_color_temp_kelvin': 2202, 'max_color_temp_kelvin': 4000}],
  'automation.morgonljus': ['on', {'friendly_name': 'Morgonljus i hallen', 'last_triggered': '2026-11-16T06:30:00+00:00'}],
  'automation.robot_tisdag': ['off', {'friendly_name': 'Robot städar tisdagar', 'last_triggered': None}],
  # HA-paketet Solljus (kiosk/ha/solljus-paket.yaml), nyss installerat: inställningarna tomma/på min

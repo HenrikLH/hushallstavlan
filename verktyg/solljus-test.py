@@ -8,7 +8,7 @@ sys.dont_write_bytecode = True
 ROT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.environ['HOME'] = tempfile.mkdtemp(); os.environ['TZ'] = 'Europe/Stockholm'; time.tzset()
 os.makedirs(os.environ['HOME'] + '/.config')
-json.dump({'url': 'http://127.0.0.1:18125', 'token': 'test', 'lampor': ['light.kok', 'light.vagglampa'], 'scener': [], 'givare': []},
+json.dump({'url': 'http://127.0.0.1:18125', 'token': 'test', 'lampor': ['light.kok', 'light.kajplats_2', 'light.vardagsrum'], 'scener': [], 'givare': []},
           open(os.environ['HOME'] + '/.config/hushallstavlan-ha.json', 'w'))
 fha = subprocess.Popen([sys.executable, ROT + '/verktyg/emu/falsk-ha.py', '18125']); time.sleep(.6)
 spec = importlib.util.spec_from_file_location('ls', ROT + '/kiosk/ljussensor.py'); L = importlib.util.module_from_spec(spec); spec.loader.exec_module(L)
@@ -23,11 +23,11 @@ alla = lambda: {x['entity_id']: x for x in ha('/api/states')}
 sol = lambda: {x['id']: x for x in L.ha_las(L.ha_cfg())['sol']}
 try:
     c = L.ha_cfg()
-    koll('vägglampan är förval', L.sol_std_lampa(c) == 'light.vagglampa')
     S = sol()
-    koll('nyinstallerat: förvalen visas', S['upp']['off'] == 60 and S['ned']['off'] == -60 and S['upp']['min'] == 60 and S['ned']['slut'] == 35 and S['upp']['lampa'] == 'light.vagglampa', S)
+    koll('vägglampan (HA-namnet) är förval', L.sol_std_lampa(c) == 'light.kajplats_2')
+    koll('nyinstallerat: förvalen visas', S['upp']['off'] == 60 and S['ned']['off'] == -60 and S['upp']['min'] == 60 and S['ned']['slut'] == 35 and S['upp']['lampa'] == 'light.kajplats_2', S)
     koll('förvalen skrivs till HA', st('input_number.solljus_upp_off')['state'] == '60.0' and st('input_number.solljus_ned_off')['state'] == '-60.0'
-         and st('input_number.solljus_ned_slut')['state'] == '35.0' and st('input_text.solljus_ned_lampa')['state'] == 'light.vagglampa')
+         and st('input_number.solljus_ned_slut')['state'] == '35.0' and st('input_text.solljus_ned_lampa')['state'] == 'light.kajplats_2')
     S = sol()
     upp, ned, _ = L.sol_tider(time.time())
     koll('på = automationen, soltider i dag och i morgon', S['upp']['pa'] and S['upp']['sol'][0] == round(upp) and S['ned']['sol'][0] == round(ned) and S['upp']['sol'][1] > S['upp']['sol'][0] + 80000)

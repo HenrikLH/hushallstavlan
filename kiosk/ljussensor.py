@@ -1389,14 +1389,16 @@ SOL_STD = {'upp': {'off': 60, 'min': 60, 'slut': 100}, 'ned': {'off': -60, 'min'
 SOL_GRANS = {'off': (-180, 180, 15), 'min': (15, 180, 15), 'slut': (5, 100, 5)}
 SOL_MAN = {}        # riktning -> när Starta nu trycktes
 SOL_TONAR = set()   # lampor som tonas just nu (för vanorna)
+SOL_ALLA = {}       # senaste /api/states (för HA-namnen när förvalet väljs)
 
 def sol_hj(r, k):
     return 'input_text.solljus_%s_lampa' % r if k == 'lampa' else 'input_number.solljus_%s_%s' % (r, k)
 
 def sol_std_lampa(c):
-    # förval: vägglampan, annars första lampan
+    # förval: vägglampan (id, eget namn eller HA-namn), annars första lampan
     L = [e for e in c['lampor'] if e.split('.')[0] == 'light']
-    namn = lambda e: (e + ' ' + (c['namn'].get(e) or '')).lower().replace('ä', 'a')
+    hn = {e: ((SOL_ALLA.get(e) or {}).get('attributes') or {}).get('friendly_name') or '' for e in L}
+    namn = lambda e: (e + ' ' + (c['namn'].get(e) or '') + ' ' + hn.get(e, '')).lower().replace('ä', 'a')
     return next((e for e in L if 'vagg' in namn(e)), L[0] if L else '')
 
 def sol_tid(s):
@@ -1414,6 +1416,7 @@ def sol_varden(alla, r):
 
 def sol_info(c, alla, nu):
     if SOL_SKRIPT not in alla or not any(a in alla for a in SOL_AUTO.values()): return []
+    SOL_ALLA.clear(); SOL_ALLA.update(alla)
     sk = alla[SOL_SKRIPT]; skpa = sk.get('state') == 'on'; skt = sol_tid((sk.get('attributes') or {}).get('last_triggered'))
     senast = {r: max(SOL_MAN.get(r, 0), sol_tid(((alla.get(a) or {}).get('attributes') or {}).get('last_triggered'))) for r, a in SOL_AUTO.items()}
     ut = []
