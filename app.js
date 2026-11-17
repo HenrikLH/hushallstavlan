@@ -201,7 +201,7 @@ function addToBank(r,quiet,fav){if(!r||inBank(r.id))return false;const snap=bank
 // Knapparna byggs en gång så att markeringen kan glida mellan flikarna i stället för att ritas om.
 function renderNav(nav){
  const sx=sidoNy(),ui=(U4?'4':String(U3))+(sx?'x':'');if(nav.dataset.ui!==ui){nav.innerHTML='';nav.dataset.ui=ui}
- if(!nav.querySelector('.nav-pill'))nav.innerHTML='<div class="brand" aria-hidden="true">'+(U4?'Hushållstavlan':'Hemma')+'</div><div class="nav-pill" aria-hidden="true"></div>'+VIEWS.map(([id,l,ic])=>'<button data-act="nav" data-id="'+id+'">'+ic+'<span>'+(U3&&id==='oversikt'?'Idag':l)+'</span></button>').join('')+(sx?'<i class="nav-sep" aria-hidden="true"></i>'+SIDO_X.map(([id,l,ic])=>'<button data-act="nav" data-id="'+id+'" class="nav-x">'+ic+'<span>'+l+'</span></button>').join(''):'');
+ if(!nav.querySelector('.nav-pill'))nav.innerHTML='<div class="brand" aria-hidden="true">'+(U4?'Hushållstavlan':'Hemma')+'</div><div class="nav-pill" aria-hidden="true"></div>'+VIEWS.map(([id,l,ic])=>(sx&&SIDO_NAMN[id]?SIDO_NAMN[id]():[id,l,ic])).map(([id,l,ic])=>'<button data-act="nav" data-id="'+id+'">'+ic+'<span>'+(U3&&id==='oversikt'?'Idag':l)+'</span></button>').join('')+(sx?SIDO_X.map(([id,l,ic])=>'<button data-act="nav" data-id="'+id+'" class="nav-x">'+ic+'<span>'+l+'</span></button>').join(''):'');
  const xv=sx&&SIDO_X.some(v=>v[0]===S.view),i=xv?-1:VIEWS.findIndex(v=>v[0]===(S.view==='stad'?'uppgifter':HEM_UNDER.includes(S.view)?'hemmet':S.view));
  nav.querySelectorAll('button[data-act="nav"]').forEach((b,j)=>j===i||xv&&b.dataset.id===S.view?b.setAttribute('aria-current','page'):b.removeAttribute('aria-current'));
  // väggskärmen: menyn som sidofält till vänster, ihopfälld (bara ikoner) eller utfälld (ikoner och namn)
@@ -378,12 +378,14 @@ let fitScrollbar=()=>{},hideCursor=()=>{};
  document.addEventListener('scroll',()=>{if(!el.classList.contains('sb-auto'))return;el.classList.add('scrolling');clearTimeout(t);t=setTimeout(()=>el.classList.remove('scrolling'),900)},{capture:true,passive:true});
  fitScrollbar=fit})();
 
-/* Väggtavlan: tillbaka till Översikt efter två minuter utan beröring, och väck nattläget vid tryck */
+/* Väggtavlan: tillbaka till Översikt efter en stund utan beröring (Inställningar → Enheten, ht.vaggTill i minuter, 2 som förval,
+   0 = aldrig), och väck nattläget vid tryck */
+const vaggTill=()=>{const v=lsGet('vaggTill');return['0','1','5','10'].includes(v)?+v:2};
 (function(){const touch=()=>{const was=nightOn()||typeof vilaOn==='function'&&vilaOn();A.touch=Date.now();if(was&&S.view==='oversikt')render()};
  document.addEventListener('pointerdown',touch,true);
- setInterval(()=>{if(!S.wall||motionDrag||sheetDrag)return;const idle=Date.now()-(A.touch||0)>120000;
+ setInterval(()=>{if(!S.wall||motionDrag||sheetDrag)return;const tm=vaggTill(),idle=Date.now()-(A.touch||0)>(tm||2)*60000;
   if(idle&&S.arrange){arrCancel();render()}
-  if(idle&&(S.view!=='oversikt'||S.sheet||S.shopAdd||S.taskAdd||S.recipe||window.scrollY>0)&&!S.cook){closeSheets();S.recipe=null;ACT.nav('oversikt')}
+  if(idle&&tm&&(S.view!=='oversikt'||S.sheet||S.shopAdd||S.taskAdd||S.recipe||VSIDO&&VSIDOL==='over'||window.scrollY>0)&&!S.cook){closeSheets();S.recipe=null;S.otRum=null;if(VSIDOL==='over')VSIDO=false;ACT.nav('oversikt')}
   else if(S.view==='oversikt'&&(document.body.classList.contains('is-night')!==nightOn()||!!document.querySelector('.onv')!==vilaOn()))render();
   autoTheme()},20000)})();
 
@@ -1471,7 +1473,7 @@ function ogNu(){const N=onNuData(),t=today(),M=onMat(t),m=/^Om (.+?)(?: · (.+))
  const mat=M&&N.ic!==I.fork&&new Date().getHours()<19?'<button type="button" class="og-nx" data-act="'+(M.r?'recipe':'nav')+'" data-id="'+esc(M.r?M.r.id:'mat')+'"><i>'+I.fork+'</i><b>Börja laga '+onKl(M.start)+'<span>'+esc(cap(M.m.title.replace(/^Storkok:\s*/i,'')))+'</span></b></button>':'';
  return'<section class="og-c og-nu tone-'+N.tone+'" data-act="'+N.act+'" data-id="'+esc(N.id)+'"><div class="og-lab"><i class="og-dot"></i>'+esc(lab)+'</div>'+(big?'<div class="og-big num">'+bt+'</div>':'')+'<div class="og-nuh'+(big?'':' st')+'">'+esc(N.h)+'</div>'+(N.s?'<div class="og-nus">'+esc(N.s)+'</div>':'')+mat+'</section>'}
 function ogSchema(){const t=today(),P=people();
- const dag=i=>{const k=addDays(t,i),dt=parse(k),A=D().events.filter(e=>e.date===k),bd=A.filter(isBdEv).concat(!tel&&vaggOv()==='B'?bdays().filter(b=>b.next===k&&!A.some(e=>isBdEv(e)&&e.title.startsWith(b.name))).map(b=>({title:b.name+(b.age!=null?' '+b.age+' år':' fyller år')})):[]),E=A.filter(e=>!isBdEv(e)).sort((a,b)=>String(a.time||'').localeCompare(String(b.time||''))),st=i?new Map():evStates(E),M=onMat(k);
+ const dag=i=>{const k=addDays(t,i),dt=parse(k),A=D().events.filter(e=>e.date===k),bd=A.filter(isBdEv),E=A.filter(e=>!isBdEv(e)).sort((a,b)=>String(a.time||'').localeCompare(String(b.time||''))),st=i?new Map():evStates(E),M=onMat(k);
   const L=E.map(e=>{const x=st.get(e)||{},w=evParts(e).name||evPerson(e),tm=String(e.time||'').replace(/\s*[–-]\s*/,'–');
    return{s:onMin(e.time)==null?-1:onMin(e.time),h:'<div class="og-e'+(x.st==='past'?' forbi':'')+(x.st==='now'||x.st==='next'?' nu':'')+'" style="--c:var(--'+(w&&P.includes(w)?pcls(w):'accent')+')" data-act="calOpen" data-id="'+k+'">'+(tm?'<div class="og-tm num">'+esc(tm)+(x.st==='next'&&x.inn?'<span class="og-pill">om '+esc(x.inn)+'</span>':x.st==='now'?'<span class="og-pill">nu</span>':'')+'</div>':'')+'<b>'+evTitle(e)+'</b>'+(w?'<small>'+esc(personLabel(w))+'</small>':'')+'</div>'}});
   if(M)L.push({s:M.start,h:'<div class="og-e mat" data-act="'+(M.r?'recipe':'calOpen')+'" data-id="'+esc(M.r?M.r.id:k)+'"><div class="og-tm num">'+onKl(M.start)+'</div><b>'+esc(cap(M.m.title.replace(/^Storkok:\s*/i,'')))+'</b><small>Middag'+(M.r&&M.r.min?' · '+M.r.min+' min':'')+'</small></div>'});
@@ -1525,7 +1527,7 @@ function otHead(tel){const n=new Date(),t=today(),d=parse(t),hh=n.getHours(),dy=
  return'<section class="ot-head"'+RF('T17')+'>'+brand+'<div class="ot-tid">'+kl+'<i class="ot-sep"></i><div><div class="ot-dat">'+esc(dat)+'</div><div class="ot-vk">Vecka '+isoWeek(d)+'</div></div></div></section>'}
 /* Schema: tre dagar som listor med prick och tid. Idag har salviagrön rubrik och gröna prickar, övriga dagar neutrala */
 function otSchema(tel){const t=today(),n=new Date(),dg=Math.max(0,Math.min(2,+S.otDag||0));
- const dag=i=>{const k=addDays(t,i),dt=parse(k),A=D().events.filter(e=>e.date===k),bd=A.filter(isBdEv).concat(!tel&&vaggOv()==='B'?bdays().filter(b=>b.next===k&&!A.some(e=>isBdEv(e)&&e.title.startsWith(b.name))).map(b=>({title:b.name+(b.age!=null?' '+b.age+' år':' fyller år')})):[]),E=A.filter(e=>!isBdEv(e)).sort((a,b)=>String(a.time||'').localeCompare(String(b.time||''))),st=i?new Map():evStates(E);
+ const dag=i=>{const k=addDays(t,i),dt=parse(k),A=D().events.filter(e=>e.date===k),bd=A.filter(isBdEv),E=A.filter(e=>!isBdEv(e)).sort((a,b)=>String(a.time||'').localeCompare(String(b.time||''))),st=i?new Map():evStates(E);
   const rad=(cls,tm,tit,act,id,lbl,x)=>'<div class="ot-te'+cls+'" data-act="'+act+'" data-id="'+esc(id)+'"'+(lbl?' title="'+esc(lbl)+'"':'')+'><i></i><span class="ot-tm num">'+tm+'</span><span class="ot-tt"><b>'+tit+'</b>'+(x||'')+'</span></div>';
   const L=bd.map(e=>rad(' bd',I.cake,esc(e.title),'nav','fod','Födelsedag')).concat(E.filter(e=>(st.get(e)||{}).st!=='past').map(e=>{const x=st.get(e)||{},w=evParts(e).name||evPerson(e),tm=String(e.time||'').replace(/\s*[–-].*$/,'');
    const sl=(/[–-]\s*(\d{1,2}[.:]\d{2})/.exec(e.time||'')||[])[1],pb=x.st==='now'&&x.p!=null?'<span class="ot-pb"><i><b style="width:'+Math.max(3,Math.round(x.p*100))+'%"></b></i><small class="num">'+esc(x.left)+' kvar</small></span>':'';
@@ -1557,7 +1559,7 @@ function otHus(tel){const hd=x=>'<div class="ot-h"><span class="ot-hi">'+I.home+
   return'<div class="ot-ti3'+(p?' on':'')+'" data-rum="'+esc(x.r)+'"><button type="button" class="ot-tb" data-act="otRum" data-id="'+esc(x.r)+'"><span class="ot-si">'+s.ic+'</span><b>'+esc(x.n||x.r)+'</b><span>'+esc(s.txt)+'</span></button></div>'};
 
  const med=otMed(),nt=otNotis(H,3,0,1);
- return'<section class="ot-c ot-hus'+(med||nt?' spelar':'')+'"'+RF('T19')+'>'+hd('<span class="ot-h2">'+esc(ak)+'</span>')+nt+'<div class="ot-rums">'+R.map(ruta).join('')+hog+'</div>'+(vaggOv()==='B'&&!med?otLage(H):'')+med+(med&&nt?'':'<div class="ot-scl">Scener</div><div class="ot-sc">'+sc+'</div>')+'</section>'}
+ return'<section class="ot-c ot-hus'+(med||nt?' spelar':'')+'"'+RF('T19')+'>'+hd('<span class="ot-h2">'+esc(ak)+'</span>')+nt+'<div class="ot-rums">'+R.map(ruta).join('')+hog+'</div>'+med+(med&&nt?'':'<div class="ot-scl">Scener</div><div class="ot-sc">'+sc+'</div>')+'</section>'}
 /* Just nu i Smart hem (väggen, Skog): diskmaskin/tvätt klar tills någon trycker Klar eller den startas igen, robotdammsugaren när den
    städar eller behöver hjälp, och efter kl. 22 Släck allt om lampor är tända. Högst två rader; kvitteringen sparas per enhet (ht.otKvitt). */
 const otKvitt=a=>a.id+'|'+(a.slut||a.st);
@@ -1612,21 +1614,12 @@ function otFodNt(){const P=presBud();return bdNext(bdays()).filter(b=>b.days<=1|
  return{pr:b.days<2?3:0,h:'<div class="ot-nt fod'+(b.days<2?' nu':'')+'"'+bdSt(b)+'><button type="button" class="ot-ntb" data-act="nav" data-id="fod"><span class="ot-nti">'+(b.days===0?I.cake:OT_GAVA)+'</span><span class="ot-ntt"><b>'+esc(b.name+' '+(b.age!=null?'fyller '+b.age:'fyller år')+' '+nar)+'</b><small>'+esc(b.days===0?'Grattis!':b.gift&&b.days===14?'Köp present för '+presKr(b.age,P)+' kr, ligger i Att göra':b.dd+' '+MON3[b.mo])+'</small></span></button></div>'}})}
 function otJustNu(tel){const H=haOn(!tel)&&haData(),L=(H?otNotis(H,9,1):[]).concat(otFodNt()).sort((a,b)=>b.pr-a.pr),max=tel?3:2;if(!L.length)return'';
  return'<section class="ot-c ot-nu"'+RF('T23')+'>'+(tel?'<div class="ot-nuh">Just nu</div>':'')+'<div class="ot-nts">'+L.slice(0,max).map(x=>x.h).join('')+'</div>'+(L.length>max?'<button type="button" class="ot-numer" data-act="nav" data-id="fod">+'+(L.length-max)+' till</button>':'')+'</section>'}
-function wallT3(){const f=vaggOv();return'<div class="ot ot-v ot-'+otFas()+(f?' ovf-'+f:'')+'">'+otLand()+otHead(false)+otJustNu(false)+otWx(false)+otSchema(false)+(f==='A'?'<div class="ot-hk">'+otHus(false)+otFodKort()+'</div>':otHus(false))+otGora(false)+'</div>'}
-/* Förslag (17/11) för väggens Översikt i Skog, ht.vaggOv: A = Födelsedagar som egen ruta under Smart hem (rutan krymper till
-   sitt innehåll), B = Smart hem fylls med läget i hemmet (inne, lampor, solljuset) och födelsedagarna står i Schemas dagar. */
-const vaggOv=()=>{const v=lsGet('vaggOv');return v==='A'||v==='B'?v:''};
-function otFodKort(){const L=bdNext(bdays()),P=presBud();
- const hd='<div class="ot-h"><span class="ot-hi">'+I.cake+'</span><b>Födelsedagar</b><button type="button" class="ot-lnk" data-act="nav" data-id="fod" aria-label="Visa födelsedagar">'+I.chev+'</button></div>';
- if(!L.length)return'<section class="ot-c ot-fk">'+hd+'<div class="ot-tom">Inga inlagda</div></section>';
- const rad=b=>'<button type="button" class="ot-fr'+(b.days<2?' nu':'')+'" data-act="nav" data-id="fod"'+bdSt(b)+'><span class="ot-fd"><b class="num">'+b.dd+'</b><span>'+MON3[b.mo]+'</span></span><span class="ot-ftx"><b>'+bdRubrik(b)+'</b><small>'+esc(cap(bdWhen(b)))+(b.gift&&b.days<=14?' · present '+presKr(b.age,P)+' kr':'')+'</small></span></button>';
- return'<section class="ot-c ot-fk">'+hd+'<div class="ot-fl">'+L.slice(0,3).map(rad).join('')+'</div></section>'}
-// B: läget i hemmet som tre små brickor under rummen (inne, tända lampor, nästa solljus)
-function otLage(H){const G=(H.givare||[]).find(g=>/°/.test(g.u||'')),on=(H.lampor||[]).filter(l=>l.on).length,nu=Date.now()/1e3;
- let sol=null;(H.sol||[]).filter(x=>x.pa).forEach(x=>(x.sol||[]).forEach(t=>{const at=t+(x.off||0)*60;if(at>nu&&(!sol||at<sol.at))sol={at,id:x.id}}));
- const kl=t=>{const d=new Date(t*1e3);return pad(d.getHours())+':'+pad(d.getMinutes())};
- const b=(ic,v,l)=>'<div class="ot-lg"><span class="ot-lgi">'+ic+'</span><b class="num">'+v+'</b><small>'+l+'</small></div>';
- return'<div class="ot-lgs">'+(G?b(HAI.temp||I.clock,esc(String(G.v).replace('.',','))+'°','Inne'):'')+b(HAI.bulb,on?String(on):'Inga',on?(on>1?'lampor tända':'lampa tänd'):'lampor tända','')+(sol?b(HAI.sun||I.clock,kl(sol.at),sol.id==='upp'?'Ljuset tonas upp':'Ljuset tonas ned'):'')+'</div>'}
+function wallT3(){const fk=otFodKort();return'<div class="ot ot-v ot-'+otFas()+(fk?' ovf-A':'')+'">'+otLand()+otHead(false)+otJustNu(false)+otWx(false)+otSchema(false)+(fk?'<div class="ot-hk">'+otHus(false)+fk+'</div>':otHus(false))+otGora(false)+'</div>'}
+/* Väggen i Skog (Henrik 17/11): Födelsedagar som en låg ruta under Smart hem, en rad per person (de tre närmaste inom 60 dagar).
+   Födelsedagarna visas då inte i Just nu. Smart hem krymper till sitt innehåll. */
+function otFodKort(){const L=bdNext(bdays()).filter(b=>b.days<=60).slice(0,3),P=presBud();if(!L.length)return'';
+ const rad=b=>'<button type="button" class="ot-fr'+(b.days<2?' nu':'')+'" data-act="nav" data-id="fod"'+bdSt(b)+'><span class="ot-fd num">'+b.dd+' '+MON3[b.mo]+'</span><b class="ot-fn">'+bdRubrik(b)+'</b><small>'+esc(bdWhen(b))+(b.gift&&b.days<=14?' · '+presKr(b.age,P)+' kr':'')+'</small></button>';
+ return'<section class="ot-c ot-fk"><button type="button" class="ot-fh" data-act="nav" data-id="fod"><span class="ot-hi">'+I.cake+'</span><b>Födelsedagar</b>'+I.chev+'</button><div class="ot-fl">'+L.map(rad).join('')+'</div></section>'}
 function telT3(){return'<div class="ot ot-t ot-'+otFas()+'">'+otHead(true)+otJustNu(true)+otWx(true)+otSchema(true)+otHus(true)+otGora(true)+'</div>'}
 /* ---------- Smart hem (Home Assistant), bara på väggskärmen ----------
    Väggdatorns lokala tjänst (kiosk/ljussensor.py, /ha) håller HA-nyckeln och släpper bara igenom valda lampor, scener och
@@ -3320,8 +3313,9 @@ applyRefs();
 // Utfällt sidofält: 'over' (standard) lägger sig över innehållet och fälls ihop när man väljer en flik eller trycker utanför; 'skjut' flyttar innehållet och stannar utfällt.
 let VMENY=lsGet('vaggmeny')==='vanster'?'vanster':'nere',VSIDOL=lsGet('vaggsidolage')==='skjut'?'skjut':'over',VSIDO=VSIDOL==='skjut'&&lsGet('vaggsido')==='ut';
 function sidoOn(){return !!S.wall&&U5&&!U6&&VMENY==='vanster'}
-/* Förslag (17/11): väggens sidomeny i Skog med fler mål (Ekonomi, Födelsedagar, Väder) och ordningen Översikt först. ht.sidoNy=1 */
-const sidoNy=()=>sidoOn()&&lsGet('sidoNy')==='1',I_VADER='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 18.5h9.5a3.5 3.5 0 0 0 .4-7 5 5 0 0 0-9.7-.9A3.9 3.9 0 0 0 7.5 18.5z"/></svg>';
+/* Väggens sidomeny (Henrik 17/11): Översikt först med hemikonen (hemskärmen), Kalender, Att göra, Mat, Lampor (Hemmet-vyn med
+   lampikon), Ekonomi, Födelsedagar och Väder. Sidor som öppnas härifrån har ingen bakåtknapp. Telefonens flikrad är oförändrad. */
+const sidoNy=()=>sidoOn(),SIDO_NAMN={oversikt:()=>['oversikt','Översikt',I.home],hemmet:()=>['hemmet','Lampor',HAI.bulb]},I_VADER='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 18.5h9.5a3.5 3.5 0 0 0 .4-7 5 5 0 0 0-9.7-.9A3.9 3.9 0 0 0 7.5 18.5z"/></svg>';
 const SIDO_X=[['ekonomi','Ekonomi',I_EKO],['fod','Födelse\u00addagar',I.cake],['vader','Väder',I_VADER]];
 const I_SIDO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="15" rx="3.5"/><path d="M9.5 4.5v15"/><path d="M5.6 8.5h1.6M5.6 11h1.6"/></svg>';
 let VKNAPP=['knapp','rubrik'].includes(lsGet('vaggknapp'))?lsGet('vaggknapp'):'meny';
@@ -4258,7 +4252,7 @@ function renderOverlay(){
   (sh('Rörelse')+group(fieldCell('Animationer','<input type="checkbox" role="switch" class="switch" data-act="motion" aria-label="Animationer"'+(MOTION?' checked':'')+'>'))+'<div class="foot">Riktade sidbyten, glidande menyval och mjuk expansion. Systemets inställning för minskad rörelse går alltid före. Gäller den här enheten.</div>')],
    ['enhet','Enheten',sh('Skärm')+group(fieldCell('Väggskärm','<input type="checkbox" role="switch" class="switch" data-act="wall" aria-label="Väggskärm"'+(S.wall?' checked':'')+'>')+
    (S.wall?'<button type="button" class="cell link" data-act="vagg"><span class="grow">Nattläge</span><span class="meta">'+esc((!NATT.on?'Av':NATT.sol?'Solnedgång–soluppgång':nattTid(NATT.a)+'–'+nattTid(NATT.b))+(CAM.on?' · kamera':''))+'</span>'+chevron+'</button>':'')+statusHtml())+
-  (topic?sh('Notiser')+group('<div class="cell"><span class="grow copy">'+esc(topic)+'</span><button type="button" class="pill" data-act="copy" data-id="'+esc(topic)+'">Kopiera</button></div>')+'<div class="foot">Installera appen ntfy och prenumerera på det här ämnet. Använd servern ntfy.sh.</div>':'')+(S.wall&&U5&&!U6?sh('Menyn')+'<div class="seg-wrap">'+segc('Menyn','vaggmeny',[['nere','Längst ner'],['vanster','Till vänster']],VMENY)+'</div><div class="foot">Till vänster ger mer plats på höjden. Knappen överst i menyn visar eller döljer namnen. Gäller bara den här enheten.</div>'+(VMENY==='vanster'?sh('Utfälld meny')+'<div class="seg-wrap">'+segc('Utfälld meny','vaggsidolage',[['over','Över innehållet'],['skjut','Flyttar innehållet']],VSIDOL)+'</div><div class="foot">Över innehållet fälls ihop när du valt en flik. Flyttar innehållet stannar utfälld.</div>':''):'')+(S.wall?sh('Inställningsknappen')+'<div class="seg-wrap">'+segc('Inställningsknappen','vaggknapp',[['meny','I menyraden'],['knapp','Egen knapp'],['rubrik','Överst']],VKNAPP)+'</div><div class="foot">I menyraden sitter cirkeln längst till höger i menyn. Egen knapp är en rund knapp nere till höger. Överst lägger en rad överst med cirkeln till höger, som på telefonen. Gäller bara den här enheten.</div>':'')+sh('Konto')+group('<button type="button" class="cell link center red" data-act="logout">Logga ut</button>')],
+  (topic?sh('Notiser')+group('<div class="cell"><span class="grow copy">'+esc(topic)+'</span><button type="button" class="pill" data-act="copy" data-id="'+esc(topic)+'">Kopiera</button></div>')+'<div class="foot">Installera appen ntfy och prenumerera på det här ämnet. Använd servern ntfy.sh.</div>':'')+(S.wall&&U5&&!U6?sh('Menyn')+'<div class="seg-wrap">'+segc('Menyn','vaggmeny',[['nere','Längst ner'],['vanster','Till vänster']],VMENY)+'</div><div class="foot">Till vänster ger mer plats på höjden. Knappen överst i menyn visar eller döljer namnen. Gäller bara den här enheten.</div>'+(VMENY==='vanster'?sh('Utfälld meny')+'<div class="seg-wrap">'+segc('Utfälld meny','vaggsidolage',[['over','Över innehållet'],['skjut','Flyttar innehållet']],VSIDOL)+'</div><div class="foot">Över innehållet fälls ihop när du valt en flik. Flyttar innehållet stannar utfälld.</div>':''):'')+(S.wall?sh('Tillbaka till Översikt')+'<div class="seg-wrap">'+segc('Tillbaka till Översikt','vaggTill',[['1','1 min'],['2','2 min'],['5','5 min'],['10','10 min'],['0','Aldrig']],String(vaggTill()))+'</div><div class="foot">När ingen rört skärmen så länge går tavlan tillbaka till Översikt och stänger öppna blad. Matlagningsläget lämnas i fred.</div>':'')+(S.wall?sh('Inställningsknappen')+'<div class="seg-wrap">'+segc('Inställningsknappen','vaggknapp',[['meny','I menyraden'],['knapp','Egen knapp'],['rubrik','Överst']],VKNAPP)+'</div><div class="foot">I menyraden sitter cirkeln längst till höger i menyn. Egen knapp är en rund knapp nere till höger. Överst lägger en rad överst med cirkeln till höger, som på telefonen. Gäller bara den här enheten.</div>':'')+sh('Konto')+group('<button type="button" class="cell link center red" data-act="logout">Logga ut</button>')],
    ['avancerat','Utvecklarläge',group(fieldCell('Utvecklarläge','<input type="checkbox" role="switch" class="switch" data-act="dev" aria-label="Utvecklarläge"'+(DEV?' checked':'')+'>'))+'<div class="foot">Visar menyer som inte är färdiga, just nu Planera nästa vecka och Planera med portioner. Gäller bara den här enheten.</div>'+
   (DEV?sh('Smart hem')+group('<button type="button" class="cell link" data-act="haTest"><span class="grow">Låtsaslampor</span><span class="chev">'+I.chev+'</span></button>')+'<div class="foot">Låtsaslampor för att prova knappar och animationer. Inget skickas till Home Assistant.</div>':'')+
   (DEV?sh('Förhandsvisning')+group('<button type="button" class="cell link" data-act="familjOpen"><span class="grow">Testa Familj och släktträd</span><span class="meta">Förhandsvisning</span>'+chevron+'</button>')+'<div class="foot">Testa I fokus och Hela trädet med exempelpersoner. Ingenting sparas i era familjeuppgifter.</div>':'')+
@@ -5883,7 +5877,7 @@ function ekoLock(){const n=(S.pin||'').length;
   '<div class="pin-pad">'+['1','2','3','4','5','6','7','8','9','','0','del'].map(k=>k===''?'<span></span>':'<button class="pin-k'+(k==='del'?' del':'')+'" data-act="pin" data-id="'+k+'" aria-label="'+(k==='del'?'Radera':k)+'">'+(k==='del'?'Radera':k)+'</button>').join('')+'</div></div>'}
 // bakåt från en sida under Hemmet: dit den öppnades från (Hemmet eller Översikt)
 const hemTill=()=>S.hemFran==='oversikt'?['oversikt','Översikt']:['hemmet','Hemmet'];
-const hemTop=()=>'<div class="rcp-top"><button class="back" data-act="nav" data-id="'+hemTill()[0]+'">'+I.back+hemTill()[1]+'</button></div>';
+const hemTop=()=>S.hemFran==='sido'&&sidoOn()?'':'<div class="rcp-top"><button class="back" data-act="nav" data-id="'+hemTill()[0]+'">'+I.back+hemTill()[1]+'</button></div>';
 /* ---------- Hemmet ---------- */
 // Hemmet: i första hand hela Smart hem (alla reglage och enheter) överst, sedan korten Födelsedagar och Ekonomi.
 // Ekonomi: inkomstfördelningen som stapel med namn, andel och vad var och en sätter in. Låst på väggen.
@@ -5904,10 +5898,10 @@ function hemFod(){const L=bdNext(bdays());if(!L.length)return widget('fod','hem-
  return widget('fod','hem-k',I.cake,'Födelsedagar','','<div class="wl hem-fl">'+(K.length?K:[L[0]]).slice(0,M).map(rad).join('')+'</div>')}
 V.hemmet=function(){if(S.haRum!=null)return V.hus();
  const D=(haUrl()||haDemo())?haData():null;
- let h=head('Hemmet',{sub:S.haTest?'Testläge · inget skickas till Home Assistant':D&&HA.fel&&!haDemo()?esc(HA.fel):'',tools:D?husPlus():''});
+ let h=head(sidoOn()?'Lampor':'Hemmet',{sub:S.haTest?'Testläge · inget skickas till Home Assistant':D&&HA.fel&&!haDemo()?esc(HA.fel):'',tools:D?husPlus():''});
  const kort=()=>'<div class="widgets hem-kort"'+RF('H1')+'>'+hemFod()+hemEko()+'</div>';
  h+='<div'+RF('H3')+'>'+(D?husAlla(D):'<div class="group"><div class="cell"><span class="grow">'+(haUrl()?'Får ingen kontakt med väggdatorn. Är Tailscale på i telefonen?':'Lägg in väggdatorns adress under Inställningar → Enheten för att styra hemmet från telefonen.')+'</span></div></div>')+'</div>';
- h+='<div class="ha-rh">Hushållet</div>'+kort();
+ if(!sidoOn())h+='<div class="ha-rh">Hushållet</div>'+kort();// väggen: Födelsedagar och Ekonomi ligger i sidomenyn
  h+=rgroup('H2','<button type="button" class="cell link hem-r" data-act="settings"><span class="hem-ic" style="background:#8E8E93">'+I.gear+'</span><span class="grow">Inställningar</span>'+chevron+'</button>');
  return h};
 V.ekonomi=function(){if(ekoLocked())return hemTop()+ekoLock();const m=S.ekoMonth||thisMonth(),c=ekoCalc(m),o=c.o;
@@ -6243,7 +6237,7 @@ function slaktV3Zoom(factor,clientX,clientY){
  document.addEventListener('wheel',e=>{if(!e.target.closest?.('.fam3-viewport'))return;e.preventDefault();slaktV3Zoom(e.deltaY<0?1.13:1/1.13,e.clientX,e.clientY)},{passive:false});
 })();
 V.fod=function(){const ALLA=bdays(),t=parse(today()),mode=S.fodMode||'hjul';if(fodSel().length){const v=fodSel().filter(k=>k==='utan'||fodFam().some(f=>f.id===k));S.fodFilt=v.length?v.join(','):'alla'}const L=fodFilt(ALLA);
- let h='<div class="rcp-top"><button class="back" data-act="nav" data-id="'+(DEV&&S.fodFromFamilj?'familj':hemTill()[0])+'">'+I.back+(DEV&&S.fodFromFamilj?'Familj':hemTill()[1])+'</button></div>';
+ let h=S.hemFran==='sido'&&sidoOn()&&!(DEV&&S.fodFromFamilj)?'':'<div class="rcp-top"><button class="back" data-act="nav" data-id="'+(DEV&&S.fodFromFamilj?'familj':hemTill()[0])+'">'+I.back+(DEV&&S.fodFromFamilj?'Familj':hemTill()[1])+'</button></div>';
  const fv=fodSel().map(k=>k==='utan'?'Utan familj':(fodFam().find(x=>x.id===k)||{}).n).filter(Boolean),fNamn=S.fodFilt==='pres'?'Present':fv.length>2?fv.length+' familjer':fv.join(' och ');
  // Filtret Present: en diskret rad under visningsväljaren med snittbeloppet (öppnar Presentbudget) och antalet
  const pres=S.fodFilt==='pres'&&ALLA.length,antal=(L.length<ALLA.length?L.length+' av ':'')+ALLA.length+' personer';
@@ -6723,7 +6717,7 @@ const ACT={
   if(id==='av'){const was=D.lampor.map(x=>x.on);D.lampor.forEach(x=>{if(!x.nas&&x.on){x.on=false;haMalSatt(x,{on:false})}});render();return haSend({alla:'av'},()=>D.lampor.forEach((x,i)=>{x.on=was[i];if(HA.mal)delete HA.mal[x.id]}))}
   if(haDemo()){const m={'scene.morgon':{'light.kok':100,'light.hall':60},'scene.kvall':{'light.vardagsrum':45,'switch.fonster':1,'light.kok':30},'scene.film':{'light.vardagsrum':10}}[id]||{};D.lampor.forEach(x=>{const v=m[x.id];x.on=!!v;if(v>1)x.b=v})}
   render();haSend({scen:id},()=>{})},
- nav(id,el){if(id==='hus')id='hemmet';if(id!=='robot')S.robFran=null;if(id!=='hus'&&id!=='robot'&&!(id==='hemmet'&&S.view==='robot')){S.haRum=null;if(S.haTest){S.haTest=false;HA.demo=null;HA.syn={};HA.v=0;HA.retry=0}}if(RC.busy){toast('Vänta tills receptbegäran är klar.');return}if(RC.screen&&RC.edit&&RC.edit.dirty){RC.leaveTo=id;recipeLeave();S.view='mat';return}if(RC.screen)RC.screen=null;if(id!=='oversikt')arrCancel();if(normView(id)!=='ekonomi'){S.ekoOpen=false;S.pin=''}try{document.activeElement&&document.activeElement.blur()}catch(e){}id=normView(id);if(HEM_UNDER.includes(id)&&!HEM_UNDER.includes(S.view))S.hemFran=S.view==='hemmet'?'hemmet':'oversikt';if(id==='fod')S.fodFromFamilj=DEV&&S.view==='familj';if(id==='uppgifter'&&S.taskTab==='stad'&&S.view!=='stad'&&el&&el.closest&&el.closest('#nav'))id='stad';if(['familj','slakt','slaktPersoner'].includes(id)&&!DEV)id='oversikt';if(id==='uppgifter'||id==='stad'){S.taskTab=id==='stad'?'stad':'lista';lsSet('taskTab',S.taskTab)}S.shopAdd=false;S.taskAdd=false;S.view=id;S.recipe=null;S.confirm=null;lsSet('view',id);try{history.replaceState(null,'','#'+id)}catch(e){}window.scrollTo(0,0);render()},
+ nav(id,el){if(id==='hus')id='hemmet';if(id!=='robot')S.robFran=null;if(id!=='hus'&&id!=='robot'&&!(id==='hemmet'&&S.view==='robot')){S.haRum=null;if(S.haTest){S.haTest=false;HA.demo=null;HA.syn={};HA.v=0;HA.retry=0}}if(RC.busy){toast('Vänta tills receptbegäran är klar.');return}if(RC.screen&&RC.edit&&RC.edit.dirty){RC.leaveTo=id;recipeLeave();S.view='mat';return}if(RC.screen)RC.screen=null;if(id!=='oversikt')arrCancel();if(normView(id)!=='ekonomi'){S.ekoOpen=false;S.pin=''}try{document.activeElement&&document.activeElement.blur()}catch(e){}id=normView(id);if(HEM_UNDER.includes(id)&&(!HEM_UNDER.includes(S.view)||el&&el.closest&&el.closest('#nav')))S.hemFran=el&&el.closest&&el.closest('#nav.sido')?'sido':S.view==='hemmet'?'hemmet':'oversikt';if(id==='fod')S.fodFromFamilj=DEV&&S.view==='familj';if(id==='uppgifter'&&S.taskTab==='stad'&&S.view!=='stad'&&el&&el.closest&&el.closest('#nav'))id='stad';if(['familj','slakt','slaktPersoner'].includes(id)&&!DEV)id='oversikt';if(id==='uppgifter'||id==='stad'){S.taskTab=id==='stad'?'stad':'lista';lsSet('taskTab',S.taskTab)}S.shopAdd=false;S.taskAdd=false;S.view=id;S.recipe=null;S.confirm=null;lsSet('view',id);try{history.replaceState(null,'','#'+id)}catch(e){}window.scrollTo(0,0);render()},
  refresh(){refresh()},
  settings(){if(S.sheet!=='farg')S.prefDraft=null;S.sheet='settings';render()},
  farg(){rememberSettings();S.sheet='farg';render()},
@@ -6744,6 +6738,7 @@ const ACT={
  motion(){rememberSettings();motionAbort();if(motionPageAnim)motionPageAnim.cancel();MOTION=!MOTION;lsSet('motion',MOTION?null:'0');applyStil();render()},
  rymlig(){rememberSettings();RYMLIG=!RYMLIG;lsSet('rymlig',RYMLIG?'1':null);applyStil();render()},
  segstil(id){SEGSTIL=['kapsel','klassisk'].includes(id)?id:'standard';lsSet('segstil',SEGSTIL==='standard'?null:SEGSTIL);applyStil();render()},
+ vaggTill(id){lsSet('vaggTill',id==='2'?null:id);A.touch=Date.now();render()},
  vaggmeny(id){VMENY=id==='nere'?'nere':'vanster';lsSet('vaggmeny',VMENY==='vanster'?'vanster':null);render()},
  vaggsidolage(id){VSIDOL=id==='skjut'?'skjut':'over';lsSet('vaggsidolage',VSIDOL==='skjut'?'skjut':null);VSIDO=VSIDOL==='skjut'&&lsGet('vaggsido')==='ut';render()},
  sidoFall(){VSIDO=!VSIDO;if(VSIDOL==='skjut')lsSet('vaggsido',VSIDO?'ut':null);render()},

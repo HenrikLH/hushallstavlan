@@ -2,10 +2,11 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
-## Väggen: Smart hem, födelsedagar och sidomeny (förslag, väntar på Henriks val)
-- Ägare Claude, gren `claude/project-thread-qh8vjb`. Henrik 17/11: mycket tomrum i Smart hem på väggens Översikt, födelsedagen (avklippt chip i toppen) presenteras dåligt, sidomenyn ser udda ut; lägg gärna in Ekonomi/Födelsedagar, bara väggen.
-- Förslag bakom ls: `vaggOv=A` (Födelsedagar-ruta `otFodKort` under Smart hem i `.ot-hk`, scener utan rubrik), `vaggOv=B` (Smart hem + brickor `otLage`: inne, tända lampor, nästa solljus; födelsedagar ur listan i Schemas dagar). Båda döljer födelsedagar i Just nu. `sidoNy=1`: `SIDO_X` (Ekonomi, Födelsedagar, Väder) + ordning Översikt först, knappen för utfällning nederst.
-- Nästa steg: ta bort valet han inte tar, gör det valda till standard i Skog på väggen; sidor öppnade från sidomenyn ska inte visa "‹ Översikt". Test `verktyg/emu/vagg-forslag.js`, alla-flikar vägg (flaggor på) + telefon gröna.
+## Väggen: födelsedagar, sidomeny och återgång till Översikt (byggd, väntar på "Pusha")
+- Ägare Claude, gren `claude/project-thread-qh8vjb`. Henrik 17/11 valde A: Skog på väggen har en låg Födelsedagar-ruta (`otFodKort`, en rad per person, de tre närmaste inom 60 dagar) under Smart hem i `.ot-hk`; födelsedagar döljs i Just nu.
+- Sidomenyn (bara väggen, `sidoNy()`=`sidoOn()`): Översikt (hemikon) först, Kalender, Att göra, Mat, Lampor (Hemmet-vyn, lampikon, `SIDO_NAMN`), Ekonomi, Födelsedagar, Väder (`SIDO_X`); inget streck. Sidor öppnade därifrån har ingen bakåtknapp (`S.hemFran='sido'`). Hemmet-vyn på väggen heter Lampor och visar inte korten Födelsedagar/Ekonomi.
+- Återgång till Översikt fanns (2 min); nu valbar i Inställningar → Enheten (`ht.vaggTill` 1/2/5/10/0=aldrig) och fäller även ihop utfälld meny.
+- Test: `vagg-forslag.js`, `vagg-tillbaka.js`, alla-flikar vägg Skog sidomeny + Apple vägg + telefon gröna.
 
 ## Solljus (soluppgång/solnedgång) + brytare på automationer (publicerad ht-v411, ångra-gren `version-fore-solljus`, PR #118)
 - Ägare Claude, gren `claude/project-thread-enbw55`, PR #118. Henrik 17/11: vägglampan tonas varm/svag → kall/full efter soluppgången och omvänt före solnedgången, tid ± sol ställs in i appen, av/på på alla schemalagda automationer. Han valde att schemat ska ligga i HA (inte i väggdatorns tjänst).

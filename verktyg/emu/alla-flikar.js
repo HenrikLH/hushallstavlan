@@ -12,7 +12,7 @@ module.exports=async(pg,h)=>{
   if(b)fel('(banner) '+namn+': '+b);await h.shot(namn)};
  for(const v of ['oversikt','mat','kalender','uppgifter','hemmet'])await klick('#nav [data-act="nav"][data-id="'+v+'"]','vy-'+v);
  // Ekonomi ligger under Hemmet
- await klick('#main [data-act="nav"][data-id="ekonomi"]','vy-ekonomi');await klick('#main .back[data-id="hemmet"]','tillbaka-hemmet');
+ if(await pg.locator('#nav.sido .nav-x').count()){await klick('#nav [data-act="nav"][data-id="ekonomi"]','vy-ekonomi');await klick('#nav [data-act="nav"][data-id="fod"]','vy-fod');await klick('#nav [data-act="nav"][data-id="hemmet"]','tillbaka-hemmet')}else{await klick('#main [data-act="nav"][data-id="ekonomi"]','vy-ekonomi');await klick('#main .back[data-id="hemmet"]','tillbaka-hemmet')}
  await klick('#nav [data-act="nav"][data-id="uppgifter"]','uppgifter');
  for(const t of ['stad','lista','stad'])await klick('[data-act="taskTab"][data-id="'+t+'"]','attgora-'+t);
  // Att göra i menyraden kommer ihåg att man senast var i Städ; ett tryck till går till Uppgifter
