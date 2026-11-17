@@ -2,14 +2,14 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
-## Solljus (soluppgång/solnedgång) + brytare på automationer (förslag, väntar på Henrik)
+## Solljus (soluppgång/solnedgång) + brytare på automationer (publicerad ht-v411, ångra-gren `version-fore-solljus`, PR #118)
 - Ägare Claude, gren `claude/project-thread-enbw55`, PR #118. Henrik 17/11: vägglampan tonas varm/svag → kall/full efter soluppgången och omvänt före solnedgången, tid ± sol ställs in i appen, av/på på alla schemalagda automationer. Han valde att schemat ska ligga i HA (inte i väggdatorns tjänst).
 - HA-paket `kiosk/ha/solljus-paket.yaml` → `config/packages/solljus.yaml`: script.solljus (steg varje minut, slutar om lampan släcks/ändras), automation.solljus_soluppgang/_solnedgang (sun-trigger + fördröjning efter, template-trigger på next_rising/next_setting före), input_number.solljus_{upp,ned}_{off,min,slut,kelvin} (slutljus; 0 = förval: kallaste/varmaste tonen, 100/35 %), input_text.solljus_*_lampa. Provkört i riktig HA 2026.2 (före-utlösaren, toning, handändring stoppar).
 - Tjänsten (`sol_*` i ljussensor.py) läser/ändrar bara HA: `/ha` ger `sol` + `auto` (övriga automation.*), POST `{sol,gor:nu|stopp}`, `{automation,pa}`, `/ha/val {sol,pa,off,min,slut,kelvin,lampa}`; fyller förval första gången (tom input_text). Vanorna står åt sidan medan skriptet går, pausas efteråt.
 - App: Hemmet → Automationer (`husAuto`), blad `haSol`. Utan paketet syns bara HA:s automationer.
 - Installerat på Surfacen 2026-11-17 (Henriks "Kör"): tjänsten 2ccbdf1 (backup `~/.local/bin/ljussensor.py.fore-solljus`), paketet i `config/packages/solljus.yaml`, `homeassistant: packages:` tillagt sist i configuration.yaml (backup `.fore-solljus`), HA omstartad. Lampa = Vägglampa `light.kajplats_e27_ws_globe_1521lm` (2202–6535 K); förvalet valde först Vitrinskåp, rättat i 23025d3 (HA-namnet). Båda automationerna på.
 - 17/11 Henrik: slutfärg och slutljusstyrka ställs in i appen för båda (bladets "När det är klart").
-- Nästa: Henrik skriver "Pusha" → version.js och publicera appdelen. Test: `python3 verktyg/solljus-test.py`, `verktyg/emu/solljus.js`, ljusvanor-test, alla-flikar telefon+vägg gröna.
+- Slutljuset installerat på Surfacen 17/11 (tjänst b7483e6, backup `*.fore-slutljus`); /ha visar upp 6535 K/100 %, ned 2202 K/35 %. Test: `python3 verktyg/solljus-test.py`, `verktyg/emu/solljus.js`, alla-flikar telefon+vägg gröna på ht-v411.
 
 ## Googles modern-web-guidance + snabbare Recept-flik (publicerad ht-v407, ångra-gren `version-fore-recept-snabb`, PR #117)
 - Ägare Claude, gren `claude/project-thread-dt5nhs`. Henrik 15/11: utvärdera pluginet och gå igenom appen mot det. Pluginet påslaget i `.claude/settings.json`, regel i AGENTS.md (bara vid ny webbfunktion/prestanda/tillgänglighet).
