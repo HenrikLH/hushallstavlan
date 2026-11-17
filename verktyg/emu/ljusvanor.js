@@ -10,6 +10,7 @@ module.exports=async(pg,h)=>{
  await oppna('light.vardagsrum');
  assert.equal(await pg.locator(F+' .ha-rad').count(),0,'Inga rader på huvudsidan');
  assert.match(await pg.locator(F+' .ha-tk').first().innerText(),/1\s850 K/,'Kelvin under reglaget');
+ assert.ok(await pg.locator(F+' .ha-tk').first().evaluate(e=>e.scrollWidth<=e.clientWidth&&e.clientWidth>80),'Kelvinraden klipps inte (krockade med tankens .ha-tk)');
  assert.equal(await pg.locator(F+' [data-act="haVanaAnv"]').count(),0,'Inget förslag (borttaget)');
  assert.equal(await pg.locator(F+' [data-act="haSub"][data-id="ton"]').count(),1,'Väg till Ton och färg');
  assert.equal(await pg.locator(F+' [data-act="haEdit"]').count(),1,'Väg till Ändra');
