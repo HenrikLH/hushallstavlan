@@ -2,6 +2,11 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Väggen: Smart hem, födelsedagar och sidomeny (förslag, väntar på Henriks val)
+- Ägare Claude, gren `claude/project-thread-qh8vjb`. Henrik 17/11: mycket tomrum i Smart hem på väggens Översikt, födelsedagen (avklippt chip i toppen) presenteras dåligt, sidomenyn ser udda ut; lägg gärna in Ekonomi/Födelsedagar, bara väggen.
+- Förslag bakom ls: `vaggOv=A` (Födelsedagar-ruta `otFodKort` under Smart hem i `.ot-hk`, scener utan rubrik), `vaggOv=B` (Smart hem + brickor `otLage`: inne, tända lampor, nästa solljus; födelsedagar ur listan i Schemas dagar). Båda döljer födelsedagar i Just nu. `sidoNy=1`: `SIDO_X` (Ekonomi, Födelsedagar, Väder) + ordning Översikt först, knappen för utfällning nederst.
+- Nästa steg: ta bort valet han inte tar, gör det valda till standard i Skog på väggen; sidor öppnade från sidomenyn ska inte visa "‹ Översikt". Test `verktyg/emu/vagg-forslag.js`, alla-flikar vägg (flaggor på) + telefon gröna.
+
 ## Solljus (soluppgång/solnedgång) + brytare på automationer (publicerad ht-v411, ångra-gren `version-fore-solljus`, PR #118)
 - Ägare Claude, gren `claude/project-thread-enbw55`, PR #118. Henrik 17/11: vägglampan tonas varm/svag → kall/full efter soluppgången och omvänt före solnedgången, tid ± sol ställs in i appen, av/på på alla schemalagda automationer. Han valde att schemat ska ligga i HA (inte i väggdatorns tjänst).
 - HA-paket `kiosk/ha/solljus-paket.yaml` → `config/packages/solljus.yaml`: script.solljus (steg varje minut, slutar om lampan släcks/ändras), automation.solljus_soluppgang/_solnedgang (sun-trigger + fördröjning efter, template-trigger på next_rising/next_setting före), input_number.solljus_{upp,ned}_{off,min,slut,kelvin} (slutljus; 0 = förval: kallaste/varmaste tonen, 100/35 %), input_text.solljus_*_lampa. Provkört i riktig HA 2026.2 (före-utlösaren, toning, handändring stoppar).
