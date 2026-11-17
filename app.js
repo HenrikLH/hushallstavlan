@@ -1620,7 +1620,7 @@ function telT3(){return'<div class="ot ot-t ot-'+otFas()+'">'+otHead(true)+otJus
    tänder via Google, IKEA eller strömbrytaren. Utan tjänsten eller inställningen syns ingen ruta. ht.haDemo=1 = låtsasdata. */
 const HA_LOKAL='http://127.0.0.1:8777/ha',haUrl=()=>wallBoardOn()?HA_LOKAL:lsGet('haUrl')?lsGet('haUrl')+'/ha':'',HA={d:null,v:0,fel:null,busy:false,retry:0,last:null,demo:null};
 const haDemo=()=>lsGet('haDemo')==='1'||!!S.haTest;
-const haDemoSol=()=>{const t=(d,h,m)=>{const x=new Date();x.setDate(x.getDate()+d);x.setHours(h,m,0,0);return x/1e3};return[{id:'upp',pa:true,lampa:'light.kok',off:60,min:60,slut:100,sol:[t(0,8,12),t(1,8,14)],kor:null,skript:true},{id:'ned',pa:false,lampa:'light.kok',off:-75,min:60,slut:35,sol:[t(0,15,41),t(1,15,40)],kor:null,skript:true}]};
+const haDemoSol=()=>{const t=(d,h,m)=>{const x=new Date();x.setDate(x.getDate()+d);x.setHours(h,m,0,0);return x/1e3};return[{id:'upp',pa:true,lampa:'light.kok',off:60,min:60,slut:100,k:4000,kmin:2200,kmax:4000,sol:[t(0,8,12),t(1,8,14)],kor:null,skript:true},{id:'ned',pa:false,lampa:'light.kok',off:-75,min:60,slut:35,k:2200,kmin:2200,kmax:4000,sol:[t(0,15,41),t(1,15,40)],kor:null,skript:true}]};
 const haData=()=>{if(haDemo()){if(!HA.demo)HA.demo={lampor:[{id:'light.kok',n:'Köket',hn:'Köket',rum:'Kök',t:'light',on:true,b:80,lagen:['color_temp'],lage:'color_temp',k:2700,kmin:2200,kmax:4000,vana:{auto:true,k:2700,saker:true,n:9,dagar:12,paus:null,pauslage:'slack'}},{id:'light.vardagsrum',n:'Golvlampa',hn:'Vardagsrum',rum:'Vardagsrum',t:'light',on:true,b:45,lagen:['color_temp','xy'],lage:'xy',hs:[28,70],kmin:2200,kmax:6500,vana:{auto:true,k:2000,saker:false,n:3,dagar:3,paus:null,pauslage:'slack'}},{id:'switch.fonster',n:'Fönsterlampa',hn:'Fönster',rum:'Vardagsrum',t:'switch',on:true},{id:'light.hall',n:'Hallen',hn:'Hallen',rum:'Hall',t:'light',on:false,lagen:['brightness']},{id:'light.sovrum',n:'Sovrumslampa',hn:'Sovrum',rum:'Sovrum',t:'light',on:false,lagen:['brightness']},{id:'light.bad',n:'Badrum',hn:'Badrum',t:'light',on:false}],scener:[{id:'scene.morgon',n:'Morgon'},{id:'scene.kvall',n:'Kväll'},{id:'scene.film',n:'Film'},{id:'script.ensam_hemma',n:'Ensam hemma',falt:['hogtalare','kanal_url','kanal_namn','spotify_uri','volym']}],givare:[{id:'sensor.inne',n:'Inne',v:'21.4',u:'°C'}],apparater:HA_DEMO_APP(),media:[{id:'media_player.stor',n:'Stor',st:'playing',vol:35,app:'Spotify',titel:'Dancing Queen',artist:'ABBA',kan:{f:true,n:true}},{id:'media_player.liten',n:'Liten',st:'idle',vol:50},{id:'media_player.alla_hogtalare',n:'Alla högtalare',st:'off',vol:35,grupp:true}],sol:haDemoSol(),auto:[{id:'automation.morgonljus',n:'Morgonljus i hallen',on:true,senast:new Date(Date.now()-864e5).toISOString()},{id:'automation.robot_tisdag',n:'Robot städar tisdagar',on:false}],kanaler:[{id:'megapol',n:'Mix Megapol',typ:'Radio'},{id:'p3',n:'P3',typ:'Radio'},{id:'nrj',n:'NRJ',typ:'Radio'},{id:'p1',n:'P1',typ:'Radio'},{id:'p4',n:'P4 Jönköping',typ:'Radio'}]};return HA.demo}return HA.d};
 const haOn=wall=>haDemo()||!!HA.d&&!!haUrl()&&(!wall||wallBoardOn());
 const HAI={bulb:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.7.5 1.1 1.3 1.1 2.2h5c0-.9.4-1.7 1.1-2.2A6 6 0 0 0 12 3z"/></svg>',
@@ -2351,6 +2351,7 @@ const haOffTxt=m=>{const a=Math.abs(m),h=Math.floor(a/60),r=a%60;return h?h+' ti
 const haSolNar=x=>x.off?haOffTxt(x.off)+(x.off>0?' efter ':' före ')+HA_SOL[x.id][1]:'Vid '+HA_SOL[x.id][1];
 // nästa start och slut (unix-sekunder): i dag om toningen inte redan är klar, annars i morgon
 function haSolTid(x){const nu=Date.now()/1e3;let s=x.sol[0]+x.off*60;if(s+x.min*60<=nu)s=x.sol[1]+x.off*60;return[s,s+x.min*60]}
+const haSolKNamn=k=>k<=2700?'Varmt och mysigt':k<3500?'Varmvitt':k<5000?'Neutralvitt':'Kallvitt';
 const haSolDag=s=>new Date(s*1e3).toDateString()===new Date().toDateString()?'':'i morgon ';
 const haSolMeta=x=>x.kor?'Tonar nu, klart '+haSolKl(x.kor):esc(haSolNar(x))+(x.pa?', '+haSolKl(haSolTid(x)[0]):'');
 function haAutoMeta(a){if(!a.on)return'Av';if(!a.senast)return'Har inte körts';const d=new Date(a.senast),i=new Date(),g=new Date(i-864e5);
@@ -2371,8 +2372,10 @@ function haSolSheet(enter){const x=haSolX(S.haSolId);if(!x){S.sheet=null;return'
   group('<label class="cell"><span class="grow">Aktiv</span><input type="checkbox" role="switch" class="switch" data-act="haSolPa" data-id="'+x.id+'" aria-label="Aktiv"'+(x.pa?' checked':'')+'></label>')+
   sh('Tid')+group(rad('Start '+haSolDag(s)+haSolKl(s),esc(haSolNar(x).replace(/^./,c=>c.toUpperCase())),steg('off',offV,'tiden',x.off<=-180,x.off>=180))+
    rad('Tonas under','Klart '+haSolKl(e),steg('min',x.min+' min','tiden det tonas',x.min<=15,x.min>=180))+
-   (x.id==='ned'?rad('Kvällsljus','Ljusstyrka när det är klart',steg('slut',x.slut+' %','kvällsljuset',x.slut<=5,x.slut>=100)):''))+
-  '<div class="foot">Ändras i steg om 15 minuter, upp till 3 timmar före eller efter.</div>'+
+   '')+'<div class="foot">Ändras i steg om 15 minuter, upp till 3 timmar före eller efter.</div>'+
+  sh('När det är klart')+group(rad('Färg',haSolKNamn(x.k),steg('k','<i class="ha-sol-dot" style="background:'+haKFarg(x.k)+'"></i>'+haKTxt(x.k),'färgen',x.k<=(x.kmin||2200),x.k>=(x.kmax||6500)))+
+   rad('Ljusstyrka',x.id==='ned'?'Kvällsljuset':'Dagsljuset',steg('slut',x.slut+' %','ljusstyrkan',x.slut<=5,x.slut>=100)))+
+  '<div class="foot">'+(x.id==='ned'?'Börjar kallt och starkt och tonar hit.':'Börjar varmt och svagt och tonar hit.')+'</div>'+
   sh('Lampa')+(L.length?'<div class="group"><div class="cell ha-chips">'+L.map(chip).join('')+'</div></div>':group(emptyCell('Ingen lampa med färgton på tavlan.')))+
   '<div class="foot">Släcker eller ändrar någon lampan under tiden slutar toningen.</div>'+
   group(x.kor?'<button type="button" class="cell link center" data-act="haSolStopp">Stoppa toningen</button>':'<button type="button" class="cell link center" data-act="haSolNu">Starta nu</button>')+
@@ -6558,7 +6561,7 @@ const ACT={
  haSolOpen(id){S.haSolId=id;S.sheet='haSol';render()},
  haSolPa(id){const x=haSolX(id);if(!x)return;x.pa=!x.pa;if(!x.pa)x.kor=null;render();haSolSpara(x,{pa:x.pa});toast(HA_SOL[id][0]+(x.pa?' är på':' är av'))},
  haSolSteg(id,el){const x=haSolX(S.haSolId);if(!x)return;const d=+el.dataset.d||0,lim=(v,a,b)=>Math.max(a,Math.min(b,v));
-  if(id==='off')x.off=lim(x.off+15*d,-180,180);else if(id==='min')x.min=lim(x.min+15*d,15,180);else if(id==='slut')x.slut=lim(x.slut+5*d,5,100);else return;render();haSolSpara(x,{[id]:x[id]})},
+  if(id==='off')x.off=lim(x.off+15*d,-180,180);else if(id==='min')x.min=lim(x.min+15*d,15,180);else if(id==='slut')x.slut=lim(x.slut+5*d,5,100);else if(id==='k')x.k=lim(Math.round((x.k+250*d)/50)*50,x.kmin||2200,x.kmax||6500);else return;render();haSolSpara(x,id==='k'?{kelvin:x.k}:{[id]:x[id]})},
  haSolLampa(id){const x=haSolX(S.haSolId);if(!x||x.lampa===id)return;x.lampa=id;render();haSolSpara(x,{lampa:id})},
  haSolNu(){const x=haSolX(S.haSolId);if(!x)return;x.kor=Math.round(Date.now()/1e3+x.min*60);render();toast(HA_SOL[x.id][0]+' startar på '+haLampN(x.lampa));haSend({sol:x.id,gor:'nu'},()=>{x.kor=null})},
  haSolStopp(){const x=haSolX(S.haSolId);if(!x)return;const k=x.kor;x.kor=null;render();haSend({sol:x.id,gor:'stopp'},()=>{x.kor=k})},

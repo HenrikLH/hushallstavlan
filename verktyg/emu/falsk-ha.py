@@ -27,6 +27,7 @@ S = {
  'automation.solljus_solnedgang': ['on', {'friendly_name': 'Solljus solnedgång', 'last_triggered': None}],
  'input_number.solljus_upp_off': ['-180.0', {}], 'input_number.solljus_upp_min': ['15.0', {}],
  'input_number.solljus_ned_off': ['-180.0', {}], 'input_number.solljus_ned_min': ['15.0', {}], 'input_number.solljus_ned_slut': ['5.0', {}],
+ 'input_number.solljus_upp_slut': ['0.0', {}], 'input_number.solljus_upp_kelvin': ['0.0', {}], 'input_number.solljus_ned_kelvin': ['0.0', {}],
  'input_text.solljus_upp_lampa': ['', {}], 'input_text.solljus_ned_lampa': ['', {}],
  'sensor.batteri': ['80', {'friendly_name': 'Batteri', 'unit_of_measurement': '%', 'device_class': 'battery'}],
 }

@@ -3,6 +3,8 @@
 # Automationerna startar vid solens upp- eller nedgång (sun.sun) plus förskjutningen i input_number.solljus_*_off
 # (minuter, negativt = före). Hushållstavlan visar dem under Hemmet → Automationer: brytaren slår automationen av och på,
 # bladet ändrar inställningarna nedan via väggdatorns tjänst (input_number/input_text.set_value).
+# Slutljuset (färgtemperatur och ljusstyrka) ställs in per riktning; 0 betyder förvalet: soluppgången slutar på lampans
+# kallaste ton och 100 %, solnedgången på lampans varmaste ton och 35 %.
 # Toningen går ett steg i minuten med mjuk övergång. Lyser lampan redan börjar den där lampan är. Släcker någon lampan
 # eller ändrar ljusstyrkan för hand slutar skriptet.
 # Installera (väggdatorn gör det): kopiera till config/packages/solljus.yaml, se till att configuration.yaml har
@@ -25,6 +27,27 @@ input_number:
     max: 180
     step: 15
     unit_of_measurement: min
+    mode: box
+  solljus_upp_slut:
+    name: Solljus soluppgång, ljusstyrka vid slutet
+    min: 0
+    max: 100
+    step: 5
+    unit_of_measurement: "%"
+    mode: box
+  solljus_upp_kelvin:
+    name: Solljus soluppgång, färgtemperatur vid slutet
+    min: 0
+    max: 6500
+    step: 50
+    unit_of_measurement: K
+    mode: box
+  solljus_ned_kelvin:
+    name: Solljus solnedgång, färgtemperatur vid slutet
+    min: 0
+    max: 6500
+    step: 50
+    unit_of_measurement: K
     mode: box
   solljus_ned_off:
     name: Solljus solnedgång, minuter från solen
@@ -87,7 +110,8 @@ automation:
             riktning: upp
             lampa: "{{ states('input_text.solljus_upp_lampa') }}"
             minuter: "{{ states('input_number.solljus_upp_min') | int(60) }}"
-            slut: 100
+            slut: "{{ states('input_number.solljus_upp_slut') | int(0) }}"
+            kelvin: "{{ states('input_number.solljus_upp_kelvin') | int(0) }}"
   - id: solljus_solnedgang
     alias: Solljus solnedgång
     description: Tonar lampan från kallt och fullt till varmt och mysigt vid solnedgången ± förskjutningen. Ändras i Hushållstavlan.
@@ -119,6 +143,7 @@ automation:
             lampa: "{{ states('input_text.solljus_ned_lampa') }}"
             minuter: "{{ states('input_number.solljus_ned_min') | int(60) }}"
             slut: "{{ states('input_number.solljus_ned_slut') | int(35) }}"
+            kelvin: "{{ states('input_number.solljus_ned_kelvin') | int(0) }}"
 
 # Själva toningen. Startas av automationerna ovan eller av Starta nu i appen; utan variabler blir det en soluppgång
 # på light.vagglampa under en timme.
@@ -141,8 +166,13 @@ script:
       b0: >-
         {% set b = state_attr(l, 'brightness') %}
         {{ [((b | int) / 2.55) | round | int, 1] | max if pa and b else (1 if upp else 100) }}
-      k1: "{{ kmax if upp else kmin }}"
-      b1: "{{ 100 if upp else [[slut | default(35) | int(35), 1] | max, 100] | min }}"
+      # slutljuset: kelvin och slut (%) från appen, 0 eller saknas = förvalet
+      k1: >-
+        {% set k = kelvin | default(0) | int(0) %}
+        {{ [[k, kmin] | max, kmax] | min if k > 0 else (kmax if upp else kmin) }}
+      b1: >-
+        {% set s = slut | default(0) | int(0) %}
+        {{ [[s, 1] | max, 100] | min if s > 0 else (100 if upp else 35) }}
     sequence:
       - action: light.turn_on
         target:

@@ -38,7 +38,12 @@ try:
     koll('+1 tim 15 min och 45 min sparas i HA', kod == 200 and st('input_number.solljus_upp_off')['state'] == '75.0' and st('input_number.solljus_upp_min')['state'] == '45.0' and sol()['upp']['off'] == 75)
     L.ha_val({'sol': 'ned', 'off': -999, 'min': 7, 'slut': 33})
     koll('gränser och steg', st('input_number.solljus_ned_off')['state'] == '-180.0' and st('input_number.solljus_ned_min')['state'] == '15.0' and st('input_number.solljus_ned_slut')['state'] == '35.0')
-    koll('soluppgången har inget kvällsljus', L.ha_val({'sol': 'upp', 'slut': 20})[0] == 200 and sol()['upp']['slut'] == 100)
+    S = sol()
+    koll('slutljus förval: kallaste/varmaste tonen, 100 %', S['upp']['k'] == 4000 and S['ned']['k'] == 2202 and S['upp']['slut'] == 100 and S['upp']['kmin'] == 2202, S['upp'])
+    koll('soluppgångens slutljus sparas', L.ha_val({'sol': 'upp', 'slut': 80, 'kelvin': 3333})[0] == 200 and st('input_number.solljus_upp_slut')['state'] == '80.0'
+         and st('input_number.solljus_upp_kelvin')['state'] == '3350.0' and sol()['upp']['slut'] == 80 and sol()['upp']['k'] == 3350)
+    L.ha_val({'sol': 'ned', 'kelvin': 1500}); koll('kelvin under lampans varmaste visas som varmaste', sol()['ned']['k'] == 2202)
+    L.ha_val({'sol': 'ned', 'kelvin': 2700, 'slut': 35}); koll('solnedgångens färg sparas', sol()['ned']['k'] == 2700)
     koll('lampa sparas', L.ha_val({'sol': 'ned', 'lampa': 'light.kok'})[0] == 200 and st('input_text.solljus_ned_lampa')['state'] == 'light.kok')
     koll('okänd lampa nekas', L.ha_val({'sol': 'ned', 'lampa': 'light.hall'})[0] == 403)
     koll('fel riktning nekas', L.ha_val({'sol': 'mitt', 'pa': True})[0] == 400)
@@ -49,7 +54,7 @@ try:
     n0 = len(ha('/logg'))
     kod, _ = L.ha_styr({'sol': 'ned', 'gor': 'nu'})
     sk = [x for x in ha('/logg')[n0:] if x[0] == 'script' and x[1] == 'turn_on']
-    koll('Starta nu kör skriptet med HA:s värden', kod == 200 and sk and sk[0][2]['variables'] == {'riktning': 'ned', 'lampa': 'light.kok', 'minuter': 15, 'slut': 35}, sk)
+    koll('Starta nu kör skriptet med HA:s värden', kod == 200 and sk and sk[0][2]['variables'] == {'riktning': 'ned', 'lampa': 'light.kok', 'minuter': 15, 'slut': 35, 'kelvin': 2700}, sk)
     S = sol(); koll('raden visar att den tonar', S['ned']['kor'] and not S['upp']['kor'], S['ned']['kor'])
     # vanorna
     A = alla(); nu = time.time()

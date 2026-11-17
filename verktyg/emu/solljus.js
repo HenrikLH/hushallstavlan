@@ -26,9 +26,10 @@ module.exports=async(pg,h)=>{
  if(!/45 min före solnedgången/i.test(t)||!/−0:45/.test(t))fel('förskjutningen blev inte 45 min före: '+t);
  for(let i=0;i<4;i++)await plus('off');await h.idle(200);t=await pg.locator('#overlay .ha-sol-r').first().innerText();
  if(!/15 min efter solnedgången/i.test(t)||!/\+0:15/.test(t))fel('kunde inte gå över till efter: '+t);
- await minus('min');await minus('slut');await h.idle(200);
+ await minus('min');await minus('slut');await plus('k');await plus('k');await h.idle(200);
  const x=JSON.parse(await pg.evaluate(()=>__d('JSON.stringify(haSolX("ned"))')));console.log('sparat lokalt',JSON.stringify(x));
- if(x.off!==15||x.min!==45||x.slut!==30)fel('värdena blev fel');
+ if(x.off!==15||x.min!==45||x.slut!==30||x.k!==2700)fel('värdena blev fel');
+ const f=await pg.locator('#overlay .ha-sol-r').nth(2).innerText();if(!/Varmt och mysigt/.test(f)||!/2\s?700 K/.test(f))fel('färgraden: '+f);
  if(!await pg.locator('#overlay [data-act="haSolLampa"]').count())fel('inga lampor att välja');
  await h.shot('solljus-blad');
  await pg.click('#overlay [data-act="haSolNu"]');await h.idle(300);
