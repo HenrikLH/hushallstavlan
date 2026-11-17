@@ -2373,9 +2373,9 @@ function haSolSheet(enter){const x=haSolX(S.haSolId);if(!x){S.sheet=null;return'
   sh('Tid')+group(rad('Start '+haSolDag(s)+haSolKl(s),esc(haSolNar(x).replace(/^./,c=>c.toUpperCase())),steg('off',offV,'tiden',x.off<=-180,x.off>=180))+
    rad('Tonas under','Klart '+haSolKl(e),steg('min',x.min+' min','tiden det tonas',x.min<=15,x.min>=180))+
    '')+'<div class="foot">Ändras i steg om 15 minuter, upp till 3 timmar före eller efter.</div>'+
-  sh('När det är klart')+group(rad('Färg',haSolKNamn(x.k),steg('k','<i class="ha-sol-dot" style="background:'+haKFarg(x.k)+'"></i>'+haKTxt(x.k),'färgen',x.k<=(x.kmin||2200),x.k>=(x.kmax||6500)))+
+  (x.k==null?'':sh('När det är klart')+group(rad('Färg',haSolKNamn(x.k),steg('k','<i class="ha-sol-dot" style="background:'+haKFarg(x.k)+'"></i>'+haKTxt(x.k),'färgen',x.k<=(x.kmin||2200),x.k>=(x.kmax||6500)))+
    rad('Ljusstyrka',x.id==='ned'?'Kvällsljuset':'Dagsljuset',steg('slut',x.slut+' %','ljusstyrkan',x.slut<=5,x.slut>=100)))+
-  '<div class="foot">'+(x.id==='ned'?'Börjar kallt och starkt och tonar hit.':'Börjar varmt och svagt och tonar hit.')+'</div>'+
+  '<div class="foot">'+(x.id==='ned'?'Börjar kallt och starkt och tonar hit.':'Börjar varmt och svagt och tonar hit.')+'</div>')+
   sh('Lampa')+(L.length?'<div class="group"><div class="cell ha-chips">'+L.map(chip).join('')+'</div></div>':group(emptyCell('Ingen lampa med färgton på tavlan.')))+
   '<div class="foot">Släcker eller ändrar någon lampan under tiden slutar toningen.</div>'+
   group(x.kor?'<button type="button" class="cell link center" data-act="haSolStopp">Stoppa toningen</button>':'<button type="button" class="cell link center" data-act="haSolNu">Starta nu</button>')+
