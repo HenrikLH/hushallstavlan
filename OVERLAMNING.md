@@ -2,6 +2,10 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Kelvin syns i lampkortet igen (förslag, väntar på Henriks ok/"Pusha")
+- Ägare Claude, gren `claude/project-thread-6yv093`. Henrik 17/11: Kelvin syntes inte i lampkortet på väggen. Orsak: dockans vattentank fick klassen `.ha-tk` (34×52 px, overflow hidden), samma som kelvinraden, så "2 700 K Mys" klipptes (även på telefonen). Tanken heter nu `.ha-tnk`.
+- Test: ljusvanor.js (ny kontroll att raden inte klipps) telefon+vägg, smart-hem-ton, robot-dockval gröna. robot-dockkort och smart-hem faller även på main (gamla scenarier).
+
 ## Solljus (soluppgång/solnedgång) + brytare på automationer (publicerad ht-v411, ångra-gren `version-fore-solljus`, PR #118)
 - Ägare Claude, gren `claude/project-thread-enbw55`, PR #118. Henrik 17/11: vägglampan tonas varm/svag → kall/full efter soluppgången och omvänt före solnedgången, tid ± sol ställs in i appen, av/på på alla schemalagda automationer. Han valde att schemat ska ligga i HA (inte i väggdatorns tjänst).
 - HA-paket `kiosk/ha/solljus-paket.yaml` → `config/packages/solljus.yaml`: script.solljus (steg varje minut, slutar om lampan släcks/ändras), automation.solljus_soluppgang/_solnedgang (sun-trigger + fördröjning efter, template-trigger på next_rising/next_setting före), input_number.solljus_{upp,ned}_{off,min,slut,kelvin} (slutljus; 0 = förval: kallaste/varmaste tonen, 100/35 %), input_text.solljus_*_lampa. Provkört i riktig HA 2026.2 (före-utlösaren, toning, handändring stoppar).
