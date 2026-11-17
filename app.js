@@ -1620,7 +1620,8 @@ function telT3(){return'<div class="ot ot-t ot-'+otFas()+'">'+otHead(true)+otJus
    tänder via Google, IKEA eller strömbrytaren. Utan tjänsten eller inställningen syns ingen ruta. ht.haDemo=1 = låtsasdata. */
 const HA_LOKAL='http://127.0.0.1:8777/ha',haUrl=()=>wallBoardOn()?HA_LOKAL:lsGet('haUrl')?lsGet('haUrl')+'/ha':'',HA={d:null,v:0,fel:null,busy:false,retry:0,last:null,demo:null};
 const haDemo=()=>lsGet('haDemo')==='1'||!!S.haTest;
-const haData=()=>{if(haDemo()){if(!HA.demo)HA.demo={lampor:[{id:'light.kok',n:'Köket',hn:'Köket',rum:'Kök',t:'light',on:true,b:80,lagen:['color_temp'],lage:'color_temp',k:2700,kmin:2200,kmax:4000,vana:{auto:true,k:2700,saker:true,n:9,dagar:12,paus:null,pauslage:'slack'}},{id:'light.vardagsrum',n:'Golvlampa',hn:'Vardagsrum',rum:'Vardagsrum',t:'light',on:true,b:45,lagen:['color_temp','xy'],lage:'xy',hs:[28,70],kmin:2200,kmax:6500,vana:{auto:true,k:2000,saker:false,n:3,dagar:3,paus:null,pauslage:'slack'}},{id:'switch.fonster',n:'Fönsterlampa',hn:'Fönster',rum:'Vardagsrum',t:'switch',on:true},{id:'light.hall',n:'Hallen',hn:'Hallen',rum:'Hall',t:'light',on:false,lagen:['brightness']},{id:'light.sovrum',n:'Sovrumslampa',hn:'Sovrum',rum:'Sovrum',t:'light',on:false,lagen:['brightness']},{id:'light.bad',n:'Badrum',hn:'Badrum',t:'light',on:false}],scener:[{id:'scene.morgon',n:'Morgon'},{id:'scene.kvall',n:'Kväll'},{id:'scene.film',n:'Film'},{id:'script.ensam_hemma',n:'Ensam hemma',falt:['hogtalare','kanal_url','kanal_namn','spotify_uri','volym']}],givare:[{id:'sensor.inne',n:'Inne',v:'21.4',u:'°C'}],apparater:HA_DEMO_APP(),media:[{id:'media_player.stor',n:'Stor',st:'playing',vol:35,app:'Spotify',titel:'Dancing Queen',artist:'ABBA',kan:{f:true,n:true}},{id:'media_player.liten',n:'Liten',st:'idle',vol:50},{id:'media_player.alla_hogtalare',n:'Alla högtalare',st:'off',vol:35,grupp:true}],kanaler:[{id:'megapol',n:'Mix Megapol',typ:'Radio'},{id:'p3',n:'P3',typ:'Radio'},{id:'nrj',n:'NRJ',typ:'Radio'},{id:'p1',n:'P1',typ:'Radio'},{id:'p4',n:'P4 Jönköping',typ:'Radio'}]};return HA.demo}return HA.d};
+const haDemoSol=()=>{const t=(d,h,m)=>{const x=new Date();x.setDate(x.getDate()+d);x.setHours(h,m,0,0);return x/1e3};return[{id:'upp',pa:true,lampa:'light.kok',off:60,min:60,slut:100,sol:[t(0,8,12),t(1,8,14)],kor:null,skript:true},{id:'ned',pa:false,lampa:'light.kok',off:-75,min:60,slut:35,sol:[t(0,15,41),t(1,15,40)],kor:null,skript:true}]};
+const haData=()=>{if(haDemo()){if(!HA.demo)HA.demo={lampor:[{id:'light.kok',n:'Köket',hn:'Köket',rum:'Kök',t:'light',on:true,b:80,lagen:['color_temp'],lage:'color_temp',k:2700,kmin:2200,kmax:4000,vana:{auto:true,k:2700,saker:true,n:9,dagar:12,paus:null,pauslage:'slack'}},{id:'light.vardagsrum',n:'Golvlampa',hn:'Vardagsrum',rum:'Vardagsrum',t:'light',on:true,b:45,lagen:['color_temp','xy'],lage:'xy',hs:[28,70],kmin:2200,kmax:6500,vana:{auto:true,k:2000,saker:false,n:3,dagar:3,paus:null,pauslage:'slack'}},{id:'switch.fonster',n:'Fönsterlampa',hn:'Fönster',rum:'Vardagsrum',t:'switch',on:true},{id:'light.hall',n:'Hallen',hn:'Hallen',rum:'Hall',t:'light',on:false,lagen:['brightness']},{id:'light.sovrum',n:'Sovrumslampa',hn:'Sovrum',rum:'Sovrum',t:'light',on:false,lagen:['brightness']},{id:'light.bad',n:'Badrum',hn:'Badrum',t:'light',on:false}],scener:[{id:'scene.morgon',n:'Morgon'},{id:'scene.kvall',n:'Kväll'},{id:'scene.film',n:'Film'},{id:'script.ensam_hemma',n:'Ensam hemma',falt:['hogtalare','kanal_url','kanal_namn','spotify_uri','volym']}],givare:[{id:'sensor.inne',n:'Inne',v:'21.4',u:'°C'}],apparater:HA_DEMO_APP(),media:[{id:'media_player.stor',n:'Stor',st:'playing',vol:35,app:'Spotify',titel:'Dancing Queen',artist:'ABBA',kan:{f:true,n:true}},{id:'media_player.liten',n:'Liten',st:'idle',vol:50},{id:'media_player.alla_hogtalare',n:'Alla högtalare',st:'off',vol:35,grupp:true}],sol:haDemoSol(),auto:[{id:'automation.morgonljus',n:'Morgonljus i hallen',on:true,senast:new Date(Date.now()-864e5).toISOString()},{id:'automation.robot_tisdag',n:'Robot städar tisdagar',on:false}],kanaler:[{id:'megapol',n:'Mix Megapol',typ:'Radio'},{id:'p3',n:'P3',typ:'Radio'},{id:'nrj',n:'NRJ',typ:'Radio'},{id:'p1',n:'P1',typ:'Radio'},{id:'p4',n:'P4 Jönköping',typ:'Radio'}]};return HA.demo}return HA.d};
 const haOn=wall=>haDemo()||!!HA.d&&!!haUrl()&&(!wall||wallBoardOn());
 const HAI={bulb:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.7.5 1.1 1.3 1.1 2.2h5c0-.9.4-1.7 1.1-2.2A6 6 0 0 0 12 3z"/></svg>',
  plug:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3v5M15 3v5"/><path d="M6.5 8h11v3a5.5 5.5 0 0 1-11 0z"/><path d="M12 16.5V21"/></svg>',
@@ -2336,14 +2337,58 @@ function husAlla(D){let h='';const E=haAnvSort(D.lampor||[]),G=D.givare||[];
  const rum=HA_RUM.filter(r=>E.some(x=>x.rum===r)).concat(E.some(x=>x.rum&&!HA_RUM.includes(x.rum))?[...new Set(E.filter(x=>x.rum&&!HA_RUM.includes(x.rum)).map(x=>x.rum))]:[]).concat(E.some(x=>!x.rum)?['']:[]);
  const ao=haAnvL(),rp=r=>E.filter(x=>(x.rum||'')===r).reduce((s,x)=>s+haAnvP(ao,x.id),0);rum.map((r,i)=>[r,rp(r),i]).sort((a,b)=>b[1]-a[1]||a[2]-b[2]).map(a=>a[0]).forEach(r=>{const R=E.filter(x=>(x.rum||'')===r);h+='<button type="button" class="ha-rh ha-rh-k" data-act="haRumVy" data-id="'+esc(r||'_')+'">'+esc(r||'Övrigt')+'<span class="chev">'+I.chev+'</span></button><div class="ha-g ha-g-v">'+R.map(haTile).join('')+'</div>'});
  if(!E.length)h+='<div class="group"><div class="cell"><span class="grow">Inga enheter på tavlan än.</span><button type="button" class="pill" data-act="haAddOpen">'+I.plus+'Lägg till</button></div></div>';
- return h+haGivRader(G,null)}
+ return h+haGivRader(G,null)+husAuto(D)}
+// Automationer i Hemmet: solljuset (väggdatorns tjänst startar HA-skriptet Solljus, kiosk/ha/solljus.yaml, vid solens upp- eller
+// nedgång ± förskjutning) och Home Assistants egna automationer. Varje rad har en brytare; solljusets rad öppnar bladet haSol.
+const HAI_SOLUPP='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 19h18M7 19a5 5 0 0 1 10 0M12 4v7M9.5 6.5 12 4l2.5 2.5M4.8 13.2l1.4 1M19.2 13.2l-1.4 1"/></svg>',
+ HAI_SOLNED='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 19h18M7 19a5 5 0 0 1 10 0M12 4v7M9.5 8.5 12 11l2.5-2.5M4.8 13.2l1.4 1M19.2 13.2l-1.4 1"/></svg>',
+ HAI_AUTO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>';
+const HA_SOL={upp:['Soluppgång','soluppgången',HAI_SOLUPP,'#FF9F0A','Varmt och svagt ljus som blir helt vitt och fullt'],ned:['Solnedgång','solnedgången',HAI_SOLNED,'#5E5CE6','Kallt och fullt ljus som blir varmt och mysigt']};
+const haSolX=id=>((haData()||{}).sol||[]).find(x=>x.id===id);
+const haSolKl=t=>hhmm(new Date(t*1e3));
+const haLampN=id=>{const l=((haData()||{}).lampor||[]).find(y=>y.id===id);return l?l.n:'lampan'};
+const haOffTxt=m=>{const a=Math.abs(m),h=Math.floor(a/60),r=a%60;return h?h+' tim'+(r?' '+r+' min':''):r+' min'};
+const haSolNar=x=>x.off?haOffTxt(x.off)+(x.off>0?' efter ':' före ')+HA_SOL[x.id][1]:'Vid '+HA_SOL[x.id][1];
+// nästa start och slut (unix-sekunder): i dag om toningen inte redan är klar, annars i morgon
+function haSolTid(x){const nu=Date.now()/1e3;let s=x.sol[0]+x.off*60;if(s+x.min*60<=nu)s=x.sol[1]+x.off*60;return[s,s+x.min*60]}
+const haSolDag=s=>new Date(s*1e3).toDateString()===new Date().toDateString()?'':'i morgon ';
+const haSolMeta=x=>x.kor?'Tonar nu, klart '+haSolKl(x.kor):esc(haSolNar(x))+(x.pa?', '+haSolKl(haSolTid(x)[0]):'');
+function haAutoMeta(a){if(!a.on)return'Av';if(!a.senast)return'Har inte körts';const d=new Date(a.senast),i=new Date(),g=new Date(i-864e5);
+ return'Senast '+(d.toDateString()===i.toDateString()?'i dag ':d.toDateString()===g.toDateString()?'i går ':d.getDate()+' '+MON[d.getMonth()]+' ')+hhmm(d)}
+function husAuto(D){const So=D.sol||[],Au=D.auto||[];if(!So.length&&!Au.length)return'';
+ const sw=(act,id,on,n)=>'<input type="checkbox" role="switch" class="switch" data-act="'+act+'" data-id="'+esc(id)+'" aria-label="'+esc(n)+(on?' är på':' är av')+'"'+(on?' checked':'')+'>';
+ const ik=(svg,f)=>'<span class="ha-au-i" style="background:'+f+'">'+svg+'</span>';
+ const sol=So.map(x=>{const T=HA_SOL[x.id];if(!T)return'';return'<div class="cell ha-au"><button type="button" class="ha-au-b" data-act="haSolOpen" data-id="'+x.id+'" aria-label="'+T[0]+', ändra">'+ik(T[2],T[3])+'<span class="grow"><span class="ha-au-n">'+T[0]+'</span><span class="meta">'+haSolMeta(x)+'</span></span></button>'+sw('haSolPa',x.id,x.pa,T[0])+'</div>'}).join('');
+ const au=Au.map(a=>'<div class="cell ha-au"><div class="ha-au-b">'+ik(HAI_AUTO,'#8E8E93')+'<span class="grow"><span class="ha-au-n">'+esc(a.n)+'</span><span class="meta">'+haAutoMeta(a)+'</span></span></div>'+sw('haAutoPa',a.id,a.on,a.n)+'</div>').join('');
+ return'<div class="ha-rh">Automationer</div>'+(sol?(au?sh('Solljus'):'')+'<div class="group ha-aug">'+sol+'</div>':'')+(au?(sol?sh('Home Assistant'):'')+'<div class="group ha-aug">'+au+'</div>':'')}
+function haSolSheet(enter){const x=haSolX(S.haSolId);if(!x){S.sheet=null;return''}const D=haData()||{},T=HA_SOL[x.id],[s,e]=haSolTid(x);
+ const steg=(id,v,lab,mi,ma)=>'<span class="stepper"><button type="button" data-act="haSolSteg" data-id="'+id+'" data-d="-1" aria-label="Minska '+lab+'"'+(mi?' disabled':'')+'>−</button><span class="num">'+v+'</span><button type="button" data-act="haSolSteg" data-id="'+id+'" data-d="1" aria-label="Öka '+lab+'"'+(ma?' disabled':'')+'>+</button></span>';
+ const rad=(n,m,h)=>'<div class="cell ha-sol-r"><div class="grow"><div>'+n+'</div><div class="meta">'+m+'</div></div>'+h+'</div>';
+ const a=Math.abs(x.off),offV=(x.off>0?'+':x.off<0?'−':'')+Math.floor(a/60)+':'+pad(a%60);
+ const L=(D.lampor||[]).filter(l=>l.t==='light'&&(l.lagen||[]).some(m=>m!=='brightness'&&m!=='onoff'));
+ const chip=l=>'<button type="button" class="pill ha-c'+(l.id===x.lampa?' on':'')+'" data-act="haSolLampa" data-id="'+esc(l.id)+'" aria-pressed="'+(l.id===x.lampa)+'">'+esc(l.n)+'</button>';
+ const body='<div class="ha-ed-top"><span class="ha-i ha-au-i" style="background:'+T[3]+'">'+T[2]+'</span><div><div class="hl">'+T[0]+'</div><div class="meta">'+T[4]+'</div></div></div>'+
+  group('<label class="cell"><span class="grow">Aktiv</span><input type="checkbox" role="switch" class="switch" data-act="haSolPa" data-id="'+x.id+'" aria-label="Aktiv"'+(x.pa?' checked':'')+'></label>')+
+  sh('Tid')+group(rad('Start '+haSolDag(s)+haSolKl(s),esc(haSolNar(x).replace(/^./,c=>c.toUpperCase())),steg('off',offV,'tiden',x.off<=-180,x.off>=180))+
+   rad('Tonas under','Klart '+haSolKl(e),steg('min',x.min+' min','tiden det tonas',x.min<=15,x.min>=180))+
+   (x.id==='ned'?rad('Kvällsljus','Ljusstyrka när det är klart',steg('slut',x.slut+' %','kvällsljuset',x.slut<=5,x.slut>=100)):''))+
+  '<div class="foot">Ändras i steg om 15 minuter, upp till 3 timmar före eller efter.</div>'+
+  sh('Lampa')+(L.length?'<div class="group"><div class="cell ha-chips">'+L.map(chip).join('')+'</div></div>':group(emptyCell('Ingen lampa med färgton på tavlan.')))+
+  '<div class="foot">Släcker eller ändrar någon lampan under tiden slutar toningen.</div>'+
+  group(x.kor?'<button type="button" class="cell link center" data-act="haSolStopp">Stoppa toningen</button>':'<button type="button" class="cell link center" data-act="haSolNu">Starta nu</button>')+
+  (x.skript===false?'<div class="foot">Skriptet Solljus finns inte i Home Assistant än, så väggdatorn tonar lampan själv.</div>':'');
+ return sheetHtml('haSol',T[0],'<button type="button" class="tb strong" data-act="sheetClose">Klar</button>',body,enter,'<span class="tb"></span>')}
+// Ändringar i bladet sparas på väggdatorn en stund efter sista trycket. Tills dess läggs de ovanpå det tjänsten skickar.
+function haSolSpara(x,b){HA.solQ=HA.solQ||{};HA.solQ[x.id]=Object.assign(HA.solQ[x.id]||{},b);clearTimeout(HA.solT);
+ HA.solT=setTimeout(()=>{const Q=HA.solQ;HA.solQ={};Object.keys(Q).forEach(id=>haValj(Object.assign({sol:id},Q[id]),()=>{}))},700)}
+function haSolLagg(j){const Q=HA.solQ||{};(j.sol||[]).forEach(x=>Object.assign(x,Q[x.id]||{}))}
 // lång väntan mot tjänsten: svarar direkt första gången, sedan när något ändras (eller efter 25 s)
 async function haLoop(){if(HA.busy||haDemo()||!haUrl()||Date.now()<HA.retry)return;HA.busy=true;const bas=haUrl();
  try{while(haUrl()===bas&&(wallBoardOn()||document.visibilityState==='visible')){const ac=new AbortController(),t=setTimeout(()=>ac.abort(),40000);
    const r=await fetch(bas+'?v='+HA.v,{cache:'no-store',signal:ac.signal});clearTimeout(t);const j=await r.json();
    if(!j.lampor){HA.d=null;HA.retry=Date.now()+300000;render();break}// inte inställt: fråga igen om fem minuter
-   haMalLagg(j);
-   const ch=JSON.stringify([j.lampor,j.scener,j.givare,j.apparater,j.media,j.kanaler,j.fel])!==JSON.stringify(HA.d&&[HA.d.lampor,HA.d.scener,HA.d.givare,HA.d.apparater,HA.d.media,HA.d.kanaler,HA.fel]);
+   haMalLagg(j);haSolLagg(j);
+   const ch=JSON.stringify([j.lampor,j.scener,j.givare,j.apparater,j.media,j.kanaler,j.sol,j.auto,j.fel])!==JSON.stringify(HA.d&&[HA.d.lampor,HA.d.scener,HA.d.givare,HA.d.apparater,HA.d.media,HA.d.kanaler,HA.d.sol,HA.d.auto,HA.fel]);
    HA.d=j;HA.v=j.v;HA.fel=j.fel;HA.nf=0;if(ch)haRitaSnart()}}
  catch(e){// ett enstaka avbrott (t.ex. när iPhone lägger appen i bakgrunden) är inget fel: försök igen strax
   HA.nf=(HA.nf||0)+1;if(HA.d&&HA.nf<2)HA.retry=Date.now()+2000;else{HA.fel='Väggdatorns tjänst svarar inte';HA.retry=Date.now()+(HA.d?15000:300000);if(HA.d)render()}}
@@ -4151,7 +4196,7 @@ function overlayKeepScroll(){const o=document.getElementById('overlay'),k=o.data
  const nb=o.querySelector('.sheet-body');if(y&&k&&o.dataset.k===k&&nb&&nb!==b)nb.scrollTop=y}
 function renderOverlay(){
  const o=document.getElementById('overlay');
- const k=S.cook?'cook':S.sheet==='settings'?'settings':S.sheet==='farg'?'farg':S.sheet==='vagg'?'vagg':S.sheet==='ljuskal'?'ljuskal':S.sheet==='rate'?'rate':S.sheet==='income'?'income':S.sheet==='matb'?'matb':S.sheet==='vara'?'vara':S.sheet==='cost'?'cost':S.sheet==='ov'?'ov':S.sheet==='prefs'?'prefs':S.sheet==='swap'?'swap':S.sheet==='prot'?'prot':S.sheet==='wish'?'wish':S.sheet==='shopMore'?'shopMore':S.sheet==='dess'?'dess':S.sheet==='slot'?'slot':S.sheet==='delLas'?'delLas':S.sheet==='dish'?'dish':S.sheet==='tmr'?'tmr':S.sheet==='tmrMenu'?'tmrMenu':S.rcpSheet?'rcpSheet':S.sheet==='cleanAdd'?'cleanAdd':S.sheet==='fodAdd'?'fodAdd':S.sheet==='slaktRel'?'slaktRel':S.sheet==='fodFam'?'fodFam':S.sheet==='presBud'?'presBud':S.sheet==='haLampa'?'haLampa':S.sheet==='haApp'?'haApp':S.sheet==='haEdit'?'haEdit':S.sheet==='haFav'?'haFav':S.sheet==='haAdd'?'haAdd':S.sheet==='habRuta'?'habRuta':S.sheet==='habSc'?'habSc':S.sheet==='habOrd'?'habOrd':S.sheet==='otRum'?'otRum':S.sheet==='haMedia'?'haMedia':S.sheet==='taskMenu'?'taskMenu':S.sheet==='ekoMenu'?'ekoMenu':S.sheet==='evMenu'?'evMenu':S.sheet==='cleanMenu'?'cleanMenu':S.sheet==='robRum'?'robRum':S.sheet==='taskEdit'?'taskEdit':S.sheet==='evEdit'?'evEdit':S.sheet==='evNew'?'evNew':S.sheet==='wxDay'?'wxDay':S.shopAdd?'shop':S.taskAdd?'task':'';
+ const k=S.cook?'cook':S.sheet==='settings'?'settings':S.sheet==='farg'?'farg':S.sheet==='vagg'?'vagg':S.sheet==='ljuskal'?'ljuskal':S.sheet==='rate'?'rate':S.sheet==='income'?'income':S.sheet==='matb'?'matb':S.sheet==='vara'?'vara':S.sheet==='cost'?'cost':S.sheet==='ov'?'ov':S.sheet==='prefs'?'prefs':S.sheet==='swap'?'swap':S.sheet==='prot'?'prot':S.sheet==='wish'?'wish':S.sheet==='shopMore'?'shopMore':S.sheet==='dess'?'dess':S.sheet==='slot'?'slot':S.sheet==='delLas'?'delLas':S.sheet==='dish'?'dish':S.sheet==='tmr'?'tmr':S.sheet==='tmrMenu'?'tmrMenu':S.rcpSheet?'rcpSheet':S.sheet==='cleanAdd'?'cleanAdd':S.sheet==='fodAdd'?'fodAdd':S.sheet==='slaktRel'?'slaktRel':S.sheet==='fodFam'?'fodFam':S.sheet==='presBud'?'presBud':S.sheet==='haLampa'?'haLampa':S.sheet==='haApp'?'haApp':S.sheet==='haEdit'?'haEdit':S.sheet==='haSol'?'haSol':S.sheet==='haFav'?'haFav':S.sheet==='haAdd'?'haAdd':S.sheet==='habRuta'?'habRuta':S.sheet==='habSc'?'habSc':S.sheet==='habOrd'?'habOrd':S.sheet==='otRum'?'otRum':S.sheet==='haMedia'?'haMedia':S.sheet==='taskMenu'?'taskMenu':S.sheet==='ekoMenu'?'ekoMenu':S.sheet==='evMenu'?'evMenu':S.sheet==='cleanMenu'?'cleanMenu':S.sheet==='robRum'?'robRum':S.sheet==='taskEdit'?'taskEdit':S.sheet==='evEdit'?'evEdit':S.sheet==='evNew'?'evNew':S.sheet==='wxDay'?'wxDay':S.shopAdd?'shop':S.taskAdd?'task':'';
  const prev=o.dataset.k||'';
  // Behåll markerade barn/föräldrar medan relationsbladet är öppet.
  if(k==='slaktRel'&&prev===k)return;
@@ -4402,6 +4447,7 @@ if(k==='vara'){const n=S.varaK||'',ing=S.varaTyp==='ing',R=regGet(),F=parseJ(set
  if(k==='haFav'){o.innerHTML=haFavSheet(enter);return}
  if(k==='haApp'){o.innerHTML=haAppSheet(enter);const sh0=o.querySelector('.sheet');if(sh0)sh0.classList.add('ha-hel');return}
  if(k==='haEdit'){o.innerHTML=haEditSheet(enter);return}
+ if(k==='haSol'){o.innerHTML=haSolSheet(enter);return}
  if(k==='haAdd'){o.innerHTML=haAddSheet(enter);return}
  if(k==='habRuta'){o.innerHTML=habRutaSheet(enter);return}
  if(k==='habSc'){o.innerHTML=habScSheet(enter);return}
@@ -6509,6 +6555,14 @@ const ACT={
  onWk(){S.onWk=!S.onWk;render()},
  onPers(id){S.onPers=id||'';A.touch=Date.now();render()},
  ogFlik(id){S.ogFlik=id==='stad'?'stad':'';A.touch=Date.now();render()},
+ haSolOpen(id){S.haSolId=id;S.sheet='haSol';render()},
+ haSolPa(id){const x=haSolX(id);if(!x)return;x.pa=!x.pa;if(!x.pa)x.kor=null;render();haSolSpara(x,{pa:x.pa});toast(HA_SOL[id][0]+(x.pa?' är på':' är av'))},
+ haSolSteg(id,el){const x=haSolX(S.haSolId);if(!x)return;const d=+el.dataset.d||0,lim=(v,a,b)=>Math.max(a,Math.min(b,v));
+  if(id==='off')x.off=lim(x.off+15*d,-180,180);else if(id==='min')x.min=lim(x.min+15*d,15,180);else if(id==='slut')x.slut=lim(x.slut+5*d,5,100);else return;render();haSolSpara(x,{[id]:x[id]})},
+ haSolLampa(id){const x=haSolX(S.haSolId);if(!x||x.lampa===id)return;x.lampa=id;render();haSolSpara(x,{lampa:id})},
+ haSolNu(){const x=haSolX(S.haSolId);if(!x)return;x.kor=Math.round(Date.now()/1e3+x.min*60);render();toast(HA_SOL[x.id][0]+' startar på '+haLampN(x.lampa));haSend({sol:x.id,gor:'nu'},()=>{x.kor=null})},
+ haSolStopp(){const x=haSolX(S.haSolId);if(!x)return;const k=x.kor;x.kor=null;render();haSend({sol:x.id,gor:'stopp'},()=>{x.kor=k})},
+ haAutoPa(id){const a=((haData()||{}).auto||[]).find(y=>y.id===id);if(!a)return;const was=a.on;a.on=!was;render();haSend({automation:id,pa:a.on},()=>{a.on=was})},
  haTog(id){const x=(haData()||{lampor:[]}).lampor.find(e=>e.id===id);if(!x||x.nas)return;haAnv(id);try{u5Tick()}catch(e){}const was=x.on;x.on=!was;if(x.on&&!x.b&&x.t==='light')x.b=null;HA.last=null;render();haSend({id,gor:'vaxla'},()=>{x.on=was})},
  haTest(){closeSheets();S.haTest=true;S.haRum=null;HA.demo=null;HA.syn={};HA.byt={};HA.last=null;S.view='hus';try{scrollTo(0,0)}catch(e){}render()},
  haRumVy(id){S.haRum=id?(id==='_'?'':id):null;try{scrollTo(0,0)}catch(e){}render()},

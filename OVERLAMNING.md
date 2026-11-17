@@ -2,6 +2,13 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Solljus (soluppgång/solnedgång) + brytare på automationer (förslag, väntar på Henrik)
+- Ägare Claude, gren `claude/project-thread-enbw55`. Henrik 17/11: vägglampan tonas varm/svag → kall/full efter soluppgången och omvänt före solnedgången, tid ± sol ställs in i appen, av/på på alla schemalagda automationer.
+- HA-skript `kiosk/ha/solljus.yaml` (script.solljus, variabler riktning/lampa/minuter/slut, steg varje minut, slutar om lampan släcks/ändras). Väggdatorns tjänst schemalägger (`sol_*` i ljussensor.py, inställning `sol` i HA_FIL, Värnamos soltider offline) och tonar själv om skriptet saknas; vanorna står åt sidan under toningen och pausas efteråt. `/ha` ger `sol` + `auto` (alla automation.*), POST `{sol,gor:nu|stopp}`, `{automation,pa}`, `/ha/val {sol,pa,off,min,slut,lampa}`.
+- App: Hemmet → Automationer (`husAuto`), blad `haSol` (−/+ 15 min, ±3 h, längd, kvällsljus, lampa, Starta nu). Gamla tjänsten utan `sol` visar ingenting.
+- Nästa: Henriks ok på bilderna, klistra in skriptet i HA, installera tjänsten på Surfacen (kräver "Kör"), sedan publicera.
+- Test: `python3 verktyg/solljus-test.py`, `verktyg/emu/solljus.js` (haDemo, telefon/vägg/mörkt), ljusvanor-test och alla-flikar telefon+vägg gröna.
+
 ## Googles modern-web-guidance + snabbare Recept-flik (publicerad ht-v407, ångra-gren `version-fore-recept-snabb`, PR #117)
 - Ägare Claude, gren `claude/project-thread-dt5nhs`. Henrik 15/11: utvärdera pluginet och gå igenom appen mot det. Pluginet påslaget i `.claude/settings.json`, regel i AGENTS.md (bara vid ny webbfunktion/prestanda/tillgänglighet).
 - Genomgång: blad (egna, inte `<dialog>`; byte ger ingen synlig vinst), tillgänglighet/formulär (inputmode, etiketter, alt bra), mörkt läge (`color-scheme` rätt) – inget att ändra. Recept-fliken var långsam: `inBank` tolkade hela receptbanken per kort (nu cache) och ~90 kort ritades direkt (nu `content-visibility:auto` från kort 7). Ca 600 → 400 ms vid 4× strypt CPU.

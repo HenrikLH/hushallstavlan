@@ -1,0 +1,62 @@
+# Solljus: tonar en lampa som en soluppgång (varmt och svagt → helt vitt och full ljusstyrka) eller en solnedgång
+# (kallt och fullt → varmt och mysigt kvällsljus). Hushållstavlan startar skriptet vid tiderna som ställs in i appen
+# (Hemmet → Automationer) och skickar med riktning, lampa, minuter och slut. Startar man det själv utan variabler blir det
+# en soluppgång på vägglampan under en timme.
+# Toningen går ett steg i minuten med mjuk övergång (långsamt i början och slutet). Lyser lampan redan börjar den där
+# lampan är, så inget hoppar. Släcker någon lampan eller ändrar ljusstyrkan själv slutar skriptet.
+# Klistra in: Inställningar → Automationer och scener → Skript → Lägg till skript → Skapa nytt skript → ⋮ → Redigera i YAML,
+# ersätt allt med filen och spara. Entiteten ska heta script.solljus (ändra id under ⋮ → Inställningar om den fick ett annat).
+alias: Solljus
+description: Tonar en lampa som soluppgång eller solnedgång. Startas av Hushållstavlan.
+icon: mdi:weather-sunset-up
+mode: restart
+variables:
+  l: "{{ lampa | default('light.vagglampa') }}"
+  upp: "{{ (riktning | default('upp')) != 'ned' }}"
+  n: "{{ [[minuter | default(60) | int(60), 1] | max, 180] | min }}"
+  kmin: "{{ state_attr(l, 'min_color_temp_kelvin') | int(2200) }}"
+  kmax: "{{ state_attr(l, 'max_color_temp_kelvin') | int(4000) }}"
+  pa: "{{ is_state(l, 'on') }}"
+  k0: >-
+    {% set k = state_attr(l, 'color_temp_kelvin') %}
+    {{ k | int if pa and k else (kmin if upp else kmax) }}
+  b0: >-
+    {% set b = state_attr(l, 'brightness') %}
+    {{ [((b | int) / 2.55) | round | int, 1] | max if pa and b else (1 if upp else 100) }}
+  k1: "{{ kmax if upp else kmin }}"
+  b1: "{{ 100 if upp else [[slut | default(35) | int(35), 1] | max, 100] | min }}"
+sequence:
+  - action: light.turn_on
+    target:
+      entity_id: "{{ l }}"
+    data:
+      color_temp_kelvin: "{{ k0 }}"
+      brightness_pct: "{{ b0 }}"
+      transition: 2
+  - delay:
+      seconds: 3
+  - repeat:
+      count: "{{ n }}"
+      sequence:
+        - variables:
+            tf: "{{ (repeat.index - 1) / n }}"
+            tn: "{{ repeat.index / n }}"
+            sf: "{{ tf * tf * (3 - 2 * tf) }}"
+            sn: "{{ tn * tn * (3 - 2 * tn) }}"
+            bf: "{{ b0 + (b1 - b0) * sf }}"
+        - if:
+            - condition: template
+              value_template: >-
+                {% set b = state_attr(l, 'brightness') %}
+                {{ not is_state(l, 'on') or b is none or ((b | int) / 2.55 - bf) | abs > 8 }}
+          then:
+            - stop: Lampan släcktes eller ändrades för hand
+        - action: light.turn_on
+          target:
+            entity_id: "{{ l }}"
+          data:
+            color_temp_kelvin: "{{ (k0 + (k1 - k0) * sn) | round | int }}"
+            brightness_pct: "{{ [(b0 + (b1 - b0) * sn) | round | int, 1] | max }}"
+            transition: 60
+        - delay:
+            seconds: "{{ 60 if repeat.index < n else 1 }}"
