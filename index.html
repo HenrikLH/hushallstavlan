@@ -4777,6 +4777,34 @@ div.ha-au-b{cursor:default}
 .ha-sol-r .stepper .num{min-width:52px;text-align:center}
 .ha-sol-r .stepper .num:has(.ha-sol-dot){min-width:84px;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap}
 .ha-sol-dot{width:12px;height:12px;border-radius:50%;flex:none;box-shadow:inset 0 0 0 .5px rgba(0,0,0,.2)}
+/* Förslag 17/11 (väggen, Skog): sidomeny med fler mål (ht.sidoNy), Översikt A/B (ht.vaggOv) */
+html.ny.ui5 body.wall .nav.sido .nav-x,html.ny.ui5 body.wall .nav.sido .nav-sep{display:flex}
+html.ny.ui5 .nav .nav-x,html.ny.ui5 .nav .nav-sep{display:none}
+html.ny.ui5 body.wall .nav.sido:has(.nav-x) button[data-id="oversikt"]{order:1}html.ny.ui5 body.wall .nav.sido:has(.nav-x) button[data-id="kalender"]{order:2}html.ny.ui5 body.wall .nav.sido:has(.nav-x) button[data-id="uppgifter"]{order:3}html.ny.ui5 body.wall .nav.sido:has(.nav-x) button[data-id="mat"]{order:4}
+html.ny.ui5 body.wall .nav.sido:has(.nav-x) .nav-sep{order:5;flex:none;height:1px;margin:6px 10px;background:rgba(240,245,240,.18)}
+html.ny.ui5 body.wall .nav.sido:has(.nav-x) button[data-id="hemmet"]{order:6}html.ny.ui5 body.wall .nav.sido:has(.nav-x) .nav-x{order:7}
+html.ny.ui5 body.wall .nav.sido:has(.nav-x) .nav-tog{order:20;margin:auto 0 0}html.ny.ui5 body.wall .nav.sido:has(.nav-x) .nav-me{order:21;margin-top:4px}
+html.ny.ui5 body.wall.t3 .nav.sido:has(.nav-x):not(.sido-ut) button[data-act="nav"]{height:74px;font-size:13px;line-height:16px;text-align:center}
+html.ny.ui5 body.wall.t3 .nav.sido:has(.nav-x):not(.sido-ut) button[data-act="nav"] span{white-space:normal;hyphens:manual}
+html.ny.ui5 body.wall.t3 .nav.sido:has(.nav-x):not(.sido-ut) .nav-tog{height:48px}
+html.ny.ui5 .ot-v>.ot-hk{grid-area:u;display:flex;flex-direction:column;gap:20px;min-height:0}
+html.ny.ui5 .ot-v>.ot-hk>.ot-hus{flex:none}html.ny.ui5 .ot-v>.ot-hk>.ot-fk{flex:1 1 0;min-height:0;overflow:hidden}
+html.ny.ui5 .ot-fk .ot-h{margin-bottom:10px}html.ny.ui5 .ot-fk .ot-hi svg{width:28px;height:28px}
+html.ny.ui5 .ot-fl{display:flex;flex-direction:column}
+html.ny.ui5 .ot-fr{display:flex;align-items:center;gap:14px;width:100%;padding:8px 0;border:0;background:none;color:var(--ot-ink);text-align:left;font:inherit;position:relative}
+html.ny.ui5 .ot-fr+.ot-fr:before{content:"";position:absolute;left:58px;right:0;top:0;height:1px;background:var(--ot-linje)}
+html.ny.ui5 .ot-fd{flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;background:var(--bd-soft,var(--ot-gronl));color:var(--bd-ink,var(--ot-gron2))}
+html.ny.ui5 .ot-fd b{font-size:18px;line-height:19px;font-weight:700}html.ny.ui5 .ot-fd span{font-size:11px;line-height:13px;font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+html.ny.ui5 .ot-fr.nu .ot-fd{background:var(--bd,#E39A1E);color:#fff}
+html.ny.ui5 .ot-ftx{display:flex;flex-direction:column;min-width:0}html.ny.ui5 .ot-ftx b{font-size:17px;line-height:22px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}html.ny.ui5 .ot-ftx b .num{font-weight:400;color:var(--ot-i2)}
+html.ny.ui5 .ot-ftx small{font-size:14px;line-height:18px;color:var(--ot-i2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.ny.ui5 .ot-v:is(.ovf-A,.ovf-B)>.ot-nu:not(:has(.ot-nt:not(.fod))){display:none}html.ny.ui5 .ot-v:is(.ovf-A,.ovf-B)>.ot-nu .ot-nt.fod{display:none}
+html.ny.ui5.skog body.wall .ot-v.ovf-A .ot-hus .ot-rums{grid-auto-rows:54px}html.ny.ui5 .ot-v.ovf-A .ot-hus .ot-scl{display:none}html.ny.ui5 .ot-v.ovf-A .ot-hus .ot-sc{margin-top:14px}html.ny.ui5 .ot-v.ovf-A .ot-hus .ot-h{margin-bottom:12px}
+html.ny.ui5 .ot-v.ovf-A .ot-fk .ot-h b{font-size:22px}html.ny.ui5 .ot-v>.ot-hk>.ot-fk{padding-top:16px;padding-bottom:12px}html.ny.ui5 .ot-v .ot-fk .ot-h{margin-bottom:4px}html.ny.ui5 .ot-v .ot-fr{padding:5px 0}html.ny.ui5 .ot-v .ot-fd{width:40px;height:40px;border-radius:11px}html.ny.ui5 .ot-v .ot-fr+.ot-fr:before{left:54px}
+html.ny.ui5 .ot-lgs{flex:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:10px;margin-top:16px}
+html.ny.ui5 .ot-lg{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:12px 14px;border-radius:18px;background:var(--ot-ruta);border:1px solid var(--ot-kb);color:var(--ot-ink)}
+html.ny.ui5 .ot-lgi{color:var(--ot-gron2)}html.ny.ui5 .ot-lgi svg{width:22px;height:22px}
+html.ny.ui5 .ot-lg b{font-size:24px;line-height:28px;font-weight:600}html.ny.ui5 .ot-lg small{font-size:13px;line-height:16px;color:var(--ot-i2)}
 </style>
 </head>
 <body>
