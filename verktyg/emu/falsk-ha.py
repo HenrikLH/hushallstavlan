@@ -20,6 +20,14 @@ S = {
  'light.vagglampa': ['off', {'friendly_name': 'Vägglampa', 'supported_color_modes': ['color_temp'], 'color_mode': 'color_temp', 'min_color_temp_kelvin': 2202, 'max_color_temp_kelvin': 4000}],
  'automation.morgonljus': ['on', {'friendly_name': 'Morgonljus i hallen', 'last_triggered': '2026-11-16T06:30:00+00:00'}],
  'automation.robot_tisdag': ['off', {'friendly_name': 'Robot städar tisdagar', 'last_triggered': None}],
+ # HA-paketet Solljus (kiosk/ha/solljus-paket.yaml), nyss installerat: inställningarna tomma/på min
+ 'sun.sun': ['below_horizon', {'friendly_name': 'Sun', 'next_rising': '2026-11-18T07:14:00+00:00', 'next_setting': '2026-11-17T14:41:00+00:00'}],
+ 'script.solljus': ['off', {'friendly_name': 'Solljus', 'last_triggered': None}],
+ 'automation.solljus_soluppgang': ['on', {'friendly_name': 'Solljus soluppgång', 'last_triggered': None}],
+ 'automation.solljus_solnedgang': ['on', {'friendly_name': 'Solljus solnedgång', 'last_triggered': None}],
+ 'input_number.solljus_upp_off': ['-180.0', {}], 'input_number.solljus_upp_min': ['15.0', {}],
+ 'input_number.solljus_ned_off': ['-180.0', {}], 'input_number.solljus_ned_min': ['15.0', {}], 'input_number.solljus_ned_slut': ['5.0', {}],
+ 'input_text.solljus_upp_lampa': ['', {}], 'input_text.solljus_ned_lampa': ['', {}],
  'sensor.batteri': ['80', {'friendly_name': 'Batteri', 'unit_of_measurement': '%', 'device_class': 'battery'}],
 }
 # Robotdammsugare (Roborock + RoborockCustomMap) och diskmaskin (Home Connect), entiteter som hos Henrik (svenska namn)
@@ -144,7 +152,13 @@ class H(http.server.BaseHTTPRequestHandler):
                 elif tj == 'play_media': S[x][0] = 'playing'; S[x][1]['media_title'] = (d.get('extra') or {}).get('title')
                 elif tj in ('media_pause', 'media_play', 'media_stop'): S[x][0] = {'media_pause': 'paused', 'media_play': 'playing', 'media_stop': 'idle'}[tj]
             return self.svar(200, [])
-        if dom == 'script': return self.svar(200, [])
+        if dom == 'script':
+            if e in S and tj in ('turn_on', 'turn_off'):
+                S[e][0] = 'on' if tj == 'turn_on' else 'off'
+                if tj == 'turn_on': S[e][1]['last_triggered'] = __import__('datetime').datetime.now(__import__('datetime').timezone.utc).isoformat()
+            return self.svar(200, [])
+        if dom in ('input_number', 'input_text') and tj == 'set_value':
+            S[e][0] = str(float(d['value'])) if dom == 'input_number' else str(d['value']); return self.svar(200, [])
         if dom == 'select':
             S[e][0] = d['option']
             if e == 'select.diskmaskin_aktivt_program': S['sensor.diskmaskin_driftstatus'][0] = 'run'; S['sensor.diskmaskin_programmets_framsteg'][0] = '12'; S['sensor.diskmaskin_programmets_sluttid'][0] = '2026-11-09T22:40:00+00:00'

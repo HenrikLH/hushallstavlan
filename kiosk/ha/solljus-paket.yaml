@@ -1,0 +1,180 @@
+# Solljus för Home Assistant: allt i ett paket (skript, två automationer och inställningarna som appen ändrar).
+# Soluppgång: varmt och svagt → helt vitt och full ljusstyrka. Solnedgång: kallt och fullt → varmt och mysigt kvällsljus.
+# Automationerna startar vid solens upp- eller nedgång (sun.sun) plus förskjutningen i input_number.solljus_*_off
+# (minuter, negativt = före). Hushållstavlan visar dem under Hemmet → Automationer: brytaren slår automationen av och på,
+# bladet ändrar inställningarna nedan via väggdatorns tjänst (input_number/input_text.set_value).
+# Toningen går ett steg i minuten med mjuk övergång. Lyser lampan redan börjar den där lampan är. Släcker någon lampan
+# eller ändrar ljusstyrkan för hand slutar skriptet.
+# Installera (väggdatorn gör det): kopiera till config/packages/solljus.yaml, se till att configuration.yaml har
+#   homeassistant:
+#     packages: !include_dir_named packages
+# och starta om Home Assistant. Tavlan fyller i lampa och förval (+60/−60 min, 60 min, 35 %) första gången; tills dess
+# gör automationerna ingenting (villkoret kräver en lampa).
+
+input_number:
+  solljus_upp_off:
+    name: Solljus soluppgång, minuter från solen
+    min: -180
+    max: 180
+    step: 15
+    unit_of_measurement: min
+    mode: box
+  solljus_upp_min:
+    name: Solljus soluppgång, minuter att tona
+    min: 15
+    max: 180
+    step: 15
+    unit_of_measurement: min
+    mode: box
+  solljus_ned_off:
+    name: Solljus solnedgång, minuter från solen
+    min: -180
+    max: 180
+    step: 15
+    unit_of_measurement: min
+    mode: box
+  solljus_ned_min:
+    name: Solljus solnedgång, minuter att tona
+    min: 15
+    max: 180
+    step: 15
+    unit_of_measurement: min
+    mode: box
+  solljus_ned_slut:
+    name: Solljus solnedgång, kvällsljus
+    min: 5
+    max: 100
+    step: 5
+    unit_of_measurement: "%"
+    mode: box
+
+input_text:
+  solljus_upp_lampa:
+    name: Solljus soluppgång, lampa
+  solljus_ned_lampa:
+    name: Solljus solnedgång, lampa
+
+automation:
+  - id: solljus_soluppgang
+    alias: Solljus soluppgång
+    description: Tonar lampan från varmt och svagt till helt vitt och fullt vid soluppgången ± förskjutningen. Ändras i Hushållstavlan.
+    mode: restart
+    triggers:
+      # vid eller efter soluppgången: förskjutningen väntas in som fördröjning
+      - trigger: sun
+        event: sunrise
+        id: efter
+      # före soluppgången: när så många minuter är kvar
+      - trigger: template
+        id: fore
+        value_template: >-
+          {% set off = states('input_number.solljus_upp_off') | int(0) %}
+          {% set t = state_attr('sun.sun', 'next_rising') %}
+          {{ off < 0 and t is not none and as_timestamp(t) - as_timestamp(now()) <= -off * 60 }}
+    conditions:
+      - condition: template
+        value_template: >-
+          {{ states('input_text.solljus_upp_lampa') not in ('', 'unknown', 'unavailable')
+             and (trigger.id == 'fore' or states('input_number.solljus_upp_off') | int(0) >= 0) }}
+    actions:
+      - delay:
+          minutes: "{{ [states('input_number.solljus_upp_off') | int(0), 0] | max if trigger.id == 'efter' else 0 }}"
+      - action: script.turn_on
+        target:
+          entity_id: script.solljus
+        data:
+          variables:
+            riktning: upp
+            lampa: "{{ states('input_text.solljus_upp_lampa') }}"
+            minuter: "{{ states('input_number.solljus_upp_min') | int(60) }}"
+            slut: 100
+  - id: solljus_solnedgang
+    alias: Solljus solnedgång
+    description: Tonar lampan från kallt och fullt till varmt och mysigt vid solnedgången ± förskjutningen. Ändras i Hushållstavlan.
+    mode: restart
+    triggers:
+      - trigger: sun
+        event: sunset
+        id: efter
+      - trigger: template
+        id: fore
+        value_template: >-
+          {% set off = states('input_number.solljus_ned_off') | int(0) %}
+          {% set t = state_attr('sun.sun', 'next_setting') %}
+          {{ off < 0 and t is not none and as_timestamp(t) - as_timestamp(now()) <= -off * 60 }}
+    conditions:
+      - condition: template
+        value_template: >-
+          {{ states('input_text.solljus_ned_lampa') not in ('', 'unknown', 'unavailable')
+             and (trigger.id == 'fore' or states('input_number.solljus_ned_off') | int(0) >= 0) }}
+    actions:
+      - delay:
+          minutes: "{{ [states('input_number.solljus_ned_off') | int(0), 0] | max if trigger.id == 'efter' else 0 }}"
+      - action: script.turn_on
+        target:
+          entity_id: script.solljus
+        data:
+          variables:
+            riktning: ned
+            lampa: "{{ states('input_text.solljus_ned_lampa') }}"
+            minuter: "{{ states('input_number.solljus_ned_min') | int(60) }}"
+            slut: "{{ states('input_number.solljus_ned_slut') | int(35) }}"
+
+# Själva toningen. Startas av automationerna ovan eller av Starta nu i appen; utan variabler blir det en soluppgång
+# på light.vagglampa under en timme.
+script:
+  solljus:
+    alias: Solljus
+    description: Tonar en lampa som soluppgång eller solnedgång. Startas av Hushållstavlan.
+    icon: mdi:weather-sunset-up
+    mode: restart
+    variables:
+      l: "{{ lampa | default('light.vagglampa') }}"
+      upp: "{{ (riktning | default('upp')) != 'ned' }}"
+      n: "{{ [[minuter | default(60) | int(60), 1] | max, 180] | min }}"
+      kmin: "{{ state_attr(l, 'min_color_temp_kelvin') | int(2200) }}"
+      kmax: "{{ state_attr(l, 'max_color_temp_kelvin') | int(4000) }}"
+      pa: "{{ is_state(l, 'on') }}"
+      k0: >-
+        {% set k = state_attr(l, 'color_temp_kelvin') %}
+        {{ k | int if pa and k else (kmin if upp else kmax) }}
+      b0: >-
+        {% set b = state_attr(l, 'brightness') %}
+        {{ [((b | int) / 2.55) | round | int, 1] | max if pa and b else (1 if upp else 100) }}
+      k1: "{{ kmax if upp else kmin }}"
+      b1: "{{ 100 if upp else [[slut | default(35) | int(35), 1] | max, 100] | min }}"
+    sequence:
+      - action: light.turn_on
+        target:
+          entity_id: "{{ l }}"
+        data:
+          color_temp_kelvin: "{{ k0 }}"
+          brightness_pct: "{{ b0 }}"
+          transition: 2
+      - delay:
+          seconds: 3
+      - repeat:
+          count: "{{ n }}"
+          sequence:
+            - variables:
+                tf: "{{ (repeat.index - 1) / n }}"
+                tn: "{{ repeat.index / n }}"
+                sf: "{{ tf * tf * (3 - 2 * tf) }}"
+                sn: "{{ tn * tn * (3 - 2 * tn) }}"
+                bf: "{{ b0 + (b1 - b0) * sf }}"
+            - if:
+                - condition: template
+                  value_template: >-
+                    {% set b = state_attr(l, 'brightness') %}
+                    {{ not is_state(l, 'on') or b is none or ((b | int) / 2.55 - bf) | abs > 8 }}
+              then:
+                - stop: Lampan släcktes eller ändrades för hand
+            - action: light.turn_on
+              target:
+                entity_id: "{{ l }}"
+              data:
+                color_temp_kelvin: "{{ (k0 + (k1 - k0) * sn) | round | int }}"
+                brightness_pct: "{{ [(b0 + (b1 - b0) * sn) | round | int, 1] | max }}"
+                transition: 60
+            - delay:
+                seconds: "{{ 60 if repeat.index < n else 1 }}"
