@@ -381,13 +381,37 @@ def ha_disk(c, alla, p):
     spol = hitta('sensor', lambda k, a: 'present' in (a.get('options') or []) and 'salt' not in k)
     fjarr = hitta('binary_sensor', lambda k, a: 'fjarrstart' in k or 'remote_start' in k)
     stopp = hitta('button', lambda k, a: 'stopp' in k or 'stop' in k)
+    vario = hitta('switch', lambda k, a: 'vario' in k)   # VarioSpeed+ (Home Connect-option, går bara att ändra när maskinen är på och inte kör)
     kort = lambda o: DISK_PROG.get(str(o).replace('dishcare_dishwasher_program_', ''), str(o).replace('dishcare_dishwasher_program_', '').replace('_', ' ').capitalize())
     s = lambda x: x.get('state') if x and x.get('state') not in ('unknown', 'unavailable') else None
     pv = s(aktiv) or s(valt)
     return {'id': p, 'typ': 'disk', 'n': c['namn'].get(p) or 'Diskmaskinen', 'st': s(drift), 'prog': kort(pv) if pv else None, 'progId': pv,
             'progAlt': [[o, kort(o)] for o in A(valt).get('options') or []] if valt else [], 'pct': ha_tal(s(fram)), 'slut': s(slut),
             'dorr': s(dorr), 'salt': s(salt) in ('present', 'confirmed') if salt else None, 'spol': s(spol) in ('present', 'confirmed') if spol else None,
-            'fjarr': (fjarr or {}).get('state') == 'on' if fjarr else None, 'kanStoppa': bool(stopp)}
+            'fjarr': (fjarr or {}).get('state') == 'on' if fjarr else None, 'kanStoppa': bool(stopp),
+            **({'vario': disk_vario(p, s(vario))} if vario else {})}
+
+DISK_VARIO = {}   # senast kända VarioSpeed per diskmaskin: optionen är "unavailable" medan programmet kör och när maskinen är av
+
+def disk_vario(p, v):
+    if v in ('on', 'off'): DISK_VARIO[p] = v == 'on'
+    return DISK_VARIO.get(p)
+
+def disk_satt_vario(c, G, p, pa):
+    # Home Connect tar bara emot optioner när maskinen är på: slå på den först (Av/På) och vänta tills optionen går att ändra
+    tj = lambda dom, s, data: ha_anrop(c, '/api/services/%s/%s' % (dom, s), data)
+    v = next((k for k in sorted(G) if k.startswith('switch.') and 'vario' in k), None)
+    if not v: return False
+    strom = next((k for k in sorted(G) if k.startswith('switch.') and ('av_pa' in k or 'power' in k or 'strom' in k)), None)
+    las = lambda e: (ha_anrop(c, '/api/states/' + e) or {}).get('state')
+    if strom and las(strom) != 'on':
+        tj('switch', 'turn_on', {'entity_id': strom})
+        for _ in range(16):
+            time.sleep(.5)
+            if las(v) in ('on', 'off'): break
+    tj('switch', 'turn_on' if pa else 'turn_off', {'entity_id': v})
+    DISK_VARIO[p] = bool(pa)
+    return True
 
 def ha_appar(c, alla):
     rob, disk = ha_hitta_appar(c, alla)
@@ -501,6 +525,7 @@ def ha_app_styr(c, d):
             prog = d.get('prog') or a['progId']
             if prog not in [o for o, n in a['progAlt']]: return 400, {'fel': 'okänt program'}
             if not a['fjarr']: return 409, {'fel': 'Tryck på fjärrstart på diskmaskinen först'}
+            if 'vario' in d and 'vario' in a: disk_satt_vario(c, G, a['id'], bool(d['vario']))   # valet följer med starten
             tj('select', 'select_option', {'entity_id': sel(('aktiv', 'active')), 'option': prog})
         elif g == 'stopp':
             b = next((k for k in sorted(G) if k.startswith('button.') and ('stopp' in k or 'stop' in k)), None)
@@ -508,6 +533,9 @@ def ha_app_styr(c, d):
             tj('button', 'press', {'entity_id': b})
         elif d.get('prog') in [o for o, n in a['progAlt']]:
             tj('select', 'select_option', {'entity_id': sel(('valt', 'selected')), 'option': d['prog']})
+        elif 'vario' in d and 'vario' in a:
+            if a['st'] in ('run', 'pause', 'delayedstart'): return 409, {'fel': 'VarioSpeed kan inte ändras medan programmet går'}
+            disk_satt_vario(c, G, a['id'], bool(d['vario']))
         else: return 400, {'fel': 'okänd begäran'}
     ha_uppdatera()
     return 200, {'ok': True, 'v': HA['v']}

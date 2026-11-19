@@ -77,6 +77,8 @@ S.update({
  'sensor.diskmaskin_saltet_ar_nastan_tomt': ['off', {'friendly_name': 'Diskmaskin Saltet är nästan tomt', 'device_class': 'enum', 'options': ['confirmed', 'off', 'present']}],
  'sensor.diskmaskin_skoljmedlet_nastan_tomt': ['present', {'friendly_name': 'Diskmaskin Sköljmedlet nästan tomt', 'device_class': 'enum', 'options': ['confirmed', 'off', 'present']}],
  'binary_sensor.diskmaskin_fjarrstart': ['on', {'friendly_name': 'Diskmaskin Fjärrstart'}],
+ 'switch.diskmaskin_av_pa': ['off', {'friendly_name': 'Diskmaskin Av/På'}],
+ 'switch.diskmaskin_variospeed': ['unavailable', {'friendly_name': 'Diskmaskin VarioSpeed +'}],   # som hos Henrik: optionen går bara att ändra när maskinen är på
  'button.diskmaskin_stoppa_program': ['unknown', {'friendly_name': 'Diskmaskin Stoppa program'}],
 })
 def karta_png():
@@ -120,6 +122,8 @@ class H(http.server.BaseHTTPRequestHandler):
         if self.path == '/api/states': return self.svar(200, [{'entity_id': k, 'state': v[0], 'attributes': v[1]} for k, v in S.items()])
         if self.path == '/logg': return self.svar(200, LOG)
         if self.path == '/api/services': return self.svar(200, TJANSTER)
+        if self.path.startswith('/api/states/'):
+            e = self.path[12:]; return self.svar(200, {'entity_id': e, 'state': S[e][0], 'attributes': S[e][1]}) if e in S else self.svar(404, {})
         if self.path.startswith('/api/history/period/'): return self.svar(200, [])
         if self.path.startswith('/api/image_proxy/'):
             b = karta_png(); self.send_response(200); self.send_header('Content-Type', 'image/png'); self.end_headers(); self.wfile.write(b); return
@@ -162,11 +166,13 @@ class H(http.server.BaseHTTPRequestHandler):
             S[e][0] = str(float(d['value'])) if dom == 'input_number' else str(d['value']); return self.svar(200, [])
         if dom == 'select':
             S[e][0] = d['option']
-            if e == 'select.diskmaskin_aktivt_program': S['sensor.diskmaskin_driftstatus'][0] = 'run'; S['sensor.diskmaskin_programmets_framsteg'][0] = '12'; S['sensor.diskmaskin_programmets_sluttid'][0] = '2026-11-09T22:40:00+00:00'
+            if e == 'select.diskmaskin_aktivt_program': S['switch.diskmaskin_av_pa'][0] = 'on'; S['switch.diskmaskin_variospeed'][0] = 'unavailable'; S['sensor.diskmaskin_driftstatus'][0] = 'run'; S['sensor.diskmaskin_programmets_framsteg'][0] = '12'; S['sensor.diskmaskin_programmets_sluttid'][0] = '2026-11-09T22:40:00+00:00'
             return self.svar(200, [])
         if dom == 'button':
             if e == 'button.diskmaskin_stoppa_program': S['sensor.diskmaskin_driftstatus'][0] = 'ready'; S['select.diskmaskin_aktivt_program'][0] = 'unknown'
             return self.svar(200, [])
+        if e == 'switch.diskmaskin_variospeed' and S[e][0] == 'unavailable': return self.svar(500, {'message': 'Error setting option'})   # Home Connect: maskinen är av eller kör
+        if e == 'switch.diskmaskin_av_pa' and tj == 'turn_on' and S['switch.diskmaskin_variospeed'][0] == 'unavailable' and S['sensor.diskmaskin_driftstatus'][0] != 'run': S['switch.diskmaskin_variospeed'][0] = 'off'
         if S[e][0] == 'unavailable': return self.svar(200, [])
         if tj == 'toggle': S[e][0] = 'off' if S[e][0] == 'on' else 'on'
         elif tj == 'turn_off': S[e][0] = 'off'

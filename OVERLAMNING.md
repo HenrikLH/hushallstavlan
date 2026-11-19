@@ -9,6 +9,12 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 - Henriks rättade planritning (godkänd 13/11) läses från onskelista `{h3d:1,plan:[{id,n,p}],skala}` (kartbildens pixlar, 12,5 mm/px) → `h3dPlanModell` med raka väggar och öppningar; utan plan används robotkartan. Planen ligger INTE i repot (publikt); kopia i projektfilerna hem3d/verktyg/plan.json (celler à 10 cm, ×8 = px). Nästa: spara planen i arket (Henriks ok), placera enheter, fråga om den grå zonen mellan kök/sovrum.
 - Test `verktyg/emu/hem3d.js` (LS haDemo+dev), telefon ljust/mörkt + vägg; alla-flikar telefon+vägg gröna.
 
+## VarioSpeed på diskmaskinen (publicerad ht-v414, ångra-gren `version-fore-vario`, PR #120)
+- Ägare Claude, gren `claude/project-thread-3jefts`. Henrik 19/11: kunde inte ändra VarioSpeed i appen (fanns inte) och maskinens egen På-knapp väcker den inte förrän den startats från en app.
+- Tjänsten (`ha_disk`/`disk_satt_vario` i ljussensor.py): `vario` från `switch.diskmaskin_variospeed`; Home Connect tar bara emot optionen när maskinen är på, så `switch.diskmaskin_av_pa` slås på först. Valet följer med starten; 409 medan programmet går. Appen: brytare i diskkortet (`ACT.haDiskVario`), dold med gammal tjänst.
+- Knapparna: HA-historiken 15–19/11 visar att varken tavlan eller HA stänger av maskinen (inga automationer, inget periodiskt). Troligen maskinen (hängd panel → bryt strömmen 2–3 min; annars knappfel/service).
+- Kvar: Henriks "Kör" för att installera tjänsten på Surfacen (utan den syns ingen VarioSpeed-rad). Test: `python3 verktyg/disk-vario-test.py`, `disk-vario.js`, apparater.js demo, alla-flikar telefon gröna.
+
 ## Väggen: födelsedagar, sidomeny och återgång till Översikt (publicerad ht-v413, ångra-gren `version-fore-vagg-meny`)
 - Ägare Claude, gren `claude/project-thread-qh8vjb`. Henrik 17/11 valde A: Skog på väggen har en låg Födelsedagar-ruta (`otFodKort`, en rad per person, de tre närmaste inom 60 dagar) under Smart hem i `.ot-hk`; födelsedagar döljs i Just nu.
 - Sidomenyn (bara väggen, `sidoNy()`=`sidoOn()`): Översikt (hemikon) först, Kalender, Att göra, Mat, Lampor (Hemmet-vyn, lampikon, `SIDO_NAMN`), Ekonomi, Födelsedagar, Väder (`SIDO_X`); inget streck. Sidor öppnade därifrån har ingen bakåtknapp (`S.hemFran='sido'`). Hemmet-vyn på väggen heter Lampor och visar inte korten Födelsedagar/Ekonomi.
