@@ -392,7 +392,7 @@ html:has(#overlay .sheet),html:has(#overlay .cook){overflow:hidden;overscroll-be
 .cook-top{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;min-height:44px;padding:0 8px}
 .cook-top .fn{text-align:center}
 .cook-top>:last-child{justify-self:end}
-.cook-name{text-align:center;padding:0 16px;font-size:17px;line-height:22px;font-weight:600;overflow-wrap:anywhere}
+.cook-name{text-align:center;padding:0 16px;font-size:17px;line-height:22px;font-weight:600;overflow-wrap:break-word;-webkit-hyphens:auto;hyphens:auto}
 .progress{display:flex;gap:4px;margin:10px 16px 0}
 .progress i{flex:1;height:4px;border-radius:2px;background:var(--fill)}
 .progress i.on{background:var(--accent)}
@@ -3106,12 +3106,14 @@ html.ny.ui5 .pref-section[open]>summary.sh{font-weight:600}
 html.ny.ui5 [data-k="pref-personer"]>summary.sh{--ic:#007AFF;--ii:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22white%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%229%22%20cy%3D%228%22%20r%3D%223.5%22/%3E%3Cpath%20d%3D%22M2.5%2020c.5-4%203.2-6%206.5-6s6%202%206.5%206%22/%3E%3Ccircle%20cx%3D%2217%22%20cy%3D%229%22%20r%3D%222.5%22/%3E%3Cpath%20d%3D%22M17%2014c2.6%200%204.2%201.8%204.5%205%22/%3E%3C/svg%3E")}
 html.ny.ui5 [data-k="pref-utseende"]>summary.sh{--ic:#AF52DE;--ii:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22white%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%228%22/%3E%3Cpath%20d%3D%22M12%204a8%208%200%200%200%200%2016z%22%20fill%3D%22white%22/%3E%3C/svg%3E")}
 html.ny.ui5 [data-k="pref-mat"]>summary.sh{--ic:#FF9500;--ii:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22white%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M7%203v8M5%203v5a2%202%200%200%200%204%200V3M7%2011v10M16%203c-2%201.5-2.5%204-2.5%207H17V3zM17%2010v11%22/%3E%3C/svg%3E")}
-html.ny.ui5 [data-k="pref-oversikt"]>summary.sh{--ic:#32ADE6;--ii:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22white%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M3.5%2011.2L12%204l8.5%207.2M5.8%209.5V20h4.4v-5.5h3.6V20h4.4V9.5%22/%3E%3C/svg%3E")}
+html.ny.ui5 [data-k="pref-oversikt"]>summary.sh{--ic:#32ADE6;--ii:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22white%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%224%22%20y%3D%224%22%20width%3D%226.5%22%20height%3D%226.5%22%20rx%3D%221.5%22/%3E%3Crect%20x%3D%2213.5%22%20y%3D%224%22%20width%3D%226.5%22%20height%3D%226.5%22%20rx%3D%221.5%22/%3E%3Crect%20x%3D%224%22%20y%3D%2213.5%22%20width%3D%226.5%22%20height%3D%226.5%22%20rx%3D%221.5%22/%3E%3Crect%20x%3D%2213.5%22%20y%3D%2213.5%22%20width%3D%226.5%22%20height%3D%226.5%22%20rx%3D%221.5%22/%3E%3C/svg%3E")}
 html.ny.ui5 [data-k="pref-enhet"]>summary.sh{--ic:#636366;--ii:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22white%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%226%22%20y%3D%222.5%22%20width%3D%2212%22%20height%3D%2219%22%20rx%3D%223%22/%3E%3Cpath%20d%3D%22M10.5%2018.5h3%22/%3E%3C/svg%3E")}
 html.ny.ui5 [data-k="pref-avancerat"]>summary.sh{--ic:#8E8E93;--ii:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22white%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M8%207l-5%205%205%205M16%207l5%205-5%205M13.5%204.5l-3%2015%22/%3E%3C/svg%3E")}
 html.ny.ui5 [data-k="pref-ekonomi"]>summary.sh{--ic:#34C759;--ii:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22white%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%226%22%20width%3D%2218%22%20height%3D%2213%22%20rx%3D%223%22/%3E%3Cpath%20d%3D%22M3%2010h18M16.5%2014.5h1.5%22/%3E%3C/svg%3E")}
 html.ny.ui5 [data-k="pref-kalender"]>summary.sh{--ic:#FF3B30;--ii:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22white%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223.5%22%20y%3D%225%22%20width%3D%2217%22%20height%3D%2215.5%22%20rx%3D%222.5%22/%3E%3Cpath%20d%3D%22M3.5%2010h17M8%203v4M16%203v4%22/%3E%3C/svg%3E")}
 html.ny.ui5 [data-k="pref-attgora"]>summary.sh{--ic:#5856D6;--ii:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22white%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M10%206h10M10%2012h10M10%2018h10M3.5%206l1.5%201.5L7.5%205M3.5%2012l1.5%201.5%202.5-2.5M3.5%2018l1.5%201.5%202.5-2.5%22/%3E%3C/svg%3E")}
+html.ny.ui5 [data-k="pref-hemmet"]>summary.sh{--ic:#FF9F0A;--ii:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22white%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M3.5%2011%2012%204l8.5%207%22/%3E%3Cpath%20d%3D%22M5.5%209.5V20h13V9.5%22/%3E%3Cpath%20d%3D%22M10%2020v-5.5h4V20%22/%3E%3C/svg%3E")}
+html.ny.ui5 [data-k="pref-fodelsedagar"]>summary.sh{--ic:#FF2D55;--ii:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22white%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%224%22%20y%3D%2212%22%20width%3D%2216%22%20height%3D%228.5%22%20rx%3D%222%22/%3E%3Cpath%20d%3D%22M4%2015.5c2%201.3%204%201.3%206%200s4-1.3%206%200%204%201.3%204%200%22/%3E%3Cpath%20d%3D%22M12%2012V8.5%22/%3E%3Cpath%20d%3D%22M12%203.5c1.2%201.3%201.2%202.6%200%203.4-1.2-.8-1.2-2.1%200-3.4z%22/%3E%3C/svg%3E")}
 /* UI 5.0: undersidor glider in från höger utan vågrät rullning; dra ned för att uppdatera */
 html.ny.ui5,html.ny.ui5 body{overflow-x:clip;overscroll-behavior-x:none}
 .u5-ptr{display:none}
@@ -3297,7 +3299,7 @@ form[data-form="haLampa"] .ha-ctl{flex:1;justify-content:center;padding-top:24px
 .ha-ap{grid-column:1/-1;position:relative;overflow:hidden}.ha-ap .ha-i{background:rgba(120,120,128,.16);color:var(--ink-2)}.ha-ap.on.ha-ap-robot .ha-i{background:#0A84FF;color:#fff}.ha-ap.on.ha-ap-disk .ha-i{background:#30B0C7;color:#fff}
 .ha-ap .ha-tx{flex:1}.ha-ap-p{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(120,120,128,.18)}.ha-ap-p::after{content:'';position:absolute;inset:0 auto 0 0;width:var(--p);background:#0A84FF;border-radius:0 2px 2px 0}.ha-ap-disk .ha-ap-p::after{background:#30B0C7}
 .ha-g .ha-t.ha-ap.on{background:var(--fill);box-shadow:none}.ha-g-v .ha-t.ha-ap.on{background:var(--surface)}
-/* Smart hem-rutan: fyra scener överst och favoriter under, blad för att anpassa (ht-v387) */
+/* Smart hem-rutan: fyra scener överst och favoriter under, blad för att anpassa (ht-v413) */
 .hab-h{display:flex;align-items:center;gap:8px}.hab-h .wh{flex:1;min-width:0}
 .hab-mer{flex:none;display:grid;place-items:center;width:30px;height:30px;padding:0;border:0;border-radius:50%;background:var(--fill);color:var(--ink-2);cursor:pointer;-webkit-tap-highlight-color:transparent}.hab-mer svg{width:18px;height:18px}
 /* Designskillen (hushallstavlan-apple-design): rutan har hörn 26 och kant 16, därför hörn 16 innanför (inte kapslar), 8-avstånd, text 15/13 */
@@ -3382,7 +3384,7 @@ form[data-form="haApp"] .sheet-body{flex:1;display:flex;flex-direction:column;pa
 .ha-fo .ha-ru{display:block;width:max-content;margin-top:1px;position:relative}
 .ha-fo .ha-ru select{appearance:none;field-sizing:content;-webkit-appearance:none;border:0;margin:0;padding:2px 16px 2px 0;background:transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%238E8E93' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right center/9px 6px;color:color-mix(in srgb,var(--ri,#fff) 50%,transparent);font:inherit;font-size:13px;cursor:pointer}
 .ha-fo .ha-ru select:focus-visible{outline:2px solid color-mix(in srgb,var(--ri,#fff) 30%,transparent);outline-offset:2px;border-radius:4px}
-@supports (text-box:trim-both cap alphabetic){.ha-xs button{padding:0;text-box:trim-both cap alphabetic}}.ha-rst-h{display:flex;align-items:center;gap:12px;padding:12px 16px}.ha-rst-h>span{flex:1;display:flex;flex-direction:column;gap:1px}.ha-rst-h b{font-size:17px;font-weight:600}.ha-rst-h small{font-size:13px;color:color-mix(in srgb,var(--ri,#fff) 60%,transparent)}.ha-rst-h small.dags{color:#FF9F0A}.ha-rst-h button{border:0;border-radius:999px;padding:7px 14px;font:inherit;font-weight:600;font-size:15px;line-height:1.2;background:color-mix(in srgb,var(--rl,#0A84FF) 14%,transparent);color:var(--rl,#0A84FF)}.ha-rst-r{display:flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border-top:.5px solid var(--rb,rgba(255,255,255,.12));font-size:16px}.ha-rst-r>span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ha-rst-r>b{display:inline-flex;align-items:center;justify-content:center;gap:4px;min-width:72px;height:28px;padding:0 9px;border-radius:999px;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}.ha-rst-r>b svg{width:14px;height:14px}.ha-rst-r>b.ok{background:color-mix(in srgb,#30D158 15%,transparent);color:#248A3D}.ha-rst-r>b.snart{background:color-mix(in srgb,#FF9F0A 16%,transparent);color:#C93400}.ha-rst-r>b.dags{background:#FF9F0A;color:#fff}.ha-rst-r>b.av{color:color-mix(in srgb,var(--ri,#fff) 35%,transparent);background:color-mix(in srgb,var(--ri,#fff) 6%,transparent)}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .ha-rst-r>b.ok{color:#30D158}:root:not([data-theme="light"]) .ha-rst-r>b.snart{color:#FF9F0A}}:root[data-theme="dark"] .ha-rst-r>b.ok{color:#30D158}:root[data-theme="dark"] .ha-rst-r>b.snart{color:#FF9F0A}.ha-tank{display:flex;align-items:center;gap:14px;padding:14px 16px}.ha-tk{position:relative;flex:none;width:34px;height:52px;border-radius:9px 9px 11px 11px;box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--ri,#fff) 22%,transparent);overflow:hidden}.ha-tk::before{content:"";position:absolute;top:-5px;left:50%;width:12px;height:7px;margin-left:-6px;border-radius:3px;background:color-mix(in srgb,var(--ri,#fff) 22%,transparent)}.ha-tk i{position:absolute;left:3px;right:3px;bottom:3px;height:calc((100% - 6px)*var(--q,0));border-radius:3px 3px 8px 8px;background:linear-gradient(#64D2FF,#0A84FF)}.ha-tk.snart i{background:linear-gradient(#FFD60A,#FF9F0A)}.ha-tk.dags i{background:#FF453A}.ha-tt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.ha-tt b{font-size:17px;font-weight:600}.ha-tt span{font-size:15px}.ha-tt small{font-size:13px;color:color-mix(in srgb,var(--ri,#fff) 60%,transparent)}.ha-tank>button{flex:none;border:0;border-radius:999px;padding:7px 14px;font:inherit;font-weight:600;font-size:15px;line-height:1.2;background:color-mix(in srgb,var(--ri,#fff) 8%,transparent);color:var(--rl,#0A84FF)}.ha-iv{display:flex;align-items:center;gap:10px}.ha-gv.ha-iv button{display:grid;place-items:center;flex:none;padding:0;width:40px;height:32px;border:0;border-radius:8px;font:inherit;font-weight:500;font-size:19px;line-height:1;background:color-mix(in srgb,var(--ri,#fff) 8%,transparent);color:var(--ri,#fff)}.ha-gv.ha-iv button:disabled{opacity:.35}.ha-iv b{min-width:40px;text-align:center;font-weight:500;font-variant-numeric:tabular-nums}.ha-fs.avbr .ha-fi{background:#FF9F0A;color:#fff;font-weight:700}.ha-fs.avbr::before{background:linear-gradient(#30D158 var(--p,0%),color-mix(in srgb,var(--ri,#fff) 14%,transparent) var(--p,0%))}.ha-fs.avbr .ha-ft>span{color:#FF9F0A}.ha-fo li.ej span{color:color-mix(in srgb,var(--ri,#fff) 60%,transparent)}.ha-fo li.ej em{color:#FF9F0A;font-weight:600}.ha-fl.fh .ha-fi{background:color-mix(in srgb,var(--fc,#fff) 26%,transparent);color:var(--fc,#fff)}.ha-ft{flex:1;min-width:0;padding-top:1px}.ha-ft b{display:block;font-size:16px;font-weight:600}.ha-ft span{display:block;font-size:14px;color:color-mix(in srgb,var(--ri,#fff) 60%,transparent)}.ha-fs.vant .ha-ft b,.ha-fs.hopp .ha-ft b{color:color-mix(in srgb,var(--ri,#fff) 60%,transparent)}.ha-fo{list-style:none;margin:8px 0 0;padding:0}.ha-fo li{position:relative;display:flex;align-items:center;gap:10px;min-height:34px}.ha-fo li+li::before{content:"";position:absolute;left:10px;top:-6px;width:2px;height:12px;border-radius:1px;background:color-mix(in srgb,var(--ri,#fff) 14%,transparent)}.ha-fo li.klar+li::before{background:#30D158}.ha-fo i{position:relative;flex:none;display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:color-mix(in srgb,var(--ri,#fff) 12%,transparent);font-style:normal;font-size:12px;font-weight:700;color:color-mix(in srgb,var(--ri,#fff) 75%,transparent)}.ha-fo i svg{width:12px;height:12px}.ha-fo span{flex:1;min-width:0;font-size:15px;color:color-mix(in srgb,var(--ri,#fff) 85%,transparent)}.ha-fo em{font-style:normal;font-size:13px;color:color-mix(in srgb,var(--ri,#fff) 50%,transparent)}.ha-fo li.klar i{background:#30D158;color:#fff}.ha-fo li.klar span{color:color-mix(in srgb,var(--ri,#fff) 60%,transparent)}.ha-fo li.nu i{background:var(--fc);color:#fff}.ha-fo li.nu span{color:var(--ri,#fff);font-weight:600}.ha-fo li.nu em{color:var(--fc);font-weight:600}.ha-fo li.nasta i{box-shadow:inset 0 0 0 1.5px var(--fc);color:var(--fc)}.ha-fo li.nu i::after,.ha-kn.nu::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:2px solid var(--fc);animation:ha-puls 1.6s ease-out infinite}@keyframes ha-puls{from{transform:scale(.8);opacity:.9}to{transform:scale(1.5);opacity:0}}@media (prefers-reduced-motion:reduce){.ha-fo li.nu i::after,.ha-kn.nu::after{animation:none;opacity:.5}}.ha-kn{position:absolute;display:grid;place-items:center;width:26px;height:26px;margin:-13px 0 0 -32px;border-radius:50%;background:var(--fc);color:#fff;font-size:13px;font-weight:700;box-shadow:0 1px 4px rgba(0,0,0,.35);pointer-events:none}.ha-kn svg{width:14px;height:14px}.ha-kn.klar{background:#30D158}.ha-gv span small{display:block;font-size:13px;color:color-mix(in srgb,var(--ri,#fff) 55%,transparent)}.ha-stor{border-top:.5px solid color-mix(in srgb,var(--ri,#fff) 14%,transparent)}.ha-lag{display:flex;gap:4px;padding:3px;border-radius:15px;background:color-mix(in srgb,var(--ri,#fff) 10%,transparent)}.ha-lag button{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;min-height:42px;border:0;border-radius:12px;background:none;color:color-mix(in srgb,var(--ri,#fff) 70%,transparent);font:inherit;font-size:15px;font-weight:600;cursor:pointer;transition:background .2s,color .2s}.ha-lag svg{width:18px;height:18px}.ha-lag .damm.on{background:#0A84FF;color:#fff}.ha-lag .mopp.on{background:#30B0C7;color:#fff}.ha-lag b{min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:color-mix(in srgb,var(--ri,#fff) 22%,transparent);font-size:12px;line-height:20px;text-align:center}.ha-kn>i{position:absolute;top:-8px;left:-8px;display:grid;place-items:center;width:18px;height:18px;border-radius:50%;background:#30B0C7;box-shadow:0 0 0 2px rgba(40,38,48,.9)}.ha-kn>i svg{width:11px;height:11px}.ha-kn.mopp{--fc:#30B0C7}.ha-bar{position:sticky;bottom:-14px;z-index:3;display:flex;gap:10px;align-items:center;margin:0 -18px -4px;padding:16px 18px 14px;background:linear-gradient(transparent,var(--rbg,rgba(40,38,48,.97)) 36%)}.ha-bk{flex:1;display:flex;align-items:center;justify-content:center;gap:10px;min-height:58px;border:0;border-radius:29px;background:var(--ri,#fff);color:var(--rinv,#1C1C1E);font:inherit;font-size:17px;font-weight:700;cursor:pointer;transition:transform .2s}.ha-bk:active{transform:scale(.97)}.ha-bk svg{width:22px;height:22px}.ha-bk span{display:flex;flex-direction:column;align-items:flex-start;line-height:1.15}.ha-bk small{font-size:12px;font-weight:500;opacity:.6}.ha-bk:disabled,.ha-bh:disabled{opacity:.4;cursor:default}.ha-bh{flex:none;display:grid;place-items:center;width:58px;height:58px;border:0;border-radius:50%;background:color-mix(in srgb,var(--ri,#fff) 18%,transparent);color:var(--ri,#fff);cursor:pointer}.ha-bh svg{width:24px;height:24px}.ha-bak{display:flex;align-items:center;gap:2px;align-self:flex-start;margin:-4px 0 0 -6px;padding:4px 6px;border:0;background:none;color:var(--rl,#64D2FF);font:inherit;font-size:16px;cursor:pointer}.ha-bak svg{width:20px;height:20px}.rob-vy{--ri:var(--ink);--rinv:var(--bg);--rl:#0A84FF;--rb:color-mix(in srgb,var(--ink) 7%,transparent);--rbg:var(--bg);display:flex;flex-direction:column;gap:12px;padding:4px 16px 0;color:var(--ink)}.rob-hd{display:flex;align-items:center;gap:12px}.rob-hd h1{margin:0;font-size:28px;font-weight:700;letter-spacing:-.02em}.rob-hd p{margin:0;font-size:15px;color:var(--ink-2)}.rob-hd .ha-i{flex:none;display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:color-mix(in srgb,var(--ink) 10%,transparent);color:var(--ink)}.rob-hd .ha-i.on{background:#0A84FF;color:#fff}.rob-hd .ha-i svg{width:24px;height:24px}.rob-r{display:flex;flex-direction:column;gap:12px;min-width:0}.rob-vy .ha-bar{bottom:calc(var(--tabbar) + var(--tabgap) + 6px);margin:0 -16px;padding:16px 16px 10px}.rob-vy .ha-bk{box-shadow:0 6px 20px rgba(0,0,0,.18)}.rob-vy .ha-bh{background:var(--surface,#fff);color:var(--ink);box-shadow:0 6px 20px rgba(0,0,0,.14)}.rob-vy .ha-kk button{color:#fff;background:rgba(60,60,67,.55)}.rob-vy .ha-gl,.rob-vy .ha-fl,.rob-vy .ha-fk{background:var(--surface)}.rob-vy .ha-fk .ha-fl{background:none}.rob-vy.inst .rob-k{display:none}@media (min-width:900px){.rob-vy{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px 24px;align-items:start;padding:4px 24px 24px}.rob-hd{grid-column:1/-1}.rob-k{position:sticky;top:16px}.rob-vy.inst .rob-k{display:block}.rob-vy .ha-bar{margin:0;padding:16px 0 10px}}.ha-sv{display:flex;flex-direction:column;gap:6px;padding:0}.ha-sv>span{font-size:13px;font-weight:600;padding:0 4px;color:color-mix(in srgb,var(--ri,#fff) 60%,transparent)}
+@supports (text-box:trim-both cap alphabetic){.ha-xs button{padding:0;text-box:trim-both cap alphabetic}}.ha-rst-h{display:flex;align-items:center;gap:12px;padding:12px 16px}.ha-rst-h>span{flex:1;display:flex;flex-direction:column;gap:1px}.ha-rst-h b{font-size:17px;font-weight:600}.ha-rst-h small{font-size:13px;color:color-mix(in srgb,var(--ri,#fff) 60%,transparent)}.ha-rst-h small.dags{color:#FF9F0A}.ha-rst-h button{border:0;border-radius:999px;padding:7px 14px;font:inherit;font-weight:600;font-size:15px;line-height:1.2;background:color-mix(in srgb,var(--rl,#0A84FF) 14%,transparent);color:var(--rl,#0A84FF)}.ha-rst-r{display:flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border-top:.5px solid var(--rb,rgba(255,255,255,.12));font-size:16px}.ha-rst-r>span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ha-rst-r>b{display:inline-flex;align-items:center;justify-content:center;gap:4px;min-width:72px;height:28px;padding:0 9px;border-radius:999px;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}.ha-rst-r>b svg{width:14px;height:14px}.ha-rst-r>b.ok{background:color-mix(in srgb,#30D158 15%,transparent);color:#248A3D}.ha-rst-r>b.snart{background:color-mix(in srgb,#FF9F0A 16%,transparent);color:#C93400}.ha-rst-r>b.dags{background:#FF9F0A;color:#fff}.ha-rst-r>b.av{color:color-mix(in srgb,var(--ri,#fff) 35%,transparent);background:color-mix(in srgb,var(--ri,#fff) 6%,transparent)}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .ha-rst-r>b.ok{color:#30D158}:root:not([data-theme="light"]) .ha-rst-r>b.snart{color:#FF9F0A}}:root[data-theme="dark"] .ha-rst-r>b.ok{color:#30D158}:root[data-theme="dark"] .ha-rst-r>b.snart{color:#FF9F0A}.ha-tank{display:flex;align-items:center;gap:14px;padding:14px 16px}.ha-tnk{position:relative;flex:none;width:34px;height:52px;border-radius:9px 9px 11px 11px;box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--ri,#fff) 22%,transparent);overflow:hidden}.ha-tnk::before{content:"";position:absolute;top:-5px;left:50%;width:12px;height:7px;margin-left:-6px;border-radius:3px;background:color-mix(in srgb,var(--ri,#fff) 22%,transparent)}.ha-tnk i{position:absolute;left:3px;right:3px;bottom:3px;height:calc((100% - 6px)*var(--q,0));border-radius:3px 3px 8px 8px;background:linear-gradient(#64D2FF,#0A84FF)}.ha-tnk.snart i{background:linear-gradient(#FFD60A,#FF9F0A)}.ha-tnk.dags i{background:#FF453A}.ha-tt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.ha-tt b{font-size:17px;font-weight:600}.ha-tt span{font-size:15px}.ha-tt small{font-size:13px;color:color-mix(in srgb,var(--ri,#fff) 60%,transparent)}.ha-tank>button{flex:none;border:0;border-radius:999px;padding:7px 14px;font:inherit;font-weight:600;font-size:15px;line-height:1.2;background:color-mix(in srgb,var(--ri,#fff) 8%,transparent);color:var(--rl,#0A84FF)}.ha-iv{display:flex;align-items:center;gap:10px}.ha-gv.ha-iv button{display:grid;place-items:center;flex:none;padding:0;width:40px;height:32px;border:0;border-radius:8px;font:inherit;font-weight:500;font-size:19px;line-height:1;background:color-mix(in srgb,var(--ri,#fff) 8%,transparent);color:var(--ri,#fff)}.ha-gv.ha-iv button:disabled{opacity:.35}.ha-iv b{min-width:40px;text-align:center;font-weight:500;font-variant-numeric:tabular-nums}.ha-fs.avbr .ha-fi{background:#FF9F0A;color:#fff;font-weight:700}.ha-fs.avbr::before{background:linear-gradient(#30D158 var(--p,0%),color-mix(in srgb,var(--ri,#fff) 14%,transparent) var(--p,0%))}.ha-fs.avbr .ha-ft>span{color:#FF9F0A}.ha-fo li.ej span{color:color-mix(in srgb,var(--ri,#fff) 60%,transparent)}.ha-fo li.ej em{color:#FF9F0A;font-weight:600}.ha-fl.fh .ha-fi{background:color-mix(in srgb,var(--fc,#fff) 26%,transparent);color:var(--fc,#fff)}.ha-ft{flex:1;min-width:0;padding-top:1px}.ha-ft b{display:block;font-size:16px;font-weight:600}.ha-ft span{display:block;font-size:14px;color:color-mix(in srgb,var(--ri,#fff) 60%,transparent)}.ha-fs.vant .ha-ft b,.ha-fs.hopp .ha-ft b{color:color-mix(in srgb,var(--ri,#fff) 60%,transparent)}.ha-fo{list-style:none;margin:8px 0 0;padding:0}.ha-fo li{position:relative;display:flex;align-items:center;gap:10px;min-height:34px}.ha-fo li+li::before{content:"";position:absolute;left:10px;top:-6px;width:2px;height:12px;border-radius:1px;background:color-mix(in srgb,var(--ri,#fff) 14%,transparent)}.ha-fo li.klar+li::before{background:#30D158}.ha-fo i{position:relative;flex:none;display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:color-mix(in srgb,var(--ri,#fff) 12%,transparent);font-style:normal;font-size:12px;font-weight:700;color:color-mix(in srgb,var(--ri,#fff) 75%,transparent)}.ha-fo i svg{width:12px;height:12px}.ha-fo span{flex:1;min-width:0;font-size:15px;color:color-mix(in srgb,var(--ri,#fff) 85%,transparent)}.ha-fo em{font-style:normal;font-size:13px;color:color-mix(in srgb,var(--ri,#fff) 50%,transparent)}.ha-fo li.klar i{background:#30D158;color:#fff}.ha-fo li.klar span{color:color-mix(in srgb,var(--ri,#fff) 60%,transparent)}.ha-fo li.nu i{background:var(--fc);color:#fff}.ha-fo li.nu span{color:var(--ri,#fff);font-weight:600}.ha-fo li.nu em{color:var(--fc);font-weight:600}.ha-fo li.nasta i{box-shadow:inset 0 0 0 1.5px var(--fc);color:var(--fc)}.ha-fo li.nu i::after,.ha-kn.nu::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:2px solid var(--fc);animation:ha-puls 1.6s ease-out infinite}@keyframes ha-puls{from{transform:scale(.8);opacity:.9}to{transform:scale(1.5);opacity:0}}@media (prefers-reduced-motion:reduce){.ha-fo li.nu i::after,.ha-kn.nu::after{animation:none;opacity:.5}}.ha-kn{position:absolute;display:grid;place-items:center;width:26px;height:26px;margin:-13px 0 0 -32px;border-radius:50%;background:var(--fc);color:#fff;font-size:13px;font-weight:700;box-shadow:0 1px 4px rgba(0,0,0,.35);pointer-events:none}.ha-kn svg{width:14px;height:14px}.ha-kn.klar{background:#30D158}.ha-gv span small{display:block;font-size:13px;color:color-mix(in srgb,var(--ri,#fff) 55%,transparent)}.ha-stor{border-top:.5px solid color-mix(in srgb,var(--ri,#fff) 14%,transparent)}.ha-lag{display:flex;gap:4px;padding:3px;border-radius:15px;background:color-mix(in srgb,var(--ri,#fff) 10%,transparent)}.ha-lag button{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;min-height:42px;border:0;border-radius:12px;background:none;color:color-mix(in srgb,var(--ri,#fff) 70%,transparent);font:inherit;font-size:15px;font-weight:600;cursor:pointer;transition:background .2s,color .2s}.ha-lag svg{width:18px;height:18px}.ha-lag .damm.on{background:#0A84FF;color:#fff}.ha-lag .mopp.on{background:#30B0C7;color:#fff}.ha-lag b{min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:color-mix(in srgb,var(--ri,#fff) 22%,transparent);font-size:12px;line-height:20px;text-align:center}.ha-kn>i{position:absolute;top:-8px;left:-8px;display:grid;place-items:center;width:18px;height:18px;border-radius:50%;background:#30B0C7;box-shadow:0 0 0 2px rgba(40,38,48,.9)}.ha-kn>i svg{width:11px;height:11px}.ha-kn.mopp{--fc:#30B0C7}.ha-bar{position:sticky;bottom:-14px;z-index:3;display:flex;gap:10px;align-items:center;margin:0 -18px -4px;padding:16px 18px 14px;background:linear-gradient(transparent,var(--rbg,rgba(40,38,48,.97)) 36%)}.ha-bk{flex:1;display:flex;align-items:center;justify-content:center;gap:10px;min-height:58px;border:0;border-radius:29px;background:var(--ri,#fff);color:var(--rinv,#1C1C1E);font:inherit;font-size:17px;font-weight:700;cursor:pointer;transition:transform .2s}.ha-bk:active{transform:scale(.97)}.ha-bk svg{width:22px;height:22px}.ha-bk span{display:flex;flex-direction:column;align-items:flex-start;line-height:1.15}.ha-bk small{font-size:12px;font-weight:500;opacity:.6}.ha-bk:disabled,.ha-bh:disabled{opacity:.4;cursor:default}.ha-bh{flex:none;display:grid;place-items:center;width:58px;height:58px;border:0;border-radius:50%;background:color-mix(in srgb,var(--ri,#fff) 18%,transparent);color:var(--ri,#fff);cursor:pointer}.ha-bh svg{width:24px;height:24px}.ha-bak{display:flex;align-items:center;gap:2px;align-self:flex-start;margin:-4px 0 0 -6px;padding:4px 6px;border:0;background:none;color:var(--rl,#64D2FF);font:inherit;font-size:16px;cursor:pointer}.ha-bak svg{width:20px;height:20px}.rob-vy{--ri:var(--ink);--rinv:var(--bg);--rl:#0A84FF;--rb:color-mix(in srgb,var(--ink) 7%,transparent);--rbg:var(--bg);display:flex;flex-direction:column;gap:12px;padding:4px 16px 0;color:var(--ink)}.rob-hd{display:flex;align-items:center;gap:12px}.rob-hd h1{margin:0;font-size:28px;font-weight:700;letter-spacing:-.02em}.rob-hd p{margin:0;font-size:15px;color:var(--ink-2)}.rob-hd .ha-i{flex:none;display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:color-mix(in srgb,var(--ink) 10%,transparent);color:var(--ink)}.rob-hd .ha-i.on{background:#0A84FF;color:#fff}.rob-hd .ha-i svg{width:24px;height:24px}.rob-r{display:flex;flex-direction:column;gap:12px;min-width:0}.rob-vy .ha-bar{bottom:calc(var(--tabbar) + var(--tabgap) + 6px);margin:0 -16px;padding:16px 16px 10px}.rob-vy .ha-bk{box-shadow:0 6px 20px rgba(0,0,0,.18)}.rob-vy .ha-bh{background:var(--surface,#fff);color:var(--ink);box-shadow:0 6px 20px rgba(0,0,0,.14)}.rob-vy .ha-kk button{color:#fff;background:rgba(60,60,67,.55)}.rob-vy .ha-gl,.rob-vy .ha-fl,.rob-vy .ha-fk{background:var(--surface)}.rob-vy .ha-fk .ha-fl{background:none}.rob-vy.inst .rob-k{display:none}@media (min-width:900px){.rob-vy{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px 24px;align-items:start;padding:4px 24px 24px}.rob-hd{grid-column:1/-1}.rob-k{position:sticky;top:16px}.rob-vy.inst .rob-k{display:block}.rob-vy .ha-bar{margin:0;padding:16px 0 10px}}.ha-sv{display:flex;flex-direction:column;gap:6px;padding:0}.ha-sv>span{font-size:13px;font-weight:600;padding:0 4px;color:color-mix(in srgb,var(--ri,#fff) 60%,transparent)}
 .ha-sh{font-size:13px;font-weight:600;padding:0 4px;margin:6px 0 -4px;color:color-mix(in srgb,var(--ri,#fff) 60%,transparent)}
 .ha-hr b{font-weight:400;font-size:14px}.ha-sv>div{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:3px;padding:3px;border-radius:12px;background:color-mix(in srgb,var(--ri,#fff) 10%,transparent)}.ha-sv button{min-width:0;min-height:38px;padding:0 2px;border:0;border-radius:9px;background:none;color:color-mix(in srgb,var(--ri,#fff) 75%,transparent);font:inherit;font-size:13px;font-weight:600;text-align:center;cursor:pointer;white-space:nowrap}.ha-sv button[aria-pressed="true"]{background:var(--surface-raised,rgba(255,255,255,.26));color:var(--ri,#fff);box-shadow:0 1px 3px rgba(0,0,0,.12)}form[data-form="haApp"] .ha-sv button[aria-pressed="true"]{background:rgba(255,255,255,.26)}.ha-fx{display:block;margin:-4px auto 0;padding:6px 10px;border:0;background:none;color:var(--rl,#64D2FF);font:inherit;font-size:15px;cursor:pointer}.ha-plan .ha-gr b{flex:1;min-width:0;text-align:right;font-weight:400;color:color-mix(in srgb,var(--ri,#fff) 60%,transparent);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ha-karta.tom{display:grid;place-items:center;min-height:180px;font-size:14px;color:color-mix(in srgb,var(--ri,#fff) 62%,transparent)}
 .ha-valt{display:flex;align-items:center;gap:10px;margin-top:-4px;padding:0 4px;font-size:15px;font-weight:600}.ha-valt span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ha-valt em{font-style:normal;font-weight:400;color:color-mix(in srgb,var(--ri,#fff) 60%,transparent)}.ha-valt button{border:0;background:none;color:var(--rl,#64D2FF);font:inherit;font-weight:400;cursor:pointer;padding:4px 0}
@@ -4128,6 +4130,28 @@ html.ny.ui5 .on-wxk{flex-direction:column;align-items:stretch}
 html.ny.ui5 .on-wxk .ovx{margin:4px 0 0;min-width:0;width:100%}
 html.ny.ui5 .on-schb .on-tl{margin-top:4px}
 html.ny.ui5 .on-schb .on-upgb{margin-top:4px}
+html.ny.ui5 .ond-dagar.ond-va{grid-template-columns:repeat(2,minmax(0,1fr)) repeat(2,minmax(0,1.2fr))}
+html.ny.ui5 .ond-dagar.ond-vb{grid-template-columns:repeat(var(--dn,2),minmax(0,1fr)) repeat(2,minmax(0,1.2fr))}
+html.ny.ui5 .ond-dagar.ond-vc{grid-template-columns:minmax(0,1.35fr) repeat(2,minmax(0,1fr))}
+html.ny.ui5 .ond-sida{overflow:auto;scrollbar-width:none}
+html.ny.ui5 .ond-sida>.widget{flex:none}
+html.ny.ui5 .ond-band{margin:8px 0 0;padding:4px 0}
+html.ny.ui5 .ond-bs{text-transform:none;letter-spacing:0;font-weight:400;color:var(--ink-2)}
+html.ny.ui5 .ond-gora .upg-c .ur:first-child{border-top:0}
+html.ny.ui5 .ond-gora.klar{padding:16px}
+html.ny.ui5 .ond-gora.klar .on-sub{margin-top:4px;font-size:15px;color:var(--ink-2)}
+html.ny.ui5 .ond-fler{min-height:44px;width:100%;text-align:left;font-size:15px;font-weight:600;color:var(--accent)}
+html.ny.ui5 .ond-c.idag{}
+html.ny.ui5 .ond-dagar.ond-v3{grid-template-columns:repeat(3,minmax(0,1fr)) minmax(0,1.4fr)}
+html.ny.ui5 .on-wxk.liten{padding:4px 16px}
+html.ny.ui5 .on-wxk.liten .on-wxk-top>svg:last-child{margin-left:auto;color:var(--ink-3)}
+html.ny.ui5 .ond-gl{display:flex;flex-direction:row;justify-content:flex-start;align-items:center;width:100%;gap:12px;min-height:64px;padding:8px 16px;text-align:left;color:var(--ink)}
+html.ny.ui5 .ond-gl b{display:block;font-size:17px;line-height:22px;font-weight:600}
+html.ny.ui5 .ond-gl .on-sub{font-size:15px;line-height:20px;color:var(--ink-2)}
+html.ny.ui5 .ond-gl .red{color:var(--red)}
+html.ny.ui5 .ond-gli{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:var(--fill);color:var(--ink-2);flex:none}
+html.ny.ui5 .ond-gli svg{width:22px;height:22px}
+html.ny.ui5 .ond-hus .ha-sg-k{margin-top:4px}
 /* Väggskärmen: menyn som sidofält till vänster (Inställningar → Menyn, ls vaggmeny/vaggsido). Ihopfällt 80 px med ikoner, utfällt 232 px med namn. Förebild: sidofältet i iPadOS (Hem, Musik) och Home Assistant. */
 html.ny.ui5 body.wall.sido{--tabbar:0px;--tabgap:16px;--sidew:104px;padding-left:var(--sidew)}
 html.ny.ui5 body.wall.sido.sido-ut:not(.sido-over){--sidew:256px}
@@ -4147,10 +4171,633 @@ html.ny.ui5 body.wall .nav.sido.har-me{padding-right:12px}
 html.ny.ui5 body.wall .nav.sido.har-me .nav-me{position:static;margin-top:auto;flex-direction:column;align-items:flex-start;gap:12px;padding-left:4px}
 html.ny.ui5 body.wall .nav.sido.har-me .nav-me .ib{width:48px!important;height:48px!important}
 html.ny.ui5 body.wall .nav.sido.har-me .nav-me i{width:calc(100% - 4px);height:.5px;margin-left:-4px}
+/* Ihopfälld sidomeny: knappen överst och profilknappen längst ner mitt i spalten, som flikarnas ikoner (Henrik 14/11) */
+html.ny.ui5 body.wall .nav.sido:not(.sido-ut) .nav-tog{justify-content:center;padding:0}html.ny.ui5 body.wall .nav.sido:not(.sido-ut) .nav-tog svg{margin:0}
+html.ny.ui5 body.wall .nav.sido.har-me:not(.sido-ut) .nav-me{align-items:center;padding-left:0}html.ny.ui5 body.wall .nav.sido.har-me:not(.sido-ut) .nav-me i{width:100%;margin-left:0}
 html.ny.ui5 body.wall.sido .corner-me{width:64px;height:64px}
 html.ny.ui5 body.wall.sido:has(.board) .arr-foot{left:calc(var(--sidew) + 16px);bottom:24px}
 @media (prefers-reduced-motion:no-preference){html.ny.ui5 body.wall .nav.sido-ut button[data-act="nav"] span{animation:sidoIn .3s ease both}}
 @keyframes sidoIn{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:none}}
+/* Tavla 2 (väggen, ny översikt g): glasrutor */
+html.ny.ui5 .og{--og-g:rgba(255,255,255,.58);--og-g2:rgba(255,255,255,.72);--og-e:rgba(255,255,255,.8);--og-ln:rgba(11,18,32,.08);--og-f:rgba(11,18,32,.06);--og-i2:rgba(11,18,32,.6);--og-or:#F08228;--og-bl:#3D8BFF;--og-gr:#27A05A;
+ display:grid;grid-template-columns:repeat(12,minmax(0,1fr));grid-template-rows:268px minmax(0,1fr);gap:16px;height:calc(100vh / 1.0588 - var(--tabbar) - var(--tabgap) - 30px);padding:16px;box-sizing:border-box;color:var(--ink)}
+html.ny.ui5[data-theme="dark"] .og{--og-g:rgba(255,255,255,.09);--og-g2:rgba(255,255,255,.13);--og-e:rgba(255,255,255,.16);--og-ln:rgba(255,255,255,.1);--og-f:rgba(255,255,255,.08);--og-i2:rgba(247,248,251,.66);--og-bl:#8ECBFF}
+@media (prefers-color-scheme: dark){html.ny.ui5:not([data-theme="light"]) .og{--og-g:rgba(255,255,255,.09);--og-g2:rgba(255,255,255,.13);--og-e:rgba(255,255,255,.16);--og-ln:rgba(255,255,255,.1);--og-f:rgba(255,255,255,.08);--og-i2:rgba(247,248,251,.66);--og-bl:#8ECBFF}}
+html.ny.ui5 body.wall:has(.og){background:radial-gradient(60% 70% at 85% 10%,#FFE2C6 0%,rgba(255,226,198,0) 60%),radial-gradient(70% 80% at 10% 90%,#C9DBFF 0%,rgba(201,219,255,0) 60%),linear-gradient(160deg,#E7EEFB 0%,#F4EEF4 55%,#F6E9E1 100%) fixed}
+html.ny.ui5[data-theme="dark"] body.wall:has(.og){background:radial-gradient(55% 60% at 88% 8%,rgba(255,138,101,.45) 0%,rgba(255,138,101,0) 60%),radial-gradient(60% 70% at 70% 100%,rgba(122,92,255,.4) 0%,rgba(122,92,255,0) 60%),radial-gradient(60% 70% at 0% 40%,rgba(40,120,200,.4) 0%,rgba(40,120,200,0) 60%),linear-gradient(170deg,#0E1630 0%,#1A1638 50%,#26163A 100%) fixed}
+@media (prefers-color-scheme: dark){html.ny.ui5:not([data-theme="light"]) body.wall:has(.og){background:radial-gradient(55% 60% at 88% 8%,rgba(255,138,101,.45) 0%,rgba(255,138,101,0) 60%),radial-gradient(60% 70% at 70% 100%,rgba(122,92,255,.4) 0%,rgba(122,92,255,0) 60%),radial-gradient(60% 70% at 0% 40%,rgba(40,120,200,.4) 0%,rgba(40,120,200,0) 60%),linear-gradient(170deg,#0E1630 0%,#1A1638 50%,#26163A 100%) fixed}}
+html.ny.ui5 .og-c{background:var(--og-g);-webkit-backdrop-filter:blur(28px) saturate(160%);backdrop-filter:blur(28px) saturate(160%);border:1px solid var(--og-e);border-radius:32px;padding:20px 22px;min-height:0;min-width:0;overflow:hidden;position:relative;box-shadow:none;margin:0}
+html.ny.ui5 .og-lab{display:flex;align-items:center;gap:8px;font-size:13px;line-height:18px;font-weight:600;color:var(--og-i2);min-height:30px}
+html.ny.ui5 .og-r{margin-left:auto;height:30px;padding:0 12px;border-radius:999px;background:var(--og-f);color:var(--ink);font-family:inherit;font-size:13px;line-height:30px;font-weight:600;border:0}
+html.ny.ui5 .og-tom{display:flex;align-items:center;gap:8px;font-size:15px;color:var(--og-i2);padding:8px 4px}
+html.ny.ui5 .og-tom svg{width:20px;height:20px;flex:none}
+/* klocka */
+html.ny.ui5 .og-kl{grid-column:1/4;display:flex;flex-direction:column;justify-content:space-between}
+html.ny.ui5 .og-tid{font-size:92px;line-height:.95;font-weight:200;letter-spacing:-5px;margin-left:-4px}
+html.ny.ui5 .og-dat{font-size:20px;line-height:26px;font-weight:600}
+html.ny.ui5 .og-dat span{display:block;font-size:15px;line-height:20px;font-weight:500;color:var(--og-i2)}
+/* väder */
+html.ny.ui5 .og-wx{grid-column:4/10;display:grid;grid-template-columns:212px minmax(0,1fr);gap:20px;cursor:pointer}
+html.ny.ui5 .og-wl{display:flex;flex-direction:column;min-width:0}
+html.ny.ui5 .og-deg{font-size:80px;line-height:.95;font-weight:200;letter-spacing:-4px}
+html.ny.ui5 .og-cond{font-size:20px;line-height:26px;font-weight:600;margin-top:6px}
+html.ny.ui5 .og-hl{font-size:13px;line-height:18px;color:var(--og-i2);font-weight:500}
+html.ny.ui5 .og-al{margin-top:auto;display:flex;gap:8px;align-items:flex-start;font-size:13px;line-height:18px;font-weight:500;padding:10px 12px;border-radius:16px;background:var(--og-f)}
+html.ny.ui5 .og-al.wet{background:linear-gradient(135deg,rgba(80,160,255,.24),rgba(80,160,255,.08));border:1px solid rgba(80,160,255,.3)}
+html.ny.ui5 .og-al>svg,html.ny.ui5 .og-ali{width:18px;height:18px;flex:none;color:var(--og-bl);font-size:16px;line-height:18px}
+html.ny.ui5 .og-al b{display:block;font-weight:700}
+html.ny.ui5 .og-al span{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+html.ny.ui5 .og-wg{display:flex;flex-direction:column;min-width:0;min-height:0}
+html.ny.ui5 .og-graf{flex:1;width:100%;min-height:0;overflow:visible}
+html.ny.ui5 .og-ga{fill:rgba(240,130,40,.16)}
+html.ny.ui5 .og-gl{fill:none;stroke:var(--og-or);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke}
+html.ny.ui5 .og-gc{fill:#fff;stroke:var(--og-or);stroke-width:2.5}
+html.ny.ui5 .og-gr{fill:var(--og-bl);opacity:.7}
+html.ny.ui5 .og-graf text{text-anchor:middle;font-size:11px;font-weight:600;fill:var(--og-i2)}
+html.ny.ui5 .og-graf .og-gt{fill:var(--ink);font-size:12px;font-weight:700}
+html.ny.ui5 .og-graf .og-gm{fill:var(--og-bl);font-size:10px}
+html.ny.ui5 .og-dd{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:8px}
+html.ny.ui5 .og-dd span{display:flex;align-items:center;gap:6px;height:36px;padding:0 10px;white-space:nowrap;border-radius:14px;background:var(--og-f);font-size:13px;font-weight:600}
+html.ny.ui5 .og-dd i{font-style:normal;font-size:20px;line-height:1;display:flex}
+html.ny.ui5 .og-dd em{font-style:normal;color:var(--og-i2);font-weight:500;margin-left:auto}
+/* härnäst */
+html.ny.ui5 .og-nu{grid-column:10/13;display:flex;flex-direction:column;cursor:pointer;--t:39,160,90}
+html.ny.ui5 .og-nu.tone-acc{--t:194,48,79}html.ny.ui5 .og-nu.tone-or{--t:240,130,40}html.ny.ui5 .og-nu.tone-ind{--t:94,92,230}html.ny.ui5 .og-nu.tone-bl{--t:61,139,255}
+html.ny.ui5 .og-nu{background:linear-gradient(150deg,rgba(var(--t),.26),rgba(var(--t),.05)),var(--og-g)}
+html.ny.ui5 .og-dot{width:8px;height:8px;border-radius:50%;background:rgb(var(--t))}
+html.ny.ui5 .og-big{font-size:56px;line-height:1;font-weight:300;letter-spacing:-2px;margin-top:8px}
+html.ny.ui5 .og-big small{font-size:20px;letter-spacing:0;font-weight:500;color:var(--og-i2);margin-left:6px}
+html.ny.ui5 .og-nuh{font-size:20px;line-height:26px;font-weight:700;margin-top:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+html.ny.ui5 .og-nuh.st{font-size:28px;line-height:34px;margin-top:12px}
+html.ny.ui5 .og-nus{font-size:15px;line-height:20px;color:var(--og-i2);font-weight:500;margin-top:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+html.ny.ui5 .og-nx{margin-top:auto;display:flex;align-items:center;gap:12px;padding:12px 0 0;border:0;border-top:1px solid var(--og-ln);background:none;color:var(--ink);text-align:left;font:inherit;width:100%}
+html.ny.ui5 .og-nx i{width:32px;height:32px;border-radius:50%;background:rgba(240,130,40,.2);display:grid;place-items:center;color:var(--og-or);flex:none}
+html.ny.ui5 .og-nx i svg{width:16px;height:16px}
+html.ny.ui5 .og-nx b{font-size:15px;line-height:20px;font-weight:600;min-width:0}
+html.ny.ui5 .og-nx b span{display:block;font-weight:500;color:var(--og-i2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* tre dagar */
+html.ny.ui5 .og-sch{grid-column:1/6;display:flex;flex-direction:column}
+html.ny.ui5 .og-dagar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;flex:1;margin-top:12px;min-height:0}
+html.ny.ui5 .og-dg{display:flex;flex-direction:column;gap:8px;min-width:0;min-height:0;overflow:auto;scrollbar-width:none}
+html.ny.ui5 .og-dg h3{font-size:15px;line-height:20px;font-weight:700;display:flex;align-items:baseline;gap:6px;padding:0 4px 4px;margin:0}
+html.ny.ui5 .og-dg h3 span{font-size:13px;font-weight:500;color:var(--og-i2)}
+html.ny.ui5 .og-dg.i h3{color:var(--accent)}
+html.ny.ui5 .og-e{flex:none;border-radius:18px;padding:10px 12px 10px 14px;background:var(--og-g2);border:1px solid var(--og-e);position:relative;cursor:pointer;min-width:0}
+html.ny.ui5 .og-e:before{content:"";position:absolute;left:0;top:14px;bottom:14px;width:4px;border-radius:0 3px 3px 0;background:var(--c,var(--accent))}
+html.ny.ui5 .og-e b{display:block;font-size:15px;line-height:20px;font-weight:600;overflow-wrap:break-word;-webkit-hyphens:auto;hyphens:auto}
+html.ny.ui5 .og-e small{display:block;font-size:13px;line-height:17px;color:var(--og-i2);font-weight:500}
+html.ny.ui5 .og-tm{display:flex;flex-wrap:wrap;align-items:center;gap:2px 6px;font-size:13px;line-height:18px;font-weight:700;color:var(--og-i2);margin-bottom:2px}
+html.ny.ui5 .og-e.forbi{opacity:.45}
+html.ny.ui5 .og-e.nu{border:2px solid var(--accent);padding:9px 11px 9px 13px}
+html.ny.ui5 .og-e.mat{--c:var(--og-or);background:linear-gradient(135deg,rgba(240,130,40,.18),rgba(240,130,40,.06));border-color:rgba(240,130,40,.3)}
+html.ny.ui5 .og-e.bd{background:var(--accent-soft);border-color:transparent}
+html.ny.ui5 .og-e.bd b{display:flex;align-items:center;gap:6px}
+html.ny.ui5 .og-e.bd svg{width:16px;height:16px;flex:none;color:var(--accent)}
+html.ny.ui5 .og-pill{white-space:nowrap;font-size:11px;line-height:18px;font-weight:700;padding:0 8px;border-radius:999px;background:var(--accent);color:#fff}
+/* hemmet: samma brickor som Smart hem, i glas */
+html.ny.ui5 .og-hus{grid-column:6/10;display:flex;flex-direction:column;gap:12px;overflow:auto;scrollbar-width:none}
+html.ny.ui5 .og-hus>.wh{margin:0;padding:0;min-height:30px;font-size:13px;font-weight:600;color:var(--og-i2)}
+html.ny.ui5 .og-hus>.wh .lnk{height:30px;padding:0 12px;border-radius:999px;background:var(--og-f);color:var(--ink);font-size:13px;font-weight:600;display:inline-flex;align-items:center}
+html.ny.ui5 .og-hus .ha-st,html.ny.ui5 .og-hus .hab-med{background:var(--og-g2);border:1px solid var(--og-e);box-shadow:none}
+/* att göra */
+html.ny.ui5 .og-gora{grid-column:10/13;display:flex;flex-direction:column}
+html.ny.ui5 .og-tb{display:flex;gap:6px;margin-top:12px}
+html.ny.ui5 .og-tb button{height:36px;padding:0 14px;border-radius:999px;border:0;display:flex;align-items:center;gap:6px;font-family:inherit;font-size:13px;line-height:36px;font-weight:600;background:var(--og-f);color:var(--og-i2)}
+html.ny.ui5 .og-tb button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+html.ny.ui5 .og-dd span>i>*{width:22px;height:22px;font-size:20px}
+html.ny.ui5 .og-tb em{font-style:normal;opacity:.65}
+html.ny.ui5 .og-tl{margin-top:10px;display:flex;flex-direction:column;gap:8px;min-height:0;overflow:auto;scrollbar-width:none}
+html.ny.ui5 .og-ti{flex:none;display:flex;align-items:center;gap:12px;padding:12px;border-radius:18px;background:var(--og-g2);border:1px solid var(--og-e)}
+html.ny.ui5 .og-ti .check{flex:none}
+html.ny.ui5 .og-ti b{font-size:15px;font-weight:600;flex:1;line-height:20px;min-width:0}
+html.ny.ui5 .og-ti small{display:block;font-size:13px;font-weight:500;color:var(--og-i2)}
+html.ny.ui5 .og-ti small.red{color:var(--red,#E5484D)}
+html.ny.ui5 .og-klar{display:flex;align-items:center;gap:8px;padding:12px 4px;font-size:15px;font-weight:600;color:var(--og-gr)}
+html.ny.ui5 .og-klar svg{width:20px;height:20px}
+html.ny.ui5 .og-ft{margin-top:auto;padding-top:10px;font-size:13px;line-height:18px;font-weight:600;color:var(--og-i2)}
+html.ny.ui5 .og-prog{display:flex;align-items:center;gap:12px}
+html.ny.ui5 .og-prog i{flex:1;height:6px;border-radius:3px;background:var(--og-f);overflow:hidden}
+html.ny.ui5 .og-prog i b{display:block;height:100%;background:linear-gradient(90deg,#27A05A,#7BD88F)}
+/* Tavla 3 (ny översikt h), runda 4 efter Henriks bild 14/11: sjölandskap, glaskort, skogsgrönt. Riktlinjer och färger: design/tavla3.md */
+html.ny.ui5 .ot{--ot-ink:#1F2723;--ot-i2:#69706B;--ot-glas:rgba(248,246,241,.86);--ot-kb:rgba(255,255,255,.7);--ot-ruta:rgba(255,255,255,.66);--ot-band:#EFEBE3;--ot-idag:#E4E8D8;--ot-linje:rgba(31,39,35,.12);
+ --ot-gron:#6E9A5A;--ot-gron2:#2F5D3A;--ot-gronl:#D5E3CB;--ot-amb:#E39A1E;--ot-ora:#F26B3A;--ot-wx:rgba(40,52,48,.6);--ot-skugga:0 1px 2px rgba(30,40,30,.05),0 12px 32px rgba(30,40,30,.1);
+ --s1:#8C9C96;--s2:#C8C7BB;--s3:#E4DACB;--sj:#B3BAB1;--sj2:#ECE7DE;--sol:#FFE3BC;--l1:#869790;--l2:#566960;--l3:#3A4A43;color:var(--ot-ink)}
+html.ny.ui5 .ot.ot-gry,html.ny.ui5 .ot.ot-kvall{--s1:#8E95A6;--s2:#D3BFB0;--s3:#EDCFAE;--sj:#BDB3A6;--sol:#FFD29A}
+html.ny.ui5 .ot.ot-natt{--s1:#1B2533;--s2:#33404B;--s3:#4A5459;--sj:#3C4748;--sj2:#5F625E;--sol:#8A97A8;--l1:#2C3A36;--l2:#1E2925;--l3:#141C19}
+html.ny.ui5[data-theme="dark"] .ot{--ot-ink:#EDF1EC;--ot-ruta-h:rgba(255,255,255,.14);--ot-i2:#A2AAA4;--ot-glas:rgba(27,34,31,.84);--ot-kb:rgba(255,255,255,.07);--ot-ruta:rgba(255,255,255,.06);--ot-band:rgba(255,255,255,.07);--ot-idag:rgba(141,187,119,.2);--ot-linje:rgba(255,255,255,.13);
+ --ot-gron:#8DBB77;--ot-gron2:#C2E0B2;--ot-gronl:rgba(141,187,119,.24);--ot-wx:rgba(12,18,16,.58);--ot-skugga:0 12px 32px rgba(0,0,0,.3);--s1:#18212C;--s2:#2A3640;--s3:#3A4547;--sj:#2E3A3B;--sj2:#121715;--sol:#62717E;--l1:#24302D;--l2:#18211E;--l3:#0F1613}
+@media (prefers-color-scheme: dark){html.ny.ui5:not([data-theme="light"]) .ot{--ot-ink:#EDF1EC;--ot-ruta-h:rgba(255,255,255,.14);--ot-i2:#A2AAA4;--ot-glas:rgba(27,34,31,.84);--ot-kb:rgba(255,255,255,.07);--ot-ruta:rgba(255,255,255,.06);--ot-band:rgba(255,255,255,.07);--ot-idag:rgba(141,187,119,.2);--ot-linje:rgba(255,255,255,.13);
+ --ot-gron:#8DBB77;--ot-gron2:#C2E0B2;--ot-gronl:rgba(141,187,119,.24);--ot-wx:rgba(12,18,16,.58);--ot-skugga:0 12px 32px rgba(0,0,0,.3);--s1:#18212C;--s2:#2A3640;--s3:#3A4547;--sj:#2E3A3B;--sj2:#121715;--sol:#62717E;--l1:#24302D;--l2:#18211E;--l3:#0F1613}}
+html.ny.ui5 body:has(.ot){background:#ECE7DE}
+html.ny.ui5[data-theme="dark"] body:has(.ot){background:#121715}
+@media (prefers-color-scheme: dark){html.ny.ui5:not([data-theme="light"]) body:has(.ot){background:#121715}}
+/* landskapet */
+html.ny.ui5 .ot-land{display:block;pointer-events:none}
+html.ny.ui5 .ot-l1{fill:var(--l1);opacity:.8}html.ny.ui5 .ot-l2{fill:var(--l2)}html.ny.ui5 .ot-l3{fill:var(--l3)}
+html.ny.ui5 .ot-ref{stroke:#fff;stroke-opacity:.22;stroke-width:2;fill:none}
+/* kort */
+html.ny.ui5 .ot-c{position:relative;min-width:0;min-height:0;margin:0;overflow:hidden;display:flex;flex-direction:column;padding:18px 20px;border-radius:24px;background:var(--ot-glas);border:1px solid var(--ot-kb);box-shadow:var(--ot-skugga);-webkit-backdrop-filter:blur(24px) saturate(1.15);backdrop-filter:blur(24px) saturate(1.15)}
+html.ny.ui5 .ot-h{display:flex;align-items:center;gap:12px;min-height:36px;margin-bottom:14px;flex:none}
+html.ny.ui5 .ot-h>b,html.ny.ui5 .ot-ht>b{font-size:24px;line-height:30px;font-weight:700;letter-spacing:-.4px;white-space:nowrap}
+html.ny.ui5 .ot-ht{display:flex;flex-direction:column;min-width:0}
+html.ny.ui5 .ot-h2{font-size:18px;line-height:24px;font-weight:500;color:var(--ot-i2);white-space:nowrap}
+html.ny.ui5 .ot-h>.ot-h2:before{content:"– "}
+html.ny.ui5 .ot-hi{display:grid;place-items:center;width:30px;height:30px;flex:none;color:var(--ot-ink)}html.ny.ui5 .ot-hi svg{width:28px;height:28px}
+html.ny.ui5 .ot-hi.ot-ok{border:2px solid currentColor;border-radius:50%;width:26px;height:26px}html.ny.ui5 .ot-hi.ot-ok svg{width:16px;height:16px;stroke-width:2.6}
+html.ny.ui5 .ot-lnk{margin-left:auto;display:inline-flex;align-items:center;gap:4px;height:40px;padding:0 4px 0 12px;border:0;border-radius:999px;background:none;color:var(--ot-ink);font:inherit;font-size:17px;font-weight:500;cursor:pointer;white-space:nowrap}
+html.ny.ui5 .ot-lnk svg{width:18px;height:18px;opacity:.7}
+html.ny.ui5 .ot-tom{display:flex;align-items:center;gap:8px;font-size:16px;color:var(--ot-i2);padding:6px 0}html.ny.ui5 .ot-tom svg{width:20px;height:20px;flex:none}
+/* väggen: rutnät */
+html.ny.ui5 .ot-v{position:relative;isolation:isolate;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr);grid-template-rows:200px minmax(0,1fr) minmax(0,1fr);grid-template-areas:"h h w" "s s u" "g st u";gap:16px;height:calc(100vh / 1.0588 - var(--tabbar) - var(--tabgap) - 30px);padding:16px;box-sizing:border-box}
+html.ny.ui5 .ot-v>.ot-land{position:fixed;left:0;top:0;width:100vw;height:68vh;z-index:-1;-webkit-mask-image:linear-gradient(180deg,#000 55%,transparent);mask-image:linear-gradient(180deg,#000 55%,transparent)}
+html.ny.ui5 .ot-v>.ot-head{grid-area:h}html.ny.ui5 .ot-v>.ot-wxk{grid-area:w;margin-left:-160px}html.ny.ui5 .ot-v>.ot-sch{grid-area:s}html.ny.ui5 .ot-v>.ot-hus{grid-area:u}html.ny.ui5 .ot-v>.ot-gora{grid-area:g}html.ny.ui5 .ot-v>.ot-stad{grid-area:st}
+/* väggen: namn, klocka, datum */
+html.ny.ui5 .ot-v .ot-head{display:flex;flex-direction:column;justify-content:space-between;padding:10px 8px 6px;color:#fff;text-shadow:0 1px 12px rgba(20,30,26,.35)}
+html.ny.ui5 .ot-brand{display:flex;align-items:center;gap:14px;min-width:0}
+html.ny.ui5 .ot-bi{display:grid;place-items:center;flex:none}html.ny.ui5 .ot-bi svg{width:46px;height:46px;stroke-width:1.8}
+html.ny.ui5 .ot-brand b{display:block;font-size:36px;line-height:40px;font-weight:700;letter-spacing:-.6px}
+html.ny.ui5 .ot-brand b+span{display:block;font-size:18px;line-height:24px;font-weight:500;opacity:.92}
+html.ny.ui5 .ot-tid{display:flex;align-items:center;gap:28px}
+html.ny.ui5 .ot-v .ot-kl{font-size:104px;line-height:96px;font-weight:600;letter-spacing:-3px}
+html.ny.ui5 .ot-sep{width:2px;height:72px;border-radius:2px;background:rgba(255,255,255,.75);flex:none}
+html.ny.ui5 .ot-v .ot-dat{font-size:30px;line-height:36px;font-weight:500}html.ny.ui5 .ot-vk{font-size:20px;line-height:26px;opacity:.9;margin-top:4px}
+/* väderkortet */
+html.ny.ui5 .ot-wxk{display:flex;flex-direction:column;justify-content:center;gap:10px;min-width:0;padding:14px 20px;border:1px solid rgba(255,255,255,.14);border-radius:26px;background:var(--ot-wx);-webkit-backdrop-filter:blur(20px) saturate(1.2);backdrop-filter:blur(20px) saturate(1.2);color:#fff;font:inherit;text-align:left;cursor:pointer;box-shadow:0 12px 32px rgba(20,30,26,.2)}
+html.ny.ui5 .ot-wt{display:flex;align-items:center;gap:12px;min-width:0}
+html.ny.ui5 .ot-wt>svg{width:20px;height:20px;opacity:.75;flex:none}
+html.ny.ui5 .ot-ic{width:60px;height:60px;flex:none;font-size:50px;line-height:60px;text-align:center}html.ny.ui5 .ot-ic svg,html.ny.ui5 .ot-ic img{width:100%;height:100%}
+html.ny.ui5 .ot-deg{font-size:60px;line-height:60px;font-weight:600;letter-spacing:-2px;flex:none}
+html.ny.ui5 .ot-wv{flex:1;min-width:0;display:flex;align-items:center;gap:10px;margin-left:8px}
+html.ny.ui5 .ot-wv>i{width:26px;height:26px;flex:none;color:var(--ot-ora)}html.ny.ui5 .ot-wv>i svg{width:100%;height:100%}
+html.ny.ui5 .ot-wv b{display:block;font-size:19px;line-height:24px;font-weight:600}
+html.ny.ui5 .ot-wv small{display:block;font-size:16px;line-height:21px;opacity:.85}
+html.ny.ui5 .ot-wv b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}html.ny.ui5 .ot-wv small{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+html.ny.ui5 .ot-wv>span{min-width:0}
+html.ny.ui5 .ot-wv.wv2>i{color:#E8772E}html.ny.ui5 .ot-wv.wv3>i{color:#D93A2B}
+html.ny.ui5 .ot-tim{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);text-align:center}
+html.ny.ui5 .ot-tim>span{display:flex;flex-direction:column;align-items:center;gap:2px}
+html.ny.ui5 .ot-tim em{font-style:normal;font-size:15px;line-height:20px;opacity:.85}
+html.ny.ui5 .ot-tim i{width:32px;height:32px;font-size:26px;line-height:32px;font-style:normal}html.ny.ui5 .ot-tim i svg,html.ny.ui5 .ot-tim i img{width:100%;height:100%}
+html.ny.ui5 .ot-tim b{font-size:18px;line-height:22px;font-weight:600}
+/* Schema */
+html.ny.ui5 .ot-dagar{flex:1;min-height:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+html.ny.ui5 .ot-dg{display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden;border-radius:18px;background:var(--ot-ruta)}
+html.ny.ui5 .ot-dg h3{display:flex;align-items:baseline;gap:8px;margin:0;padding:11px 14px;background:var(--ot-band);font-size:22px;line-height:28px;font-weight:700;letter-spacing:-.3px;white-space:nowrap}
+html.ny.ui5 .ot-dg.idag h3{background:var(--ot-idag)}
+html.ny.ui5 .ot-dg h3 span{font-size:16px;font-weight:500;color:var(--ot-i2)}
+html.ny.ui5 .ot-tl2{position:relative;flex:1;min-height:0;overflow:hidden;padding:8px 14px}
+html.ny.ui5 .ot-tl2:has(.ot-te+.ot-te):before{content:"";position:absolute;left:18px;top:24px;bottom:24px;width:2px;border-radius:2px;background:var(--ot-linje)}
+html.ny.ui5 .ot-te{position:relative;display:grid;grid-template-columns:50px minmax(0,1fr);align-items:baseline;padding:7px 0 7px 20px;cursor:pointer}
+html.ny.ui5 .ot-te>i{position:absolute;left:0;top:13px;width:10px;height:10px;border-radius:50%;background:#A5A9A4;box-shadow:0 0 0 3px var(--ot-glas)}
+html.ny.ui5 .ot-dg.idag .ot-te>i{background:var(--ot-gron)}
+html.ny.ui5 .ot-tm{font-size:16px;line-height:22px;font-weight:600}html.ny.ui5 .ot-tm svg{width:20px;height:20px;color:var(--ot-amb);vertical-align:-3px}
+html.ny.ui5 .ot-te b{font-size:16px;line-height:22px;font-weight:500;min-width:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere;-webkit-hyphens:auto;hyphens:auto}
+html.ny.ui5 .ot-te.nu b{font-weight:700}
+html.ny.ui5 .ot-mer{padding:4px 0 0 22px;font-size:15px;color:var(--ot-i2)}
+html.ny.ui5 .ot-dg .ot-tom{padding:8px 0 8px 22px}
+/* Smart hem */
+html.ny.ui5 .ot-hus .ot-h{margin-bottom:16px}html.ny.ui5 .ot-hus .ot-hi svg{width:34px;height:34px}html.ny.ui5 .ot-hus .ot-hi{width:40px;height:40px}
+html.ny.ui5 .ot-hus .ot-lnk svg{width:22px;height:22px}
+html.ny.ui5 .ot-rums{flex:1;min-height:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:minmax(0,1fr);gap:12px}
+html.ny.ui5 .ot-ti3{position:relative;min-width:0;min-height:0;border-radius:18px;background:var(--ot-ruta);border:1px solid var(--ot-kb);box-shadow:0 1px 2px rgba(30,40,30,.04)}
+html.ny.ui5 .ot-tb{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;height:100%;padding:14px 16px;border:0;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer;box-sizing:border-box;border-radius:inherit}
+html.ny.ui5 .ot-si{margin-bottom:auto;color:var(--ot-i2)}html.ny.ui5 .ot-si svg{width:30px;height:30px}
+html.ny.ui5 .ot-ti3.on .ot-si{color:var(--ot-amb)}
+html.ny.ui5 .ot-tb>*{flex:none}html.ny.ui5 .ot-tb b{font-size:19px;line-height:24px;font-weight:600;padding-top:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+html.ny.ui5 .ot-tb b+span{font-size:16px;line-height:21px;color:var(--ot-i2)}
+html.ny.ui5 .ot-scl{flex:none;margin:16px 0 10px;font-size:19px;line-height:24px;font-weight:600}
+html.ny.ui5 .ot-sc{flex:none;display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;margin:0 -20px;padding:0 20px 2px}
+html.ny.ui5 .ot-sc .ha-st{flex:none;display:inline-flex;flex-direction:row;align-items:center;gap:8px;width:auto;height:48px;min-height:0;padding:0 18px 0 14px;border-radius:999px;background:var(--ot-ruta);border:1px solid var(--ot-kb);box-shadow:0 1px 2px rgba(30,40,30,.05);color:var(--ot-ink)}
+html.ny.ui5 .ot-sc .ha-st.on{background:var(--ot-gronl);border-color:transparent}
+html.ny.ui5 .ot-sc .ha-i{width:24px;height:24px;margin:0;background:none!important;box-shadow:none!important;color:var(--ot-ink)!important}html.ny.ui5 .ot-sc .ha-st.on .ha-i{color:var(--ot-gron2)!important}html.ny.ui5 .ot-sc .ha-st.on{color:var(--ot-gron2)}html.ny.ui5 .ot-sc .ha-i svg{width:22px;height:22px}
+html.ny.ui5 .ot-sc .ha-n{font-size:16px;line-height:20px;font-weight:500;white-space:nowrap}
+/* Tavla 3: högtalaren som spelar, under rummen */
+html.ny.ui5 .ot-mh{display:flex;align-items:baseline;gap:8px;min-width:0;white-space:nowrap}html.ny.ui5 .ot-mh small{min-width:0;overflow:hidden;text-overflow:ellipsis;font-size:16px;font-weight:400;color:var(--ot-i2)}
+/* när något spelar blir rummen en rad med ikon och namn, så att reglaget får plats */
+html.ny.ui5 .ot-hus.spelar .ot-tb{flex-direction:row;align-items:center;gap:10px;padding:0 14px}html.ny.ui5 .ot-hus.spelar .ot-si{margin:0}html.ny.ui5 .ot-hus.spelar .ot-si svg{width:26px;height:26px}
+html.ny.ui5 .ot-hus.spelar .ot-tb b{padding:0;flex:1 1 auto;min-width:0;font-size:17px}html.ny.ui5 .ot-hus.spelar .ot-tb b+span{display:none}
+/* Just nu i Smart hem: klar maskin, robotdammsugaren, läggdags */
+html.ny.ui5 .ot-nts{flex:none;display:flex;flex-direction:column;gap:8px;margin:-4px 0 12px}
+html.ny.ui5 .ot-nt{display:flex;align-items:center;gap:8px;min-height:56px;padding:0 8px 0 0;border-radius:16px;background:var(--ot-ruta);border:1px solid var(--ot-kb)}
+html.ny.ui5 .ot-ntb{flex:1;min-width:0;display:flex;align-items:center;gap:12px;align-self:stretch;padding:0 4px 0 12px;border:0;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer;border-radius:inherit}
+html.ny.ui5 .ot-nti{flex:none;display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:var(--ot-band);color:var(--ot-ink)}html.ny.ui5 .ot-nti svg{width:20px;height:20px}
+html.ny.ui5 .ot-nt.klar .ot-nti{background:var(--ot-gronl);color:var(--ot-gron2)}html.ny.ui5 .ot-nt.fel .ot-nti{background:rgba(217,58,43,.16);color:#D93A2B}
+html.ny.ui5 .ot-ntt{min-width:0;display:flex;flex-direction:column}html.ny.ui5 .ot-ntt b{font-size:17px;line-height:22px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}html.ny.ui5 .ot-ntt small{font-size:15px;line-height:19px;color:var(--ot-i2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.ny.ui5 .ot-ntk{flex:none;height:40px;padding:0 16px;border:0;border-radius:999px;background:var(--accent);color:#fff;font:inherit;font-size:16px;font-weight:600;cursor:pointer}
+html.ny.ui5[data-theme="dark"] .ot-ntk{color:#14201A}@media (prefers-color-scheme: dark){html.ny.ui5:not([data-theme="light"]) .ot-ntk{color:#14201A}}
+html.ny.ui5 .ot-wv.ot-wx-frost>i{color:#4F8FD6}html.ny.ui5 .ot-wv.ot-wx-pollen>i{color:#C9A227}html.ny.ui5 .ot-wv.ot-wx-norr>i{color:#5FBF8F}
+html.ny.ui5 .ot-med{flex:none}html.ny.ui5 .ot-med .hab-g{margin-top:0}
+html.ny.ui5 .ot-med .ha-t.hab-med{background:var(--ot-ruta);border:1px solid var(--ot-kb);box-shadow:0 1px 2px rgba(30,40,30,.04);border-radius:18px;color:var(--ot-ink)}
+html.ny.ui5 .ot-med .hab-pp{color:var(--ot-ink)}html.ny.ui5 .ot-med .hab-pp:disabled{color:var(--ot-i2)}
+html.ny.ui5 .ot-med .hab-bar{background:var(--ot-band)}html.ny.ui5[data-theme="dark"] .ot-med .hab-bar{background:rgba(255,255,255,.1)}
+@media (prefers-color-scheme: dark){html.ny.ui5:not([data-theme="light"]) .ot-med .hab-bar{background:rgba(255,255,255,.1)}}
+/* Att göra och Städ */
+html.ny.ui5 .ot-ft{flex:none;margin-top:auto;padding-top:8px;font-size:15px;line-height:20px;color:var(--ot-i2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.ny.ui5 .ot-flik{position:relative;flex:none;display:grid;grid-template-columns:1fr 1fr;padding:3px;margin-bottom:10px;border-radius:12px;background:var(--ot-band)}
+html.ny.ui5 .ot-flik>i{position:absolute;left:3px;top:3px;bottom:3px;width:calc(50% - 3px);border-radius:9px;background:var(--ot-ruta-h,#fff);box-shadow:0 1px 3px rgba(30,40,30,.12),0 0 0 .5px rgba(30,40,30,.06);transform:translateX(calc(var(--i,0) * 100%));transition:transform .38s cubic-bezier(.3,1.3,.5,1)}
+html.ny.ui5 .ot-flik button{position:relative;display:flex;align-items:center;justify-content:center;gap:6px;height:36px;border:0;background:none;color:var(--ot-i2);font:inherit;font-size:15px;font-weight:600;cursor:pointer;transition:color .2s}
+html.ny.ui5 .ot-flik button[aria-selected="true"]{color:var(--ot-ink)}
+html.ny.ui5 .ot-flik em{font-style:normal;font-size:13px;font-weight:500;color:var(--ot-i2)}
+html.ny.ui5 .ot-prt{flex-direction:row!important;align-items:center;margin:0 0 8px!important;gap:10px!important;font-size:14px!important;color:var(--ot-i2)}html.ny.ui5 .ot-prt i{flex:1;width:auto!important}
+@media (prefers-reduced-motion:reduce){html.ny.ui5 .ot-flik>i{transition:none}}
+html.ny.ui5 .ot-pr{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:8px;font-size:17px;line-height:20px;white-space:nowrap}
+html.ny.ui5 .ot-pr i{display:block;width:128px;height:8px;border-radius:999px;background:var(--ot-linje);overflow:hidden}
+html.ny.ui5 .ot-pr i b{display:block;height:100%;border-radius:inherit;background:var(--ot-gron)}
+html.ny.ui5 .ot-tl{flex:1;min-height:0;overflow:hidden}
+html.ny.ui5 .ot-ti{position:relative;display:flex;align-items:center;gap:14px;padding:3px 0;cursor:pointer;min-width:0}
+html.ny.ui5 .ot-cb{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+html.ny.ui5 .ot-ti>i{display:grid;place-items:center;width:24px;height:24px;flex:none;box-sizing:border-box;border:2px solid rgba(110,116,110,.45);border-radius:6px;background:var(--ot-ruta);color:#fff}
+html.ny.ui5 .ot-ti>i svg{width:16px;height:16px;stroke-width:3;opacity:0}
+html.ny.ui5 .ot-ti.klar>i{background:var(--ot-gron);border-color:var(--ot-gron)}html.ny.ui5 .ot-ti.klar>i svg{opacity:1}
+html.ny.ui5 .ot-cb:focus-visible+i{outline:2px solid var(--ot-gron);outline-offset:2px}
+html.ny.ui5 .ot-ti b{flex:1;min-width:0;font-size:18px;line-height:24px;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.ny.ui5 .ot-ti.klar b{text-decoration:line-through;color:var(--ot-i2)}
+html.ny.ui5 .ot-ti small{flex:none;font-size:15px;color:var(--ot-i2)}html.ny.ui5 .ot-ti small.red{color:#D2483C}
+/* rummet zoomar ut ur sin ruta (haZoom) */
+html.ny.ui5 .sheet.ot-zoom .sheet-panel{width:min(860px,calc(100vw - 48px));max-height:calc(100vh - 64px);border-radius:32px}
+html.ny.ui5 body.wall .sheet.ot-zoom .sheet-panel{width:min(980px,calc(100vw - 180px))}
+html.ny.ui5 .sheet.ot-zoom .ha-g-v{grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+html.ny.ui5 .sheet.ot-zoom .ha-t{font-size:17px;min-height:84px;border-radius:20px;padding:12px 16px 12px 12px;gap:12px}html.ny.ui5 .sheet.ot-zoom .ha-t .ha-i{width:46px;height:46px}html.ny.ui5 .sheet.ot-zoom .ha-t .ha-i svg{width:24px;height:24px}
+/* väggens sidomeny i skogsgrönt när Tavla 3 är vald */
+html.ny.ui5 body.wall.sido.t3{--sidew:120px}
+html.ny.ui5 body.wall.t3 .nav.sido{left:0;top:0;bottom:0;width:104px;border-radius:0;padding:16px 12px;background:#2C3C38;border:0;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none}
+html.ny.ui5 body.wall.t3 .nav.sido.sido-ut{width:232px}
+html.ny.ui5 body.wall.t3 .nav.sido :is(button[data-act="nav"],.nav-tog){color:rgba(240,245,240,.86)}
+html.ny.ui5 body.wall.t3 .nav.sido:not(.sido-ut) button[data-act="nav"]{flex-direction:column;justify-content:center;gap:4px;height:84px;padding:0 4px;font-size:14px;line-height:18px;font-weight:500;letter-spacing:0}
+html.ny.ui5 body.wall.t3 .nav.sido:not(.sido-ut) button[data-act="nav"] span{display:block}
+html.ny.ui5 body.wall.t3 .nav.sido button[aria-current="page"]{background:rgba(255,255,255,.16);color:#fff}
+html.ny.ui5 body.wall.t3 .nav.sido .brand{color:#fff}
+/* telefonen */
+html.ny.ui5 .ot-t{display:flex;flex-direction:column;gap:12px;padding:0 16px 12px}
+html.ny.ui5 .ot-t .ot-head{position:relative;overflow:hidden;margin:0 -16px;padding:4px 16px 14px;color:var(--ot-ink)}
+html.ny.ui5 .ot-t .ot-head>.ot-land{position:absolute;right:0;top:0;width:78%;height:100%;opacity:.7;-webkit-mask-image:linear-gradient(90deg,transparent,#000 55%);mask-image:linear-gradient(90deg,transparent,#000 55%)}
+html.ny.ui5 .ot-t .ot-head>:not(.ot-land,.ot-frost){position:relative}html.ny.ui5 .ot-t .ot-l3{display:none}
+html.ny.ui5 .ot-t .ot-brand{gap:10px}html.ny.ui5 .ot-t .ot-bi svg{width:26px;height:26px}html.ny.ui5 .ot-t .ot-brand b{font-size:20px;line-height:26px;letter-spacing:-.3px}
+html.ny.ui5 .ot-t .ot-me{margin-left:auto}
+html.ny.ui5 .ot-t .ot-kl{margin-top:14px;font-size:48px;line-height:52px;font-weight:600;letter-spacing:-1.5px}
+html.ny.ui5 .ot-t .ot-dat{font-size:15px;line-height:20px;font-weight:500;color:var(--ot-i2)}
+html.ny.ui5 .ot-t .ot-wxk{padding:12px 14px;border-radius:20px;background:var(--ot-glas);border-color:var(--ot-kb);color:var(--ot-ink);box-shadow:var(--ot-skugga)}
+html.ny.ui5 .ot-t .ot-ic{width:38px;height:38px;font-size:32px;line-height:38px}html.ny.ui5 .ot-t .ot-deg{font-size:34px;line-height:38px;letter-spacing:-1px}
+html.ny.ui5 .ot-t .ot-wv{gap:6px;margin-left:4px}html.ny.ui5 .ot-t .ot-wv>i{width:18px;height:18px}
+html.ny.ui5 .ot-t .ot-wv b{font-size:14px;line-height:18px}html.ny.ui5 .ot-t .ot-wv small{font-size:13px;line-height:17px;color:var(--ot-i2);opacity:1}
+html.ny.ui5 .ot-t .ot-tim em{font-size:13px;color:var(--ot-i2);opacity:1}html.ny.ui5 .ot-t .ot-tim i{width:26px;height:26px;font-size:21px;line-height:26px}html.ny.ui5 .ot-t .ot-tim b{font-size:15px}
+html.ny.ui5 .ot-t .ot-c{padding:14px 16px;border-radius:20px}
+html.ny.ui5 .ot-t .ot-h{margin-bottom:10px;gap:10px;min-height:30px}
+html.ny.ui5 .ot-t .ot-h>b,html.ny.ui5 .ot-t .ot-ht>b{font-size:19px;line-height:24px}
+html.ny.ui5 .ot-t .ot-h2{font-size:14px;line-height:20px}
+html.ny.ui5 .ot-t .ot-hi{width:24px;height:24px}html.ny.ui5 .ot-t .ot-hi svg{width:22px;height:22px}
+html.ny.ui5 .ot-t .ot-hi.ot-ok{width:22px;height:22px}html.ny.ui5 .ot-t .ot-hi.ot-ok svg{width:13px;height:13px}
+html.ny.ui5 .ot-t .ot-lnk{font-size:15px;height:32px}
+html.ny.ui5 .ot-t .ot-hus .ot-ht{flex-direction:row;align-items:baseline;gap:8px}html.ny.ui5 .ot-t .ot-hus .ot-hi{width:24px;height:24px}html.ny.ui5 .ot-t .ot-hus .ot-hi svg{width:22px;height:22px}
+html.ny.ui5 .ot-dseg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px;padding:3px;border-radius:12px;background:var(--ot-band);margin-bottom:4px}
+html.ny.ui5 .ot-dseg button{text-align:center;height:32px;border:0;border-radius:9px;background:none;color:var(--ot-ink);font:inherit;font-size:14px;font-weight:500;cursor:pointer}
+html.ny.ui5 .ot-dseg button[aria-pressed="true"]{background:var(--ot-idag);font-weight:600}
+html.ny.ui5 .ot-t .ot-dg{background:none;border-radius:0}
+html.ny.ui5 .ot-t .ot-tl2{padding:4px 0 0}
+html.ny.ui5 .ot-t .ot-tl2:has(.ot-te+.ot-te):before{left:4px;top:22px;bottom:22px}
+html.ny.ui5 .ot-t .ot-te{grid-template-columns:52px minmax(0,1fr);padding:6px 0 6px 20px}html.ny.ui5 .ot-t .ot-te>i{top:13px;width:9px;height:9px}
+html.ny.ui5 .ot-t .ot-tm,html.ny.ui5 .ot-t .ot-te b{font-size:15px;line-height:21px}
+html.ny.ui5 .ot-t .ot-dg .ot-te>i{background:var(--ot-gron)}
+html.ny.ui5 .ot-ikr{display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:0 16px}
+html.ny.ui5 .ot-ik{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:5px;width:66px;padding:0;border:0;background:none;color:var(--ot-ink);font:inherit;cursor:pointer}
+html.ny.ui5 .ot-ik>span{display:grid;place-items:center;width:62px;height:50px;border-radius:14px;background:var(--ot-ruta);border:1px solid var(--ot-kb);color:var(--ot-i2);box-shadow:0 1px 2px rgba(30,40,30,.05)}
+html.ny.ui5 .ot-ik>span svg{width:26px;height:26px}html.ny.ui5 .ot-ik.on>span{color:var(--ot-amb)}
+html.ny.ui5 .ot-ik em{font-style:normal;font-size:12px;line-height:15px;color:var(--ot-i2);max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.ny.ui5 .ot-t .ot-pr{flex-direction:row;align-items:center;gap:10px;font-size:14px}html.ny.ui5 .ot-t .ot-pr i{width:70px;height:6px}
+html.ny.ui5 .ot-t .ot-gora .ot-lnk{margin-left:0;padding-left:4px}
+html.ny.ui5 .ot-t .ot-ti{padding:4px 0;gap:12px}html.ny.ui5 .ot-t .ot-ti b{font-size:16px;line-height:22px}html.ny.ui5 .ot-t .ot-ti>i{width:22px;height:22px}
+/* Skog (designval, tidigare Tavla 3, ht.ovny=h): riktlinjerna i design/tavla3.md över hela appen. Varm sand, ljusa kort, skogsgrönt som enda accent,
+   bärnsten för "igång", orange bara för varningar. Bara under html.ny.ui5.skog; Apple och Aura påverkas inte. */
+html.ny.ui5.skog{
+ --bg:#ECE7DE;--surface:#FAF8F4;--surface-raised:#FFFFFF;--fill:rgba(31,39,35,.07);--track:#E2DDD3;--pill:#EFEBE3;--seg-on:#E4E8D8;--lins:rgba(255,255,255,.7);
+ --ink:#1F2723;--ink-2:#69706B;--ink-3:rgba(31,39,35,.32);--line:rgba(31,39,35,.12);
+ --green:#4A7C46;--orange:#C9531F;--red:#D0453A;--veg-ink:#4A7C46;--meat-ink:#7A5C38;
+ --bar:rgba(236,231,222,.84);--glass:rgba(248,246,241,.86);--glass-line:rgba(255,255,255,.7);
+ --sk-gron:#6E9A5A;--sk-gron2:#2F5D3A;--sk-gronl:#D5E3CB;--sk-band:#EFEBE3;--sk-idag:#E4E8D8;--sk-amb:#E39A1E;--sk-ora:#F26B3A;--sk-kb:rgba(255,255,255,.7);
+ --sk-skugga:0 1px 2px rgba(30,40,30,.05),0 12px 32px rgba(30,40,30,.08);--sk-meny:#2C3C38;--sk-h1:#DCE2DA;--sk-h2:#ECE7DE;--r5:20px}
+@media (prefers-color-scheme: dark){html.ny.ui5.skog:not([data-theme="light"]){
+ --bg:#121715;--surface:#1B221F;--surface-raised:#232B27;--fill:rgba(255,255,255,.08);--track:#2C3531;--pill:rgba(255,255,255,.07);--seg-on:rgba(141,187,119,.24);--lins:rgba(255,255,255,.16);
+ --ink:#EDF1EC;--ink-2:#A2AAA4;--ink-3:rgba(237,241,236,.32);--line:rgba(255,255,255,.13);
+ --green:#8DBB77;--orange:#F26B3A;--red:#FF6B5E;--veg-ink:#8DBB77;--meat-ink:#C9A57A;
+ --bar:rgba(18,23,21,.84);--glass:rgba(27,34,31,.84);--glass-line:rgba(255,255,255,.07);
+ --sk-gron:#8DBB77;--sk-gron2:#CFE5C2;--sk-gronl:rgba(141,187,119,.24);--sk-band:rgba(255,255,255,.07);--sk-idag:rgba(141,187,119,.2);--sk-kb:rgba(255,255,255,.07);
+ --sk-skugga:0 1px 2px rgba(0,0,0,.3),0 14px 34px rgba(0,0,0,.35);--sk-meny:#24332E;--sk-h1:#1C2622;--sk-h2:#121715}}
+html.ny.ui5.skog[data-theme="dark"]{
+ --bg:#121715;--surface:#1B221F;--surface-raised:#232B27;--fill:rgba(255,255,255,.08);--track:#2C3531;--pill:rgba(255,255,255,.07);--seg-on:rgba(141,187,119,.24);--lins:rgba(255,255,255,.16);
+ --ink:#EDF1EC;--ink-2:#A2AAA4;--ink-3:rgba(237,241,236,.32);--line:rgba(255,255,255,.13);
+ --green:#8DBB77;--orange:#F26B3A;--red:#FF6B5E;--veg-ink:#8DBB77;--meat-ink:#C9A57A;
+ --bar:rgba(18,23,21,.84);--glass:rgba(27,34,31,.84);--glass-line:rgba(255,255,255,.07);
+ --sk-gron:#8DBB77;--sk-gron2:#CFE5C2;--sk-gronl:rgba(141,187,119,.24);--sk-band:rgba(255,255,255,.07);--sk-idag:rgba(141,187,119,.2);--sk-kb:rgba(255,255,255,.07);
+ --sk-skugga:0 1px 2px rgba(0,0,0,.3),0 14px 34px rgba(0,0,0,.35);--sk-meny:#24332E;--sk-h1:#1C2622;--sk-h2:#121715}
+/* Sidan: sand med ett dis av skog och sjö högst upp, stilla (ingen oskärpa, väggdatorn orkar) */
+html.ny.ui5.skog body{background:var(--bg)}
+html.ny.ui5.skog body::before{content:"";position:fixed;inset:0 0 auto;height:340px;z-index:-1;pointer-events:none;background:linear-gradient(180deg,var(--sk-h1),var(--sk-h2))}
+/* Kort: ljusa, 1 px ljus kant, mjuk skugga, hörn 20 (väggen 24) */
+html.ny.ui5.skog :is(.group,.add-row,.wcard,.ws-card,.widget),html.ny.ui5.skog body:not(.wall) .ov>.hero{background:var(--surface);border:1px solid var(--sk-kb);box-shadow:var(--sk-skugga)}
+html.ny.ui5.skog :is(.group,.add-row,.wcard,.ws-card,.widget){border-radius:var(--r5)}
+html.ny.ui5.skog body.wall{--r5:24px}
+/* Rubriker: kortrubriker i fet text, inte versaler */
+html.ny.ui5.skog .sh{text-transform:none;font-size:17px;line-height:22px;font-weight:700;letter-spacing:-.2px;color:var(--ink)}
+html.ny.ui5.skog .sh .r,html.ny.ui5.skog .sh .acc,html.ny.ui5.skog .sh a,html.ny.ui5.skog .sh button{font-size:15px;font-weight:500;color:var(--ink-2)}
+html.ny.ui5.skog .widget .wh{font-weight:700;color:var(--ink)}
+/* Segmentväljare: sandband som botten, salviagrönt för valt läge med mörkgrön text */
+/* Segmentväljare (granskning 2: sand på sand syntes knappt). En stil överallt, som iOS: mörkare spår än ytan under, vit tumme med skugga,
+   valt läge i mörkgrönt. Gäller .segc, Schemas dagväljare, Att göra/Städ i Översikt och 3 h/1 h i vädret. Andra nivån (Inspiration/Mina recept/Efterrätter)
+   är lättare: inget spår, vald flik som ljusgrönt piller. */
+html.ny.ui5.skog{--sk-spar:rgba(31,39,35,.075);--sk-tumme:#FFFFFF;--sk-tskugga:0 1px 3px rgba(30,40,30,.14),0 0 0 .5px rgba(30,40,30,.06)}
+html.ny.ui5.skog[data-theme="dark"]{--sk-spar:rgba(255,255,255,.08);--sk-tumme:#36423C;--sk-tskugga:0 1px 3px rgba(0,0,0,.4)}
+@media (prefers-color-scheme: dark){html.ny.ui5.skog:not([data-theme="light"]){--sk-spar:rgba(255,255,255,.08);--sk-tumme:#36423C;--sk-tskugga:0 1px 3px rgba(0,0,0,.4)}}
+html.ny.ui5.skog :is(.segc,.ot-dseg,.ot-flik,.wxC-k){background:var(--sk-spar)}
+html.ny.ui5.skog .segc .seg-thumb,html.ny.ui5.skog .ot-flik>i{background:var(--sk-tumme);box-shadow:var(--sk-tskugga)}
+html.ny.ui5.skog :is(.ot-dseg,.wxC-k) button[aria-pressed="true"]{background:var(--sk-tumme);box-shadow:var(--sk-tskugga);color:var(--sk-gron2);font-weight:600}
+html.ny.ui5.skog :is(.segc button[aria-pressed="true"],.ot-flik button[aria-selected="true"]){color:var(--sk-gron2);font-weight:600}
+html.ny.ui5.skog .subseg .segc{background:transparent}
+html.ny.ui5.skog .subseg .segc .seg-thumb{background:var(--sk-gronl);box-shadow:none}
+html.ny.ui5.skog .subseg .segc button{font-weight:500;color:var(--ink-2)}
+/* Rubriker inne i Inställningarnas undersidor: lågmälda etiketter över grupperna, inte fetstil i kortrubrikens storlek */
+html.ny.ui5.skog .pref-body .group{box-shadow:none}
+html.ny.ui5.skog .pref-body .sh{font-size:14px;line-height:18px;font-weight:600;letter-spacing:0;color:var(--ink-2)}
+html.ny.ui5.skog .pref-body .sh .hj-ch{color:var(--ink-3);transform:scale(.8)}
+html.ny.ui5.skog .pref-body .sh.open .hj-ch{transform:scale(.8) rotate(90deg)}
+/* Personer: Gemensam skärm i linje med namnen (tom ring i stället för personfärg); pilarna grå som i resten av listorna */
+html.ny.ui5.skog .person-list>.cell.link{padding-left:16px}html.ny.ui5.skog .person-list>.cell.link::before{content:"";flex:none;width:9px;height:9px;border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--ink-3);margin-right:6px}
+html.ny.ui5.skog .person-toggle{color:var(--ink-3)}
+/* Kalenderns vecka: dagrubrik i radstorlek, inte en sidrubrik per dag */
+html.ny.ui5.skog .cv-band{font-size:17px}
+html.ny.ui5.skog .cv-band .chev svg{width:12px;height:12px}html.ny.ui5.skog .cv-band+.cv-tom{min-height:0;padding:0 20px 14px}
+/* Hemmets scener: fem scener på en rad i stället för fyra plus en ensam */
+html.ny.ui5 .hus-sc:has(>:nth-child(5):last-child){grid-template-columns:repeat(5,minmax(0,1fr))}
+/* Väder: rubriken över 9-dagarsprognosen som övriga kortrubriker */
+html.ny.ui5.skog .wx-card>.wx-cap{font-size:15px;font-weight:700;color:var(--ink)}html.ny.ui5.skog .wx-card>.wx-cap svg{color:var(--sk-gron)}
+/* Städroboten: vatten och mopp i sjöns gråblå i stället för systemblått; lampan när den städar i bärnsten */
+html.ny.ui5.skog{--sk-sjo:#6F8F9C}
+html.ny.ui5.skog .sr-vat{stroke:var(--sk-sjo)}html.ny.ui5.skog .sr-lg.v{border-color:var(--sk-sjo)}html.ny.ui5.skog .sr-iv,html.ny.ui5.skog .sr-rum.m>svg{color:var(--sk-sjo)}
+html.ny.ui5.skog .sr-ill.on .sr-li{stroke:var(--sk-amb)}html.ny.ui5.skog .sr-ill.on .sr-pu{fill:var(--sk-amb)!important}
+/* Pilar i Översiktens kort: grå och lika stora som i listorna */
+html.ny.ui5.skog .ot-wxk svg{color:var(--ink-3);stroke:currentColor}
+/* Accenten syns igen (Henrik 14/11: "nu har jag ingen färg"): vald flik i menyn skogsgrön, vald del i väljarna ljusgrön, länkar gröna */
+html.ny.ui5.skog .ot-lnk{color:var(--accent)}html.ny.ui5.skog .ot-lnk svg{color:var(--accent);stroke:currentColor;opacity:1}
+html.ny.ui5.skog body.wall.t3 .nav.sido button[aria-current="page"]{background:#DCE8D2;color:#2F5D3A}
+html.ny.ui5.skog .segc:not(.subseg .segc) .seg-thumb,html.ny.ui5.skog .ot-flik>i{background:var(--sk-gronl);box-shadow:none}
+html.ny.ui5.skog :is(.ot-dseg,.wxC-k) button[aria-pressed="true"]{background:var(--sk-gronl);box-shadow:none}
+html.ny.ui5.skog .subseg .segc .seg-thumb{background:var(--surface);box-shadow:var(--sk-tskugga)}
+/* Dimrade lampor i ljust läge: varm bärnsten som resten av "tänt", inte citrongult */
+html.ny.ui5.skog .ha-t.ha-dim::before{background:#F3CF8A;opacity:.55}
+/* Bockar: rundade rutor som fylls gröna; brytare gröna */
+html.ny.ui5.skog .check::before{border-radius:7px;width:24px;height:24px;border-color:var(--ink-3)}
+html.ny.ui5.skog .check:checked::before{background:var(--sk-gron);border-color:var(--sk-gron)}
+html.ny.ui5.skog .check:checked::after{border-color:#fff}
+html.ny.ui5.skog .switch:checked{background:var(--sk-gron)}
+/* Idag i kalendrar och veckorader */
+html.ny.ui5.skog :is(.wk-d.on .n,.cal-today,.today-dot){background:var(--sk-gron);color:#fff}
+/* Flikraden: skogsgrön, ljusa ikoner; vald flik ljus salvia med skogsgrön ikon (Henrik 14/11), som väggens sidomeny */
+html.ny.ui5.skog .nav:not(.sido){background:var(--sk-meny);border:0;border-top:0;box-shadow:0 10px 30px rgba(20,30,25,.25);-webkit-backdrop-filter:none;backdrop-filter:none}
+html.ny.ui5.skog .nav:not(.sido) .nav-pill{background:#DCE8D2}
+html.ny.ui5.skog .nav.fj.lyft .nav-pill{background:#EAF2E3}
+html.ny.ui5.skog .nav:not(.sido) button{color:rgba(240,245,240,.7)}
+html.ny.ui5.skog .nav:not(.sido) button[aria-current="page"],html.ny.ui5.skog .nav.fj.drag button.over{color:#2F5D3A}
+html.ny.ui5.skog .nav-mini{background:var(--sk-meny);color:#fff;border:0}
+html.ny.ui5.skog .navbar{background:var(--bar)}
+/* Inställningarnas ikoner: samma skogsgröna ruta för alla delar (inga egna färger) */
+html.ny.ui5.skog .pref-section[data-k]>summary.sh{--ic:#4A7C46}
+/* Hemmet: scenerna neutrala, vald scen ljusgrön; tänt och igång i bärnsten; statusbrickor neutrala tills något är på */
+html.ny.ui5.skog :is(.hab .hab-sc,.hus-sc) .ha-st .ha-i{background:transparent;color:var(--ink)}
+html.ny.ui5.skog :is(.hab .hab-sc,.hus-sc) .ha-st.on{background:var(--sk-gronl);color:var(--sk-gron2)}
+html.ny.ui5.skog :is(.hab .hab-sc,.hus-sc) .ha-st.on .ha-i{background:transparent;color:var(--sk-gron2)}
+html.ny.ui5.skog .hab-stor{background:var(--sk-gron);box-shadow:0 8px 24px rgba(74,124,70,.3)}
+html.ny.ui5.skog :is(.ha-t.on,.hab .hab-g .ha-t.on){background:#F7EAD0;color:#1F2723}
+html.ny.ui5.skog .ha-t.on .ha-s{color:rgba(31,39,35,.68)}
+/* Mörkt läge: tänt som dämpad bärnsten, inte en ljus platta som bländar på väggen på kvällen */
+html.ny.ui5.skog[data-theme="dark"] :is(.ha-t.on,.hab .hab-g .ha-t.on){background:rgba(227,154,30,.16);color:var(--ink)}html.ny.ui5.skog[data-theme="dark"] .ha-t.on .ha-s{color:var(--ink-2)}html.ny.ui5.skog[data-theme="dark"] .ha-t.ha-dim::before{background:rgba(227,154,30,.32);opacity:1}
+@media (prefers-color-scheme: dark){html.ny.ui5.skog:not([data-theme="light"]) :is(.ha-t.on,.hab .hab-g .ha-t.on){background:rgba(227,154,30,.16);color:var(--ink)}html.ny.ui5.skog:not([data-theme="light"]) .ha-t.on .ha-s{color:var(--ink-2)}html.ny.ui5.skog:not([data-theme="light"]) .ha-t.ha-dim::before{background:rgba(227,154,30,.32);opacity:1}}
+html.ny.ui5.skog :is(.ha-t.on,.ha-chip.on) .ha-i{background:var(--sk-amb);color:#fff}
+html.ny.ui5.skog .ha-chips-v .ha-chip:not(.on) .ha-i{background:var(--fill)!important;color:var(--ink)!important}
+html.ny.ui5.skog .ha-chips-v .ha-chip.on .ha-i{background:var(--sk-amb)!important;color:#fff!important}
+html.ny.ui5.skog :is(.ha-ap.on.ha-ap-robot,.ha-ap.on.ha-ap-disk) .ha-i,html.ny.ui5.skog .ha-top .ha-i:is(.ha-ap-robot,.ha-ap-disk).on{background:var(--sk-amb);color:#fff}
+html.ny.ui5.skog :is(.ha-ap-p,.ha-ap-disk .ha-ap-p)::after{background:var(--sk-amb)}
+html.ny.ui5.skog .ha-g-v .ha-ap.on{--rc:var(--sk-amb)!important}
+html.ny.ui5.skog .ha-ap-k.prim,html.ny.ui5.skog form[data-form="haApp"] .ha-ring~.ha-ap-ks .ha-ap-k.prim{background:var(--sk-gron)}
+/* Valda filter och valda dagar: mörkgrönt i stället för svart */
+html.ny.ui5.skog :is(.fchips button[aria-pressed="true"],.rc-toolbar .pill[aria-pressed=true],.cal-d.sel .n,.wk-d.sel .n,.pin-dots i.on){background:var(--sk-gron2);border-color:var(--sk-gron2);color:#fff}
+html.ny.ui5.skog[data-theme="dark"] :is(.fchips button[aria-pressed="true"],.rc-toolbar .pill[aria-pressed=true],.cal-d.sel .n,.wk-d.sel .n,.pin-dots i.on){color:#1B221F}
+@media (prefers-color-scheme: dark){html.ny.ui5.skog:not([data-theme="light"]) :is(.fchips button[aria-pressed="true"],.rc-toolbar .pill[aria-pressed=true],.cal-d.sel .n,.wk-d.sel .n,.pin-dots i.on){color:#1B221F}}
+html.ny.ui5.skog .fchips button:not([aria-pressed="true"]){background:var(--surface);border:1px solid var(--sk-kb)}
+/* Granskning: väljarna i inställningarna linjerar med korten (16 px), inte 32 px in; rummen på Översikt delar bredden; diskmaskinens ring i bärnsten */
+html.ny.ui5.skog .pref-body>.seg-wrap .segc{margin-left:0;margin-right:0}
+/* Rubriker linjerar med kortens text på båda sidor (36 px), även månadsrubriken i kalendern */
+html.ny.ui5.skog .sh{padding-right:36px}
+html.ny.ui5.skog .cal-head{padding-left:20px}
+html.ny.ui5.skog .ot-t .ot-ik{flex:1 0 66px}
+html.ny.ui5.skog .ha-g-v .ha-ap-disk .ha-i{--rc:var(--sk-amb)}
+/* Väggen: en tom plats i veckan blir lika stor som en rätt i stället för att fylla hela raden; scenraden tonar ut i kanten när den går att svepa */
+html.ny.ui5.skog body.wall .bt:has(.bq.e){flex:0 0 calc(50% - 5px)}
+html.ny.ui5.skog .ot-sc{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 44px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 44px),transparent)}
+/* Väggen med menyn till vänster: lika stor luft mellan menyn och korten som mot högerkanten (25 px) */
+html.ny.ui5.skog body.wall.sido.t3:not(.sido-ut){--sidew:112px;padding-right:8px}
+/* Blad: samma sand som sidan, knapparna i rubriken som ljusa kort */
+html.ny.ui5.skog .sheet-panel{background:var(--bg)}
+html.ny.ui5.skog .sheet-head .tb{background:var(--surface);border:1px solid var(--sk-kb)}
+html.ny.ui5.skog .sheet-head .tb.strong{background:var(--accent);border-color:transparent}
+/* Matlagningsläget på smal telefon: väljaren Steg/Tidsplan får en egen rad så att rättens namn inte bryts ett ord per rad */
+@media (max-width:520px){html.ny.ui5 .ck5-top .segc{flex:1 1 100%;width:auto;margin:8px 0 0}html.ny.ui5 .ck5-top .ck5-h{flex-basis:calc(100% - 56px)}html.ny.ui5 .ck5-top .ck5-chips:not(:empty){margin:8px 0 0 56px}}
+/* Översikten i Skog 14/11: dagväljaren med egen tumme som sträcks (segStretch), tid start/slut, förloppsstapel på pågående händelser,
+   luftigare Att göra/Städ, scener på telefonen och födelsedagsvarningen (förslag a/b/c, otFodVarn) */
+html.ny.ui5 .ot-dseg{position:relative;gap:0}
+html.ny.ui5 .ot-dseg>i{position:absolute;left:3px;top:3px;bottom:3px;width:calc((100% - 6px) / 3);border-radius:9px;background:var(--ot-ruta-h,#fff);box-shadow:0 1px 3px rgba(30,40,30,.12);transform:translateX(calc(var(--i,0) * 100%));pointer-events:none}
+html.ny.ui5.skog .ot-dseg>i{background:var(--sk-gronl);box-shadow:none}
+html.ny.ui5 .ot-dseg button{position:relative;transition:color .2s}
+html.ny.ui5.ny .ot-dseg button[aria-pressed="true"]{background:none;box-shadow:none}
+html.ny.ui5 .ot-tm small{display:block;font-size:13px;line-height:17px;font-weight:500;color:var(--ot-i2)}
+html.ny.ui5 .ot-tt{display:flex;flex-direction:column;min-width:0}
+html.ny.ui5 .ot-pb{display:flex;align-items:center;gap:8px;margin-top:6px}
+html.ny.ui5 .ot-pb>i{flex:1;max-width:150px;height:5px;border-radius:999px;background:var(--ot-linje);overflow:hidden}
+html.ny.ui5 .ot-te .ot-pb>i>b{display:block;height:100%;border-radius:inherit;background:var(--ot-gron)}
+html.ny.ui5 .ot-pb small{flex:none;font-size:13px;line-height:17px;font-weight:600;color:var(--ot-gron2)}
+html.ny.ui5 .ot-ti{padding:8px 0}
+html.ny.ui5 .ot-t .ot-ti{padding:11px 0;gap:14px}html.ny.ui5 .ot-t .ot-ti+.ot-ti:before{left:36px}
+html.ny.ui5 .ot-t .ot-flik{margin-bottom:6px}html.ny.ui5 .ot-t .ot-prt{margin:4px 0 6px}
+html.ny.ui5 .ot-t .ot-ft{margin-top:8px}
+html.ny.ui5 .ot-t .ot-sc{margin:14px -16px 0;padding:0 16px 2px}html.ny.ui5 .ot-t .ot-sc .ha-st{height:42px;padding:0 16px 0 12px}html.ny.ui5 .ot-t .ot-sc .ha-n{font-size:15px}
+html.ny.ui5 .ot-v .ot-te{padding:5px 0 5px 20px}html.ny.ui5 .ot-v .ot-te>i{top:11px}
+/* Skog: Form på knappar och rutor (ls segstil: standard=Mjuk, kapsel=Rund, klassisk=Stram) */
+html.ny.ui5.skog.sk-rund{--r5:30px}
+html.ny.ui5.skog.sk-rund body.wall{--r5:32px}
+html.ny.ui5.skog.sk-rund .bq{border-radius:24px}
+html.ny.ui5.skog.sk-rund :is(.ot-dseg,.ot-flik,.wxC-k),html.ny.ui5.skog.sk-rund :is(.ot-dseg,.wxC-k) button,html.ny.ui5.skog.sk-rund .ot-flik>i{border-radius:999px}
+html.ny.ui5.skog.sk-rund .check::before{border-radius:50%}
+html.ny.ui5.skog.sk-stram{--r5:10px}
+html.ny.ui5.skog.sk-stram body.wall{--r5:12px}
+html.ny.ui5.skog.sk-stram .bq{border-radius:6px}
+html.ny.ui5.skog.sk-stram :is(.segc,.ot-dseg,.ot-flik,.wxC-k){border-radius:10px}
+html.ny.ui5.skog.sk-stram :is(.segc .seg-thumb,.segc button,.ot-dseg button,.wxC-k button,.ot-flik>i){border-radius:8px}
+html.ny.ui5.skog.sk-stram :is(.btn-fill,.btn-tint,.sh-btn,.pill,.tb,.add-row .add-go){border-radius:10px}
+html.ny.ui5.skog.sk-stram .check::before{border-radius:5px}
+/* Skog, telefonen: skogen ligger stilla bakom Översikten, klar upptill och frostas gradvis nerifrån (förslag 14/11). Frosten är fem lager backdrop-filter med ökande oskärpa, var och en maskad från en lägre höjd, och en slöja som tonar mot sidans sand. */
+html.ny.ui5 .ot-t{position:relative;isolation:isolate}
+html.ny.ui5 .ot-t .ot-head{overflow:visible;display:flex;flex-direction:column;min-height:214px;box-sizing:border-box;color:#fff;text-shadow:0 1px 14px rgba(20,30,26,.32)}
+html.ny.ui5 .ot-t .ot-head>.ot-land,html.ny.ui5 .ot-t .ot-frost{position:fixed;left:0;top:-80px;right:auto;width:100vw;height:500px;opacity:1;z-index:-1;pointer-events:none;-webkit-mask-image:none;mask-image:none}
+html.ny.ui5 .ot-t .ot-l3{display:inline;opacity:.82}html.ny.ui5 .ot-t .ot-head>.ot-kl{margin-top:auto}html.ny.ui5 .ot-t .ot-dat{color:rgba(255,255,255,.92)}html.ny.ui5 .ot-t .ot-head .ot-bi{color:#fff}
+html.ny.ui5 .ot-frost>i{position:absolute;inset:0}
+html.ny.ui5 .ot-frost>i:nth-child(1){-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);-webkit-mask-image:linear-gradient(180deg,transparent 58%,#000 68%);mask-image:linear-gradient(180deg,transparent 58%,#000 68%)}
+html.ny.ui5 .ot-frost>i:nth-child(2){-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px);-webkit-mask-image:linear-gradient(180deg,transparent 63%,#000 76%);mask-image:linear-gradient(180deg,transparent 63%,#000 76%)}
+html.ny.ui5 .ot-frost>i:nth-child(3){-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);-webkit-mask-image:linear-gradient(180deg,transparent 69%,#000 84%);mask-image:linear-gradient(180deg,transparent 69%,#000 84%)}
+html.ny.ui5 .ot-frost>i:nth-child(4){-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);-webkit-mask-image:linear-gradient(180deg,transparent 75%,#000 93%);mask-image:linear-gradient(180deg,transparent 75%,#000 93%)}
+html.ny.ui5 .ot-frost>i:nth-child(5){background:linear-gradient(180deg,transparent 62%,rgba(236,231,222,.3) 76%,rgba(236,231,222,.8) 92%,#ECE7DE)}
+html.ny.ui5[data-theme="dark"] .ot-frost>i:nth-child(5){background:linear-gradient(180deg,transparent 62%,rgba(18,23,21,.3) 76%,rgba(18,23,21,.8) 92%,#121715)}
+@media (prefers-color-scheme: dark){html.ny.ui5:not([data-theme="light"]) .ot-frost>i:nth-child(5){background:linear-gradient(180deg,transparent 62%,rgba(18,23,21,.3) 76%,rgba(18,23,21,.8) 92%,#121715)}}
+/* Just nu (T23): samlad ruta för födelsedagar 14 dagar innan, maskin klar, robot och Släck allt. Raderna är otNotis-rader utan egen ruta */
+html.ny.ui5 .ot-nu{gap:0}
+html.ny.ui5 .ot-nu .ot-nts{margin:0;gap:0}
+html.ny.ui5 .ot-nu .ot-nt{position:relative;min-height:52px;padding:0;background:none;border:0;border-radius:0}
+html.ny.ui5 .ot-nu .ot-ntb{padding:0}
+html.ny.ui5 .ot-nu .ot-nt+.ot-nt:before{content:"";position:absolute;left:44px;right:0;top:0;height:1px;background:var(--ot-linje);opacity:.7}
+html.ny.ui5 .ot-nt.fod .ot-nti{background:var(--bd-soft,rgba(227,154,30,.16));color:var(--bd,var(--ot-amb))}html.ny.ui5 .ot-nt.fod.nu .ot-nti{background:var(--ot-amb);color:#fff}
+html.ny.ui5 .ot-nuh{font-size:13px;line-height:18px;font-weight:600;letter-spacing:.3px;text-transform:uppercase;color:var(--ot-i2);margin-bottom:2px}
+html.ny.ui5 .ot-numer{align-self:flex-start;margin:4px 0 0 44px;padding:0;border:0;background:none;color:var(--accent);font:inherit;font-size:14px;cursor:pointer}
+html.ny.ui5 .ot-t .ot-nu{padding:10px 14px 8px}
+html.ny.ui5 .ot-t .ot-nu .ot-ntt b{font-size:16px;line-height:21px}html.ny.ui5 .ot-t .ot-nu .ot-ntt small{font-size:13px;line-height:17px}html.ny.ui5 .ot-t .ot-nu .ot-ntk{height:34px;padding:0 14px;font-size:15px}
+html.ny.ui5 .ot-v>.ot-nu{grid-area:h;justify-self:end;align-self:start;width:300px;margin:6px 158px 0 0;padding:4px 14px;border-radius:22px;border:1px solid rgba(255,255,255,.16);background:var(--ot-wx);box-shadow:none;color:#fff;-webkit-backdrop-filter:blur(20px) saturate(1.2);backdrop-filter:blur(20px) saturate(1.2)}
+html.ny.ui5 .ot-v>.ot-nu .ot-ntt small{color:rgba(255,255,255,.78)}html.ny.ui5 .ot-v>.ot-nu .ot-nt+.ot-nt:before{background:rgba(255,255,255,.18)}
+html.ny.ui5 .ot-v>.ot-nu .ot-nti{background:rgba(255,255,255,.16);color:#fff}html.ny.ui5 .ot-v>.ot-nu .ot-numer{color:#fff;opacity:.8}
+html.ny.ui5 .ot-v>.ot-nu .ot-ntt b{font-size:16px;line-height:21px}html.ny.ui5 .ot-v>.ot-nu .ot-ntt small{font-size:13px;line-height:17px}html.ny.ui5 .ot-v>.ot-nu .ot-nt{min-height:46px}html.ny.ui5 .ot-v>.ot-nu .ot-numer{display:none}html.ny.ui5 .ot-v>.ot-nu .ot-ntk{height:32px;padding:0 12px;font-size:14px}
+/* Dammsugaren: moppläge per rum som segment under rummet (ersätter rullistan) */
+.ha-fo li.ha-rr{flex-wrap:wrap;row-gap:6px;padding-bottom:4px}
+.ha-rs{flex:1 1 100%;display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:2px;margin-left:32px;padding:3px;border-radius:10px;background:color-mix(in srgb,var(--ri,#fff) 9%,transparent)}
+.ha-rs button{display:grid;place-items:center;text-align:center;min-width:0;height:28px;padding:0 2px;border:0;border-radius:7px;background:none;color:color-mix(in srgb,var(--ri,#fff) 55%,transparent);font:inherit;font-size:13px;font-weight:500;white-space:nowrap;cursor:pointer;transition:background-color .2s,color .2s}
+.ha-rs button.on{background:var(--surface-raised,rgba(255,255,255,.26));color:var(--ri,#fff);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+/* Skog på dammsugarsidan: dammsugning skogsgrön, moppning sjöblå, dockan bärnsten, klart grönt, länkar i accenten */
+html.ny.ui5.skog{--sk-damm:#4A7C46;--sk-mopp:#5B8796}
+html.ny.ui5.skog[data-theme="dark"]{--sk-damm:#5E9152;--sk-mopp:#6E98A8}
+@media (prefers-color-scheme:dark){html.ny.ui5.skog:not([data-theme="light"]){--sk-damm:#5E9152;--sk-mopp:#6E98A8}}
+html.ny.ui5.skog .rob-vy{--rl:var(--accent)}
+html.ny.ui5.skog :is(.ha-fl .damm,.ha-kn.damm){--fc:var(--sk-damm)}
+html.ny.ui5.skog :is(.ha-fl .mopp,.ha-kn.mopp){--fc:var(--sk-mopp)}
+html.ny.ui5.skog .ha-fd{--fc:var(--sk-amb)}
+html.ny.ui5.skog :is(.ha-fs.klar .ha-fi,.ha-fo li.klar i){background:var(--sk-gron)}
+html.ny.ui5.skog .ha-fo li.klar+li::before{background:var(--sk-gron)}
+html.ny.ui5.skog :is(.ha-fs.avbr .ha-fi){background:var(--sk-amb)}
+html.ny.ui5.skog .ha-fo li.ej em{color:var(--sk-ora)}
+html.ny.ui5.skog .ha-lag .damm.on{background:var(--sk-damm)}
+html.ny.ui5.skog .ha-lag .mopp.on{background:var(--sk-mopp)}
+html.ny.ui5.skog .ha-kn>i{background:var(--sk-mopp)}
+html.ny.ui5.skog .rob-hd .ha-i.on{background:var(--sk-amb)}
+html.ny.ui5.skog .ha-pill[aria-pressed="true"]{background:var(--sk-damm)}
+html.ny.ui5.skog .ha-rumval button.namn{box-shadow:0 0 0 2px var(--accent) inset}
+html.ny.ui5.skog .ha-zr{border-color:var(--sk-damm);background:color-mix(in srgb,var(--sk-damm) 22%,transparent)}
+html.ny.ui5.skog .ha-tnk i{background:linear-gradient(color-mix(in srgb,var(--sk-mopp) 60%,#fff),var(--sk-mopp))}
+html.ny.ui5.skog :is(.dk-rv,.dkh.rv,.dkx-tv path){fill:var(--sk-mopp)}
+html.ny.ui5.skog :is(.dk-rv.lag,.dk-sv.full){fill:var(--sk-amb)}
+html.ny.ui5.skog :is(.dkl-f.bus,.ha-dk-ill.akt .dk-rl){stroke:var(--sk-damm)}
+html.ny.ui5.skog .dkx-rb.on i{background:var(--sk-damm)}
+html.ny.ui5.skog :is(.ha-sv button[aria-pressed="true"],.ha-rs button.on,.ha-xs button.on){color:var(--sk-gron2)}
+html.ny.ui5.skog[data-theme="dark"] :is(.ha-sv button[aria-pressed="true"],.ha-rs button.on,.ha-xs button.on){color:var(--ink)}
+@media (prefers-color-scheme:dark){html.ny.ui5.skog:not([data-theme="light"]) :is(.ha-sv button[aria-pressed="true"],.ha-rs button.on,.ha-xs button.on){color:var(--ink)}}
+html.ny.ui5.skog :is(.ha-rs,.ha-xs,.ha-sv>div){background:var(--sk-spar)}
+html.ny.ui5.skog :is(.ha-rs button.on,.ha-xs button.on,.ha-sv button[aria-pressed="true"]){background:var(--sk-tumme);box-shadow:var(--sk-tskugga)}
+/* Smart hem: förloppsstapel när diskmaskinen eller dammsugaren kör (Henrik 15/11) */
+html.ny.ui5 .ot-ntb .ot-ntt:has(.ot-ntp){flex:1;padding:4px 0 8px}
+html.ny.ui5 .ot-ntp{display:block;height:6px;margin:7px 0 2px;border-radius:999px;background:var(--ot-linje,rgba(31,39,35,.1));overflow:hidden}
+html.ny.ui5 .ot-ntp b{display:block;height:100%;border-radius:inherit;background:var(--ot-gron,var(--accent));transition:width .6s cubic-bezier(.3,.9,.3,1)}
+html.ny.ui5 .ot-ntr{display:flex;flex-direction:column;min-width:0}
+/* väggen: förloppen i Smart hem på en rad (text + stapel) så att rummen får plats */
+html.ny.ui5 .ot-v .ot-hus .ot-nts{gap:6px;margin:-4px 0 10px}html.ny.ui5 .ot-v .ot-hus .ot-nt{min-height:48px}
+html.ny.ui5 .ot-v .ot-hus .ot-ntt:has(.ot-ntp){padding:0}html.ny.ui5 .ot-v .ot-hus .ot-ntt b{font-size:16px;line-height:20px}
+html.ny.ui5 .ot-v .ot-hus .ot-ntr{flex-direction:row;align-items:center;gap:10px}
+html.ny.ui5 .ot-v .ot-hus .ot-ntr small{flex:none;font-size:13px}
+html.ny.ui5 .ot-v .ot-hus .ot-ntr .ot-ntp{flex:1;min-width:40px;margin:0}
+/* toasten är bara text: den får inte fånga trycket på knappen under (t.ex. håll in efter ett vanligt tryck) */
+#toast{pointer-events:none}
+/* Dammsugaren: håll in för att moppa utan dammsugning före */
+.ha-bk.ha-hold{position:relative;overflow:hidden;background:color-mix(in srgb,var(--orange,#FF9500) 18%,var(--ri,#fff));color:var(--rinv,#1C1C1E)}
+.ha-bk.ha-hold>*:not(.sh-fill){position:relative}
+.ha-bk.ha-hold .sh-fill{background:color-mix(in srgb,var(--orange,#FF9500) 45%,transparent)}
+.ha-bk.ha-hold.holding .sh-fill{transform:scaleX(1);transition:transform 1s linear}
+html.ny.ui5.skog .ha-bk.ha-hold{background:color-mix(in srgb,var(--sk-amb) 22%,var(--ri,#fff))}
+html.ny.ui5.skog .ha-bk.ha-hold .sh-fill{background:color-mix(in srgb,var(--sk-amb) 50%,transparent)}
+/* Skog på väggen: samma luft mellan rutorna som mot skärmkanterna, sidomenyn och menyraden (20 px i main = 21 px på skärmen); rummen i Smart hem kompakta */
+html.ny.ui5.skog body.wall:not(.sido){--tabgap:21px}
+html.ny.ui5.skog body.wall[data-view=oversikt] .wrap{max-width:none}html.ny.ui5.skog body.wall:has(.ot-v) main{padding-bottom:0}
+html.ny.ui5.skog body.wall .ot-v{gap:20px;padding:10px 20px 0;height:calc((100vh - var(--tabbar) - var(--tabgap)) / 1.0588 - 10px - 20px)}
+html.ny.ui5.skog body.wall.sido .ot-v{height:calc(100vh / 1.0588 - 10px - 20px)}html.ny.ui5.skog body.wall.sido.t3:not(.sido-ut) .ot-v{padding-left:calc(20px - 8px / 1.0588);padding-right:calc(20px - 8px / 1.0588)}
+html.ny.ui5.skog body.wall .ot-v>.ot-nu{margin-right:160px}html.ny.ui5.skog body.wall.sido .ot-v>.ot-nu{width:262px}
+html.ny.ui5.skog body.wall .ot-hus .ot-rums{flex:0 1 auto;grid-auto-rows:minmax(44px,60px);gap:10px}
+html.ny.ui5.skog body.wall .ot-hus .ot-tb{display:grid;grid-template-columns:auto minmax(0,1fr);align-content:center;column-gap:10px;row-gap:0;padding:0 12px}
+html.ny.ui5.skog body.wall .ot-hus .ot-si{grid-row:1/3;margin:0}html.ny.ui5.skog body.wall .ot-hus .ot-si svg{width:24px;height:24px}
+html.ny.ui5.skog body.wall .ot-hus .ot-tb b{padding:0;font-size:17px;line-height:22px;align-self:center}html.ny.ui5.skog body.wall .ot-hus .ot-tb b+span{font-size:14px;line-height:18px}html.ny.ui5.skog body.wall .ot-hus.spelar .ot-si{grid-row:auto}
+/* Receptkorten längre ned ritas först när de närmar sig skärmen (Recept-fliken har ~90 kort); höjden är en uppskattning som webbläsaren sedan minns */
+html.ny .bcard:nth-child(n+7){content-visibility:auto;contain-intrinsic-size:auto none auto 355px}html.ny body.wall .bcard:nth-child(n+7){contain-intrinsic-size:auto none auto 465px}
+/* fördröjd start av dammsugaren (Henrik 16/11): klockknapp, timervredets snabbval och nedräkningen i bladets nederkant */
+.ha-bh.ha-om svg{width:26px;height:26px}
+.tm-sv{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;max-width:340px;margin:8px auto 0}
+.tm-sv button{display:grid;place-items:center;height:48px;padding:0;border:0;border-radius:14px;background:var(--fill-2,rgba(120,120,110,.14));color:inherit;font:inherit;font-size:17px;font-weight:600;cursor:pointer;transition:background-color .2s,color .2s}
+.tm-sv button[aria-pressed="true"]{background:var(--sk-gron,var(--accent));color:#fff}
+.tm-kl{text-align:center;margin-top:8px}
+.ha-omn{flex:1;min-width:0;display:flex;align-items:center;gap:10px;min-height:64px;padding:0 10px 0 12px;border-radius:999px;background:var(--surface-raised,rgba(255,255,255,.9));-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);box-shadow:0 2px 12px rgba(0,0,0,.1);color:var(--ink)}
+.ha-omn>svg{flex:none;width:36px;height:36px;transform:rotate(-90deg)}.ha-omn circle{fill:none;stroke:var(--fill-2,rgba(0,0,0,.1));stroke-width:4}.ha-omn circle.p{stroke:var(--sk-gron,var(--accent));stroke-linecap:round;transition:stroke-dashoffset 1s linear}
+.ha-omn>span{flex:1;min-width:0;display:flex;flex-direction:column}.ha-omn b{font-size:17px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}.ha-omn small{font-size:13px;color:var(--ink-3,rgba(0,0,0,.55))}
+.ha-omk{flex:none;height:44px;padding:0 14px;border:0;border-radius:22px;background:var(--fill-2,rgba(0,0,0,.07));color:inherit;font:inherit;font-size:15px;font-weight:600;white-space:nowrap;cursor:pointer}
+.ha-omk.av{display:grid;place-items:center;width:44px;padding:0}.ha-omk.av svg{width:18px;height:18px}
+.ha-omk.nu{background:var(--sk-gron,var(--accent));color:#fff}
+.ot-nt [data-omt]{font-variant-numeric:tabular-nums}
+/* dammsugarvyn: Karta | Dockan (ersätter sidprickarna) */
+.ha-kseg{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:2px;padding:3px;border-radius:12px;background:color-mix(in srgb,var(--ri,#fff) 9%,transparent)}
+.ha-kseg button{display:grid;place-items:center;height:34px;padding:0;border:0;border-radius:9px;background:none;color:color-mix(in srgb,var(--ri,#fff) 60%,transparent);font:inherit;font-size:15px;font-weight:500;cursor:pointer;transition:background-color .2s,color .2s}
+.ha-kseg button[aria-selected="true"]{background:var(--surface-raised,rgba(255,255,255,.26));color:var(--ri,#fff);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+html.ny.ui5.skog .ha-kseg button[aria-selected="true"]{background:var(--sk-tumme);box-shadow:var(--sk-tskugga);color:var(--sk-gron2)}
+html.ny.ui5.skog[data-theme="dark"] .ha-kseg button[aria-selected="true"]{color:var(--ink)}
+@media (prefers-color-scheme:dark){html.ny.ui5.skog:not([data-theme="light"]) .ha-kseg button[aria-selected="true"]{color:var(--ink)}}
+/* väggen: dammsugarvyn i tre delar (Henrik 16/11). Vänster halva: kartan överst, dockan underst (fast höjd); höger: val, rum och Starta */
+body.wall:has(.rob-vy.vagg3) .wrap{max-width:none}
+body.wall .rob-vy.vagg3{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px 24px;padding:4px 32px 24px}
+body.wall .rob-vy.vagg3 .rob-k{position:sticky;top:12px;display:flex;flex-direction:column;gap:14px;height:calc(100vh - var(--tabbar) - var(--tabgap) - 180px);min-height:420px}
+body.wall .rob-vy.vagg3 .rob-k>.ha-karta{flex:1;min-height:0}
+body.wall .rob-vy.vagg3 :is(.rob-km,.rob-kd){flex:1;min-height:0;display:flex}
+body.wall .rob-vy.vagg3 :is(.rob-km,.rob-kd)>*{flex:1;min-height:0;width:auto;height:auto;max-height:100%}
+body.wall .rob-vy.vagg3 .rob-k .ha-karta{display:flex;align-items:center;justify-content:center;overflow:hidden}
+body.wall .rob-vy.vagg3 .rob-k .ha-kw{width:auto!important;height:calc(100% - 40px)!important;aspect-ratio:var(--kar,407/298);max-width:calc(100% - 32px)}
+body.wall .rob-vy.vagg3 .rob-k .ha-kw :is(svg,img){width:100%!important;height:100%!important}
+body.wall .rob-vy.vagg3 .rob-kd .ha-dkk{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:minmax(0,1fr) auto;align-items:center;gap:6px 24px;padding:14px 24px;box-sizing:border-box}
+body.wall .rob-vy.vagg3 .rob-kd .ha-dkk>svg{grid-row:1/3;grid-column:1;width:100%;height:100%;max-height:100%}
+body.wall .rob-vy.vagg3 .rob-kd .dkx-k{grid-column:2;grid-row:1;display:flex;flex-direction:row;gap:14px;margin:0}
+body.wall .rob-vy.vagg3 .rob-kd .ha-dkk>:not(svg):not(.dkx-k){grid-column:2;grid-row:2;justify-self:center;margin:0}
+/* Automationer i Hemmet (solljus + Home Assistants automationer) och solljusbladet */
+.ha-aug .ha-au{gap:12px}
+.ha-au-b{flex:1;min-width:0;display:flex;align-items:center;gap:12px;padding:8px 0;border:0;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer}
+div.ha-au-b{cursor:default}
+.ha-au-b .grow{min-width:0;display:flex;flex-direction:column}
+.ha-au-n{font-size:17px;line-height:22px}
+.ha-au-b .meta{font-size:13px;line-height:18px;color:var(--ink-2)}
+.ha-au-i{flex:none;width:32px;height:32px;border-radius:8px;display:grid;place-items:center;color:#fff}
+.ha-au-i svg{width:20px;height:20px}
+.ha-ed-top .ha-au-i{border-radius:12px}
+.ha-ed-top .ha-au-i svg{width:24px;height:24px}
+.ha-sol-r{gap:12px}
+.ha-sol-r .meta{font-size:13px;line-height:18px;color:var(--ink-2)}
+.ha-sol-r .stepper{flex:none}
+.ha-sol-r .stepper .num{min-width:52px;text-align:center}
+.ha-sol-r .stepper .num:has(.ha-sol-dot){min-width:84px;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap}
+.ha-sol-dot{width:12px;height:12px;border-radius:50%;flex:none;box-shadow:inset 0 0 0 .5px rgba(0,0,0,.2)}
+/* Väggen (17/11): sidomeny med Ekonomi, Födelsedagar och Väder; Översikt i Skog med låg Födelsedagar-ruta under Smart hem */
+html.ny.ui5 body.wall .nav.sido .nav-x{display:flex}
+html.ny.ui5 .nav .nav-x{display:none}
+html.ny.ui5 body.wall .nav.sido:has(.nav-x) button[data-id="oversikt"]{order:1}html.ny.ui5 body.wall .nav.sido:has(.nav-x) button[data-id="kalender"]{order:2}html.ny.ui5 body.wall .nav.sido:has(.nav-x) button[data-id="uppgifter"]{order:3}html.ny.ui5 body.wall .nav.sido:has(.nav-x) button[data-id="mat"]{order:4}
+html.ny.ui5 body.wall .nav.sido:has(.nav-x) button[data-id="hemmet"]{order:6}html.ny.ui5 body.wall .nav.sido:has(.nav-x) .nav-x{order:7}
+html.ny.ui5 body.wall .nav.sido:has(.nav-x) .nav-tog{order:20;margin:auto 0 0}html.ny.ui5 body.wall .nav.sido:has(.nav-x) .nav-me{order:21;margin-top:4px}
+html.ny.ui5 body.wall.t3 .nav.sido:has(.nav-x):not(.sido-ut) button[data-act="nav"]{height:76px;font-size:13px;line-height:16px;text-align:center}
+html.ny.ui5 body.wall.t3 .nav.sido:has(.nav-x):not(.sido-ut) button[data-act="nav"] span{white-space:normal;hyphens:manual}
+html.ny.ui5 body.wall.t3 .nav.sido:has(.nav-x):not(.sido-ut) .nav-tog{height:48px}
+html.ny.ui5 .ot-v>.ot-hk{grid-area:u;display:flex;flex-direction:column;gap:20px;min-height:0}
+html.ny.ui5 .ot-v>.ot-hk>.ot-hus{flex:1 1 auto;min-height:0}html.ny.ui5 .ot-v>.ot-hk>.ot-fk{flex:none;padding:12px 20px 8px}
+html.ny.ui5 .ot-fh{display:flex;align-items:center;gap:8px;width:100%;margin:0 0 2px;padding:0;border:0;background:none;color:var(--ot-ink);font:inherit;text-align:left}
+html.ny.ui5 .ot-fh .ot-hi{width:24px;height:24px}html.ny.ui5 .ot-fh .ot-hi svg{width:22px;height:22px}html.ny.ui5 .ot-fh b{flex:1;font-size:17px;line-height:22px;font-weight:600}html.ny.ui5 .ot-fh>svg{width:18px;height:18px;color:var(--ot-gron2)}
+html.ny.ui5 .ot-fl{display:flex;flex-direction:column}
+html.ny.ui5 .ot-fr{display:flex;align-items:center;gap:10px;width:100%;height:36px;padding:0;border:0;background:none;color:var(--ot-ink);text-align:left;font:inherit;position:relative}
+html.ny.ui5 .ot-fr+.ot-fr:before{content:"";position:absolute;left:0;right:0;top:0;height:1px;background:var(--ot-linje)}
+html.ny.ui5 .ot-fd{flex:none;min-width:58px;padding:2px 8px;border-radius:8px;background:var(--bd-soft,var(--ot-gronl));color:var(--bd-ink,var(--ot-gron2));font-size:13px;line-height:18px;font-weight:600;text-align:center}
+html.ny.ui5 .ot-fr.nu .ot-fd{background:var(--bd,#E39A1E);color:#fff}
+html.ny.ui5 .ot-fn{flex:1 1 auto;min-width:0;font-size:16px;line-height:20px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}html.ny.ui5 .ot-fn .num{font-weight:400;color:var(--ot-i2)}
+html.ny.ui5 .ot-fr small{flex:none;font-size:14px;line-height:18px;color:var(--ot-i2);white-space:nowrap}
+html.ny.ui5 .ot-v.ovf-A>.ot-nu:not(:has(.ot-nt:not(.fod))){display:none}html.ny.ui5 .ot-v.ovf-A>.ot-nu .ot-nt.fod{display:none}
 /* Hemmet i 3D (utvecklarläge): canvas med väggarna, enheterna som knappar ovanpå */
 .h3d{position:relative;height:min(64vh,118vw,600px);margin:4px 16px 0;border-radius:22px;background:var(--surface);overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
 body.wall .h3d{height:calc(100vh - 290px)}
@@ -4182,7 +4829,7 @@ body.wall .h3d{height:calc(100vh - 290px)}
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=387"></script>
+<script src="app.js?v=413"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>

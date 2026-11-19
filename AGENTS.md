@@ -4,6 +4,8 @@ Gemensam grund för Codex och Claude Code (via `CLAUDE.md`). Läs hela filen och
 
 **Rutiner som skills:** stegen för att ta över, förhandsvisa och publicera ligger i `.claude/skills/hushallstavlan-ta-over/`, `hushallstavlan-forhandsvisa/` och `hushallstavlan-publicera/` (`SKILL.md`). All design (rutor, blad, listor, ikoner) följer de fasta måtten och granskningslistan i `hushallstavlan-apple-design/`. Claude Code läser dem automatiskt när de behövs; Codex och andra agenter läser filen när avsnittet nedan hänvisar dit. Ändra rutinen i skill-filen, inte på två ställen.
 
+**Googles modern-web-guidance** (plugin, påslaget i `.claude/settings.json`; Codex kan installera samma från GoogleChrome/modern-web-guidance): använd den bara när en ny webbfunktion, prestanda eller tillgänglighet berörs, inte vid varje ändring (den säger själv "alltid först", men det kostar tokens). Webbläsare som ska stödjas: Safari på iPhone och Chromium på väggskärmen. Funktioner som inte är Baseline i båda kräver reserv eller får tyst utebli.
+
 Om något här säger emot det Henrik skriver till dig gäller Henriks ord. Uppdatera då filen i samma ändring så att nästa agent vet.
 
 ---
@@ -43,7 +45,7 @@ Telefon / väggskärm (PWA)  ──GET/POST──▶  Google Apps Script-webbapp
 ```
 
 - **Ingen byggprocess.** Statiska filer i repots rot publiceras med **GitHub Pages från `main`** på https://henriklh.github.io/hushallstavlan/. Allt som hamnar på `main` är i drift inom någon minut.
-- `index.html` (≈140 kB): all HTML-stomme och **all CSS** i en `<style>`. Grunddesignen ("UI 2.0") är CSS under `html.ny`. UI 1.0 är borttagen (ht-v219): basen utan `html.ny` finns kvar som grund men visas aldrig ensam; klassen `ny` sätts alltid. UI 5.0 (Apple) är **standard** sedan ht-v264; UI 2.0 och UI 4.0 (Ateljé) är frivilliga val under Inställningar → Utseende → Design; UI 3.0 finns kvar i utvecklarläget. UI4-CSS ligger bara under `html.ui4`; UI2/UI3 ska inte ändra utseende.
+- `index.html` (≈140 kB): all HTML-stomme och **all CSS** i en `<style>`. Grunddesignen ("UI 2.0") är CSS under `html.ny`. UI 1.0 är borttagen (ht-v219): basen utan `html.ny` finns kvar som grund men visas aldrig ensam; klassen `ny` sätts alltid. UI 5.0 (Apple) är **standard** sedan ht-v264. Inställningar → Utseende → Design: Apple, Tavla 2 och Skog (tidigare Tavla 3; UI 5.0 med `ht.ovny=g`/`h`, riktlinjer `design/tavla3.md`). Valen Klassisk (UI 2.0), Ateljé (UI 4.0) och Aura (UI 6, ht-v394) är borttagna: sparat `ht.ui=2/4/6` flyttas till Apple vid start, men koden finns kvar. UI 3.0 finns kvar i utvecklarläget. UI4-CSS ligger bara under `html.ui4`; UI2/UI3 ska inte ändra utseende.
 - `app.js` (≈530 kB, läs aldrig hela; se `node verktyg/karta.js`): hela appen i en fil. Kompakt stil med långa rader och korta namn. **Skriv i samma stil och formatera aldrig om filen** (ingen Prettier/ESLint --fix): omformatering ger enorma diffar och krockar med andra agenters arbete.
   - `S` = tillstånd, `A` = appens objekt, `V` = vyer (`V.mat`, `V.oversikt` …), `ACT` = alla handlingar. Klick hanteras via `data-act="namn"` och `data-id`, `data-hold` för håll-in-knappar (1 s). Vyer returnerar HTML-strängar; `render()`/`doRender()` ritar om.
   - `apiGet()` hämtar allt, `setData()` tar emot det. `apiPost(body)` lägger ändringen i **utkorgen** `OUTBOX` (sparas i localStorage `ht.outbox`), `flush()` skickar en i taget och försöker igen vid nätfel och låsfel. Appen visar ändringen direkt (optimistiskt).

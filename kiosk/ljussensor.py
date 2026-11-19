@@ -18,6 +18,8 @@
 #                      kanal = inbyggt id eller egen {"n": "Lugnt", "rb": "namn att söka" | "url": "https://…" | "sp": "spotify:playlist:…"}
 #   POST /ha/val       {"rumnr": 16, "rumnamn": "Kök"} namnger robotens rum | {"rumnr": 16, "stor": true} stort rum (dammsugs ensamt, töms efteråt)
 #   POST /ha/val       {"lagg": id} | {"ta": id} | {"id": id, "namn": "Taklampa", "rum": "Kök"}   ändrar tavlans lista i HA_FIL
+#   POST /ha           {"sol": "upp"|"ned", "gor": "nu"|"stopp"} solljus nu | {"automation": "automation.x", "pa": true|false}
+#   POST /ha/val       {"sol": "upp"|"ned", "pa": bool, "lampa": id, "off": minuter från solen, "min": toningens längd, "slut": % vid slutet, "kelvin": färgtemperatur vid slutet (0 = förval)}  (HA-paketet solljus)
 #   GET  /ha/vanor?id= -> inlärd ton per kvart (vardag "v", helg "h"), säker eller inte, paus
 #   POST /ha/vanor     {"id": id, "auto": true|false} | {"id": id, "ateruppta": 1} | {"id": id, "anvand": 1} | {"pauslage": "slack"|"1"|"3"}
 # Home Assistant (smart hem): nyckeln ligger bara i HA_FIL (chmod 600) och lämnar aldrig datorn. Tavlan ser bara de
@@ -231,7 +233,7 @@ def ha_las(c):
     for s in scener:
         f = [x for x in falt.get(s['id']) or [] if x in MEDIA_FALT]
         if f: s['falt'] = f
-    return {'lampor': lampor, 'scener': scener, 'givare': givare, 'apparater': ha_appar(c, alla), 'media': ha_hogtalare(c, alla),
+    return {'lampor': lampor, 'scener': scener, 'givare': givare, 'auto': ha_automationer(alla), 'sol': sol_info(c, alla, time.time()), 'apparater': ha_appar(c, alla), 'media': ha_hogtalare(c, alla),
             'kanaler': [{'id': k['id'], 'n': k['n'], 'typ': k.get('typ') or 'Radio'} for k in kanaler(c)], 'spotify': 'spotcast' in ha_tjanster(c) or bool(ha_spotify_spelare(alla))}
 
 # Apparater: robotdammsugare (Roborock) och diskmaskin (Home Connect). Hittas själva bland HA:s entiteter; "apparater" i
@@ -334,6 +336,7 @@ def ha_robot(c, alla, e):
     if rv: r['vbrist'] = any(x['state'] == 'on' for x in rv)
     if any(e2.startswith('sensor.') and x.get('state') in ('water_empty', 'clean_water_tank_empty') for e2, x in D.items()): r['vbrist'] = True
     if 'mop' in r['lageAlt']: r['tank'] = ha_tank_info(c, r['vbrist'])
+    v0 = VANTA.get(e); r['vantar'] = {'t': v0['t'], 'n': v0['n'], 'rum': v0['rum']} if v0 else 0   # 0 = tjänsten kan fördröja start
     if e in PLAN:
         q = PLAN[e]; r['plan'] = {'steg': q['steg'], 'i': q['i'], 'klara': q['klara'], 'nu': q['nu'], 'hemma': not q.get('avbr') and (bool(q['hemma']) or (q['sett'] and v.get('state') == 'docked')), 'klar': bool(q['klar']), 'avbr': bool(q.get('avbr'))}
     k = ha_karta_info(alla, p)
@@ -405,7 +408,31 @@ def ha_app_styr(c, d):
     g = d.get('gor')
     if a['typ'] == 'robot':
         e = a['id']
+        # fördröjd start (Henrik 16/11): väggdatorn väntar, så starten blir av även om telefonen låses; ny start, Hem eller omstopp avbryter
+        if g in ('start', 'hem', 'paus', 'omstopp', 'omnu') or d.get('zon'):
+            v0 = VANTA.pop(e, None)
+            if v0: v0['tm'].cancel()
+            if g == 'omnu' and v0: return ha_app_styr(c, v0['d'])
+        if g in ('omstopp', 'omnu'): return 200, {'ok': True, 'v': HA['v']}
+        if g == 'start' and str(d.get('om') or '').isdigit() and int(d['om']) > 0:
+            om = max(10, min(4 * 3600, int(d['om']))); d2 = {k: v for k, v in d.items() if k != 'om'}
+            def kor():
+                if VANTA.get(e, {}).get('tm') is not t: return
+                VANTA.pop(e, None)
+                try: ha_app_styr(ha_cfg(), d2)
+                except Exception as x: logg('fördröjd start: ' + repr(x)[:120])
+            t = threading.Timer(om, kor); t.daemon = True
+            VANTA[e] = {'t': time.time() + om, 'tm': t, 'd': d2, 'n': om, 'rum': list(dict.fromkeys(int(x) for x in (d.get('rum') or []) + (d.get('damm') or []) + (d.get('mopp') or []) if str(x).isdigit()))}; t.start()
+            return 200, {'ok': True, 'v': HA['v']}
         if g == 'start':
+            # appens förval (Max sugkraft, vald rutt) sätts före starten och blir det planen återställer till
+            if d.get('sug') in a['sugAlt'] and d['sug'] not in ('off', a.get('sug')):
+                tj('vacuum', 'set_fan_speed', {'entity_id': e, 'fan_speed': d['sug']}); a['sug'] = d['sug']
+            if a.get('ruttId') and d.get('rutt') in (a.get('ruttAlt') or []) and d['rutt'] != a.get('rutt'):
+                tj('select', 'select_option', {'entity_id': a['ruttId'], 'option': d['rutt']}); a['rutt'] = d['rutt']
+            # vattenflödet Custom (Roborocks eget reglage under Low) gäller alltid
+            if a.get('vattenId') and d.get('vatten') in (a.get('vattenAlt') or []) and d['vatten'] not in ('off', a.get('vatten')):
+                tj('select', 'select_option', {'entity_id': a['vattenId'], 'option': d['vatten']}); a['vatten'] = d['vatten']
             ok = lambda L: [int(x) for x in L or [] if any(r['id'] == int(x) for r in a['rum'])]
             rum, damm, mopp = ok(d.get('rum')), ok(d.get('damm')), ok(d.get('mopp'))
             if rum or damm or mopp: PLAN.pop(e, None)
@@ -666,6 +693,7 @@ TOM_M2 = 20   # m² dammsugna rum innan behållaren töms (stora rum töms allti
 # Dammsug följt av mopp (inte båda samtidigt: fukten fastnar annars i dammbehållaren). Läget sätts före varje körning
 # och återställs till dammsugning efteråt, så att vanlig städning alltid är dammsugning.
 PLAN = {}
+VANTA = {}   # fördröjda starter per robot: {'t': när, 'tm': Timer, 'rum': [...]}
 def ha_plan_kor(c, a, lage, rum, val=None, ggr=1, rutt=None):
     tj = lambda dom, s, data: ha_anrop(c, '/api/services/%s/%s' % (dom, s), data)
     if lage and a.get('lage') != lage:
@@ -897,6 +925,10 @@ def ha_val(d):
     if not c: return 503, {'fel': 'inte inställt'}
     c = json.loads(json.dumps(c))
     e = str(d.get('lagg') or d.get('ta') or d.get('id') or '')
+    if 'sol' in d:
+        fel = sol_val(c, d)
+        if fel: return fel
+        ha_uppdatera(); return 200, {'ok': True, 'v': HA['v']}
     if 'rumnr' in d and isinstance(d.get('intervall'), dict):   # påminnelse: dammsug/moppa var n:e dag (0 = av)
         iv = c.setdefault('intervall', {}).setdefault(str(int(d['rumnr'])), {})
         for x in ('v', 'm'):
@@ -961,6 +993,15 @@ def ha_styr(d):
         return ha_media_styr(c, d)
     if 'senare' in d:
         return ha_senare(d)
+    if d.get('sol') in SOL_AUTO:   # {"sol": "upp", "gor": "nu"|"stopp"}
+        if d.get('gor') == 'nu': kod, svar = sol_kor(c, d['sol'])
+        else: ha_anrop(c, '/api/services/script/turn_off', {'entity_id': SOL_SKRIPT}); kod, svar = 200, {'ok': True}
+        ha_uppdatera(); return kod, {**svar, 'v': HA['v']}
+    if d.get('automation'):   # {"automation": "automation.x", "pa": true|false}
+        e = str(d['automation'])
+        if not e.startswith('automation.') or not any(x['entity_id'] == e for x in ha_anrop(c, '/api/states')): return 403, {'fel': 'automationen finns inte'}
+        ha_anrop(c, '/api/services/automation/%s' % ('turn_on' if d.get('pa') else 'turn_off'), {'entity_id': e})
+        ha_uppdatera(); return 200, {'ok': True, 'v': HA['v']}
     if d.get('scen'):
         e = str(d['scen'])
         if e not in c['scener']: return 403, {'fel': 'scenen är inte vald för tavlan'}
@@ -1273,6 +1314,7 @@ def vanor_varv(c, nu):
         b = round(a['brightness'] / 2.55) if pa and a.get('brightness') else None
         f = VANOR['senast'].get(e)
         VANOR['senast'][e] = {'on': pa, 'k': k, 'b': b}
+        if sol_tonas(c, alla, e, nu): continue   # solljuset tonar lampan: ingen vana, ingen paus
         andrad = f is None or f['on'] != pa or (k or 0) != (f['k'] or 0) and abs((k or 0) - (f['k'] or 0)) > 50 or abs((b or 0) - (f['b'] or 0)) > 3
         if andrad:
             egen = vanor_egen(e, k, nu)
@@ -1335,6 +1377,112 @@ def vanor_post(d):
         else: return 400, {'fel': 'skicka auto, ateruppta, anvand eller pauslage'}
     ha_uppdatera()
     return 200, {'ok': True, 'v': HA['v']}
+
+# --- Solljus: HA-paketet kiosk/ha/solljus-paket.yaml har skriptet script.solljus, automationerna Solljus soluppgång och
+# Solljus solnedgång (sol upp/ned ± förskjutning) och inställningarna input_number.solljus_* / input_text.solljus_*_lampa.
+# Schemat ligger helt i Home Assistant. Tjänsten visar det för tavlan (med soltider för Värnamo), ändrar inställningarna,
+# slår automationerna av och på och startar eller stoppar skriptet med Starta nu. Ljusvanorna rör inte lampan medan
+# skriptet tonar och pausas för lampan efteråt, så att de inte tar tillbaka tonen direkt.
+SOL_SKRIPT = 'script.solljus'
+SOL_AUTO = {'upp': 'automation.solljus_soluppgang', 'ned': 'automation.solljus_solnedgang'}
+SOL_STD = {'upp': {'off': 60, 'min': 60, 'slut': 100, 'kelvin': 0}, 'ned': {'off': -60, 'min': 60, 'slut': 35, 'kelvin': 0}}   # kelvin 0 = lampans kallaste/varmaste
+SOL_GRANS = {'off': (-180, 180, 15), 'min': (15, 180, 15), 'slut': (5, 100, 5), 'kelvin': (0, 6500, 50)}
+SOL_MAN = {}        # riktning -> när Starta nu trycktes
+SOL_TONAR = set()   # lampor som tonas just nu (för vanorna)
+SOL_ALLA = {}       # senaste /api/states (för HA-namnen när förvalet väljs)
+
+def sol_hj(r, k):
+    return 'input_text.solljus_%s_lampa' % r if k == 'lampa' else 'input_number.solljus_%s_%s' % (r, k)
+
+def sol_std_lampa(c):
+    # förval: vägglampan (id, eget namn eller HA-namn), annars första lampan
+    L = [e for e in c['lampor'] if e.split('.')[0] == 'light']
+    hn = {e: ((SOL_ALLA.get(e) or {}).get('attributes') or {}).get('friendly_name') or '' for e in L}
+    namn = lambda e: (e + ' ' + (c['namn'].get(e) or '') + ' ' + hn.get(e, '')).lower().replace('ä', 'a')
+    return next((e for e in L if 'vagg' in namn(e)), L[0] if L else '')
+
+def sol_tid(s):
+    try: return datetime.datetime.fromisoformat(str(s).replace('Z', '+00:00')).timestamp()
+    except Exception: return 0.0
+
+def sol_varden(alla, r):
+    def tal(k):
+        try: return int(float(alla[sol_hj(r, k)]['state']))
+        except Exception: return SOL_STD[r][k]
+    x = {k: tal(k) for k in ('off', 'min', 'slut', 'kelvin')}
+    if x['slut'] <= 0: x['slut'] = SOL_STD[r]['slut']   # nyss skapad inställning (0) = förvalet
+    x['lampa'] = ((alla.get(sol_hj(r, 'lampa')) or {}).get('state') or '').strip()
+    return x
+
+def sol_info(c, alla, nu):
+    if SOL_SKRIPT not in alla or not any(a in alla for a in SOL_AUTO.values()): return []
+    SOL_ALLA.clear(); SOL_ALLA.update(alla)
+    sk = alla[SOL_SKRIPT]; skpa = sk.get('state') == 'on'; skt = sol_tid((sk.get('attributes') or {}).get('last_triggered'))
+    senast = {r: max(SOL_MAN.get(r, 0), sol_tid(((alla.get(a) or {}).get('attributes') or {}).get('last_triggered'))) for r, a in SOL_AUTO.items()}
+    ut = []
+    for r, a in SOL_AUTO.items():
+        if a not in alla: continue
+        x = sol_varden(alla, r)
+        if x['lampa'] in ('', 'unknown', 'unavailable'):
+            sol_forval(c, r); x = {**x, **SOL_STD[r], 'lampa': sol_std_lampa(c)}
+        kor = round(skt + x['min'] * 60) if skpa and senast[r] >= max(senast.values()) and skt + x['min'] * 60 > nu else None
+        la = (alla.get(x['lampa']) or {}).get('attributes') or {}
+        kmin, kmax = int(la.get('min_color_temp_kelvin') or 2200), int(la.get('max_color_temp_kelvin') or 4000)
+        k = max(kmin, min(kmax, x['kelvin'])) if x['kelvin'] > 0 else (kmax if r == 'upp' else kmin)
+        ut.append({'id': r, 'pa': alla[a].get('state') == 'on', 'lampa': x['lampa'], 'off': x['off'], 'min': x['min'], 'slut': x['slut'], 'k': k, 'kmin': kmin, 'kmax': kmax, 'kor': kor,
+                   'sol': [round(sol_tider(nu + d * 86400)[0 if r == 'upp' else 1]) for d in (0, 1)], 'skript': True})
+    return ut
+
+def sol_forval(c, r):
+    # nyss installerat paket: tomma inställningar får förvalen och vägglampan
+    e = sol_std_lampa(c)
+    if not e: return
+    for k, v in SOL_STD[r].items():
+        ha_anrop(c, '/api/services/input_number/set_value', {'entity_id': sol_hj(r, k), 'value': v})
+    ha_anrop(c, '/api/services/input_text/set_value', {'entity_id': sol_hj(r, 'lampa'), 'value': e})
+    logg('solljus: förval för %s (%s)' % (r, e))
+
+def sol_val(c, d):
+    # {"sol": "upp", "pa": true, "lampa": "light.x", "off": 75, "min": 60, "slut": 35, "kelvin": 4000}: ändrar HA:s inställningar
+    r = d.get('sol')
+    if r not in SOL_AUTO: return 400, {'fel': 'sol ska vara upp eller ned'}
+    alla = {x['entity_id']: x for x in ha_anrop(c, '/api/states')}
+    if SOL_AUTO[r] not in alla: return 409, {'fel': 'solljuset finns inte i Home Assistant'}
+    if 'lampa' in d:
+        e = str(d['lampa'] or '')
+        if e not in c['lampor'] or e.split('.')[0] != 'light': return 403, {'fel': 'lampan är inte vald för tavlan'}
+    for k, (lo, hi, steg) in SOL_GRANS.items():
+        if k in d:
+            v = max(lo, min(hi, int(round(float(d[k]) / steg) * steg)))
+            ha_anrop(c, '/api/services/input_number/set_value', {'entity_id': sol_hj(r, k), 'value': v})
+    if 'lampa' in d: ha_anrop(c, '/api/services/input_text/set_value', {'entity_id': sol_hj(r, 'lampa'), 'value': d['lampa']})
+    if 'pa' in d: ha_anrop(c, '/api/services/automation/%s' % ('turn_on' if d['pa'] else 'turn_off'), {'entity_id': SOL_AUTO[r]})
+    return None
+
+def sol_kor(c, r):
+    alla = {x['entity_id']: x for x in ha_anrop(c, '/api/states')}
+    if SOL_SKRIPT not in alla: return 409, {'fel': 'skriptet Solljus finns inte i Home Assistant'}
+    x = sol_varden(alla, r)
+    if x['lampa'] not in c['lampor']: x['lampa'] = sol_std_lampa(c)
+    SOL_MAN[r] = time.time()
+    ha_anrop(c, '/api/services/script/turn_on', {'entity_id': SOL_SKRIPT, 'variables': {'riktning': r, 'lampa': x['lampa'], 'minuter': x['min'], 'slut': x['slut'], 'kelvin': x['kelvin']}})
+    return 200, {'ok': True}
+
+def sol_tonas(c, alla, e, nu):
+    # tonar skriptet lampan nu? När det är klart pausas vanorna för lampan
+    sk = alla.get(SOL_SKRIPT)
+    if sk and sk.get('state') == 'on' and e in {sol_varden(alla, r)['lampa'] or sol_std_lampa(c) for r in SOL_AUTO}:
+        SOL_TONAR.add(e); return True
+    if e in SOL_TONAR:
+        SOL_TONAR.discard(e)
+        if e not in vanor_inst()['av']: vanor_pausa(e, nu)
+    return False
+
+# Home Assistants automationer: tavlan visar dem och kan slå på eller av dem (automation.turn_on/turn_off), inget annat
+def ha_automationer(alla):
+    ut = [{'id': e, 'n': (x.get('attributes') or {}).get('friendly_name') or e, 'on': x.get('state') == 'on',
+           'senast': (x.get('attributes') or {}).get('last_triggered')} for e, x in alla.items() if e.startswith('automation.') and e not in SOL_AUTO.values()]
+    return sorted(ut, key=lambda z: z['n'].lower())
 
 class H(http.server.BaseHTTPRequestHandler):
     def huvuden(self, kod):

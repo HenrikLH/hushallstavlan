@@ -9,16 +9,143 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 - Henriks rättade planritning (godkänd 13/11) läses från onskelista `{h3d:1,plan:[{id,n,p}],skala}` (kartbildens pixlar, 12,5 mm/px) → `h3dPlanModell` med raka väggar och öppningar; utan plan används robotkartan. Planen ligger INTE i repot (publikt); kopia i projektfilerna hem3d/verktyg/plan.json (celler à 10 cm, ×8 = px). Nästa: spara planen i arket (Henriks ok), placera enheter, fråga om den grå zonen mellan kök/sovrum.
 - Test `verktyg/emu/hem3d.js` (LS haDemo+dev), telefon ljust/mörkt + vägg; alla-flikar telefon+vägg gröna.
 
+## Väggen: födelsedagar, sidomeny och återgång till Översikt (publicerad ht-v413, ångra-gren `version-fore-vagg-meny`)
+- Ägare Claude, gren `claude/project-thread-qh8vjb`. Henrik 17/11 valde A: Skog på väggen har en låg Födelsedagar-ruta (`otFodKort`, en rad per person, de tre närmaste inom 60 dagar) under Smart hem i `.ot-hk`; födelsedagar döljs i Just nu.
+- Sidomenyn (bara väggen, `sidoNy()`=`sidoOn()`): Översikt (hemikon) först, Kalender, Att göra, Mat, Lampor (Hemmet-vyn, lampikon, `SIDO_NAMN`), Ekonomi, Födelsedagar, Väder (`SIDO_X`); inget streck. Sidor öppnade därifrån har ingen bakåtknapp (`S.hemFran='sido'`). Hemmet-vyn på väggen heter Lampor och visar inte korten Födelsedagar/Ekonomi.
+- Återgång till Översikt fanns (2 min); nu valbar i Inställningar → Enheten (`ht.vaggTill` 1/2/5/10/0=aldrig) och fäller även ihop utfälld meny.
+- Test: `vagg-forslag.js`, `vagg-tillbaka.js`, alla-flikar vägg Skog sidomeny + Apple vägg + telefon gröna.
+
+## Kelvin syns i lampkortet igen (publicerad ht-v412, ångra-gren `version-fore-kelvin-rad`, PR #119)
+- Ägare Claude, gren `claude/project-thread-6yv093`. Henrik 17/11: Kelvin syntes inte i lampkortet på väggen. Orsak: dockans vattentank fick klassen `.ha-tk` (34×52 px, overflow hidden), samma som kelvinraden, så "2 700 K Mys" klipptes (även på telefonen). Tanken heter nu `.ha-tnk`.
+- Test: ljusvanor.js (ny kontroll att raden inte klipps) telefon+vägg, smart-hem-ton, robot-dockval gröna. robot-dockkort och smart-hem faller även på main (gamla scenarier). alla-flikar telefon+vägg gröna på ht-v412.
+
+## Solljus (soluppgång/solnedgång) + brytare på automationer (publicerad ht-v411, ångra-gren `version-fore-solljus`, PR #118)
+- Ägare Claude, gren `claude/project-thread-enbw55`, PR #118. Henrik 17/11: vägglampan tonas varm/svag → kall/full efter soluppgången och omvänt före solnedgången, tid ± sol ställs in i appen, av/på på alla schemalagda automationer. Han valde att schemat ska ligga i HA (inte i väggdatorns tjänst).
+- HA-paket `kiosk/ha/solljus-paket.yaml` → `config/packages/solljus.yaml`: script.solljus (steg varje minut, slutar om lampan släcks/ändras), automation.solljus_soluppgang/_solnedgang (sun-trigger + fördröjning efter, template-trigger på next_rising/next_setting före), input_number.solljus_{upp,ned}_{off,min,slut,kelvin} (slutljus; 0 = förval: kallaste/varmaste tonen, 100/35 %), input_text.solljus_*_lampa. Provkört i riktig HA 2026.2 (före-utlösaren, toning, handändring stoppar).
+- Tjänsten (`sol_*` i ljussensor.py) läser/ändrar bara HA: `/ha` ger `sol` + `auto` (övriga automation.*), POST `{sol,gor:nu|stopp}`, `{automation,pa}`, `/ha/val {sol,pa,off,min,slut,kelvin,lampa}`; fyller förval första gången (tom input_text). Vanorna står åt sidan medan skriptet går, pausas efteråt.
+- App: Hemmet → Automationer (`husAuto`), blad `haSol`. Utan paketet syns bara HA:s automationer.
+- Installerat på Surfacen 2026-11-17 (Henriks "Kör"): tjänsten 2ccbdf1 (backup `~/.local/bin/ljussensor.py.fore-solljus`), paketet i `config/packages/solljus.yaml`, `homeassistant: packages:` tillagt sist i configuration.yaml (backup `.fore-solljus`), HA omstartad. Lampa = Vägglampa `light.kajplats_e27_ws_globe_1521lm` (2202–6535 K); förvalet valde först Vitrinskåp, rättat i 23025d3 (HA-namnet). Båda automationerna på.
+- 17/11 Henrik: slutfärg och slutljusstyrka ställs in i appen för båda (bladets "När det är klart").
+- Slutljuset installerat på Surfacen 17/11 (tjänst b7483e6, backup `*.fore-slutljus`); /ha visar upp 6535 K/100 %, ned 2202 K/35 %. Test: `python3 verktyg/solljus-test.py`, `verktyg/emu/solljus.js`, alla-flikar telefon+vägg gröna på ht-v411.
+
+## Googles modern-web-guidance + snabbare Recept-flik (publicerad ht-v407, ångra-gren `version-fore-recept-snabb`, PR #117)
+- Ägare Claude, gren `claude/project-thread-dt5nhs`. Henrik 15/11: utvärdera pluginet och gå igenom appen mot det. Pluginet påslaget i `.claude/settings.json`, regel i AGENTS.md (bara vid ny webbfunktion/prestanda/tillgänglighet).
+- Genomgång: blad (egna, inte `<dialog>`; byte ger ingen synlig vinst), tillgänglighet/formulär (inputmode, etiketter, alt bra), mörkt läge (`color-scheme` rätt) – inget att ändra. Recept-fliken var långsam: `inBank` tolkade hela receptbanken per kort (nu cache) och ~90 kort ritades direkt (nu `content-visibility:auto` från kort 7). Ca 600 → 400 ms vid 4× strypt CPU.
+- Kvar som idé: `loopSync` kör `document.getAnimations()` vid varje omritning (~40 ms vid 4×).
+- Test: alla-flikar telefon + vägg (Skog), recept-ui gröna på cac83f3; bankToggle som på main. CI: UI 2–5-jobben faller även på main (borttagna designval).
+
+## Skog: jämn luft på väggskärmen + mindre rumsknappar (publicerad ht-v405, ångra-gren `version-fore-vagg-avstand`)
+- Ägare Claude, gren `claude/project-thread-156e2m`, PR #115. Henrik 15/11: avstånden mellan rutor, skärmkanter och andra UI-element på väggen var olika (sidomeny: 25 px kanter, 17 mellan rutor, 55 mot nederkanten; menyrad nere: 44 kanter, 43 mot menyraden). Nu 21 px överallt på Översikt (rutor, kanter, sidomeny, menyraden och dess avstånd till nederkanten, väderkortets topp, Just nu-rutan). Rummen i Smart hem är kompakta rader (ikon + namn + status, 60 px) även när inget spelar. CSS sist i index.html (`html.ny.ui5.skog body.wall`).
+- Förloppsstapel och moppspärr görs i dammsugartråden, inte här.
+- Test: `verktyg/emu/vagg-avstand.js` (skriver ut måtten; PLAY=0 stänger av media), alla-flikar Skog vägg sidomeny/nere ljust/mörkt, telefon Skog, Apple vägg gröna. Bilder /mnt/project-files/vagg-avstand/.
+
+## Skog: översikten förbättrad (publicerad ht-v403, ångra-gren `version-fore-skog-oversikt`)
+- Ägare Claude, gren `claude/project-thread-93qvwv`, PR #111. Henrik 14/11: scener i Smart hem på telefonen, förloppsstapel + sluttid i Schema, mer luft i Att göra/Städ, bara pilen i Schemas länk, sträckanimation i väljarna (`segStretch` i `segSlide`, alla `.segc` i UI5 + `.ot-dseg`/`.ot-flik`).
+- Födelsedagskortet tog för mycket plats; Henrik valde en samlad "Just nu"-ruta (`otJustNu`, T23): födelsedagar 14 dagar innan (köp present, `otFodNt`) + otNotis-raderna (maskin klar, robot, Släck allt) som flyttats ur Smart hem. Telefon: kort under toppen; vägg: glasruta i toppen. Vädervarningar stannar i väderkortet. Henrik 15/11: födelsedagen i Just nu bara dagen innan/på dagen (+ en gång dag 14 om present); presenten blir en egen uppgift "Köp present – Namn" överst i Att göra (Uppgifter-fliken + översikten) från 14 dagar innan, belopp via `presKr`, bockad sparas som `kp` i fod-objektet i onskelista (`presUpg`, `ACT.presKopt`). Test `presentuppgift.js`.
+- Test: `skog-oversikt.js` (T3DEMO=1 NOW=…12:10; gas.js har sluttider och födelsedagar), alla-flikar Skog telefon/vägg + Apple. Bilder /mnt/project-files/skog-oversikt/.
+
+
+## Väggens dammsugarvy i tre delar (publicerad ht-v410, ångra-gren `version-fore-vagg-dammsugare`)
+- Ägare Claude, gren `claude/project-thread-j9rebe`. Henrik 16/11 valde 1: på väggen (`wallBoardOn()`, `.rob-vy.vagg3`) kartan överst och dockan underst till vänster (`.rob-km`/`.rob-kd`, fast höjd, sticky), val/rum/Starta till höger. Telefonen behåller Karta | Dockan. Kartan skalas via `--kar` på `.ha-kw`.
+- Test `robot-vagg3.js` vägg ljust/mörkt + telefon, alla-flikar telefon/vägg gröna.
+
+## Karta | Dockan i dammsugarvyn (publicerad ht-v409, ångra-gren `version-fore-karta-dockan`)
+- Ägare Claude, gren `claude/project-thread-j9rebe`. Henrik 16/11 hittade inte dockkortet (andra svepsidan). `haSvep` har segmentet `.ha-kseg` i stället för prickar; `ACT.haSvepTill` bläddrar, scroll-lyssnaren markerar valt. Test `robot-dockval.js` telefon + vägg gröna. Henrik valde A.
+
+## Fördröjd start av dammsugaren (publicerad ht-v408, ångra-gren `version-fore-fordrojd-start`)
+- Ägare Claude, gren `claude/project-thread-j9rebe`. Henrik 16/11: timervredet från Egen timer med snabbval 3/5/10 min; klockknapp mellan Starta och Hem.
+- Klient: `haRobOm` öppnar `tmrSheet` med `S.tmr.rob`, `haRobOmStart` → `haRob('start')` med `om` sekunder (`S.haOmSek`). Nedräkning `haOmRad` i bladet, rad i Smart hem (`otNotis` gar), `data-omt` uppdateras varje sekund. Avbryt `omstopp`, Starta nu `omnu`.
+- Tjänsten (`kiosk/ljussensor.py`, `VANTA`): väntar med `threading.Timer`, rapporterar `vantar` (0 = stöd finns). Klockknappen syns bara när tjänsten rapporterar `vantar`. Tjänsten installerad på Surfacen 16/11 (~/.local/bin/ljussensor.py, kopia .fore-fordrojd).
+- Test: `robot-fordrojd.js` telefon + vägg, alla-flikar telefon/vägg gröna; tjänsten provad mot falsk-ha (start om, omstopp, omnu).
+
+## Förlopp i Smart hem-rutan och håll in för bara moppning (publicerad ht-v406, ångra-gren `version-fore-forlopp-mopp`, PR #114)
+- Ägare Claude, gren `claude/project-thread-j9rebe`. Henrik 15/11: förloppsstapel när diskmaskinen och dammsugaren kör, i Smart hem-rutan (T19); moppning utan dammsugning före ska kräva håll in.
+- `otNotis(H,max,lista,gar)`: `gar=1` ger bara det som kör (robot via `haRobPct`, hela planen; maskiner `a.pct`) och används i `otHus` (telefon och vägg); Just nu visar bara klart/fel/lampor efter 22. Väggen: text + stapel på en rad (`.ot-v .ot-hus .ot-ntr`).
+- `haMoppUtanDamm(a,P)`: mopprum som inte dammsugs i samma körning eller dammsugits (`r.sv`) senaste 2 h → Starta byts mot `.ha-hold` (`data-hold="haRobMopp"`). `#toast` har `pointer-events:none`.
+- Test: `robot-hall-mopp.js` (telefon + vägg) och alla-flikar telefon/vägg gröna på ht-v406.
+
+## Dammsugarsidan: Skog, Max som förval, vattenflödet låst på Custom, moppläge per rum (publicerad ht-v402, ångra-gren `version-fore-dammsug-skog`, PR #113)
+- Ägare Claude, gren `claude/project-thread-j9rebe`. Henrik 14/11: Skog-accent, Max sugkraft som standard, vattenflödet alltid Roborocks Custom (`custom_water_flow`, eget reglage under Low för trägolvet; nivån ställs i Roborock-appen), Route kvar, snyggare Standard/Deep/Deep+ per rum.
+- `haStd(a,k)`: sug Max (snabbvalet gäller bara nästa start, `S.haRobVal`), vatten låst `custom_water_flow` (Water-valet dolt i snabbval och inställningar), rutt = robotens/valt. Start skickar sug/rutt/vatten först som egna anrop (gammal tjänst) och med starten (ny tjänst sätter dem i `ha_app_styr`; planen återställer till dem). Per rum: segment `.ha-rs` (`haRuttVal`, `ACT.haRobRm`, ls `haRumRutt`).
+- Skog-CSS sist i index.html: dammsugning `--sk-damm` grön, moppning `--sk-mopp` sjöblå, tömning/docka bärnsten, klart grönt.
+- Overifierat på riktig robot att `custom_water_flow` är Roborocks Custom-reglage. Tjänsten installerad på Surfacen 16/11.
+- Test: robot-skog.js (ny), robot-mopp mot falsk HA, apparater demo, alla-flikar Skog telefon+vägg gröna. CI faller på `uiVersion` id 2 (Klassisk borttagen på main, inte denna PR). apparater.js mot falsk HA faller även på main.
+## Menyknapp, kryssrutor och omritning i Inställningar (publicerad ht-v401, ångra-gren `version-fore-meny-kryss`)
+- Ägare Claude, gren `claude/project-thread-qnvsb4`. Henrik 14/11: (1) vald flik i Skog: ljus salvia `#DCE8D2` med skogsgrön ikon `#2F5D3A` (telefon och väggens sidomeny). (2) Inställningar ritades om vid varje render (synk var 30:e s, Smart hem, väder, sparstatus): bladet byggdes om och den öppna delen gled in igen (`u5in`). Nu hoppas samma HTML över (`o.__sH`) och en ändrad omritning avslutar animationen direkt. (3) Kryssrutornas ram i Skog hade bara mörk variant för manuellt Mörkt, inte systemets; nu `var(--ink-3)`.
+- Test: `installningar-omritning.js` (ny), alla-flikar Skog telefon ljust/mörkt + vägg, Apple telefon, tavla-designval, installningar-delar/-tillbaka/-luft, anvandarfarger gröna. Väggens ihopfällda sidomeny: knappen överst och profilknappen centrerade (alla UI 5.0).
+
+## Skog: Högtalare som ruta bland rummen (publicerad ht-v404, ångra-gren `version-fore-hogtalare-rum`)
+- Henrik 15/11: scenen Högtalare (HA-skript med fält, `husHogSc`) flyttad ur Scener till rummen i Skogs Smart hem, vägg och telefon (`otHogRuta`, `husScener(D,1)`). Tryck = starta/stäng av som scenen, håll in = ändra. Hemmet oförändrat. Test `verktyg/emu/hogtalare-rum.js`.
+
+## Väggtavlan visar det aktuella (publicerad ht-v400, ångra-gren `version-fore-vagg-aktuellt`)
+- Ägare Claude, gren `claude/project-thread-ckaljv`, PR #110. Bara Skog på väggen (`wallT3`). Henrik 14/11 valde 1, 2, 3 och 5 ur förslagen.
+- Smart hem (T19): `otMed()` volym/Spotify när något spelar; `otNotis(H,max)` "Just nu": maskin klar (Klar-knapp, kvitto per enhet i ls `otKvitt`), robotdammsugaren städar/fel, efter 22 "N lampor tända · Släck allt". Högst 2 rader, 1 när något spelar (då döljs Scener). Rummen kompakta (`.ot-hus.spelar`).
+- Väderkortet (T21): SMHI-varning > regn > `otWxExtra` (frost i natt efter 15 / minusgrader före 9, pollen, norrsken via `wxLarm`).
+- Ej byggt: 4 (tina middagen). Test `verktyg/emu/tavla3-aktuellt.js` (NOW, WXT, WXPR, WXPLUS), alla-flikar Skog vägg/telefon + Apple vägg gröna. CI: ui4/ui5/installningar faller även på main (borttagna designval).
+
+## Inställningar: Hemmet, Födelsedagar och Form i Skog (publicerad ht-v399, ångra-gren `version-fore-installningar-form`)
+- Ägare Claude, gren `claude/project-thread-ueql78`, PR #109. Inställningarnas delar: Mat, Hemmet, Översikt, Kalender, Att göra, Ekonomi, Födelsedagar (I11, I12). Smart hem-adressen i Hemmet; Visas som + Presentbudget i Födelsedagar. Översikt har rutnätsikon.
+- Skog: Utseende → Form på knappar och rutor = Mjuk (standard)/Rund/Stram, återanvänder ls `segstil` (standard/kapsel/klassisk) → `html.sk-rund`/`sk-stram`; CSS sist i index.html (`--r5`, `.bq`, segment, knappar, bockar).
+- Test: installningar.js + installningar-delar.js, alla-flikar Skog mörkt Stram + telefon/vägg gröna. CI: UI2–5-jobben faller redan på main (borttagna designval).
+
+## Ändra befintliga scener (publicerad ht-v397, ångra-gren `version-fore-scener-andra`)
+- Ägare Claude. Henrik 14/11: "Jag vill kunna redigera redan gjorda scener". Egna scener gick redan att ändra med håll in; scener från Home Assistant och Släck allt i Hemmet öppnade bara namn/rum-bladet. Nu öppnar håll in samma scenblad för alla (`husScRed`, sparas på sin plats först vid Klar; Ta bort = ta bort från tavlan). Plusmenyn och rutans meny: "Ändra scener" (penna) i stället för "Ordna scener".
+- Test: `verktyg/emu/scen-andra.js` telefon + vägg, smart-hem-ruta, scen-tidslinje, alla-flikar telefon + vägg. `hemmet-scener.js` fallerar redan på main ("fyra i rad", raden har nu fem). UI2–5-jobben i emu.yml fallerar redan på main (klickar borttagna Klassisk / dold Form-inställning), behöver uppdateras.
+
+## Skog: frostad skogsbakgrund i telefonen (publicerad ht-v398, ångra-gren `version-fore-skog-frost`)
+- Henrik 14/11: skogen överst på Översikt ska ligga i bakgrunden, klar upptill och frostas nerifrån och upp, rutorna ovanpå. `otHead(tel)` ger `otLand(1)` (xMaxYMid) + `.ot-frost` (fem lager: backdrop-filter 2/5/10/20 px med masker + sandslöja). CSS sist i index.html. Skogen står fast (position:fixed) när man scrollar; klocka/text vita. Bara telefonen i Skog, väggen orörd.
+- Test: alla-flikar Skog telefon + vägg gröna, `verktyg/emu/skog-frost.js` (T3DEMO=1, ljust/mörkt). Bilder /mnt/project-files/skog-frost/.
+
+## Skog: grönt tillbaka (publicerad ht-v396, ångra-gren `version-fore-skog-gront`)
+- Henrik 14/11: "Jag vill ha grön som accentfärg men nu har jag ingen färg". Vald flik i menyn skogsgrön (telefon och vägg), valt läge i väljarna ljusgrönt, `.ot-lnk` grön. Neutralisera inte accenten i Skog vid granskningar. Test: alla-flikar Skog telefon + vägg vänstermeny.
+
+## Skog: onödiga inställningar borttagna (publicerad ht-v395, ångra-gren `version-fore-skog-installningar`)
+- Ägare Claude, gren `claude/project-thread-tpd0u6`. Henrik 14/11: ta bort inställningar som inte behövs med Skog. Varje val provades i Skog (DOM jämförd före/efter). Dolda när `skogVal()` (ls ui tom/5 och ovny=h): Färgval/accent (Skog låser accent till skog, Ljust/Mörkt direkt i Utseende), Flytta rutorna/Återställ (visade gamla Översikten), Rutor i tre storlekar, Natthimmel, Timmarna under bilden, Väderbildens stil/Hundarna när Vädersidan är Kurva på telefon, Ny översikt i utvecklarläget. För alla: Aura i mörkt läge borttagen, Design-texten omskriven.
+- Behållna (påverkar Skog): Vädersidan, Plusknappen, Menyraden när du scrollar, Låsta rätter (Generera veckosedel), Planera veckan som, kalender/födelsedagar, väggens meny och inställningsknapp.
+- Test: alla-flikar Skog telefon (med sparad vinröd), Skog vägg + vänstermeny, Apple; tavla-designval.js grön. Bilder /mnt/project-files/skog-installningar/.
+
+## Skog: andra, hårdare UI-granskningen + Aura borttagen (publicerad ht-v394, ångra-gren `version-fore-skog-granskning2`)
+- Ägare Claude, gren `claude/project-thread-tpd0u6`. Henrik 14/11: inställningsmenyn höll inte måttet. Rättat: varje rad i Inställningar var ett eget kort (`.pref-section` låg i Skogs kortregel), nu en grupp = ett kort. Segmentväljare i en stil (mörkare spår, vit tumme, mörkgrön text) för `.segc`, `.ot-dseg`, `.ot-flik`, `.wxC-k`; andra nivån (`.subseg`) lättare. Undersidornas rubriker 14 px dämpade, kort utan skugga. Personer: Gemensam skärm i linje. Kalenderveckan tätare. Hemmet: fem scener på en rad (alla UI 5.0). Robotkortet gråblått/bärnsten, dimrade lampor bärnsten, grå pilar på Översikt, väderrubriken som andra kortrubriker.
+- Test: alla-flikar Skog telefon ljust/mörkt, vägg ljust, vägg mörkt + vänstermeny, Apple, Aura; tavla-designval.js och sidomeny.js gröna. Bilder /mnt/project-files/skog-hela-appen/granskning2/.
+- Aura (`ht.ui=6`) borttagen som designval på Henriks begäran 14/11: sparat val flyttas till Apple, koden finns kvar. Test: tavla-designval.js med ui=6 och 4, alla-flikar med ui=6 och Skog vägg.
+
+## Skog: granskning av väggskärmen (publicerad ht-v394)
+- Ägare Claude, gren `claude/project-thread-tpd0u6`. Väggen i Skog: tom plats i veckan lika stor som en rätt (`.bt:has(.bq.e)`), scenraden på Översikt tonar ut i kanten (`.ot-sc` mask), tända lampor i mörkt läge dämpad bärnsten. Menyn till vänster (Skog, ihopfälld): `--sidew:112px` + 8 px höger så att luften är 25 px på båda sidor. Kanterna mätta i alla flikar: helbredd 44 px, listvyer centrerad spalt 834 px.
+- Test: alla-flikar vägg ljust/mörkt Skog + Apple vägg + Skog telefon gröna. Bild /mnt/project-files/skog-hela-appen/granskning/vaggskarm-efter.png.
+
+## Skog: rester och UI-granskning (publicerad ht-v393, ångra-gren `version-fore-skog-granskning`)
+- Ägare Claude, gren `claude/project-thread-tpd0u6`. Skog: väljarna i Inställningar linjerar med korten, rubrikernas högerkant 36 px som texten i korten, kalenderns månadsrubrik in 20 px, rummen på Översikt delar bredden, diskmaskinens ring bärnsten, utvecklarlistan T2. Alla UI 5.0: matlagningsläget på smal telefon (titel egen rad, väljare under) och `ck5Mitt` visar ett långt steg från början.
+- Test: alla-flikar Skog telefon ljust/mörkt + vägg, Apple, Aura, matlagning.js, tavla-designval.js gröna. Bild /mnt/project-files/skog-hela-appen/granskning/.
+
+## Skog-stilen i hela appen (publicerad ht-v392, ångra-gren `version-fore-skog`)
+- Ägare Claude, gren `claude/project-thread-tpd0u6`. Henrik 14/11: "Gå igenom alla menyer i HELA appen och applicera de nya design guidelines för tavla 3". Gäller bara när designvalet Skog är valt: `html.skog` (applyNy: U5, inte Aura/UI3, `ht.ovny=h`), CSS sist i index.html under `html.ny.ui5.skog`. Body får `t3` även utanför Översikt (grön sidomeny på väggen).
+- Tokens ur `design/tavla3.md`: sand `--bg`, ljusa kort med ljus kant och mjuk skugga, kortrubriker (`.sh`) feta utan versaler, segment med sandband och salviagrön markör, gröna rundade bockar/brytare, idag grönt, grön flikrad (`--sk-meny`), inställningarnas ikoner gröna. Ljust och mörkt.
+- Runda 2 (Henrik: huvudmenyerna klara, resten av vyerna): Hemmet med neutrala scener (vald ljusgrön), tänt/igång i bärnsten (lampor, apparater, brickor), valda filter/dagar mörkgröna. Recept, matlagning, väder, kalender, födelsedagar och blad genomgångna.
+- Test: alla-flikar telefon ljust/mörkt + vägg med `ovny=h` (haDemo), Apple, Aura, `tavla-designval.js` gröna. Bilder /mnt/project-files/skog-hela-appen/ (+ vyer/). `fodelsedagar.js` hittar inte födelsedagsknappen i Tavla 3:s Översikt, och `kalender-tidsblock.js` faller även på main.
+
+## Tavla 2 och Skog (Tavla 3) som designval (publicerad ht-v391; namnet Skog ht-v392, ångra-gren `version-fore-tavla-designval`)
+- Ägare Claude, gren `claude/project-thread-tpd0u6`. Henrik 14/11: "Lägg tavla 1 och 2 som designval under design, ta bort klassisk och ateljé"; tolkat som Tavla 2 (`ovny=g`) och Tavla 3 (`ovny=h`).
+- Design-segmentet: (Test i DEV) / Apple / Aura / Tavla 2 / Tavla 3. `ACT.uiVersion` g/h sätter `ht.ui` till Apple och `ht.ovny`; Apple/Aura rensar `ovny`. `ovNy()` släpper g/h utan utvecklarläge. `ht.ui=2/4` flyttas till Apple vid start; UI2/UI4-kod och CSS ligger kvar (kan städas bort).
+- Test `verktyg/emu/tavla-designval.js` (LS ui=4/2, telefon+vägg), alla-flikar telefon (ovny=g) + vägg (ovny=h) utan PAGEERROR.
+
+## Tavla 3 efter Henriks bild (publicerad ht-v389, ångra-gren `version-fore-tavla3`)
+- Ägare Claude, gren `claude/project-thread-onlzlz`, PR #108 (ihopslagen). Bakom Utvecklarläge; nästa steg vid Henriks ord: stilen till resten av appen enligt `design/tavla3.md` avsnitt 7. Utvecklarläge → Ny översikt → Tavla 3 (ls `ovny=h`). Väggen `wallT3`, telefonen `telT3` (avatar i bannern). Delar: `otHead` T17 (låg banner, landskap `otLand` efter solhöjd), `otSchema` T18 (tre dagar som tidslinjer sida vid sida, telefonen sveper), `otHus` T19 (rum: `otRum`, bladet `otRumSheet`/S.sheet `otRum`), `otGora` T20 (växlare Att göra/Städ, `ACT.otFlik`). CSS `.ot*` sist i index.html.
+- Runda 4 (Henriks nya bild 14/11): sjölandskap bakom tavlan, glaskort, skogsgrönt, Dagens middag (T22), väderkort (T21), Att göra & städa i en lista, rummens brytare (`ACT.otRumTog`), sidomenyn grön när `body.t3`. Riktlinjer och färger: `design/tavla3.md`. Bilddata: `T3DEMO=1` i emulatorn.
+- Runda 5: Dagens middag, rummens brytare, Övrigt och Innetemp borttagna; Att göra + Städ (T22) som två kort på väggen, växlare `.ot-flik` på telefonen; rummet zoomar ut med `haZoom(inn,klar,tEl)`; scenerna neutrala. **Skog (`#4A7C46`) är standardaccent i hela appen** (`ACCENT` default `skog`, vinröd ett val).
+- Skogsgrön accent är standard i UI 5.0 sedan ht-v389 (även utan Utvecklarläge); UI 2.0 behåller vinröd (ht-v390, `accDef()`). Test på 5e825b9: `tavla3.js` (zoom, växlare), `ny-oversikt.js`, alla-flikar vägg+telefon (med och utan `ovny=h`) gröna. CI: `matsedel-gester.js` faller som på main (känt).
+
 ## Väggen: menyn som sidofält till vänster (publicerad ht-v387, ångra-gren `version-fore-vagg-sidomeny`)
 - Ägare Claude, gren `claude/project-thread-eeh8sq`. Bara UI 5.0 på väggen (`sidoOn()`: S.wall, U5, inte Aura). Inställningar → Menyn: Längst ner (standard)/Till vänster (ls `vaggmeny=vanster`), Henriks val 13/11: ett alternativ, inte standard. Knappen överst fäller ut namnen (`ACT.sidoFall`, `I_SIDO`).
 - Utfällt: B `over` (standard) lägger sig över och fälls ihop vid flikval/tryck utanför; A `skjut` (Utfälld meny → Flyttar innehållet, ls `vaggsidolage=skjut`) flyttar innehållet och sparas (ls `vaggsido`).
 - Sidofältet sätter `--tabbar:0`/`--tabgap:16px` på `body.wall.sido`, så rutnät som räknar höjd från flikraden (`.board`, `.ond` i Ny översikt D) får höjden automatiskt; `body` får `padding-left:var(--sidew)`.
 - Test `verktyg/emu/sidomeny.js` (vägg, ljust/mörkt, båda lägena), alla-flikar telefon+vägg gröna.
 
-## Ny översikt A–D, B2, C2 bakom Utvecklarläge (publicerad ht-v386, ångra-gren `version-fore-ny-oversikt-3`)
+## Ny översikt A–D, B2, C2, Tavla 2 bakom Utvecklarläge (publicerad ht-v388, ångra-gren `version-fore-tavla2`)
 - Ägare Claude, gren `claude/project-thread-7ys0ku`. Inställningar → Utvecklarläge → Ny översikt (Av/A/B/C/D/B2/C2, ls `ht.ovny` a–f). `ovNy()` är tomt utanför DEV/UI5 (och i UI2/3/4/6, ordna-läget), då är allt som förut.
 - Kod: avsnittet efter `boardDefault` i app.js (`on*`-hjälpare, `ovNyTel` telefon, `wallNyBoard` vägg (e→b, f→c), `wallVila` T14, `wallDagar` T15), krokar i `V.oversikt`/`wallBoard`; ACT `ovny`, `onWk`, `onPers`. CSS sist i index.html (`.onx`, `.on-*`, `.onv`, `.ond`).
 - Henrik 13/11: C klart bäst på telefon men saknade vädret med timremsan/handtaget och Schema med veckoraden → C2 (`f`, Henrik valde den 13/11: brickor, `onWxK` (B2:s väder), Smart hem, calWidget). Gillar tidslinjen men Att göra saknar tid → B2 (`e`: `onWxK` kompakt väder med `ovWx`-remsa och grafhandtag, Nu-kort, `onSchemaB` = calWidget där idag blir `onTl({bare:1})` + Att göra-lista under). Bad om dem som nya alternativ, gamla B/C kvar.
+- Väggtavlan D (`wallDagar`→`wallDagarSida`): tre dagar + sidokolumn som sorteras efter läget (Henrik 13/11): Smart hem alltid men bara det aktuella (`onHusAktuell`: scener, volym vid uppspelning, aktiva apparater, några lampor), vädret med timremsa bara vid rundorna 6–9.30, 11–13.30, 16.30–20.30 (`onRunda`), Att göra som lista när man är ledig (helg, kväll; `onLedig`) annars en rad (`onGoraLiten`). Publicerad ht-v388.
+- Tavla 2 (ls `ovny=g`, ruta T16, `wallGlas` + `ogVader/ogNu/ogSchema/ogHus/ogGora`, CSS `.og*` sist): Henriks val av skiss 2 (glasrutor) ur omdesignen 13/11 (skisser i /mnt/project-files/oversikt-ny/vagg-ny/). Telefonen visar C2. ACT `ogFlik` (Idag/Städ). Publicerad ht-v388; testad 4354ca8 (alla-flikar vägg+telefon gröna).
 - Nästa: Henrik väljer; valt spår kan bli standard. Ingen Kod.gs-ändring.
 - Test: `verktyg/emu/ny-oversikt.js` (LS ovny, GRIP=1 fäller ut handtagen, KLASSISK=1, DBG=uttryck), alla-flikar telefon+vägg gröna med och utan utvecklarläge.
 
