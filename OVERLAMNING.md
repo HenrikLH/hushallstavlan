@@ -2,6 +2,13 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+
+## VarioSpeed på diskmaskinen (förslag, ej publicerat)
+- Ägare Claude, gren `claude/project-thread-3jefts`. Henrik 19/11: kunde inte ändra VarioSpeed i appen (fanns inte) och maskinens egen På-knapp väcker den inte förrän den startats från en app.
+- Tjänsten (`ha_disk`/`disk_satt_vario` i ljussensor.py): `vario` från `switch.diskmaskin_variospeed`; Home Connect tar bara emot optionen när maskinen är på, så `switch.diskmaskin_av_pa` slås på först. Valet följer med starten; 409 medan programmet går. Appen: brytare i diskkortet (`ACT.haDiskVario`), dold med gammal tjänst.
+- Knapparna: HA-historiken 15–19/11 visar att varken tavlan eller HA stänger av maskinen (inga automationer, inget periodiskt). Troligen maskinen (hängd panel → bryt strömmen 2–3 min; annars knappfel/service).
+- Kvar: Henriks ok på bild, "Kör" för tjänsten på Surfacen, sedan publicering. Test: `python3 verktyg/disk-vario-test.py`, `disk-vario.js`, apparater.js demo, alla-flikar telefon gröna.
+
 ## Väggen: födelsedagar, sidomeny och återgång till Översikt (publicerad ht-v413, ångra-gren `version-fore-vagg-meny`)
 - Ägare Claude, gren `claude/project-thread-qh8vjb`. Henrik 17/11 valde A: Skog på väggen har en låg Födelsedagar-ruta (`otFodKort`, en rad per person, de tre närmaste inom 60 dagar) under Smart hem i `.ot-hk`; födelsedagar döljs i Just nu.
 - Sidomenyn (bara väggen, `sidoNy()`=`sidoOn()`): Översikt (hemikon) först, Kalender, Att göra, Mat, Lampor (Hemmet-vyn, lampikon, `SIDO_NAMN`), Ekonomi, Födelsedagar, Väder (`SIDO_X`); inget streck. Sidor öppnade därifrån har ingen bakåtknapp (`S.hemFran='sido'`). Hemmet-vyn på väggen heter Lampor och visar inte korten Födelsedagar/Ekonomi.
