@@ -826,7 +826,7 @@ function planPortions(){const ids=new Set();D().menu.forEach(m=>{if(m.recipe)ids
 
 /* ---------- render ---------- */
 /* ---------- render ---------- */
-let rq=0,pendingRender=false,bladDrag=null;
+let rq=0,pendingRender=false,bladDrag=null,haDragT=0;// haDragT: ett lampreglage dras just nu (omritning väntar, annars byts reglaget ut under fingret och hoppar tillbaka)
 function render(){if(rq)return;rq=setTimeout(()=>{rq=0;doRender()},0)}
 function busyTyping(){const a=document.activeElement;return a&&a.closest&&a.closest('#main,#overlay')&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)&&!/^(checkbox|radio|range)$/.test(a.type)}
 function renderStatus(){const el=document.getElementById('sync');if(el)el.outerHTML=statusHtml()}
@@ -868,7 +868,7 @@ function morf(live,a,b){const lk=[...live.childNodes].filter(x=>!(x.nodeType===1
   for(const o of x.attributes)if(!y.attributes.getNamedItemNS(o.namespaceURI,o.localName))l.removeAttributeNS(o.namespaceURI,o.localName);
   if(y.localName==='template'||y.localName==='textarea'){if(l.innerHTML!==y.innerHTML)l.innerHTML=y.innerHTML;continue}
   morf(l,x,y)}}
-function doRender(){if(motionDrag||sheetDrag||bladDrag){pendingRender=true;return}applyPersonColors();applyAccent();
+function doRender(){if(motionDrag||sheetDrag||bladDrag||haDragT&&Date.now()-haDragT<15e3){pendingRender=true;return}applyPersonColors();applyAccent();
  if(!S.key||!S.data)document.getElementById('create-dock')?.remove();
  document.body.classList.toggle('wall',S.wall);document.body.classList.toggle('t3',ovNy()==='h'||document.documentElement.classList.contains('skog'));document.body.classList.toggle('sido',sidoOn());document.body.classList.toggle('sido-ut',sidoOn()&&VSIDO);document.body.classList.toggle('sido-over',VSIDOL==='over');document.body.classList.toggle('is-night',S.view==='oversikt'&&nightOn());document.body.dataset.view=S.view;
  document.body.classList.toggle('cook-open',!!S.cook);
@@ -1524,7 +1524,7 @@ function otHead(tel){const n=new Date(),t=today(),d=parse(t),hh=n.getHours(),dy=
  const g=hh<5?'God natt':hh<10?'God morgon':hh<17?'Hej':hh<22?'God kväll':'God natt',sub=[g+(people().includes(S.me)?', '+personLabel(S.me):''),dy&&dy.holiday?dy.holiday:dy&&dy.names&&dy.names.length?'Namnsdag '+dy.names.join(', '):''].filter(Boolean).join(' · ');
  const dat=cap(DAYS[d.getDay()])+' '+d.getDate()+' '+MON[d.getMonth()].slice(0,3),kl='<div class="ot-kl num" id="clock">'+pad(hh)+':'+pad(n.getMinutes())+'</div>';
  const brand='<div class="ot-brand"><span class="ot-bi">'+I.home+'</span><div><b>Hushållstavlan</b>'+(tel?'':'<span>'+esc(sub)+'</span>')+'</div>'+(tel?'<div class="ot-me">'+meBtn()+'</div>':'')+'</div>';
- if(tel)return'<section class="ot-head"'+RF('T17')+'>'+otLand(1)+'<div class="ot-frost" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>'+brand+kl+'<div class="ot-dat">'+esc(dat)+' · Vecka '+isoWeek(d)+'</div></section>';
+ if(tel)return'<section class="ot-head"'+RF('T17')+'>'+otLand(1)+'<div class="ot-frost" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>'+brand+otTopp()+kl+'<div class="ot-dat">'+esc(dat)+' · Vecka '+isoWeek(d)+'</div></section>';
  return'<section class="ot-head"'+RF('T17')+'>'+brand+'<div class="ot-tid">'+kl+'<i class="ot-sep"></i><div><div class="ot-dat">'+esc(dat)+'</div><div class="ot-vk">Vecka '+isoWeek(d)+'</div></div></div></section>'}
 /* Schema: tre dagar som listor med prick och tid. Idag har salviagrön rubrik och gröna prickar, övriga dagar neutrala */
 function otSchema(tel){const t=today(),n=new Date(),dg=Math.max(0,Math.min(2,+S.otDag||0));
@@ -1621,7 +1621,9 @@ function wallT3(){const fk=otFodKort();return'<div class="ot ot-v ot-'+otFas()+(
 function otFodKort(){const L=bdNext(bdays()).filter(b=>b.days<=60).slice(0,3),P=presBud();if(!L.length)return'';
  const rad=b=>'<button type="button" class="ot-fr'+(b.days<2?' nu':'')+'" data-act="nav" data-id="fod"'+bdSt(b)+'><span class="ot-fd num">'+b.dd+' '+MON3[b.mo]+'</span><b class="ot-fn">'+bdRubrik(b)+'</b><small>'+esc(bdWhen(b))+(b.gift&&b.days<=14?' · '+presKr(b.age,P)+' kr':'')+'</small></button>';
  return'<section class="ot-c ot-fk"><button type="button" class="ot-fh" data-act="nav" data-id="fod"><span class="ot-hi">'+I.cake+'</span><b>Födelsedagar</b>'+I.chev+'</button><div class="ot-fl">'+L.map(rad).join('')+'</div></section>'}
-function telT3(){return'<div class="ot ot-t ot-'+otFas()+'">'+otHead(true)+otJustNu(true)+otWx(true)+otSchema(true)+otHus(true)+otGora(true)+'</div>'}
+/* Skog-telefonens topp: vädret till höger om klockan (ikon, temp, H/L); väderkortet under visar läge, råd och timmar */
+function otTopp(){const X=onWx();if(!X)return'';return'<button type="button" class="ot-tpc" data-act="nav" data-id="vader"><span class="ot-tpi"><i>'+wxIco(X.W.hours[0]||{s:X.W.now.s})+'</i><b class="num">'+deg(X.T)+'</b></span><small>'+esc('H '+deg(X.hi)+' L '+deg(X.lo))+'</small></button>'}
+function telT3(){return'<div class="ot ot-t ot-'+otFas()+(onWx()?' ot-tpw':'')+'">'+otHead(true)+otJustNu(true)+otWx(true)+otSchema(true)+otHus(true)+otGora(true)+'</div>'}
 /* ---------- Smart hem (Home Assistant), bara på väggskärmen ----------
    Väggdatorns lokala tjänst (kiosk/ljussensor.py, /ha) håller HA-nyckeln och släpper bara igenom valda lampor, scener och
    givare. Appen frågar med lång väntan (?v=N svarar först vid en ändring), så rutan följer med inom en sekund när någon
@@ -2376,11 +2378,11 @@ function haKo(id,body,undo){const Q=HA.ko||(HA.ko={});if(Q[id]){const n=Object.a
 const haMalLagg=j=>{const M=HA.mal;if(!M)return;(j.lampor||[]).forEach(l=>{const v=M[l.id];if(!v)return;if(v.f&&l.on===v.m.on){delete M[l.id];return}if(Date.now()-v.t<HA_MAL||HA.ko&&HA.ko[l.id])Object.assign(l,v.m);else delete M[l.id]})};
 // det lodräta reglaget: drag relativt där fingret började (hoppar inte vid tryck), 0 % släcker, tryck utan drag tänder/släcker
 (()=>{let d=null;const st=v=>{const el=document.querySelector('[data-hav="s"]');if(el)el.textContent=v?v+' %':'Av'};
- document.addEventListener('pointerdown',e=>{const el=e.target.closest('.ha-vs');if(!el||e.button>0)return;e.preventDefault();d={el,y:e.clientY,v0:parseFloat(el.style.getPropertyValue('--p'))||0,v:null,h:el.getBoundingClientRect().height,id:e.pointerId};try{el.setPointerCapture(e.pointerId)}catch(_){}HA.drag=true;el.classList.add('tag')});
+ document.addEventListener('pointerdown',e=>{const el=e.target.closest('.ha-vs');if(!el||e.button>0)return;e.preventDefault();d={el,y:e.clientY,v0:parseFloat(el.style.getPropertyValue('--p'))||0,v:null,h:el.getBoundingClientRect().height,id:e.pointerId};try{el.setPointerCapture(e.pointerId)}catch(_){}HA.drag=true;haDragT=Date.now();el.classList.add('tag')});
  document.addEventListener('pointermove',e=>{if(!d||e.pointerId!==d.id||!d.el.dataset.havs)return;const dy=d.y-e.clientY;if(d.v==null&&Math.abs(dy)<6)return;const raw=d.v0+dy/d.h*100;d.v=Math.max(0,Math.min(100,Math.round(raw)));d.el.style.setProperty('--p',d.v+'%');d.el.classList.toggle('on',d.v>0);st(d.v);
   // gummiband: drar man förbi botten eller toppen sträcks reglaget lite åt det hållet, som i Hem-appen
   const ov=raw>100?raw-100:raw<0?raw:0,g=(1-Math.exp(-Math.abs(ov)/45))*.09;d.g=g;d.el.style.transformOrigin=ov<0?'50% 0':'50% 100%';d.el.style.transform=g?'scale('+(1-g*.45)+','+(1+g)+')':''});
- const slut=e=>{if(!d||e.pointerId!==d.id)return;const D=d;d=null;HA.drag=false;D.el.classList.remove('tag');
+ const slut=e=>{if(!d||e.pointerId!==d.id)return;const D=d;d=null;HA.drag=false;haDragT=0;if(pendingRender)render();D.el.classList.remove('tag');
   if(D.g&&!haLugn()){const s=fjader(.42,.55),t=D.el.style.transform;D.el.style.transform='';D.el.animate([{transform:t},{transform:'none'}],{duration:s.d,easing:s.e})}else D.el.style.transform='';if(D.v!=null)HA.vsP=D.v;const x=haLamp();if(!x||e.type==='pointercancel'){render();return}
   if(D.v==null)ACT.haTog(x.id);else if(D.v===0)haAv(x);else haLampSkicka(x,{b:D.v})};
  document.addEventListener('pointerup',slut);document.addEventListener('pointercancel',slut)})();
@@ -2391,11 +2393,11 @@ const haMalLagg=j=>{const M=HA.mal;if(!M)return;(j.lampor||[]).forEach(l=>{const
   d={el,x0:e.clientX,y0:e.clientY,b0:parseFloat(el.style.getPropertyValue('--p'))||0,w:el.getBoundingClientRect().width,id:e.pointerId,on:false,v:null}},true);
  document.addEventListener('pointermove',e=>{if(!d||e.pointerId!==d.id)return;const dx=e.clientX-d.x0,dy=e.clientY-d.y0;
   if(!d.on){if(Math.abs(dy)>10&&Math.abs(dy)>Math.abs(dx)){d=null;return}if(Math.abs(dx)<8||Math.abs(dx)<Math.abs(dy)*1.2)return;
-   d.on=true;d.x0=e.clientX;HA.drag=true;d.el.classList.add('ha-drar');try{d.el.setPointerCapture(e.pointerId)}catch(z){}}
+   d.on=true;d.x0=e.clientX;HA.drag=true;haDragT=Date.now();d.el.classList.add('ha-drar');try{d.el.setPointerCapture(e.pointerId)}catch(z){}}
   const v=Math.max(0,Math.min(100,Math.round(d.b0+(e.clientX-d.x0)/d.w*100)));if(v===d.v)return;
   if((v===0||v===100)&&d.v!=null)u5Tick();d.v=v;d.el.style.setProperty('--p',v+'%');if(d.el.dataset.hm){const q=d.el.querySelector('.ham-pct');if(q)q.textContent=v+' %';return}d.el.classList.toggle('on',v>0);
   const s=d.el.querySelector('.ha-s');if(s)s.textContent=v?v+' %':'Av'},{passive:true});
- const slut=e=>{if(!d||e.pointerId!==d.id)return;const D=d;d=null;if(!D.on)return;klar=Date.now();HA.drag=false;D.el.classList.remove('ha-drar');
+ const slut=e=>{if(!d||e.pointerId!==d.id)return;const D=d;d=null;if(!D.on)return;klar=Date.now();HA.drag=false;haDragT=0;if(pendingRender)render();D.el.classList.remove('ha-drar');
   if(D.el.dataset.hm){if(D.v==null)return render();return habVolSkicka(D.v,habKortP(D.el))}
   const D0=haData(),x=D0&&(D0.lampor||[]).find(l=>l.id===D.el.dataset.id);if(!x||D.v==null)return render();
   if(D.v===0)haAv(x);else haLampSkicka(x,{b:D.v})};
@@ -2463,7 +2465,9 @@ function habScLista(D){const L=habScAlla(D),har=new Set(L.filter(Boolean).map(s=
 const haAnvL=()=>{try{return JSON.parse(lsGet('haAnv')||'{}')||{}}catch(e){return{}}};
 const haAnvP=(o,id)=>{const v=o[id];return v?v[0]*Math.pow(.5,(Date.now()-v[1])/2592e6):0};
 function haAnv(id){const o=haAnvL(),v=o[id],nu=Date.now();if(v&&nu-v[1]<6e4)return;o[id]=[haAnvP(o,id)+1,nu];try{lsSet('haAnv',JSON.stringify(o))}catch(e){}}
-const haAnvSort=L=>{const o=haAnvL();return L.map((x,i)=>[x,haAnvP(o,x.id),i]).sort((a,b)=>b[1]-a[1]||a[2]-b[2]).map(a=>a[0])};
+// Ordningen efter användning frysts medan man använder lamporna (annars hoppar en lampa upp när man tänder den); den uppdateras först 10 min efter senaste tryck.
+let haAnvF=null;const haAnvO=()=>{const o=haAnvL();if(haAnvF&&Date.now()-Math.max(0,...Object.values(o).map(v=>v[1]||0))<6e5)return haAnvF;return haAnvF=o};
+const haAnvSort=L=>{const o=haAnvO();return L.map((x,i)=>[x,haAnvP(o,x.id),i]).sort((a,b)=>b[1]-a[1]||a[2]-b[2]).map(a=>a[0])};
 function husAlla(D){let h='';const E=haAnvSort(D.lampor||[]),G=D.givare||[];
  const lj=E.filter(x=>x.t==='light'),ut=E.filter(x=>x.t!=='light'),nl=lj.filter(x=>x.on).length,nu=ut.filter(x=>x.on).length;
  const chip=(ik,n,s,on,st)=>'<div class="ha-chip'+(on?' on':'')+'"><span class="ha-i"'+(st||'')+'>'+ik+'</span><span class="ha-tx"><span class="ha-n">'+n+'</span><span class="ha-s">'+s+'</span></span></div>';
@@ -2473,7 +2477,7 @@ function husAlla(D){let h='';const E=haAnvSort(D.lampor||[]),G=D.givare||[];
  if((D.apparater||[]).length)h+='<div class="ha-rh">Apparater</div><div class="ha-g ha-g-v">'+D.apparater.map(haAppTile).join('')+'</div>';
  if((D.media||[]).length)h+='<div class="ha-rh">Högtalare</div><div class="ha-g ha-g-v">'+D.media.map(haMedTile).join('')+'</div>';
  const rum=HA_RUM.filter(r=>E.some(x=>x.rum===r)).concat(E.some(x=>x.rum&&!HA_RUM.includes(x.rum))?[...new Set(E.filter(x=>x.rum&&!HA_RUM.includes(x.rum)).map(x=>x.rum))]:[]).concat(E.some(x=>!x.rum)?['']:[]);
- const ao=haAnvL(),rp=r=>E.filter(x=>(x.rum||'')===r).reduce((s,x)=>s+haAnvP(ao,x.id),0);rum.map((r,i)=>[r,rp(r),i]).sort((a,b)=>b[1]-a[1]||a[2]-b[2]).map(a=>a[0]).forEach(r=>{const R=E.filter(x=>(x.rum||'')===r);h+='<button type="button" class="ha-rh ha-rh-k" data-act="haRumVy" data-id="'+esc(r||'_')+'">'+esc(r||'Övrigt')+'<span class="chev">'+I.chev+'</span></button><div class="ha-g ha-g-v">'+R.map(haTile).join('')+'</div>'});
+ const ao=haAnvO(),rp=r=>E.filter(x=>(x.rum||'')===r).reduce((s,x)=>s+haAnvP(ao,x.id),0);rum.map((r,i)=>[r,rp(r),i]).sort((a,b)=>b[1]-a[1]||a[2]-b[2]).map(a=>a[0]).forEach(r=>{const R=E.filter(x=>(x.rum||'')===r);h+='<button type="button" class="ha-rh ha-rh-k" data-act="haRumVy" data-id="'+esc(r||'_')+'">'+esc(r||'Övrigt')+'<span class="chev">'+I.chev+'</span></button><div class="ha-g ha-g-v">'+R.map(haTile).join('')+'</div>'});
  if(!E.length)h+='<div class="group"><div class="cell"><span class="grow">Inga enheter på tavlan än.</span><button type="button" class="pill" data-act="haAddOpen">'+I.plus+'Lägg till</button></div></div>';
  return h+haGivRader(G,null)+husAuto(D)}
 // Automationer i Hemmet: solljuset (väggdatorns tjänst startar HA-skriptet Solljus, kiosk/ha/solljus.yaml, vid solens upp- eller
@@ -4608,7 +4612,7 @@ if(k==='vara'){const n=S.varaK||'',ing=S.varaTyp==='ing',R=regGet(),F=parseJ(set
    '<div class="group pb-g"><div class="pb-chart'+(P.satt==='jamn'?' jamn':'')+'" style="--snitt:'+(SN.jamn/mx).toFixed(3)+'">'+YK.M.map((x,i)=>'<div class="pb-col'+(i===nu?' nu':'')+'" style="--i:'+i+'"><div class="pb-bar"><i style="height:'+(x.kr/mx*100).toFixed(1)+'%"></i></div><span class="pb-l">'+MON3[x.mo].charAt(0).toUpperCase()+'</span></div>').join('')+'<i class="pb-snitt"></i></div>'+
    '<div class="pb-leg"><span><b class="num">'+kr(YK.tot)+'</b> under '+ty+'</span><span class="num">'+YK.M.reduce((a,x)=>a+x.L.length,0)+' presenter</span></div></div>'+
    '<div class="foot">'+(P.satt==='jamn'?'Samma belopp varje månad i '+P.ar+(P.ar===1?' år':' år framåt')+', så att dyra och billiga år jämnas ut. Beloppet räknas om vid årsskiftet. Linjen visar månadsbeloppet.':'Beloppet följer månadens födelsedagar och ändras från månad till månad.')+' Syns som fast kostnad under Gemensamma fasta i Ekonomi.</div>'+
-   sh('Belopp per present')+group(st('barn','Barn','till och med 18 år',P.barn)+st('tio','Vuxen fyller jämnt','25, 30, 35 …',P.tio)+st('fem','Övriga vuxna','när du valt Alltid present',P.fem))+
+   sh('Belopp per present')+group(st('barn','Barn','övriga år till och med 18',P.barn)+st('tio','Stora år','13, 15, 18, 20, 25, 30 …',P.tio)+st('fem','Övriga vuxna','när du valt Alltid present',P.fem))+
    sh('Kommande presenter')+group(Y.M.filter(x=>x.L.length).map(x=>gh(cap(MON[x.mo]),kr(x.kr))+x.L.map(g=>'<div class="cell pb-p"><span class="grow">'+esc(g.b.name)+'<span class="meta">'+(g.age!=null?(g.age<=18?'Barn, fyller ':'Fyller ')+g.age:'Fyller år')+' · '+g.b.dd+' '+MON3[g.b.mo]+'</span></span><span class="val num">'+kr(g.kr)+'</span></div>').join('')).join('')||emptyCell('Inga presenter de kommande tolv månaderna.'));
   o.innerHTML=sheetHtml('presBud','Presenter','<button type="button" class="tb strong" data-act="sheetClose">Klar</button>',body,enter,'<span class="tb"></span>');return}
  // Familjer: lista (S.fodFamId tom) eller en familj (id eller 'ny') med namn, färg och medlemmar
@@ -6090,11 +6094,11 @@ function setFodEgna(fn){A.user=Date.now();updJSON('onskelista',[],a=>{const o=a.
 // Present: jämna år (0 och 5) och alla barn till och med 18, om födelseåret är känt. Går att ändra per person (alltid/aldrig)
 const bdGiftAuto=age=>age!=null&&(age%5===0||age<=18);
 const fodFam=()=>fodEgna().fam;
-/* Presentbudget: belopp per present (barn till och med 18, vuxen jämnt 30/40…, vuxen halvjämnt 25/35…) och sättet att spara:
+/* Presentbudget: belopp per present (barn till och med 18, stora år 13/15/18 och vuxen jämnt 30/40…, vuxen halvjämnt 25/35…) och sättet att spara:
    jamn = årets presenter delat på tolv, manad = varje månads egna presenter. Sparas som pb i födelsedagsobjektet */
 const PB0={barn:250,tio:500,fem:250,satt:'jamn',ar:5};
 const presBud=()=>{const x=Object.assign({},PB0,fodEgna().pb);['barn','tio','fem'].forEach(k=>{x[k]=Math.max(0,Number(x[k])||0)});if(!['jamn','manad'].includes(x.satt))x.satt='jamn';x.ar=Math.min(10,Math.max(1,Math.round(Number(x.ar)||PB0.ar)));return x};
-const presKr=(age,P)=>age!=null&&age<=18?P.barn:age!=null&&age%5===0?P.tio:P.fem;
+const presKr=(age,P)=>age!=null&&(age===13||age===15||age===18||age>18&&age%5===0)?P.tio:age!=null&&age<=18?P.barn:P.fem;
 // Presenter i en månad 'YYYY-MM': åldern räknas för det året, regeln och personens Alltid/Aldrig som i listan
 function presMan(ym){const P=presBud(),y=+ym.slice(0,4),mo=+ym.slice(5,7)-1;
  return bdays().filter(b=>b.mo===mo).map(b=>{const age=b.yr?y-b.yr:null,g=b.pr===1?true:b.pr===0?false:bdGiftAuto(age);return g?{b,age,kr:presKr(age,P)}:null}).filter(Boolean).sort((a,b)=>a.b.dd-b.b.dd)}
