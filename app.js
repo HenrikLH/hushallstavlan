@@ -4479,7 +4479,7 @@ if(k==='vara'){const n=S.varaK||'',ing=S.varaTyp==='ing',R=regGet(),F=parseJ(set
    '<div class="group pb-g"><div class="pb-chart'+(P.satt==='jamn'?' jamn':'')+'" style="--snitt:'+(SN.jamn/mx).toFixed(3)+'">'+YK.M.map((x,i)=>'<div class="pb-col'+(i===nu?' nu':'')+'" style="--i:'+i+'"><div class="pb-bar"><i style="height:'+(x.kr/mx*100).toFixed(1)+'%"></i></div><span class="pb-l">'+MON3[x.mo].charAt(0).toUpperCase()+'</span></div>').join('')+'<i class="pb-snitt"></i></div>'+
    '<div class="pb-leg"><span><b class="num">'+kr(YK.tot)+'</b> under '+ty+'</span><span class="num">'+YK.M.reduce((a,x)=>a+x.L.length,0)+' presenter</span></div></div>'+
    '<div class="foot">'+(P.satt==='jamn'?'Samma belopp varje månad i '+P.ar+(P.ar===1?' år':' år framåt')+', så att dyra och billiga år jämnas ut. Beloppet räknas om vid årsskiftet. Linjen visar månadsbeloppet.':'Beloppet följer månadens födelsedagar och ändras från månad till månad.')+' Syns som fast kostnad under Gemensamma fasta i Ekonomi.</div>'+
-   sh('Belopp per present')+group(st('barn','Barn','till och med 18 år',P.barn)+st('tio','Vuxen fyller jämnt','25, 30, 35 …',P.tio)+st('fem','Övriga vuxna','när du valt Alltid present',P.fem))+
+   sh('Belopp per present')+group(st('barn','Barn','övriga år till och med 18',P.barn)+st('tio','Stora år','13, 15, 18, 20, 25, 30 …',P.tio)+st('fem','Övriga vuxna','när du valt Alltid present',P.fem))+
    sh('Kommande presenter')+group(Y.M.filter(x=>x.L.length).map(x=>gh(cap(MON[x.mo]),kr(x.kr))+x.L.map(g=>'<div class="cell pb-p"><span class="grow">'+esc(g.b.name)+'<span class="meta">'+(g.age!=null?(g.age<=18?'Barn, fyller ':'Fyller ')+g.age:'Fyller år')+' · '+g.b.dd+' '+MON3[g.b.mo]+'</span></span><span class="val num">'+kr(g.kr)+'</span></div>').join('')).join('')||emptyCell('Inga presenter de kommande tolv månaderna.'));
   o.innerHTML=sheetHtml('presBud','Presenter','<button type="button" class="tb strong" data-act="sheetClose">Klar</button>',body,enter,'<span class="tb"></span>');return}
  // Familjer: lista (S.fodFamId tom) eller en familj (id eller 'ny') med namn, färg och medlemmar
@@ -5960,11 +5960,11 @@ function setFodEgna(fn){A.user=Date.now();updJSON('onskelista',[],a=>{const o=a.
 // Present: jämna år (0 och 5) och alla barn till och med 18, om födelseåret är känt. Går att ändra per person (alltid/aldrig)
 const bdGiftAuto=age=>age!=null&&(age%5===0||age<=18);
 const fodFam=()=>fodEgna().fam;
-/* Presentbudget: belopp per present (barn till och med 18, vuxen jämnt 30/40…, vuxen halvjämnt 25/35…) och sättet att spara:
+/* Presentbudget: belopp per present (barn till och med 18, stora år 13/15/18 och vuxen jämnt 30/40…, vuxen halvjämnt 25/35…) och sättet att spara:
    jamn = årets presenter delat på tolv, manad = varje månads egna presenter. Sparas som pb i födelsedagsobjektet */
 const PB0={barn:250,tio:500,fem:250,satt:'jamn',ar:5};
 const presBud=()=>{const x=Object.assign({},PB0,fodEgna().pb);['barn','tio','fem'].forEach(k=>{x[k]=Math.max(0,Number(x[k])||0)});if(!['jamn','manad'].includes(x.satt))x.satt='jamn';x.ar=Math.min(10,Math.max(1,Math.round(Number(x.ar)||PB0.ar)));return x};
-const presKr=(age,P)=>age!=null&&age<=18?P.barn:age!=null&&age%5===0?P.tio:P.fem;
+const presKr=(age,P)=>age!=null&&(age===13||age===15||age===18||age>18&&age%5===0)?P.tio:age!=null&&age<=18?P.barn:P.fem;
 // Presenter i en månad 'YYYY-MM': åldern räknas för det året, regeln och personens Alltid/Aldrig som i listan
 function presMan(ym){const P=presBud(),y=+ym.slice(0,4),mo=+ym.slice(5,7)-1;
  return bdays().filter(b=>b.mo===mo).map(b=>{const age=b.yr?y-b.yr:null,g=b.pr===1?true:b.pr===0?false:bdGiftAuto(age);return g?{b,age,kr:presKr(age,P)}:null}).filter(Boolean).sort((a,b)=>a.b.dd-b.b.dd)}
