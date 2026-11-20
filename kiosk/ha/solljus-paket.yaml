@@ -100,8 +100,11 @@ automation:
           {{ states('input_text.solljus_upp_lampa') not in ('', 'unknown', 'unavailable')
              and (trigger.id == 'fore' or states('input_number.solljus_upp_off') | int(0) >= 0) }}
     actions:
-      - delay:
-          minutes: "{{ [states('input_number.solljus_upp_off') | int(0), 0] | max if trigger.id == 'efter' else 0 }}"
+      # vänta tills solen + förskjutningen: läses om varje minut, så en ändring i appen gäller även medan den väntar
+      - variables:
+          t0: "{{ now().timestamp() }}"
+      - wait_template: >-
+          {{ trigger.id == 'fore' or now().timestamp() >= t0 + ([states('input_number.solljus_upp_off') | int(0), 0] | max) * 60 }}
       - action: script.turn_on
         target:
           entity_id: script.solljus
@@ -132,8 +135,11 @@ automation:
           {{ states('input_text.solljus_ned_lampa') not in ('', 'unknown', 'unavailable')
              and (trigger.id == 'fore' or states('input_number.solljus_ned_off') | int(0) >= 0) }}
     actions:
-      - delay:
-          minutes: "{{ [states('input_number.solljus_ned_off') | int(0), 0] | max if trigger.id == 'efter' else 0 }}"
+      # vänta tills solen + förskjutningen: läses om varje minut, så en ändring i appen gäller även medan den väntar
+      - variables:
+          t0: "{{ now().timestamp() }}"
+      - wait_template: >-
+          {{ trigger.id == 'fore' or now().timestamp() >= t0 + ([states('input_number.solljus_ned_off') | int(0), 0] | max) * 60 }}
       - action: script.turn_on
         target:
           entity_id: script.solljus

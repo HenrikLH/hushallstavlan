@@ -3,10 +3,12 @@
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
 
-## Tomma himlen i telefonens Översikt (förslag, väntar på Henriks val)
-- Ägare Claude, gren `claude/project-thread-dbf4h6`. Henrik 20/11: mycket tom yta ovanför/till höger om klockan i Skog-toppen.
-- Förslag bakom `ht.otTopp` (Henrik bad 20/11 om kombon D+C = `e`: kort topp, vädret bredvid klockan; a hälsning, b middag ikväll + nästa händelse, c vädret i himlen och väderkortet utan temp, d kortare topp) i `otTopp()`/`telT3`; CSS sist i `<style>`. Scenario `verktyg/emu/tom-himmel.js`, bilder /mnt/project-files/tom-himmel/.
-- Nästa: gör valt förslag till standard, ta bort de andra, versionshöjning och publicering vid "Pusha".
+## Lampor: stabil ordning + reglaget hoppar inte (publicerad ht-v416, ångra-gren `version-fore-lampor-stabil`)
+- Henrik 20/11: ordningen ändrades när en lampa tändes, och ljusstyrkan hoppade tillbaka en stund efter släpp. Orsaker: `haAnvSort` sorterade om direkt efter `haAnv` (nu fryst ordning `haAnvO`, uppdateras 10 min efter senaste tryck); en omritning mitt i draget bytte ut reglaget/brickan (nu väntar `doRender` medan `haDragT` är satt, högst 15 s).
+- Test: `verktyg/emu/lampa-slider.js` (ritar om mitt i draget), smart-hem-tonsteg, alla-flikar telefon + vägg Skog gröna. smart-hem-rorelse och hemmet-scener faller även på main.
+
+## Kort Skog-topp med vädret bredvid klockan (publicerad ht-v417, ångra-gren `version-fore-tom-himmel`)
+- Henrik 20/11: tom himmel ovanför klockan på telefonens Skog-Översikt. Valde kombo av förslagen D+C: kortare topp, väderikon + temp + H/L till höger om klockan (`otTopp()`), väderkortet utan ikon/temp (`.ot-tpw`). Gren `claude/project-thread-dbf4h6`, scenario `verktyg/emu/tom-himmel.js`.
 
 ## Presentpengar 13, 15 och 18 (publicerad ht-v415, ångra-gren `version-fore-presentpengar`)
 - Henrik 20/11: barn får 500 kr (beloppet "Stora år", `pb.tio`) när de fyller 13, 15 och 18, annars 250 kr (`pb.barn`) till och med 18; vuxna 500 kr vid x0/x5 som förut. Regeln i `presKr`. Test: fod-familjer.js (budgetkontrollerna gröna; faller senare på borttagen Ekonomi-flik, även på main), alla-flikar telefon grön.
@@ -35,6 +37,7 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 - Installerat på Surfacen 2026-11-17 (Henriks "Kör"): tjänsten 2ccbdf1 (backup `~/.local/bin/ljussensor.py.fore-solljus`), paketet i `config/packages/solljus.yaml`, `homeassistant: packages:` tillagt sist i configuration.yaml (backup `.fore-solljus`), HA omstartad. Lampa = Vägglampa `light.kajplats_e27_ws_globe_1521lm` (2202–6535 K); förvalet valde först Vitrinskåp, rättat i 23025d3 (HA-namnet). Båda automationerna på.
 - 17/11 Henrik: slutfärg och slutljusstyrka ställs in i appen för båda (bladets "När det är klart").
 - Slutljuset installerat på Surfacen 17/11 (tjänst b7483e6, backup `*.fore-slutljus`); /ha visar upp 6535 K/100 %, ned 2202 K/35 %. Test: `python3 verktyg/solljus-test.py`, `verktyg/emu/solljus.js`, alla-flikar telefon+vägg gröna på ht-v411.
+- 2026-11-20: fördröjningen efter solen är nu `wait_template` (sol-tid + aktuell `_off`, läses om varje minut) i stället för fast `delay`, så en ändring i appen gäller även medan automationen redan väntar (Henrik ändrade 19/11 08:07 mitt i väntan och lampan kom ändå 08:55). Provkört i HA 2026.2. **Väntar på Henriks "Kör":** kopiera paketet till `config/packages/solljus.yaml` (backup `.fore-vanta`) och starta om HA.
 
 ## Googles modern-web-guidance + snabbare Recept-flik (publicerad ht-v407, ångra-gren `version-fore-recept-snabb`, PR #117)
 - Ägare Claude, gren `claude/project-thread-dt5nhs`. Henrik 15/11: utvärdera pluginet och gå igenom appen mot det. Pluginet påslaget i `.claude/settings.json`, regel i AGENTS.md (bara vid ny webbfunktion/prestanda/tillgänglighet).
