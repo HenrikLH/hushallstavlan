@@ -3,6 +3,10 @@
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
 
+## Lampor: stabil ordning + reglaget hoppar inte (publicerad ht-v416, ångra-gren `version-fore-lampor-stabil`)
+- Henrik 20/11: ordningen ändrades när en lampa tändes, och ljusstyrkan hoppade tillbaka en stund efter släpp. Orsaker: `haAnvSort` sorterade om direkt efter `haAnv` (nu fryst ordning `haAnvO`, uppdateras 10 min efter senaste tryck); en omritning mitt i draget bytte ut reglaget/brickan (nu väntar `doRender` medan `haDragT` är satt, högst 15 s).
+- Test: `verktyg/emu/lampa-slider.js` (ritar om mitt i draget), smart-hem-tonsteg, alla-flikar telefon + vägg Skog gröna. smart-hem-rorelse och hemmet-scener faller även på main.
+
 ## Presentpengar 13, 15 och 18 (publicerad ht-v415, ångra-gren `version-fore-presentpengar`)
 - Henrik 20/11: barn får 500 kr (beloppet "Stora år", `pb.tio`) när de fyller 13, 15 och 18, annars 250 kr (`pb.barn`) till och med 18; vuxna 500 kr vid x0/x5 som förut. Regeln i `presKr`. Test: fod-familjer.js (budgetkontrollerna gröna; faller senare på borttagen Ekonomi-flik, även på main), alla-flikar telefon grön.
 

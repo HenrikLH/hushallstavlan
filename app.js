@@ -825,7 +825,7 @@ function planPortions(){const ids=new Set();D().menu.forEach(m=>{if(m.recipe)ids
 
 /* ---------- render ---------- */
 /* ---------- render ---------- */
-let rq=0,pendingRender=false,bladDrag=null;
+let rq=0,pendingRender=false,bladDrag=null,haDragT=0;// haDragT: ett lampreglage dras just nu (omritning väntar, annars byts reglaget ut under fingret och hoppar tillbaka)
 function render(){if(rq)return;rq=setTimeout(()=>{rq=0;doRender()},0)}
 function busyTyping(){const a=document.activeElement;return a&&a.closest&&a.closest('#main,#overlay')&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)&&!/^(checkbox|radio|range)$/.test(a.type)}
 function renderStatus(){const el=document.getElementById('sync');if(el)el.outerHTML=statusHtml()}
@@ -867,7 +867,7 @@ function morf(live,a,b){const lk=[...live.childNodes].filter(x=>!(x.nodeType===1
   for(const o of x.attributes)if(!y.attributes.getNamedItemNS(o.namespaceURI,o.localName))l.removeAttributeNS(o.namespaceURI,o.localName);
   if(y.localName==='template'||y.localName==='textarea'){if(l.innerHTML!==y.innerHTML)l.innerHTML=y.innerHTML;continue}
   morf(l,x,y)}}
-function doRender(){if(motionDrag||sheetDrag||bladDrag){pendingRender=true;return}applyPersonColors();applyAccent();
+function doRender(){if(motionDrag||sheetDrag||bladDrag||haDragT&&Date.now()-haDragT<15e3){pendingRender=true;return}applyPersonColors();applyAccent();
  if(!S.key||!S.data)document.getElementById('create-dock')?.remove();
  document.body.classList.toggle('wall',S.wall);document.body.classList.toggle('t3',ovNy()==='h'||document.documentElement.classList.contains('skog'));document.body.classList.toggle('sido',sidoOn());document.body.classList.toggle('sido-ut',sidoOn()&&VSIDO);document.body.classList.toggle('sido-over',VSIDOL==='over');document.body.classList.toggle('is-night',S.view==='oversikt'&&nightOn());document.body.dataset.view=S.view;
  document.body.classList.toggle('cook-open',!!S.cook);
@@ -2247,11 +2247,11 @@ function haKo(id,body,undo){const Q=HA.ko||(HA.ko={});if(Q[id]){const n=Object.a
 const haMalLagg=j=>{const M=HA.mal;if(!M)return;(j.lampor||[]).forEach(l=>{const v=M[l.id];if(!v)return;if(v.f&&l.on===v.m.on){delete M[l.id];return}if(Date.now()-v.t<HA_MAL||HA.ko&&HA.ko[l.id])Object.assign(l,v.m);else delete M[l.id]})};
 // det lodräta reglaget: drag relativt där fingret började (hoppar inte vid tryck), 0 % släcker, tryck utan drag tänder/släcker
 (()=>{let d=null;const st=v=>{const el=document.querySelector('[data-hav="s"]');if(el)el.textContent=v?v+' %':'Av'};
- document.addEventListener('pointerdown',e=>{const el=e.target.closest('.ha-vs');if(!el||e.button>0)return;e.preventDefault();d={el,y:e.clientY,v0:parseFloat(el.style.getPropertyValue('--p'))||0,v:null,h:el.getBoundingClientRect().height,id:e.pointerId};try{el.setPointerCapture(e.pointerId)}catch(_){}HA.drag=true;el.classList.add('tag')});
+ document.addEventListener('pointerdown',e=>{const el=e.target.closest('.ha-vs');if(!el||e.button>0)return;e.preventDefault();d={el,y:e.clientY,v0:parseFloat(el.style.getPropertyValue('--p'))||0,v:null,h:el.getBoundingClientRect().height,id:e.pointerId};try{el.setPointerCapture(e.pointerId)}catch(_){}HA.drag=true;haDragT=Date.now();el.classList.add('tag')});
  document.addEventListener('pointermove',e=>{if(!d||e.pointerId!==d.id||!d.el.dataset.havs)return;const dy=d.y-e.clientY;if(d.v==null&&Math.abs(dy)<6)return;const raw=d.v0+dy/d.h*100;d.v=Math.max(0,Math.min(100,Math.round(raw)));d.el.style.setProperty('--p',d.v+'%');d.el.classList.toggle('on',d.v>0);st(d.v);
   // gummiband: drar man förbi botten eller toppen sträcks reglaget lite åt det hållet, som i Hem-appen
   const ov=raw>100?raw-100:raw<0?raw:0,g=(1-Math.exp(-Math.abs(ov)/45))*.09;d.g=g;d.el.style.transformOrigin=ov<0?'50% 0':'50% 100%';d.el.style.transform=g?'scale('+(1-g*.45)+','+(1+g)+')':''});
- const slut=e=>{if(!d||e.pointerId!==d.id)return;const D=d;d=null;HA.drag=false;D.el.classList.remove('tag');
+ const slut=e=>{if(!d||e.pointerId!==d.id)return;const D=d;d=null;HA.drag=false;haDragT=0;if(pendingRender)render();D.el.classList.remove('tag');
   if(D.g&&!haLugn()){const s=fjader(.42,.55),t=D.el.style.transform;D.el.style.transform='';D.el.animate([{transform:t},{transform:'none'}],{duration:s.d,easing:s.e})}else D.el.style.transform='';if(D.v!=null)HA.vsP=D.v;const x=haLamp();if(!x||e.type==='pointercancel'){render();return}
   if(D.v==null)ACT.haTog(x.id);else if(D.v===0)haAv(x);else haLampSkicka(x,{b:D.v})};
  document.addEventListener('pointerup',slut);document.addEventListener('pointercancel',slut)})();
@@ -2262,11 +2262,11 @@ const haMalLagg=j=>{const M=HA.mal;if(!M)return;(j.lampor||[]).forEach(l=>{const
   d={el,x0:e.clientX,y0:e.clientY,b0:parseFloat(el.style.getPropertyValue('--p'))||0,w:el.getBoundingClientRect().width,id:e.pointerId,on:false,v:null}},true);
  document.addEventListener('pointermove',e=>{if(!d||e.pointerId!==d.id)return;const dx=e.clientX-d.x0,dy=e.clientY-d.y0;
   if(!d.on){if(Math.abs(dy)>10&&Math.abs(dy)>Math.abs(dx)){d=null;return}if(Math.abs(dx)<8||Math.abs(dx)<Math.abs(dy)*1.2)return;
-   d.on=true;d.x0=e.clientX;HA.drag=true;d.el.classList.add('ha-drar');try{d.el.setPointerCapture(e.pointerId)}catch(z){}}
+   d.on=true;d.x0=e.clientX;HA.drag=true;haDragT=Date.now();d.el.classList.add('ha-drar');try{d.el.setPointerCapture(e.pointerId)}catch(z){}}
   const v=Math.max(0,Math.min(100,Math.round(d.b0+(e.clientX-d.x0)/d.w*100)));if(v===d.v)return;
   if((v===0||v===100)&&d.v!=null)u5Tick();d.v=v;d.el.style.setProperty('--p',v+'%');if(d.el.dataset.hm){const q=d.el.querySelector('.ham-pct');if(q)q.textContent=v+' %';return}d.el.classList.toggle('on',v>0);
   const s=d.el.querySelector('.ha-s');if(s)s.textContent=v?v+' %':'Av'},{passive:true});
- const slut=e=>{if(!d||e.pointerId!==d.id)return;const D=d;d=null;if(!D.on)return;klar=Date.now();HA.drag=false;D.el.classList.remove('ha-drar');
+ const slut=e=>{if(!d||e.pointerId!==d.id)return;const D=d;d=null;if(!D.on)return;klar=Date.now();HA.drag=false;haDragT=0;if(pendingRender)render();D.el.classList.remove('ha-drar');
   if(D.el.dataset.hm){if(D.v==null)return render();return habVolSkicka(D.v,habKortP(D.el))}
   const D0=haData(),x=D0&&(D0.lampor||[]).find(l=>l.id===D.el.dataset.id);if(!x||D.v==null)return render();
   if(D.v===0)haAv(x);else haLampSkicka(x,{b:D.v})};
@@ -2334,7 +2334,9 @@ function habScLista(D){const L=habScAlla(D),har=new Set(L.filter(Boolean).map(s=
 const haAnvL=()=>{try{return JSON.parse(lsGet('haAnv')||'{}')||{}}catch(e){return{}}};
 const haAnvP=(o,id)=>{const v=o[id];return v?v[0]*Math.pow(.5,(Date.now()-v[1])/2592e6):0};
 function haAnv(id){const o=haAnvL(),v=o[id],nu=Date.now();if(v&&nu-v[1]<6e4)return;o[id]=[haAnvP(o,id)+1,nu];try{lsSet('haAnv',JSON.stringify(o))}catch(e){}}
-const haAnvSort=L=>{const o=haAnvL();return L.map((x,i)=>[x,haAnvP(o,x.id),i]).sort((a,b)=>b[1]-a[1]||a[2]-b[2]).map(a=>a[0])};
+// Ordningen efter användning frysts medan man använder lamporna (annars hoppar en lampa upp när man tänder den); den uppdateras först 10 min efter senaste tryck.
+let haAnvF=null;const haAnvO=()=>{const o=haAnvL();if(haAnvF&&Date.now()-Math.max(0,...Object.values(o).map(v=>v[1]||0))<6e5)return haAnvF;return haAnvF=o};
+const haAnvSort=L=>{const o=haAnvO();return L.map((x,i)=>[x,haAnvP(o,x.id),i]).sort((a,b)=>b[1]-a[1]||a[2]-b[2]).map(a=>a[0])};
 function husAlla(D){let h='';const E=haAnvSort(D.lampor||[]),G=D.givare||[];
  const lj=E.filter(x=>x.t==='light'),ut=E.filter(x=>x.t!=='light'),nl=lj.filter(x=>x.on).length,nu=ut.filter(x=>x.on).length;
  const chip=(ik,n,s,on,st)=>'<div class="ha-chip'+(on?' on':'')+'"><span class="ha-i"'+(st||'')+'>'+ik+'</span><span class="ha-tx"><span class="ha-n">'+n+'</span><span class="ha-s">'+s+'</span></span></div>';
@@ -2344,7 +2346,7 @@ function husAlla(D){let h='';const E=haAnvSort(D.lampor||[]),G=D.givare||[];
  if((D.apparater||[]).length)h+='<div class="ha-rh">Apparater</div><div class="ha-g ha-g-v">'+D.apparater.map(haAppTile).join('')+'</div>';
  if((D.media||[]).length)h+='<div class="ha-rh">Högtalare</div><div class="ha-g ha-g-v">'+D.media.map(haMedTile).join('')+'</div>';
  const rum=HA_RUM.filter(r=>E.some(x=>x.rum===r)).concat(E.some(x=>x.rum&&!HA_RUM.includes(x.rum))?[...new Set(E.filter(x=>x.rum&&!HA_RUM.includes(x.rum)).map(x=>x.rum))]:[]).concat(E.some(x=>!x.rum)?['']:[]);
- const ao=haAnvL(),rp=r=>E.filter(x=>(x.rum||'')===r).reduce((s,x)=>s+haAnvP(ao,x.id),0);rum.map((r,i)=>[r,rp(r),i]).sort((a,b)=>b[1]-a[1]||a[2]-b[2]).map(a=>a[0]).forEach(r=>{const R=E.filter(x=>(x.rum||'')===r);h+='<button type="button" class="ha-rh ha-rh-k" data-act="haRumVy" data-id="'+esc(r||'_')+'">'+esc(r||'Övrigt')+'<span class="chev">'+I.chev+'</span></button><div class="ha-g ha-g-v">'+R.map(haTile).join('')+'</div>'});
+ const ao=haAnvO(),rp=r=>E.filter(x=>(x.rum||'')===r).reduce((s,x)=>s+haAnvP(ao,x.id),0);rum.map((r,i)=>[r,rp(r),i]).sort((a,b)=>b[1]-a[1]||a[2]-b[2]).map(a=>a[0]).forEach(r=>{const R=E.filter(x=>(x.rum||'')===r);h+='<button type="button" class="ha-rh ha-rh-k" data-act="haRumVy" data-id="'+esc(r||'_')+'">'+esc(r||'Övrigt')+'<span class="chev">'+I.chev+'</span></button><div class="ha-g ha-g-v">'+R.map(haTile).join('')+'</div>'});
  if(!E.length)h+='<div class="group"><div class="cell"><span class="grow">Inga enheter på tavlan än.</span><button type="button" class="pill" data-act="haAddOpen">'+I.plus+'Lägg till</button></div></div>';
  return h+haGivRader(G,null)+husAuto(D)}
 // Automationer i Hemmet: solljuset (väggdatorns tjänst startar HA-skriptet Solljus, kiosk/ha/solljus.yaml, vid solens upp- eller
