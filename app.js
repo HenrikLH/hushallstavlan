@@ -1620,12 +1620,12 @@ function wallT3(){const fk=otFodKort();return'<div class="ot ot-v ot-'+otFas()+(
 function otFodKort(){const L=bdNext(bdays()).filter(b=>b.days<=60).slice(0,3),P=presBud();if(!L.length)return'';
  const rad=b=>'<button type="button" class="ot-fr'+(b.days<2?' nu':'')+'" data-act="nav" data-id="fod"'+bdSt(b)+'><span class="ot-fd num">'+b.dd+' '+MON3[b.mo]+'</span><b class="ot-fn">'+bdRubrik(b)+'</b><small>'+esc(bdWhen(b))+(b.gift&&b.days<=14?' · '+presKr(b.age,P)+' kr':'')+'</small></button>';
  return'<section class="ot-c ot-fk"><button type="button" class="ot-fh" data-act="nav" data-id="fod"><span class="ot-hi">'+I.cake+'</span><b>Födelsedagar</b>'+I.chev+'</button><div class="ot-fl">'+L.map(rad).join('')+'</div></section>'}
-/* Förslag (ht.otTopp=a|b|c|d): vad den tomma himlen i telefonens topp kan visa. a hälsning, b idag i korthet, c vädret i himlen, d kortare topp */
+/* Förslag (ht.otTopp=a|b|c|d|e): vad den tomma himlen i telefonens topp kan visa. a hälsning, b idag i korthet, c vädret i himlen, d kortare topp, e = c+d */
 function otTopp(sub){const v=lsGet('otTopp')||'';if(v==='a')return'<div class="ot-tpa">'+esc(sub)+'</div>';
  if(v==='b'){const t=today(),n=new Date(),nu=pad(n.getHours())+':'+pad(n.getMinutes()),m=D().menu.filter(x=>x.date===t&&x.title).map(x=>x.title)[0],e=D().events.filter(x=>x.date===t&&!isBdEv(x)&&x.time&&String(x.time).slice(0,5)>=nu).sort((a,b)=>String(a.time).localeCompare(String(b.time)))[0],tm=addDays(t,1),e2=e?null:D().events.filter(x=>x.date===tm&&!isBdEv(x)).sort((a,b)=>String(a.time||'').localeCompare(String(b.time||'')))[0];
   const r=(ic,k,tx,act,id)=>'<button type="button" class="ot-tpr" data-act="nav" data-id="'+id+'"><i>'+ic+'</i><span><small>'+k+'</small><b>'+esc(tx)+'</b></span></button>';
   return'<div class="ot-tpb">'+r(I.fork,'Middag ikväll',m||'Ingen middag planerad','nav','mat')+r(I.cal,e?'Nästa idag':'Imorgon',e?String(e.time).slice(0,5)+' '+e.title:e2?(e2.time?String(e2.time).slice(0,5)+' ':'')+e2.title:'Inget inplanerat','nav','kalender')+'</div>'}
- if(v==='c'){const X=onWx();if(!X)return'';return'<button type="button" class="ot-tpc" data-act="nav" data-id="vader"><span class="ot-tpi"><i>'+wxIco(X.W.hours[0]||{s:X.W.now.s})+'</i><b class="num">'+deg(X.T)+'</b></span><small>'+esc(cap(X.tx))+' · H '+deg(X.hi)+' L '+deg(X.lo)+'</small></button>'}
+ if(v==='c'||v==='e'){const X=onWx();if(!X)return'';return'<button type="button" class="ot-tpc" data-act="nav" data-id="vader"><span class="ot-tpi"><i>'+wxIco(X.W.hours[0]||{s:X.W.now.s})+'</i><b class="num">'+deg(X.T)+'</b></span><small>'+esc((v==='e'?'':cap(X.tx)+' · ')+'H '+deg(X.hi)+' L '+deg(X.lo))+'</small></button>'}
  return''}
 function telT3(){return'<div class="ot ot-t ot-'+otFas()+(lsGet('otTopp')?' ot-tp-'+lsGet('otTopp'):'')+'">'+otHead(true)+otJustNu(true)+otWx(true)+otSchema(true)+otHus(true)+otGora(true)+'</div>'}
 /* ---------- Smart hem (Home Assistant), bara på väggskärmen ----------

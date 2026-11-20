@@ -5,7 +5,7 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 ## Tomma himlen i telefonens Översikt (förslag, väntar på Henriks val)
 - Ägare Claude, gren `claude/project-thread-dbf4h6`. Henrik 20/11: mycket tom yta ovanför/till höger om klockan i Skog-toppen.
-- Förslag bakom `ht.otTopp` (a hälsning, b middag ikväll + nästa händelse, c vädret i himlen och väderkortet utan temp, d kortare topp) i `otTopp()`/`telT3`; CSS sist i `<style>`. Scenario `verktyg/emu/tom-himmel.js`, bilder /mnt/project-files/tom-himmel/.
+- Förslag bakom `ht.otTopp` (Henrik bad 20/11 om kombon D+C = `e`: kort topp, vädret bredvid klockan; a hälsning, b middag ikväll + nästa händelse, c vädret i himlen och väderkortet utan temp, d kortare topp) i `otTopp()`/`telT3`; CSS sist i `<style>`. Scenario `verktyg/emu/tom-himmel.js`, bilder /mnt/project-files/tom-himmel/.
 - Nästa: gör valt förslag till standard, ta bort de andra, versionshöjning och publicering vid "Pusha".
 
 ## Presentpengar 13, 15 och 18 (publicerad ht-v415, ångra-gren `version-fore-presentpengar`)
