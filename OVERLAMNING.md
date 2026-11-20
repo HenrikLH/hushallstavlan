@@ -3,6 +3,11 @@
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
 
+## Tomma himlen i telefonens Översikt (förslag, väntar på Henriks val)
+- Ägare Claude, gren `claude/project-thread-dbf4h6`. Henrik 20/11: mycket tom yta ovanför/till höger om klockan i Skog-toppen.
+- Förslag bakom `ht.otTopp` (a hälsning, b middag ikväll + nästa händelse, c vädret i himlen och väderkortet utan temp, d kortare topp) i `otTopp()`/`telT3`; CSS sist i `<style>`. Scenario `verktyg/emu/tom-himmel.js`, bilder /mnt/project-files/tom-himmel/.
+- Nästa: gör valt förslag till standard, ta bort de andra, versionshöjning och publicering vid "Pusha".
+
 ## Presentpengar 13, 15 och 18 (publicerad ht-v415, ångra-gren `version-fore-presentpengar`)
 - Henrik 20/11: barn får 500 kr (beloppet "Stora år", `pb.tio`) när de fyller 13, 15 och 18, annars 250 kr (`pb.barn`) till och med 18; vuxna 500 kr vid x0/x5 som förut. Regeln i `presKr`. Test: fod-familjer.js (budgetkontrollerna gröna; faller senare på borttagen Ekonomi-flik, även på main), alla-flikar telefon grön.
 
