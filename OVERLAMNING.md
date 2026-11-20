@@ -7,7 +7,7 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 - Henrik 20/11: ordningen ändrades när en lampa tändes, och ljusstyrkan hoppade tillbaka en stund efter släpp. Orsaker: `haAnvSort` sorterade om direkt efter `haAnv` (nu fryst ordning `haAnvO`, uppdateras 10 min efter senaste tryck); en omritning mitt i draget bytte ut reglaget/brickan (nu väntar `doRender` medan `haDragT` är satt, högst 15 s).
 - Test: `verktyg/emu/lampa-slider.js` (ritar om mitt i draget), smart-hem-tonsteg, alla-flikar telefon + vägg Skog gröna. smart-hem-rorelse och hemmet-scener faller även på main.
 
-## Kort Skog-topp med vädret bredvid klockan (publicerad ht-v417, ångra-gren `version-fore-tom-himmel`)
+## Kort Skog-topp med vädret bredvid klockan (publicerad ht-v418, ångra-gren `version-fore-tom-himmel`)
 - Henrik 20/11: tom himmel ovanför klockan på telefonens Skog-Översikt. Valde kombo av förslagen D+C: kortare topp, väderikon + temp + H/L till höger om klockan (`otTopp()`), väderkortet utan ikon/temp (`.ot-tpw`). Gren `claude/project-thread-dbf4h6`, scenario `verktyg/emu/tom-himmel.js`.
 
 ## Presentpengar 13, 15 och 18 (publicerad ht-v415, ångra-gren `version-fore-presentpengar`)
