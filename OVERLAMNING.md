@@ -3,6 +3,9 @@
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
 
+## Presentpengar 13, 15 och 18 (publicerad ht-v415, ångra-gren `version-fore-presentpengar`)
+- Henrik 20/11: barn får 500 kr (beloppet "Stora år", `pb.tio`) när de fyller 13, 15 och 18, annars 250 kr (`pb.barn`) till och med 18; vuxna 500 kr vid x0/x5 som förut. Regeln i `presKr`. Test: fod-familjer.js (budgetkontrollerna gröna; faller senare på borttagen Ekonomi-flik, även på main), alla-flikar telefon grön.
+
 ## VarioSpeed på diskmaskinen (publicerad ht-v414, ångra-gren `version-fore-vario`, PR #120)
 - Ägare Claude, gren `claude/project-thread-3jefts`. Henrik 19/11: kunde inte ändra VarioSpeed i appen (fanns inte) och maskinens egen På-knapp väcker den inte förrän den startats från en app.
 - Tjänsten (`ha_disk`/`disk_satt_vario` i ljussensor.py): `vario` från `switch.diskmaskin_variospeed`; Home Connect tar bara emot optionen när maskinen är på, så `switch.diskmaskin_av_pa` slås på först. Valet följer med starten; 409 medan programmet går. Appen: brytare i diskkortet (`ACT.haDiskVario`), dold med gammal tjänst.
