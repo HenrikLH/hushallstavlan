@@ -2,6 +2,12 @@
 
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
+## Hemmet i 3D (förslag, ej publicerat)
+- Ägare Claude, gren `claude/project-thread-yfjs8a`. Mål: 3D-karta över hemmet med smarta enheter där de står. Bakom Utvecklarläge: Hemmet → Hemmet i 3D (rutor H4/H5, vy `hem3d`, kod `h3d*`/`V.hem3d` efter `V.robot`).
+- Modellen byggs ur dammsugarens karta (`HA.km.kl`, rum per pixel): 10 cm-celler, golv per rum, väggar där golv saknas inom 20 cm, dörrar = där två rum möts. Skala ur rummens `m2`. Ortografisk canvas, enheter som knappar ovanpå.
+- Enheternas platser för hushållet i onskelista `{h3d:1,p:{id:[x,y]}}` (kartbildens pixlar); utan plats: mitt i rummet med samma namn, roboten vid `dockPx`.
+- Henriks rättade planritning (godkänd 13/11) läses från onskelista `{h3d:1,plan:[{id,n,p}],skala}` (kartbildens pixlar, 12,5 mm/px) → `h3dPlanModell` med raka väggar och öppningar; utan plan används robotkartan. Planen ligger INTE i repot (publikt); kopia i projektfilerna hem3d/verktyg/plan.json (celler à 10 cm, ×8 = px). Nästa: spara planen i arket (Henriks ok), placera enheter, fråga om den grå zonen mellan kök/sovrum.
+- Test `verktyg/emu/hem3d.js` (LS haDemo+dev), telefon ljust/mörkt + vägg; alla-flikar telefon+vägg gröna.
 
 ## Lampor: stabil ordning + reglaget hoppar inte (publicerad ht-v416, ångra-gren `version-fore-lampor-stabil`)
 - Henrik 20/11: ordningen ändrades när en lampa tändes, och ljusstyrkan hoppade tillbaka en stund efter släpp. Orsaker: `haAnvSort` sorterade om direkt efter `haAnv` (nu fryst ordning `haAnvO`, uppdateras 10 min efter senaste tryck); en omritning mitt i draget bytte ut reglaget/brickan (nu väntar `doRender` medan `haDragT` är satt, högst 15 s).
