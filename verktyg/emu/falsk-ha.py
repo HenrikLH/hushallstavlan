@@ -101,6 +101,7 @@ def karta_png():
     return b'\x89PNG\r\n\x1a\n' + ch(b'IHDR', struct.pack('>IIBBBBB', W, H, 8, 6, 0, 0, 0)) + ch(b'IDAT', zlib.compress(b''.join(rad))) + ch(b'IEND', b'')
 # Google-högtalare (Google Cast) och skriptet Ensam hemma med kanalfält
 S.update({
+ 'person.henrik': ['home', {'friendly_name': 'Henrik'}], 'person.cornelia': ['home', {'friendly_name': 'Cornelia'}],
  'media_player.stor': ['idle', {'friendly_name': 'Stor', 'volume_level': 0.5}],
  'media_player.liten': ['off', {'friendly_name': 'Liten', 'volume_level': 0.3}],
  'script.ensam_hemma': ['off', {'friendly_name': 'Ensam hemma'}],
@@ -134,6 +135,8 @@ class H(http.server.BaseHTTPRequestHandler):
             S['vacuum.dammsugare'][0] = 'docked'; S['sensor.dammsugare_status'][0] = 'charging'; return self.svar(200, {})
         if self.path == '/yttre/stopp':   # testet: någon stoppar roboten i Roborock-appen
             S['vacuum.dammsugare'][0] = 'idle'; S['sensor.dammsugare_status'][0] = 'idle'; return self.svar(200, {})
+        if self.path.startswith('/yttre/person/'):   # testet: någon går hemifrån eller kommer hem
+            e, _, st = self.path[14:].partition('?s='); S[e][0] = st; return self.svar(200, {})
         if self.path.startswith('/yttre/rum/'):   # testet: roboten har kört in i ett annat rum
             S['sensor.dammsugare_nuvarande_rum'][0] = self.path[11:]; return self.svar(200, {})
         if self.path.startswith('/yttre/'):   # testet: någon tänder med strömbrytaren

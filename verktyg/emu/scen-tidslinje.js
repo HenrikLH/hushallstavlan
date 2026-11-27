@@ -20,21 +20,39 @@ module.exports=async(pg,h)=>{
  await steg(2).locator('.hab-add>summary').click();await h.idle(250);
  const forslag=await steg(2).locator('.hab-add [data-act="habScIn"]',{hasText:'Hallen'}).locator('.meta').innerText();console.log('hallen i steg 3:',forslag);if(forslag!=='Släcks')fel('hallen borde släckas i steg 3');
  await steg(2).locator('.hab-add [data-act="habScIn"]',{hasText:'Hallen'}).click();await h.idle(300);
+ // färg: Köket i Direkt får Stearin/varmaste favoriten, Direkt tonas 30 s, steg 3 spelar radio
+ const kok=steg(0).locator('.hab-ljr',{hasText:'Köket'});await kok.locator('.hab-fc').last().click();await h.idle(250);
+ const fn=await kok.locator('.hab-fc.on').count();console.log('vald ton',fn);if(!fn)fel('tonen valdes inte');
+ await steg(0).locator('[data-act="habScTn"][data-id="0|1"]').click();await h.idle(150);await steg(0).locator('[data-act="habScTn"][data-id="0|1"]').click();await h.idle(200);
+ const tn=await steg(0).locator('.hab-tnv').innerText();console.log('övergång',tn);if(tn!=='30 sek')fel('övergång: '+tn);
+ if(await pg.evaluate(()=>window.__d('haMedia().length'))){await steg(2).locator('.hab-add>summary').click();await h.idle(250);await steg(2).locator('[data-act="habScXIn"]',{hasText:'Spela på högtalare'}).click();await h.idle(300);
+  if(!await steg(2).locator('.hab-xr').count())fel('högtalaren lades inte till')}
+ // automatiskt vid solnedgången, 30 min före, vardagar
+ await pg.click('#overlay [data-act="habScAuto"]');await h.idle(300);await pg.click('#overlay [data-act="habScNar"][data-id="ned"]');await h.idle(200);
+ await pg.click('#overlay [data-act="habScOff"][data-id="-1"]');await h.idle(120);await pg.click('#overlay [data-act="habScOff"][data-id="-1"]');await h.idle(120);
+ await pg.click('#overlay [data-act="habScDag"][data-id="5"]');await h.idle(120);await pg.click('#overlay [data-act="habScDag"][data-id="6"]');await h.idle(200);
+ const at=await pg.locator('#overlay [data-act="habScAuto"]').locator('xpath=..').locator('.meta').innerText();console.log('auto',at);if(at!=='Solnedgången, 30 min före · Vardagar')fel('auto: '+at);
+ await pg.evaluate(()=>{const e=document.querySelector('#overlay [data-act="habScAuto"]');e&&e.scrollIntoView({block:'start'})});await h.idle(200);await h.shot('auto');
+ await pg.evaluate(()=>{const e=document.querySelector('#overlay .hab-fl');e&&e.scrollIntoView({block:'start'})});await h.idle(200);await h.shot('farg');
  const slut=await pg.locator('#overlay .hab-fs.slut .grow>span').innerText();console.log('klart',slut);if(slut!=='Efter 15 min')fel('total tid: '+slut);
- await pg.locator('#overlay .hab-fl').scrollIntoViewIfNeeded();await pg.evaluate(()=>{const e=document.querySelector('#overlay .hab-fs.vanta');e&&e.scrollIntoView({block:'start'})});await h.idle(200);await h.shot('tidslinje');await pg.evaluate(()=>{const e=document.querySelector('#overlay .hab-fl');e&&e.scrollIntoView({block:'start'})});await h.idle(200);await h.shot('tidslinje-topp');
+ await pg.locator('#overlay .hab-fl').scrollIntoViewIfNeeded();await pg.evaluate(()=>{const e=document.querySelector('#overlay .hab-fs.vanta');e&&e.scrollIntoView({block:'start'})});await h.idle(200);await h.shot('tidslinje');
  if(process.env.MENY){await steg(2).locator('.hab-add>summary').click();await h.idle(300);await h.shot('tidslinje-meny')}
  await pg.click('#overlay button[type="submit"]');await h.idle(900);
  const sc=await pg.evaluate(()=>{const o=JSON.parse(window.__d('settings().onskelista')||'[]').find(x=>x&&x.hab);return o.sc.filter(Boolean).pop()});
  console.log('sparad st',JSON.stringify(sc.st));
  if(!sc.st||sc.st.length!==2||sc.st[0].m!==5||sc.st[1].m!==15||!sc.st[0].l['light.hall']||!sc.st[0].l['light.hall'].on||!sc.st[1].l['light.hall']||sc.st[1].l['light.hall'].on)fel('stegen sparades fel');
  if(sc.l['light.hall'])fel('hallen ligger kvar i Direkt');
+ console.log('sparad tn/auto',sc.tn,JSON.stringify(sc.auto),JSON.stringify(sc.st[1].x||null));if(sc.tn!==30||!sc.auto||sc.auto.nar!=='ned'||sc.auto.off!==-30||sc.auto.dag.length!==5)fel('tona/auto sparades fel');
  // öppna igen: samma tidslinje
  await pg.locator('#main .hus-sc .ha-st',{hasText:wall?'Scen':'Läggdags'}).last().dispatchEvent('pointerdown');await h.idle(1300);await pg.mouse.up();await h.idle(600);
  const n0=await pg.locator('#overlay .hab-fs.vanta').count();console.log('väntor efter omöppning',n0);
  if(n0){if(n0!==2)fel('tidslinjen lästes inte in igen');await pg.click('#overlay [data-act="habScTill"]');await h.idle(500)}
  // kör scenen: två steg väntar (demo = enhetens timer), Ångra avbryter
  await pg.locator('#main .hus-sc .ha-st',{hasText:wall?'Scen':'Läggdags'}).last().click();await h.idle(400);
- const n=await pg.evaluate(()=>window.__d('(HA.senT||[]).length'));console.log('väntande steg',n);if(n!==2)fel('stegen väntar inte');
+ const n=await pg.evaluate(()=>window.__d('(HA.senQ||[]).length'));console.log('väntande steg',n);if(n!==2)fel('stegen väntar inte');
+ await h.idle(1200);const rad=await pg.locator('#main .hab-vnt b').innerText().catch(()=>'');console.log('nedräkning',rad);if(!/Nästa om \d+:\d\d/.test(rad))fel('ingen nedräkning');
+ await pg.locator('#main .hab-vnt').scrollIntoViewIfNeeded();await h.shot('nedrakning');
+ await pg.click('#main .hab-vnt [data-act="habSenNu"]');await h.idle(400);const n2=await pg.evaluate(()=>window.__d('(HA.senQ||[]).length'));console.log('kvar efter Nu',n2);if(n2!==1)fel('Nu körde inte nästa steg');
  await pg.click('#main .hus-sc .hab-angra');await h.idle(300);
- if(await pg.evaluate(()=>window.__d('(HA.senT||[]).length')))fel('Ångra avbröt inte stegen');
+ if(await pg.evaluate(()=>window.__d('(HA.senQ||[]).length')))fel('Ångra avbröt inte stegen');
 };

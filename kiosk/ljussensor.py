@@ -234,7 +234,8 @@ def ha_las(c):
         f = [x for x in falt.get(s['id']) or [] if x in MEDIA_FALT]
         if f: s['falt'] = f
     return {'lampor': lampor, 'scener': scener, 'givare': givare, 'auto': ha_automationer(alla), 'sol': sol_info(c, alla, time.time()), 'apparater': ha_appar(c, alla), 'media': ha_hogtalare(c, alla),
-            'kanaler': [{'id': k['id'], 'n': k['n'], 'typ': k.get('typ') or 'Radio'} for k in kanaler(c)], 'spotify': 'spotcast' in ha_tjanster(c) or bool(ha_spotify_spelare(alla))}
+            'kanaler': [{'id': k['id'], 'n': k['n'], 'typ': k.get('typ') or 'Radio'} for k in kanaler(c)], 'spotify': 'spotcast' in ha_tjanster(c) or bool(ha_spotify_spelare(alla)),
+            'senare': senare_info(), 'schema': len(SCHEMA['l'])}
 
 # Apparater: robotdammsugare (Roborock) och diskmaskin (Home Connect). Hittas själva bland HA:s entiteter; "apparater" i
 # HA_FIL kan ange egna (vacuum.x / prefixet för diskmaskinen). Entiteternas namn är på svenska i HA, så de känns igen
@@ -991,26 +992,131 @@ def ha_val(d):
     ha_uppdatera()
     return 200, {'ok': True, 'v': HA['v']}
 
-# Scenens senare steg (appens tidslinje): {"nyckel": "scen", "senare": [{"om": sekunder, "steg": [{"id", "gor", "b", "k", "hs"}]}]}.
-# Tjänsten väntar och kör stegen själv, så de blir av även om telefonen låses. Samma nyckel igen (nästa scen, Ångra med tom lista) avbryter väntande steg.
+# Scenens senare steg (appens tidslinje): {"nyckel": "scen", "n": scenens namn, "senare": [{"om": sekunder, "txt": text, "steg": [kommandon]}]}.
+# Ett kommando är det appen annars skickar själv: lampa {"id", "gor", "b", "k", "hs", "t"}, högtalare {"media", "gor", "kanal", "vol"},
+# apparat {"app", "gor"} eller scen {"scen"}. Tjänsten väntar och kör stegen själv, så de blir av även om telefonen låses.
+# Samma nyckel igen (nästa scen, Ångra med tom lista) avbryter väntande steg; "senare": "nasta" kör nästa steg direkt.
+# Väntande steg syns i /ha som "senare": [{"n", "t", "txt"}] så att alla skärmar kan visa nedräkningen.
 SENARE = {'lock': threading.Lock(), 't': {}}
+STEG_NYCKLAR = ('id', 'gor', 'b', 'k', 'hs', 't', 'scen', 'var', 'media', 'kanal', 'vol', 'app')
+
+def steg_kor(steg):
+    for s in steg:
+        try: ha_styr({k: s.get(k) for k in STEG_NYCKLAR if s.get(k) is not None})
+        except Exception as e: logg('senare: ' + repr(e)[:120])
+
+def senare_info():
+    with SENARE['lock']:
+        return sorted(({'n': x['n'], 't': round(x['t']), 'txt': x['txt']} for L in SENARE['t'].values() for x in L), key=lambda x: x['t'])
 
 def ha_senare(d):
     nyckel = str(d.get('nyckel') or 'scen')[:20]
+    if d.get('senare') == 'nasta':
+        with SENARE['lock']:
+            L = SENARE['t'].get(nyckel) or []
+            x = min(L, key=lambda y: y['t']) if L else None
+            if x: x['tm'].cancel(); L.remove(x)
+        if x: steg_kor(x['steg'])
+        ha_uppdatera(); return 200, {'ok': True, 'v': HA['v']}
     with SENARE['lock']:
-        for t in SENARE['t'].pop(nyckel, []): t.cancel()
-        L = []
-        for x in (d.get('senare') or [])[:8]:
+        for x in SENARE['t'].pop(nyckel, []): x['tm'].cancel()
+        L, n = [], str(d.get('n') or 'Scenen')[:40]
+        for x in (d.get('senare') or [])[:8] if isinstance(d.get('senare'), list) else []:
             if not isinstance(x, dict): continue
             om = max(1, min(4 * 3600, int(x.get('om') or 0)))
-            steg = [s for s in (x.get('steg') or [])[:20] if isinstance(s, dict) and s.get('id')]
-            def kor(steg=steg):
-                for s in steg:
-                    try: ha_styr({k: s.get(k) for k in ('id', 'gor', 'b', 'k', 'hs')})
-                    except Exception as e: logg('senare: ' + repr(e)[:120])
-            t = threading.Timer(om, kor); t.daemon = True; t.start(); L.append(t)
+            steg = [s for s in (x.get('steg') or [])[:20] if isinstance(s, dict) and any(s.get(k) for k in ('id', 'scen', 'media', 'app'))]
+            if not steg: continue
+            post = {'n': n, 't': time.time() + om, 'txt': str(x.get('txt') or '')[:120], 'steg': steg}
+            def kor(post=post, nyckel=nyckel):
+                with SENARE['lock']:
+                    if post in SENARE['t'].get(nyckel, []): SENARE['t'][nyckel].remove(post)
+                steg_kor(post['steg']); ha_uppdatera()
+            post['tm'] = threading.Timer(om, kor); post['tm'].daemon = True; post['tm'].start(); L.append(post)
         if L: SENARE['t'][nyckel] = L
+    ha_uppdatera()
     return 200, {'ok': True, 'v': HA['v']}
+
+# Scener som startar av sig själva (appens "Starta av sig själv"): {"schema": [{"id", "n", "nar": "tid"|"ned"|"upp"|"borta"|"hemma",
+# "hm": "22:30", "off": minuter (sol), "dag": [0-6, måndag = 0], "mork": 1, "hemma": 1, "nu": [kommandon], "senare": [som ovan]}]}.
+# Appen skickar hela listan när scenerna sparas; tjänsten sparar den och kollar var 20:e sekund. Tid och sol körs högst en gång per dag
+# och bara inom 10 minuter efter klockslaget (inte i efterhand efter en omstart). Hemma/borta = personer (person.*) i Home Assistant.
+SCHEMA_FIL = os.path.expanduser('~/.config/hushallstavlan-scenschema.json')
+SCHEMA = {'l': [], 'kord': {}, 'hemma': None, 'lock': threading.Lock()}
+
+def schema_las():
+    try:
+        with open(SCHEMA_FIL) as f: o = json.load(f)
+        SCHEMA['l'] = o.get('l') or []; SCHEMA['kord'] = o.get('kord') or {}
+    except Exception: pass
+
+def schema_spara():
+    try:
+        os.makedirs(os.path.dirname(SCHEMA_FIL), exist_ok=True)
+        with open(SCHEMA_FIL + '.tmp', 'w') as f: json.dump({'l': SCHEMA['l'], 'kord': SCHEMA['kord']}, f)
+        os.replace(SCHEMA_FIL + '.tmp', SCHEMA_FIL)
+    except Exception as e: logg('schema: ' + repr(e)[:120])
+
+def schema_satt(d):
+    L = []
+    for x in (d.get('schema') or [])[:20]:
+        if not isinstance(x, dict) or x.get('nar') not in ('tid', 'ned', 'upp', 'borta', 'hemma'): continue
+        L.append({'id': str(x.get('id'))[:20], 'n': str(x.get('n') or 'Scen')[:40], 'nar': x['nar'], 'hm': str(x.get('hm') or '22:00')[:5],
+                  'off': max(-180, min(180, int(x.get('off') or 0))), 'dag': [int(i) for i in (x.get('dag') or []) if str(i).isdigit() and 0 <= int(i) <= 6],
+                  'mork': 1 if x.get('mork') else 0, 'hemma': 1 if x.get('hemma') else 0,
+                  'nu': [s for s in (x.get('nu') or [])[:30] if isinstance(s, dict)], 'senare': [s for s in (x.get('senare') or [])[:8] if isinstance(s, dict)]})
+    with SCHEMA['lock']:
+        SCHEMA['l'] = L; schema_spara()
+    ha_uppdatera()
+    return 200, {'ok': True, 'v': HA['v']}
+
+def schema_mal(x, nu):
+    # dagens klockslag (unix-tid) för tid/sol, annars None
+    if x['nar'] == 'tid':
+        h, m = (x['hm'].split(':') + ['0'])[:2]
+        lt = time.localtime(nu)
+        return time.mktime((lt.tm_year, lt.tm_mon, lt.tm_mday, int(h), int(m), 0, 0, 0, -1))
+    if x['nar'] in ('upp', 'ned'):
+        upp, ned = sol_tider(nu)[:2]
+        return (upp if x['nar'] == 'upp' else ned) + x['off'] * 60
+    return None
+
+def schema_kor(x):
+    logg('schema: kör ' + x['n'])
+    steg_kor(x['nu'])
+    if x['senare']: ha_senare({'nyckel': 'scen', 'n': x['n'], 'senare': x['senare']})
+    else: ha_uppdatera()
+
+def schema_kolla(c, nu):
+    with SCHEMA['lock']: L = list(SCHEMA['l'])
+    if not L: return
+    alla = {x['entity_id']: x for x in ha_anrop(c, '/api/states')}
+    pers = [x for e, x in alla.items() if e.startswith('person.')]
+    hemma = sum(1 for x in pers if x.get('state') == 'home') if pers else None
+    forut, SCHEMA['hemma'] = SCHEMA['hemma'], hemma
+    upp, ned = sol_tider(nu)[:2]
+    mork = not (upp <= nu < ned)
+    dag, idag = time.localtime(nu).tm_wday, time.strftime('%Y-%m-%d', time.localtime(nu))
+    for x in L:
+        if x['dag'] and dag not in x['dag']: continue
+        if x['nar'] in ('borta', 'hemma'):
+            if hemma is None or forut is None: continue
+            if not ((x['nar'] == 'borta' and forut > 0 and hemma == 0) or (x['nar'] == 'hemma' and forut == 0 and hemma > 0)): continue
+        else:
+            mal = schema_mal(x, nu)
+            if mal is None or not (mal <= nu < mal + 600) or SCHEMA['kord'].get(x['id']) == idag: continue
+            SCHEMA['kord'][x['id']] = idag; schema_spara()
+        if x['mork'] and not mork: continue
+        if x['hemma'] and not hemma: continue
+        schema_kor(x)
+
+def schema_bevakare():
+    schema_las()
+    while True:
+        try:
+            c = ha_cfg()
+            if c: schema_kolla(c, time.time())
+        except Exception as e: logg('schema: ' + repr(e)[:150])
+        time.sleep(20)
 
 def ha_styr(d):
     c = ha_cfg()
@@ -1021,6 +1127,8 @@ def ha_styr(d):
         return ha_media_styr(c, d)
     if 'senare' in d:
         return ha_senare(d)
+    if 'schema' in d:
+        return schema_satt(d)
     if d.get('sol') in SOL_AUTO:   # {"sol": "upp", "gor": "nu"|"stopp"}
         if d.get('gor') == 'nu': kod, svar = sol_kor(c, d['sol'])
         else: ha_anrop(c, '/api/services/script/turn_off', {'entity_id': SOL_SKRIPT}); kod, svar = 200, {'ok': True}
@@ -1053,6 +1161,8 @@ def ha_styr(d):
         tj = {'vaxla': 'toggle', 'pa': 'turn_on', 'av': 'turn_off'}.get(gor)
         if not tj: return 400, {'fel': 'gor ska vara vaxla, pa eller av'}
         data = {'entity_id': e}
+        if dom == 'light' and tj != 'toggle' and d.get('t'):   # scenens övergång: tona under t sekunder
+            data['transition'] = max(0.0, min(3600.0, float(d['t'])))
         if tj == 'turn_on' and dom == 'light':
             if d.get('b') is not None: data['brightness_pct'] = max(1, min(100, int(d['b'])))
             if d.get('k') is not None: data['color_temp_kelvin'] = max(1500, min(9000, int(d['k'])))
@@ -1632,5 +1742,6 @@ if __name__ == '__main__':
 
     threading.Thread(target=vakthund, daemon=True).start()
     threading.Thread(target=ha_bevakare, daemon=True).start()
+    threading.Thread(target=schema_bevakare, daemon=True).start()
     threading.Thread(target=vanor_bevakare, daemon=True).start()
     http.server.ThreadingHTTPServer(('127.0.0.1', 8777), H).serve_forever()
