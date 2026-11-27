@@ -9,9 +9,25 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 - Henriks rättade planritning (godkänd 13/11) läses från onskelista `{h3d:1,plan:[{id,n,p}],skala}` (kartbildens pixlar, 12,5 mm/px) → `h3dPlanModell` med raka väggar och öppningar; utan plan används robotkartan. Planen ligger INTE i repot (publikt); kopia i projektfilerna hem3d/verktyg/plan.json (celler à 10 cm, ×8 = px). Nästa: spara planen i arket (Henriks ok), placera enheter, fråga om den grå zonen mellan kök/sovrum.
 - Test `verktyg/emu/hem3d.js` (LS haDemo+dev), telefon ljust/mörkt + vägg; alla-flikar telefon+vägg gröna.
 
+## Byt robotens vatten var 14:e dag (publicerad ht-v420, ångra-gren `version-fore-robot-vatten`)
+- Ägare Claude, gren `claude/project-thread-3e0ovq`. Henrik 27/11: påminnelse var 14:e dag att byta robotens vatten. Räknas från `tank.fylld` (dockans givare tom→full eller knappen); `robVattenD`/`robVatten` i app.js. Syns som "Byt vattnet, N dagar gammalt" + knapp Vattnet bytt i dockans kort, och som uppgift "Byt robotens vatten" i Att göra (översikten + Uppgifter, grupp Robotdammsugaren). Bock/knapp = `haTankFylld(id)` (befintlig `{tank:'fylld'}`, ingen ny tjänst eller Kod.gs). Saknas `fylld` räknas det som dags.
+- Test: `verktyg/emu/robot-vatten.js` (haDemo, telefon + vägg), alla-flikar telefon + vägg gröna. Bilder /mnt/project-files/apparater/vattenbyte/.
+
+## Smarta uppmaningar på Översikt (publicerad ht-v421 i Utvecklarläge, ångra-gren `version-fore-smarta-uppmaningar`)
+- Ägare Claude, gren `claude/project-thread-aai13j`. Henrik 27/11: städ som behöver göras ska synas tydligt på Översikt, man ska bli uppmanad; alla "smarta förslag" när de är relevanta. Han valde B (rekommendationen) för utvärdering.
+- `otSmart(tel)` samlar: städpass (förfallet efter intervall, "Senast för N dagar sedan", Starta robot på dammsugning), dagliga rutiner, storstäd snart, försenade uppgifter, salt/spolglans, ingen middag ikväll, veckosedeln tar slut, inköpslista ≥ 8. Robotens vattenbyte ligger kvar i Att göra (`robVatten`).
+- Inställningar → Utvecklarläge → Smarta uppmaningar (bara Skog + DEV, ls `ht.smartx` a/b/c, `SMX()`): A allt i Just nu, B Städ eget kort under Just nu och Att göra utan växlare, C svepbara förslagskort. Väggen: städ i Städkortet med "N dagar sedan", Just nu tar resten.
+- Nästa: Henrik utvärderar; gör sedan valet till standard och ta bort övriga varianter. Test `verktyg/emu/smarta-uppmaningar.js` a/b/c + vägg, alla-flikar telefon + vägg (dev, smartx=b) gröna.
+- Upptäckt: Smart hem-rutan på väggen överlappar (spelande högtalare + två apparater i demo), även på main.
+
 ## Lampor: stabil ordning + reglaget hoppar inte (publicerad ht-v416, ångra-gren `version-fore-lampor-stabil`)
 - Henrik 20/11: ordningen ändrades när en lampa tändes, och ljusstyrkan hoppade tillbaka en stund efter släpp. Orsaker: `haAnvSort` sorterade om direkt efter `haAnv` (nu fryst ordning `haAnvO`, uppdateras 10 min efter senaste tryck); en omritning mitt i draget bytte ut reglaget/brickan (nu väntar `doRender` medan `haDragT` är satt, högst 15 s).
 - Test: `verktyg/emu/lampa-slider.js` (ritar om mitt i draget), smart-hem-tonsteg, alla-flikar telefon + vägg Skog gröna. smart-hem-rorelse och hemmet-scener faller även på main.
+
+## Navigering i telefonen, prov A–D (publicerad ht-v419 i Utvecklarläge, ångra-gren `version-fore-navigering`)
+- Ägare Claude, gren `claude/project-thread-je8yu4`. Henrik 20/11: menyraden fungerar "sådär"; fyra förslag (bilder /mnt/project-files/navigering/) lades som prov under Inställningar → Utvecklarläge → Navigering i telefonen (`ht.navx` a–d, `navxOn()`, bara U5 + DEV + telefon). Gamla `#nav` döljs, `#navx` ritas av `navxRita` efter `addLayout`.
+- A undersidor i menyraden (döljer toppsegmentet), B ikoner + plusknapp, tryck aktiv flik = undersidor, krymper vid scroll, C draglåda med alla delar, D ingen menyrad, genvägar på Översikt + "‹ Översikt".
+- Nästa: Henrik väljer efter test i telefonen; bygg sedan ut valet och ta bort de andra. `alla-flikar.js` klickar på gamla `#nav` och fungerar därför bara med navx av. Test: `verktyg/emu/navigering.js` (LS navx=a..d) ljust/mörkt, alla-flikar telefon + vägg gröna.
 
 ## Kort Skog-topp med vädret bredvid klockan (publicerad ht-v418, ångra-gren `version-fore-tom-himmel`)
 - Henrik 20/11: tom himmel ovanför klockan på telefonens Skog-Översikt. Valde kombo av förslagen D+C: kortare topp, väderikon + temp + H/L till höger om klockan (`otTopp()`), väderkortet utan ikon/temp (`.ot-tpw`). Gren `claude/project-thread-dbf4h6`, scenario `verktyg/emu/tom-himmel.js`.

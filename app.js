@@ -198,6 +198,37 @@ function addToBank(r,quiet,fav){if(!r||inBank(r.id))return false;const snap=bank
  if(!row){if(!quiet)toast('Receptbanken är full. Lägg till fler rader receptbank_N i Inställningar.');return false}
  updJSON(row,[],a=>a.some(x=>x.id===snap.id)?a:a.concat([snap]));if(!quiet)toast('Sparat i receptbanken');return true}
 
+/* ---------- Ny navigering på telefonen (prov i Utvecklarläge, ls ht.navx = a|b|c|d, förslag 2026-11-20) ----------
+   A undersidorna i menyraden, B mindre rad + plusknapp (iOS 26), C draglåda, D Översikt är hemmet. Bara telefon i UI 5.0; gamla #nav döljs. */
+let NAVX=lsGet('navx')||'';const NX={y:0,mini:false,meny:false,lada:false,ty:null};
+function navxOn(){return DEV&&U5&&!S.wall&&/^[abcd]$/.test(NAVX)&&innerWidth<900?NAVX:''}
+function navxDel(){return S.view==='stad'?'uppgifter':HEM_UNDER.includes(S.view)?'hemmet':S.view}
+function navxSubs(d){return d==='mat'?[['mat:vecka','Vecka',I.cal],['mat:inkop','Inköp',I.basket],['mat:recept','Recept',I.bookmark],['mat:bank','Receptbank',I.star],['mat:efter','Efterrätter',I.heart]]:d==='uppgifter'?[['uppgifter:lista','Uppgifter',I.list],['uppgifter:stad','Städ',I.sparkles]]:[]}
+function navxSubNu(d){return d==='mat'?'mat:'+S.matTab:d==='uppgifter'?'uppgifter:'+S.taskTab:''}
+function navxRita(m){const x=navxOn(),c=document.documentElement.classList;['a','b','c','d'].forEach(k=>c.toggle('navx-'+k,x===k));c.toggle('navx',!!x);
+ let el=document.getElementById('navx');if(!x||!S.key||S.cook){if(el)el.remove();return}
+ if(!el){el=document.createElement('div');el.id='navx';document.body.appendChild(el)}
+ const d=navxDel(),sub=navxSubNu(d),subs=navxSubs(d),vi=VIEWS.find(v=>v[0]===d),ac=addContext();
+ const tab=(id,l,ic,on,act)=>'<button type="button" data-act="'+(act||'nav')+'" data-id="'+id+'"'+(on?' aria-current="page"':'')+'>'+ic+'<span>'+l+'</span></button>';
+ const tabs=act=>VIEWS.map(([id,l,ic])=>tab(id,l,ic,id===d,act)).join('');
+ const plus=ac?'<button type="button" class="nx-plus" data-act="navxPlus" aria-label="'+esc(ac.label)+'">'+I.plus+'</button>':'';
+ let h='';
+ if(x==='a'){const s=subs.slice(0,d==='mat'?3:2),su=sub.replace(/:(bank|efter)$/,':recept');
+  h='<div class="nx-a">'+(s.length?'<div class="nx-sub">'+s.map(([id,l])=>'<button type="button" data-act="navxGa" data-id="'+id+'"'+(id===su?' aria-current="page"':'')+'>'+l+'</button>').join('')+'</div>':'')+'<div class="nx-tabs">'+tabs()+'</div></div>'}
+ if(x==='b'){const sl=subs.find(s=>s[0]===sub);
+  h='<div class="nx-b'+(NX.mini?' mini':'')+'">'+tabs('navxTab')+'</div>'+'<button type="button" class="nx-bmini" data-act="navxUt">'+(vi?vi[2]:'')+'<span>'+(vi?vi[1]:'')+(sl?' · '+sl[1]:'')+'</span></button>'+plus+
+   (NX.meny&&subs.length?'<div class="nx-dim" data-act="navxStang"></div><div class="nx-pop">'+subs.map(([id,l,ic])=>'<button type="button" data-act="navxGa" data-id="'+id+'"'+(id===sub?' aria-current="page"':'')+'>'+ic+'<span>'+l+'</span></button>').join('')+'</div>':'')}
+ if(x==='c'){const sl=subs.find(s=>s[0]===sub),g=(t,a)=>'<h4>'+t+'</h4><div class="nx-grid">'+a.map(([id,l,ic])=>'<button type="button" data-act="navxGa" data-id="'+id+'"'+(id===sub||id===d&&!sub?' aria-current="page"':'')+'><i>'+ic+'</i><span>'+l+'</span></button>').join('')+'</div>';
+  h=(NX.lada?'<div class="nx-dim" data-act="navxStang"></div>':'')+'<div class="nx-c'+(NX.lada?' ut':'')+'"><button type="button" class="nx-grip" data-act="navxLada" aria-label="Visa alla delar"><i></i></button><div class="nx-cbar"><button type="button" class="nx-cti" data-act="navxLada">'+(vi?vi[2]:'')+'<b>'+(vi?vi[1]:'')+'</b>'+(sl?'<small>· '+sl[1]+'</small>':'')+'</button>'+plus+'</div>'+
+   (NX.lada?g('Mat',navxSubs('mat').slice(0,4))+g('Hemmet och dagen',[['oversikt','Översikt',I_OV],['hemmet','Hemmet',I.home],['kalender','Kalender',I.cal],['vader','Väder',I_VADER]])+g('Att göra och mer',[['uppgifter:lista','Uppgifter',I.list],['uppgifter:stad','Städ',I.sparkles],['fod','Födelse­dagar',I.cake],['ekonomi','Ekonomi',I_EKO],['settings','Inställ­ningar',I.gear]]):'')+'</div>'}
+ if(x==='d')h=d==='oversikt'?'':'<button type="button" class="nx-dhem" data-act="nav" data-id="oversikt">'+I_OV+'<span>Översikt</span></button>';
+ if(el.__h!==h){el.innerHTML=h;el.__h=h}
+ if(x==='d'&&m){const hd=m.querySelector('header.head');if(hd&&VIEWS.some(v=>v[0]===S.view&&v[0]!=='oversikt')||hd&&S.view==='stad'){if(!hd.querySelector('.nx-back'))hd.insertAdjacentHTML('afterbegin','<button type="button" class="nx-back" data-act="nav" data-id="oversikt">'+I.back+'Översikt</button>')}
+  const wx=S.view==='oversikt'&&m.querySelector('.ot > .ot-wxk');if(wx&&!m.querySelector('.nx-tiles'))wx.insertAdjacentHTML('afterend','<div class="nx-tiles">'+[['mat','Mat',I.fork,'Vecka, inköp och recept'],['hemmet','Hemmet',I.home,'Lampor och apparater'],['kalender','Kalender',I.cal,'Schema och händelser'],['uppgifter','Att göra',I.list,'Uppgifter och städ']].map(([id,l,ic,t])=>'<button type="button" data-act="nav" data-id="'+id+'">'+ic+'<b>'+l+'</b><small>'+t+'</small></button>').join('')+'</div>')}}
+addEventListener('scroll',()=>{if(navxOn()!=='b'){NX.y=scrollY;return}const y=scrollY,dy=y-NX.y;if(Math.abs(dy)<8)return;const mi=dy>0&&y>80;NX.y=y;if(mi!==NX.mini&&!NX.meny){NX.mini=mi;document.querySelector('#navx .nx-b')?.classList.toggle('mini',mi);const el=document.getElementById('navx');if(el){el.classList.toggle('mini',mi);el.__h=null}}},{passive:true});
+// C: dra upp lådan för att öppna, ned för att stänga
+addEventListener('touchstart',e=>{NX.ty=navxOn()==='c'&&e.target.closest('#navx .nx-c')?e.touches[0].clientY:null},{passive:true});
+addEventListener('touchend',e=>{if(NX.ty==null)return;const dy=e.changedTouches[0].clientY-NX.ty;NX.ty=null;if(dy<-30&&!NX.lada||dy>40&&NX.lada){NX.lada=!NX.lada;NX.tapp=Date.now();render()}},{passive:true});
 /* ---------- flikrad ---------- */
 // Knapparna byggs en gång så att markeringen kan glida mellan flikarna i stället för att ritas om.
 function renderNav(nav){
@@ -890,12 +921,12 @@ function doRender(){if(motionDrag||sheetDrag||bladDrag||haDragT&&Date.now()-haDr
  // Om en vy kraschar visas ett fel i stället, så att resten av appen (svep, menyn) fortsätter att fungera
  let page;try{page=(V[S.view]||V.oversikt)()}catch(e){console.error(e);page='<div class="banner">Något gick fel när sidan skulle visas: '+esc(e.message)+'</div>'}
  const src=keepNorm(banner+page)+'|'+S.view+'|'+addPlace();
- if(lugn&&src===m.__src){A.old=null;watchTitle();plPin();wsPin();return}
+ if(lugn&&src===m.__src){A.old=null;navxRita(m);watchTitle();plPin();wsPin();return}
  const rmo=m.querySelector('.rcp-meny[open]');// receptets ⋯ ska vara öppen även om sidan ritas om (t.ex. synk på väggen)
  const t=document.createElement('template');t.innerHTML=banner+page;const ny=t.content,vy=S.view+'|'+(S.recipe||'')+'|'+S.matTab+'|'+S.taskTab,samma=m.__fresh&&m.__vy===vy;
  if(lugn&&samma){morf(m,m.__fresh,ny);m.querySelectorAll(KEEP_FX).forEach(e=>{if(!e.__src)e.__src=keepNorm(e.outerHTML)})}
  else{const kv=keepFxFore(m);m.replaceChildren(ny.cloneNode(true));keepFxEfter(m,kv)}
- m.__fresh=ny;m.__src=src;m.__vy=vy;addLayout(m);if(U5)u5More(m);if(rmo){const d=m.querySelector('.rcp-meny');if(d)d.open=true}
+ m.__fresh=ny;m.__src=src;m.__vy=vy;addLayout(m);navxRita(m);if(U5)u5More(m);if(rmo){const d=m.querySelector('.rcp-meny');if(d)d.open=true}
  {const w=m.querySelector('.wk-sw');if(w&&S.wkX){w.scrollLeft=S.wkX;wkMonth(w)}}
  {const w=m.querySelector('.ha-kortr');if(w&&S.haSwX&&Math.round(w.scrollLeft/(w.clientWidth+12))!==S.haSwX)w.scrollLeft=S.haSwX*(w.clientWidth+12)}
  {const w=m.querySelector('.wxC-sc');if(w)w.scrollLeft=S.wxX!=null?S.wxX:WXC_NP*WXC_SW}
@@ -1596,8 +1627,8 @@ function otRumSheet(enter){const H=haData(),r=S.otRum;if(!H||r==null){S.sheet=nu
 /* Att göra och Städ: två kort på väggen, ett kort med glidande växlare på telefonen */
 function otGora(tel){const t=today(),U=upgDag(),cp=cleanPlan(),ST=[...cp.routines,...cp.doneRot,...cp.todo],dn=ST.filter(doneToday).length,tot=ST.length,max=tel?5:7;
  const rad=(act,x,sub,red,klar)=>'<label class="ot-ti'+(klar?' klar':'')+'"><input type="checkbox" class="ot-cb" data-act="'+act+'" data-id="'+esc(x.id)+'"'+(klar?' checked':'')+'><i aria-hidden="true">'+I.tick+'</i><b>'+esc(x.title)+'</b>'+(sub?'<small'+(red?' class="red"':'')+'>'+esc(sub)+'</small>':'')+'</label>';
- const PU=presUpg(),gL=PU.map(x=>rad('presKopt',x,kr(x.kr))).concat(U.idag.map(x=>rad('taskToggle',x,x.due<t?'Sedan '+dateShort(x.due):x.who?personLabel(x.who):'',x.due<t))),gN=U.idag.length+PU.length;
- const sL=[...ST.filter(x=>!doneToday(x)).map(x=>rad('cleanToggle',x,x.min?x.min+' min':'')),...ST.filter(doneToday).map(x=>rad('cleanToggle',x,'',0,1))];
+ const PU=presUpg(),VB=robVatten(),gL=PU.map(x=>rad('presKopt',x,kr(x.kr))).concat(VB.map(x=>rad('haTankFylld',x,x.kort)),U.idag.map(x=>rad('taskToggle',x,x.due<t?'Sedan '+dateShort(x.due):x.who?personLabel(x.who):'',x.due<t))),gN=U.idag.length+PU.length+VB.length;
+ const sL=[...ST.filter(x=>!doneToday(x)).map(x=>SMX()==='b'||SMX()&&!tel?rad('cleanToggle',x,x.freq<=1?'Varje dag':otSen(x).replace('Senast för ',''),ratio(x)>=1.5&&x.freq>1):rad('cleanToggle',x,x.min?x.min+' min':'')),...ST.filter(doneToday).map(x=>rad('cleanToggle',x,'',0,1))];
  const lista=(L,tom)=>'<div class="ot-tl">'+(L.slice(0,max).join('')||'<div class="ot-tom">'+I.tick+tom+'</div>')+(L.length>max?'<div class="ot-mer">+'+(L.length-max)+' till</div>':'')+'</div>';
  const imo=U.imorgon.length?'<div class="ot-ft">Imorgon: '+U.imorgon.slice(0,3).map(x=>esc(x.title)).join(' · ')+'</div>':'';
  const sPr=tot?'<span class="ot-pr"><span class="num">'+dn+' av '+tot+' klara</span><i><b style="width:'+Math.round(dn/tot*100)+'%"></b></i></span>':'';
@@ -1613,8 +1644,39 @@ function otGora(tel){const t=today(),U=upgDag(),cp=cleanPlan(),ST=[...cp.routine
 const OT_GAVA='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="8" width="17" height="4" rx="1"/><path d="M5 12v7.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V12M12 8v12.5"/><path d="M12 8C10.5 4.5 7 4.3 7 6.3 7 8 10 8 12 8zM12 8c1.5-3.5 5-3.7 5-1.7C17 8 14 8 12 8z"/></svg>';
 function otFodNt(){const P=presBud();return bdNext(bdays()).filter(b=>b.days<=1||b.days===14&&b.gift).map(b=>{const nar=b.days===0?'idag':b.days===1?'imorgon':b.days<7?'på '+DAYS[parse(b.next).getDay()]:'om '+b.days+' dagar';
  return{pr:b.days<2?3:0,h:'<div class="ot-nt fod'+(b.days<2?' nu':'')+'"'+bdSt(b)+'><button type="button" class="ot-ntb" data-act="nav" data-id="fod"><span class="ot-nti">'+(b.days===0?I.cake:OT_GAVA)+'</span><span class="ot-ntt"><b>'+esc(b.name+' '+(b.age!=null?'fyller '+b.age:'fyller år')+' '+nar)+'</b><small>'+esc(b.days===0?'Grattis!':b.gift&&b.days===14?'Köp present för '+presKr(b.age,P)+' kr, ligger i Att göra':b.dd+' '+MON3[b.mo])+'</small></span></button></div>'}})}
-function otJustNu(tel){const H=haOn(!tel)&&haData(),L=(H?otNotis(H,9,1):[]).concat(otFodNt()).sort((a,b)=>b.pr-a.pr),max=tel?3:2;if(!L.length)return'';
- return'<section class="ot-c ot-nu"'+RF('T23')+'>'+(tel?'<div class="ot-nuh">Just nu</div>':'')+'<div class="ot-nts">'+L.slice(0,max).map(x=>x.h).join('')+'</div>'+(L.length>max?'<button type="button" class="ot-numer" data-act="nav" data-id="fod">+'+(L.length-max)+' till</button>':'')+'</section>'}
+/* Smarta uppmaningar (förslag, Henrik 27/11: "man ska bli uppmanad", Översikten är en styr- och informationskanal).
+   Prov i Utvecklarläge → Smarta uppmaningar: ls ht.smartx = a (allt i Just nu), b (Städ eget kort högt upp), c (svepbara förslagskort). Tomt = som förut. */
+const SMX=()=>{const v=DEV&&lsGet('smartx')||'';return /^[abc]$/.test(v)?v:''};
+const otSen=x=>{const d=daysSince(x.lastDone);return d>=999?'Aldrig gjort':d===0?'Gjort idag':d===1?'Senast igår':'Senast för '+d+' dagar sedan'};
+function otSmart(tel){const t=today(),hh=new Date().getHours(),L=[],cp=cleanPlan(),H=haOn(!tel)&&haData(),AP=H&&H.apparater||[],rob=AP.find(a=>a.typ==='robot');
+ const rad=(ic,cls,ti,sub,act,id,knapp,kact,kid)=>'<div class="ot-nt'+cls+'"><button type="button" class="ot-ntb" data-act="'+act+'" data-id="'+esc(id)+'"><span class="ot-nti">'+ic+'</span><span class="ot-ntt"><b>'+esc(ti)+'</b>'+(sub?'<small>'+esc(sub)+'</small>':'')+'</span></button>'+(knapp?'<button type="button" class="ot-ntk" data-act="'+kact+'" data-id="'+esc(kid)+'">'+esc(knapp)+'</button>':'')+'</div>';
+ const add=(k,pr,ic,cls,ti,sub,act,id,knapp,kact,kid)=>L.push({k,pr,ti,sub,ic,knapp,kact,kid,act,id,h:rad(ic,cls,ti,sub,act,id,knapp,kact,kid)});
+ // Städ: dagens pass ur städschemat (förfallet efter intervallet) och dagliga rutiner som inte är gjorda
+ cp.todo.forEach(x=>{const sen=ratio(x)>=1.5,dam=rob&&/dammsug/i.test(x.title);add('stad',sen?4:2,I.sparkles,' stad'+(sen?' sen':''),x.title,otSen(x)+(x.min&&!dam?' · '+x.min+' min':''),'nav','stad',dam?'Starta robot':'Klar',dam?'haApp':'cleanToggle',dam?rob.id:x.id)});
+ cp.routines.filter(x=>!doneToday(x)).forEach(x=>add('stad',hh>=18?2:1,I.sparkles,' stad',x.title,'Varje dag'+(x.min?' · '+x.min+' min':''),'nav','stad','Klar','cleanToggle',x.id));
+ cp.big.filter(x=>ratio(x)>=.9).slice(0,1).forEach(x=>add('stad',1,I.sparkles,' stad stor','Storstäd snart: '+x.title,otSen(x),'nav','stad','',''));
+ // Uppgifter som borde ha gjorts
+ upgDag().idag.filter(x=>x.due<t).forEach(x=>add('upg',3,I.tick,' sen',x.title,'Skulle gjorts '+dateShort(x.due),'nav','uppgifter','Klar','taskToggle',x.id));
+ // Hemmet: underhåll som apparaterna själva säger till om (robotens vattenbyte ligger i Att göra via robVatten)
+ AP.forEach(a=>{if(a.typ==='disk'&&(a.salt||a.spol))add('hem',1,HAI_APP.disk||HAI.plug,'','Fyll på '+(a.salt&&a.spol?'salt och spolglans':a.salt?'salt':'spolglans'),'Diskmaskinen säger till','haApp',a.id,'','');});
+ // Mat: ingen middag ikväll, veckosedeln tar slut
+ const st=settings(),M=D().menu;
+ if(hh>=12&&hh<20&&!M.some(m=>m.date===t))add('mat',2,I.fork,'','Ingen middag planerad ikväll','Välj något ur receptbanken','nav','mat','Välj','nav','mat');
+ if(isDate(st.vecka_slut)&&st.vecka_slut<=addDays(t,1)&&!M.some(m=>m.date>st.vecka_slut))add('mat',2,I.fork,'','Planera nästa vecka','Veckosedeln tar slut '+(st.vecka_slut<=t?'idag':'imorgon'),'nav','mat','Föreslå','nav','mat');
+ const kv=D().shop.filter(i=>!i.done).length;if(kv>=8)add('mat',0,I.basket,'',kv+' varor på inköpslistan','ca '+kr(shopCost(D().shop.filter(i=>!i.done))),'nav','inkop','','');
+ return L.sort((a,b)=>b.pr-a.pr)}
+function otJustNu(tel){const H=haOn(!tel)&&haData(),x=SMX(),SM=x?otSmart(tel).filter(z=>x!=='b'&&tel||z.k!=='stad'):[];
+ if(x==='c'&&tel)return otForslag(tel);
+ const L=(H?otNotis(H,9,1):[]).concat(otFodNt()).concat(SM).sort((a,b)=>b.pr-a.pr),max=x?(S.smAlla?99:tel?5:3):tel?3:2;if(!L.length)return'';
+ return'<section class="ot-c ot-nu'+(x?' smx':'')+'"'+RF('T23')+'>'+(tel?'<div class="ot-nuh">Just nu'+(x&&L.length>1?'<em class="num"> · '+L.length+'</em>':'')+'</div>':'')+'<div class="ot-nts">'+L.slice(0,max).map(x=>x.h).join('')+'</div>'+(L.length>max?'<button type="button" class="ot-numer" data-act="'+(x?'smAlla':'nav')+'" data-id="fod">+'+(L.length-max)+' till</button>':'')+'</section>'}
+/* Förslag C: ett kort per sak i en svepbar rad. Städ samlas i ett kort. */
+function otForslag(tel){const H=haOn(!tel)&&haData(),SM=otSmart(tel),sd=SM.filter(z=>z.k==='stad'&&!/stor/.test(z.h)),cp=cleanPlan(),N=(H?otNotis(H,9,1):[]).concat(otFodNt());
+ const kort=(ic,cls,ti,sub,act,id,knapp,kact,kid)=>'<div class="smk'+cls+'"><button type="button" class="smk-b" data-act="'+act+'" data-id="'+esc(id)+'"><span class="smk-i">'+ic+'</span><b>'+esc(ti)+'</b><small>'+esc(sub)+'</small></button>'+(knapp?'<button type="button" class="smk-k" data-act="'+kact+'" data-id="'+esc(kid)+'">'+esc(knapp)+'</button>':'')+'</div>';
+ const K=[];if(sd.length)K.push({pr:Math.max(...sd.map(z=>z.pr)),h:kort(I.sparkles,' stad'+(sd.some(z=>z.pr>=4)?' sen':''),'Städ idag: '+sd.length+(sd.length>1?' saker':' sak'),sd.slice(0,2).map(z=>z.ti).join(', ')+(sd.length>2?' …':'')+' · '+cp.minLeft+' min','nav','stad','Visa','nav','stad')});
+ SM.filter(z=>!(z.k==='stad'&&!/stor/.test(z.h))).forEach(z=>K.push({pr:z.pr,h:kort(z.ic,'',z.ti,z.sub,z.act,z.id,z.knapp,z.kact,z.kid)}));
+ N.forEach(z=>K.push({pr:z.pr+1,h:'<div class="smk smk-n">'+z.h+'</div>'}));
+ if(!K.length)return'';K.sort((a,b)=>b.pr-a.pr);
+ return'<section class="ot-c ot-sm"'+RF('T23')+'><div class="ot-nuh">Förslag<em class="num"> · '+K.length+'</em></div><div class="smk-r">'+K.map(z=>z.h).join('')+'</div></section>'}
 function wallT3(){const fk=otFodKort();return'<div class="ot ot-v ot-'+otFas()+(fk?' ovf-A':'')+'">'+otLand()+otHead(false)+otJustNu(false)+otWx(false)+otSchema(false)+(fk?'<div class="ot-hk">'+otHus(false)+fk+'</div>':otHus(false))+otGora(false)+'</div>'}
 /* Väggen i Skog (Henrik 17/11): Födelsedagar som en låg ruta under Smart hem, en rad per person (de tre närmaste inom 60 dagar).
    Födelsedagarna visas då inte i Just nu. Smart hem krymper till sitt innehåll. */
@@ -1623,7 +1685,8 @@ function otFodKort(){const L=bdNext(bdays()).filter(b=>b.days<=60).slice(0,3),P=
  return'<section class="ot-c ot-fk"><button type="button" class="ot-fh" data-act="nav" data-id="fod"><span class="ot-hi">'+I.cake+'</span><b>Födelsedagar</b>'+I.chev+'</button><div class="ot-fl">'+L.map(rad).join('')+'</div></section>'}
 /* Skog-telefonens topp: vädret till höger om klockan (ikon, temp, H/L); väderkortet under visar läge, råd och timmar */
 function otTopp(){const X=onWx();if(!X)return'';return'<button type="button" class="ot-tpc" data-act="nav" data-id="vader"><span class="ot-tpi"><i>'+wxIco(X.W.hours[0]||{s:X.W.now.s})+'</i><b class="num">'+deg(X.T)+'</b></span><small>'+esc('H '+deg(X.hi)+' L '+deg(X.lo))+'</small></button>'}
-function telT3(){return'<div class="ot ot-t ot-'+otFas()+(onWx()?' ot-tpw':'')+'">'+otHead(true)+otJustNu(true)+otWx(true)+otSchema(true)+otHus(true)+otGora(true)+'</div>'}
+function telT3(){if(SMX()==='b'){const g=otGora(false),i=g.indexOf('<section class="ot-c ot-stad"');return'<div class="ot ot-t smx-b ot-'+otFas()+(onWx()?' ot-tpw':'')+'">'+otHead(true)+otJustNu(true)+g.slice(i)+otWx(true)+otSchema(true)+otHus(true)+g.slice(0,i)+'</div>'}
+ return'<div class="ot ot-t ot-'+otFas()+(onWx()?' ot-tpw':'')+'">'+otHead(true)+otJustNu(true)+otWx(true)+otSchema(true)+otHus(true)+otGora(true)+'</div>'}
 /* ---------- Smart hem (Home Assistant), bara på väggskärmen ----------
    Väggdatorns lokala tjänst (kiosk/ljussensor.py, /ha) håller HA-nyckeln och släpper bara igenom valda lampor, scener och
    givare. Appen frågar med lång väntan (?v=N svarar först vid en ändring), så rutan följer med inom en sekund när någon
@@ -2087,13 +2150,18 @@ const HA_RUMNAMN=['Kök','Vardagsrum','Sovrum','Hall','Badrum','Kontor','Barnrum
 // svepbara kort (karta, docka) med sidprickar; läget sparas i S.haSwX så att omritning inte hoppar tillbaka
 // Karta | Dockan som segment ovanför i stället för sidprickar (Henrik 16/11: dockan var svår att hitta); svep fungerar som förut
 function haSvep(K,namn){const n=Math.min(K.length-1,Math.max(0,S.haSwX|0));return'<div class="ha-kort"><div class="ha-kseg" role="tablist" style="--n:'+K.length+'">'+namn.map((t,i)=>'<button type="button" role="tab" data-act="haSvepTill" data-id="'+i+'" aria-selected="'+(i===n)+'">'+esc(t)+'</button>').join('')+'</div><div class="ha-kortr" aria-label="Kort">'+K.map((k,i)=>'<div class="ha-kortk" aria-label="'+esc(namn[i])+'">'+k+'</div>').join('')+'</div></div>'}
+/* Byt vattnet i dockan var 14:e dag (Henrik 27/11). Räknas från senaste påfyllning (tank.fylld: dockans givare tom→full eller knappen).
+   Syns i dockans kort och som uppgift i Att göra (översikten + Uppgifter); bockad = Vattnet bytt (haTankFylld), ingen ny tjänst eller Kod.gs. */
+const ROB_VATTEN=14,robVattenD=a=>{const t=a&&a.tank;if(!t)return false;if(!t.fylld)return null;const d=Math.floor((Date.now()/1e3-t.fylld)/86400);return d>=ROB_VATTEN?d:false};
+function robVatten(){const H=haOn(false)&&haData();if(!H)return[];return(H.apparater||[]).filter(a=>a.typ==='robot'&&robVattenD(a)!==false&&!(a.tank&&a.tank.brist)).map(a=>{const d=robVattenD(a);return{id:a.id,title:'Byt robotens vatten',nar:d==null?'Töm smutsvattnet och fyll på rent':'Senast bytt för '+d+' dagar sedan',kort:d==null?'':d+' d sedan',d}})}
+function robVattenRow(x){return'<div class="cell ck pres"><input type="checkbox" class="check" data-act="haTankFylld" data-id="'+esc(x.id)+'" aria-label="'+esc(x.title)+'"><div class="grow"><div class="title">'+esc(x.title)+'</div><div class="meta"><span>'+esc(x.nar)+'</span></div></div></div>'}
 // dockans kort (Henrik valde A: stor genomskuren docka; läget syns i bilden, text bara när något ska göras)
 function haDockLage(a){const dv=a.dockVarn||[],t=a.tank,st=a.st||'';
  const smuts=dv.some(v=>/dirty/i.test(v)),tom=t&&t.brist!=null?!!t.brist:dv.some(v=>/clean water/i.test(v)),fel=dv.filter(v=>!/dirty|clean water/i.test(v)).map(x=>x.replace(/^Dock error: /,''));
  const q=t?(tom?0:Math.max(0,Math.min(100,Math.round(t.pct||0)))):tom?0:null,d=smuts?100:q==null?null:Math.max(5,Math.min(95,100-q));
  const hemma=/charging|docked|emptying|washing|drying|idle|paused/.test(st)&&!haStadar(a)&&!/returning|docking/.test(st),tork=!!(a.dockTork||/drying/.test(st)&&!/stopping/.test(st)),tv=/wash/.test(st),tm=/emptying/.test(st),sil=a.dockSil!=null&&a.dockSil<=0;
- const gor=[tom&&'Fyll på rent vatten',smuts&&'Töm smutsvattnet',sil&&'Rengör silen',...fel].filter(Boolean);
- return{t,q,d,tom,smuts,sil,fel,hemma,tork,tv,tm,gor,lagQ:tom||q!=null&&q<15,bat:a.bat,ladd:/charging/.test(st)&&st!=='charging_complete'}}
+ const byt=robVattenD(a),gor=[tom&&'Fyll på rent vatten',smuts&&'Töm smutsvattnet',sil&&'Rengör silen',!tom&&byt!==false&&'Byt vattnet'+(byt!=null?', '+byt+' dagar gammalt':''),...fel].filter(Boolean);
+ return{t,q,d,tom,smuts,sil,fel,hemma,tork,tv,tm,gor,byt,lagQ:tom||q!=null&&q<15,bat:a.bat,ladd:/charging/.test(st)&&st!=='charging_complete'}}
 // genomskuren docka: tankarna med vattennivå och procent, dammpåsen, roboten med batteri när den är hemma
 function haDockSvg(L,stor){const rv=L.lagQ?'dk-rv lag':'dk-rv',sv=L.smuts?'dk-sv full':'dk-sv',pc=(v,x)=>v==null?'':'<text x="'+x+'" y="80" class="dkx-p">'+v+'<tspan class="dkx-pp"> %</tspan></text>';
  // framifrån som den äldsta bilden: tankar med färgade handtag (blått = rent, grått = smutsigt), dammpåsen, dockningsfacket och den runda roboten med statuslist
@@ -2117,7 +2185,7 @@ function haDockSvg(L,stor){const rv=L.lagQ?'dk-rv lag':'dk-rv',sv=L.smuts?'dk-sv
   '</svg>'}
 function haDockKnapp(L,id,ikon,n,on,stop,rund){return'<button type="button" class="'+(rund?'dkx-rb':'dkk-b')+(on?' on':'')+'" data-act="haDock" data-id="'+(on&&stop?stop:id)+'" aria-label="'+(on&&stop?'Stoppa':n)+'">'+(rund?'<i>'+ikon+'</i>':ikon)+'<span>'+(on&&stop?'Stoppa':n)+'</span></button>'}
 function haDockKort(a){const L=haDockLage(a),K=haDockKnapp(L,'tom',HAI_DK.tom,'Töm',L.tm,null,1)+haDockKnapp(L,'tvatt',HAI_DK.tvatt,'Tvätta',L.tv,'tvattstopp',1)+haDockKnapp(L,'tork',HAI_DK.tork,'Torka',L.tork,'torkstopp',1);
- const gor=L.gor.length?'<div class="dkx-gor">'+L.gor.map(g=>'<span>'+esc(g)+'</span>').join('')+'</div>':'',fyll=L.t&&L.t.brist==null?'<button type="button" class="ha-pill" data-act="haTankFylld">Påfylld</button>':'';
+ const gor=L.gor.length?'<div class="dkx-gor">'+L.gor.map(g=>'<span>'+esc(g)+'</span>').join('')+'</div>':'',fyll=L.byt!==false&&L.t?'<button type="button" class="ha-pill" data-act="haTankFylld" data-id="'+esc(a.id)+'">Vattnet bytt</button>':L.t&&L.t.brist==null?'<button type="button" class="ha-pill" data-act="haTankFylld">Påfylld</button>':'';
  return'<div class="ha-dkk dka">'+haDockSvg(L,true)+gor+fyll+'<div class="dkx-k">'+K+'</div></div>'}
 const HAI_DK={tom:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l-1.3 11.2a2 2 0 0 1-2 1.8H8.3a2 2 0 0 1-2-1.8z"/><path d="M4 8h16M9 5h6"/><path d="M12 11v6M9.5 14.5 12 17l2.5-2.5"/></svg>',
  tvatt:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5c3 3.6 5.5 6.6 5.5 9.8a5.5 5.5 0 0 1-11 0c0-3.2 2.5-6.2 5.5-9.8z"/><path d="M9.5 14a2.6 2.6 0 0 0 2.5 2.5"/></svg>',
@@ -3941,8 +4009,8 @@ V.uppgifter=function(){
  let h=head('Att göra',{sub:open.length?open.length+' uppgifter kvar':'Inget kvar att göra',tools:plus})+attSeg('lista');
  h+='<form class="add-row"'+RF('U1')+' data-form="taskQuick"><input class="field" name="title" placeholder="Ny uppgift" aria-label="Ny uppgift" autocomplete="off" enterkeyhint="done"><button type="button" class="add-go" data-act="quickGo" data-alt="taskAdd" aria-label="Lägg till">'+I.plus+'</button></form>';
  h+='<div class="split"><div class="col">';
- const PU=presUpg(),td=(PU.length?gh('Presenter',PU.length)+PU.map(presUpgRow).join(''):'')+g.filter(([,xs])=>xs.length).map(([l,xs])=>gh(l,xs.length,l==='Försenade'?'red':'')+xs.map(taskRow).join('')).join('');if(td)h+='<div class="g-one">'+rgroup('U2',td)+'</div>';
- if(!open.length&&!PU.length)h+='<div style="height:22px"></div>'+rgroup('U11',emptyCell('Inget att göra just nu.'));
+ const PU=presUpg(),VB=robVatten(),td=(PU.length?gh('Presenter',PU.length)+PU.map(presUpgRow).join(''):'')+(VB.length?gh('Robotdammsugaren',VB.length)+VB.map(robVattenRow).join(''):'')+g.filter(([,xs])=>xs.length).map(([l,xs])=>gh(l,xs.length,l==='Försenade'?'red':'')+xs.map(taskRow).join('')).join('');if(td)h+='<div class="g-one">'+rgroup('U2',td)+'</div>';
+ if(!open.length&&!PU.length&&!VB.length)h+='<div style="height:22px"></div>'+rgroup('U11',emptyCell('Inget att göra just nu.'));
  h+='</div><div class="col">';
  if(done.length)h+='<details data-k="done"'+(S.open.done||S.confirm==='clearTasks'?' open':'')+'><summary class="sh"><span>Klara ('+done.length+')</span></summary>'+rgroup('U3',done.map(taskRow).join(''))+
   '<div class="pills" style="padding:12px 16px 0 24px">'+(S.confirm==='clearTasks'?'<span class="sub">Ta bort alla klara?</span><button class="tb red strong" data-act="clearTasksYes">Ja, ta bort</button><button class="tb" data-act="confirmNo">Avbryt</button>':'<button class="tb red" data-act="clearTasks">Rensa klara</button>')+'</div></details>';
@@ -4391,7 +4459,7 @@ function renderOverlay(){
    ['avancerat','Utvecklarläge',group(fieldCell('Utvecklarläge','<input type="checkbox" role="switch" class="switch" data-act="dev" aria-label="Utvecklarläge"'+(DEV?' checked':'')+'>'))+'<div class="foot">Visar menyer som inte är färdiga, just nu Planera nästa vecka och Planera med portioner. Gäller bara den här enheten.</div>'+
   (DEV?sh('Smart hem')+group('<button type="button" class="cell link" data-act="haTest"><span class="grow">Låtsaslampor</span><span class="chev">'+I.chev+'</span></button>')+'<div class="foot">Låtsaslampor för att prova knappar och animationer. Inget skickas till Home Assistant.</div>':'')+
   (DEV?sh('Förhandsvisning')+group('<button type="button" class="cell link" data-act="familjOpen"><span class="grow">Testa Familj och släktträd</span><span class="meta">Förhandsvisning</span>'+chevron+'</button>')+'<div class="foot">Testa I fokus och Hela trädet med exempelpersoner. Ingenting sparas i era familjeuppgifter.</div>':'')+
-   (DEV&&U5&&!U6&&!skogVal()?sh('Ny översikt')+'<div class="seg-wrap">'+segc('Ny översikt','ovny',[['','Av'],['a','A'],['b','B'],['c','C'],['d','D'],['e','B2'],['f','C2'],['g','T2'],['h','Skog']],OVNY)+'</div>'+'<div class="foot">Prova spåren för en ny Översikt: A Förfina, B Dagen, C Hemmet i en blick, D Tavla med villäge, B2 Dagen med veckoraden och vädret, C2 Hemmet med vanliga vädret och schemat, Tavla 2 en ny väggtavla med glasrutor (telefonen visar C2). Av visar Översikten som vanligt. Gäller bara den här enheten.</div>':'')+
+   (DEV&&skogVal()?sh('Smarta uppmaningar')+'<div class="seg-wrap">'+segc('Smarta uppmaningar','smartx',[['','Av'],['a','A'],['b','B'],['c','C']],SMX())+'</div>'+'<div class="foot">Prov på Översikt: A allt i Just nu, B Städ som eget kort under Just nu, C förslagskort att svepa. Väggen visar städet i Städkortet.</div>':'')+(DEV&&U5?sh('Navigering i telefonen')+'<div class="seg-wrap">'+segc('Navigering i telefonen','navx',[['','Nu'],['a','A'],['b','B'],['c','C'],['d','D']],NAVX)+'</div>'+'<div class="foot">Prov: A undersidorna i menyraden, B mindre rad med plusknapp (tryck på fliken du står i för undersidorna), C draglåda med alla delar, D Översikt är hemmet utan menyrad. Bara telefon.</div>':'')+(DEV&&U5&&!U6&&!skogVal()?sh('Ny översikt')+'<div class="seg-wrap">'+segc('Ny översikt','ovny',[['','Av'],['a','A'],['b','B'],['c','C'],['d','D'],['e','B2'],['f','C2'],['g','T2'],['h','Skog']],OVNY)+'</div>'+'<div class="foot">Prova spåren för en ny Översikt: A Förfina, B Dagen, C Hemmet i en blick, D Tavla med villäge, B2 Dagen med veckoraden och vädret, C2 Hemmet med vanliga vädret och schemat, Tavla 2 en ny väggtavla med glasrutor (telefonen visar C2). Av visar Översikten som vanligt. Gäller bara den här enheten.</div>':'')+
    (DEV?sh('Rutnummer')+group(fieldCell('Visa rutnummer','<input type="checkbox" role="switch" class="switch" data-act="refs" aria-label="Visa rutnummer"'+(refsOn()?' checked':'')+'>'))+'<div class="foot">Varje ruta får sitt fasta nummer i hörnet, till exempel M2. Tryck på numret för att kopiera det. Gäller bara den här enheten.</div>':'')]])+'<div class="foot ver">Hushållstavlan · '+(U6?'Aura':/^[gh]$/.test(ovNy())?(ovNy()==='g'?'Tavla 2':'Skog'):'UI '+(U5?'5.0':U4?'4.0':U3?'3.0':UI_VER))+' · version '+esc(APP_VER)+'</div>';
   // Synk var 30:e sekund, Smart hem, väder och sparstatus ritar om appen. Samma blad byggs inte om (då gled den öppna delen in igen, flera gånger i rad);
   // har något ändrats byts innehållet, men en del som redan var öppen glider inte in på nytt
@@ -6698,9 +6766,16 @@ const ACT={
  smileySkip(id,el){A.user=Date.now();saveSmiley(id,el.dataset.date,'x');toast('Okej, den räknas inte som lagad')},
  wakeBoard(){render()},
  presKopt(id){if(!id)return;A.user=Date.now();setFodEgna(e=>{const k=Object.assign({},e.kp);Object.keys(k).forEach(x=>{if(+x.slice(-4)<+today().slice(0,4))delete k[x]});k[id]=1;e.kp=k;return e});toast('Bra, presenten är köpt');render()},
- otDag(id){S.otDag=+id||0;render()},otFlik(id){const v=id==='stad'?'stad':'gora';if(S.otFlik===v)return;S.otFlik=v;render()},
+ otDag(id){S.otDag=+id||0;render()},smAlla(){S.smAlla=!S.smAlla;render()},otFlik(id){const v=id==='stad'?'stad':'gora';if(S.otFlik===v)return;S.otFlik=v;render()},
  otKvitt(id){const L=(lsGet('otKvitt')||'').split(',').filter(Boolean).slice(-9);L.push(id);lsSet('otKvitt',L.join(','));render()},otRum(id){S.otRum=id||'';S.otRumRed=0;S.sheet='otRum';render()},otRumRed(){S.otRumRed=1;render()},
  otArum(id,el){const r=el&&el.dataset?el.dataset.r||'':'',o=Object.assign({},(habGet()||{}).arum||{});o[id]=r;habSet({arum:o});render()},
+ smartx(id){lsSet('smartx',/^[abc]$/.test(id)?id:null);S.smAlla=false;render()},navx(id){NAVX=/^[abcd]$/.test(id)?id:'';lsSet('navx',NAVX||null);NX.mini=NX.meny=NX.lada=false;render()},
+ navxTab(id){if(id===navxDel()&&navxSubs(id).length){NX.meny=!NX.meny;render();return}NX.meny=false;ACT.nav(id)},
+ navxGa(id){NX.meny=NX.lada=false;NX.mini=false;const[v,s]=String(id).split(':');if(v==='settings'){ACT.settings();return}if(v==='mat'){if(S.view!=='mat')ACT.nav('mat');ACT.matTab(s);return}if(v==='uppgifter'){ACT.taskTab(s||'lista');return}ACT.nav(v)},
+ navxStang(){NX.meny=NX.lada=false;render()},
+ navxLada(){if(Date.now()-(NX.tapp||0)<400)return;NX.lada=!NX.lada;render()},
+ navxUt(){NX.mini=false;const el=document.getElementById('navx');if(el){el.classList.remove('mini');el.__h=null}render()},
+ navxPlus(){const c=addContext();if(!c)return;const m=document.getElementById('main'),b=c.act&&m.querySelector('[data-act="'+c.act+'"]')||m.querySelector('.create-menu summary,.create-plus,.add-go');if(b){b.click();return}if(c.act&&ACT[c.act])ACT[c.act]()},
  ovny(id){OVNY=/^[abcdefgh]$/.test(id)?id:'';lsSet('ovny',OVNY||null);applyNy();A.touch=Date.now();render()},
  onWk(){S.onWk=!S.onWk;render()},
  onPers(id){S.onPers=id||'';A.touch=Date.now();render()},
@@ -6741,7 +6816,7 @@ const ACT={
  haRumIv(id){const[r0,x,d]=String(id).split(':'),a=haAppX();if(!a)return;const r=(a.rum||[]).find(q=>q.id===+r0);if(!r)return;const was=r['i'+x]||0,v=Math.max(0,Math.min(60,was+(+d)));if(v===was)return;
   clearTimeout(S.haIvT);r['i'+x]=v;render();S.haIvT=setTimeout(()=>haValj({rumnr:r.id,rumnamn:r.n||'',intervall:{v:r.iv||0,m:r.im||0}},()=>{}),700)},
  haRobDags(){const a=haAppX();if(!a||haStadar(a))return;const D=haDags(a),W=S.haRobV={},V=[];haRumRutt(a).forEach(r=>{const v=D.v.includes(r),m=D.m.includes(r);if(v||m){V.push(r.id);W[r.id]=(v?'v':'')+(m?'m':'')}});S.haRobRum=V;S.haLager=D.v.length?'v':'m';render()},
- haTankFylld(){const a=haAppX();if(!a||!a.tank)return;haValj({app:a.id,tank:'fylld'},()=>{Object.assign(a.tank,{m2:0,pct:100,brist:false,fylld:Date.now()/1e3})})},
+ haTankFylld(id){const a=id?(haData()&&haData().apparater||[]).find(x=>x.id===id):haAppX();if(!a||!a.tank)return;A.user=Date.now();const byt=robVattenD(a)!==false;haValj({app:a.id,tank:'fylld'},()=>{Object.assign(a.tank,{m2:0,pct:100,brist:false,fylld:Date.now()/1e3})});if(byt)toast('Bra, vattnet är bytt. Nästa gång om '+ROB_VATTEN+' dagar')},
  haRumStor(id){const a=haAppX();if(!a)return;const r=(a.rum||[]).find(x=>x.id===+id);if(!r)return;const was=r.stor;haValj({rumnr:r.id,rumnamn:r.n||'',stor:!was},()=>{r.stor=!was})},
  haRumNamnV(v){const a=haAppX();if(!a)return;const i=v.indexOf(':'),nr=+v.slice(0,i),n=v.slice(i+1),r=(a.rum||[]).find(x=>x.id===nr);if(!r)return;S.haRumNamn=null;haValj({rumnr:nr,rumnamn:n},()=>{r.n=n})},
  haRob(g){const a=haAppX();if(!a)return;const om=g==='start'&&S.haOmSek||0;S.haOmSek=0;const P=haRobPlan(a),rum=P.steg.length?P.steg[0].rum:[],was=[a.st,a.plan];a.st=g==='start'?(rum.length?'segment_cleaning':'cleaning'):g==='paus'?'paused':'returning_home';if(g==='start'&&a.pct==null)a.pct=0;
