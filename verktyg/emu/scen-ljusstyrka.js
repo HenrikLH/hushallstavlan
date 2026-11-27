@@ -7,7 +7,7 @@ module.exports=async(pg,h)=>{
  const wall=await pg.evaluate(()=>document.body.classList.contains('wall'));if(!wall)await pg.fill('#overlay input[name="habn"]','Läsa');
  const rad=pg.locator('#overlay .hab-ljr').filter({has:pg.locator('[data-act="habScB"]')}).first();
  if(!await rad.count())return fel('ingen ljusstyrka i bladet');
- const namn=(await rad.locator('.grow').innerText()).split('\n')[0];const f=await rad.locator('.hab-ljv').innerText();
+ const namn=(await rad.locator('.hab-flytt-n').first().innerText()).split('\n')[0];const f=await rad.locator('.hab-ljv').innerText();
  await rad.locator('[data-id$="|-10"]').click();await h.idle(200);
  const r2=pg.locator('#overlay .hab-ljr',{hasText:namn}).first();await r2.locator('[data-id$="|-10"]').click();await h.idle(200);
  const e=await r2.locator('.hab-ljv').innerText();console.log(namn,f,'→',e);if(parseInt(e)!==Math.max(10,Math.round(parseInt(f)/10)*10-20))fel('ljusstyrkan ändrades inte');

@@ -3,6 +3,12 @@
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
 
+## Scenens tidslinje: Direkt → Vänta → Sedan … (förslag, inte publicerat)
+- Ägare Claude, gren `claude/project-thread-bt9eog`. Henrik 27/11: fördröjningar i scener "fungerar sådär", inget gick att lägga efter väntan. Orsak: varje lampa låg i exakt ett steg (`d.t`), stegen räknades från start. Nu `habTidslinje` som dammsugarens flöde: utkastet `d.l` (Direkt) + `d.sq=[{v:sek,l}]`, samma lampa i flera steg, Lägg till lampa per steg (`habScIn`/`habScUt`, `habFore` föreslår Släcks), Vänta −/+ (`HAB_V` 10 s–2 tim, högst 8 steg/4 tim som tjänsten).
+- Sparformatet oförändrat (`s.l` + `s.st` med kumulativa minuter via `habSkapa`), så ingen tjänst/Kod.gs-ändring.
+- Jämförelse med andra appar + förslag (tona, nedräkning, fler åtgärder, automatisk start): Claude Doc https://claude.ai/artifact/SJ6bRcvuqFHeNSYKkH9yng. Bilder /mnt/project-files/scen-tidslinje/.
+- Test: `scen-tidslinje.js` (nytt innehåll) telefon ljust/mörkt + vägg, `scen-ljusstyrka.js`, `scen-andra.js`, alla-flikar telefon + vägg gröna. `smart-hem-scen-omritning.js` faller även på main. Nästa: Henriks val, sedan "Pusha".
+
 ## Lampor: stabil ordning + reglaget hoppar inte (publicerad ht-v416, ångra-gren `version-fore-lampor-stabil`)
 - Henrik 20/11: ordningen ändrades när en lampa tändes, och ljusstyrkan hoppade tillbaka en stund efter släpp. Orsaker: `haAnvSort` sorterade om direkt efter `haAnv` (nu fryst ordning `haAnvO`, uppdateras 10 min efter senaste tryck); en omritning mitt i draget bytte ut reglaget/brickan (nu väntar `doRender` medan `haDragT` är satt, högst 15 s).
 - Test: `verktyg/emu/lampa-slider.js` (ritar om mitt i draget), smart-hem-tonsteg, alla-flikar telefon + vägg Skog gröna. smart-hem-rorelse och hemmet-scener faller även på main.
