@@ -3,6 +3,13 @@
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
 
+
+## Smarta uppmaningar på Översikt (förslag, inte publicerat)
+- Ägare Claude, gren `claude/project-thread-aai13j`. Henrik 27/11: städ som behöver göras ska synas tydligt på Översikt, man ska bli uppmanad; alla "smarta förslag" när de är relevanta.
+- `otSmart(tel)` samlar: städpass (förfallet efter intervall, "Senast för N dagar sedan", Starta robot på dammsugning), dagliga rutiner, storstäd snart, försenade uppgifter, salt/spolglans, robotens vattenbyte (`a.vbyte` från vattenbytestråden, demo 15), ingen middag ikväll, veckosedeln tar slut, inköpslista ≥ 8. Prov via ls `ht.smartx` a (allt i Just nu) / b (Städ eget kort under Just nu, Att göra utan växlare) / c (svepbara förslagskort). Väggen: städ stannar i Städkortet med "N dagar sedan", Just nu tar resten.
+- Nästa: Henrik väljer; sedan städa bort övriga varianter, brytare/inställning vid behov. Scenario `verktyg/emu/smarta-uppmaningar.js`. Bilder /mnt/project-files/smarta-uppmaningar/.
+- Upptäckt: Smart hem-rutan på väggen överlappar (spelande högtalare + två apparater i demo), även utan ändringen.
+
 ## Lampor: stabil ordning + reglaget hoppar inte (publicerad ht-v416, ångra-gren `version-fore-lampor-stabil`)
 - Henrik 20/11: ordningen ändrades när en lampa tändes, och ljusstyrkan hoppade tillbaka en stund efter släpp. Orsaker: `haAnvSort` sorterade om direkt efter `haAnv` (nu fryst ordning `haAnvO`, uppdateras 10 min efter senaste tryck); en omritning mitt i draget bytte ut reglaget/brickan (nu väntar `doRender` medan `haDragT` är satt, högst 15 s).
 - Test: `verktyg/emu/lampa-slider.js` (ritar om mitt i draget), smart-hem-tonsteg, alla-flikar telefon + vägg Skog gröna. smart-hem-rorelse och hemmet-scener faller även på main.
