@@ -3,10 +3,13 @@
 // Väggtavlan: LS='{"wall":"1","me":""}' VP=1368x912 node verktyg/emu/run.js verktyg/emu/alla-flikar.js
 module.exports=async(pg,h)=>{
  const fel=m=>{console.log('PAGEERROR '+m);process.exitCode=1};
- // Telefonens nya menyrad (#navx, ht-v420) ersätter #nav; flikarna klickas där i stället
- const NXV=['oversikt','mat','kalender','uppgifter','hemmet'],nxOn=async()=>!!(await pg.locator('#navx .nx-b').count());
- const tr=async s=>{const m=s.match(/^(?:#nav )?\[data-act="nav"\]\[data-id="([^"]+)"\]$/);return m&&NXV.includes(m[1])&&await nxOn()?'#navx .nx-b [data-id="'+m[1]+'"]':s};
- const klick=async(sel,namn)=>{sel=await tr(sel);const el=await pg.$(sel);if(!el)return fel('knappen saknas: '+sel+' ('+namn+')');
+ // Telefonen utan menyrad (#navx, Översikt är hemmet, ht-v420): delarna nås via Översikt-knappen och genvägarna där
+ const NXV=['oversikt','mat','kalender','uppgifter','hemmet'],nxOn=async()=>!!(await pg.locator('#navx').count());
+ const vy=()=>pg.evaluate(()=>document.body.dataset.view);
+ const tr=async s=>{const m=s.match(/^(?:#nav )?\[data-act="nav"\]\[data-id="([^"]+)"\]$/);if(!m||!NXV.includes(m[1])||!await nxOn())return s;
+  if(await vy()!=='oversikt'){await pg.locator('#navx .nx-dhem').click();await h.idle(700)}
+  return m[1]==='oversikt'?null:'.nx-tiles [data-id="'+m[1]+'"]'};
+ const klick=async(sel,namn)=>{sel=await tr(sel);if(sel===null){await h.idle(300);return h.shot(namn)}const el=await pg.$(sel);if(!el)return fel('knappen saknas: '+sel+' ('+namn+')');
   // ritades sidan om mellan sökning och klick (knappen byttes ut) letar vi upp den igen en gång
   const tryck=async e=>{await e.scrollIntoViewIfNeeded({timeout:1000});await e.click({timeout:2000})};
   try{await tryck(el)}catch(e){const ny=/not attached/.test(e.message)&&await pg.$(sel);try{if(!ny)throw e;await h.idle(300);await tryck(ny)}catch(e2){return fel('gick inte att klicka: '+sel+' ('+namn+'): '+e2.message)}}
@@ -21,7 +24,7 @@ module.exports=async(pg,h)=>{
  // Att göra i menyraden kommer ihåg att man senast var i Städ; ett tryck till går till Uppgifter
  await klick('#nav [data-act="nav"][data-id="oversikt"]','oversikt-igen');await klick('#nav [data-act="nav"][data-id="uppgifter"]','attgora-minns');
  if(await pg.evaluate(()=>document.body.dataset.view)!=='stad')fel('Att göra öppnade inte Städ igen');
- if(await nxOn()){await klick('#navx .nx-b [data-id="uppgifter"]','attgora-meny');await klick('#navx .nx-pop [data-id="uppgifter:lista"]','attgora-uppgifter')}else await klick('#nav [data-act="nav"][data-id="uppgifter"]','attgora-uppgifter');
+ if(await nxOn())await klick('[data-act="taskTab"][data-id="lista"]','attgora-uppgifter');else await klick('#nav [data-act="nav"][data-id="uppgifter"]','attgora-uppgifter');
  if(await pg.evaluate(()=>document.body.dataset.view)!=='uppgifter')fel('Att göra gick inte till Uppgifter');
  await klick('[data-act="nav"][data-id="mat"]','mat');
  for(const t of ['vecka','inkop','recept','bank','efter'])await klick('[data-act="matTab"][data-id="'+t+'"]','mat-'+t);

@@ -197,27 +197,22 @@ function addToBank(r,quiet,fav){if(!r||inBank(r.id))return false;const snap=bank
  if(!row){if(!quiet)toast('Receptbanken är full. Lägg till fler rader receptbank_N i Inställningar.');return false}
  updJSON(row,[],a=>a.some(x=>x.id===snap.id)?a:a.concat([snap]));if(!quiet)toast('Sparat i receptbanken');return true}
 
-/* ---------- Menyraden på telefonen (UI 5.0, valt 2026-11-27: förslag B) ----------
-   Ikoner med namnet på den del du står i, egen plusknapp, tryck på aktiv flik = undersidor, krymper till "Mat · Vecka" vid scroll.
-   Undermenyn högst upp (Vecka/Inköp/Recept, Uppgifter/Städ) ligger kvar när man scrollar. ls ht.navx=gammal ger gamla raden. */
-let NAVX=lsGet('navx')==='gammal'?'gammal':'';const NX={y:0,mini:false,meny:false};
-function navxOn(){return U5&&!S.wall&&NAVX!=='gammal'&&innerWidth<900?'b':''}
+/* ---------- Navigering på telefonen (UI 5.0, valt 2026-11-27: förslag D, Översikt är hemmet) ----------
+   Ingen menyrad: Översikt har genvägar till delarna, varje del har "‹ Översikt" i rubriken och en Översikt-knapp längst ner.
+   Undermenyn högst upp (Vecka/Inköp/Recept, Uppgifter/Städ) ligger kvar när man scrollar. ls ht.navx=gammal ger gamla menyraden. */
+let NAVX=lsGet('navx')==='gammal'?'gammal':'';
+function navxOn(){return U5&&!S.wall&&NAVX!=='gammal'&&innerWidth<900?'d':''}
 function navxSeg(){const g=navxOn()&&document.querySelector('#main>.segc');return g&&getComputedStyle(g).position==='sticky'?g.getBoundingClientRect().bottom+8:0}
-function navxDel(){return S.view==='stad'?'uppgifter':HEM_UNDER.includes(S.view)?'hemmet':S.view}
-function navxSubs(d){return d==='mat'?[['mat:vecka','Vecka',I.cal],['mat:inkop','Inköp',I.basket],['mat:recept','Recept',I.bookmark],['mat:bank','Receptbank',I.star],['mat:efter','Efterrätter',I.heart]]:d==='uppgifter'?[['uppgifter:lista','Uppgifter',I.list],['uppgifter:stad','Städ',I.sparkles]]:[]}
-function navxSubNu(d){return d==='mat'?'mat:'+S.matTab:d==='uppgifter'?'uppgifter:'+S.taskTab:''}
-function navxRita(m){const x=navxOn(),c=document.documentElement.classList;c.toggle('navx-b',!!x);c.toggle('navx',!!x);
+const NAVX_GENV=[['mat','Mat',()=>I.fork,'Vecka, inköp och recept'],['hemmet','Hemmet',()=>I.home,'Lampor och apparater'],['kalender','Kalender',()=>I.cal,'Schema och händelser'],['uppgifter','Att göra',()=>I.list,'Uppgifter och städ']];
+function navxRita(m){const x=navxOn(),c=document.documentElement.classList;c.toggle('navx-d',!!x);c.toggle('navx',!!x);
  let el=document.getElementById('navx');if(!x||!S.key||S.cook){if(el)el.remove();return}
  if(!el){el=document.createElement('div');el.id='navx';document.body.appendChild(el)}
- const d=navxDel(),sub=navxSubNu(d),subs=navxSubs(d),vi=VIEWS.find(v=>v[0]===d),ac=addContext();
- const tab=(id,l,ic,on,act)=>'<button type="button" data-act="'+(act||'nav')+'" data-id="'+id+'"'+(on?' aria-current="page"':'')+'>'+ic+'<span>'+l+'</span></button>';
- const tabs=act=>VIEWS.map(([id,l,ic])=>tab(id,l,ic,id===d,act)).join('');
- const plus=ac&&!ac.recipe?'<button type="button" class="nx-plus" data-act="navxPlus" aria-label="'+esc(ac.label)+'">'+I.plus+'</button>':'';
- const sl=subs.find(s=>s[0]===sub);let h=
-  '<div class="nx-b'+(NX.mini?' mini':'')+'">'+tabs('navxTab')+'</div>'+'<button type="button" class="nx-bmini" data-act="navxUt">'+(vi?vi[2]:'')+'<span>'+(vi?vi[1]:'')+(sl?' · '+sl[1]:'')+'</span></button>'+plus+
-   (NX.meny&&subs.length?'<div class="nx-dim" data-act="navxStang"></div><div class="nx-pop">'+subs.map(([id,l,ic])=>'<button type="button" data-act="navxGa" data-id="'+id+'"'+(id===sub?' aria-current="page"':'')+'>'+ic+'<span>'+l+'</span></button>').join('')+'</div>':'');
- if(el.__h!==h){el.innerHTML=h;el.__h=h}}
-addEventListener('scroll',()=>{if(!navxOn()||KRYMP5==='av'){NX.y=scrollY;return}const y=scrollY,dy=y-NX.y;if(Math.abs(dy)<8)return;const mi=dy>0&&y>80;NX.y=y;if(mi!==NX.mini&&!NX.meny){NX.mini=mi;const el=document.getElementById('navx');if(el){el.classList.toggle('mini',mi);el.__h=null}}},{passive:true});
+ const h=S.view==='oversikt'?'':'<button type="button" class="nx-dhem" data-act="nav" data-id="oversikt">'+I_OV+'<span>Översikt</span></button>';
+ if(el.__h!==h){el.innerHTML=h;el.__h=h}
+ if(!m)return;const hd=m.querySelector('header.head');
+ if(hd&&!hd.querySelector('.nx-back')&&(S.view==='stad'||VIEWS.some(v=>v[0]===S.view&&v[0]!=='oversikt')))hd.insertAdjacentHTML('afterbegin','<button type="button" class="nx-back" data-act="nav" data-id="oversikt">'+I.back+'Översikt</button>');
+ if(S.view==='oversikt'&&!m.querySelector('.nx-tiles')){const html='<div class="nx-tiles">'+NAVX_GENV.map(([id,l,ic,t])=>'<button type="button" data-act="nav" data-id="'+id+'">'+ic()+'<b>'+l+'</b><small>'+t+'</small></button>').join('')+'</div>';
+  const wx=m.querySelector('.ot > .ot-wxk');if(wx)wx.insertAdjacentHTML('afterend',html);else if(hd)hd.insertAdjacentHTML('afterend',html);else m.insertAdjacentHTML('afterbegin',html)}}
 /* ---------- flikrad ---------- */
 // Knapparna byggs en gång så att markeringen kan glida mellan flikarna i stället för att ritas om.
 function renderNav(nav){
@@ -4283,7 +4278,7 @@ function renderOverlay(){
    ['avancerat','Utvecklarläge',group(fieldCell('Utvecklarläge','<input type="checkbox" role="switch" class="switch" data-act="dev" aria-label="Utvecklarläge"'+(DEV?' checked':'')+'>'))+'<div class="foot">Visar menyer som inte är färdiga, just nu Planera nästa vecka och Planera med portioner. Gäller bara den här enheten.</div>'+
   (DEV?sh('Smart hem')+group('<button type="button" class="cell link" data-act="haTest"><span class="grow">Låtsaslampor</span><span class="chev">'+I.chev+'</span></button>')+'<div class="foot">Låtsaslampor för att prova knappar och animationer. Inget skickas till Home Assistant.</div>':'')+
   (DEV?sh('Förhandsvisning')+group('<button type="button" class="cell link" data-act="familjOpen"><span class="grow">Testa Familj och släktträd</span><span class="meta">Förhandsvisning</span>'+chevron+'</button>')+'<div class="foot">Testa I fokus och Hela trädet med exempelpersoner. Ingenting sparas i era familjeuppgifter.</div>':'')+
-   (DEV&&U5?sh('Menyraden i telefonen')+'<div class="seg-wrap">'+segc('Menyraden i telefonen','navx',[['','Ny'],['gammal','Gammal']],NAVX)+'</div>'+'<div class="foot">Ny: ikoner, plusknapp och undersidor när du trycker på fliken du står i. Gammal: menyraden som före ht-v420.</div>':'')+(DEV&&U5&&!U6&&!skogVal()?sh('Ny översikt')+'<div class="seg-wrap">'+segc('Ny översikt','ovny',[['','Av'],['a','A'],['b','B'],['c','C'],['d','D'],['e','B2'],['f','C2'],['g','T2'],['h','Skog']],OVNY)+'</div>'+'<div class="foot">Prova spåren för en ny Översikt: A Förfina, B Dagen, C Hemmet i en blick, D Tavla med villäge, B2 Dagen med veckoraden och vädret, C2 Hemmet med vanliga vädret och schemat, Tavla 2 en ny väggtavla med glasrutor (telefonen visar C2). Av visar Översikten som vanligt. Gäller bara den här enheten.</div>':'')+
+   (DEV&&U5?sh('Menyraden i telefonen')+'<div class="seg-wrap">'+segc('Menyraden i telefonen','navx',[['','Ny'],['gammal','Gammal']],NAVX)+'</div>'+'<div class="foot">Ny: ingen menyrad, Översikt är hemmet med genvägar till delarna. Gammal: menyraden längst ner.</div>':'')+(DEV&&U5&&!U6&&!skogVal()?sh('Ny översikt')+'<div class="seg-wrap">'+segc('Ny översikt','ovny',[['','Av'],['a','A'],['b','B'],['c','C'],['d','D'],['e','B2'],['f','C2'],['g','T2'],['h','Skog']],OVNY)+'</div>'+'<div class="foot">Prova spåren för en ny Översikt: A Förfina, B Dagen, C Hemmet i en blick, D Tavla med villäge, B2 Dagen med veckoraden och vädret, C2 Hemmet med vanliga vädret och schemat, Tavla 2 en ny väggtavla med glasrutor (telefonen visar C2). Av visar Översikten som vanligt. Gäller bara den här enheten.</div>':'')+
    (DEV?sh('Rutnummer')+group(fieldCell('Visa rutnummer','<input type="checkbox" role="switch" class="switch" data-act="refs" aria-label="Visa rutnummer"'+(refsOn()?' checked':'')+'>'))+'<div class="foot">Varje ruta får sitt fasta nummer i hörnet, till exempel M2. Tryck på numret för att kopiera det. Gäller bara den här enheten.</div>':'')]])+'<div class="foot ver">Hushållstavlan · '+(U6?'Aura':/^[gh]$/.test(ovNy())?(ovNy()==='g'?'Tavla 2':'Skog'):'UI '+(U5?'5.0':U4?'4.0':U3?'3.0':UI_VER))+' · version '+esc(APP_VER)+'</div>';
   // Synk var 30:e sekund, Smart hem, väder och sparstatus ritar om appen. Samma blad byggs inte om (då gled den öppna delen in igen, flera gånger i rad);
   // har något ändrats byts innehållet, men en del som redan var öppen glider inte in på nytt
@@ -6592,12 +6587,7 @@ const ACT={
  otDag(id){S.otDag=+id||0;render()},otFlik(id){const v=id==='stad'?'stad':'gora';if(S.otFlik===v)return;S.otFlik=v;render()},
  otKvitt(id){const L=(lsGet('otKvitt')||'').split(',').filter(Boolean).slice(-9);L.push(id);lsSet('otKvitt',L.join(','));render()},otRum(id){S.otRum=id||'';S.otRumRed=0;S.sheet='otRum';render()},otRumRed(){S.otRumRed=1;render()},
  otArum(id,el){const r=el&&el.dataset?el.dataset.r||'':'',o=Object.assign({},(habGet()||{}).arum||{});o[id]=r;habSet({arum:o});render()},
- navx(id){NAVX=id==='gammal'?'gammal':'';lsSet('navx',NAVX||null);NX.mini=NX.meny=false;render()},
- navxTab(id){if(id===navxDel()&&navxSubs(id).length){NX.meny=!NX.meny;render();return}NX.meny=false;ACT.nav(id==='uppgifter'&&S.taskTab==='stad'&&S.view!=='stad'?'stad':id)},
- navxGa(id){NX.meny=false;NX.mini=false;const[v,s]=String(id).split(':');if(v==='settings'){ACT.settings();return}if(v==='mat'){if(S.view!=='mat')ACT.nav('mat');ACT.matTab(s);return}if(v==='uppgifter'){ACT.taskTab(s||'lista');return}ACT.nav(v)},
- navxStang(){NX.meny=false;render()},
- navxUt(){NX.mini=false;const el=document.getElementById('navx');if(el){el.classList.remove('mini');el.__h=null}render()},
- navxPlus(){const c=addContext();if(!c)return;const m=document.getElementById('main'),b=c.act&&m.querySelector('[data-act="'+c.act+'"]')||m.querySelector('.create-menu summary,.create-plus,.add-go');if(b){b.click();return}if(c.act&&ACT[c.act])ACT[c.act]()},
+ navx(id){NAVX=id==='gammal'?'gammal':'';lsSet('navx',NAVX||null);render()},
  ovny(id){OVNY=/^[abcdefgh]$/.test(id)?id:'';lsSet('ovny',OVNY||null);applyNy();A.touch=Date.now();render()},
  onWk(){S.onWk=!S.onWk;render()},
  onPers(id){S.onPers=id||'';A.touch=Date.now();render()},
@@ -6751,7 +6741,7 @@ const ACT={
   if(id==='av'){const was=D.lampor.map(x=>x.on);D.lampor.forEach(x=>{if(!x.nas&&x.on){x.on=false;haMalSatt(x,{on:false})}});render();return haSend({alla:'av'},()=>D.lampor.forEach((x,i)=>{x.on=was[i];if(HA.mal)delete HA.mal[x.id]}))}
   if(haDemo()){const m={'scene.morgon':{'light.kok':100,'light.hall':60},'scene.kvall':{'light.vardagsrum':45,'switch.fonster':1,'light.kok':30},'scene.film':{'light.vardagsrum':10}}[id]||{};D.lampor.forEach(x=>{const v=m[x.id];x.on=!!v;if(v>1)x.b=v})}
   render();haSend({scen:id},()=>{})},
- nav(id,el){if(id==='hus')id='hemmet';if(id!=='robot')S.robFran=null;if(id!=='hus'&&id!=='robot'&&!(id==='hemmet'&&S.view==='robot')){S.haRum=null;if(S.haTest){S.haTest=false;HA.demo=null;HA.syn={};HA.v=0;HA.retry=0}}if(RC.busy){toast('Vänta tills receptbegäran är klar.');return}if(RC.screen&&RC.edit&&RC.edit.dirty){RC.leaveTo=id;recipeLeave();S.view='mat';return}if(RC.screen)RC.screen=null;if(id!=='oversikt')arrCancel();if(normView(id)!=='ekonomi'){S.ekoOpen=false;S.pin=''}try{document.activeElement&&document.activeElement.blur()}catch(e){}id=normView(id);if(HEM_UNDER.includes(id)&&(!HEM_UNDER.includes(S.view)||el&&el.closest&&el.closest('#nav')))S.hemFran=el&&el.closest&&el.closest('#nav.sido')?'sido':S.view==='hemmet'?'hemmet':'oversikt';if(id==='fod')S.fodFromFamilj=DEV&&S.view==='familj';if(id==='uppgifter'&&S.taskTab==='stad'&&S.view!=='stad'&&el&&el.closest&&el.closest('#nav'))id='stad';if(['familj','slakt','slaktPersoner'].includes(id)&&!DEV)id='oversikt';if(id==='uppgifter'||id==='stad'){S.taskTab=id==='stad'?'stad':'lista';lsSet('taskTab',S.taskTab)}S.shopAdd=false;S.taskAdd=false;S.view=id;S.recipe=null;S.confirm=null;lsSet('view',id);try{history.replaceState(null,'','#'+id)}catch(e){}window.scrollTo(0,0);render()},
+ nav(id,el){if(id==='hus')id='hemmet';if(id!=='robot')S.robFran=null;if(id!=='hus'&&id!=='robot'&&!(id==='hemmet'&&S.view==='robot')){S.haRum=null;if(S.haTest){S.haTest=false;HA.demo=null;HA.syn={};HA.v=0;HA.retry=0}}if(RC.busy){toast('Vänta tills receptbegäran är klar.');return}if(RC.screen&&RC.edit&&RC.edit.dirty){RC.leaveTo=id;recipeLeave();S.view='mat';return}if(RC.screen)RC.screen=null;if(id!=='oversikt')arrCancel();if(normView(id)!=='ekonomi'){S.ekoOpen=false;S.pin=''}try{document.activeElement&&document.activeElement.blur()}catch(e){}id=normView(id);if(HEM_UNDER.includes(id)&&(!HEM_UNDER.includes(S.view)||el&&el.closest&&el.closest('#nav')))S.hemFran=el&&el.closest&&el.closest('#nav.sido')?'sido':S.view==='hemmet'?'hemmet':'oversikt';if(id==='fod')S.fodFromFamilj=DEV&&S.view==='familj';if(id==='uppgifter'&&S.taskTab==='stad'&&S.view!=='stad'&&el&&el.closest&&el.closest('#nav,.nx-tiles'))id='stad';if(['familj','slakt','slaktPersoner'].includes(id)&&!DEV)id='oversikt';if(id==='uppgifter'||id==='stad'){S.taskTab=id==='stad'?'stad':'lista';lsSet('taskTab',S.taskTab)}S.shopAdd=false;S.taskAdd=false;S.view=id;S.recipe=null;S.confirm=null;lsSet('view',id);try{history.replaceState(null,'','#'+id)}catch(e){}window.scrollTo(0,0);render()},
  refresh(){refresh()},
  settings(){if(S.sheet!=='farg')S.prefDraft=null;S.sheet='settings';render()},
  farg(){rememberSettings();S.sheet='farg';render()},

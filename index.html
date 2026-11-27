@@ -4798,36 +4798,25 @@ html.ny.ui5 .ot-fr.nu .ot-fd{background:var(--bd,#E39A1E);color:#fff}
 html.ny.ui5 .ot-fn{flex:1 1 auto;min-width:0;font-size:16px;line-height:20px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}html.ny.ui5 .ot-fn .num{font-weight:400;color:var(--ot-i2)}
 html.ny.ui5 .ot-fr small{flex:none;font-size:14px;line-height:18px;color:var(--ot-i2);white-space:nowrap}
 html.ny.ui5 .ot-v.ovf-A>.ot-nu:not(:has(.ot-nt:not(.fod))){display:none}html.ny.ui5 .ot-v.ovf-A>.ot-nu .ot-nt.fod{display:none}
-/* Menyraden på telefonen (förslag B, ht-v420): gamla #nav döljs, #navx ritas av navxRita. Undermenyn högst upp ligger kvar vid scroll. */
+/* Navigering på telefonen (förslag D, Översikt är hemmet): gamla #nav döljs, navxRita lägger genvägar, "‹ Översikt" och knappen längst ner. */
 html.navx #nav,html.navx .nav-mini{display:none!important}
-html.navx #create-dock{display:none}
-#navx{--nxm:var(--sk-meny,#24332E);--nxs:0 10px 30px rgba(20,30,25,.25);position:relative;z-index:60;-webkit-tap-highlight-color:transparent}
-#navx button{font:inherit;border:0;background:none;color:inherit;cursor:pointer;padding:0}
-#navx svg{width:24px;height:24px;flex:none}
-#navx .nx-dim{position:fixed;inset:0;background:rgba(20,30,25,.3);z-index:60;animation:nxIn .2s ease-out}
-#navx .nx-plus{position:fixed;right:14px;bottom:var(--tabgap,14px);width:58px;height:58px;border-radius:29px;background:var(--sk-gron,var(--accent,#6E9A5A));color:#fff;display:grid;place-items:center;box-shadow:var(--nxs);z-index:61}
-#navx .nx-plus svg{width:28px;height:28px;stroke-width:2.2}
-@keyframes nxIn{from{opacity:0}}
-@keyframes nxUpp{from{opacity:0;transform:translateY(14px) scale(.96)}}
-#navx .nx-b{position:fixed;left:14px;right:84px;bottom:var(--tabgap,14px);height:58px;background:var(--nxm);border-radius:29px;display:flex;align-items:center;padding:0 4px;box-shadow:var(--nxs);z-index:61;transition:opacity .25s,transform .3s cubic-bezier(.3,1.3,.5,1)}
-#navx .nx-b button{flex:1;height:50px;border-radius:25px;display:flex;align-items:center;justify-content:center;gap:6px;color:rgba(240,245,240,.68);min-width:0;transition:flex .3s cubic-bezier(.3,1.2,.5,1),background .2s}
-#navx .nx-b button span{display:none;font-size:15px;font-weight:650;white-space:nowrap}
-#navx .nx-b button[aria-current]{flex:2.5;background:#DCE8D2;color:#2F5D3A}
-#navx .nx-b button[aria-current] span{display:inline}
-#navx .nx-bmini{position:fixed;left:14px;bottom:calc(var(--tabgap,14px) + 3px);height:52px;border-radius:26px;background:var(--nxm)!important;color:#DCE8D2!important;display:flex;align-items:center;gap:8px;padding:0 18px 0 14px!important;font-size:15px;font-weight:650;box-shadow:var(--nxs);z-index:61;opacity:0;transform:scale(.8);pointer-events:none;transition:opacity .2s,transform .3s cubic-bezier(.3,1.3,.5,1)}
-#navx.mini .nx-b{opacity:0;transform:translateY(8px) scale(.9);pointer-events:none}
-#navx.mini .nx-bmini{opacity:1;transform:none;pointer-events:auto}
-#navx .nx-pop{position:fixed;left:14px;bottom:calc(var(--tabgap,14px) + 70px);width:240px;background:var(--surface,#FAF8F4);border-radius:20px;box-shadow:0 14px 40px rgba(20,30,25,.3);overflow:hidden;z-index:62;transform-origin:20% 100%;animation:nxUpp .25s cubic-bezier(.3,1.3,.5,1)}
-#navx .nx-pop button{display:flex;align-items:center;gap:12px;width:100%;height:48px;padding:0 16px;font-size:17px;color:var(--ink,#1C2622);border-bottom:.5px solid var(--sep,rgba(0,0,0,.08))}
-#navx .nx-pop button:last-child{border:0}
-#navx .nx-pop button svg{width:22px;height:22px;color:var(--sk-gron2,var(--accent))}
-#navx .nx-pop button[aria-current]{font-weight:650}
-#navx .nx-pop button[aria-current]::after{content:'✓';margin-left:auto;color:var(--sk-gron2,var(--accent))}
-html.navx-b #main{padding-bottom:calc(100px + var(--sab,0px))}
-html.navx-b #main .head .create-control:not(:has(.create-menu)){display:none}
-html.navx-b #main>.segc:has([data-act="matTab"]),html.navx-b #main>.segc:has([data-act="taskTab"]){position:sticky;top:calc(var(--sat) + 8px);z-index:16;-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);box-shadow:0 0 0 .5px rgba(30,40,30,.06),0 6px 18px rgba(30,40,30,.08)}
-html.navx-b .navbar~.wrap .ws-pin,html.navx-b .navbar~.wrap .pl-pin,html.navx-b .navbar.tom~.wrap .ws-pin,html.navx-b .navbar.tom~.wrap .pl-pin{top:calc(var(--sat) + 60px)}
-html.navx-b .ws-pin:has(.ws-mini.show)::before,html.navx-b .pl-pin:has(.pl-mini.show)::before{top:calc(-62px - var(--sat));height:calc(126px + var(--sat))}
+#navx{position:relative;z-index:60;-webkit-tap-highlight-color:transparent}
+#navx .nx-dhem{position:fixed;left:50%;transform:translateX(-50%);bottom:var(--tabgap,14px);height:52px;border:0;border-radius:26px;background:var(--sk-meny,#24332E);color:#DCE8D2;display:flex;align-items:center;gap:9px;padding:0 22px 0 18px;font:inherit;font-size:16px;font-weight:650;box-shadow:0 10px 30px rgba(20,30,25,.25);cursor:pointer;z-index:61}
+#navx .nx-dhem svg{width:22px;height:22px}
+html.navx-d #create-dock{bottom:calc(var(--tabgap,14px) + 64px)}
+html.navx-d #main{padding-bottom:calc(90px + var(--sab,0px))}
+html.navx-d .nx-back{display:flex;align-items:center;gap:2px;width:100%;margin:0 0 2px -6px;padding:0;border:0;background:none;font:inherit;font-size:17px;color:var(--sk-gron2,var(--accent));cursor:pointer}
+html.navx-d .nx-back svg{width:24px;height:24px}
+html.navx-d header.head{flex-wrap:wrap}
+.nx-tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}
+html.navx-d #main>.nx-tiles{margin:12px 16px}
+.nx-tiles button{display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;text-align:left;border:0;font:inherit;background:var(--surface,#FAF8F4);border-radius:22px;padding:14px 16px;box-shadow:var(--sk-skugga,0 1px 2px rgba(30,40,30,.05),0 12px 32px rgba(30,40,30,.08));color:var(--ink,#1C2622);cursor:pointer}
+.nx-tiles svg{display:block;width:26px;height:26px;color:var(--sk-gron2,var(--accent))}
+.nx-tiles b{display:block;font-size:18px;font-weight:700;margin-top:6px}
+.nx-tiles small{display:block;font-size:14px;line-height:1.3;color:var(--ink-2,#6A706A);margin-top:2px}
+html.navx-d #main>.segc:has([data-act="matTab"]),html.navx-d #main>.segc:has([data-act="taskTab"]){position:sticky;top:calc(var(--sat) + 8px);z-index:16;-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);box-shadow:0 0 0 .5px rgba(30,40,30,.06),0 6px 18px rgba(30,40,30,.08)}
+html.navx-d .navbar~.wrap .ws-pin,html.navx-d .navbar~.wrap .pl-pin,html.navx-d .navbar.tom~.wrap .ws-pin,html.navx-d .navbar.tom~.wrap .pl-pin{top:calc(var(--sat) + 60px)}
+html.navx-d .ws-pin:has(.ws-mini.show)::before,html.navx-d .pl-pin:has(.pl-mini.show)::before{top:calc(-62px - var(--sat));height:calc(126px + var(--sat))}
 /* Skog-telefonens topp: kort, vädret bredvid klockan (otTopp) */
 html.ny.ui5 .ot-t .ot-head{min-height:0;gap:2px}html.ny.ui5 .ot-t .ot-head>.ot-kl{margin-top:14px}
 html.ny.ui5 .ot-t .ot-head>.ot-tpc{position:absolute;z-index:1;right:16px;bottom:14px;display:flex;flex-direction:column;align-items:flex-end;padding:0;border:0;background:none;color:#fff;font:inherit;text-shadow:inherit}
