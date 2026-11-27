@@ -3,12 +3,12 @@
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
 
-## Scener: tidslinje, färg, tona, fler saker, automatisk start (förslag, inte publicerat, PR #121)
+## Scener: tidslinje, färg, tona, fler saker, automatisk start (publicerad ht-v423, ångra-gren `version-fore-scener`, PR #121)
 - Ägare Claude, gren `claude/project-thread-bt9eog`. Henrik 27/11: fördröjningar "fungerade sådär" (varje lampa låg i exakt ett steg). Nu `habTidslinje` som dammsugarens flöde: `d.l/d.x/d.tn` (Direkt) + `d.sq=[{v:sek,l,x,tn}]`, samma lampa i flera steg, Vänta −/+ (`HAB_V`, högst 8 steg/4 tim). Henrik 27/11 kväll: "bygg allt" + byta färg i scener.
 - Färg/ton per lampa (`habFargRad`: favorittoner + `HA_FARG`), Övergång per steg (`tn` → `t` = HA transition), saker i stegen (`x`: spela radio, stäng av högtalare, dammsugaren, HA-scen; `habXCmd`), nedräkning med Nu/Avbryt (`habVantarRad` i Hemmet och Smart hem-rutan; `D.senare` från tjänsten, annars lokalt `HA.senQ`), Starta av sig själv (`habAutoDel`, `s.auto`; tid/sol ± min/alla går/någon kommer hem, dagar, villkor mörkt/någon hemma) skickas som `{schema}` när scenerna sparas (`habSchemaSkicka`).
 - Sparformat bakåtkompatibelt (`s.l`+`s.st` kumulativa minuter, nya fält `x`, `tn`, `auto`). Ingen Kod.gs-ändring.
 - Tjänsten (`kiosk/ljussensor.py`): `transition` på lampor, `ha_senare` tar alla kommandotyper + `"nasta"`, `/ha` ger `senare` och `schema`, `schema_bevakare` (fil `~/.config/hushallstavlan-scenschema.json`, personer `person.*`). Gammal tjänst: lampor fungerar, saker i senare steg och schemat uteblir tyst (bladet säger att tjänsten behöver uppdateras).
-- Väntar på Henrik: val/"Pusha" och "Kör" för att installera tjänsten på Surfacen (backup `.fore-scener`).
+- Henrik sa "Pusha och kör" 27/11: tjänsten installeras på Surfacen (backup `~/.local/bin/ljussensor.py.fore-scener`).
 - Test: `python3 verktyg/scen-schema-test.py` (falsk-ha, nu med person.*), solljus/disk-vario/ljusvanor-test gröna; `scen-tidslinje.js` telefon ljust/mörkt + vägg, scen-ljusstyrka, scen-andra, alla-flikar telefon + vägg gröna. `hemmet-scener.js` och `smart-hem-scen-omritning.js` faller även på main. Jämförelse: https://claude.ai/artifact/SJ6bRcvuqFHeNSYKkH9yng, bilder /mnt/project-files/scen-tidslinje/.
 
 ## Dammsugaren: förlopp på tid + inlärda tidsestimat (publicerad ht-v422, ångra-gren `version-fore-robot-tid`, PR #122)
