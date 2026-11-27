@@ -8,6 +8,7 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 - Sparformatet oförändrat (`s.l` + `s.st` med kumulativa minuter via `habSkapa`), så ingen tjänst/Kod.gs-ändring.
 - Jämförelse med andra appar + förslag (tona, nedräkning, fler åtgärder, automatisk start): Claude Doc https://claude.ai/artifact/SJ6bRcvuqFHeNSYKkH9yng. Bilder /mnt/project-files/scen-tidslinje/.
 - Test: `scen-tidslinje.js` (nytt innehåll) telefon ljust/mörkt + vägg, `scen-ljusstyrka.js`, `scen-andra.js`, alla-flikar telefon + vägg gröna. `smart-hem-scen-omritning.js` faller även på main. Nästa: Henriks val, sedan "Pusha".
+
 ## Byt robotens vatten var 14:e dag (publicerad ht-v420, ångra-gren `version-fore-robot-vatten`)
 - Ägare Claude, gren `claude/project-thread-3e0ovq`. Henrik 27/11: påminnelse var 14:e dag att byta robotens vatten. Räknas från `tank.fylld` (dockans givare tom→full eller knappen); `robVattenD`/`robVatten` i app.js. Syns som "Byt vattnet, N dagar gammalt" + knapp Vattnet bytt i dockans kort, och som uppgift "Byt robotens vatten" i Att göra (översikten + Uppgifter, grupp Robotdammsugaren). Bock/knapp = `haTankFylld(id)` (befintlig `{tank:'fylld'}`, ingen ny tjänst eller Kod.gs). Saknas `fylld` räknas det som dags.
 - Test: `verktyg/emu/robot-vatten.js` (haDemo, telefon + vägg), alla-flikar telefon + vägg gröna. Bilder /mnt/project-files/apparater/vattenbyte/.
