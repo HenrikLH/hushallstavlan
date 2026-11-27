@@ -10,6 +10,10 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 - Väntar på Henrik: ok på bilder (/mnt/project-files/apparater/tidsestimat/), "Pusha", sedan "Kör" för att installera tjänsten på Surfacen.
 - Test: `python3 verktyg/robot-tid-test.py` (fejkad klocka), `robot-tid.js` telefon + vägg, robot-skog/-status/-hall-mopp, alla-flikar telefon/vägg gröna.
 
+## Byt robotens vatten var 14:e dag (publicerad ht-v420, ångra-gren `version-fore-robot-vatten`)
+- Ägare Claude, gren `claude/project-thread-3e0ovq`. Henrik 27/11: påminnelse var 14:e dag att byta robotens vatten. Räknas från `tank.fylld` (dockans givare tom→full eller knappen); `robVattenD`/`robVatten` i app.js. Syns som "Byt vattnet, N dagar gammalt" + knapp Vattnet bytt i dockans kort, och som uppgift "Byt robotens vatten" i Att göra (översikten + Uppgifter, grupp Robotdammsugaren). Bock/knapp = `haTankFylld(id)` (befintlig `{tank:'fylld'}`, ingen ny tjänst eller Kod.gs). Saknas `fylld` räknas det som dags.
+- Test: `verktyg/emu/robot-vatten.js` (haDemo, telefon + vägg), alla-flikar telefon + vägg gröna. Bilder /mnt/project-files/apparater/vattenbyte/.
+
 ## Lampor: stabil ordning + reglaget hoppar inte (publicerad ht-v416, ångra-gren `version-fore-lampor-stabil`)
 - Henrik 20/11: ordningen ändrades när en lampa tändes, och ljusstyrkan hoppade tillbaka en stund efter släpp. Orsaker: `haAnvSort` sorterade om direkt efter `haAnv` (nu fryst ordning `haAnvO`, uppdateras 10 min efter senaste tryck); en omritning mitt i draget bytte ut reglaget/brickan (nu väntar `doRender` medan `haDragT` är satt, högst 15 s).
 - Test: `verktyg/emu/lampa-slider.js` (ritar om mitt i draget), smart-hem-tonsteg, alla-flikar telefon + vägg Skog gröna. smart-hem-rorelse och hemmet-scener faller även på main.
