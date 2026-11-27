@@ -3,6 +3,13 @@
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
 
+## Dammsugaren: förlopp på tid + inlärda tidsestimat (förslag, ej publicerat)
+- Ägare Claude, gren `claude/project-thread-915ipq`. Henrik 27/11: procenten ska följa tiden (stora rum väger mer), inte antal rum; appen ska lära sig tid per rum × läge × gånger (× moppläge), avbrutna städningar ska inte påverka.
+- Tjänsten (`ha_tid_*` i ljussensor.py): mäter tid i rummet (in → ut, tvätt emellan räknas inte), lär bara när omgången gick klart, pausat rum räknas inte; sparar 5 senaste i `tider` i hushallstavlan-ha.json (`16|v|1`, `17|m|2|deep`, `resa|v`, `dock|v`); skickar `tider` (median, antal) och planens `start/tid/nuT/hemmaT/klarT/ru`.
+- App: `haRumSek`/`haRobEst`/`haRobKvar`; utan inlärd tid: samma rum annat antal, lärd takt per m², förval `HA_SEK`. Visar "ca" tills tiden är inlärd. Fungerar med gamla tjänsten (gissade tider, halva rummet som pågår).
+- Väntar på Henrik: ok på bilder (/mnt/project-files/apparater/tidsestimat/), "Pusha", sedan "Kör" för att installera tjänsten på Surfacen.
+- Test: `python3 verktyg/robot-tid-test.py` (fejkad klocka), `robot-tid.js` telefon + vägg, robot-skog/-status/-hall-mopp, alla-flikar telefon/vägg gröna.
+
 ## Lampor: stabil ordning + reglaget hoppar inte (publicerad ht-v416, ångra-gren `version-fore-lampor-stabil`)
 - Henrik 20/11: ordningen ändrades när en lampa tändes, och ljusstyrkan hoppade tillbaka en stund efter släpp. Orsaker: `haAnvSort` sorterade om direkt efter `haAnv` (nu fryst ordning `haAnvO`, uppdateras 10 min efter senaste tryck); en omritning mitt i draget bytte ut reglaget/brickan (nu väntar `doRender` medan `haDragT` är satt, högst 15 s).
 - Test: `verktyg/emu/lampa-slider.js` (ritar om mitt i draget), smart-hem-tonsteg, alla-flikar telefon + vägg Skog gröna. smart-hem-rorelse och hemmet-scener faller även på main.
