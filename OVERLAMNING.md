@@ -3,11 +3,11 @@
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
 
-## Dammsugaren: förlopp på tid + inlärda tidsestimat (förslag, ej publicerat)
+## Dammsugaren: förlopp på tid + inlärda tidsestimat (publicerad ht-v422, ångra-gren `version-fore-robot-tid`, PR #122)
 - Ägare Claude, gren `claude/project-thread-915ipq`. Henrik 27/11: procenten ska följa tiden (stora rum väger mer), inte antal rum; appen ska lära sig tid per rum × läge × gånger (× moppläge), avbrutna städningar ska inte påverka.
 - Tjänsten (`ha_tid_*` i ljussensor.py): mäter tid i rummet (in → ut, tvätt emellan räknas inte), lär bara när omgången gick klart, pausat rum räknas inte; sparar 5 senaste i `tider` i hushallstavlan-ha.json (`16|v|1`, `17|m|2|deep`, `resa|v`, `dock|v`); skickar `tider` (median, antal) och planens `start/tid/nuT/hemmaT/klarT/ru`.
 - App: `haRumSek`/`haRobEst`/`haRobKvar`; utan inlärd tid: samma rum annat antal, lärd takt per m², förval `HA_SEK`. Visar "ca" tills tiden är inlärd. Fungerar med gamla tjänsten (gissade tider, halva rummet som pågår).
-- Väntar på Henrik: ok på bilder (/mnt/project-files/apparater/tidsestimat/), "Pusha", sedan "Kör" för att installera tjänsten på Surfacen.
+- Henrik sa "Pusha och kör" 27/11: tjänsten installeras på Surfacen via Remote Control (backup `~/.local/bin/ljussensor.py.fore-robot-tid`).
 - Test: `python3 verktyg/robot-tid-test.py` (fejkad klocka), `robot-tid.js` telefon + vägg, robot-skog/-status/-hall-mopp, alla-flikar telefon/vägg gröna.
 
 ## Byt robotens vatten var 14:e dag (publicerad ht-v420, ångra-gren `version-fore-robot-vatten`)
