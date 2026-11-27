@@ -7,11 +7,10 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 - Henrik 20/11: ordningen ändrades när en lampa tändes, och ljusstyrkan hoppade tillbaka en stund efter släpp. Orsaker: `haAnvSort` sorterade om direkt efter `haAnv` (nu fryst ordning `haAnvO`, uppdateras 10 min efter senaste tryck); en omritning mitt i draget bytte ut reglaget/brickan (nu väntar `doRender` medan `haDragT` är satt, högst 15 s).
 - Test: `verktyg/emu/lampa-slider.js` (ritar om mitt i draget), smart-hem-tonsteg, alla-flikar telefon + vägg Skog gröna. smart-hem-rorelse och hemmet-scener faller även på main.
 
-## Navigering i telefonen, prov A–D (publicerad ht-v419 i Utvecklarläge, ångra-gren `version-fore-navigering`)
-- Ägare Claude, gren `claude/project-thread-je8yu4`. Henrik 20/11: menyraden fungerar "sådär"; fyra förslag (bilder /mnt/project-files/navigering/) lades som prov under Inställningar → Utvecklarläge → Navigering i telefonen (`ht.navx` a–d, `navxOn()`, bara U5 + DEV + telefon). Gamla `#nav` döljs, `#navx` ritas av `navxRita` efter `addLayout`.
-- A undersidor i menyraden (döljer toppsegmentet), B ikoner + plusknapp, tryck aktiv flik = undersidor, krymper vid scroll, C draglåda med alla delar, D ingen menyrad, genvägar på Översikt + "‹ Översikt".
-- Nästa: Henrik väljer efter test i telefonen; bygg sedan ut valet och ta bort de andra. `alla-flikar.js` klickar på gamla `#nav` och fungerar därför bara med navx av. Test: `verktyg/emu/navigering.js` (LS navx=a..d) ljust/mörkt, alla-flikar telefon + vägg gröna.
-
+## Ny menyrad på telefonen, förslag B (gren `claude/project-thread-je8yu4`, väntar på "Pusha")
+- Ägare Claude. Henrik 27/11 valde B av proven A–D (ht-v419). Nu standard på telefon i UI 5.0 (`navxOn()`: U5, inte väggen, <900 px); ikoner + namn på aktiv del, egen plusknapp (`navxPlus`, dubblettplus i rubriken döljs, receptmenyn kvar uppe), tryck på aktiv flik = undersidor (`nx-pop`), krymper till "Mat · Vecka" vid scroll (inte om `KRYMP5=av`). Undermenyn Vecka/Inköp/Recept och Uppgifter/Städ är sticky; budget-/planpinnen ligger under den (`navxSeg` i wsPin/plPin).
+- A/C/D borttagna. Utvecklarläge → Menyraden i telefonen: Ny/Gammal (`ht.navx=gammal` ger gamla #nav).
+- Test: `verktyg/emu/navigering.js` (Skog ljust/mörkt, Apple, gammal, vägg), alla-flikar telefon Skog ljust/mörkt + Apple + vägg gröna (alla-flikar klickar #navx när den finns).
 ## Kort Skog-topp med vädret bredvid klockan (publicerad ht-v418, ångra-gren `version-fore-tom-himmel`)
 - Henrik 20/11: tom himmel ovanför klockan på telefonens Skog-Översikt. Valde kombo av förslagen D+C: kortare topp, väderikon + temp + H/L till höger om klockan (`otTopp()`), väderkortet utan ikon/temp (`.ot-tpw`). Gren `claude/project-thread-dbf4h6`, scenario `verktyg/emu/tom-himmel.js`.
 
