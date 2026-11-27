@@ -1,8 +1,8 @@
-// Navigering på telefonen (förslag D, Översikt är hemmet, ht-v420). Kör: LS='{"ovny":"h"}' node verktyg/emu/run.js verktyg/emu/navigering.js
-// LS='{"navx":"gammal"}' ger gamla menyraden; väggen (LS wall=1, VP=1368x912) ska inte få #navx.
+// Navigering på telefonen (förslag D, Översikt är hemmet, ht-v420). Kör: LS='{"ovny":"h","navx":"hem"}' node verktyg/emu/run.js verktyg/emu/navigering.js
+// Utan navx (standard) ska menyraden synas; väggen (LS wall=1, VP=1368x912) ska inte få #navx.
 const assert=require('node:assert/strict');
 module.exports=async(pg,h)=>{const r=s=>pg.evaluate(s=>window.__d(s),s),k=async s=>{await pg.locator(s).first().click();await h.idle(800)};
- const wall=await r('S.wall'),gammal=await r(`localStorage.getItem('ht.navx')==='gammal'`);
+ const wall=await r('S.wall'),gammal=await r(`localStorage.getItem('ht.navx')!=='hem'`);
  if(wall||gammal){assert(!await r(`!!document.querySelector('#navx')`),'ingen ny navigering');assert(await r(`getComputedStyle(document.getElementById('nav')).display!=='none'`),'menyraden syns');console.log('navigering: gamla raden ok');return}
  assert(await r(`getComputedStyle(document.getElementById('nav')).display==='none'`),'menyraden dold');
  if(await r('S.view')!=='oversikt')await k('#navx .nx-dhem');
