@@ -7,11 +7,12 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 - Ägare Claude, gren `claude/project-thread-3e0ovq`. Henrik 27/11: påminnelse var 14:e dag att byta robotens vatten. Räknas från `tank.fylld` (dockans givare tom→full eller knappen); `robVattenD`/`robVatten` i app.js. Syns som "Byt vattnet, N dagar gammalt" + knapp Vattnet bytt i dockans kort, och som uppgift "Byt robotens vatten" i Att göra (översikten + Uppgifter, grupp Robotdammsugaren). Bock/knapp = `haTankFylld(id)` (befintlig `{tank:'fylld'}`, ingen ny tjänst eller Kod.gs). Saknas `fylld` räknas det som dags.
 - Test: `verktyg/emu/robot-vatten.js` (haDemo, telefon + vägg), alla-flikar telefon + vägg gröna. Bilder /mnt/project-files/apparater/vattenbyte/.
 
-## Smarta uppmaningar på Översikt (förslag, inte publicerat)
-- Ägare Claude, gren `claude/project-thread-aai13j`. Henrik 27/11: städ som behöver göras ska synas tydligt på Översikt, man ska bli uppmanad; alla "smarta förslag" när de är relevanta.
-- `otSmart(tel)` samlar: städpass (förfallet efter intervall, "Senast för N dagar sedan", Starta robot på dammsugning), dagliga rutiner, storstäd snart, försenade uppgifter, salt/spolglans, robotens vattenbyte (`a.vbyte` från vattenbytestråden, demo 15), ingen middag ikväll, veckosedeln tar slut, inköpslista ≥ 8. Prov via ls `ht.smartx` a (allt i Just nu) / b (Städ eget kort under Just nu, Att göra utan växlare) / c (svepbara förslagskort). Väggen: städ stannar i Städkortet med "N dagar sedan", Just nu tar resten.
-- Nästa: Henrik väljer; sedan städa bort övriga varianter, brytare/inställning vid behov. Scenario `verktyg/emu/smarta-uppmaningar.js`. Bilder /mnt/project-files/smarta-uppmaningar/.
-- Upptäckt: Smart hem-rutan på väggen överlappar (spelande högtalare + två apparater i demo), även utan ändringen.
+## Smarta uppmaningar på Översikt (publicerad ht-v421 i Utvecklarläge, ångra-gren `version-fore-smarta-uppmaningar`)
+- Ägare Claude, gren `claude/project-thread-aai13j`. Henrik 27/11: städ som behöver göras ska synas tydligt på Översikt, man ska bli uppmanad; alla "smarta förslag" när de är relevanta. Han valde B (rekommendationen) för utvärdering.
+- `otSmart(tel)` samlar: städpass (förfallet efter intervall, "Senast för N dagar sedan", Starta robot på dammsugning), dagliga rutiner, storstäd snart, försenade uppgifter, salt/spolglans, ingen middag ikväll, veckosedeln tar slut, inköpslista ≥ 8. Robotens vattenbyte ligger kvar i Att göra (`robVatten`).
+- Inställningar → Utvecklarläge → Smarta uppmaningar (bara Skog + DEV, ls `ht.smartx` a/b/c, `SMX()`): A allt i Just nu, B Städ eget kort under Just nu och Att göra utan växlare, C svepbara förslagskort. Väggen: städ i Städkortet med "N dagar sedan", Just nu tar resten.
+- Nästa: Henrik utvärderar; gör sedan valet till standard och ta bort övriga varianter. Test `verktyg/emu/smarta-uppmaningar.js` a/b/c + vägg, alla-flikar telefon + vägg (dev, smartx=b) gröna.
+- Upptäckt: Smart hem-rutan på väggen överlappar (spelande högtalare + två apparater i demo), även på main.
 
 ## Lampor: stabil ordning + reglaget hoppar inte (publicerad ht-v416, ångra-gren `version-fore-lampor-stabil`)
 - Henrik 20/11: ordningen ändrades när en lampa tändes, och ljusstyrkan hoppade tillbaka en stund efter släpp. Orsaker: `haAnvSort` sorterade om direkt efter `haAnv` (nu fryst ordning `haAnvO`, uppdateras 10 min efter senaste tryck); en omritning mitt i draget bytte ut reglaget/brickan (nu väntar `doRender` medan `haDragT` är satt, högst 15 s).
