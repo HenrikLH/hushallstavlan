@@ -11,9 +11,23 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 - Väntar på Henrik: val/"Pusha" och "Kör" för att installera tjänsten på Surfacen (backup `.fore-scener`).
 - Test: `python3 verktyg/scen-schema-test.py` (falsk-ha, nu med person.*), solljus/disk-vario/ljusvanor-test gröna; `scen-tidslinje.js` telefon ljust/mörkt + vägg, scen-ljusstyrka, scen-andra, alla-flikar telefon + vägg gröna. `hemmet-scener.js` och `smart-hem-scen-omritning.js` faller även på main. Jämförelse: https://claude.ai/artifact/SJ6bRcvuqFHeNSYKkH9yng, bilder /mnt/project-files/scen-tidslinje/.
 
+## Dammsugaren: förlopp på tid + inlärda tidsestimat (publicerad ht-v422, ångra-gren `version-fore-robot-tid`, PR #122)
+- Ägare Claude, gren `claude/project-thread-915ipq`. Henrik 27/11: procenten ska följa tiden (stora rum väger mer), inte antal rum; appen ska lära sig tid per rum × läge × gånger (× moppläge), avbrutna städningar ska inte påverka.
+- Tjänsten (`ha_tid_*` i ljussensor.py): mäter tid i rummet (in → ut, tvätt emellan räknas inte), lär bara när omgången gick klart, pausat rum räknas inte; sparar 5 senaste i `tider` i hushallstavlan-ha.json (`16|v|1`, `17|m|2|deep`, `resa|v`, `dock|v`); skickar `tider` (median, antal) och planens `start/tid/nuT/hemmaT/klarT/ru`.
+- App: `haRumSek`/`haRobEst`/`haRobKvar`; utan inlärd tid: samma rum annat antal, lärd takt per m², förval `HA_SEK`. Visar "ca" tills tiden är inlärd. Fungerar med gamla tjänsten (gissade tider, halva rummet som pågår).
+- Henrik sa "Pusha och kör" 27/11: tjänsten installeras på Surfacen via Remote Control (backup `~/.local/bin/ljussensor.py.fore-robot-tid`).
+- Test: `python3 verktyg/robot-tid-test.py` (fejkad klocka), `robot-tid.js` telefon + vägg, robot-skog/-status/-hall-mopp, alla-flikar telefon/vägg gröna.
+
 ## Byt robotens vatten var 14:e dag (publicerad ht-v420, ångra-gren `version-fore-robot-vatten`)
 - Ägare Claude, gren `claude/project-thread-3e0ovq`. Henrik 27/11: påminnelse var 14:e dag att byta robotens vatten. Räknas från `tank.fylld` (dockans givare tom→full eller knappen); `robVattenD`/`robVatten` i app.js. Syns som "Byt vattnet, N dagar gammalt" + knapp Vattnet bytt i dockans kort, och som uppgift "Byt robotens vatten" i Att göra (översikten + Uppgifter, grupp Robotdammsugaren). Bock/knapp = `haTankFylld(id)` (befintlig `{tank:'fylld'}`, ingen ny tjänst eller Kod.gs). Saknas `fylld` räknas det som dags.
 - Test: `verktyg/emu/robot-vatten.js` (haDemo, telefon + vägg), alla-flikar telefon + vägg gröna. Bilder /mnt/project-files/apparater/vattenbyte/.
+
+## Smarta uppmaningar på Översikt (publicerad ht-v421 i Utvecklarläge, ångra-gren `version-fore-smarta-uppmaningar`)
+- Ägare Claude, gren `claude/project-thread-aai13j`. Henrik 27/11: städ som behöver göras ska synas tydligt på Översikt, man ska bli uppmanad; alla "smarta förslag" när de är relevanta. Han valde B (rekommendationen) för utvärdering.
+- `otSmart(tel)` samlar: städpass (förfallet efter intervall, "Senast för N dagar sedan", Starta robot på dammsugning), dagliga rutiner, storstäd snart, försenade uppgifter, salt/spolglans, ingen middag ikväll, veckosedeln tar slut, inköpslista ≥ 8. Robotens vattenbyte ligger kvar i Att göra (`robVatten`).
+- Inställningar → Utvecklarläge → Smarta uppmaningar (bara Skog + DEV, ls `ht.smartx` a/b/c, `SMX()`): A allt i Just nu, B Städ eget kort under Just nu och Att göra utan växlare, C svepbara förslagskort. Väggen: städ i Städkortet med "N dagar sedan", Just nu tar resten.
+- Nästa: Henrik utvärderar; gör sedan valet till standard och ta bort övriga varianter. Test `verktyg/emu/smarta-uppmaningar.js` a/b/c + vägg, alla-flikar telefon + vägg (dev, smartx=b) gröna.
+- Upptäckt: Smart hem-rutan på väggen överlappar (spelande högtalare + två apparater i demo), även på main.
 
 ## Lampor: stabil ordning + reglaget hoppar inte (publicerad ht-v416, ångra-gren `version-fore-lampor-stabil`)
 - Henrik 20/11: ordningen ändrades när en lampa tändes, och ljusstyrkan hoppade tillbaka en stund efter släpp. Orsaker: `haAnvSort` sorterade om direkt efter `haAnv` (nu fryst ordning `haAnvO`, uppdateras 10 min efter senaste tryck); en omritning mitt i draget bytte ut reglaget/brickan (nu väntar `doRender` medan `haDragT` är satt, högst 15 s).

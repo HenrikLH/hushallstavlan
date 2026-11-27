@@ -339,7 +339,11 @@ def ha_robot(c, alla, e):
     if 'mop' in r['lageAlt']: r['tank'] = ha_tank_info(c, r['vbrist'])
     v0 = VANTA.get(e); r['vantar'] = {'t': v0['t'], 'n': v0['n'], 'rum': v0['rum']} if v0 else 0   # 0 = tjänsten kan fördröja start
     if e in PLAN:
-        q = PLAN[e]; r['plan'] = {'steg': q['steg'], 'i': q['i'], 'klara': q['klara'], 'nu': q['nu'], 'hemma': not q.get('avbr') and (bool(q['hemma']) or (q['sett'] and v.get('state') == 'docked')), 'klar': bool(q['klar']), 'avbr': bool(q.get('avbr'))}
+        q = PLAN[e]; r['plan'] = {'steg': q['steg'], 'i': q['i'], 'klara': q['klara'], 'nu': q['nu'], 'hemma': not q.get('avbr') and (bool(q['hemma']) or (q['sett'] and v.get('state') == 'docked')), 'klar': bool(q['klar']), 'avbr': bool(q.get('avbr')),
+                     # tider för appens förlopp och tidsestimat: när planen och steget startade, när roboten kom in i rummet, när den kom hem/blev klar
+                     'start': q.get('start'), 'tid': q.get('tid'), 'nuT': q.get('nuT'), 'hemmaT': q.get('hemma') or None, 'klarT': q.get('klar') or None, 'ru': (q.get('val') or {}).get('rutt')}
+    T = c.get('tider') or {}
+    if T: r['tider'] = {k: [sorted(L)[len(L) // 2], len(L)] for k, L in T.items() if L}   # inlärd tid per rum × läge × gånger (× moppläge): median, antal
     k = ha_karta_info(alla, p)
     if k:
         a = A(k); r['karta'] = k['entity_id']; r['kartaV'] = k.get('state')
@@ -487,7 +491,7 @@ def ha_app_styr(c, d):
                     s0 = next((s1 for s1 in steg if s1['typ'] == 'mopp' and (s1.get('x', 1), s1.get('rutt')) == k), None)
                     if s0: s0['rum'].append(x)
                     else: steg.append(dict({'typ': 'mopp', 'rum': [x]}, **({'x': k[0]} if k[0] > 1 else {}), **({'rutt': k[1]} if k[1] else {})))
-                PLAN[e] = {'steg': steg, 'i': 0, 'klara': [[] for _ in steg], 'nu': None, 'sett': False, 'tid': time.time(), 'hemma': None, 'klar': None}
+                PLAN[e] = {'steg': steg, 'i': 0, 'klara': [[] for _ in steg], 'nu': None, 'sett': False, 'tid': time.time(), 'start': time.time(), 'hemma': None, 'klar': None}
                 PLAN[e]['val'] = {'sug': a.get('sug'), 'vatten': a.get('vatten'), 'rutt': a.get('rutt')}
                 ha_plan_kor(c, a, 'vacuum' if damm else 'mop', steg[0]['rum'], PLAN[e]['val'], steg[0].get('x', 1), steg[0].get('rutt'))
             elif rum or damm or mopp: ha_plan_kor(c, a, None, rum or damm or mopp)
@@ -784,11 +788,15 @@ def ha_plan():
             rid = ha_plan_rum(a, a.get('rumNr'))
             if rid in steg['rum']: p['sedda'] = (p.get('sedda') or []) + [rid] * (rid not in (p.get('sedda') or []))
             if rid != p['nu'] and rid is not None:   # roboten har bytt rum: förra rummet är klart (på väg hem räknas inte)
+                ha_tid_stang(p, nu)
                 if p['nu'] in steg['rum'] and p['nu'] not in k: k.append(p['nu']); ha_stadat(c, [p['nu']], steg['typ'])
-                p['nu'] = rid
+                p['nu'] = rid; p['nuFel'] = False
+                if rid in steg['rum']: p['nuT'] = nu
+            elif rid is not None and rid == p['nu'] and rid in steg['rum'] and not p.get('nuT'): p['nuT'] = nu   # tillbaka i rummet efter tvätt av moppen
         elif p['sett'] and vst in ('idle', 'paused'):
             p['paus'] = True   # stoppad eller pausad: om den sedan åker hem utan att fortsätta är omgången avbruten
-        elif p['sett'] and vst == 'returning': pass
+            if p.get('nuT'): p['nuFel'] = True; ha_tid_stang(p, nu)   # rummets tid räknas inte: någon pausade mitt i
+        elif p['sett'] and vst == 'returning': ha_tid_stang(p, nu)
         elif vst == 'error' or nu - p['tid'] > 4 * 3600 or (not p['sett'] and nu - p['tid'] > 600):
             ha_plan_avbruten(c, e, a, '%s, %s' % (vst, st))
         elif p['sett'] and vst == 'docked':
@@ -797,7 +805,9 @@ def ha_plan():
                 sedda, pct = p.get('sedda') or [], p.get('pct')
                 if p.get('paus') or (pct is not None and pct < 90) or (sedda and set(steg['rum']) - set(sedda)):
                     ha_plan_avbruten(c, e, a, 'paus' if p.get('paus') else 'förlopp %s%%, besökta %s' % (pct, sedda)); continue
-            if not p['hemma']: ha_stadat(c, [x for x in steg['rum'] if x not in k], steg['typ'])
+            if not p['hemma']:
+                ha_stadat(c, [x for x in steg['rum'] if x not in k], steg['typ'])
+                ha_tid_stang(p, nu); ha_tid_lar(p, steg, nu)   # omgången gick klart: rummens tider lärs in
             k[:] = steg['rum']; p['nu'] = None
             if re.search(r'empty|wash|going', st): p['hemma'] = p['hemma'] or nu; continue
             if not p['hemma']:
@@ -809,12 +819,48 @@ def ha_plan():
             if p['i'] + 1 < len(p['steg']):
                 p['i'] += 1; n = p['steg'][p['i']]
                 logg('ha: steg %d klart, %s %s' % (p['i'], n['typ'], n['rum']))
-                ha_plan_kor(c, a, 'mop' if n['typ'] == 'mopp' else 'vacuum', n['rum'], p.get('val'), n.get('x', 1), n.get('rutt') or (p.get('val') or {}).get('rutt') if n['typ'] == 'mopp' else None); p.update(sett=False, tid=nu, hemma=None, sedda=[], pct=None, paus=False)
+                if p['hemma'] and not p.get('avbr'): ha_tid_spara({'dock|' + ('m' if p['steg'][p['i'] - 1]['typ'] == 'mopp' else 'v'): nu - p['hemma']})   # tömning/tvätt mellan omgångarna
+                ha_plan_kor(c, a, 'mop' if n['typ'] == 'mopp' else 'vacuum', n['rum'], p.get('val'), n.get('x', 1), n.get('rutt') or (p.get('val') or {}).get('rutt') if n['typ'] == 'mopp' else None); p.update(sett=False, tid=nu, hemma=None, sedda=[], pct=None, paus=False, nuT=None, nuFel=False, mat={})
             else:
                 p['i'] += 1; p['klar'] = nu
                 if a.get('lage') != 'vacuum': ha_anrop(c, '/api/services/select/select_option', {'entity_id': a['lageId'], 'option': 'vacuum'})
                 ha_plan_rutt_tillbaka(c, a, p)
     ha_uppdatera()
+
+# tidsestimat (Henrik 27/11): tiden i varje rum mäts från att roboten kör in tills den lämnar rummet (tvätt av moppen däremellan räknas inte).
+# Bara omgångar som gick klart lärs in; ett rum där någon pausade räknas inte. De fem senaste per rum × läge × gånger (× moppläge) sparas.
+TID_N = 5
+def ha_tid_stang(p, nu):
+    r, t = p.get('nu'), p.get('nuT')
+    if r is not None and t:
+        m = p.setdefault('mat', {}); k = str(r)
+        if p.get('nuFel'): m[k] = None
+        elif k not in m or m[k] is not None: m[k] = (m.get(k) or 0) + nu - t
+    p['nuT'] = None
+
+def ha_tid_nyckel(p, steg, r):
+    t = 'm' if steg['typ'] == 'mopp' else 'v'
+    ru = (steg.get('rutt') or (p.get('val') or {}).get('rutt') or 'standard') if t == 'm' else ''
+    return '%s|%s|%s%s' % (r, t, steg.get('x', 1), '|' + ru if ru else '')
+
+def ha_tid_lar(p, steg, nu):
+    if p.get('avbr'): return
+    m, ny = p.get('mat') or {}, {}
+    for r in steg['rum']:
+        s = m.get(str(r))
+        if s and s >= 15: ny[ha_tid_nyckel(p, steg, r)] = s
+    # resan till och från dockan och mellan rummen: hela omgången minus tiden i rummen (bara när alla rum mättes)
+    if len(ny) == len(steg['rum']):
+        resa = nu - p['tid'] - sum(m[str(r)] for r in steg['rum'])
+        if resa > 0: ny['resa|' + ('m' if steg['typ'] == 'mopp' else 'v')] = resa
+    ha_tid_spara(ny)
+
+def ha_tid_spara(ny):
+    c = ha_cfg()
+    if not ny or not c: return
+    c = json.loads(json.dumps(c)); T = c.setdefault('tider', {})
+    for k, s in ny.items(): T[k] = (T.get(k, []) + [round(s)])[-TID_N:]
+    ha_spara(c); logg('ha: tider ' + ', '.join('%s %ds' % (k, s) for k, s in ny.items()))
 
 # när varje rum senast dammsögs/moppades (för påminnelser i appen) och hur mycket som moppats sedan tanken fylldes
 def ha_stadat(c, rum, lage):
