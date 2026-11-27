@@ -3,6 +3,9 @@
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
 
+## Byt robotens vatten var 14:e dag (publicerad ht-v420, ångra-gren `version-fore-robot-vatten`)
+- Ägare Claude, gren `claude/project-thread-3e0ovq`. Henrik 27/11: påminnelse var 14:e dag att byta robotens vatten. Räknas från `tank.fylld` (dockans givare tom→full eller knappen); `robVattenD`/`robVatten` i app.js. Syns som "Byt vattnet, N dagar gammalt" + knapp Vattnet bytt i dockans kort, och som uppgift "Byt robotens vatten" i Att göra (översikten + Uppgifter, grupp Robotdammsugaren). Bock/knapp = `haTankFylld(id)` (befintlig `{tank:'fylld'}`, ingen ny tjänst eller Kod.gs). Saknas `fylld` räknas det som dags.
+- Test: `verktyg/emu/robot-vatten.js` (haDemo, telefon + vägg), alla-flikar telefon + vägg gröna. Bilder /mnt/project-files/apparater/vattenbyte/.
 
 ## Smarta uppmaningar på Översikt (förslag, inte publicerat)
 - Ägare Claude, gren `claude/project-thread-aai13j`. Henrik 27/11: städ som behöver göras ska synas tydligt på Översikt, man ska bli uppmanad; alla "smarta förslag" när de är relevanta.
