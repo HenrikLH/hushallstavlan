@@ -204,7 +204,9 @@ let NAVX=['hem','d'].includes(lsGet('navx'))?'hem':'';
 function navxOn(){return U5&&!S.wall&&NAVX==='hem'&&innerWidth<900?'d':''}
 function navxSeg(){const g=navxOn()&&document.querySelector('#main>.segc');return g&&getComputedStyle(g).position==='sticky'?g.getBoundingClientRect().bottom+8:0}
 const NAVX_GENV=[['mat','Mat',()=>I.fork,'Vecka, inköp och recept'],['hemmet','Hemmet',()=>I.home,'Lampor och apparater'],['kalender','Kalender',()=>I.cal,'Schema och händelser'],['uppgifter','Att göra',()=>I.list,'Uppgifter och städ']];
-function navxRita(m){const x=navxOn(),c=document.documentElement.classList;c.toggle('navx-d',!!x);c.toggle('navx',!!x);
+// Översikt-knappen i en vys egen knapprad (förslag A, Henrik 28/11): ersätter den svävande knappen när raden finns.
+const NX_IRAD=()=>navxOn()&&lsGet('navxbar')!=='b'?'<button type="button" class="ha-bh nx-irad" data-act="nav" data-id="oversikt" aria-label="Översikt">'+I_OV+'</button>':'';
+function navxRita(m){const x=navxOn(),c=document.documentElement.classList;c.toggle('navx-d',!!x);c.toggle('navx',!!x);c.toggle('navx-b',!!x&&lsGet('navxbar')==='b');
  let el=document.getElementById('navx');if(!x||!S.key||S.cook){if(el)el.remove();return}
  if(!el){el=document.createElement('div');el.id='navx';document.body.appendChild(el)}
  const h=S.view==='oversikt'?'':'<button type="button" class="nx-dhem" data-act="nav" data-id="oversikt">'+I_OV+'<span>Översikt</span></button>';
@@ -2318,10 +2320,10 @@ function haAppKropp(a,sida){
   const oD=haMoppUtanDamm(a,P),hall=()=>'<button type="button" class="ha-bk ha-hold" data-hold="haRobMopp" data-id="start" aria-label="Håll in för att moppa utan att dammsuga först"><i class="sh-fill"></i>'+HAI_APP.play+'<span>Håll in för att moppa<small>'+(oD.length===P.mopp.length&&!P.damm.length?'Utan dammsugning före':oD.length+(oD.length>1?' rum dammsugs inte före':' rum dammsugs inte före'))+'</small></span></button>';
   // fördröjd start (Henrik 16/11): klockknappen öppnar timervredet; under väntan visar raden nedräkningen
   const om=a.vantar&&a.vantar.t?a.vantar:null,omKan=a.vantar!==undefined&&!S.haZon&&!st&&!(V.length&&oD.length);
-  if(om)b+='<div class="ha-bar">'+haOmRad(a,om)+'</div>';else
+  if(om)b+='<div class="ha-bar">'+haOmRad(a,om)+NX_IRAD()+'</div>';else
   b+='<div class="ha-bar">'+(S.haZon?(st?stor(HAI_APP.paus,'Pausa','haRob','paus'):stor(HAI_APP.play,'Städa zon','haZonStada','',!S.haZonR)):st?stor(HAI_APP.paus,'Pausa','haRob','paus'):V.length&&oD.length?hall():stor(HAI_APP.play,V.length?(P.damm.length?'Starta':'Moppa'):a.st==='paused'?'Fortsätt':'Städa allt','haRob','start',false,sub))+
    (omKan?'<button type="button" class="ha-bh ha-om" data-act="haRobOm" aria-label="Fördröjd start">'+HAI_KLOCKA+'</button>':'')+
-   '<button type="button" class="ha-bh" data-act="haRob" data-id="hem" aria-label="Åk hem"'+(hemma?' disabled':'')+'>'+HAI_APP.hem+'</button></div>'}}
+   '<button type="button" class="ha-bh" data-act="haRob" data-id="hem" aria-label="Åk hem"'+(hemma?' disabled':'')+'>'+HAI_APP.hem+'</button>'+NX_IRAD()+'</div>'}}
  else{const kor=/run|pause|delayedstart/.test(a.st||''),k=haKvar(a),R=54,O=2*Math.PI*R,p=kor?(a.pct||0):a.st==='finished'?100:0,kan=a.fjarr&&a.dorr!=='open';
   b+='<div class="ha-ring"><svg viewBox="0 0 128 128"><circle cx="64" cy="64" r="'+R+'"/><circle class="p" cx="64" cy="64" r="'+R+'" stroke-dasharray="'+O+'" stroke-dashoffset="'+(O*(1-p/100))+'"/></svg><div><b>'+(kor&&k!=null?k+'<small> min</small>':a.st==='finished'?'Klar':esc(a.prog||'–'))+'</b><span>'+(kor&&a.slut?'klar '+haKl(a.slut):kor?'':esc(HA_DISK_ST[a.st]||''))+'</span></div></div>';
   b+='<div class="ha-rks">'+(kor?(a.kanStoppa?rund(HAI_APP.stopp,'Håll för att stoppa','haDiskStopp',a.id,true,false,true):''):rund(HAI_APP.play,'Starta','haDisk','start',true,!kan))+'</div>'+(!kor&&!kan?'<div class="ha-ap-info">'+(a.dorr==='open'?'Stäng luckan för att starta.':'Tryck på fjärrstart på diskmaskinen för att starta härifrån.')+'</div>':'');

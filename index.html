@@ -4871,8 +4871,16 @@ html.navx #nav,html.navx .nav-mini{display:none!important}
 #navx .nx-dhem svg{width:22px;height:22px}
 html.navx-d #create-dock{bottom:calc(var(--tabgap,14px) + 64px)}
 html.navx-d #main{padding-bottom:calc(90px + var(--sab,0px))}
-/* Dammsugarens knapprad ligger ovanför Översikt-knappen (52 px) och följer inte menyradens krympning. */
-html.navx-d.ny.ui5 .rob-vy .ha-bar{padding-bottom:calc(var(--tabgap,14px) + 64px)}
+/* Dammsugarens knapprad krockar aldrig med Översikt-knappen. A: knappen ligger i raden (.nx-irad) och den svävande döljs.
+   B (ls navxbar=b): den svävande glider undan när man scrollar nedåt och raden följer med. */
+html.navx-d.ny.ui5 .rob-vy .ha-bar{padding-bottom:calc(var(--tabgap,14px) + 6px)}
+html.navx-d body:has(.rob-vy .nx-irad) #navx .nx-dhem{display:none}
+html.navx-d body:has(.rob-vy .nx-irad) #main{padding-bottom:calc(20px + var(--sab,0px))}
+html.navx-d .rob-vy .ha-bar .nx-irad svg{width:24px;height:24px}
+html.navx-d.navx-b.ny.ui5 .rob-vy .ha-bar{padding-bottom:calc(var(--tabgap,14px) + 64px);transition:padding-bottom .35s cubic-bezier(.3,.9,.3,1)}
+html.navx-d.navx-b #navx .nx-dhem{transition:transform .35s cubic-bezier(.3,.9,.3,1),opacity .25s}
+html.navx-d.navx-b:has(#nav.mini) #navx .nx-dhem{transform:translate(-50%,calc(100% + var(--tabgap,14px) + 10px));opacity:0;pointer-events:none}
+html.navx-d.navx-b.ny.ui5:has(#nav.mini) .rob-vy .ha-bar{padding-bottom:calc(var(--tabgap,14px) + 6px)}
 html.navx-d .nx-back{display:flex;align-items:center;gap:2px;width:100%;margin:0 0 2px -6px;padding:0;border:0;background:none;font:inherit;font-size:17px;color:var(--sk-gron2,var(--accent));cursor:pointer}
 html.navx-d .nx-back svg{width:24px;height:24px}
 html.navx-d header.head{flex-wrap:wrap}
