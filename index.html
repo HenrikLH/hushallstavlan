@@ -3764,7 +3764,7 @@ html.ny.ui5 .g5-big .g5-th,html.ny.ui5 .g5-big .g5-th .dr-th{width:88px;height:8
 /* Dammsugarsidan: Starta/Hem tonar ut listan i glas ända ner, och glider ner med den krympta menyn (bara transform = grafikkretsen) */
 html.ny.ui5 .rob-vy .ha-bar{bottom:0;padding-bottom:calc(var(--tabbar) + var(--tabgap) + 6px);background:none;transition:transform .55s cubic-bezier(.3,.9,.3,1);will-change:transform}
 html.ny.ui5 .rob-vy .ha-bar::before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(color-mix(in srgb,var(--bg) 0%,transparent),color-mix(in srgb,var(--bg) 82%,transparent) 30%);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);-webkit-mask-image:linear-gradient(transparent,#000 22%);mask-image:linear-gradient(transparent,#000 22%)}
-html.ny.ui5.nav-piller:has(#nav.mini) .rob-vy .ha-bar{transform:translate3d(0,calc(var(--tabbar) + var(--tabgap) + 6px - 34px),0)}
+html.ny.ui5.nav-piller:not(.navx-d):has(#nav.mini) .rob-vy .ha-bar{transform:translate3d(0,calc(var(--tabbar) + var(--tabgap) + 6px - 34px),0)}
 @media (prefers-reduced-motion:reduce){html.ny.ui5 .rob-vy .ha-bar{transition:none}}
 /* Dammsugarbrickan: ringförklaring, tom tank som varning */
 .sr-lg{width:10px;height:10px;flex:none;border-radius:50%;border:3px solid var(--green);box-sizing:border-box}
@@ -4871,6 +4871,8 @@ html.navx #nav,html.navx .nav-mini{display:none!important}
 #navx .nx-dhem svg{width:22px;height:22px}
 html.navx-d #create-dock{bottom:calc(var(--tabgap,14px) + 64px)}
 html.navx-d #main{padding-bottom:calc(90px + var(--sab,0px))}
+/* Dammsugarens knapprad ligger ovanför Översikt-knappen (52 px) och följer inte menyradens krympning. */
+html.navx-d.ny.ui5 .rob-vy .ha-bar{padding-bottom:calc(var(--tabgap,14px) + 64px)}
 html.navx-d .nx-back{display:flex;align-items:center;gap:2px;width:100%;margin:0 0 2px -6px;padding:0;border:0;background:none;font:inherit;font-size:17px;color:var(--sk-gron2,var(--accent));cursor:pointer}
 html.navx-d .nx-back svg{width:24px;height:24px}
 html.navx-d header.head{flex-wrap:wrap}
