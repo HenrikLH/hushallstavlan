@@ -4,10 +4,10 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 
 
 
-## Kalender vecka som tidslinje + passerade dagar ihopfällda (förslag, ej publicerat)
-- Ägare Claude, gren `claude/project-thread-j8f8i6`. Henrik 28/11: idag ska synas först, passerade dagar döljas ovanför; valde tidslinje A (B "inte anpassad för veckoschema").
-- `calVecka` telefon: `.cv-tl` med dagbrickor på en linje (`.cv-tr/.cv-tn/.cv-th/.cv-te`), idag ifylld + rött `Nu hh.mm` bland händelserna, passerade dagar med bock. Raden `.cv-tidig` "Tidigare i veckan" fäller ut/ihop (`ACT.calTidig`, `S.calTidig`), bara veckan med idag. Väggens rutnät orört.
-- Test: `kalender-tidigare.js` Skog ljust/mörkt + Apple (NOW=2026-10-21), kalender-svep, alla-flikar telefon gröna. Bilder /mnt/project-files/kalender-tidigare/A-*.png. Nästa: "Pusha".
+## Kalender vecka som tidslinje + passerade dagar ihopfällda (publicerad ht-v426, ångra-gren `version-fore-kalender-tidslinje`)
+- Ägare Claude, gren `claude/project-thread-j8f8i6`. Henrik 28/11: idag först, passerade dagar dolda ovanför; valde tidslinje A (B "inte anpassad för veckoschema").
+- `calVecka` telefon: `.cv-tl` med dagbrickor på en linje (`.cv-tr/.cv-tn/.cv-th/.cv-te`), idag ifylld + rött `Nu hh.mm`, passerade dagar med bock. Raden `.cv-tidig` "Tidigare i veckan" fäller ut/ihop (`ACT.calTidig`, `S.calTidig`), bara veckan med idag. Väggens rutnät orört.
+- Test: `kalender-tidigare.js` Skog ljust/mörkt + Apple, kalender-svep, alla-flikar telefon + vägg gröna.
 ## Städ: rumsringarna går att fylla (publicerad ht-v424, ångra-gren `version-fore-stad-ringar`, PR #123)
 - Ägare Claude, gren `claude/project-thread-ix2850`. Henrik godkände 28/11. Henrik 27/11: ringarna ligger alltid lågt. Orsaker (riktiga arket): dagliga rutiner räknades inte, 16 sysslor har startdatum från innan appen och aldrig bockats (≥2× intervallet gav 0), och sysslorna behöver ca 39 min/dag mot passets ca 26 (20 vardag/40 helg).
 - Förslag: `roomHealth` räknar alla sysslor vägda 1/√intervall, 1 inom intervallet → 0 vid 3×; ringen är knapp → blad `stadRum` (B27) med rummets sysslor och "Allt är redan fint här" (`cleanDone` på de som ligger efter, ingen Kod.gs); rad `stadLastRad` under ringarna med "Höj vardagar till N min".
