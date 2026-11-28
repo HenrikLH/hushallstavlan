@@ -4864,7 +4864,7 @@ html.ny.ui5 .ot-fr.nu .ot-fd{background:var(--bd,#E39A1E);color:#fff}
 html.ny.ui5 .ot-fn{flex:1 1 auto;min-width:0;font-size:16px;line-height:20px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}html.ny.ui5 .ot-fn .num{font-weight:400;color:var(--ot-i2)}
 html.ny.ui5 .ot-fr small{flex:none;font-size:14px;line-height:18px;color:var(--ot-i2);white-space:nowrap}
 html.ny.ui5 .ot-v.ovf-A>.ot-nu:not(:has(.ot-nt:not(.fod))){display:none}html.ny.ui5 .ot-v.ovf-A>.ot-nu .ot-nt.fod{display:none}
-/* Navigering på telefonen (förslag D, Översikt är hemmet): gamla #nav döljs, navxRita lägger genvägar, "‹ Översikt" och knappen längst ner. */
+/* Navigering på telefonen utan menyrad (ht.navx hem/kort/o; klassen navx-d gäller alla tre): gamla #nav döljs, navxRita lägger genvägar, "‹ Översikt" och knappen längst ner. */
 html.navx #nav,html.navx .nav-mini{display:none!important}
 #navx{position:relative;z-index:60;-webkit-tap-highlight-color:transparent}
 #navx .nx-dhem{position:fixed;left:50%;transform:translateX(-50%);bottom:var(--tabgap,14px);height:52px;border:0;border-radius:26px;background:var(--sk-meny,#24332E);color:#DCE8D2;display:flex;align-items:center;gap:9px;padding:0 22px 0 18px;font:inherit;font-size:16px;font-weight:650;box-shadow:0 10px 30px rgba(20,30,25,.25);cursor:pointer;z-index:61}
@@ -4905,6 +4905,51 @@ html.ny.ui5 .smk-i{display:grid;place-items:center;width:32px;height:32px;border
 html.ny.ui5 .smk b{font-size:15px;line-height:19px;font-weight:600}html.ny.ui5 .smk small{font-size:13px;line-height:17px;color:var(--ot-i2)}
 html.ny.ui5 .smk-k{align-self:flex-start;border:0;border-radius:999px;font:inherit;font-weight:600;cursor:pointer}
 html.ny.ui5 .smk-n{padding:12px}html.ny.ui5 .ot .smk-n .ot-nt{background:none;border:0;padding:0;min-height:0;box-shadow:none;flex-direction:column;align-items:flex-start;gap:8px;height:100%;justify-content:space-between}html.ny.ui5 .ot .smk-n .ot-ntt,html.ny.ui5 .ot .smk-n .ot-ntt b,html.ny.ui5 .ot .smk-n .ot-ntt small{white-space:normal;overflow:visible;text-overflow:clip}html.ny.ui5 .ot .smk-n .ot-ntb{padding:0;flex-direction:column;align-items:flex-start;gap:6px}
+/* Kort och knappar (ht.navx=kort): knappraden under klockan, fotrader som leder in i delarna, Mat-kortet, det som väntar först */
+.nx-chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:8px 0;padding:2px 16px 4px;-webkit-overflow-scrolling:touch}
+.ot-t>.nx-chips{margin:0 -16px}
+.nx-chips::-webkit-scrollbar{display:none}
+.nx-chips button{flex:none;display:flex;align-items:center;gap:7px;height:44px;padding:0 14px 0 12px;border:1px solid var(--ot-kb,transparent);border-radius:22px;background:var(--ot-glas,var(--surface));box-shadow:var(--ot-skugga,none);-webkit-backdrop-filter:blur(20px) saturate(160%);backdrop-filter:blur(20px) saturate(160%);color:var(--ot-ink,var(--ink));font:inherit;font-size:15px;font-weight:600;white-space:nowrap;cursor:pointer}
+.nx-chips svg{width:20px;height:20px;flex:none;color:var(--sk-gron2,var(--accent))}
+.nx-chips small{font-size:15px;font-weight:500;color:var(--ot-i2,var(--ink-2));max-width:150px;overflow:hidden;text-overflow:ellipsis}
+.nx-chips button.hot{background:#2F5D3A;border-color:transparent;color:#fff}
+.nx-chips button.hot svg{color:inherit}
+.nx-chips em{font-style:normal;min-width:22px;height:22px;border-radius:11px;background:#E8692E;color:#fff;font-size:13px;font-weight:700;display:grid;place-items:center;padding:0 6px}
+.ot .nx-ft,.nx-matk .nx-ft{display:flex;align-items:center;gap:4px;width:calc(100% + 8px);margin:8px -4px -4px;padding:12px 4px 4px;border:0;border-top:.5px solid var(--ot-kb,var(--sep));background:none;font:inherit;font-size:15px;font-weight:600;color:var(--sk-gron2,var(--accent));text-align:left;cursor:pointer}
+.ot .nx-ft span,.nx-matk .nx-ft span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ot .nx-ft svg,.nx-matk .nx-ft svg{width:14px;height:14px}
+.nx-matk .nx-mh{display:flex;align-items:center;gap:10px;width:100%;padding:0;border:0;background:none;font:inherit;color:var(--ot-ink,var(--ink));cursor:pointer}
+.nx-matk .nx-mh svg{width:22px;height:22px}.nx-matk .nx-mh b{font-size:20px;font-weight:700}
+.nx-matk .nx-mc{margin-left:auto;color:var(--sk-gron2,var(--accent))}.nx-matk .nx-mc svg{width:16px;height:16px}
+.nx-matk .nx-mr{display:flex;align-items:center;gap:12px;width:100%;margin-top:10px;padding:0;border:0;background:none;font:inherit;text-align:left;color:var(--ot-ink,var(--ink));cursor:pointer}
+.nx-matk .nx-mi{flex:none;width:52px;height:52px;border-radius:14px;overflow:hidden;background:var(--sk-band,#EFEBE3);display:grid;place-items:center;color:var(--sk-gron2,var(--accent))}
+.nx-matk .nx-mi .dr-th{position:relative;display:grid;place-items:center;width:100%;height:100%;font-size:30px}
+.nx-matk .nx-mi>svg{width:26px;height:26px}
+.nx-matk .nx-mi img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.nx-matk .nx-mr b{display:block;font-size:17px;font-weight:600}.nx-matk .nx-mr small{display:block;font-size:14px;color:var(--ot-i2,var(--ink-2));margin-top:2px}
+html.navx-kort .ot-t>.ot-head{order:-4}html.navx-kort .ot-t>.nx-chips{order:-3}html.navx-kort .ot-t>.ot-nu{order:-2}
+html.navx-kort .ot-t.nx-brad>.ot-gora,html.navx-kort .ot-t>.nx-matk{order:-1}
+/* Levande knapp (ht.navx=o): det viktigaste just nu längst ner, tryck = alla delar med läget */
+#navx .nx-o{position:fixed;left:14px;right:14px;bottom:var(--tabgap,14px);z-index:61;border-radius:30px;background:var(--sk-meny,#24332E);color:#F0F5F0;box-shadow:0 10px 30px rgba(20,30,25,.28);padding:6px;transition:border-radius .3s}
+#navx .nx-o.ut{border-radius:28px;animation:nxUpp .28s cubic-bezier(.3,1.2,.5,1)}
+#navx .nx-otop{display:flex;align-items:center;gap:12px;width:100%;height:52px;padding:0 12px 0 6px;border:0;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer}
+#navx .nx-oi{flex:none;width:40px;height:40px;border-radius:20px;background:#DCE8D2;color:#2F5D3A;display:grid;place-items:center}
+#navx .nx-oi svg{width:22px;height:22px}
+#navx .nx-ot{flex:1;min-width:0}#navx .nx-ot b{display:block;font-size:16px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#navx .nx-ot small{display:block;font-size:13px;color:rgba(240,245,240,.66);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#navx .nx-otop em{font-style:normal;min-width:24px;height:22px;border-radius:11px;background:#E8692E;color:#fff;font-size:12.5px;font-weight:700;display:grid;place-items:center;padding:0 6px}
+#navx .nx-oc{color:rgba(240,245,240,.6);transform:rotate(-90deg);transition:transform .25s}#navx .nx-oc svg{width:14px;height:14px}
+#navx .nx-o.ut .nx-oc{transform:rotate(90deg)}
+#navx .nx-og{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;padding:4px 2px 6px}
+#navx .nx-og button{min-width:0;display:flex;align-items:center;gap:10px;min-height:56px;padding:8px 12px;border:0;border-radius:20px;background:rgba(255,255,255,.08);color:inherit;font:inherit;text-align:left;cursor:pointer}
+#navx .nx-og button svg{width:22px;height:22px;flex:none;color:#DCE8D2}
+#navx .nx-og button span{min-width:0}#navx .nx-og b{display:block;font-size:15px;font-weight:650}
+#navx .nx-og small{display:block;font-size:12.5px;color:rgba(240,245,240,.66);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#navx .nx-og button.hot{background:#DCE8D2;color:#2F5D3A}#navx .nx-og button.hot svg,#navx .nx-og button.hot small{color:#2F5D3A}
+#navx .nx-og button[aria-current]{box-shadow:inset 0 0 0 1.5px rgba(220,232,210,.6)}
+#navx .nx-dim{position:fixed;inset:0;background:rgba(20,30,25,.32);z-index:60;animation:nxIn .2s ease-out}
+@keyframes nxIn{from{opacity:0}}
+@keyframes nxUpp{from{opacity:0;transform:translateY(14px) scale(.97)}}
 </style>
 </head>
 <body>
