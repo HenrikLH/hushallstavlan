@@ -4870,6 +4870,23 @@ html.ny.ui5 .smk-i{display:grid;place-items:center;width:32px;height:32px;border
 html.ny.ui5 .smk b{font-size:15px;line-height:19px;font-weight:600}html.ny.ui5 .smk small{font-size:13px;line-height:17px;color:var(--ot-i2)}
 html.ny.ui5 .smk-k{align-self:flex-start;border:0;border-radius:999px;font:inherit;font-weight:600;cursor:pointer}
 html.ny.ui5 .smk-n{padding:12px}html.ny.ui5 .ot .smk-n .ot-nt{background:none;border:0;padding:0;min-height:0;box-shadow:none;flex-direction:column;align-items:flex-start;gap:8px;height:100%;justify-content:space-between}html.ny.ui5 .ot .smk-n .ot-ntt,html.ny.ui5 .ot .smk-n .ot-ntt b,html.ny.ui5 .ot .smk-n .ot-ntt small{white-space:normal;overflow:visible;text-overflow:clip}html.ny.ui5 .ot .smk-n .ot-ntb{padding:0;flex-direction:column;align-items:flex-start;gap:6px}
+/* Hemmet i 3D (utvecklarläge): canvas med väggarna, enheterna som knappar ovanpå */
+.h3d{position:relative;height:min(64vh,118vw,600px);margin:4px 16px 0;border-radius:22px;background:var(--surface);overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
+body.wall .h3d{height:calc(100vh - 290px)}
+.h3d.tom{display:grid;place-items:center;color:var(--ink-2);height:240px}
+.h3d canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.h3d-lag{position:absolute;inset:0;pointer-events:none}
+.h3d-p{position:absolute;left:0;top:0;will-change:transform;pointer-events:auto;display:flex;flex-direction:column;align-items:center;gap:2px;padding:0;border:0;background:none;color:inherit;font:inherit;translate:-50% -19px;cursor:pointer}
+.h3d-p .ha-i{width:34px;height:34px;background:var(--surface);color:var(--ink-2);box-shadow:0 2px 8px rgba(0,0,0,.22),0 0 0 .5px rgba(0,0,0,.08)}.h3d-p .ha-i svg{width:19px;height:19px}
+.h3d-p.on .ha-i{background:#FFD60A;color:#5A4500;box-shadow:0 0 0 4px rgba(255,214,10,.28),0 2px 10px rgba(255,180,0,.45)}
+.h3d-p.ap.on .ha-i{background:var(--accent);color:var(--on-accent);box-shadow:0 2px 10px rgba(0,0,0,.25)}
+.h3d-n{font-size:11px;font-weight:600;line-height:1;padding:3px 6px;border-radius:7px;background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.15);white-space:nowrap;max-width:96px;overflow:hidden;text-overflow:ellipsis}
+.h3d.fl .h3d-p{cursor:grab}.h3d.fl .h3d-p .ha-i{outline:2px dashed var(--accent);outline-offset:3px;animation:h3d-vick 1.6s ease-in-out infinite}
+@keyframes h3d-vick{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
+.h3d-kn{position:absolute;left:8px;right:8px;bottom:10px;display:flex;gap:6px;justify-content:center}
+.h3d-kn .pill{font-size:14px;padding:7px 12px;min-height:0;background:var(--surface);box-shadow:0 1px 6px rgba(0,0,0,.14);white-space:nowrap}.h3d-kn .pill.on{background:var(--accent);color:var(--on-accent)}
+.h3d-tips{margin:8px 20px 4px;font-size:13px;color:var(--ink-2);text-align:center}
+@media (prefers-reduced-motion:reduce){.h3d.fl .h3d-p .ha-i{animation:none}}
 </style>
 </head>
 <body>
