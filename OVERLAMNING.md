@@ -44,11 +44,10 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 - Henrik 20/11: ordningen ändrades när en lampa tändes, och ljusstyrkan hoppade tillbaka en stund efter släpp. Orsaker: `haAnvSort` sorterade om direkt efter `haAnv` (nu fryst ordning `haAnvO`, uppdateras 10 min efter senaste tryck); en omritning mitt i draget bytte ut reglaget/brickan (nu väntar `doRender` medan `haDragT` är satt, högst 15 s).
 - Test: `verktyg/emu/lampa-slider.js` (ritar om mitt i draget), smart-hem-tonsteg, alla-flikar telefon + vägg Skog gröna. smart-hem-rorelse och hemmet-scener faller även på main.
 
-## Navigering i telefonen, prov A–D (publicerad ht-v419 i Utvecklarläge, ångra-gren `version-fore-navigering`)
-- Ägare Claude, gren `claude/project-thread-je8yu4`. Henrik 20/11: menyraden fungerar "sådär"; fyra förslag (bilder /mnt/project-files/navigering/) lades som prov under Inställningar → Utvecklarläge → Navigering i telefonen (`ht.navx` a–d, `navxOn()`, bara U5 + DEV + telefon). Gamla `#nav` döljs, `#navx` ritas av `navxRita` efter `addLayout`.
-- A undersidor i menyraden (döljer toppsegmentet), B ikoner + plusknapp, tryck aktiv flik = undersidor, krymper vid scroll, C draglåda med alla delar, D ingen menyrad, genvägar på Översikt + "‹ Översikt".
-- Nästa: Henrik väljer efter test i telefonen; bygg sedan ut valet och ta bort de andra. `alla-flikar.js` klickar på gamla `#nav` och fungerar därför bara med navx av. Test: `verktyg/emu/navigering.js` (LS navx=a..d) ljust/mörkt, alla-flikar telefon + vägg gröna.
-
+## Navigering på telefonen: "Översikt som hem" som inställning (publicerad ht-v425, ångra-gren `version-fore-oversikt-hem`)
+- Ägare Claude. Henrik 27/11 valde D av proven A–D (ht-v419) och vill ha det som en inställning: Inställningar → Utseende → Navigering: Menyrad (standard) | Översikt som hem (`ht.navx=hem`; gamla provvärdet `d` räknas som hem). "Menyraden när du scrollar" döljs när hem är valt. Dev-provet A–D är borttaget.
+- Hem (`navxOn()`: U5, inte väggen, <900 px): #nav dold, genvägar Mat/Hemmet/Kalender/Att göra på Översikt (`.nx-tiles`, efter väderkortet i Skog, annars under rubriken), "‹ Översikt" i rubriken och Översikt-knapp längst ner (`navxRita`). Undermenyn Vecka/Inköp/Recept och Uppgifter/Städ sticky; budget-/planpinnen under den (`navxSeg`). Att göra-genvägen minns Städ.
+- Test: `verktyg/emu/navigering.js` (LS navx=hem: Skog ljust/mörkt, Apple; utan: menyraden), alla-flikar telefon standard + hem + vägg gröna (alla-flikar går via Översikt-knappen när #navx finns), installningar-luft grön.
 ## Kort Skog-topp med vädret bredvid klockan (publicerad ht-v418, ångra-gren `version-fore-tom-himmel`)
 - Henrik 20/11: tom himmel ovanför klockan på telefonens Skog-Översikt. Valde kombo av förslagen D+C: kortare topp, väderikon + temp + H/L till höger om klockan (`otTopp()`), väderkortet utan ikon/temp (`.ot-tpw`). Gren `claude/project-thread-dbf4h6`, scenario `verktyg/emu/tom-himmel.js`.
 
