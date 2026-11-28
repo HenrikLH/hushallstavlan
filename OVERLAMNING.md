@@ -3,6 +3,9 @@
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
 
+## Dammsugarens knapprad under Översikt-knappen (PR #124, väntar på "Pusha")
+- Ägare Claude, gren `claude/project-thread-1byak5`. Henrik 28/11: Pausa-knappen hamnade bakom Översikt-knappen (navx=hem + Piller-menyn, scroll). Orsak: `.ha-bar` sköts ned med menyradens krympregel. Rättat i CSS för `navx-d`.
+- Test: `verktyg/emu/navx-overlapp.js` (LS haDemo/ovny h/navx hem/krymp5 piller, SAB=34, VP=390x560) ljust/mörkt, robot-skog, alla-flikar telefon navx=hem gröna (02efebf).
 
 ## Kalender vecka som tidslinje + passerade dagar ihopfällda (publicerad ht-v426, ångra-gren `version-fore-kalender-tidslinje`)
 - Ägare Claude, gren `claude/project-thread-j8f8i6`. Henrik 28/11: idag först, passerade dagar dolda ovanför; valde tidslinje A (B "inte anpassad för veckoschema").
