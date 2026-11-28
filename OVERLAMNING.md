@@ -3,6 +3,11 @@
 Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.claude/skills/`). Detaljer om publicerat arbete finns i git-loggen och PR:erna; denna fil har bara aktuell status.
 
 
+## Städ: rumsringarna stiger inte (förslag, väntar på Henrik)
+- Ägare Claude, gren `claude/project-thread-ix2850`. Henrik 27/11: ringarna ligger alltid lågt. Orsaker (riktiga arket): dagliga rutiner räknades inte, 16 sysslor har startdatum från innan appen och aldrig bockats (≥2× intervallet gav 0), och sysslorna behöver ca 39 min/dag mot passets ca 26 (20 vardag/40 helg).
+- Förslag: `roomHealth` räknar alla sysslor vägda 1/√intervall, 1 inom intervallet → 0 vid 3×; ringen är knapp → blad `stadRum` (B27) med rummets sysslor och "Allt är redan fint här" (`cleanDone` på de som ligger efter, ingen Kod.gs); rad `stadLastRad` under ringarna med "Höj vardagar till N min".
+- Test: `verktyg/emu/stad-ringar.js` (NOW=2026-11-27, arkets sysslor) ljust/mörkt, alla-flikar telefon + vägg gröna. Bilder /mnt/project-files/stad-ringar/.
+
 ## Scener: tidslinje, färg, tona, fler saker, automatisk start (publicerad ht-v423, ångra-gren `version-fore-scener`, PR #121)
 - Ägare Claude, gren `claude/project-thread-bt9eog`. Henrik 27/11: fördröjningar "fungerade sådär" (varje lampa låg i exakt ett steg). Nu `habTidslinje` som dammsugarens flöde: `d.l/d.x/d.tn` (Direkt) + `d.sq=[{v:sek,l,x,tn}]`, samma lampa i flera steg, Vänta −/+ (`HAB_V`, högst 8 steg/4 tim). Henrik 27/11 kväll: "bygg allt" + byta färg i scener.
 - Färg/ton per lampa (`habFargRad`: favorittoner + `HA_FARG`), Övergång per steg (`tn` → `t` = HA transition), saker i stegen (`x`: spela radio, stäng av högtalare, dammsugaren, HA-scen; `habXCmd`), nedräkning med Nu/Avbryt (`habVantarRad` i Hemmet och Smart hem-rutan; `D.senare` från tjänsten, annars lokalt `HA.senQ`), Starta av sig själv (`habAutoDel`, `s.auto`; tid/sol ± min/alla går/någon kommer hem, dagar, villkor mörkt/någon hemma) skickas som `{schema}` när scenerna sparas (`habSchemaSkicka`).
