@@ -4731,8 +4731,8 @@ html.ny.ui5 .ot-v>.ot-nu .ot-ntt b{font-size:16px;line-height:21px}html.ny.ui5 .
 /* förloppscirklar (Henrik 28/11): hela städningen överst, omgången runt stegets ikon, rummet som städas runt sitt nummer */
 .ha-ftot{display:flex;align-items:center;gap:12px;padding:4px 0 14px;margin-bottom:14px;border-bottom:1px solid color-mix(in srgb,var(--ri,#fff) 10%,transparent)}
 .ha-fr{position:relative;flex:none;display:grid;place-items:center;width:36px;height:36px;font-style:normal}
-.ha-fr b{font-size:14px;font-weight:700;letter-spacing:-.02em;color:var(--ri,#fff);font-variant-numeric:tabular-nums}.ha-fr small{font-size:9px;font-weight:600;margin-left:1px}
-.ha-fs.nu .ha-fi{position:relative;box-shadow:none}
+.ha-fr b{position:relative;transform:translate(-2px,.5px);font-size:14px;font-weight:700;line-height:1;letter-spacing:-.02em;color:var(--ri,#fff);font-variant-numeric:tabular-nums}.ha-fr small{position:absolute;left:100%;top:0;margin-left:.5px;font-size:8px;font-weight:600;line-height:1}
+.ha-fs.nu .ha-fi{position:relative;box-shadow:none}.ha-fo li.nu[style*="--rp"] i{padding-top:1px}
 .ha-fr::before,.ha-fs.nu .ha-fi::after,.ha-fo li.nu[style*="--rp"] i::after{content:"";position:absolute;inset:-6px;border:0;border-radius:50%;opacity:1;animation:none;z-index:1;background:conic-gradient(var(--fc) var(--q),color-mix(in srgb,var(--ri,#fff) 13%,transparent) 0);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 3.5px),#000 calc(100% - 3px));mask:radial-gradient(farthest-side,transparent calc(100% - 3.5px),#000 calc(100% - 3px))}
 .ha-fr::before{--q:var(--p,0%);inset:-4px;-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 4.5px),#000 calc(100% - 4px));mask:radial-gradient(farthest-side,transparent calc(100% - 4.5px),#000 calc(100% - 4px))}
 .ha-fs.nu .ha-fi::after{--q:var(--p,0%)}
