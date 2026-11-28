@@ -770,9 +770,14 @@ function cleanPlan(){
  const todo=[...plan,...picks];
  const minLeft=todo.reduce((s,t)=>s+t.min,0)+routines.filter(t=>!doneToday(t)).reduce((s,t)=>s+t.min,0);
  return{B,routines,doneRot,todo,later,soon,big,minLeft}}
+// Rummets ring: alla sysslor (även dagliga) vägda så att täta sysslor väger mer än storstäd. En syssla ger 1 inom intervallet och sjunker till 0 vid tre gånger intervallet
+const rumSc=t=>{const q=ratio(t);return q<=1?1:Math.max(0,(3-q)/2)};
 function roomHealth(){
- return ROOMS.map(r=>{const ts=D().clean.filter(t=>t.room===r&&t.freq>1);if(!ts.length)return null;
-  const sc=ts.reduce((s,t)=>{const q=ratio(t);return s+(q<=1?1:Math.max(0,2-q))},0)/ts.length;return{room:r,score:sc}}).filter(Boolean)}
+ return ROOMS.map(r=>{const ts=D().clean.filter(t=>t.room===r);if(!ts.some(t=>t.freq>1))return null;let w=0,s=0;
+  for(const t of ts){const v=1/Math.sqrt(Math.max(1,t.freq||7));w+=v;s+=v*rumSc(t)}return{room:r,score:s/w}}).filter(Boolean)}
+// Hur många minuter om dagen sysslorna behöver i snitt, jämfört med dagens pass i snitt (5 vardagar, 2 helgdagar)
+function stadLast(){const st=settings(),rot=D().clean.filter(t=>t.freq>1);
+ return{beh:Math.round(rot.reduce((s,t)=>s+(t.min||0)/t.freq,0)),har:Math.round((5*Number(st.stadtid_vardag||20)+2*Number(st.stadtid_helg||40))/7)}}
 const healthWord=s=>s>=.85?'Fint':s>=.6?'Okej':'Dags snart';
 const healthCls=s=>s>=.85?'':s>=.6?'warn':'bad';
 function nextSaturday(){let d=addDays(today(),1);while(parse(d).getDay()!==6)d=addDays(d,1);return d}
@@ -4245,8 +4250,21 @@ function stadRing(cp,all,nu){const R=36,C=2*Math.PI*R,p=nu.minAll?(nu.minAll-nu.
  h+='<div class="sx-lab">Idag</div>'+rgroup('S4',nu.list.length?nu.list.map(t=>{const d=doneToday(t);
   return cleanSw(t,'<div class="cell ck'+(d?' done':'')+'"'+holdAt('cleanMenu',t.id)+'><input type="checkbox" class="check" data-act="cleanToggle" data-id="'+esc(t.id)+'" aria-label="'+esc(t.title)+'"'+(d?' checked':'')+'><div class="grow"><div class="title">'+esc(t.title)+'</div><div class="meta">'+[esc(t.room),t.min+' min',t.freq<=1?'↻':'',d&&t.doneBy?'klart av '+esc(personLabel(t.doneBy)):'',sxLate(t)?'<span class="sx-late">försenat</span>':''].filter(Boolean).join(' · ')+'</div></div></div>')}).join(''):emptyCell('Inget mer behöver göras idag.'))+'<div class="foot">Håll in en syssla för I morgon och fler val, svep åt vänster för att ta bort.</div>';
  const mr=s=>{const r=13,c=2*Math.PI*r;return'<svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><circle cx="17" cy="17" r="'+r+'" fill="none" stroke="var(--fill)" stroke-width="5"/><circle cx="17" cy="17" r="'+r+'" fill="none" stroke="'+healthCol(s)+'" stroke-width="5" stroke-linecap="round" stroke-dasharray="'+(c*Math.min(1,s)).toFixed(1)+' '+c.toFixed(1)+'"/></svg>'};
- h+='<div class="sx-lab">Rummen</div><div class="sx-ringar"'+RF('S7')+'>'+roomHealth().map(r=>'<div aria-label="'+esc(r.room+': '+healthWord(r.score))+'">'+mr(r.score)+esc(r.room)+'</div>').join('')+'</div>';
+ h+='<div class="sx-lab">Rummen</div><div class="sx-ringar"'+RF('S7')+'>'+roomHealth().map(r=>'<button type="button" data-act="stadRum" data-id="'+esc(r.room)+'" aria-label="'+esc(r.room+': '+healthWord(r.score))+'">'+mr(r.score)+esc(r.room)+'</button>').join('')+'</div>'+stadLastRad();
  return h+'<div class="sx-lab"></div>'+sxMer(cp,all)}
+// Under ringarna: säger till när sysslorna behöver mer tid än dagens pass ger, så att ringarna aldrig kan komma ikapp
+function stadLastRad(){const L=stadLast();if(L.beh<=L.har+3)return'';const st=settings(),he=Number(st.stadtid_helg||40),ny=Math.ceil(Math.max(0,(7*L.beh-2*he)/5)/5)*5;
+ return'<div class="foot sx-last">Sysslorna behöver ca '+L.beh+' min om dagen, dagens pass ger ca '+L.har+'. Därför hinner ringarna inte fyllas.'+(ny>Number(st.stadtid_vardag||20)&&ny<=90?' <button type="button" class="lnk" data-act="stadLastHoj" data-id="'+ny+'">Höj vardagar till '+ny+' min</button>':'')+'</div>'}
+// Rummets blad: ringen, rummets sysslor med senast gjort och en knapp för att säga att rummet redan är fint
+const stadEfter=r=>D().clean.filter(t=>t.room===r&&!doneToday(t)&&ratio(t)>1);
+function stadRumSheet(enter){const r=S.stadRum,h=roomHealth().find(x=>x.room===r);if(!h){S.sheet=null;return''}
+ const ts=D().clean.filter(t=>t.room===r).sort((a,b)=>rumSc(a)-rumSc(b)||ratio(b)-ratio(a)),ef=stadEfter(r),R=30,C=2*Math.PI*R,pc=Math.round(100*h.score);
+ const st=t=>{if(doneToday(t))return['Idag','var(--green)'];const q=ratio(t),d=daysSince(t.lastDone);if(q<=1)return['I tid','var(--green)'];return[(d>=999?'Aldrig gjort':d+' dagar sedan'),rumSc(t)>=.5?'var(--orange)':'var(--red)']};
+ const row=t=>{const d=doneToday(t),[w,c]=st(t);return'<div class="cell ck'+(d?' done':'')+'"><input type="checkbox" class="check" data-act="cleanToggle" data-id="'+esc(t.id)+'" aria-label="'+esc(t.title)+'"'+(d?' checked':'')+'><div class="grow"><div class="title">'+esc(t.title)+'</div><div class="meta"><span><i class="sx-dot" style="background:'+c+'"></i>'+w+' · '+freqText(t.freq)+' · '+t.min+' min</span></div></div></div>'};
+ const body='<div class="sx-rh"><svg width="76" height="76" viewBox="0 0 76 76" aria-hidden="true"><circle cx="38" cy="38" r="'+R+'" fill="none" stroke="var(--fill)" stroke-width="9"/><circle cx="38" cy="38" r="'+R+'" fill="none" stroke="'+healthCol(h.score)+'" stroke-width="9" stroke-linecap="round" stroke-dasharray="'+(C*Math.min(1,h.score)).toFixed(1)+' '+C.toFixed(1)+'"/></svg><div><div class="sx-big num">'+pc+'<small>%</small></div><div class="sx-s">'+healthWord(h.score)+(ef.length?' · '+ef.length+' '+(ef.length===1?'syssla ligger':'sysslor ligger')+' efter':' · allt i tid')+'</div></div></div>'+
+  group(ts.map(row).join(''))+
+  (ef.length?group('<button type="button" class="cell link sx-fint" data-act="stadRumFint" data-id="'+esc(r)+'"><span>Allt är redan fint här</span></button>')+'<div class="foot">Sätter de '+ef.length+' sysslor som ligger efter till gjorda idag. Bra om datumen är gamla men rummet är städat.</div>':'');
+ return sheetHtml('stadRum',esc(r),'<button type="button" class="tb strong" data-act="sheetClose">Klar</button>',body,enter,'<span class="tb"></span>')}
 // Alla sysslor rum för rum. Under varje rum finns samma lägg till-rad som i Inköp och Uppgifter
 // Intervall, tid och vem för en syssla. Används i Alla sysslor och i bladet när man håller in
 function cleanSels(t){const mins=[...new Set([5,10,15,20,25,30,45,60,90,120,t.min].filter(Boolean))].sort((a,b)=>a-b);
@@ -4325,7 +4343,7 @@ function pickSheet(k,enter){
  // Knappen ligger under listan, utanför det som scrollar, så inga rader syns under den
  const foot='<div class="sw-foot"><button type="button" class="btn-fill" data-act="pickGo"'+(S.psel?'':' disabled')+'>'+esc(pickBtnTxt(k,S.psel))+'</button></div>';
  return sheetHtml(k,title,'<span class="tb" aria-hidden="true"></span>',body,enter).replace(/<\/form><\/div>$/,foot+'</form></div>')}
-function sheetHtml(form,title,right,body,enter,left){return'<div class="sheet'+enter+'" data-act="sheetBg"><form class="sheet-panel"'+RF({settings:'B1',prefs:'B2',shop:'B3',task:'B4',taskEdit:'B5',evEdit:'B6',cleanQuick:'B7',cost:'B8',income:'B9',matb:'B23',wxDay:'B24',dish:'B10',farg:'B11',fodAdd:'B12',fodFam:'B25',presBud:'B26',ljuskal:'B13',ov:'B14',prot:'B15',rate:'B16',tmr:'B17',vagg:'B18',wish:'B19',taskMenu:'B20',evMenu:'B21',cleanMenu:'B22'}[form])+' data-form="'+form+'" role="dialog" aria-modal="true" aria-label="'+title+'"><button type="button" class="grabber" data-sheet-grip aria-label="Dra ned för att stänga eller tryck"></button><div class="sheet-head">'+(left||'<button type="button" class="tb" data-act="sheetClose">Avbryt</button>')+'<h2>'+title+'</h2>'+right+'</div><div class="sheet-body">'+body+'</div></form></div>'}
+function sheetHtml(form,title,right,body,enter,left){return'<div class="sheet'+enter+'" data-act="sheetBg"><form class="sheet-panel"'+RF({settings:'B1',prefs:'B2',shop:'B3',task:'B4',taskEdit:'B5',evEdit:'B6',cleanQuick:'B7',cost:'B8',income:'B9',matb:'B23',wxDay:'B24',dish:'B10',farg:'B11',fodAdd:'B12',fodFam:'B25',presBud:'B26',ljuskal:'B13',ov:'B14',prot:'B15',rate:'B16',tmr:'B17',vagg:'B18',wish:'B19',taskMenu:'B20',evMenu:'B21',cleanMenu:'B22',stadRum:'B27'}[form])+' data-form="'+form+'" role="dialog" aria-modal="true" aria-label="'+title+'"><button type="button" class="grabber" data-sheet-grip aria-label="Dra ned för att stänga eller tryck"></button><div class="sheet-head">'+(left||'<button type="button" class="tb" data-act="sheetClose">Avbryt</button>')+'<h2>'+title+'</h2>'+right+'</div><div class="sheet-body">'+body+'</div></form></div>'}
 // slider i en rad: rubrik och värde överst, reglaget under och förklaring i ändarna
 const ljVal=(id,v)=>id==='ljMork'?luxTxt(morkLux(v)):v+(id==='ljKans'?'':' %');
 const ljSlider=(label,id,v,min,max,l,r)=>'<div class="cell lj-sl"><div class="lj-h"><span>'+label+'</span><span class="meta" data-ljv="'+id+'">'+ljVal(id,v)+'</span></div><input type="range" min="'+min+'" max="'+max+'" step="1" value="'+v+'" data-input="'+id+'" aria-label="'+label+'"><div class="lj-e"><span>'+l+'</span><span>'+r+'</span></div></div>';
@@ -4378,7 +4396,7 @@ function overlayKeepScroll(){const o=document.getElementById('overlay'),k=o.data
  const nb=o.querySelector('.sheet-body');if(y&&k&&o.dataset.k===k&&nb&&nb!==b)nb.scrollTop=y}
 function renderOverlay(){
  const o=document.getElementById('overlay');
- const k=S.cook?'cook':S.sheet==='settings'?'settings':S.sheet==='farg'?'farg':S.sheet==='vagg'?'vagg':S.sheet==='ljuskal'?'ljuskal':S.sheet==='rate'?'rate':S.sheet==='income'?'income':S.sheet==='matb'?'matb':S.sheet==='vara'?'vara':S.sheet==='cost'?'cost':S.sheet==='ov'?'ov':S.sheet==='prefs'?'prefs':S.sheet==='swap'?'swap':S.sheet==='prot'?'prot':S.sheet==='wish'?'wish':S.sheet==='shopMore'?'shopMore':S.sheet==='dess'?'dess':S.sheet==='slot'?'slot':S.sheet==='delLas'?'delLas':S.sheet==='dish'?'dish':S.sheet==='tmr'?'tmr':S.sheet==='tmrMenu'?'tmrMenu':S.rcpSheet?'rcpSheet':S.sheet==='cleanAdd'?'cleanAdd':S.sheet==='fodAdd'?'fodAdd':S.sheet==='slaktRel'?'slaktRel':S.sheet==='fodFam'?'fodFam':S.sheet==='presBud'?'presBud':S.sheet==='haLampa'?'haLampa':S.sheet==='haApp'?'haApp':S.sheet==='haEdit'?'haEdit':S.sheet==='haSol'?'haSol':S.sheet==='haFav'?'haFav':S.sheet==='haAdd'?'haAdd':S.sheet==='habRuta'?'habRuta':S.sheet==='habSc'?'habSc':S.sheet==='habOrd'?'habOrd':S.sheet==='otRum'?'otRum':S.sheet==='haMedia'?'haMedia':S.sheet==='taskMenu'?'taskMenu':S.sheet==='ekoMenu'?'ekoMenu':S.sheet==='evMenu'?'evMenu':S.sheet==='cleanMenu'?'cleanMenu':S.sheet==='robRum'?'robRum':S.sheet==='taskEdit'?'taskEdit':S.sheet==='evEdit'?'evEdit':S.sheet==='evNew'?'evNew':S.sheet==='wxDay'?'wxDay':S.shopAdd?'shop':S.taskAdd?'task':'';
+ const k=S.cook?'cook':S.sheet==='settings'?'settings':S.sheet==='farg'?'farg':S.sheet==='vagg'?'vagg':S.sheet==='ljuskal'?'ljuskal':S.sheet==='rate'?'rate':S.sheet==='income'?'income':S.sheet==='matb'?'matb':S.sheet==='vara'?'vara':S.sheet==='cost'?'cost':S.sheet==='ov'?'ov':S.sheet==='prefs'?'prefs':S.sheet==='swap'?'swap':S.sheet==='prot'?'prot':S.sheet==='wish'?'wish':S.sheet==='shopMore'?'shopMore':S.sheet==='dess'?'dess':S.sheet==='slot'?'slot':S.sheet==='delLas'?'delLas':S.sheet==='dish'?'dish':S.sheet==='tmr'?'tmr':S.sheet==='tmrMenu'?'tmrMenu':S.rcpSheet?'rcpSheet':S.sheet==='cleanAdd'?'cleanAdd':S.sheet==='fodAdd'?'fodAdd':S.sheet==='slaktRel'?'slaktRel':S.sheet==='fodFam'?'fodFam':S.sheet==='presBud'?'presBud':S.sheet==='haLampa'?'haLampa':S.sheet==='haApp'?'haApp':S.sheet==='haEdit'?'haEdit':S.sheet==='haSol'?'haSol':S.sheet==='haFav'?'haFav':S.sheet==='haAdd'?'haAdd':S.sheet==='habRuta'?'habRuta':S.sheet==='habSc'?'habSc':S.sheet==='habOrd'?'habOrd':S.sheet==='otRum'?'otRum':S.sheet==='stadRum'?'stadRum':S.sheet==='haMedia'?'haMedia':S.sheet==='taskMenu'?'taskMenu':S.sheet==='ekoMenu'?'ekoMenu':S.sheet==='evMenu'?'evMenu':S.sheet==='cleanMenu'?'cleanMenu':S.sheet==='robRum'?'robRum':S.sheet==='taskEdit'?'taskEdit':S.sheet==='evEdit'?'evEdit':S.sheet==='evNew'?'evNew':S.sheet==='wxDay'?'wxDay':S.shopAdd?'shop':S.taskAdd?'task':'';
  const prev=o.dataset.k||'';
  // Behåll markerade barn/föräldrar medan relationsbladet är öppet.
  if(k==='slaktRel'&&prev===k)return;
@@ -4636,6 +4654,7 @@ if(k==='vara'){const n=S.varaK||'',ing=S.varaTyp==='ing',R=regGet(),F=parseJ(set
  if(k==='habOrd'){o.innerHTML=habOrdSheet(enter);return}
  if(k==='otRum'){o.innerHTML=otRumSheet(enter);const sh0=o.querySelector('.sheet');if(sh0)sh0.classList.add('ha-hel','ot-zoom');if(enter){const t=otRumEl();if(t)haZoom(true,null,t)}return}
  if(k==='haMedia'){o.innerHTML=haMedSheet(enter);return}
+ if(k==='stadRum'){o.innerHTML=stadRumSheet(enter);return}
  if(k==='presBud'){const P=presBud(),Y=presAr(),ty=+thisMonth().slice(0,4),SN=presSnitt(ty,P.ar),YK=presAr(ty+'-01'),nu=new Date().getMonth(),mx=Math.max(1,SN.jamn,...YK.M.map(x=>x.kr)),val=P.satt==='manad'?Y.M[0].kr:SN.jamn,
    st=(id,lab,sub,v)=>'<div class="cell pb-st"><div class="grow"><div>'+lab+'</div><div class="meta">'+sub+'</div></div><span class="stepper"><button type="button" data-act="presStep" data-id="'+id+'" data-d="-50" aria-label="Minska '+lab+'">−</button><span class="num"><b>'+v+'</b> kr</span><button type="button" data-act="presStep" data-id="'+id+'" data-d="50" aria-label="Öka '+lab+'">+</button></span></div>';
   const body='<div class="pb-hero"><div class="pb-big num">'+kr(val)+'</div><div class="pb-sub">'+(P.satt==='manad'?'till presenter i '+MON[Y.M[0].mo]:'att lägga undan varje månad')+'</div></div>'+
@@ -7196,6 +7215,9 @@ const ACT={
  ekoMenu(id){const list=['shared'].concat(people()).find(l=>ekoList(l).some(x=>x.id===id));if(!list)return;S.em={list,id};S.confirm=null;S.sheet='ekoMenu';render()},
  ekoDelHold(id){const e=S.em;if(!e||e.id!==id)return;S.ekoEdit={list:e.list,id};ACT.ekoDel()},
  cleanMenu(id){if(!D().clean.some(x=>x.id===id))return;S.cm=id;S.sheet='cleanMenu';render()},
+ stadRum(id){S.stadRum=id;S.sheet='stadRum';render()},
+ stadRumFint(id){const ts=stadEfter(id);if(!ts.length)return;A.user=Date.now();ts.forEach(t=>{mutate('clean',t.id,{prevDone:t.lastDone,lastDone:today(),doneBy:S.me,plannedFor:'',snoozeUntil:''});apiPost({action:'cleanDone',id:t.id})});closeSheets();render();toast(id+': '+ts.length+' sysslor satta till idag')},
+ stadLastHoj(id){const v=String(Number(id)||0);if(!+v)return;settings().stadtid_vardag=v;apiPost({action:'setting',k:'stadtid_vardag',v});render();toast('Vardagar har nu '+v+' min städtid')},
  sheetGo(id,el){const a=el.dataset.a;closeSheets();S.confirm=null;render();ACT[a]&&ACT[a](id,el)},
  taskMove(id,el){const v=addDays(today(),Number(el.dataset.d)||0);A.user=Date.now();mutate('tasks',id,{due:v});apiPost({action:'taskEdit',id,fields:{due:v}});toast(v===today()?'Flyttad till idag':'Flyttad till i morgon')},
  taskDel(id){const x=S.edit&&D().tasks.find(t=>t.id===S.edit.id);closeSheets();S.confirm=null;if(!x){render();return}A.user=Date.now();
