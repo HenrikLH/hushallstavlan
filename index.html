@@ -2970,7 +2970,11 @@ html.ny .sx-s{font-size:15px;color:var(--ink-2);margin-top:6px}
 html.ny .sx-hero .sx-ork{margin-top:16px}html.ny .sx-hero .segc{background:var(--fill)}
 html.ny .sx-late{color:var(--orange)}
 html.ny .sx-ringar{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:12px 4px;background:var(--surface);border-radius:16px;margin:0 16px;padding:14px 6px 12px}
-html.ny .sx-ringar div{text-align:center;font-size:12px;color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}html.ny .sx-ringar svg{display:block;margin:0 auto 5px;transform:rotate(-90deg)}
+html.ny .sx-ringar button{display:block;width:100%;background:none;border:0;padding:0;font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}html.ny .sx-ringar button:active svg{transform:rotate(-90deg) scale(.92)}html.ny .sx-ringar svg{transition:transform .15s}
+html.ny .sx-last{margin-top:8px}html.ny .sx-last .lnk{background:none;border:0;padding:0;font:inherit;color:var(--accent);cursor:pointer}
+html.ny .sx-rh{display:flex;align-items:center;gap:16px;padding:4px 20px 16px}html.ny .sx-rh svg{transform:rotate(-90deg);flex:none}
+html.ny .sx-fint{color:var(--accent);justify-content:center;font-weight:600;text-align:center}
+html.ny .sx-ringar div,html.ny .sx-ringar button{text-align:center;font-size:12px;color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}html.ny .sx-ringar svg{display:block;margin:0 auto 5px;transform:rotate(-90deg)}
 
 /* ===== UI 5.0 · Apple (frivilligt val, gäller bara html.ui5) =====
    iOS 26 enligt Apples Human Interface Guidelines: systemfärger, Apples textskala, svävande glasmeny,
@@ -3299,7 +3303,7 @@ form[data-form="haLampa"] .ha-ctl{flex:1;justify-content:center;padding-top:24px
 .ha-ap{grid-column:1/-1;position:relative;overflow:hidden}.ha-ap .ha-i{background:rgba(120,120,128,.16);color:var(--ink-2)}.ha-ap.on.ha-ap-robot .ha-i{background:#0A84FF;color:#fff}.ha-ap.on.ha-ap-disk .ha-i{background:#30B0C7;color:#fff}
 .ha-ap .ha-tx{flex:1}.ha-ap-p{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(120,120,128,.18)}.ha-ap-p::after{content:'';position:absolute;inset:0 auto 0 0;width:var(--p);background:#0A84FF;border-radius:0 2px 2px 0}.ha-ap-disk .ha-ap-p::after{background:#30B0C7}
 .ha-g .ha-t.ha-ap.on{background:var(--fill);box-shadow:none}.ha-g-v .ha-t.ha-ap.on{background:var(--surface)}
-/* Smart hem-rutan: fyra scener överst och favoriter under, blad för att anpassa (ht-v421) */
+/* Smart hem-rutan: fyra scener överst och favoriter under, blad för att anpassa (ht-v424) */
 .hab-h{display:flex;align-items:center;gap:8px}.hab-h .wh{flex:1;min-width:0}
 .hab-mer{flex:none;display:grid;place-items:center;width:30px;height:30px;padding:0;border:0;border-radius:50%;background:var(--fill);color:var(--ink-2);cursor:pointer;-webkit-tap-highlight-color:transparent}.hab-mer svg{width:18px;height:18px}
 /* Designskillen (hushallstavlan-apple-design): rutan har hörn 26 och kant 16, därför hörn 16 innanför (inte kapslar), 8-avstånd, text 15/13 */
@@ -3378,7 +3382,7 @@ form[data-form="haApp"] .sheet-body{flex:1;display:flex;flex-direction:column;pa
 .ha-karta{border-radius:22px;background:var(--rb,rgba(0,0,0,.28));padding:8px;overflow:hidden}.ha-karta{position:relative}.ha-kw{position:relative}.ha-karta img{display:block;width:100%;height:auto;cursor:pointer;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
 .ha-karta.zon .ha-kw{touch-action:none;cursor:crosshair}.ha-karta.zon img{cursor:crosshair}.ha-zr{position:absolute;border:2px solid var(--rl,#64D2FF);border-radius:6px;background:rgba(100,210,255,.22);pointer-events:none}
 .ha-kk{position:absolute;top:10px;right:10px;display:flex;gap:8px}.ha-kk button{width:36px;height:36px;border-radius:50%;border:0;display:grid;place-items:center;background:color-mix(in srgb,var(--ri,#fff) 18%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);color:var(--ri,#fff);cursor:pointer}.ha-kk button svg{width:19px;height:19px}.ha-kk button.on{background:#fff;color:#1C1C1E}
-.ha-gr b.gor{color:var(--rl,#64D2FF)}.ha-rv .ha-gr span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ha-pill{flex:none;min-height:32px;padding:0 14px;border:0;border-radius:16px;background:color-mix(in srgb,var(--ri,#fff) 12%,transparent);color:color-mix(in srgb,var(--ri,#fff) 75%,transparent);font:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:background .2s,color .2s}.ha-pill[aria-pressed="true"]{background:#0A84FF;color:#fff}.ha-gr.ha-gk{color:var(--rl,#64D2FF)}.ha-fl{border-radius:16px;background:color-mix(in srgb,var(--ri,#fff) 10%,transparent);padding:14px}.ha-fl .damm,.ha-kn.damm{--fc:#0A84FF}.ha-fl .mopp,.ha-kn.mopp{--fc:#40C8E0}.ha-fd{--fc:#FF9F0A}.ha-fs{position:relative;display:flex;gap:12px;padding-bottom:16px}.ha-fs:last-child{padding-bottom:0}.ha-fs::before{content:"";position:absolute;left:17px;top:40px;bottom:4px;width:2px;border-radius:1px;background:color-mix(in srgb,var(--ri,#fff) 14%,transparent)}.ha-fs:last-child::before{display:none}.ha-fs.klar::before{background:#30D158}.ha-fs.nu::before{background:linear-gradient(var(--fc) var(--p,0%),color-mix(in srgb,var(--ri,#fff) 14%,transparent) var(--p,0%))}.ha-fi{flex:none;display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:color-mix(in srgb,var(--ri,#fff) 10%,transparent);color:color-mix(in srgb,var(--ri,#fff) 60%,transparent)}.ha-fi svg{width:19px;height:19px}.ha-fs.nu .ha-fi{background:var(--fc);color:#fff}.ha-fs.nu .ha-fi{box-shadow:0 0 0 5px color-mix(in srgb,var(--fc) 28%,transparent)}.ha-fs.klar .ha-fi{background:#30D158;color:#fff}.ha-fo .ha-x{display:inline;font-size:inherit;font-weight:600;color:var(--rl,#0A84FF)}.rr-namn{display:flex;flex-wrap:wrap;gap:8px;padding:14px 16px}.sheet .rr-namn button{border:0;border-radius:999px;padding:8px 14px;background:color-mix(in srgb,var(--ink) 7%,transparent);color:var(--ink);font:inherit;font-size:15px;cursor:pointer}.sheet .rr-namn button.on{background:#0A84FF;color:#fff;font-weight:600}.ha-xs{flex:none;display:flex;align-items:stretch;gap:2px;padding:3px;border-radius:10px;background:color-mix(in srgb,var(--ri,#fff) 9%,transparent)}
+.ha-gr b.gor{color:var(--rl,#64D2FF)}.ha-rv .ha-gr span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ha-pill{flex:none;min-height:32px;padding:0 14px;border:0;border-radius:16px;background:color-mix(in srgb,var(--ri,#fff) 12%,transparent);color:color-mix(in srgb,var(--ri,#fff) 75%,transparent);font:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:background .2s,color .2s}.ha-pill[aria-pressed="true"]{background:#0A84FF;color:#fff}.ha-gr.ha-gk{color:var(--rl,#64D2FF)}.ha-fl{border-radius:16px;background:color-mix(in srgb,var(--ri,#fff) 10%,transparent);padding:14px}.ha-fl .damm,.ha-kn.damm{--fc:#0A84FF}.ha-fl .mopp,.ha-kn.mopp{--fc:#40C8E0}.ha-fd{--fc:#FF9F0A}.ha-fs{position:relative;display:flex;gap:12px;padding-bottom:16px}.ha-fs:last-child{padding-bottom:0}.ha-fs::before{content:"";position:absolute;left:17px;top:40px;bottom:4px;width:2px;border-radius:1px;background:color-mix(in srgb,var(--ri,#fff) 14%,transparent)}.ha-fs:last-child::before{display:none}.ha-fs.klar::before{background:#30D158}.ha-fs.nu::before{background:linear-gradient(var(--fc) var(--p,0%),color-mix(in srgb,var(--ri,#fff) 14%,transparent) var(--p,0%))}.ha-fi{flex:none;display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:color-mix(in srgb,var(--ri,#fff) 10%,transparent);color:color-mix(in srgb,var(--ri,#fff) 60%,transparent)}.ha-fi svg{width:19px;height:19px}.ha-fs.nu .ha-fi{background:var(--fc);color:#fff}.ha-fs.nu .ha-fi{box-shadow:0 0 0 5px color-mix(in srgb,var(--fc) 28%,transparent)}.ha-fs.klar .ha-fi{background:#30D158;color:#fff}.ha-fo .ha-x{display:inline;font-size:inherit;font-weight:600;color:var(--rl,#0A84FF)}.ha-fo .ha-rt{display:block;font-size:13px;font-weight:400;color:color-mix(in srgb,var(--ri,#fff) 55%,transparent);font-variant-numeric:tabular-nums}.rr-namn{display:flex;flex-wrap:wrap;gap:8px;padding:14px 16px}.sheet .rr-namn button{border:0;border-radius:999px;padding:8px 14px;background:color-mix(in srgb,var(--ink) 7%,transparent);color:var(--ink);font:inherit;font-size:15px;cursor:pointer}.sheet .rr-namn button.on{background:#0A84FF;color:#fff;font-weight:600}.ha-xs{flex:none;display:flex;align-items:stretch;gap:2px;padding:3px;border-radius:10px;background:color-mix(in srgb,var(--ri,#fff) 9%,transparent)}
 .ha-xs button{display:grid;place-items:center;padding:3px 0 0;box-sizing:border-box;margin:0;min-width:0;width:36px;height:28px;border:0;border-radius:7px;background:none;color:color-mix(in srgb,var(--ri,#fff) 55%,transparent);font:inherit;font-size:13px;font-weight:500;line-height:1;font-variant-numeric:tabular-nums;cursor:pointer;transition:background .2s,color .2s}
 .ha-xs button.on{background:color-mix(in srgb,var(--ri,#fff) 18%,transparent);color:var(--ri,#fff);font-weight:600}
 .ha-fo .ha-ru{display:block;width:max-content;margin-top:1px;position:relative}
@@ -3771,10 +3775,37 @@ body.wall :is(.hab .hab-sc,.hus-sc) .ha-st{gap:4px;padding:8px 4px;border-radius
 .ha-sg.hus-sc-1{grid-template-columns:minmax(0,1fr)}.ha-sg.hus-sc-2{grid-template-columns:repeat(2,minmax(0,1fr))}.ha-sg.hus-sc-3{grid-template-columns:repeat(3,minmax(0,1fr))}
 /* varningen sitter på ikonen så att apparatens namn får plats */
 .ha-g-v .ha-ap .ha-ap-v{position:absolute;top:8px;left:30px;width:20px;height:20px;font-size:13px;box-shadow:0 0 0 2px var(--surface)}
-/* Scenens tidslinje: steg som kort, tunn linje emellan som i Genvägar */
-.hab-steg{overflow:visible}.hab-steg-h{gap:8px}.hab-steg-h .grow{font-weight:600}.hab-steg-i{flex:none;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--fill);color:var(--ink-2)}.hab-steg-i svg{width:17px;height:17px}.hab-steg-i.nu{background:var(--accent);color:#fff}
-.hab-steg-h .hab-steg-x{margin:0}
-.hab-tl{width:2px;height:16px;margin:0 0 0 46px;background:var(--line)}
+/* Scenens tidslinje som dammsugarens flöde: ringar på en linje, Direkt → Vänta → Sedan … → Klart */
+.hab-fl{background:var(--surface);border-radius:var(--r5,26px);padding:16px 16px 16px 12px}
+.hab-fs{position:relative;display:flex;gap:12px;padding-bottom:16px}.hab-fs:last-child{padding-bottom:0}
+.hab-fs::before{content:"";position:absolute;left:15px;top:36px;bottom:4px;width:2px;border-radius:1px;background:var(--line)}.hab-fs:last-child::before{display:none}
+.hab-fi{flex:none;display:grid;place-items:center;width:32px;height:32px;margin-top:6px;border-radius:50%;background:var(--fill);color:var(--ink-2);font-style:normal}.hab-fi svg{width:17px;height:17px}
+.hab-fs.nu .hab-fi{background:var(--accent);color:#fff}.hab-fs.vanta .hab-fi{background:color-mix(in srgb,var(--orange,#FF9500) 16%,transparent);color:var(--orange,#FF9500)}.hab-fs.slut .hab-fi{background:color-mix(in srgb,var(--green,#34C759) 16%,transparent);color:var(--green,#34C759)}
+.hab-ft{flex:1;min-width:0}.hab-fh{display:flex;align-items:center;gap:8px;min-height:44px}.hab-fh .grow{display:flex;flex-direction:column;min-width:0}.hab-fh b{font-size:17px;line-height:22px;font-weight:600}.hab-fh .grow>span{font-size:13px;line-height:18px;color:var(--ink-2)}
+.hab-fx{flex:none;min-height:44px;padding:0 4px;border:0;background:none;color:var(--red,#FF3B30);font:inherit;font-size:15px;cursor:pointer}
+.hab-fl .hab-ljr{display:block;border-top:.5px solid var(--line)}.hab-fh+.hab-ljr{margin-top:4px}
+.hab-lj1{display:flex;align-items:center;gap:8px;min-height:56px}.hab-lj1 .hab-ljsw{margin-left:0;flex:none}
+.hab-lj2{display:flex;align-items:center;gap:8px;padding-bottom:8px}.hab-lj2 .hab-stp{width:36px;height:36px;margin:4px 0}.hab-lj2 .hab-ljv{min-width:48px;font-size:15px}
+.hab-ljb{flex:1;height:8px;border-radius:4px;background:var(--fill);overflow:hidden}.hab-ljb i{display:block;height:100%;border-radius:4px;background:#FFD60A}
+.hab-add{position:relative;border-top:.5px solid var(--line)}.hab-add>summary{list-style:none;display:flex;align-items:center;gap:8px;min-height:44px;color:var(--accent);font-size:17px;cursor:pointer}.hab-add>summary::-webkit-details-marker{display:none}.hab-add>summary svg{width:17px;height:17px}
+.hab-fh+.hab-add{border-top:0}.hab-add .create-options{left:0;right:auto;top:calc(100% - 4px)}.hab-add .create-options button{justify-content:space-between}.hab-add .create-options .grow{flex:1;text-align:left}.hab-add .create-options .meta{color:var(--ink-2);font-size:15px}
+body.wall .hab-lj2 .hab-stp{width:48px;height:48px;margin:0}
+/* Färg och ton i scenens steg, saker utöver lampor, övergång och automatisk start */
+.hab-lj3{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:0 0 12px;margin-right:-16px;padding-right:16px}.hab-lj3::-webkit-scrollbar{display:none}
+.hab-fc{flex:none;display:inline-flex;align-items:center;gap:8px;min-height:36px;padding:0 12px 0 8px;border:0;border-radius:999px;background:var(--fill);color:var(--ink);font:inherit;font-size:15px;cursor:pointer}
+.hab-fc i{flex:none;width:20px;height:20px;border-radius:50%;background:var(--fc);box-shadow:inset 0 0 0 .5px rgba(0,0,0,.18)}
+.hab-fc.rund{width:36px;padding:0;justify-content:center}.hab-fc.rund i{width:24px;height:24px}
+.hab-fc.on{box-shadow:inset 0 0 0 2px var(--accent)}.hab-fc.on span{font-weight:600}
+.hab-ch{flex:none;min-height:36px;padding:0 14px;border:0;border-radius:999px;background:var(--fill);color:var(--ink);font:inherit;font-size:15px;cursor:pointer;white-space:nowrap}.hab-ch.on{background:var(--accent);color:#fff;font-weight:600}
+.hab-xi{flex:none;display:grid;place-items:center;width:28px;height:28px;border-radius:8px;background:var(--fill);color:var(--ink-2)}.hab-xi svg{width:17px;height:17px}
+.hab-tona{display:flex;align-items:center;gap:8px;min-height:44px;padding-bottom:4px}.hab-tona .grow{display:flex;flex-direction:column;min-width:0;font-size:15px}.hab-tona .meta{font-size:13px;color:var(--ink-2)}.hab-tona .hab-stp{width:36px;height:36px}.hab-tnv{min-width:72px;text-align:center;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
+.cell.hab-tona{padding-top:4px;padding-bottom:4px}.cell.hab-tona .grow{font-size:17px}
+.hab-dagar{display:flex;justify-content:space-between;gap:4px}.hab-dag{flex:0 0 40px;width:40px;height:40px;padding:0;display:grid;place-items:center;border:0;border-radius:50%;background:var(--fill);color:var(--ink);font:inherit;font-size:15px;font-weight:600;cursor:pointer}.hab-dag.on{background:var(--accent);color:#fff}
+.hab-bock{display:inline-grid;color:var(--accent)}.hab-bock svg{width:17px;height:17px}
+.hab-vnt .ot-ntb{cursor:default}.hab-vnt .ot-ntk+.ot-ntk{margin-left:0}
+html.ny.ui5 .ha-sg.hus-vnt{display:block;margin:8px 16px 6px}html.ny.ui5 .hus-vnt .ot-nt{box-sizing:border-box;width:100%;max-width:100%;background:var(--surface);border:0;padding:8px}html.ny.ui5 .hus-vnt .ot-ntt{min-width:0;overflow:hidden}html.ny.ui5 .hus-vnt .ot-ntk{height:36px;padding:0 14px;font-size:15px}
+html.ny.ui5 .hab-vnt .ot-ntk:last-child{background:var(--fill);color:var(--ink)}
+body.wall .hab-fc,body.wall .hab-ch{min-height:44px}body.wall .hab-dag{flex-basis:48px;width:48px;height:48px}body.wall .hab-fc.rund{width:44px}
 .hab-flytt{position:static;flex:1;min-width:0}.hab-flytt>summary{list-style:none;display:flex;flex-direction:column;min-width:0;cursor:pointer}.hab-flytt>summary::-webkit-details-marker{display:none}.hab-ljr{position:relative}
 .hab-flytt-n{display:flex;align-items:center;gap:4px}.hab-flytt-c{display:inline-grid;color:var(--ink-3);transform:rotate(90deg)}.hab-flytt-c svg{width:8px;height:13px}
 .hab-flytt .create-options{left:16px;right:auto;top:calc(100% - 8px)}.hab-flytt .create-options button{justify-content:space-between}.hab-flytt .create-options .grow{flex:1;text-align:left}
@@ -4917,7 +4948,7 @@ body.wall .h3d{height:calc(100vh - 290px)}
 <script src="matpoang.js?v=1"></script>
 <script src="restpoang.js?v=1"></script>
 <script src="kottveg.js?v=2"></script>
-<script src="app.js?v=421"></script>
+<script src="app.js?v=424"></script>
 <script>if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}</script>
 </body>
 </html>
