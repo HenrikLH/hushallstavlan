@@ -2482,13 +2482,41 @@ html.ny .cv-ag .cv-ck{margin-top:4px}
 html.ny .cv-dot{width:9px;height:9px;flex:none;border-radius:50%;margin-top:6px;background:var(--gray)}
 html.ny .cv-dot.p1{background:var(--p1)}html.ny .cv-dot.p2{background:var(--p2)}html.ny .cv-dot.m{background:var(--accent)}
 html.ny .cv-tom{color:var(--ink-3);font-size:15px}
-html.ny .cv-tidig{width:100%;display:flex;align-items:center;gap:10px;text-align:left;color:var(--ink)}
+html.ny .cv-tl{padding:12px 16px 6px 0}
+html.ny .cv-tidig{width:100%;display:flex;align-items:center;gap:12px;padding:0 0 12px 14px;text-align:left;color:var(--ink)}
 html.ny .cv-tidig .title{display:block;font-size:15px;font-weight:600;color:var(--ink-2)}
 html.ny .cv-tidig .meta{display:block;font-size:13px;color:var(--ink-3);margin-top:1px}
 html.ny .cv-tidig .chev{color:var(--ink-3);transform:rotate(90deg);transition:transform .2s}
 html.ny .cv-tidig.open .chev{transform:rotate(-90deg)}
-html.ny .cv-band.cv-past span:first-child,html.ny .cv-ag.cv-past .title{color:var(--ink-2)}
-html.ny .cv-ag.cv-past .cv-dot{opacity:.5}
+html.ny .cv-stack{position:relative;width:44px;height:44px;flex:none}
+html.ny .cv-stack i{position:absolute;top:7px;width:30px;height:30px;border-radius:50%;background:color-mix(in srgb,var(--accent) 22%,var(--surface));border:2px solid var(--surface)}
+html.ny .cv-stack i:nth-child(2){left:7px}html.ny .cv-stack i:nth-child(3){left:14px;display:grid;place-items:center;font-size:12px;font-style:normal;font-weight:700;color:var(--accent)}
+html.ny .cv-tr{position:relative;display:flex;gap:12px;padding-left:14px}
+html.ny .cv-tr:before{content:'';position:absolute;left:35px;top:0;bottom:0;width:2px;background:var(--line)}
+html.ny .cv-tr.first:before{top:22px}html.ny .cv-tr.last:before{bottom:auto;height:22px}html.ny .cv-tr.first.last:before{display:none}
+html.ny .cv-tr.past:before{background:color-mix(in srgb,var(--accent) 40%,transparent)}
+html.ny .cv-tn{position:relative;z-index:1;flex:none;width:44px;height:44px;margin-top:2px;border-radius:50%;display:grid;place-items:center;background:var(--surface);border:2px solid var(--line);color:var(--ink);line-height:1}
+html.ny .cv-tn small{display:block;font-size:10px;font-weight:600;text-transform:uppercase;color:var(--ink-2);margin-bottom:1px}
+html.ny .cv-tn b{font-size:16px;font-weight:600}
+html.ny .cv-tn svg{width:18px;height:18px}
+html.ny .cv-tr.past .cv-tn{background:color-mix(in srgb,var(--accent) 22%,var(--surface));border-color:transparent;color:var(--accent)}
+html.ny .cv-tr.today .cv-tn{background:var(--accent);border-color:var(--accent);color:var(--on-accent,#fff)}html.ny .cv-tr.today .cv-tn small{color:inherit;opacity:.8}
+html.ny .cv-tb{flex:1;min-width:0;padding:0 0 14px;border-bottom:.5px solid var(--line);margin-bottom:12px}
+html.ny .cv-tr.last .cv-tb{border-bottom:0;margin-bottom:0}
+html.ny .cv-th{width:100%;min-height:48px;display:flex;align-items:center;justify-content:space-between;text-align:left;font-size:17px;font-weight:600;color:var(--ink)}
+html.ny .cv-th small{font-size:14px;font-weight:500;color:var(--ink-3);margin-left:4px}
+html.ny .cv-th .chev{color:var(--ink-3)}
+html.ny .cv-tr.today .cv-th>span{color:var(--accent)}html.ny .cv-tr.past .cv-th>span{color:var(--ink-2)}
+html.ny .cv-te{display:flex;align-items:flex-start;gap:10px;padding:5px 0}
+html.ny .cv-te .t{width:52px;flex:none;color:var(--ink-2);font-size:15px;padding-top:1px}
+html.ny .cv-te .cv-dot{margin-top:7px}
+html.ny .cv-te .title{display:inline-flex;align-items:center;gap:6px;font-size:16px;color:var(--ink)}
+html.ny .cv-te .title svg{width:16px;height:16px;color:var(--pink,#FF2D55)}
+html.ny .cv-te .meta{display:block;font-size:14px;color:var(--ink-2)}
+html.ny .cv-te .cv-ck{margin-top:4px}
+html.ny .cv-tr.past .cv-te .title{color:var(--ink-2)}html.ny .cv-tr.past .cv-dot{opacity:.5}
+html.ny .cv-tb .cv-tom{font-size:15px;color:var(--ink-3);margin-top:-6px}
+html.ny .cv-nu{display:flex;align-items:center;gap:8px;margin:4px 0;color:var(--red);font-size:13px;font-weight:600}html.ny .cv-nu:after{content:'';flex:1;height:2px;border-radius:2px;background:var(--red)}
 /* Vecka på väggen: sju kolumner med timmar */
 html.ny .cv-wk{margin-top:10px}
 html.ny .cv-wh{display:grid;grid-template-columns:44px repeat(7,minmax(0,1fr));border-bottom:.5px solid var(--line)}
