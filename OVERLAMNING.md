@@ -21,9 +21,9 @@ Claude och Codex: läs AGENTS.md och denna fil (rutinerna finns som skills i `.c
 - Tjänsten installerad på Surfacen 27/11 (6221e21, backup `~/.local/bin/ljussensor.py.fore-scener`); /ha ger `senare` och `schema`. Följ upp: Henrik provar tona, senare steg och självstart i verkligheten.
 - Test: `python3 verktyg/scen-schema-test.py` (falsk-ha, nu med person.*), solljus/disk-vario/ljusvanor-test gröna; `scen-tidslinje.js` telefon ljust/mörkt + vägg, scen-ljusstyrka, scen-andra, alla-flikar telefon + vägg gröna. `hemmet-scener.js` och `smart-hem-scen-omritning.js` faller även på main. Jämförelse: https://claude.ai/artifact/SJ6bRcvuqFHeNSYKkH9yng, bilder /mnt/project-files/scen-tidslinje/.
 
-## Förloppscirklar i dammsugarens tidslinje (förslag, PR mot main)
-- Ägare Claude, gren `claude/project-thread-b5epai`. Henrik 28/11: progress-cirkel per rum och för hela städningen. `haFlode`: rad `.ha-ftot` överst (ring + % + "N min kvar · klar HH:MM", `haRobPct`/`haRobKvar`), omgångens ring runt stegets ikon (`--p`), rummet som städas har ring runt numret (`--rp` från `haRobEst().steg[j].nuG`). Allt på tid.
-- Test: `robot-ringar.js` telefon ljust/mörkt + vägg, robot-tid, robot-skog, alla-flikar telefon/vägg gröna. Bilder /mnt/project-files/apparater/forloppscirklar/. Väntar på Henriks ok.
+## Förloppscirklar i dammsugarens tidslinje (publicerad ht-v427, ångra-gren `version-fore-forloppscirklar`, PR #125)
+- Henrik 28/11: cirkel per rum och för hela städningen. `haFlode`: rad `.ha-ftot` överst (ring + %, `haRobPct`/`haRobKvar`), omgångens ring runt stegets ikon (`--p`), rummet som städas har ring runt numret (`--rp` från `haRobEst().steg[j].nuG`). Siffran i ringen optiskt centrerad (%-tecknet hänger utanför).
+- Test: `robot-ringar.js` telefon ljust/mörkt + vägg, robot-tid, robot-skog, alla-flikar telefon/vägg gröna. Emu-CI faller på main sedan tidigare (Mat-scenario), inte denna ändring.
 
 ## Dammsugaren: förlopp på tid + inlärda tidsestimat (publicerad ht-v422, ångra-gren `version-fore-robot-tid`, PR #122)
 - Ägare Claude, gren `claude/project-thread-915ipq`. Henrik 27/11: procenten ska följa tiden (stora rum väger mer), inte antal rum; appen ska lära sig tid per rum × läge × gånger (× moppläge), avbrutna städningar ska inte påverka.
